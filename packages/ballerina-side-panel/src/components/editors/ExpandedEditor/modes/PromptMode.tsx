@@ -34,6 +34,7 @@ import type { PromptEnhancementRequest } from "@wso2/ballerina-core";
 import { EnhanceModeDialog } from "../controls/EnhanceModeDialog";
 import { RefinementBar } from "../controls/RefinementBar";
 import { EnhancingOverlay } from "../controls/EnhancingOverlay";
+import { DiffView } from "../controls/DiffView";
 
 const SIMPLE_PROMPT_FIELDS = ["query", "instructions", "role"];
 
@@ -93,6 +94,9 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
     // Version history
     const versionHistoryRef = useRef<string[]>([]);
     const [currentVersionIndex, setCurrentVersionIndex] = useState<number>(0);
+
+    // Diff view
+    const [showDiff, setShowDiff] = useState<boolean>(false);
 
     const handleChange = (updatedValue: string, updatedCursorPosition: number) => {
         onChange(updatedValue, updatedCursorPosition);
@@ -268,6 +272,7 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
 
     const handleAccept = () => {
         setEnhancementState({ mode: 'normal' });
+        setShowDiff(false);
         originalPromptRef.current = "";
         enhancedPromptRef.current = "";
         lastInstructionsRef.current = undefined;
@@ -292,6 +297,7 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
         onChange(originalPromptRef.current, cursorPos);
 
         setEnhancementState({ mode: 'normal' });
+        setShowDiff(false);
         originalPromptRef.current = "";
         enhancedPromptRef.current = "";
         lastInstructionsRef.current = undefined;
@@ -332,47 +338,56 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
                 />
             )}
 
-            {/* Editor */}
-            <ConditionalEditorContainer isEnhanced={enhancementState.mode === 'preview' || enhancementState.mode === 'enhancing'}>
-                {isSourceView ? (
-                    <ChipExpressionEditorComponent
-                        value={value}
-                        onChange={handleChange}
-                        completions={isSimpleMode ? [] : completions}
-                        sanitizedExpression={sanitizedExpression}
-                        fileName={fileName}
-                        targetLineRange={targetLineRange}
-                        extractArgsFromFunction={isSimpleMode ? undefined : extractArgsFromFunction}
-                        getHelperPane={isSimpleMode ? undefined : getHelperPane}
-                        rawExpression={rawExpression}
-                        isInExpandedMode={true}
-                        isExpandedVersion={true}
-                        showHelperPaneToggle={false}
-                        onHelperPaneStateChange={handleHelperPaneStateChange}
-                        onEditorViewReady={setCodeMirrorView}
-                        toolbarRef={isSimpleMode ? undefined : rawToolbarRef}
-                        enableListContinuation={true}
-                        inputMode={inputMode}
-                        configuration={getPrimaryInputType(field.types)?.ballerinaType === "string" ? new StringTemplateEditorConfig() : new RawTemplateEditorConfig()}
-                        placeholder={field.placeholder}
+            {/* Editor / Diff View */}
+            {showDiff && enhancementState.mode === 'preview' ? (
+                <ConditionalEditorContainer isEnhanced>
+                    <DiffView
+                        original={originalPromptRef.current}
+                        modified={getCurrentPrompt()}
                     />
-                ) : (
-                    <RichTextTemplateEditor
-                        value={value}
-                        onChange={handleChange}
-                        completions={isSimpleMode ? [] : completions}
-                        fileName={fileName}
-                        targetLineRange={targetLineRange}
-                        extractArgsFromFunction={isSimpleMode ? undefined : extractArgsFromFunction}
-                        getHelperPane={isSimpleMode ? undefined : getHelperPane}
-                        onEditorViewReady={setProseMirrorView}
-                        onHelperPaneStateChange={handleHelperPaneStateChange}
-                        configuration={getPrimaryInputType(field.types)?.ballerinaType === "string" ? new StringTemplateEditorConfig() : new RawTemplateEditorConfig()}
-                        placeholder={field.placeholder}
-                    />
-                )}
-                {enhancementState.mode === 'enhancing' && <EnhancingOverlay />}
-            </ConditionalEditorContainer>
+                </ConditionalEditorContainer>
+            ) : (
+                <ConditionalEditorContainer isEnhanced={enhancementState.mode === 'preview' || enhancementState.mode === 'enhancing'}>
+                    {isSourceView ? (
+                        <ChipExpressionEditorComponent
+                            value={value}
+                            onChange={handleChange}
+                            completions={isSimpleMode ? [] : completions}
+                            sanitizedExpression={sanitizedExpression}
+                            fileName={fileName}
+                            targetLineRange={targetLineRange}
+                            extractArgsFromFunction={isSimpleMode ? undefined : extractArgsFromFunction}
+                            getHelperPane={isSimpleMode ? undefined : getHelperPane}
+                            rawExpression={rawExpression}
+                            isInExpandedMode={true}
+                            isExpandedVersion={true}
+                            showHelperPaneToggle={false}
+                            onHelperPaneStateChange={handleHelperPaneStateChange}
+                            onEditorViewReady={setCodeMirrorView}
+                            toolbarRef={isSimpleMode ? undefined : rawToolbarRef}
+                            enableListContinuation={true}
+                            inputMode={inputMode}
+                            configuration={getPrimaryInputType(field.types)?.ballerinaType === "string" ? new StringTemplateEditorConfig() : new RawTemplateEditorConfig()}
+                            placeholder={field.placeholder}
+                        />
+                    ) : (
+                        <RichTextTemplateEditor
+                            value={value}
+                            onChange={handleChange}
+                            completions={isSimpleMode ? [] : completions}
+                            fileName={fileName}
+                            targetLineRange={targetLineRange}
+                            extractArgsFromFunction={isSimpleMode ? undefined : extractArgsFromFunction}
+                            getHelperPane={isSimpleMode ? undefined : getHelperPane}
+                            onEditorViewReady={setProseMirrorView}
+                            onHelperPaneStateChange={handleHelperPaneStateChange}
+                            configuration={getPrimaryInputType(field.types)?.ballerinaType === "string" ? new StringTemplateEditorConfig() : new RawTemplateEditorConfig()}
+                            placeholder={field.placeholder}
+                        />
+                    )}
+                    {enhancementState.mode === 'enhancing' && <EnhancingOverlay />}
+                </ConditionalEditorContainer>
+            )}
 
             {/* Error Banner */}
             {error ?
@@ -393,6 +408,8 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
                     currentVersionIndex={currentVersionIndex}
                     onVersionNavigate={handleVersionNavigate}
                     promptMode={detectedMode}
+                    showDiff={showDiff}
+                    onToggleDiff={() => setShowDiff(!showDiff)}
                 />
             )}
 

@@ -31,6 +31,8 @@ interface RefinementBarProps {
     currentVersionIndex: number;
     onVersionNavigate: (index: number) => void;
     promptMode?: PromptMode;
+    showDiff: boolean;
+    onToggleDiff: () => void;
 }
 
 const BarContainer = styled.div`
@@ -136,6 +138,28 @@ const NavButton = styled.button`
     }
 `;
 
+const DiffToggleButton = styled.button<{ isActive?: boolean }>`
+    background: ${props => props.isActive ? 'var(--vscode-list-hoverBackground)' : 'none'};
+    border: 1px solid ${props => props.isActive ? 'var(--vscode-focusBorder)' : 'transparent'};
+    color: ${props => props.isActive ? 'var(--vscode-foreground)' : 'inherit'};
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 2px 4px;
+    border-radius: 3px;
+    gap: 4px;
+    font-size: 11px;
+
+    &:hover:not(:disabled) {
+        background-color: var(--vscode-list-hoverBackground);
+        color: var(--vscode-foreground);
+    }
+    &:disabled {
+        opacity: 0.3;
+        cursor: default;
+    }
+`;
+
 const ActionGroup = styled.div`
     display: flex;
     gap: 8px;
@@ -151,6 +175,8 @@ export const RefinementBar: React.FC<RefinementBarProps> = ({
     currentVersionIndex,
     onVersionNavigate,
     promptMode = PromptMode.DEFAULT,
+    showDiff,
+    onToggleDiff,
 }) => {
     const [refineText, setRefineText] = useState("");
 
@@ -193,6 +219,14 @@ export const RefinementBar: React.FC<RefinementBarProps> = ({
 
             <FooterRow>
                 <VersionControl>
+                    <DiffToggleButton
+                        onClick={onToggleDiff}
+                        disabled={isEnhancing}
+                        isActive={showDiff}
+                        title={showDiff ? "Hide changes" : "Show changes"}
+                    >
+                        <Icon name="diff" isCodicon sx={{ fontSize: "14px" }} />
+                    </DiffToggleButton>
                     {versionCount > 1 ? (
                         <>
                             <NavButton
