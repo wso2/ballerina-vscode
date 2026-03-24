@@ -86,7 +86,11 @@ hljs.registerLanguage("ballerina", ballerina);
 
 export const BALLERINA_INTEGRATOR_ISSUES_URL = "https://github.com/wso2/product-ballerina-integrator/issues";
 
-function convertAvailableNodeToPanelNode(node: AvailableNode, functionType?: FUNCTION_TYPE): PanelNode {
+function convertAvailableNodeToPanelNode(
+    node: AvailableNode,
+    functionType?: FUNCTION_TYPE,
+    connectorType?: string
+): PanelNode {
     // Check if node should be filtered based on function type
     if (functionType === FUNCTION_TYPE.REGULAR && (node.metadata.data as NodeMetadata)?.isDataMappedFunction) {
         return undefined;
@@ -94,6 +98,8 @@ function convertAvailableNodeToPanelNode(node: AvailableNode, functionType?: FUN
     if (functionType === FUNCTION_TYPE.EXPRESSION_BODIED && !(node.metadata.data as NodeMetadata)?.isDataMappedFunction) {
         return undefined;
     }
+
+    const isPersistConnection = connectorType === "persist";
 
     // Return common panel node structure
     return {
@@ -119,6 +125,7 @@ function convertAvailableNodeToPanelNode(node: AvailableNode, functionType?: FUN
             <NodeIcon
                 type={functionType === FUNCTION_TYPE.EXPRESSION_BODIED ? "DATA_MAPPER_CALL" : node.codedata.node}
                 size={16}
+                isPersistConnection={isPersistConnection}
             />
         ),
     };
@@ -126,10 +133,12 @@ function convertAvailableNodeToPanelNode(node: AvailableNode, functionType?: FUN
 
 
 function convertDiagramCategoryToSidePanelCategory(category: Category, functionType?: FUNCTION_TYPE): PanelCategory {
+    const connectorType = (category?.metadata?.data as NodeMetadata)?.connectorType;
+
     const items: PanelItem[] = category.items
         ?.map((item) => {
             if ("codedata" in item) {
-                return convertAvailableNodeToPanelNode(item as AvailableNode, functionType);
+                return convertAvailableNodeToPanelNode(item as AvailableNode, functionType, connectorType);
             } else {
                 return convertDiagramCategoryToSidePanelCategory(item as Category, functionType);
             }
@@ -139,14 +148,16 @@ function convertDiagramCategoryToSidePanelCategory(category: Category, functionT
                 return false;
             }
             if ((item as PanelCategory).items !== undefined) {
-                // For categories, use recursive check to see if they have any functions
+                // Always keep subcategories that represent the current integration, even if empty
+                const title = (item as PanelCategory).title;
+                if (title?.toLowerCase().endsWith("(current integration)")) {
+                    return true;
+                }
+                // For other categories, use recursive check to see if they have any functions
                 return (item as PanelCategory).items.length > 0;
             }
             return true;
         });
-
-
-    const connectorType = (category?.metadata?.data as NodeMetadata)?.connectorType;
 
     const icon = category.items.at(0)?.metadata.icon;
     const codedata = (category.items.at(0) as AvailableNode)?.codedata;
@@ -842,7 +853,10 @@ export function convertItemsToCompletionItems(items: Item[]): CompletionItem[] {
         label: item.metadata.label,
         value: item.metadata.label,
         kind: COMPLETION_ITEM_KIND.TypeParameter,
-        insertText: item.metadata.label
+        insertText: item.metadata.label,
+        labelDetails: {
+            description: (item as AvailableNode).codedata?.node
+        }
     }));
 }
 
@@ -927,7 +941,7 @@ const isCategoryType = (item: Item): item is Category => {
 };
 
 export const getFunctionItemKind = (category: string): FunctionKind => {
-    if (category.toLocaleLowerCase().includes("current")) {
+    if (category.toLocaleLowerCase().includes("current") || category.toLocaleLowerCase().includes("within project")) {
         return functionKinds.CURRENT;
     } else if (category.toLocaleLowerCase().includes("imported")) {
         return functionKinds.IMPORTED;

@@ -40,7 +40,9 @@ import {
     McpToolsResponse,
     MemoryManagersRequest,
     MemoryManagersResponse,
-    NodePosition
+    NodePosition,
+    AIGetPackageVersionRequest,
+    AIGetPackageVersionResponse
 } from "@wso2/ballerina-core";
 import { existsSync } from "fs";
 import vscode from "vscode";
@@ -48,6 +50,7 @@ import { URI, Utils } from "vscode-uri";
 import { StateMachine } from "../../stateMachine";
 import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
+import { isLibraryProject } from "../../utils/config";
 import { CONFIGURE_DEFAULT_MODEL_COMMAND } from "../../features/ai/constants";
 
 
@@ -146,6 +149,16 @@ export class AiAgentRpcManager implements AIAgentAPI {
         });
     }
 
+    async getPackageVersion(params: AIGetPackageVersionRequest): Promise<AIGetPackageVersionResponse> {
+        const context = StateMachine.context();
+        try {
+            return await context.langClient.getPackageVersion(params);
+        } catch (error) {
+            console.log(error);
+            return { version: "" };
+        }
+    }
+
     async createAIAgent(params: AIAgentRequest): Promise<AIAgentResponse> {
         return new Promise(async (resolve) => {
             const context = StateMachine.context();
@@ -171,7 +184,7 @@ export class AiAgentRpcManager implements AIAgentAPI {
                 if (params.modelState === 1) {
                     const allModels = await StateMachine.langClient().getAllModels({ agent: fixedAgentCodeData.object, filePath, orgName: aiModuleOrg.orgName });
                     const modelCodeData = allModels.models.find(val => val.object === params.selectedModel);
-                    const modelFlowNode = (await StateMachine.langClient().getNodeTemplate({ filePath, id: modelCodeData, position: { line: 0, offset: 0 } })).flowNode;
+                    const modelFlowNode = (await StateMachine.langClient().getNodeTemplate({ filePath, id: modelCodeData, position: { line: 0, offset: 0 }, isLibrary: await isLibraryProject(StateMachine.context().projectPath ?? '') })).flowNode;
 
                     // Go through the modelFields and assign each value to the flow node
                     params.modelFields.forEach(field => {
@@ -198,7 +211,7 @@ export class AiAgentRpcManager implements AIAgentAPI {
 
 
                 // Get the agent flow node
-                const agentFlowNode = (await StateMachine.langClient().getNodeTemplate({ filePath, id: fixedAgentCodeData, position: { line: 0, offset: 0 } })).flowNode;
+                const agentFlowNode = (await StateMachine.langClient().getNodeTemplate({ filePath, id: fixedAgentCodeData, position: { line: 0, offset: 0 }, isLibrary: await isLibraryProject(StateMachine.context().projectPath ?? '') })).flowNode;
 
                 // Go through the agentFields and assign each value to the flow node
                 params.agentFields.forEach(field => {
@@ -297,6 +310,7 @@ export class AiAgentRpcManager implements AIAgentAPI {
                         position: { line: 0, offset: 0 },
                         filePath: filePath,
                         id: connectorActionCodeData,
+                        isLibrary: await isLibraryProject(StateMachine.context().projectPath ?? ''),
                     });
                 flowNode = connectorActionFlowNode.flowNode;
                 this.updateFlowNodeProperties(flowNode);
@@ -310,6 +324,7 @@ export class AiAgentRpcManager implements AIAgentAPI {
                         position: { line: 0, offset: 0 },
                         filePath: filePath,
                         id: { node: 'FUNCTION_DEFINITION' },
+                        isLibrary: await isLibraryProject(StateMachine.context().projectPath),
                     });
 
                     flowNode = newFunctionFlowNode.flowNode;
@@ -366,6 +381,7 @@ export class AiAgentRpcManager implements AIAgentAPI {
                         position: { line: 0, offset: 0 },
                         filePath: filePath,
                         id: selectedCodeData,
+                        isLibrary: await isLibraryProject(StateMachine.context().projectPath ?? ''),
                     });
                 flowNode = connectorActionFlowNode.flowNode;
                 this.updateFlowNodeProperties(flowNode);
@@ -378,6 +394,7 @@ export class AiAgentRpcManager implements AIAgentAPI {
                         position: { line: 0, offset: 0 },
                         filePath: filePath,
                         id: selectedCodeData,
+                        isLibrary: await isLibraryProject(StateMachine.context().projectPath ?? ''),
                     });
                 flowNode = existingFunctionFlowNode.flowNode;
             }

@@ -16,11 +16,41 @@
  * under the License.
  */
 
-import { CodeData, ConfigVariable, FlowNode, LinePosition, LineRange, NodeKind, SearchNodesQueryParams } from "@wso2/ballerina-core";
+import { CodeData, ConfigVariable, FlowNode, LinePosition, LineRange, NodeKind, Property, SearchNodesQueryParams } from "@wso2/ballerina-core";
 import { BallerinaRpcClient } from "@wso2/ballerina-rpc-client";
 import { cloneDeep } from "lodash";
 import { URI, Utils } from "vscode-uri";
 import { BALLERINA } from "../../../constants";
+
+export const AGENT_ID_AUTH_CONFIG_ID: CodeData = {
+    node: "AGENT_ID_AUTH_CONFIG" as any,
+    org: "ballerina",
+    module: "ai",
+    packageName: "ai",
+    symbol: "AgentIdAuthConfig",
+};
+
+export const fetchOAuthConfigProperties = async (
+    rpcClient: BallerinaRpcClient,
+    filePath: string,
+    position: LinePosition = { line: 0, offset: 0 }
+): Promise<{ key: string; property: Property }[]> => {
+    try {
+        const response = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
+            position,
+            filePath,
+            id: AGENT_ID_AUTH_CONFIG_ID,
+        });
+        if (!response?.flowNode?.properties) return [];
+        return Object.entries(response.flowNode.properties).map(([key, property]) => ({
+            key,
+            property: property as Property,
+        }));
+    } catch (error) {
+        console.error("Error fetching OAuth config properties:", error);
+        return [];
+    }
+};
 
 export const getNodeTemplate = async (
     rpcClient: BallerinaRpcClient,
@@ -35,6 +65,30 @@ export const getNodeTemplate = async (
     });
     console.log(">>> get node template response", response);
     return response?.flowNode;
+};
+
+export const checkAiPackageVersionSupport = async (
+    rpcClient: BallerinaRpcClient,
+    projectPath: string,
+    minVersion: string = "1.11.0"
+): Promise<boolean> => {
+    try {
+        const response = await rpcClient.getAIAgentRpcClient().getPackageVersion({
+            projectPath,
+            org: "ballerina",
+            packageName: "ai",
+        });
+        if (!response?.version) return false;
+        const parts = response.version.split(".").map(Number);
+        const minParts = minVersion.split(".").map(Number);
+        for (let i = 0; i < Math.max(parts.length, minParts.length); i++) {
+            if ((parts[i] || 0) > (minParts[i] || 0)) return true;
+            if ((parts[i] || 0) < (minParts[i] || 0)) return false;
+        }
+        return true;
+    } catch {
+        return false;
+    }
 };
 
 export const getAiModuleOrg = async (rpcClient: BallerinaRpcClient, nodeKind?: NodeKind) => {

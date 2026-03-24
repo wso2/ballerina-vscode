@@ -874,6 +874,8 @@ export interface TraceAnimationEvent {
     spanId: string;
     active: boolean;
     systemInstructions?: string;
+    entrypointServiceName?: string;
+    entrypointFunctionName?: string;
 }
 
 export const traceAnimationChanged: NotificationType<TraceAnimationEvent> = { method: 'traceAnimationChanged' };

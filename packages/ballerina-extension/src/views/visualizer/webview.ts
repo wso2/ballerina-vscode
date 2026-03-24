@@ -25,17 +25,19 @@ import { WebViewOptions, getComposerWebViewOptions, getLibraryWebViewContent } f
 import { extension } from "../../BalExtensionContext";
 import { StateMachine, undoRedoManager, updateView } from "../../stateMachine";
 import { LANGUAGE } from "../../core";
-import { CodeData, MACHINE_VIEW } from "@wso2/ballerina-core";
+import { MACHINE_VIEW } from "@wso2/ballerina-core";
 import { refreshDataMapper } from "../../rpc-managers/data-mapper/utils";
 import { AiPanelWebview } from "../ai-panel/webview";
 import { approvalViewManager } from "../../features/ai/state/ApprovalViewManager";
 import { StateMachinePopup } from "../../stateMachinePopup";
+import { clearFormState } from "../../rpc-managers/bi-diagram/form-state";
+import { isInWI } from "../../utils/config";
 
 export class VisualizerWebview {
     public static currentPanel: VisualizerWebview | undefined;
     public static readonly viewType = "ballerina.visualizer";
     public static readonly ballerinaTitle = "Ballerina Visualizer";
-    public static readonly biTitle = "WSO2 Integrator: BI";
+    public static readonly biTitle = "WSO2 Integrator";
     private _panel: vscode.WebviewPanel | undefined;
     private _disposables: vscode.Disposable[] = [];
 
@@ -132,7 +134,7 @@ export class VisualizerWebview {
     }
 
     public static get webviewTitle(): string {
-        const biExtension = vscode.extensions.getExtension('wso2.ballerina-integrator');
+        const biExtension = isInWI() || vscode.extensions.getExtension('wso2.ballerina-integrator');
         return biExtension ? VisualizerWebview.biTitle : VisualizerWebview.ballerinaTitle;
     }
 
@@ -151,10 +153,10 @@ export class VisualizerWebview {
                 retainContextWhenHidden: true,
             }
         );
-        const biExtension = vscode.extensions.getExtension('wso2.ballerina-integrator');
+        const biExtension = isInWI() || vscode.extensions.getExtension('wso2.ballerina-integrator');
         panel.iconPath = {
-            light: vscode.Uri.file(path.join(extension.context.extensionPath, 'resources', 'icons', biExtension ? 'light-icon.svg' : 'ballerina.svg')),
-            dark: vscode.Uri.file(path.join(extension.context.extensionPath, 'resources', 'icons', biExtension ? 'dark-icon.svg' : 'ballerina-inverse.svg'))
+            light: vscode.Uri.file(path.join(extension.context.extensionPath, 'resources', 'icons', biExtension ? 'wso2-dark.svg' : 'ballerina.svg')),
+            dark: vscode.Uri.file(path.join(extension.context.extensionPath, 'resources', 'icons', biExtension ? 'wso2-light.svg' : 'ballerina-inverse.svg'))
         };
         return panel;
     }
@@ -171,14 +173,14 @@ export class VisualizerWebview {
         // Check if devant.editor extension is active
         const isDevantEditor = vscode.commands.executeCommand('getContext', 'devant.editor') !== undefined;
         
-        const biExtension = vscode.extensions.getExtension('wso2.ballerina-integrator');
+        const biExtension = isInWI() || vscode.extensions.getExtension('wso2.ballerina-integrator');
         const body = `<div class="container" id="webview-container">
                 <div class="loader-wrapper">
                     <div class="welcome-content">
                         <div class="logo-container">
                             <div class="loader"></div>
                         </div>
-                        <h1 class="welcome-title">${biExtension ? 'WSO2 Integrator: BI' : 'Ballerina Visualizer'}</h1>
+                        <h1 class="welcome-title">${biExtension ? VisualizerWebview.biTitle : VisualizerWebview.ballerinaTitle}</h1>
                         <p class="welcome-subtitle">Setting up your workspace and tools</p>
                         <div class="loading-text">
                             <span class="loading-dots">Loading</span>
@@ -300,6 +302,7 @@ export class VisualizerWebview {
 
     public dispose() {
         approvalViewManager.onVisualizerClosed();
+        clearFormState();
 
         VisualizerWebview.currentPanel = undefined;
         this._panel?.dispose();

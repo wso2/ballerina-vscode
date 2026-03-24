@@ -73,7 +73,8 @@ const NODE_COLOR_GROUPS = {
         "FUNCTION_CALL", 
         "DATA_MAPPER_CALL",
         "REMOTE_ACTION_CALL", 
-        "RESOURCE_ACTION_CALL"
+        "RESOURCE_ACTION_CALL",
+        "METHOD_CALL"
     ],
     
     // AI/NP function group - cyan variants
@@ -202,12 +203,16 @@ export const getAIColor = (): string => {
 };
 
 // Icon mapping by node type
-const NODE_ICONS: Record<NodeKind, React.FC<{ size: number; color: string }>> = {
+const NODE_ICONS: Record<NodeKind, React.FC<{ size: number; color: string; isPersistConnection?: boolean }>> = {
     IF: ({ size, color }) => <BranchIcon />,
     MATCH: ({ size, color }) => <Icon name="bi-match" sx={{ fontSize: size, width: size, height: size, color }} />,
     EXPRESSION: ({ size, color }) => <CodeIcon />,
-    REMOTE_ACTION_CALL: ({ size, color }) => <CallIcon />,
-    RESOURCE_ACTION_CALL: ({ size, color }) => <CallIcon />,
+    REMOTE_ACTION_CALL: ({ size, color, isPersistConnection }) =>
+        isPersistConnection ? <Icon name="bi-db" sx={{ fontSize: size, width: size, height: size, color }} /> : <CallIcon />,
+    RESOURCE_ACTION_CALL: ({ size, color, isPersistConnection }) =>
+        isPersistConnection ? <Icon name="bi-db" sx={{ fontSize: size, width: size, height: size, color }} /> : <CallIcon />,
+    METHOD_CALL: ({ size, color, isPersistConnection }) =>
+        isPersistConnection ? <Icon name="bi-db" sx={{ fontSize: size, width: size, height: size, color }} /> : <CodeIcon />,
     RETURN: ({ size, color }) => <ReturnIcon />,
     VARIABLE: ({ size, color }) => <VarIcon />,
     NEW_DATA: ({ size, color }) => <VarIcon />,
@@ -254,7 +259,7 @@ const NODE_ICONS: Record<NodeKind, React.FC<{ size: number; color: string }>> = 
     CHUNKERS: ({ size, color }) => <Icon name="bi-cut" sx={{ fontSize: size, width: size, height: size, color }} />,
     MEMORY_STORE: ({ size, color }) => <Icon name="bi-memory" sx={{ fontSize: size, width: size, height: size, color }} />
     // Default case for any NodeKind not explicitly handled
-} as Record<NodeKind, React.FC<{ size: number; color: string }>>;
+} as Record<NodeKind, React.FC<{ size: number; color: string; isPersistConnection?: boolean }>>;
 
 // Component to listen for theme changes
 export const ThemeListener = ({ onThemeChange }: { onThemeChange: () => void }): React.ReactElement => {
@@ -286,10 +291,11 @@ interface NodeIconProps {
     type: NodeKind;
     size?: number;
     color?: string; // Optional override color
+    isPersistConnection?: boolean;
 }
 
 export function NodeIcon(props: NodeIconProps) {
-    const { type, size = 16, color } = props;
+    const { type, size = 16, color, isPersistConnection } = props;
     const [themeAwareColor, setThemeAwareColor] = useState<string>(color || getNodeChartColor(type));
 
     // Update color when theme changes
@@ -308,12 +314,12 @@ export function NodeIcon(props: NodeIconProps) {
     }, [color, type]);
 
     // Get icon renderer from the mapping or use CodeIcon as default
-    const IconRenderer = NODE_ICONS[type] || (({ size, color }) => <CodeIcon />);
+    const IconRenderer = NODE_ICONS[type] || (({ size, color }: { size: number; color: string; isPersistConnection?: boolean }) => <CodeIcon />);
     
     return (
         <>
             <IconWrapper color={themeAwareColor}>
-                <IconRenderer size={size} color={themeAwareColor} />
+                <IconRenderer size={size} color={themeAwareColor} isPersistConnection={isPersistConnection}/>
             </IconWrapper>
             <ThemeListener onThemeChange={handleThemeChange} />
         </>

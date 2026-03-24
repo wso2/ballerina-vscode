@@ -103,6 +103,9 @@ const SpanTitle = styled.h2`
     font-weight: 600;
     color: var(--vscode-foreground);
     flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 `;
 
 const IdButton = styled.button`

@@ -920,8 +920,8 @@ export function PackageOverview(props: PackageOverviewProps) {
                                     <Title variant="h2">Design</Title>
                                     {!isEmptyIntegration() && (
                                         <ActionContainer>
-                                            <Button appearance="icon" onClick={handleGenerate} buttonSx={{ padding: "2px 8px" }}>
-                                                <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate
+                                            <Button appearance="secondary" onClick={handleGenerate}>
+                                                <Icon name="bi-ai-chat" sx={{ marginRight: 4 }} iconSx={{ position: "relative", top: "2px" }} /> Generate with AI
                                             </Button>
                                             <Button appearance="primary" onClick={handleAddConstruct}>
                                                 <Codicon name="add" sx={{ marginRight: 8 }} /> Add Artifact
@@ -949,7 +949,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                                                     <Codicon name="add" sx={{ marginRight: 8 }} /> Add Artifact
                                                 </Button>
                                                 <Button appearance="secondary" onClick={handleGenerate}>
-                                                    <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate with AI
+                                                    <Icon name="bi-ai-chat" sx={{ marginRight: 4 }} iconSx={{ position: "relative", top: "2px" }} /> Generate with AI
                                                 </Button>
                                             </ButtonContainer>
                                         </EmptyStateContainer>
