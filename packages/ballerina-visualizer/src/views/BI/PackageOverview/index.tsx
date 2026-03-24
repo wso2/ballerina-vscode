@@ -920,7 +920,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                                     <Title variant="h2">Design</Title>
                                     {!isEmptyIntegration() && (
                                         <ActionContainer>
-                                            <Button appearance="icon" onClick={handleGenerate} buttonSx={{ padding: "2px 8px" }}>
+                                            <Button appearance="secondary" onClick={handleGenerate}>
                                                 <Icon name="bi-ai-chat" sx={{ marginRight: 4 }} iconSx={{ position: "relative", top: "2px" }} /> Generate with AI
                                             </Button>
                                             <Button appearance="primary" onClick={handleAddConstruct}>
