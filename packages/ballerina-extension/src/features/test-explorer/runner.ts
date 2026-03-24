@@ -129,12 +129,12 @@ function buildTestCommand(test: TestItem, executor: string, projectName: string 
     }
 }
 
-async function handleEvalReport(run: TestRun, testItems: TestItem[], timeElapsed: number, projectPath: string, individualTest: boolean = false) {
+async function handleEvalReport(run: TestRun, testItems: TestItem[], timeElapsed: number, projectPath: string, individualTest: boolean = false): Promise<boolean> {
     const reportPath = await findLatestEvaluationReport(projectPath);
 
     if (!reportPath) {
         testItems.forEach(item => run.failed(item, new TestMessage('No evaluation report found'), timeElapsed));
-        return;
+        return false;
     }
 
     // Read evaluation report for individual test results
@@ -148,6 +148,8 @@ async function handleEvalReport(run: TestRun, testItems: TestItem[], timeElapsed
     } else if (reportJson) {
         moduleStatus = reportJson["moduleStatus"];
     }
+
+    let allPassed = true;
 
     if (moduleStatus) {
         for (const test of testItems) {
@@ -168,6 +170,7 @@ async function handleEvalReport(run: TestRun, testItems: TestItem[], timeElapsed
                         .filter(m => m.status === TEST_STATUS.FAILED)
                         .map(m => m.failureMessage || 'Evaluation failed');
                     run.failed(test, new TestMessage(failureMessages.join('\n')), timeElapsed);
+                    allPassed = false;
                 } else if (hasSkipped) {
                     run.skipped(test);
                 } else {
@@ -175,10 +178,12 @@ async function handleEvalReport(run: TestRun, testItems: TestItem[], timeElapsed
                 }
             } else if (!individualTest) {
                 run.failed(test, new TestMessage('Test not found in evaluation results'), timeElapsed);
+                allPassed = false;
             }
         }
     } else {
         testItems.forEach(item => run.failed(item, new TestMessage('Could not read evaluation results'), timeElapsed));
+        allPassed = false;
     }
 
     // Post-process and open the report
@@ -193,6 +198,8 @@ async function handleEvalReport(run: TestRun, testItems: TestItem[], timeElapsed
     } catch (error) {
         console.error('Error opening evaluation report:', error);
     }
+
+    return allPassed;
 }
 
 async function postProcessEvaluationReport(reportPath: string, workingDirectory: string): Promise<void> {
@@ -293,8 +300,8 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
                 if (isAiEvaluations(test)) {
-                    handleEvalReport(run, testItems, timeElapsed, projectPath).then(() => {
-                        endGroup(test, true, run);
+                    handleEvalReport(run, testItems, timeElapsed, projectPath).then((allPassed) => {
+                        endGroup(test, allPassed, run);
                     }).catch(() => {
                         endGroup(test, false, run);
                     });
@@ -310,8 +317,8 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
                 if (isAiEvaluations(test)) {
-                    handleEvalReport(run, testItems, timeElapsed, projectPath).then(() => {
-                        endGroup(test, true, run);
+                    handleEvalReport(run, testItems, timeElapsed, projectPath).then((allPassed) => {
+                        endGroup(test, allPassed, run);
                     }).catch(() => {
                         endGroup(test, false, run);
                     });
@@ -343,8 +350,8 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
                 if (isAiEvaluations(test)) {
-                    handleEvalReport(run, testItems, timeElapsed, projectPath).then(() => {
-                        endGroup(test, true, run);
+                    handleEvalReport(run, testItems, timeElapsed, projectPath).then((allPassed) => {
+                        endGroup(test, allPassed, run);
                     }).catch(() => {
                         endGroup(test, false, run);
                     });
@@ -360,8 +367,8 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
                 if (isAiEvaluations(test)) {
-                    handleEvalReport(run, testItems, timeElapsed, projectPath).then(() => {
-                        endGroup(test, true, run);
+                    handleEvalReport(run, testItems, timeElapsed, projectPath).then((allPassed) => {
+                        endGroup(test, allPassed, run);
                     }).catch(() => {
                         endGroup(test, false, run);
                     });
@@ -394,8 +401,8 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
                 if (isAiEvaluations(test)) {
-                    handleEvalReport(run, testItems, timeElapsed, projectPath, true).then(() => {
-                        endGroup(test, true, run);
+                    handleEvalReport(run, testItems, timeElapsed, projectPath, true).then((allPassed) => {
+                        endGroup(test, allPassed, run);
                     }).catch(() => {
                         endGroup(test, false, run);
                     });
@@ -411,8 +418,8 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
                 if (isAiEvaluations(test)) {
-                    handleEvalReport(run, testItems, timeElapsed, projectPath, true).then(() => {
-                        endGroup(test, true, run);
+                    handleEvalReport(run, testItems, timeElapsed, projectPath, true).then((allPassed) => {
+                        endGroup(test, allPassed, run);
                     }).catch(() => {
                         endGroup(test, false, run);
                     });
