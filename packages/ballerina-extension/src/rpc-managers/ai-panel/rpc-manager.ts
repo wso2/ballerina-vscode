@@ -18,6 +18,7 @@
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import {
+    AIMachineEventType,
     AIMachineSnapshot,
     AIPanelAPI,
     AIPanelPrompt,
@@ -35,6 +36,8 @@ import {
     OpenFileDiffRequest,
     ProcessContextTypeCreationRequest,
     ProcessMappingParametersRequest,
+    PromptEnhancementRequest,
+    PromptEnhancementResponse,
     RequirementSpecification,
     RestoreCheckpointRequest,
     SemanticDiffRequest,
@@ -49,6 +52,8 @@ import {
 import * as fs from 'fs';
 import path from "path";
 import * as vscode from 'vscode';
+import { window } from 'vscode';
+import { LOGIN_REQUIRED_WARNING, SIGN_IN_BI_COPILOT } from '../../features/ai/constants';
 
 import { isNumber } from "lodash";
 import { getServiceDeclarationNames } from "../../../src/features/ai/documentation/utils";
@@ -64,6 +69,7 @@ import { sendChatComponentNotification, sendSaveChatNotification } from "../../f
 import { submitFeedback as submitFeedbackUtil } from "../../features/ai/utils/feedback";
 import { sendGenerationDiscardTelemetry, sendGenerationKeptTelemetry } from "../../features/ai/utils/generation-response";
 import { getLLMDiagnosticArrayAsString } from "../../features/natural-programming/utils";
+import { enhancePrompt as enhancePromptService } from "../../features/ai/service/prompt-enhancement/promptEnhancement";
 import { StateMachine, updateView } from "../../stateMachine";
 import { isInWI } from "../../utils";
 import { getLoginMethod, isPlatformExtensionAvailable, loginGithubCopilot } from "../../utils/ai/auth";
@@ -363,6 +369,18 @@ export class AiPanelRpcManager implements AIPanelAPI {
         } catch (error) {
             return false;
         }
+    }
+
+    async enhancePrompt(params: PromptEnhancementRequest): Promise<PromptEnhancementResponse> {
+        return await enhancePromptService(params);
+    }
+
+    promptForLogin(): void {
+        window.showWarningMessage(LOGIN_REQUIRED_WARNING, SIGN_IN_BI_COPILOT).then(selection => {
+            if (selection === SIGN_IN_BI_COPILOT) {
+                AIStateMachine.service().send(AIMachineEventType.LOGIN);
+            }
+        });
     }
 
     async generateAgent(params: GenerateAgentCodeRequest): Promise<boolean> {

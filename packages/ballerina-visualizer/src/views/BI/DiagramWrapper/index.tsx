@@ -383,7 +383,11 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                     {tracingButton}
                     <ActionButton
                         appearance="secondary"
-                        onClick={() => handleResourceTryIt(parentMetadata?.accessor || "", parentMetadata?.label || "")}
+                        onClick={() => {
+                            rpcClient.getCommonRpcClient().executeCommand({
+                                commands: ["ballerina.tryIt", false, undefined, { basePath, listener }]
+                            });
+                        }}
                     >
                         <Icon
                             name="comment-discussion"
