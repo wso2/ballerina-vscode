@@ -39,7 +39,7 @@ async function promptPackageSelection(
     placeHolder?: string
 ): Promise<string | undefined> {
     return window.showQuickPick(availablePackages, {
-        placeHolder: placeHolder || "Select a package",
+        placeHolder: placeHolder || "Select an integration",
         ignoreFocusOut: false
     });
 }

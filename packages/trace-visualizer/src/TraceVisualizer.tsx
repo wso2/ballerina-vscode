@@ -35,6 +35,7 @@ interface TraceVisualizerProps {
     isAgentChat: boolean;
     focusSpanId?: string;
     sessionId?: string;
+    showSidebar?: boolean;
 }
 
 type ViewMode = 'overview' | 'details';
@@ -43,7 +44,8 @@ export function TraceVisualizer({
     initialTraceData,
     isAgentChat,
     focusSpanId,
-    sessionId
+    sessionId,
+    showSidebar
 }: TraceVisualizerProps) {
     const [viewMode, setViewMode] = useState<ViewMode>(initialTraceData ? 'details' : 'overview');
     const [currentTraceData, setCurrentTraceData] = useState<TraceData | undefined>(initialTraceData);
@@ -157,6 +159,7 @@ export function TraceVisualizer({
                 isAgentChat={isAgentChat}
                 focusSpanId={currentFocusSpanId}
                 onViewSession={handleViewSession}
+                showSidebar={showSidebar}
             />
         );
     }

@@ -134,7 +134,7 @@ export async function fetchWithAuth(input: string | URL | Request, options: Requ
         // Handle usage limit exceeded
         if (response.status === 429) {
             console.log("Usage limit exceeded (429)");
-            const error = new Error("Usage limit exceeded. Please try again later.");
+            const error = new Error("Usage limit exceeded.");
             error.name = "UsageLimitError";
             (error as any).statusCode = 429;
             throw error;
@@ -188,8 +188,8 @@ export const getAnthropicClient = async (model: AnthropicModel): Promise<any> =>
             
             // Map Anthropic model names to AWS Bedrock model IDs (base models without region prefix)
             const baseModelMap: Record<AnthropicModel, string> = {
-                [ANTHROPIC_HAIKU]: "anthropic.claude-3-5-haiku-20241022-v1:0",
-                [ANTHROPIC_SONNET_4]: "anthropic.claude-sonnet-4-20250514-v1:0",
+                [ANTHROPIC_HAIKU]: "anthropic.claude-haiku-4-5-20251001-v1:0",
+                [ANTHROPIC_SONNET_4]: "anthropic.claude-sonnet-4-5-20250929-v1:0",
             };
             
             const baseModelId = baseModelMap[model];

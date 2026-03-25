@@ -18,31 +18,25 @@
 
 import { RefObject, MouseEvent } from "react";
 import styled from "@emotion/styled";
-import { Suggestion } from "./hooks/useCommands";
+import { Suggestion, SuggestionType } from "./hooks/useCommands";
 
-/**
- * Styles for the overall suggestions list container.
- */
 const SuggestionsListContainer = styled.ul`
     position: absolute;
     bottom: 100%;
     left: 0;
     background-color: var(--vscode-quickInput-background);
     border: 1px solid var(--vscode-editorWidget-border);
-    border-radius: 4px;
+    border-radius: 8px;
     list-style: none;
-    padding: 0;
+    padding: 4px;
     margin: 4px 0 0 0;
-    max-height: 150px;
+    max-height: 240px;
     overflow-y: auto;
     width: 100%;
     box-sizing: border-box;
     z-index: 1000;
 `;
 
-/**
- * Props to indicate whether this suggestion is currently active/selected.
- */
 interface SuggestionItemProps {
     active: boolean;
 }
@@ -50,8 +44,9 @@ interface SuggestionItemProps {
 const SuggestionItem = styled.li<SuggestionItemProps>`
     padding: 6px 12px;
     cursor: pointer;
+    border-radius: 6px;
     background-color: ${(props: SuggestionItemProps) =>
-        props.active ? "var(--vscode-quickInputList-focusBackground)" : "var(--vscode-quickInput-background)"};
+        props.active ? "var(--vscode-quickInputList-focusBackground)" : "transparent"};
     color: ${(props: SuggestionItemProps) =>
         props.active ? "var(--vscode-quickInputList-focusForeground)" : "var(--vscode-quickInput-foreground)"};
 
@@ -59,6 +54,56 @@ const SuggestionItem = styled.li<SuggestionItemProps>`
         background-color: ${(props: SuggestionItemProps) =>
             props.active ? "var(--vscode-quickInputList-focusBackground)" : "var(--vscode-list-hoverBackground)"};
     }
+`;
+
+const CommandItem = styled.li<SuggestionItemProps>`
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 8px;
+    cursor: pointer;
+    border-radius: 6px;
+    background-color: ${(props: SuggestionItemProps) =>
+        props.active ? "var(--vscode-quickInputList-focusBackground)" : "transparent"};
+    color: ${(props: SuggestionItemProps) =>
+        props.active ? "var(--vscode-quickInputList-focusForeground)" : "var(--vscode-quickInput-foreground)"};
+
+    &:hover {
+        background-color: var(--vscode-list-hoverBackground);
+    }
+`;
+
+const CommandIconBox = styled.span<{ active: boolean }>`
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 13px;
+    background-color: ${(props: { active: boolean }) =>
+        props.active ? "var(--vscode-button-background)" : "var(--vscode-editor-background)"};
+    color: ${(props: { active: boolean }) =>
+        props.active ? "var(--vscode-button-foreground)" : "var(--vscode-descriptionForeground)"};
+`;
+
+const CommandTextGroup = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+`;
+
+const CommandName = styled.span`
+    font-size: 13px;
+    font-family: var(--vscode-font-family);
+`;
+
+const CommandDescription = styled.span`
+    font-size: 11px;
+    opacity: 0.7;
+    font-family: var(--vscode-font-family);
 `;
 
 interface SuggestionsListProps {
@@ -69,9 +114,6 @@ interface SuggestionsListProps {
     onSuggestionMouseDown: (e: MouseEvent) => void;
 }
 
-/**
- * A small presentational component for rendering suggestions below the input.
- */
 const SuggestionsList: React.FC<SuggestionsListProps> = ({
     suggestions,
     activeSuggestionIndex,
@@ -87,6 +129,31 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
         <SuggestionsListContainer role="listbox">
             {suggestions.map((suggestion, index) => {
                 const isActive = index === activeSuggestionIndex;
+
+                if (suggestion.type === SuggestionType.Command) {
+                    return (
+                        <CommandItem
+                            key={suggestion.text + index}
+                            ref={isActive ? activeSuggestionRef : null}
+                            active={isActive}
+                            onClick={() => onSuggestionClick(suggestion)}
+                            onMouseDown={onSuggestionMouseDown}
+                            role="option"
+                            aria-selected={isActive}
+                        >
+                            <CommandIconBox active={isActive}>
+                                <span className={`codicon ${suggestion.icon}`} />
+                            </CommandIconBox>
+                            <CommandTextGroup>
+                                <CommandName>{suggestion.text}</CommandName>
+                                {suggestion.description && (
+                                    <CommandDescription>{suggestion.description}</CommandDescription>
+                                )}
+                            </CommandTextGroup>
+                        </CommandItem>
+                    );
+                }
+
                 return (
                     <SuggestionItem
                         key={suggestion.text + index}

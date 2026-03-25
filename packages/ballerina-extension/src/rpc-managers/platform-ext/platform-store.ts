@@ -31,6 +31,7 @@ interface PlatformExtStore {
 }
 
 const initialState: PlatformExtState = {
+    isExtInstalled: false,
     isLoggedIn: false,
     userInfo: null,
     components: [],

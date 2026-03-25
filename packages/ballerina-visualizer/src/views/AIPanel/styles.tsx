@@ -35,8 +35,10 @@ export const Header = styled.header({
     display: "flex",
     flexDirection: "row",
     justifyContent: "space-between",
-    padding: "10px",
+    alignItems: "center",
+    padding: "8px 10px",
     gap: "10px",
+    borderBottom: "1px solid var(--vscode-panel-border)",
 });
 
 export const HeaderButtons = styled.div({
@@ -61,19 +63,33 @@ export const Main = styled.main({
 });
 
 export const ChatMessage = styled.div({
-    padding: "20px",
-    borderTop: "1px solid var(--vscode-editorWidget-border)",
+    padding: "8px 20px",
 });
 
-export const Badge = styled.div`
-    // padding: 5px;
-    // margin-left: 10px;
-    display: inline-block;
-    text-align: left;
+export const TurnGroup = styled.div``;
+
+export const AuthProviderChip = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+    font-family: var(--vscode-font-family);
 `;
 
-export const ResetsInBadge = styled.div`
-    font-size: 10px;
+export const UsageBadge = styled.span`
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--vscode-foreground);
+    background: var(--vscode-editor-background);
+    font-family: var(--vscode-font-family);
+    white-space: nowrap;
 `;
 
 export const ApprovalOverlay = styled.div`

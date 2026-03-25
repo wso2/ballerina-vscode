@@ -36,15 +36,22 @@ import { readFileSync, readdirSync, statSync } from "fs";
 import path from "path";
 import { isPositionEqual, isPositionWithinDeletedComponent } from "../../utils/history/util";
 import { startDebugging } from "../editor-support/activator";
-import { createBIProjectFromMigration, createBIProjectPure, createBIWorkspace, openInVSCode } from "../../utils/bi";
+import {
+    createBIProjectFromMigration,
+    createBIProjectPure,
+    createBIWorkspaceWithProject,
+    createEmptyBIWorkspace
+} from "../../utils/bi";
 import { checkAndRunPendingEnhancement } from "../ai/migration/orchestrator";
 import { createVersionNumber, findBallerinaPackageRoot, isSupportedSLVersion } from ".././../utils";
 import { extension } from "../../BalExtensionContext";
 import { VisualizerWebview } from "../../views/visualizer/webview";
 import { getCurrentProjectRoot, tryGetCurrentBallerinaFile } from "../../utils/project-utils";
 import { selectPackageOrPrompt, needsProjectDiscovery, requiresPackageSelection } from "../../utils/command-utils";
+import { handleAIAgentServiceDeletion } from "../../utils/ai-service-utils";
 import { findWorkspaceTypeFromWorkspaceFolders } from "../../rpc-managers/common/utils";
 import { MESSAGES } from "../project";
+import { ensureICPServerRunning } from "../icp";
 
 const FOCUS_DEBUG_CONSOLE_COMMAND = 'workbench.debug.action.focusRepl';
 const TRACE_SERVER_OFF = "off";
@@ -56,11 +63,27 @@ export function activate(context: BallerinaExtension) {
     // Set context for command visibility
     commands.executeCommand('setContext', 'ballerina.bi.workspaceSupported', isWorkspaceSupported);
 
-    commands.registerCommand(BI_COMMANDS.BI_RUN_PROJECT, () => {
+    commands.registerCommand(BI_COMMANDS.BI_RUN_PROJECT, async () => {
         const stateMachineContext = StateMachine.context();
         const { workspacePath, view, projectPath, projectInfo } = stateMachineContext;
         const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
         const hasActiveTextEditor = !!window.activeTextEditor;
+
+        // Check if ICP is enabled for this project
+        if (projectPath && stateMachineContext.langClient) {
+            try {
+                const icpStatus = await stateMachineContext.langClient.isIcpEnabled({ projectPath });
+                if (icpStatus && 'enabled' in icpStatus && icpStatus.enabled) {
+                    const proceed = await ensureICPServerRunning();
+                    if (!proceed) {
+                        return;
+                    }
+                }
+            } catch (error) {
+                // ICP check failed, continue with run
+                console.error('[ICP] Error checking ICP status:', error);
+            }
+        }
 
         const needsPackageSelection = requiresPackageSelection(
             workspacePath, view, projectPath, isWebviewOpen, hasActiveTextEditor
@@ -160,7 +183,11 @@ export function activate(context: BallerinaExtension) {
     commands.registerCommand(BI_COMMANDS.CREATE_BI_PROJECT, async (params) => {
         let path: string;
         if (params.createAsWorkspace) {
-            path = await createBIWorkspace(params);
+            if (params.projectName) {
+                path = await createBIWorkspaceWithProject(params);
+            } else {
+                path = await createEmptyBIWorkspace(params);
+            }
         } else {
             path = await createBIProjectPure(params);
         }
@@ -298,14 +325,14 @@ async function handleDebugCommandWithContext() {
 }
 
 /**
- * Prompts user to select a package and starts debugging.
+ * Prompts user to select an integration and starts debugging.
  * @param projectInfo - The project info
  * @returns void
  */
 async function handleDebugCommandWithPackageSelection(projectInfo: ProjectInfo) {
     const availablePackages = projectInfo?.children.map((child: ProjectInfo) => child.projectPath) ?? [];
 
-    const selectedPackage = await selectPackageOrPrompt(availablePackages, "Select a package to debug");
+    const selectedPackage = await selectPackageOrPrompt(availablePackages, "Select an integration to debug");
     if (!selectedPackage) {
         return;
     }
@@ -427,6 +454,10 @@ const handleComponentDeletion = async (componentType: string, itemLabel: string,
 
     for (const component of componentCategory) {
         if (component.name === itemLabel) {
+            if (component.name.startsWith("AI Agent Services")) {
+                await handleAIAgentServiceDeletion(component, rpcClient, filePath, deleteComponent);
+                return;
+            }
             const componentInfo: ComponentInfo = {
                 name: component.name,
                 filePath: component.path,

@@ -16,32 +16,31 @@
 
 import { tool } from 'ai';
 import { z } from 'zod';
-import child_process from 'child_process';
+import { ExecutionContext } from '@wso2/ballerina-core';
 import { CopilotEventHandler } from '../../utils/events';
 import { extension } from '../../../../BalExtensionContext';
+import { spawnProcess, killProcessGroup } from './running-service-manager';
+import { BALLERINA_COMMANDS } from '../../../project/cmds/cmd-runner';
 import { DIAGNOSTICS_TOOL_NAME } from './diagnostics';
+import { integrateAndClearModifiedFiles } from '../utils';
 
 export const TEST_RUNNER_TOOL_NAME = "runTests";
 
 export interface TestRunResult {
     output: string;
+    exitCode: number;
 }
 
 const TestRunnerInputSchema = z.object({});
 
-/**
- * Creates the test runner tool for the AI agent.
- *
- * Executes `bal test` in the temp project directory and returns the full output
- * so the agent can diagnose failures and fix them before completing a task.
- *
- * @param tempProjectPath - Path to the temporary project directory (agent's working dir)
- * @param eventHandler - Event handler to emit tool execution events to the visualizer
- * @returns Tool instance for running the Ballerina test suite
- */
+const DEFAULT_TEST_TIMEOUT = 120000;
+
 export function createTestRunnerTool(
     tempProjectPath: string,
-    eventHandler: CopilotEventHandler
+    eventHandler: CopilotEventHandler,
+    modifiedFiles: string[],
+    allModifiedFiles: Set<string>,
+    ctx: ExecutionContext
 ) {
     return tool({
         description: `Runs \`bal test\` in the current Ballerina project and returns the raw output.
@@ -61,19 +60,23 @@ export function createTestRunnerTool(
         execute: async (_input: Record<string, never>, context?: { toolCallId?: string }): Promise<TestRunResult> => {
             const toolCallId = context?.toolCallId || `fallback-${Date.now()}`;
 
+            await integrateAndClearModifiedFiles(tempProjectPath, modifiedFiles, allModifiedFiles, ctx);
+
             eventHandler({
                 type: "tool_call",
                 toolName: TEST_RUNNER_TOOL_NAME,
                 toolCallId,
+                toolInput: { command: "bal test" },
             });
 
             const result = await runBallerinaTests(tempProjectPath);
+            const status = result.exitCode === 0 ? "completed" : "error";
 
             eventHandler({
                 type: "tool_result",
                 toolName: TEST_RUNNER_TOOL_NAME,
                 toolCallId,
-                toolOutput: { summary: parseTestSummary(result.output) }
+                toolOutput: { status, summary: parseTestSummary(result.output), command: "bal test", exitCode: result.exitCode, output: result.output },
             });
 
             return result;
@@ -93,21 +96,45 @@ function parseTestSummary(output: string): string {
     return "Tests completed";
 }
 
-/**
- * Executes `bal test` in the given directory and parses the output.
- */
 async function runBallerinaTests(cwd: string): Promise<TestRunResult> {
-    return new Promise((resolve) => {
-        const balCmd = extension.ballerinaExtInstance.getBallerinaCmd();
-        const command = `${balCmd} test`;
+    const balCmd = extension.ballerinaExtInstance.getBallerinaCmd();
 
-        console.log(`[TestRunner] Running: ${command} in ${cwd}`);
+    const logs: string[] = [];
+    const { process: proc } = spawnProcess(
+        balCmd,
+        [BALLERINA_COMMANDS.TEST],
+        cwd,
+        logs
+    );
 
-        child_process.exec(command, { cwd }, (err, stdout, stderr) => {
-            const output = [stdout, stderr].filter(Boolean).join('\n').trim();
-
-            console.log(`[TestRunner] Completed. Exit code: ${err?.code ?? 0}`);
-            resolve({ output });
-        });
+    let exited = false;
+    let exitCode = -1;
+    proc.on('close', (code) => {
+        exitCode = code ?? -1;
+        exited = true;
     });
+    proc.on('error', (err) => {
+        logs.push(`\nFailed to start process: ${err.message}\n`);
+        exited = true;
+    });
+
+    // Wait for completion
+    const startTime = Date.now();
+    const pollInterval = 500;
+
+    while (!exited && (Date.now() - startTime) < DEFAULT_TEST_TIMEOUT) {
+        await new Promise(resolve => setTimeout(resolve, pollInterval));
+    }
+
+    const output = logs.join('');
+
+    if (!exited) {
+        killProcessGroup(proc, 'SIGTERM');
+        return {
+            output: output + `\n\nTest execution timed out after ${DEFAULT_TEST_TIMEOUT}ms.`,
+            exitCode: -1,
+        };
+    }
+
+    return { output, exitCode };
 }

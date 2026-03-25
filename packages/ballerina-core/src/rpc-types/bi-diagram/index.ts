@@ -98,7 +98,9 @@ import {
     BISearchNodesRequest,
     BISearchNodesResponse,
     BIDesignModelRequest,
-    BIFlowModelRequest
+    BIFlowModelRequest,
+    GetSimpleTypeOfExpressionRequest,
+    GetSimpleTypeOfExpressionResponse
 } from "../../interfaces/extended-lang-client";
 import {
     ProjectRequest,
@@ -115,6 +117,7 @@ import {
     CurrentBreakpointsResponse,
     FormDidOpenParams,
     FormDidCloseParams,
+    FormDirtyDidChangeParams,
     EndOfFileRequest,
     RecordsInWorkspaceMentions,
     BuildMode,
@@ -178,9 +181,11 @@ export interface BIDiagramAPI {
     getExpressionDiagnostics: (params: ExpressionDiagnosticsRequest) => Promise<ExpressionDiagnosticsResponse>;
     formDidOpen: (params: FormDidOpenParams) => Promise<void>;
     formDidClose: (params: FormDidCloseParams) => Promise<void>;
+    formDirtyDidChange: (params: FormDirtyDidChangeParams) => void;
     getDesignModel: (params: BIDesignModelRequest) => Promise<BIDesignModelResponse>;
     getTypes: (params: GetTypesRequest) => Promise<GetTypesResponse>;
     getType: (params: GetTypeRequest) => Promise<GetTypeResponse>;
+    getSimpleTypeOfExpression: (params: GetSimpleTypeOfExpressionRequest) => Promise<GetSimpleTypeOfExpressionResponse>;
     updateType: (params: UpdateTypeRequest) => Promise<UpdateTypeResponse>;
     updateTypes: (params: UpdateTypesRequest) => Promise<UpdateTypesResponse>;
     deleteType: (params: DeleteTypeRequest) => Promise<DeleteTypeResponse>;

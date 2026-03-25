@@ -133,7 +133,7 @@ export const getValueForTextModeEditor = (value: string | any[] | Record<string,
         }
         return value;
     }
-    return value;
+    return value ?? "";
 }
 
 export function isExpandableMode(mode: InputMode): mode is EditorMode {
@@ -153,7 +153,7 @@ export const getArraySubFormFieldFromTypes = (formId: string, types: InputType[]
         editable: true,
         documentation: "",
         value: "",
-        types: types,
+        types: types.map(type => ({ ...type })),
         enabled: true
     }
 }
@@ -190,7 +190,7 @@ export function stringToRawArrayElements(input: string): string[] {
     const s = input.trim().slice(1, -1);
 
     if (s === "") {
-        return [""];
+        return [];
     }
 
     const result: string[] = [];
@@ -355,3 +355,14 @@ export function getRecordTypeFields(fields: FormField[]): RecordTypeField[] {
                 .filter(member => member.kind === "RECORD_TYPE")
         }));
 }
+
+export const mapDiagnosticsServerityToFormSeverity = (severity: 1 | 2 | 3 | 4) => {
+    switch (severity) {
+        case 1:
+            return "ERROR";
+        case 2:
+            return "WARNING";
+        default:
+            return "INFO";
+    }       
+}    

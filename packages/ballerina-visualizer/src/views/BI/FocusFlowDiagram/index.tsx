@@ -61,6 +61,7 @@ import { ConnectionKind } from "../../../components/ConnectionSelector";
 import { SidePanelView } from "../FlowDiagram/PanelManager";
 import { createPromptHelperPane } from "./utils";
 
+
 const Container = styled.div`
     width: 100%;
     height: calc(100vh - 50px);
@@ -331,7 +332,7 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
             });
     };
 
-    const handleOnEditNode = (node: FlowNode) => {
+    const handleOnEditNode = async (node: FlowNode) => {
         console.log(">>> on edit node", node);
         selectedNodeRef.current = node;
         if (suggestedText.current) {
@@ -343,16 +344,12 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
         if (!targetRef.current) {
             return;
         }
-
         setShowProgressIndicator(true);
-        rpcClient
-            .getBIDiagramRpcClient()
-            .getNodeTemplate({
-                position: targetRef.current.startLine,
-                filePath: model.fileName,
-                id: node.codedata,
-            })
-            .then((response) => {
+        rpcClient.getBIDiagramRpcClient().getNodeTemplate({
+            position: targetRef.current.startLine,
+            filePath: model.fileName,
+            id: node.codedata,
+        }).then((response) => {
                 const nodesWithCustomForms = ["IF", "FORK"];
                 // if node doesn't have properties. don't show edit form
                 if (!response.flowNode.properties && !nodesWithCustomForms.includes(response.flowNode.codedata.node)) {

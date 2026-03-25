@@ -50,6 +50,7 @@ import { activateTryItCommand } from './features/tryit/activator';
 import { activate as activateNPFeatures } from './features/natural-programming/activator';
 import { activateAgentChatPanel } from './views/agent-chat/activate';
 import { activateTracing } from './features/tracing';
+import { activateICP } from './features/icp';
 
 let langClient: ExtendedLangClient;
 export let isPluginStartup = true;
@@ -219,6 +220,9 @@ export async function activateBallerina(): Promise<BallerinaExtension> {
 
         // Activate Tracing Feature
         activateTracing(ballerinaExtInstance);
+
+        // Activate ICP (Integration Control Plane)
+        activateICP(ballerinaExtInstance);
 
         langClient = <ExtendedLangClient>ballerinaExtInstance.langClient;
         // Register showTextDocument listener

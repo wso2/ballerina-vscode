@@ -18,7 +18,7 @@
 
 import { SemanticVersion, PackageTomlValues, SCOPE, WorkspaceTomlValues, ProjectInfo } from '@wso2/ballerina-core';
 import { BallerinaExtension } from '../core';
-import { WorkspaceConfiguration, workspace, Uri, RelativePattern } from 'vscode';
+import { WorkspaceConfiguration, workspace, Uri, RelativePattern, extensions } from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { parse } from '@iarna/toml';
@@ -49,6 +49,8 @@ export const BI_PROJECT_FILES = [
     TYPES_FILE
 ];
 
+export const WI_EXTENSION_ID = 'wso2.wso2-integrator';
+
 interface BallerinaPluginConfig extends WorkspaceConfiguration {
     home?: string;
     debugLog?: boolean;
@@ -71,6 +73,27 @@ export function isWSL(): boolean {
         (process.env.PATH && process.env.PATH.includes('/mnt/c/')) ||
         (process.env.TERM_PROGRAM && process.env.TERM_PROGRAM.includes('vscode'))
     );
+}
+
+/**
+ * Wraps a file path in double quotes if it contains spaces,
+ * so it can be safely used in shell command strings.
+ * Handles already-quoted paths and escapes embedded double quotes.
+ */
+export function quoteShellPath(filePath: string): string {
+    // Strip existing surrounding quotes to normalize
+    let normalized = filePath;
+    if (normalized.length >= 2 && normalized.startsWith('"') && normalized.endsWith('"')) {
+        normalized = normalized.slice(1, -1);
+    }
+
+    if (!normalized.includes(' ')) {
+        return normalized;
+    }
+
+    // Escape any embedded double quotes
+    const escaped = normalized.replace(/"/g, '\\"');
+    return `"${escaped}"`;
 }
 
 export function isSupportedVersion(ballerinaExtInstance: BallerinaExtension, supportedRelease: VERSION,
@@ -187,6 +210,10 @@ export function isSupportedSLVersion(
 }
 
 export function checkIsBI(uri: Uri): boolean {
+    if (isInWI()) {
+        return true;
+    }
+
     const config = workspace.getConfiguration('ballerina', uri);
     const inspected = config.inspect<boolean>('isBI');
 
@@ -199,6 +226,10 @@ export function checkIsBI(uri: Uri): boolean {
         return valuesToCheck.find(value => value === true) !== undefined; // Return true if isBI is set to true
     }
     return false; // Return false if isBI is not set
+}
+
+export function isInWI(): boolean {
+    return !!extensions.getExtension(WI_EXTENSION_ID);
 }
 
 export async function checkIsBallerinaPackage(uri: Uri): Promise<boolean> {

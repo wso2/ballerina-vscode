@@ -56,7 +56,7 @@ export async function sendTelemetryEvent(extension: BallerinaExtension, eventNam
     if (extension.isTelemetryEnabled() && !extension.getCodeServerContext().codeServerEnv) {
         // Only send whitelisted AI telemetry events to Application Insights
         if (shouldSendToAppInsights(eventName, componentName)) {
-            extension.telemetryReporter.sendTelemetryEvent(eventName, await getTelemetryProperties(extension, componentName,
+            extension.telemetryReporter?.sendTelemetryEvent(eventName, await getTelemetryProperties(extension, componentName,
                 customDimensions), measurements);
         }
     }
@@ -68,7 +68,7 @@ export async function sendTelemetryException(extension: BallerinaExtension, erro
     if (extension.isTelemetryEnabled() && !extension.getCodeServerContext().codeServerEnv) {
         // Only send whitelisted AI telemetry exceptions to Application Insights
         if (shouldSendToAppInsights('', componentName)) {
-            extension.telemetryReporter.sendTelemetryException(error, await getTelemetryProperties(extension, componentName,
+            extension.telemetryReporter?.sendTelemetryException(error, await getTelemetryProperties(extension, componentName,
                 params));
         }
     }

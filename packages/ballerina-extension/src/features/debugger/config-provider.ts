@@ -48,6 +48,7 @@ import {
     createVersionNumber
 } from "../../utils";
 import { getProjectWorkingDirectory } from "../../utils/file-utils";
+import { quoteShellPath } from "../../utils/config";
 import { decimal, ExecutableOptions } from 'vscode-languageclient/node';
 import { BAL_NOTEBOOK, getTempFile, NOTEBOOK_CELL_SCHEME } from '../../views/notebook';
 import fileUriToPath from 'file-uri-to-path';
@@ -603,7 +604,8 @@ class BallerinaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFa
     }
     getScriptPath(args: string[]): string {
         args.push('start-debugger-adapter');
-        return extension.ballerinaExtInstance.getBallerinaCmd();
+        // Quote the path to handle spaces in directory names (used with shell: true)
+        return quoteShellPath(extension.ballerinaExtInstance.getBallerinaCmd());
     }
     getCurrentWorkingDir(): string {
         return path.join(extension.ballerinaExtInstance.ballerinaHome, "bin");
@@ -662,7 +664,7 @@ class BIRunAdapter extends LoggingDebugSession {
                 task: 'run'
             };
 
-            let runCommand: string = `${extension.ballerinaExtInstance.getBallerinaCmd()} run`;
+            let runCommand: string = `${quoteShellPath(extension.ballerinaExtInstance.getBallerinaCmd())} run`;
 
             const programArgs = (args as any).programArgs;
             if (programArgs && programArgs.length > 0) {

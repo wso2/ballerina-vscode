@@ -19,6 +19,8 @@
 import * as vscode from 'vscode';
 import { MESSAGES, PALETTE_COMMANDS } from '../../features/project/cmds/cmd-runner';
 import { StateMachine, openView } from '../../stateMachine';
+import { openPopupView, StateMachinePopup } from '../../stateMachinePopup';
+import { hasOpenForm, hasDirtyOpenForm, clearFormState } from '../../rpc-managers/bi-diagram/form-state';
 import { extension } from '../../BalExtensionContext';
 import { BI_COMMANDS, EVENT_TYPE, MACHINE_VIEW, NodePosition, ProjectInfo, SHARED_COMMANDS } from '@wso2/ballerina-core';
 import { buildProjectsStructure } from '../../utils/project-artifacts';
@@ -67,6 +69,33 @@ export function activateSubscriptions() {
                 position,
                 resetHistory = false
             ) => {
+                // When an open form has unsaved edits (react-hook-form isDirty), prompt before navigating away
+                if (hasDirtyOpenForm()) {
+                    const previousContext = StateMachine.context();
+                    const discardAndNavigate = "Discard and Navigate";
+                    const result = await vscode.window.showWarningMessage(
+                        "You have unsaved changes in the open form. Discard changes and navigate?",
+                        { modal: true },
+                        discardAndNavigate
+                    );
+                    if (result !== discardAndNavigate) {
+                        // Revert tree selection back to the previously active item
+                        vscode.commands.executeCommand(BI_COMMANDS.NOTIFY_PROJECT_EXPLORER, {
+                            projectPath: previousContext.projectPath,
+                            documentUri: previousContext.documentUri,
+                            position: previousContext.position,
+                            view: previousContext.view
+                        });
+                        return;
+                    }
+                    if (StateMachinePopup.isActive()) {
+                        openPopupView(EVENT_TYPE.CLOSE_VIEW, { view: null });
+                    }
+                    if (hasOpenForm()) {
+                        clearFormState();
+                    }
+                }
+
                 // Check if position is a LineRange object (has 'start' and 'end' keys)
                 let nodePosition: NodePosition = position;
                 if (position && typeof position === "object" && "start" in position && "end" in position) {
@@ -128,7 +157,7 @@ export function activateSubscriptions() {
                         await StateMachine.updateProjectRootAndInfo(projectRoot, projectInfo);
                     }
                 }
-                
+
                 if (StateMachine.langClient() && StateMachine.context().isBISupported) { // This is added since we can't fetch new diagram data without bi supported ballerina version
                     openView(EVENT_TYPE.OPEN_VIEW, { documentUri: documentPath || vscode.window.activeTextEditor?.document.uri.fsPath, position: nodePosition }, resetHistory);
                 } else {
@@ -200,7 +229,7 @@ function openTypeDiagramView(projectPath?: string, resetHistory = false): void {
 async function openTypeDiagramForWorkspace(projectInfo: ProjectInfo): Promise<boolean> {
     const availablePackages = projectInfo?.children.map((child: any) => child.projectPath) ?? [];
 
-    const selectedPackage = await selectPackageOrPrompt(availablePackages, "Select a package to open type diagram");
+    const selectedPackage = await selectPackageOrPrompt(availablePackages, "Select an integration to open type diagram");
     if (!selectedPackage) {
         return false;
     }
