@@ -24,6 +24,8 @@ import styled from '@emotion/styled';
 import AIPanel from "./views/AIPanel/AIPanel";
 import { AgentChat } from "./views/AgentChatPanel/AgentChat";
 import { MigrationPanel } from "./views/MigrationPanel/MigrationPanel";
+import { EvaluationHistory } from "./views/EvaluationHistory/EvaluationHistory";
+import { EvaluationReport } from "./views/EvaluationReport/EvaluationReport";
 import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react";
 import { Global, css } from '@emotion/react';
 import { DownloadIcon } from "./components/DownloadIcon";
@@ -91,6 +93,8 @@ const MODES = {
     RUNTIME_SERVICES: "runtime-services",
     AGENT_CHAT: "agent-chat",
     MIGRATION: "migration",
+    EVALUATION_HISTORY: "evaluation-history",
+    EVALUATION_REPORT: "evaluation-report"
 };
 
 export function Visualizer({ mode }: { mode: string }) {
@@ -128,6 +132,10 @@ export function Visualizer({ mode }: { mode: string }) {
                         return <AgentChat />
                     case MODES.MIGRATION:
                         return <MigrationPanel />
+                    case MODES.EVALUATION_HISTORY:
+                        return <EvaluationHistory />
+                    case MODES.EVALUATION_REPORT:
+                        return <EvaluationReport />
                 }
             })()}
         </>
@@ -139,7 +147,7 @@ const VisualizerComponent = React.memo(({ state }: { state: MachineStateValue })
         case typeof state === 'object' && 'viewActive' in state && state.viewActive === "viewReady":
             return <MainPanel />;
         case typeof state === 'object' && 'viewActive' in state && state.viewActive === "resolveMissingDependencies":
-            return <PullingDependenciesView />; 
+            return <PullingDependenciesView />;
         default:
             return <LanguageServerLoadingView />;
     }

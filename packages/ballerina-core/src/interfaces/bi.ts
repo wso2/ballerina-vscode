@@ -170,7 +170,8 @@ export type FormFieldInputType = "TEXT" |
     "NUMBER" |
     "REPEATABLE_LIST" |
     "CONDITIONAL_FIELDS" |
-    "DOC_TEXT"
+    "DOC_TEXT" |
+    "GROUP_SECTION"
     ;
 
 export interface BaseType {
@@ -336,6 +337,7 @@ export enum DIRECTORY_MAP {
     CONNECTION = "CONNECTION",
     CONNECTOR = "CONNECTOR",
     DATA_MAPPER = "DATA_MAPPER",
+    AGENT_TOOL = "AGENT_TOOL",
     FUNCTION = "FUNCTION",
     LISTENER = "LISTENER",
     LOCAL_CONNECTORS = "localConnectors",
@@ -411,6 +413,7 @@ export interface ProjectStructureArtifactResponse {
     position?: NodePosition;
     resources?: ProjectStructureArtifactResponse[];
     isNew?: boolean;
+    isPublic?: boolean;
 }
 
 export interface UpdatedArtifactsResponse {
@@ -435,6 +438,8 @@ export type DiagramLabel = "On Fail" | "Body";
 
 export type NodePropertyKey =
     | "agentType"
+    | "credential"
+    | "annotations"
     | "auth"
     | "checkError"
     | "client"
@@ -453,6 +458,7 @@ export type NodePropertyKey =
     | "functionNameDescription"
     | "instructions"
     | "isIsolated"
+    | "isPublic"
     | "maxIter"
     | "memory"
     | "method"
@@ -478,6 +484,7 @@ export type NodePropertyKey =
     | "testConfigValue"
     | "toolKitName"
     | "tools"
+    | "toolScopes"
     | "type"
     | "typeDescription"
     | "variable"
@@ -499,6 +506,7 @@ export type NodeKind =
     | "AGENTS"
     | "AGENT"
     | "AGENT_CALL"
+    | "AGENT_ID_AUTH_CONFIG"
     | "AGENT_RUN"
     | "ASSIGN"
     | "AUTOMATION"

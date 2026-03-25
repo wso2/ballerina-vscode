@@ -48,7 +48,7 @@ export interface AICommandConfig<TParams = any> {
 
     /** Optional chat storage configuration */
     chatStorage?: {
-        workspaceId: string;
+        projectRootPath: string;
         threadId: string;
         enabled: boolean;
     };
@@ -140,8 +140,8 @@ export abstract class AICommandExecutor<TParams = any> {
      * @returns Execution result with temp path and modified files
      */
     async run(): Promise<AIExecutionResult> {
-        const { workspaceId, threadId } = this.config.chatStorage || {
-            workspaceId: this.config.executionContext.projectPath,
+        const { projectRootPath, threadId } = this.config.chatStorage || {
+            projectRootPath: this.config.executionContext.workspacePath || this.config.executionContext.projectPath || '',
             threadId: 'default'
         };
 
@@ -149,7 +149,7 @@ export abstract class AICommandExecutor<TParams = any> {
             console.log(`[AICommandExecutor] Starting ${this.getCommandType()} execution: ${this.config.generationId}`);
 
             // Stage 1: Register active execution for abort support
-            chatStateStorage.setActiveExecution(workspaceId, threadId, {
+            chatStateStorage.setActiveExecution(projectRootPath, threadId, {
                 generationId: this.config.generationId,
                 abortController: this.config.abortController
             });
@@ -174,7 +174,13 @@ export abstract class AICommandExecutor<TParams = any> {
             throw error;
         } finally {
             // Stage 6: Always clear active execution on completion (success or error)
-            chatStateStorage.clearActiveExecution(workspaceId, threadId);
+            chatStateStorage.clearActiveExecution(projectRootPath, threadId);
+
+            // Remove generation if LLM never responded — no model messages means nothing useful to persist
+            const gen = chatStateStorage.getGeneration(projectRootPath, threadId, this.config.generationId);
+            if (gen && gen.modelMessages.length === 0) {
+                chatStateStorage.removeGeneration(projectRootPath, threadId, this.config.generationId);
+            }
         }
     }
 
@@ -186,12 +192,12 @@ export abstract class AICommandExecutor<TParams = any> {
             return;
         }
         try {
-            const { workspaceId, threadId } = this.config.chatStorage;
+            const { projectRootPath, threadId } = this.config.chatStorage;
 
             // Initialize workspace and thread
-            chatStateStorage.getOrCreateThread(workspaceId, threadId);
+            chatStateStorage.getOrCreateThread(projectRootPath, threadId);
 
-            console.log(`[AICommandExecutor] Chat storage initialized: workspace=${workspaceId}, thread=${threadId}`);
+            console.log(`[AICommandExecutor] Chat storage initialized: projectRootPath=${projectRootPath}, thread=${threadId}`);
         } catch (error) {
             console.error('[AICommandExecutor] Failed to initialize chat storage:', error);
             // Don't throw - chat storage is optional
@@ -335,8 +341,8 @@ export abstract class AICommandExecutor<TParams = any> {
         if (!this.config.chatStorage) {
             return [];
         }
-        const { workspaceId, threadId } = this.config.chatStorage;
-        return chatStateStorage.getChatHistoryForLLM(workspaceId, threadId);
+        const { projectRootPath, threadId } = this.config.chatStorage;
+        return chatStateStorage.getChatHistoryForLLM(projectRootPath, threadId);
     }
 
     /**
@@ -348,9 +354,9 @@ export abstract class AICommandExecutor<TParams = any> {
         if (!this.config.chatStorage) {
             return undefined;
         }
-        const { workspaceId, threadId } = this.config.chatStorage;
+        const { projectRootPath, threadId } = this.config.chatStorage;
         return chatStateStorage.addGeneration(
-            workspaceId,
+            projectRootPath,
             threadId,
             userPrompt,
             metadata,

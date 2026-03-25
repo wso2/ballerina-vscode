@@ -28,7 +28,7 @@ import { ComponentInfo, DataMapperMetadata, Diagnostics, DMModel, ImportStatemen
 // ==================================
 export type AIPanelPrompt =
     | { type: 'command-template'; command: Command; templateId: TemplateId; text?: string; params?: Record<string, string>; metadata?: Record<string, any> }
-    | { type: 'text'; text: string; planMode: boolean; codeContext?: CodeContext }
+    | { type: 'text'; text: string; planMode: boolean; codeContext?: CodeContext; autoSubmit?: boolean }
     | undefined;
 
 export interface AIMachineSnapshot {
@@ -304,6 +304,7 @@ export interface GenerateAgentCodeRequest {
     threadId?: string; //TODO: Make this required once we support threads in UI
     isPlanMode: boolean;
     codeContext?: CodeContext;
+    webSearchEnabled?: boolean;
 }
 
 export type LibraryMode = "CORE" | "HEALTHCARE" | "ALL";
@@ -391,11 +392,22 @@ export enum ChangeTypeEnum {
 
 export type ChangeType = "ADDITION" | "MODIFICATION" | "DELETION";
 
+export interface IdentifierMetadata {
+    name: string;
+}
+
+export interface ResourceMetadata {
+    accessor: string;
+    servicePath: string;
+    resourcePath: string;
+}
+
 export interface SemanticDiff {
     changeType: number; // API returns numeric value
     nodeKind: number;   // API returns numeric value
     uri: string;
     lineRange: LineRange;
+    metadata?: ResourceMetadata | IdentifierMetadata;
 }
 
 export interface SemanticDiffResponse {
@@ -447,6 +459,10 @@ export interface ConfigurationCancelRequest {
     comment?: string;
 }
 
+export interface WebToolApprovalRequest {
+    requestId: string;
+}
+
 export type ErrorCode = {
     code: number;
     message: string;
@@ -481,8 +497,38 @@ export interface CheckpointInfo {
  * Optional params default to current workspace and 'default' thread
  */
 export interface AbortAIGenerationRequest {
-    /** Workspace identifier (defaults to current workspace) */
-    workspaceId?: string;
+    /** Project root path (defaults to current workspace/project root) */
+    projectRootPath?: string;
     /** Thread identifier (defaults to 'default') */
     threadId?: string;
+}
+
+export interface UsageResponse {
+    remainingUsagePercentage: number;
+    resetsIn: number; // in seconds
+}
+
+export interface OpenFileDiffRequest {
+    relativePath: string;
+}
+// ==================================
+// Prompt Enhancement Related Interfaces
+// ==================================
+
+export enum PromptMode {
+    ROLE = "role",
+    INSTRUCTIONS = "instructions",
+    QUERY = "query",
+    DEFAULT = "default"
+}
+
+export interface PromptEnhancementRequest {
+    originalPrompt: string;
+    additionalInstructions?: string;
+    mode: PromptMode;
+    isGeneration?: boolean;
+}
+
+export interface PromptEnhancementResponse {
+    enhancedPrompt: string;
 }

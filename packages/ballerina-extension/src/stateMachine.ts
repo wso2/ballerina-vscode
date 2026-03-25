@@ -276,9 +276,13 @@ const stateMachine = createMachine<MachineContext>(
                     src: 'registerProjectArtifactsStructure',
                     onDone: {
                         target: "extensionReady",
-                        actions: assign({
-                            projectStructure: (context, event) => event.data.projectStructure
-                        })
+                        actions: [
+                            assign({
+                                projectStructure: (context, event) => event.data.projectStructure
+                            }),
+                            () => {
+                            }
+                        ]
                     },
                     onError: {
                         target: "lsError",
@@ -379,7 +383,7 @@ const stateMachine = createMachine<MachineContext>(
                                     focusFlowDiagramView: (context, event) => event.data.focusFlowDiagramView,
                                     agentMetadata: (context, event) => event.data.agentMetadata,
                                     dataMapperMetadata: (context, event) => event.data.dataMapperMetadata,
-                                    reviewData: (context, event) => event.data.reviewData,
+                                    reviewData: (context, event) => event.data.reviewData ?? context.reviewData,
                                     evalsetData: (context, event) => event.data.evalsetData,
                                     isViewUpdateTransition: false
                                 })
@@ -535,8 +539,8 @@ const stateMachine = createMachine<MachineContext>(
                         if (webview && (context.isBI || context.view === MACHINE_VIEW.BIWelcome)) {
                             const biExtension = extensions.getExtension('wso2.ballerina-integrator');
                             webview.iconPath = {
-                                light: Uri.file(path.join(extension.context.extensionPath, 'resources', 'icons', biExtension ? 'light-icon.svg' : 'ballerina.svg')),
-                                dark: Uri.file(path.join(extension.context.extensionPath, 'resources', 'icons', biExtension ? 'dark-icon.svg' : 'ballerina-inverse.svg'))
+                                light: Uri.file(path.join(extension.context.extensionPath, 'resources', 'icons', biExtension ? 'wso2-dark.svg' : 'ballerina.svg')),
+                                dark: Uri.file(path.join(extension.context.extensionPath, 'resources', 'icons', biExtension ? 'wso2-light.svg' : 'ballerina-inverse.svg'))
                             };
                         }
                         resolve(true);
@@ -1062,8 +1066,8 @@ function notifyTreeView(
     view?: MACHINE_VIEW
 ) {
     try {
-        const biExtension = extensions.getExtension('wso2.ballerina-integrator');
-        if (biExtension && !biExtension.isActive) {
+        const integratorExtension = extensions.getExtension('wso2.wso2-integrator');
+        if (integratorExtension && !integratorExtension.isActive) {
             return;
         }
 

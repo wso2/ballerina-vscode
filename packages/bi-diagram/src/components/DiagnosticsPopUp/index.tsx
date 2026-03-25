@@ -16,33 +16,81 @@
  * under the License.
  */
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import styled from "@emotion/styled";
-import { Icon, Popover, ThemeColors } from "@wso2/ui-toolkit";
-import { DiagnosticMessage, FlowNode, NodeProperties, Property } from "@wso2/ballerina-core";
+import { Button, Icon, Popover, ThemeColors, Tooltip } from "@wso2/ui-toolkit";
+import { DiagnosticMessage, FlowNode, LineRange, NodeProperties, Property } from "@wso2/ballerina-core";
 import { NODE_WIDTH } from "../../resources/constants";
+import { useDiagramContext } from "../DiagramContext";
 
-const IconBtn = styled.div`
+const IconBtn = styled.div<{ color: string }>`
     width: 20px;
     height: 20px;
     font-size: 20px;
-    color: ${ThemeColors.ERROR};
+    color: ${(props: { color: string }) => props.color};
 `;
 
 const PopupContainer = styled.div`
     max-width: ${NODE_WIDTH}px;
     font-family: "GilmerMedium";
     font-size: 12px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow: visible;
 
     background-color: ${ThemeColors.SURFACE_DIM};
     color: ${ThemeColors.ON_SURFACE};
     padding: 8px;
     ul {
         margin: 0;
-        padding-left: 20px;
+        padding: 0;
+        list-style: none;
     }
+
+    li {
+        margin-bottom: 4px;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+`;
+
+const DiagnosticListItem = styled.li`
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+`;
+
+const DiagnosticIcon = styled.span<{ color: string }>`
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: ${(props: { color: string }) => props.color};
+    flex-shrink: 0;
+    margin-top: 1px;
+`;
+
+const DiagnosticMessageText = styled.span`
+    flex: 1;
+`;
+
+const Footer = styled.div`
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
+`;
+
+const FixButton = styled(Button)`
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+`;
+
+const FixButtonContent = styled.span`
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    white-space: nowrap;
+    width: 100%;
 `;
 
 export interface DiagnosticsPopUpProps {
@@ -51,10 +99,10 @@ export interface DiagnosticsPopUpProps {
 
 export function DiagnosticsPopUp(props: DiagnosticsPopUpProps) {
     const { node } = props;
+    const { onAddNodePrompt, isUserAuthenticated, readOnly } = useDiagramContext();
 
     const [diagnosticsAnchorEl, setDiagnosticsAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
     const isDiagnosticsOpen = Boolean(diagnosticsAnchorEl);
-    const diagnosticMessages: DiagnosticMessage[] = node.diagnostics?.diagnostics || [];
 
     const handleOnDiagnosticsClick = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
         setDiagnosticsAnchorEl(event.currentTarget);
@@ -64,30 +112,135 @@ export function DiagnosticsPopUp(props: DiagnosticsPopUpProps) {
         setDiagnosticsAnchorEl(null);
     };
 
-    const getPropertyDiagnostics = (properties: NodeProperties) => {
+    const getPropertyDiagnostics = (properties: NodeProperties, diagnostics: DiagnosticMessageWithRange[]) => {
         for (const key in properties) {
             if (Object.prototype.hasOwnProperty.call(properties, key)) {
                 const property = properties[key] as Property;
                 if (property.diagnostics && property.diagnostics.hasDiagnostics) {
-                    diagnosticMessages.push(...property.diagnostics.diagnostics);
+                    diagnostics.push(
+                        ...(property.diagnostics.diagnostics || []).map((diagnostic) => ({
+                            diagnostic,
+                            range: property.codedata?.lineRange,
+                        }))
+                    );
                 }
             }
         }
     };
 
-    if (node.properties) {
-        getPropertyDiagnostics(node.properties);
-    }
-    if (node.branches?.length > 0) {
-        node.branches.forEach((branch) => {
-            getPropertyDiagnostics(branch.properties);
+    const diagnosticsWithRanges = useMemo(() => {
+        const diagnostics: DiagnosticMessageWithRange[] = [];
+
+        diagnostics.push(
+            ...((node.diagnostics?.diagnostics || []).map((diagnostic) => ({
+                diagnostic,
+                range: node.codedata?.lineRange,
+            })))
+        );
+
+        if (node.properties) {
+            getPropertyDiagnostics(node.properties, diagnostics);
+        }
+        if (node.branches?.length > 0) {
+            node.branches.forEach((branch) => {
+                getPropertyDiagnostics(branch.properties, diagnostics);
+            });
+        }
+
+        return diagnostics;
+    }, [node]);
+
+    const diagnosticMessages = useMemo(() => {
+        const uniqueDiagnostics = new Map<string, DiagnosticMessage>();
+
+        diagnosticsWithRanges.forEach(({ diagnostic }) => {
+            const key = `${diagnostic.severity}:${diagnostic.message}`;
+            if (!uniqueDiagnostics.has(key)) {
+                uniqueDiagnostics.set(key, diagnostic);
+            }
         });
-    }
+
+        return Array.from(uniqueDiagnostics.values());
+    }, [diagnosticsWithRanges]);
+
+    const getDiagnosticIconName = (severity: DiagnosticMessage["severity"]) => {
+        switch (severity) {
+            case "WARNING":
+                return "warning-outline-rounded";
+            case "INFO":
+                return "info-outline-rounded";
+            case "ERROR":
+            default:
+                return "error-outline-rounded";
+        }
+    };
+
+    const getDiagnosticColor = (severity: DiagnosticMessage["severity"]) => {
+        switch (severity) {
+            case "WARNING":
+                return "var(--vscode-inputValidation-warningForeground)";
+            case "INFO":
+                return ThemeColors.PRIMARY;
+            case "ERROR":
+            default:
+                return ThemeColors.ERROR;
+        }
+    };
+
+    const triggerSeverity: DiagnosticMessage["severity"] = diagnosticMessages.some((diagnostic) => diagnostic.severity === "ERROR")
+        ? "ERROR"
+        : diagnosticMessages.some((diagnostic) => diagnostic.severity === "WARNING")
+            ? "WARNING"
+            : "INFO";
+
+    const targetRange: LineRange | undefined = node.codedata?.lineRange || diagnosticsWithRanges.find((entry) => entry.range)?.range;
+    const canFix =
+        !readOnly &&
+        !!onAddNodePrompt &&
+        !!isUserAuthenticated &&
+        !!targetRange &&
+        diagnosticMessages.length > 0;
+
+    const handleOnFix = () => {
+        if (!canFix || !onAddNodePrompt || !targetRange) {
+            return;
+        }
+
+        const fixPrompt = [
+            "Fix the following diagnostics at this code location:",
+            ...diagnosticMessages.map((diagnostic, index) => `${index + 1}. [${diagnostic.severity}] ${diagnostic.message}`),
+            "",
+            "Apply the minimum required code changes to resolve these diagnostics.",
+        ].join("\n");
+
+        onAddNodePrompt(
+            node,
+            {
+                fileName: targetRange.fileName,
+                startLine: targetRange.startLine,
+                endLine: targetRange.endLine,
+            },
+            fixPrompt,
+            {
+                planMode: false,
+                autoSubmit: true,
+            }
+        );
+        handleOnDiagnosticsClose();
+    };
+
+    const disabledFixTooltip = !isUserAuthenticated
+        ? "You need to be logged into WSO2 Integrator Copilot to fix diagnostics"
+        : !targetRange
+            ? "No source location available for diagnostics"
+            : diagnosticMessages.length === 0
+                ? "No diagnostics found to fix"
+                : undefined;
 
     return (
         <>
-            <IconBtn onClick={handleOnDiagnosticsClick}>
-                <Icon name="error-outline-rounded" />
+            <IconBtn color={getDiagnosticColor(triggerSeverity)} onClick={handleOnDiagnosticsClick}>
+                <Icon name={getDiagnosticIconName(triggerSeverity)} />
             </IconBtn>
             <Popover
                 open={isDiagnosticsOpen}
@@ -99,12 +252,34 @@ export function DiagnosticsPopUp(props: DiagnosticsPopUpProps) {
             >
                 <PopupContainer>
                     <ul>
-                        {diagnosticMessages?.map((diagnostic) => (
-                            <li key={diagnostic.message}>{diagnostic.message}</li>
+                        {diagnosticMessages?.map((diagnostic, index) => (
+                            <DiagnosticListItem key={`${diagnostic.severity}-${diagnostic.message}-${index}`}>
+                                <DiagnosticIcon color={getDiagnosticColor(diagnostic.severity)}>
+                                    <Icon name={getDiagnosticIconName(diagnostic.severity)} />
+                                </DiagnosticIcon>
+                                <DiagnosticMessageText>{diagnostic.message}</DiagnosticMessageText>
+                            </DiagnosticListItem>
                         ))}
                     </ul>
+                    <Footer>
+                        <Tooltip content={disabledFixTooltip}>
+                            <span>
+                                <FixButton appearance="primary" disabled={!canFix} onClick={handleOnFix}>
+                                    <FixButtonContent>
+                                        <Icon name="bi-ai-chat" sx={{ width: 14, height: 14, fontSize: 14 }} />
+                                        <span>Fix with AI</span>
+                                    </FixButtonContent>
+                                </FixButton>
+                            </span>
+                        </Tooltip>
+                    </Footer>
                 </PopupContainer>
             </Popover>
         </>
     );
 }
+
+type DiagnosticMessageWithRange = {
+    diagnostic: DiagnosticMessage;
+    range?: LineRange;
+};

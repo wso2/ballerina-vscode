@@ -20,20 +20,17 @@ import React, { useState } from 'react';
 
 import { DiagramEngine } from '@projectstorm/react-diagrams';
 import { Button, Codicon, Icon, TruncatedLabel, TruncatedLabelGroup } from '@wso2/ui-toolkit';
-import { InputCategory, IOType, Mapping, TypeKind } from '@wso2/ballerina-core';
+import { IOType, Mapping, TypeKind } from '@wso2/ballerina-core';
 
 import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
 import { DataMapperPortWidget, PortState, InputOutputPortModel } from '../../Port';
 import { TreeBody, TreeContainer, TreeHeader } from '../commons/Tree/Tree';
 import { ObjectOutputFieldWidget } from "./ObjectOutputFieldWidget";
 import { useIONodesStyles } from '../../../styles';
-import { useDMCollapsedFieldsStore, useDMIOConfigPanelStore } from '../../../../store/store';
+import { useDMCollapsedFieldsStore, useDMExpressionBarStore, useDMIOConfigPanelStore } from '../../../../store/store';
 import { OutputSearchHighlight } from '../commons/Search';
 import { useShallow } from 'zustand/react/shallow';
-import ArrowWidget from '../commons/ArrowWidget';
-import { OBJECT_OUTPUT_TARGET_PORT_PREFIX } from '../../utils/constants';
-import { FieldActionButton } from '../commons/FieldActionButton';
-import { PayloadWidget } from '../commons/PayloadWidget';
+import { DiagnosticTooltip } from '../../Diagnostic/DiagnosticTooltip';
 
 export interface ObjectOutputWidgetProps {
 	id: string; // this will be the root ID used to prepend for UUIDs of nested fields
@@ -44,7 +41,7 @@ export interface ObjectOutputWidgetProps {
 	getPort: (portId: string) => InputOutputPortModel;
 	context: IDataMapperContext;
 	mappings?: Mapping[];
-	valueLabel: string;
+	valueLabel?: string;
 	originalTypeName?: string;
 }
 
@@ -57,7 +54,6 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 		engine,
 		getPort,
 		context,
-		mappings,
 		valueLabel
 	} = props;
 	const classes = useIONodesStyles();
@@ -75,15 +71,13 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 		}))
 	);
 
-	const fields = outputType.fields?.filter(t => t !== null);
-	const hasFields = fields?.length > 0;
+	const fields = outputType.fields.filter(t => t !== null);
+
+	const exprBarFocusedPort = useDMExpressionBarStore(state => state.focusedPort);
 
 	const portIn = getPort(`${id}.IN`);
-
-	const typeKind = outputType.kind;
-    const isUnknownType = typeKind === TypeKind.Unknown;
-    const isConvertibleType = (typeKind === TypeKind.Json || typeKind === TypeKind.Xml) && !outputType.fields;
-
+	const isExprBarFocused = exprBarFocusedPort?.getName() === portIn?.getName();
+	const isUnknownType = outputType.kind === TypeKind.Unknown;
 
 	let expanded = true;
 	if ((portIn && portIn.attributes.collapsed)) {
@@ -136,7 +130,7 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 		<>
 			<TreeContainer data-testid={`${id}-node`} onContextMenu={onRightClick}>
 				<TreeHeader
-					isSelected={portState !== PortState.Unselected}
+					isSelected={portState !== PortState.Unselected || isExprBarFocused}
 					id={"recordfield-" + id}
 					onMouseEnter={onMouseEnter}
 					onMouseLeave={onMouseLeave}
@@ -153,7 +147,7 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 					</span>
 					<span className={classes.label}>
 						<Button
-							id={"expand-or-collapse-" + id} 
+							id={"expand-or-collapse-" + id}
 							appearance="icon"
 							tooltip="Expand/Collapse"
 							onClick={handleExpand}
@@ -162,17 +156,29 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 							{expanded ? <Codicon name="chevron-down" /> : <Codicon name="chevron-right" />}
 						</Button>
 						{label}
-						{outputType.category === InputCategory.ConvertedVariable && (
-							<FieldActionButton
-								id={"field-action-edit-" + id}
-								tooltip="Edit"
-								iconName="settings-gear"
-								onClick={async () => await context.createConvertedVariable(outputType.name, false, outputType.typeName)}
-							/>
-						)}
 					</span>
+					{context.model.hasInvalidOutput && (
+						<DiagnosticTooltip
+							placement="right"
+							diagnostic="Output has invalid fields"
+							actionText="Fix by removing invalid fields"
+							onClick={context.resolveOutput}
+						>
+							<Button
+								appearance="icon"
+								data-testid={`array-widget-field-${portIn?.getName()}`}
+								data-field-action
+							>
+								<Icon
+									name="error-icon"
+									sx={{ height: "14px", width: "14px" }}
+									iconSx={{ fontSize: "14px", color: "var(--vscode-errorForeground)" }}
+								/>
+							</Button>
+						</DiagnosticTooltip>
+					)}
 				</TreeHeader>
-				{(expanded && hasFields) && (
+				{(expanded && fields) && (
 					<TreeBody>
 						{fields?.map((item, index) => {
 							return (
@@ -191,32 +197,6 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 					</TreeBody>
 				)}
 			</TreeContainer>
-			{expanded && outputType.convertedField &&
-                <>
-                    <ArrowWidget direction="up" />
-                    <ObjectOutputWidget
-						engine={engine}
-						id={`${OBJECT_OUTPUT_TARGET_PORT_PREFIX}.${outputType.convertedField.name}`}
-						outputType={outputType.convertedField}
-						typeName={outputType.convertedField.typeName}
-						value={undefined}
-						getPort={getPort}
-						context={context}
-						mappings={mappings}
-						valueLabel={outputType.convertedField.name}
-						originalTypeName={outputType.convertedField.typeName}
-					/>
-                </>
-            }
-			{expanded && isConvertibleType && !outputType.convertedField &&
-				<>
-					<ArrowWidget direction="up" />
-					<PayloadWidget
-						onClick={async () => await context.createConvertedVariable(valueLabel, false, undefined, outputType.typeName)}
-						typeName={outputType.typeName}
-					/>
-				</>
-			}
 		</>
 	);
 }

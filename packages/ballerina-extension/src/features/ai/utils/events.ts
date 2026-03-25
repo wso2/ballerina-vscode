@@ -27,14 +27,15 @@ import {
     sendToolCallNotification,
     sendToolResultNotification,
     sendTaskApprovalRequestNotification,
+    sendWebToolApprovalNotification,
     sendAbortNotification,
     sendSaveChatNotification,
     sendConnectorGenerationNotification,
     sendConfigurationCollectionNotification,
-    sendReviewActionsNotification,
     sendMigrationPanelNotification,
     sendVisualizerMigrationNotification,
     sendAIPanelNotification,
+    sendChatComponentNotification,
 } from "./ai-utils";
 
 export type CopilotEventHandler = (event: ChatNotify) => void;
@@ -82,7 +83,7 @@ export function createWebviewEventHandler(command: Command): CopilotEventHandler
                 sendToolCallNotification(event.toolName, event.toolInput, event.toolCallId);
                 break;
             case "tool_result":
-                sendToolResultNotification(event.toolName, event.toolOutput, event.toolCallId);
+                sendToolResultNotification(event.toolName, event.toolOutput, event.toolCallId, event.failed);
                 break;
             case "task_approval_request":
                 console.log("[Event Handler] Task approval request received:", event);
@@ -101,14 +102,17 @@ export function createWebviewEventHandler(command: Command): CopilotEventHandler
             case "diagnostics":
                 sendDiagnosticMessageNotification(event.diagnostics);
                 break;
-            case "review_actions":
-                sendReviewActionsNotification();
-                break;
             case "connector_generation_notification":
                 sendConnectorGenerationNotification(event);
                 break;
             case "configuration_collection_event":
                 sendConfigurationCollectionNotification(event);
+                break;
+            case "chat_component":
+                sendChatComponentNotification(event.componentType, event.data);
+                break;
+            case "web_tool_approval_request":
+                sendWebToolApprovalNotification(event.requestId, event.toolName, event.content);
                 break;
             default:
                 console.warn(`Unhandled event type: ${event}`);

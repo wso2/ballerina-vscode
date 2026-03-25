@@ -33,7 +33,8 @@ import {
     MessageQueuePayloadContext,
     FileAttatchment,
     OperationType,
-    Protocol
+    Protocol,
+    webToolToggle
 } from "@wso2/ballerina-core";
 import { ModelMessage } from "ai";
 import { MessageRole } from "./ai-types";
@@ -181,10 +182,8 @@ export function sendDiagnosticMessageNotification(diags: DiagnosticEntry[]): voi
     sendAIPanelNotification(msg);
 }
 
-export function sendReviewActionsNotification(): void {
-    const msg: ChatNotify = {
-        type: "review_actions",
-    };
+export function sendChatComponentNotification(componentType: string, data: Record<string, any>): void {
+    const msg: ChatNotify = { type: "chat_component", componentType, data };
     sendAIPanelNotification(msg);
 }
 
@@ -245,12 +244,13 @@ export function sendToolCallNotification(toolName: string, toolInput?: any, tool
     sendAIPanelNotification(msg);
 }
 
-export function sendToolResultNotification(toolName: string, toolOutput?: any, toolCallId?: string): void {
+export function sendToolResultNotification(toolName: string, toolOutput?: any, toolCallId?: string, failed?: boolean): void {
     const msg: ToolResult = {
         type: "tool_result",
-        toolName: toolName,
-        toolOutput: toolOutput,
-        toolCallId: toolCallId,
+        toolName,
+        toolOutput,
+        toolCallId,
+        failed,
     };
     sendAIPanelNotification(msg);
 }
@@ -263,6 +263,16 @@ export function sendTaskApprovalRequestNotification(approvalType: "plan" | "comp
         tasks: tasks,
         taskDescription: taskDescription,
         message: message,
+    };
+    sendAIPanelNotification(msg);
+}
+
+export function sendWebToolApprovalNotification(requestId: string, toolName: "web_search" | "web_fetch", content: string): void {
+    const msg: ChatNotify = {
+        type: "web_tool_approval_request",
+        requestId,
+        toolName,
+        content,
     };
     sendAIPanelNotification(msg);
 }
@@ -300,6 +310,14 @@ export function sendConfigurationCollectionNotification(event: ChatNotify & { ty
     sendAIPanelNotification(event);
 }
 
+export function sendWebToolToggleNotification(active: boolean): void {
+    RPCLayer._messenger.sendNotification(
+        webToolToggle,
+        { type: "webview", webviewType: AiPanelWebview.viewType },
+        { active }
+    );
+}
+
 export function sendAIPanelNotification(msg: ChatNotify): void {
     RPCLayer._messenger.sendNotification(onChatNotify, { type: "webview", webviewType: AiPanelWebview.viewType }, msg);
 }
@@ -332,7 +350,7 @@ export function getErrorMessage(error: unknown): string {
     if (error instanceof Error) {
         // Standard Error objects have a .message property
         if (error.name === "UsageLimitError") {
-            return "Usage limit exceeded. Please try again later.";
+            return "Usage limit exceeded.";
         }
         if (error.name === "AI_RetryError") {
             return "An error occurred connecting with the AI service. Please try again later.";
@@ -370,7 +388,7 @@ export function getErrorMessage(error: unknown): string {
     ) {
         // Check if it has a statusCode property indicating 429
         if ("statusCode" in error && (error as any).statusCode === 429) {
-            return "Usage limit exceeded. Please try again later.";
+            return "Usage limit exceeded.";
         }
         return (error as { message: string }).message;
     }

@@ -327,9 +327,12 @@ export function handleExpand(id: string, expanded: boolean) {
 }
 
 export function isExpandable(field: IOType): boolean {
-    return field?.kind === TypeKind.Record ||
-        field?.kind === TypeKind.Array ||
-        field?.kind === TypeKind.Enum;
+    const fieldKind = field?.kind;
+    return fieldKind === TypeKind.Record ||
+        fieldKind === TypeKind.Array ||
+        fieldKind === TypeKind.Json ||
+        fieldKind === TypeKind.Xml ||
+        fieldKind === TypeKind.Enum;
 }
 
 export function getTargetField(viewId: string, outputId: string){
@@ -348,11 +351,16 @@ export function isWithinSubMappingRootView(views: View[]): boolean {
 
 export function isQueryHeaderPort(port: InputOutputPortModel): boolean {
     // This function intentionally placed here instead of port-utils.ts to avoid cyclic dependency issues
-    return port.attributes.portName.endsWith(".#");
+    return port.attributes.portName.endsWith("Q#");
 }
 
 export function isGroupHeaderPort(port: InputOutputPortModel): boolean {
     // This function intentionally placed here instead of port-utils.ts to avoid cyclic dependency issues
-    return port.attributes.portName.endsWith("$");
+    return port.attributes.portName.endsWith("G#");
+}
+
+export function isHeaderPort(port: InputOutputPortModel): boolean {
+    // This function intentionally placed here instead of port-utils.ts to avoid cyclic dependency issues
+    return port.attributes.portName.endsWith("#");
 }
 

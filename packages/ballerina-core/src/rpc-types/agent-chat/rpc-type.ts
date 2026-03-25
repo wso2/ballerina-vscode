@@ -17,7 +17,7 @@
  * 
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
-import { ChatReqMessage, ChatRespMessage, TraceInput, TraceStatus, ChatHistoryResponse, AgentStatusResponse, ClearChatResponse, SessionInput } from "./interfaces";
+import { ChatReqMessage, ChatRespMessage, TraceInput, TraceStatus, ChatHistoryResponse, AgentStatusResponse, ClearChatResponse, SessionInput, SessionInfoResponse, AvailableAgentsResponse, SwitchAgentRequest, SwitchAgentResponse } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
 const _preFix = "agent-chat";
@@ -29,3 +29,7 @@ export const showSessionOverview: NotificationType<SessionInput> = { method: `${
 export const getChatHistory: RequestType<void, ChatHistoryResponse> = { method: `${_preFix}/getChatHistory` };
 export const clearChatHistory: RequestType<void, ClearChatResponse> = { method: `${_preFix}/clearChatHistory` };
 export const getAgentStatus: RequestType<void, AgentStatusResponse> = { method: `${_preFix}/getAgentStatus` };
+export const getSessionInfo: RequestType<void, SessionInfoResponse> = { method: `${_preFix}/getSessionInfo` };
+export const getAvailableChatAgents: RequestType<void, AvailableAgentsResponse> = { method: `${_preFix}/getAvailableChatAgents` };
+export const switchChatAgent: RequestType<SwitchAgentRequest, SwitchAgentResponse> = { method: `${_preFix}/switchChatAgent` };
+export const activeAgentChanged: NotificationType<string> = { method: `${_preFix}/activeAgentChanged` };

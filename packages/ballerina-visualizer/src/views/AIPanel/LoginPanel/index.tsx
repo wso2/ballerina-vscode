@@ -17,11 +17,13 @@
  */
 
 import styled from "@emotion/styled";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 import { AIMachineEventType } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Icon, Typography } from "@wso2/ui-toolkit";
 import React, { useEffect, useState } from "react";
+import { Banner } from "../../../components/Banner";
 
 const PanelWrapper = styled.div`
     display: flex;
@@ -106,12 +108,18 @@ const TextButton = styled.button`
     }
 `;
 
+const InstallingContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+`;
+
 const LegalNotice: React.FC = () => {
     return (
         <PostLoginSection>
             <div>
-                BI Copilot uses AI to assist with integration. Please review all suggested content before adding it to
-                your integration.
+                WSO2 Integrator Copilot uses AI to assist with integration. AI-generated content may contain mistakes. Always review changes.
             </div>
             <div>
                 By signing in, you agree to our{" "}
@@ -130,16 +138,24 @@ const LegalNotice: React.FC = () => {
 
 const LoginPanel: React.FC = () => {
     const { rpcClient } = useRpcContext();
-    const [isPlatformAvailable, setIsPlatformAvailable] = useState<boolean>(true);
 
-    useEffect(() => {
-        // Check if platform extension is available on mount
-        rpcClient.getAiPanelRpcClient().isPlatformExtensionAvailable().then((available) => {
-            setIsPlatformAvailable(available);
-        }).catch(() => {
-            setIsPlatformAvailable(false);
-        });
-    }, [rpcClient]);
+    const { data: isPlatformAvailable, refetch: refetchPlatformAvailability } = useQuery({
+        queryKey: ["platform-availability"],
+        queryFn: () => rpcClient.getAiPanelRpcClient().isPlatformExtensionAvailable(),
+    })
+
+    const { 
+        mutate: installExtension, 
+        isPending: isInstallingExtension, 
+        error: installExtensionError 
+    } = useMutation({
+        mutationFn: async() => {
+            return rpcClient.getCommonRpcClient().executeCommand({
+                commands: ["workbench.extensions.installExtension", "wso2.wso2-integrator"],
+            })
+        },
+        onSettled: (data, err) => refetchPlatformAvailability(),
+    })
 
     const handleCopilotLogin = () => {
         rpcClient.sendAIStateEvent(AIMachineEventType.LOGIN);
@@ -166,7 +182,7 @@ const LoginPanel: React.FC = () => {
                     sx={{ width: 54, height: 54 }}
                     iconSx={{ fontSize: "54px", color: "var(--vscode-foreground)", cursor: "default" }}
                 />
-                <Title>Welcome to BI Copilot</Title>
+                <Title>Welcome to WSO2 Integrator Copilot</Title>
                 <Typography
                     variant="body1"
                     sx={{
@@ -182,10 +198,27 @@ const LoginPanel: React.FC = () => {
             <BottomSpacer />
             <FooterContent>
                 <LegalNotice />
-                {isPlatformAvailable && (
-                    <StyledButton onClick={handleCopilotLogin}>Login using Devant</StyledButton>
+                {isPlatformAvailable ? (
+                    <StyledButton onClick={handleCopilotLogin}>Login using WSO2 Integration Platform</StyledButton>
+                ) : (
+                    <InstallingContainer>  
+                        Install WSO2 Integrator to sign in and use BI Copilot.
+                        <StyledButton 
+                            disabled={isInstallingExtension || undefined} 
+                            onClick={installExtension}
+                            appearance="secondary"
+                        >
+                            Install WSO2 Integrator
+                        </StyledButton>
+                        {installExtensionError && 
+                            <Banner 
+                                variant="error" 
+                                message={installExtensionError?.message || "Failed to install WSO2 Integrator"}
+                            />
+                        }
+                    </InstallingContainer>
                 )}
-                {isPlatformAvailable && <Divider>or</Divider>}
+                <Divider>or</Divider>
                 <TextButton onClick={handleAnthropicKeyClick}>Enter your Anthropic API key</TextButton>
                 <TextButton onClick={handleAwsBedrockClick}>Enter your AWS Bedrock credentials</TextButton>
                 <TextButton onClick={handleVertexAiClick}>Enter your Google Vertex AI credentials</TextButton>

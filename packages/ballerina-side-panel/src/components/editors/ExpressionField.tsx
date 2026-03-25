@@ -32,7 +32,7 @@ import { LineRange } from '@wso2/ballerina-core/lib/interfaces/common';
 import { FormField, HelperpaneOnChangeOptions } from '../Form/types';
 import { ChipExpressionEditorComponent } from './MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor';
 import RecordConfigPreviewEditor from './MultiModeExpressionEditor/RecordConfigPreviewEditor/RecordConfigPreviewEditor';
-import { NumberExpressionEditorConfig, RawTemplateEditorConfig, SQLExpressionEditorConfig, StringTemplateEditorConfig } from './MultiModeExpressionEditor/Configurations';
+import { BooleanEditorConfig, NumberExpressionEditorConfig, RawTemplateEditorConfig, SQLExpressionEditorConfig, StringTemplateEditorConfig } from './MultiModeExpressionEditor/Configurations';
 import NumberExpressionEditor from './MultiModeExpressionEditor/NumberExpressionEditor/NumberEditor';
 import { EnumEditor } from './MultiModeExpressionEditor/EnumEditor/EnumEditor';
 import { SQLExpressionEditor } from './MultiModeExpressionEditor/SqlExpressionEditor/SqlExpressionEditor';
@@ -41,6 +41,7 @@ import { getPrimaryInputType, isDropDownType } from '@wso2/ballerina-core';
 import { ChipExpressionEditorDefaultConfiguration } from './MultiModeExpressionEditor/ChipExpressionEditor/ChipExpressionDefaultConfig';
 import { DynamicArrayBuilder } from './MultiModeExpressionEditor/DynamicArrayBuilder/DynamicArrayBuilder';
 import { isRecord } from './utils';
+import { ConnectionSelectEditor } from './MultiModeExpressionEditor/ConnectionSelectEditor/ConnectionSelectEditor';
 
 export interface ExpressionFieldProps {
     field: FormField;
@@ -116,6 +117,8 @@ export const getEditorConfiguration = (inputMode: InputMode) => {
             return new NumberExpressionEditorConfig();
         case InputMode.SQL:
             return new SQLExpressionEditorConfig();
+        case InputMode.BOOLEAN:
+            return new BooleanEditorConfig();
         default:
             return new ChipExpressionEditorDefaultConfiguration();
     }
@@ -176,20 +179,31 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
             />
         );
     }
-    if (inputMode === InputMode.SELECT && isDropDownType(primaryInputType)) {
-        return (
-            <EnumEditor
-                value={value}
-                field={field}
-                onChange={(val) => onChange(val, val?.length)}
-                items={primaryInputType.options.map(option => (
-                    {
-                        id: option.value,
-                        content: option.label,
-                        value: option.value
-                    }))}
-            />
-        );
+    if (inputMode === InputMode.SELECT) {
+        if (field.codedata?.searchNodesKind) {
+            return (
+                <ConnectionSelectEditor
+                    value={value}
+                    field={field}
+                    onChange={(val) => onChange(val, val?.length)}
+                />
+            );
+        }
+        if (isDropDownType(primaryInputType)) {
+            return (
+                <EnumEditor
+                    value={value}
+                    field={field}
+                    onChange={(val) => onChange(val, val?.length)}
+                    items={primaryInputType.options.map(option => (
+                        {
+                            id: option.value,
+                            content: option.label,
+                            value: option.value
+                        }))}
+                />
+            );
+        }
     }
     if (inputMode === InputMode.RECORD) {
         return (

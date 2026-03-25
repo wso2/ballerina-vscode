@@ -115,7 +115,7 @@ export async function updateSourceCodeIteratively(updateSourceCodeRequest: Updat
     const filePaths = Object.keys(textEdits);
 
     if (filePaths.length == 1) {
-        return await updateSourceCode({ ...updateSourceCodeRequest, description: 'Data Mapper Update' }, undefined, true);
+        return await updateSourceCode({ ...updateSourceCodeRequest, description: 'Data Mapper Update' });
     }
 
     // TODO: Remove this once the designModelService/publishArtifacts API supports simultaneous file changes
@@ -138,7 +138,7 @@ export async function updateSourceCodeIteratively(updateSourceCodeRequest: Updat
 
     let updatedArtifacts: ProjectStructureArtifactResponse[];
     for (const request of requests) {
-        updatedArtifacts = await updateSourceCode({ ...request, description: 'Data Mapper Update' }, undefined, true);
+        updatedArtifacts = await updateSourceCode({ ...request, description: 'Data Mapper Update' });
     }
 
     return updatedArtifacts;
@@ -216,7 +216,7 @@ export async function updateSubMappingSource(
     name: string
 ): Promise<CodeData> {
     try {
-        await updateSourceCode({ textEdits: textEdits, description: 'Sub Mapping Update' }, undefined, true);
+        await updateSourceCode({ textEdits: textEdits, description: 'Sub Mapping Update' });
         return await fetchSubMappingCodeData(filePath, codedata, name);
     } catch (error) {
         console.error(`Failed to update source for sub mapping "${name}" in ${filePath}:`, error);
@@ -471,6 +471,7 @@ export function expandDMModel(
         query: model.query,
         source: "",
         rootViewId,
+        hasInvalidOutput: model.hasInvalidOutput,
         triggerRefresh: model.triggerRefresh,
         focusInputRootMap: model.focusInputRootMap
     };
@@ -526,7 +527,7 @@ function isModuleLevelInput(input: IORoot): boolean {
  */
 function buildModuleLevelInputsGroup(moduleLevelInputs: IORoot[], model: DMModel): IOType {
     
-    const id = "MODULE_LEVEL_INPUTS$"; // Suffix $ to avoid conflicts with user defined names and special case port handling
+    const id = "MODULE_LEVEL_INPUTS_G#"; // Suffix G# to avoid conflicts with user defined names and special case port handling
     model.traversingRoot = id;
     const fields = moduleLevelInputs.map(input => {
         model.focusInputRootMap[input.name] = model.traversingRoot;
