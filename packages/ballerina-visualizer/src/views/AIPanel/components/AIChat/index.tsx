@@ -35,10 +35,12 @@ import {
     FileChanges,
     CodeContext,
     ApprovalOverlayState,
+    WebToolToggle,
+    LoginMethod,
 } from "@wso2/ballerina-core";
 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Button, Codicon } from "@wso2/ui-toolkit";
+import { Button, Codicon, Icon } from "@wso2/ui-toolkit";
 
 import { AIChatInputRef } from "../AIChatInput";
 import ToolCallSegment from "../ToolCallSegment";
@@ -52,7 +54,7 @@ import { ConfigurationCollectorSegment, ConfigurationCollectionData } from "../C
 import CheckpointSeparator from "../CheckpointSeparator";
 import { Attachment, AttachmentStatus, TaskApprovalRequest } from "@wso2/ballerina-core";
 
-import { AIChatView, Header, HeaderButtons, ChatMessage, Badge, ResetsInBadge, ApprovalOverlay, OverlayMessage } from "../../styles";
+import { AIChatView, Header, HeaderButtons, ChatMessage, TurnGroup, AuthProviderChip, UsageBadge, ApprovalOverlay, OverlayMessage } from "../../styles";
 import ReferenceDropdown from "../ReferenceDropdown";
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 import MarkdownRenderer from "../MarkdownRenderer";
@@ -73,7 +75,7 @@ import { CodeSegment } from "../CodeSegment";
 import AttachmentBox, { AttachmentsContainer } from "../AttachmentBox";
 import Footer from "./Footer";
 import { AgentMode } from "../AIChatInput/ModeToggle";
-import ApprovalFooter from "./Footer/ApprovalFooter";
+import CommonApprovalFooter from "./Footer/CommonApprovalFooter";
 import { useFooterLogic } from "./Footer/useFooterLogic";
 import { SettingsPanel } from "../../SettingsPanel";
 import WelcomeMessage from "./Welcome";
@@ -161,6 +163,7 @@ const AIChat: React.FC = () => {
     };
 
     const [isLoading, setIsLoading] = useState(false);
+    const [hoveredTurnIndex, setHoveredTurnIndex] = useState<number | null>(null);
     const [lastQuestionIndex, setLastQuestionIndex] = useState(-1);
     const [isCodeLoading, setIsCodeLoading] = useState(false);
     const [currentGeneratingPromptIndex, setCurrentGeneratingPromptIndex] = useState(-1);
@@ -173,18 +176,27 @@ const AIChat: React.FC = () => {
 
     const [showSettings, setShowSettings] = useState(false);
     const [isAutoApproveEnabled, setIsAutoApproveEnabled] = useState(false);
+    const [isWebToolsEnabled, setIsWebToolsEnabled] = useState(false);
+    const userWebSearchPreferenceRef = useRef(false);
     const [agentMode, setAgentMode] = useState<AgentMode>(AgentMode.Edit);
 
     const [availableCheckpointIds, setAvailableCheckpointIds] = useState<Set<string>>(new Set());
+    const [hasActiveReview, setHasActiveReview] = useState(false);
 
     const [approvalRequest, setApprovalRequest] = useState<TaskApprovalRequest | null>(null);
     const [approvalOverlay, setApprovalOverlay] = useState<ApprovalOverlayState>({ show: false });
+    const [webToolApprovalRequest, setWebToolApprovalRequest] = useState<{
+        requestId: string;
+        toolName: "web_search" | "web_fetch";
+        content: string;
+    } | null>(null);
 
     const [currentFileArray, setCurrentFileArray] = useState<SourceFile[]>([]);
     const [codeContext, setCodeContext] = useState<CodeContext | undefined>(undefined);
 
     const [usage, setUsage] = useState<{ remainingUsagePercentage: number; resetsIn: number } | null>(null);
     const [isUsageExceeded, setIsUsageExceeded] = useState(false);
+    const [loginMethod, setLoginMethod] = useState<LoginMethod | null>(null);
 
     //TODO: Need a better way of storing data related to last generation to be in the repair state.
     const currentDiagnosticsRef = useRef<DiagnosticEntry[]>([]);
@@ -196,7 +208,7 @@ const AIChat: React.FC = () => {
 
     const isErrorChunkReceivedRef = useRef(false);
 
-    const messagesEndRef = React.createRef<HTMLDivElement>();
+    const messagesEndRef = React.useRef<HTMLDivElement>(null);
 
     /* REFACTORED CODE START [2] */
     // custom hooks: commands + attachments
@@ -306,7 +318,16 @@ const AIChat: React.FC = () => {
         }
     };
 
-    useEffect(() => { fetchUsage(); }, []);
+    const fetchLoginMethod = async () => {
+        try {
+            const method = await rpcClient.getAiPanelRpcClient().getLoginMethod();
+            setLoginMethod(method);
+        } catch (e) {
+            console.error("Failed to fetch login method:", e);
+        }
+    };
+
+    useEffect(() => { fetchUsage(); fetchLoginMethod(); }, []);
 
     const handleCheckpointRestore = async (checkpointId: string) => {
         try {
@@ -331,6 +352,7 @@ const AIChat: React.FC = () => {
             setCurrentFileArray([]);
             setLastQuestionIndex(-1);
             setCurrentGeneratingPromptIndex(-1);
+            setHasActiveReview(false);
         } catch (error) {
             console.error("Failed to restore checkpoint:", error);
         }
@@ -360,6 +382,12 @@ const AIChat: React.FC = () => {
         };
 
         rpcClient.onApprovalOverlayState(handleApprovalOverlay);
+    }, [rpcClient]);
+
+    useEffect(() => {
+        rpcClient.onWebToolToggle((payload: WebToolToggle) => {
+            setIsWebToolsEnabled(payload.active ? true : userWebSearchPreferenceRef.current);
+        });
     }, [rpcClient]);
 
     /**
@@ -535,6 +563,13 @@ const AIChat: React.FC = () => {
                 message: response.message,
             });
 
+        } else if (type === "web_tool_approval_request") {
+            setWebToolApprovalRequest({
+                requestId: response.requestId,
+                toolName: response.toolName,
+                content: response.content,
+            });
+
         } else if (type === "intermediary_state") {
             const state = response.state;
             if ("serviceName" in state && "documentation" in state) {
@@ -632,18 +667,25 @@ const AIChat: React.FC = () => {
                 msgs[targetIndex] = { ...last, content: serializeStream(updated, last.content) };
                 return msgs;
             });
+            if (componentType === "review") {
+                setHasActiveReview(true);
+            }
 
         } else if (type === "messages") {
             messagesRef.current = response.messages;
 
         } else if (type === "stop") {
             console.log("Received stop signal");
+            setIsWebToolsEnabled(userWebSearchPreferenceRef.current);
+            setWebToolApprovalRequest(null);
             setIsCodeLoading(false);
             setIsLoading(false);
             fetchUsage();
 
         } else if (type === "abort") {
             console.log("Received abort signal");
+            setIsWebToolsEnabled(userWebSearchPreferenceRef.current);
+            setWebToolApprovalRequest(null);
             const abortItem: StreamItem = { kind: "text", text: "*[Request interrupted by user]*" };
             setMessages(prevMessages => {
                 const msgs = [...prevMessages];
@@ -750,11 +792,19 @@ const AIChat: React.FC = () => {
     }, [isReqFileExists]);
 
     useEffect(() => {
-        // Step 2: Scroll into view when messages state changes
-        if (messagesEndRef.current) {
-            messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+        // Step 2: Scroll into view when messages state changes or review bar appears
+        // Use a small delay when the review bar just appeared to let the DOM settle
+        const doScroll = () => {
+            if (messagesEndRef.current) {
+                messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+            }
+        };
+        if (hasActiveReview) {
+            setTimeout(doScroll, 50);
+        } else {
+            doScroll();
         }
-    }, [messages]);
+    }, [messages, hasActiveReview]);
 
     async function handleSendQuery(content: {
         input: Input[];
@@ -795,6 +845,12 @@ const AIChat: React.FC = () => {
         if (content.input.length === 0) {
             return;
         }
+        if (hasActiveReview) {
+            await rpcClient.getAiPanelRpcClient().acceptChanges().catch((e: unknown) => console.warn("[AIChat] auto-accept failed:", e));
+            setHasActiveReview(false);
+        }
+        // Clear until onCheckpointCaptured repopulates with the new set
+        setAvailableCheckpointIds(new Set());
         rpcClient.getAiPanelRpcClient().clearInitialPrompt();
         setMessages((prevMessages) => prevMessages.filter((message) => message.type !== "label"));
         setMessages((prevMessages) => prevMessages.filter((message) => message.type !== "question"));
@@ -1104,7 +1160,7 @@ const AIChat: React.FC = () => {
         const currentCodeContext = codeContextRef.current;
         console.log("Submitting agent prompt:", { useCase, agentMode, codeContext: currentCodeContext, operationType, fileAttatchments });
         rpcClient.getAiPanelRpcClient().generateAgent({
-            usecase: useCase, isPlanMode: agentMode === AgentMode.Plan, codeContext: currentCodeContext, operationType, fileAttachmentContents: fileAttatchments
+            usecase: useCase, isPlanMode: agentMode === AgentMode.Plan, codeContext: currentCodeContext, operationType, fileAttachmentContents: fileAttatchments, webSearchEnabled: isWebToolsEnabled
         })
     }
 
@@ -1131,6 +1187,12 @@ const AIChat: React.FC = () => {
         setIsAutoApproveEnabled(newValue);
     };
 
+    const handleToggleWebSearch = () => {
+        const next = !isWebToolsEnabled;
+        userWebSearchPreferenceRef.current = next;
+        setIsWebToolsEnabled(next);
+    };
+
     const handleChangeAgentMode = (mode: AgentMode) => {
         // message.content is already up-to-date with the serialized agent stream — nothing to persist here
         setAgentMode(mode);
@@ -1152,7 +1214,7 @@ const AIChat: React.FC = () => {
     }, [otherMessages.length]);
 
 
-    const updateReviewStatus = (message: { role: string; content: string; type: string }, newStatus: "accepted" | "discarded") => {
+    const updateReviewStatus = (message: { role: string; content: string; type: string }, newStatus: "discarded") => {
         setMessages(prevMessages => {
             const msgs = [...prevMessages];
             const idx = msgs.findIndex(m => m === message);
@@ -1308,6 +1370,18 @@ const AIChat: React.FC = () => {
         setApprovalRequest(null);
     };
 
+    const handleWebToolAllow = async () => {
+        if (!webToolApprovalRequest) return;
+        await rpcClient.getAiPanelRpcClient().approveWebTool({ requestId: webToolApprovalRequest.requestId });
+        setWebToolApprovalRequest(null);
+    };
+
+    const handleWebToolDeny = async () => {
+        if (!webToolApprovalRequest) return;
+        await rpcClient.getAiPanelRpcClient().declineWebTool({ requestId: webToolApprovalRequest.requestId });
+        setWebToolApprovalRequest(null);
+    };
+
     async function processLLMDiagnostics() {
         let response: LLMDiagnostics = await rpcClient.getAiPanelRpcClient().getDriftDiagnosticContents();
 
@@ -1345,34 +1419,46 @@ const AIChat: React.FC = () => {
                         </ApprovalOverlay>
                     )}
                     <Header>
-                        <Badge>
-                            {usage ? (
-                                <>
-                                    Remaining Usage: {usage.resetsIn === -1 ? "Unlimited" : (isUsageExceeded ? "Exceeded" : `${Math.round(usage.remainingUsagePercentage)}%`)}
-                                    {usage.resetsIn !== -1 && (
-                                        <>
-                                            <br />
-                                            <ResetsInBadge title={formatResetsInExact(usage.resetsIn)}>{`Resets in: ${formatResetsIn(usage.resetsIn)}`}</ResetsInBadge>
-                                        </>
-                                    )}
-                                </>
-                            ) : (
-                                "Remaining Usage: N/A"
-                            )}
-                        </Badge>
+                        {loginMethod === LoginMethod.ANTHROPIC_KEY || loginMethod === LoginMethod.AWS_BEDROCK || loginMethod === LoginMethod.VERTEX_AI ? (
+                            <AuthProviderChip>
+                                <UsageBadge>
+                                    <span className="codicon codicon-key" style={{ fontSize: 11 }} />
+                                    {loginMethod === LoginMethod.ANTHROPIC_KEY ? "Anthropic (own key)"
+                                        : loginMethod === LoginMethod.AWS_BEDROCK ? "AWS Bedrock (own key)"
+                                        : "Vertex AI (own key)"}
+                                </UsageBadge>
+                            </AuthProviderChip>
+                        ) : (
+                            <AuthProviderChip>
+                                Remaining Usage:
+                                <UsageBadge>
+                                    {!usage ? "N/A"
+                                        : usage.resetsIn === -1 ? "Unlimited"
+                                        : isUsageExceeded ? "Exceeded"
+                                        : `${Math.round(usage.remainingUsagePercentage)}%`}
+                                </UsageBadge>
+                                {usage && usage.resetsIn !== -1 && (
+                                    <span style={{ fontSize: 10, opacity: 0.7 }} title={formatResetsInExact(usage.resetsIn)}>
+                                        Resets in: {formatResetsIn(usage.resetsIn)}
+                                    </span>
+                                )}
+                            </AuthProviderChip>
+                        )}
                         <HeaderButtons>
-                            <Button
-                                appearance="icon"
-                                onClick={() => handleClearChat()}
-                                tooltip="Clear Chat"
-                                disabled={isLoading}
-                            >
-                                <Codicon name="clear-all" />
-                                &nbsp;&nbsp;Clear
-                            </Button>
+                            {otherMessages.length > 0 && (
+                                <Button
+                                    appearance="icon"
+                                    onClick={() => handleClearChat()}
+                                    tooltip="Clear Chat"
+                                    disabled={isLoading}
+                                >
+                                    <Icon name="PlaylistRemove" sx={{ fontSize: "18px", marginRight: 6 }} iconSx={{ position: "relative"}} />
+                                    Clear
+                                </Button>
+                            )}
                             <Button appearance="icon" onClick={() => handleSettings()} tooltip="Settings">
-                                <Codicon name="settings-gear" />
-                                &nbsp;&nbsp;Settings
+                                <Icon name="SettingsRounded" sx={{ fontSize: "18px", marginRight: 6 }} iconSx={{ position: "relative" }} />
+                                Settings
                             </Button>
                         </HeaderButtons>
                     </Header>
@@ -1380,22 +1466,35 @@ const AIChat: React.FC = () => {
                         {Array.isArray(otherMessages) && otherMessages.length === 0 && (
                             <WelcomeMessage isOnboarding={getOnboardingOpens() <= 3.0} />
                         )}
-                        {otherMessages.map((message, index) => {
-                            const isLastResponse = index === currentGeneratingPromptIndex;
-                            const isUserMessage = message.role === "User";
-                            const isAssistantMessage = message.role === "Copilot";
+                        {(() => {
+                            // Group flat message list into [userMsg, assistantMsg | undefined] pairs for turn-level hover
+                            const turns: Array<[typeof otherMessages[0], number, typeof otherMessages[0] | undefined, number | undefined]> = [];
+                            let i = 0;
+                            while (i < otherMessages.length) {
+                                const msg = otherMessages[i];
+                                if (msg.role === "User") {
+                                    const next = otherMessages[i + 1];
+                                    const hasAssistant = next?.role === "Copilot";
+                                    turns.push([msg, i, hasAssistant ? next : undefined, hasAssistant ? i + 1 : undefined]);
+                                    i += hasAssistant ? 2 : 1;
+                                } else {
+                                    turns.push([msg, i, undefined, undefined]);
+                                    i++;
+                                }
+                            }
                             const lastAssistantIndex = otherMessages.map((m) => m.role).lastIndexOf("Copilot");
-                            const isLatestAssistantMessage = isAssistantMessage && index === lastAssistantIndex;
+
+                            return turns.map(([userMsg, userIndex, assistantMsg, assistantIndex], turnIndex) => {
+                                const renderMessage = (message: typeof otherMessages[0], index: number) => {
+                                    const isLastResponse = index === currentGeneratingPromptIndex;
+                                    const isUserMessage = message.role === "User";
+                                    const isAssistantMessage = message.role === "Copilot";
+                                    const isLatestAssistantMessage = isAssistantMessage && index === lastAssistantIndex;
 
                             // Note: Cannot use useMemo here as it's inside map() callback
                             // The stateless regex implementation in splitContent() ensures no corruption during streaming
                             const segmentedContent = splitContent(message.content);
-                            const hasReviewActions = segmentedContent.some(segment =>
-                                segment.type === SegmentType.AgentStream &&
-                                (segment.stream ?? []).flatMap((e: StreamEntry) => e.items).some(
-                                    (item: StreamItem) => item.kind === "component" && (item as any).componentType === "review" && (item as any).data.status === "pending"
-                                )
-                            );
+                            const hasReviewActions = isLatestAssistantMessage && hasActiveReview;
                             return (
                                 <ChatMessage key={index}>
                                     {/* Checkpoint separator before user messages */}
@@ -1415,6 +1514,7 @@ const AIChat: React.FC = () => {
                                                         isAvailable={false}
                                                         isDisabled={true}
                                                         isCreating={true}
+                                                        isGroupHovered={hoveredTurnIndex === turnIndex}
                                                         onRestore={handleCheckpointRestore}
                                                     />
                                                 )}
@@ -1425,6 +1525,7 @@ const AIChat: React.FC = () => {
                                                         isAvailable={availableCheckpointIds.has(message.checkpointId)}
                                                         isDisabled={isLoading}
                                                         isCreating={false}
+                                                        isGroupHovered={hoveredTurnIndex === turnIndex}
                                                         onRestore={handleCheckpointRestore}
                                                     />
                                                 )}
@@ -1453,10 +1554,13 @@ const AIChat: React.FC = () => {
                                                                 loadDesignDiagrams={(reviewItem as any).data.loadDesignDiagrams}
                                                                 isWorkspace={(reviewItem as any).data.isWorkspace}
                                                                 diffPackageMap={(reviewItem as any).data.diffPackageMap}
-                                                                status={(reviewItem as any).data.status ?? "pending"}
+                                                                isDiscarded={(reviewItem as any)?.data?.status === "discarded"}
                                                                 rpcClient={isLatestAssistantMessage ? rpcClient : undefined}
-                                                                isActive={isLatestAssistantMessage && !isLoading}
-                                                                onStatusChange={(newStatus) => updateReviewStatus(message, newStatus)}
+                                                                isActive={isLatestAssistantMessage && !isLoading && hasActiveReview}
+                                                                onDiscarded={() => {
+                                                                    updateReviewStatus(message, "discarded");
+                                                                    setHasActiveReview(false);
+                                                                }}
                                                             />
                                                         )}
                                                         {buttonItems.map((item: StreamItem, ci: number) => {
@@ -1673,15 +1777,35 @@ const AIChat: React.FC = () => {
                                     )}
                                 </ChatMessage>
                             );
-                        })}
+                        };
+
+                                return (
+                                    <TurnGroup
+                                        key={userIndex}
+                                        onMouseEnter={() => setHoveredTurnIndex(turnIndex)}
+                                        onMouseLeave={() => setHoveredTurnIndex(null)}
+                                    >
+                                        {renderMessage(userMsg, userIndex)}
+                                        {assistantMsg !== undefined && renderMessage(assistantMsg, assistantIndex!)}
+                                    </TurnGroup>
+                                );
+                            });
+                        })()}
                         <div ref={messagesEndRef} />
                     </main>
-                    {approvalRequest ? (
-                        <ApprovalFooter
-                            approvalType={approvalRequest.approvalType}
+                    {webToolApprovalRequest ? (
+                        <CommonApprovalFooter
+                            type="web_tool"
+                            toolName={webToolApprovalRequest.toolName}
+                            content={webToolApprovalRequest.content}
+                            onAllow={handleWebToolAllow}
+                            onDeny={handleWebToolDeny}
+                        />
+                    ) : approvalRequest ? (
+                        <CommonApprovalFooter
+                            type={approvalRequest.approvalType}
                             onApprove={handleApprovalApprove}
                             onReject={handleApprovalReject}
-                            isSubmitting={false}
                         />
                     ) : (
                         <Footer
@@ -1707,6 +1831,8 @@ const AIChat: React.FC = () => {
                             onChangeAgentMode={handleChangeAgentMode}
                             isAutoApproveEnabled={isAutoApproveEnabled}
                             onDisableAutoApprove={handleToggleAutoApprove}
+                            isWebToolsEnabled={isWebToolsEnabled}
+                            onToggleWebSearch={handleToggleWebSearch}
                             disabled={isUsageExceeded}
                         />
                     )}

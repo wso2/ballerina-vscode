@@ -228,3 +228,17 @@ export class RecordConfigExpressionEditorConfig extends ChipExpressionEditorDefa
         return false;
     }
 }
+
+export class BooleanEditorConfig extends ChipExpressionEditorDefaultConfiguration {
+    deserializeValue(value: string): string {
+        if (this.getIsValueCompatible(value)) {
+            return value;
+        }
+        return "";
+    }
+
+    getIsValueCompatible(expValue: string) {
+        if (!expValue) return true;
+        return expValue.toLocaleLowerCase() === "true" || expValue.toLocaleLowerCase() === "false";
+    }
+}

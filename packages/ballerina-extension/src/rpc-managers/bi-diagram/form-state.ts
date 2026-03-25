@@ -17,20 +17,40 @@
  */
 
 const openFormFilePaths = new Set<string>();
+const dirtyFormFilePaths = new Set<string>();
 
 export function registerFormOpen(filePath: string): void {
     openFormFilePaths.add(filePath);
+    dirtyFormFilePaths.delete(filePath);
 }
 
 export function registerFormClose(filePath: string): void {
     openFormFilePaths.delete(filePath);
+    dirtyFormFilePaths.delete(filePath);
+}
+
+/** Tracks dirty state for an already-open form (see formDidOpen). Ignored if the path is not open. */
+export function setFormDirtyState(filePath: string, isDirty: boolean): void {
+    if (!openFormFilePaths.has(filePath)) {
+        return;
+    }
+    if (isDirty) {
+        dirtyFormFilePaths.add(filePath);
+    } else {
+        dirtyFormFilePaths.delete(filePath);
+    }
 }
 
 export function hasOpenForm(): boolean {
     return openFormFilePaths.size > 0;
 }
 
+export function hasDirtyOpenForm(): boolean {
+    return dirtyFormFilePaths.size > 0;
+}
+
 /** Clears form state when navigating away (e.g., user chose "Discard and Navigate"). */
 export function clearFormState(): void {
     openFormFilePaths.clear();
+    dirtyFormFilePaths.clear();
 }

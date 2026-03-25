@@ -323,7 +323,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
     useEffect(() => {
         if (!editorRef.current) return;
         const startState = EditorState.create({
-            doc: props.value ?? "",
+            doc: configuration.serializeValue(props.value ?? ""),
             extensions: [
                 ...(configuration.getPlugins()),
                 history(),

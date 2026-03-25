@@ -22,6 +22,7 @@ import ReactMarkdown from "react-markdown";
 import {
     Button,
     Codicon,
+    ErrorBanner,
     LinkButton,
     ThemeColors,
     SidePanelBody,
@@ -52,6 +53,7 @@ import {
     EditorDisplayMode,
     Imports,
 } from "@wso2/ballerina-core";
+import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { FormContext, Provider } from "../../context";
 import {
     formatJSONLikeString,
@@ -252,6 +254,19 @@ namespace S {
         margin-bottom: -12px;
     `;
 
+    export const FormDiagnosticsContainer = styled.div`
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+    `;
+
+    export const FormDiagnosticsActionContainer = styled.div`
+        display: flex;
+        justify-content: flex-end;
+        width: 100%;
+    `;
+
     export const MarkdownContainer = styled.div<{ isExpanded: boolean }>`
         width: 100%;
         ${({ isExpanded }) =>
@@ -391,6 +406,8 @@ export interface FormProps {
         removeLastPopup: () => void;
         closePopup: (id: string) => void;
     }
+    formDiagnostics?: { message: string; severity: "ERROR" | "WARNING" | "INFO" }[];
+    formDiagnosticsAction?: React.ReactNode;
     preserveOrder?: boolean;
     handleSelectedTypeChange?: (type: string | CompletionItem) => void;
     scopeFieldAddon?: React.ReactNode;
@@ -409,7 +426,7 @@ export interface FormProps {
     updateImports?: (key: string, imports: Imports) => void;
 }
 
-export const Form = forwardRef((props: FormProps) => {
+export const Form = forwardRef((props: FormProps, _ref) => {
     const {
         infoLabel,
         formFields,
@@ -434,6 +451,8 @@ export const Form = forwardRef((props: FormProps) => {
         recordTypeFields,
         nestedForm,
         popupManager,
+        formDiagnostics,
+        formDiagnosticsAction,
         compact = false,
         isInferredReturnType,
         concertRequired = true,
@@ -452,6 +471,8 @@ export const Form = forwardRef((props: FormProps) => {
         updateImports,
     } = props;
 
+    const { rpcClient } = useRpcContext();
+
     const {
         control,
         getValues,
@@ -463,8 +484,15 @@ export const Form = forwardRef((props: FormProps) => {
         setValue,
         setError,
         clearErrors,
-        formState: { isValidating, isValid: formStateIsValid, errors, dirtyFields },
+        formState: { isValidating, isValid: formStateIsValid, errors, dirtyFields, isDirty },
     } = useForm<FormValues>();
+
+    useEffect(() => {
+        if (!fileName || !rpcClient) {
+            return;
+        }
+        rpcClient.getBIDiagramRpcClient().formDirtyDidChange({ filePath: fileName, isDirty });
+    }, [isDirty, fileName, rpcClient]);
 
     const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
     const [activeFormField, setActiveFormField] = useState<string | undefined>(undefined);
@@ -505,15 +533,8 @@ export const Form = forwardRef((props: FormProps) => {
                         defaultValues[field.key] = field.value;
                     } else if (isDropdownField(field)) {
                         defaultValues[field.key] = getValueForDropdown(field) ?? "";
-                    } else if (field.type === "FLAG" && field.types?.length > 1) {
-                        if (typeof field.value === "boolean") {
-                            defaultValues[field.key] = String(field.value);
-                        }
-                        else {
-                            defaultValues[field.key] = field.value;
-                        }
                     } else if (field.type === "FLAG") {
-                        defaultValues[field.key] = field.value || "true";
+                         defaultValues[field.key] = field.value;
                     } else if (typeof field.value === "string") {
                         defaultValues[field.key] = formatJSONLikeString(field.value) ?? "";
                     } else {
@@ -691,6 +712,10 @@ export const Form = forwardRef((props: FormProps) => {
                         // Recursively collect from nested choice properties
                         collectAdvancedFields(selectedChoice.properties);
                     }
+                }
+                // Skip GROUP_SECTION properties - they handle their own advanced fields internally
+                else if (propValue?.properties && !propValue.advanced && getPrimaryInputType(propValue?.types)?.fieldType === "GROUP_SECTION") {
+                    // Do not traverse into GROUP_SECTION; its ChoiceForm renders advanced fields within the group
                 }
                 // If this property is advanced, add it to the list
                 else if (propValue.advanced && propValue.enabled && !propValue.hidden && !propValue.choices) {
@@ -1007,6 +1032,16 @@ export const Form = forwardRef((props: FormProps) => {
             {!preserveOrder && !compact && (
                 <FormDescription formFields={formFields} selectedNode={selectedNode} />
             )}
+            {formDiagnostics && formDiagnostics.length > 0 && (
+                <S.FormDiagnosticsContainer>
+                    <ErrorBanner errorMsg={formDiagnostics.map((diagnostic) => diagnostic.message).join("\n")} />
+                    {formDiagnosticsAction && (
+                        <S.FormDiagnosticsActionContainer>
+                            {formDiagnosticsAction}
+                        </S.FormDiagnosticsActionContainer>
+                    )}
+                </S.FormDiagnosticsContainer>
+            )}
 
             {/*
                  * Two rendering modes based on preserveOrder prop:
@@ -1016,8 +1051,8 @@ export const Form = forwardRef((props: FormProps) => {
                  */}
             <S.CategoryRow bottomBorder={false}>
                 {(() => {
-                    const fieldsToRender = formFields
-                        .sort((a, b) => b.groupNo - a.groupNo)
+                    const fieldsToRender = [...formFields]
+                        .sort((a, b) => (b.groupNo ?? 0) - (a.groupNo ?? 0))
                         .filter((field) => field.type !== "VIEW");
 
                     const renderedComponents: React.ReactNode[] = [];

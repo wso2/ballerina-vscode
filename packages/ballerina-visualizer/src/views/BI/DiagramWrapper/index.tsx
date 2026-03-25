@@ -34,6 +34,7 @@ import { SwitchSkeleton, TitleBarSkeleton } from "../../../components/Skeletons"
 import { PanelContainer } from "@wso2/ballerina-side-panel";
 import { ResourceForm } from "../ServiceDesigner/Forms/ResourceForm";
 import { removeForwardSlashes } from "../ServiceDesigner/utils";
+import { buildBaseUrl } from "../ServiceDesigner/buildHurlString";
 
 const ActionButton = styled(Button)`
     display: flex;
@@ -103,6 +104,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     const [loadingDiagram, setLoadingDiagram] = useState(true);
     const [fileName, setFileName] = useState("");
     const [serviceType, setServiceType] = useState("");
+    const [serviceName, setServiceName] = useState("");
     const [basePath, setBasePath] = useState("");
     const [listener, setListener] = useState("");
     const [parentMetadata, setParentMetadata] = useState<ParentMetadata>();
@@ -158,6 +160,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                                     endColumn: serviceModel.service?.codedata.lineRange.endLine.offset,
                                 });
                                 setServiceType(serviceModel.service?.type);
+                                setServiceName(serviceModel.service?.name ?? "");
                                 setBasePath(serviceModel.service?.properties?.basePath?.value?.trim());
                                 setListener(serviceModel.service?.properties?.listener?.value?.trim());
                             });
@@ -312,10 +315,31 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     let isAgent = parentMetadata?.kind === "AI Chat Agent" && parentMetadata?.label === "chat";
     let isNPFunction = view === FOCUS_FLOW_DIAGRAM_VIEW.NP_FUNCTION;
 
-    const handleResourceTryIt = (methodValue: string, pathValue: string) => {
-        const resource = serviceType === "http" ? { methodValue, pathValue } : undefined;
-        const commands = ["ballerina.tryIt", false, resource, { basePath, listener }];
-        rpcClient.getCommonRpcClient().executeCommand({ commands });
+    const handleResourceTryIt = async (methodValue: string, pathValue: string) => {
+        if (serviceType !== "http") { return; }
+
+        const baseUrl = buildBaseUrl(listener, basePath);
+        const serviceName = basePath?.replace(/^\//, "") || "Service";
+
+        const location = await rpcClient.getVisualizerLocation();
+        const docUri = filePath ?? location.documentUri;
+
+        let oasSpec: any | undefined;
+        try {
+            const oasResult = await rpcClient.getServiceDesignerRpcClient().getOASSpec({
+                documentFilePath: docUri,
+                basePath
+            });
+            oasSpec = oasResult.spec ?? undefined;
+        } catch {
+            // spec unavailable — extension will fall back to minimal placeholder
+        }
+
+        // Delegate cell-building to the extension so both Resource Try It (diagram) and Code Lens
+        // Try It share the same buildHurlCellsFromOASSpec logic via ballerina.startService
+        rpcClient.getCommonRpcClient().executeCommand({
+            commands: ["ballerina.startService", { oasSpec, baseUrl, serviceName, resourceMetadata: { methodValue, pathValue } }, { savable: false }, { basePath, listener }]
+        });
     };
 
     // Calculate title based on conditions
@@ -359,7 +383,11 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                     {tracingButton}
                     <ActionButton
                         appearance="secondary"
-                        onClick={() => handleResourceTryIt(parentMetadata?.accessor || "", parentMetadata?.label || "")}
+                        onClick={() => {
+                            rpcClient.getCommonRpcClient().executeCommand({
+                                commands: ["ballerina.tryIt", false, undefined, { basePath, listener }]
+                            });
+                        }}
                     >
                         <Icon
                             name="comment-discussion"

@@ -40,6 +40,7 @@ import {
     declinePlan,
     declineTask,
     DocGenerationRequest,
+    enhancePrompt,
     generateAgent,
     GenerateAgentCodeRequest,
     generateContextTypes,
@@ -73,6 +74,8 @@ import {
     PlanApprovalRequest,
     ProcessContextTypeCreationRequest,
     ProcessMappingParametersRequest,
+    PromptEnhancementRequest,
+    promptForLogin,
     promptGithubAuthorize,
     provideConfiguration,
     provideConnectorSpec,
@@ -86,7 +89,10 @@ import {
     TaskDeclineRequest,
     updateChatMessage,
     UpdateChatMessageRequest,
-    updateRequirementSpecification
+    updateRequirementSpecification,
+    approveWebTool,
+    declineWebTool,
+    WebToolApprovalRequest
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { AiPanelRpcManager } from "./rpc-manager";
@@ -140,4 +146,8 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getActiveTempDir, () => rpcManger.getActiveTempDir());
     messenger.onRequest(getUsage, () => rpcManger.getUsage());
     messenger.onNotification(openFileDiff, (args: OpenFileDiffRequest) => rpcManger.openFileDiff(args));
+    messenger.onRequest(approveWebTool, (args: WebToolApprovalRequest) => rpcManger.approveWebTool(args));
+    messenger.onRequest(declineWebTool, (args: WebToolApprovalRequest) => rpcManger.declineWebTool(args));
+    messenger.onRequest(enhancePrompt, (args: PromptEnhancementRequest) => rpcManger.enhancePrompt(args));
+    messenger.onNotification(promptForLogin, () => rpcManger.promptForLogin());
 }

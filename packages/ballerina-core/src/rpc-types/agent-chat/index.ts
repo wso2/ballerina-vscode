@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ChatReqMessage, ChatRespMessage, TraceInput, TraceStatus, ChatHistoryResponse, AgentStatusResponse, ClearChatResponse, ExecutionStep, SessionInput, SessionInfoResponse } from "./interfaces";
+import { ChatReqMessage, ChatRespMessage, TraceInput, TraceStatus, ChatHistoryResponse, AgentStatusResponse, ClearChatResponse, ExecutionStep, SessionInput, SessionInfoResponse, AgentInfo, AvailableAgentsResponse, SwitchAgentRequest, SwitchAgentResponse } from "./interfaces";
 
 export interface AgentChatAPI {
     getChatMessage: (params: ChatReqMessage) => Promise<ChatRespMessage>;
@@ -28,6 +28,8 @@ export interface AgentChatAPI {
     clearChatHistory: () => Promise<ClearChatResponse>;
     getAgentStatus: () => Promise<AgentStatusResponse>;
     getSessionInfo: () => Promise<SessionInfoResponse>;
+    getAvailableChatAgents: () => Promise<AvailableAgentsResponse>;
+    switchChatAgent: (params: SwitchAgentRequest) => Promise<SwitchAgentResponse>;
 }
 
-export type { ChatReqMessage, ChatRespMessage, TraceInput, TraceStatus, ChatHistoryResponse, AgentStatusResponse, ClearChatResponse, ExecutionStep, SessionInput, SessionInfoResponse };
+export type { ChatReqMessage, ChatRespMessage, TraceInput, TraceStatus, ChatHistoryResponse, AgentStatusResponse, ClearChatResponse, ExecutionStep, SessionInput, SessionInfoResponse, AgentInfo, AvailableAgentsResponse, SwitchAgentRequest, SwitchAgentResponse };

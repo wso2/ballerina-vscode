@@ -16,11 +16,13 @@
 
 import { tool } from 'ai';
 import { z } from 'zod';
+import { ExecutionContext } from '@wso2/ballerina-core';
 import { CopilotEventHandler } from '../../utils/events';
 import { extension } from '../../../../BalExtensionContext';
 import { spawnProcess, killProcessGroup } from './running-service-manager';
 import { BALLERINA_COMMANDS } from '../../../project/cmds/cmd-runner';
 import { DIAGNOSTICS_TOOL_NAME } from './diagnostics';
+import { integrateAndClearModifiedFiles } from '../utils';
 
 export const TEST_RUNNER_TOOL_NAME = "runTests";
 
@@ -35,7 +37,10 @@ const DEFAULT_TEST_TIMEOUT = 120000;
 
 export function createTestRunnerTool(
     tempProjectPath: string,
-    eventHandler: CopilotEventHandler
+    eventHandler: CopilotEventHandler,
+    modifiedFiles: string[],
+    allModifiedFiles: Set<string>,
+    ctx: ExecutionContext
 ) {
     return tool({
         description: `Runs \`bal test\` in the current Ballerina project and returns the raw output.
@@ -54,6 +59,8 @@ export function createTestRunnerTool(
         inputSchema: TestRunnerInputSchema,
         execute: async (_input: Record<string, never>, context?: { toolCallId?: string }): Promise<TestRunResult> => {
             const toolCallId = context?.toolCallId || `fallback-${Date.now()}`;
+
+            await integrateAndClearModifiedFiles(tempProjectPath, modifiedFiles, allModifiedFiles, ctx);
 
             eventHandler({
                 type: "tool_call",

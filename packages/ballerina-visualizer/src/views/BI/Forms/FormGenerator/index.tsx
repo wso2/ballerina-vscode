@@ -65,7 +65,9 @@ import {
     CompletionItem,
     FormExpressionEditorRef,
     HelperPaneHeight,
+    Icon,
     ThemeColors,
+    Tooltip,
 } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 
@@ -182,6 +184,21 @@ const StyledActionButton = styled(Button)`
     }
 `;
 
+const DiagnosticsActionButton = styled(Button)`
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+`;
+
+const DiagnosticsActionContent = styled.span`
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    white-space: nowrap;
+    width: 100%;
+`;
+
 export const BreadcrumbContainer = styled.div`
     display: flex;
     align-items: center;
@@ -236,7 +253,10 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     } = props;
 
     const { rpcClient } = useRpcContext();
+
     const [baseFields, setBaseFields] = useState<FormField[]>([]);
+    const [formDiagnostics, setFormDiagnostics] = useState<DiagnosticMessage[]>([]);
+    const [isAiUserAuthenticated, setIsAiUserAuthenticated] = useState(false);
     const formImportsRef = useRef<FormImports>({});
     const [typeEditorState, setTypeEditorState] = useState<TypeEditorState>({ isOpen: false, newTypeValue: "" });
     const [visualizableField, setVisualizableField] = useState<VisualizableField>();
@@ -374,6 +394,14 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             rpcClient.onThemeChanged((theme) => {
                 injectHighlightTheme(theme);
             });
+
+            rpcClient.getAiPanelRpcClient().isUserAuthenticated()
+                .then((isAuth) => {
+                    setIsAiUserAuthenticated(isAuth);
+                })
+                .catch(() => {
+                    setIsAiUserAuthenticated(false);
+                });
         }
     }, [rpcClient]);
 
@@ -437,6 +465,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     };
 
     const initForm = (node: FlowNode) => {
+        setFormDiagnostics(node.diagnostics?.diagnostics ?? []);
         const formProperties = getFormProperties(node);
         let enrichedNodeProperties;
         if (nodeFormTemplate) {
@@ -488,6 +517,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     };
 
     const setDiagnosticsToFields = (data: FormValues, nodeWithDiagnostics: FlowNode) => {
+        setFormDiagnostics(nodeWithDiagnostics?.diagnostics?.diagnostics ?? []);
         const updatedFields = fields.map((field) => {
             const updatedField = { ...field };
 
@@ -557,6 +587,53 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             onSubmit(updatedNode, editorConfig, formImportsRef.current);
         }
     };
+
+    const diagnosticsTargetRange = useMemo(
+        () => node.codedata?.lineRange || nodeFormTemplate?.codedata?.lineRange || targetLineRange,
+        [node, nodeFormTemplate, targetLineRange]
+    );
+
+    const canFixFormDiagnostics = useMemo(
+        () => formDiagnostics.length > 0 && !!diagnosticsTargetRange && !showProgressIndicator && isAiUserAuthenticated,
+        [diagnosticsTargetRange, formDiagnostics, isAiUserAuthenticated, showProgressIndicator]
+    );
+
+    const formDiagnosticsFixTooltip = !isAiUserAuthenticated
+        ? "You need to be logged into BI Copilot to fix diagnostics"
+        : !diagnosticsTargetRange
+            ? "No source location available for diagnostics"
+            : formDiagnostics.length === 0
+                ? "No diagnostics found to fix"
+                : undefined;
+
+    const handleFixFormDiagnostics = useCallback(() => {
+        if (!canFixFormDiagnostics || !diagnosticsTargetRange) {
+            return;
+        }
+
+        const filePath = diagnosticsTargetRange.fileName || fileName;
+        const fixPrompt = [
+            "Fix the following diagnostics at this code location:",
+            ...formDiagnostics.map((diagnostic, index) => `${index + 1}. [${diagnostic.severity}] ${diagnostic.message}`),
+            "",
+            "Apply the minimum required code changes to resolve these diagnostics.",
+        ].join("\n");
+
+        rpcClient.getAiPanelRpcClient().openAIPanel({
+            type: "text",
+            text: fixPrompt,
+            planMode: false,
+            codeContext: {
+                type: "addition",
+                position: {
+                    line: diagnosticsTargetRange.startLine.line,
+                    offset: diagnosticsTargetRange.startLine.offset,
+                },
+                filePath,
+            },
+            autoSubmit: true,
+        });
+    }, [canFixFormDiagnostics, diagnosticsTargetRange, fileName, formDiagnostics, rpcClient]);
 
     const handleOnBlur = async (data: FormValues, dirtyFields: any) => {
         if (node && targetLineRange && !skipFormValidation) {
@@ -1260,7 +1337,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         }
 
         // If not a Record, remove the 'expression' entry from recordTypeFields and return
-        if (type?.labelDetails?.description !== "Record") {
+        if (type?.labelDetails?.description?.toLocaleLowerCase() !== "record") {
             if (type.labelDetails.detail === "Structural Types"
                 || type.labelDetails.detail === "Behaviour Types"
                 || isTypeExcludedFromValueTypeConstraint(type.label)
@@ -1294,6 +1371,18 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         const recordTypeField = createExpressionRecordTypeField(key, property, '', type);
         if (!recordTypeField) return;
 
+        setBaseFields(prevFields => prevFields.map(field => {
+            if (field.key === key) {
+                return {
+                    ...field,
+                    types: [
+                        { fieldType: "RECORD_MAP_EXPRESSION", selected: true },
+                        { fieldType: "EXPRESSION", selected: false },
+                    ]
+                };
+            }
+            return field;
+        }));
         setRecordTypeFields(prevFields => {
             const prevIndex = prevFields.findIndex(f => f.key === recordTypeField.key);
             if (prevIndex !== -1) {
@@ -1706,6 +1795,19 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                 <Form
                     ref={ref}
                     formFields={fields}
+                    formDiagnostics={formDiagnostics}
+                    formDiagnosticsAction={formDiagnostics.length > 0 ? (
+                        <Tooltip content={formDiagnosticsFixTooltip}>
+                            <span>
+                                <DiagnosticsActionButton appearance="primary" buttonSx={{ width: 116, minWidth: 116 }} disabled={!canFixFormDiagnostics} onClick={handleFixFormDiagnostics}>
+                                    <DiagnosticsActionContent>
+                                        <Icon name="bi-ai-chat" sx={{ width: 14, height: 14, fontSize: 14 }} />
+                                        <span>Fix with AI</span>
+                                    </DiagnosticsActionContent>
+                                </DiagnosticsActionButton>
+                            </span>
+                        </Tooltip>
+                    ) : undefined}
                     projectPath={projectPath}
                     selectedNode={node.codedata.node}
                     openRecordEditor={handleOpenTypeEditor}
