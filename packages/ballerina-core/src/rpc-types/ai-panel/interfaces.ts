@@ -511,3 +511,24 @@ export interface UsageResponse {
 export interface OpenFileDiffRequest {
     relativePath: string;
 }
+// ==================================
+// Prompt Enhancement Related Interfaces
+// ==================================
+
+export enum PromptMode {
+    ROLE = "role",
+    INSTRUCTIONS = "instructions",
+    QUERY = "query",
+    DEFAULT = "default"
+}
+
+export interface PromptEnhancementRequest {
+    originalPrompt: string;
+    additionalInstructions?: string;
+    mode: PromptMode;
+    isGeneration?: boolean;
+}
+
+export interface PromptEnhancementResponse {
+    enhancedPrompt: string;
+}

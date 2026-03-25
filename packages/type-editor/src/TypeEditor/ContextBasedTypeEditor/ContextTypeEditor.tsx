@@ -258,6 +258,7 @@ export function ContextTypeEditor(props: ContextTypeEditorProps) {
                             <BrowseTypesTab
                                 basicTypes={props.typeHelper.basicTypes}
                                 importedTypes={props.typeHelper.importedTypes}
+                                workspaceTypes={props.typeHelper.workspaceTypes}
                                 loading={props.typeHelper.loading}
                                 onSearchTypeHelper={props.typeHelper.onSearchTypeHelper}
                                 onTypeItemClick={props.typeHelper.onTypeItemClick}
