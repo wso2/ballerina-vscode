@@ -23,13 +23,13 @@ import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
-import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil;
 import io.ballerina.modelgenerator.commons.CommonUtils;
+import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.tools.text.LineRange;
 import org.eclipse.lsp4j.TextEdit;
 
@@ -37,7 +37,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.DEFAULT_CTX_PARAM_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_MODULE;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ORG;
@@ -50,6 +49,7 @@ import static io.ballerina.flowmodelgenerator.core.model.node.ActivityCallBuilde
 import static io.ballerina.flowmodelgenerator.core.model.node.ActivityCallBuilder.DEFAULT_RETURN_TYPE;
 import static io.ballerina.flowmodelgenerator.core.model.node.ActivityCallBuilder.addContextParameterToFunction;
 import static io.ballerina.flowmodelgenerator.core.model.node.ActivityCallBuilder.getContextParamName;
+import static io.ballerina.flowmodelgenerator.core.model.node.ActivityCallBuilder.populateAdvancedArgs;
 import static io.ballerina.flowmodelgenerator.core.model.node.FunctionCreationBuilder.PARAMETERS_DOC;
 import static io.ballerina.flowmodelgenerator.core.model.node.FunctionCreationBuilder.PARAMETERS_LABEL;
 import static io.ballerina.flowmodelgenerator.core.model.node.FunctionCreationBuilder.getParameterSchema;
@@ -59,11 +59,21 @@ import static io.ballerina.flowmodelgenerator.core.model.node.FunctionCreationBu
  *
  * @since 2.0.0
  */
-public class ActivityCreationBuilder extends NodeBuilder {
+public class ActivityCreationBuilder extends CallBuilder {
     public static final String LABEL = "Workflow Activity";
     public static final String DESCRIPTION = "Define and call a workflow activity";
     private static final Gson gson = new Gson();
     private static final String ACTIVITY_RESULT = "activityResult";
+
+    @Override
+    protected NodeKind getFunctionNodeKind() {
+        return NodeKind.ACTIVITY_CREATION;
+    }
+
+    @Override
+    protected FunctionData.Kind getFunctionResultKind() {
+        return FunctionData.Kind.ACTIVITY;
+    }
 
     @Override
     public void setConcreteConstData() {
@@ -87,6 +97,7 @@ public class ActivityCreationBuilder extends NodeBuilder {
                         PARAMETERS_DOC, getParameterSchema(), false, false)
                 .data(ACTIVITY_RESULT, context.getAllVisibleSymbolNames(), Property.RESULT_NAME, Property.RESULT_DOC,
                         false);
+        ActivityCallBuilder.addAdvanedParameters(context, moduleInfo, this);
     }
 
     @Override
@@ -149,7 +160,7 @@ public class ActivityCreationBuilder extends NodeBuilder {
                 .name(activityName)
                 .keyword(SyntaxKind.COMMA_TOKEN);
 
-        // Include the parameters as a map of key-value pairs in of the function call.
+        // Build activity call arguments from the parameters property
         sourceBuilder.token().keyword(SyntaxKind.OPEN_BRACE_TOKEN);
         Optional<Property> parameters = sourceBuilder.flowNode.getProperty(Property.PARAMETERS_KEY);
         if (parameters.isPresent() && parameters.get().value() instanceof Map<?, ?> paramMap) {
@@ -175,9 +186,10 @@ public class ActivityCreationBuilder extends NodeBuilder {
                         .name(paramName);
             }
         }
+        sourceBuilder.token().keyword(SyntaxKind.CLOSE_BRACE_TOKEN);
+        populateAdvancedArgs(sourceBuilder, sourceBuilder.flowNode.properties());
 
         sourceBuilder.token()
-                .keyword(SyntaxKind.CLOSE_BRACE_TOKEN)
                 .keyword(SyntaxKind.CLOSE_PAREN_TOKEN)
                 .endOfStatement();
 

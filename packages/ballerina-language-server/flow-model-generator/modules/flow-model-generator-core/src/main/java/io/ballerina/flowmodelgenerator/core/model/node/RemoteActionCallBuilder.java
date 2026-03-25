@@ -59,7 +59,7 @@ public class RemoteActionCallBuilder extends CallBuilder {
             NonTerminalNode node = ((ModulePartNode) document.get().syntaxTree().rootNode())
                     .findNode(TextRange.from(txtPos, 0));
             if (WorkflowUtil.isInsideWorkflowFunction(model.get(), node)) {
-                ActivityCallBuilder.addCallActivityOptions(context, moduleInfo, this);
+                ActivityCallBuilder.addAdvanedParameters(context, moduleInfo, this);
             }
         }
     }
@@ -69,7 +69,7 @@ public class RemoteActionCallBuilder extends CallBuilder {
         FlowNode flowNode = sourceBuilder.flowNode;
         Map<String, Property> properties = flowNode.properties();
         boolean isWorkflowCall = properties != null
-                && properties.containsKey(ActivityCallBuilder.ADVANCED_PARAM_KEY);
+                && properties.containsKey(Property.ADVANCED_PARAM_KEY);
 
         if (isWorkflowCall) {
             return toActivityCallSource(sourceBuilder, flowNode, properties);
@@ -125,9 +125,9 @@ public class RemoteActionCallBuilder extends CallBuilder {
                 .keyword(SyntaxKind.COMMA_TOKEN);
 
         Set<String> excludedKeys = Set.of(Property.VARIABLE_KEY, Property.TYPE_KEY,
-                Property.CHECK_ERROR_KEY, Property.CONNECTION_KEY, ActivityCallBuilder.ADVANCED_PARAM_KEY);
-        ActivityCallBuilder.emitArgsMap(sourceBuilder, properties, excludedKeys);
-        ActivityCallBuilder.emitOptionsNamedArgs(sourceBuilder, properties);
+                Property.CHECK_ERROR_KEY, Property.CONNECTION_KEY, Property.ADVANCED_PARAM_KEY);
+        ActivityCallBuilder.populateActivityCallArg(sourceBuilder, properties, excludedKeys);
+        ActivityCallBuilder.populateAdvancedArgs(sourceBuilder, properties);
 
         sourceBuilder.token()
                 .keyword(SyntaxKind.CLOSE_PAREN_TOKEN)

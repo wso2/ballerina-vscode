@@ -61,6 +61,7 @@ import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CONTEXT_CL
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.DEFAULT_CTX_PARAM_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_MODULE;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ORG;
+import static io.ballerina.flowmodelgenerator.core.model.Property.ADVANCED_PARAM_KEY;
 import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isWorkflowModule;
 
 /**
@@ -74,7 +75,6 @@ public class ActivityCallBuilder extends CallBuilder {
     public static final String DESCRIPTION = "Call a workflow activity function";
     public static final String CALL_ACTIVITY_METHOD = "callActivity";
     public static final String DEFAULT_RETURN_TYPE = "anydata";
-    public static final String ADVANCED_PARAM_KEY = "advanced";
     public static final String ADVANCE_CONFIGURATIONS = "Activity call configurations";
     private static final Set<String> EXCLUDED_CALL_ACTIVITY_PARAMS = Set.of("activityFunction", "args", "T");
 
@@ -91,11 +91,11 @@ public class ActivityCallBuilder extends CallBuilder {
     @Override
     public void setConcreteTemplateData(TemplateContext context) {
         super.setConcreteTemplateData(context);
-        addCallActivityOptions(context, moduleInfo, this);
+        addAdvanedParameters(context, moduleInfo, this);
     }
 
-    public static void addCallActivityOptions(TemplateContext context, ModuleInfo moduleInfo,
-                                               CallBuilder builder) {
+    public static void addAdvanedParameters(TemplateContext context, ModuleInfo moduleInfo,
+                                            CallBuilder builder) {
         ModuleInfo workflowModuleInfo = new ModuleInfo(WORKFLOW_ORG, WORKFLOW_MODULE, WORKFLOW_MODULE, null);
         FunctionData callActivityData = new FunctionDataBuilder()
                 .name(CALL_ACTIVITY_METHOD)
@@ -166,8 +166,8 @@ public class ActivityCallBuilder extends CallBuilder {
         Map<String, Property> properties = flowNode.properties();
         Set<String> excludedKeys = Set.of(Property.VARIABLE_KEY, Property.TYPE_KEY,
                 Property.CHECK_ERROR_KEY, ADVANCED_PARAM_KEY);
-        emitArgsMap(sourceBuilder, properties, excludedKeys);
-        emitOptionsNamedArgs(sourceBuilder, properties);
+        populateActivityCallArg(sourceBuilder, properties, excludedKeys);
+        populateAdvancedArgs(sourceBuilder, properties);
 
         sourceBuilder.token()
                 .keyword(SyntaxKind.CLOSE_PAREN_TOKEN)
@@ -212,8 +212,8 @@ public class ActivityCallBuilder extends CallBuilder {
      * @param properties    the flow node properties
      * @param excludedKeys  property keys to exclude from the map
      */
-    public static void emitArgsMap(SourceBuilder sourceBuilder, Map<String, Property> properties,
-                                   Set<String> excludedKeys) {
+    public static void populateActivityCallArg(SourceBuilder sourceBuilder, Map<String, Property> properties,
+                                               Set<String> excludedKeys) {
         sourceBuilder.token().keyword(SyntaxKind.OPEN_BRACE_TOKEN);
         if (properties != null) {
             boolean isFirstArg = true;
@@ -250,7 +250,7 @@ public class ActivityCallBuilder extends CallBuilder {
      * @param sourceBuilder the source builder
      * @param properties    the flow node properties
      */
-    public static void emitOptionsNamedArgs(SourceBuilder sourceBuilder, Map<String, Property> properties) {
+    public static void populateAdvancedArgs(SourceBuilder sourceBuilder, Map<String, Property> properties) {
         if (properties == null) {
             return;
         }
@@ -260,7 +260,7 @@ public class ActivityCallBuilder extends CallBuilder {
                 if (param.getKey() instanceof String paramName && !paramName.isEmpty() &&
                         param.getValue() instanceof Map<?, ?> paramProp) {
                     Property paramData = Property.convertToProperty(paramProp);
-                    if (paramData.value() != null) {
+                    if (paramData.value() != null && !paramData.value().toString().isEmpty()) {
                         sourceBuilder.token()
                                 .keyword(SyntaxKind.COMMA_TOKEN)
                                 .name(paramName)

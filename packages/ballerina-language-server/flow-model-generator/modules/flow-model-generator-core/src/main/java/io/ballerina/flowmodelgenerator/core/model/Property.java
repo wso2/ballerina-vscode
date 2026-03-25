@@ -261,6 +261,8 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
     public static final String ANNOTATIONS_KEY = "annotations";
     public static final String PARAMETERS_KEY = "parameters";
 
+    public static final String ADVANCED_PARAM_KEY = "advanced";
+
     public static final Set<String> RESERVED_PROPERTY_KEYS = Set.of(VARIABLE_KEY, NAME_KEY, TYPE_KEY,
             DESCRIPTION_KEY, IS_ARRAY_KEY, IS_PUBLIC_KEY, IS_PRIVATE_KEY, IS_ISOLATED_KEY, IS_READ_ONLY_KEY,
             IS_DISTINCT_KEY, NETWORK_QUALIFIER_KEY, QUALIFIERS_KEY, EXPRESSION_KEY,
