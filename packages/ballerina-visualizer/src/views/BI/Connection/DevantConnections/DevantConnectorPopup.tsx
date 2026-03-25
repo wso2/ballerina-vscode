@@ -453,6 +453,7 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
                                                             [
                                                                 DevantConnectionFlow.IMPORT_INTERNAL_OAS,
                                                                 DevantConnectionFlow.CREATE_THIRD_PARTY_OAS,
+                                                                DevantConnectionFlow.IMPORT_THIRD_PARTY_OAS,
                                                             ].includes(selectedFlow)
                                                         ) {
                                                             generateCustomConnectorFromOAS();
