@@ -801,10 +801,14 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                     );
                 }
 
-                keys[entry.id] = {
-                    keyname: entry.name,
-                    envName: connectionKeys[entry.id].envVariableName,
-                };
+                if (connectionKeys[entry.id]){
+                    keys[entry.id] = {
+                        keyname: entry.name,
+                        envName: connectionKeys[entry.id].envVariableName,
+                    };
+                } else {
+                    log(`connectionKeys ${JSON.stringify(connectionKeys)} does not include the needed key for entry ${entry.id}`);
+                }
             }
             if (deleteTempConfigBalEdits.size > 0) {
                 await updateSourceCode({

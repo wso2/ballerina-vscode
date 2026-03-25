@@ -32,7 +32,7 @@ import { PopupContent, StepperContainer } from "../AddConnectionPopup/styles";
 import { DevantConnectorList } from "./DevantConnectorList";
 import React, { useEffect, useState } from "react";
 import { DevantConnectorMarketplaceInfo } from "./DevantConnectorMarketplaceInfo";
-import { ConnectionListItem, MarketplaceItem, ServiceInfoVisibilityEnum } from "@wso2/wso2-platform-core";
+import { ConnectionListItem, MarketplaceItem, MarketplaceItemSchema, ServiceInfoVisibilityEnum } from "@wso2/wso2-platform-core";
 import { DevantConnectorCreateForm } from "./DevantConnectorCreateForm";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
@@ -178,8 +178,9 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
         }
     }, [selectedFlow]);
 
-    const { mutate: createTempConfigs } = useMutation({
-        mutationFn: async (item: MarketplaceItem) => {
+    const { mutate: createTempConfigs, mutateAsync: createTempConfigsAsync } = useMutation({
+        mutationFn: async (params: {item: MarketplaceItem, schema?: MarketplaceItemSchema}) => {
+            await deleteTempConfigAsync();
             const configResp = await rpcClient.getBIDiagramRpcClient().getConfigVariablesV2({
                 projectPath,
                 includeLibraries: false,
@@ -194,7 +195,7 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
                 existingConfigs.add(configVar?.properties?.variable?.value?.toString() || ""),
             );
 
-            const allEntries = item.connectionSchemas?.[0]?.entries || [];
+            const allEntries = params?.schema?.entries || params.item.connectionSchemas?.[0]?.entries || [];
             const configs: DevantTempConfig[] = allEntries.map((entry) => {
                 let uniqueName = entry.name;
                 let counter = 1;
@@ -220,14 +221,16 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
                 config.node = resp.configNode;
             }
             setDevantConfigs(configs);
+            return configs;
         },
     });
 
     useEffect(() => {
-        if (selectedMarketplaceItem) {
-            createTempConfigs(selectedMarketplaceItem);
+        const ignoredFlows = [DevantConnectionFlow.CREATE_INTERNAL_OAS, DevantConnectionFlow.IMPORT_INTERNAL_OAS];
+        if (selectedMarketplaceItem && !ignoredFlows.includes(selectedFlow)) {
+            createTempConfigs({ item: selectedMarketplaceItem });
         }
-    }, [selectedMarketplaceItem]);
+    }, [selectedMarketplaceItem, selectedFlow]);
 
     const handleClosePopup = () => {
         deleteTempConfig();
@@ -319,6 +322,12 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
                 orgId: platformExtState?.selectedContext?.org?.id?.toString(),
             });
 
+            let tempDevantConfigs = devantConfigs
+            const matchingSchema = selectedMarketplaceItem?.connectionSchemas?.find((schema) => schema.id === connectionDetailed?.schemaReference);
+            if (matchingSchema) {
+                tempDevantConfigs = await createTempConfigsAsync({ item: selectedMarketplaceItem!, schema: matchingSchema });
+            }
+
             let visibility: ServiceInfoVisibilityEnum = ServiceInfoVisibilityEnum.Public;
             if (connectionDetailed?.schemaName?.toLowerCase()?.includes("organization")) {
                 visibility = ServiceInfoVisibilityEnum.Organization;
@@ -342,7 +351,7 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
                 visibility,
                 configurations,
                 securityType,
-                devantConfigs: devantConfigs,
+                devantConfigs: tempDevantConfigs,
             });
             return resp;
         },
@@ -379,7 +388,7 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
         },
     });
 
-    const { mutate: deleteTempConfig } = useMutation({
+    const { mutate: deleteTempConfig, mutateAsync: deleteTempConfigAsync } = useMutation({
         mutationFn: async () => {
             if (devantConfigs.length > 0) {
                 await platformRpcClient?.deleteDevantTempConfigs({
@@ -470,6 +479,7 @@ export function DevantConnectorPopup(props: DevantConnectorPopupProps) {
                                                     existingDevantConnNames={existingDevantConnNames}
                                                     devantFlow={selectedFlow!}
                                                     devantConfigs={devantConfigs}
+                                                    createTempConfigsAsync={createTempConfigsAsync}
                                                     onSuccess={(data) => {
                                                         if (data.connectionName && onClose) {
                                                             onClose({
