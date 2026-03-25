@@ -45,14 +45,14 @@ import java.util.Optional;
  */
 public class DataMapperCreationBuilder extends NodeBuilder {
 
-    public static final String LABEL = "Data Mapper";
-    public static final String DESCRIPTION = "Define a data mapper";
+    public static final String LABEL = "Data Mapper Creation";
+    public static final String DESCRIPTION = "Define a data mapper and assign its result";
 
     public static final String DATA_MAPPER_NAME_LABEL = "Data Mapper Name";
     public static final String DATA_MAPPER_NAME_DOC = "Name of the data mapper";
 
     public static final String PARAMETERS_LABEL = "Inputs";
-    public static final String PARAMETERS_DOC = "Input variables of the data mapper";
+    public static final String PARAMETERS_DOC = "Arguments passed to the data mapper";
 
     public static final String OUTPUT_LABEL = "Output";
     public static final String OUTPUT_DOC = "Output type of the data mapper";
@@ -111,7 +111,8 @@ public class DataMapperCreationBuilder extends NodeBuilder {
 
     public void setMandatoryProperties(TemplateContext context, NodeBuilder nodeBuilder, String returnType) {
         nodeBuilder.properties()
-                .dataVariable(null, context.getAllVisibleSymbolNames());
+                .dataVariable(null, Property.RESULT_NAME, Property.TYPE_LABEL,
+                        Property.RESULT_DOC, true, context.getAllVisibleSymbolNames(), false);
 
         nodeBuilder.properties().custom()
                 .metadata()
