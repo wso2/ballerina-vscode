@@ -38,8 +38,6 @@ import {
     ItemsArea,
     ItemsInner,
     NodeLabel,
-    ProgressDone,
-    ProgressSpinner,
     SonarCenter,
     SonarRing,
     SonarWrapper,
@@ -170,7 +168,7 @@ function getToolResultDisplay(toolName: string | undefined, toolOutput: any, hin
 
 // ── Item renderer — order-preserving, used by both floating and named entries ─
 
-function renderItem(item: StreamItem, idx: number, items: StreamItem[], streamActive: boolean, rpcClient?: any): React.ReactNode {
+function renderItem(item: StreamItem, idx: number, streamActive: boolean, rpcClient?: any): React.ReactNode {
     switch (item.kind) {
         case "text": {
             const trimmed = item.text.trim();
@@ -237,19 +235,20 @@ function renderItem(item: StreamItem, idx: number, items: StreamItem[], streamAc
             return <ConnectorCard key={idx} data={item.data} rpcClient={rpcClient} />;
         case "component":
             if (item.componentType === "progress") {
-                if (item.data.status === "end") return null;
-                const isCompleted = items.slice(idx + 1).some(
-                    i => i.kind === "component" && i.componentType === "progress" &&
-                         i.data.status === "end" && i.data.text === item.data.text
-                );
-                // If stream stopped before this progress item got its "end", treat as done
-                const isSpinning = !isCompleted && streamActive;
+                const isDone = item.data.status === "end";
+                const isSpinning = !isDone && streamActive;
                 return (
                     <ItemRow key={idx}>
-                        {isSpinning
-                            ? <ProgressSpinner><span className="codicon codicon-sync" /></ProgressSpinner>
-                            : <ProgressDone><span className="codicon codicon-pass-filled" /></ProgressDone>
-                        }
+                        <SonarWrapper>
+                            {isSpinning ? (
+                                <>
+                                    <SonarRing />
+                                    <SonarCenter />
+                                </>
+                            ) : (
+                                <DoneCircle />
+                            )}
+                        </SonarWrapper>
                         <ItemLabel loading={isSpinning}>{item.data.text}</ItemLabel>
                     </ItemRow>
                 );
@@ -299,7 +298,7 @@ const StreamEntryComponent: React.FC<StreamEntryComponentProps> = ({
         if (!hasItems) return null;
         return (
             <EntryBlock style={{ flexDirection: "column" }}>
-                {entry.items.map((item, idx) => renderItem(item, idx, entry.items, isLast && isLoading, rpcClient))}
+                {entry.items.map((item, idx) => renderItem(item, idx, isLast && isLoading, rpcClient))}
             </EntryBlock>
         );
     }
@@ -330,7 +329,7 @@ const StreamEntryComponent: React.FC<StreamEntryComponentProps> = ({
                 {hasItems && (
                     <ItemsArea expanded={expanded}>
                         <ItemsInner ref={innerRef}>
-                            {entry.items.map((item, idx) => renderItem(item, idx, entry.items, isLast && isLoading, rpcClient))}
+                            {entry.items.map((item, idx) => renderItem(item, idx, isLast && isLoading, rpcClient))}
                         </ItemsInner>
                     </ItemsArea>
                 )}
