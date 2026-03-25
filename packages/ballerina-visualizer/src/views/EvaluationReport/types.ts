@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -15,17 +15,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import React from "react";
 
-export const AnthropicIcon = () => {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-            <path
-                fill="currentColor"
-                d="M17.304 3.541h-3.672l6.696 16.918H24Zm-10.608 0L0 20.459h3.744l1.37-3.553h7.005l1.369 3.553h3.744L10.536 3.541Zm-.371 10.223L8.616 7.82l2.291 5.945Z"
-            />
-        </svg>
-    );
-};
-
-export default AnthropicIcon; 
+export type {
+    EvaluationReportData,
+    EvaluationReportModuleStatus,
+    EvaluationReportTestResult,
+    EvaluationRun,
+    EvaluationOutcomeResult,
+} from "@wso2/ballerina-core";

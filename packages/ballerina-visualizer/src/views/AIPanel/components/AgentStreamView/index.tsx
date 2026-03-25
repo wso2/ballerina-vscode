@@ -36,7 +36,7 @@ const AgentStreamView: React.FC<AgentStreamViewProps> = ({ stream, isLoading = f
     useEffect(() => {
         stream.forEach((entry, entryIdx) => {
             if (!entry.description) return;
-            const isLastEntry = entryIdx === stream.length - 1;
+            const isLastEntry = !stream.slice(entryIdx + 1).some(e => e.description);
             const nodeStatus = getNodeStatus(entry, isLastEntry, isLoading);
             const key = `${entry.description}::${entryIdx}`;
 
@@ -92,6 +92,7 @@ const AgentStreamView: React.FC<AgentStreamViewProps> = ({ stream, isLoading = f
         <PipelineContainer>
             {stream.map((entry, idx) => {
                 const uniqueKey = `${entry.description}::${idx}`;
+                const hasNextNamedEntry = !!(stream[idx + 1]?.description);
                 return (
                     <StreamEntryComponent
                         key={uniqueKey}
@@ -102,6 +103,7 @@ const AgentStreamView: React.FC<AgentStreamViewProps> = ({ stream, isLoading = f
                         onToggle={() => toggleEntry(uniqueKey)}
                         innerRef={el => { itemsInnerRefs.current[uniqueKey] = el; }}
                         rpcClient={rpcClient}
+                        hasNextNamedEntry={hasNextNamedEntry}
                     />
                 );
             })}

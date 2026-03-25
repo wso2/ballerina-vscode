@@ -16,6 +16,7 @@
  * under the License.
  */
 
+import { useEffect, useRef } from "react";
 import { PanelContainer, NodeList, CardList, ExpressionFormField } from "@wso2/ballerina-side-panel";
 import {
     FlowNode,
@@ -41,6 +42,7 @@ import { ConnectionConfig, ConnectionCreator, ConnectionSelectionList, Connectio
 import { RelativeLoader } from "../../../components/RelativeLoader";
 import { LoaderContainer } from "../../../components/RelativeLoader/styles";
 import { ConnectionListItem } from "@wso2/wso2-platform-core";
+import { ConnectorErrorView } from "./components/ErrorContainer";
 
 const Container = styled.div`
     display: flex;
@@ -71,6 +73,7 @@ export enum SidePanelView {
     NEW_AGENT = "NEW_AGENT",
     ADD_TOOL = "ADD_TOOL",
     NEW_TOOL = "NEW_TOOL",
+    NEW_TOOL_CUSTOM = "NEW_TOOL_CUSTOM",
     NEW_TOOL_FROM_CONNECTION = "NEW_TOOL_FROM_CONNECTION",
     NEW_TOOL_FROM_FUNCTION = "NEW_TOOL_FROM_FUNCTION",
     ADD_MCP_SERVER = "ADD_MCP_SERVER",
@@ -81,7 +84,9 @@ export enum SidePanelView {
     CONNECTION_CREATE = "CONNECTION_CREATE",
     AGENT_MEMORY_MANAGER = "AGENT_MEMORY_MANAGER",
     AGENT_CONFIG = "AGENT_CONFIG",
-    AGENT_LIST = "AGENT_LIST"
+    AGENT_LIST = "AGENT_LIST",
+    CONNECTOR_ERROR = "CONNECTOR_ERROR",
+    ALL = "ALL"
 }
 
 interface PanelManagerProps {
@@ -106,9 +111,11 @@ interface PanelManagerProps {
     selectedConnectionKind?: ConnectionKind;
     showProgressSpinner?: boolean;
     progressMessage?: string;
+    errorMessage?: string;
 
     // Action handlers
     onClose: () => void;
+    onSaveAndRefresh?: () => void;
     onBack?: () => void;
     onSelectNode: (nodeId: string, metadata?: any) => void;
     onAddConnection?: () => void;
@@ -132,12 +139,15 @@ interface PanelManagerProps {
     onSearchWorkflow?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchActivity?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchNpFunction?: (searchText: string, functionType: FUNCTION_TYPE) => void;
+    onSearchAll?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchModelProvider?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchVectorStore?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchEmbeddingProvider?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchVectorKnowledgeBase?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchDataLoader?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchChunker?: (searchText: string, functionType: FUNCTION_TYPE) => void;
+    onSearchTextChange?: (searchText: string) => void;
+    searchText?: string;
     onAddAgent?: () => void;
     onEditAgent?: () => void;
     onNavigateToPanel?: (targetPanel: SidePanelView, connectionKind?: ConnectionKind) => void;
@@ -151,6 +161,7 @@ interface PanelManagerProps {
     onAddTool?: (node: FlowNode) => void;
     onAddMcpServer?: (node: FlowNode) => void;
     onSelectNewConnection?: (nodeId: string, metadata?: any) => void;
+    onSelectConnectorPopup?: (nodeId: string, metadata?: any) => void;
     onUpdateNodeWithConnection?: (selectedNode: FlowNode) => void;
 
     // Devant handlers
@@ -184,6 +195,7 @@ export function PanelManager(props: PanelManagerProps) {
         progressMessage = "Loading...",
         setSidePanelView,
         onClose,
+        onSaveAndRefresh,
         onBack,
         onSelectNode,
         onAddConnection,
@@ -208,18 +220,33 @@ export function PanelManager(props: PanelManagerProps) {
         onSearchWorkflow,
         onSearchActivity,
         onSearchNpFunction,
+        onSearchTextChange,
+        searchText,
+        onSearchAll,
         onSearchVectorStore,
         onSearchEmbeddingProvider,
         onSearchVectorKnowledgeBase,
         onSearchDataLoader,
         onSearchChunker,
         onSelectNewConnection,
+        onSelectConnectorPopup,
         onUpdateNodeWithConnection,
         onNavigateToPanel,
+        errorMessage,
         onImportDevantConn,
         onLinkDevantProject,
         onRefreshDevantConnections,
     } = props;
+
+    const backOverrideRef = useRef<(() => void) | null>(null);
+
+    useEffect(() => {
+        backOverrideRef.current = null;
+    }, [sidePanelView]);
+
+    const handleSetBackOverride = (handler: (() => void) | null) => {
+        backOverrideRef.current = handler;
+    };
 
     const handleOnBackToAddTool = () => {
         setSidePanelView(SidePanelView.ADD_TOOL);
@@ -235,6 +262,10 @@ export function PanelManager(props: PanelManagerProps) {
 
     const handleOnUseMcpServer = () => {
         setSidePanelView(SidePanelView.ADD_MCP_SERVER);
+    };
+
+    const handleOnCreateCustomTool = () => {
+        setSidePanelView(SidePanelView.NEW_TOOL_CUSTOM);
     };
 
     const findSubPanelComponent = (subPanel: SubPanel) => {
@@ -260,6 +291,8 @@ export function PanelManager(props: PanelManagerProps) {
             case SidePanelView.NODE_LIST:
                 return (
                     <NodeList
+                        onSearchTextChange={onSearchTextChange}
+                        searchText={searchText}
                         categories={categories}
                         onSelect={onSelectNode}
                         onAddConnection={onAddConnection}
@@ -274,6 +307,7 @@ export function PanelManager(props: PanelManagerProps) {
                 return (
                     <AddTool
                         agentCallNode={selectedNode}
+                        onCreateCustomTool={handleOnCreateCustomTool}
                         onUseConnection={handleOnUseConnection}
                         onUseFunction={handleOnUseFunction}
                         onUseMcpServer={handleOnUseMcpServer}
@@ -306,8 +340,20 @@ export function PanelManager(props: PanelManagerProps) {
                     <NewTool
                         agentCallNode={selectedNode}
                         mode={NewToolSelectionMode.ALL}
-                        onSave={onClose}
+                        onSave={onSaveAndRefresh ?? onClose}
                         onBack={handleOnBackToAddTool}
+                        onSetBackOverride={handleSetBackOverride}
+                    />
+                );
+
+            case SidePanelView.NEW_TOOL_CUSTOM:
+                return (
+                    <NewTool
+                        agentCallNode={selectedNode}
+                        mode={NewToolSelectionMode.CUSTOM_TOOL}
+                        onSave={onSaveAndRefresh ?? onClose}
+                        onBack={handleOnBackToAddTool}
+                        onSetBackOverride={handleSetBackOverride}
                     />
                 );
 
@@ -316,8 +362,9 @@ export function PanelManager(props: PanelManagerProps) {
                     <NewTool
                         agentCallNode={selectedNode}
                         mode={NewToolSelectionMode.CONNECTION}
-                        onSave={onClose}
+                        onSave={onSaveAndRefresh ?? onClose}
                         onBack={handleOnBackToAddTool}
+                        onSetBackOverride={handleSetBackOverride}
                     />
                 );
 
@@ -326,8 +373,9 @@ export function PanelManager(props: PanelManagerProps) {
                     <NewTool
                         agentCallNode={selectedNode}
                         mode={NewToolSelectionMode.FUNCTION}
-                        onSave={onClose}
+                        onSave={onSaveAndRefresh ?? onClose}
                         onBack={handleOnBackToAddTool}
+                        onSetBackOverride={handleSetBackOverride}
                     />
                 );
 
@@ -345,11 +393,12 @@ export function PanelManager(props: PanelManagerProps) {
                     <NodeList
                         categories={categories}
                         onSelect={onSelectNode}
-                        onSearchTextChange={(searchText) => onSearchFunction(searchText, FUNCTION_TYPE.REGULAR)}
+                        onSearchTextChange={(searchText) => onSearchFunction?.(searchText, FUNCTION_TYPE.REGULAR)}
                         onAddFunction={onAddFunction}
                         onClose={onClose}
                         title={"Functions"}
                         searchPlaceholder={"Search library functions"}
+                        searchText={searchText}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
@@ -387,10 +436,11 @@ export function PanelManager(props: PanelManagerProps) {
                     <NodeList
                         categories={categories}
                         onSelect={onSelectNode}
-                        onSearchTextChange={(searchText) => onSearchNpFunction(searchText, FUNCTION_TYPE.REGULAR)}
+                        onSearchTextChange={(searchText) => onSearchAll?.(searchText, FUNCTION_TYPE.REGULAR)}
                         onAddFunction={onAddNPFunction}
                         onClose={onClose}
                         title={"Natural Functions"}
+                        searchText={searchText}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
@@ -406,6 +456,7 @@ export function PanelManager(props: PanelManagerProps) {
                         onAddFunction={onAddDataMapper}
                         onClose={onClose}
                         title={"Data Mappers"}
+                        searchText={searchText}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
@@ -420,6 +471,7 @@ export function PanelManager(props: PanelManagerProps) {
                         onClose={onClose}
                         title={"Agents"}
                         searchPlaceholder={"Search agents"}
+                        searchText={searchText}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
@@ -434,6 +486,7 @@ export function PanelManager(props: PanelManagerProps) {
                         onClose={onClose}
                         title={"Model Providers"}
                         searchPlaceholder={"Search model providers"}
+                        searchText={searchText}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
@@ -461,6 +514,7 @@ export function PanelManager(props: PanelManagerProps) {
                         title={"Vector Stores"}
                         searchPlaceholder={"Search vector stores"}
                         onSearchTextChange={(searchText) => onSearchVectorStore?.(searchText, FUNCTION_TYPE.REGULAR)}
+                        searchText={searchText}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
@@ -490,6 +544,7 @@ export function PanelManager(props: PanelManagerProps) {
                         onSearchTextChange={(searchText) =>
                             onSearchEmbeddingProvider?.(searchText, FUNCTION_TYPE.REGULAR)
                         }
+                        searchText={searchText}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
@@ -519,6 +574,7 @@ export function PanelManager(props: PanelManagerProps) {
                         onSearchTextChange={(searchText) =>
                             onSearchVectorKnowledgeBase?.(searchText, FUNCTION_TYPE.REGULAR)
                         }
+                        searchText={searchText}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
@@ -548,6 +604,7 @@ export function PanelManager(props: PanelManagerProps) {
                         onSearchTextChange={(searchText) =>
                             onSearchDataLoader?.(searchText, FUNCTION_TYPE.REGULAR)
                         }
+                        searchText={searchText}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
@@ -577,6 +634,7 @@ export function PanelManager(props: PanelManagerProps) {
                         onSearchTextChange={(searchText) =>
                             onSearchChunker?.(searchText, FUNCTION_TYPE.REGULAR)
                         }
+                        searchText={searchText}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );
@@ -617,6 +675,14 @@ export function PanelManager(props: PanelManagerProps) {
                     />
                 );
 
+            case SidePanelView.CONNECTOR_ERROR:
+                return (
+                    <ConnectorErrorView
+                        errorMessage={errorMessage}
+                        onBack={onBack}
+                    />
+                );
+
             case SidePanelView.FORM:
                 return (
                     <FormGenerator
@@ -640,6 +706,21 @@ export function PanelManager(props: PanelManagerProps) {
                     />
                 );
 
+            case SidePanelView.ALL:
+                return (
+                    <NodeList
+                        categories={categories}
+                        onSelect={onSelectNode}
+                        onSelectConnector={onSelectConnectorPopup}
+                        onSearchTextChange={onSearchTextChange}
+                        searchText={searchText}
+                        onClose={onClose}
+                        title={"All Components"}
+                        searchPlaceholder={"Search all components"}
+                        onBack={canGoBack ? onBack : undefined}
+                    />
+                );
+
             default:
                 return null;
         }
@@ -650,10 +731,13 @@ export function PanelManager(props: PanelManagerProps) {
             case SidePanelView.NEW_TOOL:
             case SidePanelView.NEW_TOOL_FROM_CONNECTION:
             case SidePanelView.NEW_TOOL_FROM_FUNCTION:
+                // Read ref at call time so registering an override never causes a re-render
+                return () => (backOverrideRef.current ?? handleOnBackToAddTool)();
             case SidePanelView.ADD_MCP_SERVER:
                 return handleOnBackToAddTool;
             case SidePanelView.CONNECTION_SELECT:
             case SidePanelView.CONNECTION_CREATE:
+            case SidePanelView.CONNECTOR_ERROR:
                 return onBack;
             case SidePanelView.FORM:
                 return !showEditForm ? onBack : undefined;

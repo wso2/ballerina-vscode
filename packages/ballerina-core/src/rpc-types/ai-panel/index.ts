@@ -45,6 +45,8 @@ import {
     CheckpointInfo,
     AbortAIGenerationRequest,
     UsageResponse,
+    OpenFileDiffRequest,
+    WebToolApprovalRequest,
 } from "./interfaces";
 
 export interface AIPanelAPI {
@@ -108,4 +110,7 @@ export interface AIPanelAPI {
     updateChatMessage: (params: UpdateChatMessageRequest) => Promise<void>;
     getActiveTempDir: () => Promise<string>;
     getUsage: () => Promise<UsageResponse | undefined>;
+    openFileDiff: (params: OpenFileDiffRequest) => void;
+    approveWebTool: (params: WebToolApprovalRequest) => Promise<void>;
+    declineWebTool: (params: WebToolApprovalRequest) => Promise<void>;
 }

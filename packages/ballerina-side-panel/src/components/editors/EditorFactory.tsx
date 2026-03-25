@@ -18,7 +18,7 @@
 
 import React from "react";
 
-import { InputType, isDropDownType, isTemplateType, NodeKind, NodeProperties, RecordTypeField, SubPanel, SubPanelView } from "@wso2/ballerina-core";
+import { Imports, InputType, isDropDownType, isTemplateType, NodeKind, NodeProperties, RecordTypeField, SubPanel, SubPanelView } from "@wso2/ballerina-core";
 
 import { FormField } from "../Form/types";
 import { MultiSelectEditor } from "./MultiSelectEditor";
@@ -42,7 +42,6 @@ import { HeaderSetEditor } from "./HeaderSetEditor";
 import { CompletionItem } from "@wso2/ui-toolkit";
 import { CustomDropdownEditor } from "./CustomDropdownEditor";
 import { SliderEditor } from "./SliderEditor";
-import { ActionExpressionEditor } from "./ActionExpressionEditor";
 import { CheckBoxConditionalEditor } from "./CheckBoxConditionalEditor";
 import { ActionTypeEditor } from "./ActionTypeEditor";
 import { AutoCompleteEditor } from "./AutoCompleteEditor";
@@ -70,6 +69,7 @@ export interface FormFieldEditorProps {
     scopeFieldAddon?: React.ReactNode;
     isContextTypeEditorSupported?: boolean;
     openFormTypeEditor?: (open: boolean, newType?: string) => void;
+    updateImports?: (key: string, imports: Imports) => void;
 }
 
 export const EditorFactory = (props: FormFieldEditorProps) => {
@@ -89,13 +89,15 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         setSubComponentEnabled,
         handleNewTypeSelected,
         isContextTypeEditorSupported,
-        openFormTypeEditor
+        openFormTypeEditor,
+        updateImports,
     } = props;
 
     const showWithExpressionEditor = (
         fieldInputType.fieldType === "EXPRESSION" ||
         fieldInputType.fieldType === "LV_EXPRESSION" ||
         fieldInputType.fieldType === "ACTION_OR_EXPRESSION" ||
+        fieldInputType.fieldType === "ACTION_EXPRESSION" ||
         fieldInputType.fieldType === "TEXT" ||
         fieldInputType.fieldType === "EXPRESSION_SET" ||
         fieldInputType.fieldType === "TEXT_SET" ||
@@ -180,18 +182,6 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
             />
         );
 
-    } else if (!field.items && fieldInputType.fieldType === "ACTION_EXPRESSION") {
-        return (
-            <ActionExpressionEditor
-                field={field}
-                fieldInputType={fieldInputType}
-                openSubPanel={openSubPanel}
-                subPanelView={subPanelView}
-                handleOnFieldFocus={handleOnFieldFocus}
-                autoFocus={autoFocus}
-                recordTypeField={recordTypeFields?.find(recordField => recordField.key === field.key)}
-            />
-        );
     } else if (showWithExpressionEditor && field.editable) {
         // Expression field is a inline expression editor
         return (
@@ -210,7 +200,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         // Skip this property
         return <></>;
     } else if(fieldInputType.fieldType === "REPEATABLE_PROPERTY" && (selectedNode === "DATA_MAPPER_CREATION" || selectedNode === "FUNCTION_CREATION")) {
-        return <ArgManagerEditor setSubComponentEnabled={setSubComponentEnabled} field={field} openRecordEditor={openRecordEditor} handleOnFieldFocus={handleOnFieldFocus} selectedNode={selectedNode} />;
+        return <ArgManagerEditor setSubComponentEnabled={setSubComponentEnabled} field={field} openRecordEditor={openRecordEditor} handleOnFieldFocus={handleOnFieldFocus} selectedNode={selectedNode} updateImports={updateImports} />;
     }else if (
         (fieldInputType.fieldType === "PARAM_MANAGER") ||
         (fieldInputType.fieldType === "REPEATABLE_PROPERTY" && isTemplateType(fieldInputType))

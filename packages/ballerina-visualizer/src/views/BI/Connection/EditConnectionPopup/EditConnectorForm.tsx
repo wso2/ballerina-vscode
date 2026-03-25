@@ -39,7 +39,7 @@ import {
     ErrorDetailsContent,
     ErrorDetailsText,
 } from "../styles";
-import { ConnectionListItem } from "@wso2/wso2-platform-core";
+import { ConnectionListItem, DatabaseRequestStatusEnum } from "@wso2/wso2-platform-core";
 import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
 import { dbCredentialsToFieldValues, buildDbPropertiesFromFieldValues, fieldValuesToDbConfig } from "../DevantConnections/utils";
 import { LoadingRing } from "../../../../components/Loader";
@@ -228,11 +228,16 @@ export function EditConnectorForm(props: EditConnectorFormProps) {
                 projectPath: visualizerLocation?.projectPath,
             });
             const orgId = platformExtState?.selectedContext?.org.id?.toString() || "";
+            let credsToUse: Record<string, string> = {}
             if (devantConnection?.resourceType === "DATABASE") {
                  const marketplaceItem = await platformRpcClient.getMarketplaceDatabaseItem({
                     orgId,
                     resourceId: devantConnection.serviceId,
                 })
+
+                if(marketplaceItem?.resourceDetails?.status !== DatabaseRequestStatusEnum.Active) {
+                    throw new Error("Selected WSO2 Cloud database is not active. Please select an active database to proceed.");
+                }
 
                 const serverId = marketplaceItem?.resourceDetails?.databaseServerId;
                 const [server, adminCredential] = await Promise.all([
@@ -243,7 +248,7 @@ export function EditConnectorForm(props: EditConnectorFormProps) {
                     postgres: "PostgreSQL",
                     mysql: "MySQL",
                 };
-                const credsToUse = dbCredentialsToFieldValues(connectorCredentialsResp.connectorCredentials, {
+                credsToUse = dbCredentialsToFieldValues(connectorCredentialsResp.connectorCredentials, {
                     databaseType: dbTypeMap[marketplaceItem.resourceDetails?.databaseType] ?? "PostgreSQL",
                     host: server.connection_params.host,
                     port: Number(server.connection_params.port),
@@ -251,22 +256,7 @@ export function EditConnectorForm(props: EditConnectorFormProps) {
                     username: server.connection_params.user,
                     password: adminCredential.password,
                 });
-
-                
-
-                const properties = buildDbPropertiesFromFieldValues(connectorCredentialsResp.connectorCredentials, credsToUse);
-                const newFieldValues: Record<string, string> = {};
-                Object.values(properties || {}).forEach((prop) => {
-                    const key = prop.metadata?.label || "";
-                    newFieldValues[key] = (prop.value as string) ?? "";
-                });
-                setFieldValues(newFieldValues);
-                handleConnectAndIntrospect(properties);
             } else {
-                const marketplaceItem = await platformRpcClient.getMarketplaceItem({
-                    orgId: platformExtState?.selectedContext?.org?.id?.toString(),
-                    serviceId: devantConnection.serviceId,
-                });
                 const connectionItem = await platformRpcClient.getConnection({ connectionGroupId: devantConnection.groupUuid, orgId });
                 const matchingConfig = connectionItem.configurations[platformExtState?.selectedEnv?.templateId]
                 if(matchingConfig){
@@ -301,24 +291,24 @@ export function EditConnectorForm(props: EditConnectorFormProps) {
                         }
                     })
 
-                    const credsToUse = dbCredentialsToFieldValues(connectorCredentialsResp.connectorCredentials, {
+                    credsToUse = dbCredentialsToFieldValues(connectorCredentialsResp.connectorCredentials, {
                         ...fieldValuesToDbConfig(kv),
                         databaseType
                     });
-
-                    const dbProperties = buildDbPropertiesFromFieldValues(connectorCredentialsResp.connectorCredentials, credsToUse);
-                    const newFieldValues: Record<string, string> = {};
-                    Object.values(dbProperties || {}).forEach((prop) => {
-                        const key = prop.metadata?.label || "";
-                        newFieldValues[key] = (prop.value as string) ?? "";
-                    });
-                    setFieldValues(newFieldValues);
-                    handleConnectAndIntrospect(dbProperties);
                 }
+
+                const dbProperties = buildDbPropertiesFromFieldValues(connectorCredentialsResp.connectorCredentials, credsToUse);
+                const newFieldValues: Record<string, string> = {};
+                Object.values(dbProperties || {}).forEach((prop) => {
+                    const key = prop.metadata?.label || "";
+                    newFieldValues[key] = (prop.value as string) ?? "";
+                });
+                setFieldValues(newFieldValues);
+                handleConnectAndIntrospect(dbProperties);
             }
         } catch (error) {
-            console.error(">>> Error fetching Devant database credentials", error);
-            setConnectionError("Unable to fetch database credentials from Devant connection. Please try again.");
+            console.error(">>> Error fetching WSO2 Cloud database credentials", error);
+            setConnectionError("Unable to fetch database credentials from WSO2 Cloud connection. Please try again.");
             setLsErrorDetails({ errorMessage: error instanceof Error ? error.message : String(error) });
         } finally {
             setIsFetchingDevantCreds(false)
@@ -633,7 +623,7 @@ export function EditConnectorForm(props: EditConnectorFormProps) {
         return (
             <>
                 <ContentContainer hasFooterButton={true}>
-                    {isFetchingDevantCreds ? <LoadingRing message="Loading Devant Database Credentials..." />: renderStepContent(1)}
+                    {isFetchingDevantCreds ? <LoadingRing message="Loading WSO2 Cloud Database Credentials..." />: renderStepContent(1)}
                 </ContentContainer>
                 <FooterContainer>
                     <ActionButton

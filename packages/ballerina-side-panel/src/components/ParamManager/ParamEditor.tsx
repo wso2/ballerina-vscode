@@ -32,14 +32,14 @@ export interface ParamProps {
     propertyKey: string;
     parameter: Parameter;
     paramFields: FormField[];
-    onSave: (param: Parameter) => void;
+    onSave: (param: Parameter) => void | Promise<void>;
     onCancelEdit: (param?: Parameter) => void;
     openRecordEditor?: (open: boolean) => void;
 }
 
 export function ParamEditor(props: ParamProps) {
     const { propertyKey, parameter, paramFields, onSave, onCancelEdit, openRecordEditor } = props;
-    const { expressionEditor } = useFormContext();
+    const { expressionEditor, targetLineRange, fileName } = useFormContext();
 
     const onCompletionItemSelect = async (value: string, fieldKey: string, additionalTextEdits?: TextEdit[]) => {
         await expressionEditor?.onCompletionItemSelect(value, propertyKey, additionalTextEdits);
@@ -98,15 +98,21 @@ export function ParamEditor(props: ParamProps) {
     };
 
     const [fields, setFields] = useState<FormField[]>(paramFields);
+    const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
         setFields(paramFields);
     }, [paramFields]);
 
-    const handleOnSave = (data: FormValues) => {
-        setFields([]);
+    const handleOnSave = async (data: FormValues) => {
         parameter.formValues = data;
-        onSave(parameter);
+        setIsSaving(true);
+        try {
+            await onSave(parameter);
+            setFields([]);
+        } finally {
+            setIsSaving(false);
+        }
     }
 
     return (
@@ -128,7 +134,10 @@ export function ParamEditor(props: ParamProps) {
                 }}
                 submitText={parameter.key ? 'Save' : 'Add'}
                 nestedForm={true}
+                targetLineRange={targetLineRange}
+                fileName={fileName}
                 preserveOrder={true}
+                isSaving={isSaving}
             />
         </EditorContainer >
     );

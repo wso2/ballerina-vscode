@@ -100,7 +100,7 @@ export async function captureWorkspaceSnapshot(messageId: string): Promise<Check
     }
 }
 
-export async function restoreWorkspaceSnapshot(checkpoint: Checkpoint): Promise<void> {
+export async function restoreWorkspaceSnapshot(checkpoint: Checkpoint, skipArtifactWait = false): Promise<void> {
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders || workspaceFolders.length === 0) {
         throw new Error('No workspace folder found');
@@ -176,6 +176,7 @@ export async function restoreWorkspaceSnapshot(checkpoint: Checkpoint): Promise<
         });
 
         // Wait for artifact update notification if any .bal files were restored
+        if (skipArtifactWait) { return; }
         await new Promise<void>((resolve, reject) => {
             if (!isBalFileRestored) {
                 resolve();

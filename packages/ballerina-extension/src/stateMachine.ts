@@ -276,9 +276,13 @@ const stateMachine = createMachine<MachineContext>(
                     src: 'registerProjectArtifactsStructure',
                     onDone: {
                         target: "extensionReady",
-                        actions: assign({
-                            projectStructure: (context, event) => event.data.projectStructure
-                        })
+                        actions: [
+                            assign({
+                                projectStructure: (context, event) => event.data.projectStructure
+                            }),
+                            () => {
+                            }
+                        ]
                     },
                     onError: {
                         target: "lsError",
@@ -379,7 +383,7 @@ const stateMachine = createMachine<MachineContext>(
                                     focusFlowDiagramView: (context, event) => event.data.focusFlowDiagramView,
                                     agentMetadata: (context, event) => event.data.agentMetadata,
                                     dataMapperMetadata: (context, event) => event.data.dataMapperMetadata,
-                                    reviewData: (context, event) => event.data.reviewData,
+                                    reviewData: (context, event) => event.data.reviewData ?? context.reviewData,
                                     evalsetData: (context, event) => event.data.evalsetData,
                                     isViewUpdateTransition: false
                                 })

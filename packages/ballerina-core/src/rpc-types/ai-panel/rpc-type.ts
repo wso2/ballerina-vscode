@@ -47,6 +47,8 @@ import {
     CheckpointInfo,
     AbortAIGenerationRequest,
     UsageResponse,
+    OpenFileDiffRequest,
+    WebToolApprovalRequest,
 } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
@@ -97,3 +99,6 @@ export const clearChat: RequestType<void, void> = { method: `${_preFix}/clearCha
 export const updateChatMessage: RequestType<UpdateChatMessageRequest, void> = { method: `${_preFix}/updateChatMessage` };
 export const getActiveTempDir: RequestType<void, string> = { method: `${_preFix}/getActiveTempDir` };
 export const getUsage: RequestType<void, UsageResponse | undefined> = { method: `${_preFix}/getUsage` };
+export const openFileDiff: NotificationType<OpenFileDiffRequest> = { method: `${_preFix}/openFileDiff` };
+export const approveWebTool: RequestType<WebToolApprovalRequest, void> = { method: `${_preFix}/approveWebTool` };
+export const declineWebTool: RequestType<WebToolApprovalRequest, void> = { method: `${_preFix}/declineWebTool` };

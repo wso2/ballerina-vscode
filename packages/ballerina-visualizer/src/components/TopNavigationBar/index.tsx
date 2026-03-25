@@ -225,7 +225,7 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
                 })}
             </BreadcrumbContainer>
             {/** TODO: Uncomment if want to show popup icon */}
-            {/* <Button tooltip="Manage Devant" appearance="icon" onClick={(e)=>setDevantBtnAnchor(e.currentTarget as HTMLElement)}>
+            {/* <Button tooltip="Manage WSO2 Cloud" appearance="icon" onClick={(e)=>setDevantBtnAnchor(e.currentTarget as HTMLElement)}>
                 <Icon name="Devant" sx={{ fontSize: "18px", width: "18px" }} />
             </Button>
             <PlatformExtPopover 
@@ -258,6 +258,8 @@ function getShortNames(name: string) {
             return "Natural Function";
         case MACHINE_VIEW.BITestFunctionForm:
             return "Test Function";
+        case MACHINE_VIEW.BIAgentToolForm:
+            return "Agent Tool";
         case MACHINE_VIEW.BIAIEvaluationForm:
             return "AI Evaluation";
         case MACHINE_VIEW.EvalsetViewer:
