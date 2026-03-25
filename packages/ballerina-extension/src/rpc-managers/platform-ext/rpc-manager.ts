@@ -731,11 +731,11 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                         } else {
                             window
                                 .showInformationMessage(
-                                    "In-order to delete your project level Devant connection, please head over to Devant console",
-                                    "Open Devant",
+                                    "In-order to delete your project level WSO2 Cloud connection, please head over to WSO2 Cloud console",
+                                    "Open WSO2 Cloud",
                                 )
                                 .then((resp) => {
-                                    if (resp === "Open Devant") {
+                                    if (resp === "Open WSO2 Cloud") {
                                         vscode.env.openExternal(
                                             Uri.parse(
                                                 `${devantUrl}/organizations/${selected.org.handle}/projects/${selected.project.handler}/admin/connections`,
@@ -752,8 +752,8 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             StateMachine.setReadyMode();
         } catch (err) {
             StateMachine.setReadyMode();
-            window.showErrorMessage(`Failed to delete Devant connection: ${(err as Error).message}`);
-            log(`Failed to invoke deleteDevantConnection: ${err}`);
+            window.showErrorMessage(`Failed to delete WSO2 Cloud connection: ${(err as Error).message}`);
+            log(`Failed to invoke deleteBiDevantConnection: ${err}`);
         }
     }
 
@@ -839,8 +839,8 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             return { connectionName: resp.connName };
         } catch (err) {
             StateMachine.setReadyMode();
-            window.showErrorMessage(`Failed to initialize Devant connection: ${(err as Error).message}`);
-            log(`Failed to initialize Devant connection: ${err}`);
+            window.showErrorMessage(`Failed to initialize WSO2 Cloud connection: ${(err as Error).message}`);
+            log(`Failed to initialize WSO2 Cloud connection: ${err}`);
         }
     }
 
