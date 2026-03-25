@@ -117,13 +117,20 @@ export async function updateProjectArtifacts(publishedArtifacts: ArtifactsNotifi
         // Check if the active project exists in the current structure.
         // If not (e.g., a new package was added by Copilot), a full rebuild is needed
         // since we can't incrementally update a project that doesn't exist yet.
-        const projectPath = StateMachine.context().projectPath;
-        const projectExists = currentProjectStructure.projects?.some(
-            project => project.projectPath === projectPath
-        );
+        const projectInfo = await StateMachine.langClient().getProjectInfo({ projectPath: rootPath });
+        if (!projectInfo) {
+            console.warn("[updateProjectArtifacts] Project info not found for the project:", rootPath);
+            return;
+        }
 
-        if (!projectExists) {
-            console.log("[updateProjectArtifacts] Project not found in structure, triggering full rebuild:", projectPath);
+        const untrackedProjectPaths = projectInfo.children?.filter(
+            child => !currentProjectStructure.projects?.some(
+                project => project.projectPath === child.projectPath
+            )
+        ).map(child => child.projectPath) ?? [];
+
+        for (const untrackedProjectPath of untrackedProjectPaths) {
+            console.log("[updateProjectArtifacts] Project not found in structure, triggering full rebuild:", untrackedProjectPath);
             const notificationHandler = ArtifactNotificationHandler.getInstance();
             notificationHandler.publish(ArtifactsUpdated.method, {
                 data: [],
