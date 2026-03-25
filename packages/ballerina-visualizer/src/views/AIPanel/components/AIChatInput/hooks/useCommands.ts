@@ -31,7 +31,7 @@ export enum SuggestionType {
 }
 
 const COMMAND_META: Record<string, { icon: string; description: string }> = {
-    "/ask":                                { icon: "codicon-comment-discussion", description: "Ask a question without editing" },
+    "/ask":                                { icon: "codicon-comment-discussion", description: "Ask questions from Ballerina documentation" },
     "/doc":                                { icon: "codicon-book",               description: "Generate documentation" },
     "/openapi":                            { icon: "codicon-file-code",          description: "Import OpenAPI specifications" },
     "/typecreator":                        { icon: "codicon-symbol-class",       description: "Create custom types" },
