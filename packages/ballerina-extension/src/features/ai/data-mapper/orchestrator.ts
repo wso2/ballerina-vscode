@@ -474,7 +474,8 @@ export async function generateMappingCodeCore(
         // Initialize generation process
         eventHandler({ type: "start" });
         eventHandler({ type: "content_block", content: "Building the transformation logic using your provided data structures and mapping hints\n\n" });
-        eventHandler({ type: "chat_component", componentType: "progress", data: { text: "Reading project files and collecting imports...", status: "start" } });
+        const readingProjectFilesId = `reading-project-files_${Date.now()}`;
+        eventHandler({ type: "chat_component", componentType: "progress", id: readingProjectFilesId, data: { text: "Reading project files and collecting imports...", status: "start" } });
         const biDiagramRpcManager = new BiDiagramRpcManager();
         const langClient = StateMachine.langClient();
         const context = StateMachine.context();
@@ -491,7 +492,7 @@ export async function generateMappingCodeCore(
             biDiagramRpcManager.getProjectComponents(),
             langClient
         ]);
-        eventHandler({ type: "chat_component", componentType: "progress", data: { text: "Reading project files and collecting imports...", status: "end" } });
+        eventHandler({ type: "chat_component", componentType: "progress", id: readingProjectFilesId, data: { text: "Reading project files and collecting imports...", status: "end" } });
 
         const allImportStatements = projectImports.imports.flatMap(file => file.statements || []);
 
@@ -587,7 +588,8 @@ export async function generateMappingCodeCore(
         const isSameFile = customFunctionsTargetPath &&
             path.resolve(mainFilePath) === path.resolve(path.join(tempDirectory, customFunctionsFileName));
 
-        eventHandler({ type: "chat_component", componentType: "progress", data: { text: "Repairing generated code...", status: "start" } });
+        const repairingCodeId = `repairing-generated-code_${Date.now()}`;
+        eventHandler({ type: "chat_component", componentType: "progress", id: repairingCodeId, data: { text: "Repairing generated code...", status: "start" } });
 
         // Repair check expression errors (BCE3032)
         await repairCheckErrors(
@@ -598,7 +600,7 @@ export async function generateMappingCodeCore(
             tempDirectory,
             isSameFile
         );
-        eventHandler({ type: "chat_component", componentType: "progress", data: { text: "Repairing generated code...", status: "end" } });
+        eventHandler({ type: "chat_component", componentType: "progress", id: repairingCodeId, data: { text: "Repairing generated code...", status: "end" } });
 
         // Get DM model with diagnostics
         const dmModelResult = await getDMModel(
@@ -640,10 +642,11 @@ export async function generateMappingCodeCore(
 
         // Integrate code to workspace automatically
         if (modifiedFiles.length > 0) {
-            eventHandler({ type: "chat_component", componentType: "progress", data: { text: "Integrating code to workspace...", status: "start" } });
+            const integratingCodeId = `integrating-code_${Date.now()}`;
+            eventHandler({ type: "chat_component", componentType: "progress", id: integratingCodeId, data: { text: "Integrating code to workspace...", status: "start" } });
             const modifiedFilesSet = new Set(modifiedFiles);
             await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet, ctx);
-            eventHandler({ type: "chat_component", componentType: "progress", data: { text: "Integrating code to workspace...", status: "end" } });
+            eventHandler({ type: "chat_component", componentType: "progress", id: integratingCodeId, data: { text: "Integrating code to workspace...", status: "end" } });
             console.log(`[DataMapper] Integrated ${modifiedFiles.length} file(s) to workspace`);
             eventHandler({ type: "content_block", content: "\n\nData mapping is complete! You can now review the generated mappings in your workspace." });
         }
@@ -867,9 +870,10 @@ export async function generateInlineMappingCodeCore(
         // Initialize generation process
         eventHandler({ type: "start" });
         eventHandler({ type: "content_block", content: "Building the transformation logic using your provided data structures and mapping hints\n\n" });
-        eventHandler({ type: "chat_component", componentType: "progress", data: { text: "Reading project files and collecting imports...", status: "start" } });
+        const readingProjectFilesId = `reading-project-files_${Date.now()}`;
+        eventHandler({ type: "chat_component", componentType: "progress", id: readingProjectFilesId, data: { text: "Reading project files and collecting imports...", status: "start" } });
         const projectImports = await collectAllImportsFromProject();
-        eventHandler({ type: "chat_component", componentType: "progress", data: { text: "Reading project files and collecting imports...", status: "end" } });
+        eventHandler({ type: "chat_component", componentType: "progress", id: readingProjectFilesId, data: { text: "Reading project files and collecting imports...", status: "end" } });
         const allImportStatements = projectImports.imports.flatMap(file => file.statements || []);
 
         // Remove duplicates based on moduleName
@@ -910,7 +914,8 @@ export async function generateInlineMappingCodeCore(
         const isSameFile = customFunctionsTargetPath &&
             path.resolve(mainFilePath) === path.resolve(path.join(inlineMappingsResult.tempDir, customFunctionsFileName));
 
-        eventHandler({ type: "chat_component", componentType: "progress", data: { text: "Repairing generated code...", status: "start" } });
+        const repairingCodeId = `repairing-generated-code_${Date.now()}`;
+        eventHandler({ type: "chat_component", componentType: "progress", id: repairingCodeId, data: { text: "Repairing generated code...", status: "start" } });
 
         const variableName = inlineMappingRequest.metadata.name || inlineMappingsResult.tempFileMetadata.name;
 
@@ -923,7 +928,7 @@ export async function generateInlineMappingCodeCore(
             inlineMappingsResult.tempDir,
             isSameFile
         );
-        eventHandler({ type: "chat_component", componentType: "progress", data: { text: "Repairing generated code...", status: "end" } });
+        eventHandler({ type: "chat_component", componentType: "progress", id: repairingCodeId, data: { text: "Repairing generated code...", status: "end" } });
 
         // Get DM model with diagnostics for inline variable
         const dmModelResult = await getInlineDMModelWithDiagnostics(
@@ -967,10 +972,11 @@ export async function generateInlineMappingCodeCore(
 
         // Integrate code to workspace automatically
         if (modifiedFiles.length > 0) {
-            eventHandler({ type: "chat_component", componentType: "progress", data: { text: "Integrating code to workspace...", status: "start" } });
+            const integratingCodeId = `integrating-code_${Date.now()}`;
+            eventHandler({ type: "chat_component", componentType: "progress", id: integratingCodeId, data: { text: "Integrating code to workspace...", status: "start" } });
             const modifiedFilesSet = new Set(modifiedFiles);
             await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet, ctx);
-            eventHandler({ type: "chat_component", componentType: "progress", data: { text: "Integrating code to workspace...", status: "end" } });
+            eventHandler({ type: "chat_component", componentType: "progress", id: integratingCodeId, data: { text: "Integrating code to workspace...", status: "end" } });
             console.log(`[DataMapper] Integrated ${modifiedFiles.length} file(s) to workspace`);
             eventHandler({ type: "content_block", content: "\n\nData mapping is complete! You can now review the generated mappings in your workspace." });
         }
@@ -1051,7 +1057,8 @@ export async function generateContextTypesCore(
         const biDiagramRpcManager = new BiDiagramRpcManager();
         const projectComponents = await biDiagramRpcManager.getProjectComponents();
         eventHandler({ type: "content_block", content: "\n\nAnalyzing your provided data to generate Ballerina record types.\n\n" });
-        eventHandler({ type: "chat_component", componentType: "progress", data: { text: "Generating types...", status: "start" } });
+        const generatingTypesId = `generating-types_${Date.now()}`;
+        eventHandler({ type: "chat_component", componentType: "progress", id: generatingTypesId, data: { text: "Generating types...", status: "start" } });
 
         let projectRoot = tempProjectPath;
         if (ctx.workspacePath) {
@@ -1064,7 +1071,7 @@ export async function generateContextTypesCore(
             projectComponents,
             projectRoot
         );
-        eventHandler({ type: "chat_component", componentType: "progress", data: { text: "Generating types...", status: "end" } });
+        eventHandler({ type: "chat_component", componentType: "progress", id: generatingTypesId, data: { text: "Generating types...", status: "end" } });
 
         // Adjust file path for workspace projects
         let targetFilePath = filePath;
@@ -1081,10 +1088,11 @@ export async function generateContextTypesCore(
 
         // Integrate code to workspace automatically
         if (modifiedFiles.length > 0) {
-            eventHandler({ type: "chat_component", componentType: "progress", data: { text: "Integrating code to workspace...", status: "start" } });
+            const integratingCodeId = `integrating-code_${Date.now()}`;
+            eventHandler({ type: "chat_component", componentType: "progress", id: integratingCodeId, data: { text: "Integrating code to workspace...", status: "start" } });
             const modifiedFilesSet = new Set(modifiedFiles);
             await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet, ctx);
-            eventHandler({ type: "chat_component", componentType: "progress", data: { text: "Integrating code to workspace...", status: "end" } });
+            eventHandler({ type: "chat_component", componentType: "progress", id: integratingCodeId, data: { text: "Integrating code to workspace...", status: "end" } });
             console.log(`[DataMapper] Integrated ${modifiedFiles.length} file(s) to workspace`);
             eventHandler({ type: "content_block", content: "\n\nType generation is complete! The generated types have been added to your workspace." });
         }
