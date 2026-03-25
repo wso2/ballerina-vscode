@@ -448,7 +448,7 @@ const TryItCard: React.FC<TryItCardProps> = ({ input, output, rpcClient }) => {
                     <ScenarioHeader>
                         <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{scenario}</div>
                         <EditButton
-                            title="Edit in VS Code"
+                            title="Edit in HTTP Client"
                             onClick={async () => {
                                 try {
                                     await rpcClient?.getCommonRpcClient?.()?.executeCommand?.({
