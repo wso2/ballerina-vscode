@@ -106,7 +106,7 @@ export function createWebviewEventHandler(command: Command): CopilotEventHandler
                 sendConfigurationCollectionNotification(event);
                 break;
             case "chat_component":
-                sendChatComponentNotification(event.componentType, event.data);
+                sendChatComponentNotification(event.componentType, event.data, event.id);
                 break;
             case "web_tool_approval_request":
                 sendWebToolApprovalNotification(event.requestId, event.toolName, event.content);

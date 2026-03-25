@@ -516,6 +516,7 @@ export interface ConfigurationCollectionEvent {
 
 export interface ChatComponentEvent {
     type: "chat_component";
+    id?: string;
     componentType: string;
     data: Record<string, any>;
 }
