@@ -542,7 +542,7 @@ const AIChat: React.FC = () => {
                     const targetIndex = ensureAssistantMessage(msgs);
                     const last = msgs[targetIndex];
                     const entries = parseStream(last.content);
-                    const planItem: StreamItem = { kind: "plan", tasks: response.tasks, message: response.message };
+                    const planItem: StreamItem = { kind: "plan", requestId: response.requestId, tasks: response.tasks, message: response.message };
                     const updated = appendToLastEntry(entries, planItem);
                     msgs[targetIndex] = { ...last, content: serializeStream(updated, last.content) };
                     return msgs;
@@ -1319,7 +1319,7 @@ const AIChat: React.FC = () => {
                 const updated = entries.map(entry => ({
                     ...entry,
                     items: entry.items.map(item =>
-                        item.kind === "plan" ? { ...item, approvalStatus: "approved" as const } : item
+                        item.kind === "plan" && item.requestId === approvalRequest.requestId ? { ...item, approvalStatus: "approved" as const } : item
                     )
                 }));
                 msgs[lastIdx] = { ...last, content: serializeStream(updated, last.content) };
@@ -1356,7 +1356,7 @@ const AIChat: React.FC = () => {
                 const updated = entries.map(entry => ({
                     ...entry,
                     items: entry.items.map(item =>
-                        item.kind === "plan" ? { ...item, approvalStatus: "revised" as const, approvalComment: comment } : item
+                        item.kind === "plan" && item.requestId === approvalRequest.requestId ? { ...item, approvalStatus: "revised" as const, approvalComment: comment } : item
                     )
                 }));
                 msgs[lastIdx] = { ...last, content: serializeStream(updated, last.content) };
