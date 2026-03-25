@@ -23,7 +23,7 @@ import { ThemeColors } from "@wso2/ui-toolkit";
 import { BaseNodeWidget } from "../BaseNode";
 import { CallActivityNodeModel } from "./CallActivityNodeModel";
 import { FlowNode } from "../../../utils/types";
-import { NODE_BORDER_WIDTH, NODE_WIDTH } from "../../../resources/constants";
+import { HIGHLIGHT_NODE_BORDER_COLOR, NODE_BORDER_WIDTH, NODE_WIDTH } from "../../../resources/constants";
 import { useDiagramContext } from "../../DiagramContext";
 import { nodeHasError } from "../../../utils/node";
 
@@ -76,7 +76,7 @@ export function CallActivityNodeWidget(props: CallActivityNodeWidgetProps) {
             ? ThemeColors.SECONDARY
             : isHovered && !isDisabled && !readOnly
                 ? ThemeColors.SECONDARY
-                : ThemeColors.OUTLINE_VARIANT;
+                : HIGHLIGHT_NODE_BORDER_COLOR;
 
     return (
         <CallActivityStyles.Wrapper onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>

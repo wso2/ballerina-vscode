@@ -28,6 +28,8 @@ import { DiagnosticsPopUp } from "../../DiagnosticsPopUp";
 import { nodeHasError } from "../../../utils/node";
 import { WaitDataNodeModel } from "./WaitDataNodeModel";
 import {
+    HIGHLIGHT_NODE_BORDER_COLOR,
+    HIGHLIGHT_NODE_BORDER_WIDTH,
     WAIT_DATA_ARROW_WIDTH,
     WAIT_DATA_CIRCLE_SIZE,
     WAIT_DATA_DETAILS_GAP,
@@ -85,7 +87,8 @@ export namespace NodeStyles {
                     ? ThemeColors.SECONDARY
                     : props.hovered && !props.readOnly
                     ? ThemeColors.SECONDARY
-                    : ThemeColors.OUTLINE_VARIANT};
+                    : HIGHLIGHT_NODE_BORDER_COLOR};
+        border-width: ${HIGHLIGHT_NODE_BORDER_WIDTH}px;
         background-color: ${(props: NodeStyleProp) =>
             props.isActiveBreakpoint ? ThemeColors.DEBUGGER_BREAKPOINT_BACKGROUND : ThemeColors.SURFACE_DIM};
     `;
@@ -145,6 +148,34 @@ interface WaitDataNodeWidgetProps {
     onClick?: (node: FlowNode) => void;
 }
 
+function normalizeNodePropertyValue(value?: string): string {
+    if (typeof value !== "string") {
+        return "";
+    }
+
+    return value.trim().replace(/^["']|["']$/g, "");
+}
+
+function getWaitDataName(node: FlowNode): string {
+    const directDataName = normalizeNodePropertyValue((node.properties as any)?.dataName?.value as string | undefined);
+    if (directDataName) {
+        return directDataName;
+    }
+
+    const futuresValue = (node.properties as any)?.futures?.value;
+    if (!futuresValue || typeof futuresValue !== "object") {
+        return "";
+    }
+
+    const firstFuture = Object.values(futuresValue as Record<string, any>).find((future) => future?.value);
+    const futureValue = normalizeNodePropertyValue(firstFuture?.value as string | undefined);
+    if (!futureValue) {
+        return "";
+    }
+
+    return futureValue.split(".").pop()?.trim() ?? futureValue;
+}
+
 export function WaitDataNodeWidget(props: WaitDataNodeWidgetProps) {
     const { model, engine, onClick } = props;
     const { onNodeSelect, goToSource, onDeleteNode, removeBreakpoint, addBreakpoint, readOnly, selectedNodeId } =
@@ -159,7 +190,8 @@ export function WaitDataNodeWidget(props: WaitDataNodeWidgetProps) {
     const hasBreakpoint = model.hasBreakpoint();
     const isActiveBreakpoint = model.isActiveBreakpoint();
     const hasError = nodeHasError(model.node);
-    const nodeTitle = model.node.metadata.label || "Wait Data";
+    const waitDataName = getWaitDataName(model.node);
+    const nodeTitle = waitDataName ? `Wait for ${waitDataName}` : model.node.metadata.label || "Wait Data";
     const nodeSubtitle =
         (model.node.properties?.variable?.value as string) ||
         (model.node.properties?.type?.value as string) ||

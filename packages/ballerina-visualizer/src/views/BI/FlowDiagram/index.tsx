@@ -2778,6 +2778,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         return {
             documentUri: functionInfo.filePath,
             position,
+            identifier: functionInfo.name,
             projectPath,
         };
     };

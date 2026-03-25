@@ -16,6 +16,8 @@
  * under the License.
  */
 
+import { ThemeColors } from "@wso2/ui-toolkit";
+
 export enum NodeTypes {
     BASE_NODE = "base-node",
     EMPTY_NODE = "empty-node",
@@ -49,6 +51,9 @@ export const LABEL_HEIGHT = 20;
 export const LABEL_WIDTH = 180;
 
 export const NODE_BORDER_WIDTH = 1.8;
+export const HIGHLIGHT_NODE_BORDER_WIDTH = 2.4;
+// export const HIGHLIGHT_NODE_BORDER_COLOR = "var(--vscode-focusBorder)";
+export const HIGHLIGHT_NODE_BORDER_COLOR = ThemeColors.PRIMARY;
 
 export const NODE_PADDING = 8;
 
@@ -101,7 +106,7 @@ export const PROMPT_NODE_HEIGHT = 300;
 // wait event node
 export const WAIT_DATA_CORE_WIDTH = 140;
 export const WAIT_DATA_CORE_HEIGHT = 72;
-export const WAIT_DATA_DETAILS_WIDTH = 140;
+export const WAIT_DATA_DETAILS_WIDTH = 220;
 export const WAIT_DATA_DETAILS_GAP = 12;
 export const WAIT_DATA_CIRCLE_SIZE = 56;
 export const WAIT_DATA_ARROW_WIDTH = 60;

@@ -105,6 +105,18 @@ export class SizingVisitor implements BaseVisitor {
         this.setNodeSize(node, containerLeftWidth, containerRightWidth, containerHeight);
     }
 
+    private createSendDataNode(node: FlowNode): void {
+        const nodeWidth = NODE_WIDTH;
+        const halfNodeWidth = nodeWidth / 2;
+        const containerLeftWidth = halfNodeWidth;
+        const containerRightWidth = halfNodeWidth + NODE_GAP_X + NODE_HEIGHT + LABEL_HEIGHT;
+
+        // Send data nodes always render the right-side workflow square with label-space SVG height.
+        const containerHeight = NODE_HEIGHT + LABEL_HEIGHT;
+
+        this.setNodeSize(node, containerLeftWidth, containerRightWidth, containerHeight);
+    }
+
     private createWaitDataNode(node: FlowNode): void {
         const halfCircle = WAIT_DATA_CORE_WIDTH / 2;
         const leftWidth = halfCircle + WAIT_DATA_ARROW_WIDTH;
@@ -279,7 +291,7 @@ export class SizingVisitor implements BaseVisitor {
 
     endVisitSendData(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
-        this.createApiCallNode(node);
+        this.createSendDataNode(node);
     }
 
     endVisitAgentCall(node: FlowNode, parent?: FlowNode): void {

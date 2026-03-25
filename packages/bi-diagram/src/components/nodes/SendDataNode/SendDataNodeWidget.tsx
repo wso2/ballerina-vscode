@@ -16,27 +16,135 @@
  * under the License.
  */
 
-import React, { ReactNode, useEffect, useState } from "react";
-import { DiagramEngine } from "@projectstorm/react-diagrams-core";
-import { Item, Menu, MenuItem, Popover, ThemeColors } from "@wso2/ui-toolkit";
+import React, { useEffect, useState } from "react";
+import styled from "@emotion/styled";
+import { DiagramEngine, PortWidget } from "@projectstorm/react-diagrams-core";
+import { Button, Icon, Item, Menu, MenuItem, Popover, ThemeColors } from "@wso2/ui-toolkit";
 import { SendDataNodeModel } from "./SendDataNodeModel";
 import { FlowNode } from "../../../utils/types";
 import { MoreVertIcon } from "../../../resources";
 import NodeIcon from "../../NodeIcon";
 import { useDiagramContext } from "../../DiagramContext";
 import { DiagnosticsPopUp } from "../../DiagnosticsPopUp";
-import { getNodeTitle, nodeHasError } from "../../../utils/node";
+import { nodeHasError } from "../../../utils/node";
 import { BreakpointMenu } from "../../BreakNodeMenu/BreakNodeMenu";
-import { NodeStyles } from "../ApiCallNode/ApiCallNodeWidget";
 import {
+    DRAFT_NODE_BORDER_WIDTH,
+    HIGHLIGHT_NODE_BORDER_COLOR,
+    HIGHLIGHT_NODE_BORDER_WIDTH,
     LABEL_HEIGHT,
+    NODE_BORDER_WIDTH,
     NODE_GAP_X,
     NODE_HEIGHT,
+    NODE_PADDING,
+    NODE_WIDTH,
 } from "../../../resources/constants";
 
-// External dot dimensions (matching WaitDataNode's input dot)
-const DOT_RADIUS = 5;
-const DOT_STROKE = 2.5;
+const ENDPOINT_BOX_SIZE = 44;
+const ENDPOINT_BOX_RADIUS = 12;
+
+namespace NodeStyles {
+    export const Node = styled.div<{ readOnly: boolean }>`
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        cursor: ${(props: { readOnly: boolean }) => (props.readOnly ? "default" : "pointer")};
+    `;
+
+    export type BoxStyleProp = {
+        disabled: boolean;
+        hovered: boolean;
+        hasError: boolean;
+        readOnly: boolean;
+        isActiveBreakpoint: boolean;
+        isSelected?: boolean;
+    };
+
+    export const Box = styled.div<BoxStyleProp>`
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+        width: ${NODE_WIDTH}px;
+        min-height: ${NODE_HEIGHT}px;
+        padding: 0 ${NODE_PADDING}px;
+        opacity: ${(props: BoxStyleProp) => (props.disabled ? 0.7 : 1)};
+        border: ${(props: BoxStyleProp) =>
+            props.disabled ? DRAFT_NODE_BORDER_WIDTH : HIGHLIGHT_NODE_BORDER_WIDTH}px;
+        border-style: ${(props: BoxStyleProp) => (props.disabled ? "dashed" : "solid")};
+        border-color: ${(props: BoxStyleProp) =>
+            props.hasError
+                ? ThemeColors.ERROR
+                : props.isSelected && !props.disabled
+                    ? ThemeColors.SECONDARY
+                    : props.hovered && !props.disabled && !props.readOnly
+                        ? ThemeColors.SECONDARY
+                        : HIGHLIGHT_NODE_BORDER_COLOR};
+        border-radius: 10px;
+        background-color: ${(props: BoxStyleProp) =>
+            props.isActiveBreakpoint ? ThemeColors.DEBUGGER_BREAKPOINT_BACKGROUND : ThemeColors.SURFACE_DIM};
+        color: ${ThemeColors.ON_SURFACE};
+        cursor: ${(props: BoxStyleProp) => (props.readOnly ? "default" : "pointer")};
+    `;
+
+    export const Header = styled.div`
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 2px;
+        flex: 1;
+        min-width: 0;
+        padding: 8px;
+    `;
+
+    export const TopPortWidget = styled(PortWidget)`
+        margin-top: -3px;
+    `;
+
+    export const BottomPortWidget = styled(PortWidget)`
+        margin-bottom: -2px;
+    `;
+
+    export const StyledText = styled.div`
+        font-size: 14px;
+    `;
+
+    export const NodeIconWrapper = styled.div`
+        padding: 4px;
+        svg {
+            fill: ${ThemeColors.ON_SURFACE};
+        }
+    `;
+
+    export const Title = styled(StyledText)`
+        max-width: ${NODE_WIDTH - 80}px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-family: "GilmerMedium";
+    `;
+
+    export const Row = styled.div`
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    `;
+
+    export const ActionButtonGroup = styled.div`
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 2px;
+    `;
+
+    export const MenuButton = styled(Button)`
+        border-radius: 5px;
+    `;
+}
 
 interface SendDataNodeWidgetProps {
     model: SendDataNodeModel;
@@ -44,25 +152,60 @@ interface SendDataNodeWidgetProps {
     onClick?: (node: FlowNode) => void;
 }
 
+function normalizeNodePropertyValue(value?: string): string {
+    if (typeof value !== "string") {
+        return "";
+    }
+
+    return value.trim().replace(/^["']|["']$/g, "");
+}
+
+function getWorkflowName(value?: string): string {
+    const normalizedValue = normalizeNodePropertyValue(value);
+    if (!normalizedValue) {
+        return "";
+    }
+
+    return normalizedValue.split(":").pop()?.split("(")[0]?.trim() ?? normalizedValue;
+}
+
 export function SendDataNodeWidget(props: SendDataNodeWidgetProps) {
     const { model, engine, onClick } = props;
-    const { onNodeSelect, onConnectionSelect, goToSource, onDeleteNode, removeBreakpoint, addBreakpoint, readOnly, selectedNodeId } =
-        useDiagramContext();
+    const {
+        onNodeSelect,
+        onConnectionSelect,
+        goToSource,
+        onDeleteNode,
+        removeBreakpoint,
+        addBreakpoint,
+        readOnly,
+        selectedNodeId,
+        openView,
+        project,
+    } = useDiagramContext();
 
     const isSelected = selectedNodeId === model.node.id;
 
     const [isBoxHovered, setIsBoxHovered] = useState(false);
+    const [isWorkflowHovered, setIsWorkflowHovered] = useState(false);
     const [anchorEl, setAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
     const [menuButtonElement, setMenuButtonElement] = useState<HTMLElement | null>(null);
     const isMenuOpen = Boolean(anchorEl);
     const hasBreakpoint = model.hasBreakpoint();
     const isActiveBreakpoint = model.isActiveBreakpoint();
 
+    const dataNameProperty = (model.node.properties as any)?.dataName;
+    const workflowProperty = (model.node.properties as any)?.workflow;
     const connectionProperty = model.node.properties?.connection;
     const processFunctionProperty = (model.node.properties as any)?.processFunction;
     const connectionValue = connectionProperty?.value as string | undefined;
-    const fallbackEndpointValue = processFunctionProperty?.value as string | undefined;
-    const endpointLabel = connectionValue ?? fallbackEndpointValue ?? "";
+    const fallbackWorkflowValue = processFunctionProperty?.value as string | undefined;
+    const dataName = normalizeNodePropertyValue(dataNameProperty?.value as string | undefined);
+    const workflowName = getWorkflowName(
+        (workflowProperty?.value as string | undefined) ?? connectionValue ?? fallbackWorkflowValue
+    );
+    const nodeTitle = dataName ? `Sent to ${dataName}` : "Send Data";
+    const canViewWorkflow = Boolean(workflowName);
 
     useEffect(() => {
         if (model.node.suggested) {
@@ -101,6 +244,24 @@ export function SendDataNodeWidget(props: SendDataNodeWidgetProps) {
             onNodeClick();
         }
         setAnchorEl(null);
+    };
+
+    const onWorkflowClick = async (event?: React.MouseEvent<SVGElement | HTMLDivElement>) => {
+        event?.stopPropagation();
+        if (readOnly) {
+            return;
+        }
+
+        if (workflowName) {
+            const functionLocation = await project?.getFunctionLocation?.(workflowName);
+            if (functionLocation) {
+                openView && openView(functionLocation);
+                setAnchorEl(null);
+                return;
+            }
+        }
+
+        onConnectionClick();
     };
 
     const onGoToSource = () => {
@@ -151,19 +312,23 @@ export function SendDataNodeWidget(props: SendDataNodeWidgetProps) {
     ];
 
     const disabled = model.node.suggested;
-    const nodeTitle = getNodeTitle(model.node);
     const hasError = nodeHasError(model.node);
 
     const arrowColor =
         disabled || readOnly ? ThemeColors.ON_SURFACE : isBoxHovered ? ThemeColors.SECONDARY : ThemeColors.ON_SURFACE;
+    const workflowColor =
+        disabled || readOnly
+            ? ThemeColors.OUTLINE_VARIANT
+            : isSelected || isWorkflowHovered
+            ? ThemeColors.SECONDARY
+            : ThemeColors.OUTLINE_VARIANT;
 
-    // SVG layout: dashed arrow → small open circle + label below
-    const SEND_ARROW_LENGTH = 60;
     const svgWidth = NODE_GAP_X + NODE_HEIGHT + LABEL_HEIGHT;
     const svgHeight = NODE_HEIGHT + LABEL_HEIGHT;
-    const dotCx = SEND_ARROW_LENGTH + DOT_RADIUS + DOT_STROKE;
-    const lineY = 25;
-    const lineEndX = dotCx - DOT_RADIUS - 4;
+    const boxX = NODE_GAP_X - 2;
+    const boxY = 2;
+    const boxCenterY = boxY + ENDPOINT_BOX_SIZE / 2;
+    const lineEndX = boxX - 6;
 
     return (
         <NodeStyles.Node readOnly={readOnly}>
@@ -192,15 +357,12 @@ export function SendDataNodeWidget(props: SendDataNodeWidgetProps) {
                 )}
                 <NodeStyles.TopPortWidget port={model.getPort("in")!} engine={engine} />
                 <NodeStyles.Row>
-                    <NodeStyles.Icon onClick={handleOnClick}>
+                    <NodeStyles.NodeIconWrapper onClick={handleOnClick}>
                         <NodeIcon type={model.node.codedata.node} size={24} />
-                    </NodeStyles.Icon>
+                    </NodeStyles.NodeIconWrapper>
                     <NodeStyles.Row>
                         <NodeStyles.Header onClick={handleOnClick}>
                             <NodeStyles.Title>{nodeTitle}</NodeStyles.Title>
-                            <NodeStyles.Description>
-                                {model.node.properties.variable?.value as ReactNode}
-                            </NodeStyles.Description>
                         </NodeStyles.Header>
                         <NodeStyles.ActionButtonGroup>
                             {hasError && <DiagnosticsPopUp node={model.node} />}
@@ -247,50 +409,72 @@ export function SendDataNodeWidget(props: SendDataNodeWidgetProps) {
                 onClick={onConnectionClick}
                 style={{ cursor: readOnly ? "default" : "pointer" }}
             >
-                {/* Dashed arrow line */}
                 <line
                     x1="0"
-                    y1={lineY}
+                    y1={boxCenterY}
                     x2={lineEndX}
-                    y2={lineY}
+                    y2={boxCenterY}
                     stroke={arrowColor}
                     strokeWidth={1.5}
                     strokeDasharray="5 3"
-                    markerEnd={`url(#${model.node.id}-send-arrow)`}
                 />
-                {/* Small open circle (matching WaitData input dot) */}
-                <circle
-                    cx={dotCx}
-                    cy={lineY}
-                    r={DOT_RADIUS}
-                    fill="none"
-                    stroke={arrowColor}
-                    strokeWidth={DOT_STROKE}
+                <rect
+                    x={boxX}
+                    y={boxY}
+                    width={ENDPOINT_BOX_SIZE}
+                    height={ENDPOINT_BOX_SIZE}
+                    rx={ENDPOINT_BOX_RADIUS}
+                    fill={ThemeColors.SURFACE_DIM}
+                    stroke={workflowColor}
+                    strokeWidth={1.8}
+                    onClick={onWorkflowClick}
+                    onMouseEnter={() => !readOnly && setIsWorkflowHovered(true)}
+                    onMouseLeave={() => setIsWorkflowHovered(false)}
+                    style={{ cursor: readOnly || !canViewWorkflow ? "default" : "pointer" }}
                 />
-                {/* Endpoint label below */}
+                <foreignObject
+                    x={boxX}
+                    y={boxY}
+                    width={ENDPOINT_BOX_SIZE}
+                    height={ENDPOINT_BOX_SIZE}
+                    onClick={onWorkflowClick}
+                    onMouseEnter={() => !readOnly && setIsWorkflowHovered(true)}
+                    onMouseLeave={() => setIsWorkflowHovered(false)}
+                >
+                    <div
+                        style={{
+                            width: `${ENDPOINT_BOX_SIZE}px`,
+                            height: `${ENDPOINT_BOX_SIZE}px`,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: readOnly || !canViewWorkflow ? "default" : "pointer",
+                        }}
+                    >
+                        <Icon
+                            name="bi-workflow"
+                            sx={{
+                                width: 24,
+                                height: 24,
+                                fontSize: 24,
+                            }}
+                        />
+                    </div>
+                </foreignObject>
                 <text
-                    x={dotCx}
+                    x={boxX + ENDPOINT_BOX_SIZE / 2}
                     y={svgHeight - 2}
                     textAnchor="middle"
                     fill={ThemeColors.ON_SURFACE}
                     fontSize="14px"
                     fontFamily="GilmerRegular"
+                    onClick={onWorkflowClick}
+                    onMouseEnter={() => !readOnly && setIsWorkflowHovered(true)}
+                    onMouseLeave={() => setIsWorkflowHovered(false)}
+                    style={{ cursor: readOnly || !canViewWorkflow ? "default" : "pointer" }}
                 >
-                    {endpointLabel.length > 16 ? `${endpointLabel.slice(0, 16)}...` : endpointLabel}
+                    {workflowName.length > 16 ? `${workflowName.slice(0, 16)}...` : workflowName}
                 </text>
-                <defs>
-                    <marker
-                        id={`${model.node.id}-send-arrow`}
-                        markerWidth="4"
-                        markerHeight="4"
-                        refX="3"
-                        refY="2"
-                        viewBox="0 0 4 4"
-                        orient="auto"
-                    >
-                        <polygon points="0,4 0,0 4,2" fill={arrowColor} />
-                    </marker>
-                </defs>
             </svg>
         </NodeStyles.Node>
     );

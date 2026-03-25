@@ -21,6 +21,8 @@ import styled from "@emotion/styled";
 import { DiagramEngine, PortWidget } from "@projectstorm/react-diagrams-core";
 import {
     DRAFT_NODE_BORDER_WIDTH,
+    HIGHLIGHT_NODE_BORDER_COLOR,
+    HIGHLIGHT_NODE_BORDER_WIDTH,
     NODE_BORDER_WIDTH,
     NODE_HEIGHT,
     NODE_PADDING,
@@ -33,7 +35,7 @@ import { useDiagramContext } from "../../DiagramContext";
 import { BaseNodeModel } from "./BaseNodeModel";
 import { ELineRange, FlowNode } from "@wso2/ballerina-core";
 import { DiagnosticsPopUp } from "../../DiagnosticsPopUp";
-import { getNodeTitle, nodeHasError } from "../../../utils/node";
+import { getNodeTitle, isWorkflowNode, nodeHasError } from "../../../utils/node";
 import { BreakpointMenu } from "../../BreakNodeMenu/BreakNodeMenu";
 
 export namespace NodeStyles {
@@ -44,6 +46,7 @@ export namespace NodeStyles {
         readOnly: boolean;
         isActiveBreakpoint?: boolean;
         isSelected?: boolean;
+        isWorkflowNode?: boolean;
     };
     export const Node = styled.div<NodeStyleProp>`
         display: flex;
@@ -57,7 +60,12 @@ export namespace NodeStyles {
             props?.isActiveBreakpoint ? ThemeColors.DEBUGGER_BREAKPOINT_BACKGROUND : ThemeColors.SURFACE_DIM};
         color: ${ThemeColors.ON_SURFACE};
         opacity: ${(props: NodeStyleProp) => (props.disabled ? 0.7 : 1)};
-        border: ${(props: NodeStyleProp) => (props.disabled ? DRAFT_NODE_BORDER_WIDTH : NODE_BORDER_WIDTH)}px;
+        border: ${(props: NodeStyleProp) =>
+            props.disabled
+                ? DRAFT_NODE_BORDER_WIDTH
+                : props.isWorkflowNode
+                    ? HIGHLIGHT_NODE_BORDER_WIDTH
+                    : NODE_BORDER_WIDTH}px;
         border-style: ${(props: NodeStyleProp) => (props.disabled ? "dashed" : "solid")};
         border-color: ${(props: NodeStyleProp) =>
             props.hasError
@@ -66,7 +74,9 @@ export namespace NodeStyles {
                     ? ThemeColors.SECONDARY
                     : props.hovered && !props.disabled && !props.readOnly
                         ? ThemeColors.SECONDARY
-                        : ThemeColors.OUTLINE_VARIANT};
+                        : props.isWorkflowNode
+                            ? HIGHLIGHT_NODE_BORDER_COLOR
+                            : ThemeColors.OUTLINE_VARIANT};
         border-radius: 10px;
         cursor: ${(props: NodeStyleProp) => (props.readOnly ? "default" : "pointer")};
     `;
@@ -396,6 +406,7 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
     }
 
     const hasError = nodeHasError(model.node);
+    const isWorkflowStyledNode = isWorkflowNode(model.node);
 
     return (
         <NodeStyles.Node
@@ -405,6 +416,7 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
             readOnly={readOnly}
             isActiveBreakpoint={isActiveBreakpoint}
             isSelected={isSelected}
+            isWorkflowNode={isWorkflowStyledNode}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             onContextMenu={!readOnly ? handleOnContextMenu : undefined}
