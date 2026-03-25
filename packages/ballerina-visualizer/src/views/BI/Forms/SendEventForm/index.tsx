@@ -24,8 +24,10 @@ import {
     FlowNode,
     InputType,
     LineRange,
+    RecordTypeField,
     SubPanel,
     SubPanelView,
+    getPrimaryInputType,
 } from "@wso2/ballerina-core";
 import {
     ExpressionFormField,
@@ -36,6 +38,7 @@ import {
     FormValues,
 } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import { OptionProps } from "@wso2/ui-toolkit";
 
 import { getImportsForFormFields } from "../../../../utils/bi";
 import { createNodeWithUpdatedLineRange, processFormData, removeEmptyNodes, updateNodeWithProperties } from "../form-utils";
@@ -52,7 +55,7 @@ type WorkflowEventDefinition = {
 };
 
 const WORKFLOW_KEY_CANDIDATES = ["workflowName", "workflow"];
-const EVENT_NAME_KEY_CANDIDATES = ["eventName", "event"];
+const EVENT_NAME_KEY_CANDIDATES = ["eventName", "event", "dataName"];
 const EVENT_DATA_KEY_CANDIDATES = ["eventData", "payload", "data"];
 
 const getLabel = (field?: FormField) => `${field?.metadata?.label ?? field?.label ?? ""}`.toLowerCase();
@@ -94,8 +97,72 @@ const getSendEventFieldKeys = (fields: FormField[]): SendEventFieldKeys => {
     return { workflowName, eventName, eventData };
 };
 
+const normalizeWorkflowOptions = (field?: FormField): { label: string; value: string }[] => {
+    if (!field) {
+        return [];
+    }
+
+    const dropdownType = field.types?.find((type) => type.fieldType === "SINGLE_SELECT" || type.fieldType === "MULTIPLE_SELECT") as
+        | (InputType & { options?: Array<{ label?: string; value?: string }> })
+        | undefined;
+
+    if (Array.isArray(dropdownType?.options) && dropdownType.options.length > 0) {
+        return dropdownType.options
+            .map((option) => {
+                const value = normalizeStringValue(option?.value);
+                if (!value) {
+                    return undefined;
+                }
+
+                return {
+                    label: normalizeStringValue(option?.label) || value,
+                    value,
+                };
+            })
+            .filter((option, index, options): option is { label: string; value: string } =>
+                !!option && options.findIndex((item) => item.value === option.value) === index
+            );
+    }
+
+    if (!Array.isArray(field.items) || field.items.length === 0) {
+        return [];
+    }
+
+    return field.items
+        .map((item: string | { label?: string; value?: string; id?: string }) => {
+            if (typeof item === "string") {
+                const value = normalizeStringValue(item);
+                return value ? { label: value, value } : undefined;
+            }
+
+            const value = normalizeStringValue(item?.value ?? item?.id ?? item?.label);
+            if (!value) {
+                return undefined;
+            }
+
+            return {
+                label: normalizeStringValue(item?.label) || value,
+                value,
+            };
+        })
+        .filter((option, index, options): option is { label: string; value: string } =>
+            !!option && options.findIndex((item) => item.value === option.value) === index
+        );
+};
+
+const getSelectedWorkflowName = (field?: FormField): string => {
+    const selectedWorkflow = normalizeStringValue(field?.value);
+    if (selectedWorkflow) {
+        return selectedWorkflow;
+    }
+
+    return normalizeWorkflowOptions(field)[0]?.value ?? "";
+};
+
 const extractWorkflowEvents = (response: any): WorkflowEventDefinition[] => {
     const events =
+        response?.events ??
+        response?.output?.events ??
         response?.data ??
         response?.output?.data ??
         response?.result?.data ??
@@ -112,6 +179,11 @@ const extractWorkflowEvents = (response: any): WorkflowEventDefinition[] => {
         }));
 };
 
+const shouldEnableRecordHelper = (ballerinaType: string): boolean => {
+    const normalizedType = ballerinaType.trim();
+    return normalizedType.length > 0 && normalizedType !== "anydata" && normalizedType !== "map<anydata>";
+};
+
 const updateEventDataTypes = (types: InputType[] | undefined, ballerinaType: string): InputType[] => {
     if (!types?.length) {
         return [{ fieldType: "EXPRESSION", ballerinaType, selected: true } as InputType];
@@ -120,11 +192,27 @@ const updateEventDataTypes = (types: InputType[] | undefined, ballerinaType: str
     let selectedAssigned = false;
     return types.map((type, index) => {
         const shouldSelect = !selectedAssigned && (type.selected || index === 0);
+        const updatedType: InputType & { typeMembers?: Array<{ type: string; kind: string; packageInfo: string; selected: boolean }> } = {
+            ...type,
+            ballerinaType,
+        };
+
+        if (type.fieldType === "RECORD_MAP_EXPRESSION") {
+            updatedType.typeMembers = shouldEnableRecordHelper(ballerinaType)
+                ? [{
+                    type: ballerinaType,
+                    kind: "RECORD_TYPE",
+                    packageInfo: "",
+                    selected: true,
+                }]
+                : type.typeMembers;
+        }
+
         if (shouldSelect) {
             selectedAssigned = true;
-            return { ...type, selected: true, ballerinaType };
+            return { ...updatedType, selected: true };
         }
-        return { ...type, selected: false };
+        return { ...updatedType, selected: false };
     });
 };
 
@@ -183,10 +271,68 @@ export function SendEventForm(props: SendEventFormProps) {
     const workflowRef = useRef<string>("");
     const initialFieldsRef = useRef<FormField[]>(initialFields);
 
+    const recordTypeFields = useMemo<RecordTypeField[]>(() => {
+        return formFields
+            .filter((field) => {
+                const primaryInputType = getPrimaryInputType(field.types);
+                return !!primaryInputType?.typeMembers?.some((member) => member.kind === "RECORD_TYPE");
+            })
+            .map((field) => ({
+                key: field.key,
+                property: {
+                    metadata: field.metadata,
+                    value: field.value as string,
+                    optional: field.optional,
+                    editable: field.editable,
+                    advanced: field.advanced,
+                    placeholder: field.placeholder,
+                    types: field.types,
+                    codedata: field.codedata,
+                    imports: field.imports,
+                    diagnostics: {
+                        hasDiagnostics: field.diagnostics?.length > 0,
+                        diagnostics: field.diagnostics,
+                    },
+                },
+                recordTypeMembers: field.types
+                    .flatMap((type) => type.typeMembers || [])
+                    .filter((member) => member.kind === "RECORD_TYPE"),
+            }));
+    }, [formFields]);
+
     useEffect(() => {
-        initialFieldsRef.current = initialFields;
-        setFormFields(initialFields);
-        setFormImports(getImportsForFormFields(initialFields));
+        const initialWorkflowField = initialFields.find((field) => WORKFLOW_KEY_CANDIDATES.includes(field.key) || getLabel(field).includes("workflow"));
+        const workflowOptions = normalizeWorkflowOptions(initialWorkflowField);
+        const selectedWorkflow = getSelectedWorkflowName(initialWorkflowField);
+        const normalizedInitialFields = initialFields.map((field) => {
+            if (field.key !== initialWorkflowField?.key) {
+                return field;
+            }
+
+            if (workflowOptions.length === 0) {
+                return {
+                    ...field,
+                    editable: true,
+                    value: selectedWorkflow,
+                };
+            }
+
+            return {
+                ...field,
+                editable: true,
+                itemOptions: workflowOptions.map((option) => ({
+                    id: option.value,
+                    content: option.label,
+                    value: option.value,
+                })) as OptionProps[],
+                items: workflowOptions.map((option) => option.value),
+                value: selectedWorkflow,
+            };
+        });
+
+        initialFieldsRef.current = normalizedInitialFields;
+        setFormFields(normalizedInitialFields);
+        setFormImports(getImportsForFormFields(normalizedInitialFields));
         setIsLoadingWorkflowEvents(false);
         setWorkflowEventTypes({});
         workflowRef.current = "";
@@ -236,7 +382,11 @@ export function SendEventForm(props: SendEventFormProps) {
                     return {
                         ...field,
                         type: "SINGLE_SELECT",
-                        types: [{ fieldType: "SINGLE_SELECT", selected: true } as InputType],
+                        types: [{
+                            fieldType: "SINGLE_SELECT",
+                            options: eventNames.map((eventName) => ({ label: eventName, value: eventName })),
+                            selected: true,
+                        } as InputType],
                         editable: true,
                         items: eventNames,
                         itemOptions: eventNames.map((eventName) => ({
@@ -417,6 +567,7 @@ export function SendEventForm(props: SendEventFormProps) {
             disableSaveButton={disableSaveButton || isLoadingWorkflowEvents}
             footerActionButton={footerActionButton}
             formImports={formImports}
+            recordTypeFields={recordTypeFields}
             scopeFieldAddon={scopeFieldAddon}
             onChange={handleFormChange}
             injectedComponents={injectedComponents}
