@@ -694,7 +694,7 @@ const AIChat: React.FC = () => {
                 const targetIndex = ensureAssistantMessage(msgs);
                 const last = msgs[targetIndex];
                 const entries = parseStream(last.content);
-                const updated = appendToLastEntry(entries, abortItem);
+                const updated = [...entries, { description: "", items: [abortItem] }];
                 msgs[targetIndex] = { ...last, content: serializeStream(updated, last.content) };
                 return msgs;
             });
