@@ -275,10 +275,10 @@ const UnusedDevantCard = (props: {
             <S.DevantPullTitleRow>
                 <S.CardIcon>{<DownloadIcon />}</S.CardIcon>
                 <S.Title>{title || devantConn?.name}</S.Title>
-                <Codicon name="info" tooltip="Unused Devant Connection" />
+                <Codicon name="info" tooltip="Unused WSO2 Cloud Connection" />
                 <S.CardAction>
                     <Button
-                        tooltip="Import and use this Devant connection"
+                        tooltip="Import and use this WSO2 Cloud connection"
                         appearance="icon"
                         onClick={onImportDevantConn ? () => onImportDevantConn(devantConn) : undefined}
                     >

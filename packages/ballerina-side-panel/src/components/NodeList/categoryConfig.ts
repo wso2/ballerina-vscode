@@ -44,7 +44,7 @@ export const CATEGORY_CONFIGS: Record<string, CategoryConfig> = {
             {
                 type: "connection",
                 codeIcon: "vm-connect",
-                tooltip: "Use Devant Connections",
+                tooltip: "Use WSO2 Cloud Connections",
                 emptyStateLabel: "",
                 hideOnEmptyState: true,
                 handlerKey: "onLinkDevantProject",
@@ -52,7 +52,7 @@ export const CATEGORY_CONFIGS: Record<string, CategoryConfig> = {
             {
                 type: "connection",
                 codeIcon: "refresh",
-                tooltip: "Refresh Devant Connections",
+                tooltip: "Refresh WSO2 Cloud Connections",
                 emptyStateLabel: "",
                 hideOnEmptyState: true,
                 handlerKey: "onRefreshDevantConnections",
