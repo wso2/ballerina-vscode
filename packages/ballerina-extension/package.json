@@ -30,6 +30,7 @@
         "onUri"
     ],
     "extensionDependencies": [
+        "wso2.hurl-client"
     ],
     "contributes": {
         "languages": [
@@ -82,6 +83,11 @@
                     "type": "string",
                     "default": "",
                     "description": "Specify the Ballerina home directory path."
+                },
+                "ballerina.icpPath": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Path to the ICP binary. If empty, the extension will attempt to auto-detect from the default installation location."
                 },
                 "ballerina.isBI": {
                     "type": "boolean",
@@ -727,11 +733,28 @@
                 "enablement": "isBIProject && devant.editor"
             },
             {
+                "command": "ballerina.icp.start",
+                "title": "Start ICP",
+                "category": "Ballerina",
+                "enablement": "isSupportedProject && !ballerina.icpRunning"
+            },
+            {
+                "command": "ballerina.icp.stop",
+                "title": "Stop ICP",
+                "category": "Ballerina",
+                "enablement": "isSupportedProject && ballerina.icpRunning"
+            },
+            {
                 "command": "ballerina.showTraceWindow",
                 "title": "Show Traces",
                 "icon": "$(list-tree)",
                 "category": "Ballerina",
                 "enablement": "isSupportedProject"
+            },
+            {
+                "command": "ballerina.startTraceServer",
+                "title": "Start Trace Server",
+                "category": "Ballerina"
             },
             {
                 "command": "ballerina.enableTracing",
