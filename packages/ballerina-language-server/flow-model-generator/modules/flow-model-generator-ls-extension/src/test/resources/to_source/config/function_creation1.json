@@ -4,8 +4,8 @@
   "diagram": {
     "id": "55613",
     "metadata": {
-      "label": "Function Definition",
-      "description": "Define a function"
+      "label": "Function Creation",
+      "description": "Define a function and assign its result"
     },
     "codedata": {
       "node": "FUNCTION_CREATION",
@@ -42,45 +42,10 @@
         "advanced": false,
         "hidden": false
       },
-      "variable": {
-        "metadata": {
-          "label": "Result",
-          "description": "Name of the result variable"
-        },
-        "types": [
-          {
-            "fieldType": "IDENTIFIER",
-            "selected": true
-          }
-        ],
-        "value": "outputResult",
-        "optional": false,
-        "editable": true,
-        "advanced": false,
-        "hidden": false
-      },
-      "type": {
-        "metadata": {
-          "label": "Output",
-          "description": "Output type of the data mapper"
-        },
-        "types": [
-          {
-            "fieldType": "TYPE",
-            "ballerinaType": "anydata",
-            "selected": false
-          }
-        ],
-        "value": "Person",
-        "optional": false,
-        "editable": true,
-        "advanced": false,
-        "hidden": false
-      },
       "parameters": {
         "metadata": {
           "label": "Inputs",
-          "description": "Input variables of the data mapper"
+          "description": "Arguments passed to the function"
         },
         "types": [
           {
@@ -117,8 +82,8 @@
                 },
                 "variable": {
                   "metadata": {
-                    "label": "variable",
-                    "description": "Name of the variable"
+                    "label": "Argument",
+                    "description": "Value to be passed"
                   },
                   "types": [
                     {
@@ -237,6 +202,41 @@
         },
         "optional": false,
         "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "type": {
+        "metadata": {
+          "label": "Output",
+          "description": "Output type of the data mapper"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "ballerinaType": "anydata",
+            "selected": false
+          }
+        ],
+        "value": "Person",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result",
+          "description": "Name of the result variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "outputResult",
+        "optional": false,
+        "editable": true,
         "advanced": false,
         "hidden": false
       }
