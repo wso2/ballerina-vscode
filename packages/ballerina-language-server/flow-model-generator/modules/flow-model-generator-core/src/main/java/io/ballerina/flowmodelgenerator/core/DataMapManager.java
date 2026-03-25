@@ -284,11 +284,11 @@ public class DataMapManager {
             FromClauseNode fromClauseNode = queryExpressionNode.queryPipeline().fromClause();
             LinePosition fromClausePosition = fromClauseNode.lineRange().startLine();
             List<Symbol> symbols = semanticModel.visibleSymbols(document, fromClausePosition);
+            String convertedOutputName = getConvertedOutputName(convertedVariables);
             symbols = symbols.stream()
                     .filter(symbol -> {
                         String n = symbol.getName().orElse("");
-                        return !n.equals(getVariableName(node)) &&
-                                !n.equals(getConvertedOutputName(convertedVariables));
+                        return !n.equals(getVariableName(node)) && !n.equals(convertedOutputName);
                     })
                     .collect(Collectors.toList());
             List<Symbol> moduleSymbols = semanticModel.moduleSymbols();
@@ -719,10 +719,10 @@ public class DataMapManager {
             return null;
         }
 
-        TypeSymbol rawtargetTypeSymbol = CommonUtils.getRawType(typeSymbol);
-        if (rawtargetTypeSymbol.typeKind() == TypeDescKind.UNION) {
+        TypeSymbol rawTargetTypeSymbol = CommonUtils.getRawType(typeSymbol);
+        if (rawTargetTypeSymbol.typeKind() == TypeDescKind.UNION) {
             typeSymbol =
-                    filterErrorOrNil(semanticModel, (UnionTypeSymbol) rawtargetTypeSymbol, new ArrayList<>());
+                    filterErrorOrNil(semanticModel, (UnionTypeSymbol) rawTargetTypeSymbol, new ArrayList<>());
         }
 
         ExpressionNode expr = getMappingExpr(parentNode);
@@ -1309,6 +1309,16 @@ public class DataMapManager {
                                                  List<MappingPort> enumPorts, Map<String, MappingPort> references,
                                                  List<Symbol> typeDefSymbols, List<Symbol> moduleSymbols,
                                                  ConvertedVariables convertedVariables) {
+        Set<String> convertedVarNames = new HashSet<>();
+        if (convertedVariables != null && convertedVariables.inputs() != null) {
+            for (ConvertedVariable convertedVariable : convertedVariables.inputs()) {
+                String letVarName = getLetVarName(convertedVariable.letVarDeclaration());
+                if (letVarName != null) {
+                    convertedVarNames.add(letVarName);
+                }
+            }
+        }
+
         List<MappingPort> mappingPorts = new ArrayList<>();
         for (Symbol symbol : visibleSymbols) {
             SymbolKind kind = symbol.kind();
@@ -1318,19 +1328,7 @@ public class DataMapManager {
                     continue;
                 }
                 String name = optName.get();
-
-                boolean isConvertedVariable = false;
-                if (convertedVariables != null && convertedVariables.inputs() != null) {
-                    for (ConvertedVariable convertedVariable : convertedVariables.inputs()) {
-                        LetVariableDeclarationNode letVariableDeclarationNode = convertedVariable.letVarDeclaration();
-                        String letVarName = getLetVarName(letVariableDeclarationNode);
-                        if (name.equals(letVarName)) {
-                            isConvertedVariable = true;
-                            break;
-                        }
-                    }
-                }
-                if (isConvertedVariable) {
+                if (convertedVarNames.contains(name)) {
                     continue;
                 }
 
