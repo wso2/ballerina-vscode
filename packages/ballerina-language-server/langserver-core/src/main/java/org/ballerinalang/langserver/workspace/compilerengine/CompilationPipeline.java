@@ -53,6 +53,7 @@ import javax.annotation.Nonnull;
 public class CompilationPipeline implements AutoCloseable {
 
     private static final long DEBOUNCE_MILLIS = 150;
+    private static final long PERMIT_ACQUIRE_TIMEOUT_SECONDS = 30;
     private static final Logger LOG = Logger.getLogger(CompilationPipeline.class.getName());
 
     /**
@@ -183,13 +184,44 @@ public class CompilationPipeline implements AutoCloseable {
         if (closed.get()) {
             return;
         }
+
+        // Fast-path: if we already compiled a version >= this one, ignore the request.
+        // This prevents the async EventBus from triggering redundant debounces after forceCompilation().
+        StableSnapshot stable = snapshotStore.getStable(key);
+        if (stable != null && stable.contentVersion().compareTo(contentVersion) >= 0) {
+            return;
+        }
+
         latestRequestedVersion.set(contentVersion);
+
+        // Bridge the debounce gap: ensure waiting threads have a Future to block on immediately
+        if (snapshotStore.getInProgress(key) == null) {
+            snapshotStore.startCompilation(key);
+        }
 
         ScheduledFuture<?> prev = pendingDebounce.getAndSet(
                 debounceScheduler.schedule(() -> submitCompilation(contentVersion), DEBOUNCE_MILLIS,
                         TimeUnit.MILLISECONDS));
         if (prev != null) {
             prev.cancel(false);
+        }
+    }
+
+    /**
+     * Forces any pending debounced compilation to start immediately.
+     * Called when a synchronous API (e.g. semantic model) is waiting for the result.
+     */
+    public void forceCompilation() {
+        if (closed.get()) {
+            return;
+        }
+        ScheduledFuture<?> prev = pendingDebounce.getAndSet(null);
+        if (prev != null) {
+            prev.cancel(false);
+            ContentVersion latest = latestRequestedVersion.get();
+            if (latest != null) {
+                compilationWorker.submit(() -> submitCompilation(latest));
+            }
         }
     }
 
@@ -271,8 +303,12 @@ public class CompilationPipeline implements AutoCloseable {
         boolean published = false;
         boolean permitAcquired = false;
         try {
-            compilationPermits.acquire();
-            permitAcquired = true;
+            permitAcquired = compilationPermits.tryAcquire(PERMIT_ACQUIRE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            if (!permitAcquired) {
+                LOG.warning(() -> "Timed out waiting for compilation permit for " + descriptorName);
+                emitEvent(EventKind.COMPILER_COMPILATION_FAILED);
+                return;
+            }
             // Re-check cancellation — task may have been superseded while waiting for a permit
             if (task.isCancelled()) {
                 emitEvent(EventKind.COMPILER_COMPILATION_CANCELLED);
@@ -287,8 +323,8 @@ public class CompilationPipeline implements AutoCloseable {
 
             StableSnapshot snapshot = compilationAction.compile(task);
 
-            // Publication guard: discard result if cancelled (ADR-018 Mandate 8)
-            if (task.isCancelled()) {
+            // Publication guard: discard result if cancelled or pipeline closed
+            if (task.isCancelled() || closed.get()) {
                 LOG.fine(() -> "Cancelled compilation result discarded for " + descriptorName);
                 emitEvent(EventKind.COMPILER_COMPILATION_CANCELLED);
                 return;
@@ -304,6 +340,12 @@ public class CompilationPipeline implements AutoCloseable {
             }
 
             emitEvent(EventKind.CE_E5B_COMPILATION_DIAGNOSTICS_READY);
+            // Final closed check — prevent orphaned snapshot publication after pipeline eviction.
+            // Without this, computeIfAbsent in publishStable re-creates removed store entries.
+            if (closed.get()) {
+                emitEvent(EventKind.COMPILER_COMPILATION_CANCELLED);
+                return;
+            }
             snapshotStore.publishStable(key, snapshot);
             published = true;
             emitEvent(EventKind.COMPILER_SNAPSHOT_PUBLISHED);
