@@ -19,12 +19,13 @@
 import React, { useRef } from "react";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import styled from '@emotion/styled';
-import { EditorFactory, FormField, InputMode, useFormContext, Provider as FormContextProvider } from "../..";
-import { InputType, ExpressionProperty } from "@wso2/ballerina-core";
+import { EditorFactory, FormField, InputMode, useFormContext, Provider as FormContextProvider, FormValues } from "../..";
+import { Imports, InputType, ExpressionProperty } from "@wso2/ballerina-core";
 import { NodeKind, NodeProperties, RecordTypeField, SubPanel, SubPanelView } from "@wso2/ballerina-core";
 import { CompletionItem } from "@wso2/ui-toolkit";
 import { getInputModeFromTypes } from "./MultiModeExpressionEditor/ChipExpressionEditor/utils";
 import { ModeSwitcherProvider } from "./ModeSwitcherContext";
+import { getEditorConfiguration } from "./ExpressionField";
 
 const Container = styled.div`
     width: 100%;
@@ -46,7 +47,9 @@ type FieldFactoryProps = {
     handleNewTypeSelected?: (type: string | CompletionItem) => void;
     scopeFieldAddon?: React.ReactNode;
     isContextTypeEditorSupported?: boolean;
+    handleFormValidation?: (formData?: FormValues) => Promise<boolean>;
     openFormTypeEditor?: (open: boolean, newType?: string) => void;
+    updateImports?: (key: string, imports: Imports) => void;
 }
 
 
@@ -57,6 +60,19 @@ export const FieldFactory = (props: FieldFactoryProps) => {
     const formContext = useFormContext();
     const { expressionEditor } = formContext;
 
+    const form = formContext?.form;
+
+    const updatePropertyForCurrentMode = useCallback(
+        (property: ExpressionProperty, expression?: string): ExpressionProperty => {
+            const newTypes = property.types.map(type => ({
+                ...type,
+                selected: getInputModeFromTypes(type) === inputMode
+            }));
+            return { ...property, types: newTypes, ...(expression !== undefined && { value: expression }) };
+        },
+        [inputMode]
+    );
+
     const updatedGetExpressionEditorDiagnostics = useCallback(
         async (
             showDiagnostics: boolean,
@@ -64,11 +80,7 @@ export const FieldFactory = (props: FieldFactoryProps) => {
             key: string,
             property: ExpressionProperty
         ): Promise<void> => {
-            const newTypes = property.types.map(type => ({
-                ...type,
-                selected: getInputModeFromTypes(type) === inputMode
-            }));
-            const updatedProperty = { ...property, types: newTypes };
+            const updatedProperty = updatePropertyForCurrentMode(property, expression);
             expressionEditor?.getExpressionEditorDiagnostics?.(
                 showDiagnostics,
                 expression,
@@ -76,7 +88,41 @@ export const FieldFactory = (props: FieldFactoryProps) => {
                 updatedProperty
             )
         },
-        [expressionEditor, inputMode]
+        [expressionEditor, updatePropertyForCurrentMode]
+    );
+
+    const updatedRetrieveCompletions = useCallback(
+        async (
+            value: string,
+            property: ExpressionProperty,
+            offset: number,
+            triggerCharacter?: string
+        ): Promise<void> => {
+            const updatedProperty = updatePropertyForCurrentMode(property, value);
+            return expressionEditor?.retrieveCompletions?.(
+                value,
+                updatedProperty,
+                offset,
+                triggerCharacter
+            );
+        },
+        [expressionEditor, updatePropertyForCurrentMode]
+    );
+
+    const updatedExtractArgsFromFunction = useCallback(
+        async (
+            value: string,
+            property: ExpressionProperty,
+            cursorPosition: number
+        ) => {
+            const updatedProperty = updatePropertyForCurrentMode(property, value);
+            return expressionEditor?.extractArgsFromFunction?.(
+                value,
+                updatedProperty,
+                cursorPosition
+            );
+        },
+        [expressionEditor, updatePropertyForCurrentMode]
     );
 
     const updatedExpressionEditor = useMemo(() => {
@@ -85,9 +131,11 @@ export const FieldFactory = (props: FieldFactoryProps) => {
         }
         return {
             ...expressionEditor,
-            getExpressionEditorDiagnostics: updatedGetExpressionEditorDiagnostics
-        };
-    }, [expressionEditor, updatedGetExpressionEditorDiagnostics]);
+            getExpressionEditorDiagnostics: updatedGetExpressionEditorDiagnostics,
+            ...(expressionEditor.retrieveCompletions && { retrieveCompletions: updatedRetrieveCompletions }),
+            ...(expressionEditor.extractArgsFromFunction && { extractArgsFromFunction: updatedExtractArgsFromFunction })
+        } as typeof expressionEditor;
+    }, [expressionEditor, updatedGetExpressionEditorDiagnostics, updatedRetrieveCompletions, updatedExtractArgsFromFunction]);
 
     const updatedFormContext = useMemo(() => ({
         ...formContext,
@@ -141,7 +189,27 @@ export const FieldFactory = (props: FieldFactoryProps) => {
     const handleModeChange = useCallback((mode: InputMode) => {
         setInputMode(mode);
         updateFieldTypesSelection(mode);
-    }, []);
+
+        if (!form) {
+            props.handleFormValidation?.();
+            return;
+        }
+
+        const currentValues = form.getValues();
+        const currentFieldValue = currentValues[props.field.key];
+        if (typeof currentFieldValue === 'string' && currentFieldValue !== '') {
+            try {
+                const config = getEditorConfiguration(mode);
+                const convertedValue = config.deserializeValue(currentFieldValue);
+                props.handleFormValidation?.({ ...currentValues, [props.field.key]: convertedValue });
+            } catch (error) {
+                console.error("Error converting field value on mode change", error);
+                props.handleFormValidation?.(currentValues);
+            }
+        } else {
+            props.handleFormValidation?.();
+        }
+    }, [props.handleFormValidation, form, props.field.key]);
 
     const editorElements = useMemo(() => {
         if (!renderingEditors) return null;

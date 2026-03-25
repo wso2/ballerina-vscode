@@ -69,6 +69,8 @@ import {
     FormDidCloseParams,
     formDidOpen,
     FormDidOpenParams,
+    formDirtyDidChange,
+    FormDirtyDidChangeParams,
     FunctionNodeRequest,
     generateOpenApiClient,
     getAiSuggestions,
@@ -112,6 +114,8 @@ import {
     getRecordSource,
     getServiceClassModel,
     getSignatureHelp,
+    getSimpleTypeOfExpression,
+    GetSimpleTypeOfExpressionRequest,
     getSourceCode,
     getType,
     getTypeFromJson,
@@ -217,9 +221,11 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getExpressionTokens, (args: ExpressionTokensRequest) => rpcManger.getExpressionTokens(args));
     messenger.onNotification(formDidOpen, (args: FormDidOpenParams) => rpcManger.formDidOpen(args));
     messenger.onNotification(formDidClose, (args: FormDidCloseParams) => rpcManger.formDidClose(args));
+    messenger.onNotification(formDirtyDidChange, (args: FormDirtyDidChangeParams) => rpcManger.formDirtyDidChange(args));
     messenger.onRequest(getDesignModel, (args: BIDesignModelRequest) => rpcManger.getDesignModel(args));
     messenger.onRequest(getTypes, (args: GetTypesRequest) => rpcManger.getTypes(args));
     messenger.onRequest(getType, (args: GetTypeRequest) => rpcManger.getType(args));
+    messenger.onRequest(getSimpleTypeOfExpression, (args: GetSimpleTypeOfExpressionRequest) => rpcManger.getSimpleTypeOfExpression(args));
     messenger.onRequest(updateType, (args: UpdateTypeRequest) => rpcManger.updateType(args));
     messenger.onRequest(updateTypes, (args: UpdateTypesRequest) => rpcManger.updateTypes(args));
     messenger.onRequest(deleteType, (args: DeleteTypeRequest) => rpcManger.deleteType(args));

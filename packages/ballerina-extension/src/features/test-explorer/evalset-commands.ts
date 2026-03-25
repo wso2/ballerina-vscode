@@ -27,6 +27,7 @@ export async function createNewEvalset(): Promise<void> {
     try {
         // 1. Ensure evalsets directory exists
         const evalsetsDir = await ensureEvalsetsDirectory();
+        if (!evalsetsDir) { return; } // User cancelled project selection
 
         // 2. Prompt for name
         const name = await vscode.window.showInputBox({
@@ -128,8 +129,8 @@ export async function createNewThread(evalsetFileNode?: any, autoRefresh?: boole
 
         // 5. Create new thread with default trace
         const newThread: EvalThread = {
-            id: crypto.randomUUID(),
-            name: threadName,
+            id: threadName,
+            description: '',
             traces: [defaultTrace],
             created_on: new Date().toISOString()
         };
@@ -237,7 +238,7 @@ export async function deleteThread(threadNode?: any, autoRefresh?: boolean): Pro
 
         // Confirm deletion
         const confirmation = await vscode.window.showWarningMessage(
-            `Are you sure you want to delete thread "${threadToDelete.name}"? This action cannot be undone.`,
+            `Are you sure you want to delete thread "${threadToDelete.id}"? This action cannot be undone.`,
             { modal: true },
             'Delete'
         );
@@ -258,7 +259,7 @@ export async function deleteThread(threadNode?: any, autoRefresh?: boolean): Pro
         if (autoRefresh) {
             vscode.commands.executeCommand('ballerina.openEvalsetViewer', fileUri);
         }
-        vscode.window.showInformationMessage(`Thread "${threadToDelete.name}" deleted successfully`);
+        vscode.window.showInformationMessage(`Thread "${threadToDelete.id}" deleted successfully`);
 
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);

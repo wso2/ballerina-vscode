@@ -33,7 +33,8 @@ import {
     MessageQueuePayloadContext,
     FileAttatchment,
     OperationType,
-    Protocol
+    Protocol,
+    webToolToggle
 } from "@wso2/ballerina-core";
 import { ModelMessage } from "ai";
 import { MessageRole } from "./ai-types";
@@ -179,10 +180,8 @@ export function sendDiagnosticMessageNotification(diags: DiagnosticEntry[]): voi
     sendAIPanelNotification(msg);
 }
 
-export function sendReviewActionsNotification(): void {
-    const msg: ChatNotify = {
-        type: "review_actions",
-    };
+export function sendChatComponentNotification(componentType: string, data: Record<string, any>): void {
+    const msg: ChatNotify = { type: "chat_component", componentType, data };
     sendAIPanelNotification(msg);
 }
 
@@ -243,12 +242,13 @@ export function sendToolCallNotification(toolName: string, toolInput?: any, tool
     sendAIPanelNotification(msg);
 }
 
-export function sendToolResultNotification(toolName: string, toolOutput?: any, toolCallId?: string): void {
+export function sendToolResultNotification(toolName: string, toolOutput?: any, toolCallId?: string, failed?: boolean): void {
     const msg: ToolResult = {
         type: "tool_result",
-        toolName: toolName,
-        toolOutput: toolOutput,
-        toolCallId: toolCallId,
+        toolName,
+        toolOutput,
+        toolCallId,
+        failed,
     };
     sendAIPanelNotification(msg);
 }
@@ -261,6 +261,16 @@ export function sendTaskApprovalRequestNotification(approvalType: "plan" | "comp
         tasks: tasks,
         taskDescription: taskDescription,
         message: message,
+    };
+    sendAIPanelNotification(msg);
+}
+
+export function sendWebToolApprovalNotification(requestId: string, toolName: "web_search" | "web_fetch", content: string): void {
+    const msg: ChatNotify = {
+        type: "web_tool_approval_request",
+        requestId,
+        toolName,
+        content,
     };
     sendAIPanelNotification(msg);
 }
@@ -296,6 +306,14 @@ export function sendConnectorGenerationNotification(event: ChatNotify & { type: 
 
 export function sendConfigurationCollectionNotification(event: ChatNotify & { type: "configuration_collection_event" }): void {
     sendAIPanelNotification(event);
+}
+
+export function sendWebToolToggleNotification(active: boolean): void {
+    RPCLayer._messenger.sendNotification(
+        webToolToggle,
+        { type: "webview", webviewType: AiPanelWebview.viewType },
+        { active }
+    );
 }
 
 function sendAIPanelNotification(msg: ChatNotify): void {

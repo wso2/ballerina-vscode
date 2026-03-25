@@ -16,11 +16,11 @@
  * under the License.
  */
 
+import styled from "@emotion/styled";
 import React, { useState } from "react";
 import {
     InlineButton,
     InlineCard,
-    InlineCardActions,
     InlineCardHeader,
     InlineCardIcon,
     InlineCardSubtitle,
@@ -29,9 +29,7 @@ import {
     InlineDetailRow,
     InlineDetailValue,
     InlineDetailsBlock,
-    InlineDivider,
     InlineErrorText,
-    InlineHint,
     InlineInput,
     InlineStatusRow,
     InlineTab,
@@ -39,6 +37,68 @@ import {
     InlineUrlInput,
     InlineUrlRow,
 } from "./styles";
+
+// ── ConnectorCard-specific styled components ──────────────────────────────────
+
+const UploadZone = styled.label<{ disabled?: boolean }>`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 14px 10px;
+    margin: 2px 0 4px;
+    border: 1.5px dashed var(--vscode-panel-border);
+    border-radius: 4px;
+    cursor: ${(props: { disabled?: boolean }) => props.disabled ? "not-allowed" : "pointer"};
+    opacity: ${(props: { disabled?: boolean }) => props.disabled ? 0.45 : 1};
+    color: var(--vscode-descriptionForeground);
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+    &:hover {
+        border-color: ${(props: { disabled?: boolean }) => props.disabled ? "var(--vscode-panel-border)" : "var(--vscode-focusBorder)"};
+        background-color: ${(props: { disabled?: boolean }) => props.disabled ? "transparent" : "var(--vscode-toolbar-hoverBackground, rgba(127,127,127,0.07))"};
+    }
+`;
+
+const UploadZoneIcon = styled.span`
+    font-size: 18px;
+    color: var(--vscode-descriptionForeground);
+    opacity: 0.7;
+`;
+
+const UploadZoneText = styled.span`
+    font-size: 12px;
+    font-family: var(--vscode-font-family);
+    color: var(--vscode-descriptionForeground);
+    text-align: center;
+`;
+
+const UploadZoneHint = styled.span`
+    font-size: 11px;
+    font-family: var(--vscode-font-family);
+    color: var(--vscode-descriptionForeground);
+    opacity: 0.6;
+`;
+
+const SkipRow = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--vscode-panel-border);
+`;
+
+const SkipWarning = styled.span`
+    font-size: 11px;
+    font-family: var(--vscode-font-family);
+    color: var(--vscode-descriptionForeground);
+    flex: 1;
+    opacity: 0.8;
+`;
+
+// ── ConnectorCard ─────────────────────────────────────────────────────────────
 
 interface ConnectorCardProps {
     data: Record<string, any>;
@@ -146,8 +206,8 @@ const ConnectorCard: React.FC<ConnectorCardProps> = ({ data, rpcClient }) => {
                 </InlineTabRow>
 
                 {inputMethod === "file" && (
-                    <InlineCardActions>
-                        <label style={{ display: "contents" }}>
+                    <>
+                        <UploadZone disabled={isProcessing}>
                             <input
                                 type="file"
                                 accept=".json,.yaml,.yml"
@@ -155,13 +215,15 @@ const ConnectorCard: React.FC<ConnectorCardProps> = ({ data, rpcClient }) => {
                                 onChange={handleFileUpload}
                                 disabled={isProcessing}
                             />
-                            <InlineButton as="span" variant="primary" style={{ cursor: isProcessing ? "not-allowed" : "pointer", opacity: isProcessing ? 0.45 : 1 }}>
-                                <span className="codicon codicon-cloud-upload" style={{ marginRight: 5, fontSize: 11 }} />
-                                {isProcessing ? "Processing..." : "Choose File"}
-                            </InlineButton>
-                        </label>
-                        <InlineHint>.json, .yaml, .yml</InlineHint>
-                    </InlineCardActions>
+                            <UploadZoneIcon>
+                                <span className={`codicon ${isProcessing ? "codicon-loading codicon-modifier-spin" : "codicon-cloud-upload"}`} />
+                            </UploadZoneIcon>
+                            <UploadZoneText>
+                                {isProcessing ? "Processing..." : "Click to choose a spec file"}
+                            </UploadZoneText>
+                            <UploadZoneHint>.json, .yaml, .yml</UploadZoneHint>
+                        </UploadZone>
+                    </>
                 )}
 
                 {inputMethod === "paste" && (
@@ -171,7 +233,7 @@ const ConnectorCard: React.FC<ConnectorCardProps> = ({ data, rpcClient }) => {
                             value={specContent}
                             onChange={e => { setSpecContent(e.target.value); setValidationError(null); }}
                         />
-                        <InlineCardActions>
+                        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 4 }}>
                             <InlineButton
                                 variant="primary"
                                 onClick={handleSubmitPaste}
@@ -179,7 +241,7 @@ const ConnectorCard: React.FC<ConnectorCardProps> = ({ data, rpcClient }) => {
                             >
                                 {isProcessing ? "Processing..." : "Submit"}
                             </InlineButton>
-                        </InlineCardActions>
+                        </div>
                     </>
                 )}
 
@@ -203,19 +265,27 @@ const ConnectorCard: React.FC<ConnectorCardProps> = ({ data, rpcClient }) => {
 
                 {validationError && <InlineErrorText>{validationError}</InlineErrorText>}
 
-                <InlineDivider />
-                <InlineCardActions>
-                    {!showSkipConfirm ? (
-                        <InlineButton variant="secondary" onClick={() => setShowSkipConfirm(true)} disabled={isProcessing}>
+                <SkipRow>
+                    {showSkipConfirm ? (
+                        <>
+                            <SkipWarning>Skip connector generation?</SkipWarning>
+                            <InlineButton variant="secondary" onClick={() => setShowSkipConfirm(false)}>
+                                Cancel
+                            </InlineButton>
+                            <InlineButton variant="danger" onClick={handleSkip}>
+                                Confirm Skip
+                            </InlineButton>
+                        </>
+                    ) : (
+                        <InlineButton
+                            variant="secondary"
+                            onClick={() => setShowSkipConfirm(true)}
+                            disabled={isProcessing}
+                        >
                             Skip
                         </InlineButton>
-                    ) : (
-                        <>
-                            <InlineButton variant="secondary" onClick={() => setShowSkipConfirm(false)}>Cancel</InlineButton>
-                            <InlineButton variant="primary" onClick={handleSkip}>Confirm Skip</InlineButton>
-                        </>
                     )}
-                </InlineCardActions>
+                </SkipRow>
             </InlineCard>
         );
     }

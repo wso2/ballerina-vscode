@@ -1,0 +1,56 @@
+/**
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+const openFormFilePaths = new Set<string>();
+const dirtyFormFilePaths = new Set<string>();
+
+export function registerFormOpen(filePath: string): void {
+    openFormFilePaths.add(filePath);
+    dirtyFormFilePaths.delete(filePath);
+}
+
+export function registerFormClose(filePath: string): void {
+    openFormFilePaths.delete(filePath);
+    dirtyFormFilePaths.delete(filePath);
+}
+
+/** Tracks dirty state for an already-open form (see formDidOpen). Ignored if the path is not open. */
+export function setFormDirtyState(filePath: string, isDirty: boolean): void {
+    if (!openFormFilePaths.has(filePath)) {
+        return;
+    }
+    if (isDirty) {
+        dirtyFormFilePaths.add(filePath);
+    } else {
+        dirtyFormFilePaths.delete(filePath);
+    }
+}
+
+export function hasOpenForm(): boolean {
+    return openFormFilePaths.size > 0;
+}
+
+export function hasDirtyOpenForm(): boolean {
+    return dirtyFormFilePaths.size > 0;
+}
+
+/** Clears form state when navigating away (e.g., user chose "Discard and Navigate"). */
+export function clearFormState(): void {
+    openFormFilePaths.clear();
+    dirtyFormFilePaths.clear();
+}
