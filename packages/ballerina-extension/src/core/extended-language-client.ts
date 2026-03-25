@@ -1000,7 +1000,17 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
     }
 
     async isIcpEnabled(params: ICPEnabledRequest): Promise<ICPEnabledResponse | NOT_SUPPORTED_TYPE> {
-        return this.sendRequest(EXTENDED_APIS.BI_IS_ICP_ENABLED, params);
+        // Check if ICP import exists in main.bal instead of querying the language server
+        const mainBalPath = require('path').join(params.projectPath, 'main.bal');
+        try {
+            const content = require('fs').readFileSync(mainBalPath, 'utf-8');
+            const enabled = content.includes('import wso2/icp.runtime.bridge as _;');
+            return { enabled };
+        } catch {
+            return { enabled: false };
+        }
+        // Original LS-based implementation:
+        // return this.sendRequest(EXTENDED_APIS.BI_IS_ICP_ENABLED, params);
     }
 
     async addICP(params: ICPEnabledRequest): Promise<TestSourceEditResponse | NOT_SUPPORTED_TYPE> {
