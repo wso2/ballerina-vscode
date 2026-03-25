@@ -1839,7 +1839,9 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     preserveOrder={
                         node.codedata.node === ("VARIABLE" as NodeKind) ||
                         node.codedata.node === ("CONFIG_VARIABLE" as NodeKind) ||
-                        node.codedata.node === ("ASSIGN" as NodeKind)
+                        node.codedata.node === ("ASSIGN" as NodeKind) ||
+                        node.codedata.node === ("FUNCTION_CREATION" as NodeKind) ||
+                        node.codedata.node === ("DATA_MAPPER_CREATION" as NodeKind)
                     }
                     scopeFieldAddon={scopeFieldAddon}
                     onChange={onChange}
