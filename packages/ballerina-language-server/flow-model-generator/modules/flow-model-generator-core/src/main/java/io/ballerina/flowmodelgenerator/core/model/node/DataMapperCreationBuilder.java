@@ -28,6 +28,7 @@ import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.projects.Document;
+import org.ballerinalang.langserver.common.utils.NameUtil;
 import org.ballerinalang.model.types.TypeKind;
 import org.eclipse.lsp4j.TextEdit;
 
@@ -105,26 +106,22 @@ public class DataMapperCreationBuilder extends NodeBuilder {
         properties().functionNameTemplate(getFunctionName(), context.getAllVisibleSymbolNames(),
                 getNameLabel(), getNameDoc());
 
-        setMandatoryProperties(context, this, null);
+        properties().nestedProperty();
         setOptionalProperties(this);
-    }
 
-    public void setMandatoryProperties(TemplateContext context, NodeBuilder nodeBuilder, String returnType) {
-        nodeBuilder.properties()
-                .dataVariable(null, Property.RESULT_NAME, Property.TYPE_LABEL,
-                        Property.RESULT_DOC, true, context.getAllVisibleSymbolNames(), false);
-
-        nodeBuilder.properties().custom()
+        properties().custom()
                 .metadata()
                     .label(OUTPUT_LABEL)
                     .description(getOutputDoc())
                 .stepOut()
-                .value(returnType)
+                .value((String) null)
                 .type(Property.ValueType.TYPE, RETURN_TYPE)
                 .editable()
                 .stepOut()
-                .addProperty(Property.TYPE_KEY)
-                .nestedProperty();
+                .addProperty(Property.TYPE_KEY);
+
+        properties().data(null, Property.RESULT_NAME, Property.RESULT_DOC,
+                NameUtil.generateTypeName("var", context.getAllVisibleSymbolNames()), false);
     }
 
     public static void setProperty(FormBuilder<?> formBuilder, String type, String name) {
