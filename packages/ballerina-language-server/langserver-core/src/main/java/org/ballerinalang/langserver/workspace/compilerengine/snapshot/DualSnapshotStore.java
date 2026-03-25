@@ -27,27 +27,75 @@ import org.ballerinalang.langserver.workspace.compilerengine.CompilationKey;
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
+import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
-
 /**
  * Thread-safe per-package store for stable and in-progress snapshots.
+ *
+ * <p>Bounded: at most {@code maxStableSnapshots} stable snapshots are retained
+ * simultaneously. When the limit is exceeded after publishing a new snapshot,
+ * the least-recently-accessed stable snapshot is proactively cleared to free
+ * the symbol graph memory it holds (compilation, semantic models, syntax trees).
+ * The cleared entry's pipeline and in-progress slot are preserved so a
+ * recompile can be triggered on the next request.
+ *
+ * <p>Implements the "Last Known Good" stale model serving requirement
+ * by providing access to the previously-stable snapshot while a new compilation is in progress.</p>
+ *
+ * @adr ADR-014-structured-error-handling
+ *
+ * <p>An optional eviction listener receives the {@link CompilationKey} of each
+...
+ * LRU-evicted snapshot, allowing callers to coordinate cross-context cleanup
+ * (e.g., evicting the corresponding project from the project cache so that the
+ * shared {@code PackageCompilation} becomes eligible for GC).
  *
  * @since 1.7.0
  */
 public class DualSnapshotStore {
 
     private static final ContentVersion INITIAL_CONTENT_VERSION = new ContentVersion(0);
+    private static final int DEFAULT_MAX_STABLE_SNAPSHOTS = 16;
+    private static final Logger LOG = Logger.getLogger(DualSnapshotStore.class.getName());
 
     private final ConcurrentHashMap<CompilationKey, SnapshotPair> snapshots;
+    private final int maxStableSnapshots;
+    private volatile Consumer<CompilationKey> evictionListener;
 
     /**
-     * Creates an empty dual snapshot store.
+     * Creates an empty dual snapshot store with the default stable snapshot limit (16).
      */
     public DualSnapshotStore() {
+        this(DEFAULT_MAX_STABLE_SNAPSHOTS);
+    }
+
+    /**
+     * Creates an empty dual snapshot store with the given stable snapshot limit.
+     *
+     * @param maxStableSnapshots maximum number of stable snapshots to retain; must be >= 1
+     */
+    public DualSnapshotStore(int maxStableSnapshots) {
+        if (maxStableSnapshots < 1) {
+            throw new IllegalArgumentException("maxStableSnapshots must be >= 1, got: " + maxStableSnapshots);
+        }
         this.snapshots = new ConcurrentHashMap<>();
+        this.maxStableSnapshots = maxStableSnapshots;
+    }
+
+    /**
+     * Registers a listener that is called with the {@link CompilationKey} of each
+     * stable snapshot evicted by LRU. The listener runs on the thread that triggered
+     * the eviction (the compilation worker calling {@link #publishStable}).
+     *
+     * @param listener callback receiving the evicted key, or {@code null} to clear
+     */
+    public void setEvictionListener(Consumer<CompilationKey> listener) {
+        this.evictionListener = listener;
     }
 
     /**
@@ -92,6 +140,7 @@ public class DualSnapshotStore {
     public void publishStable(@Nonnull CompilationKey key, @Nonnull StableSnapshot stableSnapshot) {
         SnapshotPair snapshotPair = snapshots.computeIfAbsent(key, ignored -> new SnapshotPair());
         snapshotPair.publishStable(stableSnapshot);
+        evictLeastRecentlyUsedIfNeeded(key);
     }
 
     /**
@@ -118,9 +167,122 @@ public class DualSnapshotStore {
         }
     }
 
+    /**
+     * Clears the stable snapshot for the given key while preserving the in-progress slot.
+     * This releases the symbol graph memory held by the stable snapshot without removing
+     * the key from the store entirely.
+     *
+     * @param key the compound compilation key (source root + package descriptor)
+     */
+    public void clearStable(@Nonnull CompilationKey key) {
+        SnapshotPair snapshotPair = snapshots.get(key);
+        if (snapshotPair != null) {
+            snapshotPair.clearStable();
+        }
+    }
+
+    /**
+     * Clears ALL stable snapshots in the store, regardless of which keys exist
+     * in any external pipeline map. Also removes entries that have neither a
+     * stable snapshot nor an in-progress compilation (fully dead entries).
+     *
+     * @return the number of stable snapshots that were actually cleared
+     */
+    public int clearAllStable() {
+        int cleared = 0;
+        var iterator = snapshots.entrySet().iterator();
+        while (iterator.hasNext()) {
+            var entry = iterator.next();
+            SnapshotPair pair = entry.getValue();
+            if (pair.hasStableSnapshot()) {
+                pair.clearStable();
+                cleared++;
+            }
+            // Release memory from in-progress fallbacks
+            pair.clearInProgressFallback();
+
+            // Remove fully dead entries (no stable, no in-progress) to prevent map growth
+            if (!pair.hasStableSnapshot() && pair.inProgressSnapshot() == null) {
+                iterator.remove();
+            }
+        }
+        return cleared;
+    }
+
+    /**
+     * Returns the number of keys tracked in this store.
+     *
+     * @return the current entry count
+     */
+    public int size() {
+        return snapshots.size();
+    }
+
+    /**
+     * Returns the maximum number of stable snapshots this store will retain.
+     *
+     * @return the configured stable snapshot limit
+     */
+    public int maxStableSnapshots() {
+        return maxStableSnapshots;
+    }
+
+    /**
+     * Evicts the least-recently-accessed stable snapshot if the number of entries
+     * holding a stable snapshot exceeds {@code maxStableSnapshots}. The evicted entry's
+     * pipeline slot and in-progress compilation are preserved — only the heavy symbol
+     * graph (PackageCompilation, SemanticModel, SyntaxTree) is released.
+     *
+     * @param justPublished the key that was just published (excluded from eviction)
+     */
+    private void evictLeastRecentlyUsedIfNeeded(@Nonnull CompilationKey justPublished) {
+        int stableCount = 0;
+        for (SnapshotPair pair : snapshots.values()) {
+            if (pair.hasStableSnapshot()) {
+                stableCount++;
+            }
+        }
+        if (stableCount <= maxStableSnapshots) {
+            return;
+        }
+
+        // Find the entry with the oldest access time (excluding the just-published key)
+        CompilationKey oldestKey = null;
+        long oldestNanos = Long.MAX_VALUE;
+        for (Map.Entry<CompilationKey, SnapshotPair> entry : snapshots.entrySet()) {
+            if (entry.getKey().equals(justPublished)) {
+                continue;
+            }
+            SnapshotPair pair = entry.getValue();
+            if (pair.hasStableSnapshot() && pair.lastAccessNanos() < oldestNanos) {
+                oldestNanos = pair.lastAccessNanos();
+                oldestKey = entry.getKey();
+            }
+        }
+
+        if (oldestKey != null) {
+            SnapshotPair evictedPair = snapshots.get(oldestKey);
+            if (evictedPair != null) {
+                evictedPair.clearStable();
+                CompilationKey evictedKey = oldestKey;
+                LOG.fine(() -> "LRU eviction: cleared stable snapshot for " + evictedKey.sourceRoot()
+                        + " (store holds " + maxStableSnapshots + " max)");
+                Consumer<CompilationKey> listener = evictionListener;
+                if (listener != null) {
+                    try {
+                        listener.accept(evictedKey);
+                    } catch (Exception e) {
+                        LOG.warning(() -> "Eviction listener failed for " + evictedKey.sourceRoot()
+                                + ": " + e.getMessage());
+                    }
+                }
+            }
+        }
+    }
+
     public static final class StoreInProgressSnapshot implements InProgressSnapshot {
 
-        private final StableSnapshot fallbackStableSnapshot;
+        private volatile StableSnapshot fallbackStableSnapshot;
         private final ContentVersion contentVersion;
         private final CompletableFuture<StableSnapshot> publishedStableSnapshot;
         private final CompletableFuture<PackageCompilation> compilationFuture;
@@ -135,10 +297,11 @@ public class DualSnapshotStore {
 
         @Override
         public SyntaxTree syntaxTree(@Nonnull DocumentId docId) {
-            if (fallbackStableSnapshot == null) {
+            StableSnapshot fallback = fallbackStableSnapshot;
+            if (fallback == null) {
                 return null;
             }
-            return fallbackStableSnapshot.syntaxTree(docId);
+            return fallback.syntaxTree(docId);
         }
 
         @Override
@@ -149,20 +312,18 @@ public class DualSnapshotStore {
         @Override
         public CompletableFuture<SemanticModel> semanticModel(@Nonnull ModuleId moduleId, @Nonnull CancelChecker checker) {
             checker.checkCanceled();
-            CompletableFuture<SemanticModel> semanticFuture = new CompletableFuture<>();
+            CompletableFuture<SemanticModel> result = publishedStableSnapshot.thenApply(snapshot -> {
+                checker.checkCanceled();
+                return snapshot.semanticModel(moduleId);
+            });
+            // Propagate cancellation from parent to derived future so callers see
+            // CancellationException when the in-progress snapshot is cancelled.
             publishedStableSnapshot.whenComplete((snapshot, error) -> {
-                if (error != null) {
-                    propagate(error, semanticFuture);
-                    return;
-                }
-                try {
-                    checker.checkCanceled();
-                    semanticFuture.complete(snapshot.semanticModel(moduleId));
-                } catch (Throwable throwable) {
-                    semanticFuture.completeExceptionally(throwable);
+                if (error instanceof java.util.concurrent.CancellationException) {
+                    result.cancel(false);
                 }
             });
-            return semanticFuture;
+            return result;
         }
 
         @Override
@@ -174,10 +335,16 @@ public class DualSnapshotStore {
         void complete(StableSnapshot stableSnapshot) {
             publishedStableSnapshot.complete(stableSnapshot);
             compilationFuture.complete(stableSnapshot.compilation());
+            // Release fallback reference — the new stable snapshot supersedes it
+            fallbackStableSnapshot = null;
         }
 
         StableSnapshot fallbackStableSnapshot() {
             return fallbackStableSnapshot;
+        }
+
+        void clearFallback() {
+            fallbackStableSnapshot = null;
         }
 
         public CompletableFuture<StableSnapshot> publishedStableSnapshot() {
@@ -187,15 +354,8 @@ public class DualSnapshotStore {
         void cancel() {
             publishedStableSnapshot.cancel(false);
             compilationFuture.cancel(false);
-        }
-
-        private static <T> void propagate(Throwable error, CompletableFuture<T> targetFuture) {
-            Throwable cause = error.getCause() == null ? error : error.getCause();
-            if (cause instanceof java.util.concurrent.CancellationException) {
-                targetFuture.cancel(false);
-                return;
-            }
-            targetFuture.completeExceptionally(cause);
+            // Release fallback reference to allow GC of the previous snapshot's symbol graph
+            fallbackStableSnapshot = null;
         }
     }
 }

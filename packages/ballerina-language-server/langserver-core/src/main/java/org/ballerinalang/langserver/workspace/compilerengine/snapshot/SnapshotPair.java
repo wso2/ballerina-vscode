@@ -18,6 +18,7 @@
 
 package org.ballerinalang.langserver.workspace.compilerengine.snapshot;
 
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -28,9 +29,14 @@ import java.util.concurrent.atomic.AtomicReference;
 final class SnapshotPair {
 
     private final AtomicReference<State> state = new AtomicReference<>(new State(null, null));
+    private final AtomicLong lastAccessNanos = new AtomicLong(System.nanoTime());
 
     StableSnapshot stableSnapshot() {
-        return state.get().stableSnapshot();
+        StableSnapshot snapshot = state.get().stableSnapshot();
+        if (snapshot != null) {
+            lastAccessNanos.set(System.nanoTime());
+        }
+        return snapshot;
     }
 
     InProgressSnapshot inProgressSnapshot() {
@@ -59,6 +65,7 @@ final class SnapshotPair {
             State current = state.get();
             State updated = new State(stableSnapshot, null);
             if (state.compareAndSet(current, updated)) {
+                lastAccessNanos.set(System.nanoTime());
                 DualSnapshotStore.StoreInProgressSnapshot inProgressSnapshot = current.inProgressSnapshot();
                 if (inProgressSnapshot != null) {
                     inProgressSnapshot.complete(stableSnapshot);
@@ -67,6 +74,24 @@ final class SnapshotPair {
             }
             Thread.onSpinWait();
         }
+    }
+
+    /**
+     * Returns the last access time in nanoseconds (monotonic clock).
+     *
+     * @return last access nanos
+     */
+    long lastAccessNanos() {
+        return lastAccessNanos.get();
+    }
+
+    /**
+     * Returns whether this pair currently holds a non-null stable snapshot.
+     *
+     * @return true if a stable snapshot is present
+     */
+    boolean hasStableSnapshot() {
+        return state.get().stableSnapshot() != null;
     }
 
     void cancelInProgress() {
@@ -82,6 +107,27 @@ final class SnapshotPair {
                 return;
             }
             Thread.onSpinWait();
+        }
+    }
+
+    void clearStable() {
+        while (true) {
+            State current = state.get();
+            if (current.stableSnapshot() == null) {
+                return;
+            }
+            State updated = new State(null, current.inProgressSnapshot());
+            if (state.compareAndSet(current, updated)) {
+                return;
+            }
+            Thread.onSpinWait();
+        }
+    }
+
+    void clearInProgressFallback() {
+        DualSnapshotStore.StoreInProgressSnapshot inProgressSnapshot = state.get().inProgressSnapshot();
+        if (inProgressSnapshot != null) {
+            inProgressSnapshot.clearFallback();
         }
     }
 
