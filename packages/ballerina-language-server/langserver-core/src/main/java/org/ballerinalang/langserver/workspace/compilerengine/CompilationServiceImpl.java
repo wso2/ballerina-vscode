@@ -41,6 +41,7 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectServiceImpl;
 
 import java.net.URI;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -142,7 +143,7 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
                                   @Nonnull ProjectServiceImpl projectService, long retryDelayMs,
                                   long heapPressureThrottleMs, int maxConcurrentCompilations) {
         this(snapshotStore, eventBus, new CompilationActionImpl(projectService), retryDelayMs,
-                heapPressureThrottleMs, buildSemaphore(maxConcurrentCompilations));
+                heapPressureThrottleMs, buildSemaphore(maxConcurrentCompilations), projectService);
     }
 
     /**
@@ -172,7 +173,7 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
                                   @Nonnull CompilationPipeline.CompilationAction compilationAction,
                                   long retryDelayMs, long heapPressureThrottleMs) {
         this(snapshotStore, eventBus, compilationAction, retryDelayMs, heapPressureThrottleMs,
-                new Semaphore(Integer.MAX_VALUE, false));
+                new Semaphore(Integer.MAX_VALUE, false), null);
     }
 
     /**
@@ -189,7 +190,7 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
                                   @Nonnull CompilationPipeline.CompilationAction compilationAction,
                                   long retryDelayMs, long heapPressureThrottleMs, int maxConcurrentCompilations) {
         this(snapshotStore, eventBus, compilationAction, retryDelayMs, heapPressureThrottleMs,
-                buildSemaphore(maxConcurrentCompilations));
+                buildSemaphore(maxConcurrentCompilations), null);
     }
 
     /**
@@ -197,7 +198,8 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
      */
     private CompilationServiceImpl(DualSnapshotStore snapshotStore, EventSyncPubSubHolder eventBus,
                                    CompilationPipeline.CompilationAction compilationAction, long retryDelayMs,
-                                   long heapPressureThrottleMs, Semaphore compilationPermits) {
+                                   long heapPressureThrottleMs, Semaphore compilationPermits,
+                                   ProjectServiceImpl projectService) {
         this.snapshotStore = snapshotStore;
         this.eventBus = eventBus;
         this.baseAction = compilationAction;
@@ -217,6 +219,21 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
             return t;
         });
 
+        // Register LRU eviction listener: when a stable snapshot is evicted from the
+        // store, also evict the corresponding project from ProjectService so the shared
+        // PackageCompilation reference becomes eligible for GC.
+        if (projectService != null) {
+            snapshotStore.setEvictionListener(evictedKey -> {
+                try {
+                    Path path = projectService.resolvePathFromIdentifier(evictedKey.sourceRoot());
+                    projectService.evictProject(path);
+                } catch (Exception e) {
+                    LOG.fine(() -> "Failed to evict project for LRU-evicted snapshot: "
+                            + evictedKey.sourceRoot() + " - " + e.getMessage());
+                }
+            });
+        }
+
         subscribeToEvents();
     }
 
@@ -234,6 +251,10 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
             }
             InProgressSnapshot inProgress = snapshotStore.getInProgress(key);
             if (inProgress instanceof DualSnapshotStore.StoreInProgressSnapshot storeInProgress) {
+                CompilationPipeline pipeline = pipelines.get(key);
+                if (pipeline != null) {
+                    pipeline.forceCompilation();
+                }
                 StableSnapshot awaited = awaitPublished(storeInProgress, cancelChecker);
                 if (awaited != null) {
                     return awaited;
@@ -243,9 +264,18 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
                 if (!awaitOrBootstrapPipeline(key, project, cancelChecker)) {
                     return null;
                 }
+                continue;
+            }
+            // Pipeline exists but no stable/inProgress snapshot yet — the event bus
+            // hasn't delivered WORKSPACE_PROJECT_UPDATED to trigger compilation.
+            // Kick compilation directly rather than sleeping.
+            CompilationPipeline existingPipeline = pipelines.get(key);
+            if (existingPipeline != null) {
+                requestCompilation(existingPipeline);
+                continue;
             }
             try {
-                Thread.sleep(50);
+                Thread.sleep(200);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 return null;
@@ -262,26 +292,11 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
      * @return true if the pipeline exists after waiting or bootstrapping, false if interrupted or closed
      */
     private boolean awaitOrBootstrapPipeline(CompilationKey key, Project project, CancelChecker cancelChecker) {
-        long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(200);
-        while (!pipelines.containsKey(key)) {
-            if (closed.get()) {
-                return false;
-            }
-            if (cancelChecker != null) {
-                cancelChecker.checkCanceled();
-            }
-            if (System.nanoTime() >= deadline) {
-                createPipelineIfAbsent(project.sourceRoot().toAbsolutePath().normalize().toString());
-                return pipelines.containsKey(key);
-            }
-            try {
-                Thread.sleep(20);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return false;
-            }
+        if (closed.get()) {
+            return false;
         }
-        return true;
+        createPipelineIfAbsent(project.sourceRoot().toAbsolutePath().normalize().toString());
+        return pipelines.containsKey(key);
     }
 
     @Override
@@ -352,17 +367,57 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
     }
 
     private void handleHeapPressureEvent(DomainEvent event) {
-        if (heapPressureThrottleMs <= 0) {
-            return;
-        }
         if (!(event instanceof HeapPressureEvent hpe)) {
             return;
         }
         switch (hpe.pressureLevel()) {
-            case WARNING, CRITICAL, EMERGENCY ->
-                    throttledUntilNanos.set(System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(heapPressureThrottleMs));
+            case WARNING -> {
+                if (heapPressureThrottleMs > 0) {
+                    throttledUntilNanos.set(
+                            System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(heapPressureThrottleMs));
+                }
+            }
+            case CRITICAL -> {
+                if (heapPressureThrottleMs > 0) {
+                    throttledUntilNanos.set(
+                            System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(heapPressureThrottleMs));
+                }
+                evictCircuitOpenSnapshots();
+            }
+            case EMERGENCY -> {
+                if (heapPressureThrottleMs > 0) {
+                    throttledUntilNanos.set(
+                            System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(heapPressureThrottleMs));
+                }
+                evictAllStableSnapshots();
+            }
             case NORMAL -> throttledUntilNanos.set(0L);
         }
+    }
+
+    /**
+     * Releases stable snapshots for pipelines whose circuit breaker is open, freeing
+     * the symbol graph memory held by stale compilations that cannot recover.
+     */
+    private void evictCircuitOpenSnapshots() {
+        for (Map.Entry<CompilationKey, CircuitBreakerAction> entry : circuitActions.entrySet()) {
+            if (entry.getValue().isOpen()) {
+                snapshotStore.clearStable(entry.getKey());
+                LOG.fine(() -> "Evicted stale snapshot for circuit-open pipeline: "
+                        + descriptorName(entry.getKey().descriptor()));
+            }
+        }
+    }
+
+    /**
+     * Releases ALL stable snapshots to reclaim symbol graph memory under emergency
+     * heap pressure. Snapshots are recomputed on the next request via the compilation
+     * pipeline, so this is safe — it trades latency for memory.
+     */
+    private void evictAllStableSnapshots() {
+        int cleared = snapshotStore.clearAllStable();
+        LOG.info(() -> "Emergency heap pressure: cleared " + cleared + " stable snapshots"
+                + " (store size=" + snapshotStore.size() + ", pipelines=" + pipelines.size() + ")");
     }
 
     private void requestCompilationWithThrottle(CompilationKey key) {
@@ -406,6 +461,12 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
     }
 
     private void createPipelineIfAbsent(String sourceRootIdentifier) {
+        // Guard: if a pipeline already exists for this source root, skip.
+        // PackageDescriptor may use identity equality, so checking sourceRootIndex
+        // (keyed by normalized path string) is the only reliable dedup check.
+        if (sourceRootIndex.containsKey(sourceRootIdentifier)) {
+            return;
+        }
         PackageDescriptor descriptor;
         try {
             descriptor = baseAction.describe(sourceRootIdentifier);
@@ -417,7 +478,8 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         if (pipelines.containsKey(key)) {
             return;
         }
-        CircuitBreakerAction circuitAction = new CircuitBreakerAction(key);
+        CircuitBreakerAction circuitAction = new CircuitBreakerAction(key, baseAction, snapshotStore, eventBus,
+                pipelines, retryScheduler, versionCounter, retryDelayMs);
         CompilationPipeline pipeline = new CompilationPipeline(key, snapshotStore, eventBus,
                 circuitAction, compilationPermits);
         CompilationPipeline existing = pipelines.putIfAbsent(key, pipeline);
@@ -456,7 +518,7 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
                 cancelChecker.checkCanceled();
             }
             try {
-                return storeInProgress.publishedStableSnapshot().get(50, TimeUnit.MILLISECONDS);
+                return storeInProgress.publishedStableSnapshot().get(10, TimeUnit.MILLISECONDS);
             } catch (TimeoutException e) {
                 // Keep waiting until the next stable snapshot is published.
             } catch (InterruptedException e) {
@@ -510,21 +572,43 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
     // ---- Inner Class: CircuitBreakerAction ----
 
     /**
-     * Wraps the base compilation action with retry/circuit-breaker logic per ADR-033.
+     * Wraps the base compilation action with retry/circuit-breaker logic.
+     *
+     * <p>Static inner class to avoid retaining the enclosing {@code CompilationServiceImpl}
+     * via an implicit {@code this$0} reference. All required collaborators are passed explicitly
+     * so that a leaked pipeline reference does not pin the entire service and its maps.
      *
      * <p>Classifies failures into TRANSIENT (retryable), PERSISTENT (user fix required),
      * and FATAL (compiler bug). Retries once on TRANSIENT; opens circuit and emits
      * CE-E6 (recovery exhausted) otherwise.
      */
-    private class CircuitBreakerAction implements CompilationPipeline.CompilationAction {
+    private static class CircuitBreakerAction implements CompilationPipeline.CompilationAction {
 
         private final CompilationKey key;
+        private final CompilationPipeline.CompilationAction baseAction;
+        private final DualSnapshotStore snapshotStore;
+        private final EventSyncPubSubHolder eventBus;
+        private final Map<CompilationKey, CompilationPipeline> pipelines;
+        private final ScheduledExecutorService retryScheduler;
+        private final AtomicInteger versionCounter;
+        private final long retryDelayMs;
         private final AtomicInteger retryCount;
         private final AtomicBoolean circuitOpen;
         private volatile ScheduledFuture<?> retryTask;
 
-        CircuitBreakerAction(CompilationKey key) {
+        CircuitBreakerAction(CompilationKey key, CompilationPipeline.CompilationAction baseAction,
+                             DualSnapshotStore snapshotStore, EventSyncPubSubHolder eventBus,
+                             Map<CompilationKey, CompilationPipeline> pipelines,
+                             ScheduledExecutorService retryScheduler, AtomicInteger versionCounter,
+                             long retryDelayMs) {
             this.key = key;
+            this.baseAction = baseAction;
+            this.snapshotStore = snapshotStore;
+            this.eventBus = eventBus;
+            this.pipelines = pipelines;
+            this.retryScheduler = retryScheduler;
+            this.versionCounter = versionCounter;
+            this.retryDelayMs = retryDelayMs;
             this.retryCount = new AtomicInteger(0);
             this.circuitOpen = new AtomicBoolean(false);
         }
@@ -581,7 +665,6 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
 
         private void scheduleRetryOrOpenCircuit(FailureClass failureClass) {
             if (failureClass == FailureClass.TRANSIENT && retryCount.getAndIncrement() < 1) {
-                // Schedule a retry for the next compilation request
                 CompilationPipeline pipeline = pipelines.get(key);
                 if (pipeline != null) {
                     retryTask = retryScheduler.schedule(() -> {
@@ -590,8 +673,9 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
                     }, retryDelayMs, TimeUnit.MILLISECONDS);
                 }
             } else {
-                // Open circuit and emit recovery exhausted event
+                // Open circuit, release stale snapshot to free symbol graph memory, and emit recovery exhausted event
                 circuitOpen.set(true);
+                snapshotStore.clearStable(key);
                 emitRecoveryExhausted();
             }
         }
@@ -606,7 +690,7 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
             }
         }
 
-        private URI parseSourceRootUri(String identifier) {
+        private static URI parseSourceRootUri(String identifier) {
             if (identifier == null || identifier.isBlank()) {
                 return null;
             }
@@ -621,7 +705,7 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
             }
         }
 
-        private FailureClass classifyFailure(Throwable e) {
+        private static FailureClass classifyFailure(Throwable e) {
             if (e instanceof java.io.IOException) {
                 return FailureClass.TRANSIENT;
             } else if (e instanceof IllegalArgumentException || e instanceof IllegalStateException) {

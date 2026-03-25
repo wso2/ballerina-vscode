@@ -78,7 +78,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public final class ProjectServiceImpl implements ProjectService {
 
-    private static final int DEFAULT_MAX_PROJECTS = 32;
+    private static final int DEFAULT_MAX_PROJECTS = 128;
     private static final String BALLERINA_TOML = "Ballerina.toml";
     private static final String DEPENDENCIES_TOML = "Dependencies.toml";
     private static final Set<String> BUFFERED_TOML_FILES = Set.of(BALLERINA_TOML, DEPENDENCIES_TOML, "Cloud.toml");
@@ -94,6 +94,7 @@ public final class ProjectServiceImpl implements ProjectService {
     private final ConcurrentHashMap<DocumentUri, AtomicInteger> versionCounters;
     private final ConcurrentHashMap<Path, AtomicInteger> dependenciesSelfWriteTokens;
     private final ConcurrentHashMap<DocumentUri, Set<EventKind>> observedCompilerSignals;
+    private final ConcurrentHashMap<Path, DocumentUri> rootCache;
 
     /**
      * Constructs a project service with full wiring of dependencies.
@@ -112,6 +113,7 @@ public final class ProjectServiceImpl implements ProjectService {
         this.versionCounters = new ConcurrentHashMap<>();
         this.dependenciesSelfWriteTokens = new ConcurrentHashMap<>();
         this.observedCompilerSignals = new ConcurrentHashMap<>();
+        this.rootCache = new ConcurrentHashMap<>();
         this.uriResolver = new UriResolver(DEFAULT_MAX_PROJECTS, this::onImplicitProjectEviction);
         this.changeApplier = new ChangeApplier(changeBuffer, this.uriResolver);
         subscribeToEvents();
@@ -134,6 +136,7 @@ public final class ProjectServiceImpl implements ProjectService {
         this.versionCounters = new ConcurrentHashMap<>();
         this.dependenciesSelfWriteTokens = new ConcurrentHashMap<>();
         this.observedCompilerSignals = new ConcurrentHashMap<>();
+        this.rootCache = new ConcurrentHashMap<>();
         this.uriResolver = new UriResolver(DEFAULT_MAX_PROJECTS, this::onImplicitProjectEviction);
         this.changeApplier = changeApplier;
         subscribeToEvents();
@@ -146,6 +149,12 @@ public final class ProjectServiceImpl implements ProjectService {
     @Override
     public Project loadOrCreate(@Nonnull Path path, CancelChecker cancelChecker) {
         Path normalized = path.toAbsolutePath().normalize();
+        DocumentUri docUri = toFileUri(normalized);
+        Optional<Project> cachedProject = uriResolver.project(docUri);
+        if (cachedProject.isPresent()) {
+            return cachedProject.get();
+        }
+
         DocumentUri root = resolveSourceRoot(normalized);
         Optional<Project> cached = uriResolver.getProject(root);
         if (cached.isPresent()) {
@@ -306,9 +315,14 @@ public final class ProjectServiceImpl implements ProjectService {
             return;
         }
         switch (hpe.pressureLevel()) {
-            case WARNING, CRITICAL, EMERGENCY -> workspaceProjects.forEach((root, project) -> {
+            case WARNING -> workspaceProjects.forEach((root, project) -> {
                 if (project.openDocumentCount().tier() == ProjectTier.BACKGROUND
                         && uriResolver.getProject(root).isPresent()) {
+                    evictProject(root, EvictionReason.HEAP_PRESSURE);
+                }
+            });
+            case CRITICAL, EMERGENCY -> workspaceProjects.forEach((root, project) -> {
+                if (uriResolver.getProject(root).isPresent()) {
                     evictProject(root, EvictionReason.HEAP_PRESSURE);
                 }
             });
@@ -530,6 +544,11 @@ public final class ProjectServiceImpl implements ProjectService {
      * @return source root URI
      */
     private DocumentUri resolveSourceRoot(Path normalized) {
+        DocumentUri cached = rootCache.get(normalized);
+        if (cached != null) {
+            return cached;
+        }
+
         // Check if normalized path itself or its parent directory contains Ballerina.toml
         Path currentCheck = normalized;
         if (normalized.toFile().isFile()) {
@@ -540,7 +559,9 @@ public final class ProjectServiceImpl implements ProjectService {
         Path current = currentCheck;
         while (current != null) {
             if (current.resolve("Ballerina.toml").toFile().exists()) {
-                return new DocumentUri.FileUri(current.toUri());
+                DocumentUri root = new DocumentUri.FileUri(current.toUri());
+                rootCache.put(normalized, root);
+                return root;
             }
             current = current.getParent();
         }
@@ -548,10 +569,14 @@ public final class ProjectServiceImpl implements ProjectService {
         // No Ballerina.toml found. For standalone .bal files, use the file path itself
         // as the source root so the projectLoader receives a file path that
         // BallerinaCompilerApi can recognise as a SingleFileProject.
+        DocumentUri result;
         if (normalized.toFile().isFile()) {
-            return new DocumentUri.FileUri(normalized.toUri());
+            result = new DocumentUri.FileUri(normalized.toUri());
+        } else {
+            result = new DocumentUri.FileUri((currentCheck != null ? currentCheck : normalized).toUri());
         }
-        return new DocumentUri.FileUri((currentCheck != null ? currentCheck : normalized).toUri());
+        rootCache.put(normalized, result);
+        return result;
     }
 
     /**
@@ -607,6 +632,7 @@ public final class ProjectServiceImpl implements ProjectService {
             return;
         }
 
+        rootCache.clear();
         Path rootPath = filePath.getParent();
         if (rootPath == null) {
             return;
