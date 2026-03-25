@@ -58,7 +58,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 
 /**
  * Handles the search command for connectors.
@@ -164,16 +163,14 @@ public class ConnectorSearchCommand extends SearchCommand {
                                 connector.packageInfo.getVersion()
                         );
                         results.add(SearchResult.from(packageInfo, connector.name,
-                                connector.packageInfo.getSummary(), true));
+                                connector.packageInfo.getSummary(), false));
                     }
                 }
                 return results;
             });
             return future.get(CENTRAL_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         } catch (Exception e) {
-            Logger.getLogger(ConnectorSearchCommand.class.getName())
-                    .warning("Failed to fetch connectors from Central, falling back to local database: "
-                            + e.getMessage());
+            // Failed to fetch connectors from Central, falling back to local database
             return null;
         }
     }
