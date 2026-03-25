@@ -119,6 +119,7 @@ import {
     CurrentBreakpointsResponse,
     FormDidOpenParams,
     FormDidCloseParams,
+    FormDirtyDidChangeParams,
     EndOfFileRequest,
     RecordsInWorkspaceMentions,
     BuildMode,
@@ -183,6 +184,7 @@ export const getFormDiagnostics: RequestType<FormDiagnosticsRequest, FormDiagnos
 export const getExpressionDiagnostics: RequestType<ExpressionDiagnosticsRequest, ExpressionDiagnosticsResponse> = { method: `${_preFix}/getExpressionDiagnostics` };
 export const formDidOpen: RequestType<FormDidOpenParams, void> = { method: `${_preFix}/formDidOpen` };
 export const formDidClose: RequestType<FormDidCloseParams, void> = { method: `${_preFix}/formDidClose` };
+export const formDirtyDidChange: NotificationType<FormDirtyDidChangeParams> = { method: `${_preFix}/formDirtyDidChange` };
 export const getDesignModel: RequestType<BIDesignModelRequest, BIDesignModelResponse> = { method: `${_preFix}/getDesignModel` };
 export const getTypes: RequestType<GetTypesRequest, GetTypesResponse> = { method: `${_preFix}/getTypes` };
 export const getType: RequestType<GetTypeRequest, GetTypeResponse> = { method: `${_preFix}/getType` };

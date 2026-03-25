@@ -211,7 +211,8 @@ export function DataMapperView(props: DataMapperViewProps) {
                 model: {
                     ...prev.model!,
                     mappings: model.mappings,
-                    query: model.query
+                    query: model.query,
+                    hasInvalidOutput: model.hasInvalidOutput
                 }
             }));
         }

@@ -17,79 +17,75 @@
  */
 
 import styled from "@emotion/styled";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
     InlineCard,
-    InlineCardHeader,
     InlineCardIcon,
     InlineCardTitle,
 } from "./styles";
 
 // ── Styled components ─────────────────────────────────────────────────────────
 
-const CommandBadge = styled.span`
-    display: inline-block;
-    padding: 1px 5px;
-    border-radius: 3px;
-    font-size: 10px;
-    font-weight: 700;
-    font-family: var(--vscode-editor-font-family);
-    color: var(--vscode-badge-foreground);
-    background-color: var(--vscode-badge-background);
-    flex-shrink: 0;
+const CardToggleHeader = styled.div<{ clickable: boolean }>`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 24px;
+    border-radius: 2px;
+    cursor: ${(props: { clickable: boolean }) => props.clickable ? "pointer" : "default"};
+    &:hover {
+        background-color: ${(props: { clickable: boolean }) => props.clickable ? "var(--vscode-toolbar-hoverBackground)" : "transparent"};
+    }
 `;
 
 const StatusText = styled.span<{ status: "running" | "success" | "error" }>`
     font-size: 11px;
     font-weight: 600;
     color: ${(props: { status: string }) =>
-        props.status === "running"
-            ? "var(--vscode-descriptionForeground)"
-            : props.status === "success"
-            ? "var(--vscode-charts-green, #388a34)"
-            : "var(--vscode-errorForeground)"};
+        props.status === "error"
+            ? "var(--vscode-errorForeground)"
+            : "var(--vscode-descriptionForeground)"};
     flex-shrink: 0;
 `;
 
-const HeaderRow = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    min-height: 22px;
-    flex-wrap: wrap;
-`;
-
-const ExpandButton = styled.button`
-    background: none;
-    border: none;
-    color: var(--vscode-descriptionForeground);
-    cursor: pointer;
-    padding: 2px;
-    border-radius: 3px;
+const ChevronIcon = styled.span<{ expanded: boolean }>`
     font-size: 11px;
+    flex-shrink: 0;
+    color: var(--vscode-descriptionForeground);
     display: flex;
     align-items: center;
-    flex-shrink: 0;
-    margin-left: auto;
-    &:hover {
-        color: var(--vscode-foreground);
-        background-color: var(--vscode-toolbar-hoverBackground);
-    }
+    transform: rotate(${(props: { expanded: boolean }) => props.expanded ? "0deg" : "-90deg"});
+    transition: transform 0.2s ease;
 `;
 
-const OutputBlock = styled.pre`
+const OutputBlock = styled.div`
+    border-top: 1px solid var(--vscode-panel-border);
+    margin-top: 2px;
     background-color: var(--vscode-editor-background);
-    border: 1px solid var(--vscode-panel-border);
-    border-radius: 3px;
+    border-radius: 0 0 3px 3px;
+    overflow: hidden;
+`;
+
+const CommandLine = styled.div`
+    font-family: var(--vscode-editor-font-family);
+    font-size: 11px;
+    color: var(--vscode-editor-foreground);
+    padding: 4px 8px;
+    border-bottom: 1px solid var(--vscode-panel-border);
+    display: flex;
+    gap: 6px;
+`;
+
+const OutputPre = styled.pre`
     padding: 5px 8px;
-    margin: 4px 0 0;
+    margin: 0;
     font-family: var(--vscode-editor-font-family);
     font-size: 11px;
     color: var(--vscode-editor-foreground);
     white-space: pre-wrap;
     word-break: break-all;
     overflow-x: auto;
-    max-height: 300px;
+    max-height: 200px;
     overflow-y: auto;
 `;
 
@@ -113,7 +109,6 @@ function getStatus(isResult: boolean, toolName: string | undefined, toolOutput: 
     if (!isResult) return "running";
     const s = toolOutput?.status;
     if (toolName === "runTests") {
-        // Check summary for partial failures (e.g. "3/4 passing" means not all passed)
         const summary: string = toolOutput?.summary ?? "";
         const match = summary.match(/(\d+)\/(\d+) passing/);
         if (match && match[1] !== match[2]) return "error";
@@ -160,6 +155,7 @@ interface CommandOutputCardProps {
 
 const CommandOutputCard: React.FC<CommandOutputCardProps> = ({ toolName, toolInput, toolOutput, isResult = false }) => {
     const [expanded, setExpanded] = useState(false);
+    const prevStatusRef = useRef<string | undefined>(undefined);
 
     const title = TOOL_TITLES[toolName ?? ""] ?? "Command";
     const iconClass = TOOL_ICONS[toolName ?? ""] ?? "codicon-terminal";
@@ -167,37 +163,47 @@ const CommandOutputCard: React.FC<CommandOutputCardProps> = ({ toolName, toolInp
     const output = toolOutput?.output ?? toolOutput?.logs;
     const status = getStatus(isResult, toolName, toolOutput);
     const statusLabel = getStatusLabel(isResult, toolName, toolOutput);
+    const isRunning = status === "running";
+
+    useEffect(() => {
+        if (status === "error" && prevStatusRef.current !== "error") {
+            setExpanded(true);
+        }
+        prevStatusRef.current = status;
+    }, [status]);
 
     return (
         <InlineCard>
-            <InlineCardHeader>
+            <CardToggleHeader
+                clickable={!isRunning && !!output}
+                onClick={() => !isRunning && output && setExpanded(p => !p)}
+            >
                 <InlineCardIcon>
-                    <span className={`codicon ${iconClass}`} />
+                    {isRunning ? (
+                        <span className="codicon codicon-loading codicon-modifier-spin" />
+                    ) : (
+                        <span className={`codicon ${iconClass}`} />
+                    )}
                 </InlineCardIcon>
                 <InlineCardTitle>{title}</InlineCardTitle>
-            </InlineCardHeader>
-
-            <HeaderRow>
-                {isResult ? (
-                    <InlineCardIcon style={{ fontSize: 12, color: status === "error" ? "var(--vscode-errorForeground)" : "var(--vscode-charts-green, #388a34)" }}>
-                        <span className={`codicon ${status === "error" ? "codicon-chrome-close" : "codicon-check"}`} />
-                    </InlineCardIcon>
-                ) : (
-                    <InlineCardIcon style={{ fontSize: 12, color: "var(--vscode-descriptionForeground)" }}>
-                        <span className="codicon codicon-loading codicon-modifier-spin" />
-                    </InlineCardIcon>
-                )}
-                {command && <CommandBadge>{command}</CommandBadge>}
                 <StatusText status={status}>{statusLabel}</StatusText>
-                {output && (
-                    <ExpandButton onClick={() => setExpanded(p => !p)} title={expanded ? "Collapse" : "Expand"}>
-                        <span className={`codicon ${expanded ? "codicon-chevron-up" : "codicon-chevron-down"}`} />
-                    </ExpandButton>
+                {!isRunning && output && (
+                    <ChevronIcon expanded={expanded}>
+                        <span className="codicon codicon-chevron-down" />
+                    </ChevronIcon>
                 )}
-            </HeaderRow>
+            </CardToggleHeader>
 
             {expanded && output && (
-                <OutputBlock>{output}</OutputBlock>
+                <OutputBlock>
+                    {command && (
+                        <CommandLine>
+                            <span style={{ color: "var(--vscode-charts-green, #388a34)", userSelect: "none" }}>$</span>
+                            <span>{command}</span>
+                        </CommandLine>
+                    )}
+                    <OutputPre>{output}</OutputPre>
+                </OutputBlock>
             )}
         </InlineCard>
     );

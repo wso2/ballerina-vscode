@@ -45,6 +45,7 @@ export const PROVIDER_NAME_MAP: Record<string, string> = {
     "ai.mistral": "Mistral Model Provider",
     "ai.deepseek": "Deepseek Model Provider",
     "ai.ollama": "Ollama Model Provider",
+    "ai.openrouter": "OpenRouter Model Provider",
 };
 
 export const RESOURCE_ACTION_CALL = "RESOURCE_ACTION_CALL";

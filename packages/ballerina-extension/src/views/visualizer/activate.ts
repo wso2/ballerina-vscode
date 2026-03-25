@@ -20,7 +20,7 @@ import * as vscode from 'vscode';
 import { MESSAGES, PALETTE_COMMANDS } from '../../features/project/cmds/cmd-runner';
 import { StateMachine, openView } from '../../stateMachine';
 import { openPopupView, StateMachinePopup } from '../../stateMachinePopup';
-import { hasOpenForm, clearFormState } from '../../rpc-managers/bi-diagram/form-state';
+import { hasOpenForm, hasDirtyOpenForm, clearFormState } from '../../rpc-managers/bi-diagram/form-state';
 import { extension } from '../../BalExtensionContext';
 import { BI_COMMANDS, EVENT_TYPE, MACHINE_VIEW, NodePosition, ProjectInfo, SHARED_COMMANDS } from '@wso2/ballerina-core';
 import { buildProjectsStructure } from '../../utils/project-artifacts';
@@ -69,10 +69,9 @@ export function activateSubscriptions() {
                 position,
                 resetHistory = false
             ) => {
-                // When a form is open (popup or side panel), prompt user before navigating away
-                const isPopupFormOpen = StateMachinePopup.isActive();
-                const isSidePanelFormOpen = hasOpenForm();
-                if (isPopupFormOpen || isSidePanelFormOpen) {
+                // When an open form has unsaved edits (react-hook-form isDirty), prompt before navigating away
+                if (hasDirtyOpenForm()) {
+                    const previousContext = StateMachine.context();
                     const discardAndNavigate = "Discard and Navigate";
                     const result = await vscode.window.showWarningMessage(
                         "You have unsaved changes in the open form. Discard changes and navigate?",
@@ -80,12 +79,19 @@ export function activateSubscriptions() {
                         discardAndNavigate
                     );
                     if (result !== discardAndNavigate) {
+                        // Revert tree selection back to the previously active item
+                        vscode.commands.executeCommand(BI_COMMANDS.NOTIFY_PROJECT_EXPLORER, {
+                            projectPath: previousContext.projectPath,
+                            documentUri: previousContext.documentUri,
+                            position: previousContext.position,
+                            view: previousContext.view
+                        });
                         return;
                     }
-                    if (isPopupFormOpen) {
+                    if (StateMachinePopup.isActive()) {
                         openPopupView(EVENT_TYPE.CLOSE_VIEW, { view: null });
                     }
-                    if (isSidePanelFormOpen) {
+                    if (hasOpenForm()) {
                         clearFormState();
                     }
                 }
@@ -151,7 +157,7 @@ export function activateSubscriptions() {
                         await StateMachine.updateProjectRootAndInfo(projectRoot, projectInfo);
                     }
                 }
-                
+
                 if (StateMachine.langClient() && StateMachine.context().isBISupported) { // This is added since we can't fetch new diagram data without bi supported ballerina version
                     openView(EVENT_TYPE.OPEN_VIEW, { documentUri: documentPath || vscode.window.activeTextEditor?.document.uri.fsPath, position: nodePosition }, resetHistory);
                 } else {
