@@ -810,17 +810,13 @@ public final class TestUtil {
                 workspaceManager,
                 LSContextOperation.TXT_DID_OPEN,
                 serverContext);
-        DidOpenTextDocumentParams params = new DidOpenTextDocumentParams();
-        TextDocumentItem textDocument = new TextDocumentItem();
-        textDocument.setUri(sourcePath.toUri().toString());
-        textDocument.setText(new String(Files.readAllBytes(sourcePath)));
-        params.setTextDocument(textDocument);
-        context.workspace().didOpen(sourcePath, params);
-        Optional<Project> project = context.workspace().project(context.filePath());
-        if (project.isEmpty()) {
+        
+        // The language server endpoint already called didOpen. We just need to wait for the compilation to finish.
+        Optional<io.ballerina.projects.PackageCompilation> compilation = context.workspace().waitAndGetPackageCompilation(context.filePath());
+        if (compilation.isEmpty()) {
             return diagnostics;
         }
-        DiagnosticResult diagnosticResult = project.get().currentPackage().getCompilation().diagnosticResult();
+        DiagnosticResult diagnosticResult = compilation.get().diagnosticResult();
         diagnostics.addAll(diagnosticResult.diagnostics());
         return diagnostics;
     }
