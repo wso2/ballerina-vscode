@@ -37,6 +37,7 @@
  */
 
 import * as vscode from "vscode";
+import { ReadableStream } from "stream/web";
 
 /**
  * Selects a VS Code Language Model chat model by family/vendor filter.
