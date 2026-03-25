@@ -134,6 +134,10 @@ export class AiPanelRpcManager implements AIPanelAPI {
         return new Promise(async (resolve, reject) => {
             try {
                 const projectPath = StateMachine.context().projectPath;
+                if (!projectPath) {
+                    resolve({ mentions: [] });
+                    return;
+                }
                 const serviceDeclNames = await getServiceDeclarationNames(projectPath);
                 resolve({
                     mentions: serviceDeclNames
