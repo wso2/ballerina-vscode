@@ -263,6 +263,11 @@
                     "type": "number",
                     "default": 52428800,
                     "description": "Maximum snapshot size in bytes (default: 50MB)."
+                },
+                "ballerina.ai.showContextUsage": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Show context usage indicator in the AI chat input footer."
                 }
             }
         },
@@ -1410,6 +1415,7 @@
         "@vscode/test-electron": "2.5.2",
         "@vscode/vsce": "3.7.1",
         "@wso2/ballerina-core": "workspace:*",
+        "@wso2/copilot-utilities": "workspace:*",
         "@wso2/ballerina-visualizer": "workspace:*",
         "@wso2/font-wso2-vscode": "workspace:*",
         "@wso2/syntax-tree": "workspace:*",
