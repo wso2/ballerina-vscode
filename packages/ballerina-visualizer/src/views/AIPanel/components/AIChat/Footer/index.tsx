@@ -153,6 +153,7 @@ type FooterProps = {
     onSend: (content: { input: Input[]; attachments: Attachment[]; metadata?: Record<string, any> }) => Promise<void>;
     onStop: () => void;
     isLoading: boolean;
+    loadingLabel?: string;
     showSuggestedCommands: boolean;
     codeContext?: CodeContext;
     onRemoveCodeContext?: () => void;
@@ -163,6 +164,7 @@ type FooterProps = {
     isWebToolsEnabled?: boolean;
     onToggleWebSearch?: () => void;
     disabled?: boolean;
+    contextUsage?: { inputTokens: number; percentage: number; breakdown?: { systemInstructions: number; toolDefinitions: number; reservedOutput: number; messages: number; toolResults: number } } | null;
 };
 
 const Footer: React.FC<FooterProps> = ({
@@ -173,6 +175,7 @@ const Footer: React.FC<FooterProps> = ({
     onSend,
     onStop,
     isLoading,
+    loadingLabel,
     showSuggestedCommands,
     codeContext,
     onRemoveCodeContext,
@@ -183,21 +186,30 @@ const Footer: React.FC<FooterProps> = ({
     isWebToolsEnabled,
     onToggleWebSearch,
     disabled,
+    contextUsage,
 }) => {
-    const [generatingText, setGeneratingText] = useState("Generating.");
+    const [animatedText, setAnimatedText] = useState("Generating.");
 
     useEffect(() => {
         if (isLoading) {
+            const baseText = loadingLabel || "Generating";
+            setAnimatedText(baseText + ".");
+
             const interval = setInterval(() => {
-                setGeneratingText((prev) => {
-                    if (prev === "Generating...") return "Generating.";
+                setAnimatedText((prev) => {
+                    // Extract the base text without dots
+                    const dots = prev.match(/\.+$/)?.[0] || "";
+                    const base = prev.slice(0, prev.length - dots.length);
+
+                    // Cycle through 1, 2, 3 dots
+                    if (dots.length >= 3) return base + ".";
                     return prev + ".";
                 });
             }, 500);
 
             return () => clearInterval(interval);
         }
-    }, [isLoading]);
+    }, [isLoading, loadingLabel]);
 
     return (
         <FooterContainer>
@@ -216,7 +228,7 @@ const Footer: React.FC<FooterProps> = ({
                         <span />
                         <span />
                     </Bubbles>
-                    <span>{generatingText}</span>
+                    <span>{animatedText}</span>
                 </LoadingIndicatorContainer>
             )}
             <AIChatInput
@@ -235,6 +247,7 @@ const Footer: React.FC<FooterProps> = ({
                 isWebToolsEnabled={isWebToolsEnabled}
                 onToggleWebSearch={onToggleWebSearch}
                 disabled={disabled}
+                contextUsage={contextUsage}
             />
             <DisclaimerText visible={!showSuggestedCommands}>
                 AI-generated content may contain mistakes. Always review changes.

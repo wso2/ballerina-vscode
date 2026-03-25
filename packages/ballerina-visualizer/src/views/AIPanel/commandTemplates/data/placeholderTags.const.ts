@@ -72,5 +72,11 @@ export const placeholderTags: PlaceholderTagMap = {
         'generate-user-doc': {
             servicename: [],
         }
-    }
+    },
+    // [Command.Compact]: {
+    //     'compact-conversation': {},
+    //     'wildcard': {
+    //         instructions: [],
+    //     }
+    // }
 };

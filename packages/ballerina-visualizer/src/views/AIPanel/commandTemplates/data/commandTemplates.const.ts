@@ -131,7 +131,19 @@ export const commandTemplates = {
                 }
             ],
         }
-    ]
+    ],
+    // [Command.Compact]: [
+    //     {
+    //         id: TemplateId.CompactConversation,
+    //         text: '',
+    //         placeholders: [],
+    //     },
+    //     {
+    //         id: TemplateId.Wildcard,
+    //         text: '${instructions}',
+    //         placeholders: [{ id: 'instructions', display: 'custom instructions', multiline: false }],
+    //     }
+    // ]
 } as const;
 
 export type CommandTemplates = typeof commandTemplates;
