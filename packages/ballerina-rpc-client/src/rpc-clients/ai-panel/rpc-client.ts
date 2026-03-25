@@ -39,6 +39,8 @@ import {
     PlanApprovalRequest,
     ProcessContextTypeCreationRequest,
     ProcessMappingParametersRequest,
+    PromptEnhancementRequest,
+    PromptEnhancementResponse,
     RequirementSpecification,
     RestoreCheckpointRequest,
     SemanticDiffRequest,
@@ -65,6 +67,7 @@ import {
     declineChanges,
     declinePlan,
     declineTask,
+    enhancePrompt,
     generateAgent,
     generateContextTypes,
     generateInlineMappingCode,
@@ -91,6 +94,7 @@ import {
     openAIPanel,
     openChatWindowWithCommand,
     openFileDiff,
+    promptForLogin,
     promptGithubAuthorize,
     provideConfiguration,
     provideConnectorSpec,
@@ -305,5 +309,13 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     declineWebTool(params: WebToolApprovalRequest): Promise<void> {
         return this._messenger.sendRequest(declineWebTool, HOST_EXTENSION, params);
+    }
+    
+    enhancePrompt(params: PromptEnhancementRequest): Promise<PromptEnhancementResponse> {
+        return this._messenger.sendRequest(enhancePrompt, HOST_EXTENSION, params);
+    }
+
+    promptForLogin(): void {
+        return this._messenger.sendNotification(promptForLogin, HOST_EXTENSION);
     }
 }

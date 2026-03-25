@@ -199,7 +199,7 @@ export class TestServiceManagerRpcManager implements TestManagerServiceAPI {
                     name: test.name,
                     status: test.status,
                     failureMessage: test.failureMessage,
-                    isEvaluation: test.isEvaluation ?? !!test.evaluationSummary,
+                    isEvaluation: test.isEvaluation ?? true,
                     evaluationSummary: test.evaluationSummary ? {
                         evaluationRuns: (test.evaluationSummary.evaluationRuns ?? []).map((r: any) => ({
                             id: r.id,
@@ -343,10 +343,6 @@ export class TestServiceManagerRpcManager implements TestManagerServiceAPI {
             for (const mod of moduleStatus) {
                 const tests: any[] = mod.tests ?? [];
                 for (const test of tests) {
-                    if (!test.isEvaluation && !test.evaluationSummary) {
-                        continue;
-                    }
-
                     const testName: string = test.name;
                     const status: "PASSED" | "FAILURE" =
                         test.status === "PASSED" ? "PASSED" : "FAILURE";
