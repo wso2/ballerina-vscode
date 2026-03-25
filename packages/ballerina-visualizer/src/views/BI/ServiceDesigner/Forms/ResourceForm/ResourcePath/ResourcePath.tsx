@@ -247,6 +247,7 @@ export function ResourcePath(props: ResourcePathProps) {
 					}}
 					disabled={readonly}
 					onKeyUp={handleBlur}
+					onBlur={handleBlur}
 					placeholder="path/foo"
 					value={removeForwardSlashes(path.value as string)}
 					onFocus={(e) => e.target.select()}
