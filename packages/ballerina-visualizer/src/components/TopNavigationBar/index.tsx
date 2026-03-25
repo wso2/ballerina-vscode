@@ -247,10 +247,14 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
                         <React.Fragment key={idx}>
                             {idx > 0 && (
                                 <Icon
-                                    name="wide-chevron"
+                                    name="bi-back"
                                     iconSx={{
                                         color: "var(--vscode-foreground)",
                                         fontSize: "15px",
+                                        display: "inline-block",
+                                        transformOrigin: "center",
+                                        transform: "rotate(180deg)",
+                                        marginTop: "-2px",
                                         opacity: 0.5
                                     }}
                                     sx={{ alignSelf: "center" }}
@@ -302,6 +306,31 @@ function buildBreadcrumbItems(
     skippedViews: Set<string>,
     hasMultiplePackages: boolean
 ): BreadcrumbDisplayItem[] {
+    if (history.length === 0) return [];
+
+    // In a workspace the user can jump from one package to another via the tree
+    // view.  When that happens the state machine appends the new entry to the
+    // existing history, so the breadcrumb would otherwise show a cross-package
+    // trail (e.g. "testGWork › HTTP Service › get#sdd › Automation" when
+    // "Automation" belongs to secondFOo).
+    //
+    // To keep the breadcrumb scoped to the current package, find the last index
+    // where the package changed and show only the entries from there onwards.
+    // The full history array is preserved unchanged for the back button.
+    let sessionStart = 0;
+    if (hasMultiplePackages) {
+        const currentPkg = [...history].reverse().find((h) => h.location.package)?.location.package;
+        if (currentPkg) {
+            for (let i = history.length - 1; i >= 0; i--) {
+                const pkg = history[i].location.package;
+                if (pkg && pkg !== currentPkg) {
+                    sessionStart = i + 1;
+                    break;
+                }
+            }
+        }
+    }
+
     const items: BreadcrumbDisplayItem[] = [];
     const seenLabels = new Set<string>();
 
@@ -309,14 +338,14 @@ function buildBreadcrumbItems(
     // breadcrumb item.  When the user navigates directly from the tree view to
     // a service or function the state machine pushes only that view to history
     // (no preceding PackageOverview entry).  Detect this case and synthesise a
-    // virtual package item from whichever history entry carries a package name.
+    // virtual package item from whichever session entry carries a package name.
     if (hasMultiplePackages) {
-        const hasPackageOverview = history.some(
-            (h) => h.location.view === MACHINE_VIEW.PackageOverview && !skippedViews.has(h.location.view)
-        );
+        const hasPackageOverview = history
+            .slice(sessionStart)
+            .some((h) => h.location.view === MACHINE_VIEW.PackageOverview && !skippedViews.has(h.location.view));
 
         if (!hasPackageOverview) {
-            const firstWithPkg = history.find((h) => h.location.package);
+            const firstWithPkg = history.slice(sessionStart).find((h) => h.location.package);
             const pkg = firstWithPkg?.location.package;
             if (pkg) {
                 items.push({
@@ -329,7 +358,7 @@ function buildBreadcrumbItems(
         }
     }
 
-    for (let i = 0; i < history.length; i++) {
+    for (let i = sessionStart; i < history.length; i++) {
         const entry = history[i];
         const isLast = i === history.length - 1;
         const { view, parentIdentifier, package: pkg } = entry.location;
@@ -355,14 +384,16 @@ function buildBreadcrumbItems(
 
         if (isDiagramView && parentIdentifier && !seenLabels.has(parentIdentifier)) {
             // Check whether the parent already exists as a real history entry
-            // (e.g. the user navigated through ServiceDesigner first).
+            // within the current session (e.g. the user navigated through
+            // ServiceDesigner first).  A matching entry from a previous package
+            // session is treated as virtual.
             const parentHistoryIndex = history.findIndex(
                 (h) =>
                     h.location.view === MACHINE_VIEW.ServiceDesigner &&
                     h.location.identifier === parentIdentifier
             );
 
-            const isVirtual = parentHistoryIndex < 0;
+            const isVirtual = parentHistoryIndex < 0 || parentHistoryIndex < sessionStart;
             items.push({
                 label: parentIdentifier,
                 historyIndex: isVirtual ? null : parentHistoryIndex,
