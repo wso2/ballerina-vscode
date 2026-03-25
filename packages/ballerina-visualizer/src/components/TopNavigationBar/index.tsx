@@ -18,7 +18,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import styled from "@emotion/styled";
-import { Codicon, Icon } from "@wso2/ui-toolkit";
+import { Icon } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { DIRECTORY_MAP, EVENT_TYPE, HistoryEntry, MACHINE_VIEW, VisualizerLocation, WorkspaceTypeResponse } from "@wso2/ballerina-core";
 
@@ -39,10 +39,6 @@ const BreadcrumbContainer = styled.div`
     margin-left: 4px;
     color: var(--vscode-foreground);
     flex: 1;
-`;
-
-const BreadcrumbSeparator = styled.span`
-    color: var(--vscode-descriptionForeground);
 `;
 
 const IconButton = styled.div`
@@ -79,26 +75,6 @@ const BreadcrumbText = styled.span<{ clickable?: boolean }>`
     `}
 `;
 
-const PackageContainer = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    color: var(--vscode-foreground);
-    background-color: var(--vscode-editor-inactiveSelectionBackground);
-    max-width: 120px;
-    overflow: hidden;
-    padding: 3px 4px;
-    font-size: 10px;
-    border-radius: 5px;
-    line-height: 1;
-`;
-
-const PackageName = styled.span`
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-`;
-
 /**
  * A single item in the dedicated breadcrumb trail.
  *
@@ -111,14 +87,17 @@ const PackageName = styled.span`
 interface BreadcrumbDisplayItem {
     label: string;
     historyIndex: number | null;
-    /** Package name for the multi-package badge, when available */
-    packageName?: string;
     /**
      * Set on virtual parent entries (historyIndex === null).
      * Holds the service identifier to look up in the project structure when
      * the user clicks this breadcrumb segment.
      */
     virtualServiceName?: string;
+    /**
+     * Set on synthetic workspace package entries (historyIndex === null).
+     * Holds a documentUri from the package so we can open its PackageOverview.
+     */
+    virtualPackageUri?: string;
 }
 
 interface TopNavigationBarProps {
@@ -156,6 +135,19 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
     const handleCrumbClick = async (item: BreadcrumbDisplayItem) => {
         if (item.historyIndex !== null) {
             rpcClient.getVisualizerRpcClient().goSelected(item.historyIndex);
+            return;
+        }
+
+        // Synthetic workspace package item: navigate directly to that package's overview.
+        if (item.virtualPackageUri) {
+            rpcClient.getVisualizerRpcClient().openView({
+                type: EVENT_TYPE.OPEN_VIEW,
+                location: {
+                    view: MACHINE_VIEW.PackageOverview,
+                    documentUri: item.virtualPackageUri,
+                },
+                resetHistory: true,
+            });
             return;
         }
 
@@ -197,14 +189,12 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
     };
 
     const hasMultiplePackages = useMemo(() => {
-        return workspaceType?.type === "BALLERINA_WORKSPACE" ||
+        return (
+            workspaceType?.type === "BALLERINA_WORKSPACE" ||
             workspaceType?.type === "MULTIPLE_PROJECTS" ||
-            workspaceType?.type === "VSCODE_WORKSPACE";
+            workspaceType?.type === "VSCODE_WORKSPACE"
+        );
     }, [workspaceType]);
-
-    const isAtOverview = useMemo(() => {
-        return history.length > 0 && history[history.length - 1].location.view === MACHINE_VIEW.PackageOverview;
-    }, [history]);
 
     // Views that should be hidden from the breadcrumb trail (forms/wizards)
     const skippedViews = useMemo(() => {
@@ -235,8 +225,8 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
 
     // Build the dedicated breadcrumb trail from the history.
     const breadcrumbItems = useMemo(
-        () => buildBreadcrumbItems(history, skippedViews),
-        [history, skippedViews]
+        () => buildBreadcrumbItems(history, skippedViews, hasMultiplePackages),
+        [history, skippedViews, hasMultiplePackages]
     );
 
     return (
@@ -260,7 +250,7 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
                                     name="wide-chevron"
                                     iconSx={{
                                         color: "var(--vscode-foreground)",
-                                        fontSize: hasMultiplePackages ? "20px" : "15px",
+                                        fontSize: "15px",
                                         opacity: 0.5
                                     }}
                                     sx={{ alignSelf: "center" }}
@@ -274,16 +264,6 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
                                 >
                                     {item.label}
                                 </BreadcrumbText>
-                                {hasMultiplePackages && item.packageName && !(isAtOverview && isLast) && (
-                                    <PackageContainer>
-                                        <Codicon
-                                            name="project"
-                                            sx={{ height: "10px", width: "10px", display: "flex", alignItems: "center" }}
-                                            iconSx={{ fontSize: "10px", lineHeight: "1" }}
-                                        />
-                                        <PackageName>{item.packageName}</PackageName>
-                                    </PackageContainer>
-                                )}
                             </BreadcrumbItem>
                         </React.Fragment>
                     );
@@ -319,10 +299,35 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
  */
 function buildBreadcrumbItems(
     history: HistoryEntry[],
-    skippedViews: Set<string>
+    skippedViews: Set<string>,
+    hasMultiplePackages: boolean
 ): BreadcrumbDisplayItem[] {
     const items: BreadcrumbDisplayItem[] = [];
     const seenLabels = new Set<string>();
+
+    // In workspace mode, ensure the package name always appears as the first
+    // breadcrumb item.  When the user navigates directly from the tree view to
+    // a service or function the state machine pushes only that view to history
+    // (no preceding PackageOverview entry).  Detect this case and synthesise a
+    // virtual package item from whichever history entry carries a package name.
+    if (hasMultiplePackages) {
+        const hasPackageOverview = history.some(
+            (h) => h.location.view === MACHINE_VIEW.PackageOverview && !skippedViews.has(h.location.view)
+        );
+
+        if (!hasPackageOverview) {
+            const firstWithPkg = history.find((h) => h.location.package);
+            const pkg = firstWithPkg?.location.package;
+            if (pkg) {
+                items.push({
+                    label: pkg,
+                    historyIndex: null,
+                    virtualPackageUri: firstWithPkg.location.documentUri,
+                });
+                seenLabels.add(pkg);
+            }
+        }
+    }
 
     for (let i = 0; i < history.length; i++) {
         const entry = history[i];
@@ -334,7 +339,12 @@ function buildBreadcrumbItems(
             continue;
         }
 
-        const displayLabel = getDisplayLabel(entry.location);
+        // In workspace mode show the package name in place of the generic
+        // "Overview" label so users immediately see which project they're in.
+        const displayLabel =
+            hasMultiplePackages && view === MACHINE_VIEW.PackageOverview && pkg
+                ? pkg
+                : getDisplayLabel(entry.location);
 
         // For diagram-level views that carry a parentIdentifier, inject the
         // parent segment if it has not already appeared in the breadcrumb trail.
@@ -356,8 +366,6 @@ function buildBreadcrumbItems(
             items.push({
                 label: parentIdentifier,
                 historyIndex: isVirtual ? null : parentHistoryIndex,
-                packageName: pkg,
-                // Carry the service name so the click handler can look it up.
                 virtualServiceName: isVirtual ? parentIdentifier : undefined,
             });
             seenLabels.add(parentIdentifier);
@@ -366,7 +374,7 @@ function buildBreadcrumbItems(
         // Add this entry — always include the last item even if the label was seen.
         if (isLast || !seenLabels.has(displayLabel)) {
             seenLabels.add(displayLabel);
-            items.push({ label: displayLabel, historyIndex: i, packageName: pkg });
+            items.push({ label: displayLabel, historyIndex: i });
         }
     }
 
