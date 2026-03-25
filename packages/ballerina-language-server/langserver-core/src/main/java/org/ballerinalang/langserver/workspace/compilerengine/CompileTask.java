@@ -32,8 +32,9 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Compilation unit of work binding a package descriptor, content version, and cancellation token.
  *
- * <p>Each phase advance acts as a cooperative cancellation checkpoint (ADR-018).
+ * <p>Each phase advance acts as a cooperative cancellation checkpoint.</p>
  *
+ * @adr ADR-018-cooperative-cancellation-model
  * @since 1.7.0
  */
 public final class CompileTask {

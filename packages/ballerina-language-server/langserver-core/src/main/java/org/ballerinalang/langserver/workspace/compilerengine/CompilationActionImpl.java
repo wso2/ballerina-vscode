@@ -67,10 +67,10 @@ public final class CompilationActionImpl implements CompilationPipeline.Compilat
 
     @Override
     public ResolutionResult resolve(CompileTask task) {
-        LockingMode lockingMode = currentLockingMode(task);
         String sourceRootIdentifier = task.sourceRootIdentifier();
         try {
             Project project = projectService.loadOrCreateFromIdentifier(sourceRootIdentifier, null);
+            LockingMode lockingMode = projectService.getLockingMode(project);
             project.currentPackage().getResolution(compilationOptions(lockingMode));
             return new ResolutionResult(task.descriptor(), List.of(), true);
         } catch (RuntimeException e) {
@@ -83,8 +83,7 @@ public final class CompilationActionImpl implements CompilationPipeline.Compilat
 
     @Override
     public StableSnapshot compile(CompileTask task) {
-        return snapshot(projectService.loadOrCreateFromIdentifier(task.sourceRootIdentifier(), null),
-                task.contentVersion());
+        return snapshot(task, projectService.loadOrCreateFromIdentifier(task.sourceRootIdentifier(), null));
     }
 
     @Override
@@ -93,32 +92,62 @@ public final class CompilationActionImpl implements CompilationPipeline.Compilat
         return projectService.getLockingMode(project);
     }
 
+    /**
+     * Attempts recovery at progressively more permissive locking modes.
+     *
+     * <p>Each iteration loads a transient project solely to test whether resolution and
+     * compilation succeed at the escalated mode. The transient project is scoped to the
+     * try block so its compilation artifacts (symbol tables, BIR, semantic models) become
+     * eligible for GC immediately after each attempt — avoiding accumulation across the loop.
+     */
     @Override
     public CompilationPipeline.RecoveryResult recover(CompileTask task, LockingMode initialMode, Throwable cause) {
         LockingMode recoveryMode = nextMorePermissiveMode(initialMode);
         while (recoveryMode != initialMode) {
-            try {
-                Project transientProject = BallerinaCompilerApi.getInstance()
-                        .loadProject(projectService.resolvePathFromIdentifier(task.sourceRootIdentifier()),
-                                buildOptions(recoveryMode));
-                transientProject.currentPackage().getResolution(compilationOptions(recoveryMode));
-                transientProject.currentPackage().getCompilation();
+            if (tryRecoveryAtMode(task, recoveryMode)) {
                 return CompilationPipeline.RecoveryResult.success();
-            } catch (RuntimeException ignored) {
-                initialMode = recoveryMode;
-                recoveryMode = nextMorePermissiveMode(recoveryMode);
             }
+            initialMode = recoveryMode;
+            recoveryMode = nextMorePermissiveMode(recoveryMode);
         }
         return CompilationPipeline.RecoveryResult.exhausted();
     }
 
-    private StableSnapshot snapshot(Project project,
-                                    ContentVersion version) {
+    /**
+     * Tries a single recovery attempt at the given locking mode with a transient project.
+     *
+     * @param task compilation task
+     * @param mode locking mode to attempt
+     * @return true if resolution and compilation succeeded
+     */
+    private boolean tryRecoveryAtMode(CompileTask task, LockingMode mode) {
+        try {
+            Project transientProject = BallerinaCompilerApi.getInstance()
+                    .loadProject(projectService.resolvePathFromIdentifier(task.sourceRootIdentifier()),
+                            buildOptions(mode));
+            transientProject.currentPackage().getResolution(compilationOptions(mode));
+            transientProject.currentPackage().getCompilation();
+            return true;
+        } catch (RuntimeException ignored) {
+            return false;
+        }
+    }
+
+    private StableSnapshot snapshot(CompileTask task, Project project) {
+        if (task.isCancelled() || Thread.interrupted()) {
+            throw new java.util.concurrent.CancellationException("Compilation task cancelled before PackageCompilation");
+        }
         PackageCompilation compilation = project.currentPackage().getCompilation();
+        if (task.isCancelled() || Thread.interrupted()) {
+            throw new java.util.concurrent.CancellationException("Compilation task cancelled after PackageCompilation");
+        }
         Map<DocumentId, SyntaxTree> syntaxTrees = new HashMap<>();
         Map<Path, DocumentId> pathToDocumentIds = new HashMap<>();
         Map<ModuleId, SemanticModel> semanticModels = new HashMap<>();
         project.currentPackage().moduleIds().forEach(moduleId -> {
+            if (task.isCancelled() || Thread.interrupted()) {
+                throw new java.util.concurrent.CancellationException("Compilation task cancelled before SemanticModel evaluation");
+            }
             Module packageModule = project.currentPackage().module(moduleId);
             semanticModels.put(moduleId, compilation.getSemanticModel(moduleId));
             packageModule.documentIds().forEach(docId -> project.documentPath(docId).ifPresent(path ->
@@ -136,7 +165,7 @@ public final class CompilationActionImpl implements CompilationPipeline.Compilat
             throw new RuntimeException("No source documents in project: " + project.sourceRoot());
         }
         return new StableSnapshot(syntaxTrees, pathToDocumentIds, semanticModels,
-                compilation, version);
+                compilation, task.contentVersion());
     }
 
     private CompilationOptions compilationOptions(LockingMode lockingMode) {
