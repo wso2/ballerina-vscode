@@ -149,9 +149,9 @@ export class InputNode extends DataMapperNodeModel {
                     this.numberOfFields += 4.8; // This is for payload widget
                 }
             }
-            // For primitive types (Int, String, Boolean, etc.), the header port created
+            // For non-expandable types (primitives, unions, anydata, etc.), the header port created
             // by addPortsForHeader is sufficient. No child port is needed, and creating
-            // one would overwrite the header port when the primitive type has a category.
+            // one would overwrite the header port when it has a category.
         }
     }
 
