@@ -111,6 +111,7 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
     const { rpcClient } = useRpcContext();
     const [history, setHistory] = useState<HistoryEntry[]>([]);
     const [workspaceType, setWorkspaceType] = useState<WorkspaceTypeResponse>(null);
+    const [currentLocation, setCurrentLocation] = useState<VisualizerLocation | null>(null);
 
     useEffect(() => {
         Promise.all([
@@ -132,12 +133,28 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
             }
         };
 
+        const refreshCurrentLocation = async () => {
+            try {
+                const location = await rpcClient.getVisualizerLocation();
+                setCurrentLocation(location ?? null);
+            } catch {
+                // ignore location refresh failures
+            }
+        };
+
         // Refresh once on mount (covers cases where history changes without projectPath change).
         refreshHistory();
+        refreshCurrentLocation();
 
         // Then keep breadcrumbs in sync with backend updates.
-        rpcClient.onProjectContentUpdated(() => refreshHistory());
-        const unsubscribeIdentifierUpdated = rpcClient.onIdentifierUpdated(() => refreshHistory());
+        rpcClient.onProjectContentUpdated(() => {
+            refreshHistory();
+            refreshCurrentLocation();
+        });
+        const unsubscribeIdentifierUpdated = rpcClient.onIdentifierUpdated(() => {
+            refreshHistory();
+            refreshCurrentLocation();
+        });
 
         return () => {
             unsubscribeIdentifierUpdated?.();
@@ -264,6 +281,15 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
             <BreadcrumbContainer>
                 {breadcrumbItems.map((item, idx) => {
                     const isLast = idx === breadcrumbItems.length - 1;
+                    const activeTailHistoryIndex = history.length > 0 ? history.length - 1 : null;
+                    let labelToRender = item.label;
+                    if (currentLocation) {
+                        if (item.historyIndex !== null && activeTailHistoryIndex !== null && item.historyIndex === activeTailHistoryIndex) {
+                            labelToRender = getDisplayLabel(currentLocation) || item.label;
+                        } else if (item.historyIndex === null && item.virtualServiceName && item.virtualServiceName === currentLocation.parentIdentifier) {
+                            labelToRender = formatResourceBreadcrumbLabel(currentLocation.parentIdentifier) || item.label;
+                        }
+                    }
 
                     return (
                         <React.Fragment key={idx}>
@@ -285,10 +311,10 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
                             <BreadcrumbItem>
                                 <BreadcrumbText
                                     clickable={!isLast}
-                                    title={item.label}
+                                    title={labelToRender}
                                     onClick={() => !isLast && handleCrumbClick(item)}
                                 >
-                                    {item.label}
+                                    {labelToRender}
                                 </BreadcrumbText>
                             </BreadcrumbItem>
                         </React.Fragment>
@@ -355,6 +381,10 @@ function buildBreadcrumbItems(
 
     const items: BreadcrumbDisplayItem[] = [];
     const seenLabels = new Set<string>();
+    // Both maps key on documentUri so we can collapse duplicate breadcrumb
+    // segments that arise after identifier renames (history retains stale entries).
+    const serviceCrumbIndexByDocUri = new Map<string, number>();
+    const diagramCrumbIndexByDocUri = new Map<string, number>();
 
     // In workspace mode, ensure the package name always appears as the first
     // breadcrumb item.  When the user navigates directly from the tree view to
@@ -384,6 +414,7 @@ function buildBreadcrumbItems(
         const entry = history[i];
         const isLast = i === history.length - 1;
         const { view, parentIdentifier, package: pkg } = entry.location;
+        const docUri = entry.location.documentUri || "";
 
         // Skip form/wizard views unless this is the current (active) view.
         if (!isLast && skippedViews.has(view)) {
@@ -397,37 +428,89 @@ function buildBreadcrumbItems(
                 ? pkg
                 : getDisplayLabel(entry.location);
 
-        // For diagram-level views that carry a parentIdentifier, inject the
-        // parent segment if it has not already appeared in the breadcrumb trail.
+        // ServiceDesigner: a rename pushes a new entry with the same documentUri
+        // but a different identifier. Collapse it into the existing service crumb.
+        if (view === MACHINE_VIEW.ServiceDesigner) {
+            if (docUri) {
+                const existingIndex = serviceCrumbIndexByDocUri.get(docUri);
+                if (existingIndex !== undefined) {
+                    items[existingIndex] = { ...items[existingIndex], label: displayLabel, historyIndex: i };
+                    seenLabels.add(displayLabel);
+                    continue;
+                }
+                serviceCrumbIndexByDocUri.set(docUri, items.length);
+            }
+        }
+
         const isDiagramView =
             view === MACHINE_VIEW.BIDiagram ||
             view === MACHINE_VIEW.DataMapper ||
             view === MACHINE_VIEW.InlineDataMapper;
 
-        if (isDiagramView && parentIdentifier && !seenLabels.has(parentIdentifier)) {
-            // Check whether the parent already exists as a real history entry
-            // within the current session (e.g. the user navigated through
-            // ServiceDesigner first).  A matching entry from a previous package
-            // session is treated as virtual.
-            const parentHistoryIndex = history.findIndex(
-                (h) =>
-                    h.location.view === MACHINE_VIEW.ServiceDesigner &&
-                    h.location.identifier === parentIdentifier
-            );
+        if (isDiagramView) {
+            // Ensure a parent service segment is always visible. If the
+            // parentIdentifier is new (e.g. after a service rename), check
+            // whether the same documentUri already has a service crumb — if so,
+            // update that crumb's label instead of injecting a duplicate segment.
+            if (parentIdentifier && !seenLabels.has(parentIdentifier)) {
+                const parentHistoryIndex = history.findIndex(
+                    (h) =>
+                        h.location.view === MACHINE_VIEW.ServiceDesigner &&
+                        h.location.identifier === parentIdentifier
+                );
+                const isVirtual = parentHistoryIndex < 0 || parentHistoryIndex < sessionStart;
+                const formattedParentLabel = formatResourceBreadcrumbLabel(parentIdentifier) || parentIdentifier;
 
-            const isVirtual = parentHistoryIndex < 0 || parentHistoryIndex < sessionStart;
-            items.push({
-                label: formatResourceBreadcrumbLabel(parentIdentifier) || parentIdentifier,
-                historyIndex: isVirtual ? null : parentHistoryIndex,
-                virtualServiceName: isVirtual ? parentIdentifier : undefined,
-            });
-            seenLabels.add(parentIdentifier);
+                const existingServiceIndex = docUri ? serviceCrumbIndexByDocUri.get(docUri) : undefined;
+                if (existingServiceIndex !== undefined) {
+                    // Same file, service was renamed — update the existing service crumb.
+                    items[existingServiceIndex] = {
+                        ...items[existingServiceIndex],
+                        label: formattedParentLabel,
+                        historyIndex: isVirtual ? null : parentHistoryIndex,
+                        virtualServiceName: isVirtual ? parentIdentifier : undefined,
+                    };
+                } else {
+                    items.push({
+                        label: formattedParentLabel,
+                        historyIndex: isVirtual ? null : parentHistoryIndex,
+                        virtualServiceName: isVirtual ? parentIdentifier : undefined,
+                    });
+                    if (docUri) {
+                        serviceCrumbIndexByDocUri.set(docUri, items.length - 1);
+                    }
+                }
+                seenLabels.add(parentIdentifier);
+            }
+
+            // Deduplicate diagram crumbs for the same document (covers both
+            // same-resource re-navigation after a rename and back-forward loops).
+            if (docUri) {
+                const existingDiagramIndex = diagramCrumbIndexByDocUri.get(docUri);
+                if (existingDiagramIndex !== undefined) {
+                    items[existingDiagramIndex] = { ...items[existingDiagramIndex], label: displayLabel, historyIndex: i };
+                    seenLabels.add(displayLabel);
+                    continue;
+                }
+            }
         }
 
-        // Add this entry — always include the last item even if the label was seen.
-        if (isLast || !seenLabels.has(displayLabel)) {
+        // Add this entry. For the last (active) entry: if its label is already
+        // present in the trail, update that crumb's historyIndex rather than
+        // appending a duplicate.
+        if (seenLabels.has(displayLabel)) {
+            if (isLast) {
+                const existingIdx = items.findIndex((item) => item.label === displayLabel);
+                if (existingIdx !== -1) {
+                    items[existingIdx] = { ...items[existingIdx], historyIndex: i };
+                }
+            }
+        } else {
             seenLabels.add(displayLabel);
             items.push({ label: displayLabel, historyIndex: i });
+            if (isDiagramView && docUri) {
+                diagramCrumbIndexByDocUri.set(docUri, items.length - 1);
+            }
         }
     }
 
