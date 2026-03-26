@@ -1252,8 +1252,8 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
         // Build the parameter name property
         propertyBuilder
                 .metadata()
-                    .label(Property.VARIABLE_KEY)
-                    .description(Property.VARIABLE_DOC)
+                    .label(Property.ARGUMENT_LABEL)
+                    .description(Property.ARGUMENT_DOC)
                     .stepOut()
                 .type()
                     .fieldType(Property.ValueType.LV_EXPRESSION)
