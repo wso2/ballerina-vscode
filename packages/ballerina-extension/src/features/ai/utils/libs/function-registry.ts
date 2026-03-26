@@ -249,9 +249,6 @@ Now, based on the provided libraries, clients, and functions, and the user query
             messages: messages,
             schema: getFunctionsResponseSchema,
             abortSignal: new AbortController().signal,
-            providerOptions: {
-                anthropic: { structuredOutputMode: 'outputFormat' },
-            },
         });
 
         const libList = object as GetFunctionsResponse;
@@ -893,9 +890,6 @@ Think step-by-step to choose the required types in order to solve the given ques
             messages: messages,
             schema: getTypesResponseSchema,
             abortSignal: new AbortController().signal,
-            providerOptions: {
-                anthropic: { structuredOutputMode: 'outputFormat' },
-            },
         });
 
         const libList = object as GetTypesResponse;
