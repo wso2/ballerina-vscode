@@ -186,6 +186,7 @@ async function getRequiredFunctions(
     return collectiveResp;
 }
 
+
 async function getSuggestedFunctions(
     prompt: string,
     libraryList: GetFunctionsRequest[]
@@ -249,7 +250,7 @@ Now, based on the provided libraries, clients, and functions, and the user query
             schema: getFunctionsResponseSchema,
             abortSignal: new AbortController().signal,
             providerOptions: {
-                anthropic: { structuredOutputMode: 'jsonTool' },
+                anthropic: { structuredOutputMode: 'outputFormat' },
             },
         });
 
