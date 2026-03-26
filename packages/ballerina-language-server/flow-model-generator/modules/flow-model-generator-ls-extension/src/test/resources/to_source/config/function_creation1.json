@@ -208,7 +208,7 @@
       "type": {
         "metadata": {
           "label": "Output",
-          "description": "Output type of the data mapper"
+          "description": "Output type of the function"
         },
         "types": [
           {
