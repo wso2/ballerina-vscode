@@ -122,6 +122,28 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
         });
     }, [projectPath]);
 
+    useEffect(() => {
+        const refreshHistory = async () => {
+            try {
+                const historyResult = await rpcClient.getVisualizerRpcClient().getHistory();
+                setHistory(historyResult);
+            } catch {
+                // ignore history refresh failures
+            }
+        };
+
+        // Refresh once on mount (covers cases where history changes without projectPath change).
+        refreshHistory();
+
+        // Then keep breadcrumbs in sync with backend updates.
+        rpcClient.onProjectContentUpdated(() => refreshHistory());
+        const unsubscribeIdentifierUpdated = rpcClient.onIdentifierUpdated(() => refreshHistory());
+
+        return () => {
+            unsubscribeIdentifierUpdated?.();
+        };
+    }, [rpcClient, projectPath]);
+
     const handleBack = () => {
         rpcClient.getVisualizerRpcClient()?.goBack();
         onBack?.();
@@ -395,7 +417,7 @@ function buildBreadcrumbItems(
 
             const isVirtual = parentHistoryIndex < 0 || parentHistoryIndex < sessionStart;
             items.push({
-                label: parentIdentifier,
+                label: formatResourceBreadcrumbLabel(parentIdentifier) || parentIdentifier,
                 historyIndex: isVirtual ? null : parentHistoryIndex,
                 virtualServiceName: isVirtual ? parentIdentifier : undefined,
             });
@@ -427,23 +449,22 @@ function getDisplayLabel(location: VisualizerLocation): string {
         case MACHINE_VIEW.ServiceDesigner:
             return location.identifier || "Service Designer";
         case MACHINE_VIEW.BIDiagram:
-            return location.identifier || "Diagram";
+            return formatResourceBreadcrumbLabel(location.identifier) || "Diagram";
         case MACHINE_VIEW.DataMapper:
         case MACHINE_VIEW.InlineDataMapper:
             return location.identifier || "Data Mapper";
         case MACHINE_VIEW.TypeDiagram:
             return location.identifier || "Types";
-
         case MACHINE_VIEW.BIComponentView:
             return "Artifacts";
         case MACHINE_VIEW.BIServiceConfigView:
-            return "Service";
+            return "Service Configuration";
         case MACHINE_VIEW.BIListenerConfigView:
-            return "Listener";
+            return "Listener Configuration";
         case MACHINE_VIEW.BIMainFunctionForm:
             return "Automation";
         case MACHINE_VIEW.BIFunctionForm:
-            return "Function";
+            return "Function Configuration";
         case MACHINE_VIEW.BINPFunctionForm:
             return "Natural Function";
         case MACHINE_VIEW.BITestFunctionForm:
@@ -461,6 +482,7 @@ function getDisplayLabel(location: VisualizerLocation): string {
             return "Connection";
         case MACHINE_VIEW.ViewConfigVariables:
         case MACHINE_VIEW.EditConfigVariables:
+        case MACHINE_VIEW.AddConfigVariables:
             return "Configurable Variables";
         case MACHINE_VIEW.EvalsetViewer:
             return "Evalset Viewer";
@@ -468,4 +490,39 @@ function getDisplayLabel(location: VisualizerLocation): string {
         default:
             return location.view || "";
     }
+}
+
+function formatResourceBreadcrumbLabel(identifier?: string): string {
+    if (!identifier) {
+        return "";
+    }
+
+    const separatorIndex = identifier.indexOf("#");
+    if (separatorIndex === -1) {
+        return identifier;
+    }
+
+    const method = identifier.slice(0, separatorIndex).trim();
+    const rawPath = identifier.slice(separatorIndex + 1).trim();
+    const normalizedPath = unescapeResourcePath(rawPath).replace(/^[#/]+/, "");
+
+    if (!method) {
+        return normalizedPath || identifier;
+    }
+
+    if (!normalizedPath) {
+        return `[${method.toLowerCase()}]`;
+    }
+
+    return `[${method.toLowerCase()}] ${normalizedPath}`;
+}
+
+function unescapeResourcePath(path: string): string {
+    // The backend sometimes escapes characters in resource paths for safe parsing (e.g. `\-` and `\.`).
+    // We reverse those escapes for user-facing breadcrumb labels.
+    return path
+        .replace(/\\\//g, "/")
+        .replace(/\\-/g, "-")
+        .replace(/\\\./g, ".")
+        .replace(/\\/g, "");
 }
