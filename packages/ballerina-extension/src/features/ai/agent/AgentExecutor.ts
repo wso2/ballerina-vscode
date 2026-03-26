@@ -188,6 +188,11 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 },
             ];
 
+            // Resolve model and limits
+            const llmModel = this.config.model ?? await getAnthropicClient(ANTHROPIC_SONNET_4);
+            const maxSteps = this.config.agentLimits?.maxSteps ?? 50;
+            const maxOutputTokens = this.config.agentLimits?.maxOutputTokens ?? 8192;
+
             // Create tools
             const tools = createToolRegistry({
                 eventHandler: this.config.eventHandler,
@@ -199,6 +204,10 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 projectRootPath: this.config.executionContext.workspacePath || this.config.executionContext.projectPath || '',
                 generationId: this.config.generationId,
                 threadId: 'default',
+                migrationSourcePath: this.config.toolOptions?.migrationSourcePath,
+                runningServices: runningServicesManager,
+                webSearchEnabled: params.webSearchEnabled ?? false,
+                ctx: this.config.executionContext,
             });
 
             // Stream LLM response
@@ -303,7 +312,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                     // Notify caller with partial messages (wizard migration history persistence)
                     if (this.config.onMessagesAvailable) {
                         this.config.onMessagesAvailable(
-                            [{ role: "user", content: streamContext.userMessageContent }, ...messagesToSave],
+                            [{ role: "user", content: streamContext.userMessageContent }, ...partialLLMMessages],
                             'aborted'
                         );
                     }

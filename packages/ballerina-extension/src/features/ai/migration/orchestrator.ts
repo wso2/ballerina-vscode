@@ -656,7 +656,7 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
                     isPlanMode: false,
                 },
                 chatStorage: fromAIChat
-                    ? { workspaceId: projectRoot, threadId: "default", enabled: true }
+                    ? { projectRootPath: projectRoot, threadId: "default", enabled: true }
                     : undefined,
                 onMessagesAvailable: (messages, status) => {
                     saveAgentHistory(projectRoot, messages, status);
