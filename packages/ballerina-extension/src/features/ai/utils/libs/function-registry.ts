@@ -772,7 +772,7 @@ function addLibraryRecords(externalRecords: Map<string, string[]>, libraryName: 
 async function getExternalRecords(
     newLibraries: Library[],
     libRefs: Map<string, string[]>,
-    originalLibraries: Library[]
+    cachedLibraries: Library[]
 ): Promise<void> {
     for (const [libName, recordNames] of libRefs.entries()) {
         if (libName.startsWith("ballerina/lang.int")) {
@@ -780,16 +780,15 @@ async function getExternalRecords(
             continue;
         }
 
-        let library = originalLibraries.find((lib) => lib.name === libName);
+        let library = cachedLibraries.find((lib) => lib.name === libName);
         if (!library) {
-            console.warn(`Library ${libName} is not found in the context. Fetching library details.`);
             const result = (await langClient.getCopilotFilteredLibraries({
                 libNames: [libName]
             })) as { libraries: Library[] };
             if (result.libraries && result.libraries.length > 0) {
                 library = result.libraries[0];
             } else {
-                console.warn(`Library ${libName} could not be fetched. Skipping the library.`);
+                console.warn(`Library ${libName} could not be fetched. Skipping.`);
                 continue;
             }
             console.log(`[getExternalRecords] Fetched library ${libName}:`, library);
