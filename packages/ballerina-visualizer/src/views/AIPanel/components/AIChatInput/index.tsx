@@ -35,6 +35,7 @@ import { Tag } from "../../commandTemplates/models/tag.model";
 import { getFirstOccurringPlaceholder, matchCommandTemplate } from "./utils/utils";
 import { getAllCommands, getTags, getTemplateDefinitionsByCommand } from "../../commandTemplates/utils/utils";
 import { PlaceholderTagMap } from "../../commandTemplates/data/placeholderTags.const";
+import ContextUsageWidget from "../AIChat/compaction/ContextUsageWidget";
 
 // Styled Components
 const Container = styled.div`
@@ -136,13 +137,14 @@ interface AIChatInputProps {
     isWebToolsEnabled?: boolean;
     onToggleWebSearch?: () => void;
     disabled?: boolean;
+    contextUsage?: { inputTokens: number; percentage: number; breakdown?: { systemInstructions: number; toolDefinitions: number; reservedOutput: number; messages: number; toolResults: number } } | null;
 }
 
 const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
     ({ initialCommandTemplate, tagOptions, attachmentOptions, placeholder, onSend, onStop, isLoading,
        agentMode = AgentMode.Edit, onChangeAgentMode, isAutoApproveEnabled = false, onDisableAutoApprove,
-       isWebToolsEnabled = false, onToggleWebSearch, disabled }, ref) => {
-        const [inputValue, setInputValue] = useState<{
+       isWebToolsEnabled = false, onToggleWebSearch, disabled,
+       contextUsage }, ref) => {        const [inputValue, setInputValue] = useState<{
             text: string;
             [key: string]: any;
         }>({
@@ -601,6 +603,16 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
                                 <ActionButton title="Attach Context" onClick={handleAttachClick}>
                                     <Icon name="Paperclip" sx={{ fontSize: "16px" }} />
                                 </ActionButton>
+
+                                {contextUsage && (
+                                    <ContextUsageWidget
+                                        percentage={contextUsage.percentage}
+                                        inputTokens={contextUsage.inputTokens}
+                                        breakdown={contextUsage.breakdown}
+                                    />
+                                )}
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center" }}>
                                 <div style={{ width: "1px", height: "16px", background: "var(--vscode-panel-border)", margin: "0 2px" }} />
                                 <ActionButton
                                     title={isLoading ? "Stop (Escape)" : "Send (Enter)"}
