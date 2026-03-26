@@ -287,7 +287,7 @@ async function openTryItNotebook(
 ): Promise<void> {
     await vscode.commands.executeCommand('workbench.action.editorLayoutTwoColumns');
     await vscode.commands.executeCommand('workbench.action.focusSecondEditorGroup');
-    await vscode.commands.executeCommand('HurlClient.importHurlString', content, { ...options, viewColumn: 'active' });
+    await vscode.commands.executeCommand('HTTPClient.importHurlString', content, { ...options, viewColumn: 'active' });
 }
 
 // Generic utility function for opening files in split view
