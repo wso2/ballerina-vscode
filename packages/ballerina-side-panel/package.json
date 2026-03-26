@@ -41,6 +41,7 @@
         "prosemirror-schema-basic": "1.2.2",
         "prosemirror-schema-list": "1.5.1",
         "prosemirror-state": "1.4.3",
+        "prosemirror-tables": "1.6.1",
         "prosemirror-view": "1.41.3",
         "react": "18.2.0",
         "react-dom": "18.2.0",

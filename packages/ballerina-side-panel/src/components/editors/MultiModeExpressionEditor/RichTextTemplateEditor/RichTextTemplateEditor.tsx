@@ -34,6 +34,8 @@ import { useFormContext } from "../../../../context/form";
 import { createChipPlugin, createChipSchema, updateChipTokens } from "./plugins/chipPlugin";
 import { createXMLTagDecorationPlugin } from "./plugins/xmlTagDecorationPlugin";
 import { createPlaceholderPlugin } from "./plugins/placeholderPlugin";
+import { createTablePlugins, fixTables } from "./plugins/tablePlugin";
+import { registerTableCellParagraphRule } from "./utils/tableUtils";
 import { HelperPane } from "../ChipExpressionEditor/components/HelperPane";
 import {
     toggleBold,
@@ -121,6 +123,61 @@ const EditorContainer = styled.div<{ readOnly?: boolean }>`
         padding: 0;
     }
 
+    .ProseMirror hr {
+        margin: 1.5em 0;
+        border: none;
+        border-top: 1.5px solid var(--vscode-foreground);
+    }
+
+    .ProseMirror .tableWrapper {
+        overflow-x: auto;
+        margin: 0.5em 0;
+    }
+
+    .ProseMirror table {
+        border-collapse: collapse;
+        width: auto;
+        table-layout: fixed;
+    }
+
+    .ProseMirror th,
+    .ProseMirror td {
+        border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+        padding: 6px 12px;
+        position: relative;
+        vertical-align: top;
+        min-width: 60px;
+    }
+
+    .ProseMirror th {
+        font-weight: 600;
+        background-color: ${ThemeColors.SURFACE_BRIGHT};
+        text-align: left;
+    }
+
+    .ProseMirror th p,
+    .ProseMirror td p {
+        margin: 0;
+    }
+
+    .ProseMirror .selectedCell {
+        background-color: color-mix(in srgb, ${ThemeColors.PRIMARY} 15%, transparent);
+    }
+
+    .ProseMirror .column-resize-handle {
+        position: absolute;
+        right: -2px;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background-color: ${ThemeColors.PRIMARY};
+        pointer-events: none;
+    }
+
+    .ProseMirror.resize-cursor {
+        cursor: col-resize;
+    }
+
     .ProseMirror .xml-tag,
     .ProseMirror .xml-tag-opening,
     .ProseMirror .xml-tag-closing,
@@ -138,7 +195,8 @@ const EditorContainer = styled.div<{ readOnly?: boolean }>`
     }
 `;
 
-const markdownTokenizer = markdownit("commonmark", { html: false }).disable(["autolink", "html_inline", "html_block"]);
+const markdownTokenizer = markdownit("commonmark", { html: false }).disable(["autolink", "html_inline", "html_block"]).enable("table");
+registerTableCellParagraphRule(markdownTokenizer);
 
 // Helper function to sanitize text by removing invisible characters
 const sanitizeText = (text: string): string => {
@@ -156,17 +214,108 @@ const chipSchema = createChipSchema();
 export const customMarkdownParser = new MarkdownParser(
     chipSchema,
     markdownTokenizer,
-    defaultMarkdownParser.tokens
+    {
+        ...defaultMarkdownParser.tokens,
+        table: { block: "table" },
+        thead: { ignore: true },
+        tbody: { ignore: true },
+        tr: { block: "table_row" },
+        th: {
+            block: "table_header",
+            getAttrs: (tok: any) => ({ alignment: tok.info || null })
+        },
+        td: {
+            block: "table_cell",
+            getAttrs: (tok: any) => ({ alignment: tok.info || null })
+        }
+    }
 );
 
-// Create custom serializer that handles chip nodes
+// Serialize a single table cell's inline content to a string
+function serializeCellContent(cell: any): string {
+    const tempSerializer = new MarkdownSerializer(
+        {
+            ...defaultMarkdownSerializer.nodes,
+            chip(state: any, node: any) {
+                state.text(node.attrs.text, false);
+            }
+        },
+        defaultMarkdownSerializer.marks
+    );
+    const output = tempSerializer.serialize(cell);
+    // Flatten to single line and trim
+    return output.replace(/\n/g, " ").trim();
+}
+
+// Create custom serializer that handles chip nodes and tables
 export const customMarkdownSerializer = new MarkdownSerializer(
     {
         ...defaultMarkdownSerializer.nodes,
         chip(state: any, node: any) {
             // Serialize chip nodes back to their original text
             state.text(node.attrs.text, false);
-        }
+        },
+        table(state: any, node: any) {
+            const rows: string[][] = [];
+            const alignments: (string | null)[] = [];
+
+            node.forEach((row: any, _offset: number, rowIndex: number) => {
+                const cells: string[] = [];
+                row.forEach((cell: any) => {
+                    const cellText = serializeCellContent(cell).replace(/\|/g, "\\|");
+                    cells.push(cellText);
+
+                    // Capture alignment from header row
+                    if (rowIndex === 0) {
+                        alignments.push(cell.attrs.alignment || null);
+                    }
+                });
+                rows.push(cells);
+            });
+
+            // Compute column widths
+            const colCount = Math.max(...rows.map(r => r.length));
+            const colWidths = Array(colCount).fill(3);
+            for (const row of rows) {
+                for (let i = 0; i < row.length; i++) {
+                    colWidths[i] = Math.max(colWidths[i], row[i].length);
+                }
+            }
+
+            // Ensure blank line before table
+            state.flushClose(1);
+            if (state.out && !state.out.endsWith("\n\n")) {
+                state.out += state.out.endsWith("\n") ? "\n" : "\n\n";
+            }
+
+            // Output header row
+            state.out += "| " + rows[0].map((c: string, i: number) => c.padEnd(colWidths[i])).join(" | ") + " |\n";
+
+            // Output separator row with alignment markers
+            const sep = alignments.map((a, i) => {
+                const w = colWidths[i];
+                if (a === "center") return ":" + "-".repeat(w) + ":";
+                if (a === "left") return ":" + "-".repeat(w + 1);
+                if (a === "right") return "-".repeat(w + 1) + ":";
+                return "-".repeat(w + 2);
+            });
+            state.out += "| " + sep.join(" | ") + " |\n";
+
+            // Output body rows
+            for (let i = 1; i < rows.length; i++) {
+                const paddedCells = rows[i].map((c: string, j: number) => c.padEnd(colWidths[j] || 3));
+                // Pad row if it has fewer cells than header
+                while (paddedCells.length < colCount) {
+                    paddedCells.push(" ".repeat(colWidths[paddedCells.length] || 3));
+                }
+                state.out += "| " + paddedCells.join(" | ") + " |\n";
+            }
+
+            state.closeBlock(node);
+        },
+        table_row() { /* handled inside table serializer */ },
+        table_cell() { /* handled inside table serializer */ },
+        table_header() { /* handled inside table serializer */ },
     },
     defaultMarkdownSerializer.marks
 );
@@ -440,6 +589,7 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
                         return false;
                     }
                 }),
+                ...createTablePlugins(),
                 keymap(baseKeymap),
                 gapCursor(),
                 chipPlugin,
@@ -449,8 +599,12 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
             ]
         });
 
+        // Fix any malformed tables in the initial document
+        const fixedTr = fixTables(state);
+        const initialState = fixedTr ? state.apply(fixedTr.setMeta("addToHistory", false)) : state;
+
         const view = new EditorView(editorRef.current, {
-            state,
+            state: initialState,
             handlePaste(view, event, _slice) {
                 const text = event.clipboardData?.getData('text/plain');
                 if (!text) return false;
@@ -468,7 +622,8 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
                     /^>\s/m,                // Blockquote
                     /`[^`]+`/,              // Inline code
                     /```[\s\S]*```/,        // Code block
-                    /\[.+\]\(.+\)/          // Links
+                    /\[.+\]\(.+\)/,         // Links
+                    /^\|.+\|$/m             // GFM table rows
                 ];
 
                 const looksLikeMarkdown = markdownPatterns.some(pattern => pattern.test(sanitizedText));
@@ -532,10 +687,15 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
                 }
             },
             handleDOMEvents: {
-                keydown: (_view, event) => {
+                keydown: (view, event) => {
                     // Prevent Cmd+B from propagating to VSCode (which would open the sidebar)
                     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'b' && !event.shiftKey && !event.altKey) {
                         event.stopPropagation();
+                    }
+                    // Debug: log Backspace/Delete with selection info
+                    if (event.key === 'Backspace' || event.key === 'Delete') {
+                        const sel = view.state.selection;
+                        console.log("[DOM keydown]", event.key, "sel type:", sel.constructor.name, "from:", sel.from, "to:", sel.to, "empty:", sel.empty);
                     }
                     return false;
                 }
