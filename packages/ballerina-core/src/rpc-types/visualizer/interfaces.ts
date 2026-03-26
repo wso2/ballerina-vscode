@@ -28,6 +28,8 @@ export interface OpenViewRequest {
     type: EVENT_TYPE;
     location: VisualizerLocation | PopupVisualizerLocation;
     isPopup?: boolean;
+    /** When true, clears the navigation history before opening the new view. */
+    resetHistory?: boolean;
 }
 
 export interface GetWorkspaceContextResponse {
