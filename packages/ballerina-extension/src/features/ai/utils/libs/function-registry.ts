@@ -186,6 +186,7 @@ async function getRequiredFunctions(
     return collectiveResp;
 }
 
+
 async function getSuggestedFunctions(
     prompt: string,
     libraryList: GetFunctionsRequest[]
@@ -248,9 +249,6 @@ Now, based on the provided libraries, clients, and functions, and the user query
             messages: messages,
             schema: getFunctionsResponseSchema,
             abortSignal: new AbortController().signal,
-            providerOptions: {
-                anthropic: { structuredOutputMode: 'jsonTool' },
-            },
         });
 
         const libList = object as GetFunctionsResponse;
@@ -771,7 +769,7 @@ function addLibraryRecords(externalRecords: Map<string, string[]>, libraryName: 
 async function getExternalRecords(
     newLibraries: Library[],
     libRefs: Map<string, string[]>,
-    originalLibraries: Library[]
+    cachedLibraries: Library[]
 ): Promise<void> {
     for (const [libName, recordNames] of libRefs.entries()) {
         if (libName.startsWith("ballerina/lang.int")) {
@@ -779,16 +777,15 @@ async function getExternalRecords(
             continue;
         }
 
-        let library = originalLibraries.find((lib) => lib.name === libName);
+        let library = cachedLibraries.find((lib) => lib.name === libName);
         if (!library) {
-            console.warn(`Library ${libName} is not found in the context. Fetching library details.`);
             const result = (await langClient.getCopilotFilteredLibraries({
                 libNames: [libName]
             })) as { libraries: Library[] };
             if (result.libraries && result.libraries.length > 0) {
                 library = result.libraries[0];
             } else {
-                console.warn(`Library ${libName} could not be fetched. Skipping the library.`);
+                console.warn(`Library ${libName} could not be fetched. Skipping.`);
                 continue;
             }
             console.log(`[getExternalRecords] Fetched library ${libName}:`, library);
@@ -893,9 +890,6 @@ Think step-by-step to choose the required types in order to solve the given ques
             messages: messages,
             schema: getTypesResponseSchema,
             abortSignal: new AbortController().signal,
-            providerOptions: {
-                anthropic: { structuredOutputMode: 'jsonTool' },
-            },
         });
 
         const libList = object as GetTypesResponse;
