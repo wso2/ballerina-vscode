@@ -1015,7 +1015,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                                     String fieldKey = specificField.fieldName().toSourceCode().trim();
                                     String fieldValue = specificField.valueExpr()
                                             .map(expr -> expr.toSourceCode().trim())
-                                            .orElse("");
+                                            .orElse(fieldKey);
 
                                     Builder<Object> templateBuilder = createPropertyBuilderFrom(template);
                                     templateBuilder.types.stream()
@@ -1024,7 +1024,11 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                                             .ifPresent(pt -> pt.selected(true));
                                     templateBuilder.value(fieldValue);
                                     if (diagnosticHandler != null) {
-                                        diagnosticHandler.handle(templateBuilder, fieldNode.lineRange(), true);
+                                        Node diagnosticNode = specificField.valueExpr()
+                                                .map(expr -> (Node) expr)
+                                                .orElse(specificField.fieldName());
+                                        diagnosticHandler.handle(templateBuilder,
+                                                diagnosticNode.lineRange(), true);
                                     }
 
                                     valueMap.put(fieldKey, templateBuilder.build());
