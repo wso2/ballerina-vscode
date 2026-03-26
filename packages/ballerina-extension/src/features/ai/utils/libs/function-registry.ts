@@ -895,7 +895,7 @@ Think step-by-step to choose the required types in order to solve the given ques
             schema: getTypesResponseSchema,
             abortSignal: new AbortController().signal,
             providerOptions: {
-                anthropic: { structuredOutputMode: 'jsonTool' },
+                anthropic: { structuredOutputMode: 'outputFormat' },
             },
         });
 
