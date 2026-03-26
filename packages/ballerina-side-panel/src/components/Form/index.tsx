@@ -538,7 +538,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                     } else if (typeof field.value === "string") {
                         defaultValues[field.key] = formatJSONLikeString(field.value) ?? "";
                     } else {
-                        defaultValues[field.key] = field.value ?? "";
+                        defaultValues[field.key] = field.value;
                     }
                     if (field.key === "variable") {
                         defaultValues[field.key] = formValues[field.key] ?? defaultValues[field.key] ?? "";

@@ -33,11 +33,6 @@ export const breathe = keyframes`
     50%       { opacity: 1; }
 `;
 
-// Progress spinner: thick arc rotating
-export const spin = keyframes`
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
-`;
 
 // ── Pipeline container ────────────────────────────────────────────────────────
 
@@ -212,25 +207,6 @@ export const ToolIcon = styled.span<{ loading?: boolean; failed?: boolean }>`
     ${(props: { loading?: boolean; failed?: boolean }) => props.loading ? `animation: ${breathe} 1.4s ease-in-out infinite;` : ""}
 `;
 
-// Spinning sync icon — blue, rotating
-export const ProgressSpinner = styled.span`
-    font-size: 12px;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    color: var(--vscode-charts-blue);
-    animation: ${spin} 1s linear infinite;
-`;
-
-// Done icon — green pass-filled
-export const ProgressDone = styled.span`
-    font-size: 12px;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    color: var(--vscode-charts-green, #388a34);
-    opacity: 0.85;
-`;
 
 
 export const ItemLabel = styled.span<{ loading: boolean; failed?: boolean }>`

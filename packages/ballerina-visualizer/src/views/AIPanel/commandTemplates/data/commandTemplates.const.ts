@@ -170,13 +170,12 @@ export const NATURAL_PROGRAMMING_TEMPLATES: TemplateDefinition[] = [
 export const suggestedCommandTemplates: AIPanelPrompt[] = [
     {
         type: "text",
-        text: "write a hello world http service",
+        text: "Write a hello world HTTP service",
         planMode: false,
     },
     {
-        type: "command-template",
-        command: Command.Ask,
-        templateId: TemplateId.Wildcard,
-        text: "how to write a concurrent application?",
+        type: "text",
+        text: "Summarize GitHub Issues and post the summary to a Google Sheet",
+        planMode: true,
     },
 ];
