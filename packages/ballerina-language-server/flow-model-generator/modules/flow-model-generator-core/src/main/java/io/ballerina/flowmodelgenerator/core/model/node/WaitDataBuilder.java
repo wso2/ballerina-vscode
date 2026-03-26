@@ -18,6 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.core.model.node;
 
+import com.google.gson.Gson;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
 import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
@@ -40,6 +41,7 @@ import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
+import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
 import io.ballerina.flowmodelgenerator.core.model.Member;
 import io.ballerina.flowmodelgenerator.core.model.Metadata;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
@@ -50,7 +52,13 @@ import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.flowmodelgenerator.core.utils.TypeUtils;
 import io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil;
 import io.ballerina.modelgenerator.commons.CommonUtils;
+import io.ballerina.modelgenerator.commons.FunctionData;
+import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
+import io.ballerina.modelgenerator.commons.ModuleInfo;
+import io.ballerina.modelgenerator.commons.PackageUtil;
+import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.projects.Document;
+import io.ballerina.projects.Module;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
@@ -60,6 +68,7 @@ import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -68,8 +77,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.ANYDATA;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CONTEXT_CLASS_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.DEFAULT_EVENTS_PARAM_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.EVENTS_SUFFIX;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_MODULE;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ORG;
 
 /**
  * Represents a workflow wait for data node.
@@ -77,7 +89,7 @@ import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.EVENTS_SUF
  *
  * @since 2.0.0
  */
-public class WaitDataBuilder extends WaitBuilder {
+public class WaitDataBuilder extends CallBuilder {
     private static final String LABEL = "Wait for Data";
     private static final String DESCRIPTION = "Wait for workflow data to be received";
     private static final String DATA_NAME_KEY = "dataName";
@@ -88,6 +100,23 @@ public class WaitDataBuilder extends WaitBuilder {
     private static final String DATA_TYPE_DOC = "Type of the data to be received on successful wait";
     private static final String DATA_RECEIVE_VAR_NAME = "Data Receive Variable Name";
     private static final String DATA_RECEIVE_VAR_DOC = "Variable name to receive the data";
+    private static final String DATA_ENTRIES_KEY = "dataEntries";
+    private static final String DATA_ENTRIES_LABEL = "Data Entries";
+    private static final String DATA_ENTRIES_DOC = "Data entries to wait for (one or more)";
+    private static final String AWAIT_METHOD = "await";
+    private static final Set<String> EXCLUDED_AWAIT_PARAMS = Set.of("futures", "T");
+
+    private static final Gson gson = new Gson();
+
+    @Override
+    protected NodeKind getFunctionNodeKind() {
+        return NodeKind.WAIT_DATA;
+    }
+
+    @Override
+    protected FunctionData.Kind getFunctionResultKind() {
+        return FunctionData.Kind.WAIT_DATA;
+    }
 
     @Override
     public void setConcreteConstData() {
@@ -97,92 +126,138 @@ public class WaitDataBuilder extends WaitBuilder {
 
     @Override
     public void setConcreteTemplateData(TemplateContext context) {
-        // Data receive variable name
+        properties().nestedProperty();
         properties()
-                .custom()
-                    .metadata()
-                        .label(DATA_RECEIVE_VAR_NAME)
-                        .description(DATA_RECEIVE_VAR_DOC)
-                        .stepOut()
-                    .type()
-                        .fieldType(Property.ValueType.IDENTIFIER)
-                        .scope(Property.LOCAL_SCOPE)
-                        .selected(true)
-                        .stepOut()
-                    .value("")
-                    .editable(true)
+                .endNestedProperty(Property.ValueType.REPEATABLE_PROPERTY, DATA_ENTRIES_KEY, DATA_ENTRIES_LABEL,
+                        DATA_ENTRIES_DOC, getDataEntrySchema(), false, false);
+        ModuleInfo workflowModuleInfo = new ModuleInfo(WORKFLOW_ORG, WORKFLOW_MODULE, WORKFLOW_MODULE, null);
+        FunctionData callActivityData = new FunctionDataBuilder()
+                .name(AWAIT_METHOD)
+                .moduleInfo(workflowModuleInfo)
+                .parentSymbolType(CONTEXT_CLASS_NAME)
+                .functionResultKind(FunctionData.Kind.REMOTE)
+                .project(PackageUtil.loadProject(context.workspaceManager(), context.filePath()))
+                .userModuleInfo(moduleInfo)
+                .workspaceManager(context.workspaceManager())
+                .filePath(context.filePath())
+                .build();
+
+        LinkedHashMap<String, ParameterData> filteredParams = new LinkedHashMap<>(callActivityData.parameters());
+        filteredParams.keySet().removeAll(EXCLUDED_AWAIT_PARAMS);
+        callActivityData.setParameters(filteredParams);
+
+        Module module = context.workspaceManager().module(context.filePath()).orElse(null);
+        setParameterProperties(callActivityData, module);
+    }
+
+    public static Property getDataEntrySchema() {
+        return DataEntrySchemaHolder.DATA_ENTRY_SCHEMA;
+    }
+
+    private static void setDataEntryProperties(FormBuilder<?> formBuilder) {
+        formBuilder.nestedProperty();
+
+        // Data receive variable name
+        formBuilder.custom()
+                .metadata()
+                    .label(DATA_RECEIVE_VAR_NAME)
+                    .description(DATA_RECEIVE_VAR_DOC)
                     .stepOut()
-                .addProperty(Property.VARIABLE_KEY);
+                .type()
+                    .fieldType(Property.ValueType.IDENTIFIER)
+                    .scope(Property.LOCAL_SCOPE)
+                    .selected(true)
+                    .stepOut()
+                .value("")
+                .editable(true);
+        formBuilder.addProperty(Property.VARIABLE_KEY);
 
         // Data type
-        properties()
-                .custom()
-                    .metadata()
-                        .label(DATA_TYPE_LABEL)
-                        .description(DATA_TYPE_DOC)
-                        .stepOut()
-                    .type()
-                        .fieldType(Property.ValueType.TYPE)
-                        .ballerinaType(ANYDATA)
-                        .selected(true)
-                        .stepOut()
-                    .value("")
-                    .editable(true)
+        formBuilder.custom()
+                .metadata()
+                    .label(DATA_TYPE_LABEL)
+                    .description(DATA_TYPE_DOC)
                     .stepOut()
-                .addProperty(DATA_TYPE_KEY);
+                .type()
+                    .fieldType(Property.ValueType.TYPE)
+                    .ballerinaType(ANYDATA)
+                    .selected(true)
+                    .stepOut()
+                .value("")
+                .editable(true);
+        formBuilder.addProperty(DATA_TYPE_KEY);
 
         // Data name
-        properties()
-                .custom()
-                    .metadata()
-                        .label(DATA_NAME_LABEL)
-                        .description(DATA_NAME_DOC)
-                        .stepOut()
-                    .type()
-                        .fieldType(Property.ValueType.IDENTIFIER)
-                        .selected(true)
-                        .stepOut()
-                    .value("")
-                    .editable(true)
+        formBuilder.custom()
+                .metadata()
+                    .label(DATA_NAME_LABEL)
+                    .description(DATA_NAME_DOC)
                     .stepOut()
-                .addProperty(DATA_NAME_KEY);
+                .type()
+                    .fieldType(Property.ValueType.IDENTIFIER)
+                    .selected(true)
+                    .stepOut()
+                .value("")
+                .editable(true);
+        formBuilder.addProperty(DATA_NAME_KEY);
+
+        formBuilder.endNestedProperty(Property.ValueType.FIXED_PROPERTY, "", DATA_ENTRIES_LABEL, DATA_ENTRIES_DOC);
     }
 
     @Override
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
-        Optional<Property> variableProperty = sourceBuilder.getProperty(Property.VARIABLE_KEY);
-        Optional<Property> dataTypeProperty = sourceBuilder.getProperty(DATA_TYPE_KEY);
-        Optional<Property> dataNameProperty = sourceBuilder.getProperty(DATA_NAME_KEY);
-
-        if (variableProperty.isEmpty() || dataTypeProperty.isEmpty() || dataNameProperty.isEmpty()) {
-            throw new IllegalStateException("Wait data node is missing required properties");
+        List<DataEntry> entries = parseDataEntries(sourceBuilder);
+        if (entries.isEmpty()) {
+            throw new IllegalStateException("At least one data entry is required");
         }
 
-        String variableName = variableProperty.get().value().toString();
-        String dataType = dataTypeProperty.get().value().toString();
-        String dataName = dataNameProperty.get().value().toString();
-        if (variableName.isBlank() || dataType.isBlank() || dataName.isBlank()) {
-            throw new IllegalStateException("WaitDataBuilder requires non-blank variableName/dataType/dataName");
+        addNewDataFieldsToWorkflow(sourceBuilder, entries);
+
+        // Build wait statements: DataType dataReceiveVar = check wait events.dataName;
+        for (DataEntry entry : entries) {
+            sourceBuilder.token()
+                    .name(entry.dataType)
+                    .whiteSpace()
+                    .name(entry.variableName)
+                    .keyword(SyntaxKind.EQUAL_TOKEN)
+                    .keyword(SyntaxKind.CHECK_KEYWORD)
+                    .keyword(SyntaxKind.WAIT_KEYWORD)
+                    .name(DEFAULT_EVENTS_PARAM_NAME + "." + entry.dataName)
+                    .endOfStatement();
         }
-
-        addNewDataFieldToWorkflow(sourceBuilder, dataType, dataName);
-
-        // Build the wait statement: DataType dataReceiveVar = check wait events.dataName;
-        sourceBuilder.token()
-                .name(dataType)
-                .whiteSpace()
-                .name(variableName)
-                .keyword(SyntaxKind.EQUAL_TOKEN)
-                .keyword(SyntaxKind.CHECK_KEYWORD)
-                .keyword(SyntaxKind.WAIT_KEYWORD)
-                .name(DEFAULT_EVENTS_PARAM_NAME + "." + dataName)
-                .endOfStatement();
         sourceBuilder.textEdit();
 
         return sourceBuilder.build();
     }
 
-    private void addNewDataFieldToWorkflow(SourceBuilder sourceBuilder, String dataType, String dataName) {
+    private List<DataEntry> parseDataEntries(SourceBuilder sourceBuilder) {
+        Optional<Property> dataEntriesProperty = sourceBuilder.getProperty(DATA_ENTRIES_KEY);
+        if (dataEntriesProperty.isEmpty() || !(dataEntriesProperty.get().value() instanceof Map<?, ?> entryMap)) {
+            throw new IllegalStateException("Wait data node is missing required data entries");
+        }
+
+        List<DataEntry> entries = new ArrayList<>();
+        for (Object obj : entryMap.values()) {
+            Property entryProperty = gson.fromJson(gson.toJsonTree(obj), Property.class);
+            if (!(entryProperty.value() instanceof Map<?, ?> entryData)) {
+                continue;
+            }
+            Map<String, Property> entryProperties = gson.fromJson(gson.toJsonTree(entryData),
+                    FormBuilder.NODE_PROPERTIES_TYPE);
+
+            String variableName = entryProperties.get(Property.VARIABLE_KEY).value().toString();
+            String dataType = entryProperties.get(DATA_TYPE_KEY).value().toString();
+            String dataName = entryProperties.get(DATA_NAME_KEY).value().toString();
+            if (variableName.isBlank() || dataType.isBlank() || dataName.isBlank()) {
+                throw new IllegalStateException(
+                        "WaitDataBuilder requires non-blank variableName/dataType/dataName");
+            }
+            entries.add(new DataEntry(variableName, dataType, dataName));
+        }
+        return entries;
+    }
+
+    private void addNewDataFieldsToWorkflow(SourceBuilder sourceBuilder, List<DataEntry> entries) {
         try {
             sourceBuilder.workspaceManager.loadProject(sourceBuilder.filePath);
         } catch (WorkspaceDocumentException | EventSyncException e) {
@@ -199,14 +274,14 @@ public class WaitDataBuilder extends WaitBuilder {
 
         Optional<TypeSymbol> eventsTypeSymbol = getEventsParameterTypeSymbol(functionNode, semanticModel);
         if (eventsTypeSymbol.isPresent()) {
-            modifyExistingEventsType(sourceBuilder, eventsTypeSymbol.get(), dataType, dataName);
+            modifyExistingEventsType(sourceBuilder, eventsTypeSymbol.get(), entries);
         } else {
             // No events parameter - create new type and add parameter
             String funcName = functionNode.functionName().text();
             String baseTypeName = funcName.substring(0, 1).toUpperCase(Locale.ROOT) + funcName.substring(1)
                     + EVENTS_SUFFIX;
             String eventsTypeName = generateUniqueEventsTypeName(baseTypeName, semanticModel);
-            createNewEventsType(sourceBuilder, eventsTypeName, dataType, dataName);
+            createNewEventsType(sourceBuilder, eventsTypeName, entries);
             addEventsParameterToFunction(sourceBuilder, functionNode, eventsTypeName);
         }
     }
@@ -275,18 +350,20 @@ public class WaitDataBuilder extends WaitBuilder {
     }
 
     private void createNewEventsType(SourceBuilder sourceBuilder, String eventsTypeName,
-                                     String dataType, String dataName) {
-        // Create a new events type with the field
-        String fieldType = SyntaxKind.FUTURE_KEYWORD.stringValue() + SyntaxKind.LT_TOKEN.stringValue()
-                + dataType + SyntaxKind.GT_TOKEN.stringValue();
+                                     List<DataEntry> entries) {
+        // Create a new events type with fields for all data entries
         List<Member> members = new ArrayList<>();
-        members.add(new Member.MemberBuilder()
-                .kind(Member.MemberKind.FIELD)
-                .type(fieldType)
-                .name(dataName)
-                .optional(false)
-                .readonly(false)
-                .build());
+        for (DataEntry entry : entries) {
+            String fieldType = SyntaxKind.FUTURE_KEYWORD.stringValue() + SyntaxKind.LT_TOKEN.stringValue()
+                    + entry.dataType + SyntaxKind.GT_TOKEN.stringValue();
+            members.add(new Member.MemberBuilder()
+                    .kind(Member.MemberKind.FIELD)
+                    .type(fieldType)
+                    .name(entry.dataName)
+                    .optional(false)
+                    .readonly(false)
+                    .build());
+        }
 
         TypeData eventsTypeData = new TypeData(
                 eventsTypeName,
@@ -324,13 +401,16 @@ public class WaitDataBuilder extends WaitBuilder {
     }
 
     private void modifyExistingEventsType(SourceBuilder sourceBuilder, TypeSymbol eventsTypeSymbol,
-                                          String dataType, String dataName) {
+                                          List<DataEntry> entries) {
         RecordTypeSymbol recordType = (RecordTypeSymbol) eventsTypeSymbol;
         Map<String, RecordFieldSymbol> existingFields = recordType.fieldDescriptors();
 
-        // Check if the field already exists
-        if (existingFields.containsKey(dataName)) {
-            throw new RuntimeException("Field already exists in the events type definition with name: " + dataName);
+        // Check if any field already exists
+        for (DataEntry entry : entries) {
+            if (existingFields.containsKey(entry.dataName)) {
+                throw new RuntimeException(
+                        "Field already exists in the events type definition with name: " + entry.dataName);
+            }
         }
 
         if (recordType.getLocation().isEmpty()) {
@@ -366,15 +446,32 @@ public class WaitDataBuilder extends WaitBuilder {
         LineRange delimiterLineRange = bodyStartDelimiter.lineRange();
         Range insertRange = CommonUtils.toRange(delimiterLineRange.endLine());
 
+        for (DataEntry entry : entries) {
+            sourceBuilder.token()
+                    .name(SyntaxKind.FUTURE_KEYWORD.stringValue())
+                    .name(SyntaxKind.LT_TOKEN.stringValue())
+                    .name(entry.dataType)
+                    .name(SyntaxKind.GT_TOKEN.stringValue())
+                    .whiteSpace()
+                    .name(entry.dataName)
+                    .endOfStatement();
+        }
         sourceBuilder.token()
-                .name(SyntaxKind.FUTURE_KEYWORD.stringValue())
-                .name(SyntaxKind.LT_TOKEN.stringValue())
-                .name(dataType)
-                .name(SyntaxKind.GT_TOKEN.stringValue())
-                .whiteSpace()
-                .name(dataName)
-                .endOfStatement()
                 .skipFormatting().stepOut().textEdit(null, typesFilePath, insertRange);
+    }
+
+    private record DataEntry(String variableName, String dataType, String dataName) { }
+
+    private static class DataEntrySchemaHolder {
+
+        private static final Property DATA_ENTRY_SCHEMA = initDataEntrySchema();
+
+        private static Property initDataEntrySchema() {
+            FormBuilder<?> formBuilder = new FormBuilder<>(null, null, null, null);
+            setDataEntryProperties(formBuilder);
+            Map<String, Property> nodeProperties = formBuilder.build();
+            return nodeProperties.get("");
+        }
     }
 
     private boolean isValidEventsType(TypeSymbol typeSymbol) {
@@ -403,4 +500,3 @@ public class WaitDataBuilder extends WaitBuilder {
         return true;
     }
 }
-

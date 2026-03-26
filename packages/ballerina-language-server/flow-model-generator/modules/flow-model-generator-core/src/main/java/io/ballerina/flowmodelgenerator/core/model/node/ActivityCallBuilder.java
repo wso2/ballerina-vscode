@@ -91,11 +91,11 @@ public class ActivityCallBuilder extends CallBuilder {
     @Override
     public void setConcreteTemplateData(TemplateContext context) {
         super.setConcreteTemplateData(context);
-        addAdvanedParameters(context, moduleInfo, this);
+        addAdvancedParameters(context, moduleInfo, this);
     }
 
-    public static void addAdvanedParameters(TemplateContext context, ModuleInfo moduleInfo,
-                                            CallBuilder builder) {
+    public static void addAdvancedParameters(TemplateContext context, ModuleInfo moduleInfo,
+                                             CallBuilder builder) {
         ModuleInfo workflowModuleInfo = new ModuleInfo(WORKFLOW_ORG, WORKFLOW_MODULE, WORKFLOW_MODULE, null);
         FunctionData callActivityData = new FunctionDataBuilder()
                 .name(CALL_ACTIVITY_METHOD)

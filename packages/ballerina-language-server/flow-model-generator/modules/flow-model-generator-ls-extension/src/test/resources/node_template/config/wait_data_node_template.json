@@ -16,58 +16,161 @@
     },
     "returning": false,
     "properties": {
-      "variable": {
+      "dataEntries": {
         "metadata": {
-          "label": "Data Receive Variable Name",
-          "description": "Variable name to receive the data"
+          "label": "Data Entries",
+          "description": "Data entries to wait for (one or more)"
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER",
-            "scope": "Local",
-            "selected": true
+            "fieldType": "REPEATABLE_PROPERTY",
+            "template": {
+              "metadata": {
+                "label": "Data Entries",
+                "description": "Data entries to wait for (one or more)"
+              },
+              "types": [
+                {
+                  "fieldType": "FIXED_PROPERTY",
+                  "selected": false
+                }
+              ],
+              "value": {
+                "variable": {
+                  "metadata": {
+                    "label": "Data Receive Variable Name",
+                    "description": "Variable name to receive the data"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "IDENTIFIER",
+                      "scope": "Local",
+                      "selected": true
+                    }
+                  ],
+                  "value": "",
+                  "optional": false,
+                  "editable": true,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "dataType": {
+                  "metadata": {
+                    "label": "Data Type",
+                    "description": "Type of the data to be received on successful wait"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "TYPE",
+                      "ballerinaType": "anydata",
+                      "selected": true
+                    }
+                  ],
+                  "value": "",
+                  "optional": false,
+                  "editable": true,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "dataName": {
+                  "metadata": {
+                    "label": "Data Name",
+                    "description": "Name of the data to wait for"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "IDENTIFIER",
+                      "selected": true
+                    }
+                  ],
+                  "value": "",
+                  "optional": false,
+                  "editable": true,
+                  "advanced": false,
+                  "hidden": false
+                }
+              },
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "selected": false
           }
         ],
-        "value": "",
+        "value": {},
         "optional": false,
-        "editable": true,
+        "editable": false,
         "advanced": false,
         "hidden": false
       },
-      "dataType": {
+      "minCount": {
         "metadata": {
-          "label": "Data Type",
-          "description": "Type of the data to be received on successful wait"
+          "label": "Min Count",
+          "description": "Minimum number of futures that must complete. Defaults to `futures.length()` (wait for all)."
         },
         "types": [
           {
-            "fieldType": "TYPE",
-            "ballerinaType": "anydata",
-            "selected": true
+            "fieldType": "NUMBER",
+            "ballerinaType": "int:Unsigned32",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "int:Unsigned32",
+            "selected": false
           }
         ],
-        "value": "",
-        "optional": false,
+        "placeholder": "0",
+        "optional": true,
         "editable": true,
-        "advanced": false,
-        "hidden": false
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "minCount"
+        },
+        "defaultValue": "<int:Unsigned32>futures.length()"
       },
-      "dataName": {
+      "timeout": {
         "metadata": {
-          "label": "Data Name",
-          "description": "Name of the data to wait for"
+          "label": "Timeout",
+          "description": "Optional maximum duration to wait. When exceeded an error is returned."
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER",
-            "selected": true
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "time:Duration",
+            "typeMembers": [
+              {
+                "type": "Duration",
+                "packageInfo": "ballerina:time:2.8.0",
+                "packageName": "time",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "time:Duration?",
+            "selected": false
           }
         ],
-        "value": "",
-        "optional": false,
+        "placeholder": "()",
+        "optional": true,
         "editable": true,
-        "advanced": false,
-        "hidden": false
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "timeout"
+        },
+        "imports": {
+          "time": "ballerina/time"
+        },
+        "defaultValue": "()"
       }
     },
     "flags": 0

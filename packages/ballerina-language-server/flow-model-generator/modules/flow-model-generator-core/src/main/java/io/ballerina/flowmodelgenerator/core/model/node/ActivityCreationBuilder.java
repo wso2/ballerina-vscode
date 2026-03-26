@@ -97,7 +97,7 @@ public class ActivityCreationBuilder extends CallBuilder {
                         PARAMETERS_DOC, getParameterSchema(), false, false)
                 .data(ACTIVITY_RESULT, context.getAllVisibleSymbolNames(), Property.RESULT_NAME, Property.RESULT_DOC,
                         false);
-        ActivityCallBuilder.addAdvanedParameters(context, moduleInfo, this);
+        ActivityCallBuilder.addAdvancedParameters(context, moduleInfo, this);
     }
 
     @Override
