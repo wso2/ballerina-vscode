@@ -213,3 +213,11 @@ export function notifyCheckpointCaptured(payload: CheckpointCapturedPayload) {
 export function notifyApprovalOverlayState(state: ApprovalOverlayState) {
     RPCLayer._messenger.sendNotification(approvalOverlayState, { type: 'webview', webviewType: AiPanelWebview.viewType }, state);
 }
+
+export function notifyOnIdentifierUpdated(artifacts: ProjectStructureArtifactResponse[]) {
+    RPCLayer._messenger.sendNotification(onIdentifierUpdated, { type: 'webview', webviewType: VisualizerWebview.viewType }, artifacts);
+}
+
+export function sendAgentChangedNotification(agentName: string) {
+    RPCLayer._messenger.sendNotification(activeAgentChanged, { type: 'webview', webviewType: 'ballerina.agent-chat-panel' }, agentName);
+}
