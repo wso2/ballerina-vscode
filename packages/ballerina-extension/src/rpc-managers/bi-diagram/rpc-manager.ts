@@ -795,8 +795,13 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async getProjectComponents(): Promise<ProjectComponentsResponse> {
         return new Promise(async (resolve) => {
+            const projectPath = StateMachine.context().projectPath;
+            if (!projectPath) {
+                resolve({ components: {packages: []} });
+                return;
+            }
             const components = await StateMachine.langClient().getBallerinaProjectComponents({
-                documentIdentifiers: [{ uri: Uri.file(StateMachine.context().projectPath).toString() }],
+                documentIdentifiers: [{ uri: Uri.file(projectPath).toString() }],
             });
             resolve({ components });
         });

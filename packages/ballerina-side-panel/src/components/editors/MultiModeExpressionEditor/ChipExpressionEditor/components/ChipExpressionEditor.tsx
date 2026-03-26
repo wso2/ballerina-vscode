@@ -73,7 +73,7 @@ export type ChipExpressionEditorComponentProps = {
     ) => React.ReactNode;
     completions: CompletionItem[];
     onChange: (updatedValue: string, updatedCursorPosition: number) => void;
-    value: string;
+    value: string | undefined;
     fileName?: string;
     extractArgsFromFunction?: (value: string, cursorPosition: number) => Promise<{
         label: string;

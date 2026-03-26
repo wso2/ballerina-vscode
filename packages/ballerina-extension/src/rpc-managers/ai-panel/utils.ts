@@ -130,14 +130,16 @@ export async function generateMappingExpressionsFromModel(
         mappingsModel: dataMapperModel as DMModel
     };
     if (mappingInstructionFiles.length > 0) {
-        eventHandler({ type: "chat_component", componentType: "progress", data: { text: "Processing mapping hints from attachments...", status: "start" } });
+        const processingHintsId = `processing-mapping-hints_${Date.now()}`;
+        eventHandler({ type: "chat_component", componentType: "progress", id: processingHintsId, data: { text: "Processing mapping hints from attachments...", status: "start" } });
         const enhancedResponse = await enrichModelWithMappingInstructions(mappingInstructionFiles, dataMapperResponse);
-        eventHandler({ type: "chat_component", componentType: "progress", data: { text: "Processing mapping hints from attachments...", status: "end" } });
+        eventHandler({ type: "chat_component", componentType: "progress", id: processingHintsId, data: { text: "Processing mapping hints from attachments...", status: "end" } });
         dataMapperResponse = enhancedResponse as DataMapperModelResponse;
     }
-    eventHandler({ type: "chat_component", componentType: "progress", data: { text: "Generating data mappings...", status: "start" } });
+    const generatingMappingsId = `generating-data-mappings_${Date.now()}`;
+    eventHandler({ type: "chat_component", componentType: "progress", id: generatingMappingsId, data: { text: "Generating data mappings...", status: "start" } });
     const generatedMappings = await generateAutoMappings(dataMapperResponse);
-    eventHandler({ type: "chat_component", componentType: "progress", data: { text: "Generating data mappings...", status: "end" } });
+    eventHandler({ type: "chat_component", componentType: "progress", id: generatingMappingsId, data: { text: "Generating data mappings...", status: "end" } });
     return generatedMappings.map(mapping => ({
         output: mapping.output,
         expression: mapping.expression,
