@@ -137,6 +137,8 @@ export function Visualizer({ mode }: { mode: string }) {
                     switch (mode) {
                         case MODES.VISUALIZER:
                             return <VisualizerComponent state={state} />
+                        case MODES.RUNTIME_SERVICES:
+                            return <MainPanel />
                         case MODES.AI:
                             return <AIPanel state={aiState} />
                         case MODES.AGENT_CHAT:
@@ -145,6 +147,8 @@ export function Visualizer({ mode }: { mode: string }) {
                             return <EvaluationHistory />
                         case MODES.EVALUATION_REPORT:
                             return <EvaluationReport />
+                        default:
+                            return <MainPanel />
                     }
                 })()}
             </Suspense>
