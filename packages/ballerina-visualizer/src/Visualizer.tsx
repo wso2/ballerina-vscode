@@ -23,6 +23,7 @@ import styled from '@emotion/styled';
 import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react";
 import { Global, css } from '@emotion/react';
 import { DownloadIcon } from "./components/DownloadIcon";
+import { WebviewErrorBoundary } from "./components/WebviewErrorBoundary";
 import { ThemeColors } from "@wso2/ui-toolkit";
 
 const MainPanel = React.lazy(() => import("./MainPanel"));
@@ -126,22 +127,28 @@ export function Visualizer({ mode }: { mode: string }) {
     }, []);
 
     return (
-        <Suspense fallback={<LanguageServerLoadingView />}>
-            {(() => {
-                switch (mode) {
-                    case MODES.VISUALIZER:
-                        return <VisualizerComponent state={state} />
-                    case MODES.AI:
-                        return <AIPanel state={aiState} />
-                    case MODES.AGENT_CHAT:
-                        return <AgentChat />
-                    case MODES.EVALUATION_HISTORY:
-                        return <EvaluationHistory />
-                    case MODES.EVALUATION_REPORT:
-                        return <EvaluationReport />
-                }
-            })()}
-        </Suspense>
+        <WebviewErrorBoundary
+            title="Unable to load the visualizer"
+            message="A required webview chunk failed to load. Retry to reload the webview."
+            onRetry={() => window.location.reload()}
+        >
+            <Suspense fallback={<LanguageServerLoadingView />}>
+                {(() => {
+                    switch (mode) {
+                        case MODES.VISUALIZER:
+                            return <VisualizerComponent state={state} />
+                        case MODES.AI:
+                            return <AIPanel state={aiState} />
+                        case MODES.AGENT_CHAT:
+                            return <AgentChat />
+                        case MODES.EVALUATION_HISTORY:
+                            return <EvaluationHistory />
+                        case MODES.EVALUATION_REPORT:
+                            return <EvaluationReport />
+                    }
+                })()}
+            </Suspense>
+        </WebviewErrorBoundary>
     );
 };
 
