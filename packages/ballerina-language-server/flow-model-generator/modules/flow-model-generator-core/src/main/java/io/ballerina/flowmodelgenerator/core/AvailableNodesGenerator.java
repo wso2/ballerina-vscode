@@ -53,6 +53,7 @@ import io.ballerina.flowmodelgenerator.core.model.node.KnowledgeBaseBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ModelProviderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.NPFunctionCall;
 import io.ballerina.flowmodelgenerator.core.model.node.VectorStoreBuilder;
+import io.ballerina.flowmodelgenerator.core.utils.ConnectorUtil;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
@@ -582,6 +583,9 @@ public class AvailableNodesGenerator {
                                 .orElse(pkg.project().sourceRoot()),
                         classSymbol)
                         .ifPresent(modelFile -> metadataBuilder.addData(PERSIST_MODEL_FILE, modelFile));
+            } else if (moduleInfo != null) {
+                metadataBuilder.addData(CONNECTOR_TYPE,
+                        ConnectorUtil.getConnectionCategory(moduleInfo.moduleName()));
             }
 
             Metadata metadata = metadataBuilder.build();
