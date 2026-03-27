@@ -17,8 +17,9 @@
  */
 
 import { useEffect, useState } from "react";
-import { LocationSelector, TextField, CheckBox, DirectorySelector } from "@wso2/ui-toolkit";
+import { TextField, CheckBox, DirectorySelector } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import { usePlatformExtContext } from "../../../providers/platform-ext-ctx-provider";
 import {
     FieldGroup,
     CheckboxContainer,
@@ -51,6 +52,8 @@ export function ProjectFormFields({
     packageNameValidationError,
 }: ProjectFormFieldsProps) {
     const { rpcClient } = useRpcContext();
+    const { platformExtState } = usePlatformExtContext();
+    const organizations = platformExtState?.userInfo?.organizations ?? [];
     const [packageNameTouched, setPackageNameTouched] = useState(false);
     const [packageNameError, setPackageNameError] = useState<string | null>(null);
     const [orgNameError, setOrgNameError] = useState<string | null>(null);
@@ -91,8 +94,8 @@ export function ProjectFormFields({
                 onFormDataChange({ path: currentDir.path });
             }
 
-            // Set default org name if not already set
-            if (!formData.orgName) {
+            // Set default org name if not already set and no orgs from platform
+            if (!formData.orgName && organizations.length === 0) {
                 try {
                     const { orgName } = await commonRpcClient.getDefaultOrgName();
                     onFormDataChange({ orgName });
@@ -111,6 +114,12 @@ export function ProjectFormFields({
             setIsProjectModeSupported(projectModeSupported);
         })();
     }, []);
+
+    useEffect(() => {
+        if (organizations.length > 0 && !formData.orgName) {
+            onFormDataChange({ orgName: organizations[0].handle });
+        }
+    }, [organizations]);
 
     useEffect(() => {
         const error = validatePackageName(formData.packageName, formData.integrationName);
@@ -217,6 +226,7 @@ export function ProjectFormFields({
                 isLibrary={formData.isLibrary}
                 orgNameError={orgNameError}
                 packageNameError={packageNameValidationError || packageNameError}
+                organizations={organizations}
             />
         </>
     );
