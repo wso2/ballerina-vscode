@@ -1,0 +1,4 @@
+function output(InRoot[] input) returns OutRoot[] => from var inputItem in input
+    select {
+
+    };
