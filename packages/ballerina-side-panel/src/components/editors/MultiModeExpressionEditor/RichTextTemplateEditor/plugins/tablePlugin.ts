@@ -59,7 +59,7 @@ const handleTableDelete = (state: EditorState, dispatch?: (tr: any) => void): bo
     // If cells are selected, check if all cells are selected
     if (isCellSel) {
         // Count total cells in the table vs selected cells
-        const $anchor = sel.$anchorCell || (sel as any).$anchorCell;
+        const $anchor = (sel as any).$anchorCell;
         let tableNode = null;
         let tableDepth = 0;
         if ($anchor) {

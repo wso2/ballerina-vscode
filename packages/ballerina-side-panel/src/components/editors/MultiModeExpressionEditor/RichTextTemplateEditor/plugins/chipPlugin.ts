@@ -120,9 +120,9 @@ export function createChipSchema(): Schema {
                 getFromDOM(dom: HTMLElement) {
                     return dom.style.textAlign || null;
                 },
-                setDOMAttr(value: string | null, attrs: Record<string, string>) {
+                setDOMAttr(value, attrs) {
                     if (value) {
-                        attrs.style = (attrs.style || "") + `text-align: ${value};`;
+                        attrs.style = ((attrs.style as string) || "") + `text-align: ${value};`;
                     }
                 }
             }
