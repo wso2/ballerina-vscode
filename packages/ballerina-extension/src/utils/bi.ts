@@ -377,6 +377,17 @@ sticky = true
 
 `;
 
+    if (projectRequest.isLibrary) {
+        const libraryBal = path.join(projectRoot, 'lib.bal');
+        const libraryBalContent = `import ${VALIDATOR_PACKAGE_NAME} as _;`;
+        writeBallerinaFileDidOpen(libraryBal, libraryBalContent);
+        try {
+            await runBackgroundTerminalCommand(`bal pull ${VALIDATOR_PACKAGE_NAME}`);
+        } catch (error) {
+            console.error('Failed to pull library validator package:', error);
+        }
+    }
+
     // Create Ballerina.toml file
     const ballerinaTomlPath = path.join(projectRoot, 'Ballerina.toml');
     writeBallerinaFileDidOpen(ballerinaTomlPath, ballerinaTomlContent);
@@ -413,17 +424,6 @@ sticky = true
         // Create automation.bal file
         const automationBal = path.join(projectRoot, 'automation.bal');
         writeBallerinaFileDidOpen(automationBal, EMPTY);
-    } else {
-        const libraryBal = path.join(projectRoot, 'lib.bal');
-        const libraryBalContent = `import ${VALIDATOR_PACKAGE_NAME} as _;`;
-        if (!await isLibraryProject(projectRoot)) {
-            try {
-                await runBackgroundTerminalCommand(`bal pull ${VALIDATOR_PACKAGE_NAME}`);
-            } catch (error) {
-                console.error('Failed to pull library validator package:', error);
-            }
-        }
-        writeBallerinaFileDidOpen(libraryBal, libraryBalContent);
     }
 
     // Create .vscode configuration files
