@@ -1,24 +1,24 @@
 {
   "source": "variable1.bal",
-  "description": "Sample diagram node",
+  "description": "xml to record conversion",
   "codedata": {
     "node": "VARIABLE",
     "lineRange": {
-      "fileName": "main.bal",
+      "fileName": "variable1.bal",
       "startLine": {
-        "line": 29,
+        "line": 45,
         "offset": 0
       },
       "endLine": {
-        "line": 31,
-        "offset": 2
+        "line": 45,
+        "offset": 66
       }
     },
     "isNew": true,
     "sourceCode": ""
   },
   "typeName": "UserInfo",
-  "parentTypeName": "json",
+  "parentTypeName": "xml",
   "variableName": "user",
   "isInput": true,
   "output": {
@@ -34,17 +34,17 @@
             "character": 0
           }
         },
-        "newText": "import ballerina/data.jsondata;\n"
+        "newText": "import ballerina/data.xmldata;\n"
       },
       {
         "range": {
           "start": {
-            "line": 29,
-            "character": 57
+            "line": 45,
+            "character": 56
           },
           "end": {
-            "line": 29,
-            "character": 57
+            "line": 45,
+            "character": 56
           }
         },
         "newText": "|error"
@@ -52,15 +52,15 @@
       {
         "range": {
           "start": {
-            "line": 29,
-            "character": 61
+            "line": 45,
+            "character": 60
           },
           "end": {
-            "line": 31,
-            "character": 1
+            "line": 45,
+            "character": 66
           }
         },
-        "newText": "let UserInfo userConverted = check jsondata:parseAsType(user) in {\n\n}"
+        "newText": "let UserInfo userConverted = check xmldata:parseAsType(user) in xml ``"
       }
     ]
   }

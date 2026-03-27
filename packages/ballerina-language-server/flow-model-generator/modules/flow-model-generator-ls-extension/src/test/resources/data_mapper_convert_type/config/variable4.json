@@ -27,11 +27,11 @@
         "range": {
           "start": {
             "line": 19,
-            "character": 56
+            "character": 65
           },
           "end": {
             "line": 19,
-            "character": 56
+            "character": 65
           }
         },
         "newText": ", Student transform2 = {a: 10, b: 20}"
