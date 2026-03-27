@@ -198,7 +198,8 @@ export class ChatStateStorage {
         threadId: string,
         userPrompt: string,
         metadata: Partial<GenerationMetadata>,
-        id?: string
+        id?: string,
+        skipCheckpoint?: boolean
     ): Generation {
         const thread = this.getOrCreateThread(projectRootPath, threadId);
 
@@ -226,11 +227,12 @@ export class ChatStateStorage {
 
         console.log(`[ChatStateStorage] Added generation: ${generation.id} to thread: ${threadId}`);
 
-        // Capture checkpoint for this generation asynchronously
-        this.captureCheckpointForGeneration(projectRootPath, threadId, generation.id).catch(error => {
-            console.error('[ChatStateStorage] Failed to capture checkpoint:', error);
-        });
-
+        // Capture checkpoint for this generation asynchronously (skip for synthetic compacted generations)
+        if (!skipCheckpoint) {
+            this.captureCheckpointForGeneration(projectRootPath, threadId, generation.id).catch(error => {
+                console.error('[ChatStateStorage] Failed to capture checkpoint:', error);
+            });
+        }
         return generation;
     }
 
@@ -473,15 +475,22 @@ export class ChatStateStorage {
      */
     getCheckpoints(projectRootPath: string, threadId: string): Checkpoint[] {
         const thread = this.getOrCreateThread(projectRootPath, threadId);
-        const checkpoints: Checkpoint[] = [];
+        return thread.generations
+            .filter(g => g.checkpoint && !g.metadata?.compactionMetadata?.isCompactedGeneration)
+            .map(g => g.checkpoint!);
+    }
 
-        for (const generation of thread.generations) {
-            if (generation.checkpoint) {
-                checkpoints.push(generation.checkpoint);
-            }
-        }
-
-        return checkpoints;
+    /**
+     * Check if the thread contains compacted history
+     * @param workspaceId Workspace identifier
+     * @param threadId Thread identifier
+     * @returns boolean
+     */
+    hasCompactedHistory(workspaceId: string, threadId: string): boolean {
+        const thread = this.getOrCreateThread(workspaceId, threadId);
+        return thread.generations.some(
+            gen => gen.metadata?.compactionMetadata?.isCompactedGeneration === true
+        );
     }
 
     /**

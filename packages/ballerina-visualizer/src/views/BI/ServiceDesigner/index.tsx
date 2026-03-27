@@ -1019,7 +1019,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                                     key={`${index}-${resource.name}`}
                                                     resource={resource}
                                                     readOnly={serviceModel.properties.hasOwnProperty('serviceTypeName')}
-                                                    onEditResource={handleFunctionEdit}
+                                                    onEditResource={null}
                                                     onDeleteResource={handleFunctionDelete}
                                                     onResourceImplement={() => { openInit(resource) }}
                                                 />
