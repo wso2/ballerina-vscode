@@ -1238,6 +1238,43 @@
             },
             "defaultValue": "NO_FILTER"
           },
+          "credential": {
+            "metadata": {
+              "label": "Agent Credential",
+              "description": "Optional authentication details of the agent."
+            },
+            "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "ai:Credential",
+                "typeMembers": [
+                  {
+                    "type": "Credential",
+                    "packageInfo": "ballerina:ai:1.11.0",
+                    "packageName": "ai",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "ai:Credential",
+                "selected": false
+              }
+            ],
+            "placeholder": "{id: \"\", secret: \"\"}",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "credential"
+            },
+            "defaultValue": "{id: \"\", secret: \"\"}"
+          },
           "checkError": {
             "metadata": {
               "label": "Check Error",
