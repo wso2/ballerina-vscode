@@ -71,7 +71,7 @@ Avoid using unnecessary newlines in the hurl script, as they can lead to parsing
 `;
 function prepareHurlScript(input: HURLInput): string {
 	// Attaching the test scenario as a comment at the top of the Hurl script
-	return "# @collectionName "+input.testScenario+"\n"+input.hurlScript;
+    return `# @collectionName ${input.testScenario}\n${input.hurlScript}`;
 }
 
 export const HURLInputSchema = z.object({
