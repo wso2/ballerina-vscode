@@ -45,7 +45,8 @@ import {
     toggleBulletList,
     toggleOrderedList,
     handleMarkdownShortcutEnter,
-    createMarkdownInputRulesPlugin
+    createMarkdownInputRulesPlugin,
+    exitInlineCodeOnArrowRight
 } from "./plugins/markdownCommands";
 import { HELPER_PANE_WIDTH } from "../ChipExpressionEditor/constants";
 import { calculateHelperPanePosition, processFunctionWithArguments } from "../ChipExpressionEditor/utils";
@@ -561,6 +562,7 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
                     // Text formatting
                     "Mod-b": toggleBold,
                     "Mod-i": toggleItalic,
+                    "ArrowRight": exitInlineCodeOnArrowRight,
                     // Mod-k removed: link insertion now requires dialog from toolbar
 
                     // Headings
