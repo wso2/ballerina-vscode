@@ -83,12 +83,6 @@ const HeaderRow = styled.div`
     margin: 16px 16px 0 16px;
 `;
 
-const HeaderControls = styled.div`
-    display: flex;
-    gap: 12px;
-    align-items: center;
-`;
-
 const MainContent = styled.div<{ hasDeployment?: boolean }>`
     flex: 1;
     overflow-y: auto;
@@ -884,13 +878,6 @@ export function WorkspaceOverview() {
                     <ProjectTitle>{projectCollection?.workspaceTitle || projectCollection?.workspaceName}</ProjectTitle>
                     <ProjectSubtitle>Project</ProjectSubtitle>
                 </TitleContainer>
-                <HeaderControls>
-                    <UndoRedoGroup key={Date.now()} />
-                    <Button appearance="primary" onClick={handleAddResource}>
-                        <Codicon name="add" sx={{ marginRight: 8 }} />
-                        Add Integration or Library
-                    </Button>
-                </HeaderControls>
             </HeaderRow>
 
             <MainContent hasDeployment={hasStandardIntegrations}>
@@ -923,6 +910,9 @@ export function WorkspaceOverview() {
                                         <Button appearance="secondary" onClick={handleGenerate}>
                                             <Icon name="bi-ai-chat" sx={{ marginRight: 4 }} iconSx={{ position: "relative", top: "2px" }} /> Generate with AI
                                         </Button>
+                                        <Button appearance="primary" onClick={handleAddResource}>
+                                            <Codicon name="add" sx={{ marginRight: 8 }} /> Add
+                                        </Button>
                                     </SectionActions>
                                 )}
                             </SectionHeader>
@@ -938,7 +928,7 @@ export function WorkspaceOverview() {
                                         Start by adding integrations and libraries to your project
                                     </Typography>
                                     <ButtonContainer>
-                                        <Button appearance="secondary" onClick={handleAddResource}>
+                                        <Button appearance="primary" onClick={handleAddResource}>
                                             <Codicon name="add" sx={{ marginRight: 8 }} /> Add Integration or Library
                                         </Button>
                                         <Button appearance="secondary" onClick={handleGenerate}>
