@@ -20,7 +20,7 @@ import { AICommandExecutor, AICommandConfig, AIExecutionResult } from '../execut
 import { Command, GenerateAgentCodeRequest, ProjectSource, ExecutionContext, SemanticDiff, ReviewModeData, PROJECT_KIND } from '@wso2/ballerina-core';
 import { StateMachine } from '../../../stateMachine';
 import { ModelMessage, stepCountIs, streamText, TextStreamPart } from 'ai';
-import { getAnthropicClient, getProviderCacheControl, ANTHROPIC_SONNET_4 } from '../utils/ai-client';
+import { getAnthropicClient, getProviderCacheControl, addCacheControlToMessages, ANTHROPIC_SONNET_4 } from '../utils/ai-client';
 import { populateHistoryForAgent, getErrorMessage } from '../utils/ai-utils';
 import { sendAgentDidOpenForFreshProjects } from '../utils/project/ls-schema-notifications';
 import { getSystemPrompt, getUserPrompt } from './prompts';
@@ -306,9 +306,13 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 tools,
                 abortSignal: this.config.abortController.signal,
 
-                // MID-STREAM COMPACTION: check and compact between steps if needed
+                // MID-STREAM COMPACTION + PROMPT CACHING: compact if needed, then apply
+                // incremental cache control to the last message so Anthropic caches the
+                // growing conversation history on each step.
                 prepareStep: async ({ steps, stepNumber, messages }) => {
-                    return compactionGuard.maybeCompact({ steps, stepNumber, messages });
+                    const compacted = await compactionGuard.maybeCompact({ steps, stepNumber, messages });
+                    const resolvedMessages = compacted ? compacted.messages : messages;
+                    return { messages: addCacheControlToMessages({ messages: resolvedMessages, model }) };
                 },
 
                 // Emit per-step token usage for context usage widget + observability
