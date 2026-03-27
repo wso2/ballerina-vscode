@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { TextField } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { usePlatformExtContext } from "../../../providers/platform-ext-ctx-provider";
@@ -65,20 +65,31 @@ export function AddProjectFormFields({
         }
     };
 
+    const orgNameRef = useRef(formData.orgName);
+    orgNameRef.current = formData.orgName;
+
     useEffect(() => {
-        if (organizations.length > 0 && !formData.orgName) {
+        let isMounted = true;
+
+        if (organizations.length > 0 && !orgNameRef.current) {
             onFormDataChange({ orgName: organizations[0].handle });
-        } else if (organizations.length === 0 && !formData.orgName) {
+        } else if (organizations.length === 0 && !orgNameRef.current) {
             (async () => {
                 try {
                     const { orgName } = await rpcClient.getCommonRpcClient().getDefaultOrgName();
-                    onFormDataChange({ orgName });
+                    if (isMounted) {
+                        onFormDataChange({ orgName });
+                    }
                 } catch (error) {
                     console.error("Failed to fetch default org name:", error);
                 }
             })();
         }
-    }, [organizations]);
+
+        return () => {
+            isMounted = false;
+        };
+    }, [organizations, onFormDataChange, rpcClient]);
 
     // Effect to trigger validation when requested by parent
     useEffect(() => {
