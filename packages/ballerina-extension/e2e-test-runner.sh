@@ -16,15 +16,18 @@
 # specific language governing permissions and limitations
 # under the License.
 
+# Ensure output directory exists
+mkdir -p e2e-test/test-resources
+
 # Start xvfb
-xvfb-run --listen-tcp --server-num 98.0 -s "-ac -screen 0 1920x1080x24" pnpm run e2e-test > test-resources/output.txt 2>&1 &
+xvfb-run --listen-tcp --server-num 98.0 -s "-ac -screen 0 1920x1080x24" pnpm run e2e-test:bi > e2e-test/test-resources/output.txt 2>&1 &
 XVFB_RUN_PID=$!
 
 # Wait for xvfb to start (adjust the sleep time as needed)
 sleep 2
 
 # Start recording with ffmpeg
-ffmpeg -video_size 1920x1080 -framerate 25 -f x11grab -i :98.0 test-resources/e2e-test-out.mp4
+ffmpeg -video_size 1920x1080 -framerate 25 -f x11grab -i :98.0 e2e-test/test-resources/e2e-test-out.mp4
 
 # Wait for the xvfb-run process to finish
 wait $XVFB_RUN_PID
@@ -34,11 +37,11 @@ XVFB_RUN_EXIT_CODE=$?
 
 # Print Logs
 echo 'log<<EOF' >> $GITHUB_OUTPUT
-cat test-resources/output.txt
+cat e2e-test/test-resources/output.txt
 echo 'EOF' >> $GITHUB_OUTPUT
 {
   echo 'LOG<<EOF'
-  cat test-resources/output.txt
+  cat e2e-test/test-resources/output.txt
   echo EOF
 } >> $GITHUB_OUTPUT
 

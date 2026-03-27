@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pd:ProcessDefinition xmlns:pd="http://xmlns.tibco.com/bw/process/2003" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:ns="http://www.tibco.com/pe/EngineTypes" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <pd:name>Processes/simpleResponse</pd:name>
+    <pd:startName>HTTP Receiver</pd:startName>
+    <pd:starter name="HTTP Receiver">
+        <pd:type>com.tibco.plugin.http.HTTPEventSource</pd:type>
+        <pd:resourceType>httppalette.httpEventSource</pd:resourceType>
+        <config>
+            <outputMode>String</outputMode>
+            <inputOutputVersion>5.3.0</inputOutputVersion>
+            <sharedChannel>GeneralConnection.sharedhttp</sharedChannel>
+            <parsePostData>true</parsePostData>
+            <Headers/>
+        </config>
+        <pd:inputBindings/>
+    </pd:starter>
+    <pd:endName>End</pd:endName>
+    <pd:errorSchemas/>
+    <pd:processVariables/>
+    <pd:targetNamespace>http://xmlns.example.com/simpleResponse</pd:targetNamespace>
+    <pd:activity name="HTTP Response">
+        <pd:type>com.tibco.plugin.http.HTTPResponseActivity</pd:type>
+        <pd:resourceType>httppalette.httpResponseActivity</pd:resourceType>
+        <config>
+            <responseHeader>
+                <header name="Content-Type">text/xml; charset=UTF-8</header>
+            </responseHeader>
+            <httpResponseCode>200</httpResponseCode>
+        </config>
+        <pd:inputBindings>
+            <ResponseActivityInput>
+                <asciiContent>
+                    <response>hello world</response>
+                </asciiContent>
+            </ResponseActivityInput>
+        </pd:inputBindings>
+    </pd:activity>
+
+    <pd:transition>
+        <pd:from>HTTP Receiver</pd:from>
+        <pd:to>HTTP Response</pd:to>
+        <pd:lineType>Default</pd:lineType>
+    </pd:transition>
+
+    <pd:transition>
+        <pd:from>HTTP Response</pd:from>
+        <pd:to>End</pd:to>
+        <pd:lineType>Default</pd:lineType>
+    </pd:transition>
+</pd:ProcessDefinition>
