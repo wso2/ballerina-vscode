@@ -1,0 +1,16 @@
+import ballerina/log;
+
+public function main() returns error? {
+    do {
+        string var1 = "bar";
+        string var2 = "foo";
+        if var1 == var2 {
+            log:printInfo("Not Equal");
+        } else {
+            log:printInfo("Equal");
+        }
+    } on fail error e {
+        log:printError("Error occurred", 'error = e);
+        return e;
+    }
+}

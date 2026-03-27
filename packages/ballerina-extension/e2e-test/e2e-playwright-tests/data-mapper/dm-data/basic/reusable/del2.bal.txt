@@ -1,0 +1,1 @@
+function output(InRoot input) returns OutRoot => {};
