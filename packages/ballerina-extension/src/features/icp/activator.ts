@@ -19,9 +19,11 @@
 import * as vscode from 'vscode';
 import { BallerinaExtension } from '../../core';
 import { resolveICPPath } from './detect';
+import { provisionICPSecret, getStoredICPSecret, writeSecretToConfigToml } from './setup';
 
 const ICP_START_COMMAND = 'ballerina.icp.start';
 const ICP_STOP_COMMAND = 'ballerina.icp.stop';
+const ICP_FOCUS_COMMAND = 'ballerina.icp.focus';
 const ICP_TASK_NAME = 'ICP Server';
 const ICP_TASK_SOURCE = 'ballerina-icp';
 
@@ -49,28 +51,67 @@ export function isICPServerRunning(): boolean {
 }
 
 /**
- * Prompts the user to start the ICP server if it's not running.
- * Returns true if the server is running (or was just started), false if the user declined.
+ * Ensures the ICP server is running and the project secret is provisioned.
+ * - If secret exists in keychain, writes it to Config.toml silently.
+ * - If no secret, prompts user to start ICP server and provision one.
+ * Returns true if the run should proceed, false if cancelled.
  */
-export async function ensureICPServerRunning(): Promise<boolean> {
+export async function ensureICPServerRunning(projectPath?: string): Promise<boolean> {
+    // If we have a stored secret, write it to Config.toml and check server
+    if (projectPath) {
+        const storedSecret = await getStoredICPSecret(projectPath);
+        if (storedSecret) {
+            writeSecretToConfigToml(projectPath, storedSecret);
+            if (isRunning) {
+                return true;
+            }
+        }
+    }
+
     if (isRunning) {
         return true;
     }
 
+    const hasSecret = projectPath ? !!(await getStoredICPSecret(projectPath)) : true;
+    const message = hasSecret
+        ? 'ICP is enabled for this project but the ICP server is not running.'
+        : 'ICP is enabled but not configured. Start ICP server to set up?';
+
     const action = await vscode.window.showWarningMessage(
-        'ICP is enabled for this project but the ICP server is not running.',
-        'Start ICP Server',
+        message,
+        'Start & Setup',
         'Run Anyway'
     );
 
-    if (action === 'Start ICP Server') {
+    if (action === 'Start & Setup') {
         await vscode.commands.executeCommand(ICP_START_COMMAND);
-        if (isRunning) {
-            const icpUrl = getICPUrl();
-            const { username, password } = getICPCredentials();
-            const credentialsHint = (username === 'admin' && password === 'admin')
-                ? ' (default credentials: admin/admin)'
-                : '';
+        if (!isRunning) {
+            return false;
+        }
+
+        const icpUrl = getICPUrl();
+        const { username, password } = getICPCredentials();
+        const credentialsHint = (username === 'admin' && password === 'admin')
+            ? ' (default credentials: admin/admin)'
+            : '';
+
+        // Provision the secret if we have a project path and no stored secret
+        if (projectPath && !hasSecret) {
+            // Brief delay for ICP server to be ready
+            await new Promise(resolve => setTimeout(resolve, 3000));
+
+            const secret = await provisionICPSecret(projectPath);
+            if (secret) {
+                vscode.window.showInformationMessage(
+                    `ICP server started and configured. Access it at ${icpUrl}${credentialsHint}`,
+                    'Open in Browser'
+                ).then((selection) => {
+                    if (selection === 'Open in Browser') {
+                        vscode.env.openExternal(vscode.Uri.parse(icpUrl));
+                    }
+                });
+            }
+        } else {
             vscode.window.showInformationMessage(
                 `ICP server started. Access it at ${icpUrl}${credentialsHint}`,
                 'Open in Browser'
@@ -80,6 +121,7 @@ export async function ensureICPServerRunning(): Promise<boolean> {
                 }
             });
         }
+
         return isRunning;
     }
 
@@ -89,13 +131,12 @@ export async function ensureICPServerRunning(): Promise<boolean> {
 function updateStatusBar(): void {
     if (isRunning) {
         statusBarItem.text = '$(server-process) ICP: Running';
-        statusBarItem.tooltip = 'Integration Control Plane is running. Click to stop.';
-        statusBarItem.command = ICP_STOP_COMMAND;
+        statusBarItem.tooltip = 'Integration Control Plane is running. Click to view output.';
     } else {
         statusBarItem.text = '$(server-environment) ICP: Stopped';
         statusBarItem.tooltip = 'Integration Control Plane is stopped. Click to start.';
-        statusBarItem.command = ICP_START_COMMAND;
     }
+    statusBarItem.command = ICP_FOCUS_COMMAND;
 }
 
 function setICPState(running: boolean): void {
@@ -165,6 +206,18 @@ export function activateICP(ballerinaExtInstance: BallerinaExtension) {
         setICPState(false);
     });
 
+    const focusCommand = vscode.commands.registerCommand(ICP_FOCUS_COMMAND, async () => {
+        if (!isRunning) {
+            // Start the server if not running
+            await vscode.commands.executeCommand(ICP_START_COMMAND);
+        }
+        // Focus the task terminal
+        if (icpTaskExecution) {
+            // Reveal the task's terminal in the panel
+            vscode.commands.executeCommand('workbench.action.terminal.focus');
+        }
+    });
+
     const taskEndListener = vscode.tasks.onDidEndTask((e) => {
         if (e.execution === icpTaskExecution) {
             icpTaskExecution = undefined;
@@ -176,6 +229,7 @@ export function activateICP(ballerinaExtInstance: BallerinaExtension) {
         statusBarItem,
         startCommand,
         stopCommand,
+        focusCommand,
         taskEndListener
     );
 }
