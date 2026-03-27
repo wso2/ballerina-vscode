@@ -39,8 +39,8 @@ export interface StreamContext {
     // Response promise (for message history and abort/finish handling)
     response: StreamTextResult<any, any>['response'];
 
-    // Token usage promise (for telemetry)
-    usage: StreamTextResult<any, any>['usage'];
+    // Token usage promise (for telemetry — total across all steps)
+    totalUsage: StreamTextResult<any, any>['totalUsage'];
 
     // Execution context (for workspace integration)
     ctx: ExecutionContext;
