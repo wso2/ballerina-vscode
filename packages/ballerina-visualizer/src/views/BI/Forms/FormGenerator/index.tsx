@@ -1399,10 +1399,16 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     /**
      * Handles type selection from completion items (used in type editor)
      */
-    const handleSelectedTypeChange = (type: CompletionItem | string) => {
+    const handleSelectedTypeChange = async (type: CompletionItem | string) => {
         if (typeof type === "string") {
-            handleSelectedTypeByName(type);
+            await handleSelectedTypeByName(type);
             return;
+        }
+        else {
+            // If the type is a Completion item, then it can be found in the reference types.
+            // Which cannot be an imported type.
+            importsCodedataRef.current = null;
+            await fetchVisualizableFields(fileName, (type as CompletionItem).label);
         }
         setSelectedType(type);
         updateRecordTypeFields(type);
@@ -1463,15 +1469,22 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     const handleSelectedTypeByName = async (typeName: string) => {
         // Early return for invalid input
         if (!typeName || typeName.length === 0) {
+            importsCodedataRef.current = null;
+            await fetchVisualizableFields(fileName, typeName);
             setValueTypeConstraints('');
             return;
         }
 
         const type = await searchImportedTypeByName(typeName);
         if (!type) {
+            importsCodedataRef.current = null;
+            await fetchVisualizableFields(fileName, typeName);
             setValueTypeConstraints('');
             return;
         }
+
+        importsCodedataRef.current = type.codedata;
+        await fetchVisualizableFields(fileName, typeName);
 
         setValueTypeConstraints(type.insertText);
         // Create the record type field for expression
