@@ -51,13 +51,12 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Handles the search command for connectors.
@@ -75,7 +74,7 @@ public class ConnectorSearchCommand extends SearchCommand {
             .readJsonResource(AGENT_SUPPORT_CONNECTORS_JSON, AGENT_SUPPORT_CONNECTORS_LIST_TYPE);
     public static final String IS_AGENT_SUPPORT = "isAgentSupport";
     private static final Set<String> BLACKLISTED_CONNECTOR_NAME_PATTERNS = Set.of("ModelProvider");
-    private static final long CENTRAL_TIMEOUT_SECONDS = 10;
+    private static final Set<String> ALLOWED_ORGANIZATIONS = Set.of("ballerina", "ballerinax", "wso2");
 
     private static boolean isBlacklisted(String connectorName) {
         return BLACKLISTED_CONNECTOR_NAME_PATTERNS.stream().anyMatch(connectorName::contains);
@@ -123,9 +122,16 @@ public class ConnectorSearchCommand extends SearchCommand {
         scoredConnectors.forEach(result -> rootBuilder.node(generateAvailableNode(result.searchResult(), true)));
 
         // Search connectors from Ballerina Central, falling back to local database on failure or timeout
+        String currentOrg = project.currentPackage().packageOrg().value();
+        Set<String> allowedOrgs = new HashSet<>(ALLOWED_ORGANIZATIONS);
+        if (currentOrg != null && !currentOrg.isEmpty()) {
+            allowedOrgs.add(currentOrg);
+        }
+
         List<SearchResult> centralConnectors = fetchConnectorsFromCentral();
         if (centralConnectors != null) {
             centralConnectors.stream()
+                    .filter(result -> allowedOrgs.contains(result.packageInfo().org()))
                     .filter(result -> !isBlacklisted(result.name()))
                     .forEach(searchResult -> rootBuilder.node(generateAvailableNode(searchResult)));
         } else {
@@ -139,36 +145,33 @@ public class ConnectorSearchCommand extends SearchCommand {
     }
 
     /**
-     * Fetches connectors from Ballerina Central with a timeout. Returns null if the request fails or times out,
-     * allowing the caller to fall back to the local database.
+     * Fetches connectors from Ballerina Central. Returns null if the request fails or times out (relying on the
+     * HTTP client's configured connect/read/call timeouts), allowing the caller to fall back to the local database.
      */
     private List<SearchResult> fetchConnectorsFromCentral() {
         try {
-            CompletableFuture<List<SearchResult>> future = CompletableFuture.supplyAsync(() -> {
-                CentralAPI centralClient = RemoteCentral.getInstance();
-                Map<String, String> centralQueryMap = new HashMap<>();
-                if (!query.isEmpty()) {
-                    centralQueryMap.put("q", query);
+            CentralAPI centralClient = RemoteCentral.getInstance();
+            Map<String, String> centralQueryMap = new HashMap<>();
+            if (!query.isEmpty()) {
+                centralQueryMap.put("q", query);
+            }
+            centralQueryMap.put("limit", String.valueOf(limit));
+            centralQueryMap.put("offset", String.valueOf(offset));
+            ConnectorsResponse connectorsResponse = centralClient.connectors(centralQueryMap);
+            List<SearchResult> results = new ArrayList<>();
+            if (connectorsResponse != null && connectorsResponse.connectors() != null) {
+                for (Connector connector : connectorsResponse.connectors()) {
+                    SearchResult.Package packageInfo = new SearchResult.Package(
+                            connector.packageInfo.getOrganization(),
+                            connector.packageInfo.getName(),
+                            connector.moduleName,
+                            connector.packageInfo.getVersion()
+                    );
+                    results.add(SearchResult.from(packageInfo, connector.name,
+                            connector.packageInfo.getSummary(), false));
                 }
-                centralQueryMap.put("limit", String.valueOf(limit));
-                centralQueryMap.put("offset", String.valueOf(offset));
-                ConnectorsResponse connectorsResponse = centralClient.connectors(centralQueryMap);
-                List<SearchResult> results = new ArrayList<>();
-                if (connectorsResponse != null && connectorsResponse.connectors() != null) {
-                    for (Connector connector : connectorsResponse.connectors()) {
-                        SearchResult.Package packageInfo = new SearchResult.Package(
-                                connector.packageInfo.getOrganization(),
-                                connector.packageInfo.getName(),
-                                connector.moduleName,
-                                connector.packageInfo.getVersion()
-                        );
-                        results.add(SearchResult.from(packageInfo, connector.name,
-                                connector.packageInfo.getSummary(), false));
-                    }
-                }
-                return results;
-            });
-            return future.get(CENTRAL_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            }
+            return results;
         } catch (Exception e) {
             // Failed to fetch connectors from Central, falling back to local database
             return null;
@@ -198,6 +201,9 @@ public class ConnectorSearchCommand extends SearchCommand {
             ConnectorsResponse connectorsResponse = centralClient.connectors(queryMap);
             if (connectorsResponse != null && connectorsResponse.connectors() != null) {
                 for (Connector connector : connectorsResponse.connectors()) {
+                    if (connector.packageInfo == null) {
+                        continue;
+                    }
                     SearchResult.Package packageInfo = new SearchResult.Package(
                             connector.packageInfo.getOrganization(),
                             connector.packageInfo.getName(),
