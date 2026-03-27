@@ -18,6 +18,7 @@
 
 import { useEffect, useState } from "react";
 import { TextField } from "@wso2/ui-toolkit";
+import { usePlatformExtContext } from "../../../providers/platform-ext-ctx-provider";
 import {
     FieldGroup,
     ProjectSection,
@@ -45,6 +46,8 @@ export function AddProjectFormFields({
     packageNameValidationError,
     projectNameValidationError
 }: AddProjectFormFieldsProps) {
+    const { platformExtState } = usePlatformExtContext();
+    const organizations = platformExtState?.userInfo?.organizations ?? [];
     const [packageNameTouched, setPackageNameTouched] = useState(false);
     const [isPackageInfoExpanded, setIsPackageInfoExpanded] = useState(false);
     const [packageNameError, setPackageNameError] = useState<string | null>(null);
@@ -59,6 +62,12 @@ export function AddProjectFormFields({
             onFormDataChange({ packageName: sanitizePackageName(value) });
         }
     };
+
+    useEffect(() => {
+        if (organizations.length > 0 && !formData.orgName) {
+            onFormDataChange({ orgName: organizations[0].handle });
+        }
+    }, [organizations]);
 
     // Effect to trigger validation when requested by parent
     useEffect(() => {
@@ -88,6 +97,11 @@ export function AddProjectFormFields({
                 </ProjectSection>
             )}
 
+            <ProjectTypeSelector
+                value={formData.isLibrary}
+                onChange={(isLibrary) => onFormDataChange({ isLibrary })}
+            />
+
             <FieldGroup>
                 <TextField
                     onTextChange={handleIntegrationName}
@@ -98,11 +112,6 @@ export function AddProjectFormFields({
                     required={true}
                 />
             </FieldGroup>
-
-            <ProjectTypeSelector
-                value={formData.isLibrary}
-                onChange={(isLibrary) => onFormDataChange({ isLibrary })}
-            />
 
             <SectionDivider />
 
@@ -119,6 +128,7 @@ export function AddProjectFormFields({
                 isLibrary={formData.isLibrary}
                 packageNameError={packageNameValidationError || packageNameError}
                 orgNameError={orgNameError}
+                organizations={organizations}
             />
         </>
     );
