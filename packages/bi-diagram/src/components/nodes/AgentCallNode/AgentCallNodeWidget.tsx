@@ -713,10 +713,12 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     const nodeMetadata = model?.node.metadata.data as NodeMetadata;
     const tools = nodeMetadata?.tools || [];
 
-    const sanitizedAgent = nodeMetadata?.agent ? sanitizeAgentData(nodeMetadata.agent) : undefined;
+    if (nodeMetadata?.agent) {
+        nodeMetadata.agent = sanitizeAgentData(nodeMetadata.agent);
+    }
     const nodeToolNames = tools.map((t: ToolData) => t.name).sort();
-    const nodeRole = sanitizedAgent?.role || '';
-    const nodeInstructions = sanitizedAgent?.instructions || '';
+    const nodeRole = nodeMetadata?.agent?.role || '';
+    const nodeInstructions = nodeMetadata?.agent?.instructions || '';
 
     const isTraceMatch = traceAnimation && (() => {
         // Guard: only animate if the trace's entrypoint matches the current flow diagram's service/function
@@ -740,6 +742,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                 ?.replace(/\n#\s*Instructions for Tool Validation Failure Handling[^\n]*\n[\s\S]*$/, '')
                 ?.trim();
             const instrMatch = nodeInstructions != null && cleanedInstructions === nodeInstructions.trim();
+
 
             if (nodeRole != null && nodeInstructions != null) {
                 return roleMatch && instrMatch;
@@ -935,47 +938,44 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                         </Popover>
                     </NodeStyles.MemoryContainer>
 
-                    {
-                        nodeMetadata?.agent?.role ? (
-                            <NodeStyles.Row readOnly={readOnly} onClick={handleOnClick}>
-                                <NodeStyles.Role>
-                                    <ReactMarkdown
-                                        disallowedElements={['script', 'iframe', 'object', 'embed', 'link', 'style']}
-                                        unwrapDisallowed={true}
-                                    >
-                                        {sanitizedAgent?.role}
-                                    </ReactMarkdown>
-                                </NodeStyles.Role>
-                            </NodeStyles.Row>
-                        ) : (
-                            <NodeStyles.Row readOnly={readOnly} onClick={handleOnClick}>
-                                <NodeStyles.RolePlaceholder>Define agent's role</NodeStyles.RolePlaceholder>
-                            </NodeStyles.Row>
-                        )
-                    }
+                    {nodeMetadata?.agent?.role ? (
+                        <NodeStyles.Row readOnly={readOnly} onClick={handleOnClick}>
+                            <NodeStyles.Role>
+                                <ReactMarkdown
+                                    disallowedElements={['script', 'iframe', 'object', 'embed', 'link', 'style']}
+                                    unwrapDisallowed={true}
+                                >
+                                    {nodeMetadata.agent.role}
+                                </ReactMarkdown>
+                            </NodeStyles.Role>
+                        </NodeStyles.Row>
+                    ) : (
+                        <NodeStyles.Row readOnly={readOnly} onClick={handleOnClick}>
+                            <NodeStyles.RolePlaceholder>Define agent's role</NodeStyles.RolePlaceholder>
+                        </NodeStyles.Row>
+                    )}
 
-                    {
-                        nodeMetadata?.agent?.instructions ? (
-                            <NodeStyles.InstructionsRow readOnly={readOnly} onClick={handleOnClick}>
-                                <NodeStyles.Instructions>
-                                    <ReactMarkdown
-                                        disallowedElements={['script', 'iframe', 'object', 'embed', 'link', 'style']}
-                                        unwrapDisallowed={true}
-                                    >
-                                        {sanitizedAgent?.instructions}
-                                    </ReactMarkdown>
-                                </NodeStyles.Instructions>
-                            </NodeStyles.InstructionsRow>
-                        ) : (
-                            <NodeStyles.InstructionsRow readOnly={readOnly} onClick={handleOnClick}>
-                                <NodeStyles.InstructionsPlaceholder>
-                                    Provide specific instructions on how the agent should behave.
-                                </NodeStyles.InstructionsPlaceholder>
-                            </NodeStyles.InstructionsRow>
-                        )
-                    }
-                </NodeStyles.Column >
-            </NodeStyles.Box >
+                    {nodeMetadata?.agent?.instructions ? (
+                        <NodeStyles.InstructionsRow readOnly={readOnly} onClick={handleOnClick}>
+                            <NodeStyles.Instructions>
+                                <ReactMarkdown
+                                    disallowedElements={['script', 'iframe', 'object', 'embed', 'link', 'style']}
+                                    unwrapDisallowed={true}
+                                >
+                                    {nodeMetadata.agent.instructions}
+                                </ReactMarkdown>
+                            </NodeStyles.Instructions>
+                        </NodeStyles.InstructionsRow>
+                    ) : (
+                        <NodeStyles.InstructionsRow readOnly={readOnly} onClick={handleOnClick}>
+                            <NodeStyles.InstructionsPlaceholder>
+                                Provide specific instructions on how the agent should behave.
+                            </NodeStyles.InstructionsPlaceholder>
+                        </NodeStyles.InstructionsRow>
+                    )}
+                </NodeStyles.Column>
+                <NodeStyles.BottomPortWidget port={model.getPort("out")!} engine={engine} />
+            </NodeStyles.Box>
 
             <svg
                 width={NODE_GAP_X + NODE_HEIGHT + LABEL_HEIGHT + LABEL_WIDTH + 10}
@@ -1452,25 +1452,12 @@ function sanitizeId(name: string): string {
 // sanitize agent instructions and role
 // remove leading and trailing quotes
 // remove suffix "string `" and prefix "`"
-function stripWrappingQuotes(str: string): string {
-    // Handle `string \`...\`` template format — backticks are the definitive wrapper, no further stripping needed
-    if (str.startsWith('string `') && str.endsWith('`')) {
-        return str.slice('string `'.length, -1);
+function sanitizeAgentData(data: AgentData) {
+    if (data.role) {
+        data.role = data.role.replace(/^['"]|['"]$/g, "").replace(/^string `|`$/g, "");
     }
-    // Only strip quotes if wrapped in a single matching pair (not multiple like """...""")
-    if (
-        ((str.startsWith('"') && str.endsWith('"')) || (str.startsWith("'") && str.endsWith("'")))
-        && !(str.startsWith('""') || str.startsWith("''"))
-    ) {
-        return str.slice(1, -1);
+    if (data.instructions) {
+        data.instructions = data.instructions.replace(/^['"]|['"]$/g, "").replace(/^string `|`$/g, "");
     }
-    return str;
-}
-
-function sanitizeAgentData(data: AgentData): AgentData {
-    return {
-        ...data,
-        role: data.role ? stripWrappingQuotes(data.role) : data.role,
-        instructions: data.instructions ? stripWrappingQuotes(data.instructions) : data.instructions,
-    };
+    return data;
 }
