@@ -409,7 +409,7 @@ export interface FormProps {
     formDiagnostics?: { message: string; severity: "ERROR" | "WARNING" | "INFO" }[];
     formDiagnosticsAction?: React.ReactNode;
     preserveOrder?: boolean;
-    handleSelectedTypeChange?: (type: string | CompletionItem) => void;
+    handleSelectedTypeChange?: (type: string | CompletionItem) => void | Promise<void>;
     scopeFieldAddon?: React.ReactNode;
     onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
     injectedComponents?: {
@@ -662,7 +662,9 @@ export const Form = forwardRef((props: FormProps, _ref) => {
     };
 
     const handleNewTypeSelected = (type: string | CompletionItem) => {
-        handleSelectedTypeChange && handleSelectedTypeChange(type);
+        Promise.resolve(handleSelectedTypeChange?.(type)).catch((error) => {
+            console.error("Error in handleSelectedTypeChange", error);
+        });
     }
 
     const getVisualiableFields = () => {
