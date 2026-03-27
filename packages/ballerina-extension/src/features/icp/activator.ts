@@ -23,7 +23,18 @@ import { resolveICPPath } from './detect';
 const ICP_START_COMMAND = 'ballerina.icp.start';
 const ICP_STOP_COMMAND = 'ballerina.icp.stop';
 const ICP_TERMINAL_NAME = 'ICP Server';
-const ICP_SERVER_URL = 'https://localhost:9445';
+
+function getICPUrl(): string {
+    return vscode.workspace.getConfiguration('ballerina').get<string>('icpUrl') || 'https://localhost:9445';
+}
+
+function getICPCredentials(): { username: string; password: string } {
+    const config = vscode.workspace.getConfiguration('ballerina');
+    return {
+        username: config.get<string>('icpUsername') || 'admin',
+        password: config.get<string>('icpPassword') || 'admin',
+    };
+}
 
 let icpTerminal: vscode.Terminal | undefined;
 let isRunning = false;
@@ -54,12 +65,17 @@ export async function ensureICPServerRunning(): Promise<boolean> {
     if (action === 'Start ICP Server') {
         await vscode.commands.executeCommand(ICP_START_COMMAND);
         if (isRunning) {
+            const icpUrl = getICPUrl();
+            const { username, password } = getICPCredentials();
+            const credentialsHint = (username === 'admin' && password === 'admin')
+                ? ' (default credentials: admin/admin)'
+                : '';
             vscode.window.showInformationMessage(
-                `ICP server started. Access it at ${ICP_SERVER_URL} (default credentials: admin/admin)`,
+                `ICP server started. Access it at ${icpUrl}${credentialsHint}`,
                 'Open in Browser'
             ).then((selection) => {
                 if (selection === 'Open in Browser') {
-                    vscode.env.openExternal(vscode.Uri.parse(ICP_SERVER_URL));
+                    vscode.env.openExternal(vscode.Uri.parse(icpUrl));
                 }
             });
         }
