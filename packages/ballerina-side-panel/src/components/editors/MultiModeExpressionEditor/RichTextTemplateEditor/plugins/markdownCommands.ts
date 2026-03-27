@@ -238,6 +238,55 @@ export const handleMarkdownShortcutEnter: Command = (state, dispatch) => {
     return false;
 };
 
+// When the cursor is at the right edge of an inline code span and the user
+// presses ArrowRight, clear stored marks so subsequent typing is unstyled.
+// This mirrors the behavior of Notion, Google Docs, and other rich editors.
+export const exitInlineCodeOnArrowRight: Command = (state, dispatch) => {
+    if (!state.selection.empty) return false;
+
+    const { $from } = state.selection;
+    const codeMark = state.schema.marks.code;
+    if (!codeMark) return false;
+
+    // Check if cursor is at the end of a code mark
+    const parent = $from.parent;
+    const offsetInParent = $from.parentOffset;
+
+    // Not at end of parent — check if this position is at a mark boundary
+    if (offsetInParent < parent.content.size) {
+        // Check if the character before has code mark but the character after doesn't
+        const before = offsetInParent > 0 ? parent.childAfter(offsetInParent - 1) : null;
+        const after = parent.childAfter(offsetInParent);
+
+        const beforeHasCode = before?.node?.marks.some((m: any) => m.type === codeMark) ?? false;
+        const afterHasCode = after?.node?.marks.some((m: any) => m.type === codeMark) ?? false;
+
+        if (beforeHasCode && !afterHasCode) {
+            // At the right edge of a code span — clear stored marks and move cursor
+            if (dispatch) {
+                const tr = state.tr.setStoredMarks([]);
+                dispatch(tr);
+            }
+            // Return false to let default ArrowRight also move the cursor
+            return false;
+        }
+    }
+
+    // At end of parent — check if last content has code mark
+    if (offsetInParent === parent.content.size && parent.content.size > 0) {
+        const lastChild = parent.lastChild;
+        if (lastChild?.marks.some((m: any) => m.type === codeMark)) {
+            if (dispatch) {
+                const tr = state.tr.setStoredMarks([]);
+                dispatch(tr);
+            }
+            return false;
+        }
+    }
+
+    return false;
+};
+
 // Input rule: typing `text` (backtick-wrapped) converts to inline code mark.
 export function createMarkdownInputRulesPlugin(schema: Schema): Plugin {
     const rules: InputRule[] = [];
@@ -247,11 +296,11 @@ export function createMarkdownInputRulesPlugin(schema: Schema): Plugin {
             /`([^`]+)`$/,
             (state, match, start, end) => {
                 const codeMark = schema.marks.code.create();
-                return (state.tr as any)
-                    .delete(start, end)
-                    .insertText(match[1], start)
-                    .addMark(start, start + match[1].length, codeMark)
-                    .removeStoredMarks([codeMark]);
+                const tr = (state.tr as any).delete(start, end);
+                tr.insertText(match[1], start);
+                tr.addMark(start, start + match[1].length, codeMark);
+                tr.setStoredMarks([]);
+                return tr;
             }
         ));
     }
