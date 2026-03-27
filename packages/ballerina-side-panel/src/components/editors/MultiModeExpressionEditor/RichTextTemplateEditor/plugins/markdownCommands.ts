@@ -198,7 +198,41 @@ export const canRedo = (state: EditorState): boolean => {
 // when Enter is pressed. Returns false to let other Enter handlers run.
 export const handleMarkdownShortcutEnter: Command = (state, dispatch) => {
     const { $from } = state.selection;
-    // Only handle when cursor is in a paragraph
+
+    // Exit code block: Enter on an empty last line creates a paragraph after it
+    if ($from.parent.type.name === "code_block") {
+        const codeBlock = $from.parent;
+        const text = codeBlock.textContent;
+        const offset = $from.parentOffset;
+
+        // Check if cursor is at the end and the last line is empty
+        const isAtEnd = offset === text.length;
+        const endsWithNewline = text.endsWith("\n") || text === "";
+
+        if (isAtEnd && endsWithNewline) {
+            if (dispatch) {
+                const start = $from.before();
+                const end = $from.after();
+                const tr = state.tr as any;
+
+                // Build a new code block without the trailing newline, plus a paragraph
+                const trimmedText = text.endsWith("\n") ? text.slice(0, -1) : text;
+                const newCodeBlock = trimmedText
+                    ? state.schema.nodes.code_block.create(null, state.schema.text(trimmedText))
+                    : state.schema.nodes.code_block.create();
+                const paragraph = state.schema.nodes.paragraph.create();
+
+                tr.replaceWith(start, end, Fragment.from([newCodeBlock, paragraph]));
+                // Cursor in the new paragraph (after code block)
+                tr.setSelection(Selection.near(tr.doc.resolve(start + newCodeBlock.nodeSize + 1)));
+                dispatch(tr.scrollIntoView());
+            }
+            return true;
+        }
+        return false;
+    }
+
+    // Only handle remaining shortcuts when cursor is in a paragraph
     if ($from.parent.type.name !== "paragraph") return false;
 
     const text = $from.parent.textContent;
@@ -248,39 +282,69 @@ export const exitInlineCodeOnArrowRight: Command = (state, dispatch) => {
     const codeMark = state.schema.marks.code;
     if (!codeMark) return false;
 
-    // Check if cursor is at the end of a code mark
+    // Check if the cursor currently has code mark active
+    const storedMarks = state.storedMarks || $from.marks();
+    const hasCode = storedMarks.some((m: any) => m.type === codeMark);
+    if (!hasCode) return false;
+
     const parent = $from.parent;
     const offsetInParent = $from.parentOffset;
 
-    // Not at end of parent — check if this position is at a mark boundary
+    // At a mark boundary (end of code span, more text follows)
     if (offsetInParent < parent.content.size) {
-        // Check if the character before has code mark but the character after doesn't
-        const before = offsetInParent > 0 ? parent.childAfter(offsetInParent - 1) : null;
         const after = parent.childAfter(offsetInParent);
-
-        const beforeHasCode = before?.node?.marks.some((m: any) => m.type === codeMark) ?? false;
         const afterHasCode = after?.node?.marks.some((m: any) => m.type === codeMark) ?? false;
 
-        if (beforeHasCode && !afterHasCode) {
-            // At the right edge of a code span — clear stored marks and move cursor
+        if (!afterHasCode) {
             if (dispatch) {
-                const tr = state.tr.setStoredMarks([]);
-                dispatch(tr);
+                // Move cursor one position right and clear code mark
+                const tr = state.tr;
+                tr.setSelection(Selection.near(state.doc.resolve($from.pos + 1)));
+                tr.setStoredMarks([]);
+                dispatch(tr.scrollIntoView());
             }
-            // Return false to let default ArrowRight also move the cursor
-            return false;
+            return true;
         }
     }
 
-    // At end of parent — check if last content has code mark
-    if (offsetInParent === parent.content.size && parent.content.size > 0) {
-        const lastChild = parent.lastChild;
-        if (lastChild?.marks.some((m: any) => m.type === codeMark)) {
+    // At end of parent — code span is the last thing in the paragraph
+    if (offsetInParent === parent.content.size) {
+        if (dispatch) {
+            // Just clear stored marks — cursor is already at the edge
+            const tr = state.tr.setStoredMarks([]);
+            dispatch(tr);
+        }
+        return true;
+    }
+
+    return false;
+};
+
+// ArrowDown at the end of a code block (or any last block) creates a paragraph
+// below and moves the cursor there. Without this, users get trapped in trailing
+// code blocks, tables, or blockquotes.
+export const exitBlockOnArrowDown: Command = (state, dispatch) => {
+    if (!state.selection.empty) return false;
+
+    const { $from } = state.selection;
+
+    // Check if cursor is at the very end of the document content
+    const topLevelNode = $from.node(1);
+    const isLastBlock = state.doc.lastChild === topLevelNode;
+    const atEndOfBlock = $from.parentOffset === $from.parent.content.size;
+
+    if (isLastBlock && atEndOfBlock) {
+        // Only act on blocks where you can get "trapped" (not paragraphs)
+        const blockType = topLevelNode?.type.name;
+        if (blockType === "code_block" || blockType === "table" || blockType === "blockquote") {
             if (dispatch) {
-                const tr = state.tr.setStoredMarks([]);
-                dispatch(tr);
+                const endOfDoc = state.doc.content.size;
+                const paragraph = state.schema.nodes.paragraph.create();
+                const tr = (state.tr as any).insert(endOfDoc, paragraph);
+                tr.setSelection(Selection.near(tr.doc.resolve(endOfDoc + 1)));
+                dispatch(tr.scrollIntoView());
             }
-            return false;
+            return true;
         }
     }
 
