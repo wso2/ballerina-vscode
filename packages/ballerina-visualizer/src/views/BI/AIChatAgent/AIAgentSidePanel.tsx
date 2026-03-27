@@ -265,9 +265,12 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             const getNodeRequest: BIAvailableNodesRequest = {
                 position: targetRef.current.startLine,
                 filePath: agentFilePath.current,
-                queryMap: {
-                    "checkAgentToolCompatibility": "true"
-                }
+                // TODO: This is currently disabled because it hides nodes that are actually tool compatible 
+                // due to some inconsistencies in how the compatibility is determined. 
+                // Need to revisit the logic and ensure it's consistent before enabling this filter
+                // queryMap: {
+                //     "checkAgentToolCompatibility": "true"
+                // }
             };
             const response = await rpcClient.getBIDiagramRpcClient().getAvailableNodes(getNodeRequest);
             console.log(">>> Available nodes", response);
@@ -377,7 +380,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 funcDef.properties.parameters.metadata.description = "Define the inputs the agent must provide when invoking this tool.";
                 toolInputFields = convertConfig(funcDef.properties, ["functionName", "functionNameDescription", "isIsolated", "type", "typeDescription", "isPublic"]);
             }
-            
+
             const functionNodeTemplate = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
                 position: funcDef?.codedata.lineRange.startLine || { line: 0, offset: 0 },
                 filePath: functionFilePath.current,
