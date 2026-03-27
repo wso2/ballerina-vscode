@@ -974,9 +974,9 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                             </NodeStyles.InstructionsRow>
                         )
                     }
-                </NodeStyles.Column >
+                </NodeStyles.Column>
                 <NodeStyles.BottomPortWidget port={model.getPort("out")!} engine={engine} />
-            </NodeStyles.Box >
+            </NodeStyles.Box>
 
             <svg
                 width={NODE_GAP_X + NODE_HEIGHT + LABEL_HEIGHT + LABEL_WIDTH + 10}
