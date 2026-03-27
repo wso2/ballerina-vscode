@@ -24,6 +24,7 @@ import {
     InlineCardHeader,
     InlineCardIcon,
     InlineCardTitle,
+    InlineCardSubtitle
 } from "./styles";
 
 const HURL_IMPORT_VSCODE_COMMAND = "HTTPClient.importHurlString";
@@ -191,6 +192,16 @@ const StatusLine = styled.div`
     gap: 6px;
 `;
 
+const SummaryStatusLine = styled(StatusLine)`
+    justify-content: space-between;
+`;
+
+const SummaryDetails = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 10px;
+`;
+
 const StatusCode = styled.span<{ status: number }>`
     font-size: 11px;
     font-weight: 700;
@@ -237,7 +248,6 @@ const EditButton = styled.button`
     border-radius: 3px;
     font-size: 11px;
     font-weight: 600;
-    margin-left: 8px;
     &:hover {
         background-color: var(--vscode-toolbar-hoverBackground);
         color: var(--vscode-foreground);
@@ -290,14 +300,18 @@ interface HTTPTestScenarioDetailProps {
     loading:boolean;
     input?: HurlToolOutput["input"];
     output?: HurlToolOutput["output"];
+    hurlScript: string;
+    rpcClient?: any;
 }
 
 interface HTTPEntryRowProps {
     entry: HurlToolOutput["output"]["entries"][number];
     request?: HurlToolOutput["input"]["requests"][number];
+    showEditButton?: boolean;
+    onEdit?: () => Promise<void>;
 }
 
-const HTTPEntryRow: React.FC<HTTPEntryRowProps> = ({ entry, request }) => {
+const HTTPEntryRow: React.FC<HTTPEntryRowProps> = ({ entry, request, showEditButton, onEdit }) => {
     const [expanded, setExpanded] = useState(false);
     const isPassed = entry.status === "passed";
 
@@ -313,6 +327,16 @@ const HTTPEntryRow: React.FC<HTTPEntryRowProps> = ({ entry, request }) => {
                 <ExpandButton onClick={() => setExpanded(p => !p)} title={expanded ? "Collapse" : "Expand"}>
                     <span className={`codicon ${expanded ? "codicon-chevron-up" : "codicon-chevron-down"}`} />
                 </ExpandButton>
+                {showEditButton && (
+                    <EditButton
+                        title="Edit in HTTP Client"
+                        onClick={async () => {
+                            await onEdit?.();
+                        }}
+                    >
+                        <span className="codicon codicon-edit" />
+                    </EditButton>
+                )}
             </RequestRow>
 
             {expanded && (
@@ -380,7 +404,7 @@ const HTTPEntryRow: React.FC<HTTPEntryRowProps> = ({ entry, request }) => {
     );
 };
 
-const HTTPTestScenarioDetail: React.FC<HTTPTestScenarioDetailProps> = ({ loading, input, output }) => {
+const HTTPTestScenarioDetail: React.FC<HTTPTestScenarioDetailProps> = ({ loading, input, output, hurlScript, rpcClient }) => {
     if (loading) {
         return (
             <StatusLine>
@@ -394,17 +418,45 @@ const HTTPTestScenarioDetail: React.FC<HTTPTestScenarioDetailProps> = ({ loading
 
     if (!output) return null;
 
+    const showSummary = output.entries.length > 1;
+    const handleEdit = async () => {
+        try {
+            await rpcClient?.getCommonRpcClient?.()?.executeCommand?.({
+                commands: [
+                    HURL_IMPORT_VSCODE_COMMAND,
+                    hurlScript,
+                ]
+            });
+        } catch (e) {
+            // eslint-disable-next-line no-console
+            console.error("Failed to invoke edit command", e);
+        }
+    };
+
     return (
         <>
-            <SubHeader>Summary</SubHeader>
-            <StatusLine style={{ marginBottom: 6 }}>
-                <span>Total: {output.summary.totalEntries}</span>
-                <span style={{ color: "var(--vscode-charts-green, #388a34)", marginLeft: 10 }}>Passed: {output.summary.passedEntries}</span>
-                <span style={{ color: "var(--vscode-errorForeground)", marginLeft: 10 }}>Failed: {output.summary.failedEntries}</span>
-            </StatusLine>
+            {showSummary && <SubHeader>Summary</SubHeader>}
+            {showSummary && (
+                <SummaryStatusLine style={{ marginBottom: 6 }}>
+                    <SummaryDetails>
+                        <span>Total: {output.summary.totalEntries}</span>
+                        <span style={{ color: "var(--vscode-charts-green, #388a34)" }}>Passed: {output.summary.passedEntries}</span>
+                        <span style={{ color: "var(--vscode-errorForeground)" }}>Failed: {output.summary.failedEntries}</span>
+                    </SummaryDetails>
+                    <EditButton title="Edit in HTTP Client" onClick={handleEdit}>
+                        <span className="codicon codicon-edit" />
+                    </EditButton>
+                </SummaryStatusLine>
+            )}
 
             {output.entries.map((entry, idx) => (
-                <HTTPEntryRow key={idx} entry={entry} request={input?.requests[idx]} />
+                <HTTPEntryRow
+                    key={idx}
+                    entry={entry}
+                    request={input?.requests[idx]}
+                    showEditButton={!showSummary && idx === 0}
+                    onEdit={handleEdit}
+                />
             ))}
         </>
     );
@@ -421,7 +473,6 @@ interface TryItCardProps {
 const TryItCard: React.FC<TryItCardProps> = ({ input, output, rpcClient }) => {
     if (!input?.hurlScript && !output?.hurlScript) return null;
     const hurlScript = input?.hurlScript ?? output?.hurlScript;
-    const hasScenario = !!(input?.scenario || output?.scenario);
     const scenario = input?.scenario ?? output?.scenario;
 
     const content = (
@@ -429,6 +480,8 @@ const TryItCard: React.FC<TryItCardProps> = ({ input, output, rpcClient }) => {
             loading={!output}
             input={output?.runResult?.input}
             output={output?.runResult?.output}
+            hurlScript={hurlScript}
+            rpcClient={rpcClient}
         />
     );
 
@@ -439,35 +492,11 @@ const TryItCard: React.FC<TryItCardProps> = ({ input, output, rpcClient }) => {
                     <span className="codicon codicon-send" />
                 </InlineCardIcon>
                 <InlineCardTitle>HTTP Test Scenario</InlineCardTitle>
+                {scenario && <InlineCardSubtitle>{scenario}</InlineCardSubtitle>}
             </InlineCardHeader>
-
-            {hasScenario ? (
-                <ScenarioGroup>
-                    <ScenarioHeader>
-                        <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{scenario}</div>
-                        <EditButton
-                            title="Edit in HTTP Client"
-                            onClick={async () => {
-                                try {
-                                    await rpcClient?.getCommonRpcClient?.()?.executeCommand?.({
-                                        commands: [
-                                            HURL_IMPORT_VSCODE_COMMAND,
-                                            hurlScript,
-                                        ]});
-                                } catch (e) {
-                                    // eslint-disable-next-line no-console
-                                    console.error("Failed to invoke edit command", e);
-                                }
-                            }}
-                        >
-                            <span className="codicon codicon-edit" />
-                        </EditButton>
-                    </ScenarioHeader>
-                    <ScenarioContent>{content}</ScenarioContent>
-                </ScenarioGroup>
-            ) : (
-                content
-            )}
+            <ScenarioGroup>
+                <ScenarioContent>{content}</ScenarioContent>
+            </ScenarioGroup>
         </InlineCard>
     );
 };

@@ -68,8 +68,6 @@ hello world
 Use triple backticks whenever the body spans multiple structured lines or includes boundary markers, binary-like content, or custom formatting.
 
 Avoid using unnecessary newlines in the hurl script, as they can lead to parsing issues.
-
-When you plan to execute many requests, prefer defining all requests within a single tool call. The tool will execute the script and return the results of each request, including response details and assertion outcomes.
 `;
 function prepareHurlScript(input: HURLInput): string {
 	// Attaching the test scenario as a comment at the top of the Hurl script
@@ -128,7 +126,7 @@ type HurlToolOutput = {
 
 export function createHurlTool(eventHandler: CopilotEventHandler) {
     return tool({
-        description: `A tool to execute Hurl scripts. The input is a Hurl script as a string. The output includes the execution results, including request details, response details, assertion results, and any warnings.`,
+        description: `A tool to execute Hurl scripts. The input is a Hurl script as a string. The output includes the execution results, including request details, response details, assertion results, and any warnings. Use this tool to try out endpoints, or to execute HTTP test scenarios.`,
         inputSchema: HURLInputSchema,
         execute: async (input): Promise<HurlToolOutput> => await executeHurlRequest(input, eventHandler)
     });
