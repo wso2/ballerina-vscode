@@ -522,24 +522,34 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             const updatedField = { ...field };
 
             const isRepeatableList = field.types?.length === 1 && getPrimaryInputType(field.types)?.fieldType === "REPEATABLE_LIST";
-            const selectedInputType = isRepeatableList? getPrimaryInputType(field.types) : field.types?.find(t => t.selected);
+            const selectedInputType = isRepeatableList ? getPrimaryInputType(field.types) : field.types?.find(t => t.selected);
+            const isContainingRepeatableList = field.types?.some(t => t.fieldType === "REPEATABLE_LIST");
 
             const nodeProperties = nodeWithDiagnostics?.properties as any;
             let propertyDiagnostics: any = nodeProperties?.[field.key]?.diagnostics?.diagnostics;
 
             // Update value from current form data and update diagnostics
             if (data[field.key] !== undefined) {
-                if (selectedInputType?.fieldType === "REPEATABLE_LIST" && typeof data[field.key] === "string") {
-                    const initialValues = stringToRawArrayElements(data[field.key]);
-                    const initialFields = initialValues.map((val, index) => {
-                        const key = crypto.randomUUID();
-                        return {
-                            ...getArraySubFormFieldFromTypes(key, (field.types[0] as any).template.types as InputType[]),
-                            value: val,
-                            diagnostics: nodeProperties?.[field.key]?.value?.[index]?.diagnostics?.diagnostics ?? []
-                        };
-                    });
-                    updatedField.value = initialFields;
+                if (isContainingRepeatableList) {
+                    if (!Array.isArray(nodeProperties?.[field.key]?.value)) {
+                        throw new Error(`Expected value for repeatable list field "${field.key}" to be an array, but got string.`);
+                    }
+                    if (selectedInputType?.fieldType === "REPEATABLE_LIST") {
+                        const initialValues = stringToRawArrayElements(data[field.key]);
+                        const initialFields = initialValues.map((val, index) => {
+                            const key = crypto.randomUUID();
+                            return {
+                                ...getArraySubFormFieldFromTypes(key, (field.types[0] as any).template.types as InputType[]),
+                                value: val,
+                                diagnostics: nodeProperties?.[field.key]?.value?.[index]?.diagnostics?.diagnostics ?? []
+                            };
+                        });
+                        updatedField.value = initialFields;
+                    }
+                    else {
+                        updatedField.value = data[field.key];
+                        propertyDiagnostics = nodeProperties?.[field.key]?.value?.map((val: any) => val?.diagnostics?.diagnostics ?? []).flat() ?? [];
+                    }
                 }
                 else {
                     updatedField.value = data[field.key];
@@ -922,7 +932,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
         return Object.values(nodeProperties).some((property) => {
             let diagnostics: DiagnosticMessage[] = [];
-            if ( property?.types?.length === 1 && getPrimaryInputType(property.types)?.fieldType === "REPEATABLE_LIST") {
+            if (property?.types?.length === 1 && getPrimaryInputType(property.types)?.fieldType === "REPEATABLE_LIST") {
                 // For repeatable list, check diagnostics for each element in the list
                 const valueDiagnostics = (property.value as any[])?.map((val) => val?.diagnostics?.diagnostics ?? []).flat() ?? [];
                 diagnostics = [...diagnostics, ...valueDiagnostics];
