@@ -135,8 +135,9 @@ public class ConnectorSearchCommand extends SearchCommand {
                     .filter(result -> !isBlacklisted(result.name()))
                     .forEach(searchResult -> rootBuilder.node(generateAvailableNode(searchResult)));
         } else {
-            List<SearchResult> searchResults = dbManager.searchConnectors(query, limit, offset);
-            searchResults.stream()
+            List<SearchResult> indexSearchResults = dbManager.searchConnectors(query, limit, offset);
+            indexSearchResults.stream()
+                    .filter(result -> allowedOrgs.contains(result.packageInfo().org()))
                     .filter(result -> !isBlacklisted(result.name()))
                     .forEach(searchResult -> rootBuilder.node(generateAvailableNode(searchResult)));
         }
@@ -161,6 +162,9 @@ public class ConnectorSearchCommand extends SearchCommand {
             List<SearchResult> results = new ArrayList<>();
             if (connectorsResponse != null && connectorsResponse.connectors() != null) {
                 for (Connector connector : connectorsResponse.connectors()) {
+                    if (connector == null || connector.packageInfo == null) {
+                        continue;
+                    }
                     SearchResult.Package packageInfo = new SearchResult.Package(
                             connector.packageInfo.getOrganization(),
                             connector.packageInfo.getName(),
@@ -201,7 +205,7 @@ public class ConnectorSearchCommand extends SearchCommand {
             ConnectorsResponse connectorsResponse = centralClient.connectors(queryMap);
             if (connectorsResponse != null && connectorsResponse.connectors() != null) {
                 for (Connector connector : connectorsResponse.connectors()) {
-                    if (connector.packageInfo == null) {
+                    if (connector == null || connector.packageInfo == null) {
                         continue;
                     }
                     SearchResult.Package packageInfo = new SearchResult.Package(
