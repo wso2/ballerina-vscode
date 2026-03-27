@@ -176,7 +176,7 @@ public class ConnectorSearchCommand extends SearchCommand {
                 }
             }
             return results;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             // Failed to fetch connectors from Central, falling back to local database
             return null;
         }
