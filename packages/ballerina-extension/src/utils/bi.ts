@@ -40,14 +40,13 @@ import { ModulePart, STKindChecker } from "@wso2/syntax-tree";
 import { URI } from "vscode-uri";
 import { debug } from "./logger";
 import { parse } from "@iarna/toml";
-import { getProjectTomlValues } from "./config";
+import { getProjectTomlValues, isLibraryProject, VALIDATOR_PACKAGE_NAME } from "./config";
 import { extension } from "../BalExtensionContext";
+import { runBackgroundTerminalCommand } from "./runCommand";
 
 export const README_FILE = "README.md";
 export const FUNCTIONS_FILE = "functions.bal";
 export const DATA_MAPPING_FILE = "data_mappings.bal";
-
-export const VALIDATOR_PACKAGE_NAME = "wso2/strict.library";
 
 /**
  * Interface for the processed project information
@@ -416,17 +415,15 @@ sticky = true
         writeBallerinaFileDidOpen(automationBal, EMPTY);
     } else {
         const libraryBal = path.join(projectRoot, 'lib.bal');
-
-        // TODO: Enable pulling the validator package and adding the import to the lib.bal file
-        // once this this implemented: https://github.com/wso2/product-ballerina-integrator/issues/2409
-    
-        // const libraryBalContent = `import ${VALIDATOR_PACKAGE_NAME} as _;`;
-        // try {
-        //     await runBackgroundTerminalCommand(`bal pull ${VALIDATOR_PACKAGE_NAME}`);
-        // } catch (error) {
-        //     console.error('Failed to pull validator package:', error);
-        // }
-        writeBallerinaFileDidOpen(libraryBal, EMPTY);
+        const libraryBalContent = `import ${VALIDATOR_PACKAGE_NAME} as _;`;
+        if (!await isLibraryProject(projectRoot)) {
+            try {
+                await runBackgroundTerminalCommand(`bal pull ${VALIDATOR_PACKAGE_NAME}`);
+            } catch (error) {
+                console.error('Failed to pull library validator package:', error);
+            }
+        }
+        writeBallerinaFileDidOpen(libraryBal, libraryBalContent);
     }
 
     // Create .vscode configuration files
