@@ -291,13 +291,6 @@ const MainPanel = () => {
             const isStaleNavigation = () => navKey !== navKeyRef.current;
 
             try {
-                const configFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['config.bal'] })).filePath;
-                const testsFolderResult = await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['tests'], checkExists: true });
-                const testsConfigTomlPath = testsFolderResult.exists ? (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['tests', 'Config.toml'] })).filePath : undefined;
-                let defaultFunctionsFile = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['functions.bal'] })).filePath;
-                if (value.documentUri) {
-                    defaultFunctionsFile = value.documentUri
-                }
                 if (isStaleNavigation()) return;
                 const navTarget = `${value?.view ?? ''}-${value?.identifier ?? ''}-${value?.documentUri ?? ''}-${value?.projectPath ?? ''}`;
                 if (navTarget !== previousNavTargetRef.current) {
@@ -305,6 +298,32 @@ const MainPanel = () => {
                     previousNavTargetRef.current = navTarget;
                 }
                 const remountKey = remountKeyRef.current;
+                const getDefaultFunctionsFile = async () => {
+                    if (value.documentUri) {
+                        return value.documentUri;
+                    }
+
+                    return (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['functions.bal'] })).filePath;
+                };
+
+                const getConfigFilePath = async () =>
+                    (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['config.bal'] })).filePath;
+
+                const getTestsConfigTomlPath = async () => {
+                    const testsFolderResult = await rpcClient.getVisualizerRpcClient().joinProjectPath({
+                        segments: ['tests'],
+                        checkExists: true
+                    });
+
+                    if (!testsFolderResult.exists) {
+                        return undefined;
+                    }
+
+                    return (await rpcClient.getVisualizerRpcClient().joinProjectPath({
+                        segments: ['tests', 'Config.toml']
+                    })).filePath;
+                };
+
                 if (!value?.view) {
                     setViewComponent(<LoadingRing />);
                 } else {
@@ -457,6 +476,7 @@ const MainPanel = () => {
                     }
                     case MACHINE_VIEW.BIDataMapperForm: {
                         const { FunctionForm } = await import("./views/BI/FunctionForm");
+                        const defaultFunctionsFile = await getDefaultFunctionsFile();
                         if (isStaleNavigation()) return;
                         setViewComponent(
                             <FunctionForm
@@ -471,6 +491,7 @@ const MainPanel = () => {
                     }
                     case MACHINE_VIEW.BINPFunctionForm: {
                         const { FunctionForm } = await import("./views/BI/FunctionForm");
+                        const defaultFunctionsFile = await getDefaultFunctionsFile();
                         if (isStaleNavigation()) return;
                         setViewComponent(
                             <FunctionForm
@@ -489,9 +510,8 @@ const MainPanel = () => {
                         const projectStructure = await rpcClient.getBIDiagramRpcClient().getProjectStructure();
                         if (isStaleNavigation()) return;
                         const project = projectStructure.projects.find(project => project.projectPath === value.projectPath);
-                        const entryPoint = project
-                            .directoryMap[DIRECTORY_MAP.SERVICE]
-                            .find((service: ProjectStructureArtifactResponse) => service.name === value?.identifier);
+                        const services = project?.directoryMap?.[DIRECTORY_MAP.SERVICE] as ProjectStructureArtifactResponse[] | undefined;
+                        const entryPoint = services?.find((service: ProjectStructureArtifactResponse) => service.name === value?.identifier);
                         setViewComponent(
                             <GraphQLDiagram
                                 projectPath={value.projectPath}
@@ -669,6 +689,7 @@ const MainPanel = () => {
                     }
                     case MACHINE_VIEW.BIMainFunctionForm: {
                         const { FunctionForm } = await import("./views/BI/FunctionForm");
+                        const defaultFunctionsFile = await getDefaultFunctionsFile();
                         if (isStaleNavigation()) return;
                         setViewComponent(
                             <FunctionForm
@@ -682,6 +703,7 @@ const MainPanel = () => {
                     }
                     case MACHINE_VIEW.BIFunctionForm: {
                         const { FunctionForm } = await import("./views/BI/FunctionForm");
+                        const defaultFunctionsFile = await getDefaultFunctionsFile();
                         if (isStaleNavigation()) return;
                         setViewComponent(
                             <FunctionForm
@@ -721,6 +743,10 @@ const MainPanel = () => {
                     }
                     case MACHINE_VIEW.ViewConfigVariables: {
                         const { default: ViewConfigurableVariables } = await import("./views/BI/Configurables/ViewConfigurableVariables");
+                        const [configFilePath, testsConfigTomlPath] = await Promise.all([
+                            getConfigFilePath(),
+                            getTestsConfigTomlPath(),
+                        ]);
                         if (isStaleNavigation()) return;
                         setViewComponent(
                             <ViewConfigurableVariables
@@ -735,6 +761,10 @@ const MainPanel = () => {
                     }
                     case MACHINE_VIEW.AddConfigVariables: {
                         const { default: ViewConfigurableVariables } = await import("./views/BI/Configurables/ViewConfigurableVariables");
+                        const [configFilePath, testsConfigTomlPath] = await Promise.all([
+                            getConfigFilePath(),
+                            getTestsConfigTomlPath(),
+                        ]);
                         if (isStaleNavigation()) return;
                         setViewComponent(
                             <ViewConfigurableVariables
