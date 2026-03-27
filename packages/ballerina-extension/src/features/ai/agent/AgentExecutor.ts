@@ -321,6 +321,19 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                     accToolCallChars += JSON.stringify(step.toolCalls ?? []).length;
                     accToolResultChars += JSON.stringify(step.toolResults ?? []).length;
 
+                    // Persist partial modelMessages after each step so chat is recoverable mid-stream
+                    const stepMessages = step.response?.messages ?? [];
+                    if (stepMessages.length > 0) {
+                        console.log(`[AgentExecutor] Step ${step.stepNumber} saving ${stepMessages.length} message(s) to chat storage`);
+                        chatStateStorage.updateGeneration(workspaceId, threadId, this.config.generationId, {
+                            modelMessages: [
+                                { role: "user", content: userMessageContent },
+                                ...stepMessages,
+                            ],
+                        });
+                        updateAndSaveChat(this.config.generationId, Command.Agent, this.config.eventHandler);
+                    }
+
                     if (step.usage) {
                         const inputTokens = step.usage.inputTokens || 0;
                         const cacheReadTokens = step.usage.inputTokenDetails?.cacheReadTokens || 0;
