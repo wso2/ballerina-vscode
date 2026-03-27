@@ -22,7 +22,6 @@ import {
     FieldGroup,
     ProjectSection,
     SectionDivider,
-    OptionalSectionsLabel,
 } from "./styles";
 import { ProjectTypeSelector, PackageInfoSection } from "./components";
 import { AddProjectFormData } from "./types";
@@ -58,16 +57,6 @@ export function AddProjectFormFields({
         // Auto-populate package name if user hasn't manually edited it
         if (!packageNameTouched) {
             onFormDataChange({ packageName: sanitizePackageName(value) });
-        }
-    };
-
-    const handlePackageName = (value: string) => {
-        const sanitized = sanitizePackageName(value);
-        onFormDataChange({ packageName: sanitized });
-        setPackageNameTouched(value.length > 0);
-        // Clear error while typing
-        if (packageNameError) {
-            setPackageNameError(null);
         }
     };
 
@@ -110,29 +99,25 @@ export function AddProjectFormFields({
                 />
             </FieldGroup>
 
-            <FieldGroup>
-                <TextField
-                    onTextChange={handlePackageName}
-                    value={formData.packageName}
-                    label="Package Name"
-                    description={`This will be used as the Ballerina package name for the ${resourceTypeLabelLower}.`}
-                    errorMsg={packageNameValidationError || packageNameError || ""}
-                />
-            </FieldGroup>
-
             <ProjectTypeSelector
                 value={formData.isLibrary}
                 onChange={(isLibrary) => onFormDataChange({ isLibrary })}
             />
 
             <SectionDivider />
-            <OptionalSectionsLabel>Optional Configurations</OptionalSectionsLabel>
 
             <PackageInfoSection
                 isExpanded={isPackageInfoExpanded}
                 onToggle={() => setIsPackageInfoExpanded(!isPackageInfoExpanded)}
-                data={{ orgName: formData.orgName, version: formData.version }}
-                onChange={(data) => onFormDataChange(data)}
+                data={{ packageName: formData.packageName, orgName: formData.orgName, version: formData.version }}
+                onChange={(data) => {
+                    onFormDataChange(data);
+                    if (data.packageName !== undefined) {
+                        setPackageNameTouched(true);
+                    }
+                }}
+                isLibrary={formData.isLibrary}
+                packageNameError={packageNameValidationError || packageNameError}
                 orgNameError={orgNameError}
             />
         </>
