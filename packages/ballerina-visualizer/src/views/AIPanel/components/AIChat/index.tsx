@@ -167,6 +167,7 @@ const AIChat: React.FC = () => {
     };
 
     const [isLoading, setIsLoading] = useState(false);
+    const [isCompacting, setIsCompacting] = useState(false);
     const [hoveredTurnIndex, setHoveredTurnIndex] = useState<number | null>(null);
     const [lastQuestionIndex, setLastQuestionIndex] = useState(-1);
     const [isCodeLoading, setIsCodeLoading] = useState(false);
@@ -203,6 +204,13 @@ const AIChat: React.FC = () => {
     const [usage, setUsage] = useState<{ remainingUsagePercentage: number; resetsIn: number } | null>(null);
     const [isUsageExceeded, setIsUsageExceeded] = useState(false);
     const [loginMethod, setLoginMethod] = useState<LoginMethod | null>(null);
+
+    const [contextUsage, setContextUsage] = useState<{
+        inputTokens: number;
+        percentage: number;
+        breakdown?: { systemInstructions: number; toolDefinitions: number; reservedOutput: number; messages: number; toolResults: number };
+    } | null>(null);
+    const [showContextUsage, setShowContextUsage] = useState(false);
 
     //TODO: Need a better way of storing data related to last generation to be in the repair state.
     const currentDiagnosticsRef = useRef<DiagnosticEntry[]>([]);
@@ -341,15 +349,21 @@ const AIChat: React.FC = () => {
 
     useEffect(() => { fetchUsage(); fetchLoginMethod(); }, []);
 
+    useEffect(() => {
+        rpcClient.getAiPanelRpcClient().getShowContextUsage().then(setShowContextUsage).catch(() => {});
+    }, []);
+
     const handleCheckpointRestore = async (checkpointId: string) => {
         try {
             // Call backend to restore checkpoint (files + chat history)
             await rpcClient.getAiPanelRpcClient().restoreCheckpoint({ checkpointId });
 
-            // Fetch updated messages from backend
-            const updatedMessages = await rpcClient.getAiPanelRpcClient().getChatMessages();
-            const uiMessages = convertToUIMessages(updatedMessages);
-            setMessages(uiMessages);
+            // Trim chat UI to the restored checkpoint — messages after this point
+            // no longer reflect the restored file state so they should be removed.
+            setMessages(prev => {
+                const idx = prev.findIndex(m => m.checkpointId === checkpointId);
+                return idx === -1 ? prev : prev.slice(0, idx + 1);
+            });
 
             // Update available checkpoint IDs after restore (checkpoints are trimmed during restore)
             const checkpoints = await rpcClient.getAiPanelRpcClient().getCheckpoints();
@@ -364,6 +378,9 @@ const AIChat: React.FC = () => {
             setCurrentFileArray([]);
             setLastQuestionIndex(-1);
             setCurrentGeneratingPromptIndex(-1);
+            // Clear stale context usage — token count changed with the restore.
+            // Widget will reappear with accurate data on the next agent turn.
+            setContextUsage(null);
             setHasActiveReview(false);
         } catch (error) {
             console.error("Failed to restore checkpoint:", error);
@@ -554,7 +571,7 @@ const AIChat: React.FC = () => {
                     const targetIndex = ensureAssistantMessage(msgs);
                     const last = msgs[targetIndex];
                     const entries = parseStream(last.content);
-                    const planItem: StreamItem = { kind: "plan", tasks: response.tasks, message: response.message };
+                    const planItem: StreamItem = { kind: "plan", requestId: response.requestId, tasks: response.tasks, message: response.message };
                     const updated = appendToLastEntry(entries, planItem);
                     msgs[targetIndex] = { ...last, content: serializeStream(updated, last.content) };
                     return msgs;
@@ -688,10 +705,33 @@ const AIChat: React.FC = () => {
         } else if (type === "messages") {
             messagesRef.current = response.messages;
 
+        } else if (type === "compaction_start") {
+            setIsCompacting(true);
+
+        } else if (type === "compaction_end" || type === "compaction_failed") {
+            setIsCompacting(false);
+            // Compaction wipes pre-compaction generations — refresh so restore buttons disappear
+            rpcClient.getAiPanelRpcClient().getCheckpoints()
+                .then(cps => setAvailableCheckpointIds(new Set(cps.map(cp => cp.id))))
+                .catch(() => {});
+
+        } else if (type === "usage_metrics") {
+            const inputTokens = (response as any).usage?.inputTokens ?? 0;
+            const MAX_CONTEXT_WINDOW = 200_000;
+            const percentage = Math.min(100, Math.round((inputTokens / MAX_CONTEXT_WINDOW) * 100));
+            const breakdown = (response as any).breakdown;
+            setContextUsage({ inputTokens, percentage, breakdown });
+
+        } else if (type === "config_change") {
+            if ((response as any).key === 'showContextUsage') {
+                setShowContextUsage((response as any).value);
+            }
+
         } else if (type === "stop") {
             console.log("Received stop signal");
             setIsWebToolsEnabled(userWebSearchPreferenceRef.current);
             setWebToolApprovalRequest(null);
+            setIsCompacting(false);
             setIsCodeLoading(false);
             setIsLoading(false);
             fetchUsage();
@@ -706,10 +746,11 @@ const AIChat: React.FC = () => {
                 const targetIndex = ensureAssistantMessage(msgs);
                 const last = msgs[targetIndex];
                 const entries = parseStream(last.content);
-                const updated = appendToLastEntry(entries, abortItem);
+                const updated = [...entries, { description: "", items: [abortItem] }];
                 msgs[targetIndex] = { ...last, content: serializeStream(updated, last.content) };
                 return msgs;
             });
+            setIsCompacting(false);
             setIsCodeLoading(false);
             setIsLoading(false);
 
@@ -757,6 +798,7 @@ const AIChat: React.FC = () => {
                 newMessages[targetIndex].content = content + errorTemplate;
                 return newMessages;
             });
+            setIsCompacting(false);
             setIsCodeLoading(false);
             setIsLoading(false);
             isErrorChunkReceivedRef.current = true;
@@ -834,6 +876,7 @@ const AIChat: React.FC = () => {
         try {
             await processContent(content);
         } catch (error: any) {
+            setIsCompacting(false);
             setIsLoading(false);
             setIsCodeLoading(false);
             if (error.name === "AbortError") {
@@ -1036,6 +1079,43 @@ const AIChat: React.FC = () => {
                     }
                     break;
                 }
+                /*
+                case Command.Compact: {
+                    setIsCompacting(true);
+                    const customInstructions = parsedInput.templateId === TemplateId.Wildcard
+                        ? parsedInput.text?.trim() || undefined
+                        : undefined;
+                    const result = await rpcClient.getAiPanelRpcClient().compactConversation(
+                        customInstructions ? { customInstructions } : {}
+                    );
+                    if (!result.success) {
+                        throw new Error(result.error || 'Compaction failed');
+                    }
+                    // Reload the compacted history from backend and reset all UI state.
+                    // Without this, isLoading stays true (input disabled) and the old
+                    // messages remain on screen because the success path never resets state.
+                    const updatedMessages = await rpcClient.getAiPanelRpcClient().getChatMessages();
+                    const uiMessages = convertToUIMessages(updatedMessages);
+                    const summaryContent = result.summary
+                        ? `This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.\n\n**Summary**\n\n${result.summary}`
+                        : `Context compacted successfully. You can continue the conversation.`;
+                    uiMessages.push({
+                        role: 'Copilot',
+                        content: summaryContent,
+                        type: 'assistant_message',
+                        checkpointId: '',
+                        messageId: '',
+                    });
+                    setMessages(uiMessages);
+                    setIsCompacting(false);
+                    setIsLoading(false);
+                    setIsCodeLoading(false);
+                    setCurrentFileArray([]);
+                    setLastQuestionIndex(-1);
+                    setCurrentGeneratingPromptIndex(-1);
+                    break;
+                }
+                */
             }
         }
     }
@@ -1193,6 +1273,7 @@ const AIChat: React.FC = () => {
     async function handleClearChat(): Promise<void> {
         setMessages([]);
         setApprovalRequest(null);
+        setContextUsage(null);
         await rpcClient.getAiPanelRpcClient().clearChat();
     }
 
@@ -1331,7 +1412,7 @@ const AIChat: React.FC = () => {
                 const updated = entries.map(entry => ({
                     ...entry,
                     items: entry.items.map(item =>
-                        item.kind === "plan" ? { ...item, approvalStatus: "approved" as const } : item
+                        item.kind === "plan" && item.requestId === approvalRequest.requestId ? { ...item, approvalStatus: "approved" as const } : item
                     )
                 }));
                 msgs[lastIdx] = { ...last, content: serializeStream(updated, last.content) };
@@ -1368,7 +1449,7 @@ const AIChat: React.FC = () => {
                 const updated = entries.map(entry => ({
                     ...entry,
                     items: entry.items.map(item =>
-                        item.kind === "plan" ? { ...item, approvalStatus: "revised" as const, approvalComment: comment } : item
+                        item.kind === "plan" && item.requestId === approvalRequest.requestId ? { ...item, approvalStatus: "revised" as const, approvalComment: comment } : item
                     )
                 }));
                 msgs[lastIdx] = { ...last, content: serializeStream(updated, last.content) };
@@ -1839,6 +1920,7 @@ const AIChat: React.FC = () => {
                             onSend={handleSend}
                             onStop={handleStop}
                             isLoading={isLoading}
+                            loadingLabel={isCompacting ? "Compacting conversation" : undefined}
                             showSuggestedCommands={Array.isArray(otherMessages) && otherMessages.length === 0}
                             codeContext={codeContext}
                             onRemoveCodeContext={() => updateCodeContext(undefined)}
@@ -1849,6 +1931,7 @@ const AIChat: React.FC = () => {
                             isWebToolsEnabled={isWebToolsEnabled}
                             onToggleWebSearch={handleToggleWebSearch}
                             disabled={isUsageExceeded}
+                            contextUsage={showContextUsage ? contextUsage : null}
                         />
                     )}
                 </AIChatView>
