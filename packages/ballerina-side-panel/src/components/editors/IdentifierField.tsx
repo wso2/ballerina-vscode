@@ -21,7 +21,7 @@ import React, { useState, useCallback, useEffect } from "react";
 import { debounce } from "lodash";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { useFormContext } from "../../context";
-import { buildRequiredRule, capitalize, getPropertyFromFormField } from "./utils";
+import { buildRequiredRule, capitalize, getPropertyFromFormField, mapDiagnosticsServerityToFormSeverity } from "./utils";
 import { FormField } from "../Form/types";
 export interface IdentifierFieldProps {
     field: FormField;
@@ -33,24 +33,44 @@ export interface IdentifierFieldProps {
 export function IdentifierField(props: IdentifierFieldProps) {
     const { field, handleOnFieldFocus, autoFocus, onBlur } = props;
     const { rpcClient } = useRpcContext();
-    const { expressionEditor, form } = useFormContext();
-    const { getExpressionEditorDiagnostics } = expressionEditor;
+    const { form, targetLineRange, fileName } = useFormContext();
     const [formDiagnostics, setFormDiagnostics] = useState(field.diagnostics);
-    const { watch, formState, register } = form;
+    const { watch, formState, register, setValue } = form;
     const { errors } = formState;
 
     useEffect(() => {
         setFormDiagnostics(field.diagnostics);
     }, [field.diagnostics]);
 
-    const validateIdentifierName = useCallback(debounce(async (value: string) => {
-        const fieldValue = watch(field.key);
+    // Sync external field value changes to the form (e.g., when a sibling field's onValueChange updates the value)
+    useEffect(() => {
+        setValue(field.key, field.value ?? '');
+    }, [field.key, field.value, setValue]);
 
-        const response = await getExpressionEditorDiagnostics(!field.optional || fieldValue !== '',
-            fieldValue,
-            field.key,
-            getPropertyFromFormField(field));
-    }, 250), [rpcClient, field]);
+    const validateIdentifierName = useCallback(debounce(async (value: string) => {
+        try {
+            const response = await rpcClient.getBIDiagramRpcClient().getExpressionDiagnostics({
+                filePath: fileName,
+                context: {
+                    expression: value,
+                    startLine: targetLineRange?.startLine,
+                    offset: 0,
+                    lineOffset: 0,
+                    codedata: field.codedata,
+                    property: getPropertyFromFormField(field)
+                }
+            });
+            if (response.diagnostics.length > 0) {
+                setFormDiagnostics([{message: response.diagnostics[0].message, severity: mapDiagnosticsServerityToFormSeverity(response.diagnostics[0].severity)}]);
+            } else {
+                setFormDiagnostics([]);
+            }
+        } catch (error) {
+            console.error('Failed to fetch expression diagnostics:', error);
+            // Optionally clear diagnostics or show error state
+            setFormDiagnostics([]);
+        }
+    }, 250), [rpcClient, field, targetLineRange, fileName]);
 
     const handleOnBlur = (e: React.ChangeEvent<HTMLInputElement>) => {
         validateIdentifierName(e.target.value);
@@ -94,7 +114,7 @@ export function IdentifierField(props: IdentifierFieldProps) {
                 sx={{ width: "100%" }}
             />
             {(!errors[field.key]?.message) && formDiagnostics && formDiagnostics.length > 0 && (
-                <ErrorBanner errorMsg={formDiagnostics.map(d => d.message).join(', ')} />
+                <ErrorBanner errorMsg={formDiagnostics.map(d => d.message).join('\n')} />
             )}
         </div>
     );

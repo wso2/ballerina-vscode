@@ -289,7 +289,7 @@ export const EvalsetViewer: React.FC<EvalsetViewerProps> = ({ projectPath, fileP
                                 >
                                     <Icon name="bi-delete" iconSx={{ fontSize: "16px", display: "flex" }} sx={{ display: "flex", alignItems: "center", justifyContent: "center" }} />
                                 </DeleteIconButton>
-                                <ThreadName>{thread.name}</ThreadName>
+                                <ThreadName>{thread.id}</ThreadName>
                                 <ThreadMeta>
                                     <div>{thread.traces.length} turn{thread.traces.length !== 1 ? 's' : ''}</div>
                                     {thread.created_on && (

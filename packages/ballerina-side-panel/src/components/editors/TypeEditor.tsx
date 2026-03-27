@@ -128,8 +128,13 @@ export function TypeEditor(props: TypeEditorProps) {
     const [focused, setFocused] = useState<boolean>(false);
     const [isTypeEditorHovered, setIsTypeEditorHovered] = useState<boolean>(false);
     const [typeInputMode, setTypeInputMode] = useState<TypeInputMode>(isContextTypeEditorSupported ? TypeInputMode.GUIDED : undefined);
+    const [formDiagnostics, setFormDiagnostics] = useState(field.diagnostics);
 
     const [isTypeHelperOpen, setIsTypeHelperOpen] = useState<boolean>(false);
+
+    useEffect(() => {
+        setFormDiagnostics(field.diagnostics);
+    }, [field.diagnostics]);
 
     const handleFocus = async (value: string) => {
         setFocused(true);
@@ -316,6 +321,7 @@ export function TypeEditor(props: TypeEditorProps) {
                                     return;
                                 }
 
+                                setFormDiagnostics([]);
                                 onChange(updatedValue);
                                 debouncedTypeEdit(updatedValue);
                                 field.onValueChange?.(updatedValue);
@@ -358,6 +364,9 @@ export function TypeEditor(props: TypeEditorProps) {
                             helperPaneZIndex={40001}
                         />
                         {error?.message && <ErrorBanner errorMsg={error.message.toString()} />}
+                        {(!error?.message) && formDiagnostics && formDiagnostics.length > 0 && (
+                            <ErrorBanner errorMsg={formDiagnostics.map(d => d.message).join('\n')} />
+                        )}
                     </div>
                 )}
             />

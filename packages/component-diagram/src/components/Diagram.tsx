@@ -51,7 +51,7 @@ export interface DiagramProps {
     onFunctionSelect: (func: CDFunction | CDResourceFunction) => void;
     onAutomationSelect: (automation: CDAutomation) => void;
     onConnectionSelect: (connection: CDConnection) => void;
-    onDeleteComponent: (component: CDListener | CDService | CDAutomation | CDConnection) => void;
+    onDeleteComponent: (component: CDListener | CDService | CDAutomation | CDConnection, nodeType?: string) => void;
 }
 
 export type GQLFuncListType = Record<GroupKey, Array<CDFunction | CDResourceFunction>>;

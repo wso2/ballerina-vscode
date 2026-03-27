@@ -17,7 +17,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { AvailableNode, CDModel, CodeData, EVENT_TYPE } from '@wso2/ballerina-core';
+import { AvailableNode, CDModel, CodeData, EVENT_TYPE, NodeKind } from '@wso2/ballerina-core';
 import { View, ViewContent, TextField, Button, Typography } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
@@ -26,7 +26,24 @@ import { TopNavigationBar } from '../../../components/TopNavigationBar';
 import { RelativeLoader } from '../../../components/RelativeLoader';
 import { FormHeader } from '../../../components/FormHeader';
 import { getAiModuleOrg, getNodeTemplate } from './utils';
-import { AI, AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT, BALLERINA, GET_DEFAULT_MODEL_PROVIDER } from '../../../constants';
+import { AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT, BALLERINA, GET_DEFAULT_MODEL_PROVIDER } from '../../../constants';
+
+const WSO2_MODEL_PROVIDER_CODEDATA: CodeData = {
+    node: "MODEL_PROVIDER",
+    org: "ballerina",
+    module: "ai",
+    packageName: "ai",
+    symbol: "getDefaultModelProvider",
+};
+
+const OPENAI_PROVIDER_CODEDATA: CodeData = {
+    node: "CLASS_INIT",
+    org: "ballerinax",
+    module: "ai",
+    packageName: "ai",
+    object: "OpenAiProvider",
+    symbol: "init",
+};
 
 const FormContainer = styled.div`
     display: flex;
@@ -59,12 +76,40 @@ const FormFields = styled.div`
 export interface AIChatAgentWizardProps {
 }
 
-const LISTENER = "Listener";
+const AI_CHAT_AGENT_LISTENER = "chatAgentListener";
+const AI_WSO2_MODEL_PROVIDER = "wso2ModelProvider";
 const MODEL = "Model";
+const KNOWN_SUFFIXES = ["agent", "model"];
 
-const OPEN_AI_PROVIDER = "OpenAiProvider";
-const MODEL_PROVIDER = "MODEL_PROVIDER";
-const CLASS_INIT = "CLASS_INIT";
+function toBaseName(name: string): string {
+    // Split on spaces/underscores, convert to camelCase
+    const words = name.trim().split(/[\s_]+/).filter(Boolean);
+    if (words.length === 0) return "";
+    const firstWord = words[0];
+    // Lowercase leading acronyms: "HR" -> "hr", "HTMLParser" -> "htmlParser"
+    const leadingUpper = firstWord.match(/^[A-Z]+/);
+    let lowerFirst: string;
+    if (leadingUpper && leadingUpper[0].length === firstWord.length) {
+        // Entire word is uppercase: "HR" -> "hr"
+        lowerFirst = firstWord.toLowerCase();
+    } else if (leadingUpper && leadingUpper[0].length > 1) {
+        // Acronym followed by more chars: "HRPolicy" -> "hrPolicy"
+        lowerFirst = leadingUpper[0].slice(0, -1).toLowerCase() + firstWord.slice(leadingUpper[0].length - 1);
+    } else {
+        lowerFirst = firstWord.charAt(0).toLowerCase() + firstWord.slice(1);
+    }
+    const camel = lowerFirst
+        + words.slice(1).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join("");
+    // Strip known suffixes
+    const lower = camel.toLowerCase();
+    for (const suffix of KNOWN_SUFFIXES) {
+        if (lower.endsWith(suffix) && lower.length > suffix.length) {
+            return camel.slice(0, -suffix.length);
+        }
+    }
+    return camel;
+}
+
 
 export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
     // module name for ai agent
@@ -91,6 +136,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
     const init = async () => {
         const designModelResponse = await rpcClient.getBIDiagramRpcClient().getDesignModel({});
         designModelRef.current = designModelResponse.designModel;
+        aiModuleOrg.current = await getAiModuleOrg(rpcClient);
     }
 
     useEffect(() => {
@@ -102,21 +148,45 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             setNameError("Name is required");
             return false;
         }
-        if (/^[0-9]/.test(name)) {
-            setNameError("Name cannot start with a number");
+        if (/^\s/.test(name) || /^[0-9]/.test(name.trim())) {
+            setNameError("Name must start with a letter");
             return false;
         }
-        if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
-            setNameError("Name can only contain letters, numbers, and underscores");
+        if (!/^[a-zA-Z][a-zA-Z0-9\s_]*$/.test(name)) {
+            setNameError("Name can only contain letters, numbers, spaces, and underscores");
+            return false;
+        }
+        const base = toBaseName(name);
+        if (!base) {
+            setNameError("Name is required");
             return false;
         }
         if (designModelRef.current) {
-            const isNameExists = designModelRef.current.services.some(
-                service => service.absolutePath?.trim() === `/${name}`
+            const basePath = `/${base}`;
+            const isServiceExists = designModelRef.current.services.some(
+                service => service.absolutePath?.trim().toLowerCase() === basePath.toLowerCase()
             );
-            if (isNameExists) {
+            if (isServiceExists) {
                 setNameError("An AI Chat Agent with this name already exists. Please choose a different name.");
                 return false;
+            }
+            const agentConnectionName = `${base}Agent`;
+            const isConnectionExists = designModelRef.current.connections.some(
+                connection => connection.symbol.toLowerCase() === agentConnectionName.toLowerCase()
+            );
+            if (isConnectionExists) {
+                setNameError(`"${agentConnectionName}" already exists. Please choose a different name.`);
+                return false;
+            }
+            if (aiModuleOrg.current !== BALLERINA) {
+                const modelName = `${base}Model`;
+                const isModelExists = designModelRef.current.connections.some(
+                    connection => connection.symbol.toLowerCase() === modelName.toLowerCase()
+                );
+                if (isModelExists) {
+                    setNameError(`"${modelName}" already exists. Please choose a different name.`);
+                    return false;
+                }
             }
         }
         setNameError("");
@@ -127,13 +197,14 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
         if (!validateName(agentName)) {
             return;
         }
+        const baseName = toBaseName(agentName);
         setIsCreating(true);
         try {
             // Initialize wizard data when user clicks create
             setCurrentStep(0);
 
             // Get AI module organization
-            aiModuleOrg.current = await getAiModuleOrg(rpcClient);
+            aiModuleOrg.current = aiModuleOrg.current || await getAiModuleOrg(rpcClient);
 
             const visualizerLocation = await rpcClient.getVisualizerLocation();
             projectPath.current = visualizerLocation.projectPath;
@@ -146,38 +217,34 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
 
             setCurrentStep(1);
 
-            // Search for model providers
-            const modelProviderSearchResponse = await rpcClient.getBIDiagramRpcClient().search({
-                filePath: projectPath.current,
-                queryMap: { q: aiModuleOrg.current === BALLERINA ? AI : OPEN_AI_PROVIDER },
-                searchKind: aiModuleOrg.current === BALLERINA ? MODEL_PROVIDER : CLASS_INIT
-            });
-            const modelNodes = modelProviderSearchResponse.categories[0].items as AvailableNode[];
+            // Select model provider based on org
+            const modelProviderCodedata = aiModuleOrg.current === BALLERINA
+                ? WSO2_MODEL_PROVIDER_CODEDATA
+                : OPENAI_PROVIDER_CODEDATA;
 
-            // Get default model provider
-            const defaultModelNode = modelNodes.find((model) =>
-                model.codedata.object === OPEN_AI_PROVIDER || (model.codedata.org === BALLERINA && model.codedata.module === AI)
-            );
-            if (!defaultModelNode) {
-                console.log(">>> no default model found");
-                throw new Error("No default model found");
-            }
+            let modelVarName: string;
 
-            // Get model node template
-            const modelNodeTemplate = await getNodeTemplate(rpcClient, defaultModelNode.codedata, projectPath.current);
+            // For WSO2 model provider, reuse shared "aiWso2ModelProvider" if it already exists
+            if (aiModuleOrg.current === BALLERINA) {
+                modelVarName = AI_WSO2_MODEL_PROVIDER;
+                const existingModelProviders = await rpcClient.getBIDiagramRpcClient().searchNodes({
+                    filePath: projectPath.current,
+                    queryMap: { kind: "MODEL_PROVIDER" as NodeKind }
+                });
+                const existingProvider = existingModelProviders?.output?.find(
+                    node => String(node.properties?.variable?.value) === AI_WSO2_MODEL_PROVIDER
+                );
 
-            // Generate source code for model provider
-            const modelVarName = `${agentName}` + MODEL;
-            modelNodeTemplate.properties.variable.value = modelVarName;
-            await rpcClient.getBIDiagramRpcClient().getSourceCode({ filePath: projectPath.current, flowNode: modelNodeTemplate });
-
-            // hack: Generate agent at module level for Ballerina versions under 2201.13.0
-            let ballerinaVersion: string | undefined;
-            try {
-                const versionResponse = await rpcClient.getLangClientRpcClient().getBallerinaVersion();
-                ballerinaVersion = versionResponse?.version;
-            } catch (error) {
-                console.warn("Unable to resolve Ballerina version; falling back to legacy agent generation.", error);
+                if (!existingProvider) {
+                    const modelNodeTemplate = await getNodeTemplate(rpcClient, modelProviderCodedata, projectPath.current);
+                    modelNodeTemplate.properties.variable.value = modelVarName;
+                    await rpcClient.getBIDiagramRpcClient().getSourceCode({ filePath: projectPath.current, flowNode: modelNodeTemplate });
+                }
+            } else {
+                modelVarName = `${baseName}` + MODEL;
+                const modelNodeTemplate = await getNodeTemplate(rpcClient, modelProviderCodedata, projectPath.current);
+                modelNodeTemplate.properties.variable.value = modelVarName;
+                await rpcClient.getBIDiagramRpcClient().getSourceCode({ filePath: projectPath.current, flowNode: modelNodeTemplate });
             }
 
             // Search for agent node in the current file
@@ -199,11 +266,11 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             const agentNodeTemplate = await getNodeTemplate(rpcClient, agentNode.codedata, projectPath.current);
 
             // save the agent node
-            const systemPromptValue = `{role: string \`\`, instructions: string \`\`}`;
-            const agentVarName = `${agentName}Agent`;
+            const systemPromptValue = `{role: string \`${agentName}\`, instructions: string \`\`}`;
+            const agentVarName = `${baseName}Agent`;
             agentNodeTemplate.properties.systemPrompt.value = systemPromptValue;
             agentNodeTemplate.properties.model.value = modelVarName;
-            agentNodeTemplate.properties.tools.value = [];
+            agentNodeTemplate.properties.tools.value = "[]";
             agentNodeTemplate.properties.variable.value = agentVarName;
 
             await rpcClient
@@ -212,45 +279,51 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
 
             setCurrentStep(3);
 
-            const mainBalFile = `${projectPath.current}/main.bal`;
+            // Check if the shared listener already exists
+            const listenerExists = designModelRef.current?.listeners.some(
+                listener => listener.symbol.toLowerCase() === AI_CHAT_AGENT_LISTENER.toLowerCase()
+            );
 
-            const payload = {
-                codedata: {
-                    orgName: "ballerina",
-                    packageName: "ai",
-                    moduleName: "ai",
-                    version: "1.0.0",
-                },
-                filePath: mainBalFile
-            };
+            if (!listenerExists) {
+                const mainBalFile = `${projectPath.current}/main.bal`;
 
-            const listenerVariableName = agentName + LISTENER;
-            const listenerResponse = await rpcClient.getServiceDesignerRpcClient().getListenerModel(payload);
+                const payload = {
+                    codedata: {
+                        orgName: "ballerina",
+                        packageName: "ai",
+                        moduleName: "ai",
+                        version: "1.0.0",
+                    },
+                    filePath: mainBalFile
+                };
 
-            const listenerConfiguration = listenerResponse.listener;
-            listenerConfiguration.properties['variableNameKey'].value = listenerVariableName;
-            listenerConfiguration.properties['listenOn'].value = "check http:getDefaultListener()";
+                const listenerResponse = await rpcClient.getServiceDesignerRpcClient().getListenerModel(payload);
 
-            await rpcClient.getServiceDesignerRpcClient().addListenerSourceCode({
-                filePath: "",
-                listener: listenerConfiguration
-            });
+                const listenerConfiguration = listenerResponse.listener;
+                listenerConfiguration.properties['variableNameKey'].value = AI_CHAT_AGENT_LISTENER;
+                listenerConfiguration.properties['listenOn'].value = "check http:getDefaultListener()";
+
+                await rpcClient.getServiceDesignerRpcClient().addListenerSourceCode({
+                    filePath: "",
+                    listener: listenerConfiguration
+                });
+            }
 
             setCurrentStep(4);
 
             const serviceResponse = await rpcClient.getServiceDesignerRpcClient().getServiceModel({
                 filePath: "",
                 moduleName: type,
-                listenerName: listenerVariableName,
+                listenerName: AI_CHAT_AGENT_LISTENER,
                 orgName: aiModuleOrg.current,
             });
 
             const serviceConfiguration = serviceResponse.service;
             serviceConfiguration.properties["listener"].editable = true;
-            serviceConfiguration.properties["listener"].items = [listenerVariableName];
-            serviceConfiguration.properties["listener"].values = [listenerVariableName];
-            serviceConfiguration.properties["basePath"].value = `/${agentName}`;
-            serviceConfiguration.properties["agentName"].value = agentName;
+            serviceConfiguration.properties["listener"].items = [AI_CHAT_AGENT_LISTENER];
+            serviceConfiguration.properties["listener"].value = AI_CHAT_AGENT_LISTENER;
+            serviceConfiguration.properties["basePath"].value = `/${baseName}`;
+            serviceConfiguration.properties["agentName"].value = baseName;
 
             const serviceSourceCodeResult = await rpcClient.getServiceDesignerRpcClient().addServiceSourceCode({
                 filePath: "",
@@ -260,7 +333,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             const newServiceArtifact = serviceSourceCodeResult.artifacts.find(artifact => artifact.isNew);
 
             // If the selected model is the default WSO2 model provider, configure it
-            if (defaultModelNode?.codedata?.symbol === GET_DEFAULT_MODEL_PROVIDER) {
+            if (modelProviderCodedata.symbol === GET_DEFAULT_MODEL_PROVIDER) {
                 await rpcClient.getAIAgentRpcClient().configureDefaultModelProvider();
             }
 
@@ -299,7 +372,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
                         <FormFields>
                             <TextField
                                 label="Name"
-                                description="Name of the agent"
+                                description="Name of the agent (e.g. 'Customer Support Assistant', 'Sales Advisor', 'Data Analyst')"
                                 value={agentName}
                                 disabled={isCreating}
                                 onChange={(e) => {

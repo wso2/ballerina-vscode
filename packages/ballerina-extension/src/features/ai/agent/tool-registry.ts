@@ -17,7 +17,7 @@
 /**
  * Tool registry factory extracted from AgentExecutor.
  */
-import { ProjectSource } from '@wso2/ballerina-core';
+import { ExecutionContext, ProjectSource } from '@wso2/ballerina-core';
 import { CopilotEventHandler } from '../utils/events';
 import { createTaskWriteTool, TASK_WRITE_TOOL_NAME } from './tools/task-writer';
 import { createDiagnosticsTool, DIAGNOSTICS_TOOL_NAME } from './tools/diagnostics';
@@ -41,26 +41,37 @@ import { getHealthcareLibraryProviderTool, HEALTHCARE_LIBRARY_PROVIDER_TOOL } fr
 import { createConnectorGeneratorTool, CONNECTOR_GENERATOR_TOOL } from './tools/connector-generator';
 import { LIBRARY_SEARCH_TOOL, getLibrarySearchTool } from './tools/library-search';
 import { createConfigCollectorTool, CONFIG_COLLECTOR_TOOL } from './tools/config-collector';
+import { createTestRunnerTool, TEST_RUNNER_TOOL_NAME } from './tools/test-runner';
+import { createCurlTool, CURL_TOOL_NAME } from './tools/curl-tool';
+import { createBallerinaRunTool, BALLERINA_RUN_TOOL_NAME } from './tools/ballerina-run';
+import { createBallerinaGetLogsTool, BALLERINA_GET_LOGS_TOOL_NAME } from './tools/ballerina-get-logs';
+import { createBallerinaStopTool, BALLERINA_STOP_TOOL_NAME } from './tools/ballerina-stop';
+import { RunningServicesManager } from './tools/running-service-manager';
+import { createWebSearchTool, WEB_SEARCH_TOOL_NAME, createWebFetchTool, WEB_FETCH_TOOL_NAME } from './tools/web-tools';
 
 export interface ToolRegistryOptions {
     eventHandler: CopilotEventHandler;
     tempProjectPath: string;
     modifiedFiles: string[];
+    allModifiedFiles: Set<string>;
     projects: ProjectSource[];
     generationType: GenerationType;
-    workspaceId: string;
+    projectRootPath: string;
     generationId: string;
     threadId?: string;
+    runningServices: RunningServicesManager;
+    webSearchEnabled: boolean;
+    ctx: ExecutionContext;
 }
 
 export function createToolRegistry(opts: ToolRegistryOptions) {
-    const { eventHandler, tempProjectPath, modifiedFiles, projects, generationType, workspaceId, generationId, threadId } = opts;
+    const { eventHandler, tempProjectPath, modifiedFiles, allModifiedFiles, projects, generationType, projectRootPath, generationId, threadId, webSearchEnabled, ctx } = opts;
     return {
         [TASK_WRITE_TOOL_NAME]: createTaskWriteTool(
             eventHandler,
             tempProjectPath,
             modifiedFiles,
-            workspaceId,
+            projectRootPath,
             generationId,
             threadId || 'default'
         ),
@@ -84,7 +95,7 @@ export function createToolRegistry(opts: ToolRegistryOptions) {
             eventHandler,
             {
                 tempPath: tempProjectPath,
-                workspacePath: workspaceId
+                workspacePath: projectRootPath
             },
             modifiedFiles
         ),
@@ -101,5 +112,12 @@ export function createToolRegistry(opts: ToolRegistryOptions) {
             createReadExecute(eventHandler, tempProjectPath)
         ),
         [DIAGNOSTICS_TOOL_NAME]: createDiagnosticsTool(tempProjectPath, eventHandler),
+        [TEST_RUNNER_TOOL_NAME]: createTestRunnerTool(tempProjectPath, eventHandler, modifiedFiles, allModifiedFiles, ctx),
+        [CURL_TOOL_NAME]: createCurlTool(eventHandler),
+        [BALLERINA_RUN_TOOL_NAME]: createBallerinaRunTool(tempProjectPath, opts.runningServices, eventHandler, modifiedFiles, allModifiedFiles, ctx),
+        [BALLERINA_GET_LOGS_TOOL_NAME]: createBallerinaGetLogsTool(opts.runningServices, eventHandler),
+        [BALLERINA_STOP_TOOL_NAME]: createBallerinaStopTool(opts.runningServices, eventHandler),
+        [WEB_SEARCH_TOOL_NAME]: createWebSearchTool(eventHandler, webSearchEnabled),
+        [WEB_FETCH_TOOL_NAME]: createWebFetchTool(eventHandler, webSearchEnabled),
     };
 }

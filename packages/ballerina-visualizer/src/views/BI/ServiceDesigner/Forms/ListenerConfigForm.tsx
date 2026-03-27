@@ -16,14 +16,15 @@
  * under the License.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
 import { Typography, ProgressRing } from "@wso2/ui-toolkit";
-import { FormField, FormImports, FormValues } from "@wso2/ballerina-side-panel";
+import { FormField, FormImports, FormValues, StringTemplateEditorConfig } from "@wso2/ballerina-side-panel";
 import { ListenerModel, LineRange, RecordTypeField, Property, getPrimaryInputType } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import FormGeneratorNew from "../../Forms/FormGeneratorNew";
 import { getImportsForProperty } from "../../../../utils/bi";
+import { isValueEqual } from "../utils";
 
 const Container = styled.div`
     /* padding: 0 20px 20px; */
@@ -56,18 +57,23 @@ interface ListenerConfigFormProps {
     onBack?: () => void;
     formSubmitText?: string;
     onChange?: (data: ListenerModel) => void;
+    onDirtyChange?: (isDirty: boolean) => void;
+    onValidityChange?: (isValid: boolean) => void;
+    filePath?: string;
 }
 
 export function ListenerConfigForm(props: ListenerConfigFormProps) {
     const { rpcClient } = useRpcContext();
 
     const [listenerFields, setListenerFields] = useState<FormField[]>([]);
-    const { listenerModel, onSubmit, onBack, formSubmitText = "Next", isSaving, onChange } = props;
+    const { listenerModel, onSubmit, onBack, formSubmitText = "Next", isSaving, onChange, onDirtyChange, onValidityChange, filePath: targetFilePath } = props;
     const [filePath, setFilePath] = useState<string>('');
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
+    const initialFieldValuesRef = useRef<Record<string, any>>({});
 
     useEffect(() => {
+        let cancelled = false;
         const recordTypeFields: RecordTypeField[] = Object.entries(listenerModel.properties)
             .filter(([_, property]) =>
                 getPrimaryInputType(property.types)?.typeMembers &&
@@ -89,18 +95,34 @@ export function ListenerConfigForm(props: ListenerConfigFormProps) {
                 } as Property,
                 recordTypeMembers: getPrimaryInputType(property.types)?.typeMembers.filter(member => member.kind === "RECORD_TYPE")
             }));
-        console.log(">>> recordTypeFields", recordTypeFields);
         setRecordTypeFields(recordTypeFields);
 
-        listenerModel && setListenerFields(convertConfig(listenerModel));
-        rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['main.bal'] }).then((response) => {
-            setFilePath(response.filePath);
-        });
-    }, [listenerModel]);
+        if (listenerModel) {
+            const convertedFields = convertConfig(listenerModel);
+            setListenerFields(convertedFields);
+            initialFieldValuesRef.current = convertedFields.reduce((acc, field) => {
+                acc[field.key] = field.value;
+                return acc;
+            }, {} as Record<string, any>);
+            onDirtyChange?.(false);
+        }
+        if (targetFilePath) {
+            setFilePath(targetFilePath);
+        } else {
+            rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['main.bal'] }).then((response) => {
+                if (!cancelled && !targetFilePath) {
+                    setFilePath(response.filePath);
+                }
+            });
+        }
+        return () => {
+            cancelled = true;
+        };
+    }, [listenerModel, rpcClient, targetFilePath]);
 
     const handleListenerSubmit = async (data: FormValues, formImports: FormImports) => {
         listenerFields.forEach(val => {
-            if (data[val.key]) {
+            if (data[val.key] !== undefined) {
                 val.value = data[val.key]
             }
             val.imports = getImportsForProperty(val.key, formImports);
@@ -109,18 +131,18 @@ export function ListenerConfigForm(props: ListenerConfigFormProps) {
         onSubmit(response);
     };
 
-    const handleListenerChange = (fieldKey: string, value: any, allValues: FormValues) => {
+    const handleListenerChange = (_fieldKey: string, _value: any, allValues: FormValues) => {
         if (onChange && !allValues["defaultListener"]) {
             let hasChanges = false;
-            console.log("Listener change: ", fieldKey, value, allValues);
             listenerFields.forEach(val => {
-                if (allValues[val.key] !== undefined && allValues[val.key] !== val.value) {
+                if (allValues[val.key] !== undefined && !isValueEqual(allValues[val.key], initialFieldValuesRef.current[val.key])) {
                     hasChanges = true;
                 }
-                if (allValues[val.key]) {
+                if (allValues[val.key] !== undefined) {
                     val.value = allValues[val.key]
                 }
             })
+            onDirtyChange?.(hasChanges);
             if (!hasChanges) {
                 return;
             }
@@ -173,6 +195,7 @@ export function ListenerConfigForm(props: ListenerConfigFormProps) {
                                     recordTypeFields={recordTypeFields}
                                     onChange={handleListenerChange}
                                     hideSaveButton={onChange ? true : false}
+                                    onValidityChange={onValidityChange}
                                 />
                             }
                         </FormContainer>

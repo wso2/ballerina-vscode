@@ -40,12 +40,17 @@ import {
     McpToolsResponse,
     MemoryManagersRequest,
     MemoryManagersResponse,
-    NodePosition
+    NodePosition,
+    AIGetPackageVersionRequest,
+    AIGetPackageVersionResponse
 } from "@wso2/ballerina-core";
+import { existsSync } from "fs";
 import vscode from "vscode";
 import { URI, Utils } from "vscode-uri";
 import { StateMachine } from "../../stateMachine";
+import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
+import { isLibraryProject } from "../../utils/config";
 import { CONFIGURE_DEFAULT_MODEL_COMMAND } from "../../features/ai/constants";
 
 
@@ -136,13 +141,22 @@ export class AiAgentRpcManager implements AIAgentAPI {
             const context = StateMachine.context();
             try {
                 const response: AIGentToolsResponse = await context.langClient.genTool(params);
-                await updateSourceCode({ textEdits: response.textEdits });
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                resolve(response);
+                const artifacts = await updateSourceCode({ textEdits: response.textEdits });
+                resolve({ artifacts, textEdits: response.textEdits });
             } catch (error) {
                 console.log(error);
             }
         });
+    }
+
+    async getPackageVersion(params: AIGetPackageVersionRequest): Promise<AIGetPackageVersionResponse> {
+        const context = StateMachine.context();
+        try {
+            return await context.langClient.getPackageVersion(params);
+        } catch (error) {
+            console.log(error);
+            return { version: "" };
+        }
     }
 
     async createAIAgent(params: AIAgentRequest): Promise<AIAgentResponse> {
@@ -170,7 +184,7 @@ export class AiAgentRpcManager implements AIAgentAPI {
                 if (params.modelState === 1) {
                     const allModels = await StateMachine.langClient().getAllModels({ agent: fixedAgentCodeData.object, filePath, orgName: aiModuleOrg.orgName });
                     const modelCodeData = allModels.models.find(val => val.object === params.selectedModel);
-                    const modelFlowNode = (await StateMachine.langClient().getNodeTemplate({ filePath, id: modelCodeData, position: { line: 0, offset: 0 } })).flowNode;
+                    const modelFlowNode = (await StateMachine.langClient().getNodeTemplate({ filePath, id: modelCodeData, position: { line: 0, offset: 0 }, isLibrary: await isLibraryProject(StateMachine.context().projectPath ?? '') })).flowNode;
 
                     // Go through the modelFields and assign each value to the flow node
                     params.modelFields.forEach(field => {
@@ -197,7 +211,7 @@ export class AiAgentRpcManager implements AIAgentAPI {
 
 
                 // Get the agent flow node
-                const agentFlowNode = (await StateMachine.langClient().getNodeTemplate({ filePath, id: fixedAgentCodeData, position: { line: 0, offset: 0 } })).flowNode;
+                const agentFlowNode = (await StateMachine.langClient().getNodeTemplate({ filePath, id: fixedAgentCodeData, position: { line: 0, offset: 0 }, isLibrary: await isLibraryProject(StateMachine.context().projectPath ?? '') })).flowNode;
 
                 // Go through the agentFields and assign each value to the flow node
                 params.agentFields.forEach(field => {
@@ -296,6 +310,7 @@ export class AiAgentRpcManager implements AIAgentAPI {
                         position: { line: 0, offset: 0 },
                         filePath: filePath,
                         id: connectorActionCodeData,
+                        isLibrary: await isLibraryProject(StateMachine.context().projectPath ?? ''),
                     });
                 flowNode = connectorActionFlowNode.flowNode;
                 this.updateFlowNodeProperties(flowNode);
@@ -309,6 +324,7 @@ export class AiAgentRpcManager implements AIAgentAPI {
                         position: { line: 0, offset: 0 },
                         filePath: filePath,
                         id: { node: 'FUNCTION_DEFINITION' },
+                        isLibrary: await isLibraryProject(StateMachine.context().projectPath),
                     });
 
                     flowNode = newFunctionFlowNode.flowNode;
@@ -365,6 +381,7 @@ export class AiAgentRpcManager implements AIAgentAPI {
                         position: { line: 0, offset: 0 },
                         filePath: filePath,
                         id: selectedCodeData,
+                        isLibrary: await isLibraryProject(StateMachine.context().projectPath ?? ''),
                     });
                 flowNode = connectorActionFlowNode.flowNode;
                 this.updateFlowNodeProperties(flowNode);
@@ -377,6 +394,7 @@ export class AiAgentRpcManager implements AIAgentAPI {
                         position: { line: 0, offset: 0 },
                         filePath: filePath,
                         id: selectedCodeData,
+                        isLibrary: await isLibraryProject(StateMachine.context().projectPath ?? ''),
                     });
                 flowNode = existingFunctionFlowNode.flowNode;
             }
@@ -413,6 +431,9 @@ export class AiAgentRpcManager implements AIAgentAPI {
         const projectPath = StateMachine.context().projectPath;
         const agentsFilePath = Utils.joinPath(URI.file(projectPath), params.agentFlowNode.codedata.lineRange.fileName).fsPath;
         const connectionsFilePath = Utils.joinPath(URI.file(projectPath), "connections.bal").fsPath;
+        if (!existsSync(connectionsFilePath)) {
+            await writeBallerinaFileDidOpen(connectionsFilePath, "\n");
+        }
         const mcpToolKitVarName = params.updatedNode.properties["variable"].value;
 
         // 1. Use the updatedNode from params for the MCP ToolKit edits
@@ -424,6 +445,36 @@ export class AiAgentRpcManager implements AIAgentAPI {
                 if ("permittedTools" in params.updatedNode.properties) {
                     params.updatedNode.properties["permittedTools"].value = `[${params.selectedTools.map(tool => `"${tool}"`).join(", ")}]`;
                 }
+            }
+
+            // Set per-tool scopes on the node for the LS to generate @ai:AgentTool annotations
+            const filteredScopes: Record<string, string[]> = {};
+            if (params.toolScopes && params.selectedTools.length > 0) {
+                for (const tool of params.selectedTools) {
+                    const scopes = params.toolScopes[tool];
+                    if (scopes && scopes.length > 0) {
+                        filteredScopes[tool] = scopes;
+                    }
+                }
+            }
+
+            if (Object.keys(filteredScopes).length > 0) {
+                (params.updatedNode.properties as any)["toolScopes"] = {
+                    metadata: { label: "Tool Scopes" },
+                    valueType: "EXPRESSION",
+                    value: JSON.stringify(filteredScopes),
+                    optional: true,
+                    editable: true,
+                    advanced: true,
+                    hidden: true,
+                    codedata: {
+                        kind: "INCLUDED_FIELD",
+                        originalName: "toolScopes"
+                    }
+                };
+            } else {
+                // Remove stale toolScopes from the node when all scopes have been cleared
+                delete (params.updatedNode.properties as any)["toolScopes"];
             }
 
             // Use only the template node for generating text edits
@@ -451,6 +502,8 @@ export class AiAgentRpcManager implements AIAgentAPI {
             } else {
                 toolsValue = `[${mcpToolKitVarName}]`;
             }
+        } else {
+            toolsValue = `[${mcpToolKitVarName}]`;
         }
 
         // Set the updated tools value

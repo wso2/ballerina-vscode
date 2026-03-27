@@ -57,6 +57,7 @@ export enum SCOPE {
     EVENT_INTEGRATION = "event-integration",
     FILE_INTEGRATION = "file-integration",
     AI_AGENT = "ai-agent",
+    LIBRARY = "library",
     ANY = "any"
 }
 
@@ -81,6 +82,7 @@ export enum MACHINE_VIEW {
     BIAddProjectForm = "BI Add Project SKIP",
     BIComponentView = "BI Component View",
     AddConnectionWizard = "Add Connection Wizard",
+    ConnectionConfiguration = "Connection Configuration",
     AddCustomConnector = "Add Custom Connector",
     ViewConfigVariables = "View Config Variables",
     EditConfigVariables = "Edit Config Variables",
@@ -88,6 +90,7 @@ export enum MACHINE_VIEW {
     EditConnectionWizard = "Edit Connection Wizard",
     BIMainFunctionForm = "Add Automation SKIP",
     BIFunctionForm = "Add Function SKIP",
+    BIAgentToolForm = "Add Agent Tool SKIP",
     BINPFunctionForm = "Add Natural Function SKIP",
     BITestFunctionForm = "Add Test Function SKIP",
     BIAIEvaluationForm = "AI Evaluation SKIP",
@@ -175,6 +178,7 @@ export interface ConfigurationCollectorMetadata {
         name: string;
         description: string;
         type?: "string" | "int";
+        secret?: boolean;
     }>;
     existingValues?: Record<string, string>;
     message: string;
@@ -199,6 +203,20 @@ export interface VisualizerMetadata {
     featureSupport?: {
         aiEvaluation?: boolean;
     };
+    // Connection Configuration metadata
+    selectedConnectorId?: string;
+    selectedConnectorOrg?: string;
+    selectedConnectorModule?: string;
+    selectedConnectorPackageName?: string;
+    selectedConnectorObject?: string;
+    selectedConnectorSymbol?: string;
+    selectedConnectorVersion?: string;
+    selectedConnectorIsGenerated?: boolean;
+    selectedConnectorNode?: string;
+    selectedConnectorLabel?: string;
+    selectedConnectorDescription?: string;
+    selectedConnectorIcon?: string;
+    categoryName?: string;
 }
 
 export interface DataMapperMetadata {
@@ -207,11 +225,12 @@ export interface DataMapperMetadata {
 }
 
 export interface ReviewViewItem {
-    type: 'component' | 'flow';
+    type: 'component' | 'flow' | 'type';
     filePath: string;
     position: NodePosition;
     projectPath: string;
     label?: string;
+    changeType?: number;
 }
 
 export interface ReviewModeData {
@@ -219,6 +238,12 @@ export interface ReviewModeData {
     currentIndex: number;
     onAccept?: string;
     onReject?: string;
+    semanticDiffs?: object[];
+    loadDesignDiagrams?: boolean;
+    affectedPackages?: string[];
+    modifiedFiles?: string[];
+    tempProjectPath?: string;
+    isWorkspace?: boolean;
 }
 
 // --- Evalset Trace Types ---
@@ -284,7 +309,7 @@ export interface EvalsetTrace {
 
 export interface EvalThread {
     id: string;
-    name: string;
+    description: string;
     traces: EvalsetTrace[];
     created_on: string;
 }
@@ -338,11 +363,16 @@ export type ChatNotify =
     | EvalsToolResult
     | UsageMetricsEvent
     | TaskApprovalRequest
+    | WebToolApprovalEvent
     | GeneratedSourcesEvent
     | ConnectorGenerationNotification
     | ConfigurationCollectionEvent
-    | CodeReviewActions
-    | PlanUpdated;
+    | ChatComponentEvent
+    | PlanUpdated
+    | CompactionStartEvent
+    | CompactionEndEvent
+    | CompactionFailedEvent
+    | ConfigChangeEvent;
 
 export interface ChatStart {
     type: "start";
@@ -403,6 +433,7 @@ export interface ToolResult {
     toolName: string;
     toolOutput?: any;
     toolCallId?: string;
+    failed?: boolean;
 }
 
 export interface EvalsToolResult {
@@ -420,6 +451,13 @@ export interface UsageMetricsEvent {
         cacheReadInputTokens: number;
         outputTokens: number;
     };
+    breakdown?: {
+        systemInstructions: number;
+        toolDefinitions: number;
+        reservedOutput: number;
+        messages: number;
+        toolResults: number;
+    };
 }
 
 export interface TaskApprovalRequest {
@@ -429,6 +467,13 @@ export interface TaskApprovalRequest {
     tasks: Task[];
     taskDescription?: string;
     message?: string;
+}
+
+export interface WebToolApprovalEvent {
+    type: "web_tool_approval_request";
+    requestId: string;
+    toolName: "web_search" | "web_fetch";
+    content: string;
 }
 
 export interface GeneratedSourcesEvent {
@@ -469,6 +514,7 @@ export interface ConfigurationCollectionEvent {
         name: string;
         description: string;
         type?: "string" | "int";
+        secret?: boolean;
     }>;
     existingValues?: Record<string, string>;
     message: string;
@@ -479,8 +525,11 @@ export interface ConfigurationCollectionEvent {
     };
 }
 
-export interface CodeReviewActions {
-    type: "review_actions";
+export interface ChatComponentEvent {
+    type: "chat_component";
+    id?: string;
+    componentType: string;
+    data: Record<string, any>;
 }
 
 export interface PlanUpdated {
@@ -488,14 +537,42 @@ export interface PlanUpdated {
     plan: Plan;
 }
 
+// ==================================
+// Mid-Stream Compaction Events
+// ==================================
+
+/** Fired when mid-stream compaction starts (stream naturally pauses) */
+export interface CompactionStartEvent {
+    type: 'compaction_start';
+}
+
+/** Fired when mid-stream compaction completes and streaming resumes */
+export interface CompactionEndEvent {
+    type: 'compaction_end';
+    metadata?: GenerationCompactionMetadata;
+}
+
+/** Fired when mid-stream compaction fails and context cannot be reduced */
+export interface CompactionFailedEvent {
+    type: 'compaction_failed';
+    reason: string;
+}
+
+/** Fired when a VS Code configuration setting relevant to the AI panel changes */
+export interface ConfigChangeEvent {
+    type: 'config_change';
+    key: 'showContextUsage';
+    value: boolean;
+}
+
 export const stateChanged: NotificationType<MachineStateValue> = { method: 'stateChanged' };
 export const onDownloadProgress: NotificationType<DownloadProgress> = { method: 'onDownloadProgress' };
 export const onChatNotify: NotificationType<ChatNotify> = { method: 'onChatNotify' };
-export const onHideReviewActions: NotificationType<void> = { method: 'onHideReviewActions' };
 export const onMigrationToolLogs: NotificationType<string> = { method: 'onMigrationToolLogs' };
 export const onMigrationToolStateChanged: NotificationType<string> = { method: 'onMigrationToolStateChanged' };
 export const onMigratedProject: NotificationType<ProjectMigrationResult> = { method: 'onMigratedProject' };
 export const projectContentUpdated: NotificationType<boolean> = { method: 'projectContentUpdated' };
+export const onIdentifierUpdated: NotificationType<ProjectStructureArtifactResponse[]> = { method: 'onIdentifierUpdated' };
 export const promptUpdated: NotificationType<void> = { method: 'promptUpdated' };
 export const getVisualizerLocation: RequestType<void, VisualizerLocation> = { method: 'getVisualizerLocation' };
 export const webviewReady: NotificationType<void> = { method: `webviewReady` };
@@ -517,7 +594,7 @@ export const approvalOverlayState: NotificationType<ApprovalOverlayState> = { me
 export type AIMachineStateValue =
     | 'Initialize'          // (checking auth, first load)
     | 'Unauthenticated'     // (show login window)
-    | { Authenticating: 'determineFlow' | 'ssoFlow' | 'apiKeyFlow' | 'validatingApiKey' | 'awsBedrockFlow' | 'validatingAwsCredentials' } // hierarchical substates
+    | { Authenticating: 'determineFlow' | 'ssoFlow' | 'apiKeyFlow' | 'validatingApiKey' | 'awsBedrockFlow' | 'validatingAwsCredentials' | 'vertexAiFlow' | 'validatingVertexAiCredentials' } // hierarchical substates
     | 'Authenticated'       // (ready, main view)
     | 'Disabled';           // (optional: if AI Chat is globally unavailable)
 
@@ -528,6 +605,8 @@ export enum AIMachineEventType {
     SUBMIT_API_KEY = 'SUBMIT_API_KEY',
     AUTH_WITH_AWS_BEDROCK = 'AUTH_WITH_AWS_BEDROCK',
     SUBMIT_AWS_CREDENTIALS = 'SUBMIT_AWS_CREDENTIALS',
+    AUTH_WITH_VERTEX_AI = 'AUTH_WITH_VERTEX_AI',
+    SUBMIT_VERTEX_AI_CREDENTIALS = 'SUBMIT_VERTEX_AI_CREDENTIALS',
     LOGOUT = 'LOGOUT',
     SILENT_LOGOUT = "SILENT_LOGOUT",
     COMPLETE_AUTH = 'COMPLETE_AUTH',
@@ -547,6 +626,13 @@ export type AIMachineEventMap = {
         secretAccessKey: string;
         region: string;
         sessionToken?: string;
+    };
+    [AIMachineEventType.AUTH_WITH_VERTEX_AI]: undefined;
+    [AIMachineEventType.SUBMIT_VERTEX_AI_CREDENTIALS]: {
+        projectId: string;
+        location: string;
+        clientEmail: string;
+        privateKey: string;
     };
     [AIMachineEventType.LOGOUT]: undefined;
     [AIMachineEventType.SILENT_LOGOUT]: undefined;
@@ -601,6 +687,32 @@ export interface GenerationReviewState {
 }
 
 /**
+ * Metadata attached to a compacted generation (C15 + M07).
+ */
+export interface GenerationCompactionMetadata {
+    /** Unix timestamp when compaction occurred */
+    compactedAt: number;
+    /** Message count before compaction */
+    originalMessageCount: number;
+    /** Token estimate before compaction */
+    originalTokenEstimate: number;
+    /** Token estimate after compaction */
+    compactedTokenEstimate: number;
+    /** Number of retry attempts used */
+    retries: number;
+    /** Whether triggered automatically or manually */
+    mode: 'auto' | 'manual';
+    /** Custom instructions provided by user, if any */
+    userInstructions?: string;
+    /** Path to pre-compaction backup file (M07) */
+    backupPath?: string;
+    /** IDs of generations that were replaced (M07) */
+    compactedGenerationIds?: string[];
+    /** Marker flag indicating this is a compacted synthetic generation (M07) */
+    isCompactedGeneration?: boolean;
+}
+
+/**
  * Metadata for a generation
  */
 export interface GenerationMetadata {
@@ -612,6 +724,8 @@ export interface GenerationMetadata {
     generationType?: 'agent' | 'datamapper';
     /** Command type if triggered by command */
     commandType?: string;
+    /** C15/M07: Compaction metadata if this generation was created by compaction */
+    compactionMetadata?: GenerationCompactionMetadata;
 }
 
 /**
@@ -670,8 +784,8 @@ export interface ChatThread {
  * One per workspace, contains multiple threads
  */
 export interface WorkspaceChatState {
-    /** Workspace/project identifier (hash of workspace path) */
-    workspaceId: string;
+    /** Root path for chat storage (workspace root or package root) */
+    projectRootPath: string;
     /** Map of thread ID to thread */
     threads: Map<string, ChatThread>;
     /** Currently active thread ID */
@@ -691,7 +805,8 @@ export enum TaskStatus {
 export enum TaskTypes {
     SERVICE_DESIGN = "service_design",
     CONNECTIONS_INIT = "connections_init",
-    IMPLEMENTATION = "implementation"
+    IMPLEMENTATION = "implementation",
+    TESTING = "testing"
 }
 
 /**
@@ -727,22 +842,17 @@ export type OperationType = "CODE_FOR_USER_REQUIREMENT" | "TESTS_FOR_USER_REQUIR
 export enum LoginMethod {
     BI_INTEL = 'biIntel',
     ANTHROPIC_KEY = 'anthropic_key',
-    DEVANT_ENV = 'devant_env',
-    AWS_BEDROCK = 'aws_bedrock'
+    AWS_BEDROCK = 'aws_bedrock',
+    VERTEX_AI = 'vertex_ai'
 }
 
 export interface BIIntelSecrets {
     accessToken: string;
-    refreshToken: string;
+    expiresAt?: number;  // Unix timestamp in milliseconds
 }
 
 export interface AnthropicKeySecrets {
     apiKey: string;
-}
-
-export interface DevantEnvSecrets {
-    accessToken: string;
-    expiresAt: number;
 }
 
 interface AwsBedrockSecrets {
@@ -750,6 +860,13 @@ interface AwsBedrockSecrets {
     secretAccessKey: string;
     region: string;
     sessionToken?: string;
+}
+
+export interface VertexAiSecrets {
+    projectId: string;
+    location: string;
+    clientEmail: string;
+    privateKey: string;
 }
 
 export type AuthCredentials =
@@ -762,12 +879,12 @@ export type AuthCredentials =
         secrets: AnthropicKeySecrets;
     }
     | {
-        loginMethod: LoginMethod.DEVANT_ENV;
-        secrets: DevantEnvSecrets;
-    }
-    | {
         loginMethod: LoginMethod.AWS_BEDROCK;
         secrets: AwsBedrockSecrets;
+    }
+    | {
+        loginMethod: LoginMethod.VERTEX_AI;
+        secrets: VertexAiSecrets;
     };
 
 export interface AIUserToken {
@@ -816,3 +933,17 @@ export interface ConnectorGeneratorResponsePayload {
     comment?: string;
 }
 export const sendConnectorGeneratorResponse: RequestType<ConnectorGeneratorResponsePayload, void> = { method: 'sendConnectorGeneratorResponse' };
+
+// Trace animation notification types
+export interface TraceAnimationEvent {
+    type: 'invoke_agent' | 'chat' | 'execute_tool';
+    toolNames: string[];
+    activeToolName?: string;
+    spanId: string;
+    active: boolean;
+    systemInstructions?: string;
+    entrypointServiceName?: string;
+    entrypointFunctionName?: string;
+}
+
+export const traceAnimationChanged: NotificationType<TraceAnimationEvent> = { method: 'traceAnimationChanged' };

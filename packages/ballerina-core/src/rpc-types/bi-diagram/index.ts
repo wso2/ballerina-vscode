@@ -73,6 +73,7 @@ import {
     UpdateTypesRequest,
     UpdateTypesResponse,
     DeploymentRequest,
+    WorkspaceDeploymentRequest,
     DeploymentResponse,
     OpenAPIClientGenerationRequest,
     OpenAPIGeneratedModulesRequest,
@@ -97,7 +98,9 @@ import {
     BISearchNodesRequest,
     BISearchNodesResponse,
     BIDesignModelRequest,
-    BIFlowModelRequest
+    BIFlowModelRequest,
+    GetSimpleTypeOfExpressionRequest,
+    GetSimpleTypeOfExpressionResponse
 } from "../../interfaces/extended-lang-client";
 import {
     ProjectRequest,
@@ -114,10 +117,12 @@ import {
     CurrentBreakpointsResponse,
     FormDidOpenParams,
     FormDidCloseParams,
+    FormDirtyDidChangeParams,
     EndOfFileRequest,
     RecordsInWorkspaceMentions,
     BuildMode,
     DevantMetadata,
+    WorkspaceDevantMetadata,
     GeneratedClientSaveResponse,
     AddProjectToWorkspaceRequest,
     DeleteProjectRequest,
@@ -163,6 +168,7 @@ export interface BIDiagramAPI {
     openReadme: (params: OpenReadmeRequest) => void;
     renameIdentifier: (params: RenameIdentifierRequest) => Promise<void>;
     deployProject: (params: DeploymentRequest) => Promise<DeploymentResponse>;
+    deployWorkspace: (params: WorkspaceDeploymentRequest) => Promise<DeploymentResponse>;
     openAIChat: (params: AIChatRequest) => void;
     getSignatureHelp: (params: SignatureHelpRequest) => Promise<SignatureHelpResponse>;
     buildProject: (mode: BuildMode) => void;
@@ -175,9 +181,11 @@ export interface BIDiagramAPI {
     getExpressionDiagnostics: (params: ExpressionDiagnosticsRequest) => Promise<ExpressionDiagnosticsResponse>;
     formDidOpen: (params: FormDidOpenParams) => Promise<void>;
     formDidClose: (params: FormDidCloseParams) => Promise<void>;
+    formDirtyDidChange: (params: FormDirtyDidChangeParams) => void;
     getDesignModel: (params: BIDesignModelRequest) => Promise<BIDesignModelResponse>;
     getTypes: (params: GetTypesRequest) => Promise<GetTypesResponse>;
     getType: (params: GetTypeRequest) => Promise<GetTypeResponse>;
+    getSimpleTypeOfExpression: (params: GetSimpleTypeOfExpressionRequest) => Promise<GetSimpleTypeOfExpressionResponse>;
     updateType: (params: UpdateTypeRequest) => Promise<UpdateTypeResponse>;
     updateTypes: (params: UpdateTypesRequest) => Promise<UpdateTypesResponse>;
     deleteType: (params: DeleteTypeRequest) => Promise<DeleteTypeResponse>;
@@ -201,6 +209,7 @@ export interface BIDiagramAPI {
     getRecordNames: () => Promise<RecordsInWorkspaceMentions>;
     getFunctionNames: () => Promise<RecordsInWorkspaceMentions>;
     getDevantMetadata: () => Promise<DevantMetadata | undefined>;
+    getWorkspaceDevantMetadata: () => Promise<WorkspaceDevantMetadata | undefined>;
     generateOpenApiClient: (params: OpenAPIClientGenerationRequest) => Promise<GeneratedClientSaveResponse>;
     getOpenApiGeneratedModules: (params: OpenAPIGeneratedModulesRequest) => Promise<OpenAPIGeneratedModulesResponse>;
     deleteOpenApiGeneratedModules: (params: OpenAPIClientDeleteRequest) => Promise<OpenAPIClientDeleteResponse>;

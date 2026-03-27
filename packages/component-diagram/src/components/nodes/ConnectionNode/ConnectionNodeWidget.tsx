@@ -185,7 +185,7 @@ export function ConnectionNodeWidget(props: ConnectionNodeWidgetProps) {
 
     const menuItems: Item[] = [
         { id: "edit", label: "Edit", onClick: () => handleOnClick() },
-        { id: "delete", label: "Delete", onClick: () => onDeleteComponent(model.node) },
+        { id: "delete", label: "Delete", onClick: () => onDeleteComponent(model.node, model.getType()) },
     ];
 
     return (

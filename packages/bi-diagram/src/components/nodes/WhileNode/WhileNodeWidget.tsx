@@ -60,9 +60,7 @@ export namespace NodeStyles {
 
     export const StyledButton = styled(Button)`
         border-radius: 5px;
-        position: absolute;
-        top: -10px;
-        left: 52px;
+        flex-shrink: 0;
     `;
 
     export const ErrorIcon = styled.div`
@@ -187,7 +185,7 @@ interface WhileNodeWidgetProps {
     onClick?: (node: FlowNode) => void;
 }
 
-export interface NodeWidgetProps extends Omit<WhileNodeWidgetProps, "children"> {}
+export interface NodeWidgetProps extends Omit<WhileNodeWidgetProps, "children"> { }
 
 export function WhileNodeWidget(props: WhileNodeWidgetProps) {
     const { model, engine, onClick } = props;
@@ -283,6 +281,38 @@ export function WhileNodeWidget(props: WhileNodeWidgetProps) {
     const hasError = nodeHasError(model.node);
     const nodeViewState = model.node.viewState;
 
+    const description = (() => {
+        const conditionValue = model.node.properties?.condition?.value as string;
+        if (conditionValue) return conditionValue;
+        if (model.node.codedata.node === "FOREACH" && model.node.codedata.sourceCode) {
+            const match = model.node.codedata.sourceCode.match(/^foreach\s+(.+?)\s*\{/);
+            return match?.[1] ?? null;
+        }
+        return null;
+    })();
+
+    const renderDescription = () => {
+        if (!description) return null;
+
+        if (model.node.codedata.node === "FOREACH") {
+            const body = description.startsWith("foreach ") ? description.slice(8) : description;
+            const match = body.match(/^(\S+)\s+(\S+)\s+(in)\s+(.+)$/);
+            if (match) {
+                const [, type, varName, , iterable] = match;
+                return (
+                    <NodeStyles.Description>
+                        <span style={{ color: ThemeColors.PRIMARY }}>{type}</span>
+                        {" "}{varName}{" "}
+                        <span style={{ color: ThemeColors.PRIMARY }}>in</span>
+                        {" "}{iterable}
+                    </NodeStyles.Description>
+                );
+            }
+        }
+
+        return <NodeStyles.Description>{description}</NodeStyles.Description>;
+    };
+
     return (
         <NodeStyles.Node readOnly={isEditable || readOnly}>
             <NodeStyles.Row>
@@ -317,22 +347,32 @@ export function WhileNodeWidget(props: WhileNodeWidgetProps) {
                         <NodeStyles.BottomPortWidget port={model.getPort("out")!} engine={engine} />
                     </NodeStyles.Box>
                 </NodeStyles.Column>
-                <NodeStyles.Header>
-                    <NodeStyles.Title>{model.node.metadata.label || model.node.codedata.node}</NodeStyles.Title>
-                    {model.node.properties?.condition && (
-                        <NodeStyles.Description>
-                            {model.node.properties.condition?.value as ReactNode}
-                        </NodeStyles.Description>
-                    )}
-                </NodeStyles.Header>
-                <NodeStyles.StyledButton
-                    ref={setMenuButtonElement}
-                    buttonSx={readOnly ? { cursor: "not-allowed" } : {}}
-                    appearance="icon"
-                    onClick={handleOnMenuClick}
+                <NodeStyles.Header
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}
                 >
-                    <MoreVertIcon />
-                </NodeStyles.StyledButton>
+                    <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+                        <div style={{}}>
+                            <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "4px" }}>
+                                <NodeStyles.Title>{model.node.metadata.label || model.node.codedata.node}</NodeStyles.Title>
+                                <NodeStyles.StyledButton
+                                    ref={setMenuButtonElement}
+                                    buttonSx={readOnly ? { cursor: "not-allowed" } : {}}
+                                    appearance="icon"
+                                    onClick={handleOnMenuClick}
+                                    sx={{
+                                        opacity: isHovered || isMenuOpen ? 1 : 0,
+                                        pointerEvents: isHovered || isMenuOpen ? "auto" : "none",
+                                        transition: "opacity 0.2s ease-in-out",
+                                    }}
+                                >
+                                    <MoreVertIcon />
+                                </NodeStyles.StyledButton>
+                            </div>
+                            {renderDescription()}
+                        </div>
+                    </div>
+                </NodeStyles.Header>
                 {hasError && (
                     <NodeStyles.ErrorIcon>
                         <DiagnosticsPopUp node={model.node} />

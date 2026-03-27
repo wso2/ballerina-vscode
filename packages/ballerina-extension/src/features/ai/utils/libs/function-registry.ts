@@ -26,8 +26,8 @@ import {
     MinifiedResourceFunction,
     PathParameter,
 } from "./function-types";
-import { Client, GetTypeResponse, GetTypesRequest, GetTypesResponse, getTypesResponseSchema, Library, MiniType, RemoteFunction, ResourceFunction } from "./library-types";
-import { TypeDefinition, AbstractFunction, Type, RecordTypeDefinition } from "./library-types";
+import { Client, GetTypeResponse, GetTypesRequest, GetTypesResponse, getTypesResponseSchema, Library, MiniType, RemoteFunction, ResourceFunction, Service, FixedService } from "./library-types";
+import { TypeDefinition, AbstractFunction, Type, RecordTypeDefinition, UnionTypeDefinition } from "./library-types";
 import { getAnthropicClient, ANTHROPIC_HAIKU } from "../ai-client";
 import { GenerationType } from "./libraries";
 // import { getRequiredTypesFromLibJson } from "../healthcare/healthcare";
@@ -35,6 +35,7 @@ import { langClient } from "../../activator";
 
 // Constants for type definitions
 const TYPE_RECORD = 'Record';
+const TYPE_UNION = 'Union';
 const TYPE_CONSTRUCTOR = 'Constructor';
 
 export async function selectRequiredFunctions(prompt: string, selectedLibNames: string[], generationType: GenerationType): Promise<Library[]> {
@@ -185,6 +186,7 @@ async function getRequiredFunctions(
     return collectiveResp;
 }
 
+
 async function getSuggestedFunctions(
     prompt: string,
     libraryList: GetFunctionsRequest[]
@@ -247,9 +249,6 @@ Now, based on the provided libraries, clients, and functions, and the user query
             messages: messages,
             schema: getFunctionsResponseSchema,
             abortSignal: new AbortController().signal,
-            providerOptions: {
-                anthropic: { structuredOutputMode: 'jsonTool' },
-            },
         });
 
         const libList = object as GetFunctionsResponse;
@@ -352,6 +351,7 @@ export async function getMaximizedSelectedLibs(libNames: string[]): Promise<Libr
                 functions: lib.functions ? lib.functions : [],
                 typeDefs: lib.typeDefs ? lib.typeDefs : [],
                 services: lib.services ? lib.services : [],
+                instructions: lib.instructions ? lib.instructions : null,
             };
         });
 
@@ -380,9 +380,10 @@ export async function toMaximizedLibrariesFromLibJson(
             description: originalLib.description,
             clients: filteredClients,
             functions: filteredFunctions ? filteredFunctions : null,
-            // Get only the type definitions that are actually used by the selected functions and clients
-            typeDefs: getOwnTypeDefsForLib(filteredClients, filteredFunctions, originalLib.typeDefs),
+            // Get only the type definitions that are actually used by the selected functions, clients, and services
+            typeDefs: getOwnTypeDefsForLib(filteredClients, filteredFunctions, originalLib.typeDefs, originalLib.services),
             services: originalLib.services ? originalLib.services : null,
+            instructions: originalLib.instructions ? originalLib.instructions : null,
         };
 
         minifiedLibrariesWithoutRecords.push(maximizedLib);
@@ -519,7 +520,8 @@ function getCompleteFuncForMiniFunc(
 function getOwnTypeDefsForLib(
     clients: Client[],
     functions: RemoteFunction[] | undefined,
-    allTypeDefs: TypeDefinition[]
+    allTypeDefs: TypeDefinition[],
+    services?: Service[]
 ): TypeDefinition[] {
     const allFunctions: AbstractFunction[] = [];
 
@@ -533,10 +535,10 @@ function getOwnTypeDefsForLib(
         allFunctions.push(...functions);
     }
 
-    return getOwnRecordRefs(allFunctions, allTypeDefs);
+    return getOwnRecordRefs(allFunctions, allTypeDefs, services);
 }
 
-function getOwnRecordRefs(functions: AbstractFunction[], allTypeDefs: TypeDefinition[]): TypeDefinition[] {
+function getOwnRecordRefs(functions: AbstractFunction[], allTypeDefs: TypeDefinition[], services?: Service[]): TypeDefinition[] {
     const ownRecords = new Map<string, TypeDefinition>();
 
     // Process all functions to find type references
@@ -548,6 +550,26 @@ function getOwnRecordRefs(functions: AbstractFunction[], allTypeDefs: TypeDefini
 
         // Check return type
         addInternalRecord(func.return.type, ownRecords, allTypeDefs);
+    }
+
+    // Process service listener parameters and fixed service method parameters
+    if (services) {
+        for (const service of services) {
+            for (const param of service.listener.parameters) {
+                addInternalRecord(param.type, ownRecords, allTypeDefs);
+            }
+            if (service.type === "fixed") {
+                const fixedService = service as FixedService;
+                for (const method of fixedService.methods) {
+                    for (const param of method.parameters) {
+                        addInternalRecord(param.type, ownRecords, allTypeDefs);
+                    }
+                    if (method.return?.type) {
+                        addInternalRecord(method.return.type, ownRecords, allTypeDefs);
+                    }
+                }
+            }
+        }
     }
 
     // Recursively process found type definitions to include dependent types
@@ -569,8 +591,13 @@ function getOwnRecordRefs(functions: AbstractFunction[], allTypeDefs: TypeDefini
                 const foundTypes = addInternalRecord(field.type, ownRecords, allTypeDefs);
                 typesToProcess.push(...foundTypes);
             }
+        } else if (typeDef.type === TYPE_UNION) {
+            const unionDef = typeDef as UnionTypeDefinition;
+            for (const member of unionDef.members) {
+                const foundTypes = addInternalRecord(member.type, ownRecords, allTypeDefs);
+                typesToProcess.push(...foundTypes);
+            }
         }
-        // TODO: Handle EnumTypeDefinition and UnionTypeDefinition
     }
 
     return Array.from(ownRecords.values());
@@ -660,7 +687,7 @@ function getExternalTypeDefsRefs(libraries: Library[]): Map<string, string[]> {
             allFunctions.push(...lib.functions);
         }
 
-        getExternalTypeDefRefs(externalRecords, allFunctions, lib.typeDefs);
+        getExternalTypeDefRefs(externalRecords, allFunctions, lib.typeDefs, lib.services);
     }
 
     return externalRecords;
@@ -669,7 +696,8 @@ function getExternalTypeDefsRefs(libraries: Library[]): Map<string, string[]> {
 function getExternalTypeDefRefs(
     externalRecords: Map<string, string[]>,
     functions: AbstractFunction[],
-    allTypeDefs: TypeDefinition[]
+    allTypeDefs: TypeDefinition[],
+    services?: Service[]
 ): void {
     // Check function parameters and return types
     for (const func of functions) {
@@ -679,6 +707,26 @@ function getExternalTypeDefRefs(
         addExternalRecord(func.return.type, externalRecords);
     }
 
+    // Check service listener parameters and fixed service method parameters
+    if (services) {
+        for (const service of services) {
+            for (const param of service.listener.parameters) {
+                addExternalRecord(param.type, externalRecords);
+            }
+            if (service.type === "fixed") {
+                const fixedService = service as FixedService;
+                for (const method of fixedService.methods) {
+                    for (const param of method.parameters) {
+                        addExternalRecord(param.type, externalRecords);
+                    }
+                    if (method.return?.type) {
+                        addExternalRecord(method.return.type, externalRecords);
+                    }
+                }
+            }
+        }
+    }
+
     // Check type definition fields
     for (const typeDef of allTypeDefs) {
         if (typeDef.type === TYPE_RECORD) {
@@ -686,8 +734,12 @@ function getExternalTypeDefRefs(
             for (const field of recordDef.fields) {
                 addExternalRecord(field.type, externalRecords);
             }
+        } else if (typeDef.type === TYPE_UNION) {
+            const unionDef = typeDef as UnionTypeDefinition;
+            for (const member of unionDef.members) {
+                addExternalRecord(member.type, externalRecords);
+            }
         }
-        // TODO: Handle EnumTypeDefinition and UnionTypeDefinition
     }
 }
 
@@ -717,7 +769,7 @@ function addLibraryRecords(externalRecords: Map<string, string[]>, libraryName: 
 async function getExternalRecords(
     newLibraries: Library[],
     libRefs: Map<string, string[]>,
-    originalLibraries: Library[]
+    cachedLibraries: Library[]
 ): Promise<void> {
     for (const [libName, recordNames] of libRefs.entries()) {
         if (libName.startsWith("ballerina/lang.int")) {
@@ -725,16 +777,15 @@ async function getExternalRecords(
             continue;
         }
 
-        let library = originalLibraries.find((lib) => lib.name === libName);
+        let library = cachedLibraries.find((lib) => lib.name === libName);
         if (!library) {
-            console.warn(`Library ${libName} is not found in the context. Fetching library details.`);
             const result = (await langClient.getCopilotFilteredLibraries({
                 libNames: [libName]
             })) as { libraries: Library[] };
             if (result.libraries && result.libraries.length > 0) {
                 library = result.libraries[0];
             } else {
-                console.warn(`Library ${libName} could not be fetched. Skipping the library.`);
+                console.warn(`Library ${libName} could not be fetched. Skipping.`);
                 continue;
             }
             console.log(`[getExternalRecords] Fetched library ${libName}:`, library);
@@ -839,9 +890,6 @@ Think step-by-step to choose the required types in order to solve the given ques
             messages: messages,
             schema: getTypesResponseSchema,
             abortSignal: new AbortController().signal,
-            providerOptions: {
-                anthropic: { structuredOutputMode: 'jsonTool' },
-            },
         });
 
         const libList = object as GetTypesResponse;

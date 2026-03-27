@@ -82,6 +82,11 @@ export function ConnectionCreator(props: ConnectionCreatorProps): JSX.Element {
         const nodeTemplate = cloneDeep(nodeFormTemplate);
         updateFormFieldsWithData(connectionFields, data, formImports);
         updateNodeTemplateProperties(nodeTemplate, connectionFields);
+        Object.values(nodeTemplate.properties).forEach((prop: any) => {
+            if (prop) {
+                prop.imports = {};
+            }
+        });
         try {
             const response = await rpcClient
                 .getBIDiagramRpcClient()

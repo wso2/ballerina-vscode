@@ -41,12 +41,17 @@ import {
 const getNodeTitle = (model: EntryNodeModel) => {
     const serviceName = (model.node as any)?.serviceName ||
         (model.node as any)?.name ||
-        "AI Service";
+        "AI Agent Service";
     return serviceName.replace(/^\//, '');
 };
 
 const getNodeDescription = (model: EntryNodeModel) => {
-    return (model.node as any)?.description || "";
+    if ((model.node as CDService).absolutePath) {
+        return (model.node as CDService).absolutePath.replace(/\\/g, "");
+    }
+    return (model.node as any)?.serviceName ||
+        (model.node as any)?.name ||
+        "";
 };
 
 export function AIServiceWidget({ model, engine }: BaseNodeWidgetProps) {
@@ -110,8 +115,8 @@ export function AIServiceWidget({ model, engine }: BaseNodeWidgetProps) {
                         <Title hovered={isHovered}>{getNodeTitle(model)}</Title>
                         <Description>{getNodeDescription(model)}</Description>
                     </Header>
-                    <MenuButton 
-                        appearance="icon" 
+                    <MenuButton
+                        appearance="icon"
                         onClick={!readonly ? handleOnMenuClick : undefined}
                         onMouseDown={!readonly ? handleMenuMouseDown : undefined}
                         onMouseUp={!readonly ? handleMenuMouseUp : undefined}

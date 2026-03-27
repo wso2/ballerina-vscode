@@ -243,11 +243,11 @@ export function ResourcePath(props: ResourcePathProps) {
 					label="Resource Path"
 					size={70}
 					onTextChange={(input) => {
-						const trimmedInput = input.startsWith('/') ? input.slice(1) : input;
-						handlePathChange(trimmedInput);
+						handlePathChange(input);
 					}}
 					disabled={readonly}
 					onKeyUp={handleBlur}
+					onBlur={handleBlur}
 					placeholder="path/foo"
 					value={removeForwardSlashes(path.value as string)}
 					onFocus={(e) => e.target.select()}

@@ -66,18 +66,27 @@ export async function modifyFileContent(params: UpdateFileContentRequest): Promi
     return false;
 }
 
+/**
+ * Ensures content ends with a newline for POSIX compliance and version control best practices.
+ */
+function ensureTrailingNewline(content: string): string {
+    const trimmed = content.trim();
+    return trimmed.endsWith('\n') ? trimmed : trimmed + '\n';
+}
+
 export function writeBallerinaFileDidOpenTemp(filePath: string, content: string) {
     // Replace the selection with:
     const dir = dirname(filePath);
     if (!existsSync(dir)) {
         mkdirSync(dir, { recursive: true });
     }
-    writeFileSync(filePath, content.trim());
+    const contentWithNewline = ensureTrailingNewline(content);
+    writeFileSync(filePath, contentWithNewline);
     StateMachine.langClient().didChange({
         textDocument: { uri: filePath, version: 1 },
         contentChanges: [
             {
-                text: content,
+                text: contentWithNewline,
             },
         ],
     });
@@ -86,18 +95,19 @@ export function writeBallerinaFileDidOpenTemp(filePath: string, content: string)
             uri: Uri.file(filePath).toString(),
             languageId: 'ballerina',
             version: 1,
-            text: content.trim()
+            text: contentWithNewline
         }
     });
 }
 
 export async function writeBallerinaFileDidOpen(filePath: string, content: string) {
-    writeFileSync(filePath, content.trim());
+    const contentWithNewline = ensureTrailingNewline(content);
+    writeFileSync(filePath, contentWithNewline);
     StateMachine.langClient().didChange({
         textDocument: { uri: filePath, version: 1 },
         contentChanges: [
             {
-                text: content,
+                text: contentWithNewline,
             },
         ],
     });
@@ -106,7 +116,7 @@ export async function writeBallerinaFileDidOpen(filePath: string, content: strin
             uri: Uri.file(filePath).toString(),
             languageId: 'ballerina',
             version: 1,
-            text: content.trim()
+            text: contentWithNewline
         }
     });
 

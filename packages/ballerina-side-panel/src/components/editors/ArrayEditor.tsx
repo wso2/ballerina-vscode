@@ -87,7 +87,7 @@ interface ArrayEditorProps {
     recordTypeField?: RecordTypeField;
 }
 
-export function ArrayEditor(props: ArrayEditorProps) {
+function ArrayEditor(props: ArrayEditorProps) {
     const { field, label, ...rest } = props;
     const { form } = useFormContext();
     const { unregister, setValue, watch } = form;
@@ -159,14 +159,14 @@ export function ArrayEditor(props: ArrayEditorProps) {
             <S.Description>{field.documentation}</S.Description>
             {[...Array(editorCount)].map((_, index) => (
                 <S.EditorContainer key={`${field.key}-${index}`}>
-                    <ContextAwareExpressionEditor
+                    {/* <ContextAwareExpressionEditor
                         {...rest}
                         field={field}
                         id={`${field.key}-${index}`}
                         fieldKey={`${field.key}-${index}`}
                         required={!field.optional && index === 0}
                         showHeader={false}
-                    />
+                    /> */}
                     <S.DeleteButton
                         appearance="icon"
                         onClick={() => onDelete(index)}

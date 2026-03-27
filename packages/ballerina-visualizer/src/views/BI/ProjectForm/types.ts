@@ -17,7 +17,7 @@
  */
 
 /**
- * Base form data shared between AddProject and Project forms
+ * Base form data shared between add/create integration forms
  */
 export interface BaseProjectFormData {
     integrationName: string;
@@ -28,19 +28,21 @@ export interface BaseProjectFormData {
 }
 
 /**
- * Form data for the AddProject form (adding to existing workspace)
+ * Form data for adding an integration to an existing project
  */
 export interface AddProjectFormData extends BaseProjectFormData {
+    // Kept for RPC payload compatibility; conceptually this is the project name.
     workspaceName?: string;
 }
 
 /**
- * Form data for the main Project form (creating new project)
+ * Form data for the main integration form (creating a new project or integration)
  */
 export interface ProjectFormData extends BaseProjectFormData {
     path: string;
     createDirectory: boolean;
+    // Kept for RPC payload compatibility; conceptually this is "create as project".
     createAsWorkspace: boolean;
+    // Kept for RPC payload compatibility; conceptually this is the project name.
     workspaceName: string;
 }
-

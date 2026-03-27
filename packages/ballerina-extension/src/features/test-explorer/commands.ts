@@ -312,7 +312,7 @@ function hasEvaluationGroup(testFunction: any): boolean {
 
     // Check if "evaluations" is in the groups array
     const hasEvaluation = groupsField.value.some((group: string) => {
-        return group === EVALUATION_GROUP;
+        return group.replace(/^"|"$/g, '') === EVALUATION_GROUP;
     });
     return hasEvaluation;
 }

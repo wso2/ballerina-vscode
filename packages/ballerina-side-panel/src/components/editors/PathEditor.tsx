@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { FormField } from "../Form/types";
 import { TextField } from "@wso2/ui-toolkit";
 import { useFormContext } from "../../context";
@@ -33,11 +33,11 @@ interface PathEditorProps {
 export function PathEditor(props: PathEditorProps) {
     const { field, handleOnFieldFocus, autoFocus } = props;
     const { form } = useFormContext();
-    const { register, setError, clearErrors } = form;
+    const { register, setError, clearErrors, watch } = form;
 
     const [pathErrorMsg, setPathErrorMsg] = useState<string>(field.diagnostics?.map((diagnostic) => diagnostic.message).join("\n"));
 
-    const validatePath = useCallback(debounce(async (value: string) => {
+    const validatePath = useCallback(debounce((value: string) => {
         const response = field.type === "SERVICE_PATH" ? parseBasePath(value) : parseResourceActionPath(value);
         if (response.errors.length > 0) {
             setPathErrorMsg(response.errors[0].message);
@@ -49,7 +49,16 @@ export function PathEditor(props: PathEditorProps) {
             setPathErrorMsg("");
             clearErrors(field.key);
         }
-    }, 250), [field]);
+    }, 250), [field.key, field.type, setError, clearErrors]);
+
+    // Validate on mount and when value changes (covers initial load, paste, programmatic updates)
+    const fieldValue = watch(field.key);
+    useEffect(() => {
+        if (fieldValue !== undefined && fieldValue !== null) {
+            validatePath(String(fieldValue));
+        }
+        return () => validatePath.cancel();
+    }, [fieldValue, field.key, validatePath]);
 
     return (
         <TextField

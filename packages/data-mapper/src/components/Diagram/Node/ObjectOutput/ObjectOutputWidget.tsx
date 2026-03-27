@@ -19,7 +19,7 @@
 import React, { useState } from 'react';
 
 import { DiagramEngine } from '@projectstorm/react-diagrams';
-import { Button, Codicon, TruncatedLabel, TruncatedLabelGroup } from '@wso2/ui-toolkit';
+import { Button, Codicon, Icon, TruncatedLabel, TruncatedLabelGroup } from '@wso2/ui-toolkit';
 import { IOType, Mapping, TypeKind } from '@wso2/ballerina-core';
 
 import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
@@ -27,9 +27,10 @@ import { DataMapperPortWidget, PortState, InputOutputPortModel } from '../../Por
 import { TreeBody, TreeContainer, TreeHeader } from '../commons/Tree/Tree';
 import { ObjectOutputFieldWidget } from "./ObjectOutputFieldWidget";
 import { useIONodesStyles } from '../../../styles';
-import { useDMCollapsedFieldsStore, useDMIOConfigPanelStore } from '../../../../store/store';
+import { useDMCollapsedFieldsStore, useDMExpressionBarStore, useDMIOConfigPanelStore } from '../../../../store/store';
 import { OutputSearchHighlight } from '../commons/Search';
 import { useShallow } from 'zustand/react/shallow';
+import { DiagnosticTooltip } from '../../Diagnostic/DiagnosticTooltip';
 
 export interface ObjectOutputWidgetProps {
 	id: string; // this will be the root ID used to prepend for UUIDs of nested fields
@@ -71,9 +72,11 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 	);
 
 	const fields = outputType.fields.filter(t => t !== null);
-	const hasFields = fields.length > 0;
+
+	const exprBarFocusedPort = useDMExpressionBarStore(state => state.focusedPort);
 
 	const portIn = getPort(`${id}.IN`);
+	const isExprBarFocused = exprBarFocusedPort?.getName() === portIn?.getName();
 	const isUnknownType = outputType.kind === TypeKind.Unknown;
 
 	let expanded = true;
@@ -81,8 +84,6 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 		expanded = false;
 	}
 	const isDisabled = portIn?.attributes.descendantHasValue;
-
-	const indentation = (portIn && (!hasFields || !expanded)) ? 0 : 24;
 
 	const handleExpand = () => {
 		const collapsedFields = collapsedFieldsStore.fields;
@@ -106,7 +107,7 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 	};
 
 	const label = (
-		<TruncatedLabelGroup style={{ marginRight: "auto", alignItems: "baseline" }}>
+		<TruncatedLabelGroup style={{ alignItems: "baseline" }}>
 			{valueLabel && (
 				<TruncatedLabel className={classes.valueLabelHeader}>
 					<OutputSearchHighlight>{valueLabel}</OutputSearchHighlight>
@@ -129,7 +130,7 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 		<>
 			<TreeContainer data-testid={`${id}-node`} onContextMenu={onRightClick}>
 				<TreeHeader
-					isSelected={portState !== PortState.Unselected}
+					isSelected={portState !== PortState.Unselected || isExprBarFocused}
 					id={"recordfield-" + id}
 					onMouseEnter={onMouseEnter}
 					onMouseLeave={onMouseLeave}
@@ -146,10 +147,9 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 					</span>
 					<span className={classes.label}>
 						<Button
-							id={"expand-or-collapse-" + id} 
+							id={"expand-or-collapse-" + id}
 							appearance="icon"
 							tooltip="Expand/Collapse"
-							sx={{ marginLeft: indentation }}
 							onClick={handleExpand}
 							data-testid={`${id}-expand-icon-mapping-target-node`}
 						>
@@ -157,6 +157,26 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 						</Button>
 						{label}
 					</span>
+					{context.model.hasInvalidOutput && (
+						<DiagnosticTooltip
+							placement="right"
+							diagnostic="Output has invalid fields"
+							actionText="Fix by removing invalid fields"
+							onClick={context.resolveOutput}
+						>
+							<Button
+								appearance="icon"
+								data-testid={`array-widget-field-${portIn?.getName()}`}
+								data-field-action
+							>
+								<Icon
+									name="error-icon"
+									sx={{ height: "14px", width: "14px" }}
+									iconSx={{ fontSize: "14px", color: "var(--vscode-errorForeground)" }}
+								/>
+							</Button>
+						</DiagnosticTooltip>
+					)}
 				</TreeHeader>
 				{(expanded && fields) && (
 					<TreeBody>

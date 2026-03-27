@@ -24,7 +24,7 @@ import { FormField } from "../Form/types";
 import { buildRequiredRule, capitalize, getValueForDropdown } from "./utils";
 import { useFormContext } from "../../context";
 import styled from "@emotion/styled";
-import { EditorFactory } from "./EditorFactory";
+import { FieldFactory } from "./FieldFactory";
 
 interface DropdownChoiceFormProps {
     field: FormField;
@@ -53,16 +53,15 @@ export function DropdownChoiceForm(props: DropdownChoiceFormProps) {
     const { form } = useFormContext();
     const { setValue, register } = form;
 
-    const [selectedOption, setSelectedOption] = useState<string>("");
+    const initialOption = (field.value as string) || "";
+    const [selectedOption, setSelectedOption] = useState<string>(initialOption);
 
     const [dynamicFields, setDynamicFields] = useState<FormField[]>([]);
 
-
-    // Add useEffect to set initial values
+    // Update dynamic fields when selection changes
     useEffect(() => {
-        if (field.dynamicFormFields[selectedOption]) {
-            const fields = field.dynamicFormFields[selectedOption];
-            setDynamicFields(fields);
+        if (field.dynamicFormFields?.[selectedOption]) {
+            setDynamicFields(field.dynamicFormFields[selectedOption]);
         } else {
             setDynamicFields([]);
         }
@@ -95,7 +94,7 @@ export function DropdownChoiceForm(props: DropdownChoiceFormProps) {
                 {dynamicFields.map((dfield, index) => {
                     if (!dfield.advanced && !dfield.optional) {
                         return (
-                            <EditorFactory
+                            <FieldFactory
                                 key={dfield.key}
                                 field={dfield}
                                 autoFocus={index === 0 ? true : false}

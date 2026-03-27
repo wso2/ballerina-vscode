@@ -24,6 +24,7 @@ import * as vscode from 'vscode';
 import { BallerinaExtension } from "src/core";
 import Handlebars from "handlebars";
 import { clientManager, findRunningBallerinaProcesses, handleError, HTTPYAC_CONFIG_TEMPLATE, TRYIT_TEMPLATE, waitForBallerinaService } from "./utils";
+import { buildHurlCellsFromOASSpec } from "./hurl-builder";
 import { BIDesignModelResponse, EVENT_TYPE, MACHINE_VIEW, OpenAPISpec, ProjectInfo } from "@wso2/ballerina-core";
 import { getProjectWorkingDirectory } from "../../utils/file-utils";
 import { startDebugging } from "../editor-support/activator";
@@ -65,7 +66,52 @@ export function activateTryItCommand(ballerinaExtInstance: BallerinaExtension) {
             }
         });
 
-        return Disposable.from(disposable, {
+        // Command: start Ballerina service (no old Try It UI), then open WSO2 HTTP Client notebook
+        const startServiceDisposable = commands.registerCommand('ballerina.startService',
+            async (
+                content?: string | object[] | { oasSpec: any; baseUrl: string; serviceName: string; resourceMetadata?: { methodValue: string; pathValue: string } },
+                options?: { savable?: boolean },
+                serviceMetadata?: ServiceMetadata,
+                filePath?: string
+            ) => {
+                try {
+                    const projectAndServices = await getProjectPathAndServices(serviceMetadata, filePath);
+                    if (!projectAndServices) { return; }
+
+                    const { projectPath, services } = projectAndServices;
+                    const processesRunning = await checkBallerinaProcessRunning(projectPath);
+                    if (!processesRunning) { return; }
+
+                    if (content) {
+                        const savePath = path.join(projectPath, 'target', 'TryIt.hurl');
+                        if (isOasDescriptor(content)) {
+                            // Resolve the actual running service port (same logic as Code Lens Try It)
+                            let descriptor = content;
+                            try {
+                                const matchingService = services.find(s =>
+                                    s.basePath === serviceMetadata?.basePath &&
+                                    (!serviceMetadata?.listener || compareListeners(s.listener, serviceMetadata.listener))
+                                ) ?? (services.length === 1 ? services[0] : undefined);
+                                if (matchingService) {
+                                    const actualPort = await getServicePort(projectPath, matchingService, content.oasSpec);
+                                    const bp = matchingService.basePath === '/' ? '' : sanitizePath(matchingService.basePath);
+                                    descriptor = { ...content, baseUrl: `http://localhost:${actualPort}${bp}` };
+                                }
+                            } catch {
+                                // Fall back to the static baseUrl already in the descriptor
+                            }
+                            await openHurlNotebook(descriptor, savePath, options);
+                        } else {
+                            await openTryItNotebook(content, { ...options, savePath });
+                        }
+                    }
+                } catch (error) {
+                    handleError(error, "Starting Ballerina service");
+                }
+            }
+        );
+
+        return Disposable.from(disposable, startServiceDisposable, {
             dispose: disposeErrorWatcher
         });
     } catch (error) {
@@ -166,8 +212,11 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
             const selectedPort: number = await getServicePort(projectPath, selectedService, openapiSpec);
             selectedService.port = selectedPort;
 
-            const tryitFileUri = await generateTryItFileContent(targetDir, openapiSpec, selectedService, resourceMetadata);
-            await openInSplitView(tryitFileUri, 'http');
+            const basePath = selectedService.basePath === '/' ? '' : sanitizePath(selectedService.basePath);
+            const baseUrl = `http://localhost:${selectedPort}${basePath}`;
+            const serviceName = selectedService.name || selectedService.basePath;
+            const savePath = path.join(projectPath, 'target', 'TryIt.hurl');
+            await openHurlNotebook({ oasSpec: openapiSpec, baseUrl, serviceName, resourceMetadata }, savePath, { savable: true });
         } else if (selectedService.type === ServiceType.GRAPHQL) {
             const selectedPort: number = await getServicePort(projectPath, selectedService);
             const port = selectedPort;
@@ -185,10 +234,20 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
             // AI Agent service - start the tracing server if enabled
             TracerMachine.startServer();
 
-            const selectedPort: number = await getServicePort(projectPath, selectedService);
-            selectedService.port = selectedPort;
+            // Gather all agent services for multi-agent support
+            const allAgentServices = services.filter(s => s.type === ServiceType.AGENT);
+            const agentServicesWithPorts: { service: ServiceInfo; port: number }[] = [];
+            for (const agentService of allAgentServices) {
+                const port = await getServicePort(projectPath, agentService);
+                agentService.port = port;
+                agentServicesWithPorts.push({ service: agentService, port });
+            }
 
-            await openChatView(selectedService.basePath, selectedPort.toString(), wasServiceAlreadyRunning);
+            // Use the port already resolved in the loop above if the selected service is an agent
+            const existingEntry = agentServicesWithPorts.find(e => e.service === selectedService);
+            selectedService.port = existingEntry ? existingEntry.port : await getServicePort(projectPath, selectedService);
+
+            await openChatView(selectedService, agentServicesWithPorts, wasServiceAlreadyRunning);
         }
 
         // Setup the error log watcher
@@ -196,6 +255,39 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
     } catch (error) {
         handleError(error, "Opening Try It view");
     }
+}
+
+// ---------------------------------------------------------------------------
+// Hurl notebook helpers — shared by ballerina.startService and openTryItView
+// ---------------------------------------------------------------------------
+
+interface OasDescriptor {
+    oasSpec: any;
+    baseUrl: string;
+    serviceName: string;
+    resourceMetadata?: { methodValue: string; pathValue: string };
+}
+
+function isOasDescriptor(v: any): v is OasDescriptor {
+    return v !== null && typeof v === 'object' && !Array.isArray(v) && 'oasSpec' in v && 'baseUrl' in v && 'serviceName' in v;
+}
+
+async function openHurlNotebook(
+    descriptor: OasDescriptor,
+    savePath: string,
+    options?: { savable?: boolean }
+): Promise<void> {
+    const cells = buildHurlCellsFromOASSpec(descriptor.oasSpec, descriptor.baseUrl, descriptor.serviceName, descriptor.resourceMetadata);
+    await openTryItNotebook(cells, { ...options, savePath });
+}
+
+async function openTryItNotebook(
+    content: string | object[],
+    options?: { savable?: boolean; savePath?: string }
+): Promise<void> {
+    await vscode.commands.executeCommand('workbench.action.editorLayoutTwoColumns');
+    await vscode.commands.executeCommand('workbench.action.focusSecondEditorGroup');
+    await vscode.commands.executeCommand('HTTPClient.importHurlString', content, { ...options, viewColumn: 'active' });
 }
 
 // Generic utility function for opening files in split view
@@ -221,30 +313,58 @@ async function openInSplitView(fileUri: vscode.Uri, editorType: string = 'defaul
     }
 }
 
-async function openChatView(basePath: string, port: string, wasServiceAlreadyRunning: boolean) {
+function buildChatEndpoint(basePath: string, port: number): string {
+    const baseUrl = `http://localhost:${port}`;
+    const chatPath = "chat";
+    const cleanBasePath = basePath.replace(/\\/g, '');
+    const serviceEp = new URL(cleanBasePath, baseUrl);
+    const cleanedServiceEp = serviceEp.pathname.replace(/\/$/, '') + "/" + chatPath.replace(/^\//, '');
+    const chatEp = new URL(cleanedServiceEp, serviceEp.origin);
+    return chatEp.href;
+}
+
+function getAgentDisplayName(basePath: string): string {
+    const trimmed = basePath.replace(/^\/+|\/+$/g, '');
+    return trimmed || 'default';
+}
+
+async function openChatView(
+    selectedService: ServiceInfo,
+    allAgentServices: { service: ServiceInfo; port: number }[],
+    wasServiceAlreadyRunning: boolean
+) {
     try {
-        const baseUrl = `http://localhost:${port}`;
-        const chatPath = "chat";
+        // Build agent info for all agent services
+        const agents = allAgentServices.map(({ service, port }) => {
+            const chatEndpoint = buildChatEndpoint(service.basePath, port);
+            let sessionId: string;
 
-        const serviceEp = new URL(basePath, baseUrl);
-        const cleanedServiceEp = serviceEp.pathname.replace(/\/$/, '') + "/" + chatPath.replace(/^\//, '');
-        const chatEp = new URL(cleanedServiceEp, serviceEp.origin);
+            if (!wasServiceAlreadyRunning) {
+                sessionId = uuidv4();
+                chatSessionMap.set(chatEndpoint, sessionId);
+            } else {
+                sessionId = chatSessionMap.get(chatEndpoint) || uuidv4();
+                chatSessionMap.set(chatEndpoint, sessionId);
+            }
 
-        const chatEndpoint = chatEp.href;
+            return {
+                name: getAgentDisplayName(service.basePath),
+                basePath: service.basePath,
+                chatEp: chatEndpoint,
+                chatSessionId: sessionId,
+            };
+        });
 
-        let sessionId: string;
+        // Find the active agent based on the selected service
+        const activeAgentName = getAgentDisplayName(selectedService.basePath);
+        const activeAgent = agents.find(a => a.name === activeAgentName) || agents[0];
 
-        if (!wasServiceAlreadyRunning) {
-            // Service was just started - generate a new session ID for a fresh start
-            sessionId = uuidv4();
-            chatSessionMap.set(chatEndpoint, sessionId);
-        } else {
-            // Service was already running - reuse existing session ID if available, or create new
-            sessionId = chatSessionMap.get(chatEndpoint) || uuidv4();
-            chatSessionMap.set(chatEndpoint, sessionId);
-        }
-
-        commands.executeCommand("ballerina.open.agent.chat", { chatEp: chatEndpoint, chatSessionId: sessionId });
+        commands.executeCommand("ballerina.open.agent.chat", {
+            chatEp: activeAgent.chatEp,
+            chatSessionId: activeAgent.chatSessionId,
+            agents,
+            activeAgentName: activeAgent.name,
+        });
     } catch (error) {
         vscode.window.showErrorMessage(`Failed to call Chat-Agent: ${error}`);
     }
@@ -360,7 +480,10 @@ async function getAvailableServices(projectDir: string): Promise<ServiceInfo[] |
                         .filter(Boolean)
                         .join(','),
                     port: attachedListeners
-                        .map(listenerId => response.designModel.listeners.find(l => l.uuid === listenerId)?.args.find(arg => arg.key === 'port')?.value)
+                        .map(listenerId => {
+                            const listener = response.designModel.listeners.find(l => l.uuid === listenerId);
+                            return listener?.args.find(arg => arg.key === 'port' || arg.key === 'listenOn')?.value;
+                        })
                         .filter(Boolean)
                         .join(','),
                 };
@@ -523,6 +646,11 @@ async function getServicePort(projectDir: string, service: ServiceInfo, openapiS
         // If the service has an anonymous listener, directly use the port defined inline
         if (service.listener.port && !isNaN(parseInt(service.listener.port))) {
             return parseInt(service.listener.port);
+        }
+
+        // If the listener uses http:getDefaultListener(), resolve to the default port (9090)
+        if (service.listener.port?.includes('getDefaultListener')) {
+            return 9090;
         }
 
         // Try to get default port from OpenAPI spec first
@@ -950,7 +1078,7 @@ function setupErrorLogWatcher(targetDir: string) {
                 ).then(selection => {
                     if (selection === 'Show Details') {
                         // Show the full error in an output channel
-                        const outputChannel = window.createOutputChannel('WSO2 Integrator: BI Tryit - Log');
+                        const outputChannel = window.createOutputChannel('WSO2 Integrator Tryit - Log');
                         outputChannel.appendLine(content.trim());
                         outputChannel.show();
                     }

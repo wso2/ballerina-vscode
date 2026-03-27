@@ -292,6 +292,84 @@ export const useIONodesStyles = () => ({
         transform: 'translateY(-50%)',
         marginLeft: '8px'
     }),
+    nodeActionButton: css({
+        "& > vscode-button": {
+            height: "40px",
+            width: `${IO_NODE_DEFAULT_WIDTH}px`,
+            border: "1.8px solid var(--vscode-dropdown-border)",
+            borderRadius: "6px",
+            background: "var(--vscode-sideBar-background)",
+            color: "var(--vscode-textLink-foreground)"
+        },
+        "& > vscode-button > *": {
+            margin: "0px 6px"
+        },
+        "& > vscode-button::part(control)": {
+            justifyContent: "flex-start"
+        },
+        "& > vscode-button:not([disabled]):active": {
+            background: "var(--vscode-button-background)",
+            color: "var(--vscode-button-foreground)",
+            "& p": {
+                color: "var(--vscode-button-foreground) !important"
+            },
+            "& .action-icon": {
+                color: "var(--vscode-button-foreground) !important"
+            }
+        },
+        "& > vscode-button[disabled]": {
+            opacity: 0.8,
+            cursor: "not-allowed",
+        },
+        "& > vscode-button[disabled]::part(control)": {
+            cursor: "not-allowed",
+            background: "var(--vscode-sideBar-background)"
+        },
+        "& .action-icon": {
+            color: "var(--vscode-textLink-foreground)"
+        },
+        "& p": {
+            color: "var(--vscode-textLink-foreground)"
+        }
+    }),
+    payloadWidget: css({
+        width: `${IO_NODE_DEFAULT_WIDTH}px`,
+        height: `${IO_NODE_FIELD_HEIGHT * 5}px`,
+        border: "2.5px dashed var(--vscode-dropdown-border)",
+        borderRadius: "6px",
+        background: "var(--vscode-sideBar-background)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        padding: "20px",
+        cursor: "pointer",
+        boxSizing: "border-box",
+        "&:hover": {
+            borderColor: "var(--vscode-focusBorder)"
+        }
+    }),
+    payloadNote: css({
+        fontSize: "13px",
+        color: "var(--vscode-descriptionForeground)",
+        padding: "8px 10px",
+        backgroundColor: "var(--vscode-textBlockQuote-background)",
+        borderLeft: "3px solid var(--vscode-textBlockQuote-border)",
+        borderRadius: "0 4px 4px 0"
+    }),
+    payloadWidgetAction: css({
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "20px",
+        marginTop: "28px",
+        color: "var(--vscode-descriptionForeground)"
+    }),
+    payloadWidgetActionLabel: css({
+        margin: 0,
+        fontSize: "14px",
+        fontFamily: "GilmerRegular",
+        color: "var(--vscode-descriptionForeground)"
+    })
 });
 
 export const useIntermediateNodeStyles = () => ({

@@ -64,6 +64,7 @@ import { InputMode } from "../types";
 export type ChipExpressionEditorComponentProps = {
     onTokenRemove?: (token: string) => void;
     onTokenClick?: (token: string) => void;
+    onBlur?: () => void;
     isExpandedVersion: boolean;
     getHelperPane?: (
         value: string,
@@ -72,7 +73,7 @@ export type ChipExpressionEditorComponentProps = {
     ) => React.ReactNode;
     completions: CompletionItem[];
     onChange: (updatedValue: string, updatedCursorPosition: number) => void;
-    value: string;
+    value: string | undefined;
     fileName?: string;
     extractArgsFromFunction?: (value: string, cursorPosition: number) => Promise<{
         label: string;
@@ -207,6 +208,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
 
     const handleFocusOutListner = buildOnFocusOutListner(() => {
         setIsTokenUpdateScheduled(true);
+        props.onBlur?.();
     });
 
     const waitForStateChange = (): Promise<CompletionItem[]> => {
@@ -321,7 +323,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
     useEffect(() => {
         if (!editorRef.current) return;
         const startState = EditorState.create({
-            doc: props.value ?? "",
+            doc: configuration.serializeValue(props.value ?? ""),
             extensions: [
                 ...(configuration.getPlugins()),
                 history(),
@@ -395,9 +397,8 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
             return;
         }
         const updateEditorState = async () => {
-            const sanitizedValue = props.sanitizedExpression ? props.sanitizedExpression(serializedValue) : serializedValue;
             const currentDoc = viewRef.current!.state.doc.toString();
-            const isExternalUpdate = sanitizedValue !== currentDoc;
+            const isExternalUpdate = serializedValue !== currentDoc;
 
             if (!isTokenUpdateScheduled && !isExternalUpdate) return;
 
@@ -410,7 +411,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
             const prefixCorrectedTokenStream = tokenStream
                 ? correctTokenStreamPositions(
                     tokenStream,
-                    sanitizedValue,
+                    serializedValue,
                     configuration.getSerializationPrefix().length,
                     configuration.getSerializationSuffix().length
                 )
@@ -420,7 +421,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                 tokens: prefixCorrectedTokenStream
             })] : [];
             const changes = isExternalUpdate
-                ? { from: 0, to: viewRef.current!.state.doc.length, insert: sanitizedValue }
+                ? { from: 0, to: viewRef.current!.state.doc.length, insert: serializedValue }
                 : undefined;
             const annotations = isExternalUpdate ? [SyncDocValueWithPropValue.of(true)] : [];
 
@@ -438,11 +439,6 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         completionsRef.current = props.completions;
         completionsFetchScheduledRef.current = false;
     }, [props.completions]);
-
-    // Trigger token update when sanitization mode changes
-    useEffect(() => {
-        setIsTokenUpdateScheduled(true);
-    }, [Boolean(props.sanitizedExpression), Boolean(props.rawExpression)]);
 
     // Update editor editable state when disabled prop changes
     useEffect(() => {

@@ -70,11 +70,13 @@ export interface DataMapperExpressionBarState {
     lastFocusedPort: InputOutputPortModel;
     lastFocusedFilter: Node;
     inputPort: InputOutputPortModel;
+    allowInputs: boolean;
     setFocusedPort: (port: InputOutputPortModel) => void;
     setFocusedFilter: (port: Node) => void;
     setLastFocusedPort: (port: InputOutputPortModel) => void;
     setLastFocusedFilter: (port: Node) => void;
     setInputPort: (port: InputOutputPortModel) => void;
+    setAllowInputs: (allowInputs: boolean) => void;
     resetFocus: () => void;
     resetInputPort: () => void;
     resetExpressionBarStore: () => void;  // Complete cleanup for component unmounting
@@ -137,17 +139,20 @@ export const useDMExpressionBarStore = create<DataMapperExpressionBarState>((set
     focusedFilter: undefined,
     lastFocusedPort: undefined,
     lastFocusedFilter: undefined,
+    inputPort: undefined,
+    allowInputs: false,
     setFocusedPort: (focusedPort: InputOutputPortModel) => set((state) => ({ lastFocusedPort: state.focusedPort, focusedPort })),
     setFocusedFilter: (focusedFilter: Node) => set({ focusedFilter }),
     setLastFocusedPort: (lastFocusedPort: InputOutputPortModel) => set({ lastFocusedPort }),
     setLastFocusedFilter: (lastFocusedFilter: Node) => set({ lastFocusedFilter }),
-    inputPort: undefined,
     setInputPort: (inputPort: InputOutputPortModel) => set({ inputPort }),
+    setAllowInputs: (allowInputs: boolean) => set({ allowInputs }),
     resetFocus: () => set((state) => ({
         lastFocusedPort: state.focusedPort,
         lastFocusedFilter: state.focusedFilter,
         focusedPort: undefined,
-        focusedFilter: undefined
+        focusedFilter: undefined,
+        allowInputs: false
     })),
     resetInputPort: () => set({ inputPort: undefined }),
     // Complete state cleanup for component unmounting to prevent stale references
@@ -156,7 +161,8 @@ export const useDMExpressionBarStore = create<DataMapperExpressionBarState>((set
         focusedFilter: undefined,
         lastFocusedPort: undefined,
         lastFocusedFilter: undefined,
-        inputPort: undefined
+        inputPort: undefined,
+        allowInputs: false
     })
 }));
 

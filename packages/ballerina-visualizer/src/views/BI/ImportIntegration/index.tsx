@@ -54,7 +54,7 @@ export function ImportIntegration() {
     const [migrationSuccessful, setMigrationSuccessful] = useState(false);
     const [migrationResponse, setMigrationResponse] = useState<ImportIntegrationResponse | null>(null);
 
-    const defaultSteps = ["Select Source Project", "Migration Status", "Create and Open Project"];
+    const defaultSteps = ["Select Source Integration", "Migration Status", "Create and Open Project"];
 
     const isMultiProject = migratedProjects.length! > 0;
 

@@ -23,8 +23,8 @@ import { RemoteFunction, ServiceType } from "../../interfaces/ballerina";
 import { ImportInfo } from "../ai-panel/interfaces";
 
 export interface ProjectRequest {
-    projectName: string;
-    packageName: string;
+    projectName?: string;
+    packageName?: string;
     projectPath: string;
     createDirectory: boolean;
     createAsWorkspace?: boolean;
@@ -178,6 +178,11 @@ export interface FormDidCloseParams {
     filePath: string;
 }
 
+export interface FormDirtyDidChangeParams {
+    filePath: string;
+    isDirty: boolean;
+}
+
 export interface EndOfFileRequest {
     filePath: string;
 }
@@ -188,6 +193,20 @@ export enum BuildMode {
 
 export interface DevantMetadata {
     isLoggedIn?: boolean;
+    hasComponent?: boolean;
+    hasLocalChanges?: boolean;
+}
+
+export interface WorkspaceDevantMetadata {
+    isLoggedIn?: boolean;
+    hasAnyComponent?: boolean;
+    hasLocalChanges?: boolean;
+    projectsMetadata?: ProjectDevantMetadata[];
+}
+
+export interface ProjectDevantMetadata {
+    projectPath: string;
+    projectName?: string;
     hasComponent?: boolean;
     hasLocalChanges?: boolean;
 }
@@ -204,6 +223,7 @@ export interface ValidateProjectFormRequest {
     projectPath: string;
     projectName: string;
     createDirectory: boolean;
+    createAsWorkspace?: boolean;
 }
 
 export interface ValidateProjectFormResponse {

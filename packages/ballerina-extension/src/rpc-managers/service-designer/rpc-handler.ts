@@ -54,7 +54,9 @@ import {
     TriggerModelsRequest,
     updateListenerSourceCode,
     updateResourceSourceCode,
-    updateServiceSourceCode
+    updateServiceSourceCode,
+    GetOASSpecRequest,
+    getOASSpec
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { ServiceDesignerRpcManager } from "./rpc-manager";
@@ -82,4 +84,5 @@ export function registerServiceDesignerRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getServiceInitModel, (args: ServiceModelRequest) => rpcManger.getServiceInitModel(args));
     messenger.onRequest(createServiceAndListener, (args: ServiceInitSourceRequest) => rpcManger.createServiceAndListener(args));
     messenger.onRequest(generateExamplePayloadJson, (args: PayloadContext) => rpcManger.generateExamplePayloadJson(args));
+    messenger.onRequest(getOASSpec, (args: GetOASSpecRequest) => rpcManger.getOASSpec(args));
 }

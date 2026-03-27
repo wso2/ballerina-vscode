@@ -81,18 +81,25 @@ import { DocSection } from "../components/ExpressionEditor";
 import ballerina from "../languages/ballerina.js";
 import { FUNCTION_REGEX } from "../resources/constants";
 import { ConnectionKind, getConnectionKindConfig } from "../components/ConnectionSelector";
+import { ConnectionListItem } from "@wso2/wso2-platform-core";
 hljs.registerLanguage("ballerina", ballerina);
 
 export const BALLERINA_INTEGRATOR_ISSUES_URL = "https://github.com/wso2/product-ballerina-integrator/issues";
 
-function convertAvailableNodeToPanelNode(node: AvailableNode, functionType?: FUNCTION_TYPE): PanelNode {
+function convertAvailableNodeToPanelNode(
+    node: AvailableNode,
+    functionType?: FUNCTION_TYPE,
+    connectorType?: string
+): PanelNode {
     // Check if node should be filtered based on function type
     if (functionType === FUNCTION_TYPE.REGULAR && (node.metadata.data as NodeMetadata)?.isDataMappedFunction) {
         return undefined;
     }
-    if (functionType === FUNCTION_TYPE.EXPRESSION_BODIED && !(node.metadata.data as NodeMetadata).isDataMappedFunction) {
+    if (functionType === FUNCTION_TYPE.EXPRESSION_BODIED && !(node.metadata.data as NodeMetadata)?.isDataMappedFunction) {
         return undefined;
     }
+
+    const isPersistConnection = connectorType === "persist";
 
     // Return common panel node structure
     return {
@@ -101,34 +108,59 @@ function convertAvailableNodeToPanelNode(node: AvailableNode, functionType?: FUN
         description: node.metadata.description,
         enabled: node.enabled,
         metadata: node,
-        icon: (
+        icon: node.codedata.node === "NEW_CONNECTION" ? (
+            <ConnectorIcon
+                url={node.metadata.icon}
+                style={{ width: "16px", height: "16px", fontSize: "16px" }}
+                codedata={node.codedata}
+                connectorType={(node.metadata.data as NodeMetadata)?.connectorType}
+                fallbackIcon={
+                    <NodeIcon
+                        type={functionType === FUNCTION_TYPE.EXPRESSION_BODIED ? "DATA_MAPPER_CALL" : node.codedata.node}
+                        size={16}
+                    />
+                }
+            />
+        ) : (
             <NodeIcon
                 type={functionType === FUNCTION_TYPE.EXPRESSION_BODIED ? "DATA_MAPPER_CALL" : node.codedata.node}
                 size={16}
+                isPersistConnection={isPersistConnection}
             />
         ),
     };
 }
 
+
 function convertDiagramCategoryToSidePanelCategory(category: Category, functionType?: FUNCTION_TYPE): PanelCategory {
-    if (category.metadata.label !== "Current Integration" && functionType === FUNCTION_TYPE.EXPRESSION_BODIED) {
-        // Skip out of scope data mapping functions
-        return;
-    }
+    const connectorType = (category?.metadata?.data as NodeMetadata)?.connectorType;
+
     const items: PanelItem[] = category.items
         ?.map((item) => {
             if ("codedata" in item) {
-                return convertAvailableNodeToPanelNode(item as AvailableNode, functionType);
+                return convertAvailableNodeToPanelNode(item as AvailableNode, functionType, connectorType);
             } else {
-                return convertDiagramCategoryToSidePanelCategory(item as Category);
+                return convertDiagramCategoryToSidePanelCategory(item as Category, functionType);
             }
         })
-        .filter((item) => item !== undefined);
+        .filter((item) => {
+            if (item === undefined) {
+                return false;
+            }
+            if ((item as PanelCategory).items !== undefined) {
+                // Always keep subcategories that represent the current integration, even if empty
+                const title = (item as PanelCategory).title;
+                if (title?.toLowerCase().endsWith("(current integration)")) {
+                    return true;
+                }
+                // For other categories, use recursive check to see if they have any functions
+                return (item as PanelCategory).items.length > 0;
+            }
+            return true;
+        });
 
-    // HACK: use the icon of the first item in the category
     const icon = category.items.at(0)?.metadata.icon;
     const codedata = (category.items.at(0) as AvailableNode)?.codedata;
-    const connectorType = (category?.metadata?.data as NodeMetadata)?.connectorType;
 
     return {
         title: category.metadata.label,
@@ -136,6 +168,43 @@ function convertDiagramCategoryToSidePanelCategory(category: Category, functionT
         icon: <ConnectorIcon url={icon} style={{ width: "20px", height: "20px", fontSize: "20px" }} codedata={codedata} connectorType={connectorType} />,
         items: items,
     };
+}
+
+/** Map devant connection details with BI connection and to figure out which Devant connection are not used */
+export function enrichCategoryWithDevant(
+    connections: ConnectionListItem[] = [],
+    panelCategories: PanelCategory[] = [],
+    importingConn?: ConnectionListItem
+): PanelCategory[] {
+    const updated = panelCategories?.map((category) => {
+        if (category.title === "Connections") {
+            const usedConnIds: string[] = [];
+            const mappedCategoryItems = category.items?.map((categoryItem) => {
+                const matchingDevantConn = connections.find((conn) => conn.name?.replaceAll("-", "_").replaceAll(" ", "_") === (categoryItem as PanelCategory)?.title)
+                if(matchingDevantConn) {
+                    usedConnIds.push(matchingDevantConn.groupUuid);
+                    return { ...categoryItem, devant: matchingDevantConn, unusedDevantConn: false }
+                }
+                return categoryItem;
+            });
+            const unusedCategoryItems: PanelCategory[] = connections
+                .filter((conn) => !usedConnIds.includes(conn.groupUuid))
+                .map((conn) => ({
+                    title: conn.name?.replaceAll("-","_").replaceAll(" ","_"),
+                    items: [] as PanelItem[],
+                    description: "Unused WSO2 Cloud Connection",
+                    devant: conn,
+                    unusedDevantConn: true,
+                    isLoading: importingConn?.name === conn.name,
+                }));
+            return {
+                ...category,
+                items: [...mappedCategoryItems, ...unusedCategoryItems],
+            };
+        }
+        return category;
+    });
+    return updated;
 }
 
 export function convertBICategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
@@ -407,6 +476,8 @@ export function getContainerTitle(view: SidePanelView, activeNode: FlowNode, cli
             return `Select ${getConnectionDisplayName(connectionKind)}`;
         case SidePanelView.CONNECTION_CREATE:
             return `Create ${getConnectionDisplayName(connectionKind)}`;
+        case SidePanelView.CONNECTOR_ERROR:
+            return "Error";
         case SidePanelView.AGENT_MEMORY_MANAGER:
             return "Configure Memory";
         case SidePanelView.AGENT_TOOL:
@@ -775,6 +846,20 @@ export function convertToVisibleTypes(types: VisibleTypeItem[], isFetchingTypesF
     }));
 }
 
+export function convertItemsToCompletionItems(items: Item[]): CompletionItem[] {
+    items = items.filter(item => item !== null) as Item[];
+    //TODO: Need labelDetails from the LS for proper conversion
+    return items.map((item) => ({
+        label: item.metadata.label,
+        value: item.metadata.label,
+        kind: COMPLETION_ITEM_KIND.TypeParameter,
+        insertText: item.metadata.label,
+        labelDetails: {
+            description: (item as AvailableNode).codedata?.node
+        }
+    }));
+}
+
 export function convertRecordTypeToCompletionItem(type: Type): CompletionItem {
     const label = type?.name ?? "";
     const value = label;
@@ -856,9 +941,9 @@ const isCategoryType = (item: Item): item is Category => {
 };
 
 export const getFunctionItemKind = (category: string): FunctionKind => {
-    if (category.includes("Current")) {
+    if (category.toLocaleLowerCase().includes("current") || category.toLocaleLowerCase().includes("within project")) {
         return functionKinds.CURRENT;
-    } else if (category.includes("Imported")) {
+    } else if (category.toLocaleLowerCase().includes("imported")) {
         return functionKinds.IMPORTED;
     } else {
         return functionKinds.AVAILABLE;

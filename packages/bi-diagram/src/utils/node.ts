@@ -49,14 +49,33 @@ export function getBranchInLinkId(nodeId: string, branchLabel: string, branchInd
     return `${nodeId}-${branchLabel}-branch-${branchIndex}-in-link`;
 }
 
+const nodeContainsNonEmptyDiagnostics = (node: FlowNode) => {
+    if (!node?.properties) {
+        return false;
+    }
+    return Object.keys(node.properties).some((key) => {
+        const property = node.properties[key];
+        if (property?.types?.length === 1 && property.types[0].fieldType === "REPEATABLE_LIST") {
+            const diagnostics = property.value?.map((item: any) => item?.diagnostics?.diagnostics).flat().filter(dg => dg?.severity === "ERROR");
+            return diagnostics?.length > 0;
+        }
+        return (property?.diagnostics?.diagnostics?.length > 0);
+    });
+}
+
 export function nodeHasError(node: FlowNode) {
     if (!node) {
         return false;
     }
 
     // Check node
-    if (node.diagnostics && node.diagnostics.hasDiagnostics && node.diagnostics.diagnostics) {
-        return node.diagnostics.diagnostics?.some((diagnostic) => diagnostic.severity === "ERROR");
+    if (node.diagnostics && node.diagnostics.hasDiagnostics) {
+        if (node.diagnostics.diagnostics) {
+            return node.diagnostics.diagnostics?.some((diagnostic) => diagnostic.severity === "ERROR");
+        }
+        else if (nodeContainsNonEmptyDiagnostics(node)) {
+            return true;
+        }
     }
 
     // Check branch properties

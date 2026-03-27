@@ -69,7 +69,7 @@ export class QueryOutputNode extends DataMapperNodeModel {
     
             const headerPort = this.addPortsForHeader({
                 dmType: this.filteredOutputType,
-                name: this.rootName + ".#",
+                name: this.rootName + ".Q#",
                 portType: "IN",
                 portPrefix: QUERY_OUTPUT_TARGET_PORT_PREFIX,
                 mappings: this.context.model.mappings,
