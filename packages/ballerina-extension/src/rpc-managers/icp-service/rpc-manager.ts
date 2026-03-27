@@ -29,8 +29,8 @@ import { StateMachine } from "../../stateMachine";
 import { updateSourceCode } from "../../utils/source-utils";
 import { getOrgAndPackageName } from "../../utils";
 import { parse, stringify } from "@iarna/toml";
-
-const ICP_DEFAULT_SECRET = 'tmp.single-integration-use-dev-env-secret-for-local-use-only-do-not-use-in-production';
+import { getStoredICPSecret } from "../../features/icp/setup";
+import { ensureICPServerRunning } from "../../features/icp";
 
 const ICP_IMPORTS = [
     'import wso2/icp.runtime.bridge as _;',
@@ -214,7 +214,7 @@ function removeICPBuildOptions(projectPath: string): void {
     fs.writeFileSync(tomlPath, content, 'utf-8');
 }
 
-function addICPConfigToml(projectPath: string): void {
+async function addICPConfigToml(projectPath: string): Promise<void> {
     const configPath = path.join(projectPath, 'Config.toml');
     let config: Record<string, any> = {};
 
@@ -232,12 +232,15 @@ function addICPConfigToml(projectPath: string): void {
     if (!config.wso2.icp) { config.wso2.icp = {}; }
     if (!config.wso2.icp.runtime) { config.wso2.icp.runtime = {}; }
 
+    // Use stored secret from keychain if available, otherwise empty string
+    const storedSecret = await getStoredICPSecret(projectPath) || '';
+
     config.wso2.icp.runtime.bridge = {
         environment: 'dev',
         project: getProjectName(projectPath),
         integration: getIntegrationName(projectPath),
         runtime: os.hostname(),
-        secret: ICP_DEFAULT_SECRET,
+        secret: storedSecret,
     };
 
     fs.writeFileSync(configPath, stringify(config), 'utf-8');
@@ -283,7 +286,7 @@ export class ICPServiceRpcManager implements ICPServiceAPI {
                     await updateSourceCode({ textEdits: importEdits, description: 'ICP Creation' });
                 }
                 addICPBuildOptions(projectPath);
-                addICPConfigToml(projectPath);
+                await addICPConfigToml(projectPath);
                 const result: ICPEnabledResponse = await context.langClient.isIcpEnabled(param);
                 resolve(result);
             } catch (error) {
@@ -315,6 +318,10 @@ export class ICPServiceRpcManager implements ICPServiceAPI {
 
     async viewInICP(params: ICPEnabledRequest): Promise<ICPEnabledResponse> {
         try {
+            const proceed = await ensureICPServerRunning(params.projectPath);
+            if (!proceed) {
+                return { enabled: false };
+            }
             const icpUrl = vscode.workspace.getConfiguration('ballerina').get<string>('icpUrl') || 'https://localhost:9445';
             await vscode.env.openExternal(vscode.Uri.parse(icpUrl));
             return { enabled: true };
