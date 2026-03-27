@@ -18,6 +18,7 @@
 
 import { useEffect, useState } from "react";
 import { TextField } from "@wso2/ui-toolkit";
+import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { usePlatformExtContext } from "../../../providers/platform-ext-ctx-provider";
 import {
     FieldGroup,
@@ -46,6 +47,7 @@ export function AddProjectFormFields({
     packageNameValidationError,
     projectNameValidationError
 }: AddProjectFormFieldsProps) {
+    const { rpcClient } = useRpcContext();
     const { platformExtState } = usePlatformExtContext();
     const organizations = platformExtState?.userInfo?.organizations ?? [];
     const [packageNameTouched, setPackageNameTouched] = useState(false);
@@ -66,6 +68,15 @@ export function AddProjectFormFields({
     useEffect(() => {
         if (organizations.length > 0 && !formData.orgName) {
             onFormDataChange({ orgName: organizations[0].handle });
+        } else if (organizations.length === 0 && !formData.orgName) {
+            (async () => {
+                try {
+                    const { orgName } = await rpcClient.getCommonRpcClient().getDefaultOrgName();
+                    onFormDataChange({ orgName });
+                } catch (error) {
+                    console.error("Failed to fetch default org name:", error);
+                }
+            })();
         }
     }, [organizations]);
 
