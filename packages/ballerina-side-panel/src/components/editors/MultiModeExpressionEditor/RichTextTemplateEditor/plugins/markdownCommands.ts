@@ -344,5 +344,75 @@ export function createMarkdownInputRulesPlugin(schema: Schema): Plugin {
         ));
     }
 
+    // "> " at start of paragraph → blockquote
+    if (schema.nodes.blockquote) {
+        rules.push(new InputRule(
+            /^>\s$/,
+            (_state, _match, start, _end) => {
+                const $from = _state.doc.resolve(start);
+                if ($from.parent.type !== schema.nodes.paragraph) return null;
+                // Don't trigger inside lists or blockquotes
+                for (let d = $from.depth - 1; d >= 0; d--) {
+                    const ancestor = $from.node(d).type.name;
+                    if (ancestor === "list_item" || ancestor === "blockquote") return null;
+                }
+                const paragraph = schema.nodes.paragraph.create();
+                const blockquote = schema.nodes.blockquote.create(null, paragraph);
+                const tr = (_state.tr as any).replaceWith($from.before(), $from.after(), blockquote);
+                tr.setSelection(Selection.near(tr.doc.resolve($from.before() + 2)));
+                return tr;
+            }
+        ));
+    }
+
+    // "# " through "###### " at start of paragraph → heading
+    if (schema.nodes.heading) {
+        rules.push(new InputRule(
+            /^(#{1,6})\s$/,
+            (_state, _match, start, _end) => {
+                const $from = _state.doc.resolve(start);
+                if ($from.parent.type !== schema.nodes.paragraph) return null;
+                for (let d = $from.depth - 1; d >= 0; d--) {
+                    if ($from.node(d).type.name === "list_item") return null;
+                }
+                const level = _match[1].length;
+                const heading = schema.nodes.heading.create({ level });
+                const tr = (_state.tr as any).replaceWith($from.before(), $from.after(), heading);
+                tr.setSelection(Selection.near(tr.doc.resolve($from.before() + 1)));
+                return tr;
+            }
+        ));
+    }
+
+    // **text** → bold
+    if (schema.marks.strong) {
+        rules.push(new InputRule(
+            /\*\*([^*]+)\*\*$/,
+            (state, match, start, end) => {
+                const mark = schema.marks.strong.create();
+                const tr = (state.tr as any).delete(start, end);
+                tr.insertText(match[1], start);
+                tr.addMark(start, start + match[1].length, mark);
+                tr.setStoredMarks([]);
+                return tr;
+            }
+        ));
+    }
+
+    // *text* → italic (but not **text**)
+    if (schema.marks.em) {
+        rules.push(new InputRule(
+            /(?<!\*)\*([^*]+)\*$/,
+            (state, match, start, end) => {
+                const mark = schema.marks.em.create();
+                const tr = (state.tr as any).delete(start, end);
+                tr.insertText(match[1], start);
+                tr.addMark(start, start + match[1].length, mark);
+                tr.setStoredMarks([]);
+                return tr;
+            }
+        ));
+    }
+
     return inputRules({ rules });
 }
