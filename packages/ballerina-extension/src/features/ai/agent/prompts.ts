@@ -272,10 +272,14 @@ ${attachmentsText}
         });
     }
 
+    const queryParts = [params.usecase];
+    if (params.hiddenContext) {
+        queryParts.push(params.hiddenContext);
+    }
     content.push({
         type: 'text' as const,
         text: `<User Query>
-${params.usecase}
+${queryParts.join('\n\n')}
 </User Query>`
     });
 
