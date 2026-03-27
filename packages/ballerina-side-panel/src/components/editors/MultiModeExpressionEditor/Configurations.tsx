@@ -248,3 +248,17 @@ export class BooleanEditorConfig extends ChipExpressionEditorDefaultConfiguratio
         return expValue.toLocaleLowerCase() === "true" || expValue.toLocaleLowerCase() === "false";
     }
 }
+
+export class ArrayEditorConfig extends ChipExpressionEditorDefaultConfiguration {
+    deserializeValue(value: string): string {
+        if (this.getIsValueCompatible(value)) {
+            return value;
+        }
+        return "";
+    }
+
+    getIsValueCompatible(expValue: string) {
+        if (!expValue) return true;
+        return expValue.trim().startsWith("[") && expValue.trim().endsWith("]");
+    }
+}
