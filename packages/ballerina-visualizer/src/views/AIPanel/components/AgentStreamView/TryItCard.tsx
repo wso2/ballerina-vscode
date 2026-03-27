@@ -40,11 +40,9 @@ const METHOD_COLORS: Record<string, string> = {
 };
 
 const STATUS_COLOR_RANGES: { max: number; color: string }[] = [
-    { max: 199, color: "#95A5A6" },
-    { max: 299, color: "#2ECC71" },
-    { max: 399, color: "#3498DB" },
-    { max: 499, color: "#F39C12" },
-    { max: 599, color: "#E74C3C" },
+    { max: 399, color: "var(--vscode-textLink-foreground, #3794FF)" },
+    { max: 499, color: "var(--vscode-charts-orange, #F39C12)" },
+    { max: 599, color: "var(--vscode-errorForeground)" },
 ];
 
 const getStatusColor = (status: number): string => {
