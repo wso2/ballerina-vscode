@@ -18,6 +18,7 @@
 
 import styled from "@emotion/styled";
 import {
+    Command,
     DIRECTORY_MAP,
     EVENT_TYPE,
     FunctionModel,
@@ -26,7 +27,10 @@ import {
     ProjectStructureArtifactResponse,
     ComponentInfo,
     ServiceModel,
-    Protocol
+    Protocol,
+    SHARED_COMMANDS,
+    TemplateId,
+    AIPanelPrompt
 } from "@wso2/ballerina-core";
 import { buildBaseUrl } from "./buildHurlString";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -51,6 +55,7 @@ import { removeForwardSlashes, canDataBind, getReadableListenerName } from "./ut
 import { DatabindForm } from "./Forms/DatabindForm";
 import { FileIntegrationForm } from "./Forms/FileIntegrationForm";
 import FileIntegrationConfigForm from "./Forms/FileIntegrationForm/FileIntegrationConfigForm";
+import { f } from "@tanstack/query-core/build/legacy/hydration-B3ndIyL6";
 
 const LoadingContainer = styled.div`
     display: flex;
@@ -750,6 +755,42 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         });
     }
 
+    const handleServiceTryItWithAI = () => {
+        const basePath = serviceModel.properties?.basePath?.value?.trim();
+        const listenerProperty = serviceModel.properties?.listener;
+        const listener = (listenerProperty?.value ?? listenerProperty?.values?.[0] ?? '').trim();
+        const serviceName = serviceModel.name || "Service";
+
+        const prompt:AIPanelPrompt = {
+            type: "text",
+            text: "",
+            planMode: false,
+            suggestedCommandTemplates: [
+                {
+                    type: "text",
+                    text: `Try out the ${serviceName} service ${basePath ? `at base path ${basePath}` : ''}`,
+                    planMode: false
+                },
+                {
+                    type: "text",
+                    text: `Try out the following scenario on the ${serviceName} service ${basePath ? `at base path ${basePath}` : ''} : \n`,
+                    planMode: false
+                }
+            ],
+            inputPlaceholder: "Describe your try it scenario...",
+            codeContext:{
+                filePath: "./main.bal",
+                startPosition: { line: 1, offset: 0 },
+                endPosition: { line: 1, offset: 0 },
+                type: "selection"
+            },
+        };
+
+        rpcClient.getCommonRpcClient().executeCommand({
+            commands: [SHARED_COMMANDS.OPEN_AI_PANEL, prompt]
+        });
+    };
+
     const handleExportOAS = () => {
         rpcClient.getServiceDesignerRpcClient().exportOASFile({});
     };
@@ -888,6 +929,11 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                                 <Button appearance="secondary" tooltip="Try Service" onClick={handleServiceTryIt}>
                                                     <><Icon name="play" isCodicon={true} sx={{ marginRight: 8, fontSize: 16 }} /> <ButtonText>Try It</ButtonText></>
                                                 </Button>
+                                                {isHttpService && (
+                                                    <Button appearance="secondary" tooltip="Try Service with AI" onClick={handleServiceTryItWithAI}>
+                                                        <><Icon name="bi-ai-chat" sx={{ marginRight: 8, fontSize: 16 }} /> <ButtonText>Try It with AI</ButtonText></>
+                                                    </Button>
+                                                )}
                                             </>
                                         )
                                     }

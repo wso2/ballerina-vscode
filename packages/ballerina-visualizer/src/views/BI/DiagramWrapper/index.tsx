@@ -24,7 +24,7 @@ import { BISequenceDiagram } from "../SequenceDiagram";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { TitleBar } from "../../../components/TitleBar";
-import { CodeData, EVENT_TYPE, FOCUS_FLOW_DIAGRAM_VIEW, FocusFlowDiagramView, FunctionModel, LineRange, ParentMetadata } from "@wso2/ballerina-core";
+import { CodeData, EVENT_TYPE, FOCUS_FLOW_DIAGRAM_VIEW, FocusFlowDiagramView, FunctionModel, LineRange, ParentMetadata, SHARED_COMMANDS } from "@wso2/ballerina-core";
 import { VisualizerLocation, NodePosition } from "@wso2/ballerina-core";
 import { MACHINE_VIEW } from "@wso2/ballerina-core";
 import styled from "@emotion/styled";
@@ -342,6 +342,36 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
         });
     };
 
+    const handleResourceTryItWithAI = () => {
+        if (serviceType !== "http") { return; }
+
+        const methodValue = parentMetadata?.accessor || "GET";
+        const pathValue = removeForwardSlashes(parentMetadata?.label || "/");
+        const serviceName = basePath?.replace(/^\//, "") || "Service";
+        const prompt = {
+            type: "text" as const,
+            text: "",
+            planMode: false,
+            suggestedCommandTemplates: [
+                {
+                    type: "text" as const,
+                    text: `Try out the ${methodValue} ${pathValue} resource in the ${serviceName} service ${basePath ? `at base path ${basePath}` : ''}`,
+                    planMode: false,
+                },
+                {
+                    type: "text" as const,
+                    text: `Try out the following scenario on the ${methodValue} ${pathValue} resource in the ${serviceName} service ${basePath ? `at base path ${basePath}` : ''} : \n`,
+                    planMode: false,
+                }
+            ],
+            inputPlaceholder: "Describe your try it scenario...",
+        };
+
+        rpcClient.getCommonRpcClient().executeCommand({
+            commands: [SHARED_COMMANDS.OPEN_AI_PANEL, prompt]
+        });
+    };
+
     // Calculate title based on conditions
     const getTitle = () => {
         if (isNPFunction) return "Natural Function";
@@ -420,6 +450,13 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                     >
                         <Icon name={"play"} isCodicon={true} sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
                         {"Try It"}
+                    </ActionButton>
+                    <ActionButton
+                        appearance="secondary"
+                        onClick={handleResourceTryItWithAI}
+                    >
+                        <Icon name={"bi-ai-chat"} sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
+                        {"Try It with AI"}
                     </ActionButton>
                 </>
             );
