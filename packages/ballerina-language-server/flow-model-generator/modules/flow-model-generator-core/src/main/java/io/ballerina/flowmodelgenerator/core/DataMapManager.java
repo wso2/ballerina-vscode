@@ -2675,7 +2675,7 @@ public class DataMapManager {
         if (kind == TypeDescKind.TUPLE) {
             return new DataMapCapability(true, "[]");
         } else if (isEffectiveRecordType(kind, rawTypeSymbol)) {
-            if (isArray) {
+            if (isArray || kind == TypeDescKind.ARRAY) {
                 return new DataMapCapability(true, "[]");
             }
             return new DataMapCapability(true, "{}");
@@ -2690,6 +2690,8 @@ public class DataMapManager {
             return new DataMapCapability(false, "false");
         } else if (kind == TypeDescKind.STRING) {
             return new DataMapCapability(false, "\"\"");
+        } else if (kind == TypeDescKind.TYPEDESC) {
+            return getDataMapCapability((TypeDefinitionSymbol) rawTypeSymbol, isArray);
         }
         return null;
     }
@@ -2711,10 +2713,10 @@ public class DataMapManager {
         }
     }
 
-    private boolean isEffectiveRecordType(TypeDescKind kind, TypeSymbol rawTypeSymbol) {
+    private boolean isEffectiveRecordType(TypeDescKind kind, TypeSymbol typeSymbol) {
         if (kind == TypeDescKind.ARRAY) {
-            TypeDescKind memberKind = ((ArrayTypeSymbol) rawTypeSymbol).memberTypeDescriptor().typeKind();
-            return isEffectiveRecordType(memberKind, ((ArrayTypeSymbol) rawTypeSymbol).memberTypeDescriptor());
+            TypeSymbol rawTypeSymbol = CommonUtils.getRawType(((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor());
+            return isEffectiveRecordType(rawTypeSymbol.typeKind(), rawTypeSymbol);
         }
         return kind == TypeDescKind.RECORD;
     }
