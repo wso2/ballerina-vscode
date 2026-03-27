@@ -148,6 +148,10 @@ function buildAuthAnnotation(config: Record<string, string>, expressionKeys: Set
         if (expressionKeys.has(key)) {
             return `${key}: ${value}`;
         }
+        // Don't double-wrap if already quoted or a string template
+        if (/^".*"$/.test(value) || /^string\s*`.*`$/.test(value)) {
+            return `${key}: ${value}`;
+        }
         return `${key}: "${value}"`;
     });
     return `auth: {\n        ${parts.join(",\n        ")}\n    }`;
