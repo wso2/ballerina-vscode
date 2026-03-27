@@ -431,7 +431,7 @@ public class CodeAnalyzer extends NodeVisitor {
         } else {
             startNode(NodeKind.REMOTE_ACTION_CALL, expressionNode.parent());
         }
-        Map<String, Object> metadataData = getPersistDataFromClient(classSymbol);
+        Map<String, Object> metadataData = getConnectorMetadata(classSymbol);
         setFunctionProperties(functionName, expressionNode, remoteMethodCallActionNode, functionSymbol,
                 classSymbol.getName().orElse(""), metadataData);
     }
@@ -914,8 +914,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 .resourcePath(resourcePathTemplate.resourcePathTemplate())
                 .functionResultKind(FunctionData.Kind.RESOURCE);
         FunctionData functionData = functionDataBuilder.build();
-
-        Map<String, Object> metadataData = getPersistDataFromClient(classSymbol.get());
+        Map<String, Object> metadataData = getConnectorMetadata(classSymbol.get());
 
         nodeBuilder.symbolInfo(functionSymbol)
                 .metadata()
@@ -949,6 +948,17 @@ public class CodeAnalyzer extends NodeVisitor {
             persistData = null;
         }
         return persistData;
+    }
+
+    private Map<String, Object> getConnectorMetadata(ClassSymbol classSymbol) {
+        Map<String, Object> persistData = getPersistDataFromClient(classSymbol);
+        if (persistData != null) {
+            return persistData;
+        }
+        String moduleName = classSymbol.getModule().map(ModuleSymbol::id).map(ModuleID::moduleName).orElse("");
+        Map<String, Object> connectorData = new HashMap<>();
+        connectorData.put(CONNECTOR_TYPE, ConnectorUtil.getConnectionCategory(moduleName));
+        return connectorData;
     }
 
     private void addRemainingParamsToPropertyMap(Map<String, ParameterData> funcParamMap,
@@ -2060,7 +2070,7 @@ public class CodeAnalyzer extends NodeVisitor {
                     .symbol(functionName)
                     .object(classSymbol.getName().orElse(""));
         if (classSymbol.qualifiers().contains(Qualifier.CLIENT)) {
-            Map<String, Object> metadataData = getPersistDataFromClient(classSymbol);
+            Map<String, Object> metadataData = getConnectorMetadata(classSymbol);
             nodeBuilder.properties().callConnection(expressionNode, Property.CONNECTION_KEY, metadataData);
         } else {
             nodeBuilder.properties().callExpression(expressionNode, Property.CONNECTION_KEY);

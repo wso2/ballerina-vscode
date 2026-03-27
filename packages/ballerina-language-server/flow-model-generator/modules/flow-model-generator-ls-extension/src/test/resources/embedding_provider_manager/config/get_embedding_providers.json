@@ -10,7 +10,10 @@
         "items": [
           {
             "metadata": {
-              "label": "openAiEmbeddingModel"
+              "label": "openAiEmbeddingModel",
+              "data": {
+                "connectorType": "Default"
+              }
             },
             "items": [
               {
@@ -55,7 +58,10 @@
           },
           {
             "metadata": {
-              "label": "wso2DefaultEmbeddingModel"
+              "label": "wso2DefaultEmbeddingModel",
+              "data": {
+                "connectorType": "Default"
+              }
             },
             "items": [
               {
@@ -100,7 +106,10 @@
           },
           {
             "metadata": {
-              "label": "wso2EmbeddingModel"
+              "label": "wso2EmbeddingModel",
+              "data": {
+                "connectorType": "Default"
+              }
             },
             "items": [
               {
