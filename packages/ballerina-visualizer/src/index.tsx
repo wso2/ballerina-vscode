@@ -21,7 +21,7 @@ import { createRoot } from "react-dom/client";
 import { Visualizer } from "./Visualizer";
 import { VisualizerContextProvider, RpcContextProvider, ModalStackProvider } from "./Context";
 import { PlatformExtContextProvider } from "./providers/platform-ext-ctx-provider";
-import { clearDiagramZoomAndPosition } from "./utils/bi";
+import { clearDiagramZoomAndPosition } from "./utils/diagram-storage";
 import { ReactQueryProvider } from "./providers/react-query-provider";
 
 export function renderWebview(mode: string, target: HTMLElement) {

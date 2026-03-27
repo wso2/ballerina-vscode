@@ -880,13 +880,6 @@ export function convertRecordTypeToCompletionItem(type: Type): CompletionItem {
     };
 }
 
-export const clearDiagramZoomAndPosition = () => {
-    localStorage.removeItem("diagram-file-path");
-    localStorage.removeItem("diagram-zoom-level");
-    localStorage.removeItem("diagram-offset-x");
-    localStorage.removeItem("diagram-offset-y");
-};
-
 export const convertToHelperPaneVariable = (variables: VisibleType[]): HelperPaneVariableInfo => {
     return {
         category: variables
