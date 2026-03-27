@@ -533,13 +533,15 @@ const TryItCard: React.FC<TryItCardProps> = ({ input, output, rpcClient }) => {
         />
     );
 
+    const multipleEntries = output ? output?.runResult?.output.entries.length > 1 : false;
+
     return (
         <InlineCard>
             <HoverableInlineCardHeader>
                 <InlineCardIcon>
                     <span className="codicon codicon-send" />
                 </InlineCardIcon>
-                <InlineCardTitle>HTTP Test Scenario</InlineCardTitle>
+                <InlineCardTitle>HTTP Request{multipleEntries && `s`}</InlineCardTitle>
                 <HeaderRightStack>
                     {scenario && <HeaderScenario>{scenario}</HeaderScenario>}
                     <HeaderActions className="header-actions">
