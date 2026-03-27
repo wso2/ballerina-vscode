@@ -35,6 +35,7 @@ import { Global, css } from "@emotion/react";
 import { debounce } from "lodash";
 import styled from "@emotion/styled";
 import { LoadingRing } from "./components/Loader";
+import { WebviewErrorState } from "./components/WebviewErrorState";
 import { handleRedo, handleUndo } from "./utils/utils";
 import { STKindChecker } from "@wso2/syntax-tree";
 import { URI } from "vscode-uri";
@@ -189,6 +190,7 @@ const MainPanel = () => {
     const { modalStack, closeModal } = useModalStack()
     const errorBoundaryRef = createRef<any>();
     const [viewComponent, setViewComponent] = useState<React.ReactNode>();
+    const [viewError, setViewError] = useState<string>();
     const [navActive, setNavActive] = useState<boolean>(true);
     const [showHome, setShowHome] = useState<boolean>(true);
     const [popupState, setPopupState] = useState<PopupMachineStateValue>("initialize");
@@ -277,26 +279,36 @@ const MainPanel = () => {
         navKeyRef.current += 1;
         const navKey = navKeyRef.current;
         setNavActive(true);
+        setViewError(undefined);
+
+        const handleViewLoadError = (error: unknown, message: string) => {
+            console.error(message, error);
+            setViewComponent(undefined);
+            setViewError(message);
+        };
+
         rpcClient.getVisualizerLocation().then(async (value) => {
-            const configFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['config.bal'] })).filePath;
-            const testsFolderResult = await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['tests'], checkExists: true });
-            const testsConfigTomlPath = testsFolderResult.exists ? (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['tests', 'Config.toml'] })).filePath : undefined;
-            let defaultFunctionsFile = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['functions.bal'] })).filePath;
-            if (value.documentUri) {
-                defaultFunctionsFile = value.documentUri
-            }
-            if (navKey !== navKeyRef.current) return;
-            const navTarget = `${value?.view ?? ''}-${value?.identifier ?? ''}-${value?.documentUri ?? ''}-${value?.projectPath ?? ''}`;
-            if (navTarget !== previousNavTargetRef.current) {
-                remountKeyRef.current += 1;
-                previousNavTargetRef.current = navTarget;
-            }
-            const remountKey = remountKeyRef.current;
             const isStaleNavigation = () => navKey !== navKeyRef.current;
-            if (!value?.view) {
-                setViewComponent(<LoadingRing />);
-            } else {
-                switch (value?.view) {
+
+            try {
+                const configFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['config.bal'] })).filePath;
+                const testsFolderResult = await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['tests'], checkExists: true });
+                const testsConfigTomlPath = testsFolderResult.exists ? (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['tests', 'Config.toml'] })).filePath : undefined;
+                let defaultFunctionsFile = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['functions.bal'] })).filePath;
+                if (value.documentUri) {
+                    defaultFunctionsFile = value.documentUri
+                }
+                if (isStaleNavigation()) return;
+                const navTarget = `${value?.view ?? ''}-${value?.identifier ?? ''}-${value?.documentUri ?? ''}-${value?.projectPath ?? ''}`;
+                if (navTarget !== previousNavTargetRef.current) {
+                    remountKeyRef.current += 1;
+                    previousNavTargetRef.current = navTarget;
+                }
+                const remountKey = remountKeyRef.current;
+                if (!value?.view) {
+                    setViewComponent(<LoadingRing />);
+                } else {
+                    switch (value?.view) {
                     case MACHINE_VIEW.PackageOverview: {
                         const { PackageOverview } = await import("./views/BI/PackageOverview");
                         if (isStaleNavigation()) return;
@@ -779,11 +791,18 @@ const MainPanel = () => {
                         break;
                     }
 
-                    default:
-                        setNavActive(false);
-                        setViewComponent(<LoadingRing />);
+                        default:
+                            setNavActive(false);
+                            setViewComponent(<LoadingRing />);
+                    }
                 }
+            } catch (error) {
+                if (isStaleNavigation()) return;
+                handleViewLoadError(error, "Failed to load the selected visualizer view.");
             }
+        }).catch((error) => {
+            if (navKey !== navKeyRef.current) return;
+            handleViewLoadError(error, "Failed to load visualizer context.");
         });
     };
 
@@ -836,8 +855,17 @@ const MainPanel = () => {
                 <ErrorBoundary goHome={handleNavigateToOverview} errorMsg="An error occurred in the visualizer" issueUrl={gitIssueUrl} ref={errorBoundaryRef} resetKeys={[viewComponent]}>
                     {/* {navActive && <NavigationBar showHome={showHome} />} */}
                     {(showOverlay || modalStack.length > 0) && <Overlay />}
-                    {viewComponent && <ComponentViewWrapper>{viewComponent}</ComponentViewWrapper>}
-                    {!viewComponent && (
+                    {viewError && (
+                        <ComponentViewWrapper>
+                            <WebviewErrorState
+                                title="Unable to load this view"
+                                message={viewError}
+                                onRetry={fetchContext}
+                            />
+                        </ComponentViewWrapper>
+                    )}
+                    {!viewError && viewComponent && <ComponentViewWrapper>{viewComponent}</ComponentViewWrapper>}
+                    {!viewError && !viewComponent && (
                         <ComponentViewWrapper>
                             <LoadingViewContainer>
                                 <LoadingContent>
