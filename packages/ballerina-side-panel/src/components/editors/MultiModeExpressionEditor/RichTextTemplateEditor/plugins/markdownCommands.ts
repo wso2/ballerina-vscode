@@ -305,5 +305,44 @@ export function createMarkdownInputRulesPlugin(schema: Schema): Plugin {
         ));
     }
 
+    // "- " or "* " at start of paragraph → bullet list
+    if (schema.nodes.bullet_list && schema.nodes.list_item) {
+        rules.push(new InputRule(
+            /^[-*]\s$/,
+            (_state, _match, start, _end) => {
+                const $from = _state.doc.resolve(start);
+                // Only in a top-level paragraph (not already in a list)
+                if ($from.parent.type !== schema.nodes.paragraph) return null;
+                for (let d = $from.depth - 1; d >= 0; d--) {
+                    if ($from.node(d).type === schema.nodes.list_item) return null;
+                }
+                const listItem = schema.nodes.list_item.create(null, schema.nodes.paragraph.create());
+                const list = schema.nodes.bullet_list.create(null, listItem);
+                const tr = (_state.tr as any).replaceWith($from.before(), $from.after(), list);
+                tr.setSelection(Selection.near(tr.doc.resolve($from.before() + 3)));
+                return tr;
+            }
+        ));
+    }
+
+    // "1. " at start of paragraph → ordered list
+    if (schema.nodes.ordered_list && schema.nodes.list_item) {
+        rules.push(new InputRule(
+            /^1\.\s$/,
+            (_state, _match, start, _end) => {
+                const $from = _state.doc.resolve(start);
+                if ($from.parent.type !== schema.nodes.paragraph) return null;
+                for (let d = $from.depth - 1; d >= 0; d--) {
+                    if ($from.node(d).type === schema.nodes.list_item) return null;
+                }
+                const listItem = schema.nodes.list_item.create(null, schema.nodes.paragraph.create());
+                const list = schema.nodes.ordered_list.create(null, listItem);
+                const tr = (_state.tr as any).replaceWith($from.before(), $from.after(), list);
+                tr.setSelection(Selection.near(tr.doc.resolve($from.before() + 3)));
+                return tr;
+            }
+        ));
+    }
+
     return inputRules({ rules });
 }

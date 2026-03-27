@@ -37,19 +37,6 @@ import { EditorState, NodeSelection } from "prosemirror-state";
 // When cursor is adjacent to a table, first press selects it, second deletes it.
 const handleTableDelete = (state: EditorState, dispatch?: (tr: any) => void): boolean => {
     const sel = state.selection;
-    console.log("[tableDelete] ---- Backspace/Delete pressed ----");
-    console.log("[tableDelete] selection type:", sel.constructor.name);
-    console.log("[tableDelete] from:", sel.from, "to:", sel.to, "empty:", sel.empty);
-    console.log("[tableDelete] isCellSelection:", sel instanceof CellSelection);
-    console.log("[tableDelete] isNodeSelection:", sel instanceof NodeSelection);
-    console.log("[tableDelete] isInTable:", isInTable(state));
-    console.log("[tableDelete] dispatch provided:", !!dispatch);
-
-    // Walk the depth chain
-    for (let d = sel.$from.depth; d >= 0; d--) {
-        const node = sel.$from.node(d);
-        console.log(`[tableDelete] depth ${d}: ${node.type.name} (textContent.length=${node.textContent.length})`);
-    }
 
     // Check for CellSelection by constructor name (bundling can rename the class)
     const isCellSel = sel instanceof CellSelection ||
@@ -58,15 +45,12 @@ const handleTableDelete = (state: EditorState, dispatch?: (tr: any) => void): bo
 
     // If cells are selected, check if all cells are selected
     if (isCellSel) {
-        // Count total cells in the table vs selected cells
         const $anchor = (sel as any).$anchorCell;
         let tableNode = null;
-        let tableDepth = 0;
         if ($anchor) {
             for (let d = $anchor.depth; d >= 0; d--) {
                 if ($anchor.node(d).type.name === "table") {
                     tableNode = $anchor.node(d);
-                    tableDepth = d;
                     break;
                 }
             }
@@ -80,29 +64,20 @@ const handleTableDelete = (state: EditorState, dispatch?: (tr: any) => void): bo
                 }
             });
 
-            // Count selected cells by checking the ranges
             const ranges = (sel as any).ranges;
             const selectedCells = ranges ? ranges.length : 0;
 
-            console.log("[tableDelete] CellSelection: totalCells:", totalCells, "selectedCells:", selectedCells);
-
             if (selectedCells >= totalCells) {
-                // All cells selected — delete entire table
-                console.log("[tableDelete] -> all cells selected, deleting table");
                 return deleteTable(state, dispatch);
             } else {
-                // Figure out if selection is row-shaped or column-shaped
                 const colCount = tableNode.firstChild ? tableNode.firstChild.childCount : 0;
                 const rowCount = tableNode.childCount;
-
                 const isFullRows = colCount > 0 && selectedCells % colCount === 0;
                 const isFullCols = rowCount > 0 && selectedCells % rowCount === 0;
 
                 if (isFullCols && (!isFullRows || selectedCells / rowCount <= selectedCells / colCount)) {
-                    console.log("[tableDelete] -> column selection, deleting column");
                     return deleteColumn(state, dispatch);
                 } else {
-                    console.log("[tableDelete] -> row selection, deleting row");
                     return deleteRow(state, dispatch);
                 }
             }
@@ -114,7 +89,6 @@ const handleTableDelete = (state: EditorState, dispatch?: (tr: any) => void): bo
         sel.constructor.name === "_NodeSelection" ||
         sel.constructor.name === "NodeSelection";
     if (isNodeSel && (sel as any).node?.type.name === "table") {
-        console.log("[tableDelete] -> NodeSelection on table: deleting");
         if (dispatch) {
             dispatch(state.tr.deleteSelection().scrollIntoView());
         }
@@ -122,32 +96,24 @@ const handleTableDelete = (state: EditorState, dispatch?: (tr: any) => void): bo
     }
 
     // If cursor is inside a table and the current cell is empty, select the table
-    if (isInTable(state)) {
+    if (isInTable(state) && sel.empty) {
         const { $from } = sel;
         for (let d = $from.depth; d > 0; d--) {
             const node = $from.node(d);
             if (node.type.name === "table_cell" || node.type.name === "table_header") {
-                console.log("[tableDelete] found cell at depth", d, "textContent:", JSON.stringify(node.textContent), "length:", node.textContent.length);
                 if (node.textContent.length === 0) {
                     for (let td = d - 1; td >= 0; td--) {
                         if ($from.node(td).type.name === "table") {
-                            const tablePos = $from.before(td);
-                            console.log("[tableDelete] -> empty cell: selecting table at pos", tablePos);
                             if (dispatch) {
-                                try {
-                                    dispatch(state.tr.setSelection(
-                                        NodeSelection.create(state.doc, tablePos)
-                                    ).scrollIntoView());
-                                    console.log("[tableDelete] -> dispatch succeeded");
-                                } catch (e) {
-                                    console.error("[tableDelete] -> dispatch failed:", e);
-                                }
+                                const tablePos = $from.before(td);
+                                dispatch(state.tr.setSelection(
+                                    NodeSelection.create(state.doc, tablePos)
+                                ).scrollIntoView());
                             }
                             return true;
                         }
                     }
                 }
-                console.log("[tableDelete] -> cell not empty, passing through");
                 break;
             }
         }
@@ -155,23 +121,21 @@ const handleTableDelete = (state: EditorState, dispatch?: (tr: any) => void): bo
     }
 
     // If cursor is right after a table, select the table node
-    const { $from } = sel;
-    const posBefore = $from.before($from.depth);
-    console.log("[tableDelete] outside table. posBefore:", posBefore);
-    if (posBefore > 0) {
-        const nodeBefore = state.doc.resolve(posBefore).nodeBefore;
-        console.log("[tableDelete] nodeBefore:", nodeBefore?.type.name);
-        if (nodeBefore && nodeBefore.type.name === "table") {
-            const tablePos = posBefore - nodeBefore.nodeSize;
-            console.log("[tableDelete] -> selecting table at pos", tablePos);
-            if (dispatch) {
-                dispatch(state.tr.setSelection(NodeSelection.create(state.doc, tablePos)).scrollIntoView());
+    if (sel.empty && !isInTable(state)) {
+        const { $from } = sel;
+        const posBefore = $from.before($from.depth);
+        if (posBefore > 0) {
+            const nodeBefore = state.doc.resolve(posBefore).nodeBefore;
+            if (nodeBefore && nodeBefore.type.name === "table") {
+                if (dispatch) {
+                    const tablePos = posBefore - nodeBefore.nodeSize;
+                    dispatch(state.tr.setSelection(NodeSelection.create(state.doc, tablePos)).scrollIntoView());
+                }
+                return true;
             }
-            return true;
         }
     }
 
-    console.log("[tableDelete] -> not handled");
     return false;
 };
 
