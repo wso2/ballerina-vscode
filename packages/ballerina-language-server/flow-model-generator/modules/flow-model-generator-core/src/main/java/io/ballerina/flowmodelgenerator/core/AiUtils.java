@@ -524,7 +524,7 @@ public class AiUtils {
                     .filter(meta -> meta.resolutionStatus() != ResolutionResponse.ResolutionStatus.UNRESOLVED)
                     .map(PackageMetadataResponse::resolvedDescriptor)
                     .map(descriptor -> descriptor.version().value().toString());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             return Optional.empty();
         }
     }
