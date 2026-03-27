@@ -16,12 +16,13 @@
  * under the License.
  */
 
-import { EditorState, Transaction } from "prosemirror-state";
+import { EditorState, Transaction, Selection, Plugin } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { toggleMark, setBlockType, wrapIn, lift } from "prosemirror-commands";
 import { wrapInList, liftListItem } from "prosemirror-schema-list";
-import { MarkType, NodeType } from "prosemirror-model";
+import { MarkType, NodeType, Fragment, Schema } from "prosemirror-model";
 import { undo, redo } from "prosemirror-history";
+import { InputRule, inputRules } from "prosemirror-inputrules";
 
 export type Command = (state: EditorState, dispatch?: (tr: Transaction) => void, view?: EditorView) => boolean;
 
@@ -192,3 +193,68 @@ export const canUndo = (state: EditorState): boolean => {
 export const canRedo = (state: EditorState): boolean => {
     return redo(state);
 };
+
+// Converts "---" on a line to a horizontal rule, or "```" to a code block,
+// when Enter is pressed. Returns false to let other Enter handlers run.
+export const handleMarkdownShortcutEnter: Command = (state, dispatch) => {
+    const { $from } = state.selection;
+    // Only handle when cursor is in a paragraph
+    if ($from.parent.type.name !== "paragraph") return false;
+
+    const text = $from.parent.textContent;
+
+    // --- → horizontal_rule
+    if (text === "---" || text === "***" || text === "___") {
+        const hrType = state.schema.nodes.horizontal_rule;
+        if (!hrType) return false;
+        if (dispatch) {
+            const start = $from.before();
+            const end = $from.after();
+            const nodes = Fragment.from([
+                hrType.create(),
+                state.schema.nodes.paragraph.create()
+            ]);
+            const tr = (state.tr as any).replaceWith(start, end, nodes);
+            tr.setSelection(Selection.near(tr.doc.resolve(start + hrType.create().nodeSize + 1)));
+            dispatch(tr.scrollIntoView());
+        }
+        return true;
+    }
+
+    // ``` → code_block
+    if (text === "```") {
+        const codeBlockType = state.schema.nodes.code_block;
+        if (!codeBlockType) return false;
+        if (dispatch) {
+            const start = $from.before();
+            const end = $from.after();
+            const tr = (state.tr as any).replaceWith(start, end, codeBlockType.create());
+            tr.setSelection(Selection.near(tr.doc.resolve(start + 1)));
+            dispatch(tr.scrollIntoView());
+        }
+        return true;
+    }
+
+    return false;
+};
+
+// Input rule: typing `text` (backtick-wrapped) converts to inline code mark.
+export function createMarkdownInputRulesPlugin(schema: Schema): Plugin {
+    const rules: InputRule[] = [];
+
+    if (schema.marks.code) {
+        rules.push(new InputRule(
+            /`([^`]+)`$/,
+            (state, match, start, end) => {
+                const codeMark = schema.marks.code.create();
+                return (state.tr as any)
+                    .delete(start, end)
+                    .insertText(match[1], start)
+                    .addMark(start, start + match[1].length, codeMark)
+                    .removeStoredMarks([codeMark]);
+            }
+        ));
+    }
+
+    return inputRules({ rules });
+}

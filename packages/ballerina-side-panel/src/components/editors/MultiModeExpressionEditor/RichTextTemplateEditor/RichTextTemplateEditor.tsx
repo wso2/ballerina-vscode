@@ -43,7 +43,9 @@ import {
     toggleHeading,
     toggleBlockquote,
     toggleBulletList,
-    toggleOrderedList
+    toggleOrderedList,
+    handleMarkdownShortcutEnter,
+    createMarkdownInputRulesPlugin
 } from "./plugins/markdownCommands";
 import { HELPER_PANE_WIDTH } from "../ChipExpressionEditor/constants";
 import { calculateHelperPanePosition, processFunctionWithArguments } from "../ChipExpressionEditor/utils";
@@ -574,8 +576,13 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
                     "Mod-Shift-8": toggleBulletList,
                     "Mod-Shift-7": toggleOrderedList,
 
-                    // List management
-                    "Enter": splitListItem(chipSchema.nodes.list_item),
+                    // List management + markdown shortcuts (--- → hr, ``` → code block)
+                    "Enter": (state: any, dispatch: any, view: any) => {
+                        // Try markdown shortcuts first
+                        if (handleMarkdownShortcutEnter(state, dispatch, view)) return true;
+                        // Then default list item split
+                        return splitListItem(chipSchema.nodes.list_item)(state, dispatch, view);
+                    },
                     "Mod-[": liftListItem(chipSchema.nodes.list_item),
                     "Mod-]": sinkListItem(chipSchema.nodes.list_item),
 
@@ -592,6 +599,7 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
                 ...createTablePlugins(),
                 keymap(baseKeymap),
                 gapCursor(),
+                createMarkdownInputRulesPlugin(chipSchema),
                 chipPlugin,
                 xmlTagPlugin,
                 cursorMovePlugin,
