@@ -89,6 +89,21 @@
                     "default": "",
                     "description": "Path to the ICP binary. If empty, the extension will attempt to auto-detect from the default installation location."
                 },
+                "ballerina.icpUrl": {
+                    "type": "string",
+                    "default": "https://localhost:9445",
+                    "description": "URL of the Integration Control Plane (ICP) server."
+                },
+                "ballerina.icpUsername": {
+                    "type": "string",
+                    "default": "admin",
+                    "description": "Username for the ICP server."
+                },
+                "ballerina.icpPassword": {
+                    "type": "string",
+                    "default": "admin",
+                    "description": "Password for the ICP server."
+                },
                 "ballerina.isBI": {
                     "type": "boolean",
                     "default": false,
