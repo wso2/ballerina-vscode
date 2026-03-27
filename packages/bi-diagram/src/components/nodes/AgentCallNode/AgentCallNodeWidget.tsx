@@ -936,7 +936,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                     </NodeStyles.MemoryContainer>
 
                     {
-                        nodeMetadata?.agent?.role ? (
+                        sanitizedAgent?.role ? (
                             <NodeStyles.Row readOnly={readOnly} onClick={handleOnClick}>
                                 <NodeStyles.Role>
                                     <ReactMarkdown
@@ -955,7 +955,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                     }
 
                     {
-                        nodeMetadata?.agent?.instructions ? (
+                        sanitizedAgent?.instructions ? (
                             <NodeStyles.InstructionsRow readOnly={readOnly} onClick={handleOnClick}>
                                 <NodeStyles.Instructions>
                                     <ReactMarkdown
