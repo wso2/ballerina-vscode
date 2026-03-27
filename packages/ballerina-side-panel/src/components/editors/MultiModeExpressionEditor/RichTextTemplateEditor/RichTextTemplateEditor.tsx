@@ -525,7 +525,7 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
         const chipPlugin = createChipPlugin(chipSchema, handleChipClick);
         const xmlTagPlugin = createXMLTagDecorationPlugin();
 
-        // Plugin to close helper pane when cursor moves
+        // Plugin to close helper pane when cursor moves (only for chip-click-opened panes)
         const cursorMovePlugin = new Plugin({
             view() {
                 return {
@@ -538,7 +538,9 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
 
                         if (oldSelection.from !== newSelection.from || oldSelection.to !== newSelection.to) {
                             setHelperPaneState(prev => {
-                                if (prev.isOpen) {
+                                // Only close on cursor move if the pane was opened via chip click,
+                                // not when opened via toolbar toggle (which has no clickedChipPos)
+                                if (prev.isOpen && prev.clickedChipPos !== undefined) {
                                     return { ...prev, isOpen: false };
                                 }
                                 return prev;
