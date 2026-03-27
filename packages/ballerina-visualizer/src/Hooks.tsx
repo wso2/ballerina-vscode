@@ -70,7 +70,7 @@ export const useDataMapperModel = (
         isError,
         refetch
     } = useQuery({
-        queryKey: ['getDMModel', filePath, codedata?.lineRange?.startLine, codedata?.lineRange?.endLine, viewId],
+        queryKey: ['getDMModel', codedata, viewId],
         queryFn: getDMModel,
         networkMode: 'always'
     });
