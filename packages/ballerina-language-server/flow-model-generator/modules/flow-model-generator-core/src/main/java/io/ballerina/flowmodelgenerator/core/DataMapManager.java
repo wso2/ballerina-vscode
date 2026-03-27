@@ -834,16 +834,22 @@ public class DataMapManager {
             return null;
         }
         ExpressionNode checkedExpr = ((CheckExpressionNode) expr).expression();
-        if (checkedExpr.kind() != SyntaxKind.METHOD_CALL) {
+        if (checkedExpr.kind() != SyntaxKind.FUNCTION_CALL) {
             return null;
         }
-        MethodCallExpressionNode methodCall = (MethodCallExpressionNode) checkedExpr;
-        NameReferenceNode methodName = methodCall.methodName();
-        if (methodName.toSourceCode().startsWith("ensureType")) {
-            ExpressionNode methodCallExpr = methodCall.expression();
-            Optional<TypeSymbol> typeSymbol = semanticModel.typeOf(methodCallExpr);
+        FunctionCallExpressionNode funcCall = (FunctionCallExpressionNode) checkedExpr;
+        NameReferenceNode funcName = funcCall.functionName();
+        if (funcName.toSourceCode().startsWith("jsondata:parseAsType") ||
+                funcName.toSourceCode().startsWith("xmldata:parseAsType")) {
+            SeparatedNodeList<FunctionArgumentNode> args = funcCall.arguments();
+            if (args.isEmpty()) {
+                return null;
+            }
+            ExpressionNode argExpr = ((PositionalArgumentNode) args.get(0)).expression();
+            Optional<TypeSymbol> typeSymbol = semanticModel.typeOf(argExpr);
             if (typeSymbol.isPresent()) {
-                return new ConvertedVariable(letVarDeclaration, typeSymbol.get(), methodCallExpr.toSourceCode().trim());
+                return new ConvertedVariable(letVarDeclaration, typeSymbol.get(),
+                        argExpr.toSourceCode().trim());
             }
         }
         return null;
@@ -4114,8 +4120,10 @@ public class DataMapManager {
                 }
             } else {
                 if (codedata.isNew() != null && codedata.isNew()) {
-                    String statement = String.format(" %s %sConverted = check %s.ensureType(),", typeName, variableName,
-                            variableName);
+                    String conversionExpr = getInputConversionExpr(parentTypeName, variableName,
+                            textEdits, document.syntaxTree().rootNode());
+                    String statement = String.format(" %s %sConverted = %s,", typeName, variableName,
+                            conversionExpr);
                     textEdits.add(
                             new TextEdit(CommonUtils.toRange(letExpr.letKeyword().lineRange().endLine()), statement));
                     addErrorReturn(functionDefinitionNode, semanticModel, textEdits);
@@ -4132,8 +4140,10 @@ public class DataMapManager {
                         expression.kind() == SyntaxKind.MAPPING_CONSTRUCTOR ? expression.toSourceCode().trim() : "{}",
                         addTypeConversion(parentTypeName, textEdits, variableName, document.syntaxTree().rootNode()));
             } else {
-                statement = String.format("let %s %sConverted = check %s.ensureType() in %s", typeName, variableName,
-                        variableName, expression.toSourceCode().trim());
+                String conversionExpr = getInputConversionExpr(parentTypeName, variableName,
+                        textEdits, document.syntaxTree().rootNode());
+                statement = String.format("let %s %sConverted = %s in %s", typeName, variableName,
+                        conversionExpr, expression.toSourceCode().trim());
                 addErrorReturn(functionDefinitionNode, semanticModel, textEdits);
             }
             textEdits.add(new TextEdit(CommonUtils.toRange(expression.lineRange()), statement));
@@ -4204,6 +4214,24 @@ public class DataMapManager {
         }
 
         return variableName;
+    }
+
+    private String getInputConversionExpr(String parentTypeName, String variableName, List<TextEdit> textEdits,
+                                          ModulePartNode rootNode) {
+        if ("json".equals(parentTypeName)) {
+            if (!CommonUtils.importExists(rootNode, "ballerina", "data.jsondata")) {
+                textEdits.add(new TextEdit(CommonUtils.toRange(rootNode.lineRange().startLine()),
+                        "import ballerina/data.jsondata;\n"));
+            }
+            return "check jsondata:parseAsType(" + variableName + ")";
+        } else if ("xml".equals(parentTypeName)) {
+            if (!CommonUtils.importExists(rootNode, "ballerina", "data.xmldata")) {
+                textEdits.add(new TextEdit(CommonUtils.toRange(rootNode.lineRange().startLine()),
+                        "import ballerina/data.xmldata;\n"));
+            }
+            return "check xmldata:parseAsType(" + variableName + ")";
+        }
+        return "check " + variableName + ".ensureType()";
     }
 
     private void addImports(List<TextEdit> textEdits, ModulePartNode rootNode, Map<String, String> imports) {
