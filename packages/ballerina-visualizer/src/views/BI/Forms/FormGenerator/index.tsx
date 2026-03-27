@@ -589,7 +589,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     };
 
     const diagnosticsTargetRange = useMemo(
-        () => node.codedata?.lineRange || nodeFormTemplate?.codedata?.lineRange || targetLineRange,
+        () => node?.codedata?.lineRange || nodeFormTemplate?.codedata?.lineRange || targetLineRange,
         [node, nodeFormTemplate, targetLineRange]
     );
 
