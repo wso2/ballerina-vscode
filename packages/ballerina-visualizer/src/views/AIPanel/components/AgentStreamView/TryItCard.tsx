@@ -41,7 +41,7 @@ const METHOD_COLORS: Record<string, string> = {
 };
 
 const STATUS_COLOR_RANGES: { max: number; color: string }[] = [
-    { max: 399, color: "var(--vscode-textLink-foreground, #3794FF)" },
+    { max: 399, color: "var(--vscode-descriptionForeground)" },
     { max: 499, color: "var(--vscode-charts-orange, #F39C12)" },
     { max: 599, color: "var(--vscode-errorForeground)" },
 ];
@@ -241,13 +241,18 @@ const ScenarioHeader = styled.div`
 
 const EditButton = styled.button`
     background: none;
-    border: 1px solid var(--vscode-panel-border);
+    border: none;
+    outline: none;
     color: var(--vscode-foreground);
     cursor: pointer;
-    padding: 2px 6px;
+    padding: 1px 4px;
     border-radius: 3px;
-    font-size: 11px;
+    font-size: 7px;
     font-weight: 600;
+    &:focus,
+    &:focus-visible {
+        outline: none;
+    }
     &:hover {
         background-color: var(--vscode-toolbar-hoverBackground);
         color: var(--vscode-foreground);
@@ -256,6 +261,50 @@ const EditButton = styled.button`
 
 const ScenarioContent = styled.div`
     padding: 2px 8px 4px;
+`;
+
+const HoverableInlineCardHeader = styled(InlineCardHeader)`
+    &:hover .header-actions,
+    &:focus-within .header-actions {
+        max-width: 28px;
+        opacity: 1;
+        transform: translateX(0);
+        pointer-events: auto;
+    }
+`;
+
+const HeaderRightStack = styled.div`
+    margin-left: auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    gap: 2px;
+`;
+
+const HeaderScenario = styled(InlineCardSubtitle)`
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 240px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: right;
+`;
+
+const HeaderActions = styled.div`
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    white-space: nowrap;
+    flex: 0 0 auto;
+    max-width: 0;
+    opacity: 0;
+    transform: translateX(4px);
+    pointer-events: none;
+    transition: max-width 180ms ease, opacity 120ms ease, transform 180ms ease;
+    will-change: max-width, opacity, transform;
 `;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -268,18 +317,21 @@ const formatJson = (value: unknown): string => {
     return JSON.stringify(value, null, 2);
 };
 
-const renderHeaders = (headers: Record<string, string>) => {
-    const entries = Object.entries(headers);
-    if (!entries.length) return null;
+const renderHeaders = (headers: Array<{ key?: string; name?: string; value?: string }>) => {
+    if (!headers.length) return null;
     return (
         <InnerSection>
-            {entries.map(([k, v]) => (
-                <HeaderRow key={k}>
-                    <HeaderKey>{k}</HeaderKey>
+            {headers.map((header, idx) => {
+                const headerName = header.key ?? header.name ?? "";
+                const headerValue = header.value ?? "";
+                return (
+                <HeaderRow key={`${headerName}-${idx}`}>
+                    <HeaderKey>{headerName}</HeaderKey>
                     <HeaderSep>:&nbsp;</HeaderSep>
-                    <HeaderVal>{v}</HeaderVal>
+                    <HeaderVal>{headerValue}</HeaderVal>
                 </HeaderRow>
-            ))}
+                );
+            })}
         </InnerSection>
     );
 };
@@ -300,18 +352,14 @@ interface HTTPTestScenarioDetailProps {
     loading:boolean;
     input?: HurlToolOutput["input"];
     output?: HurlToolOutput["output"];
-    hurlScript: string;
-    rpcClient?: any;
 }
 
 interface HTTPEntryRowProps {
     entry: HurlToolOutput["output"]["entries"][number];
     request?: HurlToolOutput["input"]["requests"][number];
-    showEditButton?: boolean;
-    onEdit?: () => Promise<void>;
 }
 
-const HTTPEntryRow: React.FC<HTTPEntryRowProps> = ({ entry, request, showEditButton, onEdit }) => {
+const HTTPEntryRow: React.FC<HTTPEntryRowProps> = ({ entry, request }) => {
     const [expanded, setExpanded] = useState(false);
     const isPassed = entry.status === "passed";
 
@@ -327,16 +375,6 @@ const HTTPEntryRow: React.FC<HTTPEntryRowProps> = ({ entry, request, showEditBut
                 <ExpandButton onClick={() => setExpanded(p => !p)} title={expanded ? "Collapse" : "Expand"}>
                     <span className={`codicon ${expanded ? "codicon-chevron-up" : "codicon-chevron-down"}`} />
                 </ExpandButton>
-                {showEditButton && (
-                    <EditButton
-                        title="Edit in HTTP Client"
-                        onClick={async () => {
-                            await onEdit?.();
-                        }}
-                    >
-                        <span className="codicon codicon-edit" />
-                    </EditButton>
-                )}
             </RequestRow>
 
             {expanded && (
@@ -353,7 +391,7 @@ const HTTPEntryRow: React.FC<HTTPEntryRowProps> = ({ entry, request, showEditBut
                                         <span style={{ color: "var(--vscode-textLink-foreground)", fontSize: 11 }}>{request.url}</span>
                                     </StatusLine>
                                 </InnerSection>
-                                {request.headers?.length > 0 && renderHeaders(Object.fromEntries(request.headers.map(h => [h.key, h.value])))}
+                                {request.headers?.length > 0 && renderHeaders(request.headers)}
                                 {renderBody(request.body)}
                             </CodeBlock>
                         </Section>
@@ -369,7 +407,7 @@ const HTTPEntryRow: React.FC<HTTPEntryRowProps> = ({ entry, request, showEditBut
                                     </StatusLine>
                                 </InnerSection>
                             )}
-                            {entry.responseHeaders && entry.responseHeaders.length > 0 && renderHeaders(Object.fromEntries(entry.responseHeaders.map(h => [h.name, h.value])))}
+                            {entry.responseHeaders && entry.responseHeaders.length > 0 && renderHeaders(entry.responseHeaders)}
                             {renderBody(entry.responseBody)}
                         </CodeBlock>
                     </Section>
@@ -404,7 +442,7 @@ const HTTPEntryRow: React.FC<HTTPEntryRowProps> = ({ entry, request, showEditBut
     );
 };
 
-const HTTPTestScenarioDetail: React.FC<HTTPTestScenarioDetailProps> = ({ loading, input, output, hurlScript, rpcClient }) => {
+const HTTPTestScenarioDetail: React.FC<HTTPTestScenarioDetailProps> = ({ loading, input, output }) => {
     if (loading) {
         return (
             <StatusLine>
@@ -419,19 +457,7 @@ const HTTPTestScenarioDetail: React.FC<HTTPTestScenarioDetailProps> = ({ loading
     if (!output) return null;
 
     const showSummary = output.entries.length > 1;
-    const handleEdit = async () => {
-        try {
-            await rpcClient?.getCommonRpcClient?.()?.executeCommand?.({
-                commands: [
-                    HURL_IMPORT_VSCODE_COMMAND,
-                    hurlScript,
-                ]
-            });
-        } catch (e) {
-            // eslint-disable-next-line no-console
-            console.error("Failed to invoke edit command", e);
-        }
-    };
+    const hasNoEntries = output.entries.length === 0;
 
     return (
         <>
@@ -443,21 +469,32 @@ const HTTPTestScenarioDetail: React.FC<HTTPTestScenarioDetailProps> = ({ loading
                         <span style={{ color: "var(--vscode-charts-green, #388a34)" }}>Passed: {output.summary.passedEntries}</span>
                         <span style={{ color: "var(--vscode-errorForeground)" }}>Failed: {output.summary.failedEntries}</span>
                     </SummaryDetails>
-                    <EditButton title="Edit in HTTP Client" onClick={handleEdit}>
-                        <span className="codicon codicon-edit" />
-                    </EditButton>
                 </SummaryStatusLine>
             )}
 
-            {output.entries.map((entry, idx) => (
-                <HTTPEntryRow
-                    key={idx}
-                    entry={entry}
-                    request={input?.requests[idx]}
-                    showEditButton={!showSummary && idx === 0}
-                    onEdit={handleEdit}
-                />
-            ))}
+            {hasNoEntries ? (
+                <Section>
+                    <SummaryStatusLine style={{ marginBottom: 6 }}>
+                        <SummaryDetails>
+                            <StatusText>Issue</StatusText>
+                            <StatusText>{output.status}</StatusText>
+                        </SummaryDetails>
+                    </SummaryStatusLine>
+                    {output.warnings && output.warnings.length > 0 ? (
+                        <ErrorMessage>{output.warnings[0]}</ErrorMessage>
+                    ) : (
+                        <StatusText>No request entries were produced for this scenario.</StatusText>
+                    )}
+                </Section>
+            ) : (
+                output.entries.map((entry, idx) => (
+                    <HTTPEntryRow
+                        key={idx}
+                        entry={entry}
+                        request={input?.requests[idx]}
+                    />
+                ))
+            )}
         </>
     );
 }
@@ -474,26 +511,44 @@ const TryItCard: React.FC<TryItCardProps> = ({ input, output, rpcClient }) => {
     if (!input?.hurlScript && !output?.hurlScript) return null;
     const hurlScript = input?.hurlScript ?? output?.hurlScript;
     const scenario = input?.scenario ?? output?.scenario;
+    const handleEdit = async () => {
+        try {
+            await rpcClient?.getCommonRpcClient?.()?.executeCommand?.({
+                commands: [
+                    HURL_IMPORT_VSCODE_COMMAND,
+                    hurlScript,
+                ]
+            });
+        } catch (e) {
+            // eslint-disable-next-line no-console
+            console.error("Failed to invoke edit command", e);
+        }
+    };
 
     const content = (
         <HTTPTestScenarioDetail
             loading={!output}
             input={output?.runResult?.input}
             output={output?.runResult?.output}
-            hurlScript={hurlScript}
-            rpcClient={rpcClient}
         />
     );
 
     return (
         <InlineCard>
-            <InlineCardHeader>
+            <HoverableInlineCardHeader>
                 <InlineCardIcon>
                     <span className="codicon codicon-send" />
                 </InlineCardIcon>
                 <InlineCardTitle>HTTP Test Scenario</InlineCardTitle>
-                {scenario && <InlineCardSubtitle>{scenario}</InlineCardSubtitle>}
-            </InlineCardHeader>
+                <HeaderRightStack>
+                    {scenario && <HeaderScenario>{scenario}</HeaderScenario>}
+                    <HeaderActions className="header-actions">
+                        <EditButton title="Edit in HTTP Client" onClick={handleEdit}>
+                            <span className="codicon codicon-edit" />
+                        </EditButton>
+                    </HeaderActions>
+                </HeaderRightStack>
+            </HoverableInlineCardHeader>
             <ScenarioGroup>
                 <ScenarioContent>{content}</ScenarioContent>
             </ScenarioGroup>
