@@ -1,6 +1,6 @@
 {
   "source": "variable7.bal",
-  "description": "Test tuple type visualization",
+  "description": "Test reference type visualization",
   "codedata": {
     "node": "TYPEDESC",
     "org": "",

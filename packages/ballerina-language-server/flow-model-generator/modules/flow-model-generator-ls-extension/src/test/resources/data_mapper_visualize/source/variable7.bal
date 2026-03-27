@@ -9,7 +9,7 @@ type Items Detail[];
 
 service on new http:Listener(9090) {
 
-    resource function get location() returns Coordinates|http:NotFound {
+    resource function get location() returns Items|http:NotFound {
         do {
 
         } on fail error e {

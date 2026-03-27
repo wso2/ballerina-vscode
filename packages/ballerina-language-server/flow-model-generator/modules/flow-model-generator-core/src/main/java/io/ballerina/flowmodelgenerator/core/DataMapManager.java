@@ -2690,8 +2690,6 @@ public class DataMapManager {
             return new DataMapCapability(false, "false");
         } else if (kind == TypeDescKind.STRING) {
             return new DataMapCapability(false, "\"\"");
-        } else if (kind == TypeDescKind.TYPEDESC) {
-            return getDataMapCapability((TypeDefinitionSymbol) rawTypeSymbol, isArray);
         }
         return null;
     }
@@ -2716,6 +2714,9 @@ public class DataMapManager {
     private boolean isEffectiveRecordType(TypeDescKind kind, TypeSymbol typeSymbol) {
         if (kind == TypeDescKind.ARRAY) {
             TypeSymbol rawTypeSymbol = CommonUtils.getRawType(((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor());
+            return isEffectiveRecordType(rawTypeSymbol.typeKind(), rawTypeSymbol);
+        } else if (kind == TypeDescKind.TYPE_REFERENCE) {
+            TypeSymbol rawTypeSymbol = CommonUtils.getRawType(typeSymbol);
             return isEffectiveRecordType(rawTypeSymbol.typeKind(), rawTypeSymbol);
         }
         return kind == TypeDescKind.RECORD;
