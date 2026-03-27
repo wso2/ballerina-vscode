@@ -21,6 +21,7 @@ package io.ballerina.flowmodelgenerator.core.model.node;
 import com.google.gson.Gson;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
+import io.ballerina.flowmodelgenerator.core.TypeParameterReplacer;
 import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
@@ -84,7 +85,7 @@ public class DataMapperDefinitionBuilder extends NodeBuilder {
                     .label(OUTPUT_LABEL)
                     .description(OUTPUT_DOC)
                     .stepOut()
-                .value(returnType)
+                .value(TypeParameterReplacer.replaceTypeParameters(returnType == null ? "" : returnType))
                 .type(Property.ValueType.TYPE, RETURN_TYPE)
                 .editable()
                 .stepOut()
