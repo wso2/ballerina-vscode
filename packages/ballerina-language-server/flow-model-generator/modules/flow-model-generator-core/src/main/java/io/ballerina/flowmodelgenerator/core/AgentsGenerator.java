@@ -360,10 +360,18 @@ public class AgentsGenerator {
 
             Optional<Property> returnType = flowNode.getProperty(Property.TYPE_KEY);
             boolean hasReturn = returnType.isPresent() && !returnType.get().value().toString().isEmpty();
+            boolean hasCheckError = FlowNodeUtil.hasCheckKeyFlagSet(flowNode);
             if (hasReturn) {
                 sourceBuilder.token()
                         .keyword(SyntaxKind.RETURNS_KEYWORD)
                         .name(returnType.get().value().toString());
+                if (hasCheckError) {
+                    sourceBuilder.token().keyword(SyntaxKind.PIPE_TOKEN).keyword(SyntaxKind.ERROR_KEYWORD);
+                }
+            } else if (hasCheckError) {
+                sourceBuilder.token()
+                        .keyword(SyntaxKind.RETURNS_KEYWORD)
+                        .name("error?");
             }
 
             sourceBuilder.token().keyword(SyntaxKind.OPEN_BRACE_TOKEN);
@@ -374,6 +382,9 @@ public class AgentsGenerator {
                         .name("result")
                         .whiteSpace()
                         .keyword(SyntaxKind.EQUAL_TOKEN);
+            }
+            if (hasCheckError) {
+                sourceBuilder.token().keyword(SyntaxKind.CHECK_KEYWORD);
             }
             Optional<Property> optFuncName = flowNode.getProperty(Property.FUNCTION_NAME_KEY);
             String funcName;
@@ -469,6 +480,10 @@ public class AgentsGenerator {
                 if (FlowNodeUtil.hasCheckKeyFlagSet(flowNode)) {
                     sourceBuilder.token().keyword(SyntaxKind.PIPE_TOKEN).keyword(SyntaxKind.ERROR_KEYWORD);
                 }
+            } else if (FlowNodeUtil.hasCheckKeyFlagSet(flowNode)) {
+                sourceBuilder.token()
+                        .keyword(SyntaxKind.RETURNS_KEYWORD)
+                        .name("error?");
             }
 
             sourceBuilder.token().keyword(SyntaxKind.OPEN_BRACE_TOKEN);
@@ -558,6 +573,10 @@ public class AgentsGenerator {
                 if (FlowNodeUtil.hasCheckKeyFlagSet(flowNode)) {
                     sourceBuilder.token().keyword(SyntaxKind.PIPE_TOKEN).keyword(SyntaxKind.ERROR_KEYWORD);
                 }
+            } else if (FlowNodeUtil.hasCheckKeyFlagSet(flowNode)) {
+                sourceBuilder.token()
+                        .keyword(SyntaxKind.RETURNS_KEYWORD)
+                        .name("error?");
             }
 
             sourceBuilder.token().keyword(SyntaxKind.OPEN_BRACE_TOKEN);

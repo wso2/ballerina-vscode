@@ -131,7 +131,7 @@ public class AgentIdAuthConfigBuilder extends NodeBuilder {
                         .ballerinaType(SCOPES_BALLERINA_TYPE)
                         .selected(true)
                         .stepOut()
-                    .type()
+                        .type()
                         .fieldType(Property.ValueType.EXPRESSION)
                         .ballerinaType(SCOPES_BALLERINA_TYPE)
                         .stepOut();
@@ -139,6 +139,7 @@ public class AgentIdAuthConfigBuilder extends NodeBuilder {
                 builder.typeWithExpression(fieldType, aiModuleInfo);
             }
 
+            builder.optional(true).advanced(true);
             builder.stepOut().addProperty(FlowNodeUtil.getPropertyKey(fieldName));
         }
     }
@@ -170,10 +171,16 @@ public class AgentIdAuthConfigBuilder extends NodeBuilder {
     private String getAiModuleVersion(TemplateContext context) {
         try {
             Project project = context.workspaceManager().loadProject(context.filePath());
-            return AiUtils.getBallerinaAiModuleVersion(project);
+            String version = AiUtils.getBallerinaAiModuleVersion(project);
+            if (version != null) {
+                return version;
+            }
         } catch (WorkspaceDocumentException | EventSyncException e) {
-            return null;
+            // Fall through to resolve from local/distribution repo
         }
+
+        // Fallback: resolve from local/distribution repo
+        return AiUtils.resolvePackageVersion(Ai.BALLERINA_ORG, Ai.AI_PACKAGE).orElse(null);
     }
 
     @Override
