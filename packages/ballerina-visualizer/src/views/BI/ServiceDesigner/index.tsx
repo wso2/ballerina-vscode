@@ -777,13 +777,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                     planMode: false
                 }
             ],
-            inputPlaceholder: "Describe your try it scenario...",
-            codeContext:{
-                filePath: "./main.bal",
-                startPosition: { line: 1, offset: 0 },
-                endPosition: { line: 1, offset: 0 },
-                type: "selection"
-            },
+            inputPlaceholder: "Describe your try it scenario..."
         };
 
         rpcClient.getCommonRpcClient().executeCommand({
