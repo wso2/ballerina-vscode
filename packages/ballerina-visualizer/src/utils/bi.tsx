@@ -99,7 +99,7 @@ function convertAvailableNodeToPanelNode(
         return undefined;
     }
 
-    const isPersistConnection = connectorType === "persist";
+    const isDBConnection = connectorType === "persist" || connectorType === "Database";
 
     // Return common panel node structure
     return {
@@ -125,7 +125,7 @@ function convertAvailableNodeToPanelNode(
             <NodeIcon
                 type={functionType === FUNCTION_TYPE.EXPRESSION_BODIED ? "DATA_MAPPER_CALL" : node.codedata.node}
                 size={16}
-                isPersistConnection={isPersistConnection}
+                isDBConnection={isDBConnection}
             />
         ),
     };
