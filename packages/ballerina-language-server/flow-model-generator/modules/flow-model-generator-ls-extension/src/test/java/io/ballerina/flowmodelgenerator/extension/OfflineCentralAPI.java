@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com)
+ *  Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com)
  *
  *  WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -16,9 +16,9 @@
  *  under the License.
  */
 
-package io.ballerina.centralconnector;
+package io.ballerina.flowmodelgenerator.extension;
 
-
+import io.ballerina.centralconnector.CentralAPI;
 import io.ballerina.centralconnector.response.ConnectorResponse;
 import io.ballerina.centralconnector.response.ConnectorsResponse;
 import io.ballerina.centralconnector.response.FunctionResponse;
@@ -30,91 +30,60 @@ import io.ballerina.centralconnector.response.SymbolResponse;
 import java.util.Map;
 
 /**
- * An implementation {@code CentralAPI} to interact with the Ballerina central to obtain information about the Ballerina
- * libraries. This class provides a facade for interacting with REST and GraphQL clients.
+ * A {@link CentralAPI} implementation that always fails, forcing callers to fall back to the local search database.
+ * Used in tests to ensure deterministic results independent of the remote Ballerina Central.
  *
- * @since 1.0.0
+ * @since 1.7.0
  */
-public class RemoteCentral implements CentralAPI {
-
-    private static volatile CentralAPI testInstance;
-
-    private final RestClient restClient;
-    private final GraphQlClient graphQlClient;
-
-    private static class Holder {
-
-        private static final RemoteCentral INSTANCE = new RemoteCentral();
-    }
-
-    public static CentralAPI getInstance() {
-        CentralAPI override = testInstance;
-        if (override != null) {
-            return override;
-        }
-        return Holder.INSTANCE;
-    }
-
-    public static void setTestInstance(CentralAPI instance) {
-        testInstance = instance;
-    }
-
-    public static void resetTestInstance() {
-        testInstance = null;
-    }
-
-    private RemoteCentral() {
-        this.restClient = new RestClient();
-        this.graphQlClient = new GraphQlClient();
-    }
+public class OfflineCentralAPI implements CentralAPI {
 
     @Override
     public PackageResponse searchPackages(Map<String, String> queryMap) {
-        return restClient.searchPackages(queryMap);
+        throw new UnsupportedOperationException("Central API is disabled for testing");
     }
 
     @Override
     public SymbolResponse searchSymbols(Map<String, String> queryMap) {
-        return restClient.searchSymbols(queryMap);
+        throw new UnsupportedOperationException("Central API is disabled for testing");
     }
 
     @Override
     public FunctionsResponse functions(String organization, String name, String version) {
-        return graphQlClient.getFunctions(organization, name, version);
+        throw new UnsupportedOperationException("Central API is disabled for testing");
     }
 
     @Override
     public Listeners listeners(String organization, String name, String version) {
-        return graphQlClient.getListeners(organization, name, version);
+        throw new UnsupportedOperationException("Central API is disabled for testing");
     }
 
     @Override
     public FunctionResponse function(String organization, String name, String version, String functionName) {
-        return graphQlClient.getFunction(organization, name, version, functionName);
+        throw new UnsupportedOperationException("Central API is disabled for testing");
     }
 
     @Override
     public ConnectorsResponse connectors(Map<String, String> queryMap) {
-        return restClient.connectors(queryMap);
+        throw new UnsupportedOperationException("Central API is disabled for testing");
     }
 
     @Override
     public ConnectorResponse connector(String id) {
-        return restClient.connector(id);
+        throw new UnsupportedOperationException("Central API is disabled for testing");
     }
 
     @Override
     public ConnectorResponse connector(String organization, String name, String version, String clientName) {
-        return restClient.connector(organization, name, version, clientName);
+        throw new UnsupportedOperationException("Central API is disabled for testing");
     }
 
     @Override
     public String latestPackageVersion(String org, String name) {
-        return restClient.latestPackageVersion(org, name);
+        throw new UnsupportedOperationException("Central API is disabled for testing");
     }
 
     @Override
     public boolean hasAuthorizedAccess() {
-        return restClient.hasAuthorizedAccess();
+        return false;
     }
 }
