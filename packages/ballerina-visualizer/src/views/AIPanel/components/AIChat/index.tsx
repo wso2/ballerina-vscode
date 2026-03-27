@@ -1628,7 +1628,7 @@ const AIChat: React.FC = () => {
                                                         <AgentStreamView
                                                             stream={stream}
                                                             isLoading={isLoading && isLatestAssistantMessage}
-                                                            rpcClient={isLatestAssistantMessage ? rpcClient : undefined}
+                                                            rpcClient={rpcClient}
                                                         />
                                                         {reviewItem && (
                                                             <ReviewBar

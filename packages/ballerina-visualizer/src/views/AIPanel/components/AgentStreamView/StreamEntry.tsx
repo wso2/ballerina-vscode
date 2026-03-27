@@ -111,7 +111,7 @@ function getToolCallDisplay(toolName: string | undefined, toolInput: any): { lab
         case "ConfigCollector": return { label: "Reading config..." };
         case "ConnectorGeneratorTool": return { label: "Generating connector..." };
         case "runTests": return { label: "Running tests..." };
-        case "curlRequest": return { label: "Sending HTTP request..." };
+        case "hurlRunnerTool": return { label: "Sending HTTP request..." };
         case "runBallerinaPackage": return { label: `Running ${toolInput?.runType === "service" ? "service" : "program"}...` };
         case "getServiceLogs": return { label: "Fetching logs..." };
         case "stopBallerinaService": return { label: "Stopping service..." };
@@ -147,7 +147,7 @@ function getToolResultDisplay(toolName: string | undefined, toolOutput: any, hin
         case "ConfigCollector": return { label: "Config loaded" };
         case "ConnectorGeneratorTool": return { label: "Connector ready" };
         case "runTests": return { label: toolOutput?.summary ?? "Tests completed" };
-        case "curlRequest": return { label: "HTTP request completed" };
+        case "hurlRunnerTool": return { label: "HTTP request completed" };
         case "runBallerinaPackage": {
             const status = toolOutput?.status ?? "completed";
             return { label: status === "started" ? "Service started" : status === "completed" ? "Program completed" : status === "timeout" ? "Program timed out" : "Run failed" };
@@ -180,8 +180,8 @@ function renderItem(item: StreamItem, idx: number, streamActive: boolean, rpcCli
             );
         }
         case "tool_call": {
-            if (item.toolName === "curlRequest") {
-                return <TryItCard key={idx} input={item.toolInput} />;
+            if (item.toolName === "hurlRunnerTool") {
+                return <TryItCard key={idx} input={item.toolInput} rpcClient={rpcClient} />;
             }
             if (COMMAND_OUTPUT_TOOLS.has(item.toolName ?? "")) {
                 return <CommandOutputCard key={idx} toolName={item.toolName} toolInput={item.toolInput} />;
@@ -199,8 +199,8 @@ function renderItem(item: StreamItem, idx: number, streamActive: boolean, rpcCli
             );
         }
         case "tool_result": {
-            if (item.toolName === "curlRequest") {
-                return <TryItCard key={idx} input={item.toolOutput} output={item.toolOutput} />;
+            if (item.toolName === "hurlRunnerTool") {
+                return <TryItCard key={idx} output={item.toolOutput} rpcClient={rpcClient} />;
             }
             if (COMMAND_OUTPUT_TOOLS.has(item.toolName ?? "")) {
                 return <CommandOutputCard key={idx} toolName={item.toolName} toolOutput={item.toolOutput} isResult={true} />;
