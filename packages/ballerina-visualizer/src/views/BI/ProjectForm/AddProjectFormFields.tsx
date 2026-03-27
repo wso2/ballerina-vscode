@@ -18,11 +18,12 @@
 
 import { useEffect, useState } from "react";
 import { TextField } from "@wso2/ui-toolkit";
+import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import { usePlatformExtContext } from "../../../providers/platform-ext-ctx-provider";
 import {
     FieldGroup,
     ProjectSection,
     SectionDivider,
-    OptionalSectionsLabel,
 } from "./styles";
 import { ProjectTypeSelector, PackageInfoSection } from "./components";
 import { AddProjectFormData } from "./types";
@@ -46,6 +47,9 @@ export function AddProjectFormFields({
     packageNameValidationError,
     projectNameValidationError
 }: AddProjectFormFieldsProps) {
+    const { rpcClient } = useRpcContext();
+    const { platformExtState } = usePlatformExtContext();
+    const organizations = platformExtState?.userInfo?.organizations ?? [];
     const [packageNameTouched, setPackageNameTouched] = useState(false);
     const [isPackageInfoExpanded, setIsPackageInfoExpanded] = useState(false);
     const [packageNameError, setPackageNameError] = useState<string | null>(null);
@@ -61,15 +65,20 @@ export function AddProjectFormFields({
         }
     };
 
-    const handlePackageName = (value: string) => {
-        const sanitized = sanitizePackageName(value);
-        onFormDataChange({ packageName: sanitized });
-        setPackageNameTouched(value.length > 0);
-        // Clear error while typing
-        if (packageNameError) {
-            setPackageNameError(null);
+    useEffect(() => {
+        if (organizations.length > 0 && !formData.orgName) {
+            onFormDataChange({ orgName: organizations[0].handle });
+        } else if (organizations.length === 0 && !formData.orgName) {
+            (async () => {
+                try {
+                    const { orgName } = await rpcClient.getCommonRpcClient().getDefaultOrgName();
+                    onFormDataChange({ orgName });
+                } catch (error) {
+                    console.error("Failed to fetch default org name:", error);
+                }
+            })();
         }
-    };
+    }, [organizations]);
 
     // Effect to trigger validation when requested by parent
     useEffect(() => {
@@ -99,6 +108,11 @@ export function AddProjectFormFields({
                 </ProjectSection>
             )}
 
+            <ProjectTypeSelector
+                value={formData.isLibrary}
+                onChange={(isLibrary) => onFormDataChange({ isLibrary })}
+            />
+
             <FieldGroup>
                 <TextField
                     onTextChange={handleIntegrationName}
@@ -110,30 +124,22 @@ export function AddProjectFormFields({
                 />
             </FieldGroup>
 
-            <FieldGroup>
-                <TextField
-                    onTextChange={handlePackageName}
-                    value={formData.packageName}
-                    label="Package Name"
-                    description={`This will be used as the Ballerina package name for the ${resourceTypeLabelLower}.`}
-                    errorMsg={packageNameValidationError || packageNameError || ""}
-                />
-            </FieldGroup>
-
-            <ProjectTypeSelector
-                value={formData.isLibrary}
-                onChange={(isLibrary) => onFormDataChange({ isLibrary })}
-            />
-
             <SectionDivider />
-            <OptionalSectionsLabel>Optional Configurations</OptionalSectionsLabel>
 
             <PackageInfoSection
                 isExpanded={isPackageInfoExpanded}
                 onToggle={() => setIsPackageInfoExpanded(!isPackageInfoExpanded)}
-                data={{ orgName: formData.orgName, version: formData.version }}
-                onChange={(data) => onFormDataChange(data)}
+                data={{ packageName: formData.packageName, orgName: formData.orgName, version: formData.version }}
+                onChange={(data) => {
+                    onFormDataChange(data);
+                    if (data.packageName !== undefined) {
+                        setPackageNameTouched(true);
+                    }
+                }}
+                isLibrary={formData.isLibrary}
+                packageNameError={packageNameValidationError || packageNameError}
                 orgNameError={orgNameError}
+                organizations={organizations}
             />
         </>
     );
