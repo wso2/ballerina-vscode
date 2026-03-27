@@ -587,6 +587,12 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
                     },
                     "Mod-[": liftListItem(chipSchema.nodes.list_item),
                     "Mod-]": sinkListItem(chipSchema.nodes.list_item),
+                    "Tab": (state: any, dispatch: any) => {
+                        return sinkListItem(chipSchema.nodes.list_item)(state, dispatch);
+                    },
+                    "Shift-Tab": (state: any, dispatch: any) => {
+                        return liftListItem(chipSchema.nodes.list_item)(state, dispatch);
+                    },
 
                     // Helper pane
                     "Mod-/": () => handleKeyboardToggle(),
@@ -697,15 +703,10 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
                 }
             },
             handleDOMEvents: {
-                keydown: (view, event) => {
+                keydown: (_view, event) => {
                     // Prevent Cmd+B from propagating to VSCode (which would open the sidebar)
                     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'b' && !event.shiftKey && !event.altKey) {
                         event.stopPropagation();
-                    }
-                    // Debug: log Backspace/Delete with selection info
-                    if (event.key === 'Backspace' || event.key === 'Delete') {
-                        const sel = view.state.selection;
-                        console.log("[DOM keydown]", event.key, "sel type:", sel.constructor.name, "from:", sel.from, "to:", sel.to, "empty:", sel.empty);
                     }
                     return false;
                 }
