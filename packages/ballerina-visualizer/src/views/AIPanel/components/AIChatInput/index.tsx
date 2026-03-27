@@ -581,6 +581,13 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
                                 {onToggleWebSearch && (
                                     <WebSearchToggle isActive={isWebToolsEnabled} onToggle={onToggleWebSearch} />
                                 )}
+                                {contextUsage && (
+                                    <ContextUsageWidget
+                                        percentage={contextUsage.percentage}
+                                        inputTokens={contextUsage.inputTokens}
+                                        breakdown={contextUsage.breakdown}
+                                    />
+                                )}
                             </div>
                             <div style={{ display: "flex", alignItems: "center" }}>
                                 <ActionButton
@@ -603,16 +610,6 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
                                 <ActionButton title="Attach Context" onClick={handleAttachClick}>
                                     <Icon name="Paperclip" sx={{ fontSize: "16px" }} />
                                 </ActionButton>
-
-                                {contextUsage && (
-                                    <ContextUsageWidget
-                                        percentage={contextUsage.percentage}
-                                        inputTokens={contextUsage.inputTokens}
-                                        breakdown={contextUsage.breakdown}
-                                    />
-                                )}
-                            </div>
-                            <div style={{ display: "flex", alignItems: "center" }}>
                                 <div style={{ width: "1px", height: "16px", background: "var(--vscode-panel-border)", margin: "0 2px" }} />
                                 <ActionButton
                                     title={isLoading ? "Stop (Escape)" : "Send (Enter)"}
