@@ -1,6 +1,6 @@
 {
   "source": "workflow_data/functions.bal",
-  "description": "Wait for data - single entry, creates new events type and adds parameter",
+  "description": "Wait for data - multiple entries, creates new events type and generates ctx->await with tuple",
   "diagram": {
     "id": "1",
     "metadata": {
@@ -31,7 +31,7 @@
         },
         "valueType": "REPEATABLE_PROPERTY",
         "value": {
-          "paymentConfirmed": {
+          "approval": {
             "metadata": {
               "label": "Data Entries",
               "description": "Data entries to wait for (one or more)"
@@ -44,7 +44,57 @@
                   "description": "Variable name to receive the data"
                 },
                 "valueType": "IDENTIFIER",
-                "value": "paymentConfirm",
+                "value": "approvalResult",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "dataType": {
+                "metadata": {
+                  "label": "Data Type",
+                  "description": "Type of the data to be received"
+                },
+                "valueType": "EXPRESSION",
+                "valueTypeConstraint": "anydata",
+                "value": "ApprovalData",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "dataName": {
+                "metadata": {
+                  "label": "Data Name",
+                  "description": "Name of the data to wait for"
+                },
+                "valueType": "IDENTIFIER",
+                "value": "approval",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
+          "payment": {
+            "metadata": {
+              "label": "Data Entries",
+              "description": "Data entries to wait for (one or more)"
+            },
+            "valueType": "FIXED_PROPERTY",
+            "value": {
+              "variable": {
+                "metadata": {
+                  "label": "Data Receive Variable Name",
+                  "description": "Variable name to receive the data"
+                },
+                "valueType": "IDENTIFIER",
+                "value": "paymentResult",
                 "optional": false,
                 "editable": true,
                 "advanced": false,
@@ -69,7 +119,7 @@
                   "description": "Name of the data to wait for"
                 },
                 "valueType": "IDENTIFIER",
-                "value": "paymentConfirmed",
+                "value": "payment",
                 "optional": false,
                 "editable": true,
                 "advanced": false,
@@ -103,7 +153,7 @@
             "character": 2
           }
         },
-        "newText": "\n\n\n# Events record for workflow function\ntype OrderWorkflowEvents record {|\n\tfuture<PaymentConfirmation> paymentConfirmed;\n|};"
+        "newText": "\n\n\n# Events record for workflow function\ntype OrderWorkflowEvents record {|\n\tfuture<ApprovalData> approval;\n\tfuture<PaymentConfirmation> payment;\n|};"
       }
     ],
     "workflow_data/functions.bal": [
@@ -118,7 +168,7 @@
             "character": 0
           }
         },
-        "newText": "\nPaymentConfirmation paymentConfirm = check wait events.paymentConfirmed;"
+        "newText": "\n[ApprovalData, PaymentConfirmation] [approvalResult, paymentResult] = check ctx->await([events.approval, events.payment]);"
       },
       {
         "range": {

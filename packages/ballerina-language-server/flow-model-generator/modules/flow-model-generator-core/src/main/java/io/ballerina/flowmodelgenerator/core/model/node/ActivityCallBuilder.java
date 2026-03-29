@@ -279,20 +279,20 @@ public class ActivityCallBuilder extends CallBuilder {
         if (parameters.isEmpty()) {
             return Optional.empty();
         }
-        ParameterNode lastParam = parameters.get(0);
+        ParameterNode firstParam = parameters.get(0);
 
         Node typeNode = null;
         String paramName = null;
-        if (lastParam.kind() == SyntaxKind.REQUIRED_PARAM) {
-            RequiredParameterNode requiredParam = (RequiredParameterNode) lastParam;
+        if (firstParam.kind() == SyntaxKind.REQUIRED_PARAM) {
+            RequiredParameterNode requiredParam = (RequiredParameterNode) firstParam;
             typeNode = requiredParam.typeName();
             Optional<Token> optParamName = requiredParam.paramName();
             if (optParamName.isEmpty()) {
                 return Optional.empty();
             }
             paramName = optParamName.get().text();
-        } else if (lastParam.kind() == SyntaxKind.DEFAULTABLE_PARAM) {
-            DefaultableParameterNode defaultableParam = (DefaultableParameterNode) lastParam;
+        } else if (firstParam.kind() == SyntaxKind.DEFAULTABLE_PARAM) {
+            DefaultableParameterNode defaultableParam = (DefaultableParameterNode) firstParam;
             typeNode = defaultableParam.typeName();
             Optional<Token> optParamName = defaultableParam.paramName();
             if (optParamName.isEmpty()) {

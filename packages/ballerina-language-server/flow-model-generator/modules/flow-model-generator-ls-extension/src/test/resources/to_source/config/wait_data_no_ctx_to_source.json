@@ -1,6 +1,6 @@
 {
   "source": "workflow_data/functions.bal",
-  "description": "Wait for event - add a new field to events type definition when events parameter exists but no ctx parameter in the function",
+  "description": "Wait for data - single entry, adds field to existing events type when no ctx parameter",
   "diagram": {
     "id": "1",
     "metadata": {
@@ -24,40 +24,66 @@
     },
     "returning": false,
     "properties": {
-      "variable": {
+      "dataEntries": {
         "metadata": {
-          "label": "Event Receive Variable Name",
-          "description": "Variable name to receive the event data"
+          "label": "Data Entries",
+          "description": "Data entries to wait for (one or more)"
         },
-        "valueType": "IDENTIFIER",
-        "value": "approval",
-        "optional": false,
-        "editable": true,
-        "advanced": false,
-        "hidden": false
-      },
-      "dataType": {
-        "metadata": {
-          "label": "Event Data Type",
-          "description": "Type of the event data"
+        "valueType": "REPEATABLE_PROPERTY",
+        "value": {
+          "approvalReceived": {
+            "metadata": {
+              "label": "Data Entries",
+              "description": "Data entries to wait for (one or more)"
+            },
+            "valueType": "FIXED_PROPERTY",
+            "value": {
+              "variable": {
+                "metadata": {
+                  "label": "Event Receive Variable Name",
+                  "description": "Variable name to receive the event data"
+                },
+                "valueType": "IDENTIFIER",
+                "value": "approval",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "dataType": {
+                "metadata": {
+                  "label": "Event Data Type",
+                  "description": "Type of the event data"
+                },
+                "valueType": "EXPRESSION",
+                "valueTypeConstraint": "anydata",
+                "value": "ApprovalData",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "dataName": {
+                "metadata": {
+                  "label": "Event Name",
+                  "description": "Name of the event to wait for"
+                },
+                "valueType": "IDENTIFIER",
+                "value": "approvalReceived",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          }
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "anydata",
-        "value": "ApprovalData",
         "optional": false,
-        "editable": true,
-        "advanced": false,
-        "hidden": false
-      },
-      "dataName": {
-        "metadata": {
-          "label": "Event Name",
-          "description": "Name of the event to wait for"
-        },
-        "valueType": "IDENTIFIER",
-        "value": "approvalReceived",
-        "optional": false,
-        "editable": true,
+        "editable": false,
         "advanced": false,
         "hidden": false
       }
