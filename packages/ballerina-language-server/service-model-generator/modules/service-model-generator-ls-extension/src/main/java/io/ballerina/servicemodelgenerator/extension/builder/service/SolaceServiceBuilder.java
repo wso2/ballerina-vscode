@@ -18,8 +18,11 @@
 
 package io.ballerina.servicemodelgenerator.extension.builder.service;
 
+import com.google.gson.Gson;
+import com.google.gson.stream.JsonReader;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
+import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
@@ -29,15 +32,22 @@ import io.ballerina.servicemodelgenerator.extension.model.context.GetServiceInit
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.UpdateModelContext;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
+import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import org.eclipse.lsp4j.TextEdit;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_CONFIGURE_LISTENER;
+import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_EXISTING_LISTENER;
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
@@ -50,14 +60,9 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TWO_NEW_LINES;
 import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.addDataBindingParam;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.ON_MESSAGE_FUNCTION_NAME;
-import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.PROPERTY_SESSION_ACK_MODE;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.applyAckModeToOnMessageFunction;
-import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildAuthenticationChoice;
-import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildDestinationChoice;
-import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildSecureSocketChoice;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildServiceAnnotation;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildServiceCodeEdits;
-import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildSessionAckModeProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.cleanSecureSocketProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.updateModelWithAckMode;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getRequiredFunctionsForServiceType;
@@ -71,100 +76,93 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.applyEnabl
  */
 public final class SolaceServiceBuilder extends AbstractServiceBuilder {
 
-    private static final String PROPERTY_URL = "url";
-    private static final String PROPERTY_MESSAGE_VPN = "messageVpn";
+    private static final String SOLACE_SERVICE_MODEL_LOCATION = "services/solace.json";
+
     private static final String PROPERTY_DESTINATION = "destination";
     private static final String PROPERTY_AUTHENTICATION = "authentication";
-    private static final String PROPERTY_SECURE_SOCKET = "secureSocket";
     private static final String TYPE_SOLACE_SERVICE_CONFIG = "solace:ServiceConfig";
     private static final String SERVICE_TYPE = "solace:Service";
     private static final String CALLER_TYPE = "solace:Caller";
 
     // Display labels
     public static final String LABEL_SOLACE = "Solace";
-    private static final String LABEL_QUEUE = "Queue";
-    private static final String LABEL_TOPIC = "Topic";
-    private static final String LABEL_QUEUE_NAME = "Queue Name";
-    private static final String LABEL_TOPIC_NAME = "Topic Name";
-    private static final String LABEL_DESTINATION = "Destination";
-
-    // Descriptions
-    private static final String DESC_QUEUE = "Listen to messages from a queue";
-    private static final String DESC_TOPIC = "Listen to messages from a topic";
-    private static final String DESC_QUEUE_NAME = "Queue to listen for incoming messages.";
-    private static final String DESC_TOPIC_NAME = "Topic to listen for incoming messages.";
-    private static final String DESC_DESTINATION = "The Solace destination to expect messages from.";
 
     // Function and parameter names
     public static final String PAYLOAD_FIELD_NAME = "payload";
     public static final String TYPE_PREFIX = "SolaceMessage";
 
-    // Listener configuration property keys
-    private static final List<String> LISTENER_CONFIG_KEYS = List.of(
-            KEY_LISTENER_VAR_NAME, PROPERTY_URL, PROPERTY_MESSAGE_VPN, PROPERTY_AUTHENTICATION, PROPERTY_SECURE_SOCKET
-    );
-
     @Override
     public ServiceInitModel getServiceInitModel(GetServiceInitModelContext context) {
-        ServiceInitModel serviceInitModel = super.getServiceInitModel(context);
-        if (serviceInitModel == null) {
+        InputStream resourceStream = this.getClass().getClassLoader()
+                .getResourceAsStream(SOLACE_SERVICE_MODEL_LOCATION);
+        if (resourceStream == null) {
             return null;
         }
+        try (JsonReader reader = new JsonReader(new InputStreamReader(resourceStream, StandardCharsets.UTF_8))) {
+            ServiceInitModel serviceInitModel = new Gson().fromJson(reader, ServiceInitModel.class);
+            Map<String, Value> properties = serviceInitModel.getProperties();
 
-        Map<String, Value> properties = serviceInitModel.getProperties();
-        Value authenticationChoice = buildAuthenticationChoice();
-        properties.put(PROPERTY_AUTHENTICATION, authenticationChoice);
+            // Navigate to listenerVarName in advancedConfigurations
+            Value configureListener = properties.get(KEY_CONFIGURE_LISTENER);
+            Value createNewChoice = configureListener.getChoices().get(0);
+            Value listenerConfig = createNewChoice.getProperties().get("listenerConfig");
+            Value advancedSection = listenerConfig.getProperties().get("advancedConfigurations");
 
-        Value secureSocket = buildSecureSocketChoice(serviceInitModel.getOrgName(),
-                serviceInitModel.getModuleName(), serviceInitModel.getVersion());
-        properties.put(PROPERTY_SECURE_SOCKET, secureSocket);
+            // Generate a unique listener variable name
+            String listenerVarName = Utils.generateVariableIdentifier(context.semanticModel(), context.document(),
+                    context.document().syntaxTree().rootNode().lineRange().endLine(),
+                    advancedSection.getProperties().get(KEY_LISTENER_VAR_NAME).getValue());
+            advancedSection.getProperties().get(KEY_LISTENER_VAR_NAME).setValue(listenerVarName);
 
-        Set<String> listeners = ListenerUtil.getCompatibleListeners(context.moduleName(),
-                context.semanticModel(), context.project());
+            // Check for existing compatible listeners
+            Set<String> compatibleListeners = ListenerUtil.getCompatibleListeners(context.moduleName(),
+                    context.semanticModel(), context.project());
 
-        if (!listeners.isEmpty()) {
-            Map<String, Value> listenerProps =
-                    ListenerUtil.removeAndCollectListenerProperties(properties, LISTENER_CONFIG_KEYS);
-            Value choicesProperty = ListenerUtil.buildListenerChoiceProperty(listenerProps, listeners, LABEL_SOLACE);
-            properties.put(KEY_CONFIGURE_LISTENER, choicesProperty);
+            if (!compatibleListeners.isEmpty()) {
+                // Enable and populate "Use existing" choice
+                Value existingChoice = configureListener.getChoices().get(1);
+                existingChoice.setMetadata(new MetaData("Use existing", "Select an existing Solace listener"));
+                existingChoice.setEnabled(true);
+                existingChoice.setEditable(true);
+
+                // Build SINGLE_SELECT dropdown with listener names
+                List<String> listenerNames = new ArrayList<>(compatibleListeners);
+                Value listenerDropdown = new Value.ValueBuilder()
+                        .metadata("Listener Name", "Select an existing Solace listener")
+                        .value(listenerNames.get(0))
+                        .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT)))
+                        .enabled(true)
+                        .editable(true)
+                        .setItems(new ArrayList<>(listenerNames))
+                        .build();
+
+                Map<String, Value> existingProps = new LinkedHashMap<>();
+                existingProps.put(KEY_EXISTING_LISTENER, listenerDropdown);
+                existingChoice.getProperties().get("listenerConfig").setProperties(existingProps);
+
+                // Set "Use existing" as default selection
+                configureListener.setValue("1");
+                createNewChoice.setEnabled(false);
+            }
+
+            return serviceInitModel;
+        } catch (IOException e) {
+            return null;
         }
-
-        Value destinationChoice = buildDestinationChoice(
-                "\"test-queue\"",
-                "\"test/topic\"",
-                LABEL_QUEUE,
-                LABEL_TOPIC,
-                LABEL_QUEUE_NAME,
-                DESC_QUEUE_NAME,
-                LABEL_TOPIC_NAME,
-                DESC_TOPIC_NAME,
-                LABEL_DESTINATION,
-                DESC_DESTINATION,
-                DESC_QUEUE,
-                DESC_TOPIC,
-                null);
-
-        properties.put(PROPERTY_DESTINATION, destinationChoice);
-
-        Value sessionAckMode = buildSessionAckModeProperty();
-        properties.put(PROPERTY_SESSION_ACK_MODE, sessionAckMode);
-
-        return serviceInitModel;
     }
 
     @Override
     public Map<String, List<TextEdit>> addServiceInitSource(AddServiceInitModelContext context) {
         ServiceInitModel serviceInitModel = context.serviceInitModel();
+
+        // Apply destination choice first (Queue or Topic)
         applyEnabledChoiceProperty(serviceInitModel, PROPERTY_DESTINATION);
 
-        Map<String, Value> properties = serviceInitModel.getProperties();
-
-        cleanSecureSocketProperty(properties);
-        if (!properties.containsKey(KEY_CONFIGURE_LISTENER)) {
-            applyAuthenticationProperty(properties);
-            return addServiceWithNewListener(context);
-        }
+        // Apply configure listener choice and flatten nested GROUP_SECTION wrappers
         applyEnabledChoiceProperty(serviceInitModel, KEY_CONFIGURE_LISTENER);
+        Map<String, Value> properties = serviceInitModel.getProperties();
+        unwrapGroupSections(properties);
+
         cleanSecureSocketProperty(properties);
         applyAuthenticationProperty(properties);
 
@@ -177,7 +175,6 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
         }
 
         String serviceCode = buildJMSServiceCode(context, listenerDTO);
-
         return buildServiceCodeEdits(context, serviceCode, null);
     }
 
@@ -193,12 +190,6 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
                     .build();
             properties.put("auth", authValue);
         }
-    }
-
-    private Map<String, List<TextEdit>> addServiceWithNewListener(AddServiceInitModelContext context) {
-        ListenerDTO listenerDTO = buildListenerDTO(context);
-        String serviceCode = buildJMSServiceCode(context, listenerDTO);
-        return buildServiceCodeEdits(context, serviceCode, null);
     }
 
     private String buildJMSServiceCode(AddServiceInitModelContext context, ListenerDTO listenerDTO) {
