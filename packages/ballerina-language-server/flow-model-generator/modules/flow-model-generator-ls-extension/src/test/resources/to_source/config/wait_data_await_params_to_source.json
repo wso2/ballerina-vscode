@@ -24,7 +24,7 @@
     },
     "returning": false,
     "properties": {
-      "dataEntries": {
+      "dataWaits": {
         "metadata": {
           "label": "Data Entries",
           "description": "Data entries to wait for (one or more)"

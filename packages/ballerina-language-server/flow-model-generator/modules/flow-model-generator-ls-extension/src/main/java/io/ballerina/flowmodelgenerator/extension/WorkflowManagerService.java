@@ -52,7 +52,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.ANYDATA;
-import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.EVENTS_SUFFIX;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.DATA_SUFFIX;
 
 /**
  * Service for managing workflow-related operations.
@@ -131,7 +131,7 @@ public class WorkflowManagerService implements ExtendedLanguageServerService {
                 return data;
             }
             String dataTypeName = funcName.substring(0, 1).toUpperCase(Locale.ROOT) + funcName.substring(1)
-                    + EVENTS_SUFFIX;
+                    + DATA_SUFFIX;
 
             Optional<Symbol> dataTypeSymbol = semanticModel.moduleSymbols().stream()
                     .filter(symbol -> symbol.nameEquals(dataTypeName))

@@ -77,14 +77,14 @@ import java.util.stream.Collectors;
 
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.ANYDATA;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CONTEXT_CLASS_NAME;
-import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.DEFAULT_EVENTS_PARAM_NAME;
-import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.EVENTS_SUFFIX;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.DEFAULT_DATA_PARAM_NAME;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.DATA_SUFFIX;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_MODULE;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ORG;
 
 /**
  * Represents a workflow wait for data node.
- * This is a specialized wait operation for workflow data (check wait events.dataName).
+ * This is a specialized wait operation for workflow data (check wait data.dataName).
  *
  * @since 2.0.0
  */
@@ -99,9 +99,9 @@ public class WaitDataBuilder extends CallBuilder {
     private static final String DATA_TYPE_DOC = "Type of the data to be received on successful wait";
     private static final String DATA_RECEIVE_VAR_NAME = "Data Receive Variable Name";
     private static final String DATA_RECEIVE_VAR_DOC = "Variable name to receive the data";
-    private static final String DATA_ENTRIES_KEY = "dataEntries";
-    private static final String DATA_ENTRIES_LABEL = "Data Entries";
-    private static final String DATA_ENTRIES_DOC = "Data entries to wait for (one or more)";
+    private static final String DATA_WAITS_KEY = "dataWaits";
+    private static final String DATA_WAITS_LABEL = "Data Waits";
+    private static final String DATA_WAITS_DOC = "Data to wait for (one or more)";
     private static final String AWAIT_METHOD = "await";
     private static final Set<String> EXCLUDED_AWAIT_PARAMS = Set.of("futures", "T");
 
@@ -127,8 +127,8 @@ public class WaitDataBuilder extends CallBuilder {
     public void setConcreteTemplateData(TemplateContext context) {
         properties().nestedProperty();
         properties()
-                .endNestedProperty(Property.ValueType.REPEATABLE_PROPERTY, DATA_ENTRIES_KEY, DATA_ENTRIES_LABEL,
-                        DATA_ENTRIES_DOC, getDataEntrySchema(), false, false);
+                .endNestedProperty(Property.ValueType.REPEATABLE_PROPERTY, DATA_WAITS_KEY, DATA_WAITS_LABEL,
+                        DATA_WAITS_DOC, getDataWaitSchema(), false, false);
         ModuleInfo workflowModuleInfo = new ModuleInfo(WORKFLOW_ORG, WORKFLOW_MODULE, WORKFLOW_MODULE, null);
         FunctionData callActivityData = new FunctionDataBuilder()
                 .name(AWAIT_METHOD)
@@ -149,11 +149,11 @@ public class WaitDataBuilder extends CallBuilder {
         setParameterProperties(callActivityData, module);
     }
 
-    public static Property getDataEntrySchema() {
-        return DataEntrySchemaHolder.DATA_ENTRY_SCHEMA;
+    public static Property getDataWaitSchema() {
+        return DataWaitSchemaHolder.DATA_ENTRY_SCHEMA;
     }
 
-    private static void setDataEntryProperties(FormBuilder<?> formBuilder) {
+    private static void setDataWaitProperties(FormBuilder<?> formBuilder) {
         formBuilder.nestedProperty();
 
         // Data receive variable name
@@ -200,23 +200,23 @@ public class WaitDataBuilder extends CallBuilder {
                 .editable(true);
         formBuilder.addProperty(DATA_NAME_KEY);
 
-        formBuilder.endNestedProperty(Property.ValueType.FIXED_PROPERTY, "", DATA_ENTRIES_LABEL, DATA_ENTRIES_DOC);
+        formBuilder.endNestedProperty(Property.ValueType.FIXED_PROPERTY, "", DATA_WAITS_LABEL, DATA_WAITS_DOC);
     }
 
     @Override
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
-        List<DataEntry> entries = parseDataEntries(sourceBuilder);
+        List<DataWait> entries = parseDataWaits(sourceBuilder);
         if (entries.isEmpty()) {
             throw new IllegalStateException("At least one data entry is required");
         }
 
-        String eventsParamName = addDataFieldsAndGetParam(sourceBuilder, entries);
+        String dataParamName = addDataFieldsAndGetParam(sourceBuilder, entries);
 
         if (entries.size() > 1 || hasNonEmptyAwaitParams(sourceBuilder)) {
-            generateAwaitCall(sourceBuilder, entries, eventsParamName);
+            generateAwaitCall(sourceBuilder, entries, dataParamName);
         } else {
-            // Simple: type var = check wait events.dataName;
-            DataEntry entry = entries.getFirst();
+            // Simple: type var = check wait data.dataName;
+            DataWait entry = entries.getFirst();
             sourceBuilder.token()
                     .name(entry.dataType)
                     .whiteSpace()
@@ -224,7 +224,7 @@ public class WaitDataBuilder extends CallBuilder {
                     .keyword(SyntaxKind.EQUAL_TOKEN)
                     .keyword(SyntaxKind.CHECK_KEYWORD)
                     .keyword(SyntaxKind.WAIT_KEYWORD)
-                    .name(eventsParamName + "." + entry.dataName)
+                    .name(dataParamName + "." + entry.dataName)
                     .endOfStatement();
         }
         sourceBuilder.textEdit();
@@ -232,7 +232,7 @@ public class WaitDataBuilder extends CallBuilder {
         return sourceBuilder.build();
     }
 
-    private void generateAwaitCall(SourceBuilder sourceBuilder, List<DataEntry> entries, String eventsParamName) {
+    private void generateAwaitCall(SourceBuilder sourceBuilder, List<DataWait> entries, String dataParamName) {
         String ctxParamName = ActivityCallBuilder.resolveContextParamName(sourceBuilder);
         // Tuple type: [type1, type2]
         sourceBuilder.token().keyword(SyntaxKind.OPEN_BRACKET_TOKEN);
@@ -263,13 +263,13 @@ public class WaitDataBuilder extends CallBuilder {
                 .name(AWAIT_METHOD)
                 .keyword(SyntaxKind.OPEN_PAREN_TOKEN);
 
-        // Futures array: [events.d1, events.d2]
+        // Futures array: [data.d1, data.d2]
         sourceBuilder.token().keyword(SyntaxKind.OPEN_BRACKET_TOKEN);
         for (int i = 0; i < entries.size(); i++) {
             if (i > 0) {
                 sourceBuilder.token().keyword(SyntaxKind.COMMA_TOKEN);
             }
-            sourceBuilder.token().name(eventsParamName + "." + entries.get(i).dataName);
+            sourceBuilder.token().name(dataParamName + "." + entries.get(i).dataName);
         }
         sourceBuilder.token().keyword(SyntaxKind.CLOSE_BRACKET_TOKEN);
 
@@ -287,7 +287,7 @@ public class WaitDataBuilder extends CallBuilder {
             return false;
         }
         for (Map.Entry<String, Property> entry : properties.entrySet()) {
-            if (entry.getKey().equals(DATA_ENTRIES_KEY)) {
+            if (entry.getKey().equals(DATA_WAITS_KEY)) {
                 continue;
             }
             Property prop = entry.getValue();
@@ -304,7 +304,7 @@ public class WaitDataBuilder extends CallBuilder {
             return;
         }
         for (Map.Entry<String, Property> entry : properties.entrySet()) {
-            if (entry.getKey().equals(DATA_ENTRIES_KEY)) {
+            if (entry.getKey().equals(DATA_WAITS_KEY)) {
                 continue;
             }
             Property prop = entry.getValue();
@@ -320,13 +320,13 @@ public class WaitDataBuilder extends CallBuilder {
         }
     }
 
-    private List<DataEntry> parseDataEntries(SourceBuilder sourceBuilder) {
-        Optional<Property> dataEntriesProperty = sourceBuilder.getProperty(DATA_ENTRIES_KEY);
-        if (dataEntriesProperty.isEmpty() || !(dataEntriesProperty.get().value() instanceof Map<?, ?> entryMap)) {
+    private List<DataWait> parseDataWaits(SourceBuilder sourceBuilder) {
+        Optional<Property> dataWaitsProperty = sourceBuilder.getProperty(DATA_WAITS_KEY);
+        if (dataWaitsProperty.isEmpty() || !(dataWaitsProperty.get().value() instanceof Map<?, ?> entryMap)) {
             throw new IllegalStateException("Wait data node is missing required data entries");
         }
 
-        List<DataEntry> entries = new ArrayList<>();
+        List<DataWait> entries = new ArrayList<>();
         for (Object obj : entryMap.values()) {
             Property entryProperty = gson.fromJson(gson.toJsonTree(obj), Property.class);
             if (!(entryProperty.value() instanceof Map<?, ?> entryData)) {
@@ -347,12 +347,12 @@ public class WaitDataBuilder extends CallBuilder {
             if (variableName.isBlank() || dataType.isBlank() || dataName.isBlank()) {
                 continue;
             }
-            entries.add(new DataEntry(variableName, dataType, dataName));
+            entries.add(new DataWait(variableName, dataType, dataName));
         }
         return entries;
     }
 
-    private String addDataFieldsAndGetParam(SourceBuilder sourceBuilder, List<DataEntry> entries) {
+    private String addDataFieldsAndGetParam(SourceBuilder sourceBuilder, List<DataWait> entries) {
         try {
             sourceBuilder.workspaceManager.loadProject(sourceBuilder.filePath);
         } catch (WorkspaceDocumentException | EventSyncException e) {
@@ -367,34 +367,34 @@ public class WaitDataBuilder extends CallBuilder {
             throw new IllegalStateException("WaitDataBuilder must be used inside a workflow function");
         }
 
-        Optional<ParameterSymbol> dataParamSymbol = getEventsParameterTypeSymbol(functionNode, semanticModel);
+        Optional<ParameterSymbol> dataParamSymbol = getDataParameterTypeSymbol(functionNode, semanticModel);
         if (dataParamSymbol.isPresent()) {
             ParameterSymbol parameterSymbol = dataParamSymbol.get();
-            modifyExistingEventsType(sourceBuilder, parameterSymbol.typeDescriptor(), entries);
+            modifyExistingDataType(sourceBuilder, parameterSymbol.typeDescriptor(), entries);
             return parameterSymbol.getName().orElseThrow(
-                    () -> new IllegalStateException("Events parameter must have a name"));
+                    () -> new IllegalStateException("Data parameter must have a name"));
         } else {
-            // No events parameter - create new type and add parameter
+            // No data parameter - create new type and add parameter
             String funcName = functionNode.functionName().text();
             String baseTypeName = funcName.substring(0, 1).toUpperCase(Locale.ROOT) + funcName.substring(1)
-                    + EVENTS_SUFFIX;
-            String eventsTypeName = generateUniqueEventsTypeName(baseTypeName, semanticModel);
-            createNewEventsType(sourceBuilder, eventsTypeName, entries);
-            addEventsParameterToFunction(sourceBuilder, functionNode, eventsTypeName);
-            return DEFAULT_EVENTS_PARAM_NAME;
+                    + DATA_SUFFIX;
+            String dataTypeName = generateUniqueDataTypeName(baseTypeName, semanticModel);
+            createNewDataType(sourceBuilder, dataTypeName, entries);
+            addDataParameterToFunction(sourceBuilder, functionNode, dataTypeName);
+            return DEFAULT_DATA_PARAM_NAME;
         }
     }
 
     /**
-     * Gets the events parameter from the function if it exists.
-     * The events parameter is expected to be the third parameter in a workflow function.
+     * Gets the data parameter from the function if it exists.
+     * The data parameter is expected to be the third parameter in a workflow function.
      *
      * @param functionNode The function definition node
      * @param semanticModel The semantic model
-     * @return Optional containing the events parameter node if present
+     * @return Optional containing the data parameter node if present
      */
-    private Optional<ParameterSymbol> getEventsParameterTypeSymbol(FunctionDefinitionNode functionNode,
-                                                              SemanticModel semanticModel) {
+    private Optional<ParameterSymbol> getDataParameterTypeSymbol(FunctionDefinitionNode functionNode,
+                                                                 SemanticModel semanticModel) {
         SeparatedNodeList<ParameterNode> parameters = functionNode.functionSignature().parameters();
         if (parameters.isEmpty()) {
             return Optional.empty();
@@ -403,7 +403,7 @@ public class WaitDataBuilder extends CallBuilder {
         Optional<Symbol> symbol = semanticModel.symbol(parameters.get(parameters.size() - 1));
         if (symbol.isPresent() && symbol.get().kind() == SymbolKind.PARAMETER) {
             ParameterSymbol paramSymbol = (ParameterSymbol) symbol.get();
-            if (isValidEventsType(TypeUtils.resolveTypeReference(paramSymbol.typeDescriptor()))) {
+            if (isValidDataType(TypeUtils.resolveTypeReference(paramSymbol.typeDescriptor()))) {
                 return Optional.of(paramSymbol);
             }
         }
@@ -412,13 +412,13 @@ public class WaitDataBuilder extends CallBuilder {
     }
 
     /**
-     * Generates a unique events type name by checking existing symbols.
+     * Generates a unique data type name by checking existing symbols.
      *
-     * @param baseName      The base name for the events type (e.g., "FuncNameEvents")
+     * @param baseName      The base name for the data type (e.g., "FuncNameData")
      * @param semanticModel The semantic model
      * @return A unique type name
      */
-    private String generateUniqueEventsTypeName(String baseName, SemanticModel semanticModel) {
+    private String generateUniqueDataTypeName(String baseName, SemanticModel semanticModel) {
         Set<String> existingNames = semanticModel.moduleSymbols().stream()
                 .flatMap(symbol -> symbol.getName().stream())
                 .collect(Collectors.toSet());
@@ -436,11 +436,11 @@ public class WaitDataBuilder extends CallBuilder {
         return newName;
     }
 
-    private void createNewEventsType(SourceBuilder sourceBuilder, String eventsTypeName,
-                                     List<DataEntry> entries) {
-        // Create a new events type with fields for all data entries
+    private void createNewDataType(SourceBuilder sourceBuilder, String dataTypeName,
+                                   List<DataWait> entries) {
+        // Create a new data type with fields for all data entries
         List<Member> members = new ArrayList<>();
-        for (DataEntry entry : entries) {
+        for (DataWait entry : entries) {
             String fieldType = SyntaxKind.FUTURE_KEYWORD.stringValue() + SyntaxKind.LT_TOKEN.stringValue()
                     + entry.dataType + SyntaxKind.GT_TOKEN.stringValue();
             members.add(new Member.MemberBuilder()
@@ -452,10 +452,10 @@ public class WaitDataBuilder extends CallBuilder {
                     .build());
         }
 
-        TypeData eventsTypeData = new TypeData(
-                eventsTypeName,
+        TypeData dataTypeData = new TypeData(
+                dataTypeName,
                 true,
-                new Metadata(eventsTypeName, "Events record for workflow function",
+                new Metadata(dataTypeName, "Data record for workflow function",
                         null, null, null, null),
                 new Codedata.Builder<>(null).node(NodeKind.RECORD).build(),
                 Map.of(),
@@ -466,12 +466,12 @@ public class WaitDataBuilder extends CallBuilder {
                 null,
                 false
         );
-        sourceBuilder.acceptTypeGeneration(eventsTypeData);
+        sourceBuilder.acceptTypeGeneration(dataTypeData);
     }
 
-    private void addEventsParameterToFunction(SourceBuilder sourceBuilder,
-                                              FunctionDefinitionNode functionNode,
-                                              String eventsTypeName) {
+    private void addDataParameterToFunction(SourceBuilder sourceBuilder,
+                                            FunctionDefinitionNode functionNode,
+                                            String dataTypeName) {
         FunctionSignatureNode signatureNode = functionNode.functionSignature();
         LineRange closeParenLineRange = signatureNode.closeParenToken().lineRange();
         Range insertRange = CommonUtils.toRange(closeParenLineRange.startLine());
@@ -481,27 +481,27 @@ public class WaitDataBuilder extends CallBuilder {
         }
 
         sourceBuilder.token()
-                .name(eventsTypeName)
+                .name(dataTypeName)
                 .whiteSpace()
-                .name(DEFAULT_EVENTS_PARAM_NAME)
+                .name(DEFAULT_DATA_PARAM_NAME)
                 .skipFormatting().stepOut().textEdit(null, sourceBuilder.filePath, insertRange);
     }
 
-    private void modifyExistingEventsType(SourceBuilder sourceBuilder, TypeSymbol eventsTypeSymbol,
-                                          List<DataEntry> entries) {
-        RecordTypeSymbol recordType = (RecordTypeSymbol) eventsTypeSymbol;
+    private void modifyExistingDataType(SourceBuilder sourceBuilder, TypeSymbol dataTypeSymbol,
+                                        List<DataWait> entries) {
+        RecordTypeSymbol recordType = (RecordTypeSymbol) dataTypeSymbol;
         Map<String, RecordFieldSymbol> existingFields = recordType.fieldDescriptors();
 
         // Check if any field already exists
-        for (DataEntry entry : entries) {
+        for (DataWait entry : entries) {
             if (existingFields.containsKey(entry.dataName)) {
                 throw new RuntimeException(
-                        "Field already exists in the events type definition with name: " + entry.dataName);
+                        "Field already exists in the data type definition with name: " + entry.dataName);
             }
         }
 
         if (recordType.getLocation().isEmpty()) {
-            throw new IllegalStateException("WaitDataBuilder cannot update events type: missing type location");
+            throw new IllegalStateException("WaitDataBuilder cannot update data type: missing type location");
         }
 
         LineRange typeLineRange = recordType.getLocation().get().lineRange();
@@ -510,7 +510,7 @@ public class WaitDataBuilder extends CallBuilder {
                 .resolve(typeLineRange.fileName());
         Document typesDoc = FileSystemUtils.getDocument(sourceBuilder.workspaceManager, typesFilePath);
         if (typesDoc == null) {
-            throw new IllegalStateException("WaitDataBuilder cannot load events type document: " + typesFilePath);
+            throw new IllegalStateException("WaitDataBuilder cannot load data type document: " + typesFilePath);
         }
         SyntaxTree typesSyntaxTree = typesDoc.syntaxTree();
         ModulePartNode typesRootNode = typesSyntaxTree.rootNode();
@@ -533,7 +533,7 @@ public class WaitDataBuilder extends CallBuilder {
         LineRange delimiterLineRange = bodyStartDelimiter.lineRange();
         Range insertRange = CommonUtils.toRange(delimiterLineRange.endLine());
 
-        for (DataEntry entry : entries) {
+        for (DataWait entry : entries) {
             sourceBuilder.token()
                     .name(SyntaxKind.FUTURE_KEYWORD.stringValue())
                     .name(SyntaxKind.LT_TOKEN.stringValue())
@@ -547,21 +547,21 @@ public class WaitDataBuilder extends CallBuilder {
                 .skipFormatting().stepOut().textEdit(null, typesFilePath, insertRange);
     }
 
-    private record DataEntry(String variableName, String dataType, String dataName) { }
+    private record DataWait(String variableName, String dataType, String dataName) { }
 
-    private static class DataEntrySchemaHolder {
+    private static class DataWaitSchemaHolder {
 
-        private static final Property DATA_ENTRY_SCHEMA = initDataEntrySchema();
+        private static final Property DATA_ENTRY_SCHEMA = initDataWaitSchema();
 
-        private static Property initDataEntrySchema() {
+        private static Property initDataWaitSchema() {
             FormBuilder<?> formBuilder = new FormBuilder<>(null, null, null, null);
-            setDataEntryProperties(formBuilder);
+            setDataWaitProperties(formBuilder);
             Map<String, Property> nodeProperties = formBuilder.build();
             return nodeProperties.get("");
         }
     }
 
-    private boolean isValidEventsType(TypeSymbol typeSymbol) {
+    private boolean isValidDataType(TypeSymbol typeSymbol) {
         typeSymbol = TypeUtils.resolveTypeReference(typeSymbol);
         TypeDescKind kind = typeSymbol.typeKind();
 
@@ -573,7 +573,7 @@ public class WaitDataBuilder extends CallBuilder {
         // Check that it's a RecordTypeSymbol and all fields are future types
         Map<String, RecordFieldSymbol> fields = ((RecordTypeSymbol) typeSymbol).fieldDescriptors();
         if (fields.isEmpty()) {
-            // Empty record is not a valid events record
+            // Empty record is not a valid data record
             return false;
         }
 
