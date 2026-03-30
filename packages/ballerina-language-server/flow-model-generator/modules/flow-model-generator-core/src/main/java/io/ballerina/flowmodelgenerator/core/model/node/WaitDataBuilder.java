@@ -76,6 +76,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.ANYDATA;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.AWAIT_METHOD_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CONTEXT_CLASS_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.DEFAULT_DATA_PARAM_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.DATA_SUFFIX;
@@ -102,8 +103,8 @@ public class WaitDataBuilder extends CallBuilder {
     private static final String DATA_WAITS_KEY = "dataWaits";
     private static final String DATA_WAITS_LABEL = "Data Waits";
     private static final String DATA_WAITS_DOC = "Data to wait for (one or more)";
-    private static final String AWAIT_METHOD = "await";
-    private static final Set<String> EXCLUDED_AWAIT_PARAMS = Set.of("futures", "T");
+    public static final String FUTURES_PARAM = "futures";
+    private static final Set<String> EXCLUDED_AWAIT_PARAMS = Set.of(FUTURES_PARAM, "T");
 
     private static final Gson gson = new Gson();
 
@@ -131,7 +132,7 @@ public class WaitDataBuilder extends CallBuilder {
                         DATA_WAITS_DOC, getDataWaitSchema(), false, false);
         ModuleInfo workflowModuleInfo = new ModuleInfo(WORKFLOW_ORG, WORKFLOW_MODULE, WORKFLOW_MODULE, null);
         FunctionData callActivityData = new FunctionDataBuilder()
-                .name(AWAIT_METHOD)
+                .name(AWAIT_METHOD_NAME)
                 .moduleInfo(workflowModuleInfo)
                 .parentSymbolType(CONTEXT_CLASS_NAME)
                 .functionResultKind(FunctionData.Kind.REMOTE)
@@ -260,7 +261,7 @@ public class WaitDataBuilder extends CallBuilder {
                 .keyword(SyntaxKind.CHECK_KEYWORD)
                 .name(ctxParamName)
                 .keyword(SyntaxKind.RIGHT_ARROW_TOKEN)
-                .name(AWAIT_METHOD)
+                .name(AWAIT_METHOD_NAME)
                 .keyword(SyntaxKind.OPEN_PAREN_TOKEN);
 
         // Futures array: [data.d1, data.d2]
@@ -475,8 +476,7 @@ public class WaitDataBuilder extends CallBuilder {
         FunctionSignatureNode signatureNode = functionNode.functionSignature();
         LineRange closeParenLineRange = signatureNode.closeParenToken().lineRange();
         Range insertRange = CommonUtils.toRange(closeParenLineRange.startLine());
-        boolean hasExistingParams = !signatureNode.parameters().isEmpty();
-        if (hasExistingParams) {
+        if (!signatureNode.parameters().isEmpty()) {
             sourceBuilder.token().keyword(SyntaxKind.COMMA_TOKEN).whiteSpace();
         }
 
@@ -519,11 +519,18 @@ public class WaitDataBuilder extends CallBuilder {
         int txtPos = typesDoc.textDocument().textPositionFrom(typeLineRange.startLine());
         TextRange textRange = TextRange.from(txtPos, 0);
         NonTerminalNode typeDefNode = typesRootNode.findNode(textRange);
-        if (typeDefNode == null || typeDefNode.kind() != SyntaxKind.TYPE_DEFINITION) {
+
+        Node typeDescNode;
+        if  (typeDefNode == null) {
             throw new IllegalStateException("WaitDataBuilder could not locate target type definition");
+        } else if (typeDefNode.kind() == SyntaxKind.TYPE_DEFINITION) {
+            typeDescNode = ((TypeDefinitionNode) typeDefNode).typeDescriptor();
+        } else if (typeDefNode.kind() == SyntaxKind.RECORD_TYPE_DESC) {
+            typeDescNode = typeDefNode;
+        } else {
+            throw new IllegalStateException("WaitDataBuilder data type is not a record");
         }
 
-        Node typeDescNode = ((TypeDefinitionNode) typeDefNode).typeDescriptor();
         if (typeDescNode.kind() != SyntaxKind.RECORD_TYPE_DESC) {
             throw new IllegalStateException("WaitDataBuilder target type is not a record");
         }

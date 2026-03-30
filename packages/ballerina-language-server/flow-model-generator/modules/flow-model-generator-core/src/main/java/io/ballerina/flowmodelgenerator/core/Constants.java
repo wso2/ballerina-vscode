@@ -111,6 +111,7 @@ public class Constants {
         public static final String SEND_DATA_LABEL = "Send Data";
         public static final String SEND_DATA_DESCRIPTION = "Send data to an existing workflow instance";
         public static final String CALL_ACTIVITY_METHOD_NAME = "callActivity";
+        public static final String AWAIT_METHOD_NAME = "await";
         public static final String CALL_ACTIVITY_LABEL = "Call Activity";
         public static final String CALL_ACTIVITY_DESCRIPTION = "Call a workflow activity function";
         public static final String WAIT_DATA_LABEL = "Wait for Data";

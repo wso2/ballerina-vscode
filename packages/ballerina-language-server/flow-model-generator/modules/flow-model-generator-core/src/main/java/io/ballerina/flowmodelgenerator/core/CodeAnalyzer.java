@@ -202,6 +202,7 @@ import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.AWAIT_METHOD_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CALL_ACTIVITY_METHOD_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CONTEXT_CLASS_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.RUN_METHOD_NAME;
@@ -435,8 +436,10 @@ public class CodeAnalyzer extends NodeVisitor {
         if (isAgentClass(classSymbol)) {
             startNode(NodeKind.AGENT_CALL, expressionNode.parent());
             populateAgentMetaData(expressionNode, classSymbol);
-        } else if (isWorkflowActivityCall(remoteMethodCallActionNode, classSymbol)) {
+        } else if (isWorkflowOperation(remoteMethodCallActionNode, classSymbol, CALL_ACTIVITY_METHOD_NAME)) {
             startNode(NodeKind.ACTIVITY_CALL, expressionNode.parent());
+        } else if (isWorkflowOperation(remoteMethodCallActionNode, classSymbol, AWAIT_METHOD_NAME)) {
+            startNode(NodeKind.WAIT_DATA, expressionNode.parent());
         } else {
             startNode(NodeKind.REMOTE_ACTION_CALL, expressionNode.parent());
         }
@@ -767,11 +770,11 @@ public class CodeAnalyzer extends NodeVisitor {
         return operationName.equals(functionName) && isWorkflowModule(functionSymbol.getModule());
     }
 
-    private boolean isWorkflowActivityCall(RemoteMethodCallActionNode remoteMethodCallActionNode,
-                                           ClassSymbol classSymbol) {
+    private boolean isWorkflowOperation(RemoteMethodCallActionNode remoteMethodCallActionNode,
+                                        ClassSymbol classSymbol, String operationName) {
         String methodName = remoteMethodCallActionNode.methodName().name().text();
         String className = classSymbol.getName().orElse("");
-        return methodName.equals(CALL_ACTIVITY_METHOD_NAME) &&
+        return methodName.equals(operationName) &&
                 className.equals(CONTEXT_CLASS_NAME) && isWorkflowModule(classSymbol.getModule());
     }
 
