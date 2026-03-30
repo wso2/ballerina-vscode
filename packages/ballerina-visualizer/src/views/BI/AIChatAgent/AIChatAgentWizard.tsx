@@ -270,7 +270,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             const agentVarName = `${baseName}Agent`;
             agentNodeTemplate.properties.systemPrompt.value = systemPromptValue;
             agentNodeTemplate.properties.model.value = modelVarName;
-            agentNodeTemplate.properties.tools.value = "[]";
+            agentNodeTemplate.properties.tools.value = [];
             agentNodeTemplate.properties.variable.value = agentVarName;
 
             await rpcClient
