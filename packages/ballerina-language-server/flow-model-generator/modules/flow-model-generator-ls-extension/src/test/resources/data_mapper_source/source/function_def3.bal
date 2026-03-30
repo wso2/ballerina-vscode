@@ -9,5 +9,5 @@ type Student record {|
 |};
 
 function transform3(json user, json student) returns json|error =>
-    let UserInfo userConverted = check user.ensureType(),
+    let UserInfo userConverted = check jsondata:parseAsType(user),
     Student transform3 = {username: userConverted.username} in transform3;

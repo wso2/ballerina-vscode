@@ -18,10 +18,24 @@
     "sourceCode": ""
   },
   "typeName": "Student",
+  "parentTypeName": "json",
   "variableName": "student",
   "isInput": true,
   "output": {
     "variable1.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "import ballerina/data.jsondata;\n"
+      },
       {
         "range": {
           "start": {
@@ -33,7 +47,7 @@
             "character": 7
           }
         },
-        "newText": " Student studentConverted = check student.ensureType(),"
+        "newText": " Student studentConverted = check jsondata:parseAsType(student),"
       }
     ]
   }

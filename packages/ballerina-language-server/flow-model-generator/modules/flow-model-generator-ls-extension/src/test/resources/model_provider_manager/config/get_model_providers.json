@@ -10,7 +10,10 @@
         "items": [
           {
             "metadata": {
-              "label": "anthropicModel"
+              "label": "anthropicModel",
+              "data": {
+                "connectorType": "Default"
+              }
             },
             "items": [
               {
@@ -55,7 +58,10 @@
           },
           {
             "metadata": {
-              "label": "azureOpenaiModel"
+              "label": "azureOpenaiModel",
+              "data": {
+                "connectorType": "Default"
+              }
             },
             "items": [
               {
@@ -100,7 +106,10 @@
           },
           {
             "metadata": {
-              "label": "deepSeekModel"
+              "label": "deepSeekModel",
+              "data": {
+                "connectorType": "Default"
+              }
             },
             "items": [
               {
@@ -145,7 +154,10 @@
           },
           {
             "metadata": {
-              "label": "mistralModel"
+              "label": "mistralModel",
+              "data": {
+                "connectorType": "Default"
+              }
             },
             "items": [
               {
@@ -190,7 +202,10 @@
           },
           {
             "metadata": {
-              "label": "ollamaModel"
+              "label": "ollamaModel",
+              "data": {
+                "connectorType": "Default"
+              }
             },
             "items": [
               {
@@ -235,7 +250,10 @@
           },
           {
             "metadata": {
-              "label": "openAiModel"
+              "label": "openAiModel",
+              "data": {
+                "connectorType": "Default"
+              }
             },
             "items": [
               {
@@ -280,7 +298,10 @@
           },
           {
             "metadata": {
-              "label": "wso2DefaultModel"
+              "label": "wso2DefaultModel",
+              "data": {
+                "connectorType": "Default"
+              }
             },
             "items": [
               {
@@ -325,7 +346,10 @@
           },
           {
             "metadata": {
-              "label": "wso2Model"
+              "label": "wso2Model",
+              "data": {
+                "connectorType": "Default"
+              }
             },
             "items": [
               {

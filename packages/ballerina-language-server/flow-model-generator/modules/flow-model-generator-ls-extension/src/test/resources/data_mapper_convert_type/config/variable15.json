@@ -6,38 +6,48 @@
     "lineRange": {
       "fileName": "main.bal",
       "startLine": {
-        "line": 18,
+        "line": 47,
         "offset": 0
       },
       "endLine": {
-        "line": 20,
+        "line": 49,
         "offset": 23
       }
     },
     "isNew": true,
     "sourceCode": ""
   },
-  "typeName": "school:Student",
+  "typeName": "Student",
   "parentTypeName": "json",
-  "variableName": "transform2",
+  "variableName": "transform10",
   "isInput": false,
-  "imports": {
-    "school": "ballerinax/school:0.1.0"
-  },
   "output": {
     "variable1.bal": [
       {
         "range": {
           "start": {
-            "line": 19,
-            "character": 65
+            "line": 48,
+            "character": 56
           },
           "end": {
-            "line": 19,
-            "character": 65
+            "line": 48,
+            "character": 56
           }
         },
-        "newText": ", school:Student transform2 = {a: 10, b: 20}"
+        "newText": ", Student transform10 = {a: 10, b: 20}"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 47,
+            "character": 58
+          },
+          "end": {
+            "line": 47,
+            "character": 58
+          }
+        },
+        "newText": "|error"
       },
       {
         "range": {
@@ -55,28 +65,15 @@
       {
         "range": {
           "start": {
-            "line": 20,
+            "line": 49,
             "character": 8
           },
           "end": {
-            "line": 20,
+            "line": 49,
             "character": 22
           }
         },
-        "newText": "jsondata:toJson(transform2)"
-      },
-      {
-        "range": {
-          "start": {
-            "line": 0,
-            "character": 0
-          },
-          "end": {
-            "line": 0,
-            "character": 0
-          }
-        },
-        "newText": "import ballerinax/school;\n"
+        "newText": "check jsondata:toJson(transform10)"
       }
     ]
   }

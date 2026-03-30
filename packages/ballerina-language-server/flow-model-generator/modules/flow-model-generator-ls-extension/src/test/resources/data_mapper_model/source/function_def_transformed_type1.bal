@@ -1,5 +1,5 @@
 import ballerina/data.jsondata;
-
+import ballerina/data.xmldata;
 type User record {|
     string code;
     string number;
@@ -16,11 +16,11 @@ type Foo record {|
 |};
 
 function transform(json j, User u) returns json|error =>
-    let User user = {code: u.code, number: u.number}, Foo foo = check j.ensureType(),
+    let User user = {code: u.code, number: u.number}, Foo foo = check jsondata:parseAsType(j),
     SecondaryPhones secondaryPhones = {} in secondaryPhones;
 
-function transform1(xml varXml) returns json => let Foo varXmlConverted = check varXml.ensureType() in {};
+function transform1(xml varXml) returns json => let Foo varXmlConverted = check xmldata:parseAsType(varXml) in {};
 
 function transform2(json j, User u) returns json|error =>
-    let User user = {code: u.code, number: u.number}, Foo foo = check j.ensureType(),
+    let User user = {code: u.code, number: u.number}, Foo foo = check jsondata:parseAsType(j),
     SecondaryPhones secondaryPhones = {} in jsondata:toJson(secondaryPhones);

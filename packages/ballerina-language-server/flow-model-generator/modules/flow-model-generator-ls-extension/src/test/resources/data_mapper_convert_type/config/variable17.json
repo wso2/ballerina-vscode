@@ -6,48 +6,61 @@
     "lineRange": {
       "fileName": "main.bal",
       "startLine": {
-        "line": 22,
+        "line": 55,
         "offset": 0
       },
       "endLine": {
-        "line": 23,
-        "offset": 63
+        "line": 55,
+        "offset": 66
       }
     },
     "isNew": true,
     "sourceCode": ""
   },
-  "typeName": "Student",
-  "parentTypeName": "json",
-  "variableName": "student",
+  "typeName": "UserInfo",
+  "parentTypeName": "xml",
+  "variableName": "user",
   "isInput": true,
   "output": {
     "variable1.bal": [
       {
         "range": {
           "start": {
-            "line": 0,
-            "character": 0
+            "line": 55,
+            "character": 55
           },
           "end": {
-            "line": 0,
-            "character": 0
+            "line": 55,
+            "character": 55
           }
         },
-        "newText": "import ballerina/data.jsondata;\n"
+        "newText": "|error"
       },
       {
         "range": {
           "start": {
-            "line": 23,
-            "character": 7
+            "line": 0,
+            "character": 0
           },
           "end": {
-            "line": 23,
-            "character": 7
+            "line": 0,
+            "character": 0
           }
         },
-        "newText": " Student studentConverted = check jsondata:parseAsType(student),"
+        "newText": "import ballerina/data.xmldata;\n"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 55,
+            "character": 59
+          },
+          "end": {
+            "line": 55,
+            "character": 65
+          }
+        },
+        "newText": "let UserInfo userConverted = check xmldata:parseAsType(user) in xml ``"
       }
     ]
   }

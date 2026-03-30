@@ -834,16 +834,22 @@ public class DataMapManager {
             return null;
         }
         ExpressionNode checkedExpr = ((CheckExpressionNode) expr).expression();
-        if (checkedExpr.kind() != SyntaxKind.METHOD_CALL) {
+        if (checkedExpr.kind() != SyntaxKind.FUNCTION_CALL) {
             return null;
         }
-        MethodCallExpressionNode methodCall = (MethodCallExpressionNode) checkedExpr;
-        NameReferenceNode methodName = methodCall.methodName();
-        if (methodName.toSourceCode().startsWith("ensureType")) {
-            ExpressionNode methodCallExpr = methodCall.expression();
-            Optional<TypeSymbol> typeSymbol = semanticModel.typeOf(methodCallExpr);
+        FunctionCallExpressionNode funcCall = (FunctionCallExpressionNode) checkedExpr;
+        NameReferenceNode funcName = funcCall.functionName();
+        if (funcName.toSourceCode().startsWith("jsondata:parseAsType") ||
+                funcName.toSourceCode().startsWith("xmldata:parseAsType")) {
+            SeparatedNodeList<FunctionArgumentNode> args = funcCall.arguments();
+            if (args.isEmpty()) {
+                return null;
+            }
+            ExpressionNode argExpr = ((PositionalArgumentNode) args.get(0)).expression();
+            Optional<TypeSymbol> typeSymbol = semanticModel.typeOf(argExpr);
             if (typeSymbol.isPresent()) {
-                return new ConvertedVariable(letVarDeclaration, typeSymbol.get(), methodCallExpr.toSourceCode().trim());
+                return new ConvertedVariable(letVarDeclaration, typeSymbol.get(),
+                        argExpr.toSourceCode().trim());
             }
         }
         return null;
@@ -856,16 +862,25 @@ public class DataMapManager {
             return null;
         }
         String varName = ((CaptureBindingPatternNode) bindingPattern).variableName().text();
-        String jsonConversion = "jsondata:toJson(" + varName + ")";
-        String xmlConversion = "xmldata:toXml(" + varName + ")";
 
-        String letExprSource = letExpr.toSourceCode().trim();
-        if (varName.equals(letExprSource) ||
-                jsonConversion.equals(letExprSource) || xmlConversion.equals(letExprSource)) {
+        String exprSource;
+        if (letExpr.kind() == SyntaxKind.CHECK_EXPRESSION) {
+            exprSource = ((CheckExpressionNode) letExpr).expression().toSourceCode().trim();
+        } else {
+            exprSource = letExpr.toSourceCode().trim();
+        }
+        if (isConvertedOutput(varName, exprSource)) {
             return new ConvertedVariable(letVarDeclaration, parentType, varName);
         }
 
         return null;
+    }
+
+    boolean isConvertedOutput(String varName, String letExpr) {
+        String jsonConversion = "jsondata:toJson(" + varName + ")";
+        String xmlConversion = "xmldata:toXml(" + varName + ")";
+
+        return varName.equals(letExpr) || letExpr.equals(jsonConversion) || letExpr.equals(xmlConversion);
     }
 
     private String getLastNonNumericName(String[] names) {
@@ -1957,16 +1972,20 @@ public class DataMapManager {
 
     private ExpressionNode findConvertedVariable(LetExpressionNode letExpr) {
         ExpressionNode expr = letExpr.expression();
-        String exprSource = expr.toSourceCode().trim();
+        String exprSource;
+        if (expr.kind() == SyntaxKind.CHECK_EXPRESSION) {
+            exprSource = ((CheckExpressionNode) expr).expression().toSourceCode().trim();
+        } else {
+            exprSource = expr.toSourceCode().trim();
+        }
+
         for (LetVariableDeclarationNode letVar : letExpr.letVarDeclarations()) {
             BindingPatternNode bindingPattern = letVar.typedBindingPattern().bindingPattern();
             if (bindingPattern.kind() != SyntaxKind.CAPTURE_BINDING_PATTERN) {
                 continue;
             }
             String varName = ((CaptureBindingPatternNode) bindingPattern).variableName().text();
-            String jsonConversion = "jsondata:toJson(" + varName + ")";
-            String xmlConversion = "xmldata:toXml(" + varName + ")";
-            if (varName.equals(exprSource) || jsonConversion.equals(exprSource) || xmlConversion.equals(exprSource)) {
+            if (isConvertedOutput(varName, exprSource)) {
                 ExpressionNode letVarExpr = letVar.expression();
                 if (letVarExpr.kind() == SyntaxKind.LET_EXPRESSION) {
                     return ((LetExpressionNode) letVarExpr).expression();
@@ -2004,16 +2023,17 @@ public class DataMapManager {
                     return expr;
                 }
                 ExpressionNode letExpr = letExprNode.expression();
-
+                String exprSource;
+                if (letExpr.kind() == SyntaxKind.CHECK_EXPRESSION) {
+                    exprSource = ((CheckExpressionNode) letExpr).expression().toSourceCode().trim();
+                } else {
+                    exprSource = letExpr.toSourceCode().trim();
+                }
                 for (LetVariableDeclarationNode letVarDeclaration : letExprNode.letVarDeclarations()) {
                     BindingPatternNode bindingPatternNode = letVarDeclaration.typedBindingPattern().bindingPattern();
                     if (bindingPatternNode.kind() == SyntaxKind.CAPTURE_BINDING_PATTERN) {
                         String varName = ((CaptureBindingPatternNode) bindingPatternNode).variableName().text();
-                        String letExprSource = letExpr.toSourceCode().trim();
-                        String jsonConversion = "jsondata:toJson(" + varName + ")";
-                        String xmlConversion = "xmldata:toXml(" + varName + ")";
-                        if (varName.equals(letExprSource) ||
-                                jsonConversion.equals(letExprSource) || xmlConversion.equals(letExprSource)) {
+                        if (isConvertedOutput(varName, exprSource)) {
                             return letVarDeclaration.expression();
                         }
                     }
@@ -2675,7 +2695,7 @@ public class DataMapManager {
         if (kind == TypeDescKind.TUPLE) {
             return new DataMapCapability(true, "[]");
         } else if (isEffectiveRecordType(kind, rawTypeSymbol)) {
-            if (isArray) {
+            if (isArray || kind == TypeDescKind.ARRAY) {
                 return new DataMapCapability(true, "[]");
             }
             return new DataMapCapability(true, "{}");
@@ -2711,10 +2731,13 @@ public class DataMapManager {
         }
     }
 
-    private boolean isEffectiveRecordType(TypeDescKind kind, TypeSymbol rawTypeSymbol) {
+    private boolean isEffectiveRecordType(TypeDescKind kind, TypeSymbol typeSymbol) {
         if (kind == TypeDescKind.ARRAY) {
-            TypeDescKind memberKind = ((ArrayTypeSymbol) rawTypeSymbol).memberTypeDescriptor().typeKind();
-            return isEffectiveRecordType(memberKind, ((ArrayTypeSymbol) rawTypeSymbol).memberTypeDescriptor());
+            TypeSymbol rawTypeSymbol = CommonUtils.getRawType(((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor());
+            return isEffectiveRecordType(rawTypeSymbol.typeKind(), rawTypeSymbol);
+        } else if (kind == TypeDescKind.TYPE_REFERENCE) {
+            TypeSymbol rawTypeSymbol = CommonUtils.getRawType(typeSymbol);
+            return isEffectiveRecordType(rawTypeSymbol.typeKind(), rawTypeSymbol);
         }
         return kind == TypeDescKind.RECORD;
     }
@@ -4104,9 +4127,10 @@ public class DataMapManager {
                     LinePosition linePosition =
                             letVarDeclarationNodes.get(letVarDeclarationNodes.size() - 1).lineRange().endLine();
                     textEdits.add(new TextEdit(CommonUtils.toRange(linePosition), statement));
+                    boolean hasErrorReturn = addErrorReturn(functionDefinitionNode, semanticModel, textEdits);
                     textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()),
                             addTypeConversion(parentTypeName, textEdits, variableName,
-                                    document.syntaxTree().rootNode())));
+                                    document.syntaxTree().rootNode(), hasErrorReturn)));
                 } else {
                     LetVariableDeclarationNode letVar = getMatchingLetVar(letExpr.letVarDeclarations(), variableName);
                     textEdits.add(new TextEdit(
@@ -4114,8 +4138,10 @@ public class DataMapManager {
                 }
             } else {
                 if (codedata.isNew() != null && codedata.isNew()) {
-                    String statement = String.format(" %s %sConverted = check %s.ensureType(),", typeName, variableName,
-                            variableName);
+                    String conversionExpr = getInputConversionExpr(parentTypeName, variableName,
+                            textEdits, document.syntaxTree().rootNode());
+                    String statement = String.format(" %s %sConverted = %s,", typeName, variableName,
+                            conversionExpr);
                     textEdits.add(
                             new TextEdit(CommonUtils.toRange(letExpr.letKeyword().lineRange().endLine()), statement));
                     addErrorReturn(functionDefinitionNode, semanticModel, textEdits);
@@ -4127,14 +4153,17 @@ public class DataMapManager {
             }
         } else {
             String statement;
+            boolean hasErrorReturn = addErrorReturn(functionDefinitionNode, semanticModel, textEdits);
             if (!isInput) {
                 statement = String.format("let %s %s = %s in %s", typeName, variableName,
                         expression.kind() == SyntaxKind.MAPPING_CONSTRUCTOR ? expression.toSourceCode().trim() : "{}",
-                        addTypeConversion(parentTypeName, textEdits, variableName, document.syntaxTree().rootNode()));
+                        addTypeConversion(parentTypeName, textEdits, variableName, document.syntaxTree().rootNode(),
+                                hasErrorReturn));
             } else {
-                statement = String.format("let %s %sConverted = check %s.ensureType() in %s", typeName, variableName,
-                        variableName, expression.toSourceCode().trim());
-                addErrorReturn(functionDefinitionNode, semanticModel, textEdits);
+                String conversionExpr = getInputConversionExpr(parentTypeName, variableName,
+                        textEdits, document.syntaxTree().rootNode());
+                statement = String.format("let %s %sConverted = %s in %s", typeName, variableName,
+                        conversionExpr, expression.toSourceCode().trim());
             }
             textEdits.add(new TextEdit(CommonUtils.toRange(expression.lineRange()), statement));
         }
@@ -4160,11 +4189,11 @@ public class DataMapManager {
         throw new IllegalStateException("Could not find the variable declaration for the variable: " + name);
     }
 
-    private void addErrorReturn(FunctionDefinitionNode funcDefNode, SemanticModel semanticModel,
+    private boolean addErrorReturn(FunctionDefinitionNode funcDefNode, SemanticModel semanticModel,
                                 List<TextEdit> textEdits) {
         Optional<Symbol> optFuncSymbol = semanticModel.symbol(funcDefNode);
         if (optFuncSymbol.isEmpty()) {
-            return;
+            return false;
         }
         FunctionTypeSymbol functionTypeSymbol = ((FunctionSymbol) optFuncSymbol.get()).typeDescriptor();
         Optional<TypeSymbol> optReturnTypeSymbol = functionTypeSymbol.returnTypeDescriptor();
@@ -4180,30 +4209,51 @@ public class DataMapManager {
                     textEdits.add(
                             new TextEdit(CommonUtils.toRange(returnTypeNode.get().lineRange().endLine()), "|error"));
                 }
+                return false;
             }
+            return true;
         } else {
             textEdits.add(new TextEdit(
                     CommonUtils.toRange(funcDefNode.functionSignature().lineRange().endLine()), " returns error?"));
+            return false;
         }
     }
 
     private String addTypeConversion(String parentTypeName, List<TextEdit> textEdits, String variableName,
-                                     ModulePartNode rootNode) {
+                                     ModulePartNode rootNode, boolean hasErrorReturn) {
         if (parentTypeName.equals("json")) {
             if (!CommonUtils.importExists(rootNode, "ballerina", "data.jsondata")) {
                 textEdits.add(new TextEdit(CommonUtils.toRange(rootNode.lineRange().startLine()),
                         "import ballerina/data.jsondata;\n"));
             }
-            return "jsondata:toJson(" + variableName + ")";
+            return (hasErrorReturn ? "" : "check ") + "jsondata:toJson(" + variableName + ")";
         } else if (parentTypeName.equals("xml")) {
             if (!CommonUtils.importExists(rootNode, "ballerina", "data.xmldata")) {
                 textEdits.add(new TextEdit(CommonUtils.toRange(rootNode.lineRange().startLine()),
                         "import ballerina/data.xmldata;\n"));
             }
-            return "xmldata:toXml(" + variableName + ")";
+            return (hasErrorReturn ? "" : "check ") + "xmldata:toXml(" + variableName + ")";
         }
 
         return variableName;
+    }
+
+    private String getInputConversionExpr(String parentTypeName, String variableName, List<TextEdit> textEdits,
+                                          ModulePartNode rootNode) {
+        if ("json".equals(parentTypeName)) {
+            if (!CommonUtils.importExists(rootNode, "ballerina", "data.jsondata")) {
+                textEdits.add(new TextEdit(CommonUtils.toRange(rootNode.lineRange().startLine()),
+                        "import ballerina/data.jsondata;\n"));
+            }
+            return "check jsondata:parseAsType(" + variableName + ")";
+        } else if ("xml".equals(parentTypeName)) {
+            if (!CommonUtils.importExists(rootNode, "ballerina", "data.xmldata")) {
+                textEdits.add(new TextEdit(CommonUtils.toRange(rootNode.lineRange().startLine()),
+                        "import ballerina/data.xmldata;\n"));
+            }
+            return "check xmldata:parseAsType(" + variableName + ")";
+        }
+        return "check " + variableName + ".ensureType()";
     }
 
     private void addImports(List<TextEdit> textEdits, ModulePartNode rootNode, Map<String, String> imports) {
