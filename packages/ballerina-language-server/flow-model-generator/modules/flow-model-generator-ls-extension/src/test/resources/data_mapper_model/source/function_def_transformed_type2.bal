@@ -30,7 +30,7 @@ function transformJsonXml1(CustomerDetails customerDetailsConverted) returns Cre
         in {CreateOrder: from var ordersItem in customerDetailsConverted.orders select {OrderId: "", CustomerName: ""}};
 
 function transformJsonXml2(json customerDetails, json customerDetails1) returns xml|error =>
-    let CustomerDetails customerDetailsConverted = check customerDetails.ensureType(), CreateOrders transformJsonXml2 = {} in
+    let CustomerDetails customerDetailsConverted = check jsondata:parseAsType(customerDetails), CreateOrders transformJsonXml2 = {} in
         xmldata:toXml(transformJsonXml2);
 
 function transformJsonXml3(CustomerDetails customerDetails) returns xml|error =>
