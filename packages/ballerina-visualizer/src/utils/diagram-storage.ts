@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -16,11 +16,9 @@
  * under the License.
  */
 
-import { ICPEnabledResponse, ICPEnabledRequest } from "../../interfaces/extended-lang-client";
-
-export interface ICPServiceAPI {
-    addICP: (params: ICPEnabledRequest) => Promise<ICPEnabledResponse>;
-    isIcpEnabled: (params: ICPEnabledRequest) => Promise<ICPEnabledResponse>;
-    disableICP: (params: ICPEnabledRequest) => Promise<ICPEnabledResponse>;
-    viewInICP: (params: ICPEnabledRequest) => Promise<ICPEnabledResponse>;
-}
+export const clearDiagramZoomAndPosition = () => {
+    localStorage.removeItem("diagram-file-path");
+    localStorage.removeItem("diagram-zoom-level");
+    localStorage.removeItem("diagram-offset-x");
+    localStorage.removeItem("diagram-offset-y");
+};

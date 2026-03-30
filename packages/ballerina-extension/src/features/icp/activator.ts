@@ -22,10 +22,22 @@ import { resolveICPPath } from './detect';
 
 const ICP_START_COMMAND = 'ballerina.icp.start';
 const ICP_STOP_COMMAND = 'ballerina.icp.stop';
-const ICP_TERMINAL_NAME = 'ICP Server';
-const ICP_SERVER_URL = 'https://localhost:9445';
+const ICP_TASK_NAME = 'ICP Server';
+const ICP_TASK_SOURCE = 'ballerina-icp';
 
-let icpTerminal: vscode.Terminal | undefined;
+function getICPUrl(): string {
+    return vscode.workspace.getConfiguration('ballerina').get<string>('icpUrl') || 'https://localhost:9445';
+}
+
+function getICPCredentials(): { username: string; password: string } {
+    const config = vscode.workspace.getConfiguration('ballerina');
+    return {
+        username: config.get<string>('icpUsername') || 'admin',
+        password: config.get<string>('icpPassword') || 'admin',
+    };
+}
+
+let icpTaskExecution: vscode.TaskExecution | undefined;
 let isRunning = false;
 let statusBarItem: vscode.StatusBarItem;
 
@@ -54,12 +66,17 @@ export async function ensureICPServerRunning(): Promise<boolean> {
     if (action === 'Start ICP Server') {
         await vscode.commands.executeCommand(ICP_START_COMMAND);
         if (isRunning) {
+            const icpUrl = getICPUrl();
+            const { username, password } = getICPCredentials();
+            const credentialsHint = (username === 'admin' && password === 'admin')
+                ? ' (default credentials: admin/admin)'
+                : '';
             vscode.window.showInformationMessage(
-                `ICP server started. Access it at ${ICP_SERVER_URL} (default credentials: admin/admin)`,
+                `ICP server started. Access it at ${icpUrl}${credentialsHint}`,
                 'Open in Browser'
             ).then((selection) => {
                 if (selection === 'Open in Browser') {
-                    vscode.env.openExternal(vscode.Uri.parse(ICP_SERVER_URL));
+                    vscode.env.openExternal(vscode.Uri.parse(icpUrl));
                 }
             });
         }
@@ -87,6 +104,35 @@ function setICPState(running: boolean): void {
     updateStatusBar();
 }
 
+function createICPTask(icpPath: string): vscode.Task {
+    const taskDefinition: vscode.TaskDefinition = {
+        type: 'shell',
+        task: 'start-icp-server',
+    };
+
+    const shellExecution = new vscode.ShellExecution(
+        { value: icpPath, quoting: vscode.ShellQuoting.Strong },
+        []
+    );
+
+    const task = new vscode.Task(
+        taskDefinition,
+        vscode.TaskScope.Workspace,
+        ICP_TASK_NAME,
+        ICP_TASK_SOURCE,
+        shellExecution
+    );
+
+    task.isBackground = true;
+    task.presentationOptions = {
+        reveal: vscode.TaskRevealKind.Always,
+        panel: vscode.TaskPanelKind.Dedicated,
+        clear: true,
+    };
+
+    return task;
+}
+
 export function activateICP(ballerinaExtInstance: BallerinaExtension) {
     statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 99);
     setICPState(false);
@@ -103,26 +149,25 @@ export function activateICP(ballerinaExtInstance: BallerinaExtension) {
             return;
         }
 
-        icpTerminal = vscode.window.createTerminal({ name: ICP_TERMINAL_NAME });
-        icpTerminal.show(true);
-        icpTerminal.sendText(icpPath, true);
+        const task = createICPTask(icpPath);
+        icpTaskExecution = await vscode.tasks.executeTask(task);
         setICPState(true);
     });
 
     const stopCommand = vscode.commands.registerCommand(ICP_STOP_COMMAND, () => {
-        if (!isRunning || !icpTerminal) {
+        if (!isRunning || !icpTaskExecution) {
             vscode.window.showWarningMessage('ICP server is not running.');
             return;
         }
 
-        icpTerminal.dispose();
-        icpTerminal = undefined;
+        icpTaskExecution.terminate();
+        icpTaskExecution = undefined;
         setICPState(false);
     });
 
-    const terminalCloseListener = vscode.window.onDidCloseTerminal((closedTerminal) => {
-        if (closedTerminal === icpTerminal) {
-            icpTerminal = undefined;
+    const taskEndListener = vscode.tasks.onDidEndTask((e) => {
+        if (e.execution === icpTaskExecution) {
+            icpTaskExecution = undefined;
             setICPState(false);
         }
     });
@@ -131,6 +176,6 @@ export function activateICP(ballerinaExtInstance: BallerinaExtension) {
         statusBarItem,
         startCommand,
         stopCommand,
-        terminalCloseListener
+        taskEndListener
     );
 }

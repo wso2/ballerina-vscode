@@ -350,7 +350,7 @@ const AIChat: React.FC = () => {
             // no longer reflect the restored file state so they should be removed.
             setMessages(prev => {
                 const idx = prev.findIndex(m => m.checkpointId === checkpointId);
-                return idx === -1 ? prev : prev.slice(0, idx + 1);
+                return idx === -1 ? prev : prev.slice(0, idx);
             });
 
             // Update available checkpoint IDs after restore (checkpoints are trimmed during restore)
@@ -1628,7 +1628,7 @@ const AIChat: React.FC = () => {
                                                         <AgentStreamView
                                                             stream={stream}
                                                             isLoading={isLoading && isLatestAssistantMessage}
-                                                            rpcClient={isLatestAssistantMessage ? rpcClient : undefined}
+                                                            rpcClient={rpcClient}
                                                         />
                                                         {reviewItem && (
                                                             <ReviewBar
