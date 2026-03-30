@@ -17,7 +17,7 @@
  */
 
 import { AICommandExecutor, AICommandConfig, AIExecutionResult } from '../executors/base/AICommandExecutor';
-import { Command, GenerateAgentCodeRequest, ProjectSource, ExecutionContext, SemanticDiff, ReviewModeData, PROJECT_KIND } from '@wso2/ballerina-core';
+import { Command, GenerateAgentCodeRequest, ProjectSource, ExecutionContext, SemanticDiff, ReviewModeData, PROJECT_KIND, LoginMethod } from '@wso2/ballerina-core';
 import { StateMachine } from '../../../stateMachine';
 import { ModelMessage, stepCountIs, streamText, TextStreamPart } from 'ai';
 import { getAnthropicClient, getProviderCacheControl, ANTHROPIC_SONNET_4 } from '../utils/ai-client';
@@ -35,9 +35,14 @@ import { updateAndSaveChat } from '../utils/events';
 import { chatStateStorage } from '../../../views/ai-panel/chatStateStorage';
 import * as path from 'path';
 import { approvalViewManager } from '../state/ApprovalViewManager';
-import { compactionManager } from '../compaction-manager';
-import { CompactionGuard } from './compaction/CompactionGuard';
-import { contextExhausted } from './compaction/contextExhausted';
+import {
+    buildContextManagementOptions,
+    detectAppliedCompaction,
+    estimateFloorTokens,
+    extractCompactionSummary,
+    stripAnalysisFromCompactionBlocks,
+} from '@wso2/copilot-utilities/context-management';
+import { getLoginMethod } from '../../../utils/ai/auth';
 import {
     sendTelemetryEvent,
     sendTelemetryException,
@@ -205,25 +210,26 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 workingDirectory: workspaceId,
             };
 
-            // Resolve model ONCE — reused for both agent streaming and compaction (M02)
+            // Resolve model and login method
+            const loginMethod = await getLoginMethod();
             const model = await getAnthropicClient(ANTHROPIC_SONNET_4);
-
-            // Bind the authenticated model to the compaction manager
-            compactionManager.bindModel(model);
 
             const userMessageContent = getUserPrompt(params, tempProjectPath, projects);
 
-            // PRE-TURN compaction: compact if context is already above threshold
-            // failures are handled gracefully inside checkAndCompact (returns without throwing)
-            // abortSignal ensures the summarization LLM call is also cancelled on user abort
-            await compactionManager.checkAndCompact(
-                workspaceId,
-                threadId,
-                projectState,
-                this.config.abortController.signal,
-                this.config.eventHandler,
-                [ { role: "user", content: userMessageContent } ]
-            );
+            // Estimate fixed overhead (system prompt + codebase) to decide if compaction is viable
+            const systemPromptText = getSystemPrompt(projects, params.operationType);
+            const floorTokens = estimateFloorTokens(systemPromptText, JSON.stringify(userMessageContent));
+
+            // Only ANTHROPIC_KEY supports contextManagement for now (BI_INTEL pending backend verification)
+            const supportsContextMgmt = loginMethod === LoginMethod.ANTHROPIC_KEY;
+            const contextMgmtOptions = supportsContextMgmt
+                ? buildContextManagementOptions({ estimatedFloorTokens: floorTokens })
+                : null;
+
+            if (supportsContextMgmt && contextMgmtOptions === null) {
+                // Floor exceeds trigger — compaction disabled, warn user once
+                this.config.eventHandler({ type: 'compaction_disabled' });
+            }
 
             // 3. Add generation to chat storage (if enabled)
             this.addGeneration(params.usecase, {
@@ -273,31 +279,13 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             let accToolCallChars = 0;
             let accToolResultChars = 0;
 
-            // === MID-STREAM COMPACTION GUARD ===
-            // Watches actual inputTokens between steps and compacts when threshold is reached.
-            // Uses 80% of the context window as the mid-stream trigger point.
-            const compactionGuard = new CompactionGuard({
-                engine: compactionManager.getEngine(),
-                tokenThreshold: Math.floor(200_000 * 0.80),  // 160K tokens = 80% of context window
-                maxCompactionAttempts: 3,
-                preserveRecentMessageCount: 6,  // Keep last 3 tool-call + tool-result pairs
-                eventHandler: this.config.eventHandler,
-                originalUserMessage: Array.isArray(userMessageContent) 
-                    ? userMessageContent.map((c: any) => c.text || '').join('\n') 
-                    : String(userMessageContent),
-                projectState,
-                abortSignal: this.config.abortController.signal,
-                persistCallback: (compactedMessages, metadata) =>
-                    compactionManager.persistMidStreamCompaction(
-                        workspaceId,
-                        threadId,
-                        this.config.generationId,
-                        compactedMessages,
-                        metadata
-                    ),
-            });
+            // === SERVER-SIDE COMPACTION STATE ===
+            // Detected mid-stream via providerMetadata on text-start events.
+            let isCompactionBlock = false;
+            let compactionContent = '';
+            let cleanedCompactionSummary: string | null = null;
 
-            // Stream LLM response with mid-stream compaction and dual stop conditions
+            // Stream LLM response with server-side context management
             const { fullStream, response, usage } = streamText({
                 model,
                 maxOutputTokens: 8192,
@@ -305,10 +293,15 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 messages: allMessages,
                 tools,
                 abortSignal: this.config.abortController.signal,
+                providerOptions: (contextMgmtOptions ?? undefined) as any,
 
-                // MID-STREAM COMPACTION: check and compact between steps if needed
-                prepareStep: async ({ steps, stepNumber, messages }) => {
-                    return compactionGuard.maybeCompact({ steps, stepNumber, messages });
+                // Strip <analysis> blocks from compaction entries before each subsequent step
+                // to avoid re-sending thousands of reasoning tokens
+                prepareStep: async ({ messages: stepMessages }) => {
+                    if (cleanedCompactionSummary) {
+                        stripAnalysisFromCompactionBlocks(stepMessages);
+                    }
+                    return { messages: stepMessages };
                 },
 
                 // Emit per-step token usage for context usage widget + observability
@@ -322,6 +315,13 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                         `${step.usage?.inputTokens ?? 0} input tokens, ` +
                         `finishReason: ${step.finishReason}`
                     );
+
+                    // Detect tool-use clearing (no mid-stream signal for this edit type)
+                    const appliedCompaction = detectAppliedCompaction(step.providerMetadata);
+                    if (appliedCompaction?.clearedToolUses) {
+                        console.log(`[AgentExecutor] Server cleared ${appliedCompaction.clearedToolUses} tool uses`);
+                    }
+
                     if (step.usage) {
                         const inputTokens = step.usage.inputTokens || 0;
                         this.config.eventHandler({
@@ -337,8 +337,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                     }
                 },
 
-                // DUAL STOP CONDITIONS: step limit OR context exhaustion
-                stopWhen: [stepCountIs(50), contextExhausted(compactionGuard)],
+                stopWhen: [stepCountIs(50)],
             });
 
             // Send start event to frontend
@@ -363,12 +362,54 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             // Process stream events - NATIVE V6 PATTERN
             try {
                 for await (const part of fullStream) {
+                    // Handle compaction block detection inline (text-start/text-delta)
+                    if (part.type === 'text-start') {
+                        const isCompaction = (part as any).providerMetadata?.anthropic?.type === 'compaction';
+                        if (isCompaction) {
+                            isCompactionBlock = true;
+                            compactionContent = '';
+                            this.config.eventHandler({ type: 'compaction_start' });
+                        } else {
+                            if (isCompactionBlock) {
+                                // Compaction block just ended — flush it
+                                isCompactionBlock = false;
+                                const summary = extractCompactionSummary(compactionContent);
+                                cleanedCompactionSummary = summary || compactionContent;
+                                this.config.eventHandler({ type: 'compaction_end', summary: summary ?? undefined });
+                                // Reset context widget to near-zero after compaction
+                                this.config.eventHandler({
+                                    type: 'usage_metrics',
+                                    usage: { inputTokens: 0, cacheCreationInputTokens: 0, cacheReadInputTokens: 0, outputTokens: 0 },
+                                });
+                            }
+                            // Normal text-start: emit paragraph break
+                            this.config.eventHandler({ type: 'content_block', content: ' \n' });
+                        }
+                        continue;
+                    }
+
+                    if (part.type === 'text-delta') {
+                        if (isCompactionBlock) {
+                            compactionContent += part.text;
+                        } else {
+                            this.config.eventHandler({ type: 'content_block', content: part.text });
+                        }
+                        continue;
+                    }
+
                     await this.handleStreamPart(part, streamContext);
                 }
 
-                // Check if context was exhausted mid-stream and update context BEFORE handleStreamFinish logic
-                if (compactionGuard.lastCompactionFailed) {
-                    streamContext.compactionFailedMidStream = true;
+                // Flush compaction block if still open at stream end (e.g. compaction was last block)
+                if (isCompactionBlock) {
+                    isCompactionBlock = false;
+                    const summary = extractCompactionSummary(compactionContent);
+                    cleanedCompactionSummary = summary || compactionContent;
+                    this.config.eventHandler({ type: 'compaction_end', summary: summary ?? undefined });
+                    this.config.eventHandler({
+                        type: 'usage_metrics',
+                        usage: { inputTokens: 0, cacheCreationInputTokens: 0, cacheReadInputTokens: 0, outputTokens: 0 },
+                    });
                 }
 
                 // Check if abort was called after stream completed
@@ -440,21 +481,6 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                 throw error;
             }
 
-            // Update token estimation context with actual total usage
-            try {
-                const totalUsage = await usage;
-                if (totalUsage) {
-                    const toolDefinitionsChars = JSON.stringify(tools).length;
-                    compactionManager.updateTokenContext(
-                        totalUsage.inputTokens ?? 0,
-                        Math.ceil(getSystemPrompt(projects, params.operationType).length / 4),
-                        Math.ceil(toolDefinitionsChars / 4) // Dynamic estimate for tool definitions
-                    );
-                }
-            } catch (usageError) {
-                console.warn('[AgentExecutor] Could not retrieve usage for token context update:', usageError);
-            }
-
             return {
                 tempProjectPath,
                 modifiedFiles,
@@ -490,20 +516,6 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         context: StreamContext
     ): Promise<void> {
         switch (part.type) {
-            case "text-delta":
-                context.eventHandler({
-                    type: "content_block",
-                    content: part.text
-                });
-                break;
-
-            case "text-start":
-                context.eventHandler({
-                    type: "content_block",
-                    content: " \n"
-                });
-                break;
-
             case "error":
                 const error = part.error instanceof Error ? part.error : new Error(String(part.error));
                 await this.handleStreamError(error, context);
@@ -596,18 +608,6 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         const finalResponse = await context.response;
         const assistantMessages = finalResponse.messages || [];
         const tempProjectPath = context.ctx.tempProjectPath!;
-
-        // Check if mid-stream compaction forcefully stopped the model
-        if (context.compactionFailedMidStream) {
-            assistantMessages.push({
-                role: 'assistant',
-                content: `\n\n> **Notice:** The context window limit was reached mid-task, and the generation was paused cleanly. Please review the current state and issue a new prompt to continue where I left off.`
-            });
-            context.eventHandler({
-                type: 'content_block',
-                content: `\n\n> **Notice:** The context window limit was reached mid-task, and the generation was paused cleanly. Please review the current state and issue a new prompt to continue where I left off.`
-            });
-        }
 
         // Run final diagnostics
         const finalDiagnostics = await checkCompilationErrors(tempProjectPath);

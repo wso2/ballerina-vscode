@@ -24,7 +24,7 @@ import { LLM_API_BASE_PATH } from "../constants";
 import { AIMachineEventType, AnthropicKeySecrets, LoginMethod, BIIntelSecrets } from "@wso2/ballerina-core";
 
 export const ANTHROPIC_HAIKU = "claude-haiku-4-5-20251001";
-export const ANTHROPIC_SONNET_4 = "claude-sonnet-4-5-20250929";
+export const ANTHROPIC_SONNET_4 = "claude-sonnet-4-6";
 
 type AnthropicModel =
     | typeof ANTHROPIC_HAIKU
@@ -189,7 +189,7 @@ export const getAnthropicClient = async (model: AnthropicModel): Promise<any> =>
             // Map Anthropic model names to AWS Bedrock model IDs (base models without region prefix)
             const baseModelMap: Record<AnthropicModel, string> = {
                 [ANTHROPIC_HAIKU]: "anthropic.claude-haiku-4-5-20251001-v1:0",
-                [ANTHROPIC_SONNET_4]: "anthropic.claude-sonnet-4-5-20250929-v1:0",
+                [ANTHROPIC_SONNET_4]: "anthropic.claude-sonnet-4-6-20261231-v1:0",
             };
             
             const baseModelId = baseModelMap[model];
@@ -221,7 +221,7 @@ export const getAnthropicClient = async (model: AnthropicModel): Promise<any> =>
 
             const vertexModelMap: Record<AnthropicModel, string> = {
                 [ANTHROPIC_HAIKU]: "claude-3-5-haiku@20241022",
-                [ANTHROPIC_SONNET_4]: "claude-sonnet-4-5@20250929",
+                [ANTHROPIC_SONNET_4]: "claude-sonnet-4-6@20261231",
             };
 
             const vertexModelId = vertexModelMap[model];
