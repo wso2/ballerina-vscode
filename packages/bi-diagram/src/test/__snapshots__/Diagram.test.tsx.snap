@@ -14,6 +14,30 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
 .css-69 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 280px; min-height: 50px; padding: 0 8px; background-color: var(--vscode-menu-background); color: var(--vscode-foreground); opacity: 1; border: 1.8px; border-style: solid; border-color: var(--vscode-dropdown-border); border-radius: 10px; cursor: pointer;}
 .css-34 svg {fill: var(--vscode-foreground);}
 .css-34 {padding: 4px;}
+.css-45 a {color: var(--vscode-contrastBorder, var(--vscode-button-background)); -webkit-text-decoration: none; text-decoration: none;}
+.css-45 a:hover {-webkit-text-decoration: underline; text-decoration: underline;}
+.css-45 blockquote {margin: 0.3em 0; padding-left: 8px; border-left: 2px solid var(--vscode-dropdown-border);}
+.css-45 blockquote:first-child {margin-top: 0;}
+.css-45 blockquote:last-child {margin-bottom: 0;}
+.css-45 code {background-color: rgba(127, 127, 127, 0.1); padding: 1px 3px; border-radius: 2px; font-size: 11px;}
+.css-45 em {font-style: italic;}
+.css-45 h1,.css-45 h2,.css-45 h3,.css-45 h4,.css-45 h5,.css-45 h6 {font-size: 12px;}
+.css-45 h1,.css-45 h2,.css-45 h3,.css-45 h4,.css-45 h5,.css-45 h6 {margin: 0.4em 0 0.2em 0; padding: 0; font-weight: 600;}
+.css-45 h1:first-child,.css-45 h2:first-child,.css-45 h3:first-child,.css-45 h4:first-child,.css-45 h5:first-child,.css-45 h6:first-child {margin-top: 0;}
+.css-45 li {margin: 0 0 0.1em 0;}
+.css-45 li:last-child {margin-bottom: 0;}
+.css-45 p {display: inline; margin: 0;}
+.css-45 p {margin: 0 0 0.3em 0; padding: 0;}
+.css-45 p:last-child {margin-bottom: 0;}
+.css-45 pre code {background-color: transparent; padding: 0;}
+.css-45 pre {margin: 0.3em 0; padding: 4px; background-color: rgba(127, 127, 127, 0.1); border-radius: 2px; overflow-x: auto;}
+.css-45 pre:first-child {margin-top: 0;}
+.css-45 pre:last-child {margin-bottom: 0;}
+.css-45 strong {font-weight: 600;}
+.css-45 ul,.css-45 ol {margin: 0.3em 0; padding-left: 1.2em;}
+.css-45 ul:first-child,.css-45 ol:first-child {margin-top: 0;}
+.css-45 ul:last-child,.css-45 ol:last-child {margin-bottom: 0;}
+.css-45 {font-size: 12px; line-height: 1.4; width: 100%; color: var(--vscode-contrastBorder, var(--vscode-button-background)); font-family: "GilmerMedium"; font-weight: bold; padding: 0 4px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;}
 .css-19 {height: 24px; width: 24px; cursor: pointer; font-size: 24px; color: var(--vscode-terminal-ansiYellow);}
 .css-46 {-webkit-flex: 1; -ms-flex: 1; flex: 1; overflow: hidden; -webkit-align-items: flex-start; -webkit-box-align: flex-start; -ms-flex-align: flex-start; align-items: flex-start; margin-bottom: 6px; cursor: pointer; z-index: 2;}
 .css-55 {pointer-events: none; opacity: 0; -webkit-transition: opacity 0.4s ease-out; transition: opacity 0.4s ease-out; transform-origin: 80px 24px; -webkit-transform: scale(1.03); -moz-transform: scale(1.03); -ms-transform: scale(1.03); transform: scale(1.03); -webkit-animation: animation-16a2i8m 1.5s ease-in-out infinite alternate; animation: animation-16a2i8m 1.5s ease-in-out infinite alternate;}
@@ -83,30 +107,6 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
 .css-20 {margin-bottom: -2px;}
 .css-70 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: flex-start; -webkit-box-align: flex-start; -ms-flex-align: flex-start; align-items: flex-start; gap: 2px; -webkit-flex: 1; -ms-flex: 1; flex: 1; min-width: 0; padding: 8px;}
 .css-39 {font-size: 12px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; font-family: monospace; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; color: var(--vscode-foreground); opacity: 0.7; margin-top: -2px;}
-.css-45 a {color: var(--vscode-contrastBorder, var(--vscode-button-background)); -webkit-text-decoration: none; text-decoration: none;}
-.css-45 a:hover {-webkit-text-decoration: underline; text-decoration: underline;}
-.css-45 blockquote {margin: 0.3em 0; padding-left: 8px; border-left: 2px solid var(--vscode-dropdown-border);}
-.css-45 blockquote:first-child {margin-top: 0;}
-.css-45 blockquote:last-child {margin-bottom: 0;}
-.css-45 code {background-color: rgba(127, 127, 127, 0.1); padding: 1px 3px; border-radius: 2px; font-size: 11px;}
-.css-45 em {font-style: italic;}
-.css-45 h1,.css-45 h2,.css-45 h3,.css-45 h4,.css-45 h5,.css-45 h6 {font-size: 12px;}
-.css-45 h1,.css-45 h2,.css-45 h3,.css-45 h4,.css-45 h5,.css-45 h6 {margin: 0.4em 0 0.2em 0; padding: 0; font-weight: 600;}
-.css-45 h1:first-child,.css-45 h2:first-child,.css-45 h3:first-child,.css-45 h4:first-child,.css-45 h5:first-child,.css-45 h6:first-child {margin-top: 0;}
-.css-45 li {margin: 0 0 0.1em 0;}
-.css-45 li:last-child {margin-bottom: 0;}
-.css-45 p {display: inline; margin: 0;}
-.css-45 p {margin: 0 0 0.3em 0; padding: 0;}
-.css-45 p:last-child {margin-bottom: 0;}
-.css-45 pre code {background-color: transparent; padding: 0;}
-.css-45 pre {margin: 0.3em 0; padding: 4px; background-color: rgba(127, 127, 127, 0.1); border-radius: 2px; overflow-x: auto;}
-.css-45 pre:first-child {margin-top: 0;}
-.css-45 pre:last-child {margin-bottom: 0;}
-.css-45 strong {font-weight: 600;}
-.css-45 ul,.css-45 ol {margin: 0.3em 0; padding-left: 1.2em;}
-.css-45 ul:first-child,.css-45 ol:first-child {margin-top: 0;}
-.css-45 ul:last-child,.css-45 ol:last-child {margin-bottom: 0;}
-.css-45 {font-size: 12px; line-height: 1.4; width: 100%; color: var(--vscode-foreground); font-family: "GilmerMedium"; font-weight: bold; padding: 0 4px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; opacity: 0.5; font-style: italic;}
 .css-12 {position: absolute; -webkit-touch-callout: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; cursor: move; pointer-events: all;}
 .css-50 {pointer-events: none; opacity: 0; -webkit-transition: opacity 0.4s ease-out; transition: opacity 0.4s ease-out; transform-origin: 80px 24px; -webkit-transform: scale(1.03); -moz-transform: scale(1.03); -ms-transform: scale(1.03); transform: scale(1.03); -webkit-animation: animation-16a2i8m 1.5s ease-in-out infinite alternate; animation: animation-16a2i8m 1.5s ease-in-out infinite alternate;}
 .css-38 {font-size: 14px; height: 18px !important; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: "GilmerMedium";}
@@ -1237,7 +1237,9 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   <div
                     class="css-45"
                   >
-                    Define agent's role
+                    <p>
+                      ""
+                    </p>
                   </div>
                 </div>
                 <div

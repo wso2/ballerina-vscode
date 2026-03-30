@@ -55,3 +55,11 @@ You can configure the Ballerina VS Code extension to get a custom user experienc
 For troubleshooting, see the Ballerina output. To view the Ballerina output tab, click **View**, click **Output,** and select **Ballerina** from the output list. It provides additional information if the plugin fails to detect a Ballerina distribution.  
 
 You can also enable <a href="https://ballerina.io/learn/vs-code-extension/configure-the-extension/#advanced-configurations" target="_blank">debug logs</a> from the Ballerina extension settings to view any issues arising from the extension features.
+
+## BI end-to-end tests
+
+BI Playwright tests are located in `e2e-test/e2e-playwright-tests`.
+
+From this directory (`workspaces/ballerina/ballerina-extension`):
+- Run `pnpm run e2e-test:bi` to execute BI Playwright tests.
+- Run `pnpm run e2e-test:bi:download-prerelease` to run BI tests after downloading prerelease VSIXs.
