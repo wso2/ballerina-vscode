@@ -1558,11 +1558,11 @@ const AIChat: React.FC = () => {
                                 <Button
                                     appearance="icon"
                                     onClick={() => handleClearChat()}
-                                    tooltip="Clear Chat"
+                                    tooltip="New Chat"
                                     disabled={isLoading}
                                 >
-                                    <Icon name="PlaylistRemove" sx={{ fontSize: "18px", marginRight: 6 }} iconSx={{ position: "relative"}} />
-                                    Clear
+                                    <Icon name="NewChat" sx={{ fontSize: "16px", marginRight: 4 }} iconSx={{ position: "relative", top: "2px" }} />
+                                    New Chat
                                 </Button>
                             )}
                             <Button appearance="icon" onClick={() => handleSettings()} tooltip="Settings">
