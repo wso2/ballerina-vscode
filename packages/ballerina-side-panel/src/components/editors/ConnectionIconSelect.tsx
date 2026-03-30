@@ -50,7 +50,7 @@ export function getConnectionIcon(codedata: CodeData): React.ReactElement {
             return <Icon name="bi-data-table" sx={{ width: ICON_SIZE, height: ICON_SIZE, fontSize: ICON_SIZE }} />;
         case "CHUNKER":
             return <Icon name="bi-cut" sx={{ width: ICON_SIZE, height: ICON_SIZE, fontSize: ICON_SIZE }} />;
-        case "MEMORY_STORE":
+        case "SHORT_TERM_MEMORY_STORE":
             return <Icon name="bi-memory" sx={{ width: ICON_SIZE, height: ICON_SIZE, fontSize: ICON_SIZE }} />;
         default:
             return <DefaultLlmIcon size={ICON_SIZE} />;
