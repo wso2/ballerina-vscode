@@ -18,19 +18,23 @@
 
 package io.ballerina.persist.extension;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
+import io.ballerina.servicemodelgenerator.extension.model.Value;
 import org.ballerinalang.langserver.util.TestUtil;
 import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -40,12 +44,6 @@ import java.util.concurrent.CompletableFuture;
  */
 public class DatabaseIntrospectionTest extends AbstractLSTest {
 
-    @BeforeClass
-    public void setup() {
-        // Verify Docker containers are running
-        log.info("Starting database introspection tests...");
-    }
-
     @Override
     @Test(dataProvider = "data-provider")
     public void test(Path config) throws IOException {
@@ -54,90 +52,111 @@ public class DatabaseIntrospectionTest extends AbstractLSTest {
         TestConfig testConfig = gson.fromJson(bufferedReader, TestConfig.class);
         bufferedReader.close();
 
-        DatabaseIntrospectionRequest request = new DatabaseIntrospectionRequest(
-                sourceDir.resolve(testConfig.testProjectFolder()).toAbsolutePath().toString(),
-                testConfig.name(),
-                testConfig.dbSystem(),
-                testConfig.host(),
-                testConfig.port(),
-                testConfig.user(),
-                testConfig.password(),
-                testConfig.database()
-        );
+        PersistClientGeneratorRequest request = new PersistClientGeneratorRequest();
+        request.setProjectPath(
+                sourceDir.resolve(testConfig.testProjectFolder()).toAbsolutePath().toString());
+        request.setTargetModule(testConfig.targetModule());
+        request.setModelFilePath(testConfig.modelFilePath());
+        request.setConnection(testConfig.connection());
+        request.setProperties(testConfig.properties());
+        request.setTables(testConfig.tables());
 
         // Handle negative test cases
         if (testConfig.expectError()) {
             try {
-                JsonObject response = getResponseForNegativeTest(request);
-                Assert.fail("Expected error but got successful response for test: " + testConfig.description());
+                getResponseForNegativeTest(request);
+                Assert.fail("Expected error but got successful response for test: "
+                        + testConfig.description());
             } catch (AssertionError e) {
-                // Expected error - verify error message contains expected text
                 String errorMessage = e.getMessage();
-                if (testConfig.expectedErrorMessage() != null && 
-                    !errorMessage.toLowerCase().contains(testConfig.expectedErrorMessage().toLowerCase())) {
-                    Assert.fail("Error message '" + errorMessage + "' does not contain expected text: " + 
-                               testConfig.expectedErrorMessage());
+                if (!testConfig.expectedErrorMessage().isEmpty()
+                        && !errorMessage.toLowerCase()
+                                .contains(testConfig.expectedErrorMessage().toLowerCase())) {
+                    Assert.fail("Error message '" + errorMessage
+                            + "' does not contain expected text: "
+                            + testConfig.expectedErrorMessage());
                 }
                 log.info("Negative test passed: " + testConfig.description());
-                return;
             }
+            return;
         }
 
         JsonObject response = getResponse(request);
-
-        String[] tables = gson.fromJson(response.get("tables"), String[].class);
-        assertResults(tables, testConfig, configJsonPath);
+        assertResults(response, testConfig, configJsonPath);
     }
 
-    private JsonObject getResponseForNegativeTest(Object request) throws IOException {
-        CompletableFuture<?> result = serviceEndpoint.request(getServiceName() + "/" + getApiName(), request);
+    private void assertResults(JsonObject actualResponse, TestConfig testConfig,
+                               Path configJsonPath) throws IOException {
+        if (testConfig.output() == null) {
+            TestConfig updatedConfig = new TestConfig(
+                    testConfig.description(), testConfig.testProjectFolder(),
+                    testConfig.targetModule(), testConfig.modelFilePath(),
+                    testConfig.connection(), testConfig.properties(),
+                    testConfig.tables(), actualResponse,
+                    testConfig.expectError(), testConfig.expectedErrorMessage());
+//            updateConfig(configJsonPath, updatedConfig);
+            Assert.fail("No expected output defined. Config updated with actual output: "
+                    + configJsonPath);
+            return;
+        }
+
+        JsonArray actualTables = actualResponse.getAsJsonArray("tables");
+        JsonArray expectedTables = testConfig.output().getAsJsonArray("tables");
+
+        if (!tableSetEquals(actualTables, expectedTables)) {
+            compareJsonElements(actualResponse, testConfig.output());
+            TestConfig updatedConfig = new TestConfig(
+                    testConfig.description(), testConfig.testProjectFolder(),
+                    testConfig.targetModule(), testConfig.modelFilePath(),
+                    testConfig.connection(), testConfig.properties(),
+                    testConfig.tables(), actualResponse,
+                    testConfig.expectError(), testConfig.expectedErrorMessage());
+//            updateConfig(configJsonPath, updatedConfig);
+            Assert.fail(String.format("Failed test: '%s' (%s)",
+                    testConfig.description(), configJsonPath));
+        }
+    }
+
+    /**
+     * Compares two table JsonArrays as unordered sets so that the assertion is
+     * not sensitive to the order in which the database driver returns table names.
+     */
+    private boolean tableSetEquals(JsonArray actual, JsonArray expected) {
+        if (actual == null && expected == null) {
+            return true;
+        }
+        if (actual == null || expected == null) {
+            return false;
+        }
+        if (actual.size() != expected.size()) {
+            return false;
+        }
+        for (JsonElement expectedElem : expected) {
+            boolean found = false;
+            for (JsonElement actualElem : actual) {
+                if (actualElem.equals(expectedElem)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private JsonObject getResponseForNegativeTest(Object request) {
+        CompletableFuture<?> result = serviceEndpoint.request(
+                getServiceName() + "/" + getApiName(), request);
         String response = TestUtil.getResponseString(result);
-        JsonObject jsonObject = JsonParser.parseString(response).getAsJsonObject().getAsJsonObject("result");
+        JsonObject jsonObject = JsonParser.parseString(response)
+                .getAsJsonObject().getAsJsonObject("result");
         JsonPrimitive errorMsg = jsonObject.getAsJsonPrimitive("errorMsg");
         if (errorMsg != null) {
             throw new AssertionError(errorMsg.getAsString());
         }
         return jsonObject;
-    }
-
-    private void assertResults(String[] actualTables, TestConfig testConfig, Path configJsonPath) {
-        boolean assertFailure = false;
-
-        if (actualTables == null || actualTables.length == 0) {
-            log.info("No tables found in the database.");
-            assertFailure = true;
-        }
-
-        String[] expectedTables = testConfig.expectedTables();
-        if (expectedTables != null && expectedTables.length > 0) {
-            if (actualTables != null && actualTables.length != expectedTables.length) {
-                log.info("The number of tables does not match the expected count.");
-                log.info("Expected: " + String.join(", ", expectedTables));
-                log.info("Actual: " + String.join(", ", actualTables));
-                assertFailure = true;
-            } else {
-                // Check if all expected tables are present
-                for (String expectedTable : expectedTables) {
-                    boolean found = false;
-                    if (actualTables != null) {
-                        for (String actualTable : actualTables) {
-                            if (actualTable.equalsIgnoreCase(expectedTable)) {
-                                found = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (!found) {
-                        log.info("Expected table '" + expectedTable + "' not found in actual tables.");
-                        assertFailure = true;
-                    }
-                }
-            }
-        }
-
-        if (assertFailure) {
-            Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
-        }
     }
 
     @Override
@@ -161,28 +180,43 @@ public class DatabaseIntrospectionTest extends AbstractLSTest {
     }
 
     /**
-     * Represents the test configuration for database introspection test.
+     * Represents the test configuration for a database introspection test.
+     * The request fields mirror {@link PersistClientGeneratorRequest}:
+     * {@code targetModule} and {@code modelFilePath} are empty strings,
+     * {@code connection} is the configurable-variable name prefix (derived from
+     * the metadata label / database name), and {@code properties} uses the
+     * canonical property keys ({@code dbSystem}, {@code host}, {@code port},
+     * {@code user}, {@code password}, {@code database}).
      *
-     * @param description          The description of the test.
-     * @param testProjectFolder    The test project folder path.
-     * @param name                 Name of the database connector.
-     * @param dbSystem             Database system type (mysql, postgresql, mssql).
-     * @param host                 Database host address.
-     * @param port                 Database port number.
-     * @param user                 Database username.
-     * @param password             Database user password.
-     * @param database             Name of the database to connect.
-     * @param expectedTables       Expected table names in the database.
-     * @param expectError          Flag to indicate if an error is expected.
-     * @param expectedErrorMessage Expected error message content for negative tests.
+     * @param description          Human-readable description of the test scenario.
+     * @param testProjectFolder    Folder name under {@code source/} containing the Ballerina project.
+     * @param targetModule         Always {@code ""} for introspection tests.
+     * @param modelFilePath        Always {@code ""} for introspection tests.
+     * @param connection           The configurable name prefix / client connection variable name.
+     * @param properties           Map of DB credential values keyed by canonical property keys.
+     * @param tables               Table entries populated before the request (used for assertions).
+     * @param output               The complete expected response object. When {@code null}, the test
+     *                             writes the actual output to the config file on first run.
+     * @param expectError          {@code true} if the test expects an error response.
+     * @param expectedErrorMessage Substring that must be present in the error message for negative tests.
      */
-    private record TestConfig(String description, String testProjectFolder, String name,
-                              String dbSystem, String host, Integer port,
-                              String user, String password, String database,
-                              String[] expectedTables, Boolean expectError, String expectedErrorMessage) {
+    private record TestConfig(String description, String testProjectFolder,
+                              String targetModule, String modelFilePath,
+                              String connection, Map<String, Value> properties,
+                              List<PersistClientGeneratorRequest.TableEntry> tables,
+                              JsonObject output,
+                              Boolean expectError, String expectedErrorMessage) {
 
         public String description() {
             return description == null ? "" : description;
+        }
+
+        public String targetModule() {
+            return targetModule == null ? "" : targetModule;
+        }
+
+        public String modelFilePath() {
+            return modelFilePath == null ? "" : modelFilePath;
         }
 
         public Boolean expectError() {

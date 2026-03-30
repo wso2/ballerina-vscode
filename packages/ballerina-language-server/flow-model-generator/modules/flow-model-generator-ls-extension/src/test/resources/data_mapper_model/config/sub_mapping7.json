@@ -218,6 +218,7 @@
         "typeName": "InRoot",
         "kind": "record"
       }
-    }
+    },
+    "hasInvalidOutput": false
   }
 }

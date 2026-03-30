@@ -96,7 +96,7 @@
             "selected": true
           }
         ],
-        "value": false,
+        "value": "false",
         "optional": false,
         "editable": true,
         "advanced": false,

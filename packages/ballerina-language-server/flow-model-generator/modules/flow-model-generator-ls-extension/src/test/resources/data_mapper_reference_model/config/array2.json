@@ -112,6 +112,7 @@
         "typeName": "L1",
         "kind": "record"
       }
-    }
+    },
+    "hasInvalidOutput": false
   }
 }

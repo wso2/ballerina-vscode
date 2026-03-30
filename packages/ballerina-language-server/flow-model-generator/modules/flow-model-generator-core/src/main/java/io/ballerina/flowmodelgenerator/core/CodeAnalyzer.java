@@ -18,6 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.core;
 
+import com.google.gson.Gson;
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.AnnotationAttachmentSymbol;
@@ -42,6 +43,7 @@ import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
 import io.ballerina.compiler.api.values.ConstantValue;
+import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.AssignmentStatementNode;
 import io.ballerina.compiler.syntax.tree.BinaryExpressionNode;
 import io.ballerina.compiler.syntax.tree.BlockStatementNode;
@@ -80,6 +82,7 @@ import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.MatchClauseNode;
 import io.ballerina.compiler.syntax.tree.MatchGuardNode;
 import io.ballerina.compiler.syntax.tree.MatchStatementNode;
+import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.MethodCallExpressionNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
@@ -133,13 +136,21 @@ import io.ballerina.flowmodelgenerator.core.model.node.AgentCallBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AssignBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.BinaryBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.CallBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.ChunkerBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.ClassInitBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.DataLoaderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.DataMapperBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.EmbeddingProviderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.FailBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.FunctionCall;
 import io.ballerina.flowmodelgenerator.core.model.node.FunctionDefinitionBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.IfBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.JsonPayloadBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.KnowledgeBaseBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.MemoryBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.MemoryStoreBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.MethodCall;
+import io.ballerina.flowmodelgenerator.core.model.node.ModelProviderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.NewConnectionBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.PanicBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.RemoteActionCallBuilder;
@@ -148,6 +159,7 @@ import io.ballerina.flowmodelgenerator.core.model.node.ReturnBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.RollbackBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.StartBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.VariableBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.VectorStoreBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.WaitBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.XmlPayloadBuilder;
 import io.ballerina.flowmodelgenerator.core.utils.ConnectorUtil;
@@ -182,7 +194,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.Set;
 import java.util.Stack;
+import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -393,6 +407,9 @@ public class CodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(RemoteMethodCallActionNode remoteMethodCallActionNode) {
+        if (forceAssign) {
+            return;
+        }
         Optional<Symbol> symbol = semanticModel.symbol(remoteMethodCallActionNode);
         if (symbol.isEmpty() || (symbol.get().kind() != SymbolKind.METHOD)) {
             handleExpressionNode(remoteMethodCallActionNode);
@@ -414,7 +431,7 @@ public class CodeAnalyzer extends NodeVisitor {
         } else {
             startNode(NodeKind.REMOTE_ACTION_CALL, expressionNode.parent());
         }
-        Map<String, Object> metadataData = getPersistDataFromClient(classSymbol);
+        Map<String, Object> metadataData = getConnectorMetadata(classSymbol);
         setFunctionProperties(functionName, expressionNode, remoteMethodCallActionNode, functionSymbol,
                 classSymbol.getName().orElse(""), metadataData);
     }
@@ -825,6 +842,9 @@ public class CodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(ClientResourceAccessActionNode clientResourceAccessActionNode) {
+        if (forceAssign) {
+            return;
+        }
         Optional<Symbol> symbol = semanticModel.symbol(clientResourceAccessActionNode);
         if (symbol.isEmpty() || (symbol.get().kind() != SymbolKind.METHOD &&
                 symbol.get().kind() != SymbolKind.RESOURCE_METHOD)) {
@@ -894,8 +914,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 .resourcePath(resourcePathTemplate.resourcePathTemplate())
                 .functionResultKind(FunctionData.Kind.RESOURCE);
         FunctionData functionData = functionDataBuilder.build();
-
-        Map<String, Object> metadataData = getPersistDataFromClient(classSymbol.get());
+        Map<String, Object> metadataData = getConnectorMetadata(classSymbol.get());
 
         nodeBuilder.symbolInfo(functionSymbol)
                 .metadata()
@@ -911,6 +930,10 @@ public class CodeAnalyzer extends NodeVisitor {
                 .properties()
                 .callConnection(expressionNode, Property.CONNECTION_KEY, metadataData)
                 .data(this.typedBindingPatternNode, false, new HashSet<>());
+        if (isPersistClient(classSymbol.get(), semanticModel)) {
+            CommonUtils.getPersistDatabaseIcon(classSymbol.get())
+                    .ifPresent(icon -> nodeBuilder.metadata().icon(icon));
+        }
         processFunctionSymbol(clientResourceAccessActionNode, argumentNodes, functionSymbol, functionData);
     }
 
@@ -925,6 +948,17 @@ public class CodeAnalyzer extends NodeVisitor {
             persistData = null;
         }
         return persistData;
+    }
+
+    private Map<String, Object> getConnectorMetadata(ClassSymbol classSymbol) {
+        Map<String, Object> persistData = getPersistDataFromClient(classSymbol);
+        if (persistData != null) {
+            return persistData;
+        }
+        String moduleName = classSymbol.getModule().map(ModuleSymbol::id).map(ModuleID::moduleName).orElse("");
+        Map<String, Object> connectorData = new HashMap<>();
+        connectorData.put(CONNECTOR_TYPE, ConnectorUtil.getConnectionCategory(moduleName));
+        return connectorData;
     }
 
     private void addRemainingParamsToPropertyMap(Map<String, ParameterData> funcParamMap,
@@ -1439,7 +1473,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 .template(template)
                 .selected(true)
                 .stepOut();
-        builder.handleRestArguments(builder, values);
+        builder.handleRestArguments(builder, values, diagnosticHandler);
     }
 
     private void buildPropertyTypeForIncludedRecordRest(Property.Builder<?> builder, ParameterData paramData,
@@ -1451,7 +1485,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 .template(template)
                 .selected(true)
                 .stepOut();
-        builder.handleIncludedRecordRestArgs(builder, values);
+        builder.handleIncludedRecordRestArgs(builder, values, diagnosticHandler);
     }
 
     private void buildPropertyType(Property.Builder<?> builder, ParameterData paramData, Node value) {
@@ -1493,7 +1527,8 @@ public class CodeAnalyzer extends NodeVisitor {
                     builder.type(Property.ValueType.RAW_TEMPLATE);
                 }
             } else {
-                builder.typeWithExpression(paramData.typeSymbol(), moduleInfo, value, semanticModel, builder);
+                builder.typeWithExpression(paramData.typeSymbol(), moduleInfo, value, semanticModel, builder,
+                        diagnosticHandler);
             }
         }
     }
@@ -1604,6 +1639,10 @@ public class CodeAnalyzer extends NodeVisitor {
                 McpToolKitBuilder.setToolKitNameProperty(nodeBuilder, name);
                 String permittedTools = getPermittedToolsFromClass(classSymbol);
                 McpToolKitBuilder.setPermittedToolsProperty(nodeBuilder, permittedTools);
+                String toolScopes = getToolScopesFromClass(classSymbol);
+                if (toolScopes != null) {
+                    McpToolKitBuilder.setToolScopesProperty(nodeBuilder, toolScopes);
+                }
             }
         }
 
@@ -1632,7 +1671,7 @@ public class CodeAnalyzer extends NodeVisitor {
      *
      * @param functionData the function data containing the module name
      * @param packageName  the package name to strip from the module name
-     * @param classSymbol the class symbol representing the persist client
+     * @param classSymbol  the class symbol representing the persist client
      */
     private void updatePersistRelatedMetadata(FunctionData functionData, String packageName, ClassSymbol classSymbol) {
         String moduleName = functionData.moduleName();
@@ -1642,6 +1681,8 @@ public class CodeAnalyzer extends NodeVisitor {
                 .addData(CONNECTOR_TYPE, PERSIST);
         getPersistModelFilePath(project.sourceRoot(), classSymbol)
                 .ifPresent(modelPath -> nodeBuilder.metadata().addData(PERSIST_MODEL_FILE, modelPath));
+        CommonUtils.getPersistDatabaseIcon(classSymbol)
+                .ifPresent(icon -> nodeBuilder.metadata().icon(icon));
     }
 
     private NodeKind resolveNodeKind(ClassSymbol classSymbol) {
@@ -1682,6 +1723,48 @@ public class CodeAnalyzer extends NodeVisitor {
             return NodeKind.MEMORY_STORE;
         }
         return null;
+    }
+
+    private static final Set<NodeKind> AI_COMPONENT_KINDS = Set.of(
+            NodeKind.MODEL_PROVIDER, NodeKind.EMBEDDING_PROVIDER,
+            NodeKind.KNOWLEDGE_BASE, NodeKind.VECTOR_STORE,
+            NodeKind.DATA_LOADER, NodeKind.CHUNKER,
+            NodeKind.MEMORY, NodeKind.MEMORY_STORE
+    );
+
+    private static boolean isAiComponentKind(NodeKind kind) {
+        return AI_COMPONENT_KINDS.contains(kind);
+    }
+
+    private record ReturnTypeNodeInfo(NodeKind nodeKind, ClassSymbol classSymbol) { }
+
+    private Optional<ReturnTypeNodeInfo> getReturnTypeNodeInfo(FunctionSymbol functionSymbol) {
+        Optional<TypeSymbol> returnType = functionSymbol.typeDescriptor().returnTypeDescriptor();
+        if (returnType.isEmpty()) {
+            return Optional.empty();
+        }
+        TypeSymbol typeSymbol = returnType.get();
+        if (typeSymbol.typeKind() == TypeDescKind.UNION) {
+            typeSymbol = ((UnionTypeSymbol) typeSymbol).memberTypeDescriptors().stream()
+                    .filter(tSymbol -> !tSymbol.subtypeOf(semanticModel.types().ERROR))
+                    .findFirst().orElse(null);
+            if (typeSymbol == null) {
+                return Optional.empty();
+            }
+        }
+        if (typeSymbol.typeKind() != TypeDescKind.TYPE_REFERENCE) {
+            return Optional.empty();
+        }
+        Symbol defSymbol = ((TypeReferenceTypeSymbol) typeSymbol).definition();
+        if (defSymbol.kind() != SymbolKind.CLASS) {
+            return Optional.empty();
+        }
+        ClassSymbol classSymbol = (ClassSymbol) defSymbol;
+        NodeKind kind = resolveNodeKind(classSymbol);
+        if (kind == null) {
+            return Optional.empty();
+        }
+        return Optional.of(new ReturnTypeNodeInfo(kind, classSymbol));
     }
 
     private FunctionData.Kind getFunctionResultKind(ClassSymbol classSymbol) {
@@ -1725,27 +1808,29 @@ public class CodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(TemplateExpressionNode templateExpressionNode) {
-        if (forceAssign) {
-            return;
-        }
-        if (templateExpressionNode.kind() == SyntaxKind.XML_TEMPLATE_EXPRESSION) {
-            startNode(NodeKind.XML_PAYLOAD, templateExpressionNode)
-                    .metadata()
-                    .description(XmlPayloadBuilder.DESCRIPTION)
-                    .stepOut()
-                    .properties().expression(templateExpressionNode);
-        }
+//        Treating these as variable nodes despite the force assign flag
+//        if (forceAssign) {
+//            return;
+//        }
+//        if (templateExpressionNode.kind() == SyntaxKind.XML_TEMPLATE_EXPRESSION) {
+//            startNode(NodeKind.XML_PAYLOAD, templateExpressionNode)
+//                    .metadata()
+//                    .description(XmlPayloadBuilder.DESCRIPTION)
+//                    .stepOut()
+//                    .properties().expression(templateExpressionNode);
+//        }
     }
 
     @Override
     public void visit(ByteArrayLiteralNode byteArrayLiteralNode) {
-        if (forceAssign) {
-            return;
-        }
-        startNode(NodeKind.BINARY_DATA, byteArrayLiteralNode)
-                .metadata()
-                .stepOut()
-                .properties().expression(byteArrayLiteralNode);
+//        Treating these as variable nodes despite the force assign flag
+//        if (forceAssign) {
+//            return;
+//        }
+//        startNode(NodeKind.BINARY_DATA, byteArrayLiteralNode)
+//                .metadata()
+//                .stepOut()
+//                .properties().expression(byteArrayLiteralNode);
     }
 
     @Override
@@ -1858,9 +1943,18 @@ public class CodeAnalyzer extends NodeVisitor {
                     .value(CommonUtils.getVariableName(assignmentStatementNode.varRef()))
                     .editable()
                     .stepOut()
-                    .addProperty(Property.VARIABLE_KEY);
-        } else if (nodeBuilder instanceof AgentBuilder) {
-            // If an agent node was identified, set the variable property on it
+                    .addProperty(Property.VARIABLE_KEY, assignmentStatementNode.varRef());
+        } else if (nodeBuilder instanceof AgentBuilder
+                || nodeBuilder instanceof ModelProviderBuilder
+                || nodeBuilder instanceof EmbeddingProviderBuilder
+                || nodeBuilder instanceof KnowledgeBaseBuilder
+                || nodeBuilder instanceof VectorStoreBuilder
+                || nodeBuilder instanceof DataLoaderBuilder
+                || nodeBuilder instanceof ChunkerBuilder
+                || nodeBuilder instanceof MemoryBuilder
+                || nodeBuilder instanceof MemoryStoreBuilder
+                || nodeBuilder instanceof ClassInitBuilder) {
+            // If an AI type node (agent, model provider, etc.) was identified, set the variable property on it
             String variableName = CommonUtils.getVariableName(assignmentStatementNode.varRef());
             nodeBuilder.properties().custom()
                     .metadata()
@@ -1922,6 +2016,9 @@ public class CodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(MethodCallExpressionNode methodCallExpressionNode) {
+        if (forceAssign) {
+            return;
+        }
         Optional<Symbol> symbol = semanticModel.symbol(methodCallExpressionNode);
         if (symbol.isEmpty() || !(symbol.get() instanceof FunctionSymbol functionSymbol)) {
             handleExpressionNode(methodCallExpressionNode);
@@ -1973,7 +2070,7 @@ public class CodeAnalyzer extends NodeVisitor {
                     .symbol(functionName)
                     .object(classSymbol.getName().orElse(""));
         if (classSymbol.qualifiers().contains(Qualifier.CLIENT)) {
-            Map<String, Object> metadataData = getPersistDataFromClient(classSymbol);
+            Map<String, Object> metadataData = getConnectorMetadata(classSymbol);
             nodeBuilder.properties().callConnection(expressionNode, Property.CONNECTION_KEY, metadataData);
         } else {
             nodeBuilder.properties().callExpression(expressionNode, Property.CONNECTION_KEY);
@@ -1984,6 +2081,9 @@ public class CodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(FunctionCallExpressionNode functionCallExpressionNode) {
+        if (forceAssign) {
+            return;
+        }
         Optional<Symbol> symbol = semanticModel.symbol(functionCallExpressionNode);
         if (symbol.isEmpty() || symbol.get().kind() != SymbolKind.FUNCTION) {
             handleExpressionNode(functionCallExpressionNode);
@@ -2008,6 +2108,41 @@ public class CodeAnalyzer extends NodeVisitor {
         } else if (naturalFunctions.containsKey(functionName)) {
             startNode(NodeKind.NP_FUNCTION_CALL, functionCallExpressionNode.parent());
         } else {
+            // Check if the function returns an AI type (e.g., MODEL_PROVIDER via factory function)
+            Optional<ReturnTypeNodeInfo> returnTypeInfo = getReturnTypeNodeInfo(functionSymbol);
+            if (returnTypeInfo.isPresent() && isAiComponentKind(returnTypeInfo.get().nodeKind())) {
+                ReturnTypeNodeInfo info = returnTypeInfo.get();
+                startNode(info.nodeKind(), functionCallExpressionNode.parent());
+
+                FunctionDataBuilder functionDataBuilder =
+                        new FunctionDataBuilder()
+                                .name(functionName)
+                                .functionSymbol(functionSymbol)
+                                .functionResultKind(getFunctionResultKind(info.classSymbol()))
+                                .semanticModel(semanticModel)
+                                .userModuleInfo(moduleInfo);
+                FunctionData functionData = functionDataBuilder.build();
+
+                processFunctionSymbol(functionCallExpressionNode, functionCallExpressionNode.arguments(),
+                        functionSymbol, functionData);
+
+                nodeBuilder
+                        .metadata()
+                            .label(functionData.packageName())
+                            .description(functionData.description())
+                            .icon(CommonUtils.generateIcon(functionData.org(), functionData.packageName(),
+                                functionData.version()))
+                            .stepOut()
+                        .codedata()
+                            .org(functionData.org())
+                            .module(functionData.moduleName())
+                            .symbol(functionName)
+                            .stepOut()
+                        .properties()
+                            .scope(connectionScope)
+                            .checkError(true, NewConnectionBuilder.CHECK_ERROR_DOC, false);
+                return;
+            }
             startNode(NodeKind.FUNCTION_CALL, functionCallExpressionNode.parent());
         }
 
@@ -2092,7 +2227,8 @@ public class CodeAnalyzer extends NodeVisitor {
             nodeBuilder.codedata().inferredReturnType(functionData.returnError() ? returnType : null);
             Module module = workspaceManager.module(filePath)
                     .orElse(project.currentPackage().getDefaultModule());
-            CallBuilder.buildInferredTypeProperty(nodeBuilder, paramResult, inferredTypeName, module, targetVarType);
+            CallBuilder.buildInferredTypeProperty(nodeBuilder, paramResult, inferredTypeName, module, targetVarType,
+                    callNode);
             AgentCallBuilder.postProcessTdProperty(nodeBuilder, key);
         });
     }
@@ -2498,15 +2634,19 @@ public class CodeAnalyzer extends NodeVisitor {
         }
 
         Optional<Symbol> parentSymbol = semanticModel.symbol(parent);
-        if (parentSymbol.isPresent() && CommonUtils.getRawType(
-                ((VariableSymbol) parentSymbol.get()).typeDescriptor()).typeKind() == TypeDescKind.JSON &&
-                !forceAssign) {
-            startNode(NodeKind.JSON_PAYLOAD, constructorExprNode)
-                    .metadata()
-                    .description(JsonPayloadBuilder.DESCRIPTION)
-                    .stepOut()
-                    .properties().expression(constructorExprNode);
-        }
+        parentSymbol.ifPresent(symbol -> CommonUtils.getRawType(
+                ((VariableSymbol) symbol).typeDescriptor()).typeKind());
+
+        //Treating these as variable nodes despite the force assign flag
+//        if (parentSymbol.isPresent() && CommonUtils.getRawType(
+//                ((VariableSymbol) parentSymbol.get()).typeDescriptor()).typeKind() == TypeDescKind.JSON &&
+//                !forceAssign) {
+//            Treating these as variable nodes despite the force assign flag
+//            startNode(NodeKind.JSON_PAYLOAD, constructorExprNode)
+//                    .metadata()
+//                    .description(JsonPayloadBuilder.DESCRIPTION)
+//                    .stepOut()
+//                    .properties().expression(constructorExprNode);
     }
     // Utility methods
 
@@ -2515,6 +2655,7 @@ public class CodeAnalyzer extends NodeVisitor {
      * only adds the node to the diagram if there is no active parent node which is building its branches.
      */
     private void endNode(Node node) {
+        diagnosticHandler.resolveUnconsumed(nodeBuilder);
         nodeBuilder.codedata().nodeInfo(node);
         endNode();
     }
@@ -2820,6 +2961,190 @@ public class CodeAnalyzer extends NodeVisitor {
         return "()";
     }
 
+    /**
+     * Extracts tool scopes from {@code @ai:AgentTool} annotations on the MCP toolkit class methods. Builds a reverse
+     * mapping from method names to original tool names using the {@code permittedTools} map, then extracts scopes from
+     * each method's annotation.
+     *
+     * @param classSymbol The class symbol representing the MCP toolkit class
+     * @return A JSON string mapping tool names to their scopes, or null if no scopes are found
+     */
+    private String getToolScopesFromClass(ClassSymbol classSymbol) {
+        Optional<Location> optLocation = classSymbol.getLocation();
+        if (optLocation.isEmpty()) {
+            return null;
+        }
+
+        Document document = CommonUtils.getDocument(project, optLocation.get());
+        if (document == null) {
+            return null;
+        }
+
+        Optional<NonTerminalNode> optNode = CommonUtil.findNode(classSymbol, document.syntaxTree());
+        if (optNode.isEmpty() || !(optNode.get() instanceof ClassDefinitionNode classNode)) {
+            return null;
+        }
+
+        // Build reverse mapping: methodName -> originalToolName from the permittedTools map in init
+        Map<String, String> methodToToolName = buildMethodToToolNameMapping(classNode);
+
+        // Extract scopes from @ai:AgentTool annotations on each method
+        Map<String, List<String>> toolScopes = new TreeMap<>();
+        Set<String> predefinedMethods = Set.of("init", "getTools");
+
+        for (Node member : classNode.members()) {
+            if (member.kind() != SyntaxKind.OBJECT_METHOD_DEFINITION) {
+                continue;
+            }
+
+            FunctionDefinitionNode methodNode = (FunctionDefinitionNode) member;
+            String methodName = methodNode.functionName().text();
+            if (predefinedMethods.contains(methodName)) {
+                continue;
+            }
+
+            List<String> scopes = extractScopesFromAnnotation(methodNode);
+            if (!scopes.isEmpty()) {
+                // Map back to original tool name if we have a mapping, otherwise use method name
+                String toolName = methodToToolName.getOrDefault(methodName, methodName);
+                toolScopes.put(toolName, scopes);
+            }
+        }
+
+        if (toolScopes.isEmpty()) {
+            return null;
+        }
+
+        return new Gson().toJson(toolScopes);
+    }
+
+    /**
+     * Builds a mapping from method names to original tool names by parsing the permittedTools map in the init method.
+     */
+    private Map<String, String> buildMethodToToolNameMapping(ClassDefinitionNode classNode) {
+        Map<String, String> mapping = new HashMap<>();
+        for (Node member : classNode.members()) {
+            if (member.kind() != SyntaxKind.OBJECT_METHOD_DEFINITION) {
+                continue;
+            }
+            FunctionDefinitionNode methodNode = (FunctionDefinitionNode) member;
+            if (!methodNode.functionName().text().equals("init")) {
+                continue;
+            }
+            FunctionBodyNode bodyNode = methodNode.functionBody();
+            if (!(bodyNode instanceof FunctionBodyBlockNode blockNode)) {
+                continue;
+            }
+            for (StatementNode statement : blockNode.statements()) {
+                if (statement.kind() != SyntaxKind.LOCAL_VAR_DECL) {
+                    continue;
+                }
+                VariableDeclarationNode varDecl = (VariableDeclarationNode) statement;
+                String variableName = varDecl.typedBindingPattern().bindingPattern().toSourceCode().trim();
+                if (!variableName.equals("permittedTools")) {
+                    continue;
+                }
+                Optional<ExpressionNode> optInitializer = varDecl.initializer();
+                if (optInitializer.isEmpty() ||
+                        optInitializer.get().kind() != SyntaxKind.MAPPING_CONSTRUCTOR) {
+                    continue;
+                }
+                MappingConstructorExpressionNode mappingExpr =
+                        (MappingConstructorExpressionNode) optInitializer.get();
+                for (MappingFieldNode field : mappingExpr.fields()) {
+                    if (field.kind() == SyntaxKind.SPECIFIC_FIELD) {
+                        SpecificFieldNode specificField = (SpecificFieldNode) field;
+                        String toolName = specificField.fieldName().toSourceCode().trim();
+                        if (toolName.startsWith("\"") && toolName.endsWith("\"")) {
+                            toolName = toolName.substring(1, toolName.length() - 1);
+                        }
+                        // Value is like "self.methodName" - extract method name
+                        if (specificField.valueExpr().isPresent()) {
+                            String valueSource = specificField.valueExpr().get().toSourceCode().trim();
+                            if (valueSource.startsWith("self.")) {
+                                String methodName = valueSource.substring(5);
+                                mapping.put(methodName, toolName);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return mapping;
+    }
+
+    // TODO: Clean this up, and move to AiUtils
+    /**
+     * Extracts OAuth scopes from an {@code @ai:AgentTool} annotation on a function definition.
+     */
+    private List<String> extractScopesFromAnnotation(FunctionDefinitionNode methodNode) {
+        Optional<MetadataNode> optMetadata = methodNode.metadata();
+        if (optMetadata.isEmpty()) {
+            return List.of();
+        }
+
+        for (AnnotationNode annotation : optMetadata.get().annotations()) {
+            String annotRef = annotation.annotReference().toSourceCode().trim();
+            if (!annotRef.equals("ai:AgentTool")) {
+                continue;
+            }
+
+            // Check if annotation has a value (mapping constructor)
+            Optional<MappingConstructorExpressionNode> optAnnotValue = annotation.annotValue();
+            if (optAnnotValue.isEmpty()) {
+                continue;
+            }
+
+            // Look for auth field
+            for (MappingFieldNode field : optAnnotValue.get().fields()) {
+                if (field.kind() != SyntaxKind.SPECIFIC_FIELD) {
+                    continue;
+                }
+                SpecificFieldNode specificField = (SpecificFieldNode) field;
+                String fieldName = specificField.fieldName().toSourceCode().trim();
+                if (!fieldName.equals("auth") || specificField.valueExpr().isEmpty()) {
+                    continue;
+                }
+
+                ExpressionNode authExpr = specificField.valueExpr().get();
+                if (authExpr.kind() != SyntaxKind.MAPPING_CONSTRUCTOR) {
+                    continue;
+                }
+
+                // Look for scopes field inside auth
+                MappingConstructorExpressionNode authMapping =
+                        (MappingConstructorExpressionNode) authExpr;
+                for (MappingFieldNode innerField : authMapping.fields()) {
+                    if (innerField.kind() != SyntaxKind.SPECIFIC_FIELD) {
+                        continue;
+                    }
+                    SpecificFieldNode scopesField = (SpecificFieldNode) innerField;
+                    String innerFieldName = scopesField.fieldName().toSourceCode().trim();
+                    if (!innerFieldName.equals("scopes") || scopesField.valueExpr().isEmpty()) {
+                        continue;
+                    }
+
+                    ExpressionNode scopesExpr = scopesField.valueExpr().get();
+                    if (scopesExpr.kind() != SyntaxKind.LIST_CONSTRUCTOR) {
+                        continue;
+                    }
+
+                    ListConstructorExpressionNode listNode = (ListConstructorExpressionNode) scopesExpr;
+                    List<String> scopes = new ArrayList<>();
+                    for (Node item : listNode.expressions()) {
+                        String scopeValue = item.toSourceCode().trim();
+                        if (scopeValue.startsWith("\"") && scopeValue.endsWith("\"")) {
+                            scopeValue = scopeValue.substring(1, scopeValue.length() - 1);
+                        }
+                        scopes.add(scopeValue);
+                    }
+                    return scopes;
+                }
+            }
+        }
+        return List.of();
+    }
+
     // Check whether a type symbol is subType of `RawTemplate`
     private boolean isSubTypeOfRawTemplate(TypeSymbol typeSymbol) {
         if (typeSymbol == null) {
@@ -2881,7 +3206,6 @@ public class CodeAnalyzer extends NodeVisitor {
                 .map(node -> node.toString().trim())
                 .collect(Collectors.joining());
     }
-
 
     private boolean isAgent(ServiceDeclarationNode serviceDeclarationNode) {
         SeparatedNodeList<ExpressionNode> expressions = serviceDeclarationNode.expressions();

@@ -1,15 +1,89 @@
 {
   "description": "MySQL persist client generation - nonexistent tables",
   "testProjectFolder": "sample-project",
-  "name": "testdb",
-  "dbSystem": "mysql",
-  "host": "localhost",
-  "port": 3307,
-  "user": "root",
-  "password": "Test123#",
-  "database": "testdb",
-  "selectedTables": ["nonexistent_table1", "nonexistent_table2"],
-  "module": "test",
+  "targetModule": "",
+  "modelFilePath": "",
+  "connection": "testdb",
+  "properties": {
+    "dbSystem": {
+      "metadata": {
+        "label": "Database System",
+        "description": "The database system type (e.g., mysql, postgresql, mssql)"
+      },
+      "value": "mysql",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "host": {
+      "metadata": {
+        "label": "Host",
+        "description": "Database server host address"
+      },
+      "value": "localhost",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "port": {
+      "metadata": {
+        "label": "Port",
+        "description": "Database server port number"
+      },
+      "value": "3307",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "user": {
+      "metadata": {
+        "label": "User",
+        "description": "Database username"
+      },
+      "value": "root",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "password": {
+      "metadata": {
+        "label": "Password",
+        "description": "Database user password"
+      },
+      "value": "Test123#",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "database": {
+      "metadata": {
+        "label": "Database",
+        "description": "Name of the database to connect"
+      },
+      "value": "testdb",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    }
+  },
+  "tables": [
+    {
+      "table": "nonexistent_table1",
+      "selected": true,
+      "existing": false
+    },
+    {
+      "table": "nonexistent_table2",
+      "selected": true,
+      "existing": false
+    }
+  ],
   "expectError": true,
   "expectedErrorMessage": "No entities found"
 }

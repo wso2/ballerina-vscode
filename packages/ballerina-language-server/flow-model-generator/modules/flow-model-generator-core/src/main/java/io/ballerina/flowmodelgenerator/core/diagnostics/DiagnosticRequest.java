@@ -26,6 +26,7 @@ import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.flowmodelgenerator.core.CodeAnalyzer;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
+import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
@@ -143,9 +144,11 @@ public class DiagnosticRequest implements Callable<JsonElement> {
                 List<String> textEditLines = edit.getNewText().lines().toList();
                 String textLine = textEditLines.getLast();
                 int numTextEdits = textEditLines.size();
-                int lineOffset =
-                        Boolean.TRUE.equals(flowNodeObj.codedata().isNew()) && numTextEdits > 1 ? numTextEdits - 1 : 0;
-                endLinePosition = LinePosition.from(endLine + lineOffset,
+                // For multi-line new text, the end line in the updated document is always
+                // startLine + (numNewLines - 1), regardless of the original edit range's endLine.
+                // This handles existing nodes that get replaced by content with a different line count.
+                int endLineForRange = numTextEdits > 1 ? startLine + numTextEdits - 1 : endLine;
+                endLinePosition = LinePosition.from(endLineForRange,
                         numTextEdits > 1 ? textLine.length() : startCharacter + textLine.length());
             }
         }
@@ -167,20 +170,23 @@ public class DiagnosticRequest implements Callable<JsonElement> {
         TextDocument updatedTextDocument = updatedDoc.textDocument();
         ModulePartNode modulePartNode = updatedDoc.syntaxTree().rootNode();
         NonTerminalNode node = modulePartNode.findNode(TextRange.from(start,
-                updatedTextDocument.textPositionFrom(endLinePosition) - 1 - start), true);
+                updatedTextDocument.textPositionFrom(endLinePosition) - start), true);
 
         // Generate the flow node for the ST node with the respective diagnostics annotated
         SemanticModel semanticModel = project.currentPackage().getCompilation()
                 .getSemanticModel(project.currentPackage().getDefaultModule().moduleId());
+        NodeKind flowKind = flowNodeObj.codedata().node();
         CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, Property.LOCAL_SCOPE, Map.of(),
-                Map.of(), updatedTextDocument, ModuleInfo.from(updatedDoc.module().descriptor()), true,
+                Map.of(), updatedTextDocument, ModuleInfo.from(updatedDoc.module().descriptor()),
+                (flowKind == NodeKind.VARIABLE || flowKind == NodeKind.ASSIGN),
                 workspaceManager, path);
         node.accept(codeAnalyzer);
         List<FlowNode> flowNodes = codeAnalyzer.getFlowNodes();
         if (flowNodes.size() != 1) {
             return null;
         }
-        return gson.toJsonTree(flowNodes.getFirst());
+        FlowNode resultNode = flowNodes.getFirst();
+        return gson.toJsonTree(resultNode);
     }
 
     public String getKey() {

@@ -20,13 +20,19 @@ package io.ballerina.flowmodelgenerator.extension.request;
 
 import io.ballerina.tools.text.LinePosition;
 
+import java.util.Map;
+
 /**
  * Represents the request for the flow model getAvailableNodes API.
  *
  * @param filePath file path of the source file
  * @param position position of the node to be added
+ * @param queryMap optional map containing query parameters (e.g., checkToolCompatibility)
  * @since 1.0.0
  */
-public record FlowModelAvailableNodesRequest(String filePath, LinePosition position) {
+public record FlowModelAvailableNodesRequest(String filePath, LinePosition position, Map<String, String> queryMap) {
 
+    public FlowModelAvailableNodesRequest(String filePath, LinePosition position) {
+        this(filePath, position, null);
+    }
 }

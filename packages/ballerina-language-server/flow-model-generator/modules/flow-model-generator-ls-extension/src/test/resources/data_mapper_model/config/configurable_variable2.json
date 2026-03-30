@@ -142,6 +142,7 @@
         "typeName": "UserInfo",
         "kind": "record"
       }
-    }
+    },
+    "hasInvalidOutput": false
   }
 }

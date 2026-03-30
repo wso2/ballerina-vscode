@@ -138,7 +138,7 @@
         "metadata": {
           "label": "run",
           "description": "Executes the agent for a given user query.",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.9.0.png",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.0.png",
           "data": {
             "agent": {
               "systemPrompt": "{role: string `Assistant`, instructions: string `Help users with weather and time queries.`}",
@@ -161,7 +161,7 @@
           "packageName": "ai",
           "object": "Agent",
           "symbol": "run",
-          "version": "1.9.0",
+          "version": "1.11.0",
           "lineRange": {
             "fileName": "agents.bal",
             "startLine": {
@@ -183,7 +183,7 @@
               "packageName": "ai",
               "object": "Agent",
               "symbol": "init",
-              "version": "1.9.0",
+              "version": "1.11.0",
               "lineRange": {
                 "fileName": "agents.bal",
                 "startLine": {
@@ -217,7 +217,7 @@
                 "typeMembers": [
                   {
                     "type": "SystemPrompt",
-                    "packageInfo": "ballerina:ai:1.9.0",
+                    "packageInfo": "ballerina:ai:1.11.0",
                     "packageName": "ai",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -284,7 +284,7 @@
                       "typeMembers": [
                         {
                           "type": "ToolConfig",
-                          "packageInfo": "ballerina:ai:1.9.0",
+                          "packageInfo": "ballerina:ai:1.11.0",
                           "packageName": "ai",
                           "kind": "RECORD_TYPE",
                           "selected": false
@@ -437,6 +437,43 @@
               "originalName": "toolLoadingStrategy"
             },
             "defaultValue": "NO_FILTER"
+          },
+          "credential": {
+            "metadata": {
+              "label": "Agent Credential",
+              "description": "Optional authentication details of the agent."
+            },
+            "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "ai:Credential",
+                "typeMembers": [
+                  {
+                    "type": "Credential",
+                    "packageInfo": "ballerina:ai:1.11.0",
+                    "packageName": "ai",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "ai:Credential",
+                "selected": false
+              }
+            ],
+            "placeholder": "{id: \"\", secret: \"\"}",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "credential"
+            },
+            "defaultValue": "{id: \"\", secret: \"\"}"
           },
           "type": {
             "metadata": {
@@ -714,17 +751,15 @@
       {
         "id": "49672",
         "metadata": {
-          "label": "getDefaultModelProvider",
+          "label": "Model Provider",
           "description": "Creates a default model provider based on the provided `wso2ProviderConfig`.",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.9.0.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.0.png"
         },
         "codedata": {
-          "node": "FUNCTION_CALL",
+          "node": "MODEL_PROVIDER",
           "org": "ballerina",
           "module": "ai",
-          "packageName": "ai",
           "symbol": "getDefaultModelProvider",
-          "version": "1.9.0",
           "lineRange": {
             "fileName": "agents.bal",
             "startLine": {
@@ -743,7 +778,7 @@
           "checkError": {
             "metadata": {
               "label": "Check Error",
-              "description": "Trigger error flow"
+              "description": "Terminate on error"
             },
             "types": [
               {
@@ -753,14 +788,31 @@
             ],
             "value": true,
             "optional": false,
+            "editable": false,
+            "advanced": true,
+            "hidden": true
+          },
+          "scope": {
+            "metadata": {
+              "label": "Connection Scope",
+              "description": "Scope of the connection, Global or Local"
+            },
+            "types": [
+              {
+                "fieldType": "ENUM",
+                "selected": true
+              }
+            ],
+            "value": "Global",
+            "optional": false,
             "editable": true,
             "advanced": true,
             "hidden": true
           },
           "variable": {
             "metadata": {
-              "label": "Result",
-              "description": "Name of the result variable"
+              "label": "Variable Name",
+              "description": "Name of the variable"
             },
             "types": [
               {
@@ -789,7 +841,7 @@
           },
           "type": {
             "metadata": {
-              "label": "Result Type",
+              "label": "Variable Type",
               "description": "Type of the variable"
             },
             "types": [
@@ -801,7 +853,7 @@
             "value": "ai:Wso2ModelProvider",
             "placeholder": "var",
             "optional": false,
-            "editable": false,
+            "editable": true,
             "advanced": false,
             "hidden": false,
             "codedata": {}
@@ -814,7 +866,7 @@
         "metadata": {
           "label": "Agent",
           "description": "Represents an agent.",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.9.0.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.0.png"
         },
         "codedata": {
           "node": "AGENT",
@@ -873,7 +925,7 @@
                 "typeMembers": [
                   {
                     "type": "SystemPrompt",
-                    "packageInfo": "ballerina:ai:1.9.0",
+                    "packageInfo": "ballerina:ai:1.11.0",
                     "packageName": "ai",
                     "kind": "RECORD_TYPE",
                     "selected": true
@@ -916,7 +968,7 @@
                       "typeMembers": [
                         {
                           "type": "ToolConfig",
-                          "packageInfo": "ballerina:ai:1.9.0",
+                          "packageInfo": "ballerina:ai:1.11.0",
                           "packageName": "ai",
                           "kind": "RECORD_TYPE",
                           "selected": false
@@ -1069,6 +1121,43 @@
               "originalName": "toolLoadingStrategy"
             },
             "defaultValue": "NO_FILTER"
+          },
+          "credential": {
+            "metadata": {
+              "label": "Agent Credential",
+              "description": "Optional authentication details of the agent."
+            },
+            "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "ai:Credential",
+                "typeMembers": [
+                  {
+                    "type": "Credential",
+                    "packageInfo": "ballerina:ai:1.11.0",
+                    "packageName": "ai",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "ai:Credential",
+                "selected": false
+              }
+            ],
+            "placeholder": "{id: \"\", secret: \"\"}",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "credential"
+            },
+            "defaultValue": "{id: \"\", secret: \"\"}"
           },
           "checkError": {
             "metadata": {

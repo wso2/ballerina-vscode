@@ -125,6 +125,7 @@
         "typeName": "Employee",
         "kind": "record"
       }
-    }
+    },
+    "hasInvalidOutput": false
   }
 }

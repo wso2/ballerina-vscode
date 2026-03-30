@@ -25,6 +25,7 @@ import com.google.gson.JsonObject;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ClassSymbol;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
+import io.ballerina.compiler.api.symbols.MethodSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.Qualifier;
 import io.ballerina.compiler.api.symbols.Symbol;
@@ -52,6 +53,7 @@ import io.ballerina.flowmodelgenerator.core.model.node.KnowledgeBaseBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ModelProviderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.NPFunctionCall;
 import io.ballerina.flowmodelgenerator.core.model.node.VectorStoreBuilder;
+import io.ballerina.flowmodelgenerator.core.utils.ConnectorUtil;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
@@ -66,6 +68,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -78,6 +81,7 @@ import static io.ballerina.flowmodelgenerator.core.Constants.NaturalFunctions;
 import static io.ballerina.modelgenerator.commons.CommonUtils.CONNECTOR_TYPE;
 import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST;
 import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST_MODEL_FILE;
+import static io.ballerina.modelgenerator.commons.CommonUtils.getPersistDatabaseIcon;
 import static io.ballerina.modelgenerator.commons.CommonUtils.getPersistModelFilePath;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiEmbeddingProvider;
@@ -114,11 +118,14 @@ public class AvailableNodesGenerator {
         this.filePath = filePath;
     }
 
-    public JsonArray getAvailableNodes(boolean disableBallerinaAiNodes, LinePosition position) {
+    public JsonArray getAvailableNodes(boolean disableBallerinaAiNodes, LinePosition position,
+                                       Map<String, String> queryMap) {
+        boolean checkAgentToolCompatibility = queryMap != null
+                && "true".equals(queryMap.get("checkAgentToolCompatibility"));
         List<Category> connections = new ArrayList<>();
         List<Symbol> symbols = semanticModel.visibleSymbols(document, position);
         for (Symbol symbol : symbols) {
-            Optional<Category> connection = getConnection(symbol);
+            Optional<Category> connection = getConnection(symbol, checkAgentToolCompatibility);
             if (connection.isEmpty()) {
                 continue;
             }
@@ -145,7 +152,7 @@ public class AvailableNodesGenerator {
     }
 
     public JsonArray getAvailableNodes(LinePosition position) {
-        return getAvailableNodes(true, position);
+        return getAvailableNodes(true, position, null);
     }
 
     public JsonArray getAvailableAgents(LinePosition position) {
@@ -442,12 +449,17 @@ public class AvailableNodesGenerator {
         return typeSymbol.isEmpty() || typeSymbol.get().subtypeOf(semanticModel.types().NIL);
     }
 
-    private Optional<Category> getConnection(Symbol symbol) {
+    private Optional<Category> getConnection(Symbol symbol, boolean checkAgentToolCompatibility) {
         return getCategory(symbol, classSymbol -> classSymbol.qualifiers().contains(Qualifier.CLIENT) &&
-                !isAiModelProvider(classSymbol) && !isAiEmbeddingProvider(classSymbol));
+                !isAiModelProvider(classSymbol) && !isAiEmbeddingProvider(classSymbol), checkAgentToolCompatibility);
     }
 
     private Optional<Category> getCategory(Symbol symbol, Predicate<ClassSymbol> condition) {
+        return getCategory(symbol, condition, false);
+    }
+
+    private Optional<Category> getCategory(Symbol symbol, Predicate<ClassSymbol> condition,
+                                           boolean checkAgentToolCompatibility) {
         try {
             TypeReferenceTypeSymbol typeDescriptorSymbol;
             if (symbol instanceof VariableSymbol variableSymbol) {
@@ -483,6 +495,26 @@ public class AvailableNodesGenerator {
             // Obtain methods of the classes
             List<FunctionData> methodFunctionsData = functionDataBuilder.buildChildNodes();
 
+            // Compute tool compatibility for each method using the semantic model (only when requested)
+            if (checkAgentToolCompatibility) {
+                Map<String, MethodSymbol> classMethodSymbols = classSymbol.methods();
+                for (FunctionData methodFunction : methodFunctionsData) {
+                    MethodSymbol methodSymbol = classMethodSymbols.get(methodFunction.name());
+                    if (methodSymbol != null) {
+                        try {
+                            AiUtils.AgentToolCompatibility toolCompat = AiUtils.checkAgentToolCompatibility(
+                                    methodSymbol.qualifiers(), methodSymbol.typeDescriptor(), semanticModel);
+                            methodFunction.setAgentToolCompatible(toolCompat.compatible());
+                        } catch (Throwable ignored) {
+                            // Default to false on failure
+                        }
+                    }
+                }
+            }
+
+            Optional<String> persistIcon = isPersistClient(classSymbol, semanticModel)
+                    ? getPersistDatabaseIcon(classSymbol) : Optional.empty();
+
             List<Item> methods = new ArrayList<>();
             for (FunctionData methodFunction : methodFunctionsData) {
                 String org = methodFunction.org();
@@ -515,10 +547,11 @@ public class AvailableNodesGenerator {
                     }
                 }
 
-                Item node = nodeBuilder
+                String icon = persistIcon.orElse(CommonUtils.generateIcon(org, packageName, version));
+                nodeBuilder
                         .metadata()
                         .label(label)
-                        .icon(CommonUtils.generateIcon(org, packageName, version))
+                        .icon(icon)
                         .description(methodFunction.description())
                         .stepOut()
                         .codedata()
@@ -529,7 +562,12 @@ public class AvailableNodesGenerator {
                         .symbol(methodFunction.name())
                         .version(version)
                         .parentSymbol(parentSymbolName)
-                        .resourcePath(methodFunction.resourcePath())
+                        .resourcePath(methodFunction.resourcePath());
+                if (checkAgentToolCompatibility) {
+                    nodeBuilder.codedata()
+                            .addData("agentToolCompatible", methodFunction.agentToolCompatible());
+                }
+                Item node = nodeBuilder.codedata()
                         .stepOut()
                         .buildAvailableNode();
                 methods.add(node);
@@ -538,12 +576,16 @@ public class AvailableNodesGenerator {
             Metadata.Builder<?> metadataBuilder = new Metadata.Builder<>(null)
                     .label(parentSymbolName);
             if (isPersistClient(classSymbol, semanticModel)) {
+                persistIcon.ifPresent(metadataBuilder::icon);
                 metadataBuilder.addData(CONNECTOR_TYPE, PERSIST);
                 getPersistModelFilePath(
                         resolvedPackage.map(p -> p.project().sourceRoot())
                                 .orElse(pkg.project().sourceRoot()),
                         classSymbol)
                         .ifPresent(modelFile -> metadataBuilder.addData(PERSIST_MODEL_FILE, modelFile));
+            } else if (moduleInfo != null) {
+                metadataBuilder.addData(CONNECTOR_TYPE,
+                        ConnectorUtil.getConnectionCategory(moduleInfo.moduleName()));
             }
 
             Metadata metadata = metadataBuilder.build();

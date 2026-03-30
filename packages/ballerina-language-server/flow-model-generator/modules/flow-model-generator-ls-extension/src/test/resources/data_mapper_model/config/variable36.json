@@ -266,6 +266,7 @@
         "typeName": "User1",
         "kind": "record"
       }
-    }
+    },
+    "hasInvalidOutput": false
   }
 }

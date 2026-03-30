@@ -1,6 +1,6 @@
 {
   "description": "Get diff from two non workspace projects",
-  "projectPath": "non_workspace",
+  "projectPath": "service_functions",
   "output": {
     "loadDesignDiagrams": true,
     "semanticDiffs": [
@@ -18,6 +18,11 @@
             "line": 35,
             "offset": 5
           }
+        },
+        "metadata": {
+          "accessor": "delete",
+          "servicePath": "/api/v1/petsstore",
+          "resourcePath": "pets/[string petId]"
         }
       },
       {
@@ -34,6 +39,11 @@
             "line": 27,
             "offset": 5
           }
+        },
+        "metadata": {
+          "accessor": "put",
+          "servicePath": "/api/v1/petsstore",
+          "resourcePath": "pets/[string petId]"
         }
       },
       {
@@ -50,6 +60,11 @@
             "line": 84,
             "offset": 5
           }
+        },
+        "metadata": {
+          "accessor": "post",
+          "servicePath": "/api/v1/petsstore",
+          "resourcePath": "pets"
         }
       },
       {
@@ -66,6 +81,11 @@
             "line": 92,
             "offset": 5
           }
+        },
+        "metadata": {
+          "accessor": "get",
+          "servicePath": "/api/v1/petsstore",
+          "resourcePath": "echo"
         }
       },
       {
@@ -82,6 +102,11 @@
             "line": 46,
             "offset": 5
           }
+        },
+        "metadata": {
+          "accessor": "get",
+          "servicePath": "/api/v1/petsstore",
+          "resourcePath": "pets/[string petId]"
         }
       },
       {
@@ -98,6 +123,9 @@
             "line": 15,
             "offset": 2
           }
+        },
+        "metadata": {
+          "name": "PetResponse"
         }
       },
       {
@@ -114,6 +142,9 @@
             "line": 8,
             "offset": 2
           }
+        },
+        "metadata": {
+          "name": "Pet"
         }
       },
       {
@@ -130,6 +161,9 @@
             "line": 21,
             "offset": 2
           }
+        },
+        "metadata": {
+          "name": "ErrorResponse"
         }
       }
     ]

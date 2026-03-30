@@ -20,6 +20,7 @@
         "type": "TYPE",
         "name": "Album",
         "scope": "Global",
+        "visibility": "module",
         "children": {}
       },
       "MusicService": {
@@ -38,6 +39,7 @@
         "type": "TYPE",
         "name": "MusicService",
         "scope": "Global",
+        "visibility": "public",
         "children": {
           "init": {
             "id": "init",
@@ -55,6 +57,7 @@
             "type": "FUNCTION",
             "name": "init",
             "scope": "Global",
+            "visibility": "module",
             "children": {}
           },
           "getAlbumCount": {
@@ -73,6 +76,7 @@
             "type": "FUNCTION",
             "name": "getAlbumCount",
             "scope": "Global",
+            "visibility": "public",
             "children": {}
           },
           "post#albums": {
@@ -92,6 +96,7 @@
             "name": "albums",
             "accessor": "post",
             "scope": "Global",
+            "visibility": "module",
             "children": {}
           },
           "get#albums": {
@@ -111,6 +116,7 @@
             "name": "albums",
             "accessor": "get",
             "scope": "Global",
+            "visibility": "module",
             "children": {}
           },
           "get#albums/[string title]": {
@@ -130,6 +136,7 @@
             "name": "albums/[string title]",
             "accessor": "get",
             "scope": "Global",
+            "visibility": "module",
             "children": {}
           },
           "delete#albums/[string title]": {
@@ -149,6 +156,7 @@
             "name": "albums/[string title]",
             "accessor": "delete",
             "scope": "Global",
+            "visibility": "module",
             "children": {}
           }
         }

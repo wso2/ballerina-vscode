@@ -344,9 +344,7 @@ public class AgentsGenerator {
             boolean hasDescription = genDescription(description, sourceBuilder);
             List<String> paramList = populateToolParams(toolParams, hasDescription, sourceBuilder);
 
-            sourceBuilder.token()
-                    .name("@ai:AgentTool")
-                    .name(System.lineSeparator());
+            genAgentToolAnnotation(flowNode, sourceBuilder);
             sourceBuilder.token()
                     .name("@display {")
                     .name("label: \"\",")
@@ -362,10 +360,18 @@ public class AgentsGenerator {
 
             Optional<Property> returnType = flowNode.getProperty(Property.TYPE_KEY);
             boolean hasReturn = returnType.isPresent() && !returnType.get().value().toString().isEmpty();
+            boolean hasCheckError = FlowNodeUtil.hasCheckKeyFlagSet(flowNode);
             if (hasReturn) {
                 sourceBuilder.token()
                         .keyword(SyntaxKind.RETURNS_KEYWORD)
                         .name(returnType.get().value().toString());
+                if (hasCheckError) {
+                    sourceBuilder.token().keyword(SyntaxKind.PIPE_TOKEN).keyword(SyntaxKind.ERROR_KEYWORD);
+                }
+            } else if (hasCheckError) {
+                sourceBuilder.token()
+                        .keyword(SyntaxKind.RETURNS_KEYWORD)
+                        .name("error?");
             }
 
             sourceBuilder.token().keyword(SyntaxKind.OPEN_BRACE_TOKEN);
@@ -376,6 +382,9 @@ public class AgentsGenerator {
                         .name("result")
                         .whiteSpace()
                         .keyword(SyntaxKind.EQUAL_TOKEN);
+            }
+            if (hasCheckError) {
+                sourceBuilder.token().keyword(SyntaxKind.CHECK_KEYWORD);
             }
             Optional<Property> optFuncName = flowNode.getProperty(Property.FUNCTION_NAME_KEY);
             String funcName;
@@ -450,9 +459,7 @@ public class AgentsGenerator {
                 sourceBuilder.token().returnDoc(returnProperty.metadata().description());
             }
 
-            sourceBuilder.token()
-                    .name("@ai:AgentTool").
-                    name(System.lineSeparator());
+            genAgentToolAnnotation(flowNode, sourceBuilder);
             sourceBuilder.token()
                     .name("@display {")
                     .name("label: \"\",")
@@ -473,6 +480,10 @@ public class AgentsGenerator {
                 if (FlowNodeUtil.hasCheckKeyFlagSet(flowNode)) {
                     sourceBuilder.token().keyword(SyntaxKind.PIPE_TOKEN).keyword(SyntaxKind.ERROR_KEYWORD);
                 }
+            } else if (FlowNodeUtil.hasCheckKeyFlagSet(flowNode)) {
+                sourceBuilder.token()
+                        .keyword(SyntaxKind.RETURNS_KEYWORD)
+                        .name("error?");
             }
 
             sourceBuilder.token().keyword(SyntaxKind.OPEN_BRACE_TOKEN);
@@ -531,9 +542,7 @@ public class AgentsGenerator {
             }
 
             List<String> paramList = populateToolParams(toolParams, hasDescription, sourceBuilder);
-            sourceBuilder.token()
-                    .name("@ai:AgentTool")
-                    .name(System.lineSeparator());
+            genAgentToolAnnotation(flowNode, sourceBuilder);
             sourceBuilder.token()
                     .name("@display {")
                     .name("label: \"\",")
@@ -564,6 +573,10 @@ public class AgentsGenerator {
                 if (FlowNodeUtil.hasCheckKeyFlagSet(flowNode)) {
                     sourceBuilder.token().keyword(SyntaxKind.PIPE_TOKEN).keyword(SyntaxKind.ERROR_KEYWORD);
                 }
+            } else if (FlowNodeUtil.hasCheckKeyFlagSet(flowNode)) {
+                sourceBuilder.token()
+                        .keyword(SyntaxKind.RETURNS_KEYWORD)
+                        .name("error?");
             }
 
             sourceBuilder.token().keyword(SyntaxKind.OPEN_BRACE_TOKEN);
@@ -678,6 +691,49 @@ public class AgentsGenerator {
             sourceBuilder.token().descriptionDoc(description);
         }
         return hasDescription;
+    }
+
+    // TODO: The agent tool annotation form is currently in the extension side, need to move to LS
+    private void genAgentToolAnnotation(FlowNode flowNode, SourceBuilder sourceBuilder) {
+        Map<String, Object> data = flowNode.codedata().data();
+        if (data == null || !data.containsKey("auth")) {
+            sourceBuilder.token()
+                    .name("@ai:AgentTool")
+                    .name(System.lineSeparator());
+            return;
+        }
+
+        String authStr = data.get("auth").toString();
+        JsonObject authConfig = gson.fromJson(authStr, JsonObject.class);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("@ai:AgentTool {").append(System.lineSeparator());
+        sb.append("    auth: {").append(System.lineSeparator());
+
+        List<String> fields = new ArrayList<>();
+        for (Map.Entry<String, JsonElement> entry : authConfig.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue().getAsString();
+
+            if (key.equals("scopes")) {
+                String[] scopeParts = value.split(",");
+                List<String> scopeItems = new ArrayList<>();
+                for (String part : scopeParts) {
+                    scopeItems.add(part.trim());
+                }
+                fields.add("        " + key + ": [" + String.join(", ", scopeItems) + "]");
+            } else {
+                fields.add("        " + key + ": " + value);
+            }
+        }
+
+        sb.append(String.join("," + System.lineSeparator(), fields)).append(System.lineSeparator());
+        sb.append("    }").append(System.lineSeparator());
+        sb.append("}");
+
+        sourceBuilder.token()
+                .name(sb.toString())
+                .name(System.lineSeparator());
     }
 
     public JsonArray getActions(JsonElement node, Path filePath, Project project, WorkspaceManager workspaceManager) {

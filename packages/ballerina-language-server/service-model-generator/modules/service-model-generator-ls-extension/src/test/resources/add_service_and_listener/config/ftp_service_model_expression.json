@@ -1,0 +1,126 @@
+{
+  "filePath": "sample1/main.bal",
+  "description": "Test adding a ftp service with expression values",
+  "serviceInitModel": {
+    "id": "0",
+    "displayName": "FTP Integration",
+    "description": "Create a service to listen for file actions on a remote server",
+    "orgName": "ballerina",
+    "packageName": "ftp",
+    "moduleName": "ftp",
+    "version": "2.18.0",
+    "type": "ftp",
+    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.18.0.png",
+    "properties": {
+      "listenerVarName": {
+        "metadata": {
+          "label": "Listener Name",
+          "description": "Provide a name for the listener being created"
+        },
+        "codedata": {
+          "type": "LISTENER_VAR_NAME"
+        },
+        "value": "ftpListener",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": true
+      },
+      "host": {
+        "metadata": {
+          "label": "Host",
+          "description": "Hostname or IP address of the remote server (e.g., ftp.example.com)"
+        },
+        "codedata": {
+          "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
+        },
+        "placeholder": "127.0.0.1",
+        "value": "config.host",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": true
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "portNumber": {
+        "metadata": {
+          "label": "Port Number",
+          "description": "Port to connect on"
+        },
+        "codedata": {
+          "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
+        },
+        "placeholder": "21",
+        "value": "21",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "path": {
+        "metadata": {
+          "label": "Monitoring Path",
+          "description": "The folder on the remote server to monitor for file actions (e.g., /uploads or /incoming)"
+        },
+        "value": "config.path",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": true
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      }
+    }
+  },
+  "output": {
+    "sample1/main.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "\nimport ballerina/ftp;\n"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 57,
+            "character": 3
+          },
+          "end": {
+            "line": 57,
+            "character": 3
+          }
+        },
+        "newText": "\nlistener ftp:Listener ftpListener = new(protocol= ftp:FTP, host=config.host, port= 21);\n\n@ftp:ServiceConfig {\n    path: config.path\n}\nservice on ftpListener {\n}\n"
+      }
+    ]
+  }
+}

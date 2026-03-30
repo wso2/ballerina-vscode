@@ -8,5 +8,90 @@
   "queryMap": {
     "kind": "MODEL_PROVIDER"
   },
-  "output": []
+  "output": [
+    {
+      "id": "41979",
+      "metadata": {
+        "label": "Model Provider",
+        "description": "Creates a default model provider based on the provided `wso2ProviderConfig`.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.9.0.png"
+      },
+      "codedata": {
+        "node": "MODEL_PROVIDER",
+        "org": "ballerina",
+        "module": "ai",
+        "symbol": "getDefaultModelProvider",
+        "lineRange": {
+          "fileName": "agent.bal",
+          "startLine": {
+            "line": 10,
+            "offset": 8
+          },
+          "endLine": {
+            "line": 10,
+            "offset": 67
+          }
+        },
+        "sourceCode": "self._salesAgentModel = check ai:getDefaultModelProvider();"
+      },
+      "returning": false,
+      "properties": {
+        "checkError": {
+          "metadata": {
+            "label": "Check Error",
+            "description": "Terminate on error"
+          },
+          "types": [
+            {
+              "fieldType": "FLAG",
+              "selected": true
+            }
+          ],
+          "value": true,
+          "optional": false,
+          "editable": false,
+          "advanced": true,
+          "hidden": true
+        },
+        "scope": {
+          "metadata": {
+            "label": "Connection Scope",
+            "description": "Scope of the connection, Global or Local"
+          },
+          "types": [
+            {
+              "fieldType": "ENUM",
+              "selected": true
+            }
+          ],
+          "value": "ServiceInit",
+          "optional": false,
+          "editable": true,
+          "advanced": true,
+          "hidden": true
+        },
+        "variable": {
+          "metadata": {
+            "label": "Variable",
+            "description": "Name of the variable/field"
+          },
+          "types": [
+            {
+              "fieldType": "LV_EXPRESSION",
+              "selected": false
+            }
+          ],
+          "value": "self._salesAgentModel",
+          "optional": false,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        }
+      },
+      "diagnostics": {
+        "hasDiagnostics": true
+      },
+      "flags": 1
+    }
+  ]
 }

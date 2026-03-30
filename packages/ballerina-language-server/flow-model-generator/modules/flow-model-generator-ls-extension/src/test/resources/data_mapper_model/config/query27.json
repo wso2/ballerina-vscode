@@ -222,6 +222,7 @@
         "typeName": "Names",
         "kind": "record"
       }
-    }
+    },
+    "hasInvalidOutput": false
   }
 }

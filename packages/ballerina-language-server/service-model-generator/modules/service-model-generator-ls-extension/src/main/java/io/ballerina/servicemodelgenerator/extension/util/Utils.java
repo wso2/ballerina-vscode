@@ -1223,7 +1223,7 @@ public final class Utils {
                 .filter(s -> s.getName().isPresent())
                 .map(s -> s.getName().get())
                 .collect(Collectors.toSet());
-        return NameUtil.generateVariableName(prefix, names);
+        return NameUtil.generateTypeName(prefix, names);
     }
 
     public static String generateTypeIdentifier(SemanticModel semanticModel, Document document,

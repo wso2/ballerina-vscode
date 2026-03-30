@@ -45,3 +45,7 @@ type MyAcceptRec record {|
     time:Utc lastActive;
     string msg;
 |};
+
+type Addresses Address[];
+
+type JsonArray json[];

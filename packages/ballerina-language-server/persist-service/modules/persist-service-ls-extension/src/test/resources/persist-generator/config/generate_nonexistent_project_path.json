@@ -1,15 +1,76 @@
 {
   "description": "Persist client generation - nonexistent project path",
   "testProjectFolder": "nonexistent-project-folder",
-  "name": "testdb",
-  "dbSystem": "mysql",
-  "host": "localhost",
-  "port": 3307,
-  "user": "root",
-  "password": "Test123#",
-  "database": "testdb",
-  "selectedTables": ["employees"],
-  "module": "employees",
+  "tables": [
+    {
+      "table": "employees",
+      "selected": true,
+      "existing": false
+    }
+  ],
   "expectError": true,
-  "expectedErrorMessage": "does not exist"
+  "expectedErrorMessage": "does not exist",
+  "connection": "testdb",
+  "properties": {
+    "dbSystem": {
+      "metadata": {
+        "label": "Database System",
+        "description": "The database system type (e.g., mysql, postgresql, mssql)"
+      },
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "host": {
+      "metadata": {
+        "label": "Host",
+        "description": "Database server host address"
+      },
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "port": {
+      "metadata": {
+        "label": "Port",
+        "description": "Database server port number"
+      },
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "user": {
+      "metadata": {
+        "label": "User",
+        "description": "Database username"
+      },
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "password": {
+      "metadata": {
+        "label": "Password",
+        "description": "Database user password"
+      },
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "database": {
+      "metadata": {
+        "label": "Database",
+        "description": "Name of the database to connect"
+      },
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    }
+  }
 }

@@ -10,7 +10,10 @@
         "items": [
           {
             "metadata": {
-              "label": "binaryLoader"
+              "label": "binaryLoader",
+              "data": {
+                "connectorType": "Default"
+              }
             },
             "items": [
               {
@@ -36,7 +39,10 @@
           },
           {
             "metadata": {
-              "label": "textLoader"
+              "label": "textLoader",
+              "data": {
+                "connectorType": "Default"
+              }
             },
             "items": [
               {

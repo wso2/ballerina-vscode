@@ -112,6 +112,7 @@
         "typeName": "MyType",
         "kind": "record"
       }
-    }
+    },
+    "hasInvalidOutput": false
   }
 }

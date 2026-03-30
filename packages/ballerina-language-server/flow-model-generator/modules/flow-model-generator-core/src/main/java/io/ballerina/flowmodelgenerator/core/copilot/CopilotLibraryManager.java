@@ -79,6 +79,7 @@ public class CopilotLibraryManager {
             throw new RuntimeException("Failed to load libraries from database: " + e.getMessage(), e);
         }
 
+        applyLibraryExclusions(libraries);
         return libraries;
     }
 
@@ -170,6 +171,7 @@ public class CopilotLibraryManager {
             throw new RuntimeException("Failed to search libraries by keywords: " + e.getMessage(), e);
         }
 
+        applyLibraryExclusions(libraries);
         return libraries;
     }
 
@@ -192,16 +194,23 @@ public class CopilotLibraryManager {
             }
         }
 
-        for (Library library : libraries) {
+        libraries.removeIf(library -> {
             String libraryName = library.getName();
             if (libraryName == null || !exclusionMap.containsKey(libraryName)) {
-                continue;
+                return false;
             }
 
             ExclusionEntry exclusion = exclusionMap.get(libraryName);
 
+            // If only the name is specified (no functions or clients), exclude the entire library
+            boolean hasFunctionExclusions = exclusion.functions != null && !exclusion.functions.isEmpty();
+            boolean hasClientExclusions = exclusion.clients != null && !exclusion.clients.isEmpty();
+            if (!hasFunctionExclusions && !hasClientExclusions) {
+                return true;
+            }
+
             // Exclude module-level functions
-            if (exclusion.functions != null && library.getFunctions() != null) {
+            if (hasFunctionExclusions && library.getFunctions() != null) {
                 Set<String> excludedNames = exclusion.functions.stream()
                         .map(f -> f.name)
                         .collect(Collectors.toSet());
@@ -209,10 +218,12 @@ public class CopilotLibraryManager {
             }
 
             // Exclude client functions
-            if (exclusion.clients != null && library.getClients() != null) {
+            if (hasClientExclusions && library.getClients() != null) {
                 applyClientExclusions(library.getClients(), exclusion.clients);
             }
-        }
+
+            return false;
+        });
     }
 
     private void applyClientExclusions(List<Client> clients, List<ExcludedClient> exclusionClients) {

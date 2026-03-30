@@ -21,23 +21,14 @@ package io.ballerina.servicemodelgenerator.extension.builder.service;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.api.symbols.AnnotationSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.Qualifier;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
-import io.ballerina.compiler.syntax.tree.AnnotationNode;
-import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
-import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
-import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.ModuleMemberDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
-import io.ballerina.compiler.syntax.tree.NodeList;
-import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
-import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
-import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.openapi.core.generators.common.exception.BallerinaOpenApiException;
 import io.ballerina.projects.Document;
@@ -48,7 +39,7 @@ import io.ballerina.servicemodelgenerator.extension.core.OpenApiServiceGenerator
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
-import io.ballerina.servicemodelgenerator.extension.model.Parameter;
+import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
@@ -56,6 +47,8 @@ import io.ballerina.servicemodelgenerator.extension.model.context.AddServiceInit
 import io.ballerina.servicemodelgenerator.extension.model.context.GetModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.GetServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
+import io.ballerina.servicemodelgenerator.extension.util.FTPFunctionModelUtil;
+import io.ballerina.servicemodelgenerator.extension.util.FTPListenerUtil;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import org.ballerinalang.formatter.core.FormatterException;
@@ -70,6 +63,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -78,6 +72,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_CONFIGURE_LISTENER;
+import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_SELECTION;
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.BALLERINA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
@@ -113,34 +108,26 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
     // Display label
     private static final String LABEL_FTP = "FTP";
 
-    // Listener configuration property keys (path is service-level, not listener-level)
-    // designApproach contains protocol choice with nested listener properties (host, port, auth)
-    private static final List<String> LISTENER_CONFIG_KEYS = List.of(
-            KEY_LISTENER_VAR_NAME, "designApproach", "host", "portNumber", "authentication", "secureSocket"
-    );
-    public static final String DATA_BINDING = "DATA_BINDING";
-    public static final String STREAM = "stream";
+    // Variable name prefix for FTP listeners (produces ftpListener, ftpListener1, ftpListener2, ...)
+    private static final String FTP_SOURCE_VAR_NAME = "ftpListener";
+
     public static final String EVENT = "EVENT";
     private static final String SERVICE_CONFIG = "ServiceConfig";
-    private static final String FUNCTION_CONFIG = "FunctionConfig";
-    private static final String SERVICE_PATH = "path";
-    private static final String POST_PROCESS_ACTION = "postProcessAction";
-    private static final String POST_PROCESS_ACTION_ON_SUCCESS = "onSuccess";
-    private static final String POST_PROCESS_ACTION_ON_ERROR = "onError";
-    private static final String AFTER_PROCESS = "afterProcess";
-    private static final String AFTER_ERROR = "afterError";
-    private static final String ACTION_MOVE = "MOVE";
-    private static final String ACTION_DELETE = "DELETE";
-    private static final String MOVE_TO = "moveTo";
 
+    /**
+     * Router key used by {@code ServiceBuilderRouter} to bind FTP service operations to this builder.
+     */
     @Override
     public String kind() {
         return "FTP";
     }
 
+    /**
+     * Invoked by {@code serviceDesign/getServiceInitModel} when the frontend opens the FTP service-creation flow.
+     */
     @Override
     public ServiceInitModel getServiceInitModel(GetServiceInitModelContext context) {
-        InputStream resourceStream = HttpServiceBuilder.class.getClassLoader()
+        InputStream resourceStream = FTPServiceBuilder.class.getClassLoader()
                 .getResourceAsStream(FTP_INIT_JSON);
         if (resourceStream == null) {
             return null;
@@ -148,9 +135,16 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
 
         try (JsonReader reader = new JsonReader(new InputStreamReader(resourceStream, StandardCharsets.UTF_8))) {
             ServiceInitModel serviceInitModel = new Gson().fromJson(reader, ServiceInitModel.class);
-            Value listenerNameProp = listenerNameProperty(context);
-            Value listener = serviceInitModel.getProperties().get(KEY_LISTENER_VAR_NAME);
-            listener.setValue(listenerNameProp.getValue());
+
+            // Navigate into the pre-structured configureListener CHOICE
+            Value configureListener = serviceInitModel.getProperties().get(KEY_CONFIGURE_LISTENER);
+            Value createNewChoice = configureListener.getChoices().get(0);
+            Value listenerConfig = createNewChoice.getProperties().get("listenerConfig");
+
+            // Generate a unique listener name using the "ftpListener" prefix
+            String listenerName = Utils.generateVariableIdentifier(context.semanticModel(), context.document(),
+                    context.document().syntaxTree().rootNode().lineRange().endLine(), FTP_SOURCE_VAR_NAME);
+            listenerConfig.getProperties().get(KEY_LISTENER_VAR_NAME).setValue(listenerName);
 
             // Check for existing compatible FTP listeners (excluding legacy ones)
             Set<String> allListeners = ListenerUtil.getCompatibleListeners(context.moduleName(),
@@ -159,13 +153,33 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
                     context.project());
 
             if (!compatibleListeners.isEmpty()) {
-                Map<String, Value> properties = serviceInitModel.getProperties();
-                // Get properties from the enabled design approach choice
-                Map<String, Value> listenerProps =
-                        ListenerUtil.removeAndCollectListenerProperties(properties, LISTENER_CONFIG_KEYS);
-                Value choicesProperty = ListenerUtil.buildListenerChoiceProperty(listenerProps, compatibleListeners,
-                        LABEL_FTP);
-                properties.put(KEY_CONFIGURE_LISTENER, choicesProperty);
+                // Extract template metadata from designApproach for consistent labels
+                Value designApproach = listenerConfig.getProperties().get(PROPERTY_DESIGN_APPROACH);
+                Map<String, Value> templateProps = (designApproach != null
+                        && designApproach.getChoices() != null && !designApproach.getChoices().isEmpty())
+                        ? designApproach.getChoices().get(0).getProperties() : Map.of();
+
+                // Extract actual configs from existing listener declarations
+                Map<String, Map<String, Value>> listenerConfigs = FTPListenerUtil.extractListenerConfigs(
+                        compatibleListeners, context.semanticModel(), context.project());
+                applyInitModelMetadata(listenerConfigs, templateProps, designApproach);
+
+                // Populate the "Use existing" choice
+                Value existingChoice = configureListener.getChoices().get(1);
+                existingChoice.setMetadata(new MetaData("Use existing",
+                        "Select an existing " + LABEL_FTP + " listener"));
+                existingChoice.setEnabled(true);
+                existingChoice.setEditable(true);
+
+                // Build the SINGLE_SELECT dropdown and place it in the existing listenerConfig
+                Value listenerDropdown = buildListenerDropdown(listenerConfigs, compatibleListeners);
+                Map<String, Value> existingListenerProps = new LinkedHashMap<>();
+                existingListenerProps.put(ServiceInitModel.KEY_EXISTING_LISTENER, listenerDropdown);
+                existingChoice.getProperties().get("listenerConfig").setProperties(existingListenerProps);
+
+                // Set "Use existing" as default selection
+                configureListener.setValue("1");
+                createNewChoice.setEnabled(false);
             }
 
             return serviceInitModel;
@@ -174,6 +188,145 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
         }
     }
 
+    /**
+     * Applies metadata from the init model template properties onto the extracted existing listener
+     * configs so that labels and descriptions are consistent between "Create new" and
+     * "Use existing" source views.
+     *
+     * @param configs         Extracted listener configs (listener name → property key → Value)
+     * @param templateProps   Properties from the first designApproach choice in ftp_init.json
+     * @param designApproach  The designApproach Value from the init model (used for protocol)
+     */
+    private static void applyInitModelMetadata(Map<String, Map<String, Value>> configs,
+                                               Map<String, Value> templateProps,
+                                               Value designApproach) {
+        // Mapping from extracted config keys to init model property keys
+        Map<String, String> keyMapping = Map.of(
+                "host", "host",
+                "portNumber", "portNumber",
+                "authentication", "authentication",
+                "secureSocket", "secureSocket"
+        );
+
+        // secureSocket metadata comes from the FTPS choice (index 2), not FTP (index 0)
+        Map<String, Value> ftpsTemplateProps = (designApproach != null
+                && designApproach.getChoices() != null && designApproach.getChoices().size() > 2)
+                ? designApproach.getChoices().get(2).getProperties() : Map.of();
+
+        for (Map<String, Value> config : configs.values()) {
+            // Build protocol radio button from designApproach choices
+            if (designApproach != null && config.containsKey("protocol")) {
+                config.put("protocol", buildProtocolFromDesignApproach(
+                        designApproach, config.get("protocol").getValue()));
+            }
+
+            // Apply metadata from template properties
+            for (Map.Entry<String, String> mapping : keyMapping.entrySet()) {
+                Value configValue = config.get(mapping.getKey());
+                // Use FTPS template props for secureSocket, default template for others
+                Map<String, Value> sourceProps = "secureSocket".equals(mapping.getKey())
+                        ? ftpsTemplateProps : templateProps;
+                Value templateValue = sourceProps.get(mapping.getValue());
+                if (configValue != null && templateValue != null && templateValue.getMetadata() != null) {
+                    configValue.setMetadata(templateValue.getMetadata());
+                }
+            }
+
+            // Reorder config to desired display order: protocol, host, portNumber, authentication, secureSocket
+            List<String> displayOrder = List.of("protocol", "host", "portNumber", "authentication", "secureSocket");
+            LinkedHashMap<String, Value> ordered = new LinkedHashMap<>();
+            for (String key : displayOrder) {
+                if (config.containsKey(key)) {
+                    ordered.put(key, config.remove(key));
+                }
+            }
+            // Append any remaining keys not in the display order
+            ordered.putAll(config);
+            config.clear();
+            config.putAll(ordered);
+        }
+    }
+
+    /**
+     * Builds a read-only CHOICE (radio button) protocol Value from the designApproach choices in the
+     * init model, so the options are derived from the model rather than hardcoded.
+     */
+    private static Value buildProtocolFromDesignApproach(Value designApproach, String selectedValue) {
+        List<Value> choices = new ArrayList<>();
+        if (designApproach.getChoices() != null) {
+            for (Value choice : designApproach.getChoices()) {
+                MetaData choiceMeta = choice.getMetadata();
+                if (choiceMeta != null) {
+                    String choiceValue = choice.getValue();
+                    choices.add(new Value.ValueBuilder()
+                            .metadata(choiceMeta.label(), "")
+                            .value(choiceValue)
+                            .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                            .enabled(choiceValue.equals(selectedValue))
+                            .editable(false)
+                            .setAdvanced(false)
+                            .build());
+                }
+            }
+        }
+
+        Value protocol = new Value.ValueBuilder()
+                .setMetadata(designApproach.getMetadata())
+                .value(selectedValue)
+                .types(List.of(PropertyType.types(Value.FieldType.CHOICE)))
+                .enabled(true)
+                .editable(false)
+                .setAdvanced(false)
+                .build();
+        protocol.setChoices(choices);
+        return protocol;
+    }
+
+    /**
+     * Builds a SINGLE_SELECT dropdown for selecting an existing listener.
+     * Each listener's configuration is stored as nested properties keyed by listener name,
+     * so the frontend can show read-only config when a listener is selected.
+     */
+    private static Value buildListenerDropdown(Map<String, Map<String, Value>> listenerConfigs,
+                                                Set<String> listeners) {
+        List<String> listenerNames = new ArrayList<>(listeners);
+
+        Map<String, Value> perListenerConfigs = new LinkedHashMap<>();
+        for (String listenerName : listenerNames) {
+            Map<String, Value> config = listenerConfigs.getOrDefault(listenerName, new LinkedHashMap<>());
+
+            // Make all config properties read-only
+            Map<String, Value> readOnlyConfig = new LinkedHashMap<>();
+            for (Map.Entry<String, Value> entry : config.entrySet()) {
+                entry.getValue().setEditable(false);
+                readOnlyConfig.put(entry.getKey(), entry.getValue());
+            }
+
+            Value configGroup = new Value.ValueBuilder()
+                    .metadata(listenerName, LABEL_FTP + " listener: " + listenerName)
+                    .value(listenerName)
+                    .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                    .enabled(true)
+                    .editable(false)
+                    .setProperties(readOnlyConfig)
+                    .build();
+            perListenerConfigs.put(listenerName, configGroup);
+        }
+
+        return new Value.ValueBuilder()
+                .metadata("Listener Name", "Select an existing " + LABEL_FTP + " listener")
+                .value(listenerNames.get(0))
+                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT)))
+                .enabled(true)
+                .editable(true)
+                .setItems(new ArrayList<Object>(listenerNames))
+                .setProperties(perListenerConfigs)
+                .build();
+    }
+
+    /**
+     * Invoked by {@code serviceDesign/addServiceAndListener} when the frontend creates a new FTP service.
+     */
     @Override
     public Map<String, List<TextEdit>> addServiceInitSource(AddServiceInitModelContext context)
             throws WorkspaceDocumentException, FormatterException, IOException, BallerinaOpenApiException,
@@ -182,30 +335,71 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
 
         Map<String, Value> properties = serviceInitModel.getProperties();
 
-        // Check if listener choice property exists and apply it first (designApproach is nested)
+        // Apply the configure listener choice (always present now)
         if (properties.containsKey(KEY_CONFIGURE_LISTENER)) {
             applyEnabledChoiceProperty(serviceInitModel, KEY_CONFIGURE_LISTENER);
         }
 
-        // Get the selected protocol (ftp, ftps, or sftp) from the design approach choices
-        String selectedProtocol = getEnabledChoiceValue(serviceInitModel, PROPERTY_DESIGN_APPROACH);
-        applyEnabledChoiceProperty(serviceInitModel, PROPERTY_DESIGN_APPROACH);
-
         properties = serviceInitModel.getProperties();
 
-        // Check if we should use an existing listener
-        boolean useExistingListener = ListenerUtil.shouldUseExistingListener(properties);
-        String listenerVarName;
-        String listenerDeclaration = "";
-        // path is now a service-level property (in @ftp:ServiceConfig annotation).
+        // Unwrap GROUP_SECTION properties to top level so downstream code can access them directly
+        for (String key : List.copyOf(properties.keySet())) {
+            Value val = properties.get(key);
+            if (val != null && val.getTypes() != null
+                    && val.getTypes().stream().anyMatch(t -> t.fieldType() == Value.FieldType.GROUP_SECTION)
+                    && val.getProperties() != null) {
+                properties.putAll(val.getProperties());
+                properties.remove(key);
+            }
+        }
+
+        // Determine if "Use existing" source was selected.
+        // The existingListener SINGLE_SELECT value contains the listener name.
+        boolean useExistingListener = false;
+        String existingListenerName = null;
+        if (properties.containsKey(ServiceInitModel.KEY_EXISTING_LISTENER)) {
+            Value existingListenerValue = properties.get(ServiceInitModel.KEY_EXISTING_LISTENER);
+            if (existingListenerValue != null && existingListenerValue.getValue() != null) {
+                existingListenerName = String.valueOf(existingListenerValue.getValue());
+                useExistingListener = !existingListenerName.isEmpty();
+            }
+            properties.remove(ServiceInitModel.KEY_EXISTING_LISTENER);
+        }
+        // Backward compatibility: also check the old-style nested CHOICE via listenerSelection
+        if (!useExistingListener && properties.containsKey(KEY_LISTENER_SELECTION)) {
+            Value listenerSelection = properties.get(KEY_LISTENER_SELECTION);
+            if (listenerSelection != null && listenerSelection.getChoices() != null) {
+                for (Value choice : listenerSelection.getChoices()) {
+                    if (choice.isEnabled()) {
+                        existingListenerName = String.valueOf(choice.getValue());
+                        useExistingListener = true;
+                        break;
+                    }
+                }
+            }
+            properties.remove(KEY_LISTENER_SELECTION);
+        }
+        if (!useExistingListener && ListenerUtil.shouldUseExistingListener(properties)) {
+            useExistingListener = true;
+            existingListenerName = ListenerUtil.getExistingListenerName(properties).orElse("");
+        }
+
+        // path is a service-level property (in @ftp:ServiceConfig annotation).
         // Keep backward compatibility with legacy payloads that still send `folderPath`.
         String folderPath = getPropertyValueLiteralValue(properties, "path",
                 getPropertyValueLiteralValue(properties, "folderPath", "\"/\""));
 
+        String listenerVarName;
+        String listenerDeclaration = "";
+
         if (useExistingListener) {
-            listenerVarName = ListenerUtil.getExistingListenerName(properties).orElse("");
+            listenerVarName = existingListenerName;
         } else {
-            // After applyEnabledChoiceProperty, all properties are flattened into the main properties map
+            // "Create new" source was selected - get the protocol and build the listener declaration
+            String selectedProtocol = getEnabledChoiceValue(serviceInitModel, PROPERTY_DESIGN_APPROACH);
+            applyEnabledChoiceProperty(serviceInitModel, PROPERTY_DESIGN_APPROACH);
+            properties = serviceInitModel.getProperties();
+
             listenerVarName = properties.get("listenerVarName").getValue();
             String host = getPropertyValueLiteralValue(properties, "host", "\"127.0.0.1\"");
             String port = getPropertyValue(properties, "portNumber", "21");
@@ -227,7 +421,6 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
             if (!username.isEmpty() || !password.isEmpty() || !privateKey.isEmpty() || !secureSocket.isEmpty()) {
                 listenerBuilder.append("auth= { ");
 
-                // Add credentials block if username or password is provided
                 if (!username.isEmpty() || !password.isEmpty()) {
                     listenerBuilder.append("credentials: { ");
                     if (!username.isEmpty()) {
@@ -241,7 +434,6 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
                     }
                     listenerBuilder.append("}");
 
-                    // Add comma if private key or secure socket is also present
                     if (!privateKey.isEmpty() || !secureSocket.isEmpty()) {
                         listenerBuilder.append(", ");
                     } else {
@@ -249,12 +441,10 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
                     }
                 }
 
-                // Add private key configuration if provided
                 if (!privateKey.isEmpty()) {
                     listenerBuilder.append("privateKey: ");
                     listenerBuilder.append(privateKey);
 
-                    // Add comma if secure socket is also present
                     if (!secureSocket.isEmpty()) {
                         listenerBuilder.append(", ");
                     } else {
@@ -315,6 +505,9 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
         return Map.of(context.filePath(), edits);
     }
 
+    /**
+     * Invoked by {@code serviceDesign/getServiceFromSource} to load the FTP service model and all handler metadata.
+     */
     @Override
     public Service getModelFromSource(ModelFromSourceContext context) {
         Optional<Service> service = getModelTemplate(GetModelContext.fromServiceAndFunctionType(BALLERINA, FTP));
@@ -355,15 +548,11 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
                         modelFunc.setCodedata(sourceFunc.getCodedata());
                         modelFunc.getCodedata().setModuleName(FTP);
 
-                        enableParameters(sourceFunc, modelFunc);
-                        updateDatabindingParameter(sourceFunc, modelFunc);
+                        FTPFunctionModelUtil.syncFunctionFromSource(sourceFunc, modelFunc);
                         FunctionDefinitionNode functionNode = functionNodes.get(sourceFuncName);
                         if (functionNode != null) {
-                            updatePostProcessActionsFromAnnotation(functionNode, modelFunc, semanticModel);
-                        }
-
-                        if (modelFunc.getProperties().containsKey(STREAM)) {
-                            setStreamProperty(modelFunc, sourceFunc);
+                            FTPFunctionModelUtil.populatePostProcessActionsFromAnnotation(functionNode, modelFunc,
+                                    semanticModel, true);
                         }
                     } else {
                         // Handle deprecated file handlers
@@ -403,6 +592,9 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
         return serviceModel;
     }
 
+    /**
+     * Used by the router/template lookup path for FTP service defaults before source extraction and creation flows.
+     */
     @Override
     public Optional<Service> getModelTemplate(GetModelContext context) {
         InputStream resourceStream = HttpServiceBuilder.class.getClassLoader()
@@ -435,8 +627,24 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
      */
     private String getPropertyValueLiteralValue(Map<String, Value> properties, String key, String defaultValue) {
         Value property = properties.get(key);
-        if (property != null && property.getLiteralValue() != null && !property.getLiteralValue().isEmpty()) {
-            return property.getLiteralValue();
+        if (property == null) {
+            return defaultValue;
+        }
+
+        String value;
+        if (property.getTypes() == null || property.getTypes().isEmpty()) {
+            value = property.getLiteralValue();
+        } else {
+            Value.FieldType selectedType = property.getTypes().stream()
+                    .filter(type -> type.selected())
+                    .findFirst()
+                    .map(type -> type.fieldType())
+                    .orElse(property.getTypes().getFirst().fieldType());
+            value = selectedType == Value.FieldType.TEXT ? property.getLiteralValue() : property.getValue();
+        }
+
+        if (value != null && !value.isEmpty()) {
+            return value;
         }
         return defaultValue;
     }
@@ -456,227 +664,6 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
             }
         }
         return "FTP";
-    }
-
-    /**
-     * Sets the stream property based on the first parameter type of the function.
-     * Stream property is set to true if the first parameter has a type of stream<{type},error>.
-     *
-     * @param modelFunc The model function to update
-     * @param sourceFunc The source function to check
-     */
-    private void setStreamProperty(Function modelFunc, Function sourceFunc) {
-        boolean isStream = false;
-
-        if (sourceFunc.getParameters() != null && !sourceFunc.getParameters().isEmpty()) {
-            Parameter firstParam = sourceFunc.getParameters().get(0);
-            if (firstParam.getType() != null) {
-                String paramType = firstParam.getType().getValue();
-                // Check if the parameter type is a stream type (e.g., stream<{type},error>)
-                if (paramType != null && paramType.startsWith("stream<")) {
-                    isStream = true;
-                }
-            }
-        }
-
-        // Create or update the stream property in the function's properties map
-        Value streamProperty = new Value.ValueBuilder()
-                .value(String.valueOf(isStream))
-                .enabled(isStream)
-                .editable(false)
-                .optional(false)
-                .setAdvanced(false)
-                .build();
-
-        modelFunc.addProperty("stream", streamProperty);
-    }
-
-    private static void enableParameters(Function sourceFunc, Function modelFunc) {
-        modelFunc.getParameters().forEach(
-                parameter -> parameter.setEnabled(false)
-        );
-        for (Parameter sourceParam: sourceFunc.getParameters()) {
-
-            modelFunc.getParameters().stream().filter(
-                    modelParam -> modelParam.getType().getValue()
-                            .equals(sourceParam.getType().getValue()) ||
-                            modelParam.getKind().equals(DATA_BINDING)
-                            || modelParam.getName().getValue().equals("content")
-            ).forEach(
-                    modelParam -> {
-                        modelParam.setEnabled(true);
-                    }
-            );
-        }
-    }
-
-    private static void updateDatabindingParameter(Function sourceFunc, Function modelFunc) {
-        if (sourceFunc.getParameters() != null) {
-
-            // In source always data-binding parameter must be the first one
-            Parameter sourceParam = sourceFunc.getParameters().getFirst();
-            if (modelFunc.getParameters() != null) {
-                Parameter modelParam = modelFunc.getParameters().getFirst();
-
-                if (modelParam.getType() != null &&
-                        DATA_BINDING.equals(modelParam.getKind())) {
-
-                    // Update parameter name
-                    if (sourceParam.getName() != null && modelParam.getName() != null) {
-                        modelParam.getName().setValue(sourceParam.getName().getValue());
-                    }
-
-                    // Update a parameter type while preserving placeholder if it exists
-                    if (sourceParam.getType() != null && modelParam.getType() != null) {
-                        modelParam.getType().setValue(sourceParam.getType().getValue());
-                    }
-                }
-            }
-        }
-    }
-
-    private void updatePostProcessActionsFromAnnotation(FunctionDefinitionNode functionNode, Function modelFunc,
-                                                        SemanticModel semanticModel) {
-        Value postProcessAction = modelFunc.getProperties().get(POST_PROCESS_ACTION);
-        if (postProcessAction == null || postProcessAction.getProperties() == null) {
-            return;
-        }
-        Map<String, Value> postProcessProps = postProcessAction.getProperties();
-        Value successProperty = postProcessProps.get(POST_PROCESS_ACTION_ON_SUCCESS);
-        Value errorProperty = postProcessProps.get(POST_PROCESS_ACTION_ON_ERROR);
-
-        if (functionNode.metadata().isEmpty()) {
-            disablePostProcessActions(postProcessAction, successProperty, errorProperty);
-            return;
-        }
-
-        Optional<AnnotationNode> functionConfig = findFtpAnnotation(
-                functionNode.metadata().get().annotations(), FUNCTION_CONFIG, semanticModel);
-        if (functionConfig.isEmpty()) {
-            disablePostProcessActions(postProcessAction, successProperty, errorProperty);
-            return;
-        }
-        Optional<MappingConstructorExpressionNode> annotValue = functionConfig.get().annotValue();
-        if (annotValue.isEmpty()) {
-            disablePostProcessActions(postProcessAction, successProperty, errorProperty);
-            return;
-        }
-        boolean hasAfterProcess = false;
-        boolean hasAfterError = false;
-        for (MappingFieldNode field : annotValue.get().fields()) {
-            if (field.kind() != SyntaxKind.SPECIFIC_FIELD) {
-                continue;
-            }
-            SpecificFieldNode specificField = (SpecificFieldNode) field;
-            String fieldName = specificField.fieldName().toString().trim();
-            Optional<ExpressionNode> valueExpr = specificField.valueExpr();
-            if (valueExpr.isEmpty()) {
-                continue;
-            }
-            if (AFTER_PROCESS.equals(fieldName)) {
-                hasAfterProcess = true;
-                applyPostProcessAction(successProperty, valueExpr.get());
-            } else if (AFTER_ERROR.equals(fieldName)) {
-                hasAfterError = true;
-                applyPostProcessAction(errorProperty, valueExpr.get());
-            }
-        }
-        if (successProperty != null) {
-            successProperty.setEnabled(hasAfterProcess);
-        }
-        if (errorProperty != null) {
-            errorProperty.setEnabled(hasAfterError);
-        }
-        postProcessAction.setEnabled(hasAfterProcess || hasAfterError);
-    }
-
-    private void disablePostProcessActions(Value postProcessAction, Value successProperty, Value errorProperty) {
-        if (successProperty != null) {
-            successProperty.setEnabled(false);
-        }
-        if (errorProperty != null) {
-            errorProperty.setEnabled(false);
-        }
-        if (postProcessAction != null) {
-            postProcessAction.setEnabled(false);
-        }
-    }
-
-    private void applyPostProcessAction(Value actionProperty, ExpressionNode valueExpr) {
-        if (actionProperty == null || actionProperty.getChoices() == null) {
-            return;
-        }
-
-        if (valueExpr instanceof MappingConstructorExpressionNode mappingExpr) {
-            selectPostProcessChoice(actionProperty, ACTION_MOVE, extractMoveProperties(mappingExpr));
-            return;
-        }
-
-        String exprText = valueExpr.toSourceCode().trim();
-        if (exprText.endsWith(ACTION_DELETE)) {
-            selectPostProcessChoice(actionProperty, ACTION_DELETE, null);
-        }
-    }
-
-    private Map<String, String> extractMoveProperties(MappingConstructorExpressionNode mappingExpr) {
-        Map<String, String> moveProps = new HashMap<>();
-        for (MappingFieldNode field : mappingExpr.fields()) {
-            if (field.kind() != SyntaxKind.SPECIFIC_FIELD) {
-                continue;
-            }
-            SpecificFieldNode specificField = (SpecificFieldNode) field;
-            String fieldName = specificField.fieldName().toString().trim();
-            Optional<ExpressionNode> valueExpr = specificField.valueExpr();
-            valueExpr.ifPresent(expressionNode -> moveProps.put(fieldName,
-                    expressionNode.toSourceCode().trim()));
-        }
-        return moveProps;
-    }
-
-    private void selectPostProcessChoice(Value actionProperty, String action, Map<String, String> moveProps) {
-        for (Value choice : actionProperty.getChoices()) {
-            boolean isSelected = action.equals(choice.getValue());
-            choice.setEnabled(isSelected);
-            if (isSelected && ACTION_MOVE.equals(action) && moveProps != null && choice.getProperties() != null) {
-                Value moveTo = choice.getProperties().get(MOVE_TO);
-                if (moveTo != null && moveProps.containsKey(MOVE_TO)) {
-                    moveTo.setValue(moveProps.get(MOVE_TO));
-                }
-            }
-        }
-    }
-
-    private Optional<AnnotationNode> findFtpAnnotation(NodeList<AnnotationNode> annotations, String annotationName,
-                                                        SemanticModel semanticModel) {
-        for (AnnotationNode annotation : annotations) {
-            if (isMatchingFtpAnnotation(annotation, annotationName, semanticModel)) {
-                return Optional.of(annotation);
-            }
-        }
-        return Optional.empty();
-    }
-
-    private boolean isMatchingFtpAnnotation(AnnotationNode annotation, String annotationName,
-                                            SemanticModel semanticModel) {
-        Optional<Symbol> symbol = semanticModel.symbol(annotation);
-        if (symbol.orElse(null) instanceof AnnotationSymbol annotationSymbol) {
-            Optional<ModuleSymbol> module = annotationSymbol.getModule();
-            if (module.isEmpty() || annotationSymbol.getName().isEmpty()
-                    || !annotationName.equals(annotationSymbol.getName().get())) {
-                return false;
-            }
-            String orgName = module.get().id().orgName();
-            String packageName = module.get().id().packageName();
-            String moduleName = module.get().id().moduleName();
-            return BALLERINA.equals(orgName) && (FTP.equals(packageName) || FTP.equals(moduleName));
-        }
-
-        // Fallback when symbol resolution is unavailable (e.g., temporary semantic model issues).
-        if (annotation.annotReference() instanceof QualifiedNameReferenceNode qualifiedName) {
-            return FTP.equals(qualifiedName.modulePrefix().text())
-                    && annotationName.equals(qualifiedName.identifier().text().trim());
-        }
-        return false;
     }
 
     /**
@@ -732,7 +719,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
                 }
 
                 ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) member;
-                if (isServiceAttachedToListener(serviceNode, listenerName)) {
+                if (FTPListenerUtil.isServiceAttachedToListener(serviceNode, listenerName)) {
                     // Check if this service uses the new pattern (has @ftp:ServiceConfig annotation)
                     if (!hasServiceConfigAnnotation(serviceNode, semanticModel)) {
                         return false; // Legacy service found
@@ -765,26 +752,13 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
     }
 
     /**
-     * Checks if a service is attached to a specific listener.
-     */
-    private boolean isServiceAttachedToListener(ServiceDeclarationNode serviceNode, String listenerName) {
-        for (ExpressionNode expr : serviceNode.expressions()) {
-            if (expr instanceof SimpleNameReferenceNode simpleRef) {
-                if (simpleRef.name().text().equals(listenerName)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
      * Checks if a service has the @ftp:ServiceConfig annotation.
      */
     private boolean hasServiceConfigAnnotation(ServiceDeclarationNode serviceNode, SemanticModel semanticModel) {
         if (serviceNode.metadata().isEmpty()) {
             return false;
         }
-        return findFtpAnnotation(serviceNode.metadata().get().annotations(), SERVICE_CONFIG, semanticModel).isPresent();
+        return FTPFunctionModelUtil.findFtpAnnotation(serviceNode.metadata().get().annotations(), SERVICE_CONFIG,
+                semanticModel).isPresent();
     }
 }

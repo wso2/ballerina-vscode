@@ -18,6 +18,9 @@
             "line": 25,
             "offset": 3
           }
+        },
+        "metadata": {
+          "name": "ContactInfo"
         }
       },
       {
@@ -34,6 +37,9 @@
             "line": 48,
             "offset": 3
           }
+        },
+        "metadata": {
+          "name": "InsuranceProvider"
         }
       },
       {
@@ -50,6 +56,9 @@
             "line": 12,
             "offset": 3
           }
+        },
+        "metadata": {
+          "name": "PatientInfo"
         }
       }
     ]

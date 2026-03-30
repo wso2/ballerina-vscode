@@ -1,15 +1,84 @@
 {
   "description": "MSSQL persist client generation - nonexistent tables",
   "testProjectFolder": "sample-project",
-  "name": "testdb",
-  "dbSystem": "mssql",
-  "host": "localhost",
-  "port": 1434,
-  "user": "SA",
-  "password": "Test123#",
-  "database": "testdb",
-  "selectedTables": ["nonexistent_table"],
-  "module": "test",
+  "targetModule": "",
+  "modelFilePath": "",
+  "connection": "testdb",
+  "properties": {
+    "dbSystem": {
+      "metadata": {
+        "label": "Database System",
+        "description": "The database system type (e.g., mysql, postgresql, mssql)"
+      },
+      "value": "mssql",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "host": {
+      "metadata": {
+        "label": "Host",
+        "description": "Database server host address"
+      },
+      "value": "localhost",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "port": {
+      "metadata": {
+        "label": "Port",
+        "description": "Database server port number"
+      },
+      "value": "1434",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "user": {
+      "metadata": {
+        "label": "User",
+        "description": "Database username"
+      },
+      "value": "SA",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "password": {
+      "metadata": {
+        "label": "Password",
+        "description": "Database user password"
+      },
+      "value": "Test123#",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "database": {
+      "metadata": {
+        "label": "Database",
+        "description": "Name of the database to connect"
+      },
+      "value": "testdb",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    }
+  },
+  "tables": [
+    {
+      "table": "nonexistent_table",
+      "selected": true,
+      "existing": false
+    }
+  ],
   "expectError": true,
-  "expectedErrorMessage": "No entities found"
+  "expectedErrorMessage": "No entities found in the database for the selected tables."
 }

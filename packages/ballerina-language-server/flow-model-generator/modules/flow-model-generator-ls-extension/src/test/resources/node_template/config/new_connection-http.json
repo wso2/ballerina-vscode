@@ -810,7 +810,7 @@
             "selected": true
           }
         ],
-        "value": "httpClientOut",
+        "value": "httpClient1",
         "optional": false,
         "editable": true,
         "advanced": false,

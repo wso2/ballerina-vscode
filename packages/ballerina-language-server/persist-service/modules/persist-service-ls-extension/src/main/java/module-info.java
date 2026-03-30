@@ -11,6 +11,7 @@ module io.ballerina.persist.extension {
     requires io.ballerina.model.generator.commons;
     requires io.ballerina.persist.core;
     requires io.ballerina.toml;
+    requires io.ballerina.LSExtensions.TriggerService;
 
     exports io.ballerina.persist.extension;
 }

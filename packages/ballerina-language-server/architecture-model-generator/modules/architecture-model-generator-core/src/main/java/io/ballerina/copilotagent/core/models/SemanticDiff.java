@@ -20,6 +20,8 @@ package io.ballerina.copilotagent.core.models;
 
 import io.ballerina.tools.text.LineRange;
 
+import java.util.Map;
+
 /**
  * Record to represent a semantic difference in the code.
  *
@@ -27,8 +29,10 @@ import io.ballerina.tools.text.LineRange;
  * @param nodeKind node kind
  * @param uri file URI
  * @param lineRange line range of the change
+ * @param metadata additional metadata about the changed node
  *
  * @since 1.5.0
  */
-public record SemanticDiff(ChangeType changeType, NodeKind nodeKind, String uri, LineRange lineRange) {
+public record SemanticDiff(ChangeType changeType, NodeKind nodeKind, String uri, LineRange lineRange,
+                           Map<String, String> metadata) {
 }

@@ -1,0 +1,8 @@
+[package]
+org = "wso2"
+name = "connection_addition"
+version = "0.1.0"
+title = "connection addition"
+
+[build-options]
+sticky = true

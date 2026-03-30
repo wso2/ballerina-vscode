@@ -1,15 +1,81 @@
 {
   "description": "PostgreSQL persist client generation - null module name (should auto-generate from database name)",
   "testProjectFolder": "sample-project-null-module",
-  "name": "testdb",
-  "dbSystem": "postgresql",
-  "host": "localhost",
-  "port": 5432,
-  "user": "postgres",
-  "password": "postgres",
-  "database": "testdb",
-  "selectedTables": [
-    "employees"
+  "connection": "testdb",
+  "properties": {
+    "dbSystem": {
+      "metadata": {
+        "label": "Database System",
+        "description": "The database system type (e.g., mysql, postgresql, mssql)"
+      },
+      "value": "postgresql",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "host": {
+      "metadata": {
+        "label": "Host",
+        "description": "Database server host address"
+      },
+      "value": "localhost",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "port": {
+      "metadata": {
+        "label": "Port",
+        "description": "Database server port number"
+      },
+      "value": "5432",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "user": {
+      "metadata": {
+        "label": "User",
+        "description": "Database username"
+      },
+      "value": "postgres",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "password": {
+      "metadata": {
+        "label": "Password",
+        "description": "Database user password"
+      },
+      "value": "postgres",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "database": {
+      "metadata": {
+        "label": "Database",
+        "description": "Name of the database to connect"
+      },
+      "value": "testdb",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    }
+  },
+  "tables": [
+    {
+      "table": "employees",
+      "selected": true,
+      "existing": false
+    }
   ],
   "output": {
     "sample-project-null-module/connections.bal": [
@@ -24,7 +90,7 @@
             "character": 0
           }
         },
-        "newText": "import sample_project.testdb;\n\nfinal testdb:Client testdb = check new (testdbHost, testdbPort, testdbUser, testdbPassword, testdbDatabase);\n\n"
+        "newText": "import sample_project_null_module.testdb;\n\nfinal testdb:Client testdb = check new (testdbHost, testdbPort, testdbUser, testdbPassword, testdbDatabase);\n\n"
       }
     ],
     "sample-project-null-module/persist/testdb/model.bal": [
@@ -76,15 +142,15 @@
       {
         "range": {
           "start": {
-            "line": 6,
+            "line": 25,
             "character": 0
           },
           "end": {
-            "line": 6,
+            "line": 25,
             "character": 0
           }
         },
-        "newText": "\n[[tool.persist]]\nid = \"sample_project.testdb\"\ntargetModule = \"sample_project.testdb\"\nfilePath = \"persist/testdb/model.bal\"\noptions.datastore = \"postgresql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n\n[[dependency]]\norg = \"ballerina\"\nname = \"tool.persist\"\nversion = \"1.9.0\"\n"
+        "newText": "\n[[tool.persist]]\nid = \"sample_project_null_module.testdb\"\ntargetModule = \"sample_project_null_module.testdb\"\nfilePath = \"persist/testdb/model.bal\"\noptions.datastore = \"postgresql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n"
       }
     ],
     "sample-project-null-module/generated/testdb/persist_client.bal": [

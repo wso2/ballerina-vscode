@@ -25,6 +25,7 @@ import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.flowmodelgenerator.core.DiagnosticHandler;
 import io.ballerina.flowmodelgenerator.core.model.node.AgentBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AgentCallBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.AgentIdAuthConfigBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AgentRunBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AssignBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AutomationBuilder;
@@ -174,6 +175,7 @@ public abstract class NodeBuilder implements DiagnosticHandler.DiagnosticCapable
         put(NodeKind.DATA_LOADER, DataLoaderBuilder::new);
         put(NodeKind.CHUNKER, ChunkerBuilder::new);
         put(NodeKind.MCP_TOOL_KIT, McpToolKitBuilder::new);
+        put(NodeKind.AGENT_ID_AUTH_CONFIG, AgentIdAuthConfigBuilder::new);
     }};
 
     public static NodeBuilder getNodeFromKind(NodeKind kind) {
@@ -318,6 +320,20 @@ public abstract class NodeBuilder implements DiagnosticHandler.DiagnosticCapable
                         workspaceManager.semanticModel(filePath).orElseThrow();
                 Document document = workspaceManager.document(filePath).orElseThrow();
                 return semanticModel.visibleSymbols(document, position).parallelStream()
+                        .filter(s -> s.getName().isPresent())
+                        .map(s -> s.getName().get())
+                        .collect(Collectors.toSet());
+            } catch (Throwable e) {
+                return new HashSet<>();
+            }
+        }
+
+        public Set<String> getAllModuleSymbolNames() {
+            try {
+                workspaceManager.loadProject(filePath);
+                SemanticModel semanticModel =
+                        workspaceManager.semanticModel(filePath).orElseThrow();
+                return semanticModel.moduleSymbols().parallelStream()
                         .filter(s -> s.getName().isPresent())
                         .map(s -> s.getName().get())
                         .collect(Collectors.toSet());

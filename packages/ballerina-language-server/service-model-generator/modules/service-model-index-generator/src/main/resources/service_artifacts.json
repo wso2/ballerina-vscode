@@ -1545,6 +1545,23 @@
             }
           ],
           "sourceKind": "SERVICE_TYPE_DESCRIPTOR"
+        },
+        "listenOn": {
+          "label": "Webhook Listener Port",
+          "description": "The port on which the webhook listener accepts incoming requests",
+          "defaultValue": "8090",
+          "placeholder": "8090",
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "int"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int"
+            }
+          ],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
         }
       }
     },

@@ -218,6 +218,7 @@
         "typeName": "Info",
         "kind": "record"
       }
-    }
+    },
+    "hasInvalidOutput": false
   }
 }

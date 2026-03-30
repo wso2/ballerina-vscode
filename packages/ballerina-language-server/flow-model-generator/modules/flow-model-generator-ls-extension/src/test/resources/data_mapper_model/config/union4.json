@@ -141,6 +141,7 @@
         "typeName": "Dog",
         "kind": "record"
       }
-    }
+    },
+    "hasInvalidOutput": false
   }
 }

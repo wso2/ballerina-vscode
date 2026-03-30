@@ -18,6 +18,9 @@
             "line": 2,
             "offset": 1
           }
+        },
+        "metadata": {
+          "name": "add"
         }
       },
       {
@@ -34,6 +37,9 @@
             "line": 6,
             "offset": 1
           }
+        },
+        "metadata": {
+          "name": "subtract"
         }
       },
       {
@@ -50,6 +56,9 @@
             "line": 41,
             "offset": 1
           }
+        },
+        "metadata": {
+          "name": "foo"
         }
       },
       {
@@ -66,6 +75,9 @@
             "line": 12,
             "offset": 1
           }
+        },
+        "metadata": {
+          "name": "divide"
         }
       },
       {
@@ -82,6 +94,9 @@
             "line": 30,
             "offset": 5
           }
+        },
+        "metadata": {
+          "name": "power"
         }
       },
       {
@@ -98,6 +113,9 @@
             "line": 7,
             "offset": 32
           }
+        },
+        "metadata": {
+          "name": "multiply"
         }
       },
       {
@@ -114,6 +132,9 @@
             "line": 4,
             "offset": 1
           }
+        },
+        "metadata": {
+          "name": "addNumbers"
         }
       },
       {
@@ -130,6 +151,9 @@
             "line": 39,
             "offset": 1
           }
+        },
+        "metadata": {
+          "name": "modulo"
         }
       }
     ]

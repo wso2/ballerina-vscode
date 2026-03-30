@@ -19,6 +19,7 @@
         "type": "VARIABLE",
         "name": "people",
         "scope": "Global",
+        "visibility": "module",
         "children": {}
       }
     },
@@ -39,6 +40,7 @@
         "type": "TYPE",
         "name": "Query",
         "scope": "Global",
+        "visibility": "module",
         "children": {}
       },
       "Mutation": {
@@ -57,6 +59,7 @@
         "type": "TYPE",
         "name": "Mutation",
         "scope": "Global",
+        "visibility": "module",
         "children": {}
       },
       "Person": {
@@ -75,6 +78,7 @@
         "type": "TYPE",
         "name": "Person",
         "scope": "Global",
+        "visibility": "public",
         "children": {}
       }
     },
@@ -95,6 +99,7 @@
         "type": "SERVICE",
         "name": "GraphQL Service - /graphql",
         "scope": "Global",
+        "visibility": "public",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_graphql_1.17.0.png",
         "module": "graphql",
         "children": {
@@ -115,6 +120,7 @@
             "name": "greeting",
             "accessor": "get",
             "scope": "Global",
+            "visibility": "module",
             "children": {}
           }
         }

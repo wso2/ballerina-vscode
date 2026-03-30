@@ -1033,6 +1033,9 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
 
             String newContent = isDelete || configValue.isEmpty() ? EMPTY_STRING : constructConfigTomlStatement(
                     orgName, pkgName, moduleName, variableName, configValue, oldConfigValue.isPresent());
+            // Key-value only (no section header) for inserting into an existing section.
+            String keyValueContent = isDelete || configValue.isEmpty() ? EMPTY_STRING : constructConfigTomlStatement(
+                    orgName, pkgName, moduleName, variableName, configValue, true);
 
             List<TextEdit> textEdits = new ArrayList<>();
             if (oldConfigValue.isPresent()) {
@@ -1069,14 +1072,14 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                                 LinePosition insertPos = LinePosition.from(
                                         lastEntry.location().lineRange().endLine().line() + 1, 0);
                                 textEdits.add(new TextEdit(CommonUtils.toRange(insertPos),
-                                        String.format("%s = %s%n", variableName, configValue)));
+                                        String.format("%s%n", keyValueContent)));
                             }
                         } else {
                             // Section exists but is empty - add right after section header
                             LinePosition insertPos = LinePosition.from(
                                     moduleTableNode.location().lineRange().endLine().line() + 1, 0);
                             textEdits.add(new TextEdit(CommonUtils.toRange(insertPos),
-                                    String.format("%s = %s%n", variableName, configValue)));
+                                    String.format("%s%n", keyValueContent)));
                         }
                     } else {
                         // Section doesn't exist - append to end of file
@@ -1198,6 +1201,15 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                 sbArray.append(String.join(COMMA_SPACE, memberValues));
                 sbArray.append(CLOSE_BRACKET);
                 return sbArray.toString();
+            }
+            case NUMERIC_LITERAL -> {
+                // Strip Ballerina-specific decimal (d/D) and float (f/F) suffixes invalid in TOML
+                String numericValue = configValueExpr.toSourceCode().trim();
+                if (numericValue.endsWith("d") || numericValue.endsWith("D")
+                        || numericValue.endsWith("f") || numericValue.endsWith("F")) {
+                    numericValue = numericValue.substring(0, numericValue.length() - 1);
+                }
+                return numericValue;
             }
             default -> {
                 // TODO: Add support for other types if needed

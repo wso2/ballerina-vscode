@@ -180,6 +180,7 @@
         "typeName": "Temp",
         "kind": "record"
       }
-    }
+    },
+    "hasInvalidOutput": false
   }
 }

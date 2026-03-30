@@ -124,7 +124,7 @@
           "codedata": {
             "type": "LISTENER_VAR_NAME"
           },
-          "value": "kafkaListenerResult",
+          "value": "kafkaListener1",
           "types": [
             {
               "fieldType": "IDENTIFIER",

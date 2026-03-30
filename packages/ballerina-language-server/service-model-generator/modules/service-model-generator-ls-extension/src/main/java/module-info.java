@@ -37,4 +37,6 @@ module io.ballerina.LSExtensions.TriggerService {
     requires io.ballerina.toml;
     requires com.graphqljava;
     requires org.apache.commons.io;
+
+    exports io.ballerina.servicemodelgenerator.extension.model;
 }

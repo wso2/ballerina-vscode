@@ -21,12 +21,14 @@ package io.ballerina.copilotagent.core;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ListenerDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
+import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.NodeVisitor;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.copilotagent.core.models.STNodeRefMap;
+import io.ballerina.modelgenerator.commons.CommonUtils;
 
 import java.util.stream.Collectors;
 
@@ -71,6 +73,13 @@ public class NodeRefExtractor extends NodeVisitor {
     public void visit(TypeDefinitionNode typeDefinitionNode) {
         String key = typeDefinitionNode.typeName().text().trim();
         this.nodeRefMap.putTypeDefNode(key, typeDefinitionNode);
+    }
+
+    @Override
+    public void visit(ModuleVariableDeclarationNode moduleVariableDeclarationNode) {
+        String key = CommonUtils.getVariableName(
+                moduleVariableDeclarationNode.typedBindingPattern().bindingPattern());
+        this.nodeRefMap.putModuleVarNode(key, moduleVariableDeclarationNode);
     }
 
     private static String getPath(NodeList<Node> paths) {

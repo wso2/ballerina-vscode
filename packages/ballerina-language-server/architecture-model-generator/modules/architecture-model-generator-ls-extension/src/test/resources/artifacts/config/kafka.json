@@ -20,6 +20,7 @@
         "type": "TYPE",
         "name": "Order",
         "scope": "Global",
+        "visibility": "module",
         "children": {}
       }
     },
@@ -40,7 +41,8 @@
         "type": "LISTENER",
         "name": "orderListener",
         "scope": "Global",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.6.3.png",
+        "visibility": "module",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.6.4.png",
         "module": "kafka",
         "children": {}
       }
@@ -62,7 +64,8 @@
         "type": "SERVICE",
         "name": "Kafka Event Integration",
         "scope": "Global",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.6.3.png",
+        "visibility": "module",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.6.4.png",
         "module": "kafka",
         "children": {
           "onConsumerRecord": {
@@ -81,6 +84,7 @@
             "type": "REMOTE",
             "name": "onConsumerRecord",
             "scope": "Global",
+            "visibility": "module",
             "children": {}
           }
         }

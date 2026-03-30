@@ -132,6 +132,7 @@
         "typeName": "Department",
         "kind": "record"
       }
-    }
+    },
+    "hasInvalidOutput": false
   }
 }

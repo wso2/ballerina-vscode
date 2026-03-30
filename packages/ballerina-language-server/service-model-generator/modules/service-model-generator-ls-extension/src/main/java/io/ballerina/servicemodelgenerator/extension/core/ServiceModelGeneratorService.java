@@ -86,6 +86,7 @@ import io.ballerina.servicemodelgenerator.extension.model.response.ServiceInitMo
 import io.ballerina.servicemodelgenerator.extension.model.response.ServiceModelResponse;
 import io.ballerina.servicemodelgenerator.extension.model.response.TriggerListResponse;
 import io.ballerina.servicemodelgenerator.extension.model.response.TriggerResponse;
+import io.ballerina.servicemodelgenerator.extension.util.FTPListenerUtil;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
 import io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil;
 import io.ballerina.servicemodelgenerator.extension.util.TypeCompletionGenerator;
@@ -207,8 +208,8 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 Set<String> listeners = ListenerUtil.getCompatibleListeners(request.moduleName(),
                         semanticModel, project);
                 if (FTP.equals(request.moduleName()) && request.removeDeprecated() != null) {
-                    listeners = ListenerUtil.filterFtpListenersByDeprecatedMode(listeners, request.removeDeprecated(),
-                            semanticModel, project);
+                    listeners = FTPListenerUtil.filterFtpListenersByDeprecatedMode(listeners,
+                            request.removeDeprecated(), semanticModel, project);
                 }
                 return new ListenerDiscoveryResponse(listeners);
             } catch (Throwable e) {
@@ -246,7 +247,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                                 removeDeprecated)
                         .map(listenerModel -> {
                             if (FTP.equals(request.codedata().getModuleName()) && request.removeDeprecated() != null) {
-                                ListenerUtil.adjustFtpListenerModelForDeprecatedMode(
+                                FTPListenerUtil.adjustFtpListenerModelForDeprecatedMode(
                                         listenerModel, request.removeDeprecated(), semanticModel.get(), document);
                             }
                             return new ListenerModelResponse(listenerModel);

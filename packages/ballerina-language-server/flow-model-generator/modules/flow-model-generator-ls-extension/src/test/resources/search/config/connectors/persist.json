@@ -5,27 +5,5 @@
   "queryMap": {
     "q": "persist"
   },
-  "categories": [
-    {
-      "metadata": {
-        "label": "Solace MessageProducer",
-        "description": "MessageProducer for synchronous (blocking) message publishing to Solace.\n\nSupports both guaranteed (PERSISTENT/NON_PERSISTENT) and direct (DIRECT) message delivery modes.\nMessages are published to specified destinations (topics or queues).\n\nExample usage:\n```ballerina\nfinal smf:MessageProducer producer = check new (\n    host = \"tcp://broker:55555\",\n    auth = {username: \"default\"}\n);\nsmf:Message message = {\n    payload: \"Hello Solace\".toBytes(),\n    deliveryMode: smf:PERSISTENT,\n    priority: 4\n};\ncheck producer->send(message, {topicName: \"orders/created\"});\ncheck producer->close();\n```",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/xlibb_solace_0.2.2.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "xlibb",
-        "module": "solace",
-        "packageName": "solace",
-        "object": "MessageProducer",
-        "symbol": "init",
-        "version": "0.2.2",
-        "isGenerated": false
-      },
-      "enabled": true
-    }
-  ]
+  "categories": []
 }

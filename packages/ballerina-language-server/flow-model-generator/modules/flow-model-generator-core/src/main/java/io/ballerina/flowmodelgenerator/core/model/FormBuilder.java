@@ -144,9 +144,12 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
         return this;
     }
 
-    public FormBuilder<T> data(String typeSignature, Set<String> names, String label, String doc) {
+    public FormBuilder<T> data(String typeSignature, Set<String> names, String label, String doc,
+                               boolean isConnection) {
         String varName = typeSignature.contains(RemoteActionCallBuilder.TARGET_TYPE_KEY)
                 ? NameUtil.generateTypeName("var", names)
+                : isConnection
+                ? NameUtil.generateTypeName(NameUtil.toCamelCase(typeSignature), names)
                 : NameUtil.generateVariableName(typeSignature, names);
         propertyBuilder
                 .metadata()
@@ -1089,7 +1092,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .editable(editable)
                 .optional(optional)
                 .advanced(advanced)
-                .value(value)
+                .value(String.valueOf(value))
                 .type()
                     .fieldType(Property.ValueType.FLAG)
                     .selected(true)
@@ -1249,8 +1252,8 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
         // Build the parameter name property
         propertyBuilder
                 .metadata()
-                    .label(Property.VARIABLE_KEY)
-                    .description(Property.VARIABLE_DOC)
+                    .label(Property.ARGUMENT_LABEL)
+                    .description(Property.ARGUMENT_DOC)
                     .stepOut()
                 .type()
                     .fieldType(Property.ValueType.LV_EXPRESSION)

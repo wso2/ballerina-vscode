@@ -10,14 +10,17 @@
         "items": [
           {
             "metadata": {
-              "label": "vectorKnowledgeBase"
+              "label": "vectorKnowledgeBase",
+              "data": {
+                "connectorType": "Default"
+              }
             },
             "items": [
               {
                 "metadata": {
                   "label": "ingest",
                   "description": "Indexes a collection of chunks.\nConverts each chunk to an embedding and stores it in the vector store,\nmaking the chunk searchable through the retriever.\n",
-                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.5.0.png"
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.10.0.png"
                 },
                 "codedata": {
                   "node": "KNOWLEDGE_BASE_CALL",
@@ -26,7 +29,7 @@
                   "packageName": "ai",
                   "object": "VectorKnowledgeBase",
                   "symbol": "ingest",
-                  "version": "1.5.0",
+                  "version": "1.10.0",
                   "parentSymbol": "vectorKnowledgeBase",
                   "resourcePath": ""
                 },
@@ -36,7 +39,7 @@
                 "metadata": {
                   "label": "retrieve",
                   "description": "Retrieves relevant chunk for the given query.\n",
-                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.5.0.png"
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.10.0.png"
                 },
                 "codedata": {
                   "node": "KNOWLEDGE_BASE_CALL",
@@ -45,7 +48,7 @@
                   "packageName": "ai",
                   "object": "VectorKnowledgeBase",
                   "symbol": "retrieve",
-                  "version": "1.5.0",
+                  "version": "1.10.0",
                   "parentSymbol": "vectorKnowledgeBase",
                   "resourcePath": ""
                 },
@@ -55,7 +58,7 @@
                 "metadata": {
                   "label": "deleteByFilter",
                   "description": "Deletes chunks that match the given metadata filters.\n",
-                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.5.0.png"
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.10.0.png"
                 },
                 "codedata": {
                   "node": "KNOWLEDGE_BASE_CALL",
@@ -64,7 +67,7 @@
                   "packageName": "ai",
                   "object": "VectorKnowledgeBase",
                   "symbol": "deleteByFilter",
-                  "version": "1.5.0",
+                  "version": "1.10.0",
                   "parentSymbol": "vectorKnowledgeBase",
                   "resourcePath": ""
                 },
