@@ -8,7 +8,10 @@ module.exports = {
   mode: !process.env.CI ? "development" : "production",
   output: {
     path: path.resolve(__dirname, "build"),
+    clean: true,
     filename: "Visualizer.js",
+    chunkFilename: "[name].[contenthash:8].js",
+    publicPath: "auto",
     library: "visualizerWebview",
   },
   resolve: {
@@ -94,12 +97,12 @@ module.exports = {
     },
     static: path.join(__dirname, "build"),
   },
+  optimization: {
+    chunkIds: "deterministic",
+  },
   plugins: [
     new webpack.ProvidePlugin({
       Buffer: ['buffer', 'Buffer'],
-    }),
-    new webpack.optimize.LimitChunkCountPlugin({
-      maxChunks: 1
     })
   ]
 };

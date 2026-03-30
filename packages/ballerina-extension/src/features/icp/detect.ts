@@ -35,6 +35,7 @@ const BASE_DIRS: Record<string, string[]> = {
     linux: ['/usr/share'],
     darwin: [path.join(homedir(), 'Applications')],
     win32: [
+        path.join(process.env.APPDATA || '', 'WSO2', 'Integrator'),
         path.join(process.env.LOCALAPPDATA || '', 'WSO2', 'Integrator'),
         path.join(process.env.PROGRAMFILES || '', 'WSO2', 'Integrator'),
     ],
@@ -58,12 +59,21 @@ function getDefaultPath(): string | undefined {
             return directPath;
         }
 
-        // Search for wso2-integrator* directories within baseDir
+        // Search for matching directories within baseDir
         try {
             const entries = readdirSync(baseDir);
             for (const entry of entries) {
+                // Match wso2-integrator* directories (Linux/Windows)
                 if (entry.startsWith('wso2-integrator')) {
                     const candidatePath = path.join(baseDir, entry, ICP_BIN_RELATIVE, script);
+                    if (existsSync(candidatePath)) {
+                        return candidatePath;
+                    }
+                }
+
+                // Match WSO2 Integrator*.app bundles (macOS)
+                if (entry.startsWith('WSO2 Integrator') && entry.endsWith('.app')) {
+                    const candidatePath = path.join(baseDir, entry, 'Contents', ICP_BIN_RELATIVE, script);
                     if (existsSync(candidatePath)) {
                         return candidatePath;
                     }
