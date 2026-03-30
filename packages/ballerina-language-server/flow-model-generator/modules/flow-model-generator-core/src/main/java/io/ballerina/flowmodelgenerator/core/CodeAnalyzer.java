@@ -148,7 +148,7 @@ import io.ballerina.flowmodelgenerator.core.model.node.IfBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.JsonPayloadBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.KnowledgeBaseBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.MemoryBuilder;
-import io.ballerina.flowmodelgenerator.core.model.node.MemoryStoreBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.ShortTermMemoryStoreBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.MethodCall;
 import io.ballerina.flowmodelgenerator.core.model.node.ModelProviderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.NewConnectionBuilder;
@@ -1720,7 +1720,7 @@ public class CodeAnalyzer extends NodeVisitor {
             return NodeKind.MEMORY;
         }
         if (isAiMemoryStore(classSymbol)) {
-            return NodeKind.MEMORY_STORE;
+            return NodeKind.SHORT_TERM_MEMORY_STORE;
         }
         return null;
     }
@@ -1729,7 +1729,7 @@ public class CodeAnalyzer extends NodeVisitor {
             NodeKind.MODEL_PROVIDER, NodeKind.EMBEDDING_PROVIDER,
             NodeKind.KNOWLEDGE_BASE, NodeKind.VECTOR_STORE,
             NodeKind.DATA_LOADER, NodeKind.CHUNKER,
-            NodeKind.MEMORY, NodeKind.MEMORY_STORE
+            NodeKind.MEMORY, NodeKind.SHORT_TERM_MEMORY_STORE
     );
 
     private static boolean isAiComponentKind(NodeKind kind) {
@@ -1776,7 +1776,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 CommonUtils::isAiDataLoader, FunctionData.Kind.DATA_LOADER,
                 CommonUtils::isAiChunker, FunctionData.Kind.CHUNKER,
                 CommonUtils::isAiMemory, FunctionData.Kind.MEMORY,
-                CommonUtils::isAiMemoryStore, FunctionData.Kind.MEMORY_STORE
+                CommonUtils::isAiMemoryStore, FunctionData.Kind.SHORT_TERM_MEMORY_STORE
         );
 
         return kindMappings.entrySet().stream().filter(entry -> entry.getKey().test(classSymbol))
@@ -1952,7 +1952,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 || nodeBuilder instanceof DataLoaderBuilder
                 || nodeBuilder instanceof ChunkerBuilder
                 || nodeBuilder instanceof MemoryBuilder
-                || nodeBuilder instanceof MemoryStoreBuilder
+                || nodeBuilder instanceof ShortTermMemoryStoreBuilder
                 || nodeBuilder instanceof ClassInitBuilder) {
             // If an AI type node (agent, model provider, etc.) was identified, set the variable property on it
             String variableName = CommonUtils.getVariableName(assignmentStatementNode.varRef());

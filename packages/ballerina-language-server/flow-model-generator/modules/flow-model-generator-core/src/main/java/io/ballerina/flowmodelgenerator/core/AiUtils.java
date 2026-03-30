@@ -88,6 +88,7 @@ import static io.ballerina.flowmodelgenerator.core.model.NodeKind.EMBEDDING_PROV
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.KNOWLEDGE_BASES;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.MODEL_PROVIDER;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.MODEL_PROVIDERS;
+import static io.ballerina.flowmodelgenerator.core.model.NodeKind.SHORT_TERM_MEMORY_STORE;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.VECTOR_STORE;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.VECTOR_STORES;
 
@@ -111,6 +112,7 @@ public class AiUtils {
     private static final Map<String, List<AvailableNode>> cachedVectorStoreMap = new HashMap<>();
     private static final Map<String, List<AvailableNode>> cachedChunkerMap = new HashMap<>();
     private static final Map<String, List<AvailableNode>> cachedDataLoaderMap = new HashMap<>();
+    private static final Map<String, List<AvailableNode>> cachedShortTermMemoryStoreMap = new HashMap<>();
 
     // Ensures that all dependent modules of the specified AI versions in the set are already cached
     private static final Set<String> cachedDependentModules = new HashSet<>();
@@ -131,6 +133,7 @@ public class AiUtils {
         versionToFeatures.put("1.0.0",
                 Set.of(MODEL_PROVIDERS, EMBEDDING_PROVIDERS, VECTOR_STORES, KNOWLEDGE_BASES));
         versionToFeatures.put("1.3.0", Set.of(CHUNKERS, DATA_LOADERS));
+        versionToFeatures.put("1.6.0", Set.of(SHORT_TERM_MEMORY_STORE));
         initFallbackDependentModules();
     }
 
@@ -724,6 +727,14 @@ public class AiUtils {
         return cachedDataLoaderMap.get(aiModuleVersion);
     }
 
+    public static List<AvailableNode> getShortTermMemoryStores(Project project) {
+        String aiModuleVersion = AiUtils.getBallerinaAiModuleVersion(project);
+        if (!cachedShortTermMemoryStoreMap.containsKey(aiModuleVersion)) {
+            buildAiComponentsCache(project);
+        }
+        return cachedShortTermMemoryStoreMap.get(aiModuleVersion);
+    }
+
     private static void buildAiComponentsCache(Project project) {
         String aiModuleVersion = getBallerinaAiModuleVersion(project);
         if (cachedDependentModules.contains(aiModuleVersion)) {
@@ -734,6 +745,7 @@ public class AiUtils {
         List<AvailableNode> cachedVectorStores = new ArrayList<>();
         List<AvailableNode> cachedChunkers = new ArrayList<>();
         List<AvailableNode> cachedDataLoaders = new ArrayList<>();
+        List<AvailableNode> cachedShortTermMemoryStores = new ArrayList<>();
         List<ModuleInfo> modules = AiUtils.getLatestCompatibleModules(aiModuleVersion).stream()
                 .map(m -> new ModuleInfo(m.org(), m.name(), m.name(), m.version()))
                 .toList();
@@ -769,6 +781,10 @@ public class AiUtils {
                 } else if (isDataLoaderClass(classSymbol)) {
                     AvailableNode node = buildAvailableNode(classSymbol, module, aiModuleVersion, DATA_LOADER);
                     cachedDataLoaders.add(node);
+                } else if (isShortTermMemoryStoreClass(classSymbol)) {
+                    AvailableNode node = buildAvailableNode(classSymbol, module, aiModuleVersion,
+                            SHORT_TERM_MEMORY_STORE);
+                    cachedShortTermMemoryStores.add(node);
                 }
             }
         }
@@ -781,6 +797,8 @@ public class AiUtils {
         cachedChunkerMap.put(aiModuleVersion, cachedChunkers.stream()
                 .sorted(Comparator.comparing(node -> node.codedata().module())).toList());
         cachedDataLoaderMap.put(aiModuleVersion, cachedDataLoaders.stream()
+                .sorted(Comparator.comparing(node -> node.codedata().module())).toList());
+        cachedShortTermMemoryStoreMap.put(aiModuleVersion, cachedShortTermMemoryStores.stream()
                 .sorted(Comparator.comparing(node -> node.codedata().module())).toList());
         cachedDependentModules.add(aiModuleVersion);
     }
@@ -820,6 +838,12 @@ public class AiUtils {
                 .anyMatch(inclusion -> inclusion.nameEquals(Ai.DATA_LOADER_TYPE_NAME));
     }
 
+    private static boolean isShortTermMemoryStoreClass(ClassSymbol classSymbol) {
+        return classSymbol.getName().isPresent()
+                && classSymbol.typeInclusions().stream()
+                .anyMatch(inclusion -> inclusion.nameEquals(Ai.SHORT_TERM_MEMORY_STORE_TYPE_NAME));
+    }
+
     private static AvailableNode buildAvailableNode(ClassSymbol classSymbol, ModuleInfo moduleInfo,
                                                     String aiModuleVersion, NodeKind kind) {
         String className = classSymbol.getName().orElse("");
@@ -849,23 +873,23 @@ public class AiUtils {
             return "Default Embedding Provider (WSO2)";
         }
 
-        String providerName = capitalizeFirstChar(moduleName.replaceAll("^ai|\\.", ""));
-        String label = providerName + " " + className;
-        if (className.contains("ModelProvider")) {
-            label = providerName + " " + className.replace("ModelProvider", " Model Provider");
-        } else if (className.contains("EmbeddingProvider")) {
-            label = providerName + " " + className.replace("EmbeddingProvider", " Embedding Provider");
-        } else if (className.contains("VectorStore")) {
-            label = providerName + " " + className.replace("VectorStore", " Vector Store");
-        } else if (className.contains("Chunker")) {
-            label = providerName + " " + className.replace("Chunker", " Chunker");
-        } else if (className.contains("DataLoader")) {
-            label = providerName + " " + className.replace("DataLoader", " Data Loader");
-        }
+        int lastDot = moduleName.lastIndexOf('.');
+        String rawProviderName = lastDot >= 0 ? moduleName.substring(lastDot + 1) : moduleName.replaceAll("^ai", "");
+        String providerName = splitPascalCase(capitalizeFirstChar(rawProviderName));
+        String splitClassName = splitPascalCase(className);
+        String label = (providerName + " " + splitClassName)
+                .replaceAll("(?i)openai", "OpenAI")
+                .replaceAll("(?i)mssql", "MSSQL")
+                .replaceAll("(?i)pgvector", "PGVector")
+                .trim().replaceAll("\\s+", " ");
+        return label;
+    }
 
-        return label.replaceAll("(?i)openai", "OpenAI")
-                .replace("GenericRecursive", "Generic Recursive")
-                .replaceAll("^\\s+", "").replaceAll("\\s+", " ");
+    private static String splitPascalCase(String input) {
+        if (input == null || input.isEmpty()) {
+            return input;
+        }
+        return input.replaceAll("(?<=[a-z0-9])(?=[A-Z])", " ");
     }
 
     private static String capitalizeFirstChar(String word) {
@@ -882,6 +906,7 @@ public class AiUtils {
             case VECTOR_STORE -> "Vector store implementation to connect with " + providerName + " vector database.";
             case CHUNKER -> "Splits the provided document.";
             case DATA_LOADER -> "Loads documents from specified data source.";
+            case SHORT_TERM_MEMORY_STORE -> "Short-term memory store for " + providerName + " chat messages.";
             default -> null;
         };
     }
