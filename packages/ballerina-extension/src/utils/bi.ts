@@ -317,7 +317,10 @@ packages = []
 `;
 
     // Use the workspace-specific directory resolver
-    const workspaceRoot = resolveWorkspacePath(projectRequest.projectPath, projectRequest.projectHandle);
+    const workspaceRoot = resolveWorkspacePath(
+        projectRequest.projectPath, 
+        projectRequest?.projectHandle ?? projectRequest.workspaceName
+    );
 
     // Create Ballerina.toml file
     const ballerinaTomlPath = path.join(workspaceRoot, 'Ballerina.toml');
@@ -339,7 +342,10 @@ packages = ["${projectRequest.packageName}"]
 `;
 
     // Use the workspace-specific directory resolver
-    const workspaceRoot = resolveWorkspacePath(projectRequest.projectPath, projectRequest.projectHandle);
+    const workspaceRoot = resolveWorkspacePath(
+        projectRequest.projectPath, 
+        projectRequest?.projectHandle ?? projectRequest.workspaceName
+    );
 
     // Create Ballerina.toml file
     const ballerinaTomlPath = path.join(workspaceRoot, 'Ballerina.toml');
