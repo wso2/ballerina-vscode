@@ -74,22 +74,26 @@ export function isICPServerRunning(): boolean {
  * Returns true if the run should proceed, false if cancelled.
  */
 export async function ensureICPServerRunning(projectPath?: string): Promise<boolean> {
-    // If we have a stored secret, write it to Config.toml and check server
-    if (projectPath) {
-        const storedSecret = await getStoredICPSecret(projectPath);
-        if (storedSecret) {
-            writeSecretToConfigToml(projectPath, storedSecret);
-            if (isRunning) {
-                return true;
-            }
-        }
+    const storedSecret = projectPath ? await getStoredICPSecret(projectPath) : undefined;
+    if (projectPath && storedSecret) {
+        writeSecretToConfigToml(projectPath, storedSecret);
     }
 
-    if (isRunning) {
+    if (isRunning && (!projectPath || storedSecret)) {
         return true;
     }
 
-    const hasSecret = projectPath ? !!(await getStoredICPSecret(projectPath)) : true;
+    // Server is running but this project has no secret — provision it now
+    if (isRunning && projectPath && !storedSecret) {
+        const secret = await provisionICPSecret(projectPath);
+        if (!secret) {
+            vscode.window.showErrorMessage('Failed to provision ICP secret. The project may not connect to ICP at runtime.');
+            return false;
+        }
+        return true;
+    }
+
+    const hasSecret = projectPath ? !!storedSecret : true;
     const message = hasSecret
         ? 'ICP is enabled for this project but the ICP server is not running.'
         : 'ICP is enabled but not configured. Start ICP server to set up?';
@@ -197,6 +201,19 @@ function createICPTask(icpPath: string): vscode.Task {
         const writeEmitter = new vscode.EventEmitter<string>();
         const closeEmitter = new vscode.EventEmitter<number | void>();
 
+        let outputBuffer = '';
+
+        function checkStartupPattern(text: string): void {
+            outputBuffer += text;
+            if (outputBuffer.includes(ICP_STARTED_PATTERN)) {
+                if (startupTimeout) {
+                    clearTimeout(startupTimeout);
+                    startupTimeout = undefined;
+                }
+                resolveReady(true);
+            }
+        }
+
         const pty: vscode.Pseudoterminal = {
             onDidWrite: writeEmitter.event,
             onDidClose: closeEmitter.event,
@@ -207,28 +224,26 @@ function createICPTask(icpPath: string): vscode.Task {
                     env: { ...process.env },
                 });
 
+                icpProcess.on('error', (err) => {
+                    writeEmitter.fire(`Failed to start ICP: ${err.message}\r\n`);
+                    if (startupTimeout) {
+                        clearTimeout(startupTimeout);
+                        startupTimeout = undefined;
+                    }
+                    resolveReady(false);
+                    closeEmitter.fire(1);
+                });
+
                 icpProcess.stdout?.on('data', (data: Buffer) => {
                     const text = data.toString();
                     writeEmitter.fire(text.replace(/\n/g, '\r\n'));
-                    if (text.includes(ICP_STARTED_PATTERN)) {
-                        if (startupTimeout) {
-                            clearTimeout(startupTimeout);
-                            startupTimeout = undefined;
-                        }
-                        resolveReady(true);
-                    }
+                    checkStartupPattern(text);
                 });
 
                 icpProcess.stderr?.on('data', (data: Buffer) => {
                     const text = data.toString();
                     writeEmitter.fire(text.replace(/\n/g, '\r\n'));
-                    if (text.includes(ICP_STARTED_PATTERN)) {
-                        if (startupTimeout) {
-                            clearTimeout(startupTimeout);
-                            startupTimeout = undefined;
-                        }
-                        resolveReady(true);
-                    }
+                    checkStartupPattern(text);
                 });
 
                 icpProcess.on('close', (code) => {
