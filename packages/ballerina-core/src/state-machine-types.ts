@@ -371,7 +371,7 @@ export type ChatNotify =
     | PlanUpdated
     | CompactionStartEvent
     | CompactionEndEvent
-    | CompactionFailedEvent
+    | CompactionDisabledEvent
     | ConfigChangeEvent;
 
 export interface ChatStart {
@@ -538,24 +538,24 @@ export interface PlanUpdated {
 }
 
 // ==================================
-// Mid-Stream Compaction Events
+// Server-side Compaction Events
 // ==================================
 
-/** Fired when mid-stream compaction starts (stream naturally pauses) */
+/** Fired when the server starts compacting (detected mid-stream via providerMetadata) */
 export interface CompactionStartEvent {
     type: 'compaction_start';
 }
 
-/** Fired when mid-stream compaction completes and streaming resumes */
+/** Fired when server-side compaction completes; carries the extracted summary */
 export interface CompactionEndEvent {
     type: 'compaction_end';
-    metadata?: GenerationCompactionMetadata;
+    /** Extracted <summary> content from the compaction block */
+    summary?: string;
 }
 
-/** Fired when mid-stream compaction fails and context cannot be reduced */
-export interface CompactionFailedEvent {
-    type: 'compaction_failed';
-    reason: string;
+/** Fired once per session when compaction is disabled because the codebase floor exceeds the trigger */
+export interface CompactionDisabledEvent {
+    type: 'compaction_disabled';
 }
 
 /** Fired when a VS Code configuration setting relevant to the AI panel changes */

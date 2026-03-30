@@ -696,12 +696,26 @@ const AIChat: React.FC = () => {
         } else if (type === "compaction_start") {
             setIsCompacting(true);
 
-        } else if (type === "compaction_end" || type === "compaction_failed") {
+        } else if (type === "compaction_end") {
             setIsCompacting(false);
-            // Compaction wipes pre-compaction generations — refresh so restore buttons disappear
-            rpcClient.getAiPanelRpcClient().getCheckpoints()
-                .then(cps => setAvailableCheckpointIds(new Set(cps.map(cp => cp.id))))
-                .catch(() => {});
+            // Show compaction summary bubble in chat if summary was extracted
+            const summary = (response as any).summary as string | undefined;
+            if (summary) {
+                setMessages(prev => [
+                    ...prev,
+                    { role: "Copilot", content: `**Context automatically compacted.**\n\n${summary}`, type: "assistant_message" },
+                ]);
+            }
+
+        } else if (type === "compaction_disabled") {
+            setMessages(prev => [
+                ...prev,
+                {
+                    role: "Copilot",
+                    content: "> **Note:** Your project is large — automatic context compaction is disabled. You may hit the context limit on long sessions. Start a new thread if that happens.",
+                    type: "assistant_message",
+                },
+            ]);
 
         } else if (type === "usage_metrics") {
             const inputTokens = (response as any).usage?.inputTokens ?? 0;
