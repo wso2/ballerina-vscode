@@ -483,7 +483,10 @@
           "connection": {
             "metadata": {
               "label": "Connection",
-              "description": "Connection to use"
+              "description": "Connection to use",
+              "data": {
+                "connectorType": "Default"
+              }
             },
             "types": [
               {

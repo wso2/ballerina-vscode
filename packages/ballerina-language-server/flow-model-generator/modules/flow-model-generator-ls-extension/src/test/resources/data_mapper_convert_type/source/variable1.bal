@@ -45,4 +45,12 @@ function transform7(json user, json student) returns () => {
 
 function transform8(json user, json student) returns xml => xml ``;
 
+function transform10(json user, json student) returns json =>
+    let UserInfo userConverted = check user.ensureType() in
+        {a: 10, b: 20};
+
+function transform11(json user, json student) returns json|error =>
+    let UserInfo userConverted = check user.ensureType() in
+        {a: 10, b: 20};
+
 function transform9(xml user, json student) returns xml => xml ``;

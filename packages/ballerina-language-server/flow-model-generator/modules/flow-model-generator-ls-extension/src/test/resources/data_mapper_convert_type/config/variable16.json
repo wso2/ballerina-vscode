@@ -6,11 +6,11 @@
     "lineRange": {
       "fileName": "main.bal",
       "startLine": {
-        "line": 47,
+        "line": 51,
         "offset": 0
       },
       "endLine": {
-        "line": 49,
+        "line": 53,
         "offset": 23
       }
     },
@@ -19,35 +19,22 @@
   },
   "typeName": "Student",
   "parentTypeName": "json",
-  "variableName": "transform10",
+  "variableName": "transform11",
   "isInput": false,
   "output": {
     "variable1.bal": [
       {
         "range": {
           "start": {
-            "line": 48,
+            "line": 52,
             "character": 56
           },
           "end": {
-            "line": 48,
+            "line": 52,
             "character": 56
           }
         },
-        "newText": ", Student transform10 = {a: 10, b: 20}"
-      },
-      {
-        "range": {
-          "start": {
-            "line": 47,
-            "character": 58
-          },
-          "end": {
-            "line": 47,
-            "character": 58
-          }
-        },
-        "newText": "|error"
+        "newText": ", Student transform11 = {a: 10, b: 20}"
       },
       {
         "range": {
@@ -65,15 +52,15 @@
       {
         "range": {
           "start": {
-            "line": 49,
+            "line": 53,
             "character": 8
           },
           "end": {
-            "line": 49,
+            "line": 53,
             "character": 22
           }
         },
-        "newText": "check jsondata:toJson(transform10)"
+        "newText": "jsondata:toJson(transform11)"
       }
     ]
   }
