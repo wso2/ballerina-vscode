@@ -112,7 +112,7 @@ import { SidePanelView } from "../../FlowDiagram/PanelManager";
 import { ConnectionKind } from "../../../../components/ConnectionSelector";
 import { getFilteredTypesByKind } from "../../TypeEditor/utils";
 import { useModalStack } from "../../../../Context";
-import { getArraySubFormFieldFromTypes, stringToRawArrayElements } from "@wso2/ballerina-side-panel/lib/components/editors/utils";
+import { getArraySubFormFieldFromTypes, stringToRawArrayElements, stringToRawObjectEntries } from "@wso2/ballerina-side-panel/lib/components/editors/utils";
 
 interface TypeEditorState {
     isOpen: boolean;
@@ -522,7 +522,11 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             const updatedField = { ...field };
 
             const isRepeatableList = field.types?.length === 1 && getPrimaryInputType(field.types)?.fieldType === "REPEATABLE_LIST";
-            const selectedInputType = isRepeatableList? getPrimaryInputType(field.types) : field.types?.find(t => t.selected);
+            const isRepeatableMap = field.types?.length === 1 && getPrimaryInputType(field.types)?.fieldType === "REPEATABLE_MAP";
+            const selectedInputType = isRepeatableList ? getPrimaryInputType(field.types) : field.types?.find(t => t.selected);
+            const isContainingRepeatableList = field.types?.some(t => t.fieldType === "REPEATABLE_LIST");
+            const isContainingRepeatableMap = field.types?.some(t => t.fieldType === "REPEATABLE_MAP");
+
 
             const nodeProperties = nodeWithDiagnostics?.properties as any;
             let propertyDiagnostics: any = nodeProperties?.[field.key]?.diagnostics?.diagnostics;
@@ -540,6 +544,38 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                         };
                     });
                     updatedField.value = initialFields;
+                }
+
+                else if (isContainingRepeatableMap) {
+                    if (!(typeof nodeProperties?.[field.key]?.value === "object")) {
+                        throw new Error(`Expected value for repeatable map field "${field.key}" to be an object, but got ${typeof nodeProperties?.[field.key]?.value}.`);
+                    }
+                    if (selectedInputType?.fieldType === "REPEATABLE_MAP") {
+                        let initialValues: { key: string; value: string }[];
+                        if (typeof data[field.key] === 'string') {
+                            initialValues = stringToRawObjectEntries(data[field.key]);
+                        } else {
+                            // When the value is an object (from FormMapEditorNew), extract entries directly
+                            initialValues = Object.entries(data[field.key] as Record<string, any>).map(([entryKey, entryVal]) => ({
+                                key: entryKey,
+                                value: typeof entryVal === 'object' && entryVal !== null ? String((entryVal as any).value ?? '') : String(entryVal)
+                            }));
+                        }
+                        const initialFields = initialValues.map((val, index) => {
+                            const key = crypto.randomUUID();
+                            propertyDiagnostics = nodeProperties?.[field.key]?.value?.[val.key]?.diagnostics?.diagnostics ?? [];
+                            return {
+                                ...getArraySubFormFieldFromTypes(key, (field.types[0] as any).template.types as InputType[]),
+                                value: val,
+                                diagnostics: nodeProperties?.[field.key]?.value?.[val.key]?.diagnostics?.diagnostics ?? []
+                            };
+                        });
+                        updatedField.value = initialFields;
+                    }
+                    else {
+                        updatedField.value = data[field.key];
+                        propertyDiagnostics = nodeProperties?.[field.key]?.value?.map((val: any) => val?.diagnostics?.diagnostics ?? []).flat() ?? [];
+                    }
                 }
                 else {
                     updatedField.value = data[field.key];
@@ -925,6 +961,10 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             if ( property?.types?.length === 1 && getPrimaryInputType(property.types)?.fieldType === "REPEATABLE_LIST") {
                 // For repeatable list, check diagnostics for each element in the list
                 const valueDiagnostics = (property.value as any[])?.map((val) => val?.diagnostics?.diagnostics ?? []).flat() ?? [];
+                diagnostics = [...diagnostics, ...valueDiagnostics];
+            } else if (property?.types?.some(t => t.fieldType === "REPEATABLE_MAP") && typeof property.value === 'object' && property.value !== null && !Array.isArray(property.value)) {
+                // For repeatable map, check diagnostics for each entry in the map
+                const valueDiagnostics = Object.values(property.value as Record<string, any>)?.map((val) => val?.diagnostics?.diagnostics ?? []).flat() ?? [];
                 diagnostics = [...diagnostics, ...valueDiagnostics];
             } else {
                 diagnostics = property.diagnostics?.diagnostics ?? [];
