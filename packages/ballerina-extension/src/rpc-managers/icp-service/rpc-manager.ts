@@ -30,7 +30,7 @@ import { updateSourceCode } from "../../utils/source-utils";
 import { getOrgAndPackageName } from "../../utils";
 import { parse, stringify } from "@iarna/toml";
 import { getStoredICPSecret } from "../../features/icp/setup";
-import { ensureICPServerRunning } from "../../features/icp";
+import { ensureICPServerRunning, isICPServerRunning } from "../../features/icp";
 
 const ICP_IMPORTS = [
     'import wso2/icp.runtime.bridge as _;',
@@ -318,11 +318,29 @@ export class ICPServiceRpcManager implements ICPServiceAPI {
 
     async viewInICP(params: ICPEnabledRequest): Promise<ICPEnabledResponse> {
         try {
-            const proceed = await ensureICPServerRunning(params.projectPath);
-            if (!proceed) {
+            const icpUrl = vscode.workspace.getConfiguration('ballerina').get<string>('icpUrl') || 'https://localhost:9445';
+
+            if (isICPServerRunning()) {
+                await vscode.env.openExternal(vscode.Uri.parse(icpUrl));
+                return { enabled: true };
+            }
+
+            const action = await vscode.window.showWarningMessage(
+                'ICP server is not running. Start the server to view the ICP dashboard?',
+                'Start ICP Server',
+                'Cancel'
+            );
+
+            if (action !== 'Start ICP Server') {
                 return { enabled: false };
             }
-            const icpUrl = vscode.workspace.getConfiguration('ballerina').get<string>('icpUrl') || 'https://localhost:9445';
+
+            await vscode.commands.executeCommand('ballerina.icp.start');
+
+            if (!isICPServerRunning()) {
+                return { enabled: false };
+            }
+
             await vscode.env.openExternal(vscode.Uri.parse(icpUrl));
             return { enabled: true };
         } catch (error) {
