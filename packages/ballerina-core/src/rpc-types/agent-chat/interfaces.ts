@@ -72,3 +72,8 @@ export interface ClearChatResponse {
 export interface SessionInput {
     sessionId?: string;
 }
+
+export interface SessionInfoResponse {
+    sessionId: string;
+    chatEndpoint: string;
+}

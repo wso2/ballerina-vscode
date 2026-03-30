@@ -35,7 +35,7 @@ export interface ParametersProps {
     onChange: (parameters: ParameterModel[]) => void;
     onEditClick?: (param: ParameterModel) => void;
     showPayload: boolean;
-    streamEnabled?: boolean;
+    typeLabel?: string;
 }
 
 const ParamLabelContainer = styled.div`
@@ -76,7 +76,7 @@ const HeaderLabel = styled.div<CSSObject>`
 `;
 
 export function Parameters(props: ParametersProps) {
-    const { parameters, onChange, onEditClick, showPayload } = props;
+    const { parameters, onChange, onEditClick, showPayload, typeLabel } = props;
 
     const [editModel, setEditModel] = useState<ParameterModel | undefined>(undefined);
     const [editingIndex, setEditingIndex] = useState<number>(-1);
@@ -183,6 +183,7 @@ export function Parameters(props: ParametersProps) {
                             onChange={onChangeParam}
                             onSave={onSaveParam}
                             onCancel={onParamEditCancel}
+                            typeLabel={typeLabel}
                         />
                     )}
                 </>

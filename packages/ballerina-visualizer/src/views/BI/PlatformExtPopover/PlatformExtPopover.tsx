@@ -26,7 +26,7 @@ import {
     ICreateDirCtxCmdParams,
     IManageDirContextCmdParams,
     IOpenInConsoleCmdParams,
-    CommandIds as PlatformExtCommandIds,
+    WICommandIds,
 } from "@wso2/wso2-platform-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { QuickPickItem } from "vscode";
@@ -97,20 +97,20 @@ export interface DiagnosticsPopUpProps {
 
 export function PlatformExtPopover(props: DiagnosticsPopUpProps) {
     const { isVisible, onClose, anchorEl, projectPath } = props;
-    const { platformExtState, platformRpcClient, loginToDevant } = usePlatformExtContext();
+    const { platformExtState, platformRpcClient, loginToDevant, handleLinkWorkspace } = usePlatformExtContext();
     const { rpcClient } = useRpcContext();
 
     const handleSignOut = () => {
         rpcClient
             .getCommonRpcClient()
             .showInformationModal({
-                message: "Are you sure you want to sign out of your Devant account?",
+                message: "Are you sure you want to sign out of your WSO2 Integration Platform account?",
                 items: ["Yes"],
             })
             .then((res) => {
                 if (res === "Yes") {
                     rpcClient.getCommonRpcClient().executeCommand({
-                        commands: [PlatformExtCommandIds.SignOut],
+                        commands: [WICommandIds.SignOut],
                     });
                 }
             });
@@ -119,25 +119,10 @@ export function PlatformExtPopover(props: DiagnosticsPopUpProps) {
     const handleSwitchProject = () => {
         rpcClient.getCommonRpcClient().executeCommand({
             commands: [
-                PlatformExtCommandIds.ManageDirectoryContext,
+                WICommandIds.ManageDirectoryContext,
                 {
-                    extName: "Devant",
                     onlyShowSwitchProject: true,
                 } as IManageDirContextCmdParams,
-            ],
-        });
-    };
-
-    const handleLinkWorkspace = async () => {
-        const visualizerLocation = await rpcClient.getVisualizerLocation();
-        rpcClient.getCommonRpcClient().executeCommand({
-            commands: [
-                PlatformExtCommandIds.CreateDirectoryContext,
-                {
-                    extName: "Devant",
-                    skipComponentExistCheck: true,
-                    fsPath: visualizerLocation?.workspacePath || visualizerLocation?.projectPath || "",
-                } as ICreateDirCtxCmdParams,
             ],
         });
     };
@@ -162,9 +147,8 @@ export function PlatformExtPopover(props: DiagnosticsPopUpProps) {
     const openIntegrationInConsole = () => {
         rpcClient.getCommonRpcClient().executeCommand({
             commands: [
-                PlatformExtCommandIds.OpenInConsole,
+                WICommandIds.OpenInConsole,
                 {
-                    extName: "Devant",
                     componentFsPath: projectPath,
                     component: platformExtState?.selectedComponent,
                     newComponentParams: { buildPackLang: "ballerina" },
@@ -185,7 +169,7 @@ export function PlatformExtPopover(props: DiagnosticsPopUpProps) {
         const quickPickOptions: QuickPickItem[] = [
             {
                 label: "View in Console",
-                detail: "Open the integration in Devant Console",
+                detail: "Open the integration in WSO2 Integration Platform Console",
             },
             { kind: -1, label: "Associated Integrations" },
             ...platformExtState?.components.map((item) => ({
@@ -258,7 +242,7 @@ export function PlatformExtPopover(props: DiagnosticsPopUpProps) {
                                             <PanelItemTitle>Project</PanelItemTitle>
                                             <PanelItemValButton
                                                 onClick={handleSwitchProject}
-                                                title="Link with a different Devant project"
+                                                title="Link with a different WSO2 Cloud project"
                                             >
                                                 {platformExtState?.selectedContext?.project?.name}
                                             </PanelItemValButton>
@@ -287,7 +271,7 @@ export function PlatformExtPopover(props: DiagnosticsPopUpProps) {
                                                             {nonCriticalEnvs?.length > 1 ? (
                                                                 <PanelItemValButton
                                                                     onClick={handleEnvSelect}
-                                                                    title="Select a different Devant Environment"
+                                                                    title="Select a different WSO2 Cloud Environment"
                                                                 >
                                                                     {platformExtState?.selectedEnv?.name}
                                                                 </PanelItemValButton>
@@ -303,14 +287,14 @@ export function PlatformExtPopover(props: DiagnosticsPopUpProps) {
                                                 <PanelItem>
                                                     <PanelItemContent>
                                                         <PanelItemTitle style={{ marginBottom: 0 }}>
-                                                            Using {platformExtState?.devantConns?.list?.length} Devant{" "}
+                                                            Using {platformExtState?.devantConns?.list?.length} WSO2 Cloud{" "}
                                                             {platformExtState?.devantConns?.list?.length < 2
                                                                 ? "Connection"
                                                                 : "Connections"}
                                                         </PanelItemTitle>
 
                                                         <PanelItemVal>
-                                                            Connect to Devant <br />
+                                                            Connect to WSO2 Cloud <br />
                                                             while running or debugging
                                                         </PanelItemVal>
                                                     </PanelItemContent>
@@ -335,7 +319,7 @@ export function PlatformExtPopover(props: DiagnosticsPopUpProps) {
                                         <PanelItemVSCodeLink onClick={handleLinkWorkspace}>
                                             Link workspace
                                         </PanelItemVSCodeLink>{" "}
-                                        with a Devant project to activate Devant features
+                                        with a WSO2 Cloud project to activate cloud features
                                     </PanelItemVal>
                                 </PanelItem>
                             )}
@@ -343,8 +327,7 @@ export function PlatformExtPopover(props: DiagnosticsPopUpProps) {
                     ) : (
                         <PanelItem>
                             <PanelItemVal style={{ textAlign: "center" }}>
-                                <PanelItemVSCodeLink onClick={loginToDevant}>Login</PanelItemVSCodeLink> to your Devant
-                                account
+                                <PanelItemVSCodeLink onClick={loginToDevant}>Login</PanelItemVSCodeLink> to your WSO2 Integration Platform account
                                 <br /> to manage your project in the cloud
                             </PanelItemVal>
                         </PanelItem>

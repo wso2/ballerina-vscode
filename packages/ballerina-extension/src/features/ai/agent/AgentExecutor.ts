@@ -17,7 +17,8 @@
  */
 
 import { AICommandExecutor, AICommandConfig, AIExecutionResult } from '../executors/base/AICommandExecutor';
-import { Command, GenerateAgentCodeRequest, ProjectSource, MACHINE_VIEW, refreshReviewMode, ExecutionContext } from '@wso2/ballerina-core';
+import { Command, GenerateAgentCodeRequest, ProjectSource, ExecutionContext, SemanticDiff, ReviewModeData, PROJECT_KIND } from '@wso2/ballerina-core';
+import { StateMachine } from '../../../stateMachine';
 import { ModelMessage, stepCountIs, streamText, TextStreamPart } from 'ai';
 import { getAnthropicClient, getProviderCacheControl, ANTHROPIC_SONNET_4 } from '../utils/ai-client';
 import { populateHistoryForAgent, getErrorMessage } from '../utils/ai-utils';
@@ -26,12 +27,12 @@ import { getSystemPrompt, getUserPrompt } from './prompts';
 import { GenerationType } from '../utils/libs/libraries';
 import { createToolRegistry } from './tool-registry';
 import { getProjectSource, cleanupTempProject } from '../utils/project/temp-project';
+import { integrateCodeToWorkspace } from './utils';
+import { getWorkspaceTomlValues } from '../../../utils';
 import { StreamContext } from './stream-handlers/stream-context';
 import { checkCompilationErrors } from './tools/diagnostics-utils';
 import { updateAndSaveChat } from '../utils/events';
 import { chatStateStorage } from '../../../views/ai-panel/chatStateStorage';
-import { RPCLayer } from '../../../RPCLayer';
-import { VisualizerWebview } from '../../../views/visualizer/webview';
 import * as path from 'path';
 import { approvalViewManager } from '../state/ApprovalViewManager';
 import {
@@ -57,12 +58,12 @@ import { runningServicesManager } from './tools/running-service-manager';
  * @param tempProjectPath Temp project root path
  * @returns Array of temp package paths that have changes
  */
-function determineAffectedPackages(
+async function determineAffectedPackages(
     modifiedFiles: string[],
     projects: ProjectSource[],
     ctx: ExecutionContext,
     tempProjectPath: string
-): string[] {
+): Promise<string[]> {
     const affectedPackages = new Set<string>();
 
     console.log(`[determineAffectedPackages] Analyzing ${modifiedFiles.length} modified files across ${projects.length} projects`);
@@ -75,40 +76,30 @@ function determineAffectedPackages(
         return Array.from(affectedPackages);
     }
 
+    // Re-read workspace Ballerina.toml from temp to get the current package list
+    // (the agent may have added new packages during the session)
+    const workspaceToml = await getWorkspaceTomlValues(tempProjectPath);
+    const packagePaths: string[] = workspaceToml?.workspace?.packages ?? projects.map(p => p.packagePath).filter(p => p !== "");
+
     // For workspace scenario with multiple packages
     // We need to map modified files to their temp package paths
     for (const modifiedFile of modifiedFiles) {
         let matched = false;
 
-        for (const project of projects) {
-            if (project.packagePath === "") {
-                // Root package in workspace (edge case)
-                if (!modifiedFile.includes('/') ||
-                    !projects.some(p => p.packagePath && modifiedFile.startsWith(p.packagePath + '/'))) {
-                    // Root package is at the temp project path directly
-                    affectedPackages.add(tempProjectPath);
-                    matched = true;
-                    console.log(`[determineAffectedPackages] File '${modifiedFile}' belongs to root package (temp): ${tempProjectPath}`);
-                    break;
-                }
-            } else {
-                // Package with a specific path in workspace
-                if (modifiedFile.startsWith(project.packagePath + '/') ||
-                    modifiedFile === project.packagePath) {
-                    // Map to temp package path: tempProjectPath + relative package path
-                    const tempPackagePath = path.join(tempProjectPath, project.packagePath);
-                    affectedPackages.add(tempPackagePath);
-                    matched = true;
-                    console.log(`[determineAffectedPackages] File '${modifiedFile}' belongs to package '${project.packagePath}' (temp): ${tempPackagePath}`);
-                    break;
-                }
+        for (const pkgPath of packagePaths) {
+            if (modifiedFile.startsWith(pkgPath + '/') || modifiedFile === pkgPath) {
+                const tempPackagePath = path.join(tempProjectPath, pkgPath);
+                affectedPackages.add(tempPackagePath);
+                matched = true;
+                console.log(`[determineAffectedPackages] File '${modifiedFile}' belongs to package '${pkgPath}' (temp): ${tempPackagePath}`);
+                break;
             }
         }
 
         if (!matched) {
-            // Fallback: if we can't determine the package, include the temp project root
-            console.warn(`[determineAffectedPackages] Could not determine package for file '${modifiedFile}', using temp project root`);
+            // File at workspace root (e.g. root Ballerina.toml)
             affectedPackages.add(tempProjectPath);
+            console.log(`[determineAffectedPackages] File '${modifiedFile}' is at workspace root (temp): ${tempProjectPath}`);
         }
     }
 
@@ -149,8 +140,9 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
         const tempProjectPath = this.config.executionContext.tempProjectPath!;
         const params = this.config.params; // Access params from config
         const modifiedFiles: string[] = [];
+        const allModifiedFiles: Set<string> = new Set();
         const generationStartTime = Date.now();
-        const projectId = await getHashedProjectId(this.config.executionContext.projectPath);
+        const projectId = await getHashedProjectId(this.config.executionContext.workspacePath || this.config.executionContext.projectPath);
 
         try {
             // 1. Get project sources from temp directory
@@ -201,15 +193,17 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 eventHandler: this.config.eventHandler,
                 tempProjectPath,
                 modifiedFiles,
+                allModifiedFiles,
                 projects,
                 generationType: GenerationType.CODE_GENERATION,
-                workspaceId: this.config.executionContext.projectPath,
+                projectRootPath: this.config.executionContext.workspacePath || this.config.executionContext.projectPath || '',
                 generationId: this.config.generationId,
                 threadId: 'default',
                 runningServices: runningServicesManager,
+                webSearchEnabled: params.webSearchEnabled ?? false,
+                ctx: this.config.executionContext,
             });
 
-            // Stream LLM response
             const { fullStream, response, usage } = streamText({
                 model: await getAnthropicClient(ANTHROPIC_SONNET_4),
                 maxOutputTokens: 8192,
@@ -227,6 +221,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             const streamContext: StreamContext = {
                 eventHandler: this.config.eventHandler,
                 modifiedFiles,
+                allModifiedFiles,
                 projects,
                 shouldCleanup: false, // Review mode - don't cleanup immediately
                 messageId: this.config.generationId,
@@ -258,37 +253,38 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                     console.log("[AgentExecutor] Aborted by user.");
 
                     // Get partial messages from SDK
-                    let messagesToSave: any[] = [];
+                    let partialLLMMessages: any[] = [];
                     try {
                         const partialResponse = await response;
-                        messagesToSave = partialResponse.messages || [];
+                        partialLLMMessages = partialResponse.messages || [];
                     } catch (e) {
                         console.warn("[AgentExecutor] Could not retrieve partial response messages:", e);
                     }
 
-                    // Add abort notification message
-                    messagesToSave.push({
-                        role: "user",
-                        content: `<abort_notification>
+                    // Only save if LLM actually responded — user message without LLM response is meaningless
+                    const projectRootPath = this.config.executionContext.workspacePath || this.config.executionContext.projectPath || '';
+                    const threadId = 'default';
+                    if (partialLLMMessages.length > 0) {
+                        chatStateStorage.updateGeneration(projectRootPath, threadId, this.config.generationId, {
+                            modelMessages: [
+                                { role: "user", content: streamContext.userMessageContent },
+                                ...partialLLMMessages,
+                                {
+                                    role: "user",
+                                    content: `<abort_notification>
 Generation stopped by user. The last in-progress task was not saved. Files have been reverted to the previous completed task state. Please redo the last task if needed.
 </abort_notification>`,
-                    });
-
-                    // Update generation with user message + partial messages
-                    const workspaceId = this.config.executionContext.projectPath;
-                    const threadId = 'default';
-                    chatStateStorage.updateGeneration(workspaceId, threadId, this.config.generationId, {
-                        modelMessages: [
-                            { role: "user", content: streamContext.userMessageContent },
-                            ...messagesToSave,
-                        ],
-                    });
+                                },
+                            ],
+                        });
+                        updateAndSaveChat(this.config.generationId, Command.Agent, this.config.eventHandler);
+                    }
 
                     // Clear review state
-                    const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
+                    const pendingReview = chatStateStorage.getPendingReviewGeneration(projectRootPath, threadId);
                     if (pendingReview && pendingReview.id === this.config.generationId) {
                         console.log("[AgentExecutor] Clearing review state due to abort");
-                        chatStateStorage.declineAllReviews(workspaceId, threadId);
+                        chatStateStorage.declineAllReviews(projectRootPath, threadId);
                     }
 
                     // Send telemetry for generation abort
@@ -391,13 +387,13 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         }
 
         // Clear review state for this generation
-        const workspaceId = context.ctx.projectPath;
+        const projectRootPath = context.ctx.workspacePath || context.ctx.projectPath || '';
         const threadId = 'default';
-        const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
+        const pendingReview = chatStateStorage.getPendingReviewGeneration(projectRootPath, threadId);
 
         if (pendingReview && pendingReview.id === context.messageId) {
             console.log("[AgentExecutor] Clearing review state due to error");
-            chatStateStorage.updateReviewState(workspaceId, threadId, context.messageId, {
+            chatStateStorage.updateReviewState(projectRootPath, threadId, context.messageId, {
                 status: 'error',
                 errorMessage: getErrorMessage(error),
             });
@@ -421,6 +417,25 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                 'generation.duration_ms': (errorTime - context.generationStartTime).toString(),
             }
         );
+
+        // Save partial LLM messages to storage and emit save_chat (mirrors abort path)
+        let messagesToSave: any[] = [];
+        try {
+            const partialResponse = await context.response;
+            messagesToSave = partialResponse.messages || [];
+        } catch (e) {
+            console.warn("[AgentExecutor] Could not retrieve partial response messages on error:", e);
+        }
+
+        if (messagesToSave.length > 0) {
+            chatStateStorage.updateGeneration(projectRootPath, threadId, context.messageId, {
+                modelMessages: [
+                    { role: "user", content: context.userMessageContent },
+                    ...messagesToSave,
+                ],
+            });
+            updateAndSaveChat(context.messageId, Command.Agent, context.eventHandler);
+        }
 
         context.eventHandler({
             type: "error",
@@ -477,6 +492,29 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         // Update chat state storage
         await this.updateChatState(context, assistantMessages, tempProjectPath);
 
+        // Integrate generated code into workspace immediately so user sees changes during review
+        const workspaceId = context.ctx.workspacePath || context.ctx.projectPath;
+        const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, 'default');
+        if (pendingReview && pendingReview.reviewState.modifiedFiles.length > 0) {
+            const integrationCtx = { ...context.ctx };
+            // In workspace mode, resolve project path from modified files if not set
+            if (!integrationCtx.projectPath && integrationCtx.workspacePath && pendingReview.reviewState.modifiedFiles.length > 0) {
+                const firstBalFile = pendingReview.reviewState.modifiedFiles.find(f => f.endsWith('.bal'));
+                if (firstBalFile) {
+                    const packageName = firstBalFile.split('/')[0];
+                    if (packageName) {
+                        integrationCtx.projectPath = path.join(integrationCtx.workspacePath, packageName);
+                        StateMachine.context().projectPath = integrationCtx.projectPath;
+                    }
+                }
+            }
+            await integrateCodeToWorkspace(
+                pendingReview.reviewState.tempProjectPath!,
+                new Set(pendingReview.reviewState.modifiedFiles),
+                integrationCtx
+            );
+        }
+
         // Emit UI events
         await this.emitReviewActions(context);
     }
@@ -490,23 +528,22 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         assistantMessages: any[],
         tempProjectPath: string
     ): Promise<void> {
-        const workspaceId = context.ctx.projectPath;
+        const projectRootPath = context.ctx.workspacePath || context.ctx.projectPath || '';
         const threadId = 'default';
 
         // Check if we're updating an existing review context
-        const existingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
-        let accumulatedModifiedFiles = context.modifiedFiles;
+        const existingReview = chatStateStorage.getPendingReviewGeneration(projectRootPath, threadId);
+        const generationModifiedFiles = Array.from(new Set([...context.allModifiedFiles, ...context.modifiedFiles]));
+        let accumulatedModifiedFiles = generationModifiedFiles;
 
         if (existingReview && existingReview.reviewState.tempProjectPath === tempProjectPath) {
-            // Accumulate modified files from previous prompts
             const existingFiles = new Set(existingReview.reviewState.modifiedFiles || []);
-            const newFiles = new Set(context.modifiedFiles);
-            accumulatedModifiedFiles = Array.from(new Set([...existingFiles, ...newFiles]));
-            console.log(`[AgentExecutor] Accumulated modified files: ${accumulatedModifiedFiles.length} total (${existingReview.reviewState.modifiedFiles?.length || 0} existing + ${context.modifiedFiles.length} new)`);
+            accumulatedModifiedFiles = Array.from(new Set([...existingFiles, ...generationModifiedFiles]));
+            console.log(`[AgentExecutor] Accumulated modified files: ${accumulatedModifiedFiles.length} total (${existingReview.reviewState.modifiedFiles?.length || 0} existing + ${generationModifiedFiles.length} new)`);
         }
 
         // Update chat state storage with user message + assistant messages
-        chatStateStorage.updateGeneration(workspaceId, threadId, context.messageId, {
+        chatStateStorage.updateGeneration(projectRootPath, threadId, context.messageId, {
             modelMessages: [
                 { role: "user", content: context.userMessageContent },
                 ...assistantMessages,
@@ -521,7 +558,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
 
         // Determine which packages have been affected by the changes
         // This returns temp package paths for use with Language Server APIs
-        const affectedPackagePaths = determineAffectedPackages(
+        const affectedPackagePaths = await determineAffectedPackages(
             accumulatedModifiedFiles,
             context.projects,
             context.ctx,
@@ -529,33 +566,81 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         );
 
         // Update review state and open review mode
-        chatStateStorage.updateReviewState(workspaceId, threadId, context.messageId, {
+        chatStateStorage.updateReviewState(projectRootPath, threadId, context.messageId, {
             status: 'under_review',
             tempProjectPath,
             modifiedFiles: accumulatedModifiedFiles,
             affectedPackagePaths: affectedPackagePaths,
         });
 
-        // Open ReviewMode
-        approvalViewManager.openView(MACHINE_VIEW.ReviewMode);
-
-        // Notify ReviewMode component to refresh its data
-        setTimeout(() => {
-            RPCLayer._messenger.sendNotification(refreshReviewMode, {
-                type: 'webview',
-                webviewType: VisualizerWebview.viewType
-            });
-            console.log("[AgentExecutor] Sent refresh notification to review mode");
-        }, 100);
+        // ReviewMode will be opened with data from emitReviewActions
     }
 
     /**
      * Emits review actions and chat save events to UI.
      */
     private async emitReviewActions(context: StreamContext): Promise<void> {
-        // Emit review_actions only if there are modified files
-        if (context.modifiedFiles.length > 0) {
-            context.eventHandler({ type: "review_actions" });
+        // Use accumulated modifiedFiles from chatStateStorage (merged across review continuations)
+        const workspaceId = context.ctx.workspacePath || context.ctx.projectPath;
+        const threadId = 'default';
+        const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
+        const generationModifiedFiles = Array.from(new Set([...context.allModifiedFiles, ...context.modifiedFiles]));
+        const accumulatedModifiedFiles = pendingReview
+            ? Array.from(new Set([...pendingReview.reviewState.modifiedFiles, ...generationModifiedFiles]))
+            : generationModifiedFiles;
+
+        if (accumulatedModifiedFiles.length > 0) {
+            const semanticDiffs: SemanticDiff[] = [];
+            let loadDesignDiagrams = false;
+            let affectedPackages: string[] = [];
+            const diffPackageMap: string[] = [];
+            const langClient = StateMachine.context().langClient;
+            const tempDir = context.ctx.tempProjectPath!;
+            affectedPackages = pendingReview?.reviewState.affectedPackagePaths?.length
+                ? pendingReview.reviewState.affectedPackagePaths
+                : await determineAffectedPackages(accumulatedModifiedFiles, context.projects, context.ctx, tempDir);
+            const isWorkspace = StateMachine.context().projectInfo?.projectKind === PROJECT_KIND.WORKSPACE_PROJECT;
+            for (const pkg of affectedPackages) {
+                // Skip workspace root — it only contains Ballerina.toml, not a real package
+                if (isWorkspace && pkg === tempDir) { continue; }
+                const pkgName = path.basename(pkg);
+                try {
+                    const res = await langClient.getSemanticDiff({ projectPath: pkg });
+                    if (res) {
+                        diffPackageMap.push(...Array(res.semanticDiffs.length).fill(pkgName));
+                        semanticDiffs.push(...res.semanticDiffs);
+                        loadDesignDiagrams = loadDesignDiagrams || res.loadDesignDiagrams;
+                    }
+                } catch (err) {
+                    console.error(`[AgentExecutor] getSemanticDiff failed for package ${pkg}, falling back to plain modifiedFiles`, err);
+                    semanticDiffs.length = 0;
+                    diffPackageMap.length = 0;
+                    loadDesignDiagrams = false;
+                    break;
+                }
+            }
+
+            const reviewData: ReviewModeData = {
+                views: [],
+                currentIndex: 0,
+                semanticDiffs,
+                loadDesignDiagrams,
+                affectedPackages,
+                modifiedFiles: accumulatedModifiedFiles,
+                tempProjectPath: context.ctx.tempProjectPath!,
+                isWorkspace,
+            };
+
+            const hasSemanticResults = loadDesignDiagrams || semanticDiffs.length > 0;
+            const isBI = StateMachine.context().isBI;
+            const autoOpen = !!(isBI && hasSemanticResults);
+            approvalViewManager.openReviewMode(reviewData, false);
+
+            context.eventHandler({
+                type: "chat_component",
+                componentType: "review",
+                data: { modifiedFiles: accumulatedModifiedFiles, semanticDiffs, loadDesignDiagrams, affectedPackages, isWorkspace, diffPackageMap }
+            });
         }
 
         updateAndSaveChat(context.messageId, Command.Agent, context.eventHandler);

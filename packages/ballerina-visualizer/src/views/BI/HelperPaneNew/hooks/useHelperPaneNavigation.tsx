@@ -24,6 +24,7 @@ export type BreadCrumbStep = {
     isArrayAccess?: boolean;
     arrayIndex?: number;
     fieldName?: string;
+    stepType?: string;
 }
 
 export const useHelperPaneNavigation = (initialLabel: string) => {
@@ -32,11 +33,12 @@ export const useHelperPaneNavigation = (initialLabel: string) => {
         replaceText: ""
     }]);
 
-    const navigateToNext = (value: string, currentValue: string) => {
+    const navigateToNext = (value: string, currentValue: string, stepType?: string) => {
         const separator = currentValue ? '.' : '';
         const newBreadCrumSteps = [...breadCrumbSteps, {
             label: value,
-            replaceText: currentValue + separator + value
+            replaceText: currentValue + separator + value,
+            stepType
         }];
         setBreadCrumbSteps(newBreadCrumSteps);
     };

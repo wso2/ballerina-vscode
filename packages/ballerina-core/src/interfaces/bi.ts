@@ -339,6 +339,7 @@ export enum DIRECTORY_MAP {
     CONNECTION = "CONNECTION",
     CONNECTOR = "CONNECTOR",
     DATA_MAPPER = "DATA_MAPPER",
+    AGENT_TOOL = "AGENT_TOOL",
     FUNCTION = "FUNCTION",
     LISTENER = "LISTENER",
     LOCAL_CONNECTORS = "localConnectors",
@@ -417,6 +418,7 @@ export interface ProjectStructureArtifactResponse {
     position?: NodePosition;
     resources?: ProjectStructureArtifactResponse[];
     isNew?: boolean;
+    isPublic?: boolean;
 }
 
 export interface UpdatedArtifactsResponse {
@@ -441,6 +443,7 @@ export type DiagramLabel = "On Fail" | "Body";
 
 export type NodePropertyKey =
     | "agentType"
+    | "annotations"
     | "auth"
     | "checkError"
     | "client"
@@ -461,6 +464,7 @@ export type NodePropertyKey =
     | "input"
     | "inputType"
     | "isIsolated"
+    | "isPublic"
     | "maxIter"
     | "memory"
     | "method"
@@ -486,6 +490,7 @@ export type NodePropertyKey =
     | "testConfigValue"
     | "toolKitName"
     | "tools"
+    | "toolScopes"
     | "type"
     | "typeDescription"
     | "variable"

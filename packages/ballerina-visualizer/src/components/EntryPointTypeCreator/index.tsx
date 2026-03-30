@@ -93,7 +93,13 @@ export function EntryPointTypeCreator(props: EntryPointTypeCreatorProps) {
 
     const pushTypeStack = (item: StackItem) => {
         setStack((prev) => [...prev, item]);
-        setRefetchStates((prev) => [...prev, false]);
+        setRefetchStates((prev) => {
+            const newStates = [...prev];
+            if (newStates.length > 0) {
+                newStates[newStates.length - 1] = false;
+            }
+            return [...newStates, false];
+        });
     };
 
     const popTypeStack = () => {

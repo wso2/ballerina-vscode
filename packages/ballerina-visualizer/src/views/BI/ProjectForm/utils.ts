@@ -62,11 +62,11 @@ export const validatePackageName = (name: string, integrationName: string): stri
     return null; // No error
 };
 
-export const isFormValidAddProject = (formData: AddProjectFormData, isInWorkspace: boolean): boolean => {
+export const isFormValidAddProject = (formData: AddProjectFormData, isInProject: boolean): boolean => {
     return (
         formData.integrationName.length >= 2 &&
         formData.packageName.length >= 2 &&
-        (isInWorkspace || (formData.workspaceName?.length ?? 0) >= 1) &&
+        (isInProject || (formData.workspaceName?.length ?? 0) >= 1) &&
         validatePackageName(formData.packageName, formData.integrationName) === null &&
         validateOrgName(formData.orgName) === null
     );

@@ -177,6 +177,11 @@ function validateLineRange(
  * @param filePath The relative file path that was modified
  */
 function notifyLanguageServer(tempProjectPath: string, filePath: string): void {
+  // Only send LS notifications for .bal files - the Ballerina LS doesn't handle other file types
+  if (!filePath.endsWith('.bal')) {
+    return;
+  }
+
   try {
     const fullPath = path.join(tempProjectPath, filePath);
     if (!fs.existsSync(fullPath)) {
@@ -289,7 +294,7 @@ export function createWriteExecute(
       console.error(`[FileWriteTool] Empty content provided for file: ${file_path}`);
       const result = {
         success: false,
-        message: 'Content cannot be empty when writing a file.',
+        message: 'Content cannot be empty when writing a file. if you wish to create an empty file, add a comment with the file name.',
         error: `Error: ${ErrorMessages.EMPTY_CONTENT}`
       };
       emitFileToolResult(eventHandler, FILE_WRITE_TOOL_NAME, result, file_path);
@@ -787,7 +792,7 @@ export const FILE_SINGLE_EDIT_TOOL_NAME = "file_edit";
 export const FILE_WRITE_TOOL_NAME = "file_write";
 export const FILE_READ_TOOL_NAME = "file_read";
 
-const getFilePathDescription = (op: string) => `The path to the file to ${op}. Just use the filename as the path, do not include any directories unless user specifically requests it`;
+const getFilePathDescription = (op: string) => `The relative path to the file to ${op}. For workspace projects, include the package directory prefix (e.g., "myPackage/main.bal"). For single-package projects, use just the filename.`;
 
 // Type definitions for execute functions
 type WriteExecute = (args: {
@@ -870,7 +875,7 @@ export function createBatchEditTool(execute: MultiEditExecute) {
     2. Verify the file path is correct
     3. Do not create new files using this tool. Only edit existing files. If the file does not exist, Use ${FILE_WRITE_TOOL_NAME} to create new files.
     To make multiple file edits, provide the following:
-    1. file_path: The file_path parameter must be an filename only, do not include any directories unless the user specifically requests it.
+    1. file_path: The relative path to the file. For workspace projects, include the package directory prefix (e.g., "myPackage/main.bal").
     2. edits: An array of edit operations to perform, where each edit contains:
        - old_string: The text to replace (must match the file contents exactly, including all whitespace and indentation)
        - new_string: The edited text to replace the old_string
@@ -892,7 +897,7 @@ export function createBatchEditTool(execute: MultiEditExecute) {
     When making edits:
     - Ensure all edits result in idiomatic, correct code
     - Do not leave the code in a broken state
-    - Always use filename as the filepath unless the user specifically requests a directory.
+    - For workspace projects, include the package directory prefix in the file path.
     - Only use emojis if the user explicitly requests it. Avoid adding emojis to files unless asked.
     - Use replace_all for replacing and renaming strings across the file. This parameter is useful if you want to rename a variable for instance.`,
     inputSchema: z.object({
@@ -916,7 +921,7 @@ export function createReadTool(execute: ReadExecute) {
     ALWAYS prefer reading files mentioned in the user’s message in the chat history first. Only use this tool if you need to read a file that is not present in the chat history.
     NOTE: The following files are restricted and cannot be read: ${RESTRICTED_READ_FILES.join(", ")}.
     Usage:
-    - The file_path parameter must be an filename only, do not include any directories unless the user specifically requests it.
+    - For workspace projects, include the package directory prefix in the file path (e.g., "myPackage/main.bal").
     - You can optionally specify a line offset and limit (especially handy for long files).
     - Any lines longer than 2000 characters will be truncated
     - The file content will be returned as string

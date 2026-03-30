@@ -94,7 +94,7 @@ const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ value, isRecordTypeField, o
     return (
         <>
             <SwitchWrapper>
-                <Slider checked={isChecked}>
+                <Slider checked={isChecked} data-testid={`mode-switcher-slider-${fieldKey}`}>
                     <Label active={!isChecked} onClick={() => handleModeSwitch(defaultMode)}>{defaultMode}</Label>
                     <Label active={isChecked} onClick={() => handleModeSwitch(secondaryMode)}>{secondaryMode}</Label>
                 </Slider>

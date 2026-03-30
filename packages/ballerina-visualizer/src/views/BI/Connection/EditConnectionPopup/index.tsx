@@ -395,6 +395,7 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
                             <ConnectorConfigView
                                 connectorLabel={connectorCredentials.metadata?.label || connectionName}
                                 connectorDescription={connectorCredentials.metadata?.description}
+                                connectorIcon={connectorCredentials.metadata?.icon}
                                 properties={connectorCredentials.properties}
                                 onEditConnector={handleEditConnector}
                                 onViewERD={handleOpenERDiagram}

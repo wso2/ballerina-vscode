@@ -18,9 +18,9 @@
 
 import { BI_COMMANDS, DIRECTORY_MAP, EVENT_TYPE, MACHINE_VIEW, SCOPE, findScopeByModule } from "@wso2/ballerina-core";
 import {
-    CommandIds as PlatformCommandIds,
+    WICommandIds,
     ICommitAndPushCmdParams,
-    ICreateComponentCmdParams,
+    ICreateNewIntegrationCmdParams,
 } from "@wso2/wso2-platform-core";
 import { BallerinaExtension } from "../../core";
 import { openView, StateMachine } from "../../stateMachine";
@@ -52,7 +52,7 @@ const handleComponentPushToDevant = async () => {
     }
     if (isGitRepo(projectRoot)) {
         // push changes to repo if component for the directory already exists
-        await commands.executeCommand(PlatformCommandIds.CommitAndPushToGit, {
+        await commands.executeCommand(WICommandIds.CommitAndPushToGit, {
             componentPath: projectRoot,
         } as ICommitAndPushCmdParams);
     } else if (platformExtAPI.getDirectoryComponents(projectRoot)?.length) {
@@ -63,7 +63,7 @@ const handleComponentPushToDevant = async () => {
             window.showInformationMessage("There are no new changes to push to cloud");
             return;
         }
-        await commands.executeCommand(PlatformCommandIds.CommitAndPushToGit, {
+        await commands.executeCommand(WICommandIds.CommitAndPushToGit, {
             componentPath: projectRoot,
         } as ICommitAndPushCmdParams);
     } else {
@@ -117,13 +117,12 @@ const handleComponentPushToDevant = async () => {
             integrationType = selectedScope as SCOPE;
         }
 
-        const deployementParams: ICreateComponentCmdParams = {
-            integrationType: integrationType as any,
-            buildPackLang: "ballerina",
-            componentDir: StateMachine.context().projectPath,
-            extName: "Devant",
+        const deployementParams: ICreateNewIntegrationCmdParams = {
+            buildPackLang:"ballerina",
+            workspaceDir: StateMachine.context().workspacePath || StateMachine.context().projectPath,
+            integrations: [{ fsPath: StateMachine.context().projectPath, supportedIntegrationTypes: [integrationType] }]
         };
-        commands.executeCommand(PlatformCommandIds.CreateNewComponent, deployementParams);
+        commands.executeCommand(WICommandIds.CreateNewComponent, deployementParams);
     }
 };
 

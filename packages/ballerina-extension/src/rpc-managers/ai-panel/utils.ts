@@ -130,13 +130,14 @@ export async function generateMappingExpressionsFromModel(
         mappingsModel: dataMapperModel as DMModel
     };
     if (mappingInstructionFiles.length > 0) {
-        eventHandler({ type: "content_block", content: "\n<progress>Processing mapping hints from attachments...</progress>" });
+        eventHandler({ type: "chat_component", componentType: "progress", data: { text: "Processing mapping hints from attachments...", status: "start" } });
         const enhancedResponse = await enrichModelWithMappingInstructions(mappingInstructionFiles, dataMapperResponse);
+        eventHandler({ type: "chat_component", componentType: "progress", data: { text: "Processing mapping hints from attachments...", status: "end" } });
         dataMapperResponse = enhancedResponse as DataMapperModelResponse;
     }
-    eventHandler({ type: "content_block", content: "\n<progress>Generating data mappings...</progress>" });
-
+    eventHandler({ type: "chat_component", componentType: "progress", data: { text: "Generating data mappings...", status: "start" } });
     const generatedMappings = await generateAutoMappings(dataMapperResponse);
+    eventHandler({ type: "chat_component", componentType: "progress", data: { text: "Generating data mappings...", status: "end" } });
     return generatedMappings.map(mapping => ({
         output: mapping.output,
         expression: mapping.expression,

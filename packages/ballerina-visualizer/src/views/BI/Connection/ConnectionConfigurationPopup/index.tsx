@@ -229,7 +229,7 @@ export function ConnectionConfigurationPopup(props: ConnectionConfigurationPopup
                     </CloseButton>
                 </ConfigHeader>
 
-                <ConnectionConfigurationForm {...props}/>
+                <ConnectionConfigurationForm {...props} />
             </PopupContainer>
         </>
     );

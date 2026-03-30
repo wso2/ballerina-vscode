@@ -93,7 +93,7 @@ export const addProxyConfigurable = async (configBalFileUri: Uri) => {
             (member) =>
                 STKindChecker.isModuleVarDecl(member) &&
                 (member.typedBindingPattern?.bindingPattern as CaptureBindingPattern)?.variableName?.value ===
-                    "devantProxyConfig",
+                    "wso2CloudProxyConfig",
         )
     ) {
         const proxyConfigTemplate = Templates.proxyConfigurable();
@@ -216,8 +216,8 @@ export const getYamlString = (yamlString: string) => {
 export const processOpenApiWithApiKeyAuth = (yamlString: string, securityType: "" | "oauth" | "apikey"): string => {
     try {
         const openApiDefinition = yaml.load(getYamlString(yamlString)) as OpenAPIDefinition;
-        const oAuthSchemaName = "DevantOAuth2";
-        const apiKeySchemaName = "DevantApiKeyAuth";
+        const oAuthSchemaName = "wso2CloudOAuth2";
+        const apiKeySchemaName = "wso2CloudApiKeyAuth";
 
         if (!openApiDefinition) {
             throw new Error("Invalid YAML: Unable to parse OpenAPI definition");
@@ -339,9 +339,9 @@ export const Templates = {
     },
     proxyConfigurable: () => {
         const template = Handlebars.compile(`
-configurable string? devantProxyHost = ();
-configurable int? devantProxyPort = ();
-http:ProxyConfig? devantProxyConfig = devantProxyHost is string && devantProxyPort is int ? { host: <string> devantProxyHost, port: <int> devantProxyPort } : ();
+configurable string? wso2CloudProxyHost = ();
+configurable int? wso2CloudProxyPort = ();
+http:ProxyConfig? wso2CloudProxyConfig = wso2CloudProxyHost is string && wso2CloudProxyPort is int ? { host: <string> wso2CloudProxyHost, port: <int> wso2CloudProxyPort } : ();
 \n`);
         return template({});
     },
@@ -362,7 +362,7 @@ http:ProxyConfig? devantProxyConfig = devantProxyHost is string && devantProxyPo
         return `final ${params.MODULE_NAME}:Client ${
             params.CONNECTION_NAME
         } = check new (apiKeyConfig = { choreoAPIKey: ${params.API_KEY_VAR_NAME} }, config = { ${
-            params.requireProxy ? "proxy: devantProxyConfig, " : ""
+            params.requireProxy ? "proxy: wso2CloudProxyConfig, " : ""
         }timeout: 60 }, serviceUrl = ${params.SERVICE_URL_VAR_NAME});\n`;
     },
     newConnectionWithOAuth: (params: {
@@ -380,7 +380,7 @@ http:ProxyConfig? devantProxyConfig = devantProxyHost is string && devantProxyPo
             params.CONNECTION_NAME
         } = check new (config = { auth: { tokenUrl: ${params.TOKEN_URL}, clientId: ${params.CLIENT_ID}, clientSecret: ${
             params.CLIENT_SECRET
-        } }, ${params.requireProxy ? "proxy: devantProxyConfig, " : ""}timeout: 60 }, serviceUrl = ${
+        } }, ${params.requireProxy ? "proxy: wso2CloudProxyConfig, " : ""}timeout: 60 }, serviceUrl = ${
             params.SERVICE_URL_VAR_NAME
         });\n`;
     },

@@ -309,7 +309,28 @@ function setupProjectInfo(projectRequest: ProjectRequest): ProcessedProjectInfo 
     };
 }
 
-export async function createBIWorkspace(projectRequest: ProjectRequest): Promise<string> {
+export async function createEmptyBIWorkspace(projectRequest: ProjectRequest): Promise<string> {
+    const ballerinaTomlContent = `
+[workspace]
+packages = []
+
+`;
+
+    // Use the workspace-specific directory resolver
+    const workspaceRoot = resolveWorkspacePath(projectRequest.projectPath, projectRequest.workspaceName);
+
+    // Create Ballerina.toml file
+    const ballerinaTomlPath = path.join(workspaceRoot, 'Ballerina.toml');
+    writeBallerinaFileDidOpen(ballerinaTomlPath, ballerinaTomlContent);
+
+    // create settings.json file
+    createVSCodeSettings(workspaceRoot);
+
+    console.log(`BI workspace created successfully at ${workspaceRoot}`);
+    return workspaceRoot;
+}
+
+export async function createBIWorkspaceWithProject(projectRequest: ProjectRequest): Promise<string> {
     const ballerinaTomlContent = `
 [workspace]
 packages = ["${projectRequest.packageName}"]
@@ -329,7 +350,7 @@ packages = ["${projectRequest.packageName}"]
     // create settings.json file
     createVSCodeSettings(workspaceRoot);
 
-    console.log(`BI workspace created successfully at ${workspaceRoot}`);
+    console.log(`BI workspace with project created successfully at ${workspaceRoot}`);
     return workspaceRoot;
 }
 
@@ -373,14 +394,6 @@ sticky = true
     const typesBalPath = path.join(projectRoot, 'types.bal');
     writeBallerinaFileDidOpen(typesBalPath, EMPTY);
 
-    // Create main.bal file
-    const mainBal = path.join(projectRoot, 'main.bal');
-    writeBallerinaFileDidOpen(mainBal, EMPTY);
-
-    // Create automation.bal file
-    const automationBal = path.join(projectRoot, 'automation.bal');
-    writeBallerinaFileDidOpen(automationBal, EMPTY);
-
     // Create agents.bal file
     const agentsBal = path.join(projectRoot, 'agents.bal');
     writeBallerinaFileDidOpen(agentsBal, EMPTY);
@@ -393,7 +406,15 @@ sticky = true
     const datamappingsBalPath = path.join(projectRoot, 'data_mappings.bal');
     writeBallerinaFileDidOpen(datamappingsBalPath, EMPTY);
 
-    if (projectRequest.isLibrary) {
+    if (!projectRequest.isLibrary) {
+        // Create main.bal file
+        const mainBal = path.join(projectRoot, 'main.bal');
+        writeBallerinaFileDidOpen(mainBal, EMPTY);
+
+        // Create automation.bal file
+        const automationBal = path.join(projectRoot, 'automation.bal');
+        writeBallerinaFileDidOpen(automationBal, EMPTY);
+    } else {
         const libraryBal = path.join(projectRoot, 'lib.bal');
 
         // TODO: Enable pulling the validator package and adding the import to the lib.bal file

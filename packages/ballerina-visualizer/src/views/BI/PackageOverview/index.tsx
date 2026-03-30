@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import React, { ReactNode, useEffect, useMemo, useState } from "react";
 import {
     ProjectStructure,
     EVENT_TYPE,
@@ -33,7 +33,7 @@ import { ThemeColors } from "@wso2/ui-toolkit";
 import ComponentDiagram from "../ComponentDiagram";
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react";
 import ReactMarkdown from "react-markdown";
-import { IOpenInConsoleCmdParams, CommandIds as PlatformExtCommandIds } from "@wso2/wso2-platform-core";
+import { IOpenInConsoleCmdParams, WICommandIds } from "@wso2/wso2-platform-core";
 import { AlertBoxWithClose } from "../../AIPanel/AlertBoxWithClose";
 import { getIntegrationTypes } from "./utils";
 import { UndoRedoGroup } from "../../../components/UndoRedoGroup";
@@ -112,14 +112,14 @@ const MainContent = styled.div<{ fullWidth?: boolean }>`
     max-height: calc(100vh - 90px); // Adjust based on header and any margins
 `;
 
-const DiagramPanel = styled.div<{ noPadding?: boolean }>`
-    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+const DiagramPanel = styled.div<{ noPadding?: boolean, noBorder?: boolean }>`
+    border: ${(props: { noBorder?: boolean }) => props.noBorder ? "none" : `1px solid ${ThemeColors.OUTLINE_VARIANT}`};
     border-radius: 4px;
-    padding: ${(props: { noPadding: boolean; }) => (props.noPadding ? "0" : "16px")};
+    padding: ${(props: { noPadding?: boolean }) => (props.noPadding ? "0" : "16px")};
     overflow: auto;
     display: flex;
     flex-direction: column;
-    min-height: calc(60vh); // Subtracting header height (50px) and padding (32px)
+    min-height: calc(60vh);
 `;
 
 const LeftContent = styled.div`
@@ -155,59 +155,14 @@ const EmptyReadmeContainer = styled.div`
     height: 100%;
 `;
 
-const DiagramHeaderContainer = styled.div<{ withPadding?: boolean, isLibrary?: boolean }>`
+const DiagramHeaderContainer = styled.div<{ withPadding?: boolean }>`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: ${(props: { isLibrary?: boolean }) => props.isLibrary ? "0" : "16px"};
-    padding: ${(props: { withPadding: boolean; }) => (props.withPadding ? "16px 16px 0 16px" : "0")};
+    margin-bottom: 16px;
+    padding: ${(props: { withPadding?: boolean }) => props.withPadding ? "16px 16px 0 16px" : "0"};
 `;
 
-const LibrarySearchBar = styled.div`
-    position: relative;
-    display: flex;
-    align-items: center;
-    width: clamp(160px, 35vw, 400px);
-`;
-
-const LibrarySearchInput = styled.input`
-    width: 100%;
-    padding: 6px 24px 6px 28px;
-    background: var(--vscode-input-background);
-    border: 1px solid var(--vscode-input-border);
-    border-radius: 4px;
-    color: var(--vscode-input-foreground);
-    font-size: 12px;
-    font-family: var(--vscode-font-family);
-    &:focus {
-        outline: none;
-        border-color: var(--vscode-focusBorder);
-    }
-    &::placeholder {
-        color: var(--vscode-input-placeholderForeground);
-    }
-`;
-
-const LibrarySearchIcon = styled.div`
-    position: absolute;
-    left: 8px;
-    color: var(--vscode-input-placeholderForeground);
-    pointer-events: none;
-    display: flex;
-    align-items: center;
-`;
-
-const LibrarySearchClearButton = styled.div`
-    position: absolute;
-    right: 6px;
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    color: var(--vscode-input-placeholderForeground);
-    &:hover {
-        color: var(--vscode-input-foreground);
-    }
-`;
 
 const DiagramContent = styled.div`
     flex: 1;
@@ -491,53 +446,54 @@ function DeploymentOptions({
             <div>
                 <Title variant="h3">Deployment Options</Title>
 
-                <DeploymentOption
-                    title={
-                        isDeployed ? (
-                            <DevantHeaderWrap>
-                                <span>Deployed in Devant</span>
-                                <Button
-                                    appearance="icon"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        rpcClient.getCommonRpcClient().executeCommand({
-                                            commands: [PlatformExtCommandIds.RefreshDirectoryContext],
-                                        });
-                                    }}
-                                >
-                                    <Codicon name="refresh" />
-                                </Button>
-                            </DevantHeaderWrap>
-                        ) : (
-                            "Deploy to Devant"
-                        )
-                    }
-                    description={
-                        isDeployed
-                            ? "This integration is already deployed in Devant."
-                            : "Deploy your integration to the cloud using Devant by WSO2."
-                    }
-                    buttonText={isDeployed ? "View in Devant" : "Deploy"}
-                    isExpanded={expandedOptions.has("devant")}
-                    onToggle={() => toggleOption("devant")}
-                    onDeploy={isDeployed? () => goToDevant() : handleDeploy}
-                    learnMoreLink={"https://wso2.com/devant/docs"}
-                    hasDeployableIntegration={hasDeployableIntegration}
-                    secondaryAction={
-                        isDeployed && platformExtState?.hasLocalChanges
-                            ? {
-                                description: "To redeploy in Devant, please commit and push your changes.",
-                                buttonText: "Open Source Control",
-                                onClick: () =>
-                                    rpcClient
-                                        .getCommonRpcClient()
-                                        .executeCommand({ commands: ["workbench.scm.focus"] }),
-                            }
-                            : undefined
-                    }
-                />
-
-
+                {platformExtState.isExtInstalled && (
+                    <DeploymentOption
+                        title={
+                            isDeployed ? (
+                                <DevantHeaderWrap>
+                                    <span>Deployed in WSO2 Cloud</span>
+                                    <Button
+                                        appearance="icon"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            rpcClient.getCommonRpcClient().executeCommand({
+                                                commands: [WICommandIds.RefreshDirectoryContext],
+                                            });
+                                        }}
+                                    >
+                                        <Codicon name="refresh" />
+                                    </Button>
+                                </DevantHeaderWrap>
+                            ) : (
+                                "Deploy to WSO2 Cloud"
+                            )
+                        }
+                        description={
+                            isDeployed
+                                ? "This integration is already deployed in WSO2 Cloud."
+                                : "Deploy your integration to WSO2 Cloud."
+                        }
+                        buttonText={isDeployed ? "View in Console" : "Deploy"}
+                        isExpanded={expandedOptions.has("devant")}
+                        onToggle={() => toggleOption("devant")}
+                        onDeploy={isDeployed? () => goToDevant() : handleDeploy}
+                        learnMoreLink={"https://wso2.com/devant/docs"}
+                        hasDeployableIntegration={hasDeployableIntegration}
+                        secondaryAction={
+                            isDeployed && platformExtState?.hasLocalChanges
+                                ? {
+                                    description: "To redeploy in WSO2 Cloud, please commit and push your changes.",
+                                    buttonText: "Open Source Control",
+                                    onClick: () =>
+                                        rpcClient
+                                            .getCommonRpcClient()
+                                            .executeCommand({ commands: ["workbench.scm.focus"] }),
+                                }
+                                : undefined
+                        }
+                    />
+                )}
+                
                 <DeploymentOption
                     title="Deploy with Docker"
                     description="Create a Docker image of your integration and deploy it to any Docker-enabled system."
@@ -604,7 +560,7 @@ function DevantDashboard({ projectStructure, handleDeploy, goToDevant }: { proje
         rpcClient.getCommonRpcClient().executeCommand({ commands: [BI_COMMANDS.DEVANT_PUSH_TO_CLOUD] });
     }
 
-    // Check if project has automation or service
+    // Check if integration has automation or service.
     const hasAutomationOrService = projectStructure?.directoryMap && (
         (projectStructure.directoryMap.AUTOMATION && projectStructure.directoryMap.AUTOMATION.length > 0) ||
         (projectStructure.directoryMap.SERVICE && projectStructure.directoryMap.SERVICE.length > 0)
@@ -612,17 +568,17 @@ function DevantDashboard({ projectStructure, handleDeploy, goToDevant }: { proje
 
     return (
         <React.Fragment>
-            {platformExtState?.selectedComponent ? <Title variant="h3">Deployed in Devant</Title> : <Title variant="h3">Deploy to Devant</Title>}
+            {platformExtState?.selectedComponent ? <Title variant="h3">Deployed in WSO2 Cloud</Title> : <Title variant="h3">Deploy to WSO2 Cloud</Title>}
             {!hasAutomationOrService ? (
                 <Typography sx={{ color: "var(--vscode-descriptionForeground)" }}>
-                    Before you can deploy your integration to Devant, please add an artifact (such as a Service or Automation) to your project.
+                    Before you can deploy your integration to WSO2 Cloud, please add an artifact (such as a Service or Automation) to your integration.
                 </Typography>
             ) : (
                 <>
                     {platformExtState?.selectedComponent ? (
                         <>
                             <Typography sx={{ color: "var(--vscode-descriptionForeground)" }}>
-                                This integration is deployed in Devant.
+                                This integration is deployed in WSO2 Cloud.
                             </Typography>
                             <Button
                                 appearance="secondary"
@@ -636,7 +592,7 @@ function DevantDashboard({ projectStructure, handleDeploy, goToDevant }: { proje
                                     mx: "auto"
                                 }}
                             >
-                                <Codicon name="save" sx={{ marginRight: 8 }} /> Push Changes to Devant
+                                <Codicon name="save" sx={{ marginRight: 8 }} /> Push Changes to WSO2 Cloud
                             </Button>
                             <Button
                                 appearance="icon"
@@ -649,13 +605,13 @@ function DevantDashboard({ projectStructure, handleDeploy, goToDevant }: { proje
                                     mx: "auto"
                                 }}
                             >
-                                <Codicon name="link" sx={{ marginRight: 8 }} /> Open in Devant Console
+                                <Codicon name="link" sx={{ marginRight: 8 }} /> Open in Console
                             </Button>
                         </>
                     ) : (
                         <React.Fragment>
                             <Typography sx={{ color: "var(--vscode-descriptionForeground)" }}>
-                                Deploy your integration to Devant and run it in the cloud.
+                                Deploy your integration in WSO2 Cloud.
                             </Typography>
                             <Button
                                 appearance="primary"
@@ -692,11 +648,9 @@ export function PackageOverview(props: PackageOverviewProps) {
     const [enabled, setEnableICP] = useState(false);
     const [showAlert, setShowAlert] = React.useState(false);
     const [projectStructure, setProjectStructure] = useState<ProjectStructure>();
-    const [isWorkspace, setIsWorkspace] = useState(false);
+    const [isInProject, setIsInProject] = useState(false);
     const [isLibrary, setIsLibrary] = useState<boolean>(false);
-
-    const [librarySearchQuery, setLibrarySearchQuery] = useState("");
-    const librarySearchRef = useRef<HTMLInputElement>(null);
+    const [isNPSupported, setIsNPSupported] = useState<boolean>(false);
 
     const fetchContext = () => {
         rpcClient
@@ -704,12 +658,14 @@ export function PackageOverview(props: PackageOverviewProps) {
             .getProjectStructure()
             .then((res) => {
                 const project = res.projects.find(project => project.projectPath === projectPath);
-                setIsWorkspace(res.workspaceName !== undefined);
+                setIsInProject(res.workspaceName !== undefined);
                 if (project) {
                     setProjectStructure(project);
                     setIsLibrary(project.isLibrary ?? false);
                 }
             });
+
+        rpcClient.getCommonRpcClient().isNPSupported().then(setIsNPSupported);
 
         rpcClient
             .getBIDiagramRpcClient()
@@ -750,11 +706,11 @@ export function PackageOverview(props: PackageOverviewProps) {
         return getIntegrationTypes(projectStructure);
     }, [projectStructure]);
 
-    const projectName = useMemo(() => {
+    const integrationTitle = useMemo(() => {
         return projectStructure?.projectTitle || projectStructure?.projectName;
     }, [projectStructure]);
 
-    function isEmptyProject(): boolean {
+    function isEmptyIntegration(): boolean {
         // Filter out connections that start with underscore
         const validConnections = projectStructure.directoryMap[DIRECTORY_MAP.CONNECTION]?.filter(
             conn => !conn.name.startsWith('_')
@@ -854,9 +810,8 @@ export function PackageOverview(props: PackageOverviewProps) {
     const goToDevant = () => {
         rpcClient.getCommonRpcClient().executeCommand({
             commands: [
-                PlatformExtCommandIds.OpenInConsole,
+                WICommandIds.OpenInConsole,
                 {
-                    extName: "Devant",
                     componentFsPath: projectPath,
                     component: platformExtState?.selectedComponent,
                     newComponentParams: { buildPackLang: "ballerina" }
@@ -918,11 +873,11 @@ export function PackageOverview(props: PackageOverviewProps) {
 
     return (
         <>
-            {isWorkspace && <TopNavigationBar projectPath={projectPath} />}
+            {isInProject && <TopNavigationBar projectPath={projectPath} />}
             <PageLayout>
-                {isWorkspace ? (
+                {isInProject ? (
                     <TitleBar
-                        title={projectName}
+                        title={integrationTitle}
                         subtitle={isLibrary ? "Library" : "Integration"}
                         onBack={handleBack}
                         actions={headerActions}
@@ -930,8 +885,8 @@ export function PackageOverview(props: PackageOverviewProps) {
                 ) : (
                     <HeaderRow>
                         <TitleContainer>
-                            <ProjectTitle>{projectName}</ProjectTitle>
-                            <ProjectSubtitle>Integration</ProjectSubtitle>
+                            <ProjectTitle>{integrationTitle}</ProjectTitle>
+                            <ProjectSubtitle>{isLibrary ? "Library" : "Integration"}</ProjectSubtitle>
                         </TitleContainer>
                         <HeaderControls>
                             <UndoRedoGroup key={Date.now()} />
@@ -941,7 +896,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                 )}
                 <MainContent fullWidth={isLibrary}>
                     <LeftContent>
-                        <DiagramPanel noPadding={true}>
+                        <DiagramPanel noPadding={true} noBorder={isLibrary}>
                             {showAlert && (
                                 <AlertBoxWithClose
                                     subTitle={
@@ -960,47 +915,25 @@ export function PackageOverview(props: PackageOverviewProps) {
                                     btn2Id="Close"
                                 />
                             )}
-                            <DiagramHeaderContainer withPadding={true} isLibrary={isLibrary}>
-                                <Title variant="h2">{isLibrary ? "Artifacts" : "Design"}</Title>
-                                {!isEmptyProject() && !isLibrary && (<ActionContainer>
-                                    <Button appearance="icon" onClick={handleGenerate} buttonSx={{ padding: "2px 8px" }}>
-                                        <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate
-                                    </Button>
-                                    <Button appearance="primary" onClick={handleAddConstruct}>
-                                        <Codicon name="add" sx={{ marginRight: 8 }} /> Add Artifact
-                                    </Button>
-                                </ActionContainer>)}
-                                {isLibrary && (
-                                    <ActionContainer>
-                                        <LibrarySearchBar>
-                                            <LibrarySearchIcon>
-                                                <Codicon name="search" iconSx={{ fontSize: 12 }} />
-                                            </LibrarySearchIcon>
-                                            <LibrarySearchInput
-                                                ref={librarySearchRef}
-                                                type="text"
-                                                placeholder="Search Artifacts"
-                                                value={librarySearchQuery}
-                                                onChange={(e) => setLibrarySearchQuery(e.target.value)}
-                                            />
-                                            {librarySearchQuery.trim().length > 0 && (
-                                                <LibrarySearchClearButton
-                                                    onClick={() => {
-                                                        setLibrarySearchQuery("");
-                                                        librarySearchRef.current?.focus();
-                                                    }}
-                                                >
-                                                    <Codicon name="close" iconSx={{ fontSize: 12 }} />
-                                                </LibrarySearchClearButton>
-                                            )}
-                                        </LibrarySearchBar>
-                                    </ActionContainer>
-                                )}
-                            </DiagramHeaderContainer>
-                            {isLibrary && <LibraryOverview projectStructure={projectStructure} searchQuery={librarySearchQuery} />}
+                            {!isLibrary && (
+                                <DiagramHeaderContainer withPadding={true}>
+                                    <Title variant="h2">Design</Title>
+                                    {!isEmptyIntegration() && (
+                                        <ActionContainer>
+                                            <Button appearance="icon" onClick={handleGenerate} buttonSx={{ padding: "2px 8px" }}>
+                                                <Icon name="bi-ai-chat" sx={{ marginRight: 4 }} iconSx={{ position: "relative", top: "2px" }} /> Generate with AI
+                                            </Button>
+                                            <Button appearance="primary" onClick={handleAddConstruct}>
+                                                <Codicon name="add" sx={{ marginRight: 8 }} /> Add Artifact
+                                            </Button>
+                                        </ActionContainer>
+                                    )}
+                                </DiagramHeaderContainer>
+                            )}
+                            {isLibrary && <LibraryOverview projectStructure={projectStructure} isNPSupported={isNPSupported} projectPath={projectPath} onRefresh={fetchContext} />}
                             {!isLibrary && (
                                 <DiagramContent>
-                                    {isEmptyProject() ? (
+                                    {isEmptyIntegration() ? (
                                         <EmptyStateContainer>
                                             <Typography variant="h3" sx={{ marginBottom: "16px" }}>
                                                 Your integration is empty
@@ -1016,7 +949,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                                                     <Codicon name="add" sx={{ marginRight: 8 }} /> Add Artifact
                                                 </Button>
                                                 <Button appearance="secondary" onClick={handleGenerate}>
-                                                    <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate with AI
+                                                    <Icon name="bi-ai-chat" sx={{ marginRight: 4 }} iconSx={{ position: "relative", top: "2px" }} /> Generate with AI
                                                 </Button>
                                             </ButtonContainer>
                                         </EmptyStateContainer>
@@ -1026,33 +959,35 @@ export function PackageOverview(props: PackageOverviewProps) {
                                 </DiagramContent>
                             )}
                         </DiagramPanel>
-                        <FooterPanel>
-                            <ReadmeHeaderContainer>
-                                <Title variant="h2">README</Title>
-                                <ReadmeButtonContainer>
-                                    {readmeContent && isEmptyProject() && (
-                                        <Button appearance="icon" onClick={handleGenerateWithReadme} buttonSx={{ padding: "4px 8px" }}>
-                                            <Codicon name="wand" sx={{ marginRight: 4, fontSize: 16 }} /> Generate with Readme
+                        {!isLibrary && (
+                            <FooterPanel>
+                                <ReadmeHeaderContainer>
+                                    <Title variant="h2">README</Title>
+                                    <ReadmeButtonContainer>
+                                        {readmeContent && isEmptyIntegration() && (
+                                            <Button appearance="icon" onClick={handleGenerateWithReadme} buttonSx={{ padding: "4px 8px" }}>
+                                                <Codicon name="wand" sx={{ marginRight: 4, fontSize: 16 }} /> Generate with Readme
+                                            </Button>
+                                        )}
+                                        <Button appearance="icon" onClick={handleEditReadme} buttonSx={{ padding: "4px 8px" }}>
+                                            <Icon name="bi-edit" sx={{ marginRight: 8, fontSize: 16 }} /> Edit
                                         </Button>
+                                    </ReadmeButtonContainer>
+                                </ReadmeHeaderContainer>
+                                <ReadmeContent>
+                                    {readmeContent ? (
+                                        <ReactMarkdown>{readmeContent}</ReactMarkdown>
+                                    ) : (
+                                        <EmptyReadmeContainer>
+                                            <Description variant="body2">
+                                                Describe your integration and generate your artifacts with AI
+                                            </Description>
+                                            <VSCodeLink onClick={handleEditReadme}>Add a README</VSCodeLink>
+                                        </EmptyReadmeContainer>
                                     )}
-                                    <Button appearance="icon" onClick={handleEditReadme} buttonSx={{ padding: "4px 8px" }}>
-                                        <Icon name="bi-edit" sx={{ marginRight: 8, fontSize: 16 }} /> Edit
-                                    </Button>
-                                </ReadmeButtonContainer>
-                            </ReadmeHeaderContainer>
-                            <ReadmeContent>
-                                {readmeContent ? (
-                                    <ReactMarkdown>{readmeContent}</ReactMarkdown>
-                                ) : (
-                                    <EmptyReadmeContainer>
-                                        <Description variant="body2">
-                                            Describe your integration and generate your artifacts with AI
-                                        </Description>
-                                        <VSCodeLink onClick={handleEditReadme}>Add a README</VSCodeLink>
-                                    </EmptyReadmeContainer>
-                                )}
-                            </ReadmeContent>
-                        </FooterPanel>
+                                </ReadmeContent>
+                            </FooterPanel>
+                        )}
                     </LeftContent>
                     {!isLibrary && (
                         <SidePanel>

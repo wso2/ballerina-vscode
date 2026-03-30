@@ -13,7 +13,6 @@ export enum SegmentType {
     Button = "Button",
     SpecFetcher = "SpecFetcher",
     ConfigurationCollector = "ConfigurationCollector",
-    ReviewActions = "ReviewActions",
     TryItScenarios = "TryItScenarios",
     AgentStream = "AgentStream",
 }
@@ -305,14 +304,6 @@ export function splitContent(content: string): Segment[] {
                 // If parsing fails, show as text
                 console.error("Failed to parse connector generator data:", error);
             }
-        } else if (match[16] !== undefined) {
-            // <reviewactions> block matched
-            updateLastProgressSegmentLoading();
-            segments.push({
-                type: SegmentType.ReviewActions,
-                loading: false,
-                text: "",
-            });
         } else if (match[17]) {
             // <configurationcollector> block matched
             const configurationData = match[17];

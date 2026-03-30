@@ -49,7 +49,7 @@ export const BI_PROJECT_FILES = [
     TYPES_FILE
 ];
 
-const WI_EXTENSION_ID = 'wso2.wso2-integrator';
+export const WI_EXTENSION_ID = 'wso2.wso2-integrator';
 
 interface BallerinaPluginConfig extends WorkspaceConfiguration {
     home?: string;

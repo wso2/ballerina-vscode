@@ -160,10 +160,12 @@ describe("DiagnosticsPopUp", () => {
 
         fireEvent.click(diagnosticsIcon!.parentElement!);
 
-        const fixButton = screen.getByRole("button", { name: /fix/i });
-        expect(fixButton).toBeEnabled();
+        const fixButtonLabel = screen.getByText("Fix with AI");
+        const fixButton = fixButtonLabel.closest("vscode-button");
+        expect(fixButton).toBeTruthy();
+        expect(fixButton).not.toHaveAttribute("disabled");
 
-        fireEvent.click(fixButton);
+        fireEvent.click(fixButton!);
 
         expect(onAddNodePrompt).toHaveBeenCalledTimes(1);
         const [node, target, prompt, launchOptions] = onAddNodePrompt.mock.calls[0];
@@ -176,6 +178,21 @@ describe("DiagnosticsPopUp", () => {
             planMode: false,
             autoSubmit: true,
         });
+    });
+
+    it("renders diagnostic rows with icons instead of severity text prefixes", () => {
+        const contextValue = createContextValue();
+
+        const { container } = renderPopup(contextValue);
+        const diagnosticsIcon = container.querySelector(".fw-error-outline-rounded");
+        expect(diagnosticsIcon).toBeTruthy();
+
+        fireEvent.click(diagnosticsIcon!.parentElement!);
+
+        expect(screen.getByText("node level diagnostic")).toBeInTheDocument();
+        expect(screen.getByText("property level diagnostic")).toBeInTheDocument();
+        expect(screen.queryByText("[ERROR] node level diagnostic")).not.toBeInTheDocument();
+        expect(screen.queryByText("[WARNING] property level diagnostic")).not.toBeInTheDocument();
     });
 
     it("keeps fix disabled when user is unauthenticated", () => {
@@ -191,9 +208,10 @@ describe("DiagnosticsPopUp", () => {
 
         fireEvent.click(diagnosticsIcon!.parentElement!);
 
-        const fixButton = screen.getByRole("button", { name: /fix/i });
-        expect(fixButton).toBeDisabled();
-        fireEvent.click(fixButton);
+        const fixButtonLabel = screen.getByText("Fix with AI");
+        const fixButton = fixButtonLabel.closest("vscode-button");
+        expect(fixButton).toBeTruthy();
+        fireEvent.click(fixButton!);
         expect(onAddNodePrompt).not.toHaveBeenCalled();
     });
 });

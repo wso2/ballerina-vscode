@@ -94,6 +94,9 @@ export const shouldShowNavigationArrow = (item: CompletionItem): boolean => {
 // Determines if a type is an array of non-primitive (object) types
 export const isArrayOfObjectsType = (typeDetail: string): boolean => {
     if (!typeDetail) return false;
-    const cleanType = typeDetail.trim();
-    return cleanType.endsWith('[]') && !isPrimitiveType(cleanType);
+    const normalized = typeDetail.trim().replace(/\?$/, '');
+    const baseType = normalized.split('&')[0].trim();
+    if (!baseType.endsWith('[]')) return false;
+    const elementType = baseType.slice(0, -2);
+    return !isPrimitiveType(elementType);
 };

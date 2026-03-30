@@ -24,6 +24,7 @@ import {
     InlineCardHeader,
     InlineCardIcon,
     InlineCardTitle,
+    InlineCardSubtitle,
 } from "./styles";
 
 // ── Styled components ─────────────────────────────────────────────────────────
@@ -39,11 +40,9 @@ const METHOD_COLORS: Record<string, string> = {
 };
 
 const STATUS_COLOR_RANGES: { max: number; color: string }[] = [
-    { max: 199, color: "#95A5A6" },
-    { max: 299, color: "#2ECC71" },
-    { max: 399, color: "#3498DB" },
-    { max: 499, color: "#F39C12" },
-    { max: 599, color: "#E74C3C" },
+    { max: 399, color: "var(--vscode-descriptionForeground)" },
+    { max: 499, color: "var(--vscode-charts-orange, #F39C12)" },
+    { max: 599, color: "var(--vscode-errorForeground)" },
 ];
 
 const getStatusColor = (status: number): string => {
@@ -59,6 +58,30 @@ const RequestRow = styled.div`
     gap: 6px;
     padding: 3px 0 2px;
     min-height: 22px;
+`;
+
+const RequestToggleRow = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 0 2px;
+    min-height: 22px;
+    cursor: pointer;
+    border-radius: 2px;
+    &:hover {
+        background-color: var(--vscode-toolbar-hoverBackground);
+    }
+`;
+
+const ChevronIcon = styled.span<{ expanded: boolean }>`
+    font-size: 11px;
+    flex-shrink: 0;
+    color: var(--vscode-descriptionForeground);
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    transform: rotate(${(props: { expanded: boolean }) => props.expanded ? "0deg" : "-90deg"});
+    transition: transform 0.2s ease;
 `;
 
 const MethodBadge = styled.span<{ method: string }>`
@@ -89,22 +112,6 @@ const StatusBadge = styled.span<{ status: number }>`
     flex-shrink: 0;
 `;
 
-const ExpandButton = styled.button`
-    background: none;
-    border: none;
-    color: var(--vscode-descriptionForeground);
-    cursor: pointer;
-    padding: 2px;
-    border-radius: 3px;
-    font-size: 11px;
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
-    &:hover {
-        color: var(--vscode-foreground);
-        background-color: var(--vscode-toolbar-hoverBackground);
-    }
-`;
 
 const DetailsBlock = styled.div`
     border-top: 1px solid var(--vscode-panel-border);
@@ -209,27 +216,6 @@ const ErrorMessage = styled.span`
     font-weight: 600;
 `;
 
-const ScenarioGroup = styled.div`
-    background-color: var(--vscode-input-background);
-    border: 1px solid var(--vscode-panel-border);
-    border-radius: 4px;
-    margin: 4px 0 2px;
-    overflow: hidden;
-`;
-
-const ScenarioHeader = styled.div`
-    color: var(--vscode-foreground);
-    padding: 4px 10px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-`;
-
-const ScenarioContent = styled.div`
-    padding: 2px 8px 4px;
-`;
-
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const formatJson = (value: unknown): string => {
@@ -284,23 +270,23 @@ const HTTPRequestDetail: React.FC<HTTPRequestDetailProps> = ({ request, output }
 
     return (
         <>
-            <RequestRow>
-                {isResult ? (
-                    <InlineCardIcon style={{ fontSize: 12, color: isError ? "var(--vscode-errorForeground)" : "var(--vscode-charts-green, #388a34)" }}>
-                        <span className={`codicon ${isError ? "codicon-chrome-close" : "codicon-check"}`} />
-                    </InlineCardIcon>
-                ) : (
+            <RequestToggleRow onClick={() => setExpanded(p => !p)}>
+                {!isResult ? (
                     <InlineCardIcon style={{ fontSize: 12, color: "var(--vscode-charts-blue)" }}>
                         <span className="codicon codicon-loading codicon-modifier-spin" />
                     </InlineCardIcon>
-                )}
+                ) : isError ? (
+                    <InlineCardIcon style={{ fontSize: 12, color: "var(--vscode-errorForeground)" }}>
+                        <span className="codicon codicon-chrome-close" />
+                    </InlineCardIcon>
+                ) : null}
                 <MethodBadge method={request.method}>{request.method}</MethodBadge>
                 <UrlLabel>{request.url}</UrlLabel>
                 {statusCode !== undefined && <StatusBadge status={statusCode}>{statusCode}</StatusBadge>}
-                <ExpandButton onClick={() => setExpanded(p => !p)} title={expanded ? "Collapse" : "Expand"}>
-                    <span className={`codicon ${expanded ? "codicon-chevron-up" : "codicon-chevron-down"}`} />
-                </ExpandButton>
-            </RequestRow>
+                <ChevronIcon expanded={expanded}>
+                    <span className="codicon codicon-chevron-down" />
+                </ChevronIcon>
+            </RequestToggleRow>
 
             {expanded && (
                 <DetailsBlock>
@@ -371,15 +357,8 @@ interface TryItCardProps {
 const TryItCard: React.FC<TryItCardProps> = ({ input, output }) => {
     if (!input?.request) return null;
 
-    const hasScenario = !!(input.scenario || output?.scenario);
+    const isRunning = !output;
     const scenario = input.scenario ?? output?.scenario;
-
-    const content = (
-        <HTTPRequestDetail
-            request={output?.request ?? input.request}
-            output={output?.output}
-        />
-    );
 
     return (
         <InlineCard>
@@ -388,15 +367,21 @@ const TryItCard: React.FC<TryItCardProps> = ({ input, output }) => {
                     <span className="codicon codicon-send" />
                 </InlineCardIcon>
                 <InlineCardTitle>HTTP Request</InlineCardTitle>
+                {scenario && <InlineCardSubtitle>{scenario}</InlineCardSubtitle>}
             </InlineCardHeader>
 
-            {hasScenario ? (
-                <ScenarioGroup>
-                    <ScenarioHeader>{scenario}</ScenarioHeader>
-                    <ScenarioContent>{content}</ScenarioContent>
-                </ScenarioGroup>
+            {isRunning ? (
+                <RequestRow>
+                    <InlineCardIcon style={{ fontSize: 12, color: "var(--vscode-charts-blue)" }}>
+                        <span className="codicon codicon-loading codicon-modifier-spin" />
+                    </InlineCardIcon>
+                    <span style={{ fontSize: 11, color: "var(--vscode-descriptionForeground)" }}>Running...</span>
+                </RequestRow>
             ) : (
-                content
+                <HTTPRequestDetail
+                    request={output?.request ?? input.request}
+                    output={output?.output}
+                />
             )}
         </InlineCard>
     );

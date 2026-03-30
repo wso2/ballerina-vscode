@@ -162,6 +162,7 @@ export interface Library {
     clients: Client[];
     functions?: RemoteFunction[];
     services?: Service[];
+    instructions?: string;
 }
 
 

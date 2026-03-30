@@ -88,6 +88,7 @@ export interface PlatformExtConnectionState {
 }
 
 export interface PlatformExtState {
+    isExtInstalled?: boolean;
     isLoggedIn: boolean;
     userInfo: UserInfo | null;
     hasPossibleComponent?: boolean;

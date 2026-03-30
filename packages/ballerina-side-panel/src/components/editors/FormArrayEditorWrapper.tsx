@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Controller } from "react-hook-form";
 import { useFormContext } from "../../context";
 import { FormArrayEditor } from "./FormArrayEditor";
@@ -24,7 +24,13 @@ import { FormFieldEditorProps } from "./EditorFactory";
 
 export const FormArrayEditorWrapper = (props: FormFieldEditorProps) => {
     const { form } = useFormContext();
-    const { control } = form;
+    const { control, setValue } = form;
+
+    useEffect(() => {
+        if (Array.isArray(props.field.value)) {
+            setValue(props.field.key, props.field.value);
+        }
+    }, [props.field.value, props.field.key]);
 
     return (
         <Controller

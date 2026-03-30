@@ -41,6 +41,12 @@ interface JsonViewerProps {
 
 const Container = styled.div``;
 
+const EmptyIndicator = styled.span`
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+    font-style: italic;
+`;
+
 const Header = styled.div`
     display: flex;
     align-items: center;
@@ -549,7 +555,9 @@ export function JsonViewer({
                     )}
                 </Header>
                 <ContentWrapper>
-                    {viewMode === 'markdown' && hasMarkdown ? (
+                    {value === '' ? (
+                        <EmptyIndicator>(empty)</EmptyIndicator>
+                    ) : viewMode === 'markdown' && hasMarkdown ? (
                         <MarkdownContent>
                             <ReactMarkdown
                                 remarkPlugins={[remarkMath, remarkGfm]}

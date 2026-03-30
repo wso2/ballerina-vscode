@@ -111,11 +111,35 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             return false;
         }
         if (designModelRef.current) {
-            const isNameExists = designModelRef.current.services.some(
+            const isServiceExists = designModelRef.current.services.some(
                 service => service.absolutePath?.trim() === `/${name}`
             );
-            if (isNameExists) {
+            if (isServiceExists) {
                 setNameError("An AI Chat Agent with this name already exists. Please choose a different name.");
+                return false;
+            }
+            const agentConnectionName = `${name}Agent`;
+            const isConnectionExists = designModelRef.current.connections.some(
+                connection => connection.symbol === agentConnectionName
+            );
+            if (isConnectionExists) {
+                setNameError(`"${agentConnectionName}" already exists. Please choose a different name.`);
+                return false;
+            }
+            const modelName = `${name}Model`;
+            const isModelExists = designModelRef.current.connections.some(
+                connection => connection.symbol === modelName
+            );
+            if (isModelExists) {
+                setNameError(`"${modelName}" already exists. Please choose a different name.`);
+                return false;
+            }
+            const listenerName = `${name}Listener`;
+            const isListenerExists = designModelRef.current.listeners.some(
+                listener => listener.symbol === listenerName
+            );
+            if (isListenerExists) {
+                setNameError(`A listener named "${listenerName}" already exists. Please choose a different name.`);
                 return false;
             }
         }

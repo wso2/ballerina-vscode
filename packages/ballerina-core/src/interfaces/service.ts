@@ -148,6 +148,7 @@ export interface ParamDetails {
 interface MetaData {
     label: string;
     description: string;
+    notice?: string;
     groupNo?: number;
     groupName?: string;
 }

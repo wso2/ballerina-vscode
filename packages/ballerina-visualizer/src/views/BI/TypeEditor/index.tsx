@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { MutableRefObject, useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { debounce } from 'lodash';
 import { Imports, LineRange, PayloadContext, Type, Protocol, functionKinds } from '@wso2/ballerina-core';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
@@ -111,7 +111,7 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
         debounce(async (searchText: string, isType: boolean) => {
             if (!rpcClient) return;
 
-            if (isType && (!fetchedInitialTypes.current || refetchTypes)) {
+            if (isType && !fetchedInitialTypes.current) {
                 try {
                     let types;
                     if (isGraphql) {
@@ -133,7 +133,7 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                     }
                     const basicTypes = getTypes(types, false, payloadContext);
                     setBasicTypes(basicTypes);
-                    setFilteredBasicTypes(basicTypes);
+                    setFilteredBasicTypes(searchText ? filterTypes(basicTypes, searchText) : basicTypes);
                     fetchedInitialTypes.current = true;
 
                     const searchResponse = await rpcClient.getBIDiagramRpcClient().search({

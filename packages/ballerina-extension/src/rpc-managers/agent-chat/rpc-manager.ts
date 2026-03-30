@@ -27,7 +27,8 @@ import {
     ChatHistoryResponse,
     AgentStatusResponse,
     ClearChatResponse,
-    SessionInput
+    SessionInput,
+    SessionInfoResponse
 } from "@wso2/ballerina-core";
 import * as vscode from 'vscode';
 import { extension } from '../../BalExtensionContext';
@@ -76,7 +77,7 @@ export class AgentChatRpcManager implements AgentChatAPI {
                 );
                 if (response && response.message) {
                     // Find trace and extract tool calls and execution steps
-                    const trace = this.findTraceForMessage(extension.agentChatContext.chatSessionId, params.message);
+                    const trace = this.findTraceForMessage(extension.agentChatContext.chatSessionId, params.message, response.message);
                     const executionSteps = trace ? this.extractExecutionSteps(trace) : undefined;
 
                     // Store agent response in history
@@ -227,43 +228,24 @@ export class AgentChatRpcManager implements AgentChatAPI {
      * @param userMessage The user's input message
      * @returns The matching trace or undefined if not found
      */
-    findTraceForMessage(sessionId: string, userMessage: string): Trace | undefined {
-        // Get all traces from the TraceServer
+    findTraceForMessage(sessionId: string, userMessage: string, agentResponse?: string): Trace | undefined {
         const traces = TraceServer.getTraces();
 
         // Sort traces from most recent to least recent based on lastSeen timestamp
-        traces.sort((a, b) => {
-            const timeA = a.lastSeen.getTime();
-            const timeB = b.lastSeen.getTime();
+        traces.sort((a, b) => b.lastSeen.getTime() - a.lastSeen.getTime());
 
-            // Sort in descending order (most recent first)
-            return timeB - timeA;
-        });
-
-        // Helper function to extract string value from attribute value
         const extractValue = (value: any): string => {
-            if (typeof value === 'string') {
-                return value;
-            }
+            if (typeof value === 'string') { return value; }
             if (value && typeof value === 'object' && 'stringValue' in value) {
                 return String(value.stringValue);
             }
             return '';
         };
 
-        // Iterate through each trace to find matching spans
         for (const trace of traces) {
-            // Check each span in the trace
             for (const span of trace.spans || []) {
-                // Check if this span matches our criteria:
-                // 1. span.type === "ai"
-                // 2. gen_ai.operation.name === "invoke_agent"
-                // 3. gen_ai.input.messages matches the user message
-                // 4. gen_ai.output.messages matches the agent response (if provided)
-
                 const attributes = span.attributes || [];
 
-                // Find relevant attributes
                 let spanType: string | undefined;
                 let operationName: string | undefined;
                 let inputMessages: string | undefined;
@@ -286,17 +268,15 @@ export class AgentChatRpcManager implements AgentChatAPI {
                     }
                 }
 
-                // Check if all criteria match
-                if (spanType === 'ai' &&
-                    operationName === 'invoke_agent' &&
-                    inputMessages) {
+                if (spanType !== 'ai' || operationName !== 'invoke_agent' || conversationId != sessionId) {
+                    continue;
+                }
 
-                    // If sessionId doesn't match, skip
-                    if (conversationId != sessionId) { continue; }
+                const inputMatches = inputMessages && inputMessages.includes(userMessage);
+                const outputMatches = agentResponse && outputMessages && outputMessages.includes(agentResponse);
 
-                    // Check if the input message matches
-                    const inputMatches = inputMessages.includes(userMessage);
-                    if (inputMatches) { return trace; }
+                if (inputMatches || outputMatches) {
+                    return trace;
                 }
             }
         }
@@ -516,5 +496,12 @@ export class AgentChatRpcManager implements AgentChatAPI {
                 isRunning
             });
         });
+    }
+
+    async getSessionInfo(): Promise<SessionInfoResponse> {
+        return {
+            sessionId: extension.agentChatContext?.chatSessionId || '',
+            chatEndpoint: extension.agentChatContext?.chatEp || '',
+        };
     }
 }

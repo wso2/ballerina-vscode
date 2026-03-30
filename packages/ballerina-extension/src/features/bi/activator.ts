@@ -36,7 +36,12 @@ import { readFileSync, readdirSync, statSync } from "fs";
 import path from "path";
 import { isPositionEqual, isPositionWithinDeletedComponent } from "../../utils/history/util";
 import { startDebugging } from "../editor-support/activator";
-import { createBIProjectFromMigration, createBIProjectPure, createBIWorkspace, openInVSCode } from "../../utils/bi";
+import {
+    createBIProjectFromMigration,
+    createBIProjectPure,
+    createBIWorkspaceWithProject,
+    createEmptyBIWorkspace
+} from "../../utils/bi";
 import { createVersionNumber, findBallerinaPackageRoot, isSupportedSLVersion } from ".././../utils";
 import { extension } from "../../BalExtensionContext";
 import { VisualizerWebview } from "../../views/visualizer/webview";
@@ -159,7 +164,11 @@ export function activate(context: BallerinaExtension) {
     commands.registerCommand(BI_COMMANDS.CREATE_BI_PROJECT, async (params) => {
         let path: string;
         if (params.createAsWorkspace) {
-            path = await createBIWorkspace(params);
+            if (params.projectName) {
+                path = await createBIWorkspaceWithProject(params);
+            } else {
+                path = await createEmptyBIWorkspace(params);
+            }
         } else {
             path = await createBIProjectPure(params);
         }
@@ -285,14 +294,14 @@ async function handleDebugCommandWithContext() {
 }
 
 /**
- * Prompts user to select a package and starts debugging.
+ * Prompts user to select an integration and starts debugging.
  * @param projectInfo - The project info
  * @returns void
  */
 async function handleDebugCommandWithPackageSelection(projectInfo: ProjectInfo) {
     const availablePackages = projectInfo?.children.map((child: ProjectInfo) => child.projectPath) ?? [];
 
-    const selectedPackage = await selectPackageOrPrompt(availablePackages, "Select a package to debug");
+    const selectedPackage = await selectPackageOrPrompt(availablePackages, "Select an integration to debug");
     if (!selectedPackage) {
         return;
     }

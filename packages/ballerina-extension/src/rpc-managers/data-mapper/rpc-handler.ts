@@ -61,6 +61,8 @@ import {
     mapWithTransformFn,
     ProcessTypeReferenceRequest,
     PropertyRequest,
+    resolveOutput,
+    ResolveOutputRequest,
     VisualizableFieldsRequest,
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
@@ -81,6 +83,7 @@ export function registerDataMapperRpcHandlers(messenger: Messenger) {
     messenger.onRequest(deleteSubMapping, (args: DeleteSubMappingRequest) => rpcManger.deleteSubMapping(args));
     messenger.onRequest(mapWithCustomFn, (args: MapWithFnRequest) => rpcManger.mapWithCustomFn(args));
     messenger.onRequest(mapWithTransformFn, (args: MapWithFnRequest) => rpcManger.mapWithTransformFn(args));
+    messenger.onRequest(resolveOutput, (args: ResolveOutputRequest) => rpcManger.resolveOutput(args));
     messenger.onRequest(getDataMapperCodedata, (args: GetDataMapperCodedataRequest) => rpcManger.getDataMapperCodedata(args));
     messenger.onRequest(getSubMappingCodedata, (args: GetSubMappingCodedataRequest) => rpcManger.getSubMappingCodedata(args));
     messenger.onRequest(getProperty, (args: PropertyRequest) => rpcManger.getProperty(args));

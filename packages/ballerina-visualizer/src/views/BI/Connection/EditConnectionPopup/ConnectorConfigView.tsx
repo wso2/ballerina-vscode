@@ -19,6 +19,7 @@
 import styled from "@emotion/styled";
 import { ThemeColors, Typography, Button, Icon } from "@wso2/ui-toolkit";
 import { PropertyModel } from "@wso2/ballerina-core";
+import { ConnectorIcon } from "@wso2/bi-diagram";
 import { isDatabaseSystemProperty, formatDatabaseTypeDisplay } from "../utils";
 
 const ConnectorConfigSection = styled.div`
@@ -93,6 +94,7 @@ const ConnectorActionButton = styled(Button)`
 export interface ConnectorConfigViewProps {
     connectorLabel: string;
     connectorDescription?: string;
+    connectorIcon?: string;
     properties: { [key: string]: PropertyModel };
     onEditConnector: () => void;
     onViewERD: () => void;
@@ -101,6 +103,7 @@ export interface ConnectorConfigViewProps {
 export function ConnectorConfigView(props: ConnectorConfigViewProps) {
     const {
         connectorLabel,
+        connectorIcon,
         properties,
         onEditConnector,
         onViewERD,
@@ -128,14 +131,18 @@ export function ConnectorConfigView(props: ConnectorConfigViewProps) {
             <ConnectorDetailsCard>
                 <ConnectorInfoSection>
                     <ConnectorIconWrapper>
-                        <Icon
-                            name="bi-db"
-                            sx={{
-                                fontSize: "20px",
-                                width: "20px",
-                                height: "20px"
-                            }}
-                        />
+                        {connectorIcon ? (
+                            <ConnectorIcon url={connectorIcon} />
+                        ) : (
+                            <Icon
+                                name="bi-db"
+                                sx={{
+                                    fontSize: "20px",
+                                    width: "20px",
+                                    height: "20px"
+                                }}
+                            />
+                        )}
                     </ConnectorIconWrapper>
                     <ConnectorTextSection>
                         <ConnectorTypeName>{connectorName}</ConnectorTypeName>
@@ -152,7 +159,7 @@ export function ConnectorConfigView(props: ConnectorConfigViewProps) {
                         tooltip="Edit connector credentials and selected Tables"
                     >
                         <Icon
-                            name="bi-db"
+                            name="bi-edit"
                             sx={{ fontSize: "14px", width: "14px", height: "14px", marginRight: "6px" }}
                         />
                         Edit Connector
@@ -167,7 +174,7 @@ export function ConnectorConfigView(props: ConnectorConfigViewProps) {
                             name="persist-diagram"
                             sx={{ fontSize: "14px", width: "14px", height: "14px", marginRight: "6px" }}
                         />
-                        View ERD
+                        View ER Diagram
                     </ConnectorActionButton>
                 </ConnectorActionsRow>
             </ConnectorDetailsCard>

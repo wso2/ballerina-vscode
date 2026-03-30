@@ -24,7 +24,7 @@ export const ArrayIndexRow = styled.div`
     align-items: center;
     justify-content: space-between;
     margin: 0px 8px 4px;
-    padding: 4px 10px;
+    padding: 4px 12px;
     background-color: ${ThemeColors.SURFACE_DIM_2};
     border-radius: 6px;
 `;

@@ -22,6 +22,7 @@ import ReactMarkdown from "react-markdown";
 import {
     Button,
     Codicon,
+    ErrorBanner,
     LinkButton,
     ThemeColors,
     SidePanelBody,
@@ -50,7 +51,9 @@ import {
     getPrimaryInputType,
     MACHINE_VIEW,
     EditorDisplayMode,
+    Imports,
 } from "@wso2/ballerina-core";
+import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { FormContext, Provider } from "../../context";
 import {
     formatJSONLikeString,
@@ -251,6 +254,19 @@ namespace S {
         margin-bottom: -12px;
     `;
 
+    export const FormDiagnosticsContainer = styled.div`
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+    `;
+
+    export const FormDiagnosticsActionContainer = styled.div`
+        display: flex;
+        justify-content: flex-end;
+        width: 100%;
+    `;
+
     export const MarkdownContainer = styled.div<{ isExpanded: boolean }>`
         width: 100%;
         ${({ isExpanded }) =>
@@ -390,6 +406,8 @@ export interface FormProps {
         removeLastPopup: () => void;
         closePopup: (id: string) => void;
     }
+    formDiagnostics?: { message: string; severity: "ERROR" | "WARNING" | "INFO" }[];
+    formDiagnosticsAction?: React.ReactNode;
     preserveOrder?: boolean;
     handleSelectedTypeChange?: (type: string | CompletionItem) => void;
     scopeFieldAddon?: React.ReactNode;
@@ -397,6 +415,7 @@ export interface FormProps {
     injectedComponents?: {
         component: React.ReactNode;
         index: number;
+        advanced?: boolean;
     }[];
     hideSaveButton?: boolean; // Option to hide the save button
     footerActionButton?: boolean; // Render save button as footer action button
@@ -404,9 +423,10 @@ export interface FormProps {
     changeOptionalFieldTitle?: string; // Option to change the title of optional fields
     openFormTypeEditor?: (open: boolean, newType?: string, editingField?: FormField) => void;
     derivedFields?: FieldDerivation[]; // Configuration for auto-deriving field values from other fields
+    updateImports?: (key: string, imports: Imports) => void;
 }
 
-export const Form = forwardRef((props: FormProps) => {
+export const Form = forwardRef((props: FormProps, _ref) => {
     const {
         infoLabel,
         formFields,
@@ -431,6 +451,8 @@ export const Form = forwardRef((props: FormProps) => {
         recordTypeFields,
         nestedForm,
         popupManager,
+        formDiagnostics,
+        formDiagnosticsAction,
         compact = false,
         isInferredReturnType,
         concertRequired = true,
@@ -445,8 +467,11 @@ export const Form = forwardRef((props: FormProps) => {
         onValidityChange,
         changeOptionalFieldTitle = undefined,
         openFormTypeEditor,
-        derivedFields = []
+        derivedFields = [],
+        updateImports,
     } = props;
+
+    const { rpcClient } = useRpcContext();
 
     const {
         control,
@@ -459,8 +484,15 @@ export const Form = forwardRef((props: FormProps) => {
         setValue,
         setError,
         clearErrors,
-        formState: { isValidating, isValid: formStateIsValid, errors, dirtyFields },
+        formState: { isValidating, isValid: formStateIsValid, errors, dirtyFields, isDirty },
     } = useForm<FormValues>();
+
+    useEffect(() => {
+        if (!fileName || !rpcClient) {
+            return;
+        }
+        rpcClient.getBIDiagramRpcClient().formDirtyDidChange({ filePath: fileName, isDirty });
+    }, [isDirty, fileName, rpcClient]);
 
     const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
     const [activeFormField, setActiveFormField] = useState<string | undefined>(undefined);
@@ -1009,6 +1041,16 @@ export const Form = forwardRef((props: FormProps) => {
             {!preserveOrder && !compact && (
                 <FormDescription formFields={formFields} selectedNode={selectedNode} />
             )}
+            {formDiagnostics && formDiagnostics.length > 0 && (
+                <S.FormDiagnosticsContainer>
+                    <ErrorBanner errorMsg={formDiagnostics.map((diagnostic) => diagnostic.message).join("\n")} />
+                    {formDiagnosticsAction && (
+                        <S.FormDiagnosticsActionContainer>
+                            {formDiagnosticsAction}
+                        </S.FormDiagnosticsActionContainer>
+                    )}
+                </S.FormDiagnosticsContainer>
+            )}
 
             {/*
                  * Two rendering modes based on preserveOrder prop:
@@ -1026,10 +1068,12 @@ export const Form = forwardRef((props: FormProps) => {
                     let renderedFieldCount = 0;
                     const injectedIndices = new Set<number>(); // Track which injections have been added
 
+                    const nonAdvancedInjections = injectedComponents?.filter((ic) => !ic.advanced);
+
                     fieldsToRender.forEach((field) => {
                         // Check if we need to inject components before this field
-                        if (injectedComponents) {
-                            injectedComponents.forEach((injected) => {
+                        if (nonAdvancedInjections) {
+                            nonAdvancedInjections.forEach((injected) => {
                                 if (injected.index === renderedFieldCount && !injectedIndices.has(injected.index)) {
                                     renderedComponents.push(
                                         <React.Fragment key={`injected-${injected.index}`}>
@@ -1061,6 +1105,7 @@ export const Form = forwardRef((props: FormProps) => {
                                     }
                                     openSubPanel={handleOpenSubPanel}
                                     subPanelView={subPanelView}
+                                    handleFormValidation={handleFormValidation}
                                     handleOnFieldFocus={handleOnFieldFocus}
                                     autoFocus={firstEditableFieldIndex === formFields.indexOf(updatedField) && !hideSaveButton}
                                     recordTypeFields={recordTypeFields}
@@ -1074,6 +1119,7 @@ export const Form = forwardRef((props: FormProps) => {
                                         openFormTypeEditor &&
                                         ((open: boolean, newType?: string) => openFormTypeEditor(open, newType, updatedField))
                                     }
+                                    updateImports={updateImports}
                                 />
                                 {updatedField.key === "scope" && scopeFieldAddon}
                             </S.Row>
@@ -1082,8 +1128,8 @@ export const Form = forwardRef((props: FormProps) => {
                     });
 
                     // Check if we need to inject components after all fields
-                    if (injectedComponents) {
-                        injectedComponents.forEach((injected) => {
+                    if (nonAdvancedInjections) {
+                        nonAdvancedInjections.forEach((injected) => {
                             if (injected.index >= renderedFieldCount && !injectedIndices.has(injected.index)) {
                                 renderedComponents.push(
                                     <React.Fragment key={`injected-${injected.index}`}>
@@ -1131,29 +1177,64 @@ export const Form = forwardRef((props: FormProps) => {
                 )}
                 {hasAdvanceFields &&
                     showAdvancedOptions &&
-                    formFields.map((field) => {
-                        if (field.advanced && !field.hidden) {
-                            const updatedField = updateFormFieldWithImports(field, formImports);
-                            return (
-                                <S.Row key={updatedField.key}>
-                                    <FieldFactory
-                                        field={updatedField}
-                                        openRecordEditor={
-                                            openRecordEditor &&
-                                            ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
+                    (() => {
+                        const advancedComponents: React.ReactNode[] = [];
+                        let advancedFieldCount = 0;
+                        const advancedInjectedIndices = new Set<number>();
+                        const advancedInjections = injectedComponents?.filter((ic) => ic.advanced);
+
+                        formFields.forEach((field) => {
+                            if (field.advanced && !field.hidden) {
+                                if (advancedInjections) {
+                                    advancedInjections.forEach((injected) => {
+                                        if (injected.index === advancedFieldCount && !advancedInjectedIndices.has(injected.index)) {
+                                            advancedComponents.push(
+                                                <React.Fragment key={`injected-advanced-${injected.index}`}>
+                                                    {injected.component}
+                                                </React.Fragment>
+                                            );
+                                            advancedInjectedIndices.add(injected.index);
                                         }
-                                        subPanelView={subPanelView}
-                                        handleOnFieldFocus={handleOnFieldFocus}
-                                        recordTypeFields={recordTypeFields}
-                                        onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
-                                        handleOnTypeChange={handleOnTypeChange}
-                                        onBlur={handleOnBlur}
-                                    />
-                                </S.Row>
-                            );
+                                    });
+                                }
+
+                                const updatedField = updateFormFieldWithImports(field, formImports);
+                                advancedComponents.push(
+                                    <S.Row key={updatedField.key}>
+                                        <FieldFactory
+                                            field={updatedField}
+                                            openRecordEditor={
+                                                openRecordEditor &&
+                                                ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
+                                            }
+                                            subPanelView={subPanelView}
+                                            handleOnFieldFocus={handleOnFieldFocus}
+                                            recordTypeFields={recordTypeFields}
+                                            onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                            handleOnTypeChange={handleOnTypeChange}
+                                            onBlur={handleOnBlur}
+                                        />
+                                    </S.Row>
+                                );
+                                advancedFieldCount++;
+                            }
+                        });
+
+                        if (advancedInjections) {
+                            advancedInjections.forEach((injected) => {
+                                if (injected.index >= advancedFieldCount && !advancedInjectedIndices.has(injected.index)) {
+                                    advancedComponents.push(
+                                        <React.Fragment key={`injected-advanced-${injected.index}`}>
+                                            {injected.component}
+                                        </React.Fragment>
+                                    );
+                                    advancedInjectedIndices.add(injected.index);
+                                }
+                            });
                         }
-                        return null;
-                    })}
+
+                        return advancedComponents;
+                    })()}
                 {hasAdvanceFields &&
                     showAdvancedOptions &&
                     advancedChoiceFields.map((field) => {
@@ -1172,6 +1253,7 @@ export const Form = forwardRef((props: FormProps) => {
                                     onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                                     handleOnTypeChange={handleOnTypeChange}
                                     onBlur={handleOnBlur}
+                                    handleFormValidation={handleFormValidation}
                                 />
                             </S.Row>
                         );
@@ -1187,6 +1269,8 @@ export const Form = forwardRef((props: FormProps) => {
                             recordTypeFields={recordTypeFields}
                             onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                             onBlur={handleOnBlur}
+                            handleFormValidation={handleFormValidation}
+
                         />
                     )}
                     {typeField && !isInferredReturnType && (
@@ -1202,7 +1286,7 @@ export const Form = forwardRef((props: FormProps) => {
                             onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                             handleNewTypeSelected={handleNewTypeSelected}
                             onBlur={handleOnBlur}
-
+                            handleFormValidation={handleFormValidation}
                         />
                     )}
                     {targetTypeField && !targetTypeField.advanced && (
@@ -1215,6 +1299,7 @@ export const Form = forwardRef((props: FormProps) => {
                                 handleNewTypeSelected={handleNewTypeSelected}
                                 handleOnTypeChange={handleOnTypeChange}
                                 onBlur={handleOnBlur}
+                                handleFormValidation={handleFormValidation}
                             />
                             {typeField && (
                                 <TypeHelperText

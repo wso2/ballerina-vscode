@@ -15,60 +15,155 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import React, { createRef, useEffect } from "react";
+import React, { useEffect } from "react";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Button, Codicon, Typography } from "@wso2/ui-toolkit";
+import { Button, Codicon } from "@wso2/ui-toolkit";
 
 import { AIChatView } from "../styles";
 import { AIMachineEventType } from "@wso2/ballerina-core";
 
-const Container = styled.div`
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 16px;
-    gap: 28px;
-`;
+// ── Layout ────────────────────────────────────────────────────────────────────
 
-const Header = styled.div`
+const PanelHeader = styled.div`
     display: flex;
     align-items: center;
-    gap: 4px;
-    padding: 10px;
+    gap: 8px;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--vscode-panel-border);
+    flex-shrink: 0;
 `;
 
-const VerticalLine = styled.div`
-    width: 100%;
-    height: 1px;
-    background-color: var(--vscode-editorWidget-border);
+const PanelTitle = styled.span`
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--vscode-foreground);
+    font-family: var(--vscode-font-family);
 `;
 
-const RowGroup = styled.div`
-    display: flex;
-    width: 100%;
-    align-items: flex-start;
-`;
-
-const Row = styled.div`
+const PanelContent = styled.div`
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 16px;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    width: 100%;
-    gap: 4px;
+    gap: 24px;
 `;
+
+const PanelFooter = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-top: 1px solid var(--vscode-panel-border);
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    flex-shrink: 0;
+    font-family: var(--vscode-font-family);
+`;
+
+// ── Section ───────────────────────────────────────────────────────────────────
+
+const Section = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+`;
+
+const SectionHeader = styled.h3`
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--vscode-descriptionForeground);
+    margin: 0;
+    font-family: var(--vscode-font-family);
+`;
+
+const SettingRow = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+`;
+
+const SettingInfo = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+`;
+
+const SettingLabel = styled.span`
+    font-size: 13px;
+    color: var(--vscode-foreground);
+    font-family: var(--vscode-font-family);
+`;
+
+const SettingDescription = styled.span`
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    font-family: var(--vscode-font-family);
+`;
+
+// ── Action buttons ────────────────────────────────────────────────────────────
+
+const SignOutButton = styled.button`
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-family: var(--vscode-font-family);
+    transition: all 0.15s ease;
+    color: var(--vscode-errorForeground);
+    background: var(--vscode-inputValidation-errorBackground, transparent);
+    border: 1px solid var(--vscode-errorForeground);
+    &:hover { opacity: 0.85; }
+`;
+
+const CopilotButton = styled.button<{ authorized: boolean }>`
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-family: var(--vscode-font-family);
+    transition: all 0.15s ease;
+
+    ${(props: { authorized: boolean }) => props.authorized ? `
+        color: var(--vscode-charts-green, #388a34);
+        background: transparent;
+        border: 1px solid var(--vscode-charts-green, #388a34);
+        cursor: default;
+        opacity: 0.85;
+    ` : `
+        color: var(--vscode-button-foreground);
+        background: var(--vscode-button-background);
+        border: 1px solid transparent;
+        &:hover { background: var(--vscode-button-hoverBackground); }
+    `}
+`;
+
+// ── Component ─────────────────────────────────────────────────────────────────
 
 export const SettingsPanel = (props: { onClose: () => void }) => {
     const { rpcClient } = useRpcContext();
 
     const [copilotAuthorized, setCopilotAuthorized] = React.useState(false);
 
-    const messagesEndRef = createRef<HTMLDivElement>();
-
     useEffect(() => {
-        isCopilotAuthorized().then((authorized) => {
-            setCopilotAuthorized(authorized);
-        });
+        isCopilotAuthorized().then(setCopilotAuthorized);
     }, []);
 
     const handleCopilotLogout = () => {
@@ -77,11 +172,7 @@ export const SettingsPanel = (props: { onClose: () => void }) => {
 
     const handleAuthorizeCopilot = async () => {
         const resp = await rpcClient.getAiPanelRpcClient().promptGithubAuthorize();
-        if (resp) {
-            setCopilotAuthorized(true);
-        } else {
-            setCopilotAuthorized(false);
-        }
+        setCopilotAuthorized(!!resp);
     };
 
     const isCopilotAuthorized = async () => {
@@ -90,39 +181,47 @@ export const SettingsPanel = (props: { onClose: () => void }) => {
 
     return (
         <AIChatView>
-            <Header>
-                <Button appearance="icon" onClick={() => props.onClose()} tooltip="Chat">
+            <PanelHeader>
+                <Button appearance="icon" onClick={() => props.onClose()} tooltip="Back to chat">
                     <Codicon name="arrow-left" />
                 </Button>
+                <PanelTitle>Settings</PanelTitle>
+            </PanelHeader>
 
-                <Typography variant="subtitle2">Manage Accounts</Typography>
-            </Header>
-            <VerticalLine />
-            <Container>
-                <Typography variant="subtitle1">Connect to AI Platforms for Enhanced Features</Typography>
-                <RowGroup>
-                    <Row>
-                        <Typography variant="subtitle2">Logout from BI Copilot</Typography>
-                        <Typography variant="caption">
-                            Logging out will end your session and disconnect access to AI-powered tools like code
-                            generation, completions, test generation, and data mappings.
-                        </Typography>
-                    </Row>
-                    <Button onClick={() => handleCopilotLogout()}>Logout</Button>
-                </RowGroup>
-                <RowGroup>
-                    <Row>
-                        <Typography variant="subtitle2">Enable GitHub Copilot Integration</Typography>
-                        <Typography variant="caption">
-                            Authorize Github Copilot and get Visual Completions via Github.
-                        </Typography>
-                    </Row>
-                    <Button onClick={() => handleAuthorizeCopilot()} disabled={copilotAuthorized}>
-                        {copilotAuthorized ? "Authorized" : "Authorize"}
-                    </Button>
-                </RowGroup>
-                <div ref={messagesEndRef} />
-            </Container>
+            <PanelContent>
+                {/* Integrations */}
+                <Section>
+                    <SectionHeader>Integrations</SectionHeader>
+                    <SettingRow>
+                        <SettingInfo>
+                            <SettingLabel>GitHub Copilot</SettingLabel>
+                            <SettingDescription>Enable inline completions via GitHub Copilot</SettingDescription>
+                        </SettingInfo>
+                        <CopilotButton authorized={copilotAuthorized} onClick={copilotAuthorized ? undefined : handleAuthorizeCopilot}>
+                            {copilotAuthorized ? "Authorized" : "Authorize"}
+                        </CopilotButton>
+                    </SettingRow>
+                </Section>
+
+                {/* Account */}
+                <Section>
+                    <SectionHeader>Account</SectionHeader>
+                    <SettingRow>
+                        <SettingInfo>
+                            <SettingLabel>Sign out</SettingLabel>
+                            <SettingDescription>End your session and disconnect from AI services</SettingDescription>
+                        </SettingInfo>
+                        <SignOutButton onClick={handleCopilotLogout}>
+                            <span className="codicon codicon-sign-out" style={{ fontSize: 12 }} />
+                            Sign out
+                        </SignOutButton>
+                    </SettingRow>
+                </Section>
+            </PanelContent>
+
+            <PanelFooter>
+                <span>Settings persist across sessions</span>
+            </PanelFooter>
         </AIChatView>
     );
 };

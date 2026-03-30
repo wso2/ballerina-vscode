@@ -29,10 +29,10 @@ import { getHelperPaneNew } from "../../../HelperPaneNew";
 import { EXPRESSION_EXTRACTION_REGEX } from "../../../../../constants";
 import { calculateExpressionOffsets, convertBalCompletion, removeDuplicateDiagnostics } from "../../../../../utils/bi";
 
-class MoveToTextEditorConfig extends StringTemplateEditorConfig {
+class TextEditorConfig extends StringTemplateEditorConfig {
 }
 
-class MoveToExpressionEditorConfig extends ChipExpressionEditorDefaultConfiguration {
+class ExpressionEditorConfig extends ChipExpressionEditorDefaultConfiguration {
 }
 
 const HeaderRow = styled.div`
@@ -227,7 +227,7 @@ const getValidationErrorMessage = (error: unknown): string => {
 
 const toExpressionProperty = (propertyModel: PropertyModel | undefined, value: string): ExpressionProperty => ({
     metadata: {
-        label: propertyModel?.metadata?.label || "Move To",
+        label: propertyModel?.metadata?.label || "",
         description: propertyModel?.metadata?.description || "",
     },
     value,
@@ -265,10 +265,10 @@ const toDiagnosticsExpressionProperty = (propertyModel: PropertyModel | undefine
     };
 };
 
-export interface MoveToFieldProps {
+export interface TextExpressionFieldProps {
     id?: string;
     value: string;
-    moveToProperty?: PropertyModel;
+    property?: PropertyModel;
     filePath?: string;
     targetLineRange?: LineRange;
     required?: boolean;
@@ -278,9 +278,12 @@ export interface MoveToFieldProps {
     onValidationStateChange?: (state: { isValidating: boolean; hasValidationFailure: boolean }) => void;
 }
 
-export function MoveToField(props: MoveToFieldProps) {
-    const { id, value, moveToProperty, filePath, targetLineRange, required, disabled, onChange, onDiagnosticsChange, onValidationStateChange } = props;
+export function TextExpressionField(props: TextExpressionFieldProps) {
+    const { id, value, property, filePath, targetLineRange, required, disabled, onChange, onDiagnosticsChange, onValidationStateChange } = props;
     const { rpcClient } = useRpcContext();
+
+    const fieldLabel = property?.metadata?.label || "";
+    const fieldDescription = property?.metadata?.description || "";
 
     const formContext = useMemo(() => {
         const noop = () => { };
@@ -331,7 +334,7 @@ export function MoveToField(props: MoveToFieldProps) {
 
     const onDiagnosticsChangeRef = useRef(onDiagnosticsChange);
     const onValidationStateChangeRef = useRef(onValidationStateChange);
-    const moveToPropertyRef = useRef(moveToProperty);
+    const propertyRef = useRef(property);
     const prevCompletionFetchText = useRef<string>("");
     const helperPaneAnchorRef = useRef<HTMLDivElement>(null);
 
@@ -348,8 +351,8 @@ export function MoveToField(props: MoveToFieldProps) {
     }, [isValidating, hasValidationFailure]);
 
     useEffect(() => {
-        moveToPropertyRef.current = moveToProperty;
-    }, [moveToProperty]);
+        propertyRef.current = property;
+    }, [property]);
 
     const clearValidationFailure = useCallback(() => {
         setHasValidationFailure(false);
@@ -389,7 +392,7 @@ export function MoveToField(props: MoveToFieldProps) {
                     && !isStringTemplateLiteral(expression)
                     ? JSON.stringify(expression)
                     : expression;
-                const property = toDiagnosticsExpressionProperty(moveToPropertyRef.current, expressionForDiagnostics);
+                const prop = toDiagnosticsExpressionProperty(propertyRef.current, expressionForDiagnostics);
 
                 try {
                     const response = await rpcClient.getBIDiagramRpcClient().getExpressionDiagnostics({
@@ -399,8 +402,8 @@ export function MoveToField(props: MoveToFieldProps) {
                             startLine,
                             lineOffset: 0,
                             offset: 0,
-                            codedata: property.codedata,
-                            property,
+                            codedata: prop.codedata,
+                            property: prop,
                         } as any,
                     });
 
@@ -424,7 +427,7 @@ export function MoveToField(props: MoveToFieldProps) {
 
     const retrieveCompletions = useMemo(
         () =>
-            debounce(async (expression: string, property: ExpressionProperty, offset: number, triggerCharacter?: string) => {
+            debounce(async (expression: string, prop: ExpressionProperty, offset: number, triggerCharacter?: string) => {
                 if (!rpcClient || !filePath) {
                     setCompletions([]);
                     setFilteredCompletions([]);
@@ -454,7 +457,7 @@ export function MoveToField(props: MoveToFieldProps) {
                                 lineOffset,
                                 offset: charOffset,
                                 codedata: undefined,
-                                property,
+                                property: prop,
                             },
                             completionContext: {
                                 triggerKind: triggerCharacter ? 2 : 1,
@@ -482,7 +485,7 @@ export function MoveToField(props: MoveToFieldProps) {
                     prevCompletionFetchText.current = parentContent ?? "";
                     setFilteredCompletions(expressionCompletions);
                 } catch (error) {
-                    console.error(">>> Error getting moveTo completions", error);
+                    console.error(">>> Error getting expression completions", error);
                     setCompletions([]);
                     setFilteredCompletions([]);
                 }
@@ -577,8 +580,8 @@ export function MoveToField(props: MoveToFieldProps) {
     }, [inputMode, value]);
 
     const handleRetrieveCompletions = useMemo(
-        () => async (expression: string, property: ExpressionProperty, offset: number, triggerCharacter?: string) => {
-            await retrieveCompletions(expression, property, offset, triggerCharacter);
+        () => async (expression: string, prop: ExpressionProperty, offset: number, triggerCharacter?: string) => {
+            await retrieveCompletions(expression, prop, offset, triggerCharacter);
             if (triggerCharacter) {
                 await retrieveCompletions.flush();
             }
@@ -594,21 +597,21 @@ export function MoveToField(props: MoveToFieldProps) {
                 }
 
                 const helperField: FormField = {
-                    key: id ?? "moveTo",
-                    label: moveToProperty?.metadata?.label || "Move To",
+                    key: id ?? "textExpressionField",
+                    label: property?.metadata?.label || "",
                     type: "EXPRESSION",
-                    optional: moveToProperty?.optional ?? false,
-                    editable: moveToProperty?.editable ?? true,
-                    documentation: moveToProperty?.metadata?.description || "",
+                    optional: property?.optional ?? false,
+                    editable: property?.editable ?? true,
+                    documentation: property?.metadata?.description || "",
                     value: currentValue,
-                    types: moveToProperty?.types || [{ fieldType: "STRING", selected: true }],
+                    types: property?.types || [{ fieldType: "STRING", selected: true }],
                     enabled: true,
-                    advanced: moveToProperty?.advanced,
-                    hidden: moveToProperty?.hidden,
-                    placeholder: moveToProperty?.placeholder,
-                    metadata: moveToProperty?.metadata,
-                    codedata: moveToProperty?.codedata as any,
-                    imports: moveToProperty?.imports,
+                    advanced: property?.advanced,
+                    hidden: property?.hidden,
+                    placeholder: property?.placeholder,
+                    metadata: property?.metadata,
+                    codedata: property?.codedata as any,
+                    imports: property?.imports,
                 };
 
                 return (
@@ -628,7 +631,7 @@ export function MoveToField(props: MoveToFieldProps) {
                             completions: filteredCompletions,
                             filteredCompletions: filteredCompletions,
                             isInModal: true,
-                            types: moveToProperty?.types,
+                            types: property?.types,
                             handleRetrieveCompletions: handleRetrieveCompletions,
                             forcedValueTypeConstraint: "string",
                             handleValueTypeConstChange: () => { },
@@ -640,7 +643,7 @@ export function MoveToField(props: MoveToFieldProps) {
         [
             id,
             filePath,
-            moveToProperty,
+            property,
             effectiveTargetLineRange,
             filteredCompletions,
             handleRetrieveCompletions,
@@ -652,8 +655,8 @@ export function MoveToField(props: MoveToFieldProps) {
         <div>
             <HeaderRow>
                 <HeaderLeft>
-                    <Typography variant="body3">Move To</Typography>
-                    <FieldDescription>Destination path</FieldDescription>
+                    <Typography variant="body3">{fieldLabel}</Typography>
+                    {fieldDescription && <FieldDescription>{fieldDescription}</FieldDescription>}
                 </HeaderLeft>
                 {modeSwitch}
             </HeaderRow>
@@ -681,14 +684,14 @@ export function MoveToField(props: MoveToFieldProps) {
                     targetLineRange={effectiveTargetLineRange}
                     isExpandedVersion={false}
                     disabled={disabled}
-                    configuration={inputMode === InputMode.TEXT ? new MoveToTextEditorConfig() : new MoveToExpressionEditorConfig()}
+                    configuration={inputMode === InputMode.TEXT ? new TextEditorConfig() : new ExpressionEditorConfig()}
                     hideFxButton={inputMode === InputMode.TEXT}
                 />
             </FormContextProvider>
 
             {required && isEmptyValue && (
                 <Typography variant="body3" sx={{ marginTop: 4, color: "var(--vscode-errorForeground)" }}>
-                    Move To is required
+                    {fieldLabel} is required
                 </Typography>
             )}
 
@@ -697,7 +700,7 @@ export function MoveToField(props: MoveToFieldProps) {
             )}
 
             {hasValidationFailure && (
-                <ErrorBanner errorMsg={validationFailureMessage || "Unable to validate Move To expression from language server diagnostics."} />
+                <ErrorBanner errorMsg={validationFailureMessage || `Unable to validate ${fieldLabel} expression from language server diagnostics.`} />
             )}
 
             <WarningPopup

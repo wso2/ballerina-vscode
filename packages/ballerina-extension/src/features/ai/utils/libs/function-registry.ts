@@ -352,6 +352,7 @@ export async function getMaximizedSelectedLibs(libNames: string[]): Promise<Libr
                 functions: lib.functions ? lib.functions : [],
                 typeDefs: lib.typeDefs ? lib.typeDefs : [],
                 services: lib.services ? lib.services : [],
+                instructions: lib.instructions ? lib.instructions : null,
             };
         });
 
@@ -383,6 +384,7 @@ export async function toMaximizedLibrariesFromLibJson(
             // Get only the type definitions that are actually used by the selected functions and clients
             typeDefs: getOwnTypeDefsForLib(filteredClients, filteredFunctions, originalLib.typeDefs),
             services: originalLib.services ? originalLib.services : null,
+            instructions: originalLib.instructions ? originalLib.instructions : null,
         };
 
         minifiedLibrariesWithoutRecords.push(maximizedLib);

@@ -48,7 +48,8 @@ import {
     ClausePositionResponse,
     ConvertExpressionRequest,
     ConvertExpressionResponse,
-    CreateConvertedVariableRequest
+    CreateConvertedVariableRequest,
+    ResolveOutputRequest
 } from "../../interfaces/extended-lang-client";
 
 export interface DataMapperAPI {
@@ -65,6 +66,7 @@ export interface DataMapperAPI {
     deleteSubMapping: (params: DeleteSubMappingRequest) => Promise<DataMapperSourceResponse>;
     mapWithCustomFn: (params: MapWithFnRequest) => Promise<DataMapperSourceResponse>;
     mapWithTransformFn: (params: MapWithFnRequest) => Promise<DataMapperSourceResponse>;
+    resolveOutput: (params: ResolveOutputRequest) => Promise<DataMapperSourceResponse>;
     getDataMapperCodedata: (params: GetDataMapperCodedataRequest) => Promise<GetDataMapperCodedataResponse>;
     getSubMappingCodedata: (params: GetSubMappingCodedataRequest) => Promise<GetDataMapperCodedataResponse>;
     getProperty: (params: PropertyRequest) => Promise<PropertyResponse>;

@@ -187,11 +187,15 @@ export class CommonRpcManager implements CommonRPCAPI {
     }
 
     async executeCommand(params: CommandsRequest): Promise<CommandsResponse> {
-        return new Promise(async (resolve) => {
+        return new Promise(async (resolve, reject) => {
             if (params.commands.length >= 1) {
                 const cmdArgs = params.commands.length > 1 ? params.commands.slice(1) : [];
-                await commands.executeCommand(params.commands[0], ...cmdArgs);
-                resolve({ data: "SUCCESS" });
+                try {
+                    await commands.executeCommand(params.commands[0], ...cmdArgs);
+                    resolve({ data: "SUCCESS" });
+                } catch (error) {
+                    reject(error);
+                }
             }
         });
     }

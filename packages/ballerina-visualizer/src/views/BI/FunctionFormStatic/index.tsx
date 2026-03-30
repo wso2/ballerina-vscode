@@ -28,6 +28,7 @@ import { convertConfig, getImportsForProperty } from "../../../utils/bi";
 import { LoadingContainer } from "../../styles";
 import { LoadingRing } from "../../../components/Loader";
 
+
 type NodeProperties = OriginalNodeProperties & {
     [key: string]: any;
 };
@@ -141,13 +142,12 @@ export function FunctionFormStatic(props: FunctionFormProps) {
 
     const getFunctionNode = async (kind: NodeKind) => {
         setIsLoading(true);
-        const res = await rpcClient
-            .getBIDiagramRpcClient()
-            .getNodeTemplate({
-                position: { line: 0, offset: 0 },
-                filePath: Utils.joinPath(URI.file(projectPath), fileName).fsPath,
-                id: { node: kind },
-            });
+
+        const res = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
+            position: { line: 0, offset: 0 },
+            filePath: Utils.joinPath(URI.file(projectPath), fileName).fsPath,
+            id: { node: kind },
+        });
         let flowNode = hideTypeDescriptionField(res.flowNode);
 
         let properties = flowNode.properties as NodeProperties;

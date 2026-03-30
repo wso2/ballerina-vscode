@@ -267,7 +267,7 @@ const HelperPaneNewEl = ({
                                         <ExpandableList.Item>
                                             {getHelperPaneIcon(HelperPaneIconType.CONFIGURABLE)}
                                             <Typography variant="body3" sx={{ fontWeight: 600 }}>
-                                                Devant Configs
+                                                WSO2 Cloud Configs
                                             </Typography>
                                         </ExpandableList.Item>
                                     </SlidingPaneNavContainer>
@@ -377,7 +377,7 @@ const HelperPaneNewEl = ({
 
                     {devantExpressionEditor && (
                         <SlidingPane name="DEVANT_CONFIGS" paneWidth={300}>
-                            <SlidingPaneHeader> Devant Configs</SlidingPaneHeader>
+                            <SlidingPaneHeader> WSO2 Cloud Configs</SlidingPaneHeader>
                             <DevantConfigurables
                                 anchorRef={anchorRef}
                                 fileName={fileName}

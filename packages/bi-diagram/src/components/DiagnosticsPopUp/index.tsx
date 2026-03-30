@@ -18,16 +18,16 @@
 
 import React, { useMemo, useState } from "react";
 import styled from "@emotion/styled";
-import { Icon, Popover, ThemeColors, Tooltip } from "@wso2/ui-toolkit";
+import { Button, Icon, Popover, ThemeColors, Tooltip } from "@wso2/ui-toolkit";
 import { DiagnosticMessage, FlowNode, LineRange, NodeProperties, Property } from "@wso2/ballerina-core";
 import { NODE_WIDTH } from "../../resources/constants";
 import { useDiagramContext } from "../DiagramContext";
 
-const IconBtn = styled.div`
+const IconBtn = styled.div<{ color: string }>`
     width: 20px;
     height: 20px;
     font-size: 20px;
-    color: ${ThemeColors.ERROR};
+    color: ${(props: { color: string }) => props.color};
 `;
 
 const PopupContainer = styled.div`
@@ -42,7 +42,8 @@ const PopupContainer = styled.div`
     padding: 8px;
     ul {
         margin: 0;
-        padding-left: 20px;
+        padding: 0;
+        list-style: none;
     }
 
     li {
@@ -52,22 +53,41 @@ const PopupContainer = styled.div`
     }
 `;
 
+const DiagnosticListItem = styled.li`
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+`;
+
+const DiagnosticIcon = styled.span<{ color: string }>`
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: ${(props: { color: string }) => props.color};
+    flex-shrink: 0;
+    margin-top: 1px;
+`;
+
+const DiagnosticMessageText = styled.span`
+    flex: 1;
+`;
+
 const Footer = styled.div`
     display: flex;
     justify-content: flex-end;
     margin-top: 8px;
 `;
 
-const FixButton = styled.button<{ disabled?: boolean }>`
-    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
-    border-radius: 4px;
-    color: ${(props: { disabled?: boolean }) => (props.disabled ? ThemeColors.OUTLINE_VARIANT : ThemeColors.PRIMARY)};
-    background: ${(props: { disabled?: boolean }) => (props.disabled ? ThemeColors.SURFACE_DIM : ThemeColors.SURFACE_BRIGHT)};
-    font-size: 11px;
-    font-weight: 600;
-    line-height: 1;
-    padding: 4px 8px;
-    cursor: ${(props: { disabled?: boolean }) => (props.disabled ? "not-allowed" : "pointer")};
+const FixButton = styled(Button)`
+    display: flex;
+    align-items: center;
+    gap: 4px;
+`;
+
+const FixButtonContent = styled.span`
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 `;
 
 export interface DiagnosticsPopUpProps {
@@ -140,6 +160,36 @@ export function DiagnosticsPopUp(props: DiagnosticsPopUpProps) {
         return Array.from(uniqueDiagnostics.values());
     }, [diagnosticsWithRanges]);
 
+    const getDiagnosticIconName = (severity: DiagnosticMessage["severity"]) => {
+        switch (severity) {
+            case "WARNING":
+                return "warning-outline-rounded";
+            case "INFO":
+                return "info-outline-rounded";
+            case "ERROR":
+            default:
+                return "error-outline-rounded";
+        }
+    };
+
+    const getDiagnosticColor = (severity: DiagnosticMessage["severity"]) => {
+        switch (severity) {
+            case "WARNING":
+                return "var(--vscode-inputValidation-warningForeground)";
+            case "INFO":
+                return ThemeColors.PRIMARY;
+            case "ERROR":
+            default:
+                return ThemeColors.ERROR;
+        }
+    };
+
+    const triggerSeverity: DiagnosticMessage["severity"] = diagnosticMessages.some((diagnostic) => diagnostic.severity === "ERROR")
+        ? "ERROR"
+        : diagnosticMessages.some((diagnostic) => diagnostic.severity === "WARNING")
+            ? "WARNING"
+            : "INFO";
+
     const targetRange: LineRange | undefined = node.codedata?.lineRange || diagnosticsWithRanges.find((entry) => entry.range)?.range;
     const canFix =
         !readOnly &&
@@ -177,7 +227,7 @@ export function DiagnosticsPopUp(props: DiagnosticsPopUpProps) {
     };
 
     const disabledFixTooltip = !isUserAuthenticated
-        ? "You need to be logged into BI Copilot to fix diagnostics"
+        ? "You need to be logged into WSO2 Integrator Copilot to fix diagnostics"
         : !targetRange
             ? "No source location available for diagnostics"
             : diagnosticMessages.length === 0
@@ -186,8 +236,8 @@ export function DiagnosticsPopUp(props: DiagnosticsPopUpProps) {
 
     return (
         <>
-            <IconBtn onClick={handleOnDiagnosticsClick}>
-                <Icon name="error-outline-rounded" />
+            <IconBtn color={getDiagnosticColor(triggerSeverity)} onClick={handleOnDiagnosticsClick}>
+                <Icon name={getDiagnosticIconName(triggerSeverity)} />
             </IconBtn>
             <Popover
                 open={isDiagnosticsOpen}
@@ -200,16 +250,22 @@ export function DiagnosticsPopUp(props: DiagnosticsPopUpProps) {
                 <PopupContainer>
                     <ul>
                         {diagnosticMessages?.map((diagnostic, index) => (
-                            <li key={`${diagnostic.severity}-${diagnostic.message}-${index}`}>
-                                [{diagnostic.severity}] {diagnostic.message}
-                            </li>
+                            <DiagnosticListItem key={`${diagnostic.severity}-${diagnostic.message}-${index}`}>
+                                <DiagnosticIcon color={getDiagnosticColor(diagnostic.severity)}>
+                                    <Icon name={getDiagnosticIconName(diagnostic.severity)} />
+                                </DiagnosticIcon>
+                                <DiagnosticMessageText>{diagnostic.message}</DiagnosticMessageText>
+                            </DiagnosticListItem>
                         ))}
                     </ul>
                     <Footer>
                         <Tooltip content={disabledFixTooltip}>
                             <span>
-                                <FixButton disabled={!canFix} onClick={handleOnFix}>
-                                    Fix with BI Copilot
+                                <FixButton appearance="primary" disabled={!canFix} onClick={handleOnFix}>
+                                    <FixButtonContent>
+                                        <Icon name="bi-ai-agent" sx={{ width: 14, height: 14, fontSize: 14 }} />
+                                        <span>Fix with AI</span>
+                                    </FixButtonContent>
                                 </FixButton>
                             </span>
                         </Tooltip>

@@ -48,6 +48,7 @@ export function FieldActionButton(props: FieldActionButtonProps) {
             tooltip={tooltip}
             onClick={handleOnClick}
             disabled={inProgress}
+            data-field-action
         >
             {inProgress ? (
                 <ProgressRing sx={{ height: '16px', width: '16px' }} />

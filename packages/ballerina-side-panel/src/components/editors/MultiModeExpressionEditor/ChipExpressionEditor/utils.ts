@@ -81,6 +81,9 @@ export const getInputModeFromTypes = (inputType: InputType): InputMode | undefin
     if (inputType.fieldType === "REPEATABLE_LIST") {
         return InputMode.ARRAY;
     }
+    if (inputType.fieldType === "ACTION_EXPRESSION") {
+        return InputMode.SELECT;
+    }
 
     //default behaviour
     return getInputModeFromBallerinaType(inputType.ballerinaType);

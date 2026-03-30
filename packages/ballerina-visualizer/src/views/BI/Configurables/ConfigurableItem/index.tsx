@@ -327,7 +327,7 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
                         maxWidth: '350px',
                         minHeight: '20px'
                     }}
-                    onChange={(e: any) => handleTextAreaChange(e.target.value)}
+                    onInput={(e: Event) => handleTextAreaChange((e.currentTarget as HTMLTextAreaElement).value)}
                 >
                     <style>{`
                         vscode-text-area::part(control) {

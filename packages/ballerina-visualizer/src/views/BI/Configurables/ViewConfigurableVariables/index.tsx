@@ -132,6 +132,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isTestsContext, setIsTestsContext] = useState<boolean>(false);
     const isTestsContextRef = useRef<boolean>(false);
+    const selectedModuleRef = useRef<PackageModuleState>(null);
     const [testConfigVariables, setTestConfigVariables] = useState<ConfigVariablesState>({});
     const [testCategoriesWithModules, setTestCategoriesWithModules] = useState<CategoryWithModules[]>([]);
 
@@ -151,6 +152,10 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
     useEffect(() => {
         isTestsContextRef.current = isTestsContext;
     }, [isTestsContext]);
+
+    useEffect(() => {
+        selectedModuleRef.current = selectedModule;
+    }, [selectedModule]);
 
     useEffect(() => {
         rpcClient.onProjectContentUpdated(() => {
@@ -263,6 +268,43 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
         setSelectedModule({ category, module });
     };
 
+    const resolveNextSelectedModule = (
+        categories: CategoryWithModules[],
+        currentSelection: PackageModuleState,
+        initialLoad: boolean = false
+    ): PackageModuleState => {
+        if (categories.length === 0) {
+            return null;
+        }
+
+        const currentCategory = categories.find(category => category.name === currentSelection?.category);
+        const currentModuleExists = !!currentCategory?.modules.includes(currentSelection?.module ?? '');
+        const currentCategoryLevelSelection = currentSelection?.module === '' && !!currentCategory;
+
+        if (currentSelection && (currentModuleExists || currentCategoryLevelSelection)) {
+            return {
+                category: currentSelection.category,
+                module: currentSelection.module
+            };
+        }
+
+        const firstCategoryWithModule = categories.find(category => category.modules.length > 0);
+        const firstCategory = firstCategoryWithModule ?? categories[0];
+        const fallbackModule = firstCategory.modules[0] ?? '';
+
+        if (!currentSelection || initialLoad) {
+            return {
+                category: firstCategory.name,
+                module: fallbackModule
+            };
+        }
+
+        return {
+            category: firstCategory.name,
+            module: fallbackModule
+        };
+    };
+
     const handleEnvironmentChange = (value: string) => {
         if (value === Environment.Test) {
             setIsTestsContext(true);
@@ -372,22 +414,17 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
         setConfigVariables(data);
         setErrorMessage(errorMsg);
 
-        // Only set initial selected module if none is selected
-        if (!selectedModule || initialLoad) {
-            // Extract and set the available categories with their modules
-            const extractedCategories = Object.keys(data).map(category => ({
-                name: category,
-                modules: Object.keys(data[category])
-            }));
-            setCategoriesWithModules(extractedCategories);
+        // Always refresh available categories/modules after fetching latest data.
+        const extractedCategories = Object.keys(data).map(category => ({
+            name: category,
+            modules: Object.keys(data[category])
+        }));
+        setCategoriesWithModules(extractedCategories);
 
-            const initialCategory = extractedCategories[0].name;
-            const initialModule = extractedCategories[0].modules[0];
-            setSelectedModule({
-                category: initialCategory,
-                module: initialModule
-            });
-        }
+        // Preserve currently selected tab when still available after updates.
+        // This is important for imported libraries where selection is category-level ("").
+        const currentSelection = selectedModuleRef.current;
+        setSelectedModule(resolveNextSelectedModule(extractedCategories, currentSelection, initialLoad));
         setIsLoading(false);
     };
 
@@ -405,10 +442,8 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
             modules: Object.keys(data[category])
         }));
         setTestCategoriesWithModules(categories);
-        if (categories.length > 0) {
-            const firstCat = categories[0];
-            setSelectedModule({ category: firstCat.name, module: firstCat.modules[0] });
-        }
+        const currentSelection = selectedModuleRef.current;
+        setSelectedModule(resolveNextSelectedModule(categories, currentSelection));
         setIsLoading(false);
     };
 
@@ -441,7 +476,7 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
     return (
         <View>
             <TopNavigationBar projectPath={props.projectPath} />
-            <TitleBar title="Configurable Variables" subtitle="View and manage configurable variables" actions={
+            <TitleBar title="Configurable Variables" subtitle="View and manage configurable variables" hideUndoRedo={true} actions={
                 <div style={{ display: "flex", gap: '8px', alignItems: 'center' }}>
                     {errorMessage &&
                         <Tooltip content={errorMessage}>
@@ -484,7 +519,6 @@ export function ViewConfigurableVariables(props?: ConfigProps) {
                                 iconComponent: searchIcon,
                                 position: 'start',
                             }}
-                            autoFocus={true}
                         />
                     </SearchContainer>
                     <div style={{ width: "auto" }}>

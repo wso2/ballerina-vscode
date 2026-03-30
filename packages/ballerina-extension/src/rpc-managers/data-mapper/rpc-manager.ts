@@ -50,6 +50,7 @@ import {
     ProcessTypeReferenceResponse,
     PropertyRequest,
     PropertyResponse,
+    ResolveOutputRequest,
     VisualizableFieldsRequest,
     VisualizableFieldsResponse
 } from "@wso2/ballerina-core";
@@ -310,6 +311,28 @@ export class DataMapperRpcManager implements DataMapperAPI {
                 .mapWithCustomFn(params)
                 .then((resp) => {
                     console.log(">>> Data mapper map with custom fn response", resp);
+                    updateAndRefreshDataMapper(
+                        resp.textEdits,
+                        params.filePath,
+                        params.codedata,
+                        params.varName,
+                        params.targetField,
+                        params.subMappingName
+                    )
+                    .then(() => {
+                        resolve({ textEdits: resp.textEdits });
+                    });
+                });
+        });
+    }
+
+    async resolveOutput(params: ResolveOutputRequest): Promise<DataMapperSourceResponse> {
+        return new Promise(async (resolve) => {
+            await StateMachine
+                .langClient()
+                .resolveOutput(params)
+                .then((resp) => {
+                    console.log(">>> Data mapper resolve output response", resp);
                     updateAndRefreshDataMapper(
                         resp.textEdits,
                         params.filePath,

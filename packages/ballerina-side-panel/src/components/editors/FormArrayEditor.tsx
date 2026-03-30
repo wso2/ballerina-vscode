@@ -17,12 +17,12 @@
  */
 
 import React, { useEffect, useRef, useState } from "react";
-import { InputType } from "@wso2/ballerina-core";
+import { FormDiagnostics, InputType, Property } from "@wso2/ballerina-core";
 import { Form, FormField, FormFieldEditorProps, FormValues, S, useFormContext, useModeSwitcherContext } from "../..";
 import { Codicon } from "@wso2/ui-toolkit/lib/components/Codicon/Codicon";
 import { ScrollableList, ScrollableListRef } from "@wso2/ui-toolkit/lib/components/ScrollableList/ScrollableList";
 import ModeSwitcher from "../ModeSwitcher";
-import { getArraySubFormFieldFromTypes, stringToRawArrayElements, buildStringArray, getRecordTypeFields } from "./utils";
+import { getArraySubFormFieldFromTypes, stringToRawArrayElements, buildStringArray, getRecordTypeFields, mapDiagnosticsServerityToFormSeverity } from "./utils";
 
 export const FormArrayEditor = (props: FormFieldEditorProps & {
     onChange: (value: any) => void;
@@ -30,6 +30,8 @@ export const FormArrayEditor = (props: FormFieldEditorProps & {
 }) => {
     const [repeatableFields, setRepeatableFields] = useState<FormField[]>([]);
     const { expressionEditor } = useFormContext();
+    const elementDiagnosticsRef = useRef<FormDiagnostics[]>([]);
+    const prevDiagnosticsRef = useRef<Record<string, string>>({});
     const scrollableListRef = useRef<ScrollableListRef>(null);
 
     const modeSwitcherContext = useModeSwitcherContext();
@@ -67,19 +69,114 @@ export const FormArrayEditor = (props: FormFieldEditorProps & {
         props.onChange(newRepeatableFields);
     };
 
+    const handleSetDiagnosticsInfoChange = (diagnostics: FormDiagnostics) => {
+        const existingDiagnostics = elementDiagnosticsRef.current.filter(d => d.key !== diagnostics.key);
+        elementDiagnosticsRef.current = [...existingDiagnostics, diagnostics];
+    }
+
+    const handleFormDiagnosticsChange = async (showDiagnostics: boolean, expression: string, key: string, property: Property, setDiagnosticsInfo: (diagnostics: FormDiagnostics) => void, shouldUpdateNode?: boolean, variableType?: string) => {
+        return expressionEditor?.getExpressionFormDiagnostics?.(
+            showDiagnostics,
+            expression,
+            key,
+            property,
+            (diagnostics: FormDiagnostics) => {
+                handleSetDiagnosticsInfoChange(diagnostics);
+                setDiagnosticsInfo(diagnostics);
+            },
+            shouldUpdateNode,
+            variableType);
+    };
+
+    const applyDiagnosticsToField = (field: FormField): FormField => {
+        const diagnostics = elementDiagnosticsRef.current.find(diag => diag.key === field.key);
+        if (!diagnostics) return field;
+        return {
+            ...field,
+            diagnostics: diagnostics.diagnostics.map(diag => ({
+                message: diag.message,
+                severity: mapDiagnosticsServerityToFormSeverity(diag.severity)
+            }))
+        };
+    };
+
+    const makeDiagnosticsKey = (diagnostics?: any[]) => {
+        if (!Array.isArray(diagnostics) || diagnostics.length === 0) return "";
+        return diagnostics.map(d => `${d.message}|${d.severity}`).join("||");
+    }
+
+    useEffect(() => {
+        if (!Array.isArray(props.value)) return;
+        const newRepeatableFields = repeatableFields.map(applyDiagnosticsToField);
+        let changed = false;
+        newRepeatableFields.forEach(field => {
+            const key = field.key;
+            const diagKey = makeDiagnosticsKey(field.diagnostics as any[]);
+            if (prevDiagnosticsRef.current[key] !== diagKey) {
+                changed = true;
+            }
+        });
+        if (!changed) return;
+        // update prevDiagnosticsRef and state only when diagnostics actually changed
+        prevDiagnosticsRef.current = newRepeatableFields.reduce((acc: Record<string, string>, f) => {
+            acc[f.key] = makeDiagnosticsKey(f.diagnostics as any[]);
+            return acc;
+        }, {});
+        setRepeatableFields(newRepeatableFields);
+        props.onChange(newRepeatableFields);
+    }, [props.value]);
+
     useEffect(() => {
         if (!props.value) return;
         if (JSON.stringify(props.value) === JSON.stringify(repeatableFields)) return;
+        const keyArray: string[] = [];
+        if (Array.isArray(props.value)) {
+            const initialDioagnostics: FormDiagnostics[] = props.value.map((val: any) => {
+                const key = crypto.randomUUID();
+                keyArray.push(key);
+                return {
+                    key: `ar-elm-${key}`,
+                    diagnostics: Array.isArray(val.diagnostics)
+                        ? val.diagnostics.map((diag: any) => ({
+                            message: diag.message,
+                            severity: mapDiagnosticsServerityToFormSeverity(diag.severity),
+                        }))
+                        : Array.isArray(val.diagnostics?.diagnostics)
+                            ? val.diagnostics.diagnostics.map((diag: any) => ({
+                                message: diag.message,
+                                severity: mapDiagnosticsServerityToFormSeverity(diag.severity),
+                            }))
+                            : []
+                }
+            });
+            elementDiagnosticsRef.current = initialDioagnostics;
+        }
         let newValue = buildStringArray(props.value);
         const initialValues = stringToRawArrayElements(newValue);
-        const initialFields = initialValues.map((val) => {
-            const key = crypto.randomUUID();
+        if (!Array.isArray(props.value)) {
+            initialValues.forEach((val: any, index: number) => {
+                const key = crypto.randomUUID();
+                keyArray.push(key);
+            })
+        }
+        if (keyArray.length !== initialValues.length) {
+            throw new Error("Key array length and initial values length do not match");
+        }
+        const initialFields = initialValues.map((val, index) => {
+            const key = keyArray[index];
             return {
                 ...getArraySubFormFieldFromTypes(key, (props.field.types[0] as any).template.types as InputType[]),
                 value: val
             }
         });
-        setRepeatableFields(initialFields);
+        const applied = initialFields.map(applyDiagnosticsToField);
+        setRepeatableFields(applied);
+        // initialize prevDiagnosticsRef so subsequent diagnostic-only updates are detected correctly
+        prevDiagnosticsRef.current = applied.reduce((acc: Record<string, string>, f) => {
+            acc[f.key] = makeDiagnosticsKey(f.diagnostics as any[]);
+            return acc;
+        }, {});
+
     }, [props.value, props.field.types]);
 
     return (
@@ -130,6 +227,7 @@ export const FormArrayEditor = (props: FormFieldEditorProps & {
                             <Form
                                 key={formField.key}
                                 formFields={[formField]}
+
                                 recordTypeFields={getRecordTypeFields([formField])}
                                 openRecordEditor={props.openRecordEditor}
                                 onChange={(fieldKey: string, value: any, allValues: FormValues) => {
@@ -143,7 +241,8 @@ export const FormArrayEditor = (props: FormFieldEditorProps & {
                                     referenceTypes: expressionEditor?.referenceTypes,
                                     retrieveVisibleTypes: expressionEditor?.retrieveVisibleTypes,
                                     getTypeHelper: expressionEditor?.getTypeHelper,
-                                    helperPaneHeight: expressionEditor?.helperPaneHeight
+                                    helperPaneHeight: expressionEditor?.helperPaneHeight,
+                                    getExpressionFormDiagnostics: handleFormDiagnosticsChange,
                                 }}
                                 submitText={'Save'}
                                 nestedForm={true}
