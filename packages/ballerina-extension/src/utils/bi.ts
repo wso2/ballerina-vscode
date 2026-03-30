@@ -311,12 +311,13 @@ function setupProjectInfo(projectRequest: ProjectRequest): ProcessedProjectInfo 
 export async function createEmptyBIWorkspace(projectRequest: ProjectRequest): Promise<string> {
     const ballerinaTomlContent = `
 [workspace]
+title = "${projectRequest.workspaceName}"
 packages = []
 
 `;
 
     // Use the workspace-specific directory resolver
-    const workspaceRoot = resolveWorkspacePath(projectRequest.projectPath, projectRequest.workspaceName);
+    const workspaceRoot = resolveWorkspacePath(projectRequest.projectPath, projectRequest.projectHandle);
 
     // Create Ballerina.toml file
     const ballerinaTomlPath = path.join(workspaceRoot, 'Ballerina.toml');
@@ -332,12 +333,13 @@ packages = []
 export async function createBIWorkspaceWithProject(projectRequest: ProjectRequest): Promise<string> {
     const ballerinaTomlContent = `
 [workspace]
+title = "${projectRequest.workspaceName}"
 packages = ["${projectRequest.packageName}"]
 
 `;
 
     // Use the workspace-specific directory resolver
-    const workspaceRoot = resolveWorkspacePath(projectRequest.projectPath, projectRequest.workspaceName);
+    const workspaceRoot = resolveWorkspacePath(projectRequest.projectPath, projectRequest.projectHandle);
 
     // Create Ballerina.toml file
     const ballerinaTomlPath = path.join(workspaceRoot, 'Ballerina.toml');
