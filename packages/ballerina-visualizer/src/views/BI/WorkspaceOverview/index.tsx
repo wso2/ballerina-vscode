@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
     ProjectStructureResponse,
     SHARED_COMMANDS,
@@ -188,14 +188,56 @@ const TitleContainer = styled.div`
     gap: 8px;
 `;
 
+const EditableTitleWrapper = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+
+    &:hover .edit-title-icon-wrapper {
+        opacity: 1;
+        max-width: 28px;
+    }
+`;
+
 const ProjectTitle = styled.h1`
     font-weight: bold;
     font-size: 1.5rem;
     margin-bottom: 0;
     margin-top: 0;
+    transition: opacity 0.2s ease;
     @media (min-width: 768px) {
         font-size: 1.875rem;
     }
+`;
+
+const TitleInput = styled.input`
+    font-weight: bold;
+    font-size: 1.5rem;
+    margin-bottom: 0;
+    margin-top: 0;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid var(--vscode-focusBorder);
+    color: var(--vscode-foreground);
+    outline: none;
+    padding: 0;
+    font-family: inherit;
+    min-width: 120px;
+    width: auto;
+    @media (min-width: 768px) {
+        font-size: 1.875rem;
+    }
+`;
+
+const EditTitleIconWrapper = styled.div`
+    max-width: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-width 0.15s ease, opacity 0.15s ease;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
 `;
 
 const ProjectSubtitle = styled.h2`
@@ -625,6 +667,11 @@ export function WorkspaceOverview() {
     const [readmeContent, setReadmeContent] = React.useState<string>("");
     const [projectCollection, setProjectCollection] = React.useState<ProjectStructureResponse>();
     const [icpStatusByProjectPath, setIcpStatusByProjectPath] = React.useState<Record<string, boolean>>({});
+    const [isEditingTitle, setIsEditingTitle] = useState(false);
+    const [titleInputValue, setTitleInputValue] = useState("");
+    const titleInputRef = useRef<HTMLInputElement>(null);
+    const [displayedTitle, setDisplayedTitle] = useState("");
+    const [titleVisible, setTitleVisible] = useState(true);
 
     const [showAlert, setShowAlert] = React.useState(false);
     const [icpActionLoading, setIcpActionLoading] = React.useState<IcpAction | null>(null);
@@ -701,6 +748,25 @@ export function WorkspaceOverview() {
         });
     }, []);
 
+    useEffect(() => {
+        const newTitle = projectCollection?.workspaceTitle || projectCollection?.workspaceName || "";
+        if (newTitle === displayedTitle) {
+            return;
+        }
+        if (!displayedTitle) {
+            // First load — no animation needed
+            setDisplayedTitle(newTitle);
+            return;
+        }
+        // Fade out → swap → fade in
+        setTitleVisible(false);
+        const swap = setTimeout(() => {
+            setDisplayedTitle(newTitle);
+            setTitleVisible(true);
+        }, 200);
+        return () => clearTimeout(swap);
+    }, [projectCollection?.workspaceTitle, projectCollection?.workspaceName]);
+
     const isEmptyProject = useMemo(() => {
         return projectCollection?.projects.length === 0;
     }, [projectCollection]);
@@ -749,6 +815,40 @@ export function WorkspaceOverview() {
     const deployableProjectPaths = useMemo(() => {
         return new Set(projectScopes.map(scope => scope.projectPath));
     }, [projectScopes]);
+
+    const startEditingTitle = useCallback(() => {
+        const currentTitle = projectCollection?.workspaceTitle || projectCollection?.workspaceName || "";
+        setTitleInputValue(currentTitle);
+        setIsEditingTitle(true);
+        setTimeout(() => {
+            titleInputRef.current?.select();
+        }, 0);
+    }, [projectCollection]);
+
+    const commitTitleEdit = useCallback(async () => {
+        const trimmed = titleInputValue.trim();
+        if (!trimmed || !projectCollection?.workspacePath) {
+            setIsEditingTitle(false);
+            return;
+        }
+        setIsEditingTitle(false);
+        await rpcClient.getBIDiagramRpcClient().updateProjectTitle({
+            projectPath: projectCollection.workspacePath,
+            title: trimmed
+        });
+    }, [titleInputValue, projectCollection, rpcClient]);
+
+    const cancelTitleEdit = useCallback(() => {
+        setIsEditingTitle(false);
+    }, []);
+
+    const handleTitleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") {
+            commitTitleEdit();
+        } else if (e.key === "Escape") {
+            cancelTitleEdit();
+        }
+    }, [commitTitleEdit, cancelTitleEdit]);
 
     if (!projectCollection) {
         return (
@@ -875,7 +975,24 @@ export function WorkspaceOverview() {
         <PageLayout>
             <HeaderRow>
                 <TitleContainer>
-                    <ProjectTitle>{projectCollection?.workspaceTitle || projectCollection?.workspaceName}</ProjectTitle>
+                    {isEditingTitle ? (
+                        <TitleInput
+                            ref={titleInputRef}
+                            value={titleInputValue}
+                            size={Math.max(titleInputValue.length, 8)}
+                            onChange={(e) => setTitleInputValue(e.target.value)}
+                            onKeyDown={handleTitleKeyDown}
+                            onBlur={commitTitleEdit}
+                            autoFocus
+                        />
+                    ) : (
+                        <EditableTitleWrapper onClick={startEditingTitle} title="Click to edit project title">
+                            <ProjectTitle style={{ opacity: titleVisible ? 1 : 0 }}>{displayedTitle}</ProjectTitle>
+                            <EditTitleIconWrapper className="edit-title-icon-wrapper">
+                                <Codicon name="edit" sx={{ color: 'var(--vscode-descriptionForeground)', fontSize: '14px', width: '16px' }} />
+                            </EditTitleIconWrapper>
+                        </EditableTitleWrapper>
+                    )}
                     <ProjectSubtitle>Project</ProjectSubtitle>
                 </TitleContainer>
             </HeaderRow>

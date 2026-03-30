@@ -846,6 +846,9 @@ export const StateMachine = {
     refreshProjectInfo: () => {
         stateService.send({ type: 'REFRESH_PROJECT_INFO' });
     },
+    updateProjectInfo: (projectInfo: ProjectInfo) => {
+        stateService.send({ type: 'UPDATE_PROJECT_INFO', projectInfo });
+    },
     resetToExtensionReady: () => {
         stateService.send({ type: 'RESET_TO_EXTENSION_READY' });
     },
