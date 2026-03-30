@@ -16,8 +16,8 @@
 
 import * as fs from "fs";
 import * as path from "path";
-import { AIMachineEventType, Command } from "@wso2/ballerina-core";
-import { commands, Uri, window, workspace } from "vscode";
+import { AIMachineEventType, Command, ChatNotify } from "@wso2/ballerina-core";
+import { commands, EventEmitter, Uri, window, workspace } from "vscode";
 import { extension } from "../../../BalExtensionContext";
 import { StateMachine } from "../../../stateMachine";
 import { AIStateMachine, openAIPanelWithPrompt } from "../../../views/ai-panel/aiMachine";
@@ -28,6 +28,11 @@ import { sendVisualizerMigrationNotification, sendAIPanelNotification } from "..
 import { getEnhancementStages } from "./prompts";
 import { saveAgentHistory, loadAgentHistory, clearAgentHistory } from "./history";
 import { chatStateStorage } from "../../../views/ai-panel/chatStateStorage";
+
+// ── Wizard streaming emitter – exposed via extension.ts exports ──────────────
+const _wizardChatEmitter = new EventEmitter<ChatNotify>();
+/** `vscode.Event<ChatNotify>` subscribed by the wi-extension to relay streaming events. */
+export const onWizardChatNotify = _wizardChatEmitter.event;
 import {
     AI_ENHANCE_TOML_FILENAME,
     AI_MIGRATION_DIR,
@@ -593,9 +598,13 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
     const fromAIChat = _enhancementFromAIChat;
     _enhancementFromAIChat = false; // consume the flag
     _runningFromAIChat = fromAIChat;
-    const eventHandler = fromAIChat
+    const baseHandler = fromAIChat
         ? createAIPanelMigrationEventHandler(Command.Agent)
         : createVisualizerMigrationEventHandler(Command.Agent);
+    const eventHandler = (event: ChatNotify) => {
+        baseHandler(event);
+        _wizardChatEmitter.fire(event);
+    };
     eventHandler({ type: "start" });
 
     const isAuthenticated = await ensureAuthenticated();
