@@ -1,0 +1,5 @@
+function output(InRoot input) returns OutRoot => {
+    oObjDirect: input.iObjDirect,
+    oObjDirectErr: input.iObjDirect,
+    oObjProp: {p2: input.iObjProp.op2}
+};

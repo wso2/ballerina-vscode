@@ -85,7 +85,6 @@ import {
     getLoginMethod,
     getSemanticDiff,
     getServiceNames,
-    getUsage,
     isCopilotSignedIn,
     isPlatformExtensionAvailable,
     isUserAuthenticated,
@@ -102,7 +101,12 @@ import {
     showSignInAlert,
     submitFeedback,
     updateChatMessage,
-    updateRequirementSpecification
+    updateRequirementSpecification,
+    getUsage,
+    compactConversation,
+    CompactConversationRequest,
+    CompactConversationResponse,
+    getShowContextUsage,
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -310,6 +314,15 @@ export class AiPanelRpcClient implements AIPanelAPI {
     declineWebTool(params: WebToolApprovalRequest): Promise<void> {
         return this._messenger.sendRequest(declineWebTool, HOST_EXTENSION, params);
     }
+
+    compactConversation(params: CompactConversationRequest): Promise<CompactConversationResponse> {
+        return this._messenger.sendRequest(compactConversation, HOST_EXTENSION, params);
+    }
+
+    getShowContextUsage(): Promise<boolean> {
+        return this._messenger.sendRequest(getShowContextUsage, HOST_EXTENSION);
+    }
+
     
     enhancePrompt(params: PromptEnhancementRequest): Promise<PromptEnhancementResponse> {
         return this._messenger.sendRequest(enhancePrompt, HOST_EXTENSION, params);

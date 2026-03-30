@@ -24,6 +24,7 @@ import {
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import * as vscode from 'vscode';
 import { StateMachine } from "../../stateMachine";
 import { updateSourceCode } from "../../utils/source-utils";
 import { getOrgAndPackageName } from "../../utils";
@@ -311,6 +312,17 @@ export class ICPServiceRpcManager implements ICPServiceAPI {
         });
     }
 
+
+    async viewInICP(params: ICPEnabledRequest): Promise<ICPEnabledResponse> {
+        try {
+            const icpUrl = vscode.workspace.getConfiguration('ballerina').get<string>('icpUrl') || 'https://localhost:9445';
+            await vscode.env.openExternal(vscode.Uri.parse(icpUrl));
+            return { enabled: true };
+        } catch (error) {
+            console.log(error);
+            return { enabled: false, errorMsg: `Failed to open ICP: ${error}` };
+        }
+    }
 
     async isIcpEnabled(params: ICPEnabledRequest): Promise<ICPEnabledResponse> {
         return new Promise(async (resolve) => {

@@ -599,7 +599,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     };
 
     const diagnosticsTargetRange = useMemo(
-        () => node.codedata?.lineRange || nodeFormTemplate?.codedata?.lineRange || targetLineRange,
+        () => node?.codedata?.lineRange || nodeFormTemplate?.codedata?.lineRange || targetLineRange,
         [node, nodeFormTemplate, targetLineRange]
     );
 
@@ -1409,13 +1409,24 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     /**
      * Handles type selection from completion items (used in type editor)
      */
-    const handleSelectedTypeChange = (type: CompletionItem | string) => {
-        if (typeof type === "string") {
-            handleSelectedTypeByName(type);
-            return;
+    const handleSelectedTypeChange = async (type: CompletionItem | string) => {
+        try {
+            if (typeof type === "string") {
+                await handleSelectedTypeByName(type);
+                return;
+            }
+            else {
+                // If the type is a Completion item, then it can be found in the reference types.
+                // Which cannot be an imported type.
+                importsCodedataRef.current = null;
+                await fetchVisualizableFields(fileName, (type as CompletionItem).label);
+            }
+            setSelectedType(type);
+            updateRecordTypeFields(type);
         }
-        setSelectedType(type);
-        updateRecordTypeFields(type);
+        catch (error) {
+            console.error("Error handling selected type change", error);
+        }
     };
 
     const findMatchedType = (items: TypeHelperItem[], typeName: string) => {
@@ -1473,14 +1484,22 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     const handleSelectedTypeByName = async (typeName: string) => {
         // Early return for invalid input
         if (!typeName || typeName.length === 0) {
+            importsCodedataRef.current = null;
+            await fetchVisualizableFields(fileName, typeName);
             setValueTypeConstraints('');
             return;
         }
 
         const type = await searchImportedTypeByName(typeName);
         if (!type) {
+            importsCodedataRef.current = null;
+            await fetchVisualizableFields(fileName, typeName);
             setValueTypeConstraints('');
             return;
+        }
+        else {
+            importsCodedataRef.current = type.codedata;
+            await fetchVisualizableFields(fileName, typeName);
         }
 
         setValueTypeConstraints(type.insertText);
