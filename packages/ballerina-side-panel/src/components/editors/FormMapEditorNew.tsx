@@ -120,6 +120,15 @@ export const FormMapEditorNew = (props: FormFieldEditorProps & {
         } else {
             processedInputValue = processToInputFormat(props.value);
         }
+        // Build diagnostics lookup from props.field.value (populated by setDiagnosticsToFields)
+        const diagnosticsMap: Record<string, any[]> = {};
+        if (Array.isArray(props.field.value)) {
+            (props.field.value as any[]).forEach((entry: any) => {
+                if (entry?.value?.key) {
+                    diagnosticsMap[entry.value.key] = entry.diagnostics ?? [];
+                }
+            });
+        }
         let newValue = buildStringMap(processedInputValue);
         const initialValues = stringToRawObjectEntries(newValue);
         const initialFields = initialValues.map((val) => {
@@ -127,6 +136,9 @@ export const FormMapEditorNew = (props: FormFieldEditorProps & {
             const fields = getMapSubFormFieldFromTypes(key, (props.field.types[0] as any).template.types as InputType[]);
             fields[0].value = val.key;
             fields[1].value = val.value;
+            if (diagnosticsMap[val.key]) {
+                fields[1].diagnostics = diagnosticsMap[val.key];
+            }
             return fields;
         });
         setRepeatableFields(initialFields);
