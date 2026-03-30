@@ -232,15 +232,17 @@ async function addICPConfigToml(projectPath: string): Promise<void> {
     if (!config.wso2.icp) { config.wso2.icp = {}; }
     if (!config.wso2.icp.runtime) { config.wso2.icp.runtime = {}; }
 
-    // Use stored secret from keychain if available, otherwise empty string
-    const storedSecret = await getStoredICPSecret(projectPath) || '';
+    // Merge with existing bridge config to preserve keys like secret
+    const existingBridge = config.wso2?.icp?.runtime?.bridge ?? {};
+    const storedSecret = await getStoredICPSecret(projectPath);
 
     config.wso2.icp.runtime.bridge = {
+        ...existingBridge,
         environment: 'dev',
         project: getProjectName(projectPath),
         integration: getIntegrationName(projectPath),
         runtime: os.hostname(),
-        secret: storedSecret,
+        ...(storedSecret ? { secret: storedSecret } : {}),
     };
 
     fs.writeFileSync(configPath, stringify(config), 'utf-8');
