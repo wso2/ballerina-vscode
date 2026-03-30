@@ -1673,4 +1673,5 @@ public class CommonUtils {
         ExpressionNode valueExpression = enumMemberNode.constExprNode().get();
         return valueExpression.toSourceCode().trim();
     }
+
 }
