@@ -136,11 +136,9 @@ Once the code is written and validated, provide a very concise summary of the ov
 
 # Clarifying Questions
 
-Before starting implementation, check whether the request provides enough information to proceed.
-If critical parameters are missing and cannot be inferred from the codebase or conversation, use the ${CLARIFY_TOOL} tool to ask the user before writing any code.
+Before starting implementation, use ${CLARIFY_TOOL} to resolve genuine requirement gaps — apply smart defaults where reasonable, but do not silently assume a specific technology when the user's intent or infrastructure determines the right choice.
 
 Use ${CLARIFY_TOOL} AT MOST ONCE — batch all questions into a single call.
-Do NOT ask about details that are trivial, stylistic, or derivable from context.
 
 # Code Generation Guidelines
 When generating Ballerina code strictly follow these syntax and structure guidelines:
