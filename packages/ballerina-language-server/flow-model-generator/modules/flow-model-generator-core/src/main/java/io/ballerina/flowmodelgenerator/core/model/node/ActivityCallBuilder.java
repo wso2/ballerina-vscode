@@ -19,18 +19,15 @@
 package io.ballerina.flowmodelgenerator.core.model.node;
 
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
-import io.ballerina.compiler.syntax.tree.DefaultableParameterNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
-import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.ParameterNode;
-import io.ballerina.compiler.syntax.tree.RequiredParameterNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
-import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
@@ -279,38 +276,14 @@ public class ActivityCallBuilder extends CallBuilder {
         if (parameters.isEmpty()) {
             return Optional.empty();
         }
-        ParameterNode firstParam = parameters.get(0);
 
-        Node typeNode = null;
-        String paramName = null;
-        if (firstParam.kind() == SyntaxKind.REQUIRED_PARAM) {
-            RequiredParameterNode requiredParam = (RequiredParameterNode) firstParam;
-            typeNode = requiredParam.typeName();
-            Optional<Token> optParamName = requiredParam.paramName();
-            if (optParamName.isEmpty()) {
-                return Optional.empty();
-            }
-            paramName = optParamName.get().text();
-        } else if (firstParam.kind() == SyntaxKind.DEFAULTABLE_PARAM) {
-            DefaultableParameterNode defaultableParam = (DefaultableParameterNode) firstParam;
-            typeNode = defaultableParam.typeName();
-            Optional<Token> optParamName = defaultableParam.paramName();
-            if (optParamName.isEmpty()) {
-                return Optional.empty();
-            }
-            paramName = optParamName.get().text();
-        }
-
-        if (typeNode == null) {
-            return Optional.empty();
-        }
-
-        Optional<Symbol> symbol = semanticModel.symbol(typeNode);
-        if (symbol.isPresent() && symbol.get().kind() == SymbolKind.TYPE) {
-            TypeSymbol typeSymbol = TypeUtils.resolveTypeReference((TypeSymbol) symbol.get());
+        Optional<Symbol> symbol = semanticModel.symbol(parameters.get(0));
+        if (symbol.isPresent() && symbol.get().kind() == SymbolKind.PARAMETER) {
+            ParameterSymbol paramSymbol = (ParameterSymbol) symbol.get();
+            TypeSymbol typeSymbol = TypeUtils.resolveTypeReference((paramSymbol.typeDescriptor()));
             if (typeSymbol.getName().orElse("").equals(CONTEXT_CLASS_NAME) &&
                     isWorkflowModule(typeSymbol.getModule())) {
-                return Optional.of(paramName);
+                return paramSymbol.getName();
             }
         }
 

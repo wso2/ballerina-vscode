@@ -436,9 +436,9 @@ public class CodeAnalyzer extends NodeVisitor {
         if (isAgentClass(classSymbol)) {
             startNode(NodeKind.AGENT_CALL, expressionNode.parent());
             populateAgentMetaData(expressionNode, classSymbol);
-        } else if (isWorkflowOperation(remoteMethodCallActionNode, classSymbol, CALL_ACTIVITY_METHOD_NAME)) {
+        } else if (isWorkflowCtxOperation(remoteMethodCallActionNode, classSymbol, CALL_ACTIVITY_METHOD_NAME)) {
             startNode(NodeKind.ACTIVITY_CALL, expressionNode.parent());
-        } else if (isWorkflowOperation(remoteMethodCallActionNode, classSymbol, AWAIT_METHOD_NAME)) {
+        } else if (isWorkflowCtxOperation(remoteMethodCallActionNode, classSymbol, AWAIT_METHOD_NAME)) {
             startNode(NodeKind.WAIT_DATA, expressionNode.parent());
         } else {
             startNode(NodeKind.REMOTE_ACTION_CALL, expressionNode.parent());
@@ -770,8 +770,8 @@ public class CodeAnalyzer extends NodeVisitor {
         return operationName.equals(functionName) && isWorkflowModule(functionSymbol.getModule());
     }
 
-    private boolean isWorkflowOperation(RemoteMethodCallActionNode remoteMethodCallActionNode,
-                                        ClassSymbol classSymbol, String operationName) {
+    private boolean isWorkflowCtxOperation(RemoteMethodCallActionNode remoteMethodCallActionNode,
+                                           ClassSymbol classSymbol, String operationName) {
         String methodName = remoteMethodCallActionNode.methodName().name().text();
         String className = classSymbol.getName().orElse("");
         return methodName.equals(operationName) &&
@@ -2204,6 +2204,20 @@ public class CodeAnalyzer extends NodeVisitor {
                 .description(functionData.description())
                 .stepOut()
                 .codedata().symbol(functionName);
+
+        handleWorkflowFunctionSymbol(functionCallExpressionNode, functionSymbol);
+    }
+
+    private void handleWorkflowFunctionSymbol(FunctionCallExpressionNode functionCallExpressionNode,
+                                              FunctionSymbol functionSymbol) {
+        // For WORKFLOW_RUN, the symbol should be the workflow process function (first positional argument),
+        // not the "run" method name
+        if (isWorkflowOperation(functionSymbol, RUN_METHOD_NAME)) {
+            SeparatedNodeList<FunctionArgumentNode> args = functionCallExpressionNode.arguments();
+            if (!args.isEmpty() && args.get(0) instanceof PositionalArgumentNode positionalArg) {
+                nodeBuilder.codedata().symbol(positionalArg.expression().toSourceCode().strip());
+            }
+        }
     }
 
     private void processFunctionSymbol(NonTerminalNode callNode, SeparatedNodeList<FunctionArgumentNode> arguments,
