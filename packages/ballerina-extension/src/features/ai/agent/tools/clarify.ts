@@ -48,18 +48,15 @@ export function createClarifyTool(eventHandler: CopilotEventHandler) {
     return tool({
         description: `Use this tool to ask the user clarifying questions when the request is ambiguous at the requirements level — where a wrong assumption would produce an integration the user did not want.
 
-Call this ONLY for requirement-level gaps. Apply these rules before deciding:
+Call this ONLY for genuine requirement gaps. Use smart defaults first:
 
-1. **Entry point:** Default to HTTP for simple, straightforward service requests. Ask only when the trigger type is genuinely ambiguous and the choice materially affects the design. When asking, surface the recommended choice.
+1. Entry point: Default to HTTP for simple service requests. Ask only when the trigger type is ambiguous and the choice materially affects the design.
 
-2. **External system / storage:** Default to in-memory for simple apps where persistence is not implied. Ask when an external system category is explicitly mentioned but the specific technology is not — the user's infrastructure determines the right choice, so do not silently assume one.
+2. Storage / external system: Default to in-memory for simple apps. When a category is explicitly required but the specific technology is unspecified, infer from context — otherwise ask.
 
-Do NOT ask about which specific library or connector to use once the system type is known, or any implementation detail that can be reasonably defaulted.
-
-When asking, mark the recommended choice with "(recommended)" in the option label.
-
-STRICT RULES:
-- Call AT MOST ONCE per task. Batch ALL questions into a single call.`,
+When asking, include a recommended option labelled with "(recommended)".
+Do NOT ask about library/connector selection or implementation details that can be defaulted.
+Call AT MOST ONCE per task — batch all questions into a single call.`,
         inputSchema: ClarifyInputSchema,
         execute: async (input, context?: { toolCallId?: string }): Promise<{ answers: Array<{ question: string; answers: string[] }> } | { skipped: boolean }> => {
             const toolCallId = context?.toolCallId || `fallback-${Date.now()}`;
