@@ -269,7 +269,25 @@
       }
     },
     "diagnostics": {
-      "hasDiagnostics": true
+      "hasDiagnostics": true,
+      "diagnostics": [
+        {
+          "severity": "ERROR",
+          "message": "a type compatible with mapping constructor expressions not found in type 'future<(any|error)>'"
+        },
+        {
+          "severity": "ERROR",
+          "message": "mapping constructor expr as a wait expr"
+        },
+        {
+          "severity": "ERROR",
+          "message": "a type compatible with mapping constructor expressions not found in type 'future<(any|error)>'"
+        },
+        {
+          "severity": "ERROR",
+          "message": "mapping constructor expr as a wait expr"
+        }
+      ]
     },
     "flags": 0
   }

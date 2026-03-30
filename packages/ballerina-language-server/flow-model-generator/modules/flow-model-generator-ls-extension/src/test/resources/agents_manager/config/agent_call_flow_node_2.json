@@ -484,7 +484,10 @@
           "connection": {
             "metadata": {
               "label": "Connection",
-              "description": "Connection to use"
+              "description": "Connection to use",
+              "data": {
+                "connectorType": "Default"
+              }
             },
             "types": [
               {
@@ -992,7 +995,13 @@
           }
         },
         "diagnostics": {
-          "hasDiagnostics": true
+          "hasDiagnostics": true,
+          "diagnostics": [
+            {
+              "severity": "ERROR",
+              "message": "undefined parameter 'memoryManager'"
+            }
+          ]
         },
         "flags": 1
       },

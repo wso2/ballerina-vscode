@@ -19,11 +19,14 @@
 package io.ballerina.flowmodelgenerator.extension;
 
 import com.google.gson.JsonArray;
+import io.ballerina.centralconnector.RemoteCentral;
 import io.ballerina.flowmodelgenerator.core.search.SearchCommand;
 import io.ballerina.flowmodelgenerator.extension.request.SearchRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import io.ballerina.tools.text.LineRange;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -37,6 +40,16 @@ import java.util.Map;
  * @since 1.0.0
  */
 public class SearchTest extends AbstractLSTest {
+
+    @BeforeClass
+    public void setUp() {
+        RemoteCentral.setTestInstance(new OfflineCentralAPI());
+    }
+
+    @AfterClass
+    public void tearDown() {
+        RemoteCentral.resetTestInstance();
+    }
 
     @Override
     @Test(dataProvider = "data-provider")

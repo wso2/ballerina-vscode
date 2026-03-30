@@ -102,6 +102,8 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
     public static final String VARIABLE_DOC = "Name of the variable";
     public static final String PARAMETER_VARIABLE_DOC = "Name of the parameter";
     public static final String IMPLICIT_VARIABLE_LABEL = "Name";
+    public static final String ARGUMENT_LABEL = "Argument";
+    public static final String ARGUMENT_DOC = "Value to be passed";
 
     public static final String RESULT_NAME = "Result";
     public static final String RESULT_DOC = "Name of the result variable";

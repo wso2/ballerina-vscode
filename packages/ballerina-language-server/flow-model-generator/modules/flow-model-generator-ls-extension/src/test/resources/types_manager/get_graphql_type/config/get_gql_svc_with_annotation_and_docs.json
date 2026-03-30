@@ -169,7 +169,7 @@
                 "selected": true
               }
             ],
-            "value": false,
+            "value": "false",
             "optional": true,
             "editable": true,
             "advanced": false,

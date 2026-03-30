@@ -35,6 +35,7 @@ import io.ballerina.flowmodelgenerator.core.copilot.model.Type;
 import io.ballerina.flowmodelgenerator.core.copilot.model.TypeDef;
 import io.ballerina.flowmodelgenerator.core.copilot.model.TypeDefMember;
 import io.ballerina.flowmodelgenerator.core.copilot.model.TypeLink;
+import io.ballerina.flowmodelgenerator.core.copilot.model.UnionValue;
 import io.ballerina.modelgenerator.commons.FieldData;
 import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.ParameterData;
@@ -236,14 +237,42 @@ public class LibraryModelConverter {
             return typeDef;
         }
 
-        // 3. ClassTypeDefinition - only functions
+        // 3. UnionTypeDefinition - only members
+        if (category == TypeDefData.TypeCategory.UNION && typeDefData.fields() != null) {
+            List<TypeDefMember> members = new ArrayList<>();
+            for (FieldData field : typeDefData.fields()) {
+                String typeName = field.type() != null ? field.type().name() : field.name();
+                Type type = new Type(typeName);
+
+                if (field.type() != null && field.type().typeSymbol() != null
+                        && currentOrg != null && currentPackage != null) {
+                    boolean isGenericType = typeName != null && typeName.contains("<");
+                    boolean isPrimitiveType = isPrimitiveOrDefaultType(typeName);
+                    if (!isGenericType && !isPrimitiveType) {
+                        List<TypeLink> links = extractTypeLinksFromSymbol(
+                                field.type().typeSymbol(), currentOrg, currentPackage);
+                        if (!links.isEmpty()) {
+                            type.setName(extractRecordName(field.type().typeSymbol()));
+                            type.setLinks(links);
+                        }
+                    }
+                }
+
+                UnionValue unionValue = new UnionValue(field.name(), type);
+                members.add(unionValue);
+            }
+            typeDef.setMembers(members);
+            return typeDef;
+        }
+
+        // 4. ClassTypeDefinition - only functions
         if (category == TypeDefData.TypeCategory.CLASS) {
             // Functions should be set separately after creating the TypeDef
             // Just return the base typeDef, functions will be added by the caller
             return typeDef;
         }
 
-        // 4. ConstantTypeDefinition - only value and varType
+        // 5. ConstantTypeDefinition - only value and varType
         if (category == TypeDefData.TypeCategory.CONSTANT) {
             typeDef.setValue(typeDefData.baseType());
 

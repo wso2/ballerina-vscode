@@ -628,19 +628,30 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
                 Path filePath = Path.of(request.filePath());
                 WorkspaceManager workspaceManager = this.workspaceManagerProxy.get();
 
-                // Obtain the semantic model and the document
                 Project project = workspaceManager.loadProject(filePath);
-                SemanticModel semanticModel = FileSystemUtils.getSemanticModel(workspaceManager, filePath);
-                Optional<Document> document = workspaceManager.document(filePath);
-                if (document.isEmpty()) {
-                    return response;
+                SemanticModel semanticModel;
+                Document document = null;
+                LinePosition position = request.position();
+
+                if (Files.isDirectory(filePath)) {
+                    // For project paths, use the default module's semantic model
+                    semanticModel = PackageUtil.getCompilation(project.currentPackage())
+                            .getSemanticModel(project.currentPackage().getDefaultModule().moduleId());
+                    position = null;
+                } else {
+                    semanticModel = FileSystemUtils.getSemanticModel(workspaceManager, filePath);
+                    Optional<Document> optDocument = workspaceManager.document(filePath);
+                    if (optDocument.isEmpty()) {
+                        return response;
+                    }
+                    document = optDocument.get();
                 }
 
                 // Generate the flow nodes based on search criteria
                 ModelGenerator modelGenerator = new ModelGenerator(project, semanticModel, filePath, workspaceManager);
                 Gson gson = new Gson();
                 JsonElement jsonElement = gson.toJsonTree(
-                        modelGenerator.searchNodes(document.get(), request.position(), request.queryMap()));
+                        modelGenerator.searchNodes(document, position, request.queryMap()));
                 response.setOutput(jsonElement.getAsJsonArray());
             } catch (Throwable e) {
                 response.setError(e);

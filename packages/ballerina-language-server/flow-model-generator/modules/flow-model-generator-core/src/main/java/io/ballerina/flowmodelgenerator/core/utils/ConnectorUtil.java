@@ -22,6 +22,8 @@ import com.google.gson.reflect.TypeToken;
 import io.ballerina.flowmodelgenerator.core.LocalIndexCentral;
 
 import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -38,6 +40,24 @@ public class ConnectorUtil {
     private static final Map<String, String> CONNECTOR_NAME_MAP =
             LocalIndexCentral.getInstance().readJsonResource(CONNECTOR_NAME_CORRECTION_JSON, CONNECTOR_NAME_MAP_TYPE);
     public static final String CLIENT = "Client";
+
+    private static final String CONNECTORS_LANDING_JSON = "connectors_landing.json";
+    private static final Type CONNECTION_CATEGORY_LIST_TYPE = new TypeToken<Map<String, List<String>>>() { }.getType();
+    private static final String DEFAULT_CONNECTION_TYPE = "Default";
+    private static final Map<String, String> MODULE_TO_CATEGORY_MAP;
+
+    static {
+        Map<String, List<String>> categories = LocalIndexCentral.getInstance()
+                .readJsonResource(CONNECTORS_LANDING_JSON, CONNECTION_CATEGORY_LIST_TYPE);
+        Map<String, String> moduleToCategory = new HashMap<>();
+        for (Map.Entry<String, List<String>> entry : categories.entrySet()) {
+            for (String moduleEntry : entry.getValue()) {
+                String moduleName = moduleEntry.contains(":") ? moduleEntry.split(":")[0] : moduleEntry;
+                moduleToCategory.put(moduleName, entry.getKey());
+            }
+        }
+        MODULE_TO_CATEGORY_MAP = moduleToCategory;
+    }
 
     /**
      * Get the formatted connector name based on the connector name and package name.
@@ -58,6 +78,17 @@ public class ConnectorUtil {
         // TODO: Remove the replacement once a proper solution comes from the index
         return packageName + " " + (connectorName.endsWith("Client") ?
                 connectorName.substring(0, connectorName.length() - 6) : connectorName);
+    }
+
+    /**
+     * Get the connection category for a given module name using the connector landing data.
+     * Returns "Default" if the module name is not found in any category.
+     *
+     * @param moduleName the module name (e.g., "http", "mysql", "kafka")
+     * @return the category name (e.g., "Network", "Database") or "default" if not found
+     */
+    public static String getConnectionCategory(String moduleName) {
+        return MODULE_TO_CATEGORY_MAP.getOrDefault(moduleName, DEFAULT_CONNECTION_TYPE);
     }
 
     /**
