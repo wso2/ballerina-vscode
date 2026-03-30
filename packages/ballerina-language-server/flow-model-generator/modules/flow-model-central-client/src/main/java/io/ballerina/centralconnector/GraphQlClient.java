@@ -27,6 +27,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
 import io.ballerina.centralconnector.response.ConnectorApiResponse;
+import io.ballerina.centralconnector.response.DependentPackage;
 import io.ballerina.centralconnector.response.Function;
 import io.ballerina.centralconnector.response.FunctionResponse;
 import io.ballerina.centralconnector.response.FunctionsResponse;
@@ -117,6 +118,42 @@ class GraphQlClient {
         String queryBody = String.format(queryTemplate, organization, name, version, clientName);
         String response = query(queryBody);
         return gson.fromJson(response, ConnectorApiResponse.class);
+    }
+
+    public Map<String, List<DependentPackage>> getDependentPackages(String org, String packageName,
+                                                                     List<String> versions) {
+        StringBuilder queryBody = new StringBuilder("query Package { ");
+        for (String version : versions) {
+            String alias = versionToAlias(version);
+            queryBody.append(alias)
+                    .append(": package(orgName: \\\"").append(org)
+                    .append("\\\", packageName: \\\"").append(packageName)
+                    .append("\\\", version: \\\"").append(version)
+                    .append("\\\") { dependentPackages { organization name version } } ");
+        }
+        queryBody.append("}");
+
+        String response = query(queryBody.toString());
+        JsonObject data = gson.fromJson(response, JsonObject.class).getAsJsonObject("data");
+
+        Map<String, List<DependentPackage>> result = new HashMap<>();
+        for (String version : versions) {
+            String alias = versionToAlias(version);
+            JsonObject pkgObj = data.getAsJsonObject(alias);
+            if (pkgObj == null) {
+                continue;
+            }
+            List<DependentPackage> deps = new ArrayList<>();
+            for (JsonElement elem : pkgObj.getAsJsonArray("dependentPackages")) {
+                deps.add(gson.fromJson(elem, DependentPackage.class));
+            }
+            result.put(version, deps);
+        }
+        return result;
+    }
+
+    private static String versionToAlias(String version) {
+        return "v" + version.replace(".", "_");
     }
 
     private String query(String queryBody) {

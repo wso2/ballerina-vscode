@@ -30,6 +30,8 @@ import io.ballerina.compiler.api.symbols.StreamTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
+import io.ballerina.centralconnector.RemoteCentral;
+import io.ballerina.centralconnector.response.DependentPackage;
 import io.ballerina.flowmodelgenerator.core.model.AvailableNode;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
@@ -67,12 +69,15 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.ballerina.flowmodelgenerator.core.Constants.AI;
 import static io.ballerina.flowmodelgenerator.core.Constants.Ai;
 import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA;
+import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINAX;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.CHUNKER;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.CHUNKERS;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.CLASS_INIT;
@@ -88,12 +93,16 @@ import static io.ballerina.flowmodelgenerator.core.model.NodeKind.VECTOR_STORES;
 
 /**
  * Utility class for resolving Ballerina AI module versions, their dependent modules, and supported features.
- * <b>Note:</b> This mapping must be updated when new {@code ballerina/ai} versions
- * introduce additional features or dependencies.
+ * <p>
+ * Dependent modules are resolved dynamically from Ballerina Central at runtime. A hardcoded fallback map
+ * is maintained for offline scenarios. The {@code versionToFeatures} mapping must be updated when new
+ * {@code ballerina/ai} versions introduce new feature categories.
  *
  * @since 1.2.0
  */
 public class AiUtils {
+
+    private static final Logger LOGGER = Logger.getLogger(AiUtils.class.getName());
 
     private static final Map<String, Set<NodeKind>> versionToFeatures = new HashMap<>();
     private static final Map<String, List<Module>> dependentModules = new HashMap<>();
@@ -105,6 +114,9 @@ public class AiUtils {
 
     // Ensures that all dependent modules of the specified AI versions in the set are already cached
     private static final Set<String> cachedDependentModules = new HashSet<>();
+
+    // Whether dynamic resolution from Ballerina Central has been attempted
+    private static volatile boolean dependentModulesResolved = false;
 
     private static final String PACKAGE = "package";
     private static final String ORG = "org";
@@ -119,63 +131,119 @@ public class AiUtils {
         versionToFeatures.put("1.0.0",
                 Set.of(MODEL_PROVIDERS, EMBEDDING_PROVIDERS, VECTOR_STORES, KNOWLEDGE_BASES));
         versionToFeatures.put("1.3.0", Set.of(CHUNKERS, DATA_LOADERS));
+        initFallbackDependentModules();
+    }
 
+    private static void initFallbackDependentModules() {
         dependentModules.put("1.0.0", List.of(
-                new Module("ballerinax", "ai.openai", "1.0.0"),
-                new Module("ballerinax", "ai.azure", "1.0.0"),
-                new Module("ballerinax", "ai.anthropic", "1.0.0"),
-                new Module("ballerinax", "ai.deepseek", "1.0.0"),
-                new Module("ballerinax", "ai.ollama", "1.0.0"),
-                new Module("ballerinax", "ai.mistral", "1.0.0"),
-                new Module("ballerinax", "ai.pinecone", "1.0.0")
+                new Module(BALLERINAX, "ai.openai", "1.0.0"),
+                new Module(BALLERINAX, "ai.azure", "1.0.0"),
+                new Module(BALLERINAX, "ai.anthropic", "1.0.0"),
+                new Module(BALLERINAX, "ai.deepseek", "1.0.0"),
+                new Module(BALLERINAX, "ai.ollama", "1.0.0"),
+                new Module(BALLERINAX, "ai.mistral", "1.0.0"),
+                new Module(BALLERINAX, "ai.pinecone", "1.0.0")
         ));
 
         dependentModules.put("1.1.0", List.of(
-                new Module("ballerinax", "ai.openai", "1.1.0"),
-                new Module("ballerinax", "ai.anthropic", "1.0.1"),
-                new Module("ballerinax", "ai.azure", "1.0.1"),
-                new Module("ballerinax", "ai.deepseek", "1.0.1"),
-                new Module("ballerinax", "ai.mistral", "1.0.1"),
-                new Module("ballerinax", "ai.pinecone", "1.0.1"),
-                new Module("ballerinax", "ai.ollama", "1.0.1"),
+                new Module(BALLERINAX, "ai.openai", "1.1.0"),
+                new Module(BALLERINAX, "ai.anthropic", "1.0.1"),
+                new Module(BALLERINAX, "ai.azure", "1.0.1"),
+                new Module(BALLERINAX, "ai.deepseek", "1.0.1"),
+                new Module(BALLERINAX, "ai.mistral", "1.0.1"),
+                new Module(BALLERINAX, "ai.pinecone", "1.0.1"),
+                new Module(BALLERINAX, "ai.ollama", "1.0.1")
+        ));
 
-                new Module("ballerinax", "ai.azure", "1.1.0"),
-                new Module("ballerinax", "ai.openai", "1.2.0"),
-                new Module("ballerinax", "ai.anthropic", "1.1.0"),
-                new Module("ballerinax", "ai.mistral", "1.1.0"),
-                new Module("ballerinax", "ai.ollama", "1.1.0"),
-                new Module("ballerinax", "ai.deepseek", "1.0.2"),
+        dependentModules.put("1.1.1", List.of(
+                new Module(BALLERINAX, "ai.azure", "1.1.0"),
+                new Module(BALLERINAX, "ai.openai", "1.2.0"),
+                new Module(BALLERINAX, "ai.anthropic", "1.1.0"),
+                new Module(BALLERINAX, "ai.mistral", "1.1.0"),
+                new Module(BALLERINAX, "ai.ollama", "1.1.0"),
+                new Module(BALLERINAX, "ai.deepseek", "1.0.2")
+        ));
 
-                new Module("ballerinax", "ai.openai", "1.2.1"),
-                new Module("ballerinax", "ai.azure", "1.1.1"),
-                new Module("ballerinax", "ai.anthropic", "1.1.1"),
-                new Module("ballerinax", "ai.mistral", "1.1.1"),
-                new Module("ballerinax", "ai.ollama", "1.1.1"),
-                new Module("ballerinax", "ai.deepseek", "1.0.3"),
+        dependentModules.put("1.1.2", List.of(
+                new Module(BALLERINAX, "ai.openai", "1.2.1"),
+                new Module(BALLERINAX, "ai.azure", "1.1.1"),
+                new Module(BALLERINAX, "ai.anthropic", "1.1.1"),
+                new Module(BALLERINAX, "ai.mistral", "1.1.1"),
+                new Module(BALLERINAX, "ai.ollama", "1.1.1"),
+                new Module(BALLERINAX, "ai.deepseek", "1.0.3")
+        ));
 
-                new Module("ballerinax", "ai.devant", "1.0.0"),
-                new Module("ballerinax", "ai.openai", "1.2.2")
+        dependentModules.put("1.3.0", List.of(
+                new Module(BALLERINAX, "ai.devant", "1.0.0"),
+                new Module(BALLERINAX, "ai.openai", "1.2.2")
         ));
 
         dependentModules.put("1.5.0", List.of(
-                new Module("ballerinax", "ai.pinecone", "1.1.0"),
-                new Module("ballerinax", "ai.milvus", "1.0.0"),
-                new Module("ballerinax", "ai.pgvector", "1.0.0"),
-                new Module("ballerinax", "ai.weaviate", "1.0.0")
+                new Module(BALLERINAX, "ai.pinecone", "1.1.0"),
+                new Module(BALLERINAX, "ai.milvus", "1.0.0"),
+                new Module(BALLERINAX, "ai.pgvector", "1.0.0"),
+                new Module(BALLERINAX, "ai.weaviate", "1.0.0")
+        ));
+
+        dependentModules.put("1.5.1", List.of(
+                new Module(BALLERINAX, "ai.pgvector", "1.0.1")
+        ));
+
+        dependentModules.put("1.5.2", List.of(
+                new Module(BALLERINAX, "ai.weaviate", "1.0.1"),
+                new Module(BALLERINAX, "ai.pgvector", "1.0.2"),
+                new Module(BALLERINAX, "ai.milvus", "1.0.1")
+        ));
+
+        dependentModules.put("1.5.3", List.of(
+                new Module(BALLERINAX, "ai.pinecone", "1.1.1"),
+                new Module(BALLERINAX, "ai.devant", "1.0.1")
+        ));
+
+        dependentModules.put("1.5.4", List.of(
+                new Module(BALLERINAX, "ai.anthropic", "1.1.2"),
+                new Module(BALLERINAX, "ai.azure", "1.1.2"),
+                new Module(BALLERINAX, "ai.deepseek", "1.0.4"),
+                new Module(BALLERINAX, "ai.mistral", "1.1.2"),
+                new Module(BALLERINAX, "ai.ollama", "1.1.2"),
+                new Module(BALLERINAX, "ai.openai", "1.2.3"),
+                new Module(BALLERINAX, "ai.devant", "1.0.2"),
+                new Module(BALLERINAX, "ai.pinecone", "1.1.2"),
+                new Module(BALLERINAX, "ai.weaviate", "1.0.2"),
+                new Module(BALLERINAX, "ai.pgvector", "1.0.3"),
+                new Module(BALLERINAX, "ai.milvus", "1.0.2"),
+                new Module(BALLERINAX, "ai.azure", "1.2.0"),
+                new Module(BALLERINAX, "ai.azure", "1.3.0"),
+                new Module(BALLERINAX, "ai.weaviate", "1.0.3")
         ));
 
         dependentModules.put("1.6.0", List.of(
-                new Module("ballerinax", "ai.azure", "1.2.0")
+                new Module(BALLERINAX, "ai.memory.mssql", "1.0.0")
         ));
 
         dependentModules.put("1.7.0", List.of(
-                new Module("ballerinax", "ai.azure", "1.4.0"),
-                new Module("ballerinax", "ai.openai", "1.3.0"),
-                new Module("ballerinax", "ai.ollama", "1.2.0"),
-                new Module("ballerinax", "ai.mistral", "1.2.0"),
-                new Module("ballerinax", "ai.deepseek", "1.1.0"),
-                new Module("ballerinax", "ai.anthropic", "1.2.0"),
-                new Module("ballerinax", "ai.openrouter", "1.0.0")
+                new Module(BALLERINAX, "ai.openai", "1.3.0"),
+                new Module(BALLERINAX, "ai.ollama", "1.2.0"),
+                new Module(BALLERINAX, "ai.deepseek", "1.1.0"),
+                new Module(BALLERINAX, "ai.mistral", "1.2.0"),
+                new Module(BALLERINAX, "ai.azure", "1.4.0"),
+                new Module(BALLERINAX, "ai.anthropic", "1.2.0"),
+                new Module(BALLERINAX, "ai.memory.mssql", "1.0.1"),
+                new Module(BALLERINAX, "ai.memory.mssql", "1.1.0"),
+                new Module(BALLERINAX, "ai.azure", "1.4.1"),
+                new Module(BALLERINAX, "ai.openai", "1.3.1"),
+                new Module(BALLERINAX, "ai.ollama", "1.2.1"),
+                new Module(BALLERINAX, "ai.mistral", "1.2.1"),
+                new Module(BALLERINAX, "ai.deepseek", "1.1.1"),
+                new Module(BALLERINAX, "ai.anthropic", "1.2.1"),
+                new Module(BALLERINAX, "ai.mistral", "1.2.2")
+        ));
+
+        dependentModules.put("1.9.0", List.of(
+                new Module(BALLERINAX, "ai.memory.mssql", "1.2.0"),
+                new Module(BALLERINAX, "ai.anthropic", "1.3.0"),
+                new Module(BALLERINAX, "ai.anthropic", "1.3.1"),
+                new Module(BALLERINAX, "ai.openrouter", "1.0.0")
         ));
     }
 
@@ -529,7 +597,46 @@ public class AiUtils {
         }
     }
 
+    private static synchronized void ensureDependentModulesResolved() {
+        if (dependentModulesResolved) {
+            return;
+        }
+        try {
+            loadDependentModulesFromCentral();
+        } catch (RuntimeException e) {
+            LOGGER.log(Level.WARNING,
+                    "Failed to resolve dependent modules from Ballerina Central, using hardcoded fallback", e);
+        } finally {
+            dependentModulesResolved = true;
+        }
+    }
+
+    private static void loadDependentModulesFromCentral() {
+        List<String> allVersions = RemoteCentral.getInstance().allPackageVersions(BALLERINA, AI);
+        if (allVersions.isEmpty()) {
+            return;
+        }
+        Map<String, List<DependentPackage>> allDeps =
+                RemoteCentral.getInstance().dependentPackages(BALLERINA, AI, allVersions);
+
+        Map<String, List<Module>> resolved = new HashMap<>();
+        for (Map.Entry<String, List<DependentPackage>> entry : allDeps.entrySet()) {
+            List<Module> modules = entry.getValue().stream()
+                    .filter(dep -> BALLERINAX.equals(dep.organization()))
+                    .map(dep -> new Module(dep.organization(), dep.name(), dep.version()))
+                    .toList();
+            if (!modules.isEmpty()) {
+                resolved.put(entry.getKey(), modules);
+            }
+        }
+
+        // Replace the fallback map with fresh data from Central
+        dependentModules.clear();
+        dependentModules.putAll(resolved);
+    }
+
     public static List<Module> getLatestCompatibleModules(String version) {
+        ensureDependentModulesResolved();
         Collection<List<Module>> candidateModules = (version == null)
                 ? dependentModules.values()
                 : dependentModules.entrySet().stream()
