@@ -48,20 +48,18 @@ export function createClarifyTool(eventHandler: CopilotEventHandler) {
     return tool({
         description: `Use this tool to ask the user clarifying questions when the request is ambiguous at the requirements level — where a wrong assumption would produce an integration the user did not want.
 
-Call this ONLY for high-level requirement gaps that cannot be inferred from the codebase or conversation. Examples of valid cases:
-- The integration type is ambiguous (e.g. automation vs service)
-- The target system or database is not specified
-- The trigger or event source is unclear
+Call this ONLY for requirement-level gaps. Apply these rules before deciding:
 
-Do NOT call this for:
-- Decisions handled by other tools (library selection, connector API contract, connector generation)
-- Implementation details that can be reasonably defaulted
-- Anything that can be inferred from the codebase or conversation context
+1. **Entry point:** Default to HTTP for simple, straightforward service requests. Ask only when the trigger type is genuinely ambiguous and the choice materially affects the design. When asking, surface the recommended choice.
+
+2. **External system / storage:** Default to in-memory for simple apps where persistence is not implied. Ask when an external system category is explicitly mentioned but the specific technology is not — the user's infrastructure determines the right choice, so do not silently assume one.
+
+Do NOT ask about which specific library or connector to use once the system type is known, or any implementation detail that can be reasonably defaulted.
+
+When asking, mark the recommended choice with "(recommended)" in the option label.
 
 STRICT RULES:
-- Call AT MOST ONCE per task. Batch ALL questions into a single call.
-- Only ask what you genuinely cannot assume or infer.
-- Use "single" when one answer applies, "multiple" when several can.`,
+- Call AT MOST ONCE per task. Batch ALL questions into a single call.`,
         inputSchema: ClarifyInputSchema,
         execute: async (input, context?: { toolCallId?: string }): Promise<{ answers: Array<{ question: string; answers: string[] }> } | { skipped: boolean }> => {
             const toolCallId = context?.toolCallId || `fallback-${Date.now()}`;
