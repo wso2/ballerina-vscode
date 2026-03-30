@@ -345,7 +345,7 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
                 title: "Create Memory Store",
                 content: (
                     <ConnectionCreator
-                        connectionKind="MEMORY_STORE"
+                        connectionKind="SHORT_TERM_MEMORY_STORE"
                         selectedNode={memoryNode || memoryNodeTemplate}
                         nodeFormTemplate={flowNode}
                         onSave={handleStoreCreated}
@@ -370,7 +370,7 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
             title: "Select Memory Store",
             content: (
                 <ConnectionSelectionList
-                    connectionKind="MEMORY_STORE"
+                    connectionKind="SHORT_TERM_MEMORY_STORE"
                     onSelect={handleSelectStore}
                 />
             ),
@@ -428,7 +428,7 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
                         store: {
                             type: "ACTION_EXPRESSION",
                             types: [{ fieldType: "ACTION_EXPRESSION", selected: true }, { fieldType: "EXPRESSION", selected: false }],
-                            codedata: { searchNodesKind: "MEMORY_STORE" },
+                            codedata: { searchNodesKind: "SHORT_TERM_MEMORY_STORE" },
                             actionCallback: handleOpenStoreSelection,
                             defaultValue: "In-Memory Short Term Memory Store",
                             actionLabel: (
