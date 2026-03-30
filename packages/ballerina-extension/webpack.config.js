@@ -71,10 +71,21 @@ module.exports = {
     bufferutil: 'commonjs bufferutil',
     'utf-8-validate': 'commonjs utf-8-validate'
   },
+  optimization: {
+    // Single extension bundle: default splitChunks emits 100+ chunk files and triggers vsce size warnings.
+    splitChunks: false,
+    runtimeChunk: false
+  },
   resolve: {
     extensions: ['.ts', '.js']
   },
   module: {
+    parser: {
+      javascript: {
+        // Inline dynamic import() into the main extension chunk (no extra async chunk files).
+        dynamicImportMode: 'eager'
+      }
+    },
     rules: [
       {
         test: /\.ts$/,

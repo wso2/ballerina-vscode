@@ -533,17 +533,26 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
             // Update value from current form data and update diagnostics
             if (data[field.key] !== undefined) {
-                if (selectedInputType?.fieldType === "REPEATABLE_LIST" && typeof data[field.key] === "string") {
-                    const initialValues = stringToRawArrayElements(data[field.key]);
-                    const initialFields = initialValues.map((val, index) => {
-                        const key = crypto.randomUUID();
-                        return {
-                            ...getArraySubFormFieldFromTypes(key, (field.types[0] as any).template.types as InputType[]),
-                            value: val,
-                            diagnostics: nodeProperties?.[field.key]?.value?.[index]?.diagnostics?.diagnostics ?? []
-                        };
-                    });
-                    updatedField.value = initialFields;
+                if (isContainingRepeatableList) {
+                    if (!Array.isArray(nodeProperties?.[field.key]?.value)) {
+                        throw new Error(`Expected value for repeatable list field "${field.key}" to be an array, but got string.`);
+                    }
+                    if (selectedInputType?.fieldType === "REPEATABLE_LIST") {
+                        const initialValues = stringToRawArrayElements(data[field.key]);
+                        const initialFields = initialValues.map((val, index) => {
+                            const key = crypto.randomUUID();
+                            return {
+                                ...getArraySubFormFieldFromTypes(key, (field.types[0] as any).template.types as InputType[]),
+                                value: val,
+                                diagnostics: nodeProperties?.[field.key]?.value?.[index]?.diagnostics?.diagnostics ?? []
+                            };
+                        });
+                        updatedField.value = initialFields;
+                    }
+                    else {
+                        updatedField.value = data[field.key];
+                        propertyDiagnostics = nodeProperties?.[field.key]?.value?.map((val: any) => val?.diagnostics?.diagnostics ?? []).flat() ?? [];
+                    }
                 }
 
                 else if (isContainingRepeatableMap) {
@@ -628,7 +637,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     };
 
     const diagnosticsTargetRange = useMemo(
-        () => node.codedata?.lineRange || nodeFormTemplate?.codedata?.lineRange || targetLineRange,
+        () => node?.codedata?.lineRange || nodeFormTemplate?.codedata?.lineRange || targetLineRange,
         [node, nodeFormTemplate, targetLineRange]
     );
 
@@ -961,7 +970,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
         return Object.values(nodeProperties).some((property) => {
             let diagnostics: DiagnosticMessage[] = [];
-            if ( property?.types?.length === 1 && getPrimaryInputType(property.types)?.fieldType === "REPEATABLE_LIST") {
+            if (property?.types?.length === 1 && getPrimaryInputType(property.types)?.fieldType === "REPEATABLE_LIST") {
                 // For repeatable list, check diagnostics for each element in the list
                 const valueDiagnostics = (property.value as any[])?.map((val) => val?.diagnostics?.diagnostics ?? []).flat() ?? [];
                 diagnostics = [...diagnostics, ...valueDiagnostics];
@@ -1442,13 +1451,24 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     /**
      * Handles type selection from completion items (used in type editor)
      */
-    const handleSelectedTypeChange = (type: CompletionItem | string) => {
-        if (typeof type === "string") {
-            handleSelectedTypeByName(type);
-            return;
+    const handleSelectedTypeChange = async (type: CompletionItem | string) => {
+        try {
+            if (typeof type === "string") {
+                await handleSelectedTypeByName(type);
+                return;
+            }
+            else {
+                // If the type is a Completion item, then it can be found in the reference types.
+                // Which cannot be an imported type.
+                importsCodedataRef.current = null;
+                await fetchVisualizableFields(fileName, (type as CompletionItem).label);
+            }
+            setSelectedType(type);
+            updateRecordTypeFields(type);
         }
-        setSelectedType(type);
-        updateRecordTypeFields(type);
+        catch (error) {
+            console.error("Error handling selected type change", error);
+        }
     };
 
     const findMatchedType = (items: TypeHelperItem[], typeName: string) => {
@@ -1506,14 +1526,22 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     const handleSelectedTypeByName = async (typeName: string) => {
         // Early return for invalid input
         if (!typeName || typeName.length === 0) {
+            importsCodedataRef.current = null;
+            await fetchVisualizableFields(fileName, typeName);
             setValueTypeConstraints('');
             return;
         }
 
         const type = await searchImportedTypeByName(typeName);
         if (!type) {
+            importsCodedataRef.current = null;
+            await fetchVisualizableFields(fileName, typeName);
             setValueTypeConstraints('');
             return;
+        }
+        else {
+            importsCodedataRef.current = type.codedata;
+            await fetchVisualizableFields(fileName, typeName);
         }
 
         setValueTypeConstraints(type.insertText);

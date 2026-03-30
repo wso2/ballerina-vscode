@@ -309,17 +309,6 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         }));
     }
 
-    // Expose helper pane state to parent component
-    useEffect(() => {
-        if (props.onHelperPaneStateChange) {
-            props.onHelperPaneStateChange({
-                isOpen: helperPaneState.isOpen,
-                ref: helperPaneToggleButtonRef,
-                toggle: handleHelperPaneManualToggle
-            });
-        }
-    }, [helperPaneState.isOpen]);
-
     useEffect(() => {
         if (!editorRef.current) return;
         const startState = EditorState.create({
