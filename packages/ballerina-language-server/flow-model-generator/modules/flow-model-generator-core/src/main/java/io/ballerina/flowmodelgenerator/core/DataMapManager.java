@@ -2234,7 +2234,7 @@ public class DataMapManager {
                             textEdits.add(new TextEdit(CommonUtils.toRange(startPos, endPos), ""));
                         }
                     }
-                } else if (parentKind == SyntaxKind.LOCAL_VAR_DECL ||
+                } else if (parentKind == SyntaxKind.LOCAL_VAR_DECL || parentKind == SyntaxKind.MODULE_VAR_DECL ||
                         parentKind == SyntaxKind.LET_VAR_DECL) {
                     Optional<Symbol> optSymbol = semanticModel.symbol(parent);
                     if (optSymbol.isPresent()) {
@@ -2244,6 +2244,21 @@ public class DataMapManager {
                             String defaultVal = getDefaultValue(
                                     CommonUtil.getRawType(varSymbol.typeDescriptor()).typeKind().getName());
                             textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
+                        }
+                    }
+                } else if (parentKind == SyntaxKind.LET_EXPRESSION) {
+                    NonTerminalNode parentOrLetExpr = parent.parent();
+                    if (parentOrLetExpr.kind() == SyntaxKind.LOCAL_VAR_DECL ||
+                            parentOrLetExpr.kind() == SyntaxKind.MODULE_VAR_DECL) {
+                        Optional<Symbol> optSymbol = semanticModel.symbol(parentOrLetExpr);
+                        if (optSymbol.isPresent()) {
+                            Symbol symbol = optSymbol.get();
+                            if (symbol.kind() == SymbolKind.VARIABLE) {
+                                VariableSymbol varSymbol = (VariableSymbol) symbol;
+                                String defaultVal = getDefaultValue(
+                                        CommonUtil.getRawType(varSymbol.typeDescriptor()).typeKind().getName());
+                                textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
+                            }
                         }
                     }
                 } else if (parentKind == SyntaxKind.EXPRESSION_FUNCTION_BODY) {
