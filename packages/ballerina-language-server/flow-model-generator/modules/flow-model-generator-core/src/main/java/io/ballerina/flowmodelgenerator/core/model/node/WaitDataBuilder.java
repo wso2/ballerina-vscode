@@ -489,7 +489,7 @@ public class WaitDataBuilder extends CallBuilder {
 
     private void modifyExistingDataType(SourceBuilder sourceBuilder, TypeSymbol dataTypeSymbol,
                                         List<DataWait> entries) {
-        RecordTypeSymbol recordType = (RecordTypeSymbol) dataTypeSymbol;
+        RecordTypeSymbol recordType = (RecordTypeSymbol) TypeUtils.resolveTypeReference(dataTypeSymbol);
         Map<String, RecordFieldSymbol> existingFields = recordType.fieldDescriptors();
 
         // Check if any field already exists

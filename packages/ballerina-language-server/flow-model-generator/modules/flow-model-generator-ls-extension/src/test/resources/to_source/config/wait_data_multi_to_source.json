@@ -141,21 +141,6 @@
     "flags": 0
   },
   "output": {
-    "workflow_data/types.bal": [
-      {
-        "range": {
-          "start": {
-            "line": 22,
-            "character": 2
-          },
-          "end": {
-            "line": 22,
-            "character": 2
-          }
-        },
-        "newText": "\n\n\n# Events record for workflow function\ntype OrderWorkflowEvents record {|\n\tfuture<ApprovalData> approval;\n\tfuture<PaymentConfirmation> payment;\n|};"
-      }
-    ],
     "workflow_data/functions.bal": [
       {
         "range": {
@@ -168,7 +153,7 @@
             "character": 0
           }
         },
-        "newText": "\n[ApprovalData, PaymentConfirmation] [approvalResult, paymentResult] = check ctx->await([events.approval, events.payment]);"
+        "newText": "\n[ApprovalData, PaymentConfirmation] [approvalResult, paymentResult] = check ctx->await([data.approval, data.payment]);"
       },
       {
         "range": {
@@ -181,7 +166,22 @@
             "character": 61
           }
         },
-        "newText": ",  OrderWorkflowEvents events"
+        "newText": ",  OrderWorkflowData data"
+      }
+    ],
+    "workflow_data/types.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 22,
+            "character": 2
+          },
+          "end": {
+            "line": 22,
+            "character": 2
+          }
+        },
+        "newText": "\n\n\n# Data record for workflow function\ntype OrderWorkflowData record {|\n\tfuture<ApprovalData> approval;\n\tfuture<PaymentConfirmation> payment;\n|};"
       }
     ]
   }

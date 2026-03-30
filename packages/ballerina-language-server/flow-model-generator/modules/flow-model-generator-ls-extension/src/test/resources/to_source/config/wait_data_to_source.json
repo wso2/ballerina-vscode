@@ -91,21 +91,6 @@
     "flags": 0
   },
   "output": {
-    "workflow_data/types.bal": [
-      {
-        "range": {
-          "start": {
-            "line": 22,
-            "character": 2
-          },
-          "end": {
-            "line": 22,
-            "character": 2
-          }
-        },
-        "newText": "\n\n\n# Events record for workflow function\ntype OrderWorkflowEvents record {|\n\tfuture<PaymentConfirmation> paymentConfirmed;\n|};"
-      }
-    ],
     "workflow_data/functions.bal": [
       {
         "range": {
@@ -118,7 +103,7 @@
             "character": 0
           }
         },
-        "newText": "\nPaymentConfirmation paymentConfirm = check wait events.paymentConfirmed;"
+        "newText": "\nPaymentConfirmation paymentConfirm = check wait data.paymentConfirmed;"
       },
       {
         "range": {
@@ -131,7 +116,22 @@
             "character": 61
           }
         },
-        "newText": ",  OrderWorkflowEvents events"
+        "newText": ",  OrderWorkflowData data"
+      }
+    ],
+    "workflow_data/types.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 22,
+            "character": 2
+          },
+          "end": {
+            "line": 22,
+            "character": 2
+          }
+        },
+        "newText": "\n\n\n# Data record for workflow function\ntype OrderWorkflowData record {|\n\tfuture<PaymentConfirmation> paymentConfirmed;\n|};"
       }
     ]
   }

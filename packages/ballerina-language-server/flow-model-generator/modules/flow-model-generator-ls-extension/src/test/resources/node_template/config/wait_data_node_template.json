@@ -18,16 +18,16 @@
     "properties": {
       "dataWaits": {
         "metadata": {
-          "label": "Data Entries",
-          "description": "Data entries to wait for (one or more)"
+          "label": "Data Waits",
+          "description": "Data to wait for (one or more)"
         },
         "types": [
           {
             "fieldType": "REPEATABLE_PROPERTY",
             "template": {
               "metadata": {
-                "label": "Data Entries",
-                "description": "Data entries to wait for (one or more)"
+                "label": "Data Waits",
+                "description": "Data to wait for (one or more)"
               },
               "types": [
                 {

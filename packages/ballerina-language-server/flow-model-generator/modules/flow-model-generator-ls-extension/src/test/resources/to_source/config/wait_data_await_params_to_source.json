@@ -108,6 +108,21 @@
     "flags": 0
   },
   "output": {
+    "workflow_data/functions.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 13,
+            "character": 0
+          },
+          "end": {
+            "line": 13,
+            "character": 0
+          }
+        },
+        "newText": "\n[ApprovalData] [approval] = check ctx->await([events.approvalReceived], minCount = 1);"
+      }
+    ],
     "workflow_data/types.bal": [
       {
         "range": {
@@ -121,21 +136,6 @@
           }
         },
         "newText": "\nfuture<ApprovalData> approvalReceived;\n"
-      }
-    ],
-    "workflow_data/functions.bal": [
-      {
-        "range": {
-          "start": {
-            "line": 13,
-            "character": 0
-          },
-          "end": {
-            "line": 13,
-            "character": 0
-          }
-        },
-        "newText": "\nApprovalData approval = check ctx->await([events.approvalReceived], minCount = 1);"
       }
     ]
   }
