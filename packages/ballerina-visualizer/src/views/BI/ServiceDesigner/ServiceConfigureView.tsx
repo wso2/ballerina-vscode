@@ -705,7 +705,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
         // Listeners first, then service last
         for (const change of listenerChanges) {
             const listnerResponse = await rpcClient.getServiceDesignerRpcClient().updateListenerSourceCode({ filePath: change.filePath, listener: change.data as ListenerModel });
-            const updatedServiceArtifact = listnerResponse.artifacts.filter(artifact => artifact.name ===currentIdentifier).at(0);
+            const updatedServiceArtifact = listnerResponse.artifacts.filter(artifact => artifact.name === currentIdentifier).at(0);
             if (!updatedServiceArtifact) {
                 console.error("No service artifact returned after updating listener");
                 continue;
@@ -720,7 +720,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
             const updatedService = {
                 ...serviceModel,
                 properties: {
-                    ...serviceModel.properties,
+                    ...service.properties,
                     listener: {
                         ...serviceModel.properties.listener,
                         value: service.properties.listener?.values[0] || service.properties.listener?.value || "",

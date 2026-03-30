@@ -263,7 +263,7 @@ async function handleCommandWithContext(
             view,
             projectPath,
             ...additionalViewParams
-        });
+        }, true);
     }
     // Scenario 2: Invoked from tree view with item context
     else if (item?.resourceUri) {
@@ -272,11 +272,11 @@ async function handleCommandWithContext(
             view,
             projectPath,
             ...additionalViewParams
-        });
+        }, true);
     }
     // Scenario 3: Default - no specific context
     else {
-        openView(EVENT_TYPE.OPEN_VIEW, { view, ...additionalViewParams });
+        openView(EVENT_TYPE.OPEN_VIEW, { view, ...additionalViewParams }, true);
     }
 }
 
