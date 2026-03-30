@@ -4164,7 +4164,6 @@ public class DataMapManager {
                         textEdits, document.syntaxTree().rootNode());
                 statement = String.format("let %s %sConverted = %s in %s", typeName, variableName,
                         conversionExpr, expression.toSourceCode().trim());
-                addErrorReturn(functionDefinitionNode, semanticModel, textEdits);
             }
             textEdits.add(new TextEdit(CommonUtils.toRange(expression.lineRange()), statement));
         }

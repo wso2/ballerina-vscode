@@ -26,15 +26,15 @@
       {
         "range": {
           "start": {
-            "line": 52,
-            "character": 56
+            "line": 55,
+            "character": 55
           },
           "end": {
-            "line": 52,
-            "character": 56
+            "line": 55,
+            "character": 55
           }
         },
-        "newText": ", Student transform11 = {a: 10, b: 20}"
+        "newText": "|error"
       },
       {
         "range": {
@@ -47,20 +47,20 @@
             "character": 0
           }
         },
-        "newText": "import ballerina/data.jsondata;\n"
+        "newText": "import ballerina/data.xmldata;\n"
       },
       {
         "range": {
           "start": {
-            "line": 53,
-            "character": 8
+            "line": 55,
+            "character": 59
           },
           "end": {
-            "line": 53,
-            "character": 22
+            "line": 55,
+            "character": 65
           }
         },
-        "newText": "jsondata:toJson(transform11)"
+        "newText": "let UserInfo userConverted = check xmldata:parseAsType(user) in xml ``"
       }
     ]
   }
