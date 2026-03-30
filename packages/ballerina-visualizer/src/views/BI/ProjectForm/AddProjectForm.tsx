@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button, Icon, Typography } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import {
@@ -50,19 +50,12 @@ export function AddProjectForm() {
     const [projectNameValidationError, setProjectNameValidationError] = useState<string | null>(null);
     const resourceTypeLabel = formData.isLibrary ? "Library" : "Integration";
 
-    const handleFormDataChange = (data: Partial<AddProjectFormData>) => {
+    const handleFormDataChange = useCallback((data: Partial<AddProjectFormData>) => {
         setFormData(prev => ({ ...prev, ...data }));
-        // Clear validation errors when form data changes
-        if (pathValidationError) {
-            setPathValidationError(null);
-        }
-        if (packageNameValidationError) {
-            setPackageNameValidationError(null);
-        }
-        if (projectNameValidationError) {
-            setProjectNameValidationError(null);
-        }
-    };
+        setPathValidationError(null);
+        setPackageNameValidationError(null);
+        setProjectNameValidationError(null);
+    }, []);
 
     useEffect(() => {
         Promise.all([
