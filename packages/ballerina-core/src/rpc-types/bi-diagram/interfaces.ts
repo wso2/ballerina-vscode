@@ -238,3 +238,8 @@ export enum ValidateProjectFormErrorField {
     PATH = 'path',
     NAME = 'name'
 }
+
+export interface UpdateProjectTitleRequest {
+    projectPath: string;
+    title: string;
+}

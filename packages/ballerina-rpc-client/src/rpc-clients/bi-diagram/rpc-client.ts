@@ -125,6 +125,8 @@ import {
     UpdatedArtifactsResponse,
     ValidateProjectFormRequest,
     ValidateProjectFormResponse,
+    UpdateProjectTitleRequest,
+    updateProjectTitle,
     VerifyTypeDeleteRequest,
     VerifyTypeDeleteResponse,
     VisibleTypesRequest,
@@ -555,5 +557,9 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     getExpressionTokens(params: ExpressionTokensRequest): Promise<number[]> {
         return this._messenger.sendRequest(getExpressionTokens, HOST_EXTENSION, params);
+    }
+
+    updateProjectTitle(params: UpdateProjectTitleRequest): Promise<void> {
+        return this._messenger.sendRequest(updateProjectTitle, HOST_EXTENSION, params);
     }
 }

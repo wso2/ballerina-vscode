@@ -161,7 +161,9 @@ import {
     VerifyTypeDeleteRequest,
     VisibleTypesRequest,
     ValidateProjectFormRequest,
-    validateProjectPath
+    validateProjectPath,
+    UpdateProjectTitleRequest,
+    updateProjectTitle
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { BiDiagramRpcManager } from "./rpc-manager";
@@ -251,4 +253,5 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(generateOpenApiClient, (args: OpenAPIClientGenerationRequest) => rpcManger.generateOpenApiClient(args));
     messenger.onRequest(getOpenApiGeneratedModules, (args: OpenAPIGeneratedModulesRequest) => rpcManger.getOpenApiGeneratedModules(args));
     messenger.onRequest(deleteOpenApiGeneratedModules, (args: OpenAPIClientDeleteRequest) => rpcManger.deleteOpenApiGeneratedModules(args));
+    messenger.onRequest(updateProjectTitle, (args: UpdateProjectTitleRequest) => rpcManger.updateWorkspaceTitle(args));
 }
