@@ -108,8 +108,10 @@ export function extractOriginalValues(node: FlowNode): {
 } {
     const serverUrl = (node.properties?.serverUrl?.value as string) || "";
     const auth = (node.properties?.auth?.value as string) || "";
-    const permittedToolsValue = (node.properties?.permittedTools?.value as string) || "";
-    const permittedTools = parseToolsString(permittedToolsValue, true);
+    const rawPermittedTools = node.properties?.permittedTools?.value;
+    const permittedTools = Array.isArray(rawPermittedTools)
+        ? rawPermittedTools.map((tool: any) => tool.value).filter(Boolean)
+        : parseToolsString((rawPermittedTools as string) || "", true);
     const requiresAuth = Boolean(auth && auth.trim());
     const result = (node.properties?.variable?.value as string) || "";
     const toolKitName = (node.properties?.toolKitName?.value as string) || "";
