@@ -50,6 +50,7 @@
             "selected": false
           }
         ],
+        "value": "",
         "optional": false,
         "editable": true,
         "advanced": false,
