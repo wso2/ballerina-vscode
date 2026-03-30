@@ -561,16 +561,19 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                                 value: typeof entryVal === 'object' && entryVal !== null ? String((entryVal as any).value ?? '') : String(entryVal)
                             }));
                         }
-                        const initialFields = initialValues.map((val, index) => {
+                        // Keep value as a Record to match processToOutputFormat shape expected by FormMapEditorNew
+                        const outputRecord: Record<string, unknown> = {};
+                        initialValues.forEach((val) => {
                             const key = crypto.randomUUID();
                             propertyDiagnostics = nodeProperties?.[field.key]?.value?.[val.key]?.diagnostics?.diagnostics ?? [];
-                            return {
+                            outputRecord[val.key] = {
                                 ...getArraySubFormFieldFromTypes(key, (field.types[0] as any).template.types as InputType[]),
-                                value: val,
+                                key: `mp-val-${key}`,
+                                value: val.value,
                                 diagnostics: nodeProperties?.[field.key]?.value?.[val.key]?.diagnostics?.diagnostics ?? []
                             };
                         });
-                        updatedField.value = initialFields;
+                        updatedField.value = outputRecord;
                     }
                     else {
                         updatedField.value = data[field.key];
