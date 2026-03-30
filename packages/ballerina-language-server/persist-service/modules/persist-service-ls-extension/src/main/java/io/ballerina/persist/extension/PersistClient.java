@@ -325,7 +325,7 @@ public class PersistClient {
 
         boolean isConnectorUpdate = modelPath != null && !modelPath.isEmpty();
         Path relvativeModelPath = isConnectorUpdate ? Path.of(modelPath)
-                : Path.of(PERSIST_DIR).resolve(getModelBalFileName());
+                : Path.of(PERSIST_DIR).resolve(name).resolve(MODEL_FILE_NAME);
         Path persistModelPath = this.projectPath.resolve(relvativeModelPath);
 
         try {
@@ -584,8 +584,7 @@ public class PersistClient {
     }
 
     private String generateModuleNameFromDatabase() {
-        String sanitizedDatabaseName = database.replaceAll("[^a-zA-Z0-9]", "");
-        return sanitizedDatabaseName + "." + name;
+        return database.replaceAll("[^a-zA-Z0-9]", "");
     }
 
     private boolean addTextEditForBallerinaToml(String packageName, String module, Map<Path,
@@ -701,11 +700,7 @@ public class PersistClient {
     }
 
     private String getModelFilePath() {
-        return PERSIST_DIR + "/" + getModelBalFileName();
-    }
-
-    private String getModelBalFileName() {
-        return name + "_" + MODEL_FILE_NAME;
+        return PERSIST_DIR + "/" + name + "/" + MODEL_FILE_NAME;
     }
 
     private String getPersistMinimumVersionRequirementEntry() {
@@ -713,7 +708,7 @@ public class PersistClient {
                 "org = \"ballerina\"" + LS +
                 "name = \"tool.persist\"" + LS +
                 // This version is hardcoded as minimum compatible version
-                "version = \"1.9.0\"" + LS;
+                "version = \"1.9.1\"" + LS;
     }
 
     /**

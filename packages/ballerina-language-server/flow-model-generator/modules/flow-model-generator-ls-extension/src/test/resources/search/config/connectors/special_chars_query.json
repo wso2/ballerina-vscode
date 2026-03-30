@@ -1,0 +1,117 @@
+{
+  "description": "Search connectors with special-character-only query that sanitizes to empty",
+  "kind": "CONNECTOR",
+  "source": "empty.bal",
+  "queryMap": {
+    "q": "@#$%",
+    "limit": "5",
+    "offset": "0"
+  },
+  "categories": [
+    {
+      "metadata": {
+        "label": "Asb Administrator",
+        "description": "Ballerina Service Bus connector provides the capability to access Azure Service Bus SDK.\nService Bus API provides data access to highly reliable queues and publish/subscribe topics of Azure Service Bus with deep feature capabilities.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_asb_3.9.1.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "asb",
+        "packageName": "asb",
+        "object": "Administrator",
+        "symbol": "init",
+        "version": "3.9.1",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Snowflake Advanced",
+        "description": "Represents a Snowflake database client.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_snowflake_2.2.1.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "snowflake",
+        "packageName": "snowflake",
+        "object": "AdvancedClient",
+        "symbol": "init",
+        "version": "2.2.1",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Ai Agent",
+        "description": "Represents an agent.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.2.3.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "ai",
+        "packageName": "ai",
+        "object": "Agent",
+        "symbol": "init",
+        "version": "1.2.3",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Ai AnthropicProvider",
+        "description": "AnthropicProvider is a client class that provides an interface for interacting with Anthropic language models.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.2.3.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "ai",
+        "packageName": "ai",
+        "object": "AnthropicProvider",
+        "symbol": "init",
+        "version": "1.2.3",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Ai AzureOpenAiProvider",
+        "description": "AzureOpenAiProvider is a client class that provides an interface for interacting with Azure-hosted OpenAI language models.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.2.3.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "ai",
+        "packageName": "ai",
+        "object": "AzureOpenAiProvider",
+        "symbol": "init",
+        "version": "1.2.3",
+        "isGenerated": false
+      },
+      "enabled": true
+    }
+  ]
+}

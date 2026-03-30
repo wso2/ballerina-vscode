@@ -46,7 +46,7 @@
         "metadata": {
           "label": "query",
           "description": "Executes a SQL query and returns multiple results as a stream.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.16.2.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.17.0.png"
         },
         "codedata": {
           "node": "REMOTE_ACTION_CALL",
@@ -55,7 +55,7 @@
           "packageName": "mysql",
           "object": "Client",
           "symbol": "query",
-          "version": "1.16.2",
+          "version": "1.17.0",
           "lineRange": {
             "fileName": "mysql.bal",
             "startLine": {
@@ -74,7 +74,10 @@
           "connection": {
             "metadata": {
               "label": "Connection",
-              "description": "Connection to use"
+              "description": "Connection to use",
+              "data": {
+                "connectorType": "Database"
+              }
             },
             "types": [
               {
@@ -200,7 +203,7 @@
         "metadata": {
           "label": "query",
           "description": "Executes a SQL query and returns multiple results as a stream.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.16.2.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.17.0.png"
         },
         "codedata": {
           "node": "REMOTE_ACTION_CALL",
@@ -209,7 +212,7 @@
           "packageName": "mysql",
           "object": "Client",
           "symbol": "query",
-          "version": "1.16.2",
+          "version": "1.17.0",
           "lineRange": {
             "fileName": "mysql.bal",
             "startLine": {
@@ -228,7 +231,10 @@
           "connection": {
             "metadata": {
               "label": "Connection",
-              "description": "Connection to use"
+              "description": "Connection to use",
+              "data": {
+                "connectorType": "Database"
+              }
             },
             "types": [
               {
@@ -356,7 +362,7 @@
         "metadata": {
           "label": "MySQL",
           "description": "MySQL database client that enables interaction with MySQL servers and supports standard SQL operations.",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.16.2.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.17.0.png"
         },
         "codedata": {
           "node": "NEW_CONNECTION",
@@ -531,7 +537,7 @@
                 "typeMembers": [
                   {
                     "type": "Options",
-                    "packageInfo": "ballerinax:mysql:1.16.2",
+                    "packageInfo": "ballerinax:mysql:1.17.0",
                     "packageName": "mysql",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -568,7 +574,7 @@
                 "typeMembers": [
                   {
                     "type": "ConnectionPool",
-                    "packageInfo": "ballerina:sql:1.17.1",
+                    "packageInfo": "ballerina:sql:1.18.0",
                     "packageName": "sql",
                     "kind": "RECORD_TYPE",
                     "selected": false

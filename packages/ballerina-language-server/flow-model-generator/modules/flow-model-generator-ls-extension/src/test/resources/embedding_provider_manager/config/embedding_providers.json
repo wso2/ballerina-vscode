@@ -35,6 +35,21 @@
               "symbol": "init"
             },
             "enabled": true
+          },
+          {
+            "metadata": {
+              "label": "Openrouter Embedding Provider",
+              "description": "EmbeddingProvider is a client class that provides an interface for generating\nvector embeddings via the OpenRouter unified API, which supports embedding models\nfrom OpenAI, Google, Mistral, and other providers."
+            },
+            "codedata": {
+              "node": "EMBEDDING_PROVIDER",
+              "org": "ballerinax",
+              "module": "ai.openrouter",
+              "packageName": "ai.openrouter",
+              "object": "EmbeddingProvider",
+              "symbol": "init"
+            },
+            "enabled": true
           }
         ]
       }

@@ -18,9 +18,7 @@
     "listenerConfig": {
       "metadata": {
         "label": "Listener Configuration",
-        "description": "The FTP listener configuration",
-        "groupNo": 1,
-        "groupName": "Listener Configurations"
+        "description": "The FTP listener configuration"
       },
       "codedata": {
         "inListenerInit": true,
@@ -261,9 +259,7 @@
     "name": {
       "metadata": {
         "label": "Name",
-        "description": "Name of the Service",
-        "groupNo": 2,
-        "groupName": "Service Configurations"
+        "description": "Name of the Service"
       },
       "codedata": {
         "inDisplayAnnotation": true

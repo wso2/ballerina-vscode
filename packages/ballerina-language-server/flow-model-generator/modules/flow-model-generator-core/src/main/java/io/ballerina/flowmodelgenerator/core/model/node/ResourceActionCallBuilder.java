@@ -18,6 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.core.model.node;
 
+import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
@@ -25,6 +26,7 @@ import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.PropertyCodedata;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
+import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.flowmodelgenerator.core.utils.FlowNodeUtil;
 import io.ballerina.flowmodelgenerator.core.utils.ParamUtils;
 import io.ballerina.modelgenerator.commons.CommonUtils;
@@ -79,11 +81,24 @@ public class ResourceActionCallBuilder extends CallBuilder {
 
         FunctionData functionData = functionDataBuilder.build();
 
+        String defaultIcon = CommonUtils.generateIcon(functionData.org(), functionData.packageName(),
+                functionData.version());
+        String icon;
+        try {
+            SemanticModel semanticModel = FileSystemUtils.getSemanticModel(context.workspaceManager(),
+                    context.filePath());
+            icon = CommonUtils.getClientClassSymbol(semanticModel, functionData, codedata.object())
+                    .filter(cs -> CommonUtils.isPersistClient(cs, semanticModel))
+                    .flatMap(CommonUtils::getPersistDatabaseIcon)
+                    .orElse(defaultIcon);
+        } catch (RuntimeException ignore) {
+            // Fallback to defaultIcon if semantic model lookup or icon resolution fails
+            icon = defaultIcon;
+        }
         metadata()
                 .label(functionData.name())
                 .description(functionData.description())
-                .icon(CommonUtils.generateIcon(functionData.org(), functionData.packageName(),
-                        functionData.version()));
+                .icon(icon);
         codedata()
                 .org(functionData.org())
                 .packageName(functionData.packageName())

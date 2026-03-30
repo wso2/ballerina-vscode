@@ -272,7 +272,21 @@
       }
     },
     "diagnostics": {
-      "hasDiagnostics": true
+      "hasDiagnostics": true,
+      "diagnostics": [
+        {
+          "severity": "ERROR",
+          "message": "incompatible types: expected 'int', found 'record {| other future1; other future2; |}'"
+        },
+        {
+          "severity": "ERROR",
+          "message": "mapping constructor expr as a wait expr"
+        },
+        {
+          "severity": "ERROR",
+          "message": "mapping constructor expr as a wait expr"
+        }
+      ]
     },
     "flags": 0
   }

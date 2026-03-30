@@ -99,4 +99,14 @@ public class InstructionLoaderTest {
         Optional<String> instruction = InstructionLoader.loadServiceInstruction("ballerina/ai");
         Assert.assertTrue(instruction.isPresent(), "Service instruction for ballerina/ai should exist");
     }
+
+    @Test
+    public void testLoadClientConfigLibraryInstruction() {
+        // Test loading library instruction for ballerinax/client.config
+        Optional<String> instruction = InstructionLoader.loadLibraryInstruction("ballerinax/client.config");
+        Assert.assertTrue(instruction.isPresent(),
+                "Library instruction for ballerinax/client.config should exist");
+        Assert.assertTrue(instruction.get().contains("ballerinax/'client.config"),
+                "Library instruction should contain import statement with escaped keyword");
+    }
 }

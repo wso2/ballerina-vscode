@@ -44,14 +44,24 @@ import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.DependenciesToml;
+import io.ballerina.projects.PackageDescriptor;
+import io.ballerina.projects.PackageName;
+import io.ballerina.projects.PackageOrg;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.TomlDocument;
+import io.ballerina.projects.environment.PackageMetadataResponse;
+import io.ballerina.projects.environment.PackageResolver;
+import io.ballerina.projects.environment.ResolutionOptions;
+import io.ballerina.projects.environment.ResolutionRequest;
+import io.ballerina.projects.environment.ResolutionResponse;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -164,7 +174,8 @@ public class AiUtils {
                 new Module("ballerinax", "ai.ollama", "1.2.0"),
                 new Module("ballerinax", "ai.mistral", "1.2.0"),
                 new Module("ballerinax", "ai.deepseek", "1.1.0"),
-                new Module("ballerinax", "ai.anthropic", "1.2.0")
+                new Module("ballerinax", "ai.anthropic", "1.2.0"),
+                new Module("ballerinax", "ai.openrouter", "1.0.0")
         ));
     }
 
@@ -460,7 +471,9 @@ public class AiUtils {
             return;
         }
 
-        for (Map.Entry<String, Property> targetPropertyEntry : targetNode.properties().entrySet()) {
+        Iterator<Map.Entry<String, Property>> iterator = targetNode.properties().entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, Property> targetPropertyEntry = iterator.next();
             String propertyName = targetPropertyEntry.getKey();
 
             // Skip copying variable and type properties
@@ -470,11 +483,14 @@ public class AiUtils {
 
             Optional<Property> sourceProperty = sourceNode.getProperty(propertyName);
 
-            // Only copy if source property exists and has a non-empty string value
             if (sourceProperty.isPresent()) {
                 Property srcProp = sourceProperty.get();
                 if (srcProp.value() != null && !srcProp.value().toString().isEmpty()) {
+                    // Copy non-empty source values to the target
                     copyPropertyValue(targetNode, sourceNode, propertyName, propertyName);
+                } else if (targetPropertyEntry.getValue().optional()) {
+                    // Remove optional properties that have been cleared
+                    iterator.remove();
                 }
             }
         }
@@ -493,6 +509,24 @@ public class AiUtils {
                         && AI.equals(pkg.get(NAME).map(Object::toString).orElse("")))
                 .findFirst().flatMap(aiPackage -> aiPackage.get(VERSION).map(Objects::toString))
                 .orElse(null);
+    }
+
+    public static Optional<String> resolvePackageVersion(String org, String packageName) {
+        try {
+            PackageResolver resolver = PackageUtil.getSampleProject()
+                    .projectEnvironmentContext().getService(PackageResolver.class);
+            ResolutionRequest resolutionRequest = ResolutionRequest.from(
+                    PackageDescriptor.from(PackageOrg.from(org), PackageName.from(packageName)));
+            Collection<PackageMetadataResponse> metadataResponses = resolver.resolvePackageMetadata(
+                    Collections.singletonList(resolutionRequest),
+                    ResolutionOptions.builder().setOffline(true).build());
+            return metadataResponses.stream().findFirst()
+                    .filter(meta -> meta.resolutionStatus() != ResolutionResponse.ResolutionStatus.UNRESOLVED)
+                    .map(PackageMetadataResponse::resolvedDescriptor)
+                    .map(descriptor -> descriptor.version().value().toString());
+        } catch (RuntimeException e) {
+            return Optional.empty();
+        }
     }
 
     public static List<Module> getLatestCompatibleModules(String version) {
@@ -778,14 +812,15 @@ public class AiUtils {
             return "string ``";
         }
         // Check if input is a string template
-        if (input.matches("string\\s+`.*`")) {
+        if (input.matches("(?s)string\\s+`.*`")) {
             int firstBacktick = input.indexOf('`');
             String prefix = input.substring(0, firstBacktick + 1);
             String content = input.substring(firstBacktick + 1, input.length() - 1);
             String replacedContent = content.replace("`", "${\"`\"}");
             return prefix + replacedContent + "`";
         }
-        return input;
+        String escaped = input.replace("`", "${\"`\"}");
+        return "string `" + escaped + "`";
     }
 
     /**

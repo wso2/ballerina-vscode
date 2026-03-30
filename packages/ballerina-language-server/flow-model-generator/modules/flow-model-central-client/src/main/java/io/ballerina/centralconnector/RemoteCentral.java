@@ -37,6 +37,8 @@ import java.util.Map;
  */
 public class RemoteCentral implements CentralAPI {
 
+    private static volatile CentralAPI testInstance;
+
     private final RestClient restClient;
     private final GraphQlClient graphQlClient;
 
@@ -45,8 +47,20 @@ public class RemoteCentral implements CentralAPI {
         private static final RemoteCentral INSTANCE = new RemoteCentral();
     }
 
-    public static RemoteCentral getInstance() {
+    public static CentralAPI getInstance() {
+        CentralAPI override = testInstance;
+        if (override != null) {
+            return override;
+        }
         return Holder.INSTANCE;
+    }
+
+    public static void setTestInstance(CentralAPI instance) {
+        testInstance = instance;
+    }
+
+    public static void resetTestInstance() {
+        testInstance = null;
     }
 
     private RemoteCentral() {

@@ -1,0 +1,139 @@
+{
+  "description": "Search types with special-character-only query that sanitizes to empty",
+  "kind": "TYPE",
+  "source": "empty.bal",
+  "queryMap": {
+    "q": "@#$%",
+    "limit": "5",
+    "offset": "0"
+  },
+  "categories": [
+    {
+      "metadata": {
+        "label": "Current Integration",
+        "description": "Components defined within the current integration",
+        "keywords": [
+          "Project",
+          "Local",
+          "Function",
+          "Types",
+          "Data Mapper"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
+        "label": "Imported Types",
+        "description": "Types imported from other integrations",
+        "keywords": [
+          "Imported",
+          "Type",
+          "Library"
+        ]
+      },
+      "items": []
+    },
+    {
+      "metadata": {
+        "label": "Standard Library",
+        "description": "Components supported officially by Ballerina",
+        "keywords": [
+          "Ballerina",
+          "Library"
+        ]
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "slack",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "200200200200AnyOf12234",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_slack_5.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "slack",
+                "packageName": "slack",
+                "symbol": "200200200200AnyOf12234",
+                "version": "5.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "200200200AnyOf1123",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_slack_5.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "slack",
+                "packageName": "slack",
+                "symbol": "200200200AnyOf1123",
+                "version": "5.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "200200200AnyOf1223",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_slack_5.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "slack",
+                "packageName": "slack",
+                "symbol": "200200200AnyOf1223",
+                "version": "5.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "200200AnyOf112",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_slack_5.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "slack",
+                "packageName": "slack",
+                "symbol": "200200AnyOf112",
+                "version": "5.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "200200AnyOf12",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_slack_5.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "slack",
+                "packageName": "slack",
+                "symbol": "200200AnyOf12",
+                "version": "5.0.0"
+              },
+              "enabled": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -55,7 +55,7 @@
             "selected": true
           }
         ],
-        "value": false,
+        "value": "false",
         "optional": true,
         "editable": true,
         "advanced": false,
@@ -294,7 +294,7 @@
               "selected": true
             }
           ],
-          "value": false,
+          "value": "false",
           "optional": true,
           "editable": true,
           "advanced": false,
@@ -473,7 +473,7 @@
               "selected": true
             }
           ],
-          "value": true,
+          "value": "true",
           "optional": true,
           "editable": true,
           "advanced": false,

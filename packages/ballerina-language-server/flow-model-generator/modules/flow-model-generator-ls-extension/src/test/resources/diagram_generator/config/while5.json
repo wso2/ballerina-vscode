@@ -307,7 +307,10 @@
                   "connection": {
                     "metadata": {
                       "label": "Connection",
-                      "description": "Connection to use"
+                      "description": "Connection to use",
+                      "data": {
+                        "connectorType": "Network"
+                      }
                     },
                     "types": [
                       {
@@ -1814,7 +1817,10 @@
                           "connection": {
                             "metadata": {
                               "label": "Connection",
-                              "description": "Connection to use"
+                              "description": "Connection to use",
+                              "data": {
+                                "connectorType": "Network"
+                              }
                             },
                             "types": [
                               {
