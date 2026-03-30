@@ -130,19 +130,20 @@ public class ConnectorSearchCommand extends SearchCommand {
 
         List<SearchResult> centralConnectors = fetchConnectorsFromCentral();
         if (centralConnectors != null) {
-            centralConnectors.stream()
-                    .filter(result -> allowedOrgs.contains(result.packageInfo().org()))
-                    .filter(result -> !isBlacklisted(result.name()))
-                    .forEach(searchResult -> rootBuilder.node(generateAvailableNode(searchResult)));
+            filterAndAddToRootNode(centralConnectors, allowedOrgs);
         } else {
             List<SearchResult> indexSearchResults = dbManager.searchConnectors(query, limit, offset);
-            indexSearchResults.stream()
-                    .filter(result -> allowedOrgs.contains(result.packageInfo().org()))
-                    .filter(result -> !isBlacklisted(result.name()))
-                    .forEach(searchResult -> rootBuilder.node(generateAvailableNode(searchResult)));
+            filterAndAddToRootNode(indexSearchResults, allowedOrgs);
         }
 
         return rootBuilder.build().items();
+    }
+
+    private void filterAndAddToRootNode(List<SearchResult> indexSearchResults, Set<String> allowedOrgs) {
+        indexSearchResults.stream()
+                .filter(result -> allowedOrgs.contains(result.packageInfo().org()))
+                .filter(result -> !isBlacklisted(result.name()))
+                .forEach(searchResult -> rootBuilder.node(generateAvailableNode(searchResult)));
     }
 
     /**
