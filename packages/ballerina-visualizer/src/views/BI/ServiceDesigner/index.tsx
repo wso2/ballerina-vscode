@@ -55,6 +55,7 @@ import { removeForwardSlashes, canDataBind, getReadableListenerName } from "./ut
 import { DatabindForm } from "./Forms/DatabindForm";
 import { FileIntegrationForm } from "./Forms/FileIntegrationForm";
 import FileIntegrationConfigForm from "./Forms/FileIntegrationForm/FileIntegrationConfigForm";
+import { getTryItAIDefaultPromptService, getTryItDropdownOptions, TryItOptionValue, TryItQuickPickItem } from "../shared/tryIt";
 import { f } from "@tanstack/query-core/build/legacy/hydration-B3ndIyL6";
 
 const LoadingContainer = styled.div`
@@ -228,6 +229,8 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     const [initFunction, setInitFunction] = useState<FunctionModel>(undefined);
     const [selectedFTPHandler, setSelectedFTPHandler] = useState<string>(undefined);
     const [addMore, setAddMore] = useState<boolean>(false);
+    const [selectedTryItOption, setSelectedTryItOption] = useState<TryItOptionValue>(TryItOptionValue.TRY_IT);
+    const [isTryItInProgress, setIsTryItInProgress] = useState<boolean>(false);
 
     const handleCloseInitFunction = () => {
         setInitFunction(undefined);
@@ -288,6 +291,26 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             isMountedRef.current = false;
         };
     }, [position]);
+
+    // Load persisted preferred Try It option on mount (if set)
+    useEffect(() => {
+    (async () => {
+        try {
+            const preferred = await rpcClient.getCommonRpcClient().getPreferredTryItOption();
+
+            if (!isMountedRef.current) return;
+
+            if (
+                preferred === TryItOptionValue.TRY_IT ||
+                preferred === TryItOptionValue.TRY_IT_WITH_AI
+            ) {
+                setSelectedTryItOption(preferred as TryItOptionValue);
+            }
+        } catch (e) {
+            // ignore
+        }
+    })();
+}, [rpcClient]);
 
     const fetchService = (targetPosition: NodePosition) => {
         const lineRange: LineRange = {
@@ -728,6 +751,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     };
 
     const handleServiceTryIt = async () => {
+        setIsTryItInProgress(true);
         const basePath = serviceModel.properties?.basePath?.value?.trim();
         const listenerProperty = serviceModel.properties?.listener;
         const listener = (listenerProperty?.value ?? listenerProperty?.values?.[0] ?? '').trim();
@@ -750,43 +774,81 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
 
         // Delegate cell-building to the extension so both Service Try It and Code Lens Try It
         // share the same buildHurlCellsFromOASSpec logic via ballerina.startService
-        rpcClient.getCommonRpcClient().executeCommand({
-            commands: ["ballerina.startService", { oasSpec, baseUrl, serviceName }, { savable: true }, { basePath, listener }]
-        });
+        try {
+            await rpcClient.getCommonRpcClient().executeCommand({
+                commands: ["ballerina.startService", { oasSpec, baseUrl, serviceName }, { savable: true }, { basePath, listener }]
+            });
+        } finally {
+            setIsTryItInProgress(false);
+        }
     }
 
-    const handleServiceTryItWithAI = () => {
+    const handleServiceTryItWithAI = async () => {
+        setIsTryItInProgress(true);
         const basePath = serviceModel.properties?.basePath?.value?.trim();
-        const listenerProperty = serviceModel.properties?.listener;
-        const listener = (listenerProperty?.value ?? listenerProperty?.values?.[0] ?? '').trim();
         const serviceName = serviceModel.name || "Service";
 
-        const prompt:AIPanelPrompt = {
-            type: "text",
-            text: "",
-            planMode: false,
-            suggestedCommandTemplates: [
-                {
-                    type: "text",
-                    text: `Try out the ${serviceName} service ${basePath ? `at base path ${basePath}` : ''}`,
-                    planMode: false
-                },
-                {
-                    type: "text",
-                    text: `Try out the following scenario on the ${serviceName} service ${basePath ? `at base path ${basePath}` : ''} : \n`,
-                    planMode: false
-                }
-            ],
-            inputPlaceholder: "Describe your try it scenario..."
-        };
+        const prompt = getTryItAIDefaultPromptService(serviceName, basePath);
 
-        rpcClient.getCommonRpcClient().executeCommand({
-            commands: [SHARED_COMMANDS.OPEN_AI_PANEL, prompt]
-        });
+        try {
+            await rpcClient.getCommonRpcClient().executeCommand({
+                commands: [SHARED_COMMANDS.OPEN_AI_PANEL, prompt]
+            });
+        } finally {
+            setIsTryItInProgress(false);
+        }
     };
 
     const handleExportOAS = () => {
         rpcClient.getServiceDesignerRpcClient().exportOASFile({});
+    };
+
+    const handleTryItDropdownOption = (option: string) => {
+        const selectedOption = option as TryItOptionValue;
+        setSelectedTryItOption(selectedOption);
+        rpcClient.getCommonRpcClient().setPreferredTryItOption(selectedOption).catch((error: unknown) => {
+            console.error("Error saving preferred Try It option:", error);
+        });
+        switch (selectedOption) {
+            case TryItOptionValue.TRY_IT:
+                handleServiceTryIt();
+                break;
+            case TryItOptionValue.TRY_IT_WITH_AI:
+                handleServiceTryItWithAI();
+                break;
+        }
+    };
+
+    const handleTryItPrimaryAction = async () => {
+        let optionToRun = selectedTryItOption;
+        try {
+            const preferredOption = await rpcClient.getCommonRpcClient().getPreferredTryItOption();
+            if (preferredOption === TryItOptionValue.TRY_IT || preferredOption === TryItOptionValue.TRY_IT_WITH_AI) {
+                optionToRun = preferredOption;
+                setSelectedTryItOption(optionToRun);
+            } else {
+                const tryItOptions = getTryItDropdownOptions("service").map(option => ({
+                    label: option.title,
+                    description: option.description,
+                    value: option.value
+                }));
+                const selected: TryItQuickPickItem = await rpcClient.getCommonRpcClient().showQuickPick({
+                    items: tryItOptions,
+                    options: { title: "Choose how you want to try out your service", placeHolder: "Select an option" }
+                }) as TryItQuickPickItem;
+
+                if (!selected) {
+                    return;
+                }
+                optionToRun = selected.value;
+                setSelectedTryItOption(optionToRun);
+                await rpcClient.getCommonRpcClient().setPreferredTryItOption(optionToRun);
+            }
+        } catch (error) {
+            console.error("Error handling Try It first-time flow:", error);
+        }
+
+        handleTryItDropdownOption(optionToRun);
     };
 
     const handleAddListener = () => {
@@ -832,6 +894,10 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearchValue(event.target.value);
     };
+
+    const tryItDropdownOptions: DropdownOptionProps[] = getTryItDropdownOptions("service");
+    const activeTryItOption =
+        tryItDropdownOptions.find((option) => option.value === selectedTryItOption) ?? tryItDropdownOptions[0];
 
     const haveServiceTypeName = serviceModel?.properties["serviceTypeName"]?.value;
     const displayServiceName = isFtpService
@@ -920,14 +986,17 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                     {
                                         serviceModel && (isHttpService || isMcpService) && (
                                             <>
-                                                <Button appearance="secondary" tooltip="Try Service" onClick={handleServiceTryIt}>
-                                                    <><Icon name="play" isCodicon={true} sx={{ marginRight: 8, fontSize: 16 }} /> <ButtonText>Try It</ButtonText></>
-                                                </Button>
-                                                {isHttpService && (
-                                                    <Button appearance="secondary" tooltip="Try Service with AI" onClick={handleServiceTryItWithAI}>
-                                                        <><Icon name="bi-ai-chat" sx={{ marginRight: 8, fontSize: 16 }} /> <ButtonText>Try It with AI</ButtonText></>
-                                                    </Button>
-                                                )}
+                                                <AddServiceElementDropdown
+                                                    buttonTitle={activeTryItOption?.title || "Try It"}
+                                                    toolTip="Try service options"
+                                                    defaultOption={selectedTryItOption}
+                                                    onPrimaryAction={handleTryItPrimaryAction}
+                                                    buttonIconName={isTryItInProgress ? "loading" : activeTryItOption?.iconName}
+                                                    buttonIconIsCodicon={isTryItInProgress ? true : activeTryItOption?.iconIsCodicon}
+                                                    showButtonSpinner={isTryItInProgress}
+                                                    onOptionChange={handleTryItDropdownOption}
+                                                    options={tryItDropdownOptions}
+                                                />
                                             </>
                                         )
                                     }
