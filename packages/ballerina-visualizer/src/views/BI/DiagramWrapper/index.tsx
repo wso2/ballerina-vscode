@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { STNode } from "@wso2/syntax-tree";
 import { Button, Icon, Switch, View, ThemeColors, Tooltip } from "@wso2/ui-toolkit";
 import { BIFlowDiagram } from "../FlowDiagram";
@@ -33,8 +33,10 @@ import { getColorByMethod } from "../ServiceDesigner/components/ResourceAccordio
 import { SwitchSkeleton, TitleBarSkeleton } from "../../../components/Skeletons";
 import { PanelContainer } from "@wso2/ballerina-side-panel";
 import { ResourceForm } from "../ServiceDesigner/Forms/ResourceForm";
+import { AddServiceElementDropdown, DropdownOptionProps } from "../ServiceDesigner/components/AddServiceElementDropdown";
 import { removeForwardSlashes } from "../ServiceDesigner/utils";
 import { buildBaseUrl } from "../ServiceDesigner/buildHurlString";
+import { getTryItAIDefaultPromptResource, getTryItDropdownOptions, TryItOptionValue, TryItQuickPickItem } from "../shared/tryIt";
 
 const ActionButton = styled(Button)`
     display: flex;
@@ -116,6 +118,9 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     const [isSaving, setIsSaving] = useState(false);
     const [isTracingEnabled, setIsTracingEnabled] = useState(false);
     const [isToggling, setIsToggling] = useState(false);
+    const [selectedTryItOption, setSelectedTryItOption] = useState<TryItOptionValue>(TryItOptionValue.TRY_IT);
+    const [isTryItInProgress, setIsTryItInProgress] = useState(false);
+    const isMountedRef = useRef(true);
 
     useEffect(() => {
         rpcClient.getVisualizerLocation().then((location) => {
@@ -167,6 +172,26 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                     }
                 });
         });
+    }, [rpcClient]);
+
+    // Load persisted preferred Try It option on mount (if set)
+    useEffect(() => {
+        (async () => {
+            try {
+                const preferred = await rpcClient.getCommonRpcClient().getPreferredTryItOption();
+
+                if (!isMountedRef.current) return;
+
+                if (
+                    preferred === TryItOptionValue.TRY_IT ||
+                    preferred === TryItOptionValue.TRY_IT_WITH_AI
+                ) {
+                    setSelectedTryItOption(preferred as TryItOptionValue);
+                }
+            } catch (e) {
+                // ignore
+            }
+        })();
     }, [rpcClient]);
 
 
@@ -318,60 +343,105 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
 
     const handleResourceTryIt = async (methodValue: string, pathValue: string) => {
         if (serviceType !== "http") { return; }
+        setIsTryItInProgress(true);
 
-        const baseUrl = buildBaseUrl(listener, basePath);
-        const serviceName = basePath?.replace(/^\//, "") || "Service";
-
-        const location = await rpcClient.getVisualizerLocation();
-        const docUri = filePath ?? location.documentUri;
-
-        let oasSpec: any | undefined;
         try {
-            const oasResult = await rpcClient.getServiceDesignerRpcClient().getOASSpec({
-                documentFilePath: docUri,
-                basePath
+            const baseUrl = buildBaseUrl(listener, basePath);
+            const serviceName = basePath?.replace(/^\//, "") || "Service";
+
+            const location = await rpcClient.getVisualizerLocation();
+            const docUri = filePath ?? location.documentUri;
+
+            let oasSpec: any | undefined;
+            try {
+                const oasResult = await rpcClient.getServiceDesignerRpcClient().getOASSpec({
+                    documentFilePath: docUri,
+                    basePath
+                });
+                oasSpec = oasResult.spec ?? undefined;
+            } catch {
+                // spec unavailable — extension will fall back to minimal placeholder
+            }
+
+            // Delegate cell-building to the extension so both Resource Try It (diagram) and Code Lens
+            // Try It share the same buildHurlCellsFromOASSpec logic via ballerina.startService
+            await rpcClient.getCommonRpcClient().executeCommand({
+                commands: ["ballerina.startService", { oasSpec, baseUrl, serviceName, resourceMetadata: { methodValue, pathValue } }, { savable: false }, { basePath, listener }]
             });
-            oasSpec = oasResult.spec ?? undefined;
-        } catch {
-            // spec unavailable — extension will fall back to minimal placeholder
+        } finally {
+            setIsTryItInProgress(false);
+        }
+    };
+
+    const handleResourceTryItWithAI = async () => {
+        if (serviceType !== "http") { return; }
+        setIsTryItInProgress(true);
+
+        try {
+            const methodValue = parentMetadata?.accessor || "GET";
+            const pathValue = removeForwardSlashes(parentMetadata?.label || "/");
+            const serviceName = basePath?.replace(/^\//, "") || "Service";
+            const prompt = getTryItAIDefaultPromptResource(methodValue, pathValue, serviceName, basePath);
+
+            await rpcClient.getCommonRpcClient().executeCommand({
+                commands: [SHARED_COMMANDS.OPEN_AI_PANEL, prompt]
+            });
+        } finally {
+            setIsTryItInProgress(false);
+        }
+    };
+
+    const handleTryItDropdownOption = (option: string) => {
+        const selectedOption = option as TryItOptionValue;
+        setSelectedTryItOption(selectedOption);
+        rpcClient.getCommonRpcClient().setPreferredTryItOption(selectedOption).catch((error: unknown) => {
+            console.error("Error saving preferred Try It option:", error);
+        });
+        switch (selectedOption) {
+            case TryItOptionValue.TRY_IT:
+                handleResourceTryIt(parentMetadata?.accessor || "", parentMetadata?.label || "");
+                break;
+            case TryItOptionValue.TRY_IT_WITH_AI:
+                handleResourceTryItWithAI();
+                break;
+        }
+    };
+
+    const handleTryItPrimaryAction = async () => {
+        let optionToRun = selectedTryItOption;
+        try {
+            const preferredOption = await rpcClient.getCommonRpcClient().getPreferredTryItOption();
+            if (preferredOption === TryItOptionValue.TRY_IT || preferredOption === TryItOptionValue.TRY_IT_WITH_AI) {
+                optionToRun = preferredOption;
+                setSelectedTryItOption(optionToRun);
+            } else {
+                const tryItOptions = getTryItDropdownOptions("service").map(option => ({
+                    label: option.title,
+                    description: option.description,
+                    value: option.value
+                }));
+                const selected: TryItQuickPickItem = await rpcClient.getCommonRpcClient().showQuickPick({
+                    items: tryItOptions,
+                    options: { title: "Choose how you want to try out your service", placeHolder: "Select an option" }
+                }) as TryItQuickPickItem;
+
+                if (!selected) {
+                    return;
+                }
+                optionToRun = selected.value;
+                setSelectedTryItOption(optionToRun);
+                await rpcClient.getCommonRpcClient().setPreferredTryItOption(optionToRun); 
+            }
+        } catch (error) {
+            console.error("Error handling Try It first-time flow:", error);
         }
 
-        // Delegate cell-building to the extension so both Resource Try It (diagram) and Code Lens
-        // Try It share the same buildHurlCellsFromOASSpec logic via ballerina.startService
-        rpcClient.getCommonRpcClient().executeCommand({
-            commands: ["ballerina.startService", { oasSpec, baseUrl, serviceName, resourceMetadata: { methodValue, pathValue } }, { savable: false }, { basePath, listener }]
-        });
+        handleTryItDropdownOption(optionToRun);
     };
 
-    const handleResourceTryItWithAI = () => {
-        if (serviceType !== "http") { return; }
-
-        const methodValue = parentMetadata?.accessor || "GET";
-        const pathValue = removeForwardSlashes(parentMetadata?.label || "/");
-        const serviceName = basePath?.replace(/^\//, "") || "Service";
-        const prompt = {
-            type: "text" as const,
-            text: "",
-            planMode: false,
-            suggestedCommandTemplates: [
-                {
-                    type: "text" as const,
-                    text: `Try out the ${methodValue} ${pathValue} resource in the ${serviceName} service ${basePath ? `at base path ${basePath}` : ''}`,
-                    planMode: false,
-                },
-                {
-                    type: "text" as const,
-                    text: `Try out the following scenario on the ${methodValue} ${pathValue} resource in the ${serviceName} service ${basePath ? `at base path ${basePath}` : ''} : \n`,
-                    planMode: false,
-                }
-            ],
-            inputPlaceholder: "Describe your try it scenario...",
-        };
-
-        rpcClient.getCommonRpcClient().executeCommand({
-            commands: [SHARED_COMMANDS.OPEN_AI_PANEL, prompt]
-        });
-    };
+    const tryItDropdownOptions: DropdownOptionProps[] = getTryItDropdownOptions("resource");
+    const activeTryItOption =
+        tryItDropdownOptions.find((option) => option.value === selectedTryItOption) ?? tryItDropdownOptions[0];
 
     // Calculate title based on conditions
     const getTitle = () => {
@@ -445,20 +515,17 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                         />
                         Configure
                     </ActionButton >
-                    <ActionButton
-                        appearance="secondary"
-                        onClick={() => handleResourceTryIt(parentMetadata?.accessor || "", parentMetadata?.label || "")}
-                    >
-                        <Icon name={"play"} isCodicon={true} sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
-                        {"Try It"}
-                    </ActionButton>
-                    <ActionButton
-                        appearance="secondary"
-                        onClick={handleResourceTryItWithAI}
-                    >
-                        <Icon name={"bi-ai-chat"} sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
-                        {"Try It with AI"}
-                    </ActionButton>
+                    <AddServiceElementDropdown
+                        buttonTitle={activeTryItOption?.title || "Try It"}
+                        toolTip="Try resource options"
+                        defaultOption={selectedTryItOption}
+                        onPrimaryAction={handleTryItPrimaryAction}
+                        buttonIconName={isTryItInProgress ? "loading" : activeTryItOption?.iconName}
+                        buttonIconIsCodicon={isTryItInProgress ? true : activeTryItOption?.iconIsCodicon}
+                        showButtonSpinner={isTryItInProgress}
+                        onOptionChange={handleTryItDropdownOption}
+                        options={tryItDropdownOptions}
+                    />
                 </>
             );
         }
