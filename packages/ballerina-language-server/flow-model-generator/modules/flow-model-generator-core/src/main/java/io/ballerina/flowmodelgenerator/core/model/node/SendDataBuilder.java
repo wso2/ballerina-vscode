@@ -61,9 +61,6 @@ public class SendDataBuilder extends FunctionCall {
     public static final String DATA_NAME_KEY = "dataName";
     public static final String DATA_NAME_LABEL = "Data Name";
     public static final String DATA_NAME_DOC = "The name of the data field to send";
-    public static final String DATA_KEY = "data";
-    public static final String DATA_LABEL = "Data";
-    public static final String DATA_DOC = "The data to send";
     private static final String SEND_DATA_METHOD = "sendData";
     private static final String WORKFLOW_ID_KEY = "workflowId";
     public static final String WORKFLOW_ID_LABEL = "Target Workflow Id";

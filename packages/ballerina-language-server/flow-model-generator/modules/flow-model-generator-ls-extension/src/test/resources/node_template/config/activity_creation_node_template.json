@@ -112,7 +112,7 @@
       "parameters": {
         "metadata": {
           "label": "Inputs",
-          "description": "Input variables of the function"
+          "description": "Arguments passed to the function"
         },
         "types": [
           {
@@ -149,8 +149,8 @@
                 },
                 "variable": {
                   "metadata": {
-                    "label": "variable",
-                    "description": "Name of the variable"
+                    "label": "Argument",
+                    "description": "Value to be passed"
                   },
                   "types": [
                     {

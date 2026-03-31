@@ -20,6 +20,7 @@
         "type": "TYPE",
         "name": "ApprovalData",
         "scope": "Global",
+        "visibility": "module",
         "children": {}
       },
       "OrderInput": {
@@ -38,6 +39,7 @@
         "type": "TYPE",
         "name": "OrderInput",
         "scope": "Global",
+        "visibility": "module",
         "children": {}
       },
       "OrderWorkflowEvents": {
@@ -56,6 +58,7 @@
         "type": "TYPE",
         "name": "OrderWorkflowEvents",
         "scope": "Global",
+        "visibility": "module",
         "children": {}
       }
     },
@@ -76,6 +79,7 @@
         "type": "ACTIVITY",
         "name": "calculateDiscount",
         "scope": "Global",
+        "visibility": "module",
         "children": {}
       },
       "orderWorkflow": {
@@ -94,6 +98,7 @@
         "type": "WORKFLOW",
         "name": "orderWorkflow",
         "scope": "Global",
+        "visibility": "module",
         "children": {}
       },
       "sendNotification": {
@@ -112,6 +117,7 @@
         "type": "ACTIVITY",
         "name": "sendNotification",
         "scope": "Global",
+        "visibility": "module",
         "children": {}
       },
       "simpleWorkflow": {
@@ -130,6 +136,7 @@
         "type": "WORKFLOW",
         "name": "simpleWorkflow",
         "scope": "Global",
+        "visibility": "module",
         "children": {}
       }
     },
@@ -150,6 +157,7 @@
         "type": "FUNCTION",
         "name": "helperFunction",
         "scope": "Global",
+        "visibility": "module",
         "children": {}
       }
     }

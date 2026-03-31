@@ -26,66 +26,101 @@
     },
     "returning": false,
     "properties": {
-      "workflowName": {
+      "workflow": {
         "metadata": {
           "label": "Workflow Name",
           "description": "The workflow function to send the data to"
         },
-        "valueType": "SINGLE_SELECT",
-        "value": "orderWorkflow",
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "options": [
+              {
+                "label": "workflow1",
+                "value": "workflow1"
+              }
+            ],
+            "selected": true
+          }
+        ],
+        "value": "workflow1",
         "optional": false,
         "editable": true,
         "advanced": false,
-        "hidden": false
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED"
+        },
+        "modified": false
+      },
+      "workflowId": {
+        "metadata": {
+          "label": "Target Workflow Id",
+          "description": "The unique workflow ID to send the data to (obtained from `run`)"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": true
+          }
+        ],
+        "value": "workflowIde3",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED"
+        },
+        "modified": true
       },
       "dataName": {
         "metadata": {
           "label": "Data Name",
           "description": "The name of the data field to send"
         },
-        "valueType": "SINGLE_SELECT",
-        "value": "approve",
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "ballerinaType": "string",
+            "options": [],
+            "selected": true
+          }
+        ],
+        "value": "y",
         "optional": false,
-        "editable": true,
+        "editable": false,
         "advanced": false,
-        "hidden": false
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED"
+        },
+        "modified": false
       },
       "data": {
         "metadata": {
           "label": "Data",
-          "description": "The data to send"
+          "description": "The data to send to the workflow"
         },
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "map<anydata>",
-        "value": "{approved: true}",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "anydata",
+            "selected": true
+          }
+        ],
+        "placeholder": "{}",
         "optional": false,
         "editable": true,
         "advanced": false,
-        "hidden": false
-      },
-      "variable": {
-        "metadata": {
-          "label": "Result Variable",
-          "description": "Variable name to receive the result"
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "data"
         },
-        "valueType": "IDENTIFIER",
-        "value": "sendResult",
-        "optional": false,
-        "editable": true,
-        "advanced": false,
-        "hidden": false
-      },
-      "checkError": {
-        "metadata": {
-          "label": "Check Error",
-          "description": "Trigger error flow"
-        },
-        "valueType": "FLAG",
-        "value": true,
-        "optional": false,
-        "editable": true,
-        "advanced": true,
-        "hidden": true
+        "modified": true,
+        "value": "2"
       }
     },
     "flags": 1
@@ -116,7 +151,7 @@
             "character": 0
           }
         },
-        "newText": "\ncheck workflow:sendData(orderWorkflow, {approved: true}, \"approve\");"
+        "newText": "\ncheck workflow:sendData(workflow1, workflowIde3, y, 2);"
       }
     ]
   }

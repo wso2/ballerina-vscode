@@ -22,7 +22,7 @@
     },
     "returning": false,
     "properties": {
-      "workflowName": {
+      "workflow": {
         "metadata": {
           "label": "Workflow Name",
           "description": "The workflow function to send the data to"
@@ -43,7 +43,31 @@
         "optional": false,
         "editable": true,
         "advanced": false,
-        "hidden": false
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED"
+        }
+      },
+      "workflowId": {
+        "metadata": {
+          "label": "Target Workflow Id",
+          "description": "The unique workflow ID to send the data to (obtained from `run`)"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": false
+          }
+        ],
+        "value": "",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED"
+        }
       },
       "dataName": {
         "metadata": {
@@ -53,6 +77,7 @@
         "types": [
           {
             "fieldType": "SINGLE_SELECT",
+            "ballerinaType": "string",
             "options": [],
             "selected": true
           }
@@ -61,37 +86,32 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED"
+        }
       },
       "data": {
         "metadata": {
           "label": "Data",
-          "description": "The data to send"
+          "description": "The data to send to the workflow"
         },
         "types": [
           {
-            "fieldType": "RECORD_MAP_EXPRESSION",
-            "ballerinaType": "map<anydata>",
-            "typeMembers": [
-              {
-                "type": "map<anydata>",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              }
-            ],
-            "selected": false
-          },
-          {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "map<anydata>",
+            "ballerinaType": "anydata",
             "selected": false
           }
         ],
-        "value": "",
+        "placeholder": "{}",
         "optional": false,
         "editable": true,
         "advanced": false,
-        "hidden": false
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "data"
+        }
       }
     },
     "flags": 0
