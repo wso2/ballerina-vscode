@@ -253,5 +253,5 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(generateOpenApiClient, (args: OpenAPIClientGenerationRequest) => rpcManger.generateOpenApiClient(args));
     messenger.onRequest(getOpenApiGeneratedModules, (args: OpenAPIGeneratedModulesRequest) => rpcManger.getOpenApiGeneratedModules(args));
     messenger.onRequest(deleteOpenApiGeneratedModules, (args: OpenAPIClientDeleteRequest) => rpcManger.deleteOpenApiGeneratedModules(args));
-    messenger.onRequest(updateProjectTitle, (args: UpdateProjectTitleRequest) => rpcManger.updateWorkspaceTitle(args));
+    messenger.onRequest(updateProjectTitle, (args: UpdateProjectTitleRequest) => rpcManger.updateProjectTitle(args));
 }
