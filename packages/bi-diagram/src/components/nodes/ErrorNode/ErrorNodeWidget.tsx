@@ -22,14 +22,20 @@ import { DiagramEngine, PortWidget } from "@projectstorm/react-diagrams-core";
 import { ErrorNodeModel } from "./ErrorNodeModel";
 import {
     WHILE_NODE_WIDTH,
+    NODE_BG_BREAKPOINT_COLOR,
+    NODE_BG_COLOR,
+    NODE_BORDER_COLOR,
+    NODE_BORDER_ERROR_COLOR,
+    NODE_BORDER_SELECTED_COLOR,
     NODE_BORDER_WIDTH,
+    NODE_TEXT_COLOR,
     NODE_WIDTH,
     NODE_GAP_X,
     CONTAINER_PADDING,
     DRAFT_NODE_BORDER_WIDTH,
     NODE_GAP_Y,
 } from "../../../resources/constants";
-import { Button, Item, Menu, MenuItem, Popover, ThemeColors } from "@wso2/ui-toolkit";
+import { Button, Item, Menu, MenuItem, Popover } from "@wso2/ui-toolkit";
 import { FlowNode } from "../../../utils/types";
 import { useDiagramContext } from "../../DiagramContext";
 import { MoreVertIcon } from "../../../resources";
@@ -43,8 +49,8 @@ export namespace NodeStyles {
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        color: ${ThemeColors.ON_SURFACE};
-        color: ${ThemeColors.ON_SURFACE};
+        color: ${NODE_TEXT_COLOR};
+        color: ${NODE_TEXT_COLOR};
         cursor: pointer;
     `;
 
@@ -84,7 +90,7 @@ export namespace NodeStyles {
     export const Icon = styled.div`
         padding: 4px;
         svg {
-            fill: ${ThemeColors.ON_SURFACE};
+            fill: ${NODE_TEXT_COLOR};
         }
     `;
 
@@ -125,15 +131,15 @@ export namespace NodeStyles {
         border-style: ${(props: NodeStyleProp) => (props.disabled ? "dashed" : "solid")};
         border-color: ${(props: NodeStyleProp) =>
             props.hasError
-                ? ThemeColors.ERROR
+                ? NODE_BORDER_ERROR_COLOR
                 : (props.isSelected || props.selected) && !props.disabled
-                ? ThemeColors.SECONDARY
+                ? NODE_BORDER_SELECTED_COLOR
                 : props.hovered && !props.disabled
-                ? ThemeColors.SECONDARY
-                : ThemeColors.OUTLINE_VARIANT};
+                ? NODE_BORDER_SELECTED_COLOR
+                : NODE_BORDER_COLOR};
         border-radius: 8px;
         background-color: ${(props: NodeStyleProp) =>
-            props?.isActiveBreakpoint ? ThemeColors.DEBUGGER_BREAKPOINT_BACKGROUND : ThemeColors.SURFACE_DIM};
+            props?.isActiveBreakpoint ? NODE_BG_BREAKPOINT_COLOR : NODE_BG_COLOR};
         width: ${WHILE_NODE_WIDTH}px;
         height: ${WHILE_NODE_WIDTH}px;
     `;
@@ -155,7 +161,7 @@ export namespace NodeStyles {
         top: ${(props) => props.top}px;
         left: ${(props) => props.left}px;
 
-        border: 2px dashed ${ThemeColors.OUTLINE_VARIANT};
+        border: 2px dashed ${NODE_BORDER_COLOR};
         border-radius: 10px;
         background-color: transparent;
         z-index: -1;

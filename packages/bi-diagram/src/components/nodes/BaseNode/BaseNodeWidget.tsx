@@ -23,12 +23,19 @@ import {
     DRAFT_NODE_BORDER_WIDTH,
     HIGHLIGHT_NODE_BORDER_COLOR,
     HIGHLIGHT_NODE_BORDER_WIDTH,
+    NODE_BG_BREAKPOINT_COLOR,
+    NODE_BG_COLOR,
+    NODE_BORDER_COLOR,
+    NODE_BORDER_ERROR_COLOR,
+    NODE_BORDER_SELECTED_COLOR,
     NODE_BORDER_WIDTH,
+    NODE_ERROR_COLOR,
     NODE_HEIGHT,
     NODE_PADDING,
+    NODE_TEXT_COLOR,
     NODE_WIDTH,
 } from "../../../resources/constants";
-import { Button, Icon, Item, Menu, MenuItem, Popover, ThemeColors, Tooltip } from "@wso2/ui-toolkit";
+import { Button, Icon, Item, Menu, MenuItem, Popover, Tooltip } from "@wso2/ui-toolkit";
 import { MoreVertIcon } from "../../../resources";
 import NodeIcon from "../../NodeIcon";
 import { useDiagramContext } from "../../DiagramContext";
@@ -46,7 +53,7 @@ export namespace NodeStyles {
         readOnly: boolean;
         isActiveBreakpoint?: boolean;
         isSelected?: boolean;
-        isWorkflowNode?: boolean;
+        // isWorkflowNode?: boolean;
     };
     export const Node = styled.div<NodeStyleProp>`
         display: flex;
@@ -57,26 +64,26 @@ export namespace NodeStyles {
         min-height: ${NODE_HEIGHT}px;
         padding: 0 ${NODE_PADDING}px;
         background-color: ${(props: NodeStyleProp) =>
-            props?.isActiveBreakpoint ? ThemeColors.DEBUGGER_BREAKPOINT_BACKGROUND : ThemeColors.SURFACE_DIM};
-        color: ${ThemeColors.ON_SURFACE};
+            props?.isActiveBreakpoint ? NODE_BG_BREAKPOINT_COLOR : NODE_BG_COLOR};
+        color: ${NODE_TEXT_COLOR};
         opacity: ${(props: NodeStyleProp) => (props.disabled ? 0.7 : 1)};
         border: ${(props: NodeStyleProp) =>
             props.disabled
                 ? DRAFT_NODE_BORDER_WIDTH
-                : props.isWorkflowNode
-                    ? HIGHLIGHT_NODE_BORDER_WIDTH
+                // : props.isWorkflowNode
+                //     ? HIGHLIGHT_NODE_BORDER_WIDTH
                     : NODE_BORDER_WIDTH}px;
         border-style: ${(props: NodeStyleProp) => (props.disabled ? "dashed" : "solid")};
         border-color: ${(props: NodeStyleProp) =>
             props.hasError
-                ? ThemeColors.ERROR
+                ? NODE_BORDER_ERROR_COLOR
                 : props.isSelected && !props.disabled
-                    ? ThemeColors.SECONDARY
+                    ? NODE_BORDER_SELECTED_COLOR
                     : props.hovered && !props.disabled && !props.readOnly
-                        ? ThemeColors.SECONDARY
-                        : props.isWorkflowNode
-                            ? HIGHLIGHT_NODE_BORDER_COLOR
-                            : ThemeColors.OUTLINE_VARIANT};
+                        ? NODE_BORDER_SELECTED_COLOR
+                        // : props.isWorkflowNode
+                        //     ? HIGHLIGHT_NODE_BORDER_COLOR
+                            : NODE_BORDER_COLOR};
         border-radius: 10px;
         cursor: ${(props: NodeStyleProp) => (props.readOnly ? "default" : "pointer")};
     `;
@@ -108,7 +115,7 @@ export namespace NodeStyles {
         font-size: 20px;
         width: 20px;
         height: 20px;
-        color: ${ThemeColors.ERROR};
+        color: ${NODE_ERROR_COLOR};
     `;
 
     export const TopPortWidget = styled(PortWidget)`
@@ -126,7 +133,7 @@ export namespace NodeStyles {
     export const Icon = styled.div`
         padding: 4px;
         svg {
-            fill: ${ThemeColors.ON_SURFACE};
+            fill: ${NODE_TEXT_COLOR};
         }
     `;
 
@@ -148,7 +155,7 @@ export namespace NodeStyles {
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         word-break: break-all;
-        color: ${ThemeColors.ON_SURFACE};
+        color: ${NODE_TEXT_COLOR};
         opacity: 0.7;
         white-space: normal;
         font-size: 12px;
@@ -416,7 +423,7 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
             readOnly={readOnly}
             isActiveBreakpoint={isActiveBreakpoint}
             isSelected={isSelected}
-            isWorkflowNode={isWorkflowStyledNode}
+            // isWorkflowNode={isWorkflowStyledNode}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             onContextMenu={!readOnly ? handleOnContextMenu : undefined}

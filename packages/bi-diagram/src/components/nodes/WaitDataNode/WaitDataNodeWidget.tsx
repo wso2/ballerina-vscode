@@ -19,7 +19,7 @@
 import React, { useState } from "react";
 import styled from "@emotion/styled";
 import { DiagramEngine, PortWidget } from "@projectstorm/react-diagrams-core";
-import { Button, Icon, Item, Menu, MenuItem, Popover, ThemeColors, Tooltip } from "@wso2/ui-toolkit";
+import { Button, Icon, Item, Menu, MenuItem, Popover, Tooltip } from "@wso2/ui-toolkit";
 import { FlowNode } from "../../../utils/types";
 import { MoreVertIcon } from "../../../resources";
 import { useDiagramContext } from "../../DiagramContext";
@@ -30,6 +30,12 @@ import { WaitDataNodeModel } from "./WaitDataNodeModel";
 import {
     HIGHLIGHT_NODE_BORDER_COLOR,
     HIGHLIGHT_NODE_BORDER_WIDTH,
+    NODE_BG_BREAKPOINT_COLOR,
+    NODE_BG_COLOR,
+    NODE_BORDER_COLOR,
+    NODE_BORDER_ERROR_COLOR,
+    NODE_BORDER_SELECTED_COLOR,
+    NODE_TEXT_COLOR,
     WAIT_DATA_ARROW_WIDTH,
     WAIT_DATA_CIRCLE_SIZE,
     WAIT_DATA_DETAILS_GAP,
@@ -52,7 +58,7 @@ export namespace NodeStyles {
         display: flex;
         flex-direction: row;
         align-items: center;
-        color: ${ThemeColors.ON_SURFACE};
+        color: ${NODE_TEXT_COLOR};
         cursor: ${(props: { readOnly: boolean }) => (props.readOnly ? "default" : "pointer")};
     `;
 
@@ -82,24 +88,24 @@ export namespace NodeStyles {
         border: 2px solid
             ${(props: NodeStyleProp) =>
                 props.hasError
-                    ? ThemeColors.ERROR
+                    ? NODE_BORDER_ERROR_COLOR
                     : props.isSelected && !props.readOnly
-                    ? ThemeColors.SECONDARY
+                    ? NODE_BORDER_SELECTED_COLOR
                     : props.hovered && !props.readOnly
-                    ? ThemeColors.SECONDARY
+                    ? NODE_BORDER_SELECTED_COLOR
                     : HIGHLIGHT_NODE_BORDER_COLOR};
         border-width: ${HIGHLIGHT_NODE_BORDER_WIDTH}px;
         background-color: ${(props: NodeStyleProp) =>
-            props.isActiveBreakpoint ? ThemeColors.DEBUGGER_BREAKPOINT_BACKGROUND : ThemeColors.SURFACE_DIM};
+            props.isActiveBreakpoint ? NODE_BG_BREAKPOINT_COLOR : NODE_BG_COLOR};
     `;
 
     export const Details = styled.div`
         display: flex;
         flex-direction: row;
         align-items: center;
-        justify-content: space-between;
+        justify-content: flex-start;
         gap: 8px;
-        width: ${WAIT_DATA_DETAILS_WIDTH}px;
+        max-width: ${WAIT_DATA_DETAILS_WIDTH}px;
         height: ${WAIT_DATA_CIRCLE_SIZE}px;
         margin-left: ${WAIT_DATA_DETAILS_GAP}px;
         min-width: 0;
@@ -108,6 +114,7 @@ export namespace NodeStyles {
     export const TextGroup = styled.div`
         min-width: 0;
         flex: 1;
+        max-width: 140px;
     `;
 
     export const Title = styled.div`
@@ -156,24 +163,48 @@ function normalizeNodePropertyValue(value?: string): string {
     return value.trim().replace(/^["']|["']$/g, "");
 }
 
-function getWaitDataName(node: FlowNode): string {
+function getWaitDataInfo(node: FlowNode): { title: string; subtitle: string } {
+    // New format: dataWaits repeatable property
+    const dataWaits = (node.properties as any)?.dataWaits?.value;
+    if (dataWaits && typeof dataWaits === "object") {
+        const entries = Object.values(dataWaits as Record<string, any>);
+        const dataNames = entries
+            .map((entry: any) => entry?.value?.dataName?.value as string | undefined)
+            .filter(Boolean) as string[];
+        const varNames = entries
+            .map((entry: any) => entry?.value?.variable?.value as string | undefined)
+            .filter(Boolean) as string[];
+        if (dataNames.length > 0) {
+            return {
+                title: `Wait for ${dataNames.join(" & ")}`,
+                subtitle: varNames.join(", "),
+            };
+        }
+    }
+
+    // Fallback: direct dataName property (old format)
     const directDataName = normalizeNodePropertyValue((node.properties as any)?.dataName?.value as string | undefined);
     if (directDataName) {
-        return directDataName;
+        return {
+            title: `Wait for ${directDataName}`,
+            subtitle: (node.properties as any)?.variable?.value as string || "",
+        };
     }
 
+    // Fallback: futures property (older format)
     const futuresValue = (node.properties as any)?.futures?.value;
-    if (!futuresValue || typeof futuresValue !== "object") {
-        return "";
+    if (futuresValue && typeof futuresValue === "object") {
+        const firstFuture = Object.values(futuresValue as Record<string, any>).find((f) => f?.value);
+        const futureValue = normalizeNodePropertyValue(firstFuture?.value as string | undefined);
+        if (futureValue) {
+            return {
+                title: `Wait for ${futureValue.split(".").pop()?.trim() ?? futureValue}`,
+                subtitle: "",
+            };
+        }
     }
 
-    const firstFuture = Object.values(futuresValue as Record<string, any>).find((future) => future?.value);
-    const futureValue = normalizeNodePropertyValue(firstFuture?.value as string | undefined);
-    if (!futureValue) {
-        return "";
-    }
-
-    return futureValue.split(".").pop()?.trim() ?? futureValue;
+    return { title: node.metadata.label || "Wait Data", subtitle: "" };
 }
 
 export function WaitDataNodeWidget(props: WaitDataNodeWidgetProps) {
@@ -190,12 +221,7 @@ export function WaitDataNodeWidget(props: WaitDataNodeWidgetProps) {
     const hasBreakpoint = model.hasBreakpoint();
     const isActiveBreakpoint = model.isActiveBreakpoint();
     const hasError = nodeHasError(model.node);
-    const waitDataName = getWaitDataName(model.node);
-    const nodeTitle = waitDataName ? `Wait for ${waitDataName}` : model.node.metadata.label || "Wait Data";
-    const nodeSubtitle =
-        (model.node.properties?.variable?.value as string) ||
-        (model.node.properties?.type?.value as string) ||
-        "";
+    const { title: nodeTitle, subtitle: nodeSubtitle } = getWaitDataInfo(model.node);
 
     // Compute layout positions for the external arrow SVG
     const circleRadius = WAIT_DATA_CIRCLE_SIZE / 2;
@@ -204,7 +230,7 @@ export function WaitDataNodeWidget(props: WaitDataNodeWidgetProps) {
     const svgMidY = svgHeight / 2;
     const dotCx = EXTERNAL_DOT_RADIUS + EXTERNAL_DOT_STROKE;
     const lineX1 = dotCx + EXTERNAL_DOT_RADIUS + 4;
-    const arrowColor = isHovered && !readOnly ? ThemeColors.SECONDARY : ThemeColors.ON_SURFACE;
+    const arrowColor = isHovered && !readOnly ? NODE_BORDER_SELECTED_COLOR : NODE_TEXT_COLOR;
 
     const selectNode = () => {
         onClick && onClick(model.node);
@@ -348,7 +374,7 @@ export function WaitDataNodeWidget(props: WaitDataNodeWidgetProps) {
                         isActiveBreakpoint={isActiveBreakpoint}
                         onClick={handleOnClick}
                     >
-                        <Icon name="bi-pause" sx={{ fontSize: 32, width: 32, height: 32, color: ThemeColors.ON_SURFACE }} />
+                        <Icon name="bi-pause" sx={{ fontSize: 32, width: 32, height: 32, color: NODE_TEXT_COLOR }} />
                     </NodeStyles.Circle>
                 </Tooltip>
                 <NodeStyles.BottomPortWidget port={model.getPort("out")!} engine={engine} />

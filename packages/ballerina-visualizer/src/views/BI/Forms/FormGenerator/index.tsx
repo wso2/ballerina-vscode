@@ -186,9 +186,10 @@ const StyledActionButton = styled(Button)`
     }
 `;
 
-const DiagnosticsActionButton = styled(Button)`
+const ActionButton = styled(Button)`
     display: flex;
     align-items: center;
+    gap: 4px;
 `;
 
 const DiagnosticsActionContent = styled.span`
@@ -1915,13 +1916,11 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     formDiagnostics={formDiagnostics}
                     formDiagnosticsAction={formDiagnostics.length > 0 ? (
                         <Tooltip content={formDiagnosticsFixTooltip}>
-                            <span>
-                                <DiagnosticsActionButton appearance="primary" disabled={!canFixFormDiagnostics} onClick={handleFixFormDiagnostics}>
-                                    <DiagnosticsActionContent>
-                                        <Icon name="bi-ai-agent" sx={{ width: 14, height: 14, fontSize: 14 }} />
-                                        <span>Fix with AI</span>
-                                    </DiagnosticsActionContent>
-                                </DiagnosticsActionButton>
+                            <span style={{ display: "block" }}>
+                                <ActionButton onClick={handleFixFormDiagnostics} disabled={!canFixFormDiagnostics} appearance='primary'>
+                                <Icon name="bi-ai-agent" sx={{ width: 16, height: 16, fontSize: 16, marginRight: 8 }} />
+                                Fix with AI
+                            </ActionButton>
                             </span>
                         </Tooltip>
                     ) : undefined}

@@ -18,9 +18,9 @@
 
 import React, { useMemo, useState } from "react";
 import styled from "@emotion/styled";
-import { Button, Icon, Popover, ThemeColors, Tooltip } from "@wso2/ui-toolkit";
+import { Button, Icon, Popover, Tooltip } from "@wso2/ui-toolkit";
 import { DiagnosticMessage, FlowNode, LineRange, NodeProperties, Property } from "@wso2/ballerina-core";
-import { NODE_WIDTH } from "../../resources/constants";
+import { LINK_COLOR, NODE_BG_COLOR, NODE_ERROR_COLOR, NODE_TEXT_COLOR, NODE_WIDTH } from "../../resources/constants";
 import { useDiagramContext } from "../DiagramContext";
 
 const IconBtn = styled.div<{ color: string }>`
@@ -28,17 +28,18 @@ const IconBtn = styled.div<{ color: string }>`
     height: 20px;
     font-size: 20px;
     color: ${(props: { color: string }) => props.color};
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 `;
 
 const PopupContainer = styled.div`
     max-width: ${NODE_WIDTH}px;
     font-family: "GilmerMedium";
     font-size: 12px;
-    overflow: hidden;
-    text-overflow: ellipsis;
 
-    background-color: ${ThemeColors.SURFACE_DIM};
-    color: ${ThemeColors.ON_SURFACE};
+    background-color: ${NODE_BG_COLOR};
+    color: ${NODE_TEXT_COLOR};
     padding: 8px;
     ul {
         margin: 0;
@@ -76,18 +77,13 @@ const Footer = styled.div`
     display: flex;
     justify-content: flex-end;
     margin-top: 8px;
+    overflow: visible;
 `;
 
-const FixButton = styled(Button)`
+const ActionButton = styled(Button)`
     display: flex;
     align-items: center;
     gap: 4px;
-`;
-
-const FixButtonContent = styled.span`
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
 `;
 
 export interface DiagnosticsPopUpProps {
@@ -102,6 +98,8 @@ export function DiagnosticsPopUp(props: DiagnosticsPopUpProps) {
     const isDiagnosticsOpen = Boolean(diagnosticsAnchorEl);
 
     const handleOnDiagnosticsClick = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
         setDiagnosticsAnchorEl(event.currentTarget);
     };
 
@@ -177,10 +175,10 @@ export function DiagnosticsPopUp(props: DiagnosticsPopUpProps) {
             case "WARNING":
                 return "var(--vscode-inputValidation-warningForeground)";
             case "INFO":
-                return ThemeColors.PRIMARY;
+                return LINK_COLOR;
             case "ERROR":
             default:
-                return ThemeColors.ERROR;
+                return NODE_ERROR_COLOR;
         }
     };
 
@@ -237,14 +235,14 @@ export function DiagnosticsPopUp(props: DiagnosticsPopUpProps) {
     return (
         <>
             <IconBtn color={getDiagnosticColor(triggerSeverity)} onClick={handleOnDiagnosticsClick}>
-                <Icon name={getDiagnosticIconName(triggerSeverity)} />
+                <Icon name={getDiagnosticIconName(triggerSeverity)} sx={{ width: 20, height: 20 }} />
             </IconBtn>
             <Popover
                 open={isDiagnosticsOpen}
                 anchorEl={diagnosticsAnchorEl}
                 handleClose={handleOnDiagnosticsClose}
                 sx={{
-                    backgroundColor: ThemeColors.SURFACE_DIM,
+                    backgroundColor: NODE_BG_COLOR,
                 }}
             >
                 <PopupContainer>
@@ -260,14 +258,10 @@ export function DiagnosticsPopUp(props: DiagnosticsPopUpProps) {
                     </ul>
                     <Footer>
                         <Tooltip content={disabledFixTooltip}>
-                            <span>
-                                <FixButton appearance="primary" disabled={!canFix} onClick={handleOnFix}>
-                                    <FixButtonContent>
-                                        <Icon name="bi-ai-agent" sx={{ width: 14, height: 14, fontSize: 14 }} />
-                                        <span>Fix with AI</span>
-                                    </FixButtonContent>
-                                </FixButton>
-                            </span>
+                            <ActionButton onClick={handleOnFix} disabled={!canFix} appearance='primary'>
+                                <Icon name="bi-ai-agent" sx={{ width: 16, height: 16, fontSize: 16, marginRight: 8 }} />
+                                Fix with AI
+                            </ActionButton>
                         </Tooltip>
                     </Footer>
                 </PopupContainer>

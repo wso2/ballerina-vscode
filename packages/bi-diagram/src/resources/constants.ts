@@ -55,6 +55,49 @@ export const HIGHLIGHT_NODE_BORDER_WIDTH = 2.4;
 // export const HIGHLIGHT_NODE_BORDER_COLOR = "var(--vscode-focusBorder)";
 export const HIGHLIGHT_NODE_BORDER_COLOR = ThemeColors.PRIMARY;
 
+// ─── Node Colors ─────────────────────────────────────────────────────────────
+export const NODE_BG_COLOR = ThemeColors.SURFACE_DIM;
+export const NODE_BG_BREAKPOINT_COLOR = ThemeColors.DEBUGGER_BREAKPOINT_BACKGROUND;
+export const NODE_TEXT_COLOR = ThemeColors.ON_SURFACE;
+export const NODE_BORDER_COLOR = ThemeColors.OUTLINE_VARIANT;
+export const NODE_BORDER_SELECTED_COLOR = ThemeColors.SECONDARY;
+export const NODE_BORDER_ERROR_COLOR = ThemeColors.ERROR;
+export const NODE_ERROR_COLOR = ThemeColors.ERROR;
+
+// ─── Draft Node Colors ───────────────────────────────────────────────────────
+export const DRAFT_NODE_BG_COLOR = ThemeColors.SECONDARY_CONTAINER;
+export const DRAFT_NODE_BORDER_COLOR = ThemeColors.SECONDARY;
+
+// ─── End Node Colors ─────────────────────────────────────────────────────────
+export const END_NODE_BG_COLOR = ThemeColors.PRIMARY;
+
+// ─── Empty Node (add-point circle) Colors ────────────────────────────────────
+export const EMPTY_NODE_ACTIVE_BORDER_COLOR = ThemeColors.PRIMARY;
+export const EMPTY_NODE_ACTIVE_BG_COLOR = ThemeColors.PRIMARY_CONTAINER;
+
+// ─── Link Colors ─────────────────────────────────────────────────────────────
+export const LINK_COLOR = ThemeColors.PRIMARY;
+export const LINK_HOVERED_COLOR = ThemeColors.SECONDARY;
+export const LINK_DISABLED_COLOR = ThemeColors.OUTLINE_VARIANT;
+
+// ─── Add Button Colors ───────────────────────────────────────────────────────
+export const ADD_BUTTON_COLOR = ThemeColors.PRIMARY;
+export const ADD_BUTTON_HOVERED_COLOR = ThemeColors.SECONDARY;
+export const ADD_BUTTON_DISABLED_COLOR = ThemeColors.OUTLINE_VARIANT;
+export const ADD_BUTTON_BG_COLOR = ThemeColors.SURFACE_BRIGHT;
+
+// ─── Canvas Colors ───────────────────────────────────────────────────────────
+export const CANVAS_BG_COLOR = ThemeColors.SURFACE_BRIGHT;
+export const CANVAS_DOT_COLOR = ThemeColors.SURFACE_CONTAINER;
+
+// ─── Panel / Popup Colors ────────────────────────────────────────────────────
+export const PANEL_BG_COLOR = ThemeColors.SURFACE;
+
+// ─── Controls Colors ─────────────────────────────────────────────────────────
+export const CONTROLS_BG_COLOR = ThemeColors.SURFACE;
+export const CONTROLS_DIVIDER_COLOR = ThemeColors.OUTLINE_VARIANT;
+export const CONTROLS_HOVER_BG_COLOR = ThemeColors.SURFACE_CONTAINER;
+
 export const NODE_PADDING = 8;
 
 // position

@@ -23,13 +23,20 @@ import { ApiCallNodeModel } from "./ApiCallNodeModel";
 import {
     DRAFT_NODE_BORDER_WIDTH,
     LABEL_HEIGHT,
+    NODE_BG_BREAKPOINT_COLOR,
+    NODE_BG_COLOR,
+    NODE_BORDER_COLOR,
+    NODE_BORDER_ERROR_COLOR,
+    NODE_BORDER_SELECTED_COLOR,
     NODE_BORDER_WIDTH,
+    NODE_ERROR_COLOR,
     NODE_GAP_X,
     NODE_HEIGHT,
     NODE_PADDING,
+    NODE_TEXT_COLOR,
     NODE_WIDTH,
 } from "../../../resources/constants";
-import { Button, Item, Menu, MenuItem, Popover, ThemeColors } from "@wso2/ui-toolkit";
+import { Button, Item, Menu, MenuItem, Popover } from "@wso2/ui-toolkit";
 import { MoreVertIcon } from "../../../resources";
 import { FlowNode } from "../../../utils/types";
 import NodeIcon from "../../NodeIcon";
@@ -69,16 +76,16 @@ export namespace NodeStyles {
         border-style: ${(props: NodeStyleProp) => (props.disabled ? "dashed" : "solid")};
         border-color: ${(props: NodeStyleProp) =>
             props.hasError
-                ? ThemeColors.ERROR
+                ? NODE_BORDER_ERROR_COLOR
                 : props.isSelected && !props.disabled
-                ? ThemeColors.SECONDARY
+                ? NODE_BORDER_SELECTED_COLOR
                 : props.hovered && !props.disabled && !props.readOnly
-                ? ThemeColors.SECONDARY
-                : ThemeColors.OUTLINE_VARIANT};
+                ? NODE_BORDER_SELECTED_COLOR
+                : NODE_BORDER_COLOR};
         border-radius: 10px;
         background-color: ${(props: NodeStyleProp) =>
-            props?.isActiveBreakpoint ? ThemeColors.DEBUGGER_BREAKPOINT_BACKGROUND : ThemeColors.SURFACE_DIM};
-        color: ${ThemeColors.ON_SURFACE};
+            props?.isActiveBreakpoint ? NODE_BG_BREAKPOINT_COLOR : NODE_BG_COLOR};
+        color: ${NODE_TEXT_COLOR};
         cursor: ${(props: NodeStyleProp) => (props.readOnly ? "default" : "pointer")};
     `;
 
@@ -114,7 +121,7 @@ export namespace NodeStyles {
     export const Icon = styled.div`
         padding: 4px;
         svg {
-            fill: ${ThemeColors.ON_SURFACE};
+            fill: ${NODE_TEXT_COLOR};
         }
     `;
 
@@ -137,7 +144,7 @@ export namespace NodeStyles {
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         word-break: break-all;
-        color: ${ThemeColors.ON_SURFACE};
+        color: ${NODE_TEXT_COLOR};
         opacity: 0.7;
     `;
 
@@ -165,7 +172,7 @@ export namespace NodeStyles {
         font-size: 20px;
         width: 20px;
         height: 20px;
-        color: ${ThemeColors.ERROR};
+        color: ${NODE_ERROR_COLOR};
     `;
 
     export const Hr = styled.hr`
@@ -323,7 +330,7 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
     const hasError = nodeHasError(model.node);
 
     const arrowColor =
-        disabled || readOnly ? ThemeColors.ON_SURFACE : isBoxHovered ? ThemeColors.SECONDARY : ThemeColors.ON_SURFACE;
+        disabled || readOnly ? NODE_TEXT_COLOR : isBoxHovered ? NODE_BORDER_SELECTED_COLOR : NODE_TEXT_COLOR;
 
     return (
         <NodeStyles.Node readOnly={readOnly}>
@@ -421,8 +428,8 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
                     cx="80"
                     cy="24"
                     r="22"
-                    fill={ThemeColors.SURFACE_DIM}
-                    stroke={isCircleHovered && !disabled ? ThemeColors.SECONDARY : ThemeColors.OUTLINE_VARIANT}
+                    fill={NODE_BG_COLOR}
+                    stroke={isCircleHovered && !disabled ? NODE_BORDER_SELECTED_COLOR : NODE_BORDER_COLOR}
                     strokeWidth={1.5}
                     strokeDasharray={disabled ? "5 5" : "none"}
                     opacity={disabled ? 0.7 : 1}
@@ -431,13 +438,13 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
                     x="80"
                     y="66"
                     textAnchor="middle"
-                    fill={ThemeColors.ON_SURFACE}
+                    fill={NODE_TEXT_COLOR}
                     fontSize="14px"
                     fontFamily="GilmerRegular"
                 >
                     {endpointLabel.length > 16 ? `${endpointLabel.slice(0, 16)}...` : endpointLabel}
                 </text>
-                <foreignObject x="68" y="12" width="24" height="24" fill={ThemeColors.ON_SURFACE}>
+                <foreignObject x="68" y="12" width="24" height="24" fill={NODE_TEXT_COLOR}>
                     <ConnectorIcon
                         url={model.node.metadata.icon}
                         style={{

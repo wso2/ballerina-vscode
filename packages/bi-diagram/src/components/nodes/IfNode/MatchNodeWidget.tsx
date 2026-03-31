@@ -19,8 +19,17 @@
 import React, { ReactNode, useEffect, useState } from "react";
 import { DiagramEngine } from "@projectstorm/react-diagrams-core";
 import { IfNodeModel } from "./IfNodeModel";
-import { IF_NODE_WIDTH, NODE_BORDER_WIDTH, NODE_HEIGHT } from "../../../resources/constants";
-import { Item, Menu, MenuItem, Popover, ThemeColors } from "@wso2/ui-toolkit";
+import {
+    IF_NODE_WIDTH,
+    NODE_BG_BREAKPOINT_COLOR,
+    NODE_BG_COLOR,
+    NODE_BORDER_COLOR,
+    NODE_BORDER_ERROR_COLOR,
+    NODE_BORDER_SELECTED_COLOR,
+    NODE_BORDER_WIDTH,
+    NODE_HEIGHT,
+} from "../../../resources/constants";
+import { Item, Menu, MenuItem, Popover } from "@wso2/ui-toolkit";
 import { FlowNode } from "../../../utils/types";
 import { useDiagramContext } from "../../DiagramContext";
 import { MoreVertIcon } from "../../../resources";
@@ -164,17 +173,17 @@ export function MatchNodeWidget(props: MatchNodeWidgetProps) {
                             ry="5"
                             fill={
                                 isActiveBreakpoint
-                                    ? ThemeColors.DEBUGGER_BREAKPOINT_BACKGROUND
-                                    : ThemeColors.SURFACE_DIM
+                                    ? NODE_BG_BREAKPOINT_COLOR
+                                    : NODE_BG_COLOR
                             }
                             stroke={
                                 hasError
-                                    ? ThemeColors.ERROR
+                                    ? NODE_BORDER_ERROR_COLOR
                                     : isSelected && !disabled
-                                    ? ThemeColors.SECONDARY
+                                    ? NODE_BORDER_SELECTED_COLOR
                                     : isHovered && !disabled && !readOnly
-                                    ? ThemeColors.SECONDARY
-                                    : ThemeColors.OUTLINE_VARIANT
+                                    ? NODE_BORDER_SELECTED_COLOR
+                                    : NODE_BORDER_COLOR
                             }
                             strokeWidth={NODE_BORDER_WIDTH}
                             strokeDasharray={disabled ? "5 5" : "none"}

@@ -19,11 +19,17 @@
 import React, { useState } from "react";
 import styled from "@emotion/styled";
 import { DiagramEngine } from "@projectstorm/react-diagrams-core";
-import { ThemeColors } from "@wso2/ui-toolkit";
 import { BaseNodeWidget } from "../BaseNode";
 import { CallActivityNodeModel } from "./CallActivityNodeModel";
 import { FlowNode } from "../../../utils/types";
-import { HIGHLIGHT_NODE_BORDER_COLOR, NODE_BORDER_WIDTH, NODE_WIDTH } from "../../../resources/constants";
+import {
+    HIGHLIGHT_NODE_BORDER_COLOR,
+    NODE_BORDER_COLOR,
+    NODE_BORDER_ERROR_COLOR,
+    NODE_BORDER_SELECTED_COLOR,
+    NODE_BORDER_WIDTH,
+    NODE_WIDTH,
+} from "../../../resources/constants";
 import { useDiagramContext } from "../../DiagramContext";
 import { nodeHasError } from "../../../utils/node";
 
@@ -71,11 +77,11 @@ export function CallActivityNodeWidget(props: CallActivityNodeWidgetProps) {
     const hasError = nodeHasError(model.node);
 
     const sideFillColor = hasError
-        ? ThemeColors.ERROR
+        ? NODE_BORDER_ERROR_COLOR
         : isSelected && !isDisabled
-            ? ThemeColors.SECONDARY
+            ? NODE_BORDER_SELECTED_COLOR
             : isHovered && !isDisabled && !readOnly
-                ? ThemeColors.SECONDARY
+                ? NODE_BORDER_SELECTED_COLOR
                 : HIGHLIGHT_NODE_BORDER_COLOR;
 
     return (

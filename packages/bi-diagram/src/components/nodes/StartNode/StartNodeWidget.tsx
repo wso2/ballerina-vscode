@@ -20,9 +20,17 @@ import React from "react";
 import styled from "@emotion/styled";
 import { DiagramEngine, PortWidget } from "@projectstorm/react-diagrams-core";
 import { StartNodeModel } from "./StartNodeModel";
-import { NODE_BORDER_WIDTH, NODE_HEIGHT, NODE_PADDING, NODE_WIDTH } from "../../../resources/constants";
+import {
+    NODE_BG_COLOR,
+    NODE_BORDER_COLOR,
+    NODE_BORDER_WIDTH,
+    NODE_HEIGHT,
+    NODE_PADDING,
+    NODE_TEXT_COLOR,
+    NODE_WIDTH,
+} from "../../../resources/constants";
 import { FlowNode } from "../../../utils/types";
-import { Tooltip, ThemeColors } from "@wso2/ui-toolkit";
+import { Tooltip } from "@wso2/ui-toolkit";
 
 export namespace NodeStyles {
     export type NodeStyleProp = {
@@ -37,10 +45,10 @@ export namespace NodeStyles {
         width: ${NODE_WIDTH / 3}px;
         min-height: ${NODE_HEIGHT / 1.5}px;
         padding: 0 ${NODE_PADDING}px;
-        border: ${NODE_BORDER_WIDTH}px solid ${ThemeColors.OUTLINE_VARIANT};
+        border: ${NODE_BORDER_WIDTH}px solid ${NODE_BORDER_COLOR};
         border-radius: 40px;
-        background-color: ${ThemeColors.SURFACE_DIM};
-        color: ${ThemeColors.ON_SURFACE};
+        background-color: ${NODE_BG_COLOR};
+        color: ${NODE_TEXT_COLOR};
         cursor: default;
     `;
 

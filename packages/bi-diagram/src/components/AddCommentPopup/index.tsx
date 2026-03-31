@@ -20,8 +20,8 @@ import React, { useEffect, useState } from "react";
 import { LinePosition } from "../../utils/types";
 import { useDiagramContext } from "../DiagramContext";
 import styled from "@emotion/styled";
-import { POPUP_BOX_WIDTH } from "../../resources/constants";
-import { TextArea, ThemeColors, Codicon, ProgressRing } from "@wso2/ui-toolkit";
+import { NODE_TEXT_COLOR, PANEL_BG_COLOR, POPUP_BOX_WIDTH } from "../../resources/constants";
+import { TextArea, Codicon, ProgressRing } from "@wso2/ui-toolkit";
 import { PopupOverlay } from "../PopupOverlay";
 
 export namespace PopupStyles {
@@ -34,8 +34,8 @@ export namespace PopupStyles {
         width: ${POPUP_BOX_WIDTH}px;
         padding: 8px;
         border-radius: 6px;
-        background-color: ${ThemeColors.SURFACE};
-        color: ${ThemeColors.ON_SURFACE};
+        background-color: ${PANEL_BG_COLOR};
+        color: ${NODE_TEXT_COLOR};
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.2);
         z-index: 1001;
     `;
@@ -68,14 +68,14 @@ export namespace PopupStyles {
 
         &:hover {
             opacity: 1;
-            background-color: ${ThemeColors.ON_SURFACE}10;
+            background-color: ${NODE_TEXT_COLOR}10;
         }
     `;
 
     export const InfoText = styled.div`
         font-size: 11px;
         font-family: monospace;
-        color: ${ThemeColors.ON_SURFACE};
+        color: ${NODE_TEXT_COLOR};
         opacity: 0.7;
     `;
 
@@ -84,7 +84,7 @@ export namespace PopupStyles {
         align-items: center;
         gap: 6px;
         font-size: 11px;
-        color: ${ThemeColors.ON_SURFACE};
+        color: ${NODE_TEXT_COLOR};
         opacity: 0.8;
     `;
 }

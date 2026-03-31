@@ -23,14 +23,22 @@ import {
     DRAFT_NODE_BORDER_WIDTH,
     LABEL_HEIGHT,
     LABEL_WIDTH,
+    NODE_BG_BREAKPOINT_COLOR,
+    NODE_BG_COLOR,
+    NODE_BORDER_COLOR,
+    NODE_BORDER_ERROR_COLOR,
+    NODE_BORDER_SELECTED_COLOR,
     NODE_BORDER_WIDTH,
+    NODE_ERROR_COLOR,
     NODE_GAP_X,
     NODE_HEIGHT,
     NODE_PADDING,
+    NODE_TEXT_COLOR,
+    PANEL_BG_COLOR,
     PROMPT_NODE_HEIGHT,
     PROMPT_NODE_WIDTH,
 } from "../../../resources/constants";
-import { Button, Icon, Item, ThemeColors, getAIModuleIcon, DefaultLlmIcon } from "@wso2/ui-toolkit";
+import { Button, Icon, Item, getAIModuleIcon, DefaultLlmIcon } from "@wso2/ui-toolkit";
 import { NPPromptEditor } from "../../editors/NPPromptEditor";
 import { InputMode } from "@wso2/ballerina-side-panel";
 import NodeIcon from "../../NodeIcon";
@@ -58,19 +66,19 @@ export namespace NodeStyles {
         min-height: ${PROMPT_NODE_HEIGHT}px;
         padding: ${NODE_PADDING}px;
         background-color: ${(props: NodeStyleProp) =>
-            props?.isActiveBreakpoint ? ThemeColors.DEBUGGER_BREAKPOINT_BACKGROUND : ThemeColors.SURFACE_DIM};
-        color: ${ThemeColors.ON_SURFACE};
+            props?.isActiveBreakpoint ? NODE_BG_BREAKPOINT_COLOR : NODE_BG_COLOR};
+        color: ${NODE_TEXT_COLOR};
         opacity: ${(props: NodeStyleProp) => (props.disabled ? 0.7 : 1)};
         border: ${(props: NodeStyleProp) => (props.disabled ? DRAFT_NODE_BORDER_WIDTH : NODE_BORDER_WIDTH)}px;
         border-style: ${(props: NodeStyleProp) => (props.disabled ? "dashed" : "solid")};
         border-color: ${(props: NodeStyleProp) =>
             props.hasError
-                ? ThemeColors.ERROR
+                ? NODE_BORDER_ERROR_COLOR
                 : props.isSelected && !props.disabled
-                    ? ThemeColors.SECONDARY
+                    ? NODE_BORDER_SELECTED_COLOR
                     : props.hovered && !props.disabled
-                        ? ThemeColors.SECONDARY
-                        : ThemeColors.OUTLINE_VARIANT};
+                        ? NODE_BORDER_SELECTED_COLOR
+                        : NODE_BORDER_COLOR};
         border-radius: 10px;
     `;
 
@@ -101,7 +109,7 @@ export namespace NodeStyles {
         font-size: 20px;
         width: 20px;
         height: 20px;
-        color: ${ThemeColors.ERROR};
+        color: ${NODE_ERROR_COLOR};
     `;
 
     export const TopPortWidget = styled(PortWidget)`
@@ -119,7 +127,7 @@ export namespace NodeStyles {
     export const Icon = styled.div`
         padding: 4px;
         svg {
-            fill: ${ThemeColors.ON_SURFACE};
+            fill: ${NODE_TEXT_COLOR};
         }
     `;
 
@@ -139,7 +147,7 @@ export namespace NodeStyles {
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
-        color: ${ThemeColors.ON_SURFACE};
+        color: ${NODE_TEXT_COLOR};
         opacity: 0.7;
         white-space: normal;
         font-size: 12px;
@@ -173,9 +181,9 @@ export namespace NodeStyles {
     export const Editor = styled.div`
         width: 100%;
         flex-grow: 1;
-        color: ${ThemeColors.ON_SURFACE};
-        background-color: ${ThemeColors.SURFACE};
-        border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+        color: ${NODE_TEXT_COLOR};
+        background-color: ${PANEL_BG_COLOR};
+        border: 1px solid ${NODE_BORDER_COLOR};
         border-radius: 10px;
         padding: ${NODE_PADDING}px;
         cursor: not-allowed;
@@ -194,7 +202,7 @@ export namespace NodeStyles {
     export const StyledCircle = styled.circle`
         cursor: pointer;
         &:hover {
-            stroke: ${ThemeColors.SECONDARY};
+            stroke: ${NODE_BORDER_SELECTED_COLOR};
         }
     `;
 }
@@ -501,8 +509,8 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
                         cx="80"
                         cy="24"
                         r="22"
-                        fill={ThemeColors.SURFACE_DIM}
-                        stroke={ThemeColors.OUTLINE_VARIANT}
+                        fill={NODE_BG_COLOR}
+                        stroke={NODE_BORDER_COLOR}
                         strokeWidth={1.5}
                         strokeDasharray={model.node.suggested ? "5 5" : "none"}
                         opacity={model.node.suggested ? 0.7 : 1}
@@ -513,7 +521,7 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
                         y="12"
                         width="44"
                         height="44"
-                        fill={ThemeColors.ON_SURFACE}
+                        fill={NODE_TEXT_COLOR}
                         style={{ pointerEvents: "none" }}
                     >
                         {getAIModuleIcon(nodeModelType) ?? <DefaultLlmIcon />}
@@ -524,7 +532,7 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
                         x2="57"
                         y2="25"
                         style={{
-                            stroke: ThemeColors.ON_SURFACE,
+                            stroke: NODE_TEXT_COLOR,
                             strokeWidth: 1.5,
                             markerEnd: `url(#${model.node.id}-arrow-head)`,
                             markerStart: `url(#${model.node.id}-diamond-start)`,
@@ -542,7 +550,7 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
                         viewBox="0 0 4 4"
                         orient="auto"
                     >
-                        <polygon points="0,4 0,0 4,2" fill={ThemeColors.ON_SURFACE}></polygon>
+                        <polygon points="0,4 0,0 4,2" fill={NODE_TEXT_COLOR}></polygon>
                     </marker>
                     <marker
                         id={`${model.node.id}-diamond-start`}
@@ -557,8 +565,8 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
                             cx="4"
                             cy="4"
                             r="3"
-                            fill={ThemeColors.SURFACE_DIM}
-                            stroke={ThemeColors.ON_SURFACE}
+                            fill={NODE_BG_COLOR}
+                            stroke={NODE_TEXT_COLOR}
                             strokeWidth="1"
                         />
                     </marker>

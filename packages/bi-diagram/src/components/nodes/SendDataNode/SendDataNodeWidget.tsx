@@ -19,7 +19,7 @@
 import React, { useEffect, useState } from "react";
 import styled from "@emotion/styled";
 import { DiagramEngine, PortWidget } from "@projectstorm/react-diagrams-core";
-import { Button, Icon, Item, Menu, MenuItem, Popover, ThemeColors } from "@wso2/ui-toolkit";
+import { Button, Icon, Item, Menu, MenuItem, Popover } from "@wso2/ui-toolkit";
 import { SendDataNodeModel } from "./SendDataNodeModel";
 import { FlowNode } from "../../../utils/types";
 import { MoreVertIcon } from "../../../resources";
@@ -33,10 +33,16 @@ import {
     HIGHLIGHT_NODE_BORDER_COLOR,
     HIGHLIGHT_NODE_BORDER_WIDTH,
     LABEL_HEIGHT,
+    NODE_BG_BREAKPOINT_COLOR,
+    NODE_BG_COLOR,
+    NODE_BORDER_COLOR,
+    NODE_BORDER_ERROR_COLOR,
+    NODE_BORDER_SELECTED_COLOR,
     NODE_BORDER_WIDTH,
     NODE_GAP_X,
     NODE_HEIGHT,
     NODE_PADDING,
+    NODE_TEXT_COLOR,
     NODE_WIDTH,
 } from "../../../resources/constants";
 
@@ -74,16 +80,16 @@ namespace NodeStyles {
         border-style: ${(props: BoxStyleProp) => (props.disabled ? "dashed" : "solid")};
         border-color: ${(props: BoxStyleProp) =>
             props.hasError
-                ? ThemeColors.ERROR
+                ? NODE_BORDER_ERROR_COLOR
                 : props.isSelected && !props.disabled
-                    ? ThemeColors.SECONDARY
+                    ? NODE_BORDER_SELECTED_COLOR
                     : props.hovered && !props.disabled && !props.readOnly
-                        ? ThemeColors.SECONDARY
+                        ? NODE_BORDER_SELECTED_COLOR
                         : HIGHLIGHT_NODE_BORDER_COLOR};
         border-radius: 10px;
         background-color: ${(props: BoxStyleProp) =>
-            props.isActiveBreakpoint ? ThemeColors.DEBUGGER_BREAKPOINT_BACKGROUND : ThemeColors.SURFACE_DIM};
-        color: ${ThemeColors.ON_SURFACE};
+            props.isActiveBreakpoint ? NODE_BG_BREAKPOINT_COLOR : NODE_BG_COLOR};
+        color: ${NODE_TEXT_COLOR};
         cursor: ${(props: BoxStyleProp) => (props.readOnly ? "default" : "pointer")};
     `;
 
@@ -113,7 +119,7 @@ namespace NodeStyles {
     export const NodeIconWrapper = styled.div`
         padding: 4px;
         svg {
-            fill: ${ThemeColors.ON_SURFACE};
+            fill: ${NODE_TEXT_COLOR};
         }
     `;
 
@@ -315,13 +321,13 @@ export function SendDataNodeWidget(props: SendDataNodeWidgetProps) {
     const hasError = nodeHasError(model.node);
 
     const arrowColor =
-        disabled || readOnly ? ThemeColors.ON_SURFACE : isBoxHovered ? ThemeColors.SECONDARY : ThemeColors.ON_SURFACE;
+        disabled || readOnly ? NODE_TEXT_COLOR : isBoxHovered ? NODE_BORDER_SELECTED_COLOR : NODE_TEXT_COLOR;
     const workflowColor =
         disabled || readOnly
-            ? ThemeColors.OUTLINE_VARIANT
+            ? NODE_BORDER_COLOR
             : isSelected || isWorkflowHovered
-            ? ThemeColors.SECONDARY
-            : ThemeColors.OUTLINE_VARIANT;
+            ? NODE_BORDER_SELECTED_COLOR
+            : NODE_BORDER_COLOR;
 
     const svgWidth = NODE_GAP_X + NODE_HEIGHT + LABEL_HEIGHT;
     const svgHeight = NODE_HEIGHT + LABEL_HEIGHT;
@@ -424,7 +430,7 @@ export function SendDataNodeWidget(props: SendDataNodeWidgetProps) {
                     width={ENDPOINT_BOX_SIZE}
                     height={ENDPOINT_BOX_SIZE}
                     rx={ENDPOINT_BOX_RADIUS}
-                    fill={ThemeColors.SURFACE_DIM}
+                    fill={NODE_BG_COLOR}
                     stroke={workflowColor}
                     strokeWidth={1.8}
                     onClick={onWorkflowClick}
@@ -465,7 +471,7 @@ export function SendDataNodeWidget(props: SendDataNodeWidgetProps) {
                     x={boxX + ENDPOINT_BOX_SIZE / 2}
                     y={svgHeight - 2}
                     textAnchor="middle"
-                    fill={ThemeColors.ON_SURFACE}
+                    fill={NODE_TEXT_COLOR}
                     fontSize="14px"
                     fontFamily="GilmerRegular"
                     onClick={onWorkflowClick}
