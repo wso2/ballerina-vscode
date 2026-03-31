@@ -48,8 +48,10 @@ import io.ballerina.compiler.syntax.tree.StatementNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
+import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
+import io.ballerina.flowmodelgenerator.core.model.node.WaitDataBuilder;
 import io.ballerina.flowmodelgenerator.core.utils.TypeUtils;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.projects.DiagnosticResult;
@@ -81,7 +83,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static io.ballerina.flowmodelgenerator.core.model.node.WaitDataBuilder.FUTURES_PARAM;
+import static io.ballerina.flowmodelgenerator.core.model.node.WaitDataBuilder.DATA_WAITS_KEY;
 
 /**
  * Generates text edits for the nodes that are requested to delete.
@@ -269,7 +271,7 @@ public class DeleteNodeHandler {
         JsonElement standardResult = getTextEditsToDeletedNode(lineRange, filePath, document, project);
 
         // Extract field names from the futures property
-        Optional<Property> futuresProp = flowNode.getProperty(FUTURES_PARAM);
+        Optional<Property> futuresProp = flowNode.getProperty(DATA_WAITS_KEY);
         if (futuresProp.isEmpty()) {
             return standardResult;
         }
@@ -277,17 +279,7 @@ public class DeleteNodeHandler {
         Set<String> fieldNamesToDelete = new LinkedHashSet<>();
         Object futuresValue = futuresProp.get().value();
         if (futuresValue instanceof Map<?, ?> futuresMap && !futuresMap.isEmpty()) {
-            // Wait expression: check wait data.a — keys are field references like "data.a"
-            for (Object key : futuresMap.keySet()) {
-                String fieldRef = key.toString();
-                int dotIndex = fieldRef.lastIndexOf('.');
-                if (dotIndex >= 0) {
-                    fieldNamesToDelete.add(fieldRef.substring(dotIndex + 1));
-                }
-            }
-        } else if (futuresValue instanceof String futuresStr && !futuresStr.isBlank()) {
-            // Await expression: check ctx->await([data.b, data.c], ...) — value is e.g. "[data.b, data.c]"
-            extractFieldNamesFromFuturesString(futuresStr, fieldNamesToDelete);
+            extractFieldNamesFromDataWaits(futuresMap, fieldNamesToDelete);
         }
 
         if (fieldNamesToDelete.isEmpty()) {
@@ -338,25 +330,27 @@ public class DeleteNodeHandler {
     }
 
     /**
-     * Extracts field names from a futures string value used in ctx->await() calls.
-     * The string format is "[data.field1, data.field2]" or "data.field1".
+     * Extracts field names from the dataWaits property value.
+     * The value is a map of indexed entries (e.g., "0", "1"), each containing a nested Property
+     * with sub-properties including "dataName".
      *
-     * @param futuresStr the futures string value (e.g., "[data.b, data.c]")
-     * @param fieldNames the set to add extracted field names to
+     * @param dataWaitsMap the dataWaits map value
+     * @param fieldNames   the set to add extracted field names to
      */
-    private static void extractFieldNamesFromFuturesString(String futuresStr, Set<String> fieldNames) {
-        String trimmed = futuresStr.trim();
-        if (trimmed.startsWith(SyntaxKind.OPEN_BRACKET_TOKEN.stringValue())) {
-            trimmed = trimmed.substring(1);
-        }
-        if (trimmed.endsWith(SyntaxKind.CLOSE_BRACKET_TOKEN.stringValue())) {
-            trimmed = trimmed.substring(0, trimmed.length() - 1);
-        }
-        for (String part : trimmed.split(SyntaxKind.COMMA_TOKEN.stringValue())) {
-            String ref = part.trim();
-            int dotIndex = ref.lastIndexOf('.');
-            if (dotIndex >= 0) {
-                fieldNames.add(ref.substring(dotIndex + 1));
+    private static void extractFieldNamesFromDataWaits(Map<?, ?> dataWaitsMap, Set<String> fieldNames) {
+        for (Object entry : dataWaitsMap.values()) {
+            Property entryProperty = gson.fromJson(gson.toJsonTree(entry), Property.class);
+            if (!(entryProperty.value() instanceof Map<?, ?> entryData)) {
+                continue;
+            }
+            Map<String, Property> entryProperties = gson.fromJson(gson.toJsonTree(entryData),
+                    FormBuilder.NODE_PROPERTIES_TYPE);
+            Property dataNameProp = entryProperties.get(WaitDataBuilder.DATA_NAME_KEY);
+            if (dataNameProp != null && dataNameProp.value() != null) {
+                String dataName = dataNameProp.value().toString();
+                if (!dataName.isBlank()) {
+                    fieldNames.add(dataName);
+                }
             }
         }
     }
