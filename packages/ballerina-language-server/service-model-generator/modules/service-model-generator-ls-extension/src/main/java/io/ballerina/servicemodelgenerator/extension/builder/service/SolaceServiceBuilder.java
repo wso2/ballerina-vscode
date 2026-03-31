@@ -41,7 +41,6 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -102,16 +101,15 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
             ServiceInitModel serviceInitModel = new Gson().fromJson(reader, ServiceInitModel.class);
             Map<String, Value> properties = serviceInitModel.getProperties();
 
-            // Navigate to listenerVarName directly in listenerConfig properties
+            // Navigate to listenerVarName directly in createNewChoice properties
             Value configureListener = properties.get(KEY_CONFIGURE_LISTENER);
             Value createNewChoice = configureListener.getChoices().get(0);
-            Value listenerConfig = createNewChoice.getProperties().get("listenerConfig");
 
             // Generate a unique listener variable name
             String listenerVarName = Utils.generateVariableIdentifier(context.semanticModel(), context.document(),
                     context.document().syntaxTree().rootNode().lineRange().endLine(),
-                    listenerConfig.getProperties().get(KEY_LISTENER_VAR_NAME).getValue());
-            listenerConfig.getProperties().get(KEY_LISTENER_VAR_NAME).setValue(listenerVarName);
+                    createNewChoice.getProperties().get(KEY_LISTENER_VAR_NAME).getValue());
+            createNewChoice.getProperties().get(KEY_LISTENER_VAR_NAME).setValue(listenerVarName);
 
             // Check for existing compatible listeners
             Set<String> compatibleListeners = ListenerUtil.getCompatibleListeners(context.moduleName(),
@@ -135,9 +133,7 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
                         .setItems(new ArrayList<>(listenerNames))
                         .build();
 
-                Map<String, Value> existingProps = new LinkedHashMap<>();
-                existingProps.put(KEY_EXISTING_LISTENER, listenerDropdown);
-                existingChoice.getProperties().get("listenerConfig").setProperties(existingProps);
+                existingChoice.getProperties().put(KEY_EXISTING_LISTENER, listenerDropdown);
 
                 // Set "Use existing" as default selection
                 configureListener.setValue("1");

@@ -31,23 +31,7 @@
               "placeholder": "true",
               "value": "true",
               "properties": {
-                "listenerConfig": {
-                  "metadata": {
-                    "label": "Listener Configurations",
-                    "description": "Configure the Solace listener"
-                  },
-                  "types": [
-                    {
-                      "fieldType": "GROUP_SECTION",
-                      "selected": true
-                    }
-                  ],
-                  "enabled": true,
-                  "editable": true,
-                  "optional": false,
-                  "advanced": false,
-                  "properties": {
-                    "url": {
+                "url": {
                       "metadata": {
                         "label": "Broker URL",
                         "description": "The Solace broker URL"
@@ -437,8 +421,6 @@
                       "optional": true,
                       "advanced": true
                     }
-                  }
-                }
               },
               "types": [
                 {
@@ -459,43 +441,25 @@
               "placeholder": "true",
               "value": "true",
               "properties": {
-                "listenerConfig": {
+                "existingListener": {
                   "metadata": {
-                    "label": "Listener Configurations",
-                    "description": "Configure the Solace listener"
+                    "label": "Listener Name",
+                    "description": "Select an existing Solace listener"
                   },
+                  "value": "solaceListener",
                   "types": [
                     {
-                      "fieldType": "GROUP_SECTION",
+                      "fieldType": "SINGLE_SELECT",
                       "selected": true
                     }
                   ],
+                  "items": [
+                    "solaceListener"
+                  ],
                   "enabled": true,
-                  "editable": false,
+                  "editable": true,
                   "optional": false,
-                  "advanced": false,
-                  "properties": {
-                    "existingListener": {
-                      "metadata": {
-                        "label": "Listener Name",
-                        "description": "Select an existing Solace listener"
-                      },
-                      "value": "solaceListener",
-                      "types": [
-                        {
-                          "fieldType": "SINGLE_SELECT",
-                          "selected": true
-                        }
-                      ],
-                      "items": [
-                        "solaceListener"
-                      ],
-                      "enabled": true,
-                      "editable": true,
-                      "optional": false,
-                      "advanced": false
-                    }
-                  }
+                  "advanced": false
                 }
               },
               "types": [

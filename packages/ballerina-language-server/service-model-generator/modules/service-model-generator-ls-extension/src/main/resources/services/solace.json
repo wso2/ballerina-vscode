@@ -38,22 +38,7 @@
           "optional": false,
           "advanced": false,
           "properties": {
-            "listenerConfig": {
-              "metadata": {
-                "label": "Listener Configurations",
-                "description": "Configure the Solace listener"
-              },
-              "types": [
-                {
-                  "fieldType": "GROUP_SECTION",
-                  "selected": true
-                }
-              ],
-              "enabled": true,
-              "editable": true,
-              "advanced": false,
-              "properties": {
-                "url": {
+            "url": {
                   "metadata": {
                     "label": "Broker URL",
                     "description": "The Solace broker URL"
@@ -438,8 +423,6 @@
                   "optional": true,
                   "advanced": true
                 }
-              }
-            }
           }
         },
         {
@@ -458,24 +441,7 @@
           "editable": false,
           "optional": false,
           "advanced": false,
-          "properties": {
-            "listenerConfig": {
-              "metadata": {
-                "label": "Listener Configurations",
-                "description": "Configure the Solace listener"
-              },
-              "types": [
-                {
-                  "fieldType": "GROUP_SECTION",
-                  "selected": true
-                }
-              ],
-              "enabled": true,
-              "editable": false,
-              "advanced": false,
-              "properties": {}
-            }
-          }
+          "properties": {}
         }
       ],
       "enabled": true,
