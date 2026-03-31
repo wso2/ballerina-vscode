@@ -71,7 +71,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -110,21 +109,21 @@ public class AiUtils {
 
     private static final Map<String, Set<NodeKind>> versionToFeatures = new HashMap<>();
     private static final Map<String, List<Module>> dependentModules = new HashMap<>();
-    private static final Map<String, List<AvailableNode>> cachedModelProviderMap = new ConcurrentHashMap<>();
-    private static final Map<String, List<AvailableNode>> cachedEmbeddingProviderMap = new ConcurrentHashMap<>();
-    private static final Map<String, List<AvailableNode>> cachedVectorStoreMap = new ConcurrentHashMap<>();
-    private static final Map<String, List<AvailableNode>> cachedChunkerMap = new ConcurrentHashMap<>();
-    private static final Map<String, List<AvailableNode>> cachedDataLoaderMap = new ConcurrentHashMap<>();
-    private static final Map<String, List<AvailableNode>> cachedShortTermMemoryStoreMap = new ConcurrentHashMap<>();
+    private static final Map<String, List<AvailableNode>> cachedModelProviderMap = new HashMap<>();
+    private static final Map<String, List<AvailableNode>> cachedEmbeddingProviderMap = new HashMap<>();
+    private static final Map<String, List<AvailableNode>> cachedVectorStoreMap = new HashMap<>();
+    private static final Map<String, List<AvailableNode>> cachedChunkerMap = new HashMap<>();
+    private static final Map<String, List<AvailableNode>> cachedDataLoaderMap = new HashMap<>();
+    private static final Map<String, List<AvailableNode>> cachedShortTermMemoryStoreMap = new HashMap<>();
 
     // Tracks which categories have been fully built for each AI version
-    private static final Map<String, Set<NodeKind>> completedCategories = new ConcurrentHashMap<>();
+    private static final Map<String, Set<NodeKind>> completedCategories = new HashMap<>();
 
     // Whether dynamic resolution from Ballerina Central has been attempted
     private static volatile boolean dependentModulesResolved = false;
 
     // Keyword cache: "org:name:version" -> list of keywords from Central
-    private static final Map<String, List<String>> moduleKeywordsCache = new ConcurrentHashMap<>();
+    private static final Map<String, List<String>> moduleKeywordsCache = new HashMap<>();
     private static volatile boolean moduleKeywordsLoaded = false;
 
     // TODO: Replace with proper keywords
@@ -618,12 +617,12 @@ public class AiUtils {
         }
     }
 
-    private static synchronized void ensureDependentModulesResolved() {
+    private static synchronized void ensureDependentModulesResolved(String userAiVersion) {
         if (dependentModulesResolved) {
             return;
         }
         try {
-            loadDependentModulesFromCentral();
+            loadDependentModulesFromCentral(userAiVersion);
         } catch (RuntimeException e) {
             LOGGER.log(Level.WARNING,
                     "Failed to resolve dependent modules from Ballerina Central, using hardcoded fallback", e);
@@ -632,13 +631,24 @@ public class AiUtils {
         }
     }
 
-    private static void loadDependentModulesFromCentral() {
+    private static void loadDependentModulesFromCentral(String userAiVersion) {
         List<String> allVersions = RemoteCentral.getInstance().allPackageVersions(BALLERINA, AI);
         if (allVersions.isEmpty()) {
             return;
         }
+
+        // Only query versions compatible with the user's AI version.
+        // If version is null (no ballerina/ai dependency), query all versions.
+        List<String> compatibleVersions = (userAiVersion == null) ? allVersions : allVersions.stream()
+                .filter(v -> compareSemver(userAiVersion, v) >= 0)
+                .toList();
+
+        if (compatibleVersions.isEmpty()) {
+            return;
+        }
+
         Map<String, List<DependentPackage>> allDeps =
-                RemoteCentral.getInstance().dependentPackages(BALLERINA, AI, allVersions);
+                RemoteCentral.getInstance().dependentPackages(BALLERINA, AI, compatibleVersions);
 
         Map<String, List<Module>> resolved = new HashMap<>();
         for (Map.Entry<String, List<DependentPackage>> entry : allDeps.entrySet()) {
@@ -657,7 +667,7 @@ public class AiUtils {
     }
 
     public static List<Module> getLatestCompatibleModules(String version) {
-        ensureDependentModulesResolved();
+        ensureDependentModulesResolved(version);
         Collection<List<Module>> candidateModules = (version == null)
                 ? dependentModules.values()
                 : dependentModules.entrySet().stream()
