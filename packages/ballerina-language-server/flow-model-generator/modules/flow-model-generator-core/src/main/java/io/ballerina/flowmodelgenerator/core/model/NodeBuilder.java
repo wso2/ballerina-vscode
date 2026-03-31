@@ -59,7 +59,6 @@ import io.ballerina.flowmodelgenerator.core.model.node.KnowledgeBaseCallBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.LockBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.MatchBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.MemoryBuilder;
-import io.ballerina.flowmodelgenerator.core.model.node.ShortTermMemoryStoreBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.MethodCall;
 import io.ballerina.flowmodelgenerator.core.model.node.ModelProviderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.NPFunctionCall;
@@ -72,6 +71,7 @@ import io.ballerina.flowmodelgenerator.core.model.node.ResourceActionCallBuilder
 import io.ballerina.flowmodelgenerator.core.model.node.RetryBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ReturnBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.RollbackBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.ShortTermMemoryStoreBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.StartBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.StopBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.TransactionBuilder;

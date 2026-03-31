@@ -148,7 +148,6 @@ import io.ballerina.flowmodelgenerator.core.model.node.IfBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.JsonPayloadBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.KnowledgeBaseBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.MemoryBuilder;
-import io.ballerina.flowmodelgenerator.core.model.node.ShortTermMemoryStoreBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.MethodCall;
 import io.ballerina.flowmodelgenerator.core.model.node.ModelProviderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.NewConnectionBuilder;
@@ -157,6 +156,7 @@ import io.ballerina.flowmodelgenerator.core.model.node.RemoteActionCallBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ResourceActionCallBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ReturnBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.RollbackBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.ShortTermMemoryStoreBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.StartBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.VariableBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.VectorStoreBuilder;
@@ -3074,6 +3074,7 @@ public class CodeAnalyzer extends NodeVisitor {
     }
 
     // TODO: Clean this up, and move to AiUtils
+
     /**
      * Extracts OAuth scopes from an {@code @ai:AgentTool} annotation on a function definition.
      */
