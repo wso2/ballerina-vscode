@@ -100,6 +100,7 @@ public enum NodeKind {
     MEMORY,
     MEMORY_STORE,
     MCP_TOOL_KIT,
+    AGENT_ID_AUTH_CONFIG,
     WORKFLOW,
     WORKFLOW_RUN,
     ACTIVITY,

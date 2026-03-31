@@ -14,7 +14,10 @@
       "items": [
         {
           "metadata": {
-            "label": "agent"
+            "label": "agent",
+            "data": {
+              "connectorType": "Default"
+            }
           },
           "items": [
             {
@@ -40,7 +43,10 @@
         },
         {
           "metadata": {
-            "label": "httpClient"
+            "label": "httpClient",
+            "data": {
+              "connectorType": "Network"
+            }
           },
           "items": [
             {
@@ -408,7 +414,10 @@
         },
         {
           "metadata": {
-            "label": "httpClientResult"
+            "label": "httpClientResult",
+            "data": {
+              "connectorType": "Network"
+            }
           },
           "items": [
             {
@@ -776,7 +785,10 @@
         },
         {
           "metadata": {
-            "label": "model"
+            "label": "model",
+            "data": {
+              "connectorType": "Default"
+            }
           },
           "items": [
             {

@@ -28,6 +28,7 @@ import io.ballerina.flowmodelgenerator.core.model.node.ActivityCallBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ActivityCreationBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AgentBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AgentCallBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.AgentIdAuthConfigBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AgentRunBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AssignBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AutomationBuilder;
@@ -181,6 +182,7 @@ public abstract class NodeBuilder implements DiagnosticHandler.DiagnosticCapable
         put(NodeKind.DATA_LOADER, DataLoaderBuilder::new);
         put(NodeKind.CHUNKER, ChunkerBuilder::new);
         put(NodeKind.MCP_TOOL_KIT, McpToolKitBuilder::new);
+        put(NodeKind.AGENT_ID_AUTH_CONFIG, AgentIdAuthConfigBuilder::new);
         put(NodeKind.WORKFLOW, WorkflowBuilder::new);
         put(NodeKind.ACTIVITY, ActivityBuilder::new);
         put(NodeKind.ACTIVITY_CALL, ActivityCallBuilder::new);

@@ -28,7 +28,11 @@ import io.ballerina.compiler.api.symbols.Documentation;
 import io.ballerina.compiler.api.symbols.Qualifiable;
 import io.ballerina.compiler.api.symbols.Qualifier;
 import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
+import io.ballerina.compiler.api.symbols.TypeDescKind;
+import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
+import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.flowmodelgenerator.core.model.AvailableNode;
 import io.ballerina.flowmodelgenerator.core.model.Category;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
@@ -46,6 +50,7 @@ import io.ballerina.projects.Project;
 import io.ballerina.projects.directory.BuildProject;
 import io.ballerina.projects.directory.WorkspaceProject;
 import io.ballerina.tools.text.LineRange;
+import org.ballerinalang.langserver.common.utils.SymbolUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -251,13 +256,29 @@ class TypeSearchCommand extends SearchCommand {
 
         List<Item> availableNodes = new ArrayList<>();
         for (ScoredType scoredType : scoredTypes) {
+            Optional<? extends TypeSymbol> typeDescriptor = SymbolUtil.getTypeDescriptor(scoredType.symbol());
+            typeDescriptor = (typeDescriptor.isPresent() &&
+                    typeDescriptor.get().typeKind() == TypeDescKind.TYPE_REFERENCE)
+                    ? Optional.of(((TypeReferenceTypeSymbol) typeDescriptor.get()).typeDescriptor())
+                    : typeDescriptor;
+
+            // The following information is needed for config editor
+            NodeKind nodeKind = NodeKind.TYPEDESC;
+            if (typeDescriptor.isPresent() && typeDescriptor.get().typeKind() != null
+                    && typeDescriptor.get().typeKind() != TypeDescKind.COMPILATION_ERROR) {
+                nodeKind = typeDescriptor.get().kind() == SymbolKind.CLASS
+                        ? NodeKind.CLASS
+                        : toNodeKind(typeDescriptor.get().typeKind());
+
+            }
+
             Metadata metadata = new Metadata.Builder<>(null)
                     .label(scoredType.typeName())
                     .description(scoredType.description())
                     .build();
 
             Codedata codedata = new Codedata.Builder<>(null)
-                    .node(NodeKind.TYPEDESC)
+                    .node(nodeKind)
                     .org(orgName)
                     .module(packageName)
                     .packageName(packageName)
@@ -308,7 +329,7 @@ class TypeSearchCommand extends SearchCommand {
         }
     }
 
-     private void buildImportedLocalModules() {
+    private void buildImportedLocalModules() {
         Iterable<Module> modules = project.currentPackage().modules();
         for (Module module : modules) {
             if (module.isDefaultModule()) {
@@ -373,16 +394,31 @@ class TypeSearchCommand extends SearchCommand {
         }
     }
 
-        /**
-         * Helper record to store type definition and class symbols along with their relevance scores for ranking.
-         *
-         * @param symbol the symbol representing the type
-         * @param typeName the name of the type
-         * @param description the description of the type
-         * @param score the relevance score for ranking
-         */
-        private record ScoredType(Symbol symbol, String typeName, String description, int score) {
+    private static NodeKind toNodeKind(TypeDescKind typeDescKind) {
+        return switch (typeDescKind) {
+            case ARRAY -> NodeKind.ARRAY;
+            case RECORD -> NodeKind.RECORD;
+            case UNION -> NodeKind.UNION;
+            case INTERSECTION -> NodeKind.INTERSECTION;
+            case TABLE -> NodeKind.TABLE;
+            case MAP -> NodeKind.MAP;
+            case ERROR -> NodeKind.ERROR;
+            case OBJECT -> NodeKind.OBJECT;
+            case TUPLE -> NodeKind.TUPLE;
+            case STREAM -> NodeKind.STREAM;
+            case FUTURE -> NodeKind.FUTURE;
+            default -> NodeKind.TYPEDESC;
+        };
     }
 
-
+    /**
+     * Helper record to store type definition and class symbols along with their relevance scores for ranking.
+     *
+     * @param symbol      the symbol representing the type
+     * @param typeName    the name of the type
+     * @param description the description of the type
+     * @param score       the relevance score for ranking
+     */
+    private record ScoredType(Symbol symbol, String typeName, String description, int score) {
+    }
 }

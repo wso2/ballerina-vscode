@@ -1,0 +1,20 @@
+{
+  "source": "variable7.bal",
+  "description": "Test reference type visualization",
+  "codedata": {
+    "node": "TYPEDESC",
+    "org": "",
+    "module": "",
+    "packageName": "",
+    "symbol": "Items",
+    "version": ""
+  },
+  "position": {
+    "line": 12,
+    "offset": 12
+  },
+  "visualizableProperties": {
+    "isDataMapped": true,
+    "defaultValue": "[]"
+  }
+}

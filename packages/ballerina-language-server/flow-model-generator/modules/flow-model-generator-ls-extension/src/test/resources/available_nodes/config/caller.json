@@ -14,7 +14,10 @@
       "items": [
         {
           "metadata": {
-            "label": "caller"
+            "label": "caller",
+            "data": {
+              "connectorType": "Network"
+            }
           },
           "items": [
             {

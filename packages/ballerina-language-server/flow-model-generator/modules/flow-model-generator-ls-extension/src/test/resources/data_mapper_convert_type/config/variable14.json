@@ -43,6 +43,19 @@
         "range": {
           "start": {
             "line": 45,
+            "character": 56
+          },
+          "end": {
+            "line": 45,
+            "character": 56
+          }
+        },
+        "newText": "|error"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 45,
             "character": 60
           },
           "end": {
@@ -50,7 +63,7 @@
             "character": 66
           }
         },
-        "newText": "let school:Student transform8 = {} in xmldata:toXml(transform8)"
+        "newText": "let school:Student transform8 = {} in check xmldata:toXml(transform8)"
       },
       {
         "range": {

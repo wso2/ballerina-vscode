@@ -37,6 +37,7 @@ public class ServiceInitModel {
     public static final String KEY_LISTENER_VAR_NAME = "listenerVarName";
     public static final String KEY_CONFIGURE_LISTENER = "configureListener";
     public static final String KEY_EXISTING_LISTENER = "existingListener";
+    public static final String KEY_LISTENER_SELECTION = "listenerSelection";
 
     private final String id;
     private final String displayName;

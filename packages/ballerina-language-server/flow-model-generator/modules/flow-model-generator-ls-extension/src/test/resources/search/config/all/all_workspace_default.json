@@ -244,6 +244,114 @@
     },
     {
       "metadata": {
+        "label": "Within Project",
+        "description": "Components available in the current workspace project",
+        "keywords": [
+          "Workspace Project",
+          "Local",
+          "Function",
+          "Types",
+          "Data Mapper"
+        ]
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "package1 (Current Integration)",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "findMax",
+                "description": "Finds the maximum value in an array\n",
+                "data": {
+                  "isDataMappedFunction": false,
+                  "isAgentTool": false,
+                  "isIsolatedFunction": false
+                }
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "testorg",
+                "module": "package1",
+                "symbol": "findMax",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "helperFunction",
+                "data": {
+                  "isDataMappedFunction": false,
+                  "isAgentTool": false,
+                  "isIsolatedFunction": true
+                }
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "testorg",
+                "module": "package1",
+                "symbol": "helperFunction",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "package2",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "filterGreaterThan",
+                "description": "Data Processing Functions\nFilters an array of integers based on a condition\n",
+                "data": {
+                  "isDataMappedFunction": false,
+                  "isAgentTool": false,
+                  "isIsolatedFunction": false
+                }
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "testorg",
+                "module": "package2",
+                "symbol": "filterGreaterThan",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "formatMessage",
+                "description": "Formats a message with two parts\n",
+                "data": {
+                  "isDataMappedFunction": false,
+                  "isAgentTool": false,
+                  "isIsolatedFunction": false
+                }
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "testorg",
+                "module": "package2",
+                "symbol": "formatMessage",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "metadata": {
         "label": "Connectors"
       },
       "items": [
@@ -416,114 +524,6 @@
             "version": "1.3.1"
           },
           "enabled": true
-        }
-      ]
-    },
-    {
-      "metadata": {
-        "label": "Current Workspace",
-        "description": "Components available in the current workspace",
-        "keywords": [
-          "Workspace",
-          "Local",
-          "Function",
-          "Types",
-          "Data Mapper"
-        ]
-      },
-      "items": [
-        {
-          "metadata": {
-            "label": "package1 (Current Integration)",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "findMax",
-                "description": "Finds the maximum value in an array\n",
-                "data": {
-                  "isDataMappedFunction": false,
-                  "isAgentTool": false,
-                  "isIsolatedFunction": false
-                }
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "testorg",
-                "module": "package1",
-                "symbol": "findMax",
-                "version": "0.1.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "helperFunction",
-                "data": {
-                  "isDataMappedFunction": false,
-                  "isAgentTool": false,
-                  "isIsolatedFunction": true
-                }
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "testorg",
-                "module": "package1",
-                "symbol": "helperFunction",
-                "version": "0.1.0"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "package2",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "filterGreaterThan",
-                "description": "Data Processing Functions\nFilters an array of integers based on a condition\n",
-                "data": {
-                  "isDataMappedFunction": false,
-                  "isAgentTool": false,
-                  "isIsolatedFunction": false
-                }
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "testorg",
-                "module": "package2",
-                "symbol": "filterGreaterThan",
-                "version": "0.1.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "formatMessage",
-                "description": "Formats a message with two parts\n",
-                "data": {
-                  "isDataMappedFunction": false,
-                  "isAgentTool": false,
-                  "isIsolatedFunction": false
-                }
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "testorg",
-                "module": "package2",
-                "symbol": "formatMessage",
-                "version": "0.1.0"
-              },
-              "enabled": true
-            }
-          ]
         }
       ]
     },

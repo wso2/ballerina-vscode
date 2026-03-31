@@ -49,6 +49,7 @@ dependencies {
     implementation "org.ballerinalang:toml-parser:${ballerinaLangVersion}"
     implementation "com.google.code.gson:gson:${gsonVersion}"
 
+    testImplementation project(':flow-model-generator:flow-model-central-client')
     testImplementation "org.testng:testng:${testngVersion}"
 
     balTools("org.ballerinalang:jballerina-tools:${ballerinaLangVersion}") {

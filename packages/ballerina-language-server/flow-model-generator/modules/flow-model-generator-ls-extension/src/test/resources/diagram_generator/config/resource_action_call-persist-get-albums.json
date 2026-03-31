@@ -344,7 +344,10 @@
           "connection": {
             "metadata": {
               "label": "Connection",
-              "description": "Connection to use"
+              "description": "Connection to use",
+              "data": {
+                "connectorType": "Default"
+              }
             },
             "types": [
               {
@@ -579,7 +582,7 @@
                             "selected": true
                           }
                         ],
-                        "value": true,
+                        "value": "true",
                         "optional": true,
                         "editable": true,
                         "advanced": false,
@@ -905,7 +908,7 @@
                               "selected": true
                             }
                           ],
-                          "value": true,
+                          "value": "true",
                           "optional": true,
                           "editable": true,
                           "advanced": false,
@@ -1076,7 +1079,7 @@
                               "selected": true
                             }
                           ],
-                          "value": true,
+                          "value": "true",
                           "optional": true,
                           "editable": true,
                           "advanced": false,
@@ -1247,7 +1250,7 @@
                               "selected": true
                             }
                           ],
-                          "value": true,
+                          "value": "true",
                           "optional": true,
                           "editable": true,
                           "advanced": false,
@@ -1588,7 +1591,10 @@
           "connection": {
             "metadata": {
               "label": "Connection",
-              "description": "Connection to use"
+              "description": "Connection to use",
+              "data": {
+                "connectorType": "Default"
+              }
             },
             "types": [
               {
@@ -1823,7 +1829,7 @@
                             "selected": true
                           }
                         ],
-                        "value": true,
+                        "value": "true",
                         "optional": true,
                         "editable": true,
                         "advanced": false,
@@ -2149,7 +2155,7 @@
                               "selected": true
                             }
                           ],
-                          "value": true,
+                          "value": "true",
                           "optional": true,
                           "editable": true,
                           "advanced": false,
@@ -2320,7 +2326,7 @@
                               "selected": true
                             }
                           ],
-                          "value": true,
+                          "value": "true",
                           "optional": true,
                           "editable": true,
                           "advanced": false,
@@ -2491,7 +2497,7 @@
                               "selected": true
                             }
                           ],
-                          "value": true,
+                          "value": "true",
                           "optional": true,
                           "editable": true,
                           "advanced": false,

@@ -14,7 +14,10 @@
       "items": [
         {
           "metadata": {
-            "label": "moduleClient"
+            "label": "moduleClient",
+            "data": {
+              "connectorType": "Network"
+            }
           },
           "items": [
             {
@@ -382,7 +385,10 @@
         },
         {
           "metadata": {
-            "label": "redisClient"
+            "label": "redisClient",
+            "data": {
+              "connectorType": "Database"
+            }
           },
           "items": [
             {
@@ -2441,7 +2447,10 @@
         },
         {
           "metadata": {
-            "label": "redisClientResult"
+            "label": "redisClientResult",
+            "data": {
+              "connectorType": "Database"
+            }
           },
           "items": [
             {
