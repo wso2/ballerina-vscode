@@ -195,7 +195,7 @@ const AIChat: React.FC = () => {
 
     const [currentFileArray, setCurrentFileArray] = useState<SourceFile[]>([]);
     const [codeContext, setCodeContext] = useState<CodeContext | undefined>(undefined);
-    const [footerSuggestedCommandTemplates, setFooterSuggestedCommandTemplates] = useState<AIPanelPrompt[]>(undefined);
+    const [footerSuggestedCommandTemplates, setFooterSuggestedCommandTemplates] = useState<AIPanelPrompt[] | undefined>(undefined);
     const [footerInputPlaceholder, setFooterInputPlaceholder] = useState("Describe your integration...");
 
     const [usage, setUsage] = useState<{ remainingUsagePercentage: number; resetsIn: number } | null>(null);
