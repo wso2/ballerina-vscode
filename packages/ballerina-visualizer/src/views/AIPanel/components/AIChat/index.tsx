@@ -270,6 +270,9 @@ const AIChat: React.FC = () => {
                                 });
                                 return;
                             }
+                        } else {
+                            setFooterSuggestedCommandTemplates(undefined);
+                            setFooterInputPlaceholder("Describe your integration...");
                         }
 
                         aiChatInputRef.current?.setInputContent(defaultPrompt);

@@ -415,14 +415,14 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                 optionToRun = preferredOption;
                 setSelectedTryItOption(optionToRun);
             } else {
-                const tryItOptions = getTryItDropdownOptions("service").map(option => ({
+                const tryItOptions = getTryItDropdownOptions("resource").map(option => ({
                     label: option.title,
                     description: option.description,
                     value: option.value
                 }));
                 const selected: TryItQuickPickItem = await rpcClient.getCommonRpcClient().showQuickPick({
                     items: tryItOptions,
-                    options: { title: "Choose how you want to try out your service", placeHolder: "Select an option" }
+                    options: { title: "Choose how you want to try out your resource", placeHolder: "Select an option" }
                 }) as TryItQuickPickItem;
 
                 if (!selected) {
