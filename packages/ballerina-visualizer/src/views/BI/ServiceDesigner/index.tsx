@@ -56,7 +56,6 @@ import { DatabindForm } from "./Forms/DatabindForm";
 import { FileIntegrationForm } from "./Forms/FileIntegrationForm";
 import FileIntegrationConfigForm from "./Forms/FileIntegrationForm/FileIntegrationConfigForm";
 import { getTryItAIDefaultPromptService, getTryItDropdownOptions, TryItOptionValue, TryItQuickPickItem } from "../shared/tryIt";
-import { f } from "@tanstack/query-core/build/legacy/hydration-B3ndIyL6";
 
 const LoadingContainer = styled.div`
     display: flex;
@@ -804,6 +803,9 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     };
 
     const handleTryItDropdownOption = (option: string) => {
+        if (isTryItInProgress) {
+            return;
+        }
         const selectedOption = option as TryItOptionValue;
         setSelectedTryItOption(selectedOption);
         rpcClient.getCommonRpcClient().setPreferredTryItOption(selectedOption).catch((error: unknown) => {
@@ -820,6 +822,9 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     };
 
     const handleTryItPrimaryAction = async () => {
+        if (isTryItInProgress) {
+            return;
+        }
         let optionToRun = selectedTryItOption;
         try {
             const preferredOption = await rpcClient.getCommonRpcClient().getPreferredTryItOption();
