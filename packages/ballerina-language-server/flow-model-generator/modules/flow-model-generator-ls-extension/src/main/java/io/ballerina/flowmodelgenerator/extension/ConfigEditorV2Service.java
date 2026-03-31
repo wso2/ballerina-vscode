@@ -575,9 +575,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                             TomlKeyValueNode keyValueNode = (TomlKeyValueNode) topLevelNode;
                             value = getInBallerinaSyntax(keyValueNode.value());
                         }
-                        case TABLE, TABLE_ARRAY ->
-                            value = getInBallerinaSyntax(topLevelNode);
-                        default -> { }
+                        case TABLE, TABLE_ARRAY -> value = getInBallerinaSyntax(topLevelNode);
                     }
                     if (value != null) {
                         keyValuePairs.add(key + COLON_SPACE + value);
@@ -941,19 +939,19 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                 .properties()
                 .variableName(variableName, isRootProject)
                 .custom()
-                    .metadata()
-                        .label(Property.TYPE_LABEL)
-                        .description(Property.TYPE_DOC)
-                        .stepOut()
-                    .placeholder("var")
-                    .value(CommonUtils.getVariableName(typeDescriptor))
-                    .type()
-                        .fieldType(Property.ValueType.TYPE)
-                        .setTypeMembers(extractTypeMembersFromTypeDescriptor(typeDescriptor, semanticModel))
-                        .stepOut()
-                    .editable(isRootProject)
-                    .stepOut()
-                    .addProperty(Property.TYPE_KEY, typeDescriptor.lineRange())
+                .metadata()
+                .label(Property.TYPE_LABEL)
+                .description(Property.TYPE_DOC)
+                .stepOut()
+                .placeholder("var")
+                .value(CommonUtils.getVariableName(typeDescriptor))
+                .type()
+                .fieldType(Property.ValueType.TYPE)
+                .setTypeMembers(extractTypeMembersFromTypeDescriptor(typeDescriptor, semanticModel))
+                .stepOut()
+                .editable(isRootProject)
+                .stepOut()
+                .addProperty(Property.TYPE_KEY, typeDescriptor.lineRange())
                 .defaultValue(variableNode.initializer().orElse(null), isRootProject)
                 .configValue(configValueExpr);
         if (hasTests) {
