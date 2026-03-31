@@ -989,7 +989,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         /> Configure
                                     </Button>
                                     {
-                                        serviceModel && (isHttpService || isMcpService) && (
+                                        serviceModel && (isHttpService) && (
                                             <>
                                                 <AddServiceElementDropdown
                                                     buttonTitle={activeTryItOption?.title || "Try It"}
@@ -1004,6 +1004,15 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                                 />
                                             </>
                                         )
+                                    }
+                                    {
+                                        serviceModel && (isMcpService) && (  
+                                             <>
+                                                <Button appearance="secondary" tooltip="Try Service" onClick={handleServiceTryIt}>
+                                                    <><Icon name="play" isCodicon={true} sx={{ marginRight: 8, fontSize: 16 }} /> <ButtonText>Try It</ButtonText></>
+                                                </Button>
+                                                </>
+                                            )
                                     }
                                     {serviceModel && !isMcpService && dropdownOptions.length > 0 && (
                                         <AddServiceElementDropdown
