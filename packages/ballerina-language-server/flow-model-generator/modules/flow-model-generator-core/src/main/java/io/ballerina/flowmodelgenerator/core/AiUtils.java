@@ -591,12 +591,18 @@ public class AiUtils {
     }
 
     public static String getBallerinaAiModuleVersion(Project project) {
-        return project.currentPackage().dependenciesToml().map(DependenciesToml::tomlDocument).map(TomlDocument::toml)
+        String version = project.currentPackage().dependenciesToml()
+                .map(DependenciesToml::tomlDocument).map(TomlDocument::toml)
                 .map(toml -> toml.getTables(PACKAGE)).orElse(List.of()).stream()
                 .filter(pkg -> BALLERINA.equals(pkg.get(ORG).map(Object::toString).orElse(""))
                         && AI.equals(pkg.get(NAME).map(Object::toString).orElse("")))
                 .findFirst().flatMap(aiPackage -> aiPackage.get(VERSION).map(Objects::toString))
                 .orElse(null);
+        if (version != null) {
+            return version;
+        }
+        // Fallback: resolve from local/distribution repo
+        return resolvePackageVersion(BALLERINA, AI).orElse(null);
     }
 
     public static Optional<String> resolvePackageVersion(String org, String packageName) {
