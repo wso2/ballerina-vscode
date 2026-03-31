@@ -2389,18 +2389,17 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async updateWorkspaceTitle(params: UpdateProjectTitleRequest): Promise<void> {
         const ballerinaTomlPath = path.join(params.projectPath, 'Ballerina.toml');
-        if (!fs.existsSync(ballerinaTomlPath)) {
+        let content: string;
+        try {
+            content = fs.readFileSync(ballerinaTomlPath, 'utf-8');
+        } catch {
             throw new Error(`Ballerina.toml not found at ${ballerinaTomlPath}`);
         }
-        let content = fs.readFileSync(ballerinaTomlPath, 'utf-8');
-        // Replace the title field under [workspace] section
-        if (/title\s*=\s*"[^"]*"/.test(content)) {
-            content = content.replace(/title\s*=\s*"[^"]*"/, `title = "${params.title}"`);
-        } else {
-            // Insert title after [workspace]
-            content = content.replace(/\[workspace\]/, `[workspace]\ntitle = "${params.title}"`);
-        }
-        fs.writeFileSync(ballerinaTomlPath, content, 'utf-8');
+        const replaced = content.replace(/title\s*=\s*"[^"]*"/, `title = "${params.title}"`);
+        const updated = replaced !== content
+            ? replaced
+            : content.replace(/\[workspace\]/, `[workspace]\ntitle = "${params.title}"`);
+        fs.writeFileSync(ballerinaTomlPath, updated, 'utf-8');
 
         const currentProjectInfo = StateMachine.context().projectInfo;
         if (currentProjectInfo) {

@@ -205,7 +205,7 @@ const ProjectTitle = styled.h1`
     font-size: 1.5rem;
     margin-bottom: 0;
     margin-top: 0;
-    transition: opacity 0.2s ease;
+    transition: opacity 0.40s ease;
     @media (min-width: 768px) {
         font-size: 1.875rem;
     }
@@ -763,7 +763,7 @@ export function WorkspaceOverview() {
         const swap = setTimeout(() => {
             setDisplayedTitle(newTitle);
             setTitleVisible(true);
-        }, 200);
+        }, 400);
         return () => clearTimeout(swap);
     }, [projectCollection?.workspaceTitle, projectCollection?.workspaceName]);
 
@@ -831,24 +831,24 @@ export function WorkspaceOverview() {
             setIsEditingTitle(false);
             return;
         }
-        setIsEditingTitle(false);
-        await rpcClient.getBIDiagramRpcClient().updateProjectTitle({
-            projectPath: projectCollection.workspacePath,
-            title: trimmed
-        });
+        try {
+            await rpcClient.getBIDiagramRpcClient().updateProjectTitle({
+                projectPath: projectCollection.workspacePath,
+                title: trimmed
+            });
+            setIsEditingTitle(false);
+        } catch {
+            // keep edit mode open on failure
+        }
     }, [titleInputValue, projectCollection, rpcClient]);
-
-    const cancelTitleEdit = useCallback(() => {
-        setIsEditingTitle(false);
-    }, []);
 
     const handleTitleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter") {
             commitTitleEdit();
         } else if (e.key === "Escape") {
-            cancelTitleEdit();
+            setIsEditingTitle(false);
         }
-    }, [commitTitleEdit, cancelTitleEdit]);
+    }, [commitTitleEdit]);
 
     if (!projectCollection) {
         return (
