@@ -88,6 +88,7 @@ import static io.ballerina.flowmodelgenerator.core.model.NodeKind.DATA_LOADER;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.DATA_LOADERS;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.EMBEDDING_PROVIDER;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.EMBEDDING_PROVIDERS;
+import static io.ballerina.flowmodelgenerator.core.model.NodeKind.KNOWLEDGE_BASE;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.KNOWLEDGE_BASES;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.MODEL_PROVIDER;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.MODEL_PROVIDERS;
@@ -116,6 +117,7 @@ public class AiUtils {
     private static final Map<String, List<AvailableNode>> cachedChunkerMap = new HashMap<>();
     private static final Map<String, List<AvailableNode>> cachedDataLoaderMap = new HashMap<>();
     private static final Map<String, List<AvailableNode>> cachedShortTermMemoryStoreMap = new HashMap<>();
+    private static final Map<String, List<AvailableNode>> cachedKnowledgeBaseMap = new HashMap<>();
 
     // Tracks which categories have been fully built for each AI version
     private static final Map<String, Set<NodeKind>> completedCategories = new HashMap<>();
@@ -135,7 +137,8 @@ public class AiUtils {
             VECTOR_STORE, List.of("vector"),
             CHUNKER, List.of("chunker"),
             DATA_LOADER, List.of("loader"),
-            SHORT_TERM_MEMORY_STORE, List.of("memory")
+            SHORT_TERM_MEMORY_STORE, List.of("memory"),
+            KNOWLEDGE_BASE, List.of("knowledge")
     );
 
     private static final String PACKAGE = "package";
@@ -758,6 +761,12 @@ public class AiUtils {
         return cachedShortTermMemoryStoreMap.getOrDefault(aiModuleVersion, List.of());
     }
 
+    public static List<AvailableNode> getKnowledgeBases(Project project) {
+        buildCategoryCache(project, KNOWLEDGE_BASE);
+        String aiModuleVersion = getBallerinaAiModuleVersion(project);
+        return cachedKnowledgeBaseMap.getOrDefault(aiModuleVersion, List.of());
+    }
+
     private static synchronized void buildCategoryCache(Project project, NodeKind category) {
         String aiModuleVersion = getBallerinaAiModuleVersion(project);
         Set<NodeKind> completed = completedCategories.computeIfAbsent(aiModuleVersion, k -> new HashSet<>());
@@ -779,6 +788,7 @@ public class AiUtils {
         List<AvailableNode> chunkers = new ArrayList<>();
         List<AvailableNode> dataLoaders = new ArrayList<>();
         List<AvailableNode> shortTermMemoryStores = new ArrayList<>();
+        List<AvailableNode> knowledgeBases = new ArrayList<>();
 
         for (ModuleInfo module : modules) {
             Optional<SemanticModel> semanticModel;
@@ -808,6 +818,8 @@ public class AiUtils {
                 } else if (isShortTermMemoryStoreClass(classSymbol)) {
                     shortTermMemoryStores.add(buildAvailableNode(classSymbol, module, aiModuleVersion,
                             SHORT_TERM_MEMORY_STORE));
+                } else if (isKnowledgeBaseClass(classSymbol)) {
+                    knowledgeBases.add(buildAvailableNode(classSymbol, module, aiModuleVersion, KNOWLEDGE_BASE));
                 }
             }
         }
@@ -818,6 +830,7 @@ public class AiUtils {
         mergeIntoCache(cachedChunkerMap, aiModuleVersion, chunkers);
         mergeIntoCache(cachedDataLoaderMap, aiModuleVersion, dataLoaders);
         mergeIntoCache(cachedShortTermMemoryStoreMap, aiModuleVersion, shortTermMemoryStores);
+        mergeIntoCache(cachedKnowledgeBaseMap, aiModuleVersion, knowledgeBases);
 
         completed.add(category);
     }
@@ -922,6 +935,12 @@ public class AiUtils {
                 .anyMatch(inclusion -> inclusion.nameEquals(Ai.SHORT_TERM_MEMORY_STORE_TYPE_NAME));
     }
 
+    private static boolean isKnowledgeBaseClass(ClassSymbol classSymbol) {
+        return classSymbol.getName().isPresent()
+                && classSymbol.typeInclusions().stream()
+                .anyMatch(inclusion -> inclusion.nameEquals(Ai.KNOWLEDGE_BASE_TYPE_NAME));
+    }
+
     private static AvailableNode buildAvailableNode(ClassSymbol classSymbol, ModuleInfo moduleInfo,
                                                     String aiModuleVersion, NodeKind kind) {
         String className = classSymbol.getName().orElse("");
@@ -998,6 +1017,7 @@ public class AiUtils {
             case CHUNKER -> "Splits the provided document.";
             case DATA_LOADER -> "Loads documents from specified data source.";
             case SHORT_TERM_MEMORY_STORE -> "Short-term memory store for " + providerName + " chat messages.";
+            case KNOWLEDGE_BASE -> "Knowledge base for semantic retrieval and RAG workflows.";
             default -> null;
         };
     }
