@@ -174,6 +174,30 @@ function createParameterValue(index: number, paramValueKey: string, paramValue: 
     };
 }
 
+function createGenericPropertyValue(index: number, paramValueKey: string, entryValue: Record<string, any>): Parameter {
+    const formValues: FormValues = {};
+    for (const [key, subProp] of Object.entries(entryValue)) {
+        if (subProp && typeof subProp === "object" && "value" in subProp) {
+            formValues[key] = (subProp as any).value as string;
+        }
+    }
+    const variableValue = (entryValue.variable?.value as string) || "";
+    const typeValue = ((entryValue.dataType?.value || entryValue.type?.value || "") as string);
+    const variableEditable = entryValue.variable?.editable ?? true;
+    const variableLineRange = entryValue.variable?.codedata?.lineRange;
+    const displayValue = [typeValue, variableValue].filter(Boolean).join(" ") || paramValueKey;
+
+    return {
+        id: index,
+        icon: "",
+        key: paramValueKey,
+        value: displayValue,
+        identifierEditable: variableEditable,
+        identifierRange: variableLineRange,
+        formValues,
+    };
+}
+
 export function handleRepeatableProperty(property: Property, formField: FormField): void {
     const paramFields: FormField[] = [];
 
@@ -185,9 +209,13 @@ export function handleRepeatableProperty(property: Property, formField: FormFiel
         }
     }
 
-    const paramValues = Object.entries(property.value as NodeProperties).map(([paramValueKey, paramValue], index) =>
-        createParameterValue(index, paramValueKey, paramValue as any)
-    );
+    const paramValues = Object.entries(property.value as NodeProperties).map(([paramValueKey, paramValue], index) => {
+        const entryValue = (paramValue as any).value as Record<string, any>;
+        if (entryValue?.type !== undefined) {
+            return createParameterValue(index, paramValueKey, paramValue as any);
+        }
+        return createGenericPropertyValue(index, paramValueKey, entryValue ?? {});
+    });
 
     formField.paramManagerProps = {
         paramValues,
@@ -198,11 +226,11 @@ export function handleRepeatableProperty(property: Property, formField: FormFiel
     formField.value = paramValues;
 
     function handleParamChange(param: Parameter): Parameter {
-        const name = `${param.formValues["variable"]}`;
-        const type = `${param.formValues["type"]} `;
+        const name = `${param.formValues["variable"] ?? ""}`;
+        const type = `${param.formValues["type"] ?? param.formValues["dataType"] ?? ""}`;
         const defaultValue =
             Object.keys(param.formValues).indexOf("defaultable") > -1 && `${param.formValues["defaultable"]} `;
-        let value = `${type} ${name} `;
+        let value = `${type} ${name}`.trim();
         if (defaultValue) {
             value += ` = ${defaultValue} `;
         }
