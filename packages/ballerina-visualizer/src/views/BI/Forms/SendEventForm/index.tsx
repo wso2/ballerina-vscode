@@ -75,6 +75,11 @@ const normalizeStringValue = (value: unknown): string => {
     return "";
 };
 
+const toQuotedStringLiteral = (value: string): string => {
+    const normalizedValue = normalizeStringValue(value);
+    return normalizedValue ? JSON.stringify(normalizedValue) : value;
+};
+
 const getSendEventFieldKeys = (fields: FormField[]): SendEventFieldKeys => {
     const workflowName =
         fields.find((field) => WORKFLOW_KEY_CANDIDATES.includes(field.key))?.key ??
@@ -525,10 +530,17 @@ export function SendEventForm(props: SendEventFormProps) {
         const updatedNode = createNodeWithUpdatedLineRange(clonedNode, targetLineRange);
         const processedData = processFormData(data);
         const nodeWithUpdatedProps = updateNodeWithProperties(clonedNode, updatedNode, processedData, formImports, dirtyFields);
+        const nodeProperties = nodeWithUpdatedProps.properties as Record<string, any> | undefined;
 
-        if (nodeWithUpdatedProps.properties && fieldKeys.eventData) {
+        if (nodeProperties && fieldKeys.eventName && nodeProperties[fieldKeys.eventName]) {
+            const eventNameValue = normalizeStringValue(nodeProperties[fieldKeys.eventName].value);
+            if (eventNameValue) {
+                nodeProperties[fieldKeys.eventName].value = toQuotedStringLiteral(eventNameValue);
+            }
+        }
+
+        if (nodeProperties && fieldKeys.eventData) {
             const eventDataField = formFields.find((field) => field.key === fieldKeys.eventData);
-            const nodeProperties = nodeWithUpdatedProps.properties as Record<string, any>;
             if (eventDataField?.types?.length && nodeProperties[fieldKeys.eventData]) {
                 nodeProperties[fieldKeys.eventData].types = cloneDeep(eventDataField.types);
             }
