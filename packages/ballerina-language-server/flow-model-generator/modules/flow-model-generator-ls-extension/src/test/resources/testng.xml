@@ -83,7 +83,8 @@ under the License.
             <class name="io.ballerina.flowmodelgenerator.extension.ServiceFieldNodesTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.DataMappingDeleteTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.ExpressionEditorSemanticTokensTest"/>
-            <class name="io.ballerina.flowmodelgenerator.extension.WorkflowManagerTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.workflowmanager.WorkflowManagerTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.workflowmanager.WorkflowNodeTemplateTest"/>
             <!--types manager-->
             <class name="io.ballerina.flowmodelgenerator.extension.typesmanager.CreateAndUpdateTypeTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.typesmanager.CreateGraphqlClassTypeTest"/>

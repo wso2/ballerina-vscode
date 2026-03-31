@@ -16,13 +16,14 @@
  *  under the License.
  */
 
-package io.ballerina.flowmodelgenerator.extension;
+package io.ballerina.flowmodelgenerator.extension.workflowmanager;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.ballerina.flowmodelgenerator.extension.request.GetAllDataRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import org.testng.Assert;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -35,6 +36,15 @@ import java.nio.file.Path;
  * @since 2.0.0
  */
 public class WorkflowManagerTest extends AbstractLSTest {
+
+    @DataProvider(name = "data-provider")
+    @Override
+    protected Object[] getConfigsList() {
+        return new Object[][]{
+                {Path.of("get_all_events1.json")},
+                {Path.of("get_all_events2.json")}
+        };
+    }
 
     @Override
     @Test(dataProvider = "data-provider")

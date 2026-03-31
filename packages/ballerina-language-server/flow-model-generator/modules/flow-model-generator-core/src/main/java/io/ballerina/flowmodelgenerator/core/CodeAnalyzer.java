@@ -931,21 +931,16 @@ public class CodeAnalyzer extends NodeVisitor {
      */
     private void buildActivityAdvancedProperty(Map<String, Node> namedArgValueMap) {
         ModuleInfo workflowModuleInfo = new ModuleInfo(WORKFLOW_ORG, WORKFLOW_MODULE, WORKFLOW_MODULE, null);
-        FunctionData callActivityData;
-        try {
-            callActivityData = new FunctionDataBuilder()
-                    .name(ActivityCallBuilder.CALL_ACTIVITY_METHOD)
-                    .moduleInfo(workflowModuleInfo)
-                    .parentSymbolType(CONTEXT_CLASS_NAME)
-                    .functionResultKind(FunctionData.Kind.REMOTE)
-                    .project(PackageUtil.loadProject(workspaceManager, filePath))
-                    .userModuleInfo(moduleInfo)
-                    .workspaceManager(workspaceManager)
-                    .filePath(filePath)
-                    .build();
-        } catch (Exception e) {
-            return; // Cannot build advanced props if workflow library is unavailable
-        }
+        FunctionData callActivityData = new FunctionDataBuilder()
+                .name(ActivityCallBuilder.CALL_ACTIVITY_METHOD)
+                .moduleInfo(workflowModuleInfo)
+                .parentSymbolType(CONTEXT_CLASS_NAME)
+                .functionResultKind(FunctionData.Kind.REMOTE)
+                .project(PackageUtil.loadProject(workspaceManager, filePath))
+                .userModuleInfo(moduleInfo)
+                .workspaceManager(workspaceManager)
+                .filePath(filePath)
+                .build();
 
         // Filter out params that are handled separately (activityFunction, args, T)
         LinkedHashMap<String, ParameterData> filteredParams =

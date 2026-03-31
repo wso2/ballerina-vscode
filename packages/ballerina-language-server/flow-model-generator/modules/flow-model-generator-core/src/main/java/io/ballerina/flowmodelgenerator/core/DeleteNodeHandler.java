@@ -382,25 +382,21 @@ public class DeleteNodeHandler {
         if (typeSymbol.getLocation().isPresent()) {
             LineRange typeNameRange = typeSymbol.getLocation().get().lineRange();
             Path typesFilePath = projectRoot.resolve(typeNameRange.fileName());
-            try {
-                DocumentId typesDocId = project.documentId(typesFilePath);
-                Document typesDocument = project.currentPackage()
-                        .module(typesDocId.moduleId()).document(typesDocId);
-                int textPos = typesDocument.textDocument()
-                        .textPositionFrom(typeNameRange.startLine());
-                Node typeNode = ((ModulePartNode) typesDocument.syntaxTree().rootNode())
-                        .findNode(TextRange.from(textPos, 0));
-                while (typeNode != null && typeNode.kind() != SyntaxKind.TYPE_DEFINITION) {
-                    typeNode = typeNode.parent();
-                }
-                if (typeNode != null) {
-                    LineRange typeDefLineRange = typeNode.lineRange();
-                    String pathKey = typesFilePath.toString();
-                    TextEdit deleteTypeEdit = new TextEdit(CommonUtils.toRange(typeDefLineRange), "");
-                    addEditToResult(resultObject, pathKey, deleteTypeEdit);
-                }
-            } catch (Exception e) {
-                // Skip type definition deletion if lookup fails
+            DocumentId typesDocId = project.documentId(typesFilePath);
+            Document typesDocument = project.currentPackage()
+                    .module(typesDocId.moduleId()).document(typesDocId);
+            int textPos = typesDocument.textDocument()
+                    .textPositionFrom(typeNameRange.startLine());
+            Node typeNode = ((ModulePartNode) typesDocument.syntaxTree().rootNode())
+                    .findNode(TextRange.from(textPos, 0));
+            while (typeNode != null && typeNode.kind() != SyntaxKind.TYPE_DEFINITION) {
+                typeNode = typeNode.parent();
+            }
+            if (typeNode != null) {
+                LineRange typeDefLineRange = typeNode.lineRange();
+                String pathKey = typesFilePath.toString();
+                TextEdit deleteTypeEdit = new TextEdit(CommonUtils.toRange(typeDefLineRange), "");
+                addEditToResult(resultObject, pathKey, deleteTypeEdit);
             }
         }
 
@@ -442,23 +438,19 @@ public class DeleteNodeHandler {
         // Find the full RecordFieldNode in the syntax tree to get the complete line range
         // (including type descriptor and semicolon), not just the field name
         LineRange fieldLineRange = symbolLineRange;
-        try {
-            DocumentId typesDocId = project.documentId(typesFilePath);
-            Document typesDocument = project.currentPackage()
-                    .module(typesDocId.moduleId()).document(typesDocId);
-            int textPos = typesDocument.textDocument()
-                    .textPositionFrom(symbolLineRange.startLine());
-            Node fieldNode = ((ModulePartNode) typesDocument.syntaxTree().rootNode())
-                    .findNode(TextRange.from(textPos, 0));
-            while (fieldNode != null && fieldNode.kind() != SyntaxKind.RECORD_FIELD
-                    && fieldNode.kind() != SyntaxKind.RECORD_FIELD_WITH_DEFAULT_VALUE) {
-                fieldNode = fieldNode.parent();
-            }
-            if (fieldNode != null) {
-                fieldLineRange = fieldNode.lineRange();
-            }
-        } catch (Exception e) {
-            // Fall back to symbol location if syntax tree lookup fails
+        DocumentId typesDocId = project.documentId(typesFilePath);
+        Document typesDocument = project.currentPackage()
+                .module(typesDocId.moduleId()).document(typesDocId);
+        int textPos = typesDocument.textDocument()
+                .textPositionFrom(symbolLineRange.startLine());
+        Node fieldNode = ((ModulePartNode) typesDocument.syntaxTree().rootNode())
+                .findNode(TextRange.from(textPos, 0));
+        while (fieldNode != null && fieldNode.kind() != SyntaxKind.RECORD_FIELD
+                && fieldNode.kind() != SyntaxKind.RECORD_FIELD_WITH_DEFAULT_VALUE) {
+            fieldNode = fieldNode.parent();
+        }
+        if (fieldNode != null) {
+            fieldLineRange = fieldNode.lineRange();
         }
 
         TextEdit deleteFieldEdit = new TextEdit(CommonUtils.toRange(fieldLineRange), "");
