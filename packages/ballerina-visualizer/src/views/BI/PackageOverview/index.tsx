@@ -550,7 +550,7 @@ function IntegrationControlPlane({ enabled, handleICP }: IntegrationControlPlane
                     onClick={() => rpcClient.getICPRpcClient().viewInICP({
                         projectPath: ''
                     })}
-                    sx={{ marginTop: "10px" }}
+                    sx={{ marginTop: "10px", display: "flex", alignItems: "center", justifyContent: "center", mx: "auto" }}
                 >
                     <Codicon name="link-external" sx={{ marginRight: 8 }} /> View in ICP
                 </Button>
