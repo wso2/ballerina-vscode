@@ -630,7 +630,7 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
                 .ballerinaType(SERVICE_CONFIG_ANNOTATION_CONSTRAINT)
                 .setMembers(List.of(new PropertyTypeMemberInfo(
                         SERVICE_CONFIG_ANNOTATION_CONSTRAINT,
-                        "ballerinax:cdc:1.1.0", // TODO: resolve the correct version when there is a value
+                        "ballerinax:cdc:1.3.0", // TODO: resolve the correct version when there is a value
                         CDC_MODULE_NAME,
                         "RECORD_TYPE",
                         true
