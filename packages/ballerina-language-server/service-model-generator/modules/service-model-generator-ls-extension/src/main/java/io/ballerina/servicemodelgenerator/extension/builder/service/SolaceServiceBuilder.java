@@ -70,7 +70,6 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getArgList;
-
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_CONFIGURE_LISTENER;
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_EXISTING_LISTENER;
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_VAR_NAME;
@@ -325,7 +324,8 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
                     case "secureSocket" -> config.put("secureSocket", ListenerUtil.buildReadOnlyTextValue(
                             "Secure Socket", "Configure SSL/TLS configuration for secure connection",
                             argValue));
-                    default -> { }
+                    default -> {
+                    }
                 }
             }
         }
