@@ -74,7 +74,7 @@ export function AddServiceElementDropdown(props: AddServiceElementDropdownProps)
                                 <Icon
                                     name={buttonIconName}
                                     isCodicon={buttonIconIsCodicon}
-                                    sx={{ marginRight: 8, fontSize: 18 }}
+                                    sx={{ marginRight: 8, fontSize: "16px", width:"16px" }}
                                 />
                             )
                         )}

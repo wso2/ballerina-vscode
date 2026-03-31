@@ -517,7 +517,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                     </ActionButton >
                     <AddServiceElementDropdown
                         buttonTitle={activeTryItOption?.title || "Try It"}
-                        toolTip="Try resource options"
+                        toolTip="Try Resource"
                         defaultOption={selectedTryItOption}
                         onPrimaryAction={handleTryItPrimaryAction}
                         buttonIconName={isTryItInProgress ? "loading" : activeTryItOption?.iconName}
