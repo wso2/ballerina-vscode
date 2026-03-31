@@ -92,19 +92,19 @@ import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_O
 public class WaitDataBuilder extends CallBuilder {
     private static final String LABEL = "Wait for Data";
     private static final String DESCRIPTION = "Wait for workflow data to be received";
-    private static final String DATA_NAME_KEY = "dataName";
-    private static final String DATA_NAME_LABEL = "Data Name";
-    private static final String DATA_NAME_DOC = "Name of the data to wait for";
-    private static final String DATA_TYPE_KEY = "dataType";
-    private static final String DATA_TYPE_LABEL = "Data Type";
-    private static final String DATA_TYPE_DOC = "Type of the data to be received on successful wait";
-    private static final String DATA_RECEIVE_VAR_NAME = "Data Receive Variable Name";
-    private static final String DATA_RECEIVE_VAR_DOC = "Variable name to receive the data";
-    private static final String DATA_WAITS_KEY = "dataWaits";
-    private static final String DATA_WAITS_LABEL = "Data Waits";
-    private static final String DATA_WAITS_DOC = "Data to wait for (one or more)";
+    public static final String DATA_NAME_KEY = "dataName";
+    public static final String DATA_NAME_LABEL = "Data Name";
+    public static final String DATA_NAME_DOC = "Name of the data to wait for";
+    public static final String DATA_TYPE_KEY = "dataType";
+    public static final String DATA_TYPE_LABEL = "Data Type";
+    public static final String DATA_TYPE_DOC = "Type of the data to be received on successful wait";
+    public static final String DATA_RECEIVE_VAR_NAME = "Data Receive Variable Name";
+    public static final String DATA_RECEIVE_VAR_DOC = "Variable name to receive the data";
+    public static final String DATA_WAITS_KEY = "dataWaits";
+    public static final String DATA_WAITS_LABEL = "Data Waits";
+    public static final String DATA_WAITS_DOC = "Data to wait for (one or more)";
     public static final String FUTURES_PARAM = "futures";
-    private static final Set<String> EXCLUDED_AWAIT_PARAMS = Set.of(FUTURES_PARAM, "T");
+    public static final Set<String> EXCLUDED_AWAIT_PARAMS = Set.of(FUTURES_PARAM, "T");
 
     private static final Gson gson = new Gson();
 

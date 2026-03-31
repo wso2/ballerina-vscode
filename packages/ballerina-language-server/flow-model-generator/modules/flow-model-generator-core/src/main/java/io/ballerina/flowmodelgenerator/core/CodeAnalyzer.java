@@ -46,6 +46,7 @@ import io.ballerina.compiler.api.values.ConstantValue;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.AssignmentStatementNode;
 import io.ballerina.compiler.syntax.tree.BinaryExpressionNode;
+import io.ballerina.compiler.syntax.tree.BindingPatternNode;
 import io.ballerina.compiler.syntax.tree.BlockStatementNode;
 import io.ballerina.compiler.syntax.tree.BreakStatementNode;
 import io.ballerina.compiler.syntax.tree.ByteArrayLiteralNode;
@@ -74,6 +75,7 @@ import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
 import io.ballerina.compiler.syntax.tree.IfElseStatementNode;
 import io.ballerina.compiler.syntax.tree.ImplicitNewExpressionNode;
+import io.ballerina.compiler.syntax.tree.ListBindingPatternNode;
 import io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.LocalTypeDefinitionStatementNode;
 import io.ballerina.compiler.syntax.tree.LockStatementNode;
@@ -119,6 +121,7 @@ import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.TemplateExpressionNode;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TransactionStatementNode;
+import io.ballerina.compiler.syntax.tree.TupleTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
 import io.ballerina.compiler.syntax.tree.VariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.WaitActionNode;
@@ -159,10 +162,12 @@ import io.ballerina.flowmodelgenerator.core.model.node.RemoteActionCallBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ResourceActionCallBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ReturnBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.RollbackBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.SendDataBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.StartBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.VariableBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.VectorStoreBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.WaitBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.WaitDataBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.XmlPayloadBuilder;
 import io.ballerina.flowmodelgenerator.core.utils.ConnectorUtil;
 import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
@@ -449,6 +454,15 @@ public class CodeAnalyzer extends NodeVisitor {
         Map<String, Object> metadataData = getConnectorMetadata(classSymbol);
         setFunctionProperties(functionName, expressionNode, remoteMethodCallActionNode, functionSymbol,
                 classSymbol.getName().orElse(""), metadataData);
+
+        // For ACTIVITY_CALL, override the symbol with the actual activity function (first positional argument)
+        // and set the org/module from the activity function's defining module
+        // TODO: This may not be ideal. revisit again
+        if (isWorkflowCtxOperation(remoteMethodCallActionNode, classSymbol, CALL_ACTIVITY_METHOD_NAME)) {
+            overrideSymbolFromFirstArg(remoteMethodCallActionNode.arguments());
+        } else if (isWorkflowCtxOperation(remoteMethodCallActionNode, classSymbol, AWAIT_METHOD_NAME)) {
+            populateAwaitWaitDataProperties(remoteMethodCallActionNode);
+        }
     }
 
     private void populateAgentMetaData(ExpressionNode expressionNode, ClassSymbol classSymbol) {
@@ -779,6 +793,174 @@ public class CodeAnalyzer extends NodeVisitor {
         String className = classSymbol.getName().orElse("");
         return methodName.equals(operationName) &&
                 className.equals(CONTEXT_CLASS_NAME) && isWorkflowModule(classSymbol.getModule());
+    }
+
+    /**
+     * Overrides the codedata symbol and org/module with the function reference from the first positional argument.
+     * Used for workflow operations like callActivity and workflow:run where the first argument is a function reference
+     * whose identity should be the node's symbol.
+     */
+    private void overrideSymbolFromFirstArg(SeparatedNodeList<FunctionArgumentNode> args) {
+        if (args.isEmpty() || !(args.get(0) instanceof PositionalArgumentNode positionalArg)) {
+            return;
+        }
+        ExpressionNode expr = positionalArg.expression();
+        String functionRefName = expr.toSourceCode().strip();
+        nodeBuilder.codedata().symbol(functionRefName);
+
+        Optional<Symbol> resolvedSymbol = semanticModel.symbol(expr);
+        if (resolvedSymbol.isPresent()) {
+            nodeBuilder.symbolInfo(resolvedSymbol.get());
+        }
+    }
+
+    /**
+     * Populates DATA_WAITS_KEY property for a simple wait expression (check wait data.dataName).
+     */
+    private void populateSimpleWaitDataProperties(WaitActionNode waitActionNode) {
+        Node waitFutureExpr = waitActionNode.waitFutureExpr();
+        if (waitFutureExpr.kind() != SyntaxKind.FIELD_ACCESS) {
+            return;
+        }
+        FieldAccessExpressionNode fieldAccess = (FieldAccessExpressionNode) waitFutureExpr;
+        String dataName = fieldAccess.fieldName().toSourceCode().strip();
+
+        String variableName = "";
+        String dataType = "";
+        if (typedBindingPatternNode != null) {
+            variableName = typedBindingPatternNode.bindingPattern().toSourceCode().strip();
+            dataType = typedBindingPatternNode.typeDescriptor().toSourceCode().strip();
+        }
+
+        buildDataWaitsProperty(List.of(new DataWaitEntry(variableName, dataType, dataName)));
+    }
+
+    /**
+     * Populates DATA_WAITS_KEY property for an await remote call (ctx->await([data.d1, data.d2])).
+     * Removes the generic futures/T properties and keeps minCount/timeout.
+     */
+    private void populateAwaitWaitDataProperties(RemoteMethodCallActionNode remoteMethodCallActionNode) {
+        // Remove generic properties that don't match WaitDataBuilder expectations
+        Map<String, Property> properties = nodeBuilder.properties().build();
+        WaitDataBuilder.EXCLUDED_AWAIT_PARAMS.forEach(properties::remove);
+
+        // Parse the first argument (futures array) to extract data field references
+        SeparatedNodeList<FunctionArgumentNode> args = remoteMethodCallActionNode.arguments();
+        List<DataWaitEntry> entries = new ArrayList<>();
+
+        if (!args.isEmpty() && args.get(0) instanceof PositionalArgumentNode positionalArg) {
+            ExpressionNode futuresExpr = positionalArg.expression();
+            // Expected: [data.field1, data.field2]
+            if (futuresExpr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
+                ListConstructorExpressionNode listNode = (ListConstructorExpressionNode) futuresExpr;
+                for (Node member : listNode.expressions()) {
+                    if (member.kind() == SyntaxKind.FIELD_ACCESS) {
+                        FieldAccessExpressionNode fieldAccess = (FieldAccessExpressionNode) member;
+                        entries.add(new DataWaitEntry("", "", fieldAccess.fieldName().toSourceCode().strip()));
+                    }
+                }
+            }
+        }
+
+        // Extract variable names and types from typedBindingPatternNode
+        if (typedBindingPatternNode != null && !entries.isEmpty()) {
+            if (entries.size() == 1) {
+                // Simple: Type var = check ctx->await([data.field]);
+                entries.set(0, entries.get(0).withVarAndType(
+                        typedBindingPatternNode.bindingPattern().toSourceCode().strip(),
+                        typedBindingPatternNode.typeDescriptor().toSourceCode().strip()));
+            } else {
+                // Tuple: [Type1, Type2] [var1, var2] = check ctx->await([data.f1, data.f2]);
+                populateTupleEntries(entries);
+            }
+        }
+
+        buildDataWaitsProperty(entries);
+    }
+
+    /**
+     * Extracts variable names and types from a tuple binding pattern and updates the entries.
+     */
+    private void populateTupleEntries(List<DataWaitEntry> entries) {
+        if (typedBindingPatternNode == null) {
+            return;
+        }
+
+        // Extract types from tuple type descriptor: [Type1, Type2]
+        Node typeDesc = typedBindingPatternNode.typeDescriptor();
+        List<String> types = new ArrayList<>();
+        if (typeDesc.kind() == SyntaxKind.TUPLE_TYPE_DESC) {
+            TupleTypeDescriptorNode tupleType = (TupleTypeDescriptorNode) typeDesc;
+            for (Node memberType : tupleType.memberTypeDesc()) {
+                if (memberType.kind() != SyntaxKind.COMMA_TOKEN) {
+                    types.add(memberType.toSourceCode().strip());
+                }
+            }
+        }
+
+        // Extract variable names from list binding pattern: [var1, var2]
+        BindingPatternNode bindingPattern = typedBindingPatternNode.bindingPattern();
+        List<String> varNames = new ArrayList<>();
+        if (bindingPattern.kind() == SyntaxKind.LIST_BINDING_PATTERN) {
+            ListBindingPatternNode listPattern = (ListBindingPatternNode) bindingPattern;
+            for (BindingPatternNode member : listPattern.bindingPatterns()) {
+                varNames.add(member.toSourceCode().strip());
+            }
+        }
+
+        // Update entries with types and variable names
+        for (int i = 0; i < entries.size(); i++) {
+            String type = i < types.size() ? types.get(i) : "";
+            String varName = i < varNames.size() ? varNames.get(i) : "";
+            entries.set(i, entries.get(i).withVarAndType(varName, type));
+        }
+    }
+
+    /**
+     * Builds the DATA_WAITS_KEY repeatable property from a list of DataWaitEntry values.
+     */
+    private void buildDataWaitsProperty(List<DataWaitEntry> entries) {
+        nodeBuilder.properties().nestedProperty();
+        for (int i = 0; i < entries.size(); i++) {
+            DataWaitEntry entry = entries.get(i);
+            nodeBuilder.properties().nestedProperty();
+
+            nodeBuilder.properties().custom()
+                    .metadata().label(WaitDataBuilder.DATA_RECEIVE_VAR_NAME)
+                        .description(WaitDataBuilder.DATA_RECEIVE_VAR_DOC).stepOut()
+                    .value(entry.variableName)
+                    .editable(true)
+                    .stepOut()
+                    .addProperty(Property.VARIABLE_KEY);
+
+            nodeBuilder.properties().custom()
+                    .metadata().label(WaitDataBuilder.DATA_TYPE_LABEL)
+                        .description(WaitDataBuilder.DATA_TYPE_DOC).stepOut()
+                    .value(entry.dataType)
+                    .editable(true)
+                    .stepOut()
+                    .addProperty(WaitDataBuilder.DATA_TYPE_KEY);
+
+            nodeBuilder.properties().custom()
+                    .metadata().label(WaitDataBuilder.DATA_NAME_LABEL)
+                        .description(WaitDataBuilder.DATA_NAME_DOC).stepOut()
+                    .value(entry.dataName)
+                    .editable(true)
+                    .stepOut()
+                    .addProperty(WaitDataBuilder.DATA_NAME_KEY);
+
+            nodeBuilder.properties().endNestedProperty(Property.ValueType.FIXED_PROPERTY,
+                    String.valueOf(i), WaitDataBuilder.DATA_WAITS_LABEL, WaitDataBuilder.DATA_WAITS_DOC);
+        }
+        nodeBuilder.properties().endNestedProperty(Property.ValueType.REPEATABLE_PROPERTY,
+                WaitDataBuilder.DATA_WAITS_KEY, WaitDataBuilder.DATA_WAITS_LABEL, WaitDataBuilder.DATA_WAITS_DOC,
+                WaitDataBuilder.getDataWaitSchema(), false, false);
+    }
+
+    private record DataWaitEntry(String variableName, String dataType, String dataName) {
+        DataWaitEntry withVarAndType(String variableName, String dataType) {
+            return new DataWaitEntry(variableName, dataType, this.dataName);
+        }
     }
 
     private boolean isWorkflowWaitData(WaitActionNode waitActionNode) {
@@ -1971,6 +2153,8 @@ public class CodeAnalyzer extends NodeVisitor {
             nodeBuilder.properties()
                     .dataVariable(this.typedBindingPatternNode, Property.VARIABLE_NAME, Property.TYPE_DOC,
                             Property.VARIABLE_DOC, true, new HashSet<>(), true);
+        } else if (nodeBuilder instanceof WaitDataBuilder) {
+            // Variable/type info is embedded in the dataWaits property — skip generic handling
         } else {
             nodeBuilder.properties().dataVariable(this.typedBindingPatternNode, implicit, new HashSet<>());
         }
@@ -2240,13 +2424,8 @@ public class CodeAnalyzer extends NodeVisitor {
 
     private void handleWorkflowFunctionSymbol(FunctionCallExpressionNode functionCallExpressionNode,
                                               FunctionSymbol functionSymbol) {
-        // For WORKFLOW_RUN, the symbol should be the workflow process function (first positional argument),
-        // not the "run" method name
         if (isWorkflowOperation(functionSymbol, RUN_METHOD_NAME)) {
-            SeparatedNodeList<FunctionArgumentNode> args = functionCallExpressionNode.arguments();
-            if (!args.isEmpty() && args.get(0) instanceof PositionalArgumentNode positionalArg) {
-                nodeBuilder.codedata().symbol(positionalArg.expression().toSourceCode().strip());
-            }
+            overrideSymbolFromFirstArg(functionCallExpressionNode.arguments());
         }
     }
 
@@ -2540,8 +2719,8 @@ public class CodeAnalyzer extends NodeVisitor {
             // custom node
             // Check if this is a workflow wait for data (wait events.dataName)
             if (isWorkflowWaitData(waitActionNode)) {
-                startNode(NodeKind.WAIT_DATA, waitActionNode)
-                        .properties().custom().handleWaitNode(nodes).stepOut().addProperty(WaitBuilder.FUTURES_KEY);
+                startNode(NodeKind.WAIT_DATA, waitActionNode);
+                populateSimpleWaitDataProperties(waitActionNode);
             } else {
                 startNode(NodeKind.EXPRESSION, waitActionNode)
                         .properties().statement(waitActionNode);

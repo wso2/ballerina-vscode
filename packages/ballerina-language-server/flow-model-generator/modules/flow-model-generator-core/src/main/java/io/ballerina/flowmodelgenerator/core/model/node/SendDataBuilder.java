@@ -21,25 +21,30 @@ package io.ballerina.flowmodelgenerator.core.model.node;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
-import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Option;
 import io.ballerina.flowmodelgenerator.core.model.Property;
-import io.ballerina.flowmodelgenerator.core.model.PropertyTypeMemberInfo;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil;
+import io.ballerina.modelgenerator.commons.FunctionData;
+import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
+import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
+import io.ballerina.modelgenerator.commons.ParameterData;
+import io.ballerina.projects.Module;
 import io.ballerina.projects.Package;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Set;
 
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_MODULE;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ORG;
+import static io.ballerina.modelgenerator.commons.ParameterData.Kind.REQUIRED;
 
 /**
  * Represents a workflow send data operation node (sendData).
@@ -47,10 +52,10 @@ import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_O
  *
  * @since 2.0.0
  */
-public class SendDataBuilder extends NodeBuilder {
+public class SendDataBuilder extends FunctionCall {
     public static final String LABEL = "Send Data";
     public static final String DESCRIPTION = "Send data to an existing workflow instance";
-    public static final String WORKFLOW_NAME_KEY = "workflowName";
+    public static final String WORKFLOW_NAME_KEY = "workflow";
     public static final String WORKFLOW_NAME_LABEL = "Workflow Name";
     public static final String WORKFLOW_NAME_DOC = "The workflow function to send the data to";
     public static final String DATA_NAME_KEY = "dataName";
@@ -60,7 +65,11 @@ public class SendDataBuilder extends NodeBuilder {
     public static final String DATA_LABEL = "Data";
     public static final String DATA_DOC = "The data to send";
     private static final String SEND_DATA_METHOD = "sendData";
-    private static final String MAP_ANYDATA_TYPE = "map<anydata>";
+    private static final String WORKFLOW_ID_KEY = "workflowId";
+    public static final String WORKFLOW_ID_LABEL = "Target Workflow Id";
+    public static final String WORKFLOW_ID_DOC = "The unique workflow ID to send the data to (obtained from `run`)";
+    private static final String STRING = "string";
+    private static final Set<String> EXCLUDED_PARAMS = Set.of(WORKFLOW_NAME_KEY, WORKFLOW_ID_KEY, "dataName");
 
     @Override
     public void setConcreteConstData() {
@@ -85,10 +94,27 @@ public class SendDataBuilder extends NodeBuilder {
                     .options(workflowOptions)
                     .selected(true)
                     .stepOut()
+                .codedata()
+                    .kind(REQUIRED.name())
+                .stepOut()
                 .value("")
                 .editable(true)
                 .stepOut()
                 .addProperty(WORKFLOW_NAME_KEY);
+
+        properties().custom()
+                .metadata()
+                    .label(WORKFLOW_ID_LABEL)
+                    .description(WORKFLOW_ID_DOC)
+                .stepOut()
+                .type(Property.ValueType.EXPRESSION, STRING)
+                .codedata()
+                    .kind(REQUIRED.name())
+                .stepOut()
+                .value("")
+                .editable(true)
+                .stepOut()
+                .addProperty(WORKFLOW_ID_KEY);
 
         properties().custom()
                 .metadata()
@@ -97,73 +123,46 @@ public class SendDataBuilder extends NodeBuilder {
                     .stepOut()
                 .type()
                     .fieldType(Property.ValueType.SINGLE_SELECT)
+                    .ballerinaType(STRING)
                     .options(List.of())
                     .selected(true)
                     .stepOut()
+                .codedata()
+                    .kind(REQUIRED.name())
+                .stepOut()
                 .value("")
                 .editable(false)
                 .stepOut()
                 .addProperty(DATA_NAME_KEY);
 
-        List<PropertyTypeMemberInfo> typeMembers = List.of(
-                new PropertyTypeMemberInfo(MAP_ANYDATA_TYPE, null, null, "RECORD_TYPE", false)
-        );
+        ModuleInfo workflowModuleInfo = new ModuleInfo(WORKFLOW_ORG, WORKFLOW_MODULE, WORKFLOW_MODULE, null);
+        FunctionData callActivityData = new FunctionDataBuilder()
+                .name(SEND_DATA_METHOD)
+                .moduleInfo(workflowModuleInfo)
+                .functionResultKind(FunctionData.Kind.FUNCTION)
+                .project(PackageUtil.loadProject(context.workspaceManager(), context.filePath()))
+                .userModuleInfo(moduleInfo)
+                .workspaceManager(context.workspaceManager())
+                .filePath(context.filePath())
+                .build();
 
-        properties().custom()
-                .metadata()
-                    .label(DATA_LABEL)
-                    .description(DATA_DOC)
-                    .stepOut()
-                .type()
-                    .fieldType(Property.ValueType.RECORD_MAP_EXPRESSION)
-                    .ballerinaType(MAP_ANYDATA_TYPE)
-                    .typeMembers(typeMembers)
-                    .selected(false)
-                    .stepOut()
-                .type()
-                    .fieldType(Property.ValueType.EXPRESSION)
-                    .ballerinaType(MAP_ANYDATA_TYPE)
-                    .selected(false)
-                    .stepOut()
-                .value("")
-                .editable(true)
-                .stepOut()
-                .addProperty(DATA_KEY);
+        LinkedHashMap<String, ParameterData> filteredParams = new LinkedHashMap<>(callActivityData.parameters());
+        filteredParams.keySet().removeAll(EXCLUDED_PARAMS);
+        callActivityData.setParameters(filteredParams);
+
+        Module module = context.workspaceManager().module(context.filePath()).orElse(null);
+        setParameterProperties(callActivityData, module);
     }
 
     @Override
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
-        Optional<Property> workflowNameProp = sourceBuilder.getProperty(WORKFLOW_NAME_KEY);
-        String workflowName = workflowNameProp.map(p -> p.value().toString()).orElse("");
-
-        Optional<Property> dataNameProp = sourceBuilder.getProperty(DATA_NAME_KEY);
-        String dataName = dataNameProp.map(p -> p.value().toString()).orElse("");
-
-        if (workflowName.isBlank() || dataName.isBlank()) {
-            throw new IllegalStateException("Send data node is missing required values: workflowName/dataName");
-        }
-
-        Optional<Property> dataProp = sourceBuilder.getProperty(DATA_KEY);
-        String data = dataProp.map(p -> p.value().toString())
-                .filter(value -> !value.isBlank())
-                .orElse("{}");
-
-        // Generate: check workflow:sendData(workflowFunction, data, "dataName");
+        // Generate: check workflow:sendData(workflowFunction, workflowId, "dataName", data)
         sourceBuilder.token()
                 .keyword(SyntaxKind.CHECK_KEYWORD)
                 .name(WORKFLOW_MODULE)
                 .keyword(SyntaxKind.COLON_TOKEN)
-                .name(SEND_DATA_METHOD)
-                .keyword(SyntaxKind.OPEN_PAREN_TOKEN)
-                .name(workflowName)
-                .keyword(SyntaxKind.COMMA_TOKEN)
-                .whiteSpace()
-                .name(data)
-                .keyword(SyntaxKind.COMMA_TOKEN)
-                .whiteSpace()
-                .name("\"" + dataName + "\"")
-                .keyword(SyntaxKind.CLOSE_PAREN_TOKEN)
-                .endOfStatement();
+                .name(SEND_DATA_METHOD);
+        sourceBuilder.functionParameters(sourceBuilder.flowNode, Set.of(Property.CHECK_ERROR_KEY));
 
         return sourceBuilder
                 .textEdit()
@@ -197,4 +196,3 @@ public class SendDataBuilder extends NodeBuilder {
         return options;
     }
 }
-
