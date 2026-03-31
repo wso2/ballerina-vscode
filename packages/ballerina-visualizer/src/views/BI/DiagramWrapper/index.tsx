@@ -123,6 +123,13 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     const isMountedRef = useRef(true);
 
     useEffect(() => {
+        isMountedRef.current = true;
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
+
+    useEffect(() => {
         rpcClient.getVisualizerLocation().then((location) => {
             if (location.metadata?.enableSequenceDiagram) {
                 setEnableSequenceDiagram(true);
@@ -343,77 +350,92 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
 
     const handleResourceTryIt = async (methodValue: string, pathValue: string) => {
         if (serviceType !== "http") { return; }
-        setIsTryItInProgress(true);
+        const baseUrl = buildBaseUrl(listener, basePath);
+        const serviceName = basePath?.replace(/^\//, "") || "Service";
 
+        const location = await rpcClient.getVisualizerLocation();
+        const docUri = filePath ?? location.documentUri;
+
+        let oasSpec: any | undefined;
         try {
-            const baseUrl = buildBaseUrl(listener, basePath);
-            const serviceName = basePath?.replace(/^\//, "") || "Service";
-
-            const location = await rpcClient.getVisualizerLocation();
-            const docUri = filePath ?? location.documentUri;
-
-            let oasSpec: any | undefined;
-            try {
-                const oasResult = await rpcClient.getServiceDesignerRpcClient().getOASSpec({
-                    documentFilePath: docUri,
-                    basePath
-                });
-                oasSpec = oasResult.spec ?? undefined;
-            } catch {
-                // spec unavailable — extension will fall back to minimal placeholder
-            }
-
-            // Delegate cell-building to the extension so both Resource Try It (diagram) and Code Lens
-            // Try It share the same buildHurlCellsFromOASSpec logic via ballerina.startService
-            await rpcClient.getCommonRpcClient().executeCommand({
-                commands: ["ballerina.startService", { oasSpec, baseUrl, serviceName, resourceMetadata: { methodValue, pathValue } }, { savable: false }, { basePath, listener }]
+            const oasResult = await rpcClient.getServiceDesignerRpcClient().getOASSpec({
+                documentFilePath: docUri,
+                basePath
             });
-        } finally {
-            setIsTryItInProgress(false);
+            oasSpec = oasResult.spec ?? undefined;
+        } catch {
+            // spec unavailable — extension will fall back to minimal placeholder
         }
+
+        // Delegate cell-building to the extension so both Resource Try It (diagram) and Code Lens
+        // Try It share the same buildHurlCellsFromOASSpec logic via ballerina.startService
+        await rpcClient.getCommonRpcClient().executeCommand({
+            commands: ["ballerina.startService", { oasSpec, baseUrl, serviceName, resourceMetadata: { methodValue, pathValue } }, { savable: false }, { basePath, listener }]
+        });
     };
 
     const handleResourceTryItWithAI = async () => {
         if (serviceType !== "http") { return; }
-        setIsTryItInProgress(true);
+        const methodValue = parentMetadata?.accessor || "GET";
+        const pathValue = removeForwardSlashes(parentMetadata?.label || "/");
+        const serviceName = basePath?.replace(/^\//, "") || "Service";
+        const prompt = getTryItAIDefaultPromptResource(methodValue, pathValue, serviceName, basePath);
 
-        try {
-            const methodValue = parentMetadata?.accessor || "GET";
-            const pathValue = removeForwardSlashes(parentMetadata?.label || "/");
-            const serviceName = basePath?.replace(/^\//, "") || "Service";
-            const prompt = getTryItAIDefaultPromptResource(methodValue, pathValue, serviceName, basePath);
-
-            await rpcClient.getCommonRpcClient().executeCommand({
-                commands: [SHARED_COMMANDS.OPEN_AI_PANEL, prompt]
-            });
-        } finally {
-            setIsTryItInProgress(false);
-        }
+        await rpcClient.getCommonRpcClient().executeCommand({
+            commands: [SHARED_COMMANDS.OPEN_AI_PANEL, prompt]
+        });
     };
 
-    const handleTryItDropdownOption = (option: string) => {
+    const handleTryItDropdownOption = async (option: string) => {
+        if (isTryItInProgress) {
+            return;
+        }
+
         const selectedOption = option as TryItOptionValue;
-        setSelectedTryItOption(selectedOption);
+        if (isMountedRef.current) {
+            setSelectedTryItOption(selectedOption);
+        }
         rpcClient.getCommonRpcClient().setPreferredTryItOption(selectedOption).catch((error: unknown) => {
             console.error("Error saving preferred Try It option:", error);
         });
-        switch (selectedOption) {
-            case TryItOptionValue.TRY_IT:
-                handleResourceTryIt(parentMetadata?.accessor || "", parentMetadata?.label || "");
-                break;
-            case TryItOptionValue.TRY_IT_WITH_AI:
-                handleResourceTryItWithAI();
-                break;
+
+        if (isMountedRef.current) {
+            setIsTryItInProgress(true);
+        }
+
+        try {
+            switch (selectedOption) {
+                case TryItOptionValue.TRY_IT:
+                    await handleResourceTryIt(parentMetadata?.accessor || "", parentMetadata?.label || "");
+                    break;
+                case TryItOptionValue.TRY_IT_WITH_AI:
+                    await handleResourceTryItWithAI();
+                    break;
+            }
+        } finally {
+            if (isMountedRef.current) {
+                setIsTryItInProgress(false);
+            }
         }
     };
 
     const handleTryItPrimaryAction = async () => {
+        if (isTryItInProgress) {
+            return;
+        }
+
+        if (isMountedRef.current) {
+            setIsTryItInProgress(true);
+        }
+
         let optionToRun = selectedTryItOption;
         try {
             const preferredOption = await rpcClient.getCommonRpcClient().getPreferredTryItOption();
             if (preferredOption === TryItOptionValue.TRY_IT || preferredOption === TryItOptionValue.TRY_IT_WITH_AI) {
                 optionToRun = preferredOption;
-                setSelectedTryItOption(optionToRun);
+                if (isMountedRef.current) {
+                    setSelectedTryItOption(optionToRun);
+                }
             } else {
                 const tryItOptions = getTryItDropdownOptions("resource").map(option => ({
                     label: option.title,
@@ -429,14 +451,27 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                     return;
                 }
                 optionToRun = selected.value;
-                setSelectedTryItOption(optionToRun);
+                if (isMountedRef.current) {
+                    setSelectedTryItOption(optionToRun);
+                }
                 await rpcClient.getCommonRpcClient().setPreferredTryItOption(optionToRun); 
+            }
+
+            switch (optionToRun) {
+                case TryItOptionValue.TRY_IT:
+                    await handleResourceTryIt(parentMetadata?.accessor || "", parentMetadata?.label || "");
+                    break;
+                case TryItOptionValue.TRY_IT_WITH_AI:
+                    await handleResourceTryItWithAI();
+                    break;
             }
         } catch (error) {
             console.error("Error handling Try It first-time flow:", error);
+        } finally {
+            if (isMountedRef.current) {
+                setIsTryItInProgress(false);
+            }
         }
-
-        handleTryItDropdownOption(optionToRun);
     };
 
     const tryItDropdownOptions: DropdownOptionProps[] = getTryItDropdownOptions("resource");
