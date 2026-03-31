@@ -18,12 +18,13 @@
 
 package io.ballerina.flowmodelgenerator.core;
 
+import io.ballerina.centralconnector.RemoteCentral;
+import io.ballerina.centralconnector.response.DependentPackage;
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.AnnotationAttachmentSymbol;
 import io.ballerina.compiler.api.symbols.ClassSymbol;
 import io.ballerina.compiler.api.symbols.Documentation;
-import io.ballerina.compiler.api.values.ConstantValue;
 import io.ballerina.compiler.api.symbols.FunctionTypeSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
@@ -32,8 +33,7 @@ import io.ballerina.compiler.api.symbols.StreamTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
-import io.ballerina.centralconnector.RemoteCentral;
-import io.ballerina.centralconnector.response.DependentPackage;
+import io.ballerina.compiler.api.values.ConstantValue;
 import io.ballerina.flowmodelgenerator.core.model.AvailableNode;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
@@ -97,9 +97,9 @@ import static io.ballerina.flowmodelgenerator.core.model.NodeKind.VECTOR_STORES;
 /**
  * Utility class for resolving Ballerina AI module versions, their dependent modules, and supported features.
  * <p>
- * Dependent modules are resolved dynamically from Ballerina Central at runtime. A hardcoded fallback map
- * is maintained for offline scenarios. The {@code versionToFeatures} mapping must be updated when new
- * {@code ballerina/ai} versions introduce new feature categories.
+ * Dependent modules are resolved dynamically from Ballerina Central at runtime. A hardcoded fallback map is maintained
+ * for offline scenarios. The {@code versionToFeatures} mapping must be updated when new {@code ballerina/ai} versions
+ * introduce new feature categories.
  *
  * @since 1.2.0
  */
@@ -822,7 +822,7 @@ public class AiUtils {
     }
 
     private static void mergeIntoCache(Map<String, List<AvailableNode>> cacheMap,
-                                        String version, List<AvailableNode> newNodes) {
+                                       String version, List<AvailableNode> newNodes) {
         if (newNodes.isEmpty()) {
             return;
         }
