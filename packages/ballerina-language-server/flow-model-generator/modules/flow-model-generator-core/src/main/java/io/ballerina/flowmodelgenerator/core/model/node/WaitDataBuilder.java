@@ -94,7 +94,7 @@ public class WaitDataBuilder extends CallBuilder {
     private static final String DESCRIPTION = "Wait for workflow data to be received";
     public static final String DATA_NAME_KEY = "dataName";
     public static final String DATA_NAME_LABEL = "Data Name";
-    public static final String DATA_NAME_DOC = "Name of the data to wait for";
+    public static final String DATA_NAME_DOC = "Name of the data to reference when sending data to the workflow";
     public static final String DATA_TYPE_KEY = "dataType";
     public static final String DATA_TYPE_LABEL = "Data Type";
     public static final String DATA_TYPE_DOC = "Type of the data to be received on successful wait";

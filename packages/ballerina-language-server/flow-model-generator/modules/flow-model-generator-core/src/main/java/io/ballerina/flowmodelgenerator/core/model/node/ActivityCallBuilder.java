@@ -73,7 +73,7 @@ public class ActivityCallBuilder extends CallBuilder {
     public static final String CALL_ACTIVITY_METHOD = "callActivity";
     public static final String DEFAULT_RETURN_TYPE = "anydata";
     public static final String ADVANCE_CONFIGURATIONS = "Activity call configurations";
-    private static final Set<String> EXCLUDED_CALL_ACTIVITY_PARAMS = Set.of("activityFunction", "args", "T");
+    public static final Set<String> EXCLUDED_CALL_ACTIVITY_PARAMS = Set.of("activityFunction", "args", "T");
 
     @Override
     protected NodeKind getFunctionNodeKind() {

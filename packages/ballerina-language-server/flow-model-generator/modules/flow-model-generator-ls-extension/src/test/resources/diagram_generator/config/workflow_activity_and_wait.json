@@ -93,17 +93,17 @@
         "id": "59724",
         "metadata": {
           "label": "callActivity",
-          "description": "Executes an activity function within the workflow context.\n\nActivities are non-deterministic operations (I/O, database calls, external APIs)\nthat should only be executed once during workflow execution and not during replay.\nThe workflow runtime ensures exactly-once execution semantics for activities.\n\nThe return type is determined by the `T` typedesc parameter, allowing compile-time\ntype checking when the expected return type is specified. The compiler plugin\nvalidates that the activity function's return type is compatible with `T`.\n\nBy default, if the activity function returns an error, it is treated as a failure\nand the engine will retry the activity based on the retry policy. To treat errors\nas normal completion values, set `failOnError` to `false` in the options.\n\nExample:\n```ballerina\n// Basic activity call (errors cause failure + retry by default)\nstring result = check ctx->callActivity(sendEmailActivity, {email: recipientEmail, subject: subject});\n// With custom retry policy\nstring result = check ctx->callActivity(sendEmailActivity, {email: recipientEmail}, \n    options = {retryPolicy: {maximumAttempts: 3, initialIntervalInSeconds: 2}});\n// Treat errors as normal completion (no retry on error)\nstring|error result = ctx->callActivity(riskyActivity, {data: input}, options = {failOnError: false});\n```\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.3.0.png"
+          "description": "Executes an activity function within the workflow context.\n\nActivities are non-deterministic operations (I/O, database calls, external APIs)\nthat are executed exactly once during workflow execution. Even if the workflow\nreplays, a completed activity is not re-executed.\n\nThe return type is inferred from the calling context, so the result is\nautomatically converted to the expected type without manual casting.\n\nBy default (`retryOnError = false`), any error returned by the activity is passed\nback to the workflow as a normal return value so that workflow logic can handle it\nexplicitly. Set `retryOnError = true` to enable the runtime retry policy; when all\nretries are exhausted the error propagates and the workflow fails unless it is caught.\n\nExample:\n```ballerina\n// Default: error returned as value — workflow handles it\nstring|error result = ctx->callActivity(chargeCardActivity, {amount: total});\nif result is error {\n    return handlePaymentFailure(result);\n}\n// Opt in to automatic retries (3 retries, 2-second initial delay)\n// On exhaustion the error propagates; use `check` to let the workflow fail\nstring result = check ctx->callActivity(sendEmailActivity, {email: addr},\n    retryOnError = true, maxRetries = 3, retryDelay = 2.0);\n```\n",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.3.1.png"
         },
         "codedata": {
           "node": "ACTIVITY_CALL",
-          "org": "ballerina",
-          "module": "workflow",
-          "packageName": "workflow",
+          "org": "$anon",
+          "module": ".",
+          "packageName": ".",
           "object": "Context",
-          "symbol": "callActivity",
-          "version": "0.3.0",
+          "symbol": "calculateDiscount",
+          "version": "0.0.0",
           "lineRange": {
             "fileName": "workflow_operations.bal",
             "startLine": {
@@ -120,125 +120,6 @@
         },
         "returning": false,
         "properties": {
-          "connection": {
-            "metadata": {
-              "label": "Connection",
-              "description": "Connection to use"
-            },
-            "types": [
-              {
-                "fieldType": "EXPRESSION",
-                "selected": true
-              }
-            ],
-            "value": "ctx",
-            "optional": false,
-            "editable": false,
-            "advanced": false,
-            "hidden": true
-          },
-          "activityFunction": {
-            "metadata": {
-              "label": "Activity Function",
-              "description": "The activity function to execute (must be annotated with @Activity)"
-            },
-            "types": [
-              {
-                "fieldType": "EXPRESSION",
-                "ballerinaType": "function",
-                "selected": true
-              }
-            ],
-            "value": "calculateDiscount",
-            "placeholder": "",
-            "optional": false,
-            "editable": true,
-            "advanced": false,
-            "hidden": false,
-            "codedata": {
-              "kind": "REQUIRED",
-              "originalName": "activityFunction"
-            }
-          },
-          "args": {
-            "metadata": {
-              "label": "Args",
-              "description": "Map containing the arguments to pass to the activity function"
-            },
-            "types": [
-              {
-                "fieldType": "REPEATABLE_MAP",
-                "ballerinaType": "map<anydata>",
-                "template": {
-                  "types": [
-                    {
-                      "fieldType": "EXPRESSION",
-                      "ballerinaType": "anydata",
-                      "selected": false
-                    }
-                  ],
-                  "optional": false,
-                  "editable": false,
-                  "advanced": false,
-                  "hidden": false
-                },
-                "selected": false
-              },
-              {
-                "fieldType": "EXPRESSION",
-                "ballerinaType": "map<anydata>",
-                "selected": false
-              }
-            ],
-            "value": "{amount: 100.0}",
-            "placeholder": "{}",
-            "optional": true,
-            "editable": true,
-            "advanced": true,
-            "hidden": false,
-            "codedata": {
-              "kind": "DEFAULTABLE",
-              "originalName": "args"
-            },
-            "defaultValue": "{}"
-          },
-          "options": {
-            "metadata": {
-              "label": "Options",
-              "description": "Optional activity options for retry policy and error handling behavior"
-            },
-            "types": [
-              {
-                "fieldType": "RECORD_MAP_EXPRESSION",
-                "ballerinaType": "workflow:ActivityOptions",
-                "typeMembers": [
-                  {
-                    "type": "ActivityOptions",
-                    "packageInfo": "ballerina:workflow:0.3.0",
-                    "packageName": "workflow",
-                    "kind": "RECORD_TYPE",
-                    "selected": false
-                  }
-                ],
-                "selected": false
-              },
-              {
-                "fieldType": "EXPRESSION",
-                "ballerinaType": "workflow:ActivityOptions?",
-                "selected": false
-              }
-            ],
-            "placeholder": "()",
-            "optional": true,
-            "editable": true,
-            "advanced": true,
-            "hidden": false,
-            "codedata": {
-              "kind": "DEFAULTABLE",
-              "originalName": "options"
-            },
-            "defaultValue": "()"
-          },
           "checkError": {
             "metadata": {
               "label": "Check Error",
@@ -256,29 +137,184 @@
             "advanced": true,
             "hidden": true
           },
-          "T": {
+          "input": {
             "metadata": {
-              "label": "T",
-              "description": "The expected return type (inferred from context or explicitly specified)"
+              "label": "Input"
             },
             "types": [
               {
-                "fieldType": "TYPE",
-                "ballerinaType": "anydata",
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "record {|decimal amount; anydata...;|}",
                 "selected": false
               }
             ],
-            "value": "int",
-            "placeholder": "anydata",
+            "placeholder": "{amount: 0.0d}",
             "optional": false,
             "editable": true,
             "advanced": false,
             "hidden": false,
             "codedata": {
-              "kind": "PARAM_FOR_TYPE_INFER",
-              "originalName": "T"
+              "kind": "REQUIRED",
+              "originalName": "input"
+            }
+          },
+          "advanced": {
+            "metadata": {
+              "label": "Activity call configurations",
+              "description": "Activity call configurations"
             },
-            "defaultValue": "anydata"
+            "types": [
+              {
+                "fieldType": "ADVANCE_PARAM_LIST",
+                "selected": false
+              }
+            ],
+            "value": {
+              "retryOnError": {
+                "metadata": {
+                  "label": "Retry On Error",
+                  "description": "If `true`, retry policy is applied when the activity fails:\nthe engine retries the activity up to `maxRetries` times before\npropagating the failure to the workflow. Set to `false` (default)\nto receive any error as a normal return value so that the workflow\ncan handle it with its own logic, without any automatic retries."
+                },
+                "types": [
+                  {
+                    "fieldType": "FLAG",
+                    "ballerinaType": "boolean",
+                    "selected": false
+                  },
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "boolean",
+                    "selected": false
+                  }
+                ],
+                "placeholder": "false",
+                "optional": true,
+                "editable": true,
+                "advanced": true,
+                "hidden": false,
+                "codedata": {
+                  "kind": "INCLUDED_FIELD",
+                  "originalName": "retryOnError"
+                },
+                "defaultValue": "false"
+              },
+              "maxRetries": {
+                "metadata": {
+                  "label": "Max Retries",
+                  "description": "Number of times to retry the activity on failure (only used when\n`retryOnError = true`). `0` means no retries — the activity runs\nexactly once and its failure immediately propagates to the workflow."
+                },
+                "types": [
+                  {
+                    "fieldType": "NUMBER",
+                    "ballerinaType": "int",
+                    "selected": false
+                  },
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "int",
+                    "selected": false
+                  }
+                ],
+                "placeholder": "0",
+                "optional": true,
+                "editable": true,
+                "advanced": true,
+                "hidden": false,
+                "codedata": {
+                  "kind": "INCLUDED_FIELD",
+                  "originalName": "maxRetries"
+                },
+                "defaultValue": "0"
+              },
+              "retryDelay": {
+                "metadata": {
+                  "label": "Retry Delay",
+                  "description": "Initial delay in seconds before the first retry (default: 1.0).\nOnly used when `retryOnError = true` and `maxRetries > 0`."
+                },
+                "types": [
+                  {
+                    "fieldType": "NUMBER",
+                    "ballerinaType": "decimal",
+                    "selected": false
+                  },
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "decimal",
+                    "selected": false
+                  }
+                ],
+                "placeholder": "0.0d",
+                "optional": true,
+                "editable": true,
+                "advanced": true,
+                "hidden": false,
+                "codedata": {
+                  "kind": "INCLUDED_FIELD",
+                  "originalName": "retryDelay"
+                },
+                "defaultValue": "1.0"
+              },
+              "retryBackoff": {
+                "metadata": {
+                  "label": "Retry Backoff",
+                  "description": "Multiplier applied to `retryDelay` after each attempt (default: 2.0).\n`1.0` means a fixed interval; `2.0` doubles the delay each time.\nOnly used when `retryOnError = true` and `maxRetries > 0`."
+                },
+                "types": [
+                  {
+                    "fieldType": "NUMBER",
+                    "ballerinaType": "decimal",
+                    "selected": false
+                  },
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "decimal",
+                    "selected": false
+                  }
+                ],
+                "placeholder": "0.0d",
+                "optional": true,
+                "editable": true,
+                "advanced": true,
+                "hidden": false,
+                "codedata": {
+                  "kind": "INCLUDED_FIELD",
+                  "originalName": "retryBackoff"
+                },
+                "defaultValue": "2.0"
+              },
+              "maxRetryDelay": {
+                "metadata": {
+                  "label": "Max Retry Delay",
+                  "description": "Optional cap on the delay between retries, in seconds.\nPrevents exponential backoff from growing without limit.\nOnly used when `retryOnError = true` and `maxRetries > 0`."
+                },
+                "types": [
+                  {
+                    "fieldType": "NUMBER",
+                    "ballerinaType": "decimal",
+                    "selected": false
+                  },
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "decimal",
+                    "selected": false
+                  }
+                ],
+                "placeholder": "0.0d",
+                "optional": true,
+                "editable": true,
+                "advanced": true,
+                "hidden": false,
+                "codedata": {
+                  "kind": "INCLUDED_FIELD",
+                  "originalName": "maxRetryDelay"
+                },
+                "defaultValue": "0.0d"
+              }
+            },
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
           },
           "variable": {
             "metadata": {
@@ -481,17 +517,135 @@
         },
         "returning": false,
         "properties": {
-          "futures": {
+          "dataWaits": {
+            "metadata": {
+              "label": "Data Waits",
+              "description": "Data to wait for (one or more)"
+            },
+            "types": [
+              {
+                "fieldType": "REPEATABLE_PROPERTY",
+                "template": {
+                  "metadata": {
+                    "label": "Data Waits",
+                    "description": "Data to wait for (one or more)"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "FIXED_PROPERTY",
+                      "selected": false
+                    }
+                  ],
+                  "value": {
+                    "variable": {
+                      "metadata": {
+                        "label": "Data Receive Variable Name",
+                        "description": "Variable name to receive the data"
+                      },
+                      "types": [
+                        {
+                          "fieldType": "IDENTIFIER",
+                          "scope": "Local",
+                          "selected": true
+                        }
+                      ],
+                      "value": "",
+                      "optional": false,
+                      "editable": true,
+                      "advanced": false,
+                      "hidden": false
+                    },
+                    "dataType": {
+                      "metadata": {
+                        "label": "Data Type",
+                        "description": "Type of the data to be received on successful wait"
+                      },
+                      "types": [
+                        {
+                          "fieldType": "TYPE",
+                          "ballerinaType": "anydata",
+                          "selected": true
+                        }
+                      ],
+                      "value": "",
+                      "optional": false,
+                      "editable": true,
+                      "advanced": false,
+                      "hidden": false
+                    },
+                    "dataName": {
+                      "metadata": {
+                        "label": "Data Name",
+                        "description": "Name of the data to reference when sending data to the workflow"
+                      },
+                      "types": [
+                        {
+                          "fieldType": "IDENTIFIER",
+                          "selected": true
+                        }
+                      ],
+                      "value": "",
+                      "optional": false,
+                      "editable": true,
+                      "advanced": false,
+                      "hidden": false
+                    }
+                  },
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "selected": false
+              }
+            ],
             "value": {
-              "events.approve": {
+              "0": {
+                "metadata": {
+                  "label": "Data Waits",
+                  "description": "Data to wait for (one or more)"
+                },
                 "types": [
                   {
-                    "fieldType": "EXPRESSION",
-                    "ballerinaType": "future<any|error>",
-                    "selected": true
+                    "fieldType": "FIXED_PROPERTY",
+                    "selected": false
                   }
                 ],
-                "value": "events.approve",
+                "value": {
+                  "variable": {
+                    "metadata": {
+                      "label": "Data Receive Variable Name",
+                      "description": "Variable name to receive the data"
+                    },
+                    "value": "approval",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  },
+                  "dataType": {
+                    "metadata": {
+                      "label": "Data Type",
+                      "description": "Type of the data to be received on successful wait"
+                    },
+                    "value": "// Wait for data - should be WAIT_DATA\n    ApprovalData",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  },
+                  "dataName": {
+                    "metadata": {
+                      "label": "Data Name",
+                      "description": "Name of the data to reference when sending data to the workflow"
+                    },
+                    "value": "approve",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  }
+                },
                 "optional": false,
                 "editable": false,
                 "advanced": false,
@@ -502,55 +656,6 @@
             "editable": false,
             "advanced": false,
             "hidden": false
-          },
-          "variable": {
-            "metadata": {
-              "label": "Variable Name",
-              "description": "Name of the variable"
-            },
-            "types": [
-              {
-                "fieldType": "IDENTIFIER",
-                "selected": true
-              }
-            ],
-            "value": "approval",
-            "optional": false,
-            "editable": false,
-            "advanced": false,
-            "hidden": false,
-            "codedata": {
-              "lineRange": {
-                "fileName": "workflow_operations.bal",
-                "startLine": {
-                  "line": 32,
-                  "offset": 17
-                },
-                "endLine": {
-                  "line": 32,
-                  "offset": 25
-                }
-              }
-            }
-          },
-          "type": {
-            "metadata": {
-              "label": "Type of the variable",
-              "description": "Type of the variable"
-            },
-            "types": [
-              {
-                "fieldType": "TYPE",
-                "selected": true
-              }
-            ],
-            "value": "ApprovalData",
-            "placeholder": "var",
-            "optional": false,
-            "editable": true,
-            "advanced": false,
-            "hidden": true,
-            "codedata": {}
           }
         },
         "flags": 1
