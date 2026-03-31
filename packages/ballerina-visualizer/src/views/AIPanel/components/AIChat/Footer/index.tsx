@@ -190,7 +190,6 @@ const Footer: React.FC<FooterProps> = ({
     disabled,
     contextUsage,
 }) => {
-    const [generatingText, setGeneratingText] = useState("Generating.");
     const footerSuggestedCommandTemplates = suggestedCommandTemplates ?? defaultSuggestedCommandTemplates;
     const [animatedText, setAnimatedText] = useState("Generating.");
 
