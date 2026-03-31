@@ -988,7 +988,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                             <>
                                                 <AddServiceElementDropdown
                                                     buttonTitle={activeTryItOption?.title || "Try It"}
-                                                    toolTip="Try service options"
+                                                    toolTip="Try Service"
                                                     defaultOption={selectedTryItOption}
                                                     onPrimaryAction={handleTryItPrimaryAction}
                                                     buttonIconName={isTryItInProgress ? "loading" : activeTryItOption?.iconName}
