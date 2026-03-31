@@ -85,8 +85,10 @@ import io.ballerina.projects.ResolvedPackageDependency;
 import io.ballerina.toml.api.Toml;
 import io.ballerina.toml.semantic.TomlType;
 import io.ballerina.toml.semantic.ast.TomlArrayValueNode;
+import io.ballerina.toml.semantic.ast.TomlInlineTableValueNode;
 import io.ballerina.toml.semantic.ast.TomlKeyValueNode;
 import io.ballerina.toml.semantic.ast.TomlNode;
+import io.ballerina.toml.semantic.ast.TomlTableArrayNode;
 import io.ballerina.toml.semantic.ast.TomlTableNode;
 import io.ballerina.toml.semantic.ast.TomlValueNode;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
@@ -553,9 +555,9 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
     }
 
     /**
-     * Converts a {@link TomlNode} to its string representation.
+     * Converts a {@link TomlNode} value from TOML syntax to its Ballerina expression syntax.
      */
-    private String getAsString(TomlNode tomlValueNode) {
+    private String getInBallerinaSyntax(TomlNode tomlValueNode) {
         // In case of syntax errors, return the original string representation of the value in the TOML file.
         boolean hasSyntaxErrors = tomlValueNode.diagnostics().stream()
                 .anyMatch(diagnostic -> diagnostic.diagnosticInfo().severity() == DiagnosticSeverity.ERROR);
@@ -565,11 +567,17 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
 
         switch (tomlValueNode.kind()) {
             case TABLE -> {
-                List<String> keyValuePairs = new LinkedList<>();
+                List<String> keyValuePairs = new ArrayList<>();
                 ((TomlTableNode) tomlValueNode).entries().forEach((key, topLevelNode) -> {
-                    if (topLevelNode.kind() == TomlType.KEY_VALUE) {
-                        TomlKeyValueNode keyValueNode = (TomlKeyValueNode) topLevelNode;
-                        keyValuePairs.add(key + COLON_SPACE + getAsString(keyValueNode.value()));
+                    switch (topLevelNode.kind()) {
+                        case KEY_VALUE -> {
+                            TomlKeyValueNode keyValueNode = (TomlKeyValueNode) topLevelNode;
+                            keyValuePairs.add(key + COLON_SPACE + getInBallerinaSyntax(keyValueNode.value()));
+                        }
+                        case TABLE, TABLE_ARRAY -> {
+                            keyValuePairs.add(key + COLON_SPACE + getInBallerinaSyntax(topLevelNode));
+                        }
+                        default -> { }
                     }
                 });
                 return OPEN_BRACE + String.join(COMMA_SPACE, keyValuePairs) + CLOSE_BRACE;
@@ -582,11 +590,19 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
             }
             case ARRAY -> {
                 List<TomlValueNode> elements = ((TomlArrayValueNode) tomlValueNode).elements();
-                List<String> elementValues = elements.stream().map(this::getAsString).toList();
+                List<String> elementValues = elements.stream().map(this::getInBallerinaSyntax).toList();
                 return OPEN_BRACKET + String.join(COMMA_SPACE, elementValues) + CLOSE_BRACKET;
             }
-            case TABLE_ARRAY, INLINE_TABLE, UNQUOTED_KEY, KEY_VALUE, NONE -> {
-                // TODO: Handle these cases if needed
+            case INLINE_TABLE -> {
+                return getInBallerinaSyntax(((TomlInlineTableValueNode) tomlValueNode).toTable());
+            }
+            case TABLE_ARRAY -> {
+                List<TomlTableNode> children = ((TomlTableArrayNode) tomlValueNode).children();
+                List<String> tableValues = children.stream().map(this::getInBallerinaSyntax).toList();
+                return OPEN_BRACKET + String.join(COMMA_SPACE, tableValues) + CLOSE_BRACKET;
+            }
+            case UNQUOTED_KEY, KEY_VALUE, NONE -> {
+                // Not applicable for value conversion
             }
             default -> {
                 return null;
@@ -886,7 +902,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                 isRootProject);
         ExpressionNode configValueExpr = null;
         if (configTomlValue.isPresent()) {
-            String tomlStringValue = getAsString(configTomlValue.get());
+            String tomlStringValue = getInBallerinaSyntax(configTomlValue.get());
             if (tomlStringValue != null) {
                 configValueExpr = NodeParser.parseExpression(tomlStringValue);
             }
@@ -897,7 +913,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                 variableName, isRootProject);
         ExpressionNode testConfigValueExpr = null;
         if (testConfigTomlValue.isPresent()) {
-            String tomlStringValue = getAsString(testConfigTomlValue.get());
+            String tomlStringValue = getInBallerinaSyntax(testConfigTomlValue.get());
             if (tomlStringValue != null) {
                 testConfigValueExpr = NodeParser.parseExpression(tomlStringValue);
             }
