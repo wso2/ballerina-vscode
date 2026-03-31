@@ -83,7 +83,6 @@ import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectKind;
 import io.ballerina.projects.ResolvedPackageDependency;
 import io.ballerina.toml.api.Toml;
-import io.ballerina.toml.semantic.TomlType;
 import io.ballerina.toml.semantic.ast.TomlArrayValueNode;
 import io.ballerina.toml.semantic.ast.TomlInlineTableValueNode;
 import io.ballerina.toml.semantic.ast.TomlKeyValueNode;
@@ -116,6 +115,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -569,15 +569,18 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
             case TABLE -> {
                 List<String> keyValuePairs = new ArrayList<>();
                 ((TomlTableNode) tomlValueNode).entries().forEach((key, topLevelNode) -> {
+                    String value = null;
                     switch (topLevelNode.kind()) {
                         case KEY_VALUE -> {
                             TomlKeyValueNode keyValueNode = (TomlKeyValueNode) topLevelNode;
-                            keyValuePairs.add(key + COLON_SPACE + getInBallerinaSyntax(keyValueNode.value()));
+                            value = getInBallerinaSyntax(keyValueNode.value());
                         }
-                        case TABLE, TABLE_ARRAY -> {
-                            keyValuePairs.add(key + COLON_SPACE + getInBallerinaSyntax(topLevelNode));
-                        }
+                        case TABLE, TABLE_ARRAY ->
+                            value = getInBallerinaSyntax(topLevelNode);
                         default -> { }
+                    }
+                    if (value != null) {
+                        keyValuePairs.add(key + COLON_SPACE + value);
                     }
                 });
                 return OPEN_BRACE + String.join(COMMA_SPACE, keyValuePairs) + CLOSE_BRACE;
@@ -590,7 +593,8 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
             }
             case ARRAY -> {
                 List<TomlValueNode> elements = ((TomlArrayValueNode) tomlValueNode).elements();
-                List<String> elementValues = elements.stream().map(this::getInBallerinaSyntax).toList();
+                List<String> elementValues = elements.stream()
+                        .map(this::getInBallerinaSyntax).filter(Objects::nonNull).toList();
                 return OPEN_BRACKET + String.join(COMMA_SPACE, elementValues) + CLOSE_BRACKET;
             }
             case INLINE_TABLE -> {
@@ -598,7 +602,10 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
             }
             case TABLE_ARRAY -> {
                 List<TomlTableNode> children = ((TomlTableArrayNode) tomlValueNode).children();
-                List<String> tableValues = children.stream().map(this::getInBallerinaSyntax).toList();
+                List<String> tableValues = children.stream()
+                        .map(this::getInBallerinaSyntax)
+                        .filter(Objects::nonNull)
+                        .toList();
                 return OPEN_BRACKET + String.join(COMMA_SPACE, tableValues) + CLOSE_BRACKET;
             }
             case UNQUOTED_KEY, KEY_VALUE, NONE -> {
