@@ -882,6 +882,12 @@ export function WorkspaceOverview() {
             setIsEditingTitle(false);
             return;
         }
+        // No change — skip commit
+        const currentTitle = projectCollection?.workspaceTitle || projectCollection?.workspaceName || "";
+        if (trimmed === currentTitle) {
+            setIsEditingTitle(false);
+            return;
+        }
         try {
             await rpcClient.getBIDiagramRpcClient().updateProjectTitle({
                 projectPath: projectCollection.workspacePath,

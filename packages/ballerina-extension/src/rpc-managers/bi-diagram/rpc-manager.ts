@@ -2395,9 +2395,9 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         } catch {
             throw new Error(`Ballerina.toml not found at ${ballerinaTomlPath}`);
         }
-        const replaced = content.replace(/title\s*=\s*"[^"]*"/, `title = "${params.title}"`);
-        const updated = replaced !== content
-            ? replaced
+        const titleExists = /title\s*=\s*"[^"]*"/.test(content);
+        const updated = titleExists
+            ? content.replace(/title\s*=\s*"[^"]*"/, `title = "${params.title}"`)
             : content.replace(/\[workspace\]/, `[workspace]\ntitle = "${params.title}"`);
         fs.writeFileSync(ballerinaTomlPath, updated, 'utf-8');
 
