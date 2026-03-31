@@ -18,6 +18,7 @@
     "sourceCode": ""
   },
   "typeName": "UserInfo",
+  "parentTypeName": "json",
   "variableName": "user",
   "isInput": true,
   "output": {
@@ -38,6 +39,19 @@
       {
         "range": {
           "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "import ballerina/data.jsondata;\n"
+      },
+      {
+        "range": {
+          "start": {
             "line": 41,
             "character": 59
           },
@@ -46,7 +60,7 @@
             "character": 1
           }
         },
-        "newText": "let UserInfo userConverted = check user.ensureType() in {\n\n}"
+        "newText": "let UserInfo userConverted = check jsondata:parseAsType(user) in {\n\n}"
       }
     ]
   }

@@ -27,11 +27,11 @@
         "range": {
           "start": {
             "line": 23,
-            "character": 56
+            "character": 65
           },
           "end": {
             "line": 23,
-            "character": 56
+            "character": 65
           }
         },
         "newText": ", Student transform2 = {}"
@@ -53,11 +53,11 @@
         "range": {
           "start": {
             "line": 23,
-            "character": 60
+            "character": 69
           },
           "end": {
             "line": 23,
-            "character": 62
+            "character": 71
           }
         },
         "newText": "jsondata:toJson(transform2)"

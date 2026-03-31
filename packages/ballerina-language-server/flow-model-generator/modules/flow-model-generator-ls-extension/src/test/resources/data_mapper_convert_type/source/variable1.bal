@@ -17,14 +17,14 @@ function transform1(json user, json student) returns json|error => {
 };
 
 function transform2(json user, json student) returns json|error =>
-    let UserInfo userConverted = check user.ensureType() in
+    let UserInfo userConverted = check jsondata:parseAsType(user) in
         {a: 10, b: 20};
 
 function transform2(json user, json student) returns json|error =>
-    let UserInfo userConverted = check user.ensureType() in {};
+    let UserInfo userConverted = check jsondata:parseAsType(user) in {};
 
 function transform3(json user, json student) returns json|error =>
-    let UserInfo userConverted = check user.ensureType(),
+    let UserInfo userConverted = check jsondata:parseAsType(user),
     Student transform3 = {} in transform3;
 
 function transform4(json user, json student) returns json => {
@@ -52,3 +52,5 @@ function transform10(json user, json student) returns json =>
 function transform11(json user, json student) returns json|error =>
     let UserInfo userConverted = check user.ensureType() in
         {a: 10, b: 20};
+
+function transform9(xml user, json student) returns xml => xml ``;
