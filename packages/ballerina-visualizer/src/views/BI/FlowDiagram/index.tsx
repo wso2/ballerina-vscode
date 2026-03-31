@@ -2606,6 +2606,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
     const handleOpenView = async (location: VisualizerLocation) => {
         const context: VisualizerLocation = {
+            view: location.view,
             documentUri: location.documentUri,
             position: location.position,
             identifier: location.identifier,
@@ -3038,6 +3039,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         }
 
         return {
+            view: MACHINE_VIEW.BIDiagram,
             documentUri: functionInfo.filePath,
             position,
             identifier: functionInfo.name,
