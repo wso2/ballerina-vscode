@@ -61,11 +61,7 @@ import MarkdownRenderer from "../MarkdownRenderer";
 import { CodeSection } from "../CodeSection";
 import ErrorBox from "../ErrorBox";
 import { Input, parseInput, stringifyInputArrayWithBadges } from "../AIChatInput/utils/inputUtils";
-import {
-    commandTemplates,
-    NATURAL_PROGRAMMING_TEMPLATES,
-    suggestedCommandTemplates as defaultSuggestedCommandTemplates,
-} from "../../commandTemplates/data/commandTemplates.const";
+import { commandTemplates, NATURAL_PROGRAMMING_TEMPLATES } from "../../commandTemplates/data/commandTemplates.const";
 import { placeholderTags } from "../../commandTemplates/data/placeholderTags.const";
 import {
     getTemplateById,
@@ -199,7 +195,7 @@ const AIChat: React.FC = () => {
 
     const [currentFileArray, setCurrentFileArray] = useState<SourceFile[]>([]);
     const [codeContext, setCodeContext] = useState<CodeContext | undefined>(undefined);
-    const [footerSuggestedCommandTemplates, setFooterSuggestedCommandTemplates] = useState<AIPanelPrompt[]>(defaultSuggestedCommandTemplates);
+    const [footerSuggestedCommandTemplates, setFooterSuggestedCommandTemplates] = useState<AIPanelPrompt[]>(undefined);
     const [footerInputPlaceholder, setFooterInputPlaceholder] = useState("Describe your integration...");
 
     const [usage, setUsage] = useState<{ remainingUsagePercentage: number; resetsIn: number } | null>(null);
@@ -264,7 +260,7 @@ const AIChat: React.FC = () => {
                         if (defaultPrompt.type === 'text') {
                             const textPrompt = defaultPrompt;
                             setAgentMode(defaultPrompt.planMode ? AgentMode.Plan : AgentMode.Edit);
-                            setFooterSuggestedCommandTemplates(textPrompt.suggestedCommandTemplates ?? defaultSuggestedCommandTemplates);
+                            setFooterSuggestedCommandTemplates(textPrompt.suggestedCommandTemplates);
                             setFooterInputPlaceholder(textPrompt.inputPlaceholder ?? "Describe your integration...");
 
                             if (defaultPrompt.autoSubmit && defaultPrompt.text.trim().length > 0) {
@@ -274,9 +270,6 @@ const AIChat: React.FC = () => {
                                 });
                                 return;
                             }
-                        } else {
-                            setFooterSuggestedCommandTemplates(defaultSuggestedCommandTemplates);
-                            setFooterInputPlaceholder("Describe your integration...");
                         }
 
                         aiChatInputRef.current?.setInputContent(defaultPrompt);
