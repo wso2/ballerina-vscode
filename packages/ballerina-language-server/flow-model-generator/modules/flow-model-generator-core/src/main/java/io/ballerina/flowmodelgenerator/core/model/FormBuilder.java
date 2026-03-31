@@ -102,6 +102,24 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 NameUtil.generateTypeName("var", names), assignment);
     }
 
+    public FormBuilder<T> data(String label, String doc, String templateName, boolean optional) {
+        propertyBuilder
+                .metadata()
+                    .label(label)
+                    .description(doc)
+                    .stepOut()
+                .value(templateName)
+                .type()
+                    .fieldType(Property.ValueType.IDENTIFIER)
+                    .selected(true)
+                    .stepOut()
+                .optional(optional)
+                .editable();
+
+        addProperty(Property.VARIABLE_KEY);
+        return this;
+    }
+
     public FormBuilder<T> data(Node node, String label, String doc, String templateName, boolean assignment) {
         propertyBuilder
                 .metadata()

@@ -1,5 +1,5 @@
 {
-  "source": "data_mapper/main.bal",
+  "source": "data_mapper/functions.bal",
   "description": "Sample diagram node",
   "diagram": {
     "id": "55613",
@@ -10,14 +10,14 @@
     "codedata": {
       "node": "FUNCTION_CREATION",
       "lineRange": {
-        "fileName": "main.bal",
+        "fileName": "functions.bal",
         "startLine": {
-          "line": 7,
-          "offset": 17
+          "line": 1,
+          "offset": 14
         },
         "endLine": {
-          "line": 7,
-          "offset": 17
+          "line": 1,
+          "offset": 14
         }
       },
       "isNew": true
@@ -140,7 +140,7 @@
                 "hidden": false,
                 "codedata": {
                   "lineRange": {
-                    "fileName": "data_mappings.bal",
+                    "fileName": "functions.bal",
                     "startLine": {
                       "line": 3,
                       "offset": 26
@@ -151,47 +151,6 @@
                     }
                   }
                 }
-              }
-            },
-            "optional": false,
-            "editable": false,
-            "advanced": false,
-            "hidden": false
-          },
-          "address": {
-            "metadata": {
-              "label": "Parameter",
-              "description": "Function parameter"
-            },
-            "valueType": "FIXED_PROPERTY",
-            "value": {
-              "type": {
-                "metadata": {
-                  "label": "Type",
-                  "description": "Type of the parameter"
-                },
-                "valueType": "TYPE",
-                "valueTypeConstraint": "record",
-                "value": "mod:Address",
-                "imports": {
-                  "mod": "wso2/nested_editing.mod:0.1.0"
-                },
-                "optional": false,
-                "editable": true,
-                "advanced": false,
-                "hidden": false
-              },
-              "variable": {
-                "metadata": {
-                  "label": "Name",
-                  "description": "Name of the parameter"
-                },
-                "valueType": "IDENTIFIER",
-                "value": "address",
-                "optional": false,
-                "editable": true,
-                "advanced": false,
-                "hidden": false
               }
             },
             "optional": false,
@@ -217,7 +176,7 @@
             "selected": false
           }
         ],
-        "value": "Person",
+        "value": "int",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -256,22 +215,20 @@
             "character": 1
           }
         },
-        "newText": "\nfunction transform1(string username, mod:Address address) returns Person {\n}"
-      }
-    ],
-    "data_mapper/main.bal": [
+        "newText": "\nfunction transform1(string username) returns int {\n}"
+      },
       {
         "range": {
           "start": {
-            "line": 7,
-            "character": 17
+            "line": 1,
+            "character": 14
           },
           "end": {
-            "line": 7,
-            "character": 17
+            "line": 1,
+            "character": 14
           }
         },
-        "newText": "\nPerson outputResult = transform1(user.name, address);"
+        "newText": "int outputResult = transform1(user.name);"
       }
     ]
   }
