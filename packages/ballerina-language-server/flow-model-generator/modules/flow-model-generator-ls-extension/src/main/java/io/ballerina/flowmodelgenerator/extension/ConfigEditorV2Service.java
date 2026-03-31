@@ -90,6 +90,7 @@ import io.ballerina.toml.semantic.ast.TomlNode;
 import io.ballerina.toml.semantic.ast.TomlTableArrayNode;
 import io.ballerina.toml.semantic.ast.TomlTableNode;
 import io.ballerina.toml.semantic.ast.TomlValueNode;
+import io.ballerina.toml.semantic.ast.TopLevelNode;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
@@ -115,7 +116,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -568,19 +568,20 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
         switch (tomlValueNode.kind()) {
             case TABLE -> {
                 List<String> keyValuePairs = new ArrayList<>();
-                ((TomlTableNode) tomlValueNode).entries().forEach((key, topLevelNode) -> {
-                    String value = null;
-                    switch (topLevelNode.kind()) {
-                        case KEY_VALUE -> {
-                            TomlKeyValueNode keyValueNode = (TomlKeyValueNode) topLevelNode;
-                            value = getInBallerinaSyntax(keyValueNode.value());
-                        }
-                        case TABLE, TABLE_ARRAY -> value = getInBallerinaSyntax(topLevelNode);
+                for (Map.Entry<String, TopLevelNode> entry :
+                        ((TomlTableNode) tomlValueNode).entries().entrySet()) {
+                    String key = entry.getKey();
+                    TopLevelNode topLevelNode = entry.getValue();
+                    String value = switch (topLevelNode.kind()) {
+                        case KEY_VALUE -> getInBallerinaSyntax(((TomlKeyValueNode) topLevelNode).value());
+                        case TABLE, TABLE_ARRAY -> getInBallerinaSyntax(topLevelNode);
+                        default -> null;
+                    };
+                    if (value == null) {
+                        return null;
                     }
-                    if (value != null) {
-                        keyValuePairs.add(key + COLON_SPACE + value);
-                    }
-                });
+                    keyValuePairs.add(key + COLON_SPACE + value);
+                }
                 return OPEN_BRACE + String.join(COMMA_SPACE, keyValuePairs) + CLOSE_BRACE;
             }
             case INTEGER, DOUBLE, BOOLEAN -> {
@@ -591,8 +592,10 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
             }
             case ARRAY -> {
                 List<TomlValueNode> elements = ((TomlArrayValueNode) tomlValueNode).elements();
-                List<String> elementValues = elements.stream()
-                        .map(this::getInBallerinaSyntax).filter(Objects::nonNull).toList();
+                List<String> elementValues = elements.stream().map(this::getInBallerinaSyntax).toList();
+                if (elementValues.contains(null)) {
+                    return null;
+                }
                 return OPEN_BRACKET + String.join(COMMA_SPACE, elementValues) + CLOSE_BRACKET;
             }
             case INLINE_TABLE -> {
@@ -600,10 +603,10 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
             }
             case TABLE_ARRAY -> {
                 List<TomlTableNode> children = ((TomlTableArrayNode) tomlValueNode).children();
-                List<String> tableValues = children.stream()
-                        .map(this::getInBallerinaSyntax)
-                        .filter(Objects::nonNull)
-                        .toList();
+                List<String> tableValues = children.stream().map(this::getInBallerinaSyntax).toList();
+                if (tableValues.contains(null)) {
+                    return null;
+                }
                 return OPEN_BRACKET + String.join(COMMA_SPACE, tableValues) + CLOSE_BRACKET;
             }
             case UNQUOTED_KEY, KEY_VALUE, NONE -> {
