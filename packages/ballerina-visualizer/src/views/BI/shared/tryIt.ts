@@ -47,12 +47,12 @@ export function getTryItAIDefaultPromptResource(methodValue: string, pathValue: 
         suggestedCommandTemplates: [
             {
                 type: "text" as const,
-                text: `Try out the ${methodValue} ${pathValue} resource in the ${serviceName} service ${basePath ? `at base path ${basePath}` : ''}`,
+                text: `Try out the ${methodValue} ${pathValue} resource in the ${serviceName} ${basePath ? `at base path ${basePath}` : ''}`,
                 planMode: false,
             },
             {
                 type: "text" as const,
-                text: `Try out the following scenario on the ${methodValue} ${pathValue} resource in the ${serviceName} service ${basePath ? `at base path ${basePath}` : ''} : \n`,
+                text: `Try out the following scenario on the ${methodValue} ${pathValue} resource in the ${serviceName} ${basePath ? `at base path ${basePath}` : ''} : \n`,
                 planMode: false,
             }
         ],
@@ -68,12 +68,12 @@ export function getTryItAIDefaultPromptService(serviceName: string, basePath: st
                 suggestedCommandTemplates: [
                     {
                         type: "text",
-                        text: `Try out the ${serviceName} service ${basePath ? `at base path ${basePath}` : ''}`,
+                        text: `Try out the ${serviceName} ${basePath ? `at base path ${basePath}` : ''}`,
                         planMode: false
                     },
                     {
                         type: "text",
-                        text: `Try out the following scenario on the ${serviceName} service ${basePath ? `at base path ${basePath}` : ''} : \n`,
+                        text: `Try out the following scenario on the ${serviceName} ${basePath ? `at base path ${basePath}` : ''} : \n`,
                         planMode: false
                     }
                 ],
