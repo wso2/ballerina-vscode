@@ -31,7 +31,7 @@ import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_O
 /**
  * Represents a workflow activity function.
  *
- * @since 2.0.0
+ * @since 1.8.0
  */
 public class ActivityBuilder extends FunctionDefinitionBuilder {
 

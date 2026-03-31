@@ -1,6 +1,6 @@
 {
   "source": "workflow_data/functions.bal",
-  "description": "Wait for data - single entry, creates new events type and adds parameter",
+  "description": "Wait for data - edit existing node to change dataWait entry, should delete the old record field",
   "diagram": {
     "id": "1",
     "metadata": {
@@ -9,16 +9,15 @@
     },
     "codedata": {
       "node": "WAIT_DATA",
-      "isNew": true,
       "lineRange": {
         "fileName": "functions.bal",
         "startLine": {
-          "line": 6,
-          "offset": 0
+          "line": 12,
+          "offset": 4
         },
         "endLine": {
-          "line": 6,
-          "offset": 0
+          "line": 12,
+          "offset": 75
         }
       }
     },
@@ -31,7 +30,7 @@
         },
         "valueType": "REPEATABLE_PROPERTY",
         "value": {
-          "paymentConfirmed": {
+          "isApproved": {
             "metadata": {
               "label": "Data Entries",
               "description": "Data entries to wait for (one or more)"
@@ -44,7 +43,7 @@
                   "description": "Variable name to receive the data"
                 },
                 "valueType": "IDENTIFIER",
-                "value": "paymentConfirm",
+                "value": "approved",
                 "optional": false,
                 "editable": true,
                 "advanced": false,
@@ -57,7 +56,7 @@
                 },
                 "valueType": "EXPRESSION",
                 "valueTypeConstraint": "anydata",
-                "value": "PaymentConfirmation",
+                "value": "boolean",
                 "optional": false,
                 "editable": true,
                 "advanced": false,
@@ -69,7 +68,7 @@
                   "description": "Name of the data to reference when sending data to the workflow"
                 },
                 "valueType": "IDENTIFIER",
-                "value": "paymentConfirmed",
+                "value": "isApproved",
                 "optional": false,
                 "editable": true,
                 "advanced": false,
@@ -95,43 +94,30 @@
       {
         "range": {
           "start": {
-            "line": 6,
-            "character": 0
+            "line": 12,
+            "character": 4
           },
           "end": {
-            "line": 6,
-            "character": 0
+            "line": 12,
+            "character": 75
           }
         },
-        "newText": "\nPaymentConfirmation paymentConfirm = check wait data.paymentConfirmed;"
-      },
-      {
-        "range": {
-          "start": {
-            "line": 5,
-            "character": 61
-          },
-          "end": {
-            "line": 5,
-            "character": 61
-          }
-        },
-        "newText": ",  OrderWorkflowData data"
+        "newText": "boolean approved = check wait events.isApproved;"
       }
     ],
     "workflow_data/types.bal": [
       {
         "range": {
           "start": {
-            "line": 23,
-            "character": 2
+            "line": 16,
+            "character": 4
           },
           "end": {
-            "line": 23,
-            "character": 2
+            "line": 16,
+            "character": 49
           }
         },
-        "newText": "\n\n\n# Data record for workflow function\ntype OrderWorkflowData record {|\n\tfuture<PaymentConfirmation> paymentConfirmed;\n|};"
+        "newText": ""
       }
     ]
   }

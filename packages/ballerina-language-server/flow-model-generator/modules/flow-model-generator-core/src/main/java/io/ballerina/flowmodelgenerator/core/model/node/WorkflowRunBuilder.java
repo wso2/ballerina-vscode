@@ -47,7 +47,7 @@ import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_O
  * Represents a workflow start node that generates workflow:run calls.
  * This node is used to run a workflow function.
  *
- * @since 2.0.0
+ * @since 1.8.0
  */
 public class WorkflowRunBuilder extends NodeBuilder {
 

@@ -46,5 +46,5 @@ public function main() returns error? {
     io:println("Workflow started with ID: " + workflowId);
 
     // Send data - should be SEND_DATA
-    check workflow:sendData(orderWorkflow, {approved: true, approverName: "Admin"}, "approve");
+    check workflow:sendData(orderWorkflow, "4422", {approved: true, approverName: "Admin"}, "approve");
 }

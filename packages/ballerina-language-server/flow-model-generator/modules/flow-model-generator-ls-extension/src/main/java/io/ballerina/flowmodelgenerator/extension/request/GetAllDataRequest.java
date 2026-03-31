@@ -23,7 +23,7 @@ package io.ballerina.flowmodelgenerator.extension.request;
  *
  * @param filePath     path of the file
  * @param workflowName name of the workflow function
- * @since 2.0.0
+ * @since 1.8.0
  */
 public record GetAllDataRequest(String filePath, String workflowName) {
 }

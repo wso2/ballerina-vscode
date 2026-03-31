@@ -57,7 +57,7 @@ import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.DATA_SUFFI
 /**
  * Service for managing workflow-related operations.
  *
- * @since 2.0.0
+ * @since 1.8.0
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
 @JsonSegment("workflowManager")

@@ -1,6 +1,6 @@
 {
   "source": "workflow_data/functions.bal",
-  "description": "Wait for data - single entry, creates new events type and adds parameter",
+  "description": "Wait for data - single entry with dataName that already exists in the events record with the same type should be a no-op for types.bal",
   "diagram": {
     "id": "1",
     "metadata": {
@@ -13,11 +13,11 @@
       "lineRange": {
         "fileName": "functions.bal",
         "startLine": {
-          "line": 6,
+          "line": 13,
           "offset": 0
         },
         "endLine": {
-          "line": 6,
+          "line": 13,
           "offset": 0
         }
       }
@@ -44,7 +44,7 @@
                   "description": "Variable name to receive the data"
                 },
                 "valueType": "IDENTIFIER",
-                "value": "paymentConfirm",
+                "value": "paymentResult",
                 "optional": false,
                 "editable": true,
                 "advanced": false,
@@ -95,43 +95,15 @@
       {
         "range": {
           "start": {
-            "line": 6,
+            "line": 13,
             "character": 0
           },
           "end": {
-            "line": 6,
+            "line": 13,
             "character": 0
           }
         },
-        "newText": "\nPaymentConfirmation paymentConfirm = check wait data.paymentConfirmed;"
-      },
-      {
-        "range": {
-          "start": {
-            "line": 5,
-            "character": 61
-          },
-          "end": {
-            "line": 5,
-            "character": 61
-          }
-        },
-        "newText": ",  OrderWorkflowData data"
-      }
-    ],
-    "workflow_data/types.bal": [
-      {
-        "range": {
-          "start": {
-            "line": 23,
-            "character": 2
-          },
-          "end": {
-            "line": 23,
-            "character": 2
-          }
-        },
-        "newText": "\n\n\n# Data record for workflow function\ntype OrderWorkflowData record {|\n\tfuture<PaymentConfirmation> paymentConfirmed;\n|};"
+        "newText": "\nPaymentConfirmation paymentResult = check wait events.paymentConfirmed;"
       }
     ]
   }

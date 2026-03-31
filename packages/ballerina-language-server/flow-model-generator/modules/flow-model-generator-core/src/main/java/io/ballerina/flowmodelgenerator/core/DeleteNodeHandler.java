@@ -428,16 +428,35 @@ public class DeleteNodeHandler {
      */
     private static void deleteRecordField(RecordFieldSymbol fieldSymbol, Project project,
                                            Path projectRoot, JsonObject resultObject) {
-        if (fieldSymbol == null || fieldSymbol.getLocation().isEmpty()) {
+        Optional<TextEdit> edit = getRecordFieldDeleteEdit(fieldSymbol, project, projectRoot);
+        if (edit.isEmpty() || fieldSymbol.getLocation().isEmpty()) {
             return;
         }
         LineRange symbolLineRange = fieldSymbol.getLocation().get().lineRange();
         Path typesFilePath = projectRoot.resolve(symbolLineRange.fileName());
-        String pathKey = typesFilePath.toString();
+        addEditToResult(resultObject, typesFilePath.toString(), edit.get());
+    }
+
+    /**
+     * Computes a {@link TextEdit} that deletes a record field from its source file.
+     *
+     * @param fieldSymbol the record field symbol to delete
+     * @param project     the project containing the field
+     * @param projectRoot the project root path
+     * @return the delete edit, or empty if the field cannot be resolved
+     */
+    public static Optional<TextEdit> getRecordFieldDeleteEdit(RecordFieldSymbol fieldSymbol,
+                                                              Project project, Path projectRoot) {
+        if (fieldSymbol == null || fieldSymbol.getLocation().isEmpty()) {
+            return Optional.empty();
+        }
+        LineRange symbolLineRange = fieldSymbol.getLocation().get().lineRange();
+        Path typesFilePath = projectRoot.resolve(symbolLineRange.fileName());
 
         // Find the full RecordFieldNode in the syntax tree to get the complete line range
-        // (including type descriptor and semicolon), not just the field name
-        LineRange fieldLineRange = symbolLineRange;
+        // (including type descriptor and semicolon), not just the field name.
+        // If the expanded node is not found, skip emitting the edit to avoid deleting only the
+        // identifier and leaving a broken field fragment.
         DocumentId typesDocId = project.documentId(typesFilePath);
         Document typesDocument = project.currentPackage()
                 .module(typesDocId.moduleId()).document(typesDocId);
@@ -449,12 +468,11 @@ public class DeleteNodeHandler {
                 && fieldNode.kind() != SyntaxKind.RECORD_FIELD_WITH_DEFAULT_VALUE) {
             fieldNode = fieldNode.parent();
         }
-        if (fieldNode != null) {
-            fieldLineRange = fieldNode.lineRange();
+        if (fieldNode == null) {
+            return Optional.empty();
         }
 
-        TextEdit deleteFieldEdit = new TextEdit(CommonUtils.toRange(fieldLineRange), "");
-        addEditToResult(resultObject, pathKey, deleteFieldEdit);
+        return Optional.of(new TextEdit(CommonUtils.toRange(fieldNode.lineRange()), ""));
     }
 
     /**

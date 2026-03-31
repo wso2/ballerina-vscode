@@ -65,7 +65,7 @@ import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isWorkflow
  * Represents a workflow activity call node.
  * This generates code like: int result = check ctx->callActivity(myActivity, input);
  *
- * @since 2.0.0
+ * @since 1.8.0
  */
 public class ActivityCallBuilder extends CallBuilder {
     public static final String LABEL = "Activity Call";

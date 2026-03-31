@@ -23,7 +23,7 @@ import com.google.gson.JsonArray;
 /**
  * Represents the response for available data in a workflow.
  *
- * @since 2.0.0
+ * @since 1.8.0
  */
 public class GetAllDataResponse extends AbstractFlowModelResponse {
     private JsonArray data;

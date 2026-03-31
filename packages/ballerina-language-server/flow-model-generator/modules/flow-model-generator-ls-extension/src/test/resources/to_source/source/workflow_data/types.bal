@@ -15,6 +15,7 @@ type ExpenseClaimInput record {
 
 type BookingWorkflowEvents record {
     future<PaymentConfirmation> paymentConfirmed;
+    future<boolean> isApproved;
 };
 
 type PaymentConfirmation record {

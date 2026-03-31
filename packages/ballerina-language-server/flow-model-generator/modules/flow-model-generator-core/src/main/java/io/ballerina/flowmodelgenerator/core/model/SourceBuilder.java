@@ -751,6 +751,15 @@ public class SourceBuilder {
         return this;
     }
 
+    public void addTextEdit(Path filePath, TextEdit edit) {
+        List<TextEdit> textEdits = textEditsMap.get(filePath);
+        if (textEdits == null) {
+            textEdits = new ArrayList<>();
+        }
+        textEdits.add(edit);
+        textEditsMap.put(filePath, textEdits);
+    }
+
     public SourceBuilder comment() {
         String comment = token().skipFormatting().build(SourceKind.STATEMENT);
         tokenBuilder = new TokenBuilder(this);

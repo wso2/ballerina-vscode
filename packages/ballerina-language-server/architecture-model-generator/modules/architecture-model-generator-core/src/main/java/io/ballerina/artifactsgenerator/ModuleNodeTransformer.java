@@ -89,15 +89,7 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
         String functionName = functionDefinitionNode.functionName().text();
 
         Optional<Symbol> functionSymbol = semanticModel.symbol(functionDefinitionNode);
-        if (functionSymbol.isPresent() && WorkflowUtil.isWorkflowFunction(functionSymbol.get())) {
-            functionBuilder
-                    .name(functionName)
-                    .type(Artifact.Type.WORKFLOW);
-        } else if (functionSymbol.isPresent() && WorkflowUtil.isActivityFunction(functionSymbol.get())) {
-            functionBuilder
-                    .name(functionName)
-                    .type(Artifact.Type.ACTIVITY);
-        } else if (functionName.equals(MAIN_FUNCTION_NAME)) {
+        if (functionName.equals(MAIN_FUNCTION_NAME)) {
             functionBuilder
                     .name(AUTOMATION_FUNCTION_NAME)
                     .type(Artifact.Type.AUTOMATION);
@@ -123,6 +115,14 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
             functionBuilder
                     .name(functionName)
                     .type(Artifact.Type.REMOTE);
+        } else if (functionSymbol.isPresent() && WorkflowUtil.isWorkflowFunction(functionSymbol.get())) {
+            functionBuilder
+                    .name(functionName)
+                    .type(Artifact.Type.WORKFLOW);
+        } else if (functionSymbol.isPresent() && WorkflowUtil.isActivityFunction(functionSymbol.get())) {
+            functionBuilder
+                    .name(functionName)
+                    .type(Artifact.Type.ACTIVITY);
         } else {
             functionBuilder
                     .name(functionName)

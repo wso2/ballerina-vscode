@@ -40,13 +40,13 @@ import java.util.Map;
 /**
  * Represents a command to search for workflow process functions within a project.
  * This class extends SearchCommand and provides functionality to search for functions
- * annotated with @workflow:Process.
+ * annotated with @workflow:Workflow.
  *
  * <p>The search results include workflow functions from the current project that can be
  * called using workflow:createInstance().</p>
  *
  * @see SearchCommand
- * @since 2.0.0
+ * @since 1.8.0
  */
 class WorkflowSearchCommand extends SearchCommand {
 
@@ -86,7 +86,7 @@ class WorkflowSearchCommand extends SearchCommand {
         // Create the category for current integration workflows
         Category.Builder workflowCategory = rootBuilder.stepIn(Category.Name.CURRENT_WORKFLOWS);
 
-        // Search for functions with @workflow:Process annotation in all modules
+        // Search for functions with @workflow:Workflow annotation in all modules
         currentPackage.modules().forEach(module -> {
             module.getCompilation().getSemanticModel().moduleSymbols().stream()
                     .filter(symbol -> symbol.kind() == SymbolKind.FUNCTION)

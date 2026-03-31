@@ -20,6 +20,7 @@ package io.ballerina.flowmodelgenerator.core.model.node;
 
 import com.google.gson.Gson;
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.FutureTypeSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
 import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
@@ -27,6 +28,7 @@ import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
+import io.ballerina.compiler.syntax.tree.FieldAccessExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
@@ -39,6 +41,7 @@ import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
+import io.ballerina.flowmodelgenerator.core.DeleteNodeHandler;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
 import io.ballerina.flowmodelgenerator.core.model.Member;
@@ -58,6 +61,7 @@ import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Module;
+import io.ballerina.projects.Project;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
@@ -87,7 +91,7 @@ import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_O
  * Represents a workflow wait for data node.
  * This is a specialized wait operation for workflow data (check wait data.dataName).
  *
- * @since 2.0.0
+ * @since 1.8.0
  */
 public class WaitDataBuilder extends CallBuilder {
     private static final String LABEL = "Wait for Data";
@@ -105,6 +109,8 @@ public class WaitDataBuilder extends CallBuilder {
     public static final String DATA_WAITS_DOC = "Data to wait for (one or more)";
     public static final String FUTURES_PARAM = "futures";
     public static final Set<String> EXCLUDED_AWAIT_PARAMS = Set.of(FUTURES_PARAM, "T");
+    public static final Set<String> EXCLUDED_KEYS = Set.of(FUTURES_PARAM, "T", Property.VARIABLE_KEY,
+            Property.TYPE_KEY, Property.CHECK_ERROR_KEY, Property.CONNECTION_KEY);
 
     private static final Gson gson = new Gson();
 
@@ -492,12 +498,35 @@ public class WaitDataBuilder extends CallBuilder {
         RecordTypeSymbol recordType = (RecordTypeSymbol) TypeUtils.resolveTypeReference(dataTypeSymbol);
         Map<String, RecordFieldSymbol> existingFields = recordType.fieldDescriptors();
 
-        // Check if any field already exists
+        // When editing an existing node, delete record fields that were removed from the dataWaits.
+        if (!Boolean.TRUE.equals(sourceBuilder.flowNode.codedata().isNew())) {
+            deleteRemovedDataFields(sourceBuilder, existingFields, entries);
+        }
+
+        // Filter out entries that already exist with a compatible type; reject incompatible redefinitions.
+        List<DataWait> newEntries = new ArrayList<>();
         for (DataWait entry : entries) {
-            if (existingFields.containsKey(entry.dataName)) {
+            RecordFieldSymbol existingField = existingFields.get(entry.dataName);
+            if (existingField != null) {
+                TypeSymbol fieldType = TypeUtils.resolveTypeReference(existingField.typeDescriptor());
+                if (fieldType.typeKind() == TypeDescKind.FUTURE) {
+                    String existingInnerType = ((FutureTypeSymbol) fieldType).typeParameter()
+                            .map(tp -> tp.getName().orElse(tp.signature())).orElse(ANYDATA);
+                    if (existingInnerType.equals(entry.dataType)) {
+                        // Compatible match — field already defined with the same type; skip.
+                        continue;
+                    }
+                }
                 throw new RuntimeException(
-                        "Field already exists in the data type definition with name: " + entry.dataName);
+                        "Incompatible field already exists in the data type definition with name: "
+                                + entry.dataName);
             }
+            newEntries.add(entry);
+        }
+
+        // Nothing to add — all entries already exist in the record.
+        if (newEntries.isEmpty()) {
+            return;
         }
 
         if (recordType.getLocation().isEmpty()) {
@@ -506,8 +535,8 @@ public class WaitDataBuilder extends CallBuilder {
 
         LineRange typeLineRange = recordType.getLocation().get().lineRange();
 
-        Path typesFilePath = sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath)
-                .resolve(typeLineRange.fileName());
+        Path projectRoot = sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath);
+        Path typesFilePath = projectRoot.resolve(typeLineRange.fileName());
         Document typesDoc = FileSystemUtils.getDocument(sourceBuilder.workspaceManager, typesFilePath);
         if (typesDoc == null) {
             throw new IllegalStateException("WaitDataBuilder cannot load data type document: " + typesFilePath);
@@ -540,7 +569,7 @@ public class WaitDataBuilder extends CallBuilder {
         LineRange delimiterLineRange = bodyStartDelimiter.lineRange();
         Range insertRange = CommonUtils.toRange(delimiterLineRange.endLine());
 
-        for (DataWait entry : entries) {
+        for (DataWait entry : newEntries) {
             sourceBuilder.token()
                     .name(SyntaxKind.FUTURE_KEYWORD.stringValue())
                     .name(SyntaxKind.LT_TOKEN.stringValue())
@@ -552,6 +581,97 @@ public class WaitDataBuilder extends CallBuilder {
         }
         sourceBuilder.token()
                 .skipFormatting().stepOut().textEdit(null, typesFilePath, insertRange);
+    }
+
+    /**
+     * Deletes record fields that were present in the old wait_data node but are absent in the new entries.
+     * Only considers fields that belonged to this specific node, so fields used by other WaitData nodes
+     * are not affected.
+     */
+    private void deleteRemovedDataFields(SourceBuilder sourceBuilder,
+                                         Map<String, RecordFieldSymbol> existingFields,
+                                         List<DataWait> newEntries) {
+        LineRange oldLineRange = sourceBuilder.flowNode.codedata().lineRange();
+        if (oldLineRange == null) {
+            return;
+        }
+
+        Set<String> oldDataNames = extractOldDataNames(sourceBuilder, oldLineRange);
+        if (oldDataNames.isEmpty()) {
+            return;
+        }
+
+        Set<String> newDataNames = newEntries.stream()
+                .map(DataWait::dataName)
+                .collect(Collectors.toSet());
+
+        // Fields to delete: present in the old node but not in the new request
+        Set<String> fieldsToDelete = new java.util.LinkedHashSet<>(oldDataNames);
+        fieldsToDelete.removeAll(newDataNames);
+        if (fieldsToDelete.isEmpty()) {
+            return;
+        }
+
+        Path projectRoot = sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath);
+        Optional<Project> project = sourceBuilder.workspaceManager.project(sourceBuilder.filePath);
+        if (project.isEmpty()) {
+            return;
+        }
+
+        for (String fieldName : fieldsToDelete) {
+            RecordFieldSymbol fieldSymbol = existingFields.get(fieldName);
+            if (fieldSymbol == null) {
+                continue;
+            }
+            Optional<TextEdit> deleteEdit = DeleteNodeHandler.getRecordFieldDeleteEdit(
+                    fieldSymbol, project.get(), projectRoot);
+            if (deleteEdit.isPresent() && fieldSymbol.getLocation().isPresent()) {
+                LineRange fieldLineRange = fieldSymbol.getLocation().get().lineRange();
+                Path typesFilePath = projectRoot.resolve(fieldLineRange.fileName());
+                sourceBuilder.addTextEdit(typesFilePath, deleteEdit.get());
+            }
+        }
+    }
+
+    /**
+     * Extracts the data field names referenced by the old wait_data node at the given line range.
+     * Handles both simple form ({@code check wait data.fieldName}) and await form
+     * ({@code ctx->await([data.f1, data.f2])}).
+     */
+    private Set<String> extractOldDataNames(SourceBuilder sourceBuilder, LineRange oldLineRange) {
+        Document document = FileSystemUtils.getDocument(sourceBuilder.workspaceManager, sourceBuilder.filePath);
+        if (document == null) {
+            return Set.of();
+        }
+
+        ModulePartNode rootNode = document.syntaxTree().rootNode();
+        int startPos = document.textDocument().textPositionFrom(oldLineRange.startLine());
+        int endPos = document.textDocument().textPositionFrom(oldLineRange.endLine());
+        NonTerminalNode node = rootNode.findNode(TextRange.from(startPos, endPos - startPos));
+        if (node == null) {
+            return Set.of();
+        }
+
+        Set<String> dataNames = new java.util.LinkedHashSet<>();
+        collectFieldAccessNames(node, dataNames);
+        return dataNames;
+    }
+
+    /**
+     * Recursively collects field names from {@code FIELD_ACCESS} expression nodes within the given node.
+     * These correspond to {@code data.fieldName} references in the wait expression.
+     */
+    private void collectFieldAccessNames(Node node, Set<String> dataNames) {
+        if (node.kind() == SyntaxKind.FIELD_ACCESS) {
+            FieldAccessExpressionNode fieldAccess = (FieldAccessExpressionNode) node;
+            dataNames.add(fieldAccess.fieldName().toSourceCode().strip());
+            return;
+        }
+        if (node instanceof NonTerminalNode nonTerminal) {
+            for (Node child : nonTerminal.children()) {
+                collectFieldAccessNames(child, dataNames);
+            }
+        }
     }
 
     private record DataWait(String variableName, String dataType, String dataName) { }

@@ -33,7 +33,7 @@ import java.nio.file.Path;
 /**
  * Tests for the WorkflowManagerService getAllData API.
  *
- * @since 2.0.0
+ * @since 1.8.0
  */
 public class WorkflowManagerTest extends AbstractLSTest {
 

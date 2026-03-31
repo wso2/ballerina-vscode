@@ -214,6 +214,7 @@ import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.RUN_METHOD
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.SEND_DATA_METHOD_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_MODULE;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ORG;
+import static io.ballerina.flowmodelgenerator.core.model.node.WaitDataBuilder.EXCLUDED_KEYS;
 import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isWorkflowFunction;
 import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isWorkflowModule;
 import static io.ballerina.modelgenerator.commons.CommonUtils.BALLERINA_ORG_NAME;
@@ -1016,7 +1017,7 @@ public class CodeAnalyzer extends NodeVisitor {
     private void populateAwaitWaitDataProperties(RemoteMethodCallActionNode remoteMethodCallActionNode) {
         // Remove generic properties that don't match WaitDataBuilder expectations
         Map<String, Property> properties = nodeBuilder.properties().build();
-        WaitDataBuilder.EXCLUDED_AWAIT_PARAMS.forEach(properties::remove);
+        properties.keySet().removeIf(EXCLUDED_KEYS::contains);
 
         // Parse the first argument (futures array) to extract data field references
         SeparatedNodeList<FunctionArgumentNode> args = remoteMethodCallActionNode.arguments();
@@ -1157,6 +1158,9 @@ public class CodeAnalyzer extends NodeVisitor {
                 if (isWorkflowFunction(semanticModel.symbol(parent).orElse(null))) {
                     SeparatedNodeList<ParameterNode> parameters =
                             ((FunctionDefinitionNode) parent).functionSignature().parameters();
+                    if (parameters.isEmpty()) {
+                        return false;
+                    }
                     ParameterNode lastParam = parameters.get(parameters.size() - 1);
                     if (lastParam.kind() == SyntaxKind.REQUIRED_PARAM) {
                         RequiredParameterNode requiredParameterNode = (RequiredParameterNode) lastParam;

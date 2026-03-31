@@ -58,7 +58,7 @@ import static io.ballerina.flowmodelgenerator.core.model.node.FunctionCreationBu
 /**
  * Represents the properties of activity creation node. This is to handle activity creation and activity call in one.
  *
- * @since 2.0.0
+ * @since 1.8.0
  */
 public class ActivityCreationBuilder extends CallBuilder {
     public static final String LABEL = "Workflow Activity";

@@ -32,7 +32,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * Tests for get template of agent.
+ * Tests for get template of workflow.
  *
  * @since 1.8.0
  */

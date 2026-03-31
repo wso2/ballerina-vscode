@@ -50,7 +50,7 @@ import static io.ballerina.modelgenerator.commons.ParameterData.Kind.REQUIRED;
  * Represents a workflow send data operation node (sendData).
  * This is a specialized function call for workflow data operations.
  *
- * @since 2.0.0
+ * @since 1.8.0
  */
 public class SendDataBuilder extends FunctionCall {
     public static final String LABEL = "Send Data";
