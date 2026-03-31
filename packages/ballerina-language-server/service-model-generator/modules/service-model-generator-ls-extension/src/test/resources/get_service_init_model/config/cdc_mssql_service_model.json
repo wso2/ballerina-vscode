@@ -37,6 +37,27 @@
                     "description": "Configure the Microsoft SQL Server CDC listener"
                   },
                   "properties": {
+                    "listenerVarName": {
+                      "metadata": {
+                        "label": "Listener Name",
+                        "description": "Provide a name for the listener being created"
+                      },
+                      "codedata": {
+                        "argType": "LISTENER_VAR_NAME"
+                      },
+                      "value": "mssqlCdcListener",
+                      "placeholder": "mssqlCdcListener",
+                      "types": [
+                        {
+                          "fieldType": "IDENTIFIER",
+                          "ballerinaType": "CdcListener"
+                        }
+                      ],
+                      "enabled": true,
+                      "editable": true,
+                      "optional": false,
+                      "advanced": false
+                    },
                     "host": {
                       "metadata": {
                         "label": "Host",
@@ -209,28 +230,6 @@
                         "description": ""
                       },
                       "properties": {
-                        "listenerVarName": {
-                          "metadata": {
-                            "label": "Listener Name",
-                            "description": "Provide a name for the listener being created"
-                          },
-                          "codedata": {
-                            "argType": "LISTENER_VAR_NAME"
-                          },
-                          "placeholder": "mssqlCdcListener",
-                          "value": "mssqlCdcListener",
-                          "types": [
-                            {
-                              "fieldType": "IDENTIFIER",
-                              "ballerinaType": "CdcListener",
-                              "selected": false
-                            }
-                          ],
-                          "enabled": true,
-                          "editable": true,
-                          "optional": true,
-                          "advanced": false
-                        },
                         "databaseInstance": {
                           "metadata": {
                             "label": "Database Instance",

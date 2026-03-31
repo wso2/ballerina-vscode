@@ -53,6 +53,27 @@
               "editable": true,
               "advanced": false,
               "properties": {
+                "listenerVarName": {
+                  "metadata": {
+                    "label": "Listener Name",
+                    "description": "Provide a name for the listener being created"
+                  },
+                  "codedata": {
+                    "argType": "LISTENER_VAR_NAME"
+                  },
+                  "value": "postgresqlCdcListener",
+                  "placeholder": "postgresqlCdcListener",
+                  "types": [
+                    {
+                      "fieldType": "IDENTIFIER",
+                      "ballerinaType": "CdcListener"
+                    }
+                  ],
+                  "enabled": true,
+                  "editable": true,
+                  "optional": false,
+                  "advanced": false
+                },
                 "host": {
                   "metadata": {
                     "label": "Host",
@@ -237,27 +258,6 @@
                   "editable": false,
                   "advanced": false,
                   "properties": {
-                    "listenerVarName": {
-                      "metadata": {
-                        "label": "Listener Name",
-                        "description": "Provide a name for the listener being created"
-                      },
-                      "codedata": {
-                        "argType": "LISTENER_VAR_NAME"
-                      },
-                      "value": "postgresqlCdcListener",
-                      "placeholder": "postgresqlCdcListener",
-                      "types": [
-                        {
-                          "fieldType": "IDENTIFIER",
-                          "ballerinaType": "CdcListener"
-                        }
-                      ],
-                      "enabled": true,
-                      "editable": true,
-                      "optional": true,
-                      "advanced": false
-                    },
                     "secureSocket": {
                       "metadata": {
                         "label": "Secure Socket",
