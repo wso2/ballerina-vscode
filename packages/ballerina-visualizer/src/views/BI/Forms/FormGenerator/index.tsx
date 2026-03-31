@@ -531,11 +531,21 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             // Update value from current form data and update diagnostics
             if (data[field.key] !== undefined) {
                 if (isContainingRepeatableList) {
-                    if (!Array.isArray(nodeProperties?.[field.key]?.value)) {
+                    if (
+                        !Array.isArray(nodeProperties?.[field.key]?.value)
+                    ) {
                         throw new Error(`Expected value for repeatable list field "${field.key}" to be an array, but got string.`);
                     }
                     if (selectedInputType?.fieldType === "REPEATABLE_LIST") {
-                        const initialValues = stringToRawArrayElements(data[field.key]);
+                        let initialValues: string[];
+                        if (typeof data[field.key] === 'string') {
+                            initialValues = stringToRawArrayElements(data[field.key]);
+                        } else {
+                            // When the value is an array (from FormArrayEditor), extract values directly
+                            initialValues = (data[field.key] as any[]).map((val: any) =>
+                                typeof val === 'string' ? val : String(val?.value ?? '')
+                            );
+                        }
                         const initialFields = initialValues.map((val, index) => {
                             const key = crypto.randomUUID();
                             return {
@@ -985,10 +995,22 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     ? { ...(existingImports || {}), ...newImports }
                     : existingImports;
                 const updatedProperty = mergedImports !== undefined
-                    ? { ...property, imports: mergedImports }
-                    : property;
+                    ? { ...property, imports: mergedImports, types: property.types.map(t => ({ ...t })) }
+                    : { ...property, types: property.types.map(t => ({ ...t })) };
 
                 try {
+                    const propertyPrimaryFieldType = getPrimaryInputType(updatedProperty.types);
+                    if (updatedProperty.types.length > 1 && propertyPrimaryFieldType.fieldType !== "REPEATABLE_LIST" && propertyPrimaryFieldType.fieldType !== "REPEATABLE_MAP") {
+                        updatedProperty.types.forEach(t => {
+                            if (t.fieldType === "EXPRESSION") {
+                                t.selected = true;
+                            }
+                            else {
+                                t.selected = false;
+                            }
+                        });
+                    }
+
                     const response = await rpcClient.getBIDiagramRpcClient().getExpressionDiagnostics({
                         filePath: fileName,
                         context: {
