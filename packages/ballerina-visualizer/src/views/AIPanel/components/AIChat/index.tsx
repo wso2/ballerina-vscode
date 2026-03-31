@@ -80,6 +80,7 @@ import AttachmentBox, { AttachmentsContainer } from "../AttachmentBox";
 import Footer from "./Footer";
 import { AgentMode } from "../AIChatInput/ModeToggle";
 import CommonApprovalFooter from "./Footer/CommonApprovalFooter";
+import ClarifyFooter from "./Footer/ClarifyFooter";
 import { useFooterLogic } from "./Footer/useFooterLogic";
 import { SettingsPanel } from "../../SettingsPanel";
 import WelcomeMessage from "./Welcome";
@@ -362,7 +363,7 @@ const AIChat: React.FC = () => {
             // no longer reflect the restored file state so they should be removed.
             setMessages(prev => {
                 const idx = prev.findIndex(m => m.checkpointId === checkpointId);
-                return idx === -1 ? prev : prev.slice(0, idx + 1);
+                return idx === -1 ? prev : prev.slice(0, idx);
             });
 
             // Update available checkpoint IDs after restore (checkpoints are trimmed during restore)
@@ -663,6 +664,31 @@ const AIChat: React.FC = () => {
                     return { ...entry, items: entry.items.map((item, i) => i === idx ? { kind: "config" as const, data: configurationData } : item) };
                 });
                 if (!found) updated = appendToLastEntry(entries, { kind: "config", data: configurationData });
+                msgs[targetIndex] = { ...last, content: serializeStream(updated, last.content) };
+                return msgs;
+            });
+
+        } else if (type === "clarify_event") {
+            const clarifyNotification = response as any;
+            const clarifyData = {
+                requestId: clarifyNotification.requestId,
+                stage: clarifyNotification.stage,
+                questions: clarifyNotification.questions,
+                answers: clarifyNotification.answers,
+            };
+            setMessages(prevMessages => {
+                const msgs = [...prevMessages];
+                const targetIndex = ensureAssistantMessage(msgs);
+                const last = msgs[targetIndex];
+                const entries = parseStream(last.content);
+                let found = false;
+                let updated = entries.map(entry => {
+                    const idx = entry.items.findIndex(item => item.kind === "ask" && (item.data as any)?.requestId === clarifyData.requestId);
+                    if (idx === -1) return entry;
+                    found = true;
+                    return { ...entry, items: entry.items.map((item, i) => i === idx ? { kind: "ask" as const, data: clarifyData } : item) };
+                });
+                if (!found) updated = appendToLastEntry(entries, { kind: "ask", data: clarifyData });
                 msgs[targetIndex] = { ...last, content: serializeStream(updated, last.content) };
                 return msgs;
             });
@@ -1544,11 +1570,11 @@ const AIChat: React.FC = () => {
                                 <Button
                                     appearance="icon"
                                     onClick={() => handleClearChat()}
-                                    tooltip="Clear Chat"
+                                    tooltip="New Chat"
                                     disabled={isLoading}
                                 >
-                                    <Icon name="PlaylistRemove" sx={{ fontSize: "18px", marginRight: 6 }} iconSx={{ position: "relative"}} />
-                                    Clear
+                                    <Icon name="NewChat" sx={{ fontSize: "16px", marginRight: 4 }} iconSx={{ position: "relative", top: "2px" }} />
+                                    New Chat
                                 </Button>
                             )}
                             <Button appearance="icon" onClick={() => handleSettings()} tooltip="Settings">
@@ -1640,7 +1666,7 @@ const AIChat: React.FC = () => {
                                                         <AgentStreamView
                                                             stream={stream}
                                                             isLoading={isLoading && isLatestAssistantMessage}
-                                                            rpcClient={isLatestAssistantMessage ? rpcClient : undefined}
+                                                            rpcClient={rpcClient}
                                                         />
                                                         {reviewItem && (
                                                             <ReviewBar
@@ -1888,22 +1914,45 @@ const AIChat: React.FC = () => {
                         })()}
                         <div ref={messagesEndRef} />
                     </main>
-                    {webToolApprovalRequest ? (
-                        <CommonApprovalFooter
-                            type="web_tool"
-                            toolName={webToolApprovalRequest.toolName}
-                            content={webToolApprovalRequest.content}
-                            onAllow={handleWebToolAllow}
-                            onDeny={handleWebToolDeny}
-                        />
-                    ) : approvalRequest ? (
-                        <CommonApprovalFooter
-                            type={approvalRequest.approvalType}
-                            onApprove={handleApprovalApprove}
-                            onReject={handleApprovalReject}
-                        />
-                    ) : (
-                        <Footer
+                    {(() => {
+                        const lastAssistantMsg = [...otherMessages].reverse().find(m => m.role === "Copilot");
+                        const lastStream = lastAssistantMsg ? parseStream(lastAssistantMsg.content) : [];
+                        const lastStreamItems = lastStream.flatMap((e: StreamEntry) => e.items);
+                        const activeClarifyItem = lastStreamItems.find(
+                            (item: StreamItem) => item.kind === "ask" && (item as any).data?.stage === "asking"
+                        ) as { kind: "ask"; data: { requestId: string; questions: any[] } } | undefined;
+
+                        if (activeClarifyItem) {
+                            return (
+                                <ClarifyFooter
+                                    questions={activeClarifyItem.data.questions}
+                                    requestId={activeClarifyItem.data.requestId}
+                                    rpcClient={rpcClient}
+                                />
+                            );
+                        }
+                        if (webToolApprovalRequest) {
+                            return (
+                                <CommonApprovalFooter
+                                    type="web_tool"
+                                    toolName={webToolApprovalRequest.toolName}
+                                    content={webToolApprovalRequest.content}
+                                    onAllow={handleWebToolAllow}
+                                    onDeny={handleWebToolDeny}
+                                />
+                            );
+                        }
+                        if (approvalRequest) {
+                            return (
+                                <CommonApprovalFooter
+                                    type={approvalRequest.approvalType}
+                                    onApprove={handleApprovalApprove}
+                                    onReject={handleApprovalReject}
+                                />
+                            );
+                        }
+                        return (
+                            <Footer
                             aiChatInputRef={aiChatInputRef}
                             tagOptions={{
                                 placeholderTags: placeholderTags,
@@ -1933,7 +1982,8 @@ const AIChat: React.FC = () => {
                             disabled={isUsageExceeded}
                             contextUsage={showContextUsage ? contextUsage : null}
                         />
-                    )}
+                        );
+                    })()}
                 </AIChatView>
             )}
             {showSettings && <SettingsPanel onClose={() => setShowSettings(false)}></SettingsPanel>}

@@ -536,14 +536,25 @@ function IntegrationControlPlane({ enabled, handleICP }: IntegrationControlPlane
         <div>
             <Title variant="h3">Integration Control Plane</Title>
             <p>
-                {"Monitor the deployment runtime using WSO2 Integration Control Plane."}
+                {"Monitor and manage your integration deployments using a single enhanced interface, and streamline operations and increase efficiency."}
                 <VSCodeLink onClick={openLearnMoreURL} style={{ marginLeft: '4px' }}> Learn More </VSCodeLink>
             </p>
             <CheckBox
                 checked={enabled}
                 onChange={handleICP}
-                label="Enable WSO2 Integrator: ICP"
+                label="Enable ICP monitoring"
             />
+            {enabled && (
+                <Button
+                    appearance="secondary"
+                    onClick={() => rpcClient.getICPRpcClient().viewInICP({
+                        projectPath: ''
+                    })}
+                    sx={{ marginTop: "10px", display: "flex", alignItems: "center", justifyContent: "center", mx: "auto" }}
+                >
+                    <Codicon name="link-external" sx={{ marginRight: 8 }} /> View in ICP
+                </Button>
+            )}
         </div>
     );
 }
