@@ -76,7 +76,9 @@ export const useDataMapperModel = (
             codedata?.sourceCode,
             codedata?.lineRange?.startLine,
             codedata?.lineRange?.endLine,
-            viewId
+            viewId,
+            viewState?.subMappingName,
+            position
         ],
         queryFn: getDMModel,
         networkMode: 'always'
