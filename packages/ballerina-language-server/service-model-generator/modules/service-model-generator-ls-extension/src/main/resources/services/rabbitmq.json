@@ -53,6 +53,27 @@
               "editable": true,
               "advanced": false,
               "properties": {
+                "listenerVarName": {
+                  "metadata": {
+                    "label": "Listener Name",
+                    "description": "Provide a name for the listener being created"
+                  },
+                  "codedata": {
+                    "argType": "LISTENER_VAR_NAME"
+                  },
+                  "value": "rabbitmqListener",
+                  "placeholder": "rabbitmqListener",
+                  "types": [
+                    {
+                      "fieldType": "IDENTIFIER",
+                      "ballerinaType": "Listener"
+                    }
+                  ],
+                  "enabled": true,
+                  "editable": true,
+                  "optional": true,
+                  "advanced": false
+                },
                 "host": {
                   "metadata": {
                     "label": "Host",
@@ -106,44 +127,6 @@
                   "editable": true,
                   "optional": false,
                   "advanced": false
-                },
-                "advancedConfigurations": {
-                  "metadata": {
-                    "label": "Advanced Configurations",
-                    "description": ""
-                  },
-                  "types": [
-                    {
-                      "fieldType": "GROUP_SECTION",
-                      "selected": false
-                    }
-                  ],
-                  "enabled": true,
-                  "editable": false,
-                  "advanced": false,
-                  "properties": {
-                    "listenerVarName": {
-                      "metadata": {
-                        "label": "Listener Name",
-                        "description": "Provide a name for the listener being created"
-                      },
-                      "codedata": {
-                        "argType": "LISTENER_VAR_NAME"
-                      },
-                      "value": "rabbitmqListener",
-                      "placeholder": "rabbitmqListener",
-                      "types": [
-                        {
-                          "fieldType": "IDENTIFIER",
-                          "ballerinaType": "Listener"
-                        }
-                      ],
-                      "enabled": true,
-                      "editable": true,
-                      "optional": true,
-                      "advanced": false
-                    }
-                  }
                 }
               }
             }

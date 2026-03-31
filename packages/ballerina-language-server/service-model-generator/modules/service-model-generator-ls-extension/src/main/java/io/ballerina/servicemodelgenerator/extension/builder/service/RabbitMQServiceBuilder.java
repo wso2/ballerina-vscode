@@ -145,26 +145,22 @@ public final class RabbitMQServiceBuilder extends AbstractServiceBuilder {
             ServiceInitModel serviceInitModel = new Gson().fromJson(reader, ServiceInitModel.class);
             Map<String, Value> properties = serviceInitModel.getProperties();
 
-            // Navigate to listenerVarName in advancedConfigurations
             Value configureListener = properties.get(KEY_CONFIGURE_LISTENER);
             Value createNewChoice = configureListener.getChoices().get(0);
             Value listenerConfig = createNewChoice.getProperties().get("listenerConfig");
-            Value advancedSection = listenerConfig.getProperties().get("advancedConfigurations");
 
             // Generate a unique listener variable name
             String listenerVarName = Utils.generateVariableIdentifier(context.semanticModel(), context.document(),
                     context.document().syntaxTree().rootNode().lineRange().endLine(),
-                    advancedSection.getProperties().get(KEY_LISTENER_VAR_NAME).getValue());
-            advancedSection.getProperties().get(KEY_LISTENER_VAR_NAME).setValue(listenerVarName);
+                    listenerConfig.getProperties().get(KEY_LISTENER_VAR_NAME).getValue());
+            listenerConfig.getProperties().get(KEY_LISTENER_VAR_NAME).setValue(listenerVarName);
 
             // Check for existing compatible listeners
             Set<String> compatibleListeners = ListenerUtil.getCompatibleListeners(context.moduleName(),
                     context.semanticModel(), context.project());
 
             if (!compatibleListeners.isEmpty()) {
-                // Determine which keys are "advanced" from the template
-                Set<String> advancedKeys = advancedSection.getProperties() != null
-                        ? advancedSection.getProperties().keySet() : Set.of();
+                Set<String> advancedKeys = Set.of();
 
                 // Extract configs from existing listener declarations
                 Map<String, Map<String, Value>> listenerConfigs = extractRabbitMQListenerConfigs(
