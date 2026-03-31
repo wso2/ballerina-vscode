@@ -415,27 +415,45 @@
                       "optional": true,
                       "advanced": true
                     },
-                    "listenerVarName": {
+                    "advancedConfigurations": {
                       "metadata": {
-                        "label": "Listener Name",
-                        "description": "Provide a name for the listener being created"
+                        "label": "Advanced Configurations",
+                        "description": ""
                       },
-                      "codedata": {
-                        "argType": "LISTENER_VAR_NAME"
-                      },
-                      "value": "solaceListener",
-                      "placeholder": "solaceListener",
                       "types": [
                         {
-                          "fieldType": "IDENTIFIER",
-                          "ballerinaType": "Listener",
+                          "fieldType": "GROUP_SECTION",
                           "selected": false
                         }
                       ],
                       "enabled": true,
-                      "editable": true,
-                      "optional": true,
-                      "advanced": true
+                      "editable": false,
+                      "optional": false,
+                      "advanced": false,
+                      "properties": {
+                        "listenerVarName": {
+                          "metadata": {
+                            "label": "Listener Name",
+                            "description": "Provide a name for the listener being created"
+                          },
+                          "codedata": {
+                            "argType": "LISTENER_VAR_NAME"
+                          },
+                          "value": "solaceListener",
+                          "placeholder": "solaceListener",
+                          "types": [
+                            {
+                              "fieldType": "IDENTIFIER",
+                              "ballerinaType": "Listener",
+                              "selected": false
+                            }
+                          ],
+                          "enabled": true,
+                          "editable": true,
+                          "optional": true,
+                          "advanced": false
+                        }
+                      }
                     }
                   }
                 }
