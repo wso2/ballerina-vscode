@@ -18,6 +18,9 @@
 
 package io.ballerina.flowmodelgenerator.core;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import io.ballerina.centralconnector.RemoteCentral;
 import io.ballerina.centralconnector.response.DependentPackage;
 import io.ballerina.compiler.api.ModuleID;
@@ -59,6 +62,9 @@ import io.ballerina.projects.environment.ResolutionOptions;
 import io.ballerina.projects.environment.ResolutionRequest;
 import io.ballerina.projects.environment.ResolutionResponse;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -159,116 +165,29 @@ public class AiUtils {
     }
 
     private static void initFallbackDependentModules() {
-        dependentModules.put("1.0.0", List.of(
-                new Module(BALLERINAX, "ai.openai", "1.0.0"),
-                new Module(BALLERINAX, "ai.azure", "1.0.0"),
-                new Module(BALLERINAX, "ai.anthropic", "1.0.0"),
-                new Module(BALLERINAX, "ai.deepseek", "1.0.0"),
-                new Module(BALLERINAX, "ai.ollama", "1.0.0"),
-                new Module(BALLERINAX, "ai.mistral", "1.0.0"),
-                new Module(BALLERINAX, "ai.pinecone", "1.0.0")
-        ));
-
-        dependentModules.put("1.1.0", List.of(
-                new Module(BALLERINAX, "ai.openai", "1.1.0"),
-                new Module(BALLERINAX, "ai.anthropic", "1.0.1"),
-                new Module(BALLERINAX, "ai.azure", "1.0.1"),
-                new Module(BALLERINAX, "ai.deepseek", "1.0.1"),
-                new Module(BALLERINAX, "ai.mistral", "1.0.1"),
-                new Module(BALLERINAX, "ai.pinecone", "1.0.1"),
-                new Module(BALLERINAX, "ai.ollama", "1.0.1")
-        ));
-
-        dependentModules.put("1.1.1", List.of(
-                new Module(BALLERINAX, "ai.azure", "1.1.0"),
-                new Module(BALLERINAX, "ai.openai", "1.2.0"),
-                new Module(BALLERINAX, "ai.anthropic", "1.1.0"),
-                new Module(BALLERINAX, "ai.mistral", "1.1.0"),
-                new Module(BALLERINAX, "ai.ollama", "1.1.0"),
-                new Module(BALLERINAX, "ai.deepseek", "1.0.2")
-        ));
-
-        dependentModules.put("1.1.2", List.of(
-                new Module(BALLERINAX, "ai.openai", "1.2.1"),
-                new Module(BALLERINAX, "ai.azure", "1.1.1"),
-                new Module(BALLERINAX, "ai.anthropic", "1.1.1"),
-                new Module(BALLERINAX, "ai.mistral", "1.1.1"),
-                new Module(BALLERINAX, "ai.ollama", "1.1.1"),
-                new Module(BALLERINAX, "ai.deepseek", "1.0.3")
-        ));
-
-        dependentModules.put("1.3.0", List.of(
-                new Module(BALLERINAX, "ai.devant", "1.0.0"),
-                new Module(BALLERINAX, "ai.openai", "1.2.2")
-        ));
-
-        dependentModules.put("1.5.0", List.of(
-                new Module(BALLERINAX, "ai.pinecone", "1.1.0"),
-                new Module(BALLERINAX, "ai.milvus", "1.0.0"),
-                new Module(BALLERINAX, "ai.pgvector", "1.0.0"),
-                new Module(BALLERINAX, "ai.weaviate", "1.0.0")
-        ));
-
-        dependentModules.put("1.5.1", List.of(
-                new Module(BALLERINAX, "ai.pgvector", "1.0.1")
-        ));
-
-        dependentModules.put("1.5.2", List.of(
-                new Module(BALLERINAX, "ai.weaviate", "1.0.1"),
-                new Module(BALLERINAX, "ai.pgvector", "1.0.2"),
-                new Module(BALLERINAX, "ai.milvus", "1.0.1")
-        ));
-
-        dependentModules.put("1.5.3", List.of(
-                new Module(BALLERINAX, "ai.pinecone", "1.1.1"),
-                new Module(BALLERINAX, "ai.devant", "1.0.1")
-        ));
-
-        dependentModules.put("1.5.4", List.of(
-                new Module(BALLERINAX, "ai.anthropic", "1.1.2"),
-                new Module(BALLERINAX, "ai.azure", "1.1.2"),
-                new Module(BALLERINAX, "ai.deepseek", "1.0.4"),
-                new Module(BALLERINAX, "ai.mistral", "1.1.2"),
-                new Module(BALLERINAX, "ai.ollama", "1.1.2"),
-                new Module(BALLERINAX, "ai.openai", "1.2.3"),
-                new Module(BALLERINAX, "ai.devant", "1.0.2"),
-                new Module(BALLERINAX, "ai.pinecone", "1.1.2"),
-                new Module(BALLERINAX, "ai.weaviate", "1.0.2"),
-                new Module(BALLERINAX, "ai.pgvector", "1.0.3"),
-                new Module(BALLERINAX, "ai.milvus", "1.0.2"),
-                new Module(BALLERINAX, "ai.azure", "1.2.0"),
-                new Module(BALLERINAX, "ai.azure", "1.3.0"),
-                new Module(BALLERINAX, "ai.weaviate", "1.0.3")
-        ));
-
-        dependentModules.put("1.6.0", List.of(
-                new Module(BALLERINAX, "ai.memory.mssql", "1.0.0")
-        ));
-
-        dependentModules.put("1.7.0", List.of(
-                new Module(BALLERINAX, "ai.openai", "1.3.0"),
-                new Module(BALLERINAX, "ai.ollama", "1.2.0"),
-                new Module(BALLERINAX, "ai.deepseek", "1.1.0"),
-                new Module(BALLERINAX, "ai.mistral", "1.2.0"),
-                new Module(BALLERINAX, "ai.azure", "1.4.0"),
-                new Module(BALLERINAX, "ai.anthropic", "1.2.0"),
-                new Module(BALLERINAX, "ai.memory.mssql", "1.0.1"),
-                new Module(BALLERINAX, "ai.memory.mssql", "1.1.0"),
-                new Module(BALLERINAX, "ai.azure", "1.4.1"),
-                new Module(BALLERINAX, "ai.openai", "1.3.1"),
-                new Module(BALLERINAX, "ai.ollama", "1.2.1"),
-                new Module(BALLERINAX, "ai.mistral", "1.2.1"),
-                new Module(BALLERINAX, "ai.deepseek", "1.1.1"),
-                new Module(BALLERINAX, "ai.anthropic", "1.2.1"),
-                new Module(BALLERINAX, "ai.mistral", "1.2.2")
-        ));
-
-        dependentModules.put("1.9.0", List.of(
-                new Module(BALLERINAX, "ai.memory.mssql", "1.2.0"),
-                new Module(BALLERINAX, "ai.anthropic", "1.3.0"),
-                new Module(BALLERINAX, "ai.anthropic", "1.3.1"),
-                new Module(BALLERINAX, "ai.openrouter", "1.0.0")
-        ));
+        InputStream is = AiUtils.class.getClassLoader()
+                .getResourceAsStream("dependent_modules_fallback.json");
+        if (is == null) {
+            LOGGER.log(Level.WARNING, "dependent_modules_fallback.json not found on classpath");
+            return;
+        }
+        try (InputStreamReader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
+            JsonObject json = new Gson().fromJson(reader, JsonObject.class);
+            for (Map.Entry<String, JsonElement> entry : json.entrySet()) {
+                List<Module> modules = new ArrayList<>();
+                for (JsonElement elem : entry.getValue().getAsJsonArray()) {
+                    JsonObject obj = elem.getAsJsonObject();
+                    modules.add(new Module(
+                            obj.get("org").getAsString(),
+                            obj.get("name").getAsString(),
+                            obj.get("version").getAsString()
+                    ));
+                }
+                dependentModules.put(entry.getKey(), List.copyOf(modules));
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Failed to load dependent_modules_fallback.json", e);
+        }
     }
 
     /**
@@ -663,7 +582,7 @@ public class AiUtils {
         Map<String, List<Module>> resolved = new HashMap<>();
         for (Map.Entry<String, List<DependentPackage>> entry : allDeps.entrySet()) {
             List<Module> modules = entry.getValue().stream()
-                    .filter(dep -> BALLERINAX.equals(dep.organization()))
+                    .filter(dep -> BALLERINAX.equals(dep.organization()) && dep.name().startsWith("ai."))
                     .map(dep -> new Module(dep.organization(), dep.name(), dep.version()))
                     .toList();
             if (!modules.isEmpty()) {
