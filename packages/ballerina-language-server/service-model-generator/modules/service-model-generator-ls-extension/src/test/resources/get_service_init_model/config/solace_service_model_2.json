@@ -36,16 +36,6 @@
                     "label": "Listener Configurations",
                     "description": "Configure the Solace listener"
                   },
-                  "types": [
-                    {
-                      "fieldType": "GROUP_SECTION",
-                      "selected": true
-                    }
-                  ],
-                  "enabled": true,
-                  "editable": true,
-                  "optional": false,
-                  "advanced": false,
                   "properties": {
                     "url": {
                       "metadata": {
@@ -106,7 +96,7 @@
                         "label": "Authentication",
                         "description": "Select the authentication method for Solace broker connection"
                       },
-                      "value": 0,
+                      "value": 0.0,
                       "choices": [
                         {
                           "metadata": {
@@ -384,16 +374,6 @@
                         "label": "Advanced Configurations",
                         "description": ""
                       },
-                      "types": [
-                        {
-                          "fieldType": "GROUP_SECTION",
-                          "selected": false
-                        }
-                      ],
-                      "enabled": true,
-                      "editable": false,
-                      "optional": false,
-                      "advanced": false,
                       "properties": {
                         "listenerVarName": {
                           "metadata": {
@@ -403,8 +383,8 @@
                           "codedata": {
                             "argType": "LISTENER_VAR_NAME"
                           },
-                          "value": "solaceListener1",
                           "placeholder": "solaceListener",
+                          "value": "solaceListener1",
                           "types": [
                             {
                               "fieldType": "IDENTIFIER",
@@ -453,9 +433,29 @@
                           "optional": true,
                           "advanced": false
                         }
-                      }
+                      },
+                      "types": [
+                        {
+                          "fieldType": "GROUP_SECTION",
+                          "selected": false
+                        }
+                      ],
+                      "enabled": true,
+                      "editable": false,
+                      "optional": false,
+                      "advanced": false
                     }
-                  }
+                  },
+                  "types": [
+                    {
+                      "fieldType": "GROUP_SECTION",
+                      "selected": true
+                    }
+                  ],
+                  "enabled": true,
+                  "editable": true,
+                  "optional": false,
+                  "advanced": false
                 }
               },
               "types": [
@@ -482,6 +482,95 @@
                     "label": "Listener Configurations",
                     "description": "Configure the Solace listener"
                   },
+                  "properties": {
+                    "existingListener": {
+                      "metadata": {
+                        "label": "Listener Name",
+                        "description": "Select an existing Solace listener"
+                      },
+                      "value": "solaceListener",
+                      "items": [
+                        "solaceListener"
+                      ],
+                      "properties": {
+                        "solaceListener": {
+                          "metadata": {
+                            "label": "solaceListener",
+                            "description": "Solace source: solaceListener"
+                          },
+                          "value": "solaceListener",
+                          "properties": {
+                            "url": {
+                              "metadata": {
+                                "label": "Broker URL",
+                                "description": "The Solace broker URL"
+                              },
+                              "value": "\"smf://localhost:55554\"",
+                              "types": [
+                                {
+                                  "fieldType": "TEXT",
+                                  "ballerinaType": "string",
+                                  "selected": true
+                                },
+                                {
+                                  "fieldType": "EXPRESSION",
+                                  "ballerinaType": "string",
+                                  "selected": false
+                                }
+                              ],
+                              "enabled": true,
+                              "editable": false,
+                              "optional": false,
+                              "advanced": false
+                            },
+                            "messageVpn": {
+                              "metadata": {
+                                "label": "Message VPN",
+                                "description": "The message VPN to connect to"
+                              },
+                              "value": "\"default\"",
+                              "types": [
+                                {
+                                  "fieldType": "TEXT",
+                                  "ballerinaType": "string",
+                                  "selected": true
+                                },
+                                {
+                                  "fieldType": "EXPRESSION",
+                                  "ballerinaType": "string",
+                                  "selected": false
+                                }
+                              ],
+                              "enabled": true,
+                              "editable": false,
+                              "optional": false,
+                              "advanced": false
+                            }
+                          },
+                          "types": [
+                            {
+                              "fieldType": "FORM",
+                              "selected": true
+                            }
+                          ],
+                          "enabled": true,
+                          "editable": false,
+                          "optional": false,
+                          "advanced": false
+                        }
+                      },
+                      "types": [
+                        {
+                          "fieldType": "SINGLE_SELECT",
+                          "selected": true
+                        }
+                      ],
+                      "enabled": true,
+                      "editable": true,
+                      "optional": false,
+                      "advanced": false
+                    }
+                  },
                   "types": [
                     {
                       "fieldType": "GROUP_SECTION",
@@ -491,29 +580,7 @@
                   "enabled": true,
                   "editable": false,
                   "optional": false,
-                  "advanced": false,
-                  "properties": {
-                    "existingListener": {
-                      "metadata": {
-                        "label": "Listener Name",
-                        "description": "Select an existing Solace listener"
-                      },
-                      "value": "solaceListener",
-                      "types": [
-                        {
-                          "fieldType": "SINGLE_SELECT",
-                          "selected": true
-                        }
-                      ],
-                      "items": [
-                        "solaceListener"
-                      ],
-                      "enabled": true,
-                      "editable": true,
-                      "optional": false,
-                      "advanced": false
-                    }
-                  }
+                  "advanced": false
                 }
               },
               "types": [
@@ -544,7 +611,7 @@
             "label": "Destination",
             "description": "The Solace destination to expect messages from."
           },
-          "value": 0,
+          "value": 0.0,
           "choices": [
             {
               "metadata": {

@@ -20,6 +20,23 @@ package io.ballerina.servicemodelgenerator.extension.builder.service;
 
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
+import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.Qualifier;
+import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.VariableSymbol;
+import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
+import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
+import io.ballerina.compiler.syntax.tree.ListenerDeclarationNode;
+import io.ballerina.compiler.syntax.tree.ModulePartNode;
+import io.ballerina.compiler.syntax.tree.NamedArgumentNode;
+import io.ballerina.compiler.syntax.tree.NewExpressionNode;
+import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.NonTerminalNode;
+import io.ballerina.compiler.syntax.tree.PositionalArgumentNode;
+import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
+import io.ballerina.projects.Document;
+import io.ballerina.projects.DocumentId;
+import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
@@ -33,18 +50,26 @@ import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourc
 import io.ballerina.servicemodelgenerator.extension.model.context.UpdateModelContext;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
+import io.ballerina.tools.diagnostics.Location;
+import io.ballerina.tools.text.TextRange;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Logger;
+
+import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getArgList;
 
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_CONFIGURE_LISTENER;
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_EXISTING_LISTENER;
@@ -76,6 +101,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.applyEnabl
  */
 public final class SolaceServiceBuilder extends AbstractServiceBuilder {
 
+    private static final Logger LOGGER = Logger.getLogger(SolaceServiceBuilder.class.getName());
     private static final String SOLACE_SERVICE_MODEL_LOCATION = "services/solace.json";
 
     private static final String PROPERTY_DESTINATION = "destination";
@@ -119,14 +145,63 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
                     context.semanticModel(), context.project());
 
             if (!compatibleListeners.isEmpty()) {
+                // Determine which keys are "advanced" from the template
+                Set<String> advancedKeys = advancedSection.getProperties() != null
+                        ? advancedSection.getProperties().keySet() : Set.of();
+
+                // Extract configs from existing listener declarations
+                Map<String, Map<String, Value>> listenerConfigs = extractSolaceListenerConfigs(
+                        compatibleListeners, context.semanticModel(), context.project());
+
                 // Enable and populate "Use existing" choice
                 Value existingChoice = configureListener.getChoices().get(1);
                 existingChoice.setMetadata(new MetaData("Use existing", "Select an existing Solace listener"));
                 existingChoice.setEnabled(true);
                 existingChoice.setEditable(true);
 
-                // Build SINGLE_SELECT dropdown with listener names
+                // Build per-listener config groups
                 List<String> listenerNames = new ArrayList<>(compatibleListeners);
+                Map<String, Value> perListenerConfigs = new LinkedHashMap<>();
+                for (String name : listenerNames) {
+                    Map<String, Value> config = listenerConfigs.getOrDefault(name, new LinkedHashMap<>());
+                    Map<String, Value> basicProps = new LinkedHashMap<>();
+                    Map<String, Value> advancedProps = new LinkedHashMap<>();
+                    for (Map.Entry<String, Value> entry : config.entrySet()) {
+                        entry.getValue().setEditable(false);
+                        if (advancedKeys.contains(entry.getKey())) {
+                            advancedProps.put(entry.getKey(), entry.getValue());
+                        } else {
+                            basicProps.put(entry.getKey(), entry.getValue());
+                        }
+                    }
+
+                    if (!advancedProps.isEmpty()) {
+                        Value advancedGroup = new Value.ValueBuilder()
+                                .metadata("Advanced Configurations", "")
+                                .types(List.of(new PropertyType.Builder()
+                                        .fieldType(Value.FieldType.GROUP_SECTION)
+                                        .selected(false)
+                                        .build()))
+                                .enabled(true)
+                                .editable(false)
+                                .setProperties(advancedProps)
+                                .build();
+                        advancedGroup.getTypes().getFirst().selected(false);
+                        basicProps.put("advancedConfigurations", advancedGroup);
+                    }
+
+                    Value configGroup = new Value.ValueBuilder()
+                            .metadata(name, "Solace source: " + name)
+                            .value(name)
+                            .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                            .enabled(true)
+                            .editable(false)
+                            .setProperties(basicProps)
+                            .build();
+                    perListenerConfigs.put(name, configGroup);
+                }
+
+                // Build SINGLE_SELECT dropdown with per-listener configs
                 Value listenerDropdown = new Value.ValueBuilder()
                         .metadata("Listener Name", "Select an existing Solace listener")
                         .value(listenerNames.get(0))
@@ -134,6 +209,7 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
                         .enabled(true)
                         .editable(true)
                         .setItems(new ArrayList<>(listenerNames))
+                        .setProperties(perListenerConfigs)
                         .build();
 
                 Map<String, Value> existingProps = new LinkedHashMap<>();
@@ -149,6 +225,112 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
         } catch (IOException e) {
             return null;
         }
+    }
+
+    private Map<String, Map<String, Value>> extractSolaceListenerConfigs(
+            Set<String> listenerNames, SemanticModel semanticModel, Project project) {
+        Map<String, Map<String, Value>> configs = new LinkedHashMap<>();
+        for (String listenerName : listenerNames) {
+            Map<String, Value> config = extractSolaceListenerConfig(listenerName, semanticModel, project);
+            if (config != null && !config.isEmpty()) {
+                configs.put(listenerName, config);
+            }
+        }
+        return configs;
+    }
+
+    private Map<String, Value> extractSolaceListenerConfig(
+            String listenerName, SemanticModel semanticModel, Project project) {
+        Optional<VariableSymbol> listenerSymbol = Optional.empty();
+        for (Symbol moduleSymbol : semanticModel.moduleSymbols()) {
+            if (!(moduleSymbol instanceof VariableSymbol variableSymbol)
+                    || !variableSymbol.qualifiers().contains(Qualifier.LISTENER)) {
+                continue;
+            }
+            if (variableSymbol.getName().isPresent() && variableSymbol.getName().get().equals(listenerName)) {
+                listenerSymbol = Optional.of(variableSymbol);
+                break;
+            }
+        }
+        if (listenerSymbol.isEmpty() || listenerSymbol.get().getLocation().isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        Location location = listenerSymbol.get().getLocation().get();
+        try {
+            Path path = project.sourceRoot().resolve(location.lineRange().fileName());
+            DocumentId documentId = project.documentId(path);
+            Document document = project.currentPackage().getDefaultModule().document(documentId);
+            if (document == null) {
+                return null;
+            }
+
+            ModulePartNode modulePartNode = document.syntaxTree().rootNode();
+            TextRange range = TextRange.from(location.textRange().startOffset(), location.textRange().length());
+            NonTerminalNode foundNode = modulePartNode.findNode(range);
+            while (foundNode != null && !(foundNode instanceof ListenerDeclarationNode)) {
+                foundNode = foundNode.parent();
+            }
+            if (foundNode == null) {
+                return null;
+            }
+
+            ListenerDeclarationNode listenerNode = (ListenerDeclarationNode) foundNode;
+            return extractConfigFromSolaceListenerDeclaration(listenerNode, listenerName);
+        } catch (RuntimeException e) {
+            LOGGER.warning("Failed to extract Solace listener config for '" + listenerName + "': " + e.getMessage());
+            return null;
+        }
+    }
+
+    private Map<String, Value> extractConfigFromSolaceListenerDeclaration(
+            ListenerDeclarationNode listenerNode, String listenerName) {
+        Map<String, Value> config = new LinkedHashMap<>();
+
+        Node initializer = listenerNode.initializer();
+        NewExpressionNode newExpressionNode;
+        if (initializer instanceof CheckExpressionNode checkExpressionNode) {
+            if (!(checkExpressionNode.expression() instanceof NewExpressionNode newExpr)) {
+                return config;
+            }
+            newExpressionNode = newExpr;
+        } else if (initializer instanceof NewExpressionNode newExpr) {
+            newExpressionNode = newExpr;
+        } else {
+            return config;
+        }
+
+        SeparatedNodeList<FunctionArgumentNode> arguments = getArgList(newExpressionNode);
+        if (arguments == null) {
+            return config;
+        }
+
+        boolean firstPositional = true;
+        for (FunctionArgumentNode argument : arguments) {
+            if (argument instanceof PositionalArgumentNode positionalArg && firstPositional) {
+                String url = positionalArg.expression().toSourceCode().trim();
+                config.put("url", ListenerUtil.buildReadOnlyTextValue("Broker URL",
+                        "The Solace broker URL", url));
+                firstPositional = false;
+            } else if (argument instanceof NamedArgumentNode namedArg) {
+                firstPositional = false;
+                String argName = namedArg.argumentName().name().text().trim();
+                String argValue = namedArg.expression().toSourceCode().trim();
+                switch (argName) {
+                    case "messageVpn" -> config.put("messageVpn", ListenerUtil.buildReadOnlyTextValue(
+                            "Message VPN", "The message VPN to connect to", argValue));
+                    case "auth" -> config.put(PROPERTY_AUTHENTICATION, ListenerUtil.buildReadOnlyTextValue(
+                            "Authentication", "Authentication configuration for Solace broker connection",
+                            argValue));
+                    case "secureSocket" -> config.put("secureSocket", ListenerUtil.buildReadOnlyTextValue(
+                            "Secure Socket", "Configure SSL/TLS configuration for secure connection",
+                            argValue));
+                    default -> { }
+                }
+            }
+        }
+
+        return config;
     }
 
     @Override
