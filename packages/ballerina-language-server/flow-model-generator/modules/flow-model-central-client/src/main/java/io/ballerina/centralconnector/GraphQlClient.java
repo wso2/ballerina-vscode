@@ -152,6 +152,51 @@ class GraphQlClient {
         return result;
     }
 
+    public Map<String, List<String>> getPackageKeywords(List<DependentPackage> modules) {
+        if (modules.isEmpty()) {
+            return Map.of();
+        }
+        StringBuilder queryBody = new StringBuilder("query Keywords { ");
+        Map<String, DependentPackage> aliasToModule = new HashMap<>();
+        for (DependentPackage module : modules) {
+            String alias = moduleToAlias(module);
+            aliasToModule.put(alias, module);
+            queryBody.append(alias)
+                    .append(": package(orgName: \\\"").append(module.organization())
+                    .append("\\\", packageName: \\\"").append(module.name())
+                    .append("\\\", version: \\\"").append(module.version())
+                    .append("\\\") { keywords } ");
+        }
+        queryBody.append("}");
+
+        String response = query(queryBody.toString());
+        JsonObject data = gson.fromJson(response, JsonObject.class).getAsJsonObject("data");
+        if (data == null) {
+            return Map.of();
+        }
+
+        Map<String, List<String>> result = new HashMap<>();
+        for (Map.Entry<String, DependentPackage> entry : aliasToModule.entrySet()) {
+            JsonObject pkgObj = data.getAsJsonObject(entry.getKey());
+            if (pkgObj == null || !pkgObj.has("keywords")) {
+                continue;
+            }
+            DependentPackage mod = entry.getValue();
+            String key = mod.organization() + ":" + mod.name() + ":" + mod.version();
+            List<String> keywords = new ArrayList<>();
+            for (JsonElement elem : pkgObj.getAsJsonArray("keywords")) {
+                keywords.add(elem.getAsString());
+            }
+            result.put(key, keywords);
+        }
+        return result;
+    }
+
+    private static String moduleToAlias(DependentPackage module) {
+        return (module.organization() + "_" + module.name() + "_" + module.version())
+                .replaceAll("[^a-zA-Z0-9]", "_");
+    }
+
     private static String versionToAlias(String version) {
         return "v" + version.replace(".", "_");
     }

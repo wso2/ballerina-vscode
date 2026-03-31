@@ -59,5 +59,7 @@ public interface CentralAPI {
 
     Map<String, List<DependentPackage>> dependentPackages(String org, String packageName, List<String> versions);
 
+    Map<String, List<String>> packageKeywords(List<DependentPackage> modules);
+
     boolean hasAuthorizedAccess();
 }

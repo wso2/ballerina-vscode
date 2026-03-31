@@ -127,6 +127,11 @@ public class RemoteCentral implements CentralAPI {
     }
 
     @Override
+    public Map<String, List<String>> packageKeywords(List<DependentPackage> modules) {
+        return graphQlClient.getPackageKeywords(modules);
+    }
+
+    @Override
     public boolean hasAuthorizedAccess() {
         return restClient.hasAuthorizedAccess();
     }

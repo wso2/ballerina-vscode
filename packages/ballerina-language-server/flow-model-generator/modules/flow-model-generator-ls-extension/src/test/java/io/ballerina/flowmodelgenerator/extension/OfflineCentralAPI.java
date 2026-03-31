@@ -96,6 +96,11 @@ public class OfflineCentralAPI implements CentralAPI {
     }
 
     @Override
+    public Map<String, List<String>> packageKeywords(List<DependentPackage> modules) {
+        throw new UnsupportedOperationException("Central API is disabled for testing");
+    }
+
+    @Override
     public boolean hasAuthorizedAccess() {
         return false;
     }
