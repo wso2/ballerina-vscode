@@ -379,42 +379,6 @@
                       "optional": false,
                       "advanced": true
                     },
-                    "secureSocket": {
-                      "metadata": {
-                        "label": "Secure Socket",
-                        "description": "Configure SSL/TLS configuration for secure connection"
-                      },
-                      "codedata": {
-                        "argType": "LISTENER_PARAM_INCLUDED_FIELD"
-                      },
-                      "placeholder": "",
-                      "value": "",
-                      "types": [
-                        {
-                          "fieldType": "RECORD_MAP_EXPRESSION",
-                          "ballerinaType": "solace:SecureSocket",
-                          "typeMembers": [
-                            {
-                              "type": "SecureSocket",
-                              "packageInfo": "ballerinax:solace:0.3.0",
-                              "packageName": "solace",
-                              "kind": "RECORD_TYPE",
-                              "selected": true
-                            }
-                          ],
-                          "selected": true
-                        },
-                        {
-                          "fieldType": "EXPRESSION",
-                          "ballerinaType": "solace:SecureSocket",
-                          "selected": false
-                        }
-                      ],
-                      "enabled": true,
-                      "editable": true,
-                      "optional": true,
-                      "advanced": true
-                    },
                     "advancedConfigurations": {
                       "metadata": {
                         "label": "Advanced Configurations",
@@ -445,6 +409,42 @@
                             {
                               "fieldType": "IDENTIFIER",
                               "ballerinaType": "Listener",
+                              "selected": false
+                            }
+                          ],
+                          "enabled": true,
+                          "editable": true,
+                          "optional": true,
+                          "advanced": false
+                        },
+                        "secureSocket": {
+                          "metadata": {
+                            "label": "Secure Socket",
+                            "description": "Configure SSL/TLS configuration for secure connection"
+                          },
+                          "codedata": {
+                            "argType": "LISTENER_PARAM_INCLUDED_FIELD"
+                          },
+                          "placeholder": "",
+                          "value": "",
+                          "types": [
+                            {
+                              "fieldType": "RECORD_MAP_EXPRESSION",
+                              "ballerinaType": "solace:SecureSocket",
+                              "typeMembers": [
+                                {
+                                  "type": "SecureSocket",
+                                  "packageInfo": "ballerinax:solace:0.3.0",
+                                  "packageName": "solace",
+                                  "kind": "RECORD_TYPE",
+                                  "selected": true
+                                }
+                              ],
+                              "selected": true
+                            },
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "solace:SecureSocket",
                               "selected": false
                             }
                           ],
