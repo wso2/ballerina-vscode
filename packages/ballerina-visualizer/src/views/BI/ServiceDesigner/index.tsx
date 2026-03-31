@@ -1011,8 +1011,8 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                                 <Button appearance="secondary" tooltip="Try Service" onClick={handleServiceTryIt}>
                                                     <><Icon name="play" isCodicon={true} sx={{ marginRight: 8, fontSize: 16 }} /> <ButtonText>Try It</ButtonText></>
                                                 </Button>
-                                                </>
-                                            )
+                                            </>
+                                        )
                                     }
                                     {serviceModel && !isMcpService && dropdownOptions.length > 0 && (
                                         <AddServiceElementDropdown
