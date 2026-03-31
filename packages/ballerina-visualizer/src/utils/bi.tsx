@@ -469,7 +469,45 @@ export function enrichFormTemplatePropertiesWithValues(
         }
     }
 
+    // Map individual activity args from the `args` map expression to their matching template param fields.
+    // The flow model stores all args as a single map string (e.g. `{str1: string `abc 123`}`),
+    // while the nodeTemplate exposes each param as its own top-level field (e.g. `str1`).
+    const argsProperty = formProperties["args" as NodePropertyKey];
+    if (argsProperty && typeof argsProperty.value === "string") {
+        const parsedArgs = parseBalMapExpression(argsProperty.value as string);
+        for (const [key, value] of Object.entries(parsedArgs)) {
+            if (enrichedFormTemplateProperties[key as NodePropertyKey] != null) {
+                enrichedFormTemplateProperties[key as NodePropertyKey].value = value;
+            }
+        }
+    }
+
     return enrichedFormTemplateProperties;
+}
+
+/**
+ * Parses a Ballerina map literal expression (e.g. `{str1: string `abc 123`, count: 5}`)
+ * and returns a plain key→value record. Handles template strings, quoted strings, and
+ * simple nested records, but is not a full Ballerina parser.
+ */
+function parseBalMapExpression(mapStr: string): Record<string, string> {
+    const result: Record<string, string> = {};
+    const trimmed = mapStr.trim();
+    if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) {
+        return result;
+    }
+    const inner = trimmed.slice(1, -1).trim();
+    if (!inner) return result;
+
+    // Match: identifier : value
+    // Values may contain: template strings (`...`), quoted strings ("..." | '...'),
+    // nested records ({...}), or plain tokens — stopping at a top-level comma.
+    const regex = /(\w+)\s*:\s*((?:`[^`]*`|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|\{[^}]*\}|[^,])+)/g;
+    let match: RegExpExecArray | null;
+    while ((match = regex.exec(inner)) !== null) {
+        result[match[1].trim()] = match[2].trim();
+    }
+    return result;
 }
 
 function getEnrichedValue(kind: CompletionItemKind, value: string): CompletionInsertText {
