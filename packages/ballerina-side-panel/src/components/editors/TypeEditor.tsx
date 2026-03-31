@@ -294,7 +294,7 @@ export function TypeEditor(props: TypeEditorProps) {
             <Controller
                 control={control}
                 name={field.key}
-                defaultValue={field.value}
+                defaultValue={field.value ?? ""}
                 rules={{
                     required: buildRequiredRule({ isRequired: !field.optional, label: field.label })
                 }}
@@ -313,8 +313,8 @@ export function TypeEditor(props: TypeEditorProps) {
                             }
                             completions={types}
                             showDefaultCompletion={showDefaultCompletion}
-                            getDefaultCompletion={() => getDefaultCompletion(value)}
-                            value={value}
+                            getDefaultCompletion={() => getDefaultCompletion(value ?? "")}
+                            value={value ?? ""}
                             ariaLabel={field.label}
                             onChange={async (updatedValue: string, updatedCursorPosition: number) => {
                                 if (updatedValue === value) {
