@@ -2387,7 +2387,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         });
     }
 
-    async updateWorkspaceTitle(params: UpdateProjectTitleRequest): Promise<void> {
+    async updateProjectTitle(params: UpdateProjectTitleRequest): Promise<void> {
         const ballerinaTomlPath = path.join(params.projectPath, 'Ballerina.toml');
         let content: string;
         try {
