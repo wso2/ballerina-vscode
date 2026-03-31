@@ -136,8 +136,8 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
             // Generate a unique listener variable name
             String listenerVarName = Utils.generateVariableIdentifier(context.semanticModel(), context.document(),
                     context.document().syntaxTree().rootNode().lineRange().endLine(),
-                    advancedSection.getProperties().get(KEY_LISTENER_VAR_NAME).getValue());
-            advancedSection.getProperties().get(KEY_LISTENER_VAR_NAME).setValue(listenerVarName);
+                    listenerConfig.getProperties().get(KEY_LISTENER_VAR_NAME).getValue());
+            listenerConfig.getProperties().get(KEY_LISTENER_VAR_NAME).setValue(listenerVarName);
 
             // Check for existing compatible listeners
             Set<String> compatibleListeners = ListenerUtil.getCompatibleListeners(context.moduleName(),
