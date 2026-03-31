@@ -767,6 +767,27 @@ public class AiUtils {
         return cachedKnowledgeBaseMap.getOrDefault(aiModuleVersion, List.of());
     }
 
+    private static List<Module> pinUserDeclaredVersions(Project project, List<Module> modules) {
+        Map<String, String> userVersions = project.currentPackage().dependenciesToml()
+                .map(DependenciesToml::tomlDocument).map(TomlDocument::toml)
+                .map(toml -> toml.getTables(PACKAGE)).orElse(List.of()).stream()
+                .collect(Collectors.toMap(
+                        pkg -> pkg.get(ORG).map(Object::toString).orElse("") + ":"
+                                + pkg.get(NAME).map(Object::toString).orElse(""),
+                        pkg -> pkg.get(VERSION).map(Objects::toString).orElse(""),
+                        (v1, v2) -> v1
+                ));
+
+        return modules.stream()
+                .map(m -> {
+                    String key = m.org() + ":" + m.name();
+                    String userVersion = userVersions.get(key);
+                    return (userVersion != null && !userVersion.isEmpty())
+                            ? new Module(m.org(), m.name(), userVersion) : m;
+                })
+                .toList();
+    }
+
     private static synchronized void buildCategoryCache(Project project, NodeKind category) {
         String aiModuleVersion = getBallerinaAiModuleVersion(project);
         Set<NodeKind> completed = completedCategories.computeIfAbsent(aiModuleVersion, k -> new HashSet<>());
@@ -775,6 +796,7 @@ public class AiUtils {
         }
 
         List<Module> allModules = getLatestCompatibleModules(aiModuleVersion);
+        allModules = pinUserDeclaredVersions(project, allModules);
         ensureKeywordsLoaded(allModules);
 
         List<ModuleInfo> modules = allModules.stream()
