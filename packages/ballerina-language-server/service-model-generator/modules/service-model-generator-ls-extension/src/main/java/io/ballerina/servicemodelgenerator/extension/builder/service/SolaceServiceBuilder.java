@@ -102,17 +102,16 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
             ServiceInitModel serviceInitModel = new Gson().fromJson(reader, ServiceInitModel.class);
             Map<String, Value> properties = serviceInitModel.getProperties();
 
-            // Navigate to listenerVarName in advancedConfigurations
+            // Navigate to listenerVarName directly in listenerConfig properties
             Value configureListener = properties.get(KEY_CONFIGURE_LISTENER);
             Value createNewChoice = configureListener.getChoices().get(0);
             Value listenerConfig = createNewChoice.getProperties().get("listenerConfig");
-            Value advancedSection = listenerConfig.getProperties().get("advancedConfigurations");
 
             // Generate a unique listener variable name
             String listenerVarName = Utils.generateVariableIdentifier(context.semanticModel(), context.document(),
                     context.document().syntaxTree().rootNode().lineRange().endLine(),
-                    advancedSection.getProperties().get(KEY_LISTENER_VAR_NAME).getValue());
-            advancedSection.getProperties().get(KEY_LISTENER_VAR_NAME).setValue(listenerVarName);
+                    listenerConfig.getProperties().get(KEY_LISTENER_VAR_NAME).getValue());
+            listenerConfig.getProperties().get(KEY_LISTENER_VAR_NAME).setValue(listenerVarName);
 
             // Check for existing compatible listeners
             Set<String> compatibleListeners = ListenerUtil.getCompatibleListeners(context.moduleName(),

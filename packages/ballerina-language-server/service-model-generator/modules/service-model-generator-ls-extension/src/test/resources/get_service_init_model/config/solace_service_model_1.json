@@ -415,45 +415,27 @@
                       "optional": true,
                       "advanced": true
                     },
-                    "advancedConfigurations": {
+                    "listenerVarName": {
                       "metadata": {
-                        "label": "Advanced Configurations",
-                        "description": ""
+                        "label": "Listener Name",
+                        "description": "Provide a name for the listener being created"
                       },
+                      "codedata": {
+                        "argType": "LISTENER_VAR_NAME"
+                      },
+                      "value": "solaceListener",
+                      "placeholder": "solaceListener",
                       "types": [
                         {
-                          "fieldType": "GROUP_SECTION",
+                          "fieldType": "IDENTIFIER",
+                          "ballerinaType": "Listener",
                           "selected": false
                         }
                       ],
                       "enabled": true,
-                      "editable": false,
-                      "optional": false,
-                      "advanced": false,
-                      "properties": {
-                        "listenerVarName": {
-                          "metadata": {
-                            "label": "Listener Name",
-                            "description": "Provide a name for the listener being created"
-                          },
-                          "codedata": {
-                            "argType": "LISTENER_VAR_NAME"
-                          },
-                          "value": "solaceListener",
-                          "placeholder": "solaceListener",
-                          "types": [
-                            {
-                              "fieldType": "IDENTIFIER",
-                              "ballerinaType": "Listener",
-                              "selected": false
-                            }
-                          ],
-                          "enabled": true,
-                          "editable": true,
-                          "optional": true,
-                          "advanced": false
-                        }
-                      }
+                      "editable": true,
+                      "optional": true,
+                      "advanced": true
                     }
                   }
                 }
