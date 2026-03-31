@@ -50,6 +50,7 @@ export const BI_PROJECT_FILES = [
 ];
 
 export const WI_EXTENSION_ID = 'wso2.wso2-integrator';
+export const VALIDATOR_PACKAGE_NAME = "wso2/strict.library";
 
 interface BallerinaPluginConfig extends WorkspaceConfiguration {
     home?: string;
@@ -414,14 +415,10 @@ export function getOrgAndPackageName(projectInfo: ProjectInfo, projectPath: stri
 
 export async function isLibraryProject(projectPath: string): Promise<boolean> {
     const libBalPath = path.join(projectPath, 'lib.bal');
-    return fs.existsSync(libBalPath);
 
-    // TODO: Enable checking the validator import in the lib.bal file
-    // once this this implemented: https://github.com/wso2/product-ballerina-integrator/issues/2409
-
-    // if (fs.existsSync(libBalPath)) {
-    //     const libBalContent = fs.readFileSync(libBalPath, 'utf8');
-    //     return libBalContent.includes(`import ${VALIDATOR_PACKAGE_NAME} as _;`);
-    // }
-    // return false;
+    if (fs.existsSync(libBalPath)) {
+        const libBalContent = fs.readFileSync(libBalPath, 'utf8');
+        return libBalContent.includes(`import ${VALIDATOR_PACKAGE_NAME} as _;`);
+    }
+    return false;
 }

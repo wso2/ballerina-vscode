@@ -114,6 +114,16 @@ export interface ExtendedAgentToolRequest extends AgentToolRequest {
     flowNode?: FlowNode;
 }
 
+// Reorder function categories: move "Imported Functions" to the end
+function reorderFunctionCategories(categories: PanelCategory[]): PanelCategory[] {
+    const importedIndex = categories.findIndex((cat) => cat.title?.includes("Imported"));
+    if (importedIndex !== -1) {
+        const [importedCategory] = categories.splice(importedIndex, 1);
+        categories.push(importedCategory);
+    }
+    return categories;
+}
+
 const INITIAL_FIELDS: FormField[] = [
     {
         key: `name`,
@@ -244,7 +254,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
         // FUNCTION mode: skip getAvailableNodes entirely — connections are not needed
         if (mode === NewToolSelectionMode.FUNCTION) {
             const filteredFunctions = await handleSearchFunction("", FUNCTION_TYPE.REGULAR, false);
-            const categories = filteredFunctions || [];
+            const categories = reorderFunctionCategories(filteredFunctions || []);
             setCategories(categories);
             initialCategoriesRef.current = categories;
             setLoading(false);
@@ -255,9 +265,12 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             const getNodeRequest: BIAvailableNodesRequest = {
                 position: targetRef.current.startLine,
                 filePath: agentFilePath.current,
-                queryMap: {
-                    "checkAgentToolCompatibility": "true"
-                }
+                // TODO: This is currently disabled because it hides nodes that are actually tool compatible 
+                // due to some inconsistencies in how the compatibility is determined. 
+                // Need to revisit the logic and ensure it's consistent before enabling this filter
+                // queryMap: {
+                //     "checkAgentToolCompatibility": "true"
+                // }
             };
             const response = await rpcClient.getBIDiagramRpcClient().getAvailableNodes(getNodeRequest);
             console.log(">>> Available nodes", response);
@@ -291,7 +304,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             // ALL mode: also fetch functions — CONNECTION mode only needs connections
             if (mode !== NewToolSelectionMode.CONNECTION) {
                 const filteredFunctions = await handleSearchFunction("", FUNCTION_TYPE.REGULAR, false);
-                filteredCategories = convertedCategories.concat(filteredFunctions);
+                filteredCategories = convertedCategories.concat(reorderFunctionCategories(filteredFunctions));
             }
 
             setCategories(filteredCategories);
@@ -341,7 +354,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
         }
 
         if (isSearching && searchText) {
-            setCategories(convertFunctionCategoriesToSidePanelCategories(filteredResponse, functionType));
+            setCategories(reorderFunctionCategories(convertFunctionCategoriesToSidePanelCategories(filteredResponse, functionType)));
             return;
         }
         if (!response || !filteredResponse) {
@@ -367,7 +380,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 funcDef.properties.parameters.metadata.description = "Define the inputs the agent must provide when invoking this tool.";
                 toolInputFields = convertConfig(funcDef.properties, ["functionName", "functionNameDescription", "isIsolated", "type", "typeDescription", "isPublic"]);
             }
-            
+
             const functionNodeTemplate = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
                 position: funcDef?.codedata.lineRange.startLine || { line: 0, offset: 0 },
                 filePath: functionFilePath.current,
@@ -666,6 +679,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                     title={"Functions"}
                     searchPlaceholder={searchPlaceholder}
                     panelBodySx={{ height: "calc(100vh - 140px)" }}
+                    alwaysCollapsedCategories={["Imported Functions"]}
                 />
             )}
             {sidePanelView === SidePanelView.TOOL_FORM && (

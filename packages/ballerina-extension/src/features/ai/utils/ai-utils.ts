@@ -308,6 +308,10 @@ export function sendConfigurationCollectionNotification(event: ChatNotify & { ty
     sendAIPanelNotification(event);
 }
 
+export function sendClarifyNotification(event: ChatNotify & { type: "clarify_event" }): void {
+    sendAIPanelNotification(event);
+}
+
 export function sendWebToolToggleNotification(active: boolean): void {
     RPCLayer._messenger.sendNotification(
         webToolToggle,
