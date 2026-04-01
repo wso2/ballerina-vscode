@@ -170,7 +170,8 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
             const baseUrl = `http://localhost:${selectedPort}${basePath}`;
             const serviceName = selectedService.name || selectedService.basePath;
             const savePath = path.join(projectPath, 'target', 'TryIt.hurl');
-            await openHurlNotebook({ oasSpec: openapiSpec, baseUrl, serviceName, resourceMetadata }, savePath, { savable: true });
+            // Service Try It is savable (Cmd+S saves in-place); Resource Try It is read-only.
+            await openHurlNotebook({ oasSpec: openapiSpec, baseUrl, serviceName, resourceMetadata }, savePath, { savable: !resourceMetadata });
         } else if (selectedService.type === ServiceType.GRAPHQL) {
             const selectedPort: number = await getServicePort(projectPath, selectedService);
             const port = selectedPort;
@@ -212,7 +213,7 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
 }
 
 // ---------------------------------------------------------------------------
-// Hurl notebook helpers — shared by ballerina.startService and openTryItView
+// Hurl notebook helpers
 // ---------------------------------------------------------------------------
 
 interface OasDescriptor {
@@ -227,6 +228,22 @@ async function openHurlNotebook(
     savePath: string,
     options?: { savable?: boolean }
 ): Promise<void> {
+    // If TryIt.hurl is already open as a notebook, VS Code returns the cached in-memory
+    // document and ignores the freshly-written file (e.g. switching Service → Resource Try It).
+    // Close all tabs for that file first so the new content is read from disk.
+    const saveUri = vscode.Uri.file(savePath);
+    const isAlreadyOpen = vscode.workspace.notebookDocuments.some(d => d.uri.fsPath === saveUri.fsPath);
+    if (isAlreadyOpen) {
+        await Promise.all(
+            vscode.window.tabGroups.all
+                .flatMap(g => g.tabs)
+                .filter(t => {
+                    const input = t.input as any;
+                    return input?.uri?.fsPath === saveUri.fsPath || input?.notebook?.uri?.fsPath === saveUri.fsPath;
+                })
+                .map(tab => vscode.window.tabGroups.close(tab, true))
+        );
+    }
     const cells = buildHurlCellsFromOASSpec(descriptor.oasSpec, descriptor.baseUrl, descriptor.serviceName, descriptor.resourceMetadata);
     await openTryItNotebook(cells, { ...options, savePath });
 }
