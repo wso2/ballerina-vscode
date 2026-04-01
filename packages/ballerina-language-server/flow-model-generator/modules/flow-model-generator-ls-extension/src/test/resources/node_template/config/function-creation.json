@@ -103,7 +103,7 @@
           }
         ],
         "value": {},
-        "optional": false,
+        "optional": true,
         "editable": false,
         "advanced": false,
         "hidden": false
@@ -121,7 +121,7 @@
           }
         ],
         "value": "",
-        "optional": false,
+        "optional": true,
         "editable": true,
         "advanced": false,
         "hidden": false
@@ -138,7 +138,7 @@
           }
         ],
         "value": "var2",
-        "optional": false,
+        "optional": true,
         "editable": true,
         "advanced": false,
         "hidden": false
