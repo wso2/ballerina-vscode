@@ -727,6 +727,13 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         const listenerProperty = serviceModel.properties?.listener;
         const listener = (listenerProperty?.value ?? listenerProperty?.values?.[0] ?? '').trim();
 
+        if (isMcpService) {
+            rpcClient.getCommonRpcClient().executeCommand({
+                commands: ["ballerina.tryIt", false, undefined, { basePath, listener }]
+            });
+            return;
+        }
+
         const baseUrl = buildBaseUrl(listener, basePath);
         const serviceName = basePath?.replace(/^\//, "") || serviceModel.name || "Service";
 
