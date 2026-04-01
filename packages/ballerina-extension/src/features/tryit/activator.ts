@@ -23,7 +23,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { BallerinaExtension } from "src/core";
 import Handlebars from "handlebars";
-import { clientManager, findRunningBallerinaProcesses, handleError, HTTPYAC_CONFIG_TEMPLATE, TRYIT_TEMPLATE, waitForBallerinaService } from "./utils";
+import { clientManager, findRunningBallerinaProcesses, handleError, waitForBallerinaService } from "./utils";
 import { buildHurlCellsFromOASSpec } from "./hurl-builder";
 import { BIDesignModelResponse, EVENT_TYPE, MACHINE_VIEW, OpenAPISpec, ProjectInfo } from "@wso2/ballerina-core";
 import { getProjectWorkingDirectory } from "../../utils/file-utils";
@@ -38,9 +38,8 @@ import { TracerMachine } from "../tracing";
 
 // File constants
 const FILE_NAMES = {
-    TRYIT: 'tryit.http',
-    HTTPYAC_CONFIG: 'httpyac.config.js',
-    ERROR_LOG: 'httpyac_errors.log'
+    TRYIT: 'TryIt.hurl',
+    ERROR_LOG: 'tryit_errors.log'
 };
 
 let errorLogWatcher: FileSystemWatcher | undefined;
@@ -500,82 +499,6 @@ async function getAvailableServices(projectDir: string): Promise<ServiceInfo[] |
         return services || [];
     } catch (error) {
         return null;
-    }
-}
-
-async function generateTryItFileContent(targetDir: string, openapiSpec: OAISpec, service: ServiceInfo, resourceMetadata?: ResourceMetadata): Promise<vscode.Uri | undefined> {
-    try {
-        // Register Handlebars helpers
-        registerHandlebarsHelpers(openapiSpec);
-
-        let isResourceMode = false;
-        let resourcePath = '';
-        // Filter paths based on resourceMetadata if provided
-        if (resourceMetadata) {
-            const originalPaths = openapiSpec.paths;
-            const filteredPaths: Record<string, Record<string, Operation>> = {};
-
-            let matchingPath = '';
-            for (const path in originalPaths) {
-                const pathMatches = comparePathPatterns(path, resourceMetadata.pathValue);
-                if (pathMatches) {
-                    matchingPath = path;
-                    break;
-                }
-            }
-
-            if (matchingPath && originalPaths[matchingPath]) {
-                isResourceMode = true;
-                resourcePath = matchingPath;
-
-                const method = resourceMetadata.methodValue.toLowerCase();
-                if (originalPaths[matchingPath][method]) {
-                    // Create entry with only the specified method
-                    filteredPaths[matchingPath] = {
-                        [method]: {
-                            ...originalPaths[matchingPath][method]
-                        }
-                    };
-                } else {
-                    // Method not found in matching path
-                    vscode.window.showWarningMessage(`Method ${resourceMetadata.methodValue} not found for path ${matchingPath}. Showing all methods for this path.`);
-                    filteredPaths[matchingPath] = originalPaths[matchingPath];
-                }
-
-                openapiSpec.paths = filteredPaths;
-            } else {
-                // Path not found in OpenAPI spec
-                vscode.window.showWarningMessage(
-                    `Path ${resourceMetadata.pathValue} not found in service ${service.name || service.basePath}. Showing all resources.`
-                );
-            }
-        }
-
-        const tryitCompiledTemplate = Handlebars.compile(TRYIT_TEMPLATE);
-        const tryitContent = tryitCompiledTemplate({
-            ...openapiSpec,
-            port: service.port.toString(),
-            basePath: service.basePath === '/' ? '' : sanitizePath(service.basePath), // to avoid double slashes in the URL
-            serviceName: service.name || '/',
-            isResourceMode: isResourceMode,
-            resourceMethod: isResourceMode ? resourceMetadata?.methodValue.toUpperCase() : '',
-            resourcePath: resourcePath,
-        });
-
-        const httpyacCompiledTemplate = Handlebars.compile(HTTPYAC_CONFIG_TEMPLATE);
-        const httpyacContent = httpyacCompiledTemplate({
-            errorLogFile: FILE_NAMES.ERROR_LOG,
-        });
-
-        const tryitFilePath = path.join(targetDir, FILE_NAMES.TRYIT);
-        const configFilePath = path.join(targetDir, FILE_NAMES.HTTPYAC_CONFIG);
-        fs.writeFileSync(tryitFilePath, tryitContent);
-        fs.writeFileSync(configFilePath, httpyacContent);
-
-        return vscode.Uri.file(tryitFilePath);
-    } catch (error) {
-        handleError(error, "Try It client initialization failed");
-        return undefined;
     }
 }
 
