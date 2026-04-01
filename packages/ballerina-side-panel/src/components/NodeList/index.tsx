@@ -535,10 +535,10 @@ export function NodeList(props: NodeListProps) {
                         }
 
                         return (
-                            <Tooltip 
+                            <Tooltip
                                 key={node.id + index}
                                 content={renderTooltipContent(node.description)}
-                                sx={{ 
+                                sx={{
                                     maxWidth: "280px",
                                     whiteSpace: "normal",
                                     wordWrap: "break-word",
