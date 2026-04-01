@@ -32,6 +32,8 @@ import {
     LABEL_WIDTH,
     LINK_COLOR,
     NODE_BG_COLOR,
+    NODE_BG_HOVER_COLOR,
+    NODE_HOVER_GLOW,
     NODE_BORDER_COLOR,
     NODE_BORDER_SELECTED_COLOR,
     NODE_BORDER_WIDTH,
@@ -108,9 +110,10 @@ export namespace NodeStyles {
                         : NODE_BORDER_COLOR};
         border-radius: 10px;
         background-color: ${(props: NodeStyleProp) =>
-            props?.isActiveBreakpoint ? NODE_BG_BREAKPOINT_COLOR : NODE_BG_COLOR};
+            props?.isActiveBreakpoint ? NODE_BG_BREAKPOINT_COLOR : props.hovered && !props.disabled && !props.readOnly ? NODE_BG_HOVER_COLOR : NODE_BG_COLOR};
         color: ${NODE_TEXT_COLOR};
-        transition: border-color 0.4s ease-out;
+        box-shadow: ${(props: NodeStyleProp) => props.hovered && !props.disabled && !props.readOnly ? NODE_HOVER_GLOW : 'none'};
+        transition: box-shadow 0.1s ease, background-color 0.1s ease, border-color 0.1s ease;
     `;
 
     export const Header = styled.div<{}>`

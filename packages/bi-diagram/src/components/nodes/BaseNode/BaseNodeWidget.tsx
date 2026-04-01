@@ -25,6 +25,8 @@ import {
     HIGHLIGHT_NODE_BORDER_WIDTH,
     NODE_BG_BREAKPOINT_COLOR,
     NODE_BG_COLOR,
+    NODE_BG_HOVER_COLOR,
+    NODE_HOVER_GLOW,
     NODE_BORDER_COLOR,
     NODE_BORDER_ERROR_COLOR,
     NODE_BORDER_SELECTED_COLOR,
@@ -53,7 +55,7 @@ export namespace NodeStyles {
         readOnly: boolean;
         isActiveBreakpoint?: boolean;
         isSelected?: boolean;
-        // isWorkflowNode?: boolean;
+        isWorkflowNode?: boolean;
     };
     export const Node = styled.div<NodeStyleProp>`
         display: flex;
@@ -64,14 +66,14 @@ export namespace NodeStyles {
         min-height: ${NODE_HEIGHT}px;
         padding: 0 ${NODE_PADDING}px;
         background-color: ${(props: NodeStyleProp) =>
-            props?.isActiveBreakpoint ? NODE_BG_BREAKPOINT_COLOR : NODE_BG_COLOR};
+            props?.isActiveBreakpoint ? NODE_BG_BREAKPOINT_COLOR : props.hovered && !props.disabled && !props.readOnly ? NODE_BG_HOVER_COLOR : NODE_BG_COLOR};
         color: ${NODE_TEXT_COLOR};
         opacity: ${(props: NodeStyleProp) => (props.disabled ? 0.7 : 1)};
         border: ${(props: NodeStyleProp) =>
             props.disabled
                 ? DRAFT_NODE_BORDER_WIDTH
-                // : props.isWorkflowNode
-                //     ? HIGHLIGHT_NODE_BORDER_WIDTH
+                : props.isWorkflowNode
+                    ? HIGHLIGHT_NODE_BORDER_WIDTH
                     : NODE_BORDER_WIDTH}px;
         border-style: ${(props: NodeStyleProp) => (props.disabled ? "dashed" : "solid")};
         border-color: ${(props: NodeStyleProp) =>
@@ -81,11 +83,13 @@ export namespace NodeStyles {
                     ? NODE_BORDER_SELECTED_COLOR
                     : props.hovered && !props.disabled && !props.readOnly
                         ? NODE_BORDER_SELECTED_COLOR
-                        // : props.isWorkflowNode
-                        //     ? HIGHLIGHT_NODE_BORDER_COLOR
+                        : props.isWorkflowNode
+                            ? HIGHLIGHT_NODE_BORDER_COLOR
                             : NODE_BORDER_COLOR};
         border-radius: 10px;
         cursor: ${(props: NodeStyleProp) => (props.readOnly ? "default" : "pointer")};
+        box-shadow: ${(props: NodeStyleProp) => props.hovered && !props.disabled && !props.readOnly ? NODE_HOVER_GLOW : 'none'};
+        transition: box-shadow 0.1s ease, background-color 0.1s ease, border-color 0.1s ease;
     `;
 
     export const Header = styled.div<{}>`
@@ -105,6 +109,7 @@ export namespace NodeStyles {
         justify-content: flex-end;
         align-items: center;
         gap: 2px;
+        flex-shrink: 0;
     `;
 
     export const MenuButton = styled(Button)`
@@ -132,6 +137,7 @@ export namespace NodeStyles {
 
     export const Icon = styled.div`
         padding: 4px;
+        flex-shrink: 0;
         svg {
             fill: ${NODE_TEXT_COLOR};
         }
@@ -215,20 +221,9 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
     const functionViewRange = model.node.properties?.view?.value as ELineRange | undefined;
     const hasViewRange = Boolean(functionViewRange);
     const processFunctionValue = (model.node.properties as any)?.processFunction?.value as string | undefined;
-    const activityFunctionValue = (model.node.properties as any)?.activityFunction?.value as string | undefined;
     const workflowStartFunctionName =
         typeof processFunctionValue === "string"
             ? processFunctionValue
-                .trim()
-                .replace(/^["']|["']$/g, "")
-                .split(":")
-                .pop()
-                ?.split("(")[0]
-                ?.trim()
-            : undefined;
-    const activityFunctionName =
-        typeof activityFunctionValue === "string"
-            ? activityFunctionValue
                 .trim()
                 .replace(/^["']|["']$/g, "")
                 .split(":")
@@ -241,8 +236,7 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
         model.node.codedata.node === "FUNCTION_CALL" &&
         model.node.codedata.org === project?.org;
     const canViewWorkflowRunFunction = model.node.codedata.node === "WORKFLOW_RUN" && Boolean(workflowStartFunctionName);
-    const canViewActivityFunction = model.node.codedata.node === "ACTIVITY_CALL" && Boolean(activityFunctionName);
-    const canViewFunction = canViewProjectFunction || canViewWorkflowRunFunction || canViewActivityFunction;
+    const canViewFunction = canViewProjectFunction || canViewWorkflowRunFunction;
 
     const handleOnClick = async (event: React.MouseEvent<HTMLDivElement>) => {
         if (readOnly) {
@@ -354,14 +348,6 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
             if (functionLocation) {
                 openView && openView(functionLocation);
             }
-            return;
-        }
-
-        if (canViewActivityFunction && activityFunctionName) {
-            const functionLocation = await project?.getFunctionLocation?.(activityFunctionName);
-            if (functionLocation) {
-                openView && openView(functionLocation);
-            }
         }
     };
 
@@ -423,7 +409,7 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
             readOnly={readOnly}
             isActiveBreakpoint={isActiveBreakpoint}
             isSelected={isSelected}
-            // isWorkflowNode={isWorkflowStyledNode}
+            isWorkflowNode={isWorkflowStyledNode}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             onContextMenu={!readOnly ? handleOnContextMenu : undefined}
@@ -448,7 +434,7 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
                         <NodeStyles.Description>{model.node.properties.variable.value}</NodeStyles.Description>
                     )} */}
                 </NodeStyles.Icon>
-                <NodeStyles.Row>
+                <NodeStyles.Row style={{ flex: 1, minWidth: 0, width: "auto" }}>
                     <NodeStyles.Header onClick={handleOnClick}>
                         <NodeStyles.Title>{nodeTitle}</NodeStyles.Title>
                         <NodeStyles.Description>{nodeDescription as ReactNode}</NodeStyles.Description>
@@ -463,7 +449,7 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
                                     onClick={handleOnViewFunctionClick}
                                 >
                                     <Icon
-                                        name="bi-function-flow"
+                                        name="bi-open-in"
                                         sx={{ width: 16, height: 16 }}
                                         iconSx={{ fontSize: 16 }}
                                     />

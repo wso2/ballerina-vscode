@@ -146,6 +146,10 @@ export const NodeLinkWidget: React.FC<NodeLinkWidgetProps> = ({ link, engine }) 
                 strokeWidth={1.5}
                 strokeDasharray={link.brokenLine ? "5,5" : "0"}
                 markerEnd={link.showArrowToNode() ? `url(#${link.getID()}-arrow-head)` : ""}
+                style={{
+                    filter: isHovered && !readOnly ? `drop-shadow(0 0 3px ${LINK_HOVERED_COLOR})` : 'none',
+                    transition: 'filter 0.1s ease',
+                }}
             />
             {link.label && (
                 <foreignObject

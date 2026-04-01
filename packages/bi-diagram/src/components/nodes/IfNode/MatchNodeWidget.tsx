@@ -23,6 +23,7 @@ import {
     IF_NODE_WIDTH,
     NODE_BG_BREAKPOINT_COLOR,
     NODE_BG_COLOR,
+    NODE_BG_HOVER_COLOR,
     NODE_BORDER_COLOR,
     NODE_BORDER_ERROR_COLOR,
     NODE_BORDER_SELECTED_COLOR,
@@ -163,7 +164,15 @@ export function MatchNodeWidget(props: MatchNodeWidgetProps) {
                         />
                     )}
                     <NodeStyles.TopPortWidget port={model.getPort("in")!} engine={engine} />
-                    <svg width={IF_NODE_WIDTH} height={IF_NODE_WIDTH} viewBox="0 0 70 70">
+                    <svg
+                        width={IF_NODE_WIDTH}
+                        height={IF_NODE_WIDTH}
+                        viewBox="0 0 70 70"
+                        style={{
+                            filter: isHovered && !disabled && !readOnly ? `drop-shadow(0 0 3px ${NODE_BORDER_SELECTED_COLOR})` : 'none',
+                            transition: 'filter 0.1s ease',
+                        }}
+                    >
                         <rect
                             x="12.5"
                             y="4"
@@ -174,6 +183,8 @@ export function MatchNodeWidget(props: MatchNodeWidgetProps) {
                             fill={
                                 isActiveBreakpoint
                                     ? NODE_BG_BREAKPOINT_COLOR
+                                    : isHovered && !disabled && !readOnly
+                                    ? NODE_BG_HOVER_COLOR
                                     : NODE_BG_COLOR
                             }
                             stroke={
