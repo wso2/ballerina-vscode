@@ -65,52 +65,7 @@ export function activateTryItCommand(ballerinaExtInstance: BallerinaExtension) {
             }
         });
 
-        // Command: start Ballerina service (no old Try It UI), then open WSO2 HTTP Client notebook
-        const startServiceDisposable = commands.registerCommand('ballerina.startService',
-            async (
-                content?: string | object[] | { oasSpec: any; baseUrl: string; serviceName: string; resourceMetadata?: { methodValue: string; pathValue: string } },
-                options?: { savable?: boolean },
-                serviceMetadata?: ServiceMetadata,
-                filePath?: string
-            ) => {
-                try {
-                    const projectAndServices = await getProjectPathAndServices(serviceMetadata, filePath);
-                    if (!projectAndServices) { return; }
-
-                    const { projectPath, services } = projectAndServices;
-                    const processesRunning = await checkBallerinaProcessRunning(projectPath);
-                    if (!processesRunning) { return; }
-
-                    if (content) {
-                        const savePath = path.join(projectPath, 'target', 'TryIt.hurl');
-                        if (isOasDescriptor(content)) {
-                            // Resolve the actual running service port (same logic as Code Lens Try It)
-                            let descriptor = content;
-                            try {
-                                const matchingService = services.find(s =>
-                                    s.basePath === serviceMetadata?.basePath &&
-                                    (!serviceMetadata?.listener || compareListeners(s.listener, serviceMetadata.listener))
-                                ) ?? (services.length === 1 ? services[0] : undefined);
-                                if (matchingService) {
-                                    const actualPort = await getServicePort(projectPath, matchingService, content.oasSpec);
-                                    const bp = matchingService.basePath === '/' ? '' : sanitizePath(matchingService.basePath);
-                                    descriptor = { ...content, baseUrl: `http://localhost:${actualPort}${bp}` };
-                                }
-                            } catch {
-                                // Fall back to the static baseUrl already in the descriptor
-                            }
-                            await openHurlNotebook(descriptor, savePath, options);
-                        } else {
-                            await openTryItNotebook(content, { ...options, savePath });
-                        }
-                    }
-                } catch (error) {
-                    handleError(error, "Starting Ballerina service");
-                }
-            }
-        );
-
-        return Disposable.from(disposable, startServiceDisposable, {
+        return Disposable.from(disposable, {
             dispose: disposeErrorWatcher
         });
     } catch (error) {
@@ -265,10 +220,6 @@ interface OasDescriptor {
     baseUrl: string;
     serviceName: string;
     resourceMetadata?: { methodValue: string; pathValue: string };
-}
-
-function isOasDescriptor(v: any): v is OasDescriptor {
-    return v !== null && typeof v === 'object' && !Array.isArray(v) && 'oasSpec' in v && 'baseUrl' in v && 'serviceName' in v;
 }
 
 async function openHurlNotebook(
