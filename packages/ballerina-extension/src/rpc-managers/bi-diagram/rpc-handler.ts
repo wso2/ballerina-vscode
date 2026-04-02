@@ -162,6 +162,7 @@ import {
     VisibleTypesRequest,
     ValidateProjectFormRequest,
     validateProjectPath,
+    getSuggestedProjectDefaults,
     UpdateProjectTitleRequest,
     updateProjectTitle
 } from "@wso2/ballerina-core";
@@ -254,4 +255,5 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getOpenApiGeneratedModules, (args: OpenAPIGeneratedModulesRequest) => rpcManger.getOpenApiGeneratedModules(args));
     messenger.onRequest(deleteOpenApiGeneratedModules, (args: OpenAPIClientDeleteRequest) => rpcManger.deleteOpenApiGeneratedModules(args));
     messenger.onRequest(updateProjectTitle, (args: UpdateProjectTitleRequest) => rpcManger.updateProjectTitle(args));
+    messenger.onRequest(getSuggestedProjectDefaults, (args: { isInProject: boolean }) => rpcManger.getSuggestedProjectDefaults(args));
 }

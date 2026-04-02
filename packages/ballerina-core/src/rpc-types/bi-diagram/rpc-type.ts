@@ -131,6 +131,7 @@ import {
     OpenReadmeRequest,
     ValidateProjectFormRequest,
     ValidateProjectFormResponse,
+    SuggestedProjectDefaultsResponse,
     UpdateProjectTitleRequest
 } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
@@ -153,6 +154,7 @@ export const getNodeTemplate: RequestType<BINodeTemplateRequest, BINodeTemplateR
 export const getAiSuggestions: RequestType<BIAiSuggestionsRequest, BIAiSuggestionsResponse> = { method: `${_preFix}/getAiSuggestions` };
 export const createProject: NotificationType<ProjectRequest> = { method: `${_preFix}/createProject` };
 export const validateProjectPath: RequestType<ValidateProjectFormRequest, ValidateProjectFormResponse> = { method: `${_preFix}/validateProjectPath` };
+export const getSuggestedProjectDefaults: RequestType<{ isInProject: boolean }, SuggestedProjectDefaultsResponse> = { method: `${_preFix}/getSuggestedProjectDefaults` };
 export const deleteProject: NotificationType<DeleteProjectRequest> = { method: `${_preFix}/deleteProject` };
 export const addProjectToWorkspace: NotificationType<AddProjectToWorkspaceRequest> = { method: `${_preFix}/addProjectToWorkspace` };
 export const getWorkspaces: RequestType<void, WorkspacesResponse> = { method: `${_preFix}/getWorkspaces` };

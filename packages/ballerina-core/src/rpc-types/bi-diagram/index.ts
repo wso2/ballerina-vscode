@@ -129,6 +129,7 @@ import {
     OpenReadmeRequest,
     ValidateProjectFormRequest,
     ValidateProjectFormResponse,
+    SuggestedProjectDefaultsResponse,
     UpdateProjectTitleRequest
 } from "./interfaces";
 
@@ -150,6 +151,7 @@ export interface BIDiagramAPI {
     getAiSuggestions: (params: BIAiSuggestionsRequest) => Promise<BIAiSuggestionsResponse>;
     createProject: (params: ProjectRequest) => void;
     validateProjectPath: (params: ValidateProjectFormRequest) => Promise<ValidateProjectFormResponse>;
+    getSuggestedProjectDefaults: (params: { isInProject: boolean }) => Promise<SuggestedProjectDefaultsResponse>;
     deleteProject: (params: DeleteProjectRequest) => void;
     addProjectToWorkspace: (params: AddProjectToWorkspaceRequest) => void;
     getWorkspaces: () => Promise<WorkspacesResponse>;
