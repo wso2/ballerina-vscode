@@ -345,6 +345,7 @@ task pullBallerinaModules {
     dependsOn pullBallerinaModule('mssql.cdc.driver', ballerinaxMSSQLCDCDriverVersion)
     dependsOn pullBallerinaModule('trigger.github', ballerinaxGithubTriggerVersion)
     dependsOn pullBallerinaModule('np', ballerinaxNp)
+    dependsOn pullBallerinaModule('workflow', ballerinaWorkflowVersion, "ballerina")
 }
 
 test {

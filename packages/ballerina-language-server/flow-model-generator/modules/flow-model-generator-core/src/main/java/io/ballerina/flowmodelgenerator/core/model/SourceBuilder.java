@@ -35,6 +35,7 @@ import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.flowmodelgenerator.core.Constants;
 import io.ballerina.flowmodelgenerator.core.TypesManager;
 import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
+import io.ballerina.flowmodelgenerator.core.utils.SourceCodeGenerator;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.DefaultValueGeneratorUtil;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
@@ -83,6 +84,7 @@ public class SourceBuilder {
     public final WorkspaceManager workspaceManager;
     private final Map<Path, List<TextEdit>> textEditsMap;
     private final Set<String> imports;
+    private final List<TypeData> typesToGenerate;
     private final LSClientLogger lsClientLogger;
     private Range defaultRange;
 
@@ -93,6 +95,7 @@ public class SourceBuilder {
     private static final String DATA_MAPPINGS_BAL = "data_mappings.bal";
     private static final String FUNCTIONS_BAL = "functions.bal";
     private static final String BALLERINA_FILE_SUFFIX = ".bal";
+    private static final String TYPES_BAL = "types.bal";
 
     public SourceBuilder(FlowNode flowNode, WorkspaceManager workspaceManager, Path filePath,
                          LSClientLogger lsClientLogger) {
@@ -101,6 +104,7 @@ public class SourceBuilder {
         this.flowNode = flowNode;
         this.workspaceManager = workspaceManager;
         this.imports = new HashSet<>();
+        this.typesToGenerate = new ArrayList<>();
         this.lsClientLogger = lsClientLogger;
 
         Codedata codedata = flowNode.codedata();
@@ -159,7 +163,8 @@ public class SourceBuilder {
                 case NEW_CONNECTION, MODEL_PROVIDER, EMBEDDING_PROVIDER, VECTOR_STORE, KNOWLEDGE_BASE,
                      DATA_LOADER, CHUNKER, CLASS_INIT -> CONNECTIONS_BAL;
                 case DATA_MAPPER_DEFINITION -> DATA_MAPPINGS_BAL;
-                case FUNCTION_DEFINITION, NP_FUNCTION, NP_FUNCTION_DEFINITION -> FUNCTIONS_BAL;
+                case FUNCTION_DEFINITION, NP_FUNCTION, NP_FUNCTION_DEFINITION, WORKFLOW, ACTIVITY,
+                     ACTIVITY_CREATION -> FUNCTIONS_BAL;
                 case AUTOMATION -> AUTOMATION_BAL;
                 case AGENT, MEMORY, MEMORY_STORE, MCP_TOOL_KIT -> AGENTS_BAL;
                 default -> null;
@@ -366,6 +371,22 @@ public class SourceBuilder {
         }
         imports.add(importSignature);
         return this;
+    }
+
+    /**
+     * Accepts a type model for generation. Simply adds the type to the typesToGenerate list.
+     * Case-specific logic (checking existing types, readonly fields, etc.) should be handled
+     * by the specific builder classes (e.g., WorkflowBuilder).
+     *
+     * @param typeModel The TypeData to generate
+     * @return The type name, or null if typeModel is invalid
+     */
+    public String acceptTypeGeneration(TypeData typeModel) {
+        if (typeModel == null || typeModel.name() == null || typeModel.name().isEmpty()) {
+            return null;
+        }
+        typesToGenerate.add(typeModel);
+        return typeModel.name();
     }
 
     public Optional<String> getExpressionBodyText(String typeName, Map<String, String> imports) {
@@ -730,6 +751,15 @@ public class SourceBuilder {
         return this;
     }
 
+    public void addTextEdit(Path filePath, TextEdit edit) {
+        List<TextEdit> textEdits = textEditsMap.get(filePath);
+        if (textEdits == null) {
+            textEdits = new ArrayList<>();
+        }
+        textEdits.add(edit);
+        textEditsMap.put(filePath, textEdits);
+    }
+
     public SourceBuilder comment() {
         String comment = token().skipFormatting().build(SourceKind.STATEMENT);
         tokenBuilder = new TokenBuilder(this);
@@ -747,6 +777,8 @@ public class SourceBuilder {
     public Map<Path, List<TextEdit>> build() {
         // Add the imports if exists
         addImports();
+        // Add the types if exists
+        addTypes();
         return textEditsMap;
     }
 
@@ -823,6 +855,60 @@ public class SourceBuilder {
                     .name(moduleImport)
                     .endOfStatement();
             textEdit(SourceKind.IMPORT, filePath, startLineRange);
+        }
+    }
+
+    private void addTypes() {
+        if (typesToGenerate.isEmpty()) {
+            return;
+        }
+
+        try {
+            this.workspaceManager.loadProject(filePath);
+        } catch (WorkspaceDocumentException | EventSyncException e) {
+            return;
+        }
+        Path parentPath = this.filePath.getParent();
+        if (parentPath == null) {
+            return;
+        }
+        Path filePath = parentPath.resolve(TYPES_BAL);
+        Document document = FileSystemUtils.getDocument(workspaceManager, filePath);
+        if (document == null) {
+            return;
+        }
+        SyntaxTree syntaxTree = document.syntaxTree();
+        ModulePartNode rootNode = syntaxTree.rootNode();
+
+        // Generate text edits for each type at the end of the file
+        Range endOfFileRange = CommonUtils.toRange(rootNode.lineRange().endLine());
+
+        for (TypeData typeData : typesToGenerate) {
+            SourceCodeGenerator sourceCodeGenerator = new SourceCodeGenerator();
+            String codeSnippet = sourceCodeGenerator.generateCodeSnippetForType(typeData);
+
+            if (codeSnippet != null && !codeSnippet.isEmpty()) {
+                // Add a newline before the type definition
+                String typeDefinition = System.lineSeparator() + codeSnippet;
+
+                List<TextEdit> textEdits = textEditsMap.get(filePath);
+                if (textEdits == null) {
+                    textEdits = new ArrayList<>();
+                }
+                textEdits.add(new TextEdit(endOfFileRange, typeDefinition));
+                textEditsMap.put(filePath, textEdits);
+
+                // Add imports from the type generation
+                Map<String, String> typeImports = sourceCodeGenerator.getImports();
+                if (typeImports != null) {
+                    typeImports.forEach((key, value) -> {
+                        String[] parts = value.split("/");
+                        if (parts.length > 1) {
+                            acceptImport(parts[0], parts[1].split(":")[0]);
+                        }
+                    });
+                }
+            }
         }
     }
 
@@ -943,6 +1029,11 @@ public class SourceBuilder {
 
         public TokenBuilder endOfStatement() {
             sb.append(SyntaxKind.SEMICOLON_TOKEN.stringValue()).append(System.lineSeparator());
+            return this;
+        }
+
+        public TokenBuilder newLine() {
+            sb.append(System.lineSeparator());
             return this;
         }
 

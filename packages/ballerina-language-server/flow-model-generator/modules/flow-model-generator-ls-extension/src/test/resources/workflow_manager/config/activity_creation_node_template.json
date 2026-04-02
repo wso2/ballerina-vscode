@@ -1,0 +1,360 @@
+{
+  "source": "activity_creation/functions.bal",
+  "position": {
+    "line": 11,
+    "offset": 0
+  },
+  "description": "Activity creation node template",
+  "codedata": {
+    "node": "ACTIVITY_CREATION"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "Workflow Activity",
+      "description": "Define and call a workflow activity"
+    },
+    "codedata": {
+      "node": "ACTIVITY_CREATION",
+      "org": "ballerina",
+      "module": "workflow",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "functionName": {
+        "metadata": {
+          "label": "Activity Name",
+          "description": "Name of the activity function"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "scope": "Global",
+            "selected": true
+          }
+        ],
+        "value": "activity",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "annotations": {
+        "metadata": {
+          "label": "Annotations",
+          "description": "Annotations of the function"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "@workflow:Activity",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true
+      },
+      "functionNameDescription": {
+        "metadata": {
+          "label": "Description",
+          "description": "Description of the function"
+        },
+        "types": [
+          {
+            "fieldType": "DOC_TEXT",
+            "selected": true
+          }
+        ],
+        "value": "",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "type": {
+        "metadata": {
+          "label": "Return Type",
+          "description": "Type of the return value"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "ballerinaType": "anydata",
+            "selected": true
+          }
+        ],
+        "value": "anydata",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "typeDescription": {
+        "metadata": {
+          "label": "Description",
+          "description": "Description of the return value"
+        },
+        "types": [
+          {
+            "fieldType": "DOC_TEXT",
+            "selected": true
+          }
+        ],
+        "value": "",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "parameters": {
+        "metadata": {
+          "label": "Inputs",
+          "description": "Arguments passed to the function"
+        },
+        "types": [
+          {
+            "fieldType": "REPEATABLE_PROPERTY",
+            "template": {
+              "metadata": {
+                "label": "Parameter",
+                "description": "Function parameter"
+              },
+              "types": [
+                {
+                  "fieldType": "FIXED_PROPERTY",
+                  "selected": false
+                }
+              ],
+              "value": {
+                "type": {
+                  "metadata": {
+                    "label": "Type",
+                    "description": "Type of the parameter"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "TYPE",
+                      "ballerinaType": "anydata",
+                      "selected": false
+                    }
+                  ],
+                  "value": "",
+                  "optional": false,
+                  "editable": true,
+                  "advanced": false,
+                  "hidden": true
+                },
+                "variable": {
+                  "metadata": {
+                    "label": "Argument",
+                    "description": "Value to be passed"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "LV_EXPRESSION",
+                      "selected": true
+                    }
+                  ],
+                  "value": "",
+                  "optional": false,
+                  "editable": true,
+                  "advanced": false,
+                  "hidden": false
+                }
+              },
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "selected": false
+          }
+        ],
+        "value": {},
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result",
+          "description": "Name of the result variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "activityResult",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "advanced": {
+        "metadata": {
+          "label": "Activity call configurations",
+          "description": "Activity call configurations"
+        },
+        "types": [
+          {
+            "fieldType": "ADVANCE_PARAM_LIST",
+            "selected": false
+          }
+        ],
+        "value": {
+          "retryOnError": {
+            "metadata": {
+              "label": "Retry On Error",
+              "description": "If `true`, retry policy is applied when the activity fails:\nthe engine retries the activity up to `maxRetries` times before\npropagating the failure to the workflow. Set to `false` (default)\nto receive any error as a normal return value so that the workflow\ncan handle it with its own logic, without any automatic retries."
+            },
+            "types": [
+              {
+                "fieldType": "FLAG",
+                "ballerinaType": "boolean",
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "boolean",
+                "selected": false
+              }
+            ],
+            "placeholder": "false",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "retryOnError"
+            },
+            "defaultValue": "false"
+          },
+          "maxRetries": {
+            "metadata": {
+              "label": "Max Retries",
+              "description": "Number of times to retry the activity on failure (only used when\n`retryOnError = true`). `0` means no retries — the activity runs\nexactly once and its failure immediately propagates to the workflow."
+            },
+            "types": [
+              {
+                "fieldType": "NUMBER",
+                "ballerinaType": "int",
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "int",
+                "selected": false
+              }
+            ],
+            "placeholder": "0",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "maxRetries"
+            },
+            "defaultValue": "0"
+          },
+          "retryDelay": {
+            "metadata": {
+              "label": "Retry Delay",
+              "description": "Initial delay in seconds before the first retry (default: 1.0).\nOnly used when `retryOnError = true` and `maxRetries > 0`."
+            },
+            "types": [
+              {
+                "fieldType": "NUMBER",
+                "ballerinaType": "decimal",
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "decimal",
+                "selected": false
+              }
+            ],
+            "placeholder": "0.0d",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "retryDelay"
+            },
+            "defaultValue": "1.0"
+          },
+          "retryBackoff": {
+            "metadata": {
+              "label": "Retry Backoff",
+              "description": "Multiplier applied to `retryDelay` after each attempt (default: 2.0).\n`1.0` means a fixed interval; `2.0` doubles the delay each time.\nOnly used when `retryOnError = true` and `maxRetries > 0`."
+            },
+            "types": [
+              {
+                "fieldType": "NUMBER",
+                "ballerinaType": "decimal",
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "decimal",
+                "selected": false
+              }
+            ],
+            "placeholder": "0.0d",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "retryBackoff"
+            },
+            "defaultValue": "2.0"
+          },
+          "maxRetryDelay": {
+            "metadata": {
+              "label": "Max Retry Delay",
+              "description": "Optional cap on the delay between retries, in seconds.\nPrevents exponential backoff from growing without limit.\nOnly used when `retryOnError = true` and `maxRetries > 0`."
+            },
+            "types": [
+              {
+                "fieldType": "NUMBER",
+                "ballerinaType": "decimal",
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "decimal",
+                "selected": false
+              }
+            ],
+            "placeholder": "0.0d",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "maxRetryDelay"
+            },
+            "defaultValue": "0.0d"
+          }
+        },
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  }
+}

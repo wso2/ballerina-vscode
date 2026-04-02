@@ -33,6 +33,7 @@ import io.ballerina.flowmodelgenerator.core.model.Item;
 import io.ballerina.flowmodelgenerator.core.model.Metadata;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.node.AutomationBuilder;
+import io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
@@ -134,7 +135,8 @@ class WorkspaceFunctionNodeBuilder {
         List<Item> availableTools = new ArrayList<>();
 
         for (FunctionSymbol func : filteredFunctions) {
-            if (isNaturalExprBodiedFunction(func, functionsDoc)) {
+            if (isNaturalExprBodiedFunction(func, functionsDoc) || WorkflowUtil.isActivityFunction(func) ||
+                    WorkflowUtil.isWorkflowFunction(func)) {
                 continue;
             }
 

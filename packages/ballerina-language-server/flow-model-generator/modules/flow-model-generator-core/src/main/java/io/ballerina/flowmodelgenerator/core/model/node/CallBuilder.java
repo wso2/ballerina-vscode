@@ -95,7 +95,7 @@ public abstract class CallBuilder extends NodeBuilder {
                 .filePath(context.filePath());
 
         NodeKind functionNodeKind = getFunctionNodeKind();
-        if (functionNodeKind != NodeKind.FUNCTION_CALL) {
+        if (functionNodeKind != NodeKind.FUNCTION_CALL && functionNodeKind != NodeKind.ACTIVITY_CALL) {
             functionDataBuilder.parentSymbolType(codedata.object());
         }
         FunctionData functionData = functionDataBuilder.build();
@@ -121,7 +121,7 @@ public abstract class CallBuilder extends NodeBuilder {
                 .inferredReturnType(functionData.inferredReturnType() ? functionData.returnType() : null);
 
         if (functionNodeKind != NodeKind.FUNCTION_CALL && functionNodeKind != NodeKind.AGENT &&
-                functionNodeKind != NodeKind.CLASS_INIT) {
+                functionNodeKind != NodeKind.CLASS_INIT && functionNodeKind != NodeKind.ACTIVITY_CALL) {
             properties().custom()
                     .metadata()
                     .label(Property.CONNECTION_LABEL)

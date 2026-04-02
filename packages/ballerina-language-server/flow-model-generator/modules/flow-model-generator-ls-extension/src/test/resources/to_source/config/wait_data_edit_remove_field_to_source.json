@@ -1,0 +1,124 @@
+{
+  "source": "workflow_data/functions.bal",
+  "description": "Wait for data - edit existing node to change dataWait entry, should delete the old record field",
+  "diagram": {
+    "id": "1",
+    "metadata": {
+      "label": "Wait for Data",
+      "description": "Wait for workflow data to be received"
+    },
+    "codedata": {
+      "node": "WAIT_DATA",
+      "lineRange": {
+        "fileName": "functions.bal",
+        "startLine": {
+          "line": 12,
+          "offset": 4
+        },
+        "endLine": {
+          "line": 12,
+          "offset": 75
+        }
+      }
+    },
+    "returning": false,
+    "properties": {
+      "dataWaits": {
+        "metadata": {
+          "label": "Data Entries",
+          "description": "Data entries to wait for (one or more)"
+        },
+        "valueType": "REPEATABLE_PROPERTY",
+        "value": {
+          "isApproved": {
+            "metadata": {
+              "label": "Data Entries",
+              "description": "Data entries to wait for (one or more)"
+            },
+            "valueType": "FIXED_PROPERTY",
+            "value": {
+              "variable": {
+                "metadata": {
+                  "label": "Data Receive Variable Name",
+                  "description": "Variable name to receive the data"
+                },
+                "valueType": "IDENTIFIER",
+                "value": "approved",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "dataType": {
+                "metadata": {
+                  "label": "Data Type",
+                  "description": "Type of the data to be received"
+                },
+                "valueType": "EXPRESSION",
+                "valueTypeConstraint": "anydata",
+                "value": "boolean",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "dataName": {
+                "metadata": {
+                  "label": "Data Name",
+                  "description": "Name of the data to reference when sending data to the workflow"
+                },
+                "valueType": "IDENTIFIER",
+                "value": "isApproved",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  },
+  "output": {
+    "workflow_data/functions.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 12,
+            "character": 4
+          },
+          "end": {
+            "line": 12,
+            "character": 75
+          }
+        },
+        "newText": "boolean approved = check wait events.isApproved;"
+      }
+    ],
+    "workflow_data/types.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 16,
+            "character": 4
+          },
+          "end": {
+            "line": 16,
+            "character": 49
+          }
+        },
+        "newText": ""
+      }
+    ]
+  }
+}
