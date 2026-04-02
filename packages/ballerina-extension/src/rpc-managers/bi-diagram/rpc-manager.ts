@@ -703,7 +703,12 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async validateProjectPath(params: ValidateProjectFormRequest): Promise<ValidateProjectFormResponse> {
-        return validateProjectPath(params.projectPath, params.projectName, params.createDirectory, params.createAsWorkspace);
+        // When converting an integtatino/library to a project, the new directory is created as a sibling of the
+        // current integration/library (i.e. under path.dirname(projectPath)), not inside the project itself.
+        const basePath = params.createAsWorkspace
+            ? path.dirname(StateMachine.context().projectPath)
+            : params.projectPath;
+        return validateProjectPath(basePath, params.projectName, params.createDirectory, params.createAsWorkspace);
     }
 
     async deleteProject(params: DeleteProjectRequest): Promise<void> {

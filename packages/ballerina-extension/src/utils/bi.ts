@@ -453,16 +453,18 @@ export async function convertProjectToWorkspace(params: AddProjectToWorkspaceReq
         throw new Error('No package name found in Ballerina.toml');
     }
 
-    const newDirectory = path.join(path.dirname(currentProjectPath), params.workspaceName);
+    const projectDirectoryName = params.projectHandle ?? params.workspaceName;
+    const newDirectory = path.join(path.dirname(currentProjectPath), projectDirectoryName);
 
-    if (!fs.existsSync(newDirectory)) {
-        fs.mkdirSync(newDirectory, { recursive: true });
+    if (fs.existsSync(newDirectory)) {
+        throw new Error(`A directory named "${projectDirectoryName}" already exists at the selected location`);
     }
+    fs.mkdirSync(newDirectory, { recursive: true });
 
     const updatedProjectPath = path.join(newDirectory, path.basename(currentProjectPath));
     fs.renameSync(currentProjectPath, updatedProjectPath);
 
-    createWorkspaceToml(newDirectory, currentPackageName);
+    createWorkspaceToml(newDirectory, params.workspaceName, currentPackageName);
     addToWorkspaceToml(newDirectory, params.packageName);
 
     await createProjectInWorkspace(params, newDirectory);
@@ -480,9 +482,10 @@ export async function addProjectToExistingWorkspace(params: AddProjectToWorkspac
     await createProjectInWorkspace(params, workspacePath);
 }
 
-function createWorkspaceToml(workspacePath: string, packageName: string) {
+function createWorkspaceToml(workspacePath: string, projectTitle: string, packageName: string) {
     const ballerinaTomlContent = `
 [workspace]
+title = "${projectTitle}"
 packages = ["${packageName}"]
 `;
     const ballerinaTomlPath = path.join(workspacePath, 'Ballerina.toml');
@@ -597,7 +600,8 @@ async function createProjectInWorkspace(params: AddProjectToWorkspaceRequest, wo
         createDirectory: true,
         orgName: params.orgName,
         version: params.version,
-        isLibrary: params.isLibrary
+        isLibrary: params.isLibrary,
+        projectHandle: params.projectHandle
     };
 
     return await createBIProjectPure(projectRequest);
