@@ -97,6 +97,10 @@ import {
     compactConversation,
     CompactConversationRequest,
     getShowContextUsage,
+    submitClarifyAnswer,
+    cancelClarify,
+    ClarifyAnswerRequest,
+    ClarifyCancelRequest,
 } from "@wso2/ballerina-core";
 import { workspace } from 'vscode';
 import { Messenger } from "vscode-messenger";
@@ -166,4 +170,6 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     });
     messenger.onRequest(enhancePrompt, (args: PromptEnhancementRequest) => rpcManger.enhancePrompt(args));
     messenger.onNotification(promptForLogin, () => rpcManger.promptForLogin());
+    messenger.onRequest(submitClarifyAnswer, (args: ClarifyAnswerRequest) => rpcManger.submitClarifyAnswer(args));
+    messenger.onRequest(cancelClarify, (args: ClarifyCancelRequest) => rpcManger.cancelClarify(args));
 }
