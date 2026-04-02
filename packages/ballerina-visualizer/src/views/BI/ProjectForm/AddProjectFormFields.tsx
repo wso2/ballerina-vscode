@@ -27,7 +27,13 @@ import {
 } from "./styles";
 import { ProjectTypeSelector, PackageInfoSection } from "./components";
 import { AddProjectFormData } from "./types";
-import { sanitizePackageName, validatePackageName, validateOrgName } from "./utils";
+import {
+    sanitizePackageName,
+    sanitizeProjectHandle,
+    validatePackageName,
+    validateOrgName,
+    validateProjectHandle
+} from "./utils";
 
 // Re-export for backwards compatibility
 export type { AddProjectFormData } from "./types";
@@ -38,24 +44,37 @@ export interface AddProjectFormFieldsProps {
     isInProject: boolean;
     packageNameValidationError?: string;
     projectNameValidationError?: string;
+    projectHandlePathError?: string;
 }
 
-export function AddProjectFormFields({ 
-    formData, 
+export function AddProjectFormFields({
+    formData,
     onFormDataChange,
     isInProject,
     packageNameValidationError,
-    projectNameValidationError
+    projectNameValidationError,
+    projectHandlePathError,
 }: AddProjectFormFieldsProps) {
     const { rpcClient } = useRpcContext();
     const { platformExtState } = usePlatformExtContext();
     const organizations = platformExtState?.userInfo?.organizations ?? [];
+    const isLoggedIn = !!platformExtState?.userInfo;
     const [packageNameTouched, setPackageNameTouched] = useState(false);
+    const [projectHandleTouched, setProjectHandleTouched] = useState(false);
     const [isPackageInfoExpanded, setIsPackageInfoExpanded] = useState(false);
     const [packageNameError, setPackageNameError] = useState<string | null>(null);
     const [orgNameError, setOrgNameError] = useState<string | null>(null);
+    const [projectHandleError, setProjectHandleError] = useState<string | null>(null);
     const resourceTypeLabel = formData.isLibrary ? "Library" : "Integration";
     const resourceTypeLabelLower = resourceTypeLabel.toLowerCase();
+
+    const handleProjectName = (value: string) => {
+        const updates: Partial<AddProjectFormData> = { workspaceName: value };
+        if (!projectHandleTouched) {
+            updates.projectHandle = sanitizeProjectHandle(value, { trimTrailing: false });
+        }
+        onFormDataChange(updates);
+    };
 
     const handleIntegrationName = (value: string) => {
         onFormDataChange({ integrationName: value });
@@ -103,12 +122,26 @@ export function AddProjectFormFields({
         setOrgNameError(error);
     }, [formData.orgName]);
 
+    // Real-time validation for project handle
+    useEffect(() => {
+        if (formData.projectHandle !== undefined) {
+            setProjectHandleError(validateProjectHandle(formData.projectHandle));
+        }
+    }, [formData.projectHandle]);
+
+    // Auto-expand Advanced Configurations when a path conflict for the project handle is reported
+    useEffect(() => {
+        if (projectHandlePathError) {
+            setIsPackageInfoExpanded(true);
+        }
+    }, [projectHandlePathError]);
+
     return (
         <>
             {!isInProject && (
                 <ProjectSection>
                     <TextField
-                        onTextChange={(value) => onFormDataChange({ workspaceName: value })}
+                        onTextChange={handleProjectName}
                         value={formData.workspaceName}
                         label="Project Name"
                         placeholder="Enter project name"
@@ -140,16 +173,25 @@ export function AddProjectFormFields({
             <PackageInfoSection
                 isExpanded={isPackageInfoExpanded}
                 onToggle={() => setIsPackageInfoExpanded(!isPackageInfoExpanded)}
-                data={{ packageName: formData.packageName, orgName: formData.orgName, version: formData.version }}
+                data={{
+                    packageName: formData.packageName,
+                    orgName: formData.orgName,
+                    version: formData.version,
+                    ...(!isInProject && isLoggedIn ? { projectHandle: formData.projectHandle ?? "" } : {}),
+                }}
                 onChange={(data) => {
                     onFormDataChange(data);
                     if (data.packageName !== undefined) {
                         setPackageNameTouched(true);
                     }
+                    if (data.projectHandle !== undefined) {
+                        setProjectHandleTouched(true);
+                    }
                 }}
                 isLibrary={formData.isLibrary}
                 packageNameError={packageNameValidationError || packageNameError}
                 orgNameError={orgNameError}
+                projectHandleError={projectHandlePathError || projectHandleError}
                 organizations={organizations}
             />
         </>

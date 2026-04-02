@@ -48,6 +48,7 @@ export function AddProjectForm() {
     const [pathValidationError, setPathValidationError] = useState<string | null>(null);
     const [packageNameValidationError, setPackageNameValidationError] = useState<string | null>(null);
     const [projectNameValidationError, setProjectNameValidationError] = useState<string | null>(null);
+    const [projectHandlePathError, setProjectHandlePathError] = useState<string | null>(null);
     const resourceTypeLabel = formData.isLibrary ? "Library" : "Integration";
 
     const handleFormDataChange = useCallback((data: Partial<AddProjectFormData>) => {
@@ -55,6 +56,7 @@ export function AddProjectForm() {
         setPathValidationError(null);
         setPackageNameValidationError(null);
         setProjectNameValidationError(null);
+        setProjectHandlePathError(null);
     }, []);
 
     useEffect(() => {
@@ -72,17 +74,21 @@ export function AddProjectForm() {
         setPathValidationError(null);
         setPackageNameValidationError(null);
         setProjectNameValidationError(null);
+        setProjectHandlePathError(null);
 
         try {
             // Validate the project path
+            // When converting to a project and a projectHandle is set (logged-in user), use it as the directory name
+            const workspaceNameForPath = (!isInProject && formData.projectHandle) ? formData.projectHandle : formData.workspaceName;
             const targetNameForValidation = !isInProject
-                ? formData.workspaceName
+                ? workspaceNameForPath
                 : formData.packageName;
 
             const validationResult = await rpcClient.getBIDiagramRpcClient().validateProjectPath({
                 projectPath: targetPath,
                 projectName: targetNameForValidation,
                 createDirectory: true,
+                createAsWorkspace: !isInProject,
             });
 
             if (!validationResult.isValid) {
@@ -94,6 +100,9 @@ export function AddProjectForm() {
                         setPackageNameValidationError(
                             validationResult.errorMessage || `Invalid ${resourceTypeLabel.toLowerCase()} name`
                         );
+                    } else if (formData.projectHandle) {
+                        // Path was validated against projectHandle — surface the error on Project ID field
+                        setProjectHandlePathError(validationResult.errorMessage || "A directory with this Project ID already exists");
                     } else {
                         setProjectNameValidationError(
                             validationResult.errorMessage || "Invalid project name"
@@ -114,9 +123,10 @@ export function AddProjectForm() {
                 orgName: formData.orgName || undefined,
                 version: formData.version || undefined,
                 isLibrary: formData.isLibrary,
+                projectHandle: formData.projectHandle,
             });
         } catch (error) {
-            setPathValidationError("An error occurred during validation");
+            setPathValidationError(error instanceof Error ? error.message : "An error occurred during validation");
             setIsLoading(false);
         }
     };
@@ -134,7 +144,7 @@ export function AddProjectForm() {
                     </IconButton>
                     <Typography variant="h2">
                         {!isInProject
-                            ? `Convert to Project & Add ${resourceTypeLabel}`
+                            ? `Convert to Project & Add New ${resourceTypeLabel}`
                             : `Add New ${resourceTypeLabel}`}
                     </Typography>
                 </TitleContainer>
@@ -146,6 +156,7 @@ export function AddProjectForm() {
                         isInProject={isInProject}
                         packageNameValidationError={packageNameValidationError || undefined}
                         projectNameValidationError={projectNameValidationError || undefined}
+                        projectHandlePathError={projectHandlePathError || undefined}
                     />
                 </ScrollableContent>
 
