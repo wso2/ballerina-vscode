@@ -393,7 +393,7 @@ export function CallActivityNodeWidget(props: CallActivityNodeWidgetProps) {
                             <S.Description>{nodeDescription as ReactNode}</S.Description>
                         </S.Header>
                         <S.ActionButtonGroup>
-                            {hasError && <DiagnosticsPopUp node={model.node} />}
+                            {hasError && <DiagnosticsPopUp node={model.node} engine={engine} />}
                             {canViewActivityFunction && (
                                 <Tooltip content="View function flow">
                                     <S.MenuButton

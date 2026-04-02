@@ -418,7 +418,7 @@ export function WaitDataNodeWidget(props: WaitDataNodeWidgetProps) {
                     <NodeStyles.Subtitle>{nodeSubtitle}</NodeStyles.Subtitle>
                 </NodeStyles.TextGroup>
                 <NodeStyles.ActionButtonGroup>
-                    {hasError && <DiagnosticsPopUp node={model.node} />}
+                    {hasError && <DiagnosticsPopUp node={model.node} engine={engine} />}
                     <NodeStyles.MenuButton
                         ref={setMenuButtonElement}
                         buttonSx={readOnly ? { cursor: "not-allowed" } : {}}

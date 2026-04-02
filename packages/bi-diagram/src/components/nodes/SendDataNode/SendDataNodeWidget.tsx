@@ -402,7 +402,7 @@ export function SendDataNodeWidget(props: SendDataNodeWidgetProps) {
                             <NodeStyles.Title>{nodeTitle}</NodeStyles.Title>
                         </NodeStyles.Header>
                         <NodeStyles.ActionButtonGroup>
-                            {hasError && <DiagnosticsPopUp node={model.node} />}
+                            {hasError && <DiagnosticsPopUp node={model.node} engine={engine} />}
                             <NodeStyles.MenuButton
                                 ref={setMenuButtonElement}
                                 buttonSx={readOnly ? { cursor: "not-allowed" } : {}}
