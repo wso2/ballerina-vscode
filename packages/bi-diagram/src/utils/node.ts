@@ -152,7 +152,9 @@ export function getNodeTitle(node: FlowNode) {
     }
 
     if (node.codedata?.node === "ACTIVITY_CALL") {
-        const activityFunction = getFunctionName(getPropertyString("activityFunction"));
+        const activityFunction =
+            getFunctionName(getPropertyString("activityFunction")) ||
+            getFunctionName(typeof node.codedata?.symbol === "string" ? node.codedata.symbol : undefined);
         if (activityFunction) {
             return activityFunction;
         }

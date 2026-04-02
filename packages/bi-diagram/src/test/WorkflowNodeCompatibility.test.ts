@@ -69,6 +69,7 @@ describe("Workflow Nodes", () => {
     it("maps workflow node kinds to workflow node types", () => {
         const flow = createFlow([
             createFlowNode("workflow-run", "WORKFLOW_RUN"),
+            createFlowNode("activity-call", "ACTIVITY_CALL"),
             createFlowNode("send-data", "SEND_DATA"),
             createFlowNode("wait-data", "WAIT_DATA"),
         ]);
@@ -78,6 +79,7 @@ describe("Workflow Nodes", () => {
         const nodeTypeById = new Map(visitor.getNodes().map((node) => [node.getID(), node.getType()]));
 
         expect(nodeTypeById.get("workflow-run")).toBe(NodeTypes.WORKFLOW_RUN_NODE);
+        expect(nodeTypeById.get("activity-call")).toBe(NodeTypes.CALL_ACTIVITY_NODE);
         expect(nodeTypeById.get("send-data")).toBe(NodeTypes.SEND_DATA_NODE);
         expect(nodeTypeById.get("wait-data")).toBe(NodeTypes.WAIT_DATA_NODE);
     });

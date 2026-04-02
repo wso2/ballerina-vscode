@@ -252,6 +252,7 @@ export function CallActivityNodeWidget(props: CallActivityNodeWidgetProps) {
     const hasError = nodeHasError(model.node);
 
     const activityFunctionValue = (model.node.properties as any)?.activityFunction?.value as string | undefined;
+    const fallbackActivityFunctionValue = model.node.codedata?.symbol as string | undefined;
     const activityFunctionName =
         typeof activityFunctionValue === "string"
             ? activityFunctionValue
@@ -261,7 +262,15 @@ export function CallActivityNodeWidget(props: CallActivityNodeWidgetProps) {
                 .pop()
                 ?.split("(")[0]
                 ?.trim()
-            : undefined;
+            : typeof fallbackActivityFunctionValue === "string"
+                ? fallbackActivityFunctionValue
+                    .trim()
+                    .replace(/^["']|["']$/g, "")
+                    .split(":")
+                    .pop()
+                    ?.split("(")[0]
+                    ?.trim()
+                : undefined;
     const canViewActivityFunction = Boolean(activityFunctionName);
 
     const sideFillColor = hasError
