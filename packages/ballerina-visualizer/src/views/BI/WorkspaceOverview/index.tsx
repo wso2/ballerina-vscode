@@ -195,7 +195,7 @@ const EditableTitleWrapper = styled.div`
     gap: 6px;
     cursor: pointer;
 
-    &:hover .edit-title-icon-wrapper {
+    &:is(:hover, :focus-visible) .edit-title-icon-wrapper {
         opacity: 1;
         max-width: 28px;
     }
@@ -1054,7 +1054,19 @@ export function WorkspaceOverview() {
                             )}
                         </>
                     ) : (
-                        <EditableTitleWrapper onClick={startEditingTitle} title="Click to edit project title">
+                        <EditableTitleWrapper
+                            role="button"
+                            tabIndex={0}
+                            onClick={startEditingTitle}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault();
+                                    startEditingTitle();
+                                }
+                            }}
+                            title="Click to edit project title"
+                            aria-label="Edit project title"
+                        >
                             <ProjectTitle style={{ opacity: titleVisible ? 1 : 0 }}>{displayedTitle}</ProjectTitle>
                             <EditTitleIconWrapper className="edit-title-icon-wrapper">
                                 <Codicon name="edit" sx={{ color: 'var(--vscode-descriptionForeground)', fontSize: '14px', width: '16px' }} />
