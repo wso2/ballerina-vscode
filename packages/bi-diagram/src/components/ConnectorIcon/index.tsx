@@ -40,11 +40,12 @@ export function ConnectorIcon(props: ConnectorIconProps): React.ReactElement {
         return <Icon name="bi-globe" className={className} sx={{ width: 24, height: 24, fontSize: 24, ...style }} />;
     }
 
-    // use custom icon for ai model providers
+    // use custom SVG icon for known ai model providers (supports light/dark mode)
     if (AI_MODULE_TYPES.some((module) => url?.includes(module))) {
         const selectedModule = AI_MODULE_TYPES.find((module) => url?.includes(module));
         const icon = selectedModule ? getAIModuleIcon(selectedModule) : null;
         if (icon) return icon;
+        // if no hardcoded icon, fall through to URL-based icon below
     }
 
     // use custom icon for mcp
@@ -57,11 +58,7 @@ export function ConnectorIcon(props: ConnectorIconProps): React.ReactElement {
         return <Icon name="bi-wso2" className={className} sx={{ width: 24, height: 24, fontSize: 24, ...style }} />;
     }
 
-    // use custom icon for ai module
-    if ((url?.includes("ballerinax_ai_") || url?.includes("ballerina_ai")) && codedata && !(codedata.node === "AGENT_CALL" || codedata.node === "AGENT_RUN")) {
-        return <Icon name="bi-ai-model" className={className} sx={{ width: 24, height: 24, fontSize: 24, ...style }} />;
-    }
-
+    // use custom icon for ai agent calls
     if ((url?.includes("ballerinax_ai_") || url?.includes("ballerina_ai")) && codedata && (codedata.node === "AGENT_CALL" || codedata.node === "AGENT_RUN")) {
         return <Icon name="bi-ai-agent" className={className} sx={{ width: 24, height: 24, fontSize: 24, ...style }} />;
     }

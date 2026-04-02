@@ -23,19 +23,24 @@ import { CodeData } from "@wso2/ballerina-core";
 
 const ICON_SIZE = 16;
 
-export function getConnectionIcon(codedata: CodeData): React.ReactElement {
+export function getConnectionIcon(codedata: CodeData, iconUrl?: string): React.ReactElement {
     // Check AI module icon map first
     if (codedata.module) {
         const icon = getAIModuleIcon(codedata.module, ICON_SIZE);
         if (icon) return icon;
     }
 
-    // Handle WSO2 AI module
+    // Handle WSO2 AI module (before URL fallback — WSO2 has a specific SVG icon)
     if (codedata.module === "ai") {
         if (codedata.node === "VECTOR_STORE") {
             return <Icon name="bi-db" sx={{ width: ICON_SIZE, height: ICON_SIZE, fontSize: ICON_SIZE }} />;
         }
         return <Icon name="bi-wso2" sx={{ width: ICON_SIZE, height: ICON_SIZE, fontSize: ICON_SIZE }} />;
+    }
+
+    // Fallback to icon URL from metadata (fetched from Central)
+    if (iconUrl) {
+        return <img src={iconUrl} style={{ width: ICON_SIZE, height: ICON_SIZE }} />;
     }
 
     // Fallback by node type
@@ -64,6 +69,7 @@ export interface ConnectionSelectItem {
     label: string;
     value: string;
     codedata?: CodeData;
+    iconUrl?: string;
 }
 
 // --- Styled Components ---
@@ -279,7 +285,7 @@ export const ConnectionIconSelect: React.FC<ConnectionIconSelectProps> = ({
                     <SelectedDisplay>
                         {selectedItem ? (
                             <>
-                                {selectedItem.codedata && getConnectionIcon(selectedItem.codedata)}
+                                {selectedItem.codedata && getConnectionIcon(selectedItem.codedata, selectedItem.iconUrl)}
                                 <SelectedLabel>{selectedItem.label}</SelectedLabel>
                             </>
                         ) : (
@@ -300,7 +306,7 @@ export const ConnectionIconSelect: React.FC<ConnectionIconSelectProps> = ({
                                 onClick={() => handleSelect(item.value)}
                                 onKeyDown={(e: React.KeyboardEvent) => handleOptionKeyDown(e, index, item.value)}
                             >
-                                {item.codedata && getConnectionIcon(item.codedata)}
+                                {item.codedata && getConnectionIcon(item.codedata, item.iconUrl)}
                                 <OptionLabel>{item.label}</OptionLabel>
                             </OptionItem>
                         ))}
