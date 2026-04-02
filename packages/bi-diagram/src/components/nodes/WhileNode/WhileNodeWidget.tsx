@@ -53,7 +53,6 @@ export namespace NodeStyles {
         flex-direction: column;
         justify-content: space-between;
         color: ${NODE_TEXT_COLOR};
-        color: ${NODE_TEXT_COLOR};
         cursor: ${(props: { readOnly: boolean }) => (props.readOnly ? "default" : "pointer")};
     `;
 
