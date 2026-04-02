@@ -63,9 +63,23 @@ export function AddProjectForm() {
         Promise.all([
             rpcClient.getCommonRpcClient().getWorkspaceRoot(),
             rpcClient.getCommonRpcClient().getWorkspaceType()
-        ]).then(([workspaceRoot, workspaceType]) => {
+        ]).then(async ([workspaceRoot, workspaceType]) => {
+            const inProject = workspaceType.type === "BALLERINA_WORKSPACE";
             setTargetPath(workspaceRoot.path);
-            setIsInProject(workspaceType.type === "BALLERINA_WORKSPACE");
+            setIsInProject(inProject);
+
+            try {
+                const defaults = await rpcClient.getBIDiagramRpcClient().getSuggestedProjectDefaults({ isInProject: inProject });
+                setFormData(prev => ({
+                    ...prev,
+                    workspaceName: inProject ? prev.workspaceName : defaults.projectName,
+                    projectHandle: inProject ? prev.projectHandle : defaults.projectHandle,
+                    integrationName: defaults.integrationName,
+                    packageName: defaults.packageName,
+                }));
+            } catch {
+                // defaults unavailable — leave form empty
+            }
         });
     }, []);
 

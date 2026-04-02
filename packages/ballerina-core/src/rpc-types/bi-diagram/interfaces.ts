@@ -228,6 +228,13 @@ export interface ValidateProjectFormRequest {
     createAsWorkspace?: boolean;
 }
 
+export interface SuggestedProjectDefaultsResponse {
+    projectName: string;
+    projectHandle: string;
+    integrationName: string;
+    packageName: string;
+}
+
 export interface ValidateProjectFormResponse {
     isValid: boolean;
     errorMessage?: string;

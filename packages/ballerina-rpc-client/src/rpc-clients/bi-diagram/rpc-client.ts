@@ -111,6 +111,7 @@ import {
     ServiceClassModelResponse,
     ServiceClassSourceRequest,
     SignatureHelpRequest,
+    SuggestedProjectDefaultsResponse,
     SignatureHelpResponse,
     SourceEditResponse,
     UpdateConfigVariableRequestV2,
@@ -177,6 +178,7 @@ import {
     getFormDiagnostics,
     getFunctionNames,
     getFunctionNode,
+    getSuggestedProjectDefaults,
     getModuleNodes,
     getNodeTemplate,
     getOpenApiGeneratedModules,
@@ -293,6 +295,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     validateProjectPath(params: ValidateProjectFormRequest): Promise<ValidateProjectFormResponse> {
         return this._messenger.sendRequest(validateProjectPath, HOST_EXTENSION, params);
+    }
+
+    getSuggestedProjectDefaults(params: { isInProject: boolean }): Promise<SuggestedProjectDefaultsResponse> {
+        return this._messenger.sendRequest(getSuggestedProjectDefaults, HOST_EXTENSION, params);
     }
 
     deleteProject(params: DeleteProjectRequest): void {

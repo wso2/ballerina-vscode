@@ -153,7 +153,8 @@ import {
     Category,
     NodePosition,
     PackageTomlValues,
-    UpdateProjectTitleRequest
+    UpdateProjectTitleRequest,
+    SuggestedProjectDefaultsResponse
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
@@ -191,8 +192,9 @@ import {
     createBIWorkspaceWithProject,
     createEmptyBIWorkspace,
     deleteProjectFromWorkspace,
-    openInVSCode
-    , validateProjectPath
+    openInVSCode,
+    validateProjectPath,
+    getSuggestedProjectDefaults
 } from "../../utils/bi";
 import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
@@ -2436,6 +2438,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         } else {
             StateMachine.refreshProjectInfo();
         }
+    }
+
+    async getSuggestedProjectDefaults(params: { isInProject: boolean }): Promise<SuggestedProjectDefaultsResponse> {
+        return getSuggestedProjectDefaults(params.isInProject);
     }
 }
 
