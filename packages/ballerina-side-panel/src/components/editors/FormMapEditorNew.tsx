@@ -17,6 +17,7 @@
  */
 
 import React, { useEffect, useRef, useState } from "react";
+import styled from "@emotion/styled";
 import { InputType } from "@wso2/ballerina-core";
 import { Form, FormValues, S, useFormContext, useModeSwitcherContext, FormField, FormFieldEditorProps } from "../..";
 import { Codicon } from "@wso2/ui-toolkit/lib/components/Codicon/Codicon";
@@ -34,6 +35,39 @@ export const FormMapEditorNew = (props: FormFieldEditorProps & {
     const { expressionEditor } = useFormContext();
 
     const modeSwitcherContext = useModeSwitcherContext();
+
+    const WarningBanner = styled.div`
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        font-size: 11px;
+        color: var(--vscode-editorWarning-foreground, #cca700);
+        background: var(--vscode-inputValidation-warningBackground);
+        margin-top: 6px;
+        margin-bottom: 6px;
+        margin-left: 6px;
+        margin-right: 6px;
+        box-sizing: border-box;
+        border-radius: 3px;
+    `;
+
+    const dedupeFields = (fields: FormField[][]) => {
+        const seen = new Set<string>();
+        const result: FormField[][] = [];
+        fields.forEach((f) => {
+            const keyVal = f[0].value as string;
+            if (!keyVal) {
+                result.push(f);
+                return;
+            }
+            if (!seen.has(keyVal)) {
+                seen.add(keyVal);
+                result.push(f);
+            }
+        });
+        return result;
+    };
 
     const processToOutputFormat = (fields: FormField[][]): Record<string, unknown> => {
         const output: Record<string, unknown> = {};
@@ -97,7 +131,12 @@ export const FormMapEditorNew = (props: FormFieldEditorProps & {
     }
 
     const handleModeSwitchValueChange = () => {
-        const stringValue = buildStringMap(repeatableFields);
+        const deduped = dedupeFields(repeatableFields);
+        if (deduped.length !== repeatableFields.length) {
+            setRepeatableFields(deduped);
+        }
+        isInternalUpdate.current = true;
+        const stringValue = buildStringMap(deduped);
         props.onChange(stringValue);
     }
 
@@ -120,6 +159,17 @@ export const FormMapEditorNew = (props: FormFieldEditorProps & {
         } else {
             processedInputValue = processToInputFormat(props.value);
         }
+        // Build diagnostics lookup from props.field.value (populated by setDiagnosticsToFields)
+        const diagnosticsMap: Record<string, any[]> = {};
+        if (props.field.value && typeof props.field.value === 'object' && !Array.isArray(props.field.value)) {
+            Object.entries(props.field.value as Record<string, any>).forEach(([entryKey, entryVal]) => {
+                if (entryVal?.diagnostics) {
+                    // diagnostics may be a Diagnostic object { hasDiagnostics, diagnostics: [] } or already a flat array
+                    const diags = entryVal.diagnostics;
+                    diagnosticsMap[entryKey] = Array.isArray(diags) ? diags : (diags?.diagnostics ?? []);
+                }
+            });
+        }
         let newValue = buildStringMap(processedInputValue);
         const initialValues = stringToRawObjectEntries(newValue);
         const initialFields = initialValues.map((val) => {
@@ -127,10 +177,26 @@ export const FormMapEditorNew = (props: FormFieldEditorProps & {
             const fields = getMapSubFormFieldFromTypes(key, (props.field.types[0] as any).template.types as InputType[]);
             fields[0].value = val.key;
             fields[1].value = val.value;
+            if (diagnosticsMap[val.key]) {
+                fields[1].diagnostics = diagnosticsMap[val.key];
+            }
             return fields;
         });
         setRepeatableFields(initialFields);
     }, [props.value, props.field.types]);
+
+    const duplicateEntryKeys = new Set<string>();
+    const seenKeyValues = new Set<string>();
+    repeatableFields.forEach((formField) => {
+        const keyVal = formField[0].value as string;
+        if (keyVal) {
+            if (seenKeyValues.has(keyVal)) {
+                duplicateEntryKeys.add(formField[0].key);
+            } else {
+                seenKeyValues.add(keyVal);
+            }
+        }
+    });
 
     return (
         <S.Container>
@@ -167,41 +233,67 @@ export const FormMapEditorNew = (props: FormFieldEditorProps & {
                 itemCount={repeatableFields.length}
                 maxVisibleItems={2}
             >
-                {
-                    repeatableFields.map((formField) => (
-                        <S.ItemContainer style={{ padding: '1px', position: 'relative', marginBottom: '4px' }} key={formField[0].key}>
-                            <div style={{ position: 'absolute', top: '4px', right: '5px', zIndex: 1 }}>
-                                <Codicon
-                                    name="close"
-                                    sx={{ cursor: 'pointer', opacity: 0.6, '&:hover': { opacity: 1 } }}
-                                    onClick={() => handleDeleteItem(formField[0].key)}
-                                />
-                            </div>
-                            <Form
+                {repeatableFields.map((formField) => {
+                        const keyVal = formField[0].value as string;
+                        const isDuplicate = duplicateEntryKeys.has(formField[0].key);
+                        return (
+                            <S.ItemContainer
+                                style={{
+                                    padding: '1px',
+                                    position: 'relative',
+                                    marginBottom: '4px',
+                                    ...(isDuplicate && {
+                                        border: '1px solid var(--vscode-errorForeground, #f44747)'
+                                    })
+                                }}
                                 key={formField[0].key}
-                                formFields={formField}
-                                recordTypeFields={getRecordTypeFields(formField)}
-                                openRecordEditor={props.openRecordEditor}
-                                onChange={(fieldKey: string, value: any, allValues: FormValues) => {
-                                    handleFormOnChange(fieldKey, value, allValues, formField[0].key);
-                                }}
-                                expressionEditor={{
-                                    ...expressionEditor,
-                                    onCompletionItemSelect: expressionEditor?.onCompletionItemSelect,
-                                    getHelperPane: expressionEditor?.getHelperPane,
-                                    types: expressionEditor?.types,
-                                    referenceTypes: expressionEditor?.referenceTypes,
-                                    retrieveVisibleTypes: expressionEditor?.retrieveVisibleTypes,
-                                    getTypeHelper: expressionEditor?.getTypeHelper,
-                                    helperPaneHeight: expressionEditor?.helperPaneHeight
-                                }}
-                                submitText={'Save'}
-                                nestedForm={true}
-                                preserveOrder={true}
-                            />
-                        </S.ItemContainer>
-
-                    ))}
+                            >
+                                <div style={{ position: 'absolute', top: '4px', right: '5px', zIndex: 1 }}>
+                                    <Codicon
+                                        name="close"
+                                        sx={{ cursor: 'pointer', opacity: 0.6, '&:hover': { opacity: 1 } }}
+                                        onClick={() => handleDeleteItem(formField[0].key)}
+                                    />
+                                </div>
+                                <Form
+                                    key={formField[0].key}
+                                    formFields={formField}
+                                    recordTypeFields={getRecordTypeFields(formField)}
+                                    openRecordEditor={props.openRecordEditor}
+                                    onChange={(fieldKey: string, value: any, allValues: FormValues) => {
+                                        handleFormOnChange(fieldKey, value, allValues, formField[0].key);
+                                    }}
+                                    onSubmit={() => {
+                                        const deduped = dedupeFields(repeatableFields);
+                                        if (deduped.length !== repeatableFields.length) {
+                                            setRepeatableFields(deduped);
+                                        }
+                                        isInternalUpdate.current = true;
+                                        props.onChange(processToOutputFormat(deduped));
+                                    }}
+                                    expressionEditor={{
+                                        ...expressionEditor,
+                                        onCompletionItemSelect: expressionEditor?.onCompletionItemSelect,
+                                        getHelperPane: expressionEditor?.getHelperPane,
+                                        types: expressionEditor?.types,
+                                        referenceTypes: expressionEditor?.referenceTypes,
+                                        retrieveVisibleTypes: expressionEditor?.retrieveVisibleTypes,
+                                        getTypeHelper: expressionEditor?.getTypeHelper,
+                                        helperPaneHeight: expressionEditor?.helperPaneHeight
+                                    }}
+                                    submitText={'Save'}
+                                    nestedForm={true}
+                                    preserveOrder={true}
+                                />
+                                {isDuplicate && (
+                                    <WarningBanner>
+                                        <Codicon name="warning" sx={{ fontSize: '11px', flexShrink: 0 }} />
+                                        <span>Duplicate key &quot;{keyVal}&quot; — this entry will be ignored</span>
+                                    </WarningBanner>
+                                )}
+                            </S.ItemContainer>
+                        );
+                    })}
             </ScrollableList>
             <S.AddNewButton
                 onClick={handleAddNewItem}
