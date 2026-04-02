@@ -68,7 +68,7 @@ export namespace PopupStyles {
 
         &:hover {
             opacity: 1;
-            background-color: ${NODE_TEXT_COLOR}10;
+            background-color: color-mix(in srgb, ${NODE_TEXT_COLOR} 10%, transparent);
         }
     `;
 
