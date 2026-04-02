@@ -137,10 +137,10 @@ public class AiUtils {
     // Interim keyword filter map — maps each category to keywords that identify relevant packages.
     private static final Map<NodeKind, List<String>> CATEGORY_KEYWORD_FILTERS = Map.of(
             MODEL_PROVIDER, List.of("Model Provider", "model", "llm"),
-            EMBEDDING_PROVIDER, List.of("Embedding Provider", "embedding", "openai"),
+            EMBEDDING_PROVIDER, List.of("Embedding Provider", "embedding", "openai", "openrouter", "azure"),
             VECTOR_STORE, List.of("Vector Store", "vector"),
-            CHUNKER, List.of("Chunker"),
-            DATA_LOADER, List.of("Data Loader", "loader"),
+            CHUNKER, List.of("Chunker", "devant"),
+            DATA_LOADER, List.of("Data Loader", "loader", "devant"),
             SHORT_TERM_MEMORY_STORE, List.of("Short Term Memory Store", "memory"),
             KNOWLEDGE_BASE, List.of("Knowledge Base", "knowledge", "azure")
     );
@@ -928,7 +928,9 @@ public class AiUtils {
         String label = (providerName + " " + splitClassName)
                 .replaceAll("(?i)openai", "OpenAI")
                 .replaceAll("(?i)mssql", "MSSQL")
-                .replaceAll("(?i)pgvector", "PGVector")
+                .replaceAll("(?i)\\bai\\b", "AI")
+                .replace("Open AI", "OpenAI")
+                .replace("Openrouter", "OpenRouter")
                 .trim().replaceAll("\\s+", " ");
         return label;
     }
