@@ -36,7 +36,7 @@
               "offset": 1
             }
           },
-          "sourceCode": "public function main() returns error? {\n    // Workflow run - should be WORKFLOW_RUN\n    string workflowId = check workflow:run(orderWorkflow, {orderId: \"123\", customerName: \"John\"});\n    io:println(\"Workflow started with ID: \" + workflowId);\n\n    // Send data - should be SEND_DATA\n    check workflow:sendData(orderWorkflow, {approved: true, approverName: \"Admin\"}, \"approve\");\n}"
+          "sourceCode": "public function main() returns error? {\n    // Workflow run - should be WORKFLOW_RUN\n    string workflowId = check workflow:run(orderWorkflow, {orderId: \"123\", customerName: \"John\"});\n    io:println(\"Workflow started with ID: \" + workflowId);\n\n    // Send data - should be SEND_DATA\n    check workflow:sendData(orderWorkflow, \"4422\", {approved: true, approverName: \"Admin\"}, \"approve\");\n}"
         },
         "returning": false,
         "diagnostics": {
@@ -377,7 +377,7 @@
         "flags": 0
       },
       {
-        "id": "79579",
+        "id": "79587",
         "metadata": {
           "label": "Send Data",
           "description": "Send data to an existing workflow instance",
@@ -398,10 +398,10 @@
             },
             "endLine": {
               "line": 48,
-              "offset": 95
+              "offset": 103
             }
           },
-          "sourceCode": "// Send data - should be SEND_DATA\n    check workflow:sendData(orderWorkflow, {approved: true, approverName: \"Admin\"}, \"approve\");"
+          "sourceCode": "// Send data - should be SEND_DATA\n    check workflow:sendData(orderWorkflow, \"4422\", {approved: true, approverName: \"Admin\"}, \"approve\");"
         },
         "returning": false,
         "properties": {
@@ -423,15 +423,6 @@
             "editable": true,
             "advanced": false,
             "hidden": false,
-            "diagnostics": {
-              "hasDiagnostics": true,
-              "diagnostics": [
-                {
-                  "severity": "ERROR",
-                  "message": "missing required parameter 'data' in call to 'sendData()'"
-                }
-              ]
-            },
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "workflow"
@@ -441,6 +432,34 @@
             "metadata": {
               "label": "Workflow Id",
               "description": "The unique workflow ID to send the data to (obtained from `run`)"
+            },
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string",
+                "selected": true
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string",
+                "selected": false
+              }
+            ],
+            "value": "\"4422\"",
+            "placeholder": "\"\"",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "REQUIRED",
+              "originalName": "workflowId"
+            }
+          },
+          "dataName": {
+            "metadata": {
+              "label": "Data Name",
+              "description": "The name identifying the data. Must match a field name in the workflow's\nevents record parameter."
             },
             "types": [
               {
@@ -471,34 +490,6 @@
             },
             "codedata": {
               "kind": "REQUIRED",
-              "originalName": "workflowId"
-            }
-          },
-          "dataName": {
-            "metadata": {
-              "label": "Data Name",
-              "description": "The name identifying the data. Must match a field name in the workflow's\nevents record parameter."
-            },
-            "types": [
-              {
-                "fieldType": "TEXT",
-                "ballerinaType": "string",
-                "selected": true
-              },
-              {
-                "fieldType": "EXPRESSION",
-                "ballerinaType": "string",
-                "selected": false
-              }
-            ],
-            "value": "\"approve\"",
-            "placeholder": "\"\"",
-            "optional": false,
-            "editable": true,
-            "advanced": false,
-            "hidden": false,
-            "codedata": {
-              "kind": "REQUIRED",
               "originalName": "dataName"
             }
           },
@@ -514,6 +505,7 @@
                 "selected": false
               }
             ],
+            "value": "\"approve\"",
             "placeholder": "{}",
             "optional": false,
             "editable": true,
