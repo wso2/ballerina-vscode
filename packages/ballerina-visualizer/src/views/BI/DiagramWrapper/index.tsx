@@ -348,29 +348,11 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     let isInitFunction = parentMetadata?.kind === "Function" && parentMetadata?.label === "init";
     let isNPFunction = view === FOCUS_FLOW_DIAGRAM_VIEW.NP_FUNCTION;
 
-    const handleResourceTryIt = async (methodValue: string, pathValue: string) => {
+    const handleResourceTryIt = (methodValue: string, pathValue: string) => {
         if (serviceType !== "http") { return; }
-        const baseUrl = buildBaseUrl(listener, basePath);
-        const serviceName = basePath?.replace(/^\//, "") || "Service";
 
-        const location = await rpcClient.getVisualizerLocation();
-        const docUri = filePath ?? location.documentUri;
-
-        let oasSpec: any | undefined;
-        try {
-            const oasResult = await rpcClient.getServiceDesignerRpcClient().getOASSpec({
-                documentFilePath: docUri,
-                basePath
-            });
-            oasSpec = oasResult.spec ?? undefined;
-        } catch {
-            // spec unavailable — extension will fall back to minimal placeholder
-        }
-
-        // Delegate cell-building to the extension so both Resource Try It (diagram) and Code Lens
-        // Try It share the same buildHurlCellsFromOASSpec logic via ballerina.startService
-        await rpcClient.getCommonRpcClient().executeCommand({
-            commands: ["ballerina.startService", { oasSpec, baseUrl, serviceName, resourceMetadata: { methodValue, pathValue } }, { savable: false }, { basePath, listener }]
+        rpcClient.getCommonRpcClient().executeCommand({
+            commands: ["ballerina.tryIt", false, { methodValue, pathValue }, { basePath, listener }]
         });
     };
 
