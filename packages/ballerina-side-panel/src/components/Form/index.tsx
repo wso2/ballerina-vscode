@@ -1383,3 +1383,6 @@ export const Form = forwardRef((props: FormProps, _ref) => {
 });
 
 export default Form;
+
+export const FormRow = S.Row;
+export const FormButtonContainer = S.ButtonContainer;
