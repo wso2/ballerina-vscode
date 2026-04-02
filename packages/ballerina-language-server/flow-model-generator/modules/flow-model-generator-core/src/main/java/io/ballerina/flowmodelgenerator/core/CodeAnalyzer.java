@@ -2279,22 +2279,23 @@ public class CodeAnalyzer extends NodeVisitor {
                 return null;
             }
             Symbol symbol = optSymbol.get();
-            Optional<String> symbolName;
+            TypeSymbol typeDescriptor;
             if (symbol.kind() == SymbolKind.VARIABLE) {
-                symbolName = ((VariableSymbol) symbol).typeDescriptor().getName();
+                typeDescriptor = ((VariableSymbol) symbol).typeDescriptor();
             } else if (symbol.kind() == SymbolKind.CLASS_FIELD) {
-                symbolName = ((ClassFieldSymbol) symbol).typeDescriptor().getName();
+                typeDescriptor = ((ClassFieldSymbol) symbol).typeDescriptor();
             } else {
                 return null;
             }
-
-            Optional<ModuleSymbol> optModule = symbol.getModule();
+            Optional<String> symbolName = typeDescriptor.getName();
+            Optional<ModuleSymbol> optModule = typeDescriptor.getModule();
             if (optModule.isEmpty()) {
                 return null;
             }
             ModuleID id = optModule.get().id();
             return new ModelData(optSymbol.get().getName().orElse(""),
-                    CommonUtils.generateIcon(id.moduleName(), id.packageName(), id.version()), symbolName.orElse(""));
+                    CommonUtils.generateIcon(id.orgName(), id.packageName(), id.version()),
+                    symbolName.orElse(""));
         } else if (expressionNode.kind() == SyntaxKind.FIELD_ACCESS) {
             FieldAccessExpressionNode fieldAccessExpressionNode = (FieldAccessExpressionNode) expressionNode;
             return getModelIconUrl(fieldAccessExpressionNode.fieldName());
