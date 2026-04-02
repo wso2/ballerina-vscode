@@ -901,12 +901,13 @@ export function WorkspaceOverview() {
 
     const handleTitleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter") {
-            commitTitleEdit();
+            e.preventDefault();
+            e.currentTarget.blur();
         } else if (e.key === "Escape") {
             setTitleError("");
             setIsEditingTitle(false);
         }
-    }, [commitTitleEdit]);
+    }, []);
 
     if (!projectCollection) {
         return (
