@@ -456,10 +456,15 @@ export async function convertProjectToWorkspace(params: AddProjectToWorkspaceReq
     const projectDirectoryName = params.projectHandle ?? params.workspaceName;
     const newDirectory = path.join(path.dirname(currentProjectPath), projectDirectoryName);
 
-    if (fs.existsSync(newDirectory)) {
-        throw new Error(`A directory named "${projectDirectoryName}" already exists at the selected location`);
+    try {
+        fs.mkdirSync(newDirectory);
+    } catch (err: unknown) {
+        const code = (err as NodeJS.ErrnoException).code;
+        if (code === 'EEXIST') {
+            throw new Error(`A directory named "${projectDirectoryName}" already exists at the selected location`);
+        }
+        throw err;
     }
-    fs.mkdirSync(newDirectory, { recursive: true });
 
     const updatedProjectPath = path.join(newDirectory, path.basename(currentProjectPath));
     fs.renameSync(currentProjectPath, updatedProjectPath);

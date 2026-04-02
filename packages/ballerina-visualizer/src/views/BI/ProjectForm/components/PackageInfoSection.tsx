@@ -58,6 +58,8 @@ export interface PackageInfoSectionProps {
     projectHandleError?: string | null;
     /** Organizations list — when provided, renders a dropdown instead of a free-text field */
     organizations?: Organization[];
+    /** Whether the section contains validation errors */
+    hasError?: boolean;
 }
 
 // ── Sign-in hint styles ────────────────────────────────────────────────────────
@@ -112,6 +114,7 @@ export function PackageInfoSection({
     packageNameError,
     projectHandleError,
     organizations,
+    hasError,
 }: PackageInfoSectionProps) {
     const { rpcClient } = useRpcContext();
     const { platformExtState } = usePlatformExtContext();
@@ -151,6 +154,7 @@ export function PackageInfoSection({
             onToggle={onToggle}
             icon="gear"
             title="Advanced Configurations"
+            hasError={hasError}
         >
             {data.projectHandle !== undefined && (
                 <>

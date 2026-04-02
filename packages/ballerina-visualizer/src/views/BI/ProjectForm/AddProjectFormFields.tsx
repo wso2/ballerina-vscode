@@ -129,12 +129,20 @@ export function AddProjectFormFields({
         }
     }, [formData.projectHandle]);
 
-    // Auto-expand Advanced Configurations when a path conflict for the project handle is reported
+    const hasAdvancedConfigError = !!(
+        projectHandlePathError ||
+        projectHandleError ||
+        packageNameError ||
+        packageNameValidationError ||
+        orgNameError
+    );
+
+    // Auto-expand Advanced Configurations when any field inside it has an error
     useEffect(() => {
-        if (projectHandlePathError) {
+        if (hasAdvancedConfigError) {
             setIsPackageInfoExpanded(true);
         }
-    }, [projectHandlePathError]);
+    }, [hasAdvancedConfigError]);
 
     return (
         <>
@@ -193,6 +201,7 @@ export function AddProjectFormFields({
                 orgNameError={orgNameError}
                 projectHandleError={projectHandlePathError || projectHandleError}
                 organizations={organizations}
+                hasError={hasAdvancedConfigError}
             />
         </>
     );
