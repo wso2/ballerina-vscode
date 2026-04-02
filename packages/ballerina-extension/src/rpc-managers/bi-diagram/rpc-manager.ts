@@ -2395,11 +2395,26 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         } catch {
             throw new Error(`Ballerina.toml not found at ${ballerinaTomlPath}`);
         }
-        const titleExists = /title\s*=\s*"[^"]*"/.test(content);
-        const updated = titleExists
-            ? content.replace(/title\s*=\s*"[^"]*"/, `title = "${params.title}"`)
-            : content.replace(/\[workspace\]/, `[workspace]\ntitle = "${params.title}"`);
-        fs.writeFileSync(ballerinaTomlPath, updated, 'utf-8');
+        let doc: ReturnType<typeof toml.parse>;
+        try {
+            doc = toml.parse(content);
+        } catch (e) {
+            const message = e instanceof Error ? e.message : String(e);
+            throw new Error(`Invalid TOML in ${ballerinaTomlPath}: ${message}`);
+        }
+        const workspace = doc.workspace;
+        if (
+            workspace !== undefined &&
+            workspace !== null &&
+            typeof workspace === "object" &&
+            !Array.isArray(workspace) &&
+            !(workspace instanceof Date)
+        ) {
+            (workspace as ReturnType<typeof toml.parse>).title = params.title;
+        } else {
+            doc.workspace = { title: params.title };
+        }
+        fs.writeFileSync(ballerinaTomlPath, toml.stringify(doc), "utf-8");
 
         const localProjectYamlPath = path.join(params.projectPath, '.choreo', 'local-project.yaml');
         try {
