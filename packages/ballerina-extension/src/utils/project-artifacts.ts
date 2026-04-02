@@ -100,6 +100,7 @@ async function buildProjectArtifactsStructure(
 export async function updateProjectArtifacts(publishedArtifacts: ArtifactsNotification): Promise<void> {
     // Current project structure
     const currentProjectStructure: ProjectStructureResponse = StateMachine.context().projectStructure;
+
     const rootPath = StateMachine.context().projectPath ?? StateMachine.context().workspacePath;
     if (!rootPath) {
         console.warn("[updateProjectArtifacts] No project or workspace path found in the StateMachine context.");
@@ -116,16 +117,36 @@ export async function updateProjectArtifacts(publishedArtifacts: ArtifactsNotifi
     const isInPersistDir = URI.parse(publishedArtifacts.uri).fsPath.toLowerCase().includes(persistDir);
 
     if (currentProjectStructure && isWithinProject && !isSubmodule && !isInPersistDir) {
+        // If user is working on a workspace project pick the workspace path, otherwise fallback to the project path.
+        // Fallback can happen when user is working on a standalone integration/library and
+        // adding another integration/library via AI chat.
+        const workspacePath = StateMachine.context().workspacePath ?? StateMachine.context().projectPath;
+        if (!workspacePath) {
+            console.warn("[updateProjectArtifacts] Workspace path not found in the StateMachine context.");
+            return;
+        }
+        
+        const projectInfo = await StateMachine.langClient().getProjectInfo({ projectPath: workspacePath });
+        if (!projectInfo) {
+            console.warn("[updateProjectArtifacts] Project info not found for the project:", rootPath);
+            return;
+        }
+
+        const isWorkspace = projectInfo.projectKind === PROJECT_KIND.WORKSPACE_PROJECT;
+        const packages = isWorkspace ? projectInfo.children : [projectInfo];
+
+        const untrackedProjectPaths = packages
+            ?.filter(child => child?.projectPath !== undefined)
+            ?.filter(
+                child => !currentProjectStructure.projects
+                    ?.some(project => project.projectPath === child.projectPath)
+            ).map(child => child.projectPath) ?? [];
+
         // Check if the active project exists in the current structure.
         // If not (e.g., a new package was added by Copilot), a full rebuild is needed
         // since we can't incrementally update a project that doesn't exist yet.
-        const projectPath = StateMachine.context().projectPath;
-        const projectExists = currentProjectStructure.projects?.some(
-            project => project.projectPath === projectPath
-        );
-
-        if (!projectExists) {
-            console.log("[updateProjectArtifacts] Project not found in structure, triggering full rebuild:", projectPath);
+        for (const untrackedProjectPath of untrackedProjectPaths) {
+            console.log("[updateProjectArtifacts] Project not found in structure, triggering full rebuild:", untrackedProjectPath);
             const notificationHandler = ArtifactNotificationHandler.getInstance();
             notificationHandler.publish(ArtifactsUpdated.method, {
                 data: [],
@@ -256,11 +277,7 @@ async function getEntryValue(artifact: BaseArtifact, projectPath: string, icon: 
             entryValue.icon = getCustomEntryNodeIcon(getTypePrefix(artifact.module));
             break;
         case DIRECTORY_MAP.CONNECTION:
-            if ((artifact as any).metadata?.connectorType === "persist") {
-                entryValue.icon = "bi-db";
-            } else {
-                entryValue.icon = icon;
-            }
+            entryValue.icon = icon;
             break;
         case DIRECTORY_MAP.RESOURCE:
             // Do things related to resource
@@ -361,10 +378,15 @@ function getDirectoryMapKeyAndIcon(artifact: BaseArtifact, artifactCategoryKey: 
 function processDeletion(artifact: BaseArtifact, artifactCategoryKey: string, projectStructure: ProjectStructureResponse): void {
     const mapping = getDirectoryMapKeyAndIcon(artifact, artifactCategoryKey);
     if (mapping) {
-        const projectPath = StateMachine.context().projectPath;
-        const project = projectStructure.projects.find(project => project.projectPath === projectPath);
-        project.directoryMap[mapping.mapKey] =
-            project.directoryMap[mapping.mapKey]?.filter(value => value.id !== artifact.id) ?? [];
+        try {
+            const projectPath = StateMachine.context().projectPath;
+            const project = projectStructure.projects.find(project => project.projectPath === projectPath);
+            project.directoryMap[mapping.mapKey] =
+                project.directoryMap[mapping.mapKey]?.filter(value => value.id !== artifact.id) ?? [];
+        } catch (error) {
+            //TODO: Hack: Properly fix for the workspace scenario
+            console.error(`Error processing deletion for artifact ${artifact.id} in category ${artifactCategoryKey}:`, error);
+        }
     } else {
         console.error(`Could not determine directory map key for deletion of artifact ${artifact.id} in category ${artifactCategoryKey}`);
     }
@@ -472,10 +494,15 @@ async function traverseUpdatedComponents(publishedArtifacts: Artifacts, currentP
 
     const projectPath = StateMachine.context().projectPath;
     const project = currentProjectStructure.projects.find(project => project.projectPath === projectPath);
-    for (const key of Object.keys(project.directoryMap)) {
-        if (project.directoryMap[key]) {
-            project.directoryMap[key].sort((a, b) => a.name.localeCompare(b.name));
+    try {
+        for (const key of Object.keys(project.directoryMap)) {
+            if (project.directoryMap[key]) {
+                project.directoryMap[key].sort((a, b) => a.name.localeCompare(b.name));
+            }
         }
+    } catch (error) {
+        //TODO: Hack: Properly fix for the workspace scenario
+        console.error(`Error sorting directory map entries for project ${projectPath}:`, error);
     }
 
     // Populate addition entry locations

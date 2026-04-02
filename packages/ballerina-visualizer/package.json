@@ -14,7 +14,7 @@
     "build": "webpack --config webpack.config.js --mode=production && pnpm run postbuild",
     "copy:assets": "copyfiles -u 1 \"src/**/*.scss\"  \"src/**/*.svg\"  \"src/**/*.css\" \"src/resources/assets/font/*.*\" lib/",
     "deploy": "npm publish",
-    "postbuild": "copyfiles -u 1 -V build/*.js build/fonts/* build/images/* -e build/*.txt ../ballerina-extension/resources/jslibs"
+    "postbuild": "find ../ballerina-extension/resources/jslibs -maxdepth 1 -type f -name '[0-9]*.js' -delete && copyfiles -u 1 -V build/*.js build/fonts/* build/images/* -e build/*.txt ../ballerina-extension/resources/jslibs"
   },
   "keywords": [],
   "dependencies": {

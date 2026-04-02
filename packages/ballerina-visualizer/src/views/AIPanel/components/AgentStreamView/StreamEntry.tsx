@@ -38,8 +38,6 @@ import {
     ItemsArea,
     ItemsInner,
     NodeLabel,
-    ProgressDone,
-    ProgressSpinner,
     SonarCenter,
     SonarRing,
     SonarWrapper,
@@ -113,7 +111,7 @@ function getToolCallDisplay(toolName: string | undefined, toolInput: any): { lab
         case "ConfigCollector": return { label: "Reading config..." };
         case "ConnectorGeneratorTool": return { label: "Generating connector..." };
         case "runTests": return { label: "Running tests..." };
-        case "curlRequest": return { label: "Sending HTTP request..." };
+        case "hurlRunnerTool": return { label: "Sending HTTP request..." };
         case "runBallerinaPackage": return { label: `Running ${toolInput?.runType === "service" ? "service" : "program"}...` };
         case "getServiceLogs": return { label: "Fetching logs..." };
         case "stopBallerinaService": return { label: "Stopping service..." };
@@ -149,7 +147,7 @@ function getToolResultDisplay(toolName: string | undefined, toolOutput: any, hin
         case "ConfigCollector": return { label: "Config loaded" };
         case "ConnectorGeneratorTool": return { label: "Connector ready" };
         case "runTests": return { label: toolOutput?.summary ?? "Tests completed" };
-        case "curlRequest": return { label: "HTTP request completed" };
+        case "hurlRunnerTool": return { label: "HTTP request completed" };
         case "runBallerinaPackage": {
             const status = toolOutput?.status ?? "completed";
             return { label: status === "started" ? "Service started" : status === "completed" ? "Program completed" : status === "timeout" ? "Program timed out" : "Run failed" };
@@ -170,7 +168,7 @@ function getToolResultDisplay(toolName: string | undefined, toolOutput: any, hin
 
 // ── Item renderer — order-preserving, used by both floating and named entries ─
 
-function renderItem(item: StreamItem, idx: number, items: StreamItem[], streamActive: boolean, rpcClient?: any): React.ReactNode {
+function renderItem(item: StreamItem, idx: number, streamActive: boolean, rpcClient?: any): React.ReactNode {
     switch (item.kind) {
         case "text": {
             const trimmed = item.text.trim();
@@ -182,8 +180,8 @@ function renderItem(item: StreamItem, idx: number, items: StreamItem[], streamAc
             );
         }
         case "tool_call": {
-            if (item.toolName === "curlRequest") {
-                return <TryItCard key={idx} input={item.toolInput} />;
+            if (item.toolName === "hurlRunnerTool") {
+                return <TryItCard key={idx} input={item.toolInput} rpcClient={rpcClient} />;
             }
             if (COMMAND_OUTPUT_TOOLS.has(item.toolName ?? "")) {
                 return <CommandOutputCard key={idx} toolName={item.toolName} toolInput={item.toolInput} />;
@@ -201,8 +199,8 @@ function renderItem(item: StreamItem, idx: number, items: StreamItem[], streamAc
             );
         }
         case "tool_result": {
-            if (item.toolName === "curlRequest") {
-                return <TryItCard key={idx} input={item.toolOutput} output={item.toolOutput} />;
+            if (item.toolName === "hurlRunnerTool") {
+                return <TryItCard key={idx} output={item.toolOutput} rpcClient={rpcClient} />;
             }
             if (COMMAND_OUTPUT_TOOLS.has(item.toolName ?? "")) {
                 return <CommandOutputCard key={idx} toolName={item.toolName} toolOutput={item.toolOutput} isResult={true} />;
@@ -237,19 +235,20 @@ function renderItem(item: StreamItem, idx: number, items: StreamItem[], streamAc
             return <ConnectorCard key={idx} data={item.data} rpcClient={rpcClient} />;
         case "component":
             if (item.componentType === "progress") {
-                if (item.data.status === "end") return null;
-                const isCompleted = items.slice(idx + 1).some(
-                    i => i.kind === "component" && i.componentType === "progress" &&
-                         i.data.status === "end" && i.data.text === item.data.text
-                );
-                // If stream stopped before this progress item got its "end", treat as done
-                const isSpinning = !isCompleted && streamActive;
+                const isDone = item.data.status === "end";
+                const isSpinning = !isDone && streamActive;
                 return (
                     <ItemRow key={idx}>
-                        {isSpinning
-                            ? <ProgressSpinner><span className="codicon codicon-sync" /></ProgressSpinner>
-                            : <ProgressDone><span className="codicon codicon-pass-filled" /></ProgressDone>
-                        }
+                        <SonarWrapper>
+                            {isSpinning ? (
+                                <>
+                                    <SonarRing />
+                                    <SonarCenter />
+                                </>
+                            ) : (
+                                <DoneCircle />
+                            )}
+                        </SonarWrapper>
                         <ItemLabel loading={isSpinning}>{item.data.text}</ItemLabel>
                     </ItemRow>
                 );
@@ -299,7 +298,7 @@ const StreamEntryComponent: React.FC<StreamEntryComponentProps> = ({
         if (!hasItems) return null;
         return (
             <EntryBlock style={{ flexDirection: "column" }}>
-                {entry.items.map((item, idx) => renderItem(item, idx, entry.items, isLast && isLoading, rpcClient))}
+                {entry.items.map((item, idx) => renderItem(item, idx, isLast && isLoading, rpcClient))}
             </EntryBlock>
         );
     }
@@ -330,7 +329,7 @@ const StreamEntryComponent: React.FC<StreamEntryComponentProps> = ({
                 {hasItems && (
                     <ItemsArea expanded={expanded}>
                         <ItemsInner ref={innerRef}>
-                            {entry.items.map((item, idx) => renderItem(item, idx, entry.items, isLast && isLoading, rpcClient))}
+                            {entry.items.map((item, idx) => renderItem(item, idx, isLast && isLoading, rpcClient))}
                         </ItemsInner>
                     </ItemsArea>
                 )}

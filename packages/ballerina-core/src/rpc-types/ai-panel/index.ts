@@ -47,6 +47,10 @@ import {
     UsageResponse,
     OpenFileDiffRequest,
     WebToolApprovalRequest,
+    CompactConversationRequest,
+    CompactConversationResponse,
+    PromptEnhancementRequest,
+    PromptEnhancementResponse
 } from "./interfaces";
 
 export interface AIPanelAPI {
@@ -113,4 +117,11 @@ export interface AIPanelAPI {
     openFileDiff: (params: OpenFileDiffRequest) => void;
     approveWebTool: (params: WebToolApprovalRequest) => Promise<void>;
     declineWebTool: (params: WebToolApprovalRequest) => Promise<void>;
+    compactConversation: (params: CompactConversationRequest) => Promise<CompactConversationResponse>;
+    getShowContextUsage: () => Promise<boolean>;
+    // ==================================
+    // Prompt Enhancement
+    // ==================================
+    enhancePrompt: (params: PromptEnhancementRequest) => Promise<PromptEnhancementResponse>;
+    promptForLogin: () => void;
 }

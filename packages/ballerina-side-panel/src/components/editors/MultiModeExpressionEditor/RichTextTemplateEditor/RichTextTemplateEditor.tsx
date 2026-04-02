@@ -34,6 +34,8 @@ import { useFormContext } from "../../../../context/form";
 import { createChipPlugin, createChipSchema, updateChipTokens } from "./plugins/chipPlugin";
 import { createXMLTagDecorationPlugin } from "./plugins/xmlTagDecorationPlugin";
 import { createPlaceholderPlugin } from "./plugins/placeholderPlugin";
+import { createTablePlugins, fixTables } from "./plugins/tablePlugin";
+import { registerTableCellParagraphRule } from "./utils/tableUtils";
 import { HelperPane } from "../ChipExpressionEditor/components/HelperPane";
 import {
     toggleBold,
@@ -41,14 +43,18 @@ import {
     toggleHeading,
     toggleBlockquote,
     toggleBulletList,
-    toggleOrderedList
+    toggleOrderedList,
+    handleMarkdownShortcutEnter,
+    createMarkdownInputRulesPlugin,
+    exitInlineCodeOnArrowRight,
+    exitBlockOnArrowDown
 } from "./plugins/markdownCommands";
 import { HELPER_PANE_WIDTH } from "../ChipExpressionEditor/constants";
 import { calculateHelperPanePosition, processFunctionWithArguments } from "../ChipExpressionEditor/utils";
 import { useHelperPaneClickOutside, useHelperPane } from "../ChipExpressionEditor/hooks/useHelperPane";
 import { ChipExpressionEditorDefaultConfiguration } from "../ChipExpressionEditor/ChipExpressionDefaultConfig";
 
-const EditorContainer = styled.div`
+const EditorContainer = styled.div<{ readOnly?: boolean }>`
     flex: 1;
     overflow: auto;
     border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
@@ -65,6 +71,7 @@ const EditorContainer = styled.div`
         font-size: 13px;
         color: ${ThemeColors.ON_SURFACE};
         line-height: 1.6;
+        ${props => props.readOnly && 'cursor: default;'}
     }
 
     .ProseMirror p {
@@ -120,6 +127,61 @@ const EditorContainer = styled.div`
         padding: 0;
     }
 
+    .ProseMirror hr {
+        margin: 1.5em 0;
+        border: none;
+        border-top: 1.5px solid var(--vscode-foreground);
+    }
+
+    .ProseMirror .tableWrapper {
+        overflow-x: auto;
+        margin: 0.5em 0;
+    }
+
+    .ProseMirror table {
+        border-collapse: collapse;
+        width: auto;
+        table-layout: fixed;
+    }
+
+    .ProseMirror th,
+    .ProseMirror td {
+        border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+        padding: 6px 12px;
+        position: relative;
+        vertical-align: top;
+        min-width: 60px;
+    }
+
+    .ProseMirror th {
+        font-weight: 600;
+        background-color: ${ThemeColors.SURFACE_BRIGHT};
+        text-align: left;
+    }
+
+    .ProseMirror th p,
+    .ProseMirror td p {
+        margin: 0;
+    }
+
+    .ProseMirror .selectedCell {
+        background-color: color-mix(in srgb, ${ThemeColors.PRIMARY} 15%, transparent);
+    }
+
+    .ProseMirror .column-resize-handle {
+        position: absolute;
+        right: -2px;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background-color: ${ThemeColors.PRIMARY};
+        pointer-events: none;
+    }
+
+    .ProseMirror.resize-cursor {
+        cursor: col-resize;
+    }
+
     .ProseMirror .xml-tag,
     .ProseMirror .xml-tag-opening,
     .ProseMirror .xml-tag-closing,
@@ -137,7 +199,8 @@ const EditorContainer = styled.div`
     }
 `;
 
-const markdownTokenizer = markdownit("commonmark", { html: false }).disable(["autolink", "html_inline", "html_block"]);
+const markdownTokenizer = markdownit("commonmark", { html: false }).disable(["autolink", "html_inline", "html_block"]).enable("table");
+registerTableCellParagraphRule(markdownTokenizer);
 
 // Helper function to sanitize text by removing invisible characters
 const sanitizeText = (text: string): string => {
@@ -152,27 +215,118 @@ const sanitizeText = (text: string): string => {
 // Create chip schema once
 const chipSchema = createChipSchema();
 
-const customMarkdownParser = new MarkdownParser(
+export const customMarkdownParser = new MarkdownParser(
     chipSchema,
     markdownTokenizer,
-    defaultMarkdownParser.tokens
+    {
+        ...defaultMarkdownParser.tokens,
+        table: { block: "table" },
+        thead: { ignore: true },
+        tbody: { ignore: true },
+        tr: { block: "table_row" },
+        th: {
+            block: "table_header",
+            getAttrs: (tok: any) => ({ alignment: tok.info || null })
+        },
+        td: {
+            block: "table_cell",
+            getAttrs: (tok: any) => ({ alignment: tok.info || null })
+        }
+    }
 );
 
-// Create custom serializer that handles chip nodes
-const customMarkdownSerializer = new MarkdownSerializer(
+// Serialize a single table cell's inline content to a string
+function serializeCellContent(cell: any): string {
+    const tempSerializer = new MarkdownSerializer(
+        {
+            ...defaultMarkdownSerializer.nodes,
+            chip(state: any, node: any) {
+                state.text(node.attrs.text, false);
+            }
+        },
+        defaultMarkdownSerializer.marks
+    );
+    const output = tempSerializer.serialize(cell);
+    // Flatten to single line and trim
+    return output.replace(/\n/g, " ").trim();
+}
+
+// Create custom serializer that handles chip nodes and tables
+export const customMarkdownSerializer = new MarkdownSerializer(
     {
         ...defaultMarkdownSerializer.nodes,
         chip(state: any, node: any) {
             // Serialize chip nodes back to their original text
             state.text(node.attrs.text, false);
-        }
+        },
+        table(state: any, node: any) {
+            const rows: string[][] = [];
+            const alignments: (string | null)[] = [];
+
+            node.forEach((row: any, _offset: number, rowIndex: number) => {
+                const cells: string[] = [];
+                row.forEach((cell: any) => {
+                    const cellText = serializeCellContent(cell).replace(/\|/g, "\\|");
+                    cells.push(cellText);
+
+                    // Capture alignment from header row
+                    if (rowIndex === 0) {
+                        alignments.push(cell.attrs.alignment || null);
+                    }
+                });
+                rows.push(cells);
+            });
+
+            // Compute column widths
+            const colCount = Math.max(...rows.map(r => r.length));
+            const colWidths = Array(colCount).fill(3);
+            for (const row of rows) {
+                for (let i = 0; i < row.length; i++) {
+                    colWidths[i] = Math.max(colWidths[i], row[i].length);
+                }
+            }
+
+            // Ensure blank line before table
+            state.flushClose(1);
+            if (state.out && !state.out.endsWith("\n\n")) {
+                state.out += state.out.endsWith("\n") ? "\n" : "\n\n";
+            }
+
+            // Output header row
+            state.out += "| " + rows[0].map((c: string, i: number) => c.padEnd(colWidths[i])).join(" | ") + " |\n";
+
+            // Output separator row with alignment markers
+            const sep = alignments.map((a, i) => {
+                const w = colWidths[i];
+                if (a === "center") return ":" + "-".repeat(w) + ":";
+                if (a === "left") return ":" + "-".repeat(w + 1);
+                if (a === "right") return "-".repeat(w + 1) + ":";
+                return "-".repeat(w + 2);
+            });
+            state.out += "| " + sep.join(" | ") + " |\n";
+
+            // Output body rows
+            for (let i = 1; i < rows.length; i++) {
+                const paddedCells = rows[i].map((c: string, j: number) => c.padEnd(colWidths[j] || 3));
+                // Pad row if it has fewer cells than header
+                while (paddedCells.length < colCount) {
+                    paddedCells.push(" ".repeat(colWidths[paddedCells.length] || 3));
+                }
+                state.out += "| " + paddedCells.join(" | ") + " |\n";
+            }
+
+            state.closeBlock(node);
+        },
+        table_row() { /* handled inside table serializer */ },
+        table_cell() { /* handled inside table serializer */ },
+        table_header() { /* handled inside table serializer */ },
     },
     defaultMarkdownSerializer.marks
 );
 
 interface RichTextTemplateEditorProps {
     value: string;
-    onChange: (value: string, cursorPosition: number) => void;
+    onChange?: (value: string, cursorPosition: number) => void;
     completions?: CompletionItem[];
     placeholder?: string;
     fileName?: string;
@@ -195,6 +349,7 @@ interface RichTextTemplateEditorProps {
         ref: React.RefObject<HTMLButtonElement>;
         toggle: () => void;
     }) => void;
+    readOnly?: boolean;
 }
 
 export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
@@ -208,6 +363,7 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
     getHelperPane,
     onHelperPaneStateChange,
     extractArgsFromFunction,
+    readOnly = false,
 }) => {
     const editorRef = useRef<HTMLDivElement>(null);
     const viewRef = useRef<EditorView | null>(null);
@@ -215,6 +371,8 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
     const helperPaneToggleButtonRef = useRef<HTMLButtonElement>(null);
     const toolbarRef = useRef<HTMLDivElement>(null);
     const pendingTokenFetchRef = useRef(false);
+    const readOnlyRef = useRef(readOnly);
+    readOnlyRef.current = readOnly;
 
     const { expressionEditor } = useFormContext();
     const rpcManager = expressionEditor?.rpcManager;
@@ -326,7 +484,7 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
         // Trigger onChange to update parent
         const serialized = customMarkdownSerializer.serialize(view.state.doc);
         const newEditorValue = sanitizeText(configuration.deserializeValue(serialized));
-        onChange(newEditorValue, cursorPosition);
+        onChange?.(newEditorValue, cursorPosition);
     };
 
     const fetchAndUpdateTokens = async (editorView: EditorView) => {
@@ -367,7 +525,7 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
         const chipPlugin = createChipPlugin(chipSchema, handleChipClick);
         const xmlTagPlugin = createXMLTagDecorationPlugin();
 
-        // Plugin to close helper pane when cursor moves
+        // Plugin to close helper pane when cursor moves (only for chip-click-opened panes)
         const cursorMovePlugin = new Plugin({
             view() {
                 return {
@@ -380,7 +538,9 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
 
                         if (oldSelection.from !== newSelection.from || oldSelection.to !== newSelection.to) {
                             setHelperPaneState(prev => {
-                                if (prev.isOpen) {
+                                // Only close on cursor move if the pane was opened via chip click,
+                                // not when opened via toolbar toggle (which has no clickedChipPos)
+                                if (prev.isOpen && prev.clickedChipPos !== undefined) {
                                     return { ...prev, isOpen: false };
                                 }
                                 return prev;
@@ -405,6 +565,8 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
                     // Text formatting
                     "Mod-b": toggleBold,
                     "Mod-i": toggleItalic,
+                    "ArrowRight": exitInlineCodeOnArrowRight,
+                    "ArrowDown": exitBlockOnArrowDown,
                     // Mod-k removed: link insertion now requires dialog from toolbar
 
                     // Headings
@@ -420,10 +582,21 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
                     "Mod-Shift-8": toggleBulletList,
                     "Mod-Shift-7": toggleOrderedList,
 
-                    // List management
-                    "Enter": splitListItem(chipSchema.nodes.list_item),
+                    // List management + markdown shortcuts (--- → hr, ``` → code block)
+                    "Enter": (state: any, dispatch: any, view: any) => {
+                        // Try markdown shortcuts first
+                        if (handleMarkdownShortcutEnter(state, dispatch, view)) return true;
+                        // Then default list item split
+                        return splitListItem(chipSchema.nodes.list_item)(state, dispatch, view);
+                    },
                     "Mod-[": liftListItem(chipSchema.nodes.list_item),
                     "Mod-]": sinkListItem(chipSchema.nodes.list_item),
+                    "Tab": (state: any, dispatch: any) => {
+                        return sinkListItem(chipSchema.nodes.list_item)(state, dispatch);
+                    },
+                    "Shift-Tab": (state: any, dispatch: any) => {
+                        return liftListItem(chipSchema.nodes.list_item)(state, dispatch);
+                    },
 
                     // Helper pane
                     "Mod-/": () => handleKeyboardToggle(),
@@ -435,8 +608,10 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
                         return false;
                     }
                 }),
+                ...createTablePlugins(),
                 keymap(baseKeymap),
                 gapCursor(),
+                createMarkdownInputRulesPlugin(chipSchema),
                 chipPlugin,
                 xmlTagPlugin,
                 cursorMovePlugin,
@@ -444,8 +619,12 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
             ]
         });
 
+        // Fix any malformed tables in the initial document
+        const fixedTr = fixTables(state);
+        const initialState = fixedTr ? state.apply(fixedTr.setMeta("addToHistory", false)) : state;
+
         const view = new EditorView(editorRef.current, {
-            state,
+            state: initialState,
             handlePaste(view, event, _slice) {
                 const text = event.clipboardData?.getData('text/plain');
                 if (!text) return false;
@@ -463,7 +642,8 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
                     /^>\s/m,                // Blockquote
                     /`[^`]+`/,              // Inline code
                     /```[\s\S]*```/,        // Code block
-                    /\[.+\]\(.+\)/          // Links
+                    /\[.+\]\(.+\)/,         // Links
+                    /^\|.+\|$/m             // GFM table rows
                 ];
 
                 const looksLikeMarkdown = markdownPatterns.some(pattern => pattern.test(sanitizedText));
@@ -489,12 +669,13 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
             transformPastedText(text) {
                 return sanitizeText(text);
             },
+            editable: () => !readOnlyRef.current,
             dispatchTransaction(transaction) {
                 const newState = view.state.apply(transaction);
                 view.updateState(newState);
 
                 // Check if we should fetch tokens based on what was typed
-                if ((transaction as any).docChanged) {
+                if ((transaction as any).docChanged && !readOnlyRef.current) {
                     // Check if this is undo/redo
                     const meta = (transaction as any).getMeta('history$');
                     if (meta) {
@@ -522,7 +703,7 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
                     const serialized = customMarkdownSerializer.serialize(newState.doc);
                     const newValue = sanitizeText(configuration.deserializeValue(serialized));
                     const cursorPos = (newState.selection as any).$head?.pos || 0;
-                    onChange(newValue, cursorPos);
+                    onChange?.(newValue, cursorPos);
                 }
             },
             handleDOMEvents: {
@@ -557,6 +738,7 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
     // Fetch tokens when value changes from parent
     useEffect(() => {
         if (viewRef.current) {
+            pendingTokenFetchRef.current = true;
             fetchAndUpdateTokens(viewRef.current);
         }
     }, [value]);
@@ -580,7 +762,7 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
 
     return (
         <>
-            <EditorContainer ref={editorRef}>
+            <EditorContainer ref={editorRef} readOnly={readOnly}>
                 {helperPaneState.isOpen && getHelperPane && (
                     <HelperPane
                         ref={helperPaneRef}

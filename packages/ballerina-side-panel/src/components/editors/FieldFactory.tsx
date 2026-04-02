@@ -182,7 +182,9 @@ export const FieldFactory = (props: FieldFactoryProps) => {
 
     const updateFieldTypesSelection = (targetMode: InputMode) => {
         props.field.types?.forEach(type => {
-            type.selected = getInputModeFromTypes(type) === targetMode;
+            if (type.fieldType !== "GROUP_SECTION") {
+                type.selected = getInputModeFromTypes(type) === targetMode;
+            }
         });
     };
 

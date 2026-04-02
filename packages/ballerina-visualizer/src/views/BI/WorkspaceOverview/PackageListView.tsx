@@ -217,8 +217,8 @@ const getTypeIcon = (type: SCOPE): { name: string; source: 'icon' | 'codicon' } 
         [SCOPE.EVENT_INTEGRATION]: { name: 'Event', source: 'icon' },
         [SCOPE.FILE_INTEGRATION]: { name: 'file', source: 'icon' },
         [SCOPE.AI_AGENT]: { name: 'bi-ai-agent', source: 'icon' },
-        [SCOPE.LIBRARY]: { name: 'package', source: 'codicon' },
-        [SCOPE.ANY]: { name: 'project', source: 'codicon' }
+        [SCOPE.LIBRARY]: { name: 'library', source: 'codicon' },
+        [SCOPE.ANY]: { name: 'package', source: 'codicon' }
     };
     return icons[type];
 };

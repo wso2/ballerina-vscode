@@ -1,0 +1,1 @@
+function output(InRoot[] input) returns OutRoot[] => [{oArr1D: input}, {oArr1D: input}];

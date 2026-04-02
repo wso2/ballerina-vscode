@@ -172,7 +172,8 @@ export type FormFieldInputType = "TEXT" |
     "REPEATABLE_LIST" |
     "CONDITIONAL_FIELDS" |
     "DOC_TEXT" |
-    "ADVANCE_PARAM_LIST"
+    "ADVANCE_PARAM_LIST" |
+    "GROUP_SECTION"
     ;
 
 export interface BaseType {
@@ -443,6 +444,7 @@ export type DiagramLabel = "On Fail" | "Body";
 
 export type NodePropertyKey =
     | "agentType"
+    | "credential"
     | "annotations"
     | "auth"
     | "checkError"
@@ -514,6 +516,7 @@ export type NodeKind =
     | "AGENTS"
     | "AGENT"
     | "AGENT_CALL"
+    | "AGENT_ID_AUTH_CONFIG"
     | "AGENT_RUN"
     | "ASSIGN"
     | "AUTOMATION"

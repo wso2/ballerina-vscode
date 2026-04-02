@@ -19,7 +19,7 @@ import { RequiresAuthCheckbox } from "./Mcp/RequiresAuthCheckbox";
 import { attemptValueResolution, createMockTools, extractOriginalValues, generateToolKitName } from "./Mcp/utils";
 import { cleanServerUrl } from "./formUtils";
 import { Container, LoaderContainer } from "./styles";
-import { extractAccessToken, findAgentNodeFromAgentCallNode, getEndOfFileLineRange, resolveVariableValue, resolveAuthConfig } from "./utils";
+import { extractAccessToken, findAgentNodeFromAgentCallNode, getEndOfFileLineRange, resolveVariableValue, resolveAuthConfig, checkAiPackageVersionSupport } from "./utils";
 
 interface Tool {
     name: string;
@@ -57,6 +57,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [showDiscoverModal, setShowDiscoverModal] = useState<boolean>(false);
+    const [showScopes, setShowScopes] = useState<boolean>(false);
 
     // Edit mode tracking
     const [resolutionError, setResolutionError] = useState<string>("");
@@ -116,6 +117,8 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
         agentFileEndLineRangeRef.current = endLineRange;
 
         const template = await fetchMcpToolKitTemplate();
+        const scopesSupported = await checkAiPackageVersionSupport(rpcClient, visualizerLocation.projectPath, "1.11.0");
+        setShowScopes(scopesSupported);
 
         mcpToolKitNodeTemplateRef.current = template;
 
@@ -396,7 +399,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                 agentFlowNode: agentNodeRef.current,
                 selectedTools: Array.from(selectedMcpTools),
                 updatedNode: node,
-                toolScopes: Object.keys(toolScopes).length > 0 ? toolScopes : undefined,
+                toolScopes: showScopes && Object.keys(toolScopes).length > 0 ? toolScopes : undefined,
             });
             onSave?.();
         } catch (error) {
@@ -446,13 +449,13 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                         resolutionError={resolutionError}
                         toolSource={toolSource}
                         onRetryFetch={handleRetryFetch}
-                        toolScopes={toolScopes}
-                        onToolScopesChange={handleToolScopesChange}
+                        toolScopes={showScopes ? toolScopes : undefined}
+                        onToolScopesChange={showScopes ? handleToolScopesChange : undefined}
                     />
                 ),
                 index: 2
             }];
-    }, [availableMcpTools, selectedMcpTools, loadingMcpTools, mcpToolsError, serverUrl, handleToolSelectionChange, handleSelectAllTools, isSaveDisabled, requiresAuth, toolsInclude, editMode, toolSource, resolutionError, handleRetryFetch, toolScopes, handleToolScopesChange]);
+    }, [availableMcpTools, selectedMcpTools, loadingMcpTools, mcpToolsError, serverUrl, handleToolSelectionChange, handleSelectAllTools, isSaveDisabled, requiresAuth, toolsInclude, editMode, toolSource, resolutionError, handleRetryFetch, toolScopes, handleToolScopesChange, showScopes]);
 
     const fieldOverrides = useMemo(() => ({
         auth: {

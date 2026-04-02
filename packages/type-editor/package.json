@@ -1,7 +1,7 @@
 {
     "name": "@wso2/type-editor",
     "version": "1.0.0",
-    "description": "Type Editor for WSO2 Integrator: BI",
+    "description": "Type Editor for WSO2 Integrator",
     "files": [
         "lib"
     ],

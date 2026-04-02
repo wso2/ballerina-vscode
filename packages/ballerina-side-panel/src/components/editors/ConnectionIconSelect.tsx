@@ -172,6 +172,7 @@ interface ConnectionIconSelectProps {
     items: ConnectionSelectItem[];
     value?: string;
     placeholder?: string;
+    emptyMessage?: string;
     disabled?: boolean;
     required?: boolean;
     onChange: (value: string) => void;
@@ -183,6 +184,7 @@ export const ConnectionIconSelect: React.FC<ConnectionIconSelectProps> = ({
     items,
     value,
     placeholder = "Select...",
+    emptyMessage = "No items available. Create one below.",
     disabled = false,
     required = false,
     onChange,
@@ -200,6 +202,7 @@ export const ConnectionIconSelect: React.FC<ConnectionIconSelectProps> = ({
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
+    const isEmpty = items.length === 0;
     const selectedItem = items.find((item) => item.value === value);
 
     const handleSelect = (itemValue: string) => {
@@ -268,9 +271,9 @@ export const ConnectionIconSelect: React.FC<ConnectionIconSelectProps> = ({
                     role="combobox"
                     aria-expanded={open}
                     aria-haspopup="listbox"
-                    tabIndex={disabled ? -1 : 0}
-                    disabled={disabled}
-                    onClick={() => !disabled && setOpen(!open)}
+                    tabIndex={disabled || isEmpty ? -1 : 0}
+                    disabled={disabled || isEmpty}
+                    onClick={() => !disabled && !isEmpty && setOpen(!open)}
                     onKeyDown={handleKeyDown}
                 >
                     <SelectedDisplay>
@@ -280,12 +283,12 @@ export const ConnectionIconSelect: React.FC<ConnectionIconSelectProps> = ({
                                 <SelectedLabel>{selectedItem.label}</SelectedLabel>
                             </>
                         ) : (
-                            <Placeholder>{placeholder}</Placeholder>
+                            <Placeholder>{isEmpty ? emptyMessage : placeholder}</Placeholder>
                         )}
                     </SelectedDisplay>
-                    <Codicon name="chevron-down" sx={{ fontSize: 14, flexShrink: 0 }} />
+                    {!isEmpty && <Codicon name="chevron-down" sx={{ fontSize: 14, flexShrink: 0 }} />}
                 </SelectTrigger>
-                {open && (
+                {open && items.length > 0 && (
                     <DropdownPanel role="listbox">
                         {items.map((item, index) => (
                             <OptionItem

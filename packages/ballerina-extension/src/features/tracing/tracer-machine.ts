@@ -56,6 +56,7 @@ export interface TracerMachineContext {
     error?: string;
     startFailureReason?: string;
     currentProjectPath?: string;
+    childProjectPaths?: string[];
     isDisabling?: boolean;
     traceServer?: TraceServer;
     taskExecution?: vscode.TaskExecution;
@@ -67,13 +68,23 @@ export interface TracerMachineContext {
  */
 function isTraceEnabledInProject(context: TracerMachineContext): Promise<{ isTraceEnabledInProject: boolean }> {
     return new Promise((resolve) => {
-        if (!context.currentProjectPath) {
-            resolve({ isTraceEnabledInProject: false });
+        // Check if a file called trace_enabled.bal exists in the current project path
+        if (context.currentProjectPath) {
+            const traceEnabled = fs.existsSync(path.join(context.currentProjectPath, 'trace_enabled.bal'));
+            if (traceEnabled) {
+                resolve({ isTraceEnabledInProject: true });
+                return;
+            }
+        }
+        // For workspace projects, check if any child project has tracing enabled
+        if (context.childProjectPaths?.length) {
+            const anyChildEnabled = context.childProjectPaths.some(
+                childPath => fs.existsSync(path.join(childPath, 'trace_enabled.bal'))
+            );
+            resolve({ isTraceEnabledInProject: anyChildEnabled });
             return;
         }
-        // Check if a file called trace_enabled.bal exists in the current project path
-        const traceEnabled = fs.existsSync(path.join(context.currentProjectPath, 'trace_enabled.bal'));
-        resolve({ isTraceEnabledInProject: traceEnabled });
+        resolve({ isTraceEnabledInProject: false });
     });
 }
 
@@ -126,7 +137,7 @@ function stopServer(context: TracerMachineContext, event?: any): Promise<void> {
 /**
  * Creates a state machine for managing the tracing server lifecycle
  */
-function createTracerMachine(projectPath?: string) {
+function createTracerMachine(projectPath?: string, childProjectPaths?: string[]) {
     return createMachine<TracerMachineContext>(
         {
             /** @xstate-layout N4IgpgJg5mDOIC5QBcBOBDAxmVBZLAFgJYB2YAxAIIAi1A+gOoDyASgNIDKACpQMICiHANoAGALqJQABwD2sIsiIySkkAA9EARgBM2gMwA6TQBYRANgCsAdgAcFm2e0mANCACeWkVYMBOC3s1NHxsREWMLYzM9AF9o1zQsHHxMYjJyFn5cJgA1fkZWTh4BYXFVWXlFZVUNBB0vAz1g4z0RPWMrYzszVw9a7Vj4jGw8QlIwA1IFcghlcdIANxkAa3GE4eTUuZIFBAWZTHRKklExE7K5BSUVJHVEC00bIwe-MzNNKzM7HsROiwMOqx6SzaGwfXRAgYgNZJUZkCbbZDTWbwxYrAzQkYpMbwnZ7A5HE5CTQSG7lS5VG41d7GAxOczWETaaz+XTfBBmYw+AzWHyaBkWMJ8qyQjEbbGTRE4VAyVAGKQAG0OADMZQBbdFDGFYuES3YkRb4q6E0qki5HapaHyGUG6bQ+XT+EQCvRskIiXyRNpeKyhEQ+MwizWYzYGMAkdAAI3lkHI1AAkhxKAAhAAy-DOpoqVwtCCsugMZh9Zh8rXMVl5xjZmg5ZiMIk0jT8rRemkDiWD2LDkejEHS-AAYhkOAAJDPSM3ZymIWzeHxWyyhPS2dqV9yIRruvkmJdBV5LtvrWHjLtRyAGWA4eY4DjIGRSKQxjgAFUoLCfdA4-BYuRYY5AZPNKdcwsbQCyZUsHEZECbCrRlNAMYxdBsFc-TncIDy1EMTx7c9L2vZB0FQRQSCgJEdX1ZZViDMU4Wws8L1QK9UBvQjiKgPUDUOI1xD-ADJ1AKk-VAwFjFE6xAm0esXTXWpWm8d4QR9RDATMJ0MI7Wjw1PCBcMY-DWNIUipRlOVFWQFVUHVUUj1DLScIYpiWKIwyOP2LjlGNElxyzCkBM8e1-jaMSrAkqTXRCgt-QCRpNHrGd1Jo487PovDUH7dAiB7J8ZCcxEMifFgAE1eInXzblqKJDHLT5nV5VoHDZEt5LzBwrFsBslxsBKbLonSHJwdLMsgbLcr7AriuJc4fOuPyKr0Kr-TsZtYr0BqZK6AsWs5f1PidHxuu1JLuxSvTmIIojHyfJguA-L8fxK6ac0k7RawsecojeyxAhgmT7W8RCQTeCwgbUuIoWonrkr61KbzvKRDLIrZUSo9tEts47odO2H7xcvF3OOHiTW88kZvK57XvevRPvuB42UBf6kPaOSWneA6sKh3THNvHGSPIYzZQVZU1Q1VHIYxzn8Lh3GKMNDzCa8-9StJmpntnJdlOUgVbFdNoEOLDpC0ZODWzB6zDoMCAiFgDHyH4AA5ZM0wekmc2sKs2tAmw7X0HRAjeTo2exS3re0vtB0EUcicVx6gIbeCQrCN4Pdeawft6BsSwMGwSy9v1OmQ4xYjBkgZAgOBVDNzYppdoCAFpNDZFpQK+4xqxBCxgb+wPyIUavANm9o2Vb0CFJsea5zebQPm7o7tL7-jyv8bx-B0K1fSCPk2Q7917RBPwfDa4J+lNiHzd6iWzrhyB57Kmp7D+Fe7RaUIN4sRqve5cxdwCUwQv2k-RZnw5v1M6BkSI32Voge0jxCwbytNWSwwRGrBAQkhJ0QQC5WAsDPdG2kL6DSyjlc6yAIE5m3H8dqLQsHZycFPV0xZfBITHlTSSXscHnxAbla+mYa6zQeI4MCApORMlWiFNOiBQTwVHn4NoNhYp2nYcAmG3N4bgJ4f3MmQIuQcidP4FkIkdZ-G-sCcI5YAg4ODhjUhQFn4GFaHUVuC5VrIXdkELO2d5FWnuH4Iu0QgA */
@@ -138,6 +149,7 @@ function createTracerMachine(projectPath?: string) {
                 error: undefined,
                 startFailureReason: undefined,
                 currentProjectPath: projectPath,
+                childProjectPaths: childProjectPaths,
                 isDisabling: false,
                 taskExecution: undefined,
                 taskTerminationListener: undefined
@@ -419,6 +431,8 @@ function createTracerMachine(projectPath?: string) {
 
 // Service instance (created on initialization)
 let tracerService: ReturnType<typeof interpret> | undefined;
+// Persistent subscribers that survive refresh
+const persistentSubscribers: Array<(state: any) => void> = [];
 
 /**
  * Ensures the tracer service is initialized and returns it
@@ -438,8 +452,8 @@ export const TracerMachine = {
     /**
      * Create and start the tracer machine with workspace directories
      */
-    initialize: (projectPath?: string) => {
-        const machine = createTracerMachine(projectPath);
+    initialize: (projectPath?: string, childProjectPaths?: string[]) => {
+        const machine = createTracerMachine(projectPath, childProjectPaths);
         tracerService = interpret(machine) as ReturnType<typeof interpret>;
         tracerService.start();
     },
@@ -491,17 +505,26 @@ export const TracerMachine = {
         ensureInitialized().send({ type: 'DISABLE', projectPath } as any);
     },
 
-    refresh: (projectPath?: string) => {
+    refresh: (projectPath?: string, childProjectPaths?: string[]) => {
         const snapshot = ensureInitialized().getSnapshot();
         const context = snapshot.context as TracerMachineContext;
         const currentProjectPath = context.currentProjectPath;
         const updatedProjectPath = projectPath || currentProjectPath;
-        const machine = createTracerMachine(updatedProjectPath);
+        const updatedChildPaths = childProjectPaths || context.childProjectPaths;
+        const machine = createTracerMachine(updatedProjectPath, updatedChildPaths);
+        tracerService.stop();
         tracerService = interpret(machine) as ReturnType<typeof interpret>;
+        // Re-subscribe persistent callbacks to the new service
+        for (const callback of persistentSubscribers) {
+            tracerService.subscribe((state) => {
+                callback(state.value);
+            });
+        }
         tracerService.start();
     },
 
     onUpdate: (callback: (state: any) => void) => {
+        persistentSubscribers.push(callback);
         ensureInitialized().subscribe((state) => {
             callback(state.value);
         });

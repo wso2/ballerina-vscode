@@ -41,3 +41,7 @@ export const SHOW_LIBRARY_CONFIG_VARIABLES = "ballerina.showLibraryConfigVariabl
 export const LANG_SERVER_PATH = "ballerina.langServerPath"; // this setting is not visible to the extension user
 export const USE_BALLERINA_CLI_LANG_SERVER = "ballerina.useDistributionLanguageServer";
 export const SHOW_ADVANCED_AI_NODES = "ballerina.showAdvancedAiNodes";
+export const ICP_PATH = "ballerina.icpPath";
+export const ICP_URL = "ballerina.icpUrl";
+export const ICP_USERNAME = "ballerina.icpUsername";
+export const ICP_PASSWORD = "ballerina.icpPassword";

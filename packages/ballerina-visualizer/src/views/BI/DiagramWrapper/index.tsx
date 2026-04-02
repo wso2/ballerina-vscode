@@ -313,6 +313,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     let isResource = parentMetadata?.kind === "Resource";
     let isRemote = parentMetadata?.kind === "Remote Function";
     let isAgent = parentMetadata?.kind === "AI Chat Agent" && parentMetadata?.label === "chat";
+    let isInitFunction = parentMetadata?.kind === "Function" && parentMetadata?.label === "init";
     let isNPFunction = view === FOCUS_FLOW_DIAGRAM_VIEW.NP_FUNCTION;
 
     const handleResourceTryIt = async (methodValue: string, pathValue: string) => {
@@ -401,7 +402,11 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                     {tracingButton}
                     <ActionButton
                         appearance="secondary"
-                        onClick={() => handleResourceTryIt(parentMetadata?.accessor || "", parentMetadata?.label || "")}
+                        onClick={() => {
+                            rpcClient.getCommonRpcClient().executeCommand({
+                                commands: ["ballerina.tryIt", false, undefined, { basePath, listener }]
+                            });
+                        }}
                     >
                         <Icon
                             name="comment-discussion"
@@ -439,7 +444,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
             );
         }
 
-        if (parentMetadata && !isResource && !isRemote) {
+        if (parentMetadata && !isResource && !isRemote && !isInitFunction) {
             return (
                 <ActionButton id="bi-edit" appearance="secondary" onClick={() => handleEdit(fileName, currentPosition)}>
                     <Icon
