@@ -184,6 +184,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const isCreatingNewWorkflow = useRef<boolean>(false);
     const isCreatingNewActivity = useRef<boolean>(false);
 
+    const clearWorkflowCreationState = () => {
+        isCreatingNewWorkflow.current = false;
+    };
+
     const { platformExtState, platformRpcClient, onLinkDevantProject, importConnection: importDevantConn } = usePlatformExtContext()
 
     const enrichedCategories = useMemo(() => {
@@ -1351,7 +1355,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             return;
         }
         if (isCreatingNewWorkflow.current) {
-            isCreatingNewWorkflow.current = false;
+            clearWorkflowCreationState();
             await handleWorkflowAdded();
             return;
         }
@@ -2061,6 +2065,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     const handleOnFormBack = () => {
+        clearWorkflowCreationState();
+
         // Try to navigate back using the navigation stack
         const didNavigateBack = popFromNavigationStack();
 
@@ -2248,6 +2254,11 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 showEditForm.current = false;
                 setSidePanelView(SidePanelView.FORM);
                 setShowSidePanel(true);
+            })
+            .catch((error) => {
+                console.error(">>> Error fetching workflow template", error);
+                clearWorkflowCreationState();
+                popFromNavigationStack();
             })
             .finally(() => {
                 setShowProgressIndicator(false);
