@@ -169,13 +169,20 @@ public class AgentChatServiceGenerator {
     }
 
     private String generateServiceBlock(String agentVarName, String serviceName) {
-        return """
-                service /agent\\-chat/%s on agentChatListener {
-                    resource function post chat(@http:Payload ai:ChatReqMessage request) returns ai:ChatRespMessage|error {
-                        string stringResult = check %s.run(request.message, request.sessionId);
-                        return {message: stringResult};
-                    }
-                }
-                """.formatted(serviceName, agentVarName);
+        return String.format(
+                "service /agent\\-chat/%s on agentChatListener {%s" +
+                        "    resource function post chat(@http:Payload ai:ChatReqMessage request) " +
+                        "returns ai:ChatRespMessage|error {%s" +
+                        "        string stringResult = check %s.run(request.message, request.sessionId);%s" +
+                        "        return {message: stringResult};%s" +
+                        "    }%s" +
+                        "}%s",
+                serviceName, System.lineSeparator(),
+                System.lineSeparator(),
+                agentVarName, System.lineSeparator(),
+                System.lineSeparator(),
+                System.lineSeparator(),
+                System.lineSeparator()
+        );
     }
 }
