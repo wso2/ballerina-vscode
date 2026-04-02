@@ -807,6 +807,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         if (isTryItInProgress) {
             return;
         }
+        setIsTryItInProgress(true);
         let optionToRun = selectedTryItOption;
         try {
             const preferredOption = await rpcClient.getCommonRpcClient().getPreferredTryItOption();
@@ -831,11 +832,12 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                 setSelectedTryItOption(optionToRun);
                 await rpcClient.getCommonRpcClient().setPreferredTryItOption(optionToRun);
             }
+            handleTryItDropdownOption(optionToRun);
         } catch (error) {
             console.error("Error handling Try It first-time flow:", error);
+        } finally {
+            setIsTryItInProgress(false);
         }
-
-        handleTryItDropdownOption(optionToRun);
     };
 
     const handleAddListener = () => {
