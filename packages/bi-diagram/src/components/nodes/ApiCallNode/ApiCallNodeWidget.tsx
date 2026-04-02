@@ -393,9 +393,9 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
                     <NodeStyles.Icon onClick={handleOnClick}>
                         <NodeIcon
                             type={model.node.codedata.node}
-                            {...((model.node.properties?.connection?.metadata?.data as NodeMetadata)?.connectorType === "persist" && {
+                            {...(["persist", "Database"].includes((model.node.properties?.connection?.metadata?.data as NodeMetadata)?.connectorType) && {
                                 size: 24,
-                                isPersistConnection: true,
+                                isDBConnection: true,
                             })}
                         />
                     </NodeStyles.Icon>

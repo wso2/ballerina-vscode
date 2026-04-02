@@ -60,6 +60,9 @@ const ancestorInfoMap = new Map<string, { systemInstructions: string; toolNames:
 const pendingToolSpans: Array<{ span: Span; activeToolName?: string; addedAt: number }> = [];
 let pendingToolSpansCleanupTimer: NodeJS.Timeout | undefined;
 
+// Maps traceId → entrypoint info extracted from any span carrying these attributes
+const traceEntrypointMap = new Map<string, { serviceName?: string; functionName?: string }>();
+
 /**
  * Walk the parentMap from a given spanId upward, looking for a hit in ancestorInfoMap.
  * Returns the agent info if found, or undefined if the chain is incomplete.
@@ -298,6 +301,7 @@ function tryResolveAndEnqueueToolSpan(span: Span, activeToolName?: string): bool
     if (!info) {
         return false;
     }
+    const entrypoint = getEntrypointForTrace(span.traceId);
     const event: TraceAnimationEvent = {
         type: 'execute_tool',
         toolNames: info.toolNames,
@@ -305,6 +309,8 @@ function tryResolveAndEnqueueToolSpan(span: Span, activeToolName?: string): bool
         spanId: span.spanId,
         active: true,
         systemInstructions: info.systemInstructions,
+        entrypointServiceName: entrypoint?.serviceName,
+        entrypointFunctionName: entrypoint?.functionName,
     };
     enqueueEvent(event, span);
     return true;
@@ -323,11 +329,31 @@ function drainPendingToolSpans() {
     }
 }
 
+function extractEntrypointInfo(span: Span): { serviceName?: string; functionName?: string } | undefined {
+    const serviceName = span.attributes?.find(a => a.key === 'entrypoint.service.name')?.value;
+    const functionName = span.attributes?.find(a => a.key === 'entrypoint.function.name')?.value;
+    if (serviceName !== undefined || functionName !== undefined) {
+        return { serviceName, functionName };
+    }
+    return undefined;
+}
+
+function getEntrypointForTrace(traceId: string): { serviceName?: string; functionName?: string } | undefined {
+    return traceEntrypointMap.get(traceId);
+}
+
 function processSpans(spans: Span[]) {
-    // Phase 1: Register ALL spans in parentMap (regardless of type)
+    // Phase 1: Register ALL spans in parentMap and extract entrypoint info (regardless of type)
     for (const span of spans) {
         if (span.parentSpanId) {
             parentMap.set(span.spanId, span.parentSpanId);
+        }
+        // Extract entrypoint info from any span that carries it (typically the root span)
+        if (!traceEntrypointMap.has(span.traceId)) {
+            const entrypoint = extractEntrypointInfo(span);
+            if (entrypoint) {
+                traceEntrypointMap.set(span.traceId, entrypoint);
+            }
         }
     }
 
@@ -371,12 +397,15 @@ function processSpans(spans: Span[]) {
                 propagateAncestorInfo(span.spanId, { systemInstructions, toolNames });
             }
 
+            const entrypoint = getEntrypointForTrace(span.traceId);
             const event: TraceAnimationEvent = {
                 type: spanType,
                 toolNames,
                 spanId: span.spanId,
                 active: true,
                 systemInstructions,
+                entrypointServiceName: entrypoint?.serviceName,
+                entrypointFunctionName: entrypoint?.functionName,
             };
             enqueueEvent(event, span);
         } else if (spanType === 'execute_tool') {
@@ -431,4 +460,5 @@ export function disposeTraceAnimation() {
     parentMap.clear();
     ancestorInfoMap.clear();
     pendingToolSpans.length = 0;
+    traceEntrypointMap.clear();
 }

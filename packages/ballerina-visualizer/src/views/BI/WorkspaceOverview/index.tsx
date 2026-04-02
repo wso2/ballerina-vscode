@@ -83,12 +83,6 @@ const HeaderRow = styled.div`
     margin: 16px 16px 0 16px;
 `;
 
-const HeaderControls = styled.div`
-    display: flex;
-    gap: 12px;
-    align-items: center;
-`;
-
 const MainContent = styled.div<{ hasDeployment?: boolean }>`
     flex: 1;
     overflow-y: auto;
@@ -287,6 +281,7 @@ interface DeploymentOptionProps {
     onDeploy: () => void;
     learnMoreLink?: string;
     hasDeployableIntegration?: boolean;
+    disabledTooltip?: string;
     secondaryAction?: {
         description: string;
         buttonText: string;
@@ -303,6 +298,7 @@ function DeploymentOption({
     onDeploy,
     learnMoreLink,
     hasDeployableIntegration,
+    disabledTooltip,
     secondaryAction
 }: DeploymentOptionProps) {
     const { rpcClient } = useRpcContext();
@@ -346,7 +342,7 @@ function DeploymentOption({
                         onDeploy();
                     }}
                     disabled={!hasDeployableIntegration}
-                    tooltip={hasDeployableIntegration ? "" : "No deployable integration found"}
+                    tooltip={hasDeployableIntegration ? "" : (disabledTooltip ?? "No deployable integration found")}
                 >
                     {buttonText}
                 </Button>
@@ -497,6 +493,7 @@ function DeploymentOptions({
                         onDeploy={primaryAction}
                         learnMoreLink={"https://wso2.com/devant/docs"}
                         hasDeployableIntegration={!isDeploymentDisabled}
+                        disabledTooltip={disabledTooltip}
                         secondaryAction={secondaryAction}
                     />
                 )}
@@ -525,6 +522,32 @@ function DeploymentOptions({
     );
 }
 
+const ICPButtonContent = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+`;
+
+type IcpAction = "enableAll" | "disableAll" | "enableRemaining";
+
+function ICPActionButton({ action, label, loadingLabel, onClick, icpActionLoading, isLoading }: {
+    action: IcpAction;
+    label: string;
+    loadingLabel: string;
+    onClick: () => void;
+    icpActionLoading: IcpAction | null;
+    isLoading: boolean;
+}) {
+    return (
+        <Button appearance="secondary" onClick={onClick} disabled={isLoading}>
+            <ICPButtonContent>
+                {icpActionLoading === action && <ProgressRing sx={{ width: 12, height: 12 }} />}
+                {icpActionLoading === action ? loadingLabel : label}
+            </ICPButtonContent>
+        </Button>
+    );
+}
+
 interface IntegrationControlPlaneProps {
     icpState: "all" | "partial" | "none";
     enabledCount: number;
@@ -532,6 +555,7 @@ interface IntegrationControlPlaneProps {
     onEnableAll: () => void;
     onDisableAll: () => void;
     onEnableRemaining: () => void;
+    icpActionLoading: IcpAction | null;
 }
 
 function IntegrationControlPlane({
@@ -540,9 +564,11 @@ function IntegrationControlPlane({
     totalCount,
     onEnableAll,
     onDisableAll,
-    onEnableRemaining
+    onEnableRemaining,
+    icpActionLoading
 }: IntegrationControlPlaneProps) {
     const { rpcClient } = useRpcContext();
+    const isLoading = icpActionLoading !== null;
 
     const openLearnMoreURL = () => {
         rpcClient.getCommonRpcClient().openExternalUrl({
@@ -561,19 +587,34 @@ function IntegrationControlPlane({
                 {totalCount > 0 ? `${enabledCount}/${totalCount} integrations are ICP-enabled` : "No ICP-eligible integrations found"}
             </Description>
             {icpState === "all" && (
-                <Button appearance="secondary" onClick={onDisableAll}>
-                    Disable ICP for all integrations
-                </Button>
+                <ICPActionButton
+                    action="disableAll"
+                    label="Disable ICP for all integrations"
+                    loadingLabel="Disabling..."
+                    onClick={onDisableAll}
+                    icpActionLoading={icpActionLoading}
+                    isLoading={isLoading}
+                />
             )}
             {icpState === "none" && (
-                <Button appearance="secondary" onClick={onEnableAll}>
-                    Enable ICP for all integrations
-                </Button>
+                <ICPActionButton
+                    action="enableAll"
+                    label="Enable ICP for all integrations"
+                    loadingLabel="Enabling..."
+                    onClick={onEnableAll}
+                    icpActionLoading={icpActionLoading}
+                    isLoading={isLoading}
+                />
             )}
             {icpState === "partial" && (
-                <Button appearance="secondary" onClick={onEnableRemaining}>
-                    Enable ICP for remaining integrations
-                </Button>
+                <ICPActionButton
+                    action="enableRemaining"
+                    label="Enable ICP for remaining integrations"
+                    loadingLabel="Enabling..."
+                    onClick={onEnableRemaining}
+                    icpActionLoading={icpActionLoading}
+                    isLoading={isLoading}
+                />
             )}
         </div>
     );
@@ -586,6 +627,7 @@ export function WorkspaceOverview() {
     const [icpStatusByProjectPath, setIcpStatusByProjectPath] = React.useState<Record<string, boolean>>({});
 
     const [showAlert, setShowAlert] = React.useState(false);
+    const [icpActionLoading, setIcpActionLoading] = React.useState<IcpAction | null>(null);
 
     const { data: devantMetadata } = useQuery({
         queryKey: ["project-devant-metadata"],
@@ -773,10 +815,6 @@ export function WorkspaceOverview() {
     };
 
     const updateICPForProjectPaths = async (projectPaths: string[], enableICP: boolean) => {
-        if (projectPaths.length === 0) {
-            return;
-        }
-
         for (const projectPath of projectPaths) {
             try {
                 if (enableICP) {
@@ -790,20 +828,21 @@ export function WorkspaceOverview() {
         }
     };
 
-    const handleEnableAllICP = async () => {
-        await updateICPForProjectPaths(icpProjectPaths, true);
-        await syncProjectICPStatus(icpProjectPaths);
+    const runIcpAction = async (action: IcpAction, paths: string[], enable: boolean) => {
+        setIcpActionLoading(action);
+        try {
+            await updateICPForProjectPaths(paths, enable);
+        } finally {
+            await syncProjectICPStatus(icpProjectPaths);
+            setIcpActionLoading(null);
+        }
     };
 
-    const handleDisableAllICP = async () => {
-        await updateICPForProjectPaths(icpProjectPaths, false);
-        await syncProjectICPStatus(icpProjectPaths);
-    };
-
-    const handleEnableRemainingICP = async () => {
+    const handleEnableAllICP = () => runIcpAction("enableAll", icpProjectPaths, true);
+    const handleDisableAllICP = () => runIcpAction("disableAll", icpProjectPaths, false);
+    const handleEnableRemainingICP = () => {
         const remainingProjectPaths = icpProjectPaths.filter((projectPath) => !icpStatusByProjectPath[projectPath]);
-        await updateICPForProjectPaths(remainingProjectPaths, true);
-        await syncProjectICPStatus(icpProjectPaths);
+        return runIcpAction("enableRemaining", remainingProjectPaths, true);
     };
 
     const goToDevant = () => {
@@ -839,13 +878,6 @@ export function WorkspaceOverview() {
                     <ProjectTitle>{projectCollection?.workspaceTitle || projectCollection?.workspaceName}</ProjectTitle>
                     <ProjectSubtitle>Project</ProjectSubtitle>
                 </TitleContainer>
-                <HeaderControls>
-                    <UndoRedoGroup key={Date.now()} />
-                    <Button appearance="primary" onClick={handleAddResource}>
-                        <Codicon name="add" sx={{ marginRight: 8 }} />
-                        Add Integration or Library
-                    </Button>
-                </HeaderControls>
             </HeaderRow>
 
             <MainContent hasDeployment={hasStandardIntegrations}>
@@ -875,8 +907,11 @@ export function WorkspaceOverview() {
                                 <SectionTitle>Integrations & Libraries</SectionTitle>
                                 {!isEmptyProject && (
                                     <SectionActions>
-                                        <Button appearance="icon" onClick={handleGenerate} buttonSx={{ padding: "6px 12px" }}>
+                                        <Button appearance="secondary" onClick={handleGenerate}>
                                             <Icon name="bi-ai-chat" sx={{ marginRight: 4 }} iconSx={{ position: "relative", top: "2px" }} /> Generate with AI
+                                        </Button>
+                                        <Button appearance="primary" onClick={handleAddResource}>
+                                            <Codicon name="add" sx={{ marginRight: 8 }} /> Add
                                         </Button>
                                     </SectionActions>
                                 )}
@@ -893,10 +928,10 @@ export function WorkspaceOverview() {
                                         Start by adding integrations and libraries to your project
                                     </Typography>
                                     <ButtonContainer>
-                                        <Button appearance="secondary" onClick={handleAddResource}>
+                                        <Button appearance="primary" onClick={handleAddResource}>
                                             <Codicon name="add" sx={{ marginRight: 8 }} /> Add Integration or Library
                                         </Button>
-                                        <Button appearance="primary" onClick={handleGenerate}>
+                                        <Button appearance="secondary" onClick={handleGenerate}>
                                             <Icon name="bi-ai-chat" sx={{ marginRight: 4 }} iconSx={{ position: "relative", top: "2px" }} /> Generate with AI
                                         </Button>
                                     </ButtonContainer>
@@ -962,6 +997,7 @@ export function WorkspaceOverview() {
                             onEnableAll={handleEnableAllICP}
                             onDisableAll={handleDisableAllICP}
                             onEnableRemaining={handleEnableRemainingICP}
+                            icpActionLoading={icpActionLoading}
                         />
                     </SidePanel>
                 )}

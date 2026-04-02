@@ -53,16 +53,15 @@ export function DropdownChoiceForm(props: DropdownChoiceFormProps) {
     const { form } = useFormContext();
     const { setValue, register } = form;
 
-    const [selectedOption, setSelectedOption] = useState<string>("");
+    const initialOption = (field.value as string) || "";
+    const [selectedOption, setSelectedOption] = useState<string>(initialOption);
 
     const [dynamicFields, setDynamicFields] = useState<FormField[]>([]);
 
-
-    // Add useEffect to set initial values
+    // Update dynamic fields when selection changes
     useEffect(() => {
-        if (field.dynamicFormFields[selectedOption]) {
-            const fields = field.dynamicFormFields[selectedOption];
-            setDynamicFields(fields);
+        if (field.dynamicFormFields?.[selectedOption]) {
+            setDynamicFields(field.dynamicFormFields[selectedOption]);
         } else {
             setDynamicFields([]);
         }

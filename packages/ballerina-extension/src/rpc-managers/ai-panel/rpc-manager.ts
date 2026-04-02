@@ -18,6 +18,7 @@
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import {
+    AIMachineEventType,
     AIMachineSnapshot,
     AIPanelAPI,
     AIPanelPrompt,
@@ -35,6 +36,8 @@ import {
     OpenFileDiffRequest,
     ProcessContextTypeCreationRequest,
     ProcessMappingParametersRequest,
+    PromptEnhancementRequest,
+    PromptEnhancementResponse,
     RequirementSpecification,
     RestoreCheckpointRequest,
     SemanticDiffRequest,
@@ -45,10 +48,14 @@ import {
     UpdateChatMessageRequest,
     UsageResponse,
     WebToolApprovalRequest,
+    CompactConversationRequest,
+    CompactConversationResponse,
 } from "@wso2/ballerina-core";
 import * as fs from 'fs';
 import path from "path";
 import * as vscode from 'vscode';
+import { window, workspace } from 'vscode';
+import { LOGIN_REQUIRED_WARNING, SIGN_IN_BI_COPILOT } from '../../features/ai/constants';
 
 import { isNumber } from "lodash";
 import { getServiceDeclarationNames } from "../../../src/features/ai/documentation/utils";
@@ -64,6 +71,7 @@ import { sendChatComponentNotification, sendSaveChatNotification } from "../../f
 import { submitFeedback as submitFeedbackUtil } from "../../features/ai/utils/feedback";
 import { sendGenerationDiscardTelemetry, sendGenerationKeptTelemetry } from "../../features/ai/utils/generation-response";
 import { getLLMDiagnosticArrayAsString } from "../../features/natural-programming/utils";
+import { enhancePrompt as enhancePromptService } from "../../features/ai/service/prompt-enhancement/promptEnhancement";
 import { StateMachine, updateView } from "../../stateMachine";
 import { isInWI } from "../../utils";
 import { getLoginMethod, isPlatformExtensionAvailable, loginGithubCopilot } from "../../utils/ai/auth";
@@ -82,6 +90,8 @@ import { InlineMappingExecutor } from '../../features/ai/executors/datamapper/In
 import { approvalManager } from '../../features/ai/state/ApprovalManager';
 import { cleanupTempProject } from "../../features/ai/utils/project/temp-project";
 import { chatStateStorage } from '../../views/ai-panel/chatStateStorage';
+import { compactionManager } from '../../features/ai/compaction-manager';
+import { getAnthropicClient, ANTHROPIC_SONNET_4 } from '../../features/ai/utils/ai-client';
 import { restoreWorkspaceSnapshot } from '../../views/ai-panel/checkpoint/checkpointUtils';
 
 export class AiPanelRpcManager implements AIPanelAPI {
@@ -128,6 +138,10 @@ export class AiPanelRpcManager implements AIPanelAPI {
         return new Promise(async (resolve, reject) => {
             try {
                 const projectPath = StateMachine.context().projectPath;
+                if (!projectPath) {
+                    resolve({ mentions: [] });
+                    return;
+                }
                 const serviceDeclNames = await getServiceDeclarationNames(projectPath);
                 resolve({
                     mentions: serviceDeclNames
@@ -365,6 +379,18 @@ export class AiPanelRpcManager implements AIPanelAPI {
         }
     }
 
+    async enhancePrompt(params: PromptEnhancementRequest): Promise<PromptEnhancementResponse> {
+        return await enhancePromptService(params);
+    }
+
+    promptForLogin(): void {
+        window.showWarningMessage(LOGIN_REQUIRED_WARNING, SIGN_IN_BI_COPILOT).then(selection => {
+            if (selection === SIGN_IN_BI_COPILOT) {
+                AIStateMachine.service().send(AIMachineEventType.LOGIN);
+            }
+        });
+    }
+
     async generateAgent(params: GenerateAgentCodeRequest): Promise<boolean> {
         return await generateAgent(params);
     }
@@ -582,6 +608,12 @@ export class AiPanelRpcManager implements AIPanelAPI {
         const found = chatStateStorage.findCheckpoint(projectRootPath, threadId, params.checkpointId);
 
         if (!found) {
+            if (chatStateStorage.hasCompactedHistory(projectRootPath, threadId)) {
+                window.showWarningMessage(
+                    "This conversation was compacted to manage memory. Undo points prior to compaction are unavailable."
+                );
+                throw new Error("Checkpoint unavailable due to compaction");
+            }
             throw new Error(`Checkpoint ${params.checkpointId} not found`);
         }
 
@@ -694,6 +726,54 @@ export class AiPanelRpcManager implements AIPanelAPI {
         const projectPath = pendingReview.reviewState.tempProjectPath;
         console.log(">>> active temp project path", projectPath);
         return projectPath;
+    }
+
+    async compactConversation(params: CompactConversationRequest): Promise<CompactConversationResponse> {
+        const workspaceId = resolveProjectRootPath();
+        const threadId = 'default';
+
+        // M05: Reject manual compact if an AI generation is in progress
+        const activeExecution = chatStateStorage.getActiveExecution(workspaceId, threadId);
+        if (activeExecution) {
+            return {
+                success: false,
+                error: 'Cannot compact while a generation is in progress. Please wait for it to complete or stop it first.',
+            };
+        }
+
+        try {
+            const model = await getAnthropicClient(ANTHROPIC_SONNET_4);
+
+            const result = await compactionManager.manualCompact(
+                workspaceId,
+                threadId,
+                model,
+                params.customInstructions
+            );
+
+            console.log(
+                `[RPC] Compacted conversation for workspace: ${workspaceId} ` +
+                `(${result.reductionPercentage.toFixed(1)}% reduction)`
+            );
+
+            return {
+                success: true,
+                originalTokens: result.originalTokens,
+                compactedTokens: result.compactedTokens,
+                reductionPercentage: result.reductionPercentage,
+                summary: result.summary,
+            };
+        } catch (error) {
+            console.error(`[RPC] Compaction failed for workspace: ${workspaceId}`, error);
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Compaction failed',
+            };
+        }
+    }
+
+    async getShowContextUsage(): Promise<boolean> {
+        return workspace.getConfiguration('ballerina').get<boolean>('ai.showContextUsage', false);
     }
 
     async getUsage(): Promise<UsageResponse | undefined> {

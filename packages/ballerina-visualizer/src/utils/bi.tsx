@@ -100,7 +100,7 @@ function convertAvailableNodeToPanelNode(
         return undefined;
     }
 
-    const isPersistConnection = connectorType === "persist";
+    const isDBConnection = connectorType === "persist" || connectorType === "Database";
 
     // Return common panel node structure
     return {
@@ -126,7 +126,7 @@ function convertAvailableNodeToPanelNode(
             <NodeIcon
                 type={functionType === FUNCTION_TYPE.EXPRESSION_BODIED ? "DATA_MAPPER_CALL" : node.codedata.node}
                 size={16}
-                isPersistConnection={isPersistConnection}
+                isDBConnection={isDBConnection}
             />
         ),
     };
@@ -149,7 +149,12 @@ function convertDiagramCategoryToSidePanelCategory(category: Category, functionT
                 return false;
             }
             if ((item as PanelCategory).items !== undefined) {
-                // For categories, use recursive check to see if they have any functions
+                // Always keep subcategories that represent the current integration, even if empty
+                const title = (item as PanelCategory).title;
+                if (title?.toLowerCase().endsWith("(current integration)")) {
+                    return true;
+                }
+                // For other categories, use recursive check to see if they have any functions
                 return (item as PanelCategory).items.length > 0;
             }
             return true;
@@ -787,7 +792,10 @@ export function convertItemsToCompletionItems(items: Item[]): CompletionItem[] {
         label: item.metadata.label,
         value: item.metadata.label,
         kind: COMPLETION_ITEM_KIND.TypeParameter,
-        insertText: item.metadata.label
+        insertText: item.metadata.label,
+        labelDetails: {
+            description: (item as AvailableNode).codedata?.node
+        }
     }));
 }
 
@@ -810,13 +818,6 @@ export function convertRecordTypeToCompletionItem(type: Type): CompletionItem {
         sortText: label?.toLowerCase?.() || label,
     };
 }
-
-export const clearDiagramZoomAndPosition = () => {
-    localStorage.removeItem("diagram-file-path");
-    localStorage.removeItem("diagram-zoom-level");
-    localStorage.removeItem("diagram-offset-x");
-    localStorage.removeItem("diagram-offset-y");
-};
 
 export const convertToHelperPaneVariable = (variables: VisibleType[]): HelperPaneVariableInfo => {
     return {
@@ -872,7 +873,7 @@ const isCategoryType = (item: Item): item is Category => {
 };
 
 export const getFunctionItemKind = (category: string): FunctionKind => {
-    if (category.toLocaleLowerCase().includes("current")) {
+    if (category.toLocaleLowerCase().includes("current") || category.toLocaleLowerCase().includes("within project")) {
         return functionKinds.CURRENT;
     } else if (category.toLocaleLowerCase().includes("imported")) {
         return functionKinds.IMPORTED;

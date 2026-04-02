@@ -15,6 +15,7 @@
 // under the License.
 
 import { createAnthropic } from "@ai-sdk/anthropic";
+import { LanguageModel, ModelMessage, JSONValue } from "ai";
 import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
 import { createVertexAnthropic } from "@ai-sdk/google-vertex/anthropic";
 import { getAccessToken, getLoginMethod, getRefreshedAccessToken, getAwsBedrockCredentials, getVertexAiCredentials } from "../../../utils/ai/auth";
@@ -244,8 +245,8 @@ export const getAnthropicClient = async (model: AnthropicModel): Promise<any> =>
 /**
  * Type definition for provider-specific cache options
  */
-export type ProviderCacheOptions = 
-    | { anthropic: { cacheControl: { type: string } } } 
+export type ProviderCacheOptions =
+    | { anthropic: { cacheControl: { type: string } } }
     | { bedrock: { cachePoint: { type: string } } };
 
 /**
@@ -265,3 +266,48 @@ export const getProviderCacheControl = async (): Promise<ProviderCacheOptions> =
             return { anthropic: { cacheControl: { type: "ephemeral" } } };
     }
 };
+
+function isAnthropicModel(model: LanguageModel): boolean {
+    if (typeof model === 'string') {
+        return model.includes('anthropic') || model.includes('claude');
+    }
+    return (
+        model.provider === 'anthropic' ||
+        model.provider.includes('anthropic') ||
+        model.modelId.includes('anthropic') ||
+        model.modelId.includes('claude')
+    );
+}
+
+/**
+ * Add cache control to the last message in the array.
+ * This tells Anthropic to cache everything up to this point.
+ * On each agent step the last message shifts forward, incrementally caching conversation history.
+ */
+export function addCacheControlToMessages({
+    messages,
+    model,
+    providerOptions = {
+        anthropic: { cacheControl: { type: 'ephemeral' } },
+    },
+}: {
+    messages: ModelMessage[];
+    model: LanguageModel;
+    providerOptions?: Record<string, Record<string, JSONValue>>;
+}): ModelMessage[] {
+    if (messages.length === 0) { return messages; }
+    if (!isAnthropicModel(model)) { return messages; }
+
+    return messages.map((message, index) => {
+        if (index === messages.length - 1) {
+            return {
+                ...message,
+                providerOptions: {
+                    ...message.providerOptions,
+                    ...providerOptions,
+                },
+            };
+        }
+        return message;
+    });
+}

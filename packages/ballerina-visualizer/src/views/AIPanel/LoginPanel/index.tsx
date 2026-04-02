@@ -206,6 +206,7 @@ const LoginPanel: React.FC = () => {
                         <StyledButton 
                             disabled={isInstallingExtension || undefined} 
                             onClick={installExtension}
+                            appearance="secondary"
                         >
                             Install WSO2 Integrator
                         </StyledButton>

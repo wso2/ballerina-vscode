@@ -411,7 +411,7 @@ export interface FormProps {
     formDiagnostics?: { message: string; severity: "ERROR" | "WARNING" | "INFO" }[];
     formDiagnosticsAction?: React.ReactNode;
     preserveOrder?: boolean;
-    handleSelectedTypeChange?: (type: string | CompletionItem) => void;
+    handleSelectedTypeChange?: (type: string | CompletionItem) => void | Promise<void>;
     scopeFieldAddon?: React.ReactNode;
     onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
     injectedComponents?: {
@@ -535,19 +535,12 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                         defaultValues[field.key] = field.value;
                     } else if (isDropdownField(field)) {
                         defaultValues[field.key] = getValueForDropdown(field) ?? "";
-                    } else if (field.type === "FLAG" && field.types?.length > 1) {
-                        if (typeof field.value === "boolean") {
-                            defaultValues[field.key] = String(field.value);
-                        }
-                        else {
-                            defaultValues[field.key] = field.value;
-                        }
                     } else if (field.type === "FLAG") {
-                        defaultValues[field.key] = field.value || "true";
+                         defaultValues[field.key] = field.value;
                     } else if (typeof field.value === "string") {
                         defaultValues[field.key] = formatJSONLikeString(field.value) ?? "";
                     } else {
-                        defaultValues[field.key] = field.value ?? "";
+                        defaultValues[field.key] = field.value;
                     }
                     if (field.key === "variable") {
                         defaultValues[field.key] = formValues[field.key] ?? defaultValues[field.key] ?? "";
@@ -670,12 +663,10 @@ export const Form = forwardRef((props: FormProps, _ref) => {
         openSubPanel(updatedSubPanel);
     };
 
-    const handleOnTypeChange = () => {
-        getVisualiableFields();
-    };
-
     const handleNewTypeSelected = (type: string | CompletionItem) => {
-        handleSelectedTypeChange && handleSelectedTypeChange(type);
+        Promise.resolve(handleSelectedTypeChange?.(type)).catch((error) => {
+            console.error("Error in handleSelectedTypeChange", error);
+        });
     }
 
     const getVisualiableFields = () => {
@@ -721,6 +712,10 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                         // Recursively collect from nested choice properties
                         collectAdvancedFields(selectedChoice.properties);
                     }
+                }
+                // Skip GROUP_SECTION properties - they handle their own advanced fields internally
+                else if (propValue?.properties && !propValue.advanced && getPrimaryInputType(propValue?.types)?.fieldType === "GROUP_SECTION") {
+                    // Do not traverse into GROUP_SECTION; its ChoiceForm renders advanced fields within the group
                 }
                 // If this property is advanced, add it to the list
                 else if (propValue.advanced && propValue.enabled && !propValue.hidden && !propValue.choices) {
@@ -1065,8 +1060,8 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                  */}
             <S.CategoryRow bottomBorder={false}>
                 {(() => {
-                    const fieldsToRender = formFields
-                        .sort((a, b) => b.groupNo - a.groupNo)
+                    const fieldsToRender = [...formFields]
+                        .sort((a, b) => (b.groupNo ?? 0) - (a.groupNo ?? 0))
                         .filter((field) => field.type !== "VIEW");
 
                     const renderedComponents: React.ReactNode[] = [];
@@ -1115,7 +1110,6 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                                     autoFocus={firstEditableFieldIndex === formFields.indexOf(updatedField) && !hideSaveButton}
                                     recordTypeFields={recordTypeFields}
                                     onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
-                                    handleOnTypeChange={handleOnTypeChange}
                                     setSubComponentEnabled={setIsSubComponentEnabled}
                                     handleNewTypeSelected={handleNewTypeSelected}
                                     onBlur={handleOnBlur}
@@ -1216,7 +1210,6 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                                             handleOnFieldFocus={handleOnFieldFocus}
                                             recordTypeFields={recordTypeFields}
                                             onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
-                                            handleOnTypeChange={handleOnTypeChange}
                                             onBlur={handleOnBlur}
                                         />
                                     </S.Row>
@@ -1256,7 +1249,6 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                                     handleOnFieldFocus={handleOnFieldFocus}
                                     recordTypeFields={recordTypeFields}
                                     onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
-                                    handleOnTypeChange={handleOnTypeChange}
                                     onBlur={handleOnBlur}
                                     handleFormValidation={handleFormValidation}
                                 />
@@ -1286,7 +1278,6 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                                 ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, typeField, newType))
                             }
                             handleOnFieldFocus={handleOnFieldFocus}
-                            handleOnTypeChange={handleOnTypeChange}
                             recordTypeFields={recordTypeFields}
                             onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                             handleNewTypeSelected={handleNewTypeSelected}
@@ -1302,7 +1293,6 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                                 recordTypeFields={recordTypeFields}
                                 onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                                 handleNewTypeSelected={handleNewTypeSelected}
-                                handleOnTypeChange={handleOnTypeChange}
                                 onBlur={handleOnBlur}
                                 handleFormValidation={handleFormValidation}
                             />

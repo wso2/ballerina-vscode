@@ -73,7 +73,7 @@ export type ChipExpressionEditorComponentProps = {
     ) => React.ReactNode;
     completions: CompletionItem[];
     onChange: (updatedValue: string, updatedCursorPosition: number) => void;
-    value: string;
+    value: string | undefined;
     fileName?: string;
     extractArgsFromFunction?: (value: string, cursorPosition: number) => Promise<{
         label: string;
@@ -308,17 +308,6 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
             isOpen: !prev.isOpen
         }));
     }
-
-    // Expose helper pane state to parent component
-    useEffect(() => {
-        if (props.onHelperPaneStateChange) {
-            props.onHelperPaneStateChange({
-                isOpen: helperPaneState.isOpen,
-                ref: helperPaneToggleButtonRef,
-                toggle: handleHelperPaneManualToggle
-            });
-        }
-    }, [helperPaneState.isOpen]);
 
     useEffect(() => {
         if (!editorRef.current) return;

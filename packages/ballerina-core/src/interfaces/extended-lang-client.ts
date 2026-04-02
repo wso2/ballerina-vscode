@@ -1898,6 +1898,16 @@ export interface AIGentToolsResponse {
     };
 }
 
+export interface AIGetPackageVersionRequest {
+    projectPath: string;
+    org: string;
+    packageName: string;
+}
+
+export interface AIGetPackageVersionResponse {
+    version: string;
+}
+
 export type OpenAPIClientGenerationRequest = {
     openApiContractPath: string;
     projectPath: string;
@@ -2115,6 +2125,7 @@ export interface BIInterface extends BaseLangClientInterface {
     getTools: (params: AIToolsRequest) => Promise<AIToolsResponse>;
     getMcpTools: (params: McpToolsRequest) => Promise<McpToolsResponse>;
     genTool: (params: AIGentToolsRequest) => Promise<AIGentToolsResponse>;
+    getPackageVersion: (params: AIGetPackageVersionRequest) => Promise<AIGetPackageVersionResponse>;
 }
 
 export interface ExtendedLangClientInterface extends BIInterface {

@@ -143,6 +143,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const [selectedNodeId, setSelectedNodeId] = useState<string>();
     const [importingConn, setImportingConn] = useState<ConnectionListItem>();
     const [projectOrg, setProjectOrg] = useState<string>("");
+    const [entrypointContext, setEntrypointContext] = useState<{ serviceName?: string; functionName?: string }>();
     const [isUserAuthenticated, setIsUserAuthenticated] = useState<boolean>(false);
     const [connectorErrorMessage, setConnectorErrorMessage] = useState<string | undefined>(undefined);
     // Navigation stack for back navigation
@@ -223,7 +224,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         rpcClient.onTraceAnimationChanged((event: TraceAnimationEvent) => {
             console.log('[TraceAnimation] Webview received event:', event.type, event.active, event.toolNames);
             if (event.active) {
-                setTraceAnimationActive(event.toolNames, event.type, event.activeToolName, event.systemInstructions);
+                setTraceAnimationActive(event.toolNames, event.type, event.activeToolName, event.systemInstructions, event.entrypointServiceName, event.entrypointFunctionName);
             } else {
                 setTraceAnimationInactive(event.type, event.activeToolName);
             }
@@ -683,10 +684,23 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                                     endLine: newNode.codedata.lineRange.endLine
                                 })
                             }
-                            // Get visualizer location and pass position to onReady
+                            // Get visualizer location and pass position to onReady + set entrypoint context
                             rpcClient.getVisualizerLocation().then((location: VisualizerLocation) => {
                                 console.log(">>> Visualizer location", location?.position);
                                 onReady(model.flowModel.fileName, parentMetadata, location?.position, parentCodedata);
+                                let serviceName = '';
+                                for (const candidate of [location.parentIdentifier, location.identifier]) {
+                                    const val = candidate ?? '';
+                                    const dashIdx = val.lastIndexOf(' - ');
+                                    if (dashIdx >= 0) {
+                                        serviceName = val.substring(dashIdx + 3);
+                                        break;
+                                    }
+                                }
+                                const functionName = parentMetadata?.label
+                                    ? (parentMetadata.isServiceFunction ? `/${parentMetadata.label}` : parentMetadata.label)
+                                    : '';
+                                setEntrypointContext({ serviceName, functionName });
                             });
                         }
                     })
@@ -3108,6 +3122,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 onClickOverlay: handleOnCloseSidePanel,
             },
             isUserAuthenticated,
+            entrypointContext,
         }),
         [
             flowModel,
@@ -3121,6 +3136,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             selectedNodeId,
             rpcClient,
             isUserAuthenticated,
+            entrypointContext,
         ]
     );
 

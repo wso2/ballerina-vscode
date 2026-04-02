@@ -39,7 +39,6 @@ const PopupContainer = styled.div`
     max-width: ${NODE_WIDTH}px;
     font-family: "GilmerMedium";
     font-size: 12px;
-
     background-color: ${NODE_BG_COLOR};
     color: ${NODE_TEXT_COLOR};
     padding: 8px;
@@ -86,6 +85,7 @@ const ActionButton = styled(Button)`
     display: flex;
     align-items: center;
     gap: 4px;
+    flex-shrink: 0;
 `;
 
 export interface DiagnosticsPopUpProps {
