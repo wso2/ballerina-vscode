@@ -127,6 +127,7 @@ export interface DiagramContextState {
     setLockCanvas?: (lock: boolean) => void;
     isUserAuthenticated?: boolean;
     expressionContext: ExpressionContextProps;
+    nodeComments?: Map<string, FlowNode>;
 }
 
 export const DiagramContext = React.createContext<DiagramContextState>({

@@ -41,6 +41,7 @@ import { DiagnosticsPopUp } from "../../DiagnosticsPopUp";
 import { nodeHasError } from "../../../utils/node";
 import { BreakpointMenu } from "../../BreakNodeMenu/BreakNodeMenu";
 import NodeIcon from "../../NodeIcon";
+import { NodeNoteChip } from "../../NodeNoteChip";
 
 export namespace NodeStyles {
     export type NodeStyleProp = {
@@ -71,6 +72,12 @@ export namespace NodeStyles {
         position: absolute;
         top: -6px;
         left: 46px;
+    `;
+
+    export const NoteChipWrapper = styled.div`
+        position: absolute;
+        top: -14px;
+        right: -50px;
     `;
 
     export const ErrorIcon = styled.div`
@@ -147,12 +154,15 @@ export interface NodeWidgetProps extends Omit<IfNodeWidgetProps, "children"> {}
 
 export function IfNodeWidget(props: IfNodeWidgetProps) {
     const { model, engine, onClick } = props;
-    const { onNodeSelect, goToSource, onDeleteNode, addBreakpoint, removeBreakpoint, readOnly, selectedNodeId } =
+    const { onNodeSelect, goToSource, onDeleteNode, addBreakpoint, removeBreakpoint, readOnly, selectedNodeId, nodeComments } =
         useDiagramContext();
+
+    const noteComment = nodeComments?.get(model.node.id);
 
     const isSelected = selectedNodeId === model.node.id;
 
     const [isHovered, setIsHovered] = useState(false);
+    const [isNoteActive, setIsNoteActive] = useState(false);
     const [anchorEl, setAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
     const [menuButtonElement, setMenuButtonElement] = useState<HTMLElement | null>(null);
     const isMenuOpen = Boolean(anchorEl);
@@ -238,7 +248,7 @@ export function IfNodeWidget(props: IfNodeWidgetProps) {
             hovered={isHovered}
             readOnly={readOnly}
             onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
+            onMouseLeave={() => { setIsHovered(false); setIsNoteActive(false); }}
             onContextMenu={!readOnly ? handleOnContextMenu : undefined}
         >
             <NodeStyles.Row>
@@ -262,7 +272,7 @@ export function IfNodeWidget(props: IfNodeWidgetProps) {
                         height={IF_NODE_WIDTH}
                         viewBox="0 0 70 70"
                         style={{
-                            filter: isHovered && !disabled && !readOnly ? `drop-shadow(0 0 3px ${NODE_BORDER_SELECTED_COLOR})` : 'none',
+                            filter: (isHovered || isNoteActive) && !disabled && !readOnly ? `drop-shadow(0 0 3px ${NODE_BORDER_SELECTED_COLOR})` : 'none',
                             transition: 'filter 0.1s ease',
                         }}
                     >
@@ -276,7 +286,7 @@ export function IfNodeWidget(props: IfNodeWidgetProps) {
                             fill={
                                 isActiveBreakpoint
                                     ? NODE_BG_BREAKPOINT_COLOR
-                                    : isHovered && !disabled && !readOnly
+                                    : (isHovered || isNoteActive) && !disabled && !readOnly
                                     ? NODE_BG_HOVER_COLOR
                                     : NODE_BG_COLOR
                             }
@@ -285,7 +295,7 @@ export function IfNodeWidget(props: IfNodeWidgetProps) {
                                     ? NODE_BORDER_ERROR_COLOR
                                     : isSelected && !disabled
                                     ? NODE_BORDER_SELECTED_COLOR
-                                    : isHovered && !disabled && !readOnly
+                                    : (isHovered || isNoteActive) && !disabled && !readOnly
                                     ? NODE_BORDER_SELECTED_COLOR
                                     : NODE_BORDER_COLOR
                             }
@@ -310,6 +320,11 @@ export function IfNodeWidget(props: IfNodeWidgetProps) {
                     <NodeStyles.ErrorIcon>
                         <DiagnosticsPopUp node={model.node} />
                     </NodeStyles.ErrorIcon>
+                )}
+                {noteComment && (
+                    <NodeStyles.NoteChipWrapper>
+                        <NodeNoteChip commentNode={noteComment} onOpen={() => setIsNoteActive(true)} onClose={() => { setIsNoteActive(false); setIsHovered(false); }} />
+                    </NodeStyles.NoteChipWrapper>
                 )}
                 <NodeStyles.StyledButton
                     ref={setMenuButtonElement}

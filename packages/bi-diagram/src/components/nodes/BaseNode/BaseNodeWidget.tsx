@@ -46,6 +46,7 @@ import { ELineRange, FlowNode } from "@wso2/ballerina-core";
 import { DiagnosticsPopUp } from "../../DiagnosticsPopUp";
 import { getNodeTitle, isWorkflowNode, nodeHasError } from "../../../utils/node";
 import { BreakpointMenu } from "../../BreakNodeMenu/BreakNodeMenu";
+import { NodeNoteChip } from "../../NodeNoteChip";
 
 export namespace NodeStyles {
     export type NodeStyleProp = {
@@ -208,11 +209,15 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
         readOnly,
         selectedNodeId,
         project,
+        nodeComments,
     } = useDiagramContext();
+
+    const noteComment = nodeComments?.get(model.node.id);
 
     const isSelected = selectedNodeId === model.node.id;
 
     const [isHovered, setIsHovered] = useState(false);
+    const [isNoteActive, setIsNoteActive] = useState(false);
     const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
     const [menuButtonElement, setMenuButtonElement] = useState<HTMLElement | null>(null);
     const isMenuOpen = Boolean(menuAnchorEl);
@@ -403,7 +408,7 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
 
     return (
         <NodeStyles.Node
-            hovered={isHovered}
+            hovered={isHovered || isNoteActive}
             disabled={model.node.suggested}
             hasError={hasError}
             readOnly={readOnly}
@@ -411,7 +416,7 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
             isSelected={isSelected}
             isWorkflowNode={isWorkflowStyledNode}
             onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
+            onMouseLeave={() => { setIsHovered(false); setIsNoteActive(false); }}
             onContextMenu={!readOnly ? handleOnContextMenu : undefined}
         >
             {hasBreakpoint && (
@@ -440,6 +445,7 @@ export function BaseNodeWidget(props: BaseNodeWidgetProps) {
                         <NodeStyles.Description>{nodeDescription as ReactNode}</NodeStyles.Description>
                     </NodeStyles.Header>
                     <NodeStyles.ActionButtonGroup>
+                        {noteComment && <NodeNoteChip commentNode={noteComment} onOpen={() => setIsNoteActive(true)} onClose={() => { setIsNoteActive(false); setIsHovered(false); }} />}
                         {hasError && <DiagnosticsPopUp node={model.node} />}
                         {canViewFunction && (
                             <Tooltip content="View function flow">
