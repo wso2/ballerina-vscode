@@ -9,7 +9,7 @@
         "items": [
           {
             "metadata": {
-              "label": "InMemory Vector Store",
+              "label": "In Memory Vector Store",
               "description": "An in-memory vector store implementation that provides simple storage for vector entries."
             },
             "codedata": {
