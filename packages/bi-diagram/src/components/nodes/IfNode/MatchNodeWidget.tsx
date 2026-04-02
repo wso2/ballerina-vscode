@@ -17,6 +17,7 @@
  */
 
 import React, { ReactNode, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { DiagramEngine } from "@projectstorm/react-diagrams-core";
 import { IfNodeModel } from "./IfNodeModel";
 import {
@@ -30,7 +31,7 @@ import {
     NODE_BORDER_WIDTH,
     NODE_HEIGHT,
 } from "../../../resources/constants";
-import { Item, Menu, MenuItem, Popover } from "@wso2/ui-toolkit";
+import { Item, Menu, MenuItem } from "@wso2/ui-toolkit";
 import { FlowNode } from "../../../utils/types";
 import { useDiagramContext } from "../../DiagramContext";
 import { MoreVertIcon } from "../../../resources";
@@ -55,9 +56,33 @@ export function MatchNodeWidget(props: MatchNodeWidgetProps) {
     const isSelected = selectedNodeId === model.node.id;
 
     const [isHovered, setIsHovered] = useState(false);
-    const [anchorEl, setAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
+    const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
     const [menuButtonElement, setMenuButtonElement] = useState<HTMLElement | null>(null);
-    const isMenuOpen = Boolean(anchorEl);
+    const isMenuOpen = menuPos !== null;
+
+    const getMenuPos = (el: HTMLElement): { top: number; left: number } => {
+        const rect = el.getBoundingClientRect();
+        return { top: rect.bottom, left: rect.left };
+    };
+
+    useEffect(() => {
+        if (!isMenuOpen || !menuButtonElement) return;
+        const handle = engine.getModel().registerListener({
+            offsetUpdated: () => setMenuPos(getMenuPos(menuButtonElement)),
+            zoomUpdated: () => setMenuPos(getMenuPos(menuButtonElement)),
+        });
+        return () => handle.deregister();
+    }, [isMenuOpen, menuButtonElement]);
+
+    useEffect(() => {
+        if (!isMenuOpen) return;
+        const handleClickOutside = () => setMenuPos(null);
+        const timer = setTimeout(() => document.addEventListener("mousedown", handleClickOutside), 0);
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isMenuOpen]);
     const hasBreakpoint = model.hasBreakpoint();
     const isActiveBreakpoint = model.isActiveBreakpoint();
 
@@ -81,44 +106,46 @@ export function MatchNodeWidget(props: MatchNodeWidgetProps) {
     const onNodeClick = () => {
         onClick && onClick(model.node);
         onNodeSelect && onNodeSelect(model.node);
-        setAnchorEl(null);
+        setMenuPos(null);
     };
 
     const onGoToSource = () => {
         goToSource && goToSource(model.node);
-        setAnchorEl(null);
+        setMenuPos(null);
     };
 
     const deleteNode = () => {
         onDeleteNode && onDeleteNode(model.node);
-        setAnchorEl(null);
+        setMenuPos(null);
     };
 
     const handleOnMenuClick = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
         if (readOnly) {
             return;
         }
-        setAnchorEl(event.currentTarget);
+        const target = menuButtonElement || (event.currentTarget as HTMLElement);
+        setMenuPos(getMenuPos(target));
     };
 
     const handleOnContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
         event.preventDefault();
-        setAnchorEl(menuButtonElement || event.currentTarget);
+        const target = menuButtonElement || event.currentTarget;
+        setMenuPos(getMenuPos(target as HTMLElement));
     };
 
     const handleOnMenuClose = () => {
-        setAnchorEl(null);
+        setMenuPos(null);
         setIsHovered(false);
     };
 
     const onAddBreakpoint = () => {
         addBreakpoint && addBreakpoint(model.node);
-        setAnchorEl(null);
+        setMenuPos(null);
     };
 
     const onRemoveBreakpoint = () => {
         removeBreakpoint && removeBreakpoint(model.node);
-        setAnchorEl(null);
+        setMenuPos(null);
     };
 
     const menuItems: Item[] = [
@@ -213,7 +240,7 @@ export function MatchNodeWidget(props: MatchNodeWidgetProps) {
                 </NodeStyles.Header>
                 {hasError && (
                     <NodeStyles.ErrorIcon>
-                        <DiagnosticsPopUp node={model.node} />
+                        <DiagnosticsPopUp node={model.node} engine={engine} />
                     </NodeStyles.ErrorIcon>
                 )}
                 <NodeStyles.StyledButton
@@ -224,28 +251,33 @@ export function MatchNodeWidget(props: MatchNodeWidgetProps) {
                 >
                     <MoreVertIcon />
                 </NodeStyles.StyledButton>
-                <Popover
-                    open={isMenuOpen}
-                    anchorEl={anchorEl}
-                    handleClose={handleOnMenuClose}
-                    sx={{
-                        padding: 0,
-                        borderRadius: 0,
-                    }}
-                >
-                    <Menu>
-                        <>
-                            {menuItems.map((item) => (
-                                <MenuItem key={item.id} item={item} />
-                            ))}
-                            <BreakpointMenu
-                                hasBreakpoint={hasBreakpoint}
-                                onAddBreakpoint={onAddBreakpoint}
-                                onRemoveBreakpoint={onRemoveBreakpoint}
-                            />
-                        </>
-                    </Menu>
-                </Popover>
+                {isMenuOpen && menuPos && createPortal(
+                    <div
+                        style={{
+                            position: "fixed",
+                            top: menuPos.top,
+                            left: menuPos.left,
+                            zIndex: 1300,
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                            borderRadius: 0,
+                        }}
+                        onMouseDown={(e) => e.stopPropagation()}
+                    >
+                        <Menu>
+                            <>
+                                {menuItems.map((item) => (
+                                    <MenuItem key={item.id} item={item} />
+                                ))}
+                                <BreakpointMenu
+                                    hasBreakpoint={hasBreakpoint}
+                                    onAddBreakpoint={onAddBreakpoint}
+                                    onRemoveBreakpoint={onRemoveBreakpoint}
+                                />
+                            </>
+                        </Menu>
+                    </div>,
+                    document.body
+                )}
             </NodeStyles.Row>
         </NodeStyles.Node>
     );

@@ -447,7 +447,7 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
                             <NodeStyles.Title>Prompt</NodeStyles.Title>
                         </NodeStyles.Header>
                         <NodeStyles.ActionButtonGroup>
-                            {hasError && <DiagnosticsPopUp node={model.node} />}
+                            {hasError && <DiagnosticsPopUp node={model.node} engine={engine} />}
                         </NodeStyles.ActionButtonGroup>
                     </NodeStyles.Row>
                     {!editable && (

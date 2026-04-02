@@ -17,6 +17,7 @@
  */
 /** @jsxImportSource @emotion/react */
 import React, { ReactNode, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import styled from "@emotion/styled";
 import { DiagramEngine, PortWidget } from "@projectstorm/react-diagrams-core";
 import { AgentCallNodeModel } from "./AgentCallNodeModel";
@@ -45,7 +46,7 @@ import {
     NODE_WIDTH,
     PANEL_BG_COLOR,
 } from "../../../resources/constants";
-import { Button, Icon, Item, Menu, MenuItem, Popover, getAIModuleIcon, DefaultLlmIcon } from "@wso2/ui-toolkit";
+import { Button, Icon, Item, Menu, MenuItem, getAIModuleIcon, DefaultLlmIcon } from "@wso2/ui-toolkit";
 import { MoreVertIcon } from "../../../resources/icons";
 import { AgentData, FlowNode, ToolData } from "../../../utils/types";
 import NodeIcon, { CHART_COLORS, getAIColor, isDarkTheme, ThemeListener } from "../../NodeIcon";
@@ -462,15 +463,68 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     const isSelected = selectedNodeId === model.node.id;
 
     const [isBoxHovered, setIsBoxHovered] = useState(false);
-    const [anchorEl, setAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
-    const [toolAnchorEl, setToolAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
+    const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
+    const [toolMenuPos, setToolMenuPos] = useState<{ top: number; left: number } | null>(null);
     const [selectedTool, setSelectedTool] = useState<ToolData | null>(null);
-    const [memoryMenuAnchorEl, setMemoryMenuAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
+    const [memoryMenuPos, setMemoryMenuPos] = useState<{ top: number; left: number } | null>(null);
     const [menuButtonElement, setMenuButtonElement] = useState<HTMLElement | null>(null);
     const [memoryMenuButtonElement, setMemoryMenuButtonElement] = useState<HTMLElement | null>(null);
-    const isMenuOpen = Boolean(anchorEl);
-    const isToolMenuOpen = Boolean(toolAnchorEl);
-    const isMemoryMenuOpen = Boolean(memoryMenuAnchorEl);
+    const isMenuOpen = menuPos !== null;
+    const isToolMenuOpen = toolMenuPos !== null;
+    const isMemoryMenuOpen = memoryMenuPos !== null;
+
+    const getMenuPos = (el: HTMLElement): { top: number; left: number } => {
+        const rect = el.getBoundingClientRect();
+        return { top: rect.bottom, left: rect.left };
+    };
+
+    useEffect(() => {
+        if (!isMenuOpen || !menuButtonElement) return;
+        const handle = engine.getModel().registerListener({
+            offsetUpdated: () => setMenuPos(getMenuPos(menuButtonElement)),
+            zoomUpdated: () => setMenuPos(getMenuPos(menuButtonElement)),
+        });
+        return () => handle.deregister();
+    }, [isMenuOpen, menuButtonElement]);
+
+    useEffect(() => {
+        if (!isMenuOpen) return;
+        const handleClickOutside = () => setMenuPos(null);
+        const timer = setTimeout(() => document.addEventListener("mousedown", handleClickOutside), 0);
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isMenuOpen]);
+
+    useEffect(() => {
+        if (!isToolMenuOpen) return;
+        const handleClickOutside = () => { setToolMenuPos(null); setSelectedTool(null); };
+        const timer = setTimeout(() => document.addEventListener("mousedown", handleClickOutside), 0);
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isToolMenuOpen]);
+
+    useEffect(() => {
+        if (!isMemoryMenuOpen || !memoryMenuButtonElement) return;
+        const handle = engine.getModel().registerListener({
+            offsetUpdated: () => setMemoryMenuPos(getMenuPos(memoryMenuButtonElement)),
+            zoomUpdated: () => setMemoryMenuPos(getMenuPos(memoryMenuButtonElement)),
+        });
+        return () => handle.deregister();
+    }, [isMemoryMenuOpen, memoryMenuButtonElement]);
+
+    useEffect(() => {
+        if (!isMemoryMenuOpen) return;
+        const handleClickOutside = () => setMemoryMenuPos(null);
+        const timer = setTimeout(() => document.addEventListener("mousedown", handleClickOutside), 0);
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isMemoryMenuOpen]);
     const hasBreakpoint = model.hasBreakpoint();
     const isActiveBreakpoint = model.isActiveBreakpoint();
     const [aiColor, setAiColor] = useState<string>(() => getAIColor());
@@ -499,7 +553,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     const onNodeClick = () => {
         onClick && onClick(model.node);
         onNodeSelect && onNodeSelect(model.node);
-        setAnchorEl(null);
+        setMenuPos(null);
     };
 
     const onModelEditClick = () => {
@@ -507,7 +561,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
             return;
         }
         agentNode?.onModelSelect && agentNode.onModelSelect(model.node);
-        setAnchorEl(null);
+        setMenuPos(null);
     };
 
     const onMemoryManagerClick = () => {
@@ -515,7 +569,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
             return;
         }
         agentNode?.onSelectMemoryManager && agentNode.onSelectMemoryManager(model.node);
-        setMemoryMenuAnchorEl(null);
+        setMemoryMenuPos(null);
     };
 
     const onMemoryManagerDeleteClick = () => {
@@ -523,7 +577,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
             return;
         }
         agentNode?.onDeleteMemoryManager && agentNode.onDeleteMemoryManager(model.node);
-        setMemoryMenuAnchorEl(null);
+        setMemoryMenuPos(null);
     };
 
     const onToolClick = (tool: ToolData) => {
@@ -533,10 +587,10 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
         const toolType = tool.type ?? "";
         if (toolType === "MCP Server") {
             agentNode?.onSelectMcpToolkit && agentNode.onSelectMcpToolkit(tool, model.node);
-            setAnchorEl(null);
+            setMenuPos(null);
         } else {
             agentNode?.onSelectTool && agentNode.onSelectTool(tool, model.node);
-            setAnchorEl(null);
+            setMenuPos(null);
         }
     };
 
@@ -545,33 +599,35 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
             return;
         }
         agentNode?.onAddTool && agentNode.onAddTool(model.node);
-        setAnchorEl(null);
+        setMenuPos(null);
     };
 
     const onGoToSource = () => {
         goToSource && goToSource(model.node);
-        setAnchorEl(null);
+        setMenuPos(null);
     };
 
     const deleteNode = () => {
         onDeleteNode && onDeleteNode(model.node);
-        setAnchorEl(null);
+        setMenuPos(null);
     };
 
     const handleOnMenuClick = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
         if (readOnly) {
             return;
         }
-        setAnchorEl(event.currentTarget);
+        const target = menuButtonElement || (event.currentTarget as HTMLElement);
+        setMenuPos(getMenuPos(target));
     };
 
     const handleOnContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
         event.preventDefault();
-        setAnchorEl(menuButtonElement || event.currentTarget);
+        const target = menuButtonElement || event.currentTarget;
+        setMenuPos(getMenuPos(target as HTMLElement));
     };
 
     const handleOnMenuClose = () => {
-        setAnchorEl(null);
+        setMenuPos(null);
         setIsBoxHovered(false);
     };
 
@@ -580,12 +636,12 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
             return;
         }
         event.stopPropagation();
-        setToolAnchorEl(event.currentTarget);
+        setToolMenuPos(getMenuPos(event.currentTarget as HTMLElement));
         setSelectedTool(tool);
     };
 
     const handleToolMenuClose = () => {
-        setToolAnchorEl(null);
+        setToolMenuPos(null);
         setSelectedTool(null);
     };
 
@@ -604,12 +660,12 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
 
     const onAddBreakpoint = () => {
         addBreakpoint && addBreakpoint(model.node);
-        setAnchorEl(null);
+        setMenuPos(null);
     };
 
     const onRemoveBreakpoint = () => {
         removeBreakpoint && removeBreakpoint(model.node);
-        setAnchorEl(null);
+        setMenuPos(null);
     };
 
     const handleOnMemoryMenuClick = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
@@ -617,17 +673,18 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
             return;
         }
         event.stopPropagation();
-        setMemoryMenuAnchorEl(event.currentTarget);
+        setMemoryMenuPos(getMenuPos(event.currentTarget as HTMLElement));
     };
 
     const handleMemoryContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
         event.preventDefault();
         event.stopPropagation();
-        setMemoryMenuAnchorEl(memoryMenuButtonElement || event.currentTarget);
+        const target = memoryMenuButtonElement || event.currentTarget;
+        setMemoryMenuPos(getMenuPos(target as HTMLElement));
     };
 
     const handleMemoryMenuClose = () => {
-        setMemoryMenuAnchorEl(null);
+        setMemoryMenuPos(null);
     };
 
     const handleThemeChange = () => {
@@ -786,7 +843,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                                 </NodeStyles.Description>
                             </NodeStyles.Header>
                             <NodeStyles.ActionButtonGroup>
-                                {hasError && <DiagnosticsPopUp node={model.node} />}
+                                {hasError && <DiagnosticsPopUp node={model.node} engine={engine} />}
                                 <NodeStyles.MenuButton
                                     ref={setMenuButtonElement}
                                     buttonSx={readOnly ? { cursor: "not-allowed" } : {}}
@@ -797,28 +854,33 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                                 </NodeStyles.MenuButton>
                             </NodeStyles.ActionButtonGroup>
                         </NodeStyles.Row>
-                        <Popover
-                            open={isMenuOpen}
-                            anchorEl={anchorEl}
-                            handleClose={handleOnMenuClose}
-                            sx={{
-                                padding: 0,
-                                borderRadius: 0,
-                            }}
-                        >
-                            <Menu>
-                                <>
-                                    {menuItems.map((item) => (
-                                        <MenuItem key={item.id} item={item} />
-                                    ))}
-                                    <BreakpointMenu
-                                        hasBreakpoint={hasBreakpoint}
-                                        onAddBreakpoint={onAddBreakpoint}
-                                        onRemoveBreakpoint={onRemoveBreakpoint}
-                                    />
-                                </>
-                            </Menu>
-                        </Popover>
+                        {isMenuOpen && menuPos && createPortal(
+                            <div
+                                style={{
+                                    position: "fixed",
+                                    top: menuPos.top,
+                                    left: menuPos.left,
+                                    zIndex: 1300,
+                                    boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                                    borderRadius: 0,
+                                }}
+                                onMouseDown={(e) => e.stopPropagation()}
+                            >
+                                <Menu>
+                                    <>
+                                        {menuItems.map((item) => (
+                                            <MenuItem key={item.id} item={item} />
+                                        ))}
+                                        <BreakpointMenu
+                                            hasBreakpoint={hasBreakpoint}
+                                            onAddBreakpoint={onAddBreakpoint}
+                                            onRemoveBreakpoint={onRemoveBreakpoint}
+                                        />
+                                    </>
+                                </Menu>
+                            </div>,
+                            document.body
+                        )}
                     </NodeStyles.Row>
 
                     <NodeStyles.MemoryContainer>
@@ -854,23 +916,28 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                                 </NodeStyles.MemoryButton>
                             )}
                         </NodeStyles.Row>
-                        <Popover
-                            open={isMemoryMenuOpen}
-                            anchorEl={memoryMenuAnchorEl}
-                            handleClose={handleMemoryMenuClose}
-                            sx={{
-                                padding: 0,
-                                borderRadius: 0,
-                            }}
-                        >
-                            <Menu>
-                                <>
-                                    {memoryMenuItems.map((item) => (
-                                        <MenuItem key={item.id} item={item} />
-                                    ))}
-                                </>
-                            </Menu>
-                        </Popover>
+                        {isMemoryMenuOpen && memoryMenuPos && createPortal(
+                            <div
+                                style={{
+                                    position: "fixed",
+                                    top: memoryMenuPos.top,
+                                    left: memoryMenuPos.left,
+                                    zIndex: 1300,
+                                    boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                                    borderRadius: 0,
+                                }}
+                                onMouseDown={(e) => e.stopPropagation()}
+                            >
+                                <Menu>
+                                    <>
+                                        {memoryMenuItems.map((item) => (
+                                            <MenuItem key={item.id} item={item} />
+                                        ))}
+                                    </>
+                                </Menu>
+                            </div>,
+                            document.body
+                        )}
                     </NodeStyles.MemoryContainer>
 
                     {nodeMetadata?.agent?.role ? (
@@ -1226,21 +1293,26 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                     );
                 })}
 
-                {/* Tool Menu Popover */}
-                <Popover
-                    open={isToolMenuOpen}
-                    anchorEl={toolAnchorEl}
-                    handleClose={handleToolMenuClose}
-                    sx={{
-                        padding: 0,
-                        borderRadius: 0,
-                    }}
-                >
-                    <Menu>
-                        {selectedTool &&
-                            toolMenuItems(selectedTool).map((item) => <MenuItem key={item.id} item={item} />)}
-                    </Menu>
-                </Popover>
+                {/* Tool Menu Portal */}
+                {isToolMenuOpen && toolMenuPos && createPortal(
+                    <div
+                        style={{
+                            position: "fixed",
+                            top: toolMenuPos.top,
+                            left: toolMenuPos.left,
+                            zIndex: 1300,
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                            borderRadius: 0,
+                        }}
+                        onMouseDown={(e) => e.stopPropagation()}
+                    >
+                        <Menu>
+                            {selectedTool &&
+                                toolMenuItems(selectedTool).map((item) => <MenuItem key={item.id} item={item} />)}
+                        </Menu>
+                    </div>,
+                    document.body
+                )}
 
                 {/* Add "Add new tool" button below all tools */}
                 <g

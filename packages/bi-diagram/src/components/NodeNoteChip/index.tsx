@@ -16,9 +16,11 @@
  * under the License.
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import styled from "@emotion/styled";
-import { Button, Item, Menu, MenuItem, Popover } from "@wso2/ui-toolkit";
+import { Button, Item, Menu, MenuItem } from "@wso2/ui-toolkit";
+import { DiagramEngine } from "@projectstorm/react-diagrams-core";
 import { FlowNode } from "../../utils/types";
 import { useDiagramContext } from "../DiagramContext";
 import { MoreVertIcon } from "../../resources";
@@ -81,14 +83,68 @@ const MenuButton = styled(Button)`
 
 interface NodeNoteChipProps {
     commentNode: FlowNode;
+    engine?: DiagramEngine;
     onOpen?: () => void;
     onClose?: () => void;
 }
 
-export function NodeNoteChip({ commentNode, onOpen, onClose }: NodeNoteChipProps) {
+export function NodeNoteChip({ commentNode, engine, onOpen, onClose }: NodeNoteChipProps) {
     const { onNodeSelect, onDeleteNode, goToSource, readOnly } = useDiagramContext();
-    const [popoverAnchor, setPopoverAnchor] = useState<HTMLElement>(null);
-    const [menuAnchor, setMenuAnchor] = useState<HTMLElement | SVGSVGElement>(null);
+
+    const [chipButtonElement, setChipButtonElement] = useState<HTMLButtonElement | null>(null);
+    const [notePos, setNotePos] = useState<{ top: number; left: number } | null>(null);
+    const isNoteOpen = notePos !== null;
+
+    const [menuButtonElement, setMenuButtonElement] = useState<HTMLElement | null>(null);
+    const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
+    const isMenuOpen = menuPos !== null;
+
+    const getPos = (el: HTMLElement): { top: number; left: number } => {
+        const rect = el.getBoundingClientRect();
+        return { top: rect.bottom, left: rect.left };
+    };
+
+    // Re-anchor both popups whenever the canvas is panned or zoomed
+    useEffect(() => {
+        if (!isNoteOpen || !chipButtonElement || !engine) return;
+        const handle = engine.getModel().registerListener({
+            offsetUpdated: () => {
+                setNotePos(getPos(chipButtonElement));
+                if (menuButtonElement) setMenuPos(getPos(menuButtonElement));
+            },
+            zoomUpdated: () => {
+                setNotePos(getPos(chipButtonElement));
+                if (menuButtonElement) setMenuPos(getPos(menuButtonElement));
+            },
+        });
+        return () => handle.deregister();
+    }, [isNoteOpen, chipButtonElement, engine, menuButtonElement]);
+
+    // Close note popup on click-outside
+    useEffect(() => {
+        if (!isNoteOpen) return;
+        const handleClickOutside = () => {
+            setNotePos(null);
+            setMenuPos(null);
+            onClose?.();
+        };
+        const timer = setTimeout(() => document.addEventListener("mousedown", handleClickOutside), 0);
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isNoteOpen]);
+
+    // Close menu popup on click-outside (separate from note)
+    useEffect(() => {
+        if (!isMenuOpen) return;
+        const handleClickOutside = () => setMenuPos(null);
+        const timer = setTimeout(() => document.addEventListener("mousedown", handleClickOutside), 0);
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isMenuOpen]);
 
     const commentText =
         commentNode.metadata?.description ||
@@ -97,40 +153,45 @@ export function NodeNoteChip({ commentNode, onOpen, onClose }: NodeNoteChipProps
 
     const handleChipClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
-        setPopoverAnchor(e.currentTarget);
+        const el = e.currentTarget;
+        setChipButtonElement(el);
+        setNotePos(getPos(el));
         onOpen?.();
     };
 
     const handlePopoverClose = () => {
-        setPopoverAnchor(null);
+        setNotePos(null);
+        setMenuPos(null);
         onClose?.();
     };
 
     const handleMenuOpen = (e: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
         e.stopPropagation();
-        setMenuAnchor(e.currentTarget);
+        const el = e.currentTarget as HTMLElement;
+        setMenuButtonElement(el);
+        setMenuPos(getPos(el));
     };
 
     const handleMenuClose = () => {
-        setMenuAnchor(null);
+        setMenuPos(null);
     };
 
     const handleEdit = () => {
         onNodeSelect && onNodeSelect(commentNode);
-        setMenuAnchor(null);
-        setPopoverAnchor(null);
+        setMenuPos(null);
+        setNotePos(null);
     };
 
     const handleGoToSource = () => {
         goToSource && goToSource(commentNode);
-        setMenuAnchor(null);
-        setPopoverAnchor(null);
+        setMenuPos(null);
+        setNotePos(null);
     };
 
     const handleDelete = () => {
         onDeleteNode && onDeleteNode(commentNode);
-        setMenuAnchor(null);
-        setPopoverAnchor(null);
+        setMenuPos(null);
+        setNotePos(null);
     };
 
     const menuItems: Item[] = [
@@ -149,35 +210,52 @@ export function NodeNoteChip({ commentNode, onOpen, onClose }: NodeNoteChipProps
             </ChipButton>
 
             {/* Note content popup */}
-            <Popover
-                open={Boolean(popoverAnchor)}
-                anchorEl={popoverAnchor}
-                handleClose={handlePopoverClose}
-                sx={{ padding: 0, borderRadius: "6px" }}
-            >
-                <NotePopoverContent>
-                    <NoteText>{commentText || "..."}</NoteText>
-                    {!readOnly && (
-                        <>
+            {isNoteOpen && notePos && createPortal(
+                <div
+                    style={{
+                        position: "fixed",
+                        top: notePos.top,
+                        left: notePos.left,
+                        zIndex: 1300,
+                        borderRadius: "6px",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                        backgroundColor: "var(--vscode-editorWidget-background, #1e1e1e)",
+                    }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                >
+                    <NotePopoverContent>
+                        <NoteText>{commentText || "..."}</NoteText>
+                        {!readOnly && (
                             <MenuButton appearance="icon" onClick={handleMenuOpen}>
                                 <MoreVertIcon />
                             </MenuButton>
-                            <Popover
-                                open={Boolean(menuAnchor)}
-                                anchorEl={menuAnchor}
-                                handleClose={handleMenuClose}
-                                sx={{ padding: 0, borderRadius: 0 }}
-                            >
-                                <Menu>
-                                    {menuItems.map((item) => (
-                                        <MenuItem key={item.id} item={item} />
-                                    ))}
-                                </Menu>
-                            </Popover>
-                        </>
-                    )}
-                </NotePopoverContent>
-            </Popover>
+                        )}
+                    </NotePopoverContent>
+                </div>,
+                document.body
+            )}
+
+            {/* Note actions menu */}
+            {isMenuOpen && menuPos && createPortal(
+                <div
+                    style={{
+                        position: "fixed",
+                        top: menuPos.top,
+                        left: menuPos.left,
+                        zIndex: 1301,
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                        borderRadius: 0,
+                    }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                >
+                    <Menu>
+                        {menuItems.map((item) => (
+                            <MenuItem key={item.id} item={item} />
+                        ))}
+                    </Menu>
+                </div>,
+                document.body
+            )}
         </>
     );
 }
