@@ -556,6 +556,9 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                             setValue(field.key, newType);
                             getVisualiableFields();
                         }
+                        else if (newType === undefined) {
+                             defaultValues[field.key] = "";
+                        }
                     }
 
                     // Handle choice fields and their properties
