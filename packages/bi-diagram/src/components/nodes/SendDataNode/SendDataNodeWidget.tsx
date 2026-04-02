@@ -472,7 +472,11 @@ export function SendDataNodeWidget(props: SendDataNodeWidgetProps) {
                     onClick={onWorkflowClick}
                     onMouseEnter={() => !readOnly && setIsWorkflowHovered(true)}
                     onMouseLeave={() => setIsWorkflowHovered(false)}
-                    style={{ cursor: readOnly || !canViewWorkflow ? "default" : "pointer" }}
+                    style={{
+                        cursor: readOnly || !canViewWorkflow ? "default" : "pointer",
+                        filter: isWorkflowHovered && !disabled ? `drop-shadow(0 0 4px ${NODE_BORDER_SELECTED_COLOR})` : 'none',
+                        transition: 'filter 0.1s ease',
+                    }}
                 />
                 <foreignObject
                     x={boxX}

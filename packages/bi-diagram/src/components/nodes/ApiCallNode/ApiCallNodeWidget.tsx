@@ -469,6 +469,10 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
                     strokeWidth={1.5}
                     strokeDasharray={disabled ? "5 5" : "none"}
                     opacity={disabled ? 0.7 : 1}
+                    style={{
+                        filter: isCircleHovered && !disabled ? `drop-shadow(0 0 4px ${NODE_BORDER_SELECTED_COLOR})` : 'none',
+                        transition: 'filter 0.1s ease',
+                    }}
                 />
                 <text
                     x="80"
