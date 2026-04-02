@@ -501,6 +501,7 @@ let _wizardSourcePath: string | undefined;
  * root so the wizard enhancement can be kicked off from the webview.
  */
 export function setWizardProjectRoot(projectRoot: string, sourcePath?: string): void {
+    console.log('[orchestrator] setWizardProjectRoot called. projectRoot:', projectRoot, 'sourcePath:', sourcePath);
     _wizardProjectRoot = projectRoot;
     _wizardSourcePath = sourcePath;
 }
@@ -519,15 +520,15 @@ async function ensureAuthenticated(): Promise<boolean> {
     const AUTH_TIMEOUT_MS = 120_000; // 2 minutes
 
     const state = AIStateMachine.state();
+    console.log('[orchestrator] ensureAuthenticated called. AIStateMachine state:', state);
     if (state === "Authenticated") {
         return true;
     }
 
     // Tell the wizard UI we're signing in
-    sendVisualizerMigrationNotification({
-        type: "content_block",
-        content: "Signing in to BI Copilot...\n\n",
-    });
+    const signingInMsg = { type: "content_block" as const, content: "Signing in to BI Copilot...\n\n" };
+    sendVisualizerMigrationNotification(signingInMsg);
+    _wizardChatEmitter.fire(signingInMsg);
 
     // If state is Initialize, wait for it to resolve first
     if (state === "Initialize") {
@@ -587,8 +588,10 @@ async function ensureAuthenticated(): Promise<boolean> {
 }
 
 export async function runWizardMigrationEnhancement(): Promise<void> {
+    console.log('[orchestrator] runWizardMigrationEnhancement called. _wizardProjectRoot:', _wizardProjectRoot);
     const projectRoot = _wizardProjectRoot;
     if (!projectRoot) {
+        console.error('[orchestrator] runWizardMigrationEnhancement: NO project root set!');
         window.showErrorMessage("Migration enhancement: no project root set for wizard enhancement.");
         return;
     }
@@ -722,7 +725,9 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
                 });
             }
         } else {
+            const errorMessage = error instanceof Error ? error.message : String(error);
             console.error("[MigrationEnhancement] Wizard migration agent error:", error);
+            eventHandler({ type: "error", content: `An error occurred during AI enhancement: ${errorMessage}` });
         }
     } finally {
         _runningFromAIChat = false;
