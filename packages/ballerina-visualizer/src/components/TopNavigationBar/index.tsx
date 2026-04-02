@@ -254,6 +254,8 @@ function getShortNames(name: string) {
             return "Function";
         case MACHINE_VIEW.BIWorkflowForm:
             return "Workflow";
+        case MACHINE_VIEW.BIActivityForm:
+            return "Workflow Activity";
         case MACHINE_VIEW.BINPFunctionForm:
             return "Natural Function";
         case MACHINE_VIEW.BITestFunctionForm:

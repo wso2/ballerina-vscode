@@ -22,7 +22,6 @@ import { ApiCallNodeModel } from "../components/nodes/ApiCallNode";
 import { BaseNodeModel } from "../components/nodes/BaseNode";
 import { ButtonNodeModel } from "../components/nodes/ButtonNode";
 import { CallActivityNodeModel } from "../components/nodes/CallActivityNode";
-import { CommentNodeModel } from "../components/nodes/CommentNode";
 import { DraftNodeModel } from "../components/nodes/DraftNode/DraftNodeModel";
 import { EmptyNodeModel } from "../components/nodes/EmptyNode";
 import { IfNodeModel } from "../components/nodes/IfNode/IfNodeModel";
@@ -56,6 +55,8 @@ export class NodeFactoryVisitor implements BaseVisitor {
     private hasSuggestedNode = false;
     private linkCounter = 0;
     private visibleBtnCounter = 0;
+    private pendingComment: FlowNode | undefined = undefined; // comment node awaiting attachment to next node
+    private nodeComments: Map<string, FlowNode> = new Map(); // maps node id -> preceding comment node
 
     constructor() {
         // console.log(">>> node factory visitor started");
@@ -70,6 +71,11 @@ export class NodeFactoryVisitor implements BaseVisitor {
     }
 
     private updateNodeLinks(node: FlowNode, nodeModel: NodeModel, options?: NodeLinkModelOptions): void {
+        // Associate any preceding comment node with this node
+        if (this.pendingComment) {
+            this.nodeComments.set(node.id, this.pendingComment);
+            this.pendingComment = undefined;
+        }
         if (node.viewState?.startNodeId) {
             // new sub flow start
             const startNode = this.nodes.find((n) => n.getID() === node.viewState.startNodeId);
@@ -714,9 +720,13 @@ export class NodeFactoryVisitor implements BaseVisitor {
 
     beginVisitComment(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
-        const nodeModel = new CommentNodeModel(node);
-        this.nodes.push(nodeModel);
-        this.updateNodeLinks(node, nodeModel);
+        // Store the comment as pending; it will be attached to the next non-comment node
+        // as a note chip rather than rendered as a standalone node in the diagram.
+        this.pendingComment = node;
+    }
+
+    getNodeComments(): Map<string, FlowNode> {
+        return this.nodeComments;
     }
 
     beginVisitNpFunction(node: FlowNode, parent?: FlowNode): void {

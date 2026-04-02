@@ -16,10 +16,11 @@
  * under the License.
  */
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import styled from "@emotion/styled";
 import { DiagramEngine, PortWidget } from "@projectstorm/react-diagrams-core";
-import { Button, Icon, Item, Menu, MenuItem, Popover, ThemeColors, Tooltip } from "@wso2/ui-toolkit";
+import { Button, Icon, Item, Menu, MenuItem, Tooltip } from "@wso2/ui-toolkit";
 import { FlowNode } from "../../../utils/types";
 import { MoreVertIcon } from "../../../resources";
 import { useDiagramContext } from "../../DiagramContext";
@@ -28,6 +29,16 @@ import { DiagnosticsPopUp } from "../../DiagnosticsPopUp";
 import { nodeHasError } from "../../../utils/node";
 import { WaitDataNodeModel } from "./WaitDataNodeModel";
 import {
+    HIGHLIGHT_NODE_BORDER_COLOR,
+    HIGHLIGHT_NODE_BORDER_WIDTH,
+    NODE_BG_BREAKPOINT_COLOR,
+    NODE_BG_COLOR,
+    NODE_BG_HOVER_COLOR,
+    NODE_HOVER_GLOW,
+    NODE_BORDER_COLOR,
+    NODE_BORDER_ERROR_COLOR,
+    NODE_BORDER_SELECTED_COLOR,
+    NODE_TEXT_COLOR,
     WAIT_DATA_ARROW_WIDTH,
     WAIT_DATA_CIRCLE_SIZE,
     WAIT_DATA_DETAILS_GAP,
@@ -50,7 +61,7 @@ export namespace NodeStyles {
         display: flex;
         flex-direction: row;
         align-items: center;
-        color: ${ThemeColors.ON_SURFACE};
+        color: ${NODE_TEXT_COLOR};
         cursor: ${(props: { readOnly: boolean }) => (props.readOnly ? "default" : "pointer")};
     `;
 
@@ -80,23 +91,26 @@ export namespace NodeStyles {
         border: 2px solid
             ${(props: NodeStyleProp) =>
                 props.hasError
-                    ? ThemeColors.ERROR
+                    ? NODE_BORDER_ERROR_COLOR
                     : props.isSelected && !props.readOnly
-                    ? ThemeColors.SECONDARY
+                    ? NODE_BORDER_SELECTED_COLOR
                     : props.hovered && !props.readOnly
-                    ? ThemeColors.SECONDARY
-                    : ThemeColors.OUTLINE_VARIANT};
+                    ? NODE_BORDER_SELECTED_COLOR
+                    : HIGHLIGHT_NODE_BORDER_COLOR};
+        border-width: ${HIGHLIGHT_NODE_BORDER_WIDTH}px;
         background-color: ${(props: NodeStyleProp) =>
-            props.isActiveBreakpoint ? ThemeColors.DEBUGGER_BREAKPOINT_BACKGROUND : ThemeColors.SURFACE_DIM};
+            props.isActiveBreakpoint ? NODE_BG_BREAKPOINT_COLOR : props.hovered && !props.readOnly ? NODE_BG_HOVER_COLOR : NODE_BG_COLOR};
+        box-shadow: ${(props: NodeStyleProp) => props.hovered && !props.readOnly ? NODE_HOVER_GLOW : 'none'};
+        transition: box-shadow 0.1s ease, background-color 0.1s ease, border-color 0.1s ease;
     `;
 
     export const Details = styled.div`
         display: flex;
         flex-direction: row;
         align-items: center;
-        justify-content: space-between;
+        justify-content: flex-start;
         gap: 8px;
-        width: ${WAIT_DATA_DETAILS_WIDTH}px;
+        max-width: ${WAIT_DATA_DETAILS_WIDTH}px;
         height: ${WAIT_DATA_CIRCLE_SIZE}px;
         margin-left: ${WAIT_DATA_DETAILS_GAP}px;
         min-width: 0;
@@ -105,6 +119,7 @@ export namespace NodeStyles {
     export const TextGroup = styled.div`
         min-width: 0;
         flex: 1;
+        max-width: 140px;
     `;
 
     export const Title = styled.div`
@@ -145,25 +160,97 @@ interface WaitDataNodeWidgetProps {
     onClick?: (node: FlowNode) => void;
 }
 
+function normalizeNodePropertyValue(value?: string): string {
+    if (typeof value !== "string") {
+        return "";
+    }
+
+    return value.trim().replace(/^["']|["']$/g, "");
+}
+
+function getWaitDataInfo(node: FlowNode): { title: string; subtitle: string } {
+    // New format: dataWaits repeatable property
+    const dataWaits = (node.properties as any)?.dataWaits?.value;
+    if (dataWaits && typeof dataWaits === "object") {
+        const entries = Object.values(dataWaits as Record<string, any>);
+        const dataNames = entries
+            .map((entry: any) => normalizeNodePropertyValue(entry?.value?.dataName?.value as string | undefined))
+            .filter(Boolean) as string[];
+        const varNames = entries
+            .map((entry: any) => normalizeNodePropertyValue(entry?.value?.variable?.value as string | undefined))
+            .filter(Boolean) as string[];
+        if (dataNames.length > 0) {
+            return {
+                title: `Wait for ${dataNames.join(" & ")}`,
+                subtitle: varNames.join(", "),
+            };
+        }
+    }
+
+    // Fallback: direct dataName property (old format)
+    const directDataName = normalizeNodePropertyValue((node.properties as any)?.dataName?.value as string | undefined);
+    if (directDataName) {
+        return {
+            title: `Wait for ${directDataName}`,
+            subtitle: normalizeNodePropertyValue((node.properties as any)?.variable?.value as string | undefined),
+        };
+    }
+
+    // Fallback: futures property (older format)
+    const futuresValue = (node.properties as any)?.futures?.value;
+    if (futuresValue && typeof futuresValue === "object") {
+        const firstFuture = Object.values(futuresValue as Record<string, any>).find((f) => f?.value);
+        const futureValue = normalizeNodePropertyValue(firstFuture?.value as string | undefined);
+        if (futureValue) {
+            return {
+                title: `Wait for ${futureValue.split(".").pop()?.trim() ?? futureValue}`,
+                subtitle: "",
+            };
+        }
+    }
+
+    return { title: node.metadata.label || "Wait Data", subtitle: "" };
+}
+
 export function WaitDataNodeWidget(props: WaitDataNodeWidgetProps) {
     const { model, engine, onClick } = props;
     const { onNodeSelect, goToSource, onDeleteNode, removeBreakpoint, addBreakpoint, readOnly, selectedNodeId } =
         useDiagramContext();
 
     const [isHovered, setIsHovered] = useState(false);
-    const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
+    const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
     const [menuButtonElement, setMenuButtonElement] = useState<HTMLElement | null>(null);
-    const isMenuOpen = Boolean(menuAnchorEl);
+    const isMenuOpen = menuPos !== null;
+
+    const getMenuPos = (el: HTMLElement): { top: number; left: number } => {
+        const rect = el.getBoundingClientRect();
+        return { top: rect.bottom, left: rect.left };
+    };
+
+    useEffect(() => {
+        if (!isMenuOpen || !menuButtonElement) return;
+        const handle = engine.getModel().registerListener({
+            offsetUpdated: () => setMenuPos(getMenuPos(menuButtonElement)),
+            zoomUpdated: () => setMenuPos(getMenuPos(menuButtonElement)),
+        });
+        return () => handle.deregister();
+    }, [isMenuOpen, menuButtonElement]);
+
+    useEffect(() => {
+        if (!isMenuOpen) return;
+        const handleClickOutside = () => setMenuPos(null);
+        const timer = setTimeout(() => document.addEventListener("mousedown", handleClickOutside), 0);
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isMenuOpen]);
 
     const isSelected = selectedNodeId === model.node.id;
     const hasBreakpoint = model.hasBreakpoint();
     const isActiveBreakpoint = model.isActiveBreakpoint();
     const hasError = nodeHasError(model.node);
-    const nodeTitle = model.node.metadata.label || "Wait Data";
-    const nodeSubtitle =
-        (model.node.properties?.variable?.value as string) ||
-        (model.node.properties?.type?.value as string) ||
-        "";
+    const { title: nodeTitle, subtitle: nodeSubtitle } = getWaitDataInfo(model.node);
 
     // Compute layout positions for the external arrow SVG
     const circleRadius = WAIT_DATA_CIRCLE_SIZE / 2;
@@ -172,12 +259,12 @@ export function WaitDataNodeWidget(props: WaitDataNodeWidgetProps) {
     const svgMidY = svgHeight / 2;
     const dotCx = EXTERNAL_DOT_RADIUS + EXTERNAL_DOT_STROKE;
     const lineX1 = dotCx + EXTERNAL_DOT_RADIUS + 4;
-    const arrowColor = isHovered && !readOnly ? ThemeColors.SECONDARY : ThemeColors.ON_SURFACE;
+    const arrowColor = isHovered && !readOnly ? NODE_BORDER_SELECTED_COLOR : NODE_TEXT_COLOR;
 
     const selectNode = () => {
         onClick && onClick(model.node);
         onNodeSelect && onNodeSelect(model.node);
-        setMenuAnchorEl(null);
+        setMenuPos(null);
     };
 
     const handleOnClick = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -193,17 +280,17 @@ export function WaitDataNodeWidget(props: WaitDataNodeWidgetProps) {
 
     const deleteNode = () => {
         onDeleteNode && onDeleteNode(model.node);
-        setMenuAnchorEl(null);
+        setMenuPos(null);
     };
 
     const onAddBreakpoint = () => {
         addBreakpoint && addBreakpoint(model.node);
-        setMenuAnchorEl(null);
+        setMenuPos(null);
     };
 
     const onRemoveBreakpoint = () => {
         removeBreakpoint && removeBreakpoint(model.node);
-        setMenuAnchorEl(null);
+        setMenuPos(null);
     };
 
     const handleOnMenuClick = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
@@ -211,7 +298,8 @@ export function WaitDataNodeWidget(props: WaitDataNodeWidgetProps) {
         if (readOnly) {
             return;
         }
-        setMenuAnchorEl(event.currentTarget);
+        const target = menuButtonElement || (event.currentTarget as HTMLElement);
+        setMenuPos(getMenuPos(target));
     };
 
     const handleOnContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -219,11 +307,12 @@ export function WaitDataNodeWidget(props: WaitDataNodeWidgetProps) {
         if (readOnly) {
             return;
         }
-        setMenuAnchorEl(menuButtonElement || event.currentTarget);
+        const target = menuButtonElement || event.currentTarget;
+        setMenuPos(getMenuPos(target as HTMLElement));
     };
 
     const handleOnMenuClose = () => {
-        setMenuAnchorEl(null);
+        setMenuPos(null);
         setIsHovered(false);
     };
 
@@ -238,7 +327,7 @@ export function WaitDataNodeWidget(props: WaitDataNodeWidgetProps) {
             label: "Source",
             onClick: () => {
                 goToSource && goToSource(model.node);
-                setMenuAnchorEl(null);
+                setMenuPos(null);
             },
         },
         { id: "delete", label: "Delete", onClick: () => deleteNode() },
@@ -316,7 +405,7 @@ export function WaitDataNodeWidget(props: WaitDataNodeWidgetProps) {
                         isActiveBreakpoint={isActiveBreakpoint}
                         onClick={handleOnClick}
                     >
-                        <Icon name="bi-pause" sx={{ fontSize: 32, width: 32, height: 32, color: ThemeColors.ON_SURFACE }} />
+                        <Icon name="bi-pause" sx={{ fontSize: 32, width: 32, height: 32, color: NODE_TEXT_COLOR }} />
                     </NodeStyles.Circle>
                 </Tooltip>
                 <NodeStyles.BottomPortWidget port={model.getPort("out")!} engine={engine} />
@@ -329,7 +418,7 @@ export function WaitDataNodeWidget(props: WaitDataNodeWidgetProps) {
                     <NodeStyles.Subtitle>{nodeSubtitle}</NodeStyles.Subtitle>
                 </NodeStyles.TextGroup>
                 <NodeStyles.ActionButtonGroup>
-                    {hasError && <DiagnosticsPopUp node={model.node} />}
+                    {hasError && <DiagnosticsPopUp node={model.node} engine={engine} />}
                     <NodeStyles.MenuButton
                         ref={setMenuButtonElement}
                         buttonSx={readOnly ? { cursor: "not-allowed" } : {}}
@@ -342,28 +431,33 @@ export function WaitDataNodeWidget(props: WaitDataNodeWidgetProps) {
             </NodeStyles.Details>
 
             {/* Context menu */}
-            <Popover
-                open={isMenuOpen}
-                anchorEl={menuAnchorEl}
-                handleClose={handleOnMenuClose}
-                sx={{
-                    padding: 0,
-                    borderRadius: 0,
-                }}
-            >
-                <Menu>
-                    <>
-                        {menuItems.map((item) => (
-                            <MenuItem key={item.id} item={item} />
-                        ))}
-                        <BreakpointMenu
-                            hasBreakpoint={hasBreakpoint}
-                            onAddBreakpoint={onAddBreakpoint}
-                            onRemoveBreakpoint={onRemoveBreakpoint}
-                        />
-                    </>
-                </Menu>
-            </Popover>
+            {isMenuOpen && menuPos && createPortal(
+                <div
+                    style={{
+                        position: "fixed",
+                        top: menuPos.top,
+                        left: menuPos.left,
+                        zIndex: 1300,
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                        borderRadius: 0,
+                    }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                >
+                    <Menu>
+                        <>
+                            {menuItems.map((item) => (
+                                <MenuItem key={item.id} item={item} />
+                            ))}
+                            <BreakpointMenu
+                                hasBreakpoint={hasBreakpoint}
+                                onAddBreakpoint={onAddBreakpoint}
+                                onRemoveBreakpoint={onRemoveBreakpoint}
+                            />
+                        </>
+                    </Menu>
+                </div>,
+                document.body
+            )}
         </NodeStyles.Node>
     );
 }

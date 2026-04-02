@@ -127,6 +127,7 @@ export function Diagram(props: DiagramProps) {
     } = props;
 
     const [showErrorFlow, setShowErrorFlow] = useState(false);
+    const [nodeComments, setNodeComments] = useState<Map<string, FlowNode>>(new Map());
     const [diagramEngine] = useState<DiagramEngine>(generateEngine());
     const [diagramModel, setDiagramModel] = useState<DiagramModel | null>(null);
     const [showComponentPanel, setShowComponentPanel] = useState(false);
@@ -134,7 +135,8 @@ export function Diagram(props: DiagramProps) {
 
     useEffect(() => {
         if (diagramEngine) {
-            const { nodes, links } = getDiagramData();
+            const { nodes, links, comments } = getDiagramData();
+            setNodeComments(comments);
             drawDiagram(nodes, links);
         }
     }, [model, showErrorFlow, expandedErrorHandler]);
@@ -175,10 +177,11 @@ export function Diagram(props: DiagramProps) {
 
         const nodes = nodeVisitor.getNodes();
         const links = nodeVisitor.getLinks();
+        const comments = nodeVisitor.getNodeComments();
 
         const addTargetVisitor = new LinkTargetVisitor(model, nodes);
         traverseFlow(flowModel, addTargetVisitor);
-        return { nodes, links };
+        return { nodes, links, comments };
     };
 
     // Helper function to find error handlers with active breakpoints in onFailure branches
@@ -329,6 +332,7 @@ export function Diagram(props: DiagramProps) {
         project: project,
         readOnly: onAddNode === undefined || onDeleteNode === undefined || onNodeSelect === undefined || readOnly,
         isUserAuthenticated: isUserAuthenticated,
+        nodeComments: nodeComments,
         expressionContext: expressionContext || {
             completions: [],
             triggerCharacters: [],

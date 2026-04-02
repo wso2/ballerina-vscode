@@ -18,6 +18,8 @@
 
 import { Branch, FlowNode } from "./types";
 
+const WORKFLOW_NODE_KINDS = new Set(["WORKFLOW_RUN", "ACTIVITY_CALL", "SEND_DATA", "WAIT_DATA"]);
+
 export function getNodeIdFromModel(node: FlowNode, prefix?: string) {
     if (!node) {
         return null;
@@ -103,10 +105,32 @@ export function nodeHasError(node: FlowNode) {
     return false;
 }
 
+export function isWorkflowNode(nodeOrKind?: FlowNode | string) {
+    if (!nodeOrKind) {
+        return false;
+    }
+
+    const nodeKind = typeof nodeOrKind === "string" ? nodeOrKind : nodeOrKind.codedata?.node;
+    return typeof nodeKind === "string" && WORKFLOW_NODE_KINDS.has(nodeKind);
+}
+
 export function getNodeTitle(node: FlowNode) {
     const getPropertyString = (key: string): string | undefined => {
         const value = (node.properties as any)?.[key]?.value;
         return typeof value === "string" ? value.trim() : undefined;
+    };
+    const getFunctionName = (value?: string): string | undefined => {
+        if (!value) {
+            return undefined;
+        }
+
+        return value
+            .trim()
+            .replace(/^["']|["']$/g, "")
+            .split(":")
+            .pop()
+            ?.split("(")[0]
+            ?.trim();
     };
 
     if (node.codedata?.node === "WAIT") {
@@ -125,6 +149,22 @@ export function getNodeTitle(node: FlowNode) {
             }
         }
         return "wait";
+    }
+
+    if (node.codedata?.node === "ACTIVITY_CALL") {
+        const activityFunction =
+            getFunctionName(getPropertyString("activityFunction")) ||
+            getFunctionName(typeof node.codedata?.symbol === "string" ? node.codedata.symbol : undefined);
+        if (activityFunction) {
+            return activityFunction;
+        }
+    }
+
+    if (node.codedata?.node === "WORKFLOW_RUN") {
+        const processFunction = getFunctionName(getPropertyString("processFunction"));
+        if (processFunction) {
+            return `Run ${processFunction}`;
+        }
     }
 
     const label = node.metadata.label.includes(".") ? node.metadata.label.split(".").pop() : node.metadata.label;

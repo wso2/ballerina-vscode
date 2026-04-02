@@ -22,7 +22,6 @@ import {
     AGENT_NODE_ADD_TOOL_BUTTON_WIDTH,
     AGENT_NODE_TOOL_GAP,
     AGENT_NODE_TOOL_SECTION_GAP,
-    COMMENT_NODE_WIDTH,
     EMPTY_NODE_CONTAINER_WIDTH,
     END_NODE_WIDTH,
     IF_NODE_WIDTH,
@@ -101,6 +100,18 @@ export class SizingVisitor implements BaseVisitor {
         if (node.properties?.variable?.value || node.properties?.type?.value) {
             containerHeight += LABEL_HEIGHT;
         }
+
+        this.setNodeSize(node, containerLeftWidth, containerRightWidth, containerHeight);
+    }
+
+    private createSendDataNode(node: FlowNode): void {
+        const nodeWidth = NODE_WIDTH;
+        const halfNodeWidth = nodeWidth / 2;
+        const containerLeftWidth = halfNodeWidth;
+        const containerRightWidth = halfNodeWidth + NODE_GAP_X + NODE_HEIGHT + LABEL_HEIGHT;
+
+        // Send data nodes always render the right-side workflow square with label-space SVG height.
+        const containerHeight = NODE_HEIGHT + LABEL_HEIGHT;
 
         this.setNodeSize(node, containerLeftWidth, containerRightWidth, containerHeight);
     }
@@ -279,7 +290,7 @@ export class SizingVisitor implements BaseVisitor {
 
     endVisitSendData(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
-        this.createApiCallNode(node);
+        this.createSendDataNode(node);
     }
 
     endVisitAgentCall(node: FlowNode, parent?: FlowNode): void {
@@ -331,9 +342,9 @@ export class SizingVisitor implements BaseVisitor {
 
     endVisitComment(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
-        const width = COMMENT_NODE_WIDTH;
-        const height = NODE_HEIGHT + NODE_GAP_Y;
-        this.setNodeSize(node, 0, width, height);
+        // Comment nodes are not rendered; their content is shown as a note chip on the next node.
+        // Setting size to 0 ensures no layout gap is created.
+        this.setNodeSize(node, 0, 0, 0);
     }
 
     private visitContainerNode(node: FlowNode, topElementWidth: number) {

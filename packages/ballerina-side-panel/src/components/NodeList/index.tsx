@@ -37,7 +37,14 @@ import GroupList from "../GroupList";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { getExpandedCategories, setExpandedCategories, getDefaultExpandedState } from "../../utils/localStorage";
 import { ConnectionListItem } from "@wso2/wso2-platform-core";
-import { shouldShowEmptyCategory, shouldUseConnectionContainer, getCategoryActions, isCategoryFixed } from "./categoryConfig";
+import {
+    CURRENT_INTEGRATION_CATEGORY_TITLE,
+    getCategoryActions,
+    isCategoryFixed,
+    normalizeCategoryTitle,
+    shouldShowEmptyCategory,
+    shouldUseConnectionContainer
+} from "./categoryConfig";
 import { stripHtmlTags } from "../Form/utils";
 
 namespace S {
@@ -535,10 +542,10 @@ export function NodeList(props: NodeListProps) {
                         }
 
                         return (
-                            <Tooltip 
+                            <Tooltip
                                 key={node.id + index}
                                 content={renderTooltipContent(node.description)}
-                                sx={{ 
+                                sx={{
                                     maxWidth: "280px",
                                     whiteSpace: "normal",
                                     wordWrap: "break-word",
@@ -660,19 +667,23 @@ export function NodeList(props: NodeListProps) {
         const content = (
             <>
                 {reorderedGroups.map((group, index) => {
+                    const normalizedGroupTitle = normalizeCategoryTitle(group.title);
+                    const normalizedParentCategoryTitle = parentCategoryTitle
+                        ? normalizeCategoryTitle(parentCategoryTitle)
+                        : undefined;
                     // If subcategory is inside "Current Project" (or legacy "Current Workspace"),
                     // show "Current Integration" actions when the subcategory refers to the current integration.
-                    const categoryActions = (parentCategoryTitle === "Current Project" || parentCategoryTitle === "Current Workspace") ?
-                       ( group.title?.includes("(current)") ? getCategoryActions("Current Integration", title) : getCategoryActions(group.title, title)) 
+                    const categoryActions = (normalizedParentCategoryTitle === CURRENT_INTEGRATION_CATEGORY_TITLE) ?
+                       ( group.title?.includes("(current)") ? getCategoryActions(CURRENT_INTEGRATION_CATEGORY_TITLE, title) : getCategoryActions(normalizedGroupTitle, title)) 
                     : 
-                    getCategoryActions(group.title, title);
-                    const config = categoryConfig[group.title] || { hasBackground: true };
+                    getCategoryActions(normalizedGroupTitle, title);
+                    const config = categoryConfig[normalizedGroupTitle] || { hasBackground: true };
                     const shouldShowSeparator = config.showSeparatorBefore;
 
                     // Hide categories that don't have items, except for special categories that can add items
                     if (!group || !group.items || group.items.length === 0) {
                         // Only show empty categories if they have add functionality
-                        if (!shouldShowEmptyCategory(group.title, isSubCategory) && categoryActions.length === 0) {
+                        if (!shouldShowEmptyCategory(normalizedGroupTitle, isSubCategory) && categoryActions.length === 0) {
                             return null;
                         }
                     }
@@ -680,7 +691,7 @@ export function NodeList(props: NodeListProps) {
                         return null;
                     }
                     // skip current integration category if onAddFunction is not provided and items are empty
-                    if (!onAddFunction && group.title === "Current Integration" && (!group.items || group.items.length === 0)) {
+                    if (!onAddFunction && normalizedGroupTitle === CURRENT_INTEGRATION_CATEGORY_TITLE && (!group.items || group.items.length === 0)) {
                         return null;
                     }
 
@@ -693,7 +704,7 @@ export function NodeList(props: NodeListProps) {
                                 <S.CategoryRow showBorder={false}>
                                     {!isSubCategory ? (
                                         (() => {
-                                            const isFixed = isCategoryFixed(group.title);
+                                            const isFixed = isCategoryFixed(normalizedGroupTitle);
                                             const HeaderComponent = isFixed ? S.CategoryHeaderFixed : S.CategoryHeader;
                                             const headerProps = isFixed ? 
                                                 { fullWidth: config.hasBackground && !isSubCategory } : 
@@ -790,9 +801,9 @@ export function NodeList(props: NodeListProps) {
                                             {group.items &&
                                             group.items.length > 0 &&
                                             // 1. If parent group uses connection container and ALL items don't have id, use getConnectionContainer
-                                            shouldUseConnectionContainer(group.title) &&
+                                            shouldUseConnectionContainer(normalizedGroupTitle) &&
                                             group.items.filter((item) => item != null).every((item) => !("id" in item))
-                                                ? getConnectionContainer(group.items as Category[], group.title === "Agent")
+                                                ? getConnectionContainer(group.items as Category[], normalizedGroupTitle === "Agent")
                                                 : // 2. If ALL items don't have id (all are categories), use getCategoryContainer
                                                 group.items.filter((item) => item != null).every((item) => !("id" in item))
                                                 ? getCategoryContainer(

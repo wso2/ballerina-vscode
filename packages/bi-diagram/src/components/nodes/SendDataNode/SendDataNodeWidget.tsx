@@ -16,27 +16,146 @@
  * under the License.
  */
 
-import React, { ReactNode, useEffect, useState } from "react";
-import { DiagramEngine } from "@projectstorm/react-diagrams-core";
-import { Item, Menu, MenuItem, Popover, ThemeColors } from "@wso2/ui-toolkit";
+import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import styled from "@emotion/styled";
+import { DiagramEngine, PortWidget } from "@projectstorm/react-diagrams-core";
+import { Button, Icon, Item, Menu, MenuItem } from "@wso2/ui-toolkit";
 import { SendDataNodeModel } from "./SendDataNodeModel";
 import { FlowNode } from "../../../utils/types";
 import { MoreVertIcon } from "../../../resources";
 import NodeIcon from "../../NodeIcon";
 import { useDiagramContext } from "../../DiagramContext";
 import { DiagnosticsPopUp } from "../../DiagnosticsPopUp";
-import { getNodeTitle, nodeHasError } from "../../../utils/node";
+import { nodeHasError } from "../../../utils/node";
 import { BreakpointMenu } from "../../BreakNodeMenu/BreakNodeMenu";
-import { NodeStyles } from "../ApiCallNode/ApiCallNodeWidget";
 import {
+    DRAFT_NODE_BORDER_WIDTH,
+    HIGHLIGHT_NODE_BORDER_COLOR,
+    HIGHLIGHT_NODE_BORDER_WIDTH,
     LABEL_HEIGHT,
+    NODE_BG_BREAKPOINT_COLOR,
+    NODE_BG_COLOR,
+    NODE_BG_HOVER_COLOR,
+    NODE_HOVER_GLOW,
+    NODE_BORDER_COLOR,
+    NODE_BORDER_ERROR_COLOR,
+    NODE_BORDER_SELECTED_COLOR,
+    NODE_BORDER_WIDTH,
     NODE_GAP_X,
     NODE_HEIGHT,
+    NODE_PADDING,
+    NODE_TEXT_COLOR,
+    NODE_WIDTH,
 } from "../../../resources/constants";
 
-// External dot dimensions (matching WaitDataNode's input dot)
-const DOT_RADIUS = 5;
-const DOT_STROKE = 2.5;
+const ENDPOINT_BOX_SIZE = 44;
+const ENDPOINT_BOX_RADIUS = 12;
+
+namespace NodeStyles {
+    export const Node = styled.div<{ readOnly: boolean }>`
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        cursor: ${(props: { readOnly: boolean }) => (props.readOnly ? "default" : "pointer")};
+    `;
+
+    export type BoxStyleProp = {
+        disabled: boolean;
+        hovered: boolean;
+        hasError: boolean;
+        readOnly: boolean;
+        isActiveBreakpoint: boolean;
+        isSelected?: boolean;
+    };
+
+    export const Box = styled.div<BoxStyleProp>`
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+        width: ${NODE_WIDTH}px;
+        min-height: ${NODE_HEIGHT}px;
+        padding: 0 ${NODE_PADDING}px;
+        opacity: ${(props: BoxStyleProp) => (props.disabled ? 0.7 : 1)};
+        border: ${(props: BoxStyleProp) =>
+            props.disabled ? DRAFT_NODE_BORDER_WIDTH : HIGHLIGHT_NODE_BORDER_WIDTH}px;
+        border-style: ${(props: BoxStyleProp) => (props.disabled ? "dashed" : "solid")};
+        border-color: ${(props: BoxStyleProp) =>
+            props.hasError
+                ? NODE_BORDER_ERROR_COLOR
+                : props.isSelected && !props.disabled
+                    ? NODE_BORDER_SELECTED_COLOR
+                    : props.hovered && !props.disabled && !props.readOnly
+                        ? NODE_BORDER_SELECTED_COLOR
+                        : HIGHLIGHT_NODE_BORDER_COLOR};
+        border-radius: 10px;
+        background-color: ${(props: BoxStyleProp) =>
+            props.isActiveBreakpoint ? NODE_BG_BREAKPOINT_COLOR : props.hovered && !props.disabled && !props.readOnly ? NODE_BG_HOVER_COLOR : NODE_BG_COLOR};
+        color: ${NODE_TEXT_COLOR};
+        cursor: ${(props: BoxStyleProp) => (props.readOnly ? "default" : "pointer")};
+        box-shadow: ${(props: BoxStyleProp) => props.hovered && !props.disabled && !props.readOnly ? NODE_HOVER_GLOW : 'none'};
+        transition: box-shadow 0.1s ease, background-color 0.1s ease, border-color 0.1s ease;
+    `;
+
+    export const Header = styled.div`
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 2px;
+        flex: 1;
+        min-width: 0;
+        padding: 8px;
+    `;
+
+    export const TopPortWidget = styled(PortWidget)`
+        margin-top: -3px;
+    `;
+
+    export const BottomPortWidget = styled(PortWidget)`
+        margin-bottom: -2px;
+    `;
+
+    export const StyledText = styled.div`
+        font-size: 14px;
+    `;
+
+    export const NodeIconWrapper = styled.div`
+        padding: 4px;
+        svg {
+            fill: ${NODE_TEXT_COLOR};
+        }
+    `;
+
+    export const Title = styled(StyledText)`
+        max-width: ${NODE_WIDTH - 80}px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-family: "GilmerMedium";
+    `;
+
+    export const Row = styled.div`
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    `;
+
+    export const ActionButtonGroup = styled.div`
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 2px;
+    `;
+
+    export const MenuButton = styled(Button)`
+        border-radius: 5px;
+    `;
+}
 
 interface SendDataNodeWidgetProps {
     model: SendDataNodeModel;
@@ -44,25 +163,84 @@ interface SendDataNodeWidgetProps {
     onClick?: (node: FlowNode) => void;
 }
 
+function normalizeNodePropertyValue(value?: string): string {
+    if (typeof value !== "string") {
+        return "";
+    }
+
+    return value.trim().replace(/^["']|["']$/g, "");
+}
+
+function getWorkflowName(value?: string): string {
+    const normalizedValue = normalizeNodePropertyValue(value);
+    if (!normalizedValue) {
+        return "";
+    }
+
+    return normalizedValue.split(":").pop()?.split("(")[0]?.trim() ?? normalizedValue;
+}
+
 export function SendDataNodeWidget(props: SendDataNodeWidgetProps) {
     const { model, engine, onClick } = props;
-    const { onNodeSelect, onConnectionSelect, goToSource, onDeleteNode, removeBreakpoint, addBreakpoint, readOnly, selectedNodeId } =
-        useDiagramContext();
+    const {
+        onNodeSelect,
+        onConnectionSelect,
+        goToSource,
+        onDeleteNode,
+        removeBreakpoint,
+        addBreakpoint,
+        readOnly,
+        selectedNodeId,
+        openView,
+        project,
+    } = useDiagramContext();
 
     const isSelected = selectedNodeId === model.node.id;
 
     const [isBoxHovered, setIsBoxHovered] = useState(false);
-    const [anchorEl, setAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
+    const [isWorkflowHovered, setIsWorkflowHovered] = useState(false);
+    const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
     const [menuButtonElement, setMenuButtonElement] = useState<HTMLElement | null>(null);
-    const isMenuOpen = Boolean(anchorEl);
+    const isMenuOpen = menuPos !== null;
+
+    const getMenuPos = (el: HTMLElement): { top: number; left: number } => {
+        const rect = el.getBoundingClientRect();
+        return { top: rect.bottom, left: rect.left };
+    };
+
+    useEffect(() => {
+        if (!isMenuOpen || !menuButtonElement) return;
+        const handle = engine.getModel().registerListener({
+            offsetUpdated: () => setMenuPos(getMenuPos(menuButtonElement)),
+            zoomUpdated: () => setMenuPos(getMenuPos(menuButtonElement)),
+        });
+        return () => handle.deregister();
+    }, [isMenuOpen, menuButtonElement]);
+
+    useEffect(() => {
+        if (!isMenuOpen) return;
+        const handleClickOutside = () => setMenuPos(null);
+        const timer = setTimeout(() => document.addEventListener("mousedown", handleClickOutside), 0);
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isMenuOpen]);
     const hasBreakpoint = model.hasBreakpoint();
     const isActiveBreakpoint = model.isActiveBreakpoint();
 
+    const dataNameProperty = (model.node.properties as any)?.dataName;
+    const workflowProperty = (model.node.properties as any)?.workflow;
     const connectionProperty = model.node.properties?.connection;
     const processFunctionProperty = (model.node.properties as any)?.processFunction;
     const connectionValue = connectionProperty?.value as string | undefined;
-    const fallbackEndpointValue = processFunctionProperty?.value as string | undefined;
-    const endpointLabel = connectionValue ?? fallbackEndpointValue ?? "";
+    const fallbackWorkflowValue = processFunctionProperty?.value as string | undefined;
+    const dataName = normalizeNodePropertyValue(dataNameProperty?.value as string | undefined);
+    const workflowName = getWorkflowName(
+        (workflowProperty?.value as string | undefined) ?? connectionValue ?? fallbackWorkflowValue
+    );
+    const nodeTitle = dataName ? `Sent to ${dataName}` : "Send Data";
+    const canViewWorkflow = Boolean(workflowName);
 
     useEffect(() => {
         if (model.node.suggested) {
@@ -88,7 +266,7 @@ export function SendDataNodeWidget(props: SendDataNodeWidgetProps) {
     const onNodeClick = () => {
         onClick && onClick(model.node);
         onNodeSelect && onNodeSelect(model.node);
-        setAnchorEl(null);
+        setMenuPos(null);
     };
 
     const onConnectionClick = () => {
@@ -100,44 +278,64 @@ export function SendDataNodeWidget(props: SendDataNodeWidgetProps) {
         } else {
             onNodeClick();
         }
-        setAnchorEl(null);
+        setMenuPos(null);
+    };
+
+    const onWorkflowClick = async (event?: React.MouseEvent<SVGElement | HTMLDivElement>) => {
+        event?.stopPropagation();
+        if (readOnly) {
+            return;
+        }
+
+        if (workflowName) {
+            const functionLocation = await project?.getFunctionLocation?.(workflowName);
+            if (functionLocation) {
+                openView && openView(functionLocation);
+                setMenuPos(null);
+                return;
+            }
+        }
+
+        onConnectionClick();
     };
 
     const onGoToSource = () => {
         goToSource && goToSource(model.node);
-        setAnchorEl(null);
+        setMenuPos(null);
     };
 
     const deleteNode = () => {
         onDeleteNode && onDeleteNode(model.node);
-        setAnchorEl(null);
+        setMenuPos(null);
     };
 
     const handleOnMenuClick = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
         if (readOnly) {
             return;
         }
-        setAnchorEl(event.currentTarget);
+        const target = menuButtonElement || (event.currentTarget as HTMLElement);
+        setMenuPos(getMenuPos(target));
     };
 
     const handleOnContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
         event.preventDefault();
-        setAnchorEl(menuButtonElement || event.currentTarget);
+        const target = menuButtonElement || event.currentTarget;
+        setMenuPos(getMenuPos(target as HTMLElement));
     };
 
     const handleOnMenuClose = () => {
-        setAnchorEl(null);
+        setMenuPos(null);
         setIsBoxHovered(false);
     };
 
     const onAddBreakpoint = () => {
         addBreakpoint && addBreakpoint(model.node);
-        setAnchorEl(null);
+        setMenuPos(null);
     };
 
     const onRemoveBreakpoint = () => {
         removeBreakpoint && removeBreakpoint(model.node);
-        setAnchorEl(null);
+        setMenuPos(null);
     };
 
     const menuItems: Item[] = [
@@ -151,19 +349,23 @@ export function SendDataNodeWidget(props: SendDataNodeWidgetProps) {
     ];
 
     const disabled = model.node.suggested;
-    const nodeTitle = getNodeTitle(model.node);
     const hasError = nodeHasError(model.node);
 
     const arrowColor =
-        disabled || readOnly ? ThemeColors.ON_SURFACE : isBoxHovered ? ThemeColors.SECONDARY : ThemeColors.ON_SURFACE;
+        disabled || readOnly ? NODE_TEXT_COLOR : isBoxHovered ? NODE_BORDER_SELECTED_COLOR : NODE_TEXT_COLOR;
+    const workflowColor =
+        disabled || readOnly
+            ? NODE_BORDER_COLOR
+            : isSelected || isWorkflowHovered
+            ? NODE_BORDER_SELECTED_COLOR
+            : NODE_BORDER_COLOR;
 
-    // SVG layout: dashed arrow → small open circle + label below
-    const SEND_ARROW_LENGTH = 60;
     const svgWidth = NODE_GAP_X + NODE_HEIGHT + LABEL_HEIGHT;
     const svgHeight = NODE_HEIGHT + LABEL_HEIGHT;
-    const dotCx = SEND_ARROW_LENGTH + DOT_RADIUS + DOT_STROKE;
-    const lineY = 25;
-    const lineEndX = dotCx - DOT_RADIUS - 4;
+    const boxX = NODE_GAP_X - 2;
+    const boxY = 2;
+    const boxCenterY = boxY + ENDPOINT_BOX_SIZE / 2;
+    const lineEndX = boxX - 6;
 
     return (
         <NodeStyles.Node readOnly={readOnly}>
@@ -192,18 +394,15 @@ export function SendDataNodeWidget(props: SendDataNodeWidgetProps) {
                 )}
                 <NodeStyles.TopPortWidget port={model.getPort("in")!} engine={engine} />
                 <NodeStyles.Row>
-                    <NodeStyles.Icon onClick={handleOnClick}>
+                    <NodeStyles.NodeIconWrapper onClick={handleOnClick}>
                         <NodeIcon type={model.node.codedata.node} size={24} />
-                    </NodeStyles.Icon>
+                    </NodeStyles.NodeIconWrapper>
                     <NodeStyles.Row>
                         <NodeStyles.Header onClick={handleOnClick}>
                             <NodeStyles.Title>{nodeTitle}</NodeStyles.Title>
-                            <NodeStyles.Description>
-                                {model.node.properties.variable?.value as ReactNode}
-                            </NodeStyles.Description>
                         </NodeStyles.Header>
                         <NodeStyles.ActionButtonGroup>
-                            {hasError && <DiagnosticsPopUp node={model.node} />}
+                            {hasError && <DiagnosticsPopUp node={model.node} engine={engine} />}
                             <NodeStyles.MenuButton
                                 ref={setMenuButtonElement}
                                 buttonSx={readOnly ? { cursor: "not-allowed" } : {}}
@@ -214,28 +413,33 @@ export function SendDataNodeWidget(props: SendDataNodeWidgetProps) {
                             </NodeStyles.MenuButton>
                         </NodeStyles.ActionButtonGroup>
                     </NodeStyles.Row>
-                    <Popover
-                        open={isMenuOpen}
-                        anchorEl={anchorEl}
-                        handleClose={handleOnMenuClose}
-                        sx={{
-                            padding: 0,
-                            borderRadius: 0,
-                        }}
-                    >
-                        <Menu>
-                            <>
-                                {menuItems.map((item) => (
-                                    <MenuItem key={item.id} item={item} />
-                                ))}
-                                <BreakpointMenu
-                                    hasBreakpoint={hasBreakpoint}
-                                    onAddBreakpoint={onAddBreakpoint}
-                                    onRemoveBreakpoint={onRemoveBreakpoint}
-                                />
-                            </>
-                        </Menu>
-                    </Popover>
+                    {isMenuOpen && menuPos && createPortal(
+                        <div
+                            style={{
+                                position: "fixed",
+                                top: menuPos.top,
+                                left: menuPos.left,
+                                zIndex: 1300,
+                                boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                                borderRadius: 0,
+                            }}
+                            onMouseDown={(e) => e.stopPropagation()}
+                        >
+                            <Menu>
+                                <>
+                                    {menuItems.map((item) => (
+                                        <MenuItem key={item.id} item={item} />
+                                    ))}
+                                    <BreakpointMenu
+                                        hasBreakpoint={hasBreakpoint}
+                                        onAddBreakpoint={onAddBreakpoint}
+                                        onRemoveBreakpoint={onRemoveBreakpoint}
+                                    />
+                                </>
+                            </Menu>
+                        </div>,
+                        document.body
+                    )}
                 </NodeStyles.Row>
                 <NodeStyles.BottomPortWidget port={model.getPort("out")!} engine={engine} />
             </NodeStyles.Box>
@@ -247,50 +451,76 @@ export function SendDataNodeWidget(props: SendDataNodeWidgetProps) {
                 onClick={onConnectionClick}
                 style={{ cursor: readOnly ? "default" : "pointer" }}
             >
-                {/* Dashed arrow line */}
                 <line
                     x1="0"
-                    y1={lineY}
+                    y1={boxCenterY}
                     x2={lineEndX}
-                    y2={lineY}
+                    y2={boxCenterY}
                     stroke={arrowColor}
                     strokeWidth={1.5}
                     strokeDasharray="5 3"
-                    markerEnd={`url(#${model.node.id}-send-arrow)`}
                 />
-                {/* Small open circle (matching WaitData input dot) */}
-                <circle
-                    cx={dotCx}
-                    cy={lineY}
-                    r={DOT_RADIUS}
-                    fill="none"
-                    stroke={arrowColor}
-                    strokeWidth={DOT_STROKE}
+                <rect
+                    x={boxX}
+                    y={boxY}
+                    width={ENDPOINT_BOX_SIZE}
+                    height={ENDPOINT_BOX_SIZE}
+                    rx={ENDPOINT_BOX_RADIUS}
+                    fill={NODE_BG_COLOR}
+                    stroke={workflowColor}
+                    strokeWidth={1.8}
+                    onClick={onWorkflowClick}
+                    onMouseEnter={() => !readOnly && setIsWorkflowHovered(true)}
+                    onMouseLeave={() => setIsWorkflowHovered(false)}
+                    style={{
+                        cursor: readOnly || !canViewWorkflow ? "default" : "pointer",
+                        filter: isWorkflowHovered && !disabled ? `drop-shadow(0 0 4px ${NODE_BORDER_SELECTED_COLOR})` : 'none',
+                        transition: 'filter 0.1s ease',
+                    }}
                 />
-                {/* Endpoint label below */}
+                <foreignObject
+                    x={boxX}
+                    y={boxY}
+                    width={ENDPOINT_BOX_SIZE}
+                    height={ENDPOINT_BOX_SIZE}
+                    onClick={onWorkflowClick}
+                    onMouseEnter={() => !readOnly && setIsWorkflowHovered(true)}
+                    onMouseLeave={() => setIsWorkflowHovered(false)}
+                >
+                    <div
+                        style={{
+                            width: `${ENDPOINT_BOX_SIZE}px`,
+                            height: `${ENDPOINT_BOX_SIZE}px`,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: readOnly || !canViewWorkflow ? "default" : "pointer",
+                        }}
+                    >
+                        <Icon
+                            name="bi-workflow"
+                            sx={{
+                                width: 24,
+                                height: 24,
+                                fontSize: 24,
+                            }}
+                        />
+                    </div>
+                </foreignObject>
                 <text
-                    x={dotCx}
+                    x={boxX + ENDPOINT_BOX_SIZE / 2}
                     y={svgHeight - 2}
                     textAnchor="middle"
-                    fill={ThemeColors.ON_SURFACE}
+                    fill={NODE_TEXT_COLOR}
                     fontSize="14px"
                     fontFamily="GilmerRegular"
+                    onClick={onWorkflowClick}
+                    onMouseEnter={() => !readOnly && setIsWorkflowHovered(true)}
+                    onMouseLeave={() => setIsWorkflowHovered(false)}
+                    style={{ cursor: readOnly || !canViewWorkflow ? "default" : "pointer" }}
                 >
-                    {endpointLabel.length > 16 ? `${endpointLabel.slice(0, 16)}...` : endpointLabel}
+                    {workflowName.length > 16 ? `${workflowName.slice(0, 16)}...` : workflowName}
                 </text>
-                <defs>
-                    <marker
-                        id={`${model.node.id}-send-arrow`}
-                        markerWidth="4"
-                        markerHeight="4"
-                        refX="3"
-                        refY="2"
-                        viewBox="0 0 4 4"
-                        orient="auto"
-                    >
-                        <polygon points="0,4 0,0 4,2" fill={arrowColor} />
-                    </marker>
-                </defs>
             </svg>
         </NodeStyles.Node>
     );

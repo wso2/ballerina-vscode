@@ -612,6 +612,16 @@ const MainPanel = () => {
                             />
                         );
                         break;
+                    case MACHINE_VIEW.BIActivityForm:
+                        setViewComponent(
+                            <FunctionForm
+                                projectPath={value.projectPath}
+                                filePath={defaultFunctionsFile}
+                                functionName={value?.identifier}
+                                isActivity={true}
+                            />
+                        );
+                        break;
                     case MACHINE_VIEW.BITestFunctionForm:
                         setViewComponent(
                             <TestFunctionForm

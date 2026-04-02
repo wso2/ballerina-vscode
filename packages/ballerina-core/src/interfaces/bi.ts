@@ -171,7 +171,8 @@ export type FormFieldInputType = "TEXT" |
     "NUMBER" |
     "REPEATABLE_LIST" |
     "CONDITIONAL_FIELDS" |
-    "DOC_TEXT"
+    "DOC_TEXT" |
+    "ADVANCE_PARAM_LIST"
     ;
 
 export interface BaseType {
@@ -331,6 +332,7 @@ export type TargetMetadata = {
 };
 
 export enum DIRECTORY_MAP {
+    ACTIVITY = "ACTIVITY",
     AGENTS = "agents",
     AUTOMATION = "AUTOMATION",
     CONFIGURABLE = "CONFIGURABLE",
@@ -372,6 +374,8 @@ export type ProjectDirectoryMap = {
     [DIRECTORY_MAP.NP_FUNCTION]: ProjectStructureArtifactResponse[];
     [DIRECTORY_MAP.AGENTS]: ProjectStructureArtifactResponse[];
     [DIRECTORY_MAP.LOCAL_CONNECTORS]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.WORKFLOW]?: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.ACTIVITY]?: ProjectStructureArtifactResponse[];
 };
 
 /**

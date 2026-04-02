@@ -184,6 +184,21 @@ const PopupPanel = (props: PopupPanelProps) => {
                         );
                     });
                     break;
+                case MACHINE_VIEW.BIActivityForm:
+                    setIsFullScreen(true);
+                    rpcClient.getVisualizerLocation().then(async (location) => {
+                        const defaultFunctionsFile = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['functions.bal'] })).filePath;
+                        setViewComponent(
+                            <FunctionForm
+                                projectPath={location.projectPath}
+                                filePath={defaultFunctionsFile}
+                                functionName={undefined}
+                                isActivity={true}
+                                isPopup={true}
+                            />
+                        );
+                    });
+                    break;
                 case MACHINE_VIEW.BIDataMapperForm:
                     setIsFullScreen(true);
                     rpcClient.getVisualizerLocation().then(async (location) => {

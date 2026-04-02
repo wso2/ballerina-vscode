@@ -92,6 +92,7 @@ export enum MACHINE_VIEW {
     BIFunctionForm = "Add Function SKIP",
     BIAgentToolForm = "Add Agent Tool SKIP",
     BIWorkflowForm = "Add Workflow SKIP",
+    BIActivityForm = "Add Workflow Activity SKIP",
     BINPFunctionForm = "Add Natural Function SKIP",
     BITestFunctionForm = "Add Test Function SKIP",
     BIAIEvaluationForm = "AI Evaluation SKIP",

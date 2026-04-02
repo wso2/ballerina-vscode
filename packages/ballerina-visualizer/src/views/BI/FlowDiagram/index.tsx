@@ -65,6 +65,7 @@ import {
     enrichCategoryWithDevant,
     convertKnowledgeBaseCategoriesToSidePanelCategories
 } from "../../../utils/bi";
+import { findCurrentIntegrationCategory } from "../../../utils/function-category";
 import { useDraftNodeManager } from "./hooks/useDraftNodeManager";
 import { NodePosition, STNode } from "@wso2/syntax-tree";
 import { View, ProgressIndicator, ThemeColors } from "@wso2/ui-toolkit";
@@ -181,7 +182,12 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const isCreatingNewVectorKnowledgeBase = useRef<boolean>(false);
     const isCreatingNewDataLoader = useRef<boolean>(false);
     const isCreatingNewChunker = useRef<boolean>(false);
+    const isCreatingNewWorkflow = useRef<boolean>(false);
     const isCreatingNewActivity = useRef<boolean>(false);
+
+    const clearWorkflowCreationState = () => {
+        isCreatingNewWorkflow.current = false;
+    };
 
     const { platformExtState, platformRpcClient, onLinkDevantProject, importConnection: importDevantConn } = usePlatformExtContext()
 
@@ -574,9 +580,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     response.categories as Category[],
                     FUNCTION_TYPE.REGULAR
                 );
-                const projectCategory = panelCategories.find((category) => category.title === "Project");
-                if (projectCategory && !projectCategory.items.length) {
-                    projectCategory.description = "No activities defined. Click below to create a new activity.";
+                const currentIntegrationCategory = findCurrentIntegrationCategory(panelCategories);
+                if (currentIntegrationCategory && !currentIntegrationCategory.items.length) {
+                    currentIntegrationCategory.description = "No activities defined. Click below to create a new activity.";
                 }
                 setCategories(panelCategories);
                 setSidePanelView(SidePanelView.ACTIVITY_LIST);
@@ -588,6 +594,41 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             }
         } else {
             console.log(">>> ACTIVITY_LIST not found in navigation stack, closing panel");
+            closeSidePanelAndFetchUpdatedFlowModel();
+        }
+    };
+
+    const handleWorkflowAdded = async () => {
+        // Try to navigate back to WORKFLOW_LIST in the stack
+        const foundInStack = popNavigationStackUntilView(SidePanelView.WORKFLOW_LIST);
+
+        if (foundInStack) {
+            setShowProgressIndicator(true);
+            try {
+                const response = await rpcClient.getBIDiagramRpcClient().search({
+                    position: { startLine: targetRef.current.startLine, endLine: targetRef.current.endLine },
+                    filePath: model?.fileName,
+                    queryMap: undefined,
+                    searchKind: "WORKFLOW_RUN",
+                });
+                const panelCategories = convertFunctionCategoriesToSidePanelCategories(
+                    response.categories as Category[],
+                    FUNCTION_TYPE.REGULAR
+                );
+                const currentIntegrationCategory = findCurrentIntegrationCategory(panelCategories);
+                if (currentIntegrationCategory && !currentIntegrationCategory.items.length) {
+                    currentIntegrationCategory.description = "No workflows defined. Click below to create a new workflow.";
+                }
+                setCategories(panelCategories);
+                setSidePanelView(SidePanelView.WORKFLOW_LIST);
+                setShowSidePanel(true);
+            } catch (error) {
+                console.error(">>> Error refreshing workflows", error);
+            } finally {
+                setShowProgressIndicator(false);
+            }
+        } else {
+            console.log(">>> WORKFLOW_LIST not found in navigation stack, closing panel");
             closeSidePanelAndFetchUpdatedFlowModel();
         }
     };
@@ -860,6 +901,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         isCreatingNewVectorKnowledgeBase.current = false;
         isCreatingNewDataLoader.current = false;
         isCreatingNewChunker.current = false;
+        isCreatingNewWorkflow.current = false;
         setConnectorErrorMessage(undefined);
         isCreatingNewActivity.current = false;
         clearNavigationStack();
@@ -892,7 +934,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const fetchNodesAndAISuggestions = (
         parent: FlowNode | Branch,
         target: LineRange,
-        fetchAiSuggestions = true,
+        fetchAiSuggestions = false, // By default, we fetch available nodes without fetching AI suggestions.
         updateFlowModel = true
     ) => {
         if (!parent || !target) {
@@ -1080,12 +1122,12 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                         [...response.categories] as Category[],
                         functionType
                     );
-                    const projectCategory = currentCategories.find((category) => category.title === "Project");
-                    if (projectCategory && !projectCategory.items.length) {
+                    const currentIntegrationCategory = findCurrentIntegrationCategory(currentCategories);
+                    if (currentIntegrationCategory && !currentIntegrationCategory.items.length) {
                         if (isWorkflowSearch) {
-                            projectCategory.description = "No workflows defined. Click below to create a new workflow.";
+                            currentIntegrationCategory.description = "No workflows defined. Click below to create a new workflow.";
                         } else if (searchKind === "ACTIVITY_CALL") {
-                            projectCategory.description = "No activities defined. Click below to create a new activity.";
+                            currentIntegrationCategory.description = "No activities defined. Click below to create a new activity.";
                         }
                     }
                     setCategories(currentCategories);
@@ -1313,6 +1355,11 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             await handleChunkerAdded();
             return;
         }
+        if (isCreatingNewWorkflow.current) {
+            clearWorkflowCreationState();
+            await handleWorkflowAdded();
+            return;
+        }
         if (isCreatingNewActivity.current) {
             isCreatingNewActivity.current = false;
             await handleActivityAdded();
@@ -1421,9 +1468,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                                 response.categories as Category[],
                                 FUNCTION_TYPE.REGULAR
                             );
-                            const projectCategory = panelCategories.find((category) => category.title === "Project");
-                            if (projectCategory && !projectCategory.items.length) {
-                                projectCategory.description = "No workflows defined. Click below to create a new workflow.";
+                            const currentIntegrationCategory = findCurrentIntegrationCategory(panelCategories);
+                            if (currentIntegrationCategory && !currentIntegrationCategory.items.length) {
+                                currentIntegrationCategory.description = "No workflows defined. Click below to create a new workflow.";
                             }
                             setCategories(panelCategories);
                             setSidePanelView(SidePanelView.WORKFLOW_LIST);
@@ -1474,9 +1521,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                                 response.categories as Category[],
                                 FUNCTION_TYPE.REGULAR
                             );
-                            const projectCategory = panelCategories.find((category) => category.title === "Project");
-                            if (projectCategory && !projectCategory.items.length) {
-                                projectCategory.description = "No activities defined. Click below to create a new activity.";
+                            const currentIntegrationCategory = findCurrentIntegrationCategory(panelCategories);
+                            if (currentIntegrationCategory && !currentIntegrationCategory.items.length) {
+                                currentIntegrationCategory.description = "No activities defined. Click below to create a new activity.";
                             }
                             setCategories(panelCategories);
                             setSidePanelView(SidePanelView.ACTIVITY_LIST);
@@ -2019,6 +2066,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     const handleOnFormBack = () => {
+        clearWorkflowCreationState();
+
         // Try to navigate back using the navigation stack
         const didNavigateBack = popFromNavigationStack();
 
@@ -2188,7 +2237,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             });
     };
 
-   const handleOnAddWorkflow = () => {
+    const handleOnAddWorkflow = () => {
+        isCreatingNewWorkflow.current = true;
         setShowProgressIndicator(true);
         pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
 
@@ -2205,6 +2255,11 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 showEditForm.current = false;
                 setSidePanelView(SidePanelView.FORM);
                 setShowSidePanel(true);
+            })
+            .catch((error) => {
+                console.error(">>> Error fetching workflow template", error);
+                clearWorkflowCreationState();
+                popFromNavigationStack();
             })
             .finally(() => {
                 setShowProgressIndicator(false);
@@ -2563,6 +2618,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
     const handleOpenView = async (location: VisualizerLocation) => {
         const context: VisualizerLocation = {
+            view: location.view,
             documentUri: location.documentUri,
             position: location.position,
             identifier: location.identifier,
@@ -2995,8 +3051,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         }
 
         return {
+            view: MACHINE_VIEW.BIDiagram,
             documentUri: functionInfo.filePath,
             position,
+            identifier: functionInfo.name,
             projectPath,
         };
     };
@@ -3046,7 +3104,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             breakpointInfo,
             readOnly: showProgressSpinner || showProgressIndicator || hasDraft || selectedNodeId !== undefined,
             overlay: {
-                visible: selectedNodeId !== undefined,
+                visible: selectedNodeId !== undefined || topNodeRef.current !== undefined,
                 onClickOverlay: handleOnCloseSidePanel,
             },
             isUserAuthenticated,

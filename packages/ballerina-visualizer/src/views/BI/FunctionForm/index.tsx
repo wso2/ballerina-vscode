@@ -157,6 +157,7 @@ interface FunctionFormProps {
     isDataMapper?: boolean;
     isNpFunction?: boolean;
     isWorkflow?: boolean;
+    isActivity?: boolean;
     isAutomation?: boolean;
     isAgentTool?: boolean;
     isPopup?: boolean;
@@ -164,7 +165,7 @@ interface FunctionFormProps {
 
 export function FunctionForm(props: FunctionFormProps) {
     const { rpcClient } = useRpcContext();
-    const { projectPath, functionName, filePath, isDataMapper, isNpFunction, isWorkflow, isAutomation, isAgentTool, isPopup } = props;
+    const { projectPath, functionName, filePath, isDataMapper, isNpFunction, isWorkflow, isActivity, isAutomation, isAgentTool, isPopup } = props;
 
     const [functionFields, setFunctionFields] = useState<FormField[]>([]);
     const [functionNode, setFunctionNode] = useState<FunctionNode>(undefined);
@@ -224,6 +225,11 @@ export function FunctionForm(props: FunctionFormProps) {
             formType.current = 'Workflow';
             setTitleSubtitle('Build reusable workflow processes');
             setFormSubtitle('Define a workflow process with a strongly typed input payload');
+        } else if (isActivity) {
+            nodeKind = 'ACTIVITY';
+            formType.current = 'Workflow Activity';
+            setTitleSubtitle('Build reusable workflow activities');
+            setFormSubtitle('Define an activity that can be invoked within a workflow');
         } else {
             nodeKind = 'FUNCTION_DEFINITION';
             formType.current = 'Function';
@@ -235,7 +241,7 @@ export function FunctionForm(props: FunctionFormProps) {
         } else {
             getFunctionNode(nodeKind);
         }
-    }, [isDataMapper, isNpFunction, isWorkflow, isAutomation, isAgentTool, functionName]);
+    }, [isDataMapper, isNpFunction, isWorkflow, isActivity, isAutomation, isAgentTool, functionName]);
 
     useEffect(() => {
         let fields = functionNode ? convertConfig(functionNode.properties) : [];
@@ -670,7 +676,7 @@ export function FunctionForm(props: FunctionFormProps) {
                 location: {
                     view: null,
                     recentIdentifier: functionName,
-                    artifactType: isAgentTool ? DIRECTORY_MAP.AGENT_TOOL : isWorkflow ? DIRECTORY_MAP.WORKFLOW : DIRECTORY_MAP.FUNCTION
+                    artifactType: isAgentTool ? DIRECTORY_MAP.AGENT_TOOL : isWorkflow ? DIRECTORY_MAP.WORKFLOW : isActivity ? DIRECTORY_MAP.ACTIVITY : DIRECTORY_MAP.FUNCTION
                 },
                 isPopup: true
             });
