@@ -714,6 +714,34 @@ const MainPanel = () => {
                             />);
                         break;
                     }
+                    case MACHINE_VIEW.BIWorkflowForm: {
+                        const { FunctionForm } = await import("./views/BI/FunctionForm");
+                        const defaultFunctionsFile = await getDefaultFunctionsFile();
+                        if (isStaleNavigation()) return;
+                        setViewComponent(
+                            <FunctionForm
+                                projectPath={value.projectPath}
+                                filePath={defaultFunctionsFile}
+                                functionName={value?.identifier}
+                                isWorkflow={true}
+                            />
+                        );
+                        break;
+                    }
+                    case MACHINE_VIEW.BIActivityForm: {
+                        const { FunctionForm } = await import("./views/BI/FunctionForm");
+                        const defaultFunctionsFile = await getDefaultFunctionsFile();
+                        if (isStaleNavigation()) return;
+                        setViewComponent(
+                            <FunctionForm
+                                projectPath={value.projectPath}
+                                filePath={defaultFunctionsFile}
+                                functionName={value?.identifier}
+                                isActivity={true}
+                            />
+                        );
+                        break;
+                    }
                     case MACHINE_VIEW.BITestFunctionForm: {
                         const { TestFunctionForm } = await import("./views/BI/TestFunctionForm");
                         if (isStaleNavigation()) return;

@@ -163,6 +163,8 @@ interface FunctionFormProps {
     functionName: string;
     isDataMapper?: boolean;
     isNpFunction?: boolean;
+    isWorkflow?: boolean;
+    isActivity?: boolean;
     isAutomation?: boolean;
     isAgentTool?: boolean;
     isPopup?: boolean;
@@ -170,7 +172,7 @@ interface FunctionFormProps {
 
 export function FunctionForm(props: FunctionFormProps) {
     const { rpcClient } = useRpcContext();
-    const { projectPath, functionName, filePath, isDataMapper, isNpFunction, isAutomation, isAgentTool, isPopup } = props;
+    const { projectPath, functionName, filePath, isDataMapper, isNpFunction, isWorkflow, isActivity, isAutomation, isAgentTool, isPopup } = props;
 
     const [functionFields, setFunctionFields] = useState<FormField[]>([]);
     const [functionNode, setFunctionNode] = useState<FunctionNode>(undefined);
@@ -198,6 +200,13 @@ export function FunctionForm(props: FunctionFormProps) {
         functionNodeRef.current = functionNode;
     }, [functionNode]);
 
+    const hideTypeDescriptionField = (flowNode: FunctionNode): FunctionNode => {
+        if (flowNode?.properties?.typeDescription) {
+            flowNode.properties.typeDescription.hidden = true;
+        }
+        return flowNode;
+    };
+
     useEffect(() => {
         let nodeKind: NodeKind;
         if (isAutomation || functionName === "main") {
@@ -220,6 +229,16 @@ export function FunctionForm(props: FunctionFormProps) {
             formType.current = 'Agent Tool';
             setTitleSubtitle('Build a tool that can be invoked by AI agents');
             setFormSubtitle('Define the inputs and outputs the agent will use to call this tool');
+        } else if (isWorkflow) {
+            nodeKind = 'WORKFLOW';
+            formType.current = 'Workflow';
+            setTitleSubtitle('Build reusable workflow processes');
+            setFormSubtitle('Define a workflow process with a strongly typed input payload');
+        } else if (isActivity) {
+            nodeKind = 'ACTIVITY';
+            formType.current = 'Workflow Activity';
+            setTitleSubtitle('Build reusable workflow activities');
+            setFormSubtitle('Define an activity that can be invoked within a workflow');
         } else {
             nodeKind = 'FUNCTION_DEFINITION';
             formType.current = 'Function';
@@ -231,7 +250,7 @@ export function FunctionForm(props: FunctionFormProps) {
         } else {
             getFunctionNode(nodeKind);
         }
-    }, [isDataMapper, isNpFunction, isAutomation, isAgentTool, functionName]);
+    }, [isDataMapper, isNpFunction, isWorkflow, isActivity, isAutomation, isAgentTool, functionName]);
 
     useEffect(() => {
         let cancelled = false;
@@ -447,7 +466,7 @@ export function FunctionForm(props: FunctionFormProps) {
                 fileName,
                 projectPath
             });
-        let flowNode = res.functionDefinition;
+        let flowNode = hideTypeDescriptionField(res.functionDefinition);
         if (isNpFunction) {
             /* 
             * TODO: Remove this once the LS is updated
@@ -604,6 +623,7 @@ export function FunctionForm(props: FunctionFormProps) {
             }
         }
 
+
         console.log("Updated function node: ", functionNodeCopy);
         const sourceCode = await rpcClient
             .getBIDiagramRpcClient()
@@ -670,6 +690,8 @@ export function FunctionForm(props: FunctionFormProps) {
             return "Data Mapper";
         } else if (isNpFunction) {
             return "Natural Function";
+        } else if (isWorkflow) {
+            return "Workflow";
         } else if (isAutomation || functionName === "main") {
             return "Automation";
         }
@@ -679,7 +701,15 @@ export function FunctionForm(props: FunctionFormProps) {
     const handleClosePopup = (functionName?: string) => {
         rpcClient
             .getVisualizerRpcClient()
-            .openView({ type: EVENT_TYPE.CLOSE_VIEW, location: { view: null, recentIdentifier: functionName, artifactType: isAgentTool ? DIRECTORY_MAP.AGENT_TOOL : DIRECTORY_MAP.FUNCTION }, isPopup: true });
+            .openView({
+                type: EVENT_TYPE.CLOSE_VIEW,
+                location: {
+                    view: null,
+                    recentIdentifier: functionName,
+                    artifactType: isAgentTool ? DIRECTORY_MAP.AGENT_TOOL : isWorkflow ? DIRECTORY_MAP.WORKFLOW : isActivity ? DIRECTORY_MAP.ACTIVITY : DIRECTORY_MAP.FUNCTION
+                },
+                isPopup: true
+            });
     }
 
     useEffect(() => {
@@ -727,7 +757,9 @@ export function FunctionForm(props: FunctionFormProps) {
                             <BodyText>
                                 {isAgentTool
                                     ? "Create a new agent tool that can be invoked by AI agents."
-                                    : "Create a new function to define reusable logic."}
+                                    : (isWorkflow
+                                    ? "Create a new workflow process with a configurable input type."
+                                    : "Create a new function to define reusable logic.")}
                             </BodyText>
                         </>
                     )}

@@ -39,6 +39,9 @@
   "include": ["src"],
   "exclude": [
     "node_modules",
-    "build"
+    "build",
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/test"
   ]
 }

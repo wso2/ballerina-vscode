@@ -343,10 +343,28 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
         });
     };
 
+    // HACK: This need to be fixed from getFlowModel API 
+    const getWorkflowTitleFromSource = () => {
+        if (parentMetadata?.kind !== "Function" || !parentMetadata?.sourceCode) {
+            return undefined;
+        }
+
+        const normalizedSource = parentMetadata.sourceCode.trimStart();
+        if (normalizedSource.startsWith("@workflow:Activity")) {
+            return "Workflow Activity";
+        }
+        if (normalizedSource.startsWith("@workflow:Process")) {
+            return "Workflow";
+        }
+        return undefined;
+    };
+
     // Calculate title based on conditions
     const getTitle = () => {
         if (isNPFunction) return "Natural Function";
         if (isAutomation) return "Automation";
+        const workflowTitle = getWorkflowTitleFromSource();
+        if (workflowTitle) return workflowTitle;
         if (parentCodedata?.sourceCode.includes("@ai:AgentTool")) return "Agent Tool";
         if ((parentCodedata?.sourceCode.includes("@test:Config")) && parentCodedata?.sourceCode.includes("\"evaluations\"")) return "AI Evaluation";
         if (parentCodedata?.sourceCode.includes("@test:Config")) return "Test";

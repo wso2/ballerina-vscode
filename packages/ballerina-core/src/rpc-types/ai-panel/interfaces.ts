@@ -243,9 +243,10 @@ export interface ExistingFunction {
 // ==================================
 export interface Attachment {
     name: string;
-    path?: string
+    path?: string;
     content?: string;
     status: AttachmentStatus;
+    mimeType?: string;
 }
 
 export enum AttachmentStatus {
@@ -291,6 +292,7 @@ export interface ChatEntry {
 export interface FileAttatchment {
     fileName: string;
     content: string;
+    mimeType?: string;
 }
 
 export type CodeContext =

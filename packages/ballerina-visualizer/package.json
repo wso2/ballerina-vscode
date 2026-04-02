@@ -9,7 +9,9 @@
   "types": "lib/DesignDiagram.d.ts",
   "scripts": {
     "start": "webpack-dev-server --mode=development --progress",
-    "build": "NODE_OPTIONS=--max-old-space-size=4096 webpack --config webpack.config.js --mode=production && pnpm run postbuild",
+    "test": "jest --coverage",
+    "test:watch": "jest --watch",
+    "build": "webpack --config webpack.config.js --mode=production && pnpm run postbuild",
     "copy:assets": "copyfiles -u 1 \"src/**/*.scss\"  \"src/**/*.svg\"  \"src/**/*.css\" \"src/resources/assets/font/*.*\" lib/",
     "deploy": "npm publish",
     "postbuild": "find ../ballerina-extension/resources/jslibs -maxdepth 1 -type f -name '[0-9]*.js' -delete && copyfiles -u 1 -V build/*.js build/fonts/* build/images/* -e build/*.txt ../ballerina-extension/resources/jslibs"
@@ -70,6 +72,16 @@
     "katex": "0.16.27"
   },
   "devDependencies": {
+    "jest": "29.7.0",
+    "ts-jest": "29.3.4",
+    "@types/jest": "29.5.14",
+    "jest-environment-jsdom": "29.7.0",
+    "identity-obj-proxy": "3.0.0",
+    "@babel/core": "7.27.1",
+    "@babel/preset-env": "7.27.2",
+    "@babel/preset-react": "7.27.1",
+    "@babel/preset-typescript": "7.27.1",
+    "babel-jest": "29.7.0",
     "@types/react": "18.2.0",
     "@types/react-collapse": "5.0.4",
     "@types/react-dom": "18.2.0",

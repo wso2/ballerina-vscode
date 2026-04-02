@@ -21,11 +21,14 @@ import { NodeLinkModel, NodeLinkModelOptions } from "../components/NodeLink";
 import { ApiCallNodeModel } from "../components/nodes/ApiCallNode";
 import { BaseNodeModel } from "../components/nodes/BaseNode";
 import { ButtonNodeModel } from "../components/nodes/ButtonNode";
-import { CommentNodeModel } from "../components/nodes/CommentNode";
+import { CallActivityNodeModel } from "../components/nodes/CallActivityNode";
 import { DraftNodeModel } from "../components/nodes/DraftNode/DraftNodeModel";
 import { EmptyNodeModel } from "../components/nodes/EmptyNode";
 import { IfNodeModel } from "../components/nodes/IfNode/IfNodeModel";
+import { SendDataNodeModel } from "../components/nodes/SendDataNode";
 import { StartNodeModel } from "../components/nodes/StartNode/StartNodeModel";
+import { WaitDataNodeModel } from "../components/nodes/WaitDataNode";
+import { WorkflowRunNodeModel } from "../components/nodes/WorkflowRunNode";
 import { WhileNodeModel } from "../components/nodes/WhileNode";
 import {
     BUTTON_NODE_HEIGHT,
@@ -33,7 +36,6 @@ import {
     END_CONTAINER,
     LAST_NODE,
     NODE_GAP_X,
-    NodeTypes,
     START_CONTAINER,
     WHILE_NODE_WIDTH,
 } from "../resources/constants";
@@ -53,6 +55,8 @@ export class NodeFactoryVisitor implements BaseVisitor {
     private hasSuggestedNode = false;
     private linkCounter = 0;
     private visibleBtnCounter = 0;
+    private pendingComment: FlowNode | undefined = undefined; // comment node awaiting attachment to next node
+    private nodeComments: Map<string, FlowNode> = new Map(); // maps node id -> preceding comment node
 
     constructor() {
         // console.log(">>> node factory visitor started");
@@ -67,6 +71,11 @@ export class NodeFactoryVisitor implements BaseVisitor {
     }
 
     private updateNodeLinks(node: FlowNode, nodeModel: NodeModel, options?: NodeLinkModelOptions): void {
+        // Associate any preceding comment node with this node
+        if (this.pendingComment) {
+            this.nodeComments.set(node.id, this.pendingComment);
+            this.pendingComment = undefined;
+        }
         if (node.viewState?.startNodeId) {
             // new sub flow start
             const startNode = this.nodes.find((n) => n.getID() === node.viewState.startNodeId);
@@ -97,6 +106,34 @@ export class NodeFactoryVisitor implements BaseVisitor {
 
     private createApiCallNode(node: FlowNode): NodeModel {
         const nodeModel = new ApiCallNodeModel(node);
+        this.nodes.push(nodeModel);
+        this.updateNodeLinks(node, nodeModel);
+        return nodeModel;
+    }
+
+    private createCallActivityNode(node: FlowNode): NodeModel {
+        const nodeModel = new CallActivityNodeModel(node);
+        this.nodes.push(nodeModel);
+        this.updateNodeLinks(node, nodeModel);
+        return nodeModel;
+    }
+
+    private createWorkflowRunNode(node: FlowNode): NodeModel {
+        const nodeModel = new WorkflowRunNodeModel(node);
+        this.nodes.push(nodeModel);
+        this.updateNodeLinks(node, nodeModel);
+        return nodeModel;
+    }
+
+    private createSendDataNode(node: FlowNode): NodeModel {
+        const nodeModel = new SendDataNodeModel(node);
+        this.nodes.push(nodeModel);
+        this.updateNodeLinks(node, nodeModel);
+        return nodeModel;
+    }
+
+    private createWaitDataNode(node: FlowNode): NodeModel {
+        const nodeModel = new WaitDataNodeModel(node);
         this.nodes.push(nodeModel);
         this.updateNodeLinks(node, nodeModel);
         return nodeModel;
@@ -605,6 +642,38 @@ export class NodeFactoryVisitor implements BaseVisitor {
         }
     }
 
+    beginVisitActivityCall(node: FlowNode, parent?: FlowNode): void {
+        if (!this.validateNode(node)) return;
+        if (node.id) {
+            this.createCallActivityNode(node);
+            this.addSuggestionsButton(node);
+        }
+    }
+
+    beginVisitWorkflowRun(node: FlowNode, parent?: FlowNode): void {
+        if (!this.validateNode(node)) return;
+        if (node.id) {
+            this.createWorkflowRunNode(node);
+            this.addSuggestionsButton(node);
+        }
+    }
+
+    beginVisitSendData(node: FlowNode, parent?: FlowNode): void {
+        if (!this.validateNode(node)) return;
+        if (node.id) {
+            this.createSendDataNode(node);
+            this.addSuggestionsButton(node);
+        }
+    }
+
+    beginVisitWaitData(node: FlowNode, parent?: FlowNode): void {
+        if (!this.validateNode(node)) return;
+        if (node.id) {
+            this.createWaitDataNode(node);
+            this.addSuggestionsButton(node);
+        }
+    }
+
     beginVisitResourceActionCall(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
         this.beginVisitRemoteActionCall(node, parent);
@@ -651,9 +720,13 @@ export class NodeFactoryVisitor implements BaseVisitor {
 
     beginVisitComment(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
-        const nodeModel = new CommentNodeModel(node);
-        this.nodes.push(nodeModel);
-        this.updateNodeLinks(node, nodeModel);
+        // Store the comment as pending; it will be attached to the next non-comment node
+        // as a note chip rather than rendered as a standalone node in the diagram.
+        this.pendingComment = node;
+    }
+
+    getNodeComments(): Map<string, FlowNode> {
+        return this.nodeComments;
     }
 
     beginVisitNpFunction(node: FlowNode, parent?: FlowNode): void {

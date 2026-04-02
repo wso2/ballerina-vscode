@@ -147,6 +147,8 @@ When generating Ballerina code strictly follow these syntax and structure guidel
 - In the library API documentation, if the service type is specified as generic, adhere to the instructions specified there on writing the service.
 - For GraphQL service related queries, if the user hasn't specified their own GraphQL Schema, write the proposed GraphQL schema for the user query right after the explanation before generating the Ballerina code. Use the same names as the GraphQL Schema when defining record types.
 - Some libaries has instructions field in their API documentation. Follow those instructions strictly when using those libraries.
+- You should only generate tests if the user explicitly asks for them in the query. You must use the 'ballerina/test' and whatever services associated when writing tests. Respect the instructions field in ballerina/test library and testGenerationInstruction field in whatever library associated with the service in the library API documentation when writing tests.
+- For workflow-based requirements involving long-running processes, state management, or orchestration of multiple steps, use the 'ballerina/workflow' module.
 - When writing tests, use the 'ballerina/test' module and any service-specific test libraries. Respect the instructions field in ballerina/test library and the testGenerationInstruction field in the associated service library API documentation when writing tests.
 
 ${getLanglibInstructions()}
@@ -177,12 +179,12 @@ ${getLanglibInstructions()}
 
 ## File modifications
 - You must apply changes to the existing source code using the provided ${[
-        FILE_BATCH_EDIT_TOOL_NAME,
-        FILE_SINGLE_EDIT_TOOL_NAME,
-        FILE_WRITE_TOOL_NAME,
-    ].join(
-        ", "
-    )} tools. The complete existing source code will be provided in the <existing_code> section of the user prompt.
+            FILE_BATCH_EDIT_TOOL_NAME,
+            FILE_SINGLE_EDIT_TOOL_NAME,
+            FILE_WRITE_TOOL_NAME,
+        ].join(
+            ", "
+        )} tools. The complete existing source code will be provided in the <existing_code> section of the user prompt.
 - When making replacements inside an existing file, provide the **exact old string** and the **exact new string** with all newlines, spaces, and indentation, being mindful to replace nearby occurrences together to minimize the number of tool calls.
 - Do NOT create a new markdown file to document each change or summarize your work unless specifically requested by the user.
 - Do not manually add/modify Dependencies.toml. For Config.toml configuration management, use ${CONFIG_COLLECTOR_TOOL}.
@@ -253,16 +255,25 @@ export function getUserPrompt(params: GenerateAgentCodeRequest, tempProjectPath:
 
     // Add file attachments if available
     if (params.fileAttachmentContents && params.fileAttachmentContents.length > 0) {
-        const attachmentsText = params.fileAttachmentContents.map((attachment) =>
-            `## File: ${attachment.fileName}\n\`\`\`\n${attachment.content}\n\`\`\``
-        ).join('\n\n');
-
-        content.push({
-            type: 'text' as const,
-            text: `<User Attachments>
-${attachmentsText}
-</User Attachments>`
-        });
+        for (const attachment of params.fileAttachmentContents) {
+            if (attachment.mimeType?.startsWith('image/')) {
+                // Add image attachment
+                content.push({
+                    type: 'image' as const,
+                    image: attachment.content,
+                });
+            } else {
+                // Add text file attachment
+                const attachmentsText = params.fileAttachmentContents.map((attachment) =>
+                    `## File: ${attachment.fileName}\n\`\`\`\n${attachment.content}\n\`\`\``).join('\n\n');
+                content.push({
+                    type: 'text' as const,
+                    text: `<User Attachments>
+                            ${attachmentsText}
+                        </User Attachments>`
+                });
+            }
+        }
     }
 
     content.push({
@@ -297,7 +308,7 @@ export function getWebToolsHint(): string {
     return `<system-reminder>The user has enabled web tools. Use web_search for live or up-to-date information. Use web_fetch when the user provides a URL. Invoke these tools proactively when the query suggests current data or external content is needed.</system-reminder>`;
 }
 
-function getGenerationType(isPlanMode:boolean):string {
+function getGenerationType(isPlanMode: boolean): string {
     if (isPlanMode) {
         return `<system-reminder> Plan Mode is enabled. Make sure to use task management using ${TASK_WRITE_TOOL_NAME} </system-reminder>`;
     }
@@ -305,7 +316,7 @@ function getGenerationType(isPlanMode:boolean):string {
 }
 
 function getNPSuffix(projects: ProjectSource[], op?: OperationType): string {
-    let basePrompt:string = "Note: You are in a special Natural Programming mode. Follow the NP guidelines strictly in addition to what you've given. \n";
+    let basePrompt: string = "Note: You are in a special Natural Programming mode. Follow the NP guidelines strictly in addition to what you've given. \n";
     if (!op) {
         return "";
     } else if (op === "CODE_FOR_USER_REQUIREMENT") {

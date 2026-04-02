@@ -17,19 +17,29 @@
  */
 
 import React, { ReactNode, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import styled from "@emotion/styled";
 import { DiagramEngine, PortWidget } from "@projectstorm/react-diagrams-core";
 import { ApiCallNodeModel } from "./ApiCallNodeModel";
 import {
     DRAFT_NODE_BORDER_WIDTH,
     LABEL_HEIGHT,
+    NODE_BG_BREAKPOINT_COLOR,
+    NODE_BG_COLOR,
+    NODE_BG_HOVER_COLOR,
+    NODE_HOVER_GLOW,
+    NODE_BORDER_COLOR,
+    NODE_BORDER_ERROR_COLOR,
+    NODE_BORDER_SELECTED_COLOR,
     NODE_BORDER_WIDTH,
+    NODE_ERROR_COLOR,
     NODE_GAP_X,
     NODE_HEIGHT,
     NODE_PADDING,
+    NODE_TEXT_COLOR,
     NODE_WIDTH,
 } from "../../../resources/constants";
-import { Button, Item, Menu, MenuItem, Popover, ThemeColors } from "@wso2/ui-toolkit";
+import { Button, Item, Menu, MenuItem } from "@wso2/ui-toolkit";
 import { MoreVertIcon } from "../../../resources";
 import { FlowNode } from "../../../utils/types";
 import NodeIcon from "../../NodeIcon";
@@ -69,17 +79,19 @@ export namespace NodeStyles {
         border-style: ${(props: NodeStyleProp) => (props.disabled ? "dashed" : "solid")};
         border-color: ${(props: NodeStyleProp) =>
             props.hasError
-                ? ThemeColors.ERROR
+                ? NODE_BORDER_ERROR_COLOR
                 : props.isSelected && !props.disabled
-                ? ThemeColors.SECONDARY
+                ? NODE_BORDER_SELECTED_COLOR
                 : props.hovered && !props.disabled && !props.readOnly
-                ? ThemeColors.SECONDARY
-                : ThemeColors.OUTLINE_VARIANT};
+                ? NODE_BORDER_SELECTED_COLOR
+                : NODE_BORDER_COLOR};
         border-radius: 10px;
         background-color: ${(props: NodeStyleProp) =>
-            props?.isActiveBreakpoint ? ThemeColors.DEBUGGER_BREAKPOINT_BACKGROUND : ThemeColors.SURFACE_DIM};
-        color: ${ThemeColors.ON_SURFACE};
+            props?.isActiveBreakpoint ? NODE_BG_BREAKPOINT_COLOR : props.hovered && !props.disabled && !props.readOnly ? NODE_BG_HOVER_COLOR : NODE_BG_COLOR};
+        color: ${NODE_TEXT_COLOR};
         cursor: ${(props: NodeStyleProp) => (props.readOnly ? "default" : "pointer")};
+        box-shadow: ${(props: NodeStyleProp) => props.hovered && !props.disabled && !props.readOnly ? NODE_HOVER_GLOW : 'none'};
+        transition: box-shadow 0.1s ease, background-color 0.1s ease, border-color 0.1s ease;
     `;
 
     export const Header = styled.div<{}>`
@@ -114,7 +126,7 @@ export namespace NodeStyles {
     export const Icon = styled.div`
         padding: 4px;
         svg {
-            fill: ${ThemeColors.ON_SURFACE};
+            fill: ${NODE_TEXT_COLOR};
         }
     `;
 
@@ -137,7 +149,7 @@ export namespace NodeStyles {
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         word-break: break-all;
-        color: ${ThemeColors.ON_SURFACE};
+        color: ${NODE_TEXT_COLOR};
         opacity: 0.7;
     `;
 
@@ -165,7 +177,7 @@ export namespace NodeStyles {
         font-size: 20px;
         width: 20px;
         height: 20px;
-        color: ${ThemeColors.ERROR};
+        color: ${NODE_ERROR_COLOR};
     `;
 
     export const Hr = styled.hr`
@@ -218,13 +230,43 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
 
     const [isBoxHovered, setIsBoxHovered] = useState(false);
     const [isCircleHovered, setIsCircleHovered] = useState(false);
-    const [anchorEl, setAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
+    const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
     const [menuButtonElement, setMenuButtonElement] = useState<HTMLElement | null>(null);
-    const isMenuOpen = Boolean(anchorEl);
+    const isMenuOpen = menuPos !== null;
+
+    const getMenuPos = (el: HTMLElement): { top: number; left: number } => {
+        const rect = el.getBoundingClientRect();
+        return { top: rect.bottom, left: rect.left };
+    };
+
+    useEffect(() => {
+        if (!isMenuOpen || !menuButtonElement) return;
+        const handle = engine.getModel().registerListener({
+            offsetUpdated: () => setMenuPos(getMenuPos(menuButtonElement)),
+            zoomUpdated: () => setMenuPos(getMenuPos(menuButtonElement)),
+        });
+        return () => handle.deregister();
+    }, [isMenuOpen, menuButtonElement]);
+
+    useEffect(() => {
+        if (!isMenuOpen) return;
+        const handleClickOutside = () => setMenuPos(null);
+        const timer = setTimeout(() => document.addEventListener("mousedown", handleClickOutside), 0);
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isMenuOpen]);
     const hasBreakpoint = model.hasBreakpoint();
     const isActiveBreakpoint = model.isActiveBreakpoint();
     // show dash line if the node is a class call
     const isClassCall = model.node.codedata.node === "KNOWLEDGE_BASE_CALL";
+    const connectionProperty = model.node.properties?.connection;
+    const processFunctionProperty = (model.node.properties as any)?.processFunction;
+    const connectionValue = connectionProperty?.value as string | undefined;
+    const fallbackEndpointValue = processFunctionProperty?.value as string | undefined;
+    const endpointLabel = connectionValue ?? fallbackEndpointValue ?? "";
+    const connectorType = (connectionProperty?.metadata?.data as NodeMetadata | undefined)?.connectorType;
 
     useEffect(() => {
         if (model.node.suggested) {
@@ -250,52 +292,58 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
     const onNodeClick = () => {
         onClick && onClick(model.node);
         onNodeSelect && onNodeSelect(model.node);
-        setAnchorEl(null);
+        setMenuPos(null);
     };
 
     const onConnectionClick = () => {
         if (readOnly) {
             return;
         }
-        onConnectionSelect && onConnectionSelect(model.node.properties?.connection?.value as string);
-        setAnchorEl(null);
+        if (connectionValue && onConnectionSelect) {
+            onConnectionSelect(connectionValue);
+        } else {
+            onNodeClick();
+        }
+        setMenuPos(null);
     };
 
     const onGoToSource = () => {
         goToSource && goToSource(model.node);
-        setAnchorEl(null);
+        setMenuPos(null);
     };
 
     const deleteNode = () => {
         onDeleteNode && onDeleteNode(model.node);
-        setAnchorEl(null);
+        setMenuPos(null);
     };
 
     const handleOnMenuClick = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
         if (readOnly) {
             return;
         }
-        setAnchorEl(event.currentTarget);
+        const target = menuButtonElement || (event.currentTarget as HTMLElement);
+        setMenuPos(getMenuPos(target));
     };
 
     const handleOnContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
         event.preventDefault();
-        setAnchorEl(menuButtonElement || event.currentTarget);
+        const target = menuButtonElement || event.currentTarget;
+        setMenuPos(getMenuPos(target as HTMLElement));
     };
 
     const handleOnMenuClose = () => {
-        setAnchorEl(null);
+        setMenuPos(null);
         setIsBoxHovered(false);
     };
 
     const onAddBreakpoint = () => {
         addBreakpoint && addBreakpoint(model.node);
-        setAnchorEl(null);
+        setMenuPos(null);
     };
 
     const onRemoveBreakpoint = () => {
         removeBreakpoint && removeBreakpoint(model.node);
-        setAnchorEl(null);
+        setMenuPos(null);
     };
 
     const menuItems: Item[] = [
@@ -313,7 +361,7 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
     const hasError = nodeHasError(model.node);
 
     const arrowColor =
-        disabled || readOnly ? ThemeColors.ON_SURFACE : isBoxHovered ? ThemeColors.SECONDARY : ThemeColors.ON_SURFACE;
+        disabled || readOnly ? NODE_TEXT_COLOR : isBoxHovered ? NODE_BORDER_SELECTED_COLOR : NODE_TEXT_COLOR;
 
     return (
         <NodeStyles.Node readOnly={readOnly}>
@@ -359,7 +407,7 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
                             </NodeStyles.Description>
                         </NodeStyles.Header>
                         <NodeStyles.ActionButtonGroup>
-                            {hasError && <DiagnosticsPopUp node={model.node} />}
+                            {hasError && <DiagnosticsPopUp node={model.node} engine={engine} />}
                             <NodeStyles.MenuButton
                                 ref={setMenuButtonElement}
                                 buttonSx={readOnly ? { cursor: "not-allowed" } : {}}
@@ -373,28 +421,33 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
                     {/* <NodeStyles.StyledButton appearance="icon" onClick={handleOnMenuClick}>
                         <MoreVertIcon />
                     </NodeStyles.StyledButton> */}
-                    <Popover
-                        open={isMenuOpen}
-                        anchorEl={anchorEl}
-                        handleClose={handleOnMenuClose}
-                        sx={{
-                            padding: 0,
-                            borderRadius: 0,
-                        }}
-                    >
-                        <Menu>
-                            <>
-                                {menuItems.map((item) => (
-                                    <MenuItem key={item.id} item={item} />
-                                ))}
-                                <BreakpointMenu
-                                    hasBreakpoint={hasBreakpoint}
-                                    onAddBreakpoint={onAddBreakpoint}
-                                    onRemoveBreakpoint={onRemoveBreakpoint}
-                                />
-                            </>
-                        </Menu>
-                    </Popover>
+                    {isMenuOpen && menuPos && createPortal(
+                        <div
+                            style={{
+                                position: "fixed",
+                                top: menuPos.top,
+                                left: menuPos.left,
+                                zIndex: 1300,
+                                boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                                borderRadius: 0,
+                            }}
+                            onMouseDown={(e) => e.stopPropagation()}
+                        >
+                            <Menu>
+                                <>
+                                    {menuItems.map((item) => (
+                                        <MenuItem key={item.id} item={item} />
+                                    ))}
+                                    <BreakpointMenu
+                                        hasBreakpoint={hasBreakpoint}
+                                        onAddBreakpoint={onAddBreakpoint}
+                                        onRemoveBreakpoint={onRemoveBreakpoint}
+                                    />
+                                </>
+                            </Menu>
+                        </div>,
+                        document.body
+                    )}
                 </NodeStyles.Row>
                 <NodeStyles.BottomPortWidget port={model.getPort("out")!} engine={engine} />
             </NodeStyles.Box>
@@ -411,25 +464,27 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
                     cx="80"
                     cy="24"
                     r="22"
-                    fill={ThemeColors.SURFACE_DIM}
-                    stroke={isCircleHovered && !disabled ? ThemeColors.SECONDARY : ThemeColors.OUTLINE_VARIANT}
+                    fill={NODE_BG_COLOR}
+                    stroke={isCircleHovered && !disabled ? NODE_BORDER_SELECTED_COLOR : NODE_BORDER_COLOR}
                     strokeWidth={1.5}
                     strokeDasharray={disabled ? "5 5" : "none"}
                     opacity={disabled ? 0.7 : 1}
+                    style={{
+                        filter: isCircleHovered && !disabled ? `drop-shadow(0 0 4px ${NODE_BORDER_SELECTED_COLOR})` : 'none',
+                        transition: 'filter 0.1s ease',
+                    }}
                 />
                 <text
                     x="80"
                     y="66"
                     textAnchor="middle"
-                    fill={ThemeColors.ON_SURFACE}
+                    fill={NODE_TEXT_COLOR}
                     fontSize="14px"
                     fontFamily="GilmerRegular"
                 >
-                    {(model.node.properties.connection.value as string)?.length > 16
-                        ? `${(model.node.properties.connection.value as string).slice(0, 16)}...`
-                        : (model.node.properties.connection.value as ReactNode)}
+                    {endpointLabel.length > 16 ? `${endpointLabel.slice(0, 16)}...` : endpointLabel}
                 </text>
-                <foreignObject x="68" y="12" width="24" height="24" fill={ThemeColors.ON_SURFACE}>
+                <foreignObject x="68" y="12" width="24" height="24" fill={NODE_TEXT_COLOR}>
                     <ConnectorIcon
                         url={model.node.metadata.icon}
                         style={{
@@ -440,7 +495,7 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
                             pointerEvents: readOnly ? "none" : "auto",
                         }}
                         codedata={model.node?.codedata}
-                        connectorType={(model.node.properties.connection.metadata?.data as NodeMetadata)?.connectorType}
+                        connectorType={connectorType}
                     />
                 </foreignObject>
                 <line
