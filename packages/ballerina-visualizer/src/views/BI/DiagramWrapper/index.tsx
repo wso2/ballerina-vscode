@@ -35,7 +35,6 @@ import { PanelContainer } from "@wso2/ballerina-side-panel";
 import { ResourceForm } from "../ServiceDesigner/Forms/ResourceForm";
 import { AddServiceElementDropdown, DropdownOptionProps } from "../ServiceDesigner/components/AddServiceElementDropdown";
 import { removeForwardSlashes } from "../ServiceDesigner/utils";
-import { buildBaseUrl } from "../ServiceDesigner/buildHurlString";
 import { getTryItAIDefaultPromptResource, getTryItDropdownOptions, TryItOptionValue, TryItQuickPickItem } from "../shared/tryIt";
 
 const ActionButton = styled(Button)`
@@ -394,6 +393,8 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                     await handleResourceTryItWithAI();
                     break;
             }
+        } catch (error) {
+            console.error("Error handling Try It option:", error);
         } finally {
             if (isMountedRef.current) {
                 setIsTryItInProgress(false);

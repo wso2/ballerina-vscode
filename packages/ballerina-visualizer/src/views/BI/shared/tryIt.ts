@@ -17,7 +17,7 @@
  */
 
 import { AIPanelPrompt } from "@wso2/ballerina-core";
-import { QuickPickItem } from "vscode";
+import type { QuickPickItem } from "vscode";
 
 /**
  * Available options for the Try It dropdown in the Service and Resource designers.
@@ -62,22 +62,22 @@ export function getTryItAIDefaultPromptResource(methodValue: string, pathValue: 
 
 export function getTryItAIDefaultPromptService(serviceName: string, basePath: string): AIPanelPrompt {
     return {
-                type: "text",
-                text: "",
-                planMode: false,
-                suggestedCommandTemplates: [
-                    {
-                        type: "text",
-                        text: `Try out the ${serviceName} ${basePath ? `at base path ${basePath}` : ''}`,
-                        planMode: false
-                    },
-                    {
-                        type: "text",
-                        text: `Try out the following scenario on the ${serviceName} ${basePath ? `at base path ${basePath}` : ''} : \n`,
-                        planMode: false
-                    }
-                ],
-                inputPlaceholder: "Describe your try it scenario..."
+        type: "text" as const,
+        text: "",
+        planMode: false,
+        suggestedCommandTemplates: [
+            {
+                type: "text" as const,
+                text: `Try out the ${serviceName} ${basePath ? `at base path ${basePath}` : ''}`,
+                planMode: false
+            },
+            {
+                type: "text" as const,
+                text: `Try out the following scenario on the ${serviceName} ${basePath ? `at base path ${basePath}` : ''} : \n`,
+                planMode: false
+            }
+        ],
+        inputPlaceholder: "Describe your try it scenario..."
     }
 }
 
