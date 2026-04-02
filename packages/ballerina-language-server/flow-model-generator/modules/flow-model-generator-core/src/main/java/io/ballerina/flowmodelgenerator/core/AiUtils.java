@@ -62,6 +62,7 @@ import io.ballerina.projects.environment.ResolutionOptions;
 import io.ballerina.projects.environment.ResolutionRequest;
 import io.ballerina.projects.environment.ResolutionResponse;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -183,7 +184,7 @@ public class AiUtils {
                 }
                 dependentModules.put(entry.getKey(), List.copyOf(modules));
             }
-        } catch (Exception e) {
+        } catch (IOException | RuntimeException e) {
             LOGGER.log(Level.WARNING, "Failed to load dependent_modules_fallback.json", e);
         }
     }
@@ -512,17 +513,24 @@ public class AiUtils {
     }
 
     public static String getBallerinaAiModuleVersion(Project project) {
-        String version = project.currentPackage().dependenciesToml()
+        return project.currentPackage().dependenciesToml()
                 .map(DependenciesToml::tomlDocument).map(TomlDocument::toml)
                 .map(toml -> toml.getTables(PACKAGE)).orElse(List.of()).stream()
                 .filter(pkg -> BALLERINA.equals(pkg.get(ORG).map(Object::toString).orElse(""))
                         && AI.equals(pkg.get(NAME).map(Object::toString).orElse("")))
                 .findFirst().flatMap(aiPackage -> aiPackage.get(VERSION).map(Objects::toString))
                 .orElse(null);
+    }
+
+    /**
+     * Resolves the AI module version for internal use (Central API calls, keyword fetching). Falls back to local
+     * distribution if not in Dependencies.toml.
+     */
+    private static String resolveAiModuleVersion(Project project) {
+        String version = getBallerinaAiModuleVersion(project);
         if (version != null) {
             return version;
         }
-        // Fallback: resolve from local/distribution repo
         return resolvePackageVersion(BALLERINA, AI).orElse(null);
     }
 
@@ -706,13 +714,15 @@ public class AiUtils {
 
     private static synchronized void buildCategoryCache(Project project, NodeKind category) {
         String cacheKey = getProjectCacheKey(project);
-        String aiModuleVersion = getBallerinaAiModuleVersion(project);
+        // Use resolveAiModuleVersion for internal resolution (falls back to local distribution)
+        String aiModuleVersion = resolveAiModuleVersion(project);
         Set<NodeKind> completed = completedCategories.computeIfAbsent(cacheKey, k -> new HashSet<>());
         if (completed.contains(category)) {
             return;
         }
 
         List<Module> allModules = getLatestCompatibleModules(aiModuleVersion);
+        boolean hasDependenciesToml = project.currentPackage().dependenciesToml().isPresent();
         allModules = pinUserDeclaredVersions(project, allModules);
         ensureKeywordsLoaded(allModules);
 
@@ -742,23 +752,27 @@ public class AiUtils {
             Stream<ClassSymbol> classSymbols = semanticModel.get().moduleSymbols().stream()
                     .filter(ClassSymbol.class::isInstance).map(ClassSymbol.class::cast);
 
+            // Include version in codedata only if the project has a Dependencies.toml.
+            // Omitting version (null) means "use latest from Central".
+            String codedataVersion = hasDependenciesToml ? module.version() : null;
+
             for (var classSymbol : classSymbols.toList()) {
                 if (isModelProviderClass(classSymbol)) {
-                    modelProviders.add(buildAvailableNode(classSymbol, module, aiModuleVersion, MODEL_PROVIDER));
+                    modelProviders.add(buildAvailableNode(classSymbol, module, codedataVersion, MODEL_PROVIDER));
                 } else if (isEmbeddingProviderClass(classSymbol)) {
-                    embeddingProviders.add(buildAvailableNode(classSymbol, module, aiModuleVersion,
+                    embeddingProviders.add(buildAvailableNode(classSymbol, module, codedataVersion,
                             EMBEDDING_PROVIDER));
                 } else if (isVectorStoreClass(classSymbol)) {
-                    vectorStores.add(buildAvailableNode(classSymbol, module, aiModuleVersion, VECTOR_STORE));
+                    vectorStores.add(buildAvailableNode(classSymbol, module, codedataVersion, VECTOR_STORE));
                 } else if (isChunkerClass(classSymbol)) {
-                    chunkers.add(buildAvailableNode(classSymbol, module, aiModuleVersion, CHUNKER));
+                    chunkers.add(buildAvailableNode(classSymbol, module, codedataVersion, CHUNKER));
                 } else if (isDataLoaderClass(classSymbol)) {
-                    dataLoaders.add(buildAvailableNode(classSymbol, module, aiModuleVersion, DATA_LOADER));
+                    dataLoaders.add(buildAvailableNode(classSymbol, module, codedataVersion, DATA_LOADER));
                 } else if (isShortTermMemoryStoreClass(classSymbol)) {
-                    shortTermMemoryStores.add(buildAvailableNode(classSymbol, module, aiModuleVersion,
+                    shortTermMemoryStores.add(buildAvailableNode(classSymbol, module, codedataVersion,
                             SHORT_TERM_MEMORY_STORE));
                 } else if (isKnowledgeBaseClass(classSymbol)) {
-                    knowledgeBases.add(buildAvailableNode(classSymbol, module, aiModuleVersion, KNOWLEDGE_BASE));
+                    knowledgeBases.add(buildAvailableNode(classSymbol, module, codedataVersion, KNOWLEDGE_BASE));
                 }
             }
         }
@@ -880,7 +894,7 @@ public class AiUtils {
     }
 
     private static AvailableNode buildAvailableNode(ClassSymbol classSymbol, ModuleInfo moduleInfo,
-                                                    String aiModuleVersion, NodeKind kind) {
+                                                    String codedataVersion, NodeKind kind) {
         String className = classSymbol.getName().orElse("");
         String label = getDisplayLabel(classSymbol)
                 .orElseGet(() -> buildLabel(moduleInfo.moduleName(), className));
@@ -889,7 +903,7 @@ public class AiUtils {
                 .orElse(getDefaultNodeLabel(kind, label.split(" ")[0]));
 
         Metadata metadata = new Metadata.Builder<>(null).label(label).description(description).build();
-        Codedata.Builder<Object> codedataBuilder = new Codedata.Builder<>(null).version(moduleInfo.version())
+        Codedata.Builder<Object> codedataBuilder = new Codedata.Builder<>(null).version(codedataVersion)
                 .packageName(moduleInfo.packageName()).module(moduleInfo.moduleName()).org(moduleInfo.org())
                 .node(kind);
 

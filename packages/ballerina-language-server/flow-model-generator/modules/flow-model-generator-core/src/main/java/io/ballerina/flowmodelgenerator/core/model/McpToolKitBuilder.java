@@ -292,6 +292,10 @@ public class McpToolKitBuilder extends NodeBuilder {
                         .resolve(lineRange.fileName());
                 Range classRange = CommonUtils.toRange(lineRange);
 
+                if (!toolScopesMap.isEmpty()) {
+                    sourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.LOG_PACKAGE);
+                    sourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.HTTP_PACKAGE);
+                }
                 sourceBuilder.token().source(sourceCode).skipFormatting().stepOut()
                         .textEdit(SourceBuilder.SourceKind.STATEMENT, classFilePath, classRange);
             } else {

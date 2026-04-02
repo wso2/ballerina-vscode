@@ -23,6 +23,21 @@
           },
           {
             "metadata": {
+              "label": "Azure Embedding Provider",
+              "description": "EmbeddingProvider provides an interface for interacting with Azure OpenAI Embedding Models."
+            },
+            "codedata": {
+              "node": "EMBEDDING_PROVIDER",
+              "org": "ballerinax",
+              "module": "ai.azure",
+              "packageName": "ai.azure",
+              "object": "EmbeddingProvider",
+              "symbol": "init"
+            },
+            "enabled": true
+          },
+          {
+            "metadata": {
               "label": "OpenAI Embedding Provider",
               "description": "EmbeddingProvider provides an interface for interacting with OpenAI Embedding Models."
             },
@@ -38,7 +53,7 @@
           },
           {
             "metadata": {
-              "label": "Openrouter Embedding Provider",
+              "label": "OpenRouter Embedding Provider",
               "description": "EmbeddingProvider is a client class that provides an interface for generating\nvector embeddings via the OpenRouter unified API, which supports embedding models\nfrom OpenAI, Google, Mistral, and other providers."
             },
             "codedata": {
