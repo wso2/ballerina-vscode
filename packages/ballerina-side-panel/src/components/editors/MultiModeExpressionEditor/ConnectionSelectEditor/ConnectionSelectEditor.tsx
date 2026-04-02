@@ -21,7 +21,6 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { FormField } from "../../../Form/types";
 import { ConnectionIconSelect, ConnectionSelectItem } from "../../ConnectionIconSelect";
 import { useFormContext } from "../../../../context";
-import { LinkButton } from "@wso2/ui-toolkit/lib/components/LinkButton/LinkButton";
 
 interface ConnectionSelectEditorProps {
     value: string;
@@ -29,12 +28,16 @@ interface ConnectionSelectEditorProps {
     onChange: (value: string, cursorPosition: number) => void;
 }
 
-const actionButtonStyles = {
-    padding: "4px 6px",
-    margin: 0,
-    marginTop: "6px",
-    fontSize: "13px",
-};
+// Cache icon URLs by module name across remounts to avoid icon flicker
+const iconUrlCache = new Map<string, string>();
+
+function enrichWithCachedIcons(items: ConnectionSelectItem[]): ConnectionSelectItem[] {
+    return items.map(item => {
+        const module = item.codedata?.module;
+        const cachedUrl = module ? iconUrlCache.get(module) : undefined;
+        return cachedUrl && !item.iconUrl ? { ...item, iconUrl: cachedUrl } : item;
+    });
+}
 
 export const ConnectionSelectEditor: React.FC<ConnectionSelectEditorProps> = ({ value, field, onChange }) => {
     const { rpcClient } = useRpcContext();
@@ -42,7 +45,7 @@ export const ConnectionSelectEditor: React.FC<ConnectionSelectEditorProps> = ({ 
 
     const searchNodesKind = field.codedata?.searchNodesKind;
     const initialItems: ConnectionSelectItem[] = field.codedata?.initialItems ?? [];
-    const [selectItems, setSelectItems] = useState<ConnectionSelectItem[]>(initialItems);
+    const [selectItems, setSelectItems] = useState<ConnectionSelectItem[]>(enrichWithCachedIcons(initialItems));
 
     useEffect(() => {
         if (!searchNodesKind) return;
@@ -54,12 +57,20 @@ export const ConnectionSelectEditor: React.FC<ConnectionSelectEditorProps> = ({ 
             const nodes = response?.output ?? [];
             const items: ConnectionSelectItem[] = nodes
                 .filter(node => node.properties?.variable?.value)
-                .map(node => ({
-                    id: String(node.properties.variable.value),
-                    label: node.properties.variable.value as string,
-                    value: String(node.properties.variable.value),
-                    codedata: node.codedata,
-                }));
+                .map(node => {
+                    const iconUrl = node.metadata?.icon;
+                    const module = node.codedata?.module;
+                    if (iconUrl && module) {
+                        iconUrlCache.set(module, iconUrl);
+                    }
+                    return {
+                        id: String(node.properties.variable.value),
+                        label: node.properties.variable.value as string,
+                        value: String(node.properties.variable.value),
+                        codedata: node.codedata,
+                        iconUrl,
+                    };
+                });
             setSelectItems(items);
         });
     }, [searchNodesKind, fileName]);
