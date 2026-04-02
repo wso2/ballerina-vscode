@@ -180,7 +180,12 @@ const AIChat: React.FC = () => {
     const [isAutoApproveEnabled, setIsAutoApproveEnabled] = useState(false);
     const [isWebToolsEnabled, setIsWebToolsEnabled] = useState(false);
     const userWebSearchPreferenceRef = useRef(false);
-    const [agentMode, setAgentMode] = useState<AgentMode>(AgentMode.Edit);
+    const [agentMode, _setAgentMode] = useState<AgentMode>(AgentMode.Edit);
+    const agentModeRef = useRef<AgentMode>(AgentMode.Edit);
+    const setAgentMode = (mode: AgentMode) => {
+        _setAgentMode(mode);
+        agentModeRef.current = mode;
+    };
 
     const [availableCheckpointIds, setAvailableCheckpointIds] = useState<Set<string>>(new Set());
     const [hasActiveReview, setHasActiveReview] = useState(false);
@@ -562,11 +567,19 @@ const AIChat: React.FC = () => {
                     const targetIndex = ensureAssistantMessage(msgs);
                     const last = msgs[targetIndex];
                     const entries = parseStream(last.content);
-                    const planItem: StreamItem = { kind: "plan", requestId: response.requestId, tasks: response.tasks, message: response.message };
+                    const planItem: StreamItem = {
+                        kind: "plan", requestId: response.requestId, tasks: response.tasks, message: response.message,
+                        ...(response.autoApproved ? { approvalStatus: "approved" as const } : {})
+                    };
                     const updated = appendToLastEntry(entries, planItem);
                     msgs[targetIndex] = { ...last, content: serializeStream(updated, last.content) };
                     return msgs;
                 });
+            }
+
+            // Skip approval UI when auto-approved from backend (scaffold mode)
+            if (response.autoApproved) {
+                return;
             }
 
             if (isAutoApproveEnabled && response.approvalType === "completion") {
@@ -1270,9 +1283,9 @@ const AIChat: React.FC = () => {
         const currentCodeContext = codeContextRef.current;
         const currentHiddenContext = hiddenContextRef.current;
         hiddenContextRef.current = undefined;
-        console.log("Submitting agent prompt:", { useCase, agentMode, codeContext: currentCodeContext, operationType, fileAttatchments });
+        console.log("Submitting agent prompt:", { useCase, agentMode: agentModeRef.current, codeContext: currentCodeContext, operationType, fileAttatchments });
         rpcClient.getAiPanelRpcClient().generateAgent({
-            usecase: useCase, hiddenContext: currentHiddenContext, isPlanMode: agentMode === AgentMode.Plan, codeContext: currentCodeContext, operationType, fileAttachmentContents: fileAttatchments, webSearchEnabled: isWebToolsEnabled
+            usecase: useCase, hiddenContext: currentHiddenContext, isPlanMode: agentModeRef.current === AgentMode.Plan, codeContext: currentCodeContext, operationType, fileAttachmentContents: fileAttatchments, webSearchEnabled: isWebToolsEnabled
         })
     }
 
