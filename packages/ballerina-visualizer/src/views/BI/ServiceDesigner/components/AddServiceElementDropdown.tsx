@@ -128,7 +128,7 @@ export interface DropdownOptionProps {
 
 function DropdownOption({ title, description }: DropdownOptionProps) {
     return (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px 8px 8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div>
                 <Typography variant="body2" sx={{ fontWeight: 'medium' }}>{title}</Typography>
                 <Typography variant="body3" sx={{ color: 'var(--vscode-descriptionForeground)' }}>

@@ -18,7 +18,6 @@
 
 import styled from "@emotion/styled";
 import {
-    Command,
     DIRECTORY_MAP,
     EVENT_TYPE,
     FunctionModel,
@@ -28,9 +27,7 @@ import {
     ComponentInfo,
     ServiceModel,
     Protocol,
-    SHARED_COMMANDS,
-    TemplateId,
-    AIPanelPrompt
+    SHARED_COMMANDS
 } from "@wso2/ballerina-core";
 import { buildBaseUrl } from "./buildHurlString";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -750,56 +747,56 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     };
 
     const handleServiceTryIt = async () => {
-        setIsTryItInProgress(true);
         const basePath = serviceModel.properties?.basePath?.value?.trim();
         const listenerProperty = serviceModel.properties?.listener;
         const listener = (listenerProperty?.value ?? listenerProperty?.values?.[0] ?? '').trim();
 
-        try {
-            await rpcClient.getCommonRpcClient().executeCommand({
-                commands: ["ballerina.tryIt", false, undefined, { basePath, listener }]
-            });
-        } finally {
-            setIsTryItInProgress(false);
-        }
+        await rpcClient.getCommonRpcClient().executeCommand({
+            commands: ["ballerina.tryIt", false, undefined, { basePath, listener }]
+        });
     }
 
     const handleServiceTryItWithAI = async () => {
-        setIsTryItInProgress(true);
         const basePath = serviceModel.properties?.basePath?.value?.trim();
         const serviceName = serviceModel.name || "Service";
 
         const prompt = getTryItAIDefaultPromptService(serviceName, basePath);
 
-        try {
-            await rpcClient.getCommonRpcClient().executeCommand({
-                commands: [SHARED_COMMANDS.OPEN_AI_PANEL, prompt]
-            });
-        } finally {
-            setIsTryItInProgress(false);
-        }
+        await rpcClient.getCommonRpcClient().executeCommand({
+            commands: [SHARED_COMMANDS.OPEN_AI_PANEL, prompt]
+        });
     };
 
     const handleExportOAS = () => {
         rpcClient.getServiceDesignerRpcClient().exportOASFile({});
     };
 
-    const handleTryItDropdownOption = (option: string) => {
+    const handleTryItDropdownOption = async (option: string) => {
         if (isTryItInProgress) {
             return;
         }
+
         const selectedOption = option as TryItOptionValue;
-        setSelectedTryItOption(selectedOption);
-        rpcClient.getCommonRpcClient().setPreferredTryItOption(selectedOption).catch((error: unknown) => {
+        if (isMountedRef.current) {
+            setSelectedTryItOption(selectedOption);
+            setIsTryItInProgress(true);
+        }
+        await rpcClient.getCommonRpcClient().setPreferredTryItOption(selectedOption).catch((error: unknown) => {
             console.error("Error saving preferred Try It option:", error);
         });
-        switch (selectedOption) {
-            case TryItOptionValue.TRY_IT:
-                handleServiceTryIt();
-                break;
-            case TryItOptionValue.TRY_IT_WITH_AI:
-                handleServiceTryItWithAI();
-                break;
+        try {
+            switch (selectedOption) {
+                case TryItOptionValue.TRY_IT:
+                    await handleServiceTryIt();
+                    break;
+                case TryItOptionValue.TRY_IT_WITH_AI:
+                    await handleServiceTryItWithAI();
+                    break;
+            }
+        } finally {
+            if (isMountedRef.current) {
+                setIsTryItInProgress(false);
+            }
         }
     };
 
@@ -807,13 +804,14 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         if (isTryItInProgress) {
             return;
         }
-        setIsTryItInProgress(true);
         let optionToRun = selectedTryItOption;
         try {
             const preferredOption = await rpcClient.getCommonRpcClient().getPreferredTryItOption();
             if (preferredOption === TryItOptionValue.TRY_IT || preferredOption === TryItOptionValue.TRY_IT_WITH_AI) {
                 optionToRun = preferredOption;
-                setSelectedTryItOption(optionToRun);
+                if (isMountedRef.current) {
+                    setSelectedTryItOption(optionToRun);
+                }
             } else {
                 const tryItOptions = getTryItDropdownOptions("service").map(option => ({
                     label: option.title,
@@ -829,14 +827,14 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                     return;
                 }
                 optionToRun = selected.value;
-                setSelectedTryItOption(optionToRun);
+                if (isMountedRef.current) {
+                    setSelectedTryItOption(optionToRun);
+                }
                 await rpcClient.getCommonRpcClient().setPreferredTryItOption(optionToRun);
             }
-            handleTryItDropdownOption(optionToRun);
+            await handleTryItDropdownOption(optionToRun);
         } catch (error) {
             console.error("Error handling Try It first-time flow:", error);
-        } finally {
-            setIsTryItInProgress(false);
         }
     };
 
