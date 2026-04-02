@@ -26,6 +26,8 @@ import {
     InlineCardTitle,
     InlineCardSubtitle
 } from "./styles";
+import { Button, Divider } from "@wso2/ui-toolkit";
+import { HeaderLeft } from "../../../BI/ProjectForm/styles";
 
 const HURL_IMPORT_VSCODE_COMMAND = "HTTPClient.importHurlString";
 // ── Styled components ─────────────────────────────────────────────────────────
@@ -220,9 +222,6 @@ const ErrorMessage = styled.span`
 `;
 
 const ScenarioGroup = styled.div`
-    background-color: var(--vscode-input-background);
-    border: 1px solid var(--vscode-panel-border);
-    border-radius: 4px;
     margin: 4px 0 2px;
     overflow: hidden;
 `;
@@ -239,38 +238,12 @@ const ScenarioHeader = styled.div`
     letter-spacing: 0.5px;
 `;
 
-const EditButton = styled.button`
-    background: none;
-    border: none;
-    outline: none;
-    color: var(--vscode-foreground);
-    cursor: pointer;
-    padding: 1px 4px;
-    border-radius: 3px;
-    font-size: 7px;
-    font-weight: 600;
-    &:focus,
-    &:focus-visible {
-        outline: none;
-    }
-    &:hover {
-        background-color: var(--vscode-toolbar-hoverBackground);
-        color: var(--vscode-foreground);
-    }
+const EditButton = styled.div`
+
 `;
 
 const ScenarioContent = styled.div`
     padding: 2px 8px 4px;
-`;
-
-const HoverableInlineCardHeader = styled(InlineCardHeader)`
-    &:hover .header-actions,
-    &:focus-within .header-actions {
-        max-width: 28px;
-        opacity: 1;
-        transform: translateX(0);
-        pointer-events: auto;
-    }
 `;
 
 const HeaderRightStack = styled.div`
@@ -283,28 +256,20 @@ const HeaderRightStack = styled.div`
     gap: 2px;
 `;
 
+const HeaderLeftStack = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 2px;
+`;
 const HeaderScenario = styled(InlineCardSubtitle)`
-    flex: 1 1 auto;
-    min-width: 0;
-    max-width: 240px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    text-align: right;
 `;
 
 const HeaderActions = styled.div`
     display: flex;
     align-items: center;
-    overflow: hidden;
-    white-space: nowrap;
     flex: 0 0 auto;
-    max-width: 0;
-    opacity: 0;
-    transform: translateX(4px);
-    pointer-events: none;
-    transition: max-width 180ms ease, opacity 120ms ease, transform 180ms ease;
-    will-change: max-width, opacity, transform;
 `;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -505,9 +470,10 @@ interface TryItCardProps {
     input?: any;
     output?: {hurlScript: string; scenario?: string; runResult: HurlToolOutput};
     rpcClient?: any;
+    loading: boolean;
 }
 
-const TryItCard: React.FC<TryItCardProps> = ({ input, output, rpcClient }) => {
+const TryItCard: React.FC<TryItCardProps> = ({ input, output, rpcClient, loading }) => {
     if (!input?.hurlScript && !output?.hurlScript) return null;
     const hurlScript = input?.hurlScript ?? output?.hurlScript;
     const scenario = input?.scenario ?? output?.scenario;
@@ -537,21 +503,24 @@ const TryItCard: React.FC<TryItCardProps> = ({ input, output, rpcClient }) => {
 
     return (
         <InlineCard>
-            <HoverableInlineCardHeader>
+            <InlineCardHeader>
                 <InlineCardIcon>
                     <span className="codicon codicon-send" />
                 </InlineCardIcon>
+                <HeaderLeftStack>
                 <InlineCardTitle>HTTP Request{multipleEntries && `s`}</InlineCardTitle>
+                </HeaderLeftStack>
                 <HeaderRightStack>
-                    {scenario && <HeaderScenario>{scenario}</HeaderScenario>}
-                    <HeaderActions className="header-actions">
-                        <EditButton title="Edit in HTTP Client" onClick={handleEdit}>
+                    <HeaderActions>
+                        <Button appearance="icon" tooltip="Edit in HTTP Client" onClick={handleEdit} disabled={loading}>
                             <span className="codicon codicon-edit" />
-                        </EditButton>
+                        </Button>
                     </HeaderActions>
                 </HeaderRightStack>
-            </HoverableInlineCardHeader>
+            </InlineCardHeader>
             <ScenarioGroup>
+                <Divider sx={{ margin: '6px 0' }} />
+                {scenario && <HeaderScenario>{scenario}</HeaderScenario>}
                 <ScenarioContent>{content}</ScenarioContent>
             </ScenarioGroup>
         </InlineCard>

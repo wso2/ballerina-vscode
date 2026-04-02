@@ -184,7 +184,7 @@ function renderItem(item: StreamItem, idx: number, streamActive: boolean, rpcCli
         }
         case "tool_call": {
             if (item.toolName === "hurlRunnerTool") {
-                return <TryItCard key={idx} input={item.toolInput} rpcClient={rpcClient} />;
+                return <TryItCard key={idx} input={item.toolInput} rpcClient={rpcClient} loading={streamActive}/>;
             }
             if (COMMAND_OUTPUT_TOOLS.has(item.toolName ?? "")) {
                 return <CommandOutputCard key={idx} toolName={item.toolName} toolInput={item.toolInput} />;
@@ -204,7 +204,7 @@ function renderItem(item: StreamItem, idx: number, streamActive: boolean, rpcCli
         case "tool_result": {
             if (item.toolName === "Clarify" && !item.toolOutput?.skipped) return null;
             if (item.toolName === "hurlRunnerTool") {
-                return <TryItCard key={idx} output={item.toolOutput} rpcClient={rpcClient} />;
+                return <TryItCard key={idx} output={item.toolOutput} rpcClient={rpcClient} loading={streamActive}/>;
             }
             if (COMMAND_OUTPUT_TOOLS.has(item.toolName ?? "")) {
                 return <CommandOutputCard key={idx} toolName={item.toolName} toolOutput={item.toolOutput} isResult={true} />;
