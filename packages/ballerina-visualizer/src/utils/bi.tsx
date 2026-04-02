@@ -443,6 +443,15 @@ export function enrichFormTemplatePropertiesWithValues(
 ) {
     const enrichedFormTemplateProperties = cloneDeep(formTemplateProperties);
 
+    const hasConfiguredDropdownOptions = (property?: Property) =>
+        property?.types?.some((type) =>
+            type &&
+            "options" in type &&
+            (type.fieldType === "SINGLE_SELECT" || type.fieldType === "MULTIPLE_SELECT") &&
+            Array.isArray(type.options) &&
+            type.options.length > 0
+        ) ?? false;
+
     for (const key in formProperties) {
         if (formProperties.hasOwnProperty(key)) {
             const formProperty = formProperties[key as NodePropertyKey];
@@ -463,7 +472,14 @@ export function enrichFormTemplatePropertiesWithValues(
                 }
 
                 if (formProperty.types) {
-                    enrichedFormTemplateProperties[key as NodePropertyKey].types = formProperty.types;
+                    const templateProperty = enrichedFormTemplateProperties[key as NodePropertyKey];
+                    const preserveTemplateDropdown =
+                        hasConfiguredDropdownOptions(templateProperty) &&
+                        !hasConfiguredDropdownOptions(formProperty);
+
+                    if (!preserveTemplateDropdown) {
+                        enrichedFormTemplateProperties[key as NodePropertyKey].types = formProperty.types;
+                    }
                 }
             }
         }

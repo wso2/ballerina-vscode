@@ -273,6 +273,7 @@ export function SendEventForm(props: SendEventFormProps) {
     const [formImports, setFormImports] = useState<FormImports>(getImportsForFormFields(initialFields));
     const [isLoadingWorkflowEvents, setIsLoadingWorkflowEvents] = useState<boolean>(false);
     const [workflowEventTypes, setWorkflowEventTypes] = useState<Record<string, string>>({});
+    const [hasNoWorkflowEvents, setHasNoWorkflowEvents] = useState<boolean>(false);
     const workflowRef = useRef<string>("");
     const initialFieldsRef = useRef<FormField[]>(initialFields);
 
@@ -324,6 +325,15 @@ export function SendEventForm(props: SendEventFormProps) {
 
             return {
                 ...field,
+                type: "SINGLE_SELECT",
+                types: [{
+                    fieldType: "SINGLE_SELECT",
+                    options: workflowOptions.map((option) => ({
+                        label: option.label,
+                        value: option.value,
+                    })),
+                    selected: true,
+                } as InputType],
                 editable: true,
                 itemOptions: workflowOptions.map((option) => ({
                     id: option.value,
@@ -340,12 +350,45 @@ export function SendEventForm(props: SendEventFormProps) {
         setFormImports(getImportsForFormFields(normalizedInitialFields));
         setIsLoadingWorkflowEvents(false);
         setWorkflowEventTypes({});
+        setHasNoWorkflowEvents(false);
         workflowRef.current = "";
     }, [initialFields]);
 
     const fieldKeys = useMemo(() => getSendEventFieldKeys(formFields), [formFields]);
+    const effectiveInjectedComponents = useMemo(() => {
+        const components = [...(injectedComponents ?? [])];
 
-    const applySendEventFields = useCallback((workflowName: string, events: WorkflowEventDefinition[], preferredEventName?: string) => {
+        if (hasNoWorkflowEvents) {
+            components.unshift({
+                index: 1,
+                component: (
+                    <div
+                        style={{
+                            marginBottom: 12,
+                            padding: "12px",
+                            borderRadius: 6,
+                            border: "1px solid var(--vscode-inputValidation-warningBorder, #b89500)",
+                            background: "var(--vscode-inputValidation-warningBackground, rgba(184, 149, 0, 0.12))",
+                            color: "var(--vscode-editor-foreground)",
+                            fontSize: 12,
+                            lineHeight: 1.5,
+                        }}
+                    >
+                        No Data Waits are available for the selected workflow. Select a workflow that exposes Data Waits before saving.
+                    </div>
+                ),
+            });
+        }
+
+        return components;
+    }, [hasNoWorkflowEvents, injectedComponents]);
+
+    const applySendEventFields = useCallback((
+        workflowName: string,
+        events: WorkflowEventDefinition[],
+        preferredEventName?: string,
+        showNoEventsState = true,
+    ) => {
         setFormFields((prevFields) => {
             const keys = getSendEventFieldKeys(prevFields);
             if (!keys.eventName && !keys.eventData) {
@@ -359,6 +402,7 @@ export function SendEventForm(props: SendEventFormProps) {
                     : eventNames[0] || "";
             const selectedEventType = events.find((event) => event.name === selectedEventName)?.type ?? "anydata";
             const hasWorkflow = workflowName.length > 0;
+            const hasEvents = events.length > 0;
 
             const initialEventNameField = keys.eventName
                 ? initialFieldsRef.current.find((field) => field.key === keys.eventName)
@@ -367,12 +411,14 @@ export function SendEventForm(props: SendEventFormProps) {
                 ? initialFieldsRef.current.find((field) => field.key === keys.eventData)
                 : undefined;
 
+            setHasNoWorkflowEvents(showNoEventsState && hasWorkflow && !hasEvents);
+
             return prevFields.map((field) => {
                 if (field.key === keys.workflowName) {
                     return { ...field, editable: true, value: workflowName };
                 }
                 if (field.key === keys.eventName) {
-                    if (events.length === 0) {
+                    if (!hasEvents) {
                         const fallbackField = initialEventNameField ?? field;
                         return {
                             ...field,
@@ -381,7 +427,8 @@ export function SendEventForm(props: SendEventFormProps) {
                             items: fallbackField.items,
                             itemOptions: fallbackField.itemOptions,
                             editable: false,
-                            value: preferredEventName ?? field.value,
+                            hidden: hasWorkflow,
+                            value: "",
                         };
                     }
                     return {
@@ -399,18 +446,21 @@ export function SendEventForm(props: SendEventFormProps) {
                             content: eventName,
                             value: eventName,
                         })),
+                        hidden: false,
                         value: selectedEventName,
                     };
                 }
                 if (field.key === keys.eventData) {
                     if (!hasWorkflow) {
-                        return { ...field, editable: false };
+                        return { ...field, editable: false, hidden: false };
                     }
                     if (!selectedEventName) {
                         const fallbackField = initialEventDataField ?? field;
                         return {
                             ...field,
                             editable: false,
+                            hidden: hasWorkflow && !hasEvents,
+                            value: fallbackField.value,
                             type: fallbackField.type,
                             types: cloneDeep(fallbackField.types),
                         };
@@ -418,6 +468,7 @@ export function SendEventForm(props: SendEventFormProps) {
                     return {
                         ...field,
                         editable: true,
+                        hidden: false,
                         types: updateEventDataTypes(field.types, selectedEventType),
                     };
                 }
@@ -457,7 +508,8 @@ export function SendEventForm(props: SendEventFormProps) {
 
             if (!normalizedWorkflowName) {
                 setWorkflowEventTypes({});
-                applySendEventFields("", [], "");
+                setHasNoWorkflowEvents(false);
+                applySendEventFields("", [], "", false);
                 setIsLoadingWorkflowEvents(false);
                 return;
             }
@@ -478,11 +530,11 @@ export function SendEventForm(props: SendEventFormProps) {
                         return acc;
                     }, {})
                 );
-                applySendEventFields(normalizedWorkflowName, events, preferredEventName);
+                applySendEventFields(normalizedWorkflowName, events, preferredEventName, true);
             } catch (error) {
                 console.error("Error fetching workflow data: ", error);
                 setWorkflowEventTypes({});
-                applySendEventFields(normalizedWorkflowName, [], "");
+                applySendEventFields(normalizedWorkflowName, [], "", false);
             } finally {
                 setIsLoadingWorkflowEvents(false);
             }
@@ -558,7 +610,11 @@ export function SendEventForm(props: SendEventFormProps) {
     const notSupportedLabel =
         "This statement is not supported in low-code yet. Please use the Ballerina source code to modify it accordingly.";
     const baseInfoLabel = node.codedata.node === "EXPRESSION" ? notSupportedLabel : node.metadata.description;
-    const infoLabel = isLoadingWorkflowEvents ? `${baseInfoLabel}\nLoading workflow data...` : baseInfoLabel;
+    const infoLabel = isLoadingWorkflowEvents
+        ? `${baseInfoLabel}\nLoading workflow data...`
+        : hasNoWorkflowEvents
+            ? `${baseInfoLabel}\nNo Data Waits are available for the selected workflow. Select a workflow that exposes Data Waits before saving.`
+            : baseInfoLabel;
 
     return (
         <Form
@@ -576,13 +632,13 @@ export function SendEventForm(props: SendEventFormProps) {
             updatedExpressionField={updatedExpressionField}
             resetUpdatedExpressionField={resetUpdatedExpressionField}
             infoLabel={infoLabel}
-            disableSaveButton={disableSaveButton || isLoadingWorkflowEvents}
+            disableSaveButton={disableSaveButton || isLoadingWorkflowEvents || hasNoWorkflowEvents}
             footerActionButton={footerActionButton}
             formImports={formImports}
             recordTypeFields={recordTypeFields}
             scopeFieldAddon={scopeFieldAddon}
             onChange={handleFormChange}
-            injectedComponents={injectedComponents}
+            injectedComponents={effectiveInjectedComponents}
         />
     );
 }

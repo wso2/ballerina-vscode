@@ -221,7 +221,7 @@ export function ParamManager(props: ParamManagerProps) {
     const addButtonLabel = selectedNode === "DATA_MAPPER_DEFINITION"
         ? "Input"
         : selectedNode === "WAIT_DATA"
-            ? "Data"
+            ? "Data Waits"
             : isGraphql
                 ? "Argument"
                 : "Parameter";
