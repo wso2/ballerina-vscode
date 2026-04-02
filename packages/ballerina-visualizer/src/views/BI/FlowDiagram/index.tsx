@@ -65,6 +65,7 @@ import {
     enrichCategoryWithDevant,
     convertKnowledgeBaseCategoriesToSidePanelCategories
 } from "../../../utils/bi";
+import { findCurrentIntegrationCategory } from "../../../utils/function-category";
 import { useDraftNodeManager } from "./hooks/useDraftNodeManager";
 import { NodePosition, STNode } from "@wso2/syntax-tree";
 import { View, ProgressIndicator, ThemeColors } from "@wso2/ui-toolkit";
@@ -579,9 +580,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     response.categories as Category[],
                     FUNCTION_TYPE.REGULAR
                 );
-                const projectCategory = panelCategories.find((category) => category.title === "Project");
-                if (projectCategory && !projectCategory.items.length) {
-                    projectCategory.description = "No activities defined. Click below to create a new activity.";
+                const currentIntegrationCategory = findCurrentIntegrationCategory(panelCategories);
+                if (currentIntegrationCategory && !currentIntegrationCategory.items.length) {
+                    currentIntegrationCategory.description = "No activities defined. Click below to create a new activity.";
                 }
                 setCategories(panelCategories);
                 setSidePanelView(SidePanelView.ACTIVITY_LIST);
@@ -614,9 +615,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     response.categories as Category[],
                     FUNCTION_TYPE.REGULAR
                 );
-                const projectCategory = panelCategories.find((category) => category.title === "Project");
-                if (projectCategory && !projectCategory.items.length) {
-                    projectCategory.description = "No workflows defined. Click below to create a new workflow.";
+                const currentIntegrationCategory = findCurrentIntegrationCategory(panelCategories);
+                if (currentIntegrationCategory && !currentIntegrationCategory.items.length) {
+                    currentIntegrationCategory.description = "No workflows defined. Click below to create a new workflow.";
                 }
                 setCategories(panelCategories);
                 setSidePanelView(SidePanelView.WORKFLOW_LIST);
@@ -1121,12 +1122,12 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                         [...response.categories] as Category[],
                         functionType
                     );
-                    const projectCategory = currentCategories.find((category) => category.title === "Project");
-                    if (projectCategory && !projectCategory.items.length) {
+                    const currentIntegrationCategory = findCurrentIntegrationCategory(currentCategories);
+                    if (currentIntegrationCategory && !currentIntegrationCategory.items.length) {
                         if (isWorkflowSearch) {
-                            projectCategory.description = "No workflows defined. Click below to create a new workflow.";
+                            currentIntegrationCategory.description = "No workflows defined. Click below to create a new workflow.";
                         } else if (searchKind === "ACTIVITY_CALL") {
-                            projectCategory.description = "No activities defined. Click below to create a new activity.";
+                            currentIntegrationCategory.description = "No activities defined. Click below to create a new activity.";
                         }
                     }
                     setCategories(currentCategories);
@@ -1467,9 +1468,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                                 response.categories as Category[],
                                 FUNCTION_TYPE.REGULAR
                             );
-                            const projectCategory = panelCategories.find((category) => category.title === "Project");
-                            if (projectCategory && !projectCategory.items.length) {
-                                projectCategory.description = "No workflows defined. Click below to create a new workflow.";
+                            const currentIntegrationCategory = findCurrentIntegrationCategory(panelCategories);
+                            if (currentIntegrationCategory && !currentIntegrationCategory.items.length) {
+                                currentIntegrationCategory.description = "No workflows defined. Click below to create a new workflow.";
                             }
                             setCategories(panelCategories);
                             setSidePanelView(SidePanelView.WORKFLOW_LIST);
@@ -1520,9 +1521,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                                 response.categories as Category[],
                                 FUNCTION_TYPE.REGULAR
                             );
-                            const projectCategory = panelCategories.find((category) => category.title === "Project");
-                            if (projectCategory && !projectCategory.items.length) {
-                                projectCategory.description = "No activities defined. Click below to create a new activity.";
+                            const currentIntegrationCategory = findCurrentIntegrationCategory(panelCategories);
+                            if (currentIntegrationCategory && !currentIntegrationCategory.items.length) {
+                                currentIntegrationCategory.description = "No activities defined. Click below to create a new activity.";
                             }
                             setCategories(panelCategories);
                             setSidePanelView(SidePanelView.ACTIVITY_LIST);

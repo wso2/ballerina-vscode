@@ -25,6 +25,7 @@ import {
     Parameter,
     FormImports,
 } from "@wso2/ballerina-side-panel";
+import { findCurrentIntegrationCategory, normalizeFunctionSearchCategories } from "./function-category";
 import { AddNodeVisitor, RemoveNodeVisitor, NodeIcon, traverseFlow, ConnectorIcon, AIModelIcon } from "@wso2/bi-diagram";
 import {
     Category,
@@ -215,10 +216,10 @@ export function convertFunctionCategoriesToSidePanelCategories(
     categories: Category[],
     functionType: FUNCTION_TYPE
 ): PanelCategory[] {
-    const panelCategories = categories
+    const panelCategories = normalizeFunctionSearchCategories(categories)
         .map((category) => convertDiagramCategoryToSidePanelCategory(category, functionType))
         .filter((category) => category !== undefined);
-    const functionCategory = panelCategories.find((category) => category.title === "Project");
+    const functionCategory = findCurrentIntegrationCategory(panelCategories);
     if (functionCategory && !functionCategory.items.length) {
         functionCategory.description = "No functions defined. Click below to create a new function.";
     }
