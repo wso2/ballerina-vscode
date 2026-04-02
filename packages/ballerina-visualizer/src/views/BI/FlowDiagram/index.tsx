@@ -930,6 +930,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         parent: FlowNode | Branch,
         target: LineRange,
         fetchAiSuggestions = false, // By default, we fetch available nodes without fetching AI suggestions.
+        updateFlowModel = true
     ) => {
         if (!parent || !target) {
             console.error(">>> No parent or target found");
