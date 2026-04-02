@@ -56,7 +56,7 @@ public class KnowledgeBaseSearchCommand extends SearchCommand {
     protected List<Item> search() {
         List<AvailableNode> knowledgeBases = AiUtils.getKnowledgeBases(project);
         List<Item> matchingBases = knowledgeBases.stream()
-                .filter(node -> node.codedata().module().contains(query))
+                .filter(node -> AiUtils.matchesQuery(node, query))
                 .collect(Collectors.toList());
 
         Category category = new Category.Builder(null).metadata().label(KNOWLEDGE_BASE_LABEL)

@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
  * @since 1.1.1
  */
 public class DataLoaderSearchCommand extends SearchCommand {
+
     private static final String DATA_LOADER_LABEL = "Data Loaders";
 
     public DataLoaderSearchCommand(Project project, LineRange position, Map<String, String> queryMap) {
@@ -55,7 +56,7 @@ public class DataLoaderSearchCommand extends SearchCommand {
     protected List<Item> search() {
         List<AvailableNode> modelProviders = AiUtils.getDataLoaders(project);
         List<Item> matchingProviders = modelProviders.stream()
-                .filter(node -> node.codedata().module().contains(query))
+                .filter(node -> AiUtils.matchesQuery(node, query))
                 .collect(Collectors.toList());
 
         Category category = new Category.Builder(null).metadata().label(DATA_LOADER_LABEL)

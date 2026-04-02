@@ -133,9 +133,7 @@ public class AiUtils {
 
     // Keyword cache: "org:name:version" -> list of keywords from Central
     private static final Map<String, List<String>> moduleKeywordsCache = new HashMap<>();
-    private static volatile boolean moduleKeywordsLoaded = false;
 
-    // TODO: Replace with proper keywords
     // Interim keyword filter map — maps each category to keywords that identify relevant packages.
     private static final Map<NodeKind, List<String>> CATEGORY_KEYWORD_FILTERS = Map.of(
             MODEL_PROVIDER, List.of("Model Provider", "model", "llm"),
@@ -546,12 +544,12 @@ public class AiUtils {
         }
     }
 
-    private static synchronized void ensureDependentModulesResolved(String userAiVersion) {
+    private static synchronized void ensureDependentModulesResolved() {
         if (dependentModulesResolved) {
             return;
         }
         try {
-            loadDependentModulesFromCentral(userAiVersion);
+            loadDependentModulesFromCentral();
         } catch (RuntimeException e) {
             LOGGER.log(Level.WARNING,
                     "Failed to resolve dependent modules from Ballerina Central, using hardcoded fallback", e);
@@ -560,24 +558,14 @@ public class AiUtils {
         }
     }
 
-    private static void loadDependentModulesFromCentral(String userAiVersion) {
+    private static void loadDependentModulesFromCentral() {
         List<String> allVersions = RemoteCentral.getInstance().allPackageVersions(BALLERINA, AI);
         if (allVersions.isEmpty()) {
             return;
         }
 
-        // Only query versions compatible with the user's AI version.
-        // If version is null (no ballerina/ai dependency), query all versions.
-        List<String> compatibleVersions = (userAiVersion == null) ? allVersions : allVersions.stream()
-                .filter(v -> compareSemver(userAiVersion, v) >= 0)
-                .toList();
-
-        if (compatibleVersions.isEmpty()) {
-            return;
-        }
-
         Map<String, List<DependentPackage>> allDeps =
-                RemoteCentral.getInstance().dependentPackages(BALLERINA, AI, compatibleVersions);
+                RemoteCentral.getInstance().dependentPackages(BALLERINA, AI, allVersions);
 
         Map<String, List<Module>> resolved = new HashMap<>();
         for (Map.Entry<String, List<DependentPackage>> entry : allDeps.entrySet()) {
@@ -596,7 +584,7 @@ public class AiUtils {
     }
 
     public static List<Module> getLatestCompatibleModules(String version) {
-        ensureDependentModulesResolved(version);
+        ensureDependentModulesResolved();
         Collection<List<Module>> candidateModules = (version == null)
                 ? dependentModules.values()
                 : dependentModules.entrySet().stream()
@@ -646,44 +634,53 @@ public class AiUtils {
 
     public static List<AvailableNode> getModelProviders(Project project) {
         buildCategoryCache(project, MODEL_PROVIDER);
-        String aiModuleVersion = getBallerinaAiModuleVersion(project);
-        return cachedModelProviderMap.getOrDefault(aiModuleVersion, List.of());
+        return cachedModelProviderMap.getOrDefault(getProjectCacheKey(project), List.of());
     }
 
     public static List<AvailableNode> getEmbeddingProviders(Project project) {
         buildCategoryCache(project, EMBEDDING_PROVIDER);
-        String aiModuleVersion = getBallerinaAiModuleVersion(project);
-        return cachedEmbeddingProviderMap.getOrDefault(aiModuleVersion, List.of());
+        return cachedEmbeddingProviderMap.getOrDefault(getProjectCacheKey(project), List.of());
     }
 
     public static List<AvailableNode> getVectorStores(Project project) {
         buildCategoryCache(project, VECTOR_STORE);
-        String aiModuleVersion = getBallerinaAiModuleVersion(project);
-        return cachedVectorStoreMap.getOrDefault(aiModuleVersion, List.of());
+        return cachedVectorStoreMap.getOrDefault(getProjectCacheKey(project), List.of());
     }
 
     public static List<AvailableNode> getChunkers(Project project) {
         buildCategoryCache(project, CHUNKER);
-        String aiModuleVersion = getBallerinaAiModuleVersion(project);
-        return cachedChunkerMap.getOrDefault(aiModuleVersion, List.of());
+        return cachedChunkerMap.getOrDefault(getProjectCacheKey(project), List.of());
     }
 
     public static List<AvailableNode> getDataLoaders(Project project) {
         buildCategoryCache(project, DATA_LOADER);
-        String aiModuleVersion = getBallerinaAiModuleVersion(project);
-        return cachedDataLoaderMap.getOrDefault(aiModuleVersion, List.of());
+        return cachedDataLoaderMap.getOrDefault(getProjectCacheKey(project), List.of());
     }
 
     public static List<AvailableNode> getShortTermMemoryStores(Project project) {
         buildCategoryCache(project, SHORT_TERM_MEMORY_STORE);
-        String aiModuleVersion = getBallerinaAiModuleVersion(project);
-        return cachedShortTermMemoryStoreMap.getOrDefault(aiModuleVersion, List.of());
+        return cachedShortTermMemoryStoreMap.getOrDefault(getProjectCacheKey(project), List.of());
     }
 
     public static List<AvailableNode> getKnowledgeBases(Project project) {
         buildCategoryCache(project, KNOWLEDGE_BASE);
-        String aiModuleVersion = getBallerinaAiModuleVersion(project);
-        return cachedKnowledgeBaseMap.getOrDefault(aiModuleVersion, List.of());
+        return cachedKnowledgeBaseMap.getOrDefault(getProjectCacheKey(project), List.of());
+    }
+
+    private static String getProjectCacheKey(Project project) {
+        return project.sourceRoot().toAbsolutePath().toString();
+    }
+
+    /**
+     * Checks if an available node matches the search query by comparing against both the module name and the display
+     * label (case-insensitive).
+     */
+    public static boolean matchesQuery(AvailableNode node, String query) {
+        String lowerQuery = query.toLowerCase(Locale.ROOT);
+        String module = node.codedata().module();
+        String label = node.metadata() != null ? node.metadata().label() : null;
+        return (module != null && module.toLowerCase(Locale.ROOT).contains(lowerQuery))
+                || (label != null && label.toLowerCase(Locale.ROOT).contains(lowerQuery));
     }
 
     private static List<Module> pinUserDeclaredVersions(Project project, List<Module> modules) {
@@ -708,8 +705,9 @@ public class AiUtils {
     }
 
     private static synchronized void buildCategoryCache(Project project, NodeKind category) {
+        String cacheKey = getProjectCacheKey(project);
         String aiModuleVersion = getBallerinaAiModuleVersion(project);
-        Set<NodeKind> completed = completedCategories.computeIfAbsent(aiModuleVersion, k -> new HashSet<>());
+        Set<NodeKind> completed = completedCategories.computeIfAbsent(cacheKey, k -> new HashSet<>());
         if (completed.contains(category)) {
             return;
         }
@@ -765,13 +763,13 @@ public class AiUtils {
             }
         }
 
-        mergeIntoCache(cachedModelProviderMap, aiModuleVersion, modelProviders);
-        mergeIntoCache(cachedEmbeddingProviderMap, aiModuleVersion, embeddingProviders);
-        mergeIntoCache(cachedVectorStoreMap, aiModuleVersion, vectorStores);
-        mergeIntoCache(cachedChunkerMap, aiModuleVersion, chunkers);
-        mergeIntoCache(cachedDataLoaderMap, aiModuleVersion, dataLoaders);
-        mergeIntoCache(cachedShortTermMemoryStoreMap, aiModuleVersion, shortTermMemoryStores);
-        mergeIntoCache(cachedKnowledgeBaseMap, aiModuleVersion, knowledgeBases);
+        mergeIntoCache(cachedModelProviderMap, cacheKey, modelProviders);
+        mergeIntoCache(cachedEmbeddingProviderMap, cacheKey, embeddingProviders);
+        mergeIntoCache(cachedVectorStoreMap, cacheKey, vectorStores);
+        mergeIntoCache(cachedChunkerMap, cacheKey, chunkers);
+        mergeIntoCache(cachedDataLoaderMap, cacheKey, dataLoaders);
+        mergeIntoCache(cachedShortTermMemoryStoreMap, cacheKey, shortTermMemoryStores);
+        mergeIntoCache(cachedKnowledgeBaseMap, cacheKey, knowledgeBases);
 
         completed.add(category);
     }
@@ -791,20 +789,19 @@ public class AiUtils {
     }
 
     private static synchronized void ensureKeywordsLoaded(List<Module> allModules) {
-        if (moduleKeywordsLoaded) {
-            return;
-        }
         try {
-            List<DependentPackage> ballerinaxModules = allModules.stream()
+            // Only fetch keywords for modules not already in the cache
+            List<DependentPackage> modulesToFetch = allModules.stream()
                     .filter(m -> BALLERINAX.equals(m.org()) && m.version() != null)
+                    .filter(m -> !moduleKeywordsCache.containsKey(
+                            m.org() + ":" + m.name() + ":" + m.version()))
                     .map(m -> new DependentPackage(m.org(), m.name(), m.version()))
                     .toList();
-            if (!ballerinaxModules.isEmpty()) {
+            if (!modulesToFetch.isEmpty()) {
                 Map<String, List<String>> keywords =
-                        RemoteCentral.getInstance().packageKeywords(ballerinaxModules);
+                        RemoteCentral.getInstance().packageKeywords(modulesToFetch);
                 moduleKeywordsCache.putAll(keywords);
             }
-            moduleKeywordsLoaded = true;
         } catch (RuntimeException e) {
             LOGGER.log(Level.WARNING, "Failed to fetch package keywords from Central, skipping keyword filtering", e);
         }

@@ -56,7 +56,7 @@ public class ShortTermMemoryStoreSearchCommand extends SearchCommand {
     protected List<Item> search() {
         List<AvailableNode> stores = AiUtils.getShortTermMemoryStores(project);
         List<Item> matchingStores = stores.stream()
-                .filter(node -> node.codedata().module().contains(query))
+                .filter(node -> AiUtils.matchesQuery(node, query))
                 .collect(Collectors.toList());
 
         Category category = new Category.Builder(null).metadata().label(SHORT_TERM_MEMORY_STORE_LABEL)

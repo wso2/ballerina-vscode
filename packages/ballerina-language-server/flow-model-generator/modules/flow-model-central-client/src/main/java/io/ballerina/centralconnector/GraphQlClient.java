@@ -121,7 +121,7 @@ class GraphQlClient {
     }
 
     public Map<String, List<DependentPackage>> getDependentPackages(String org, String packageName,
-                                                                     List<String> versions) {
+                                                                    List<String> versions) {
         StringBuilder queryBody = new StringBuilder("query Package { ");
         for (String version : versions) {
             String alias = versionToAlias(version);
@@ -134,13 +134,18 @@ class GraphQlClient {
         queryBody.append("}");
 
         String response = query(queryBody.toString());
-        JsonObject data = gson.fromJson(response, JsonObject.class).getAsJsonObject("data");
+        JsonObject root = gson.fromJson(response, JsonObject.class);
+        if (root == null || !root.has("data") || root.getAsJsonObject("data") == null) {
+            throw new RuntimeException("Invalid GraphQL response: missing 'data' field");
+        }
+        JsonObject data = root.getAsJsonObject("data");
 
         Map<String, List<DependentPackage>> result = new HashMap<>();
         for (String version : versions) {
             String alias = versionToAlias(version);
             JsonObject pkgObj = data.getAsJsonObject(alias);
-            if (pkgObj == null) {
+            if (pkgObj == null || !pkgObj.has("dependentPackages")
+                    || !pkgObj.get("dependentPackages").isJsonArray()) {
                 continue;
             }
             List<DependentPackage> deps = new ArrayList<>();
