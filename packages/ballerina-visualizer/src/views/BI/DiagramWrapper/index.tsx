@@ -348,10 +348,10 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     let isInitFunction = parentMetadata?.kind === "Function" && parentMetadata?.label === "init";
     let isNPFunction = view === FOCUS_FLOW_DIAGRAM_VIEW.NP_FUNCTION;
 
-    const handleResourceTryIt = (methodValue: string, pathValue: string) => {
+    const handleResourceTryIt = async (methodValue: string, pathValue: string) => {
         if (serviceType !== "http") { return; }
 
-        rpcClient.getCommonRpcClient().executeCommand({
+        await rpcClient.getCommonRpcClient().executeCommand({
             commands: ["ballerina.tryIt", false, { methodValue, pathValue }, { basePath, listener }]
         });
     };

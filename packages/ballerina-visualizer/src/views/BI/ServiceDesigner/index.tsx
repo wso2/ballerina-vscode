@@ -756,7 +756,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         const listener = (listenerProperty?.value ?? listenerProperty?.values?.[0] ?? '').trim();
 
         try {
-            rpcClient.getCommonRpcClient().executeCommand({
+            await rpcClient.getCommonRpcClient().executeCommand({
                 commands: ["ballerina.tryIt", false, undefined, { basePath, listener }]
             });
         } finally {
