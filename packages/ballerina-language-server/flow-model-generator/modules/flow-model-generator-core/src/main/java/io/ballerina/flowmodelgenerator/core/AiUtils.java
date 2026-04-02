@@ -138,13 +138,13 @@ public class AiUtils {
     // TODO: Replace with proper keywords
     // Interim keyword filter map — maps each category to keywords that identify relevant packages.
     private static final Map<NodeKind, List<String>> CATEGORY_KEYWORD_FILTERS = Map.of(
-            MODEL_PROVIDER, List.of("model", "llm"),
-            EMBEDDING_PROVIDER, List.of("embedding"),
-            VECTOR_STORE, List.of("vector"),
-            CHUNKER, List.of("chunker"),
-            DATA_LOADER, List.of("loader"),
-            SHORT_TERM_MEMORY_STORE, List.of("memory"),
-            KNOWLEDGE_BASE, List.of("knowledge")
+            MODEL_PROVIDER, List.of("Model Provider", "model", "llm"),
+            EMBEDDING_PROVIDER, List.of("Embedding Provider", "embedding", "openai"),
+            VECTOR_STORE, List.of("Vector Store", "vector"),
+            CHUNKER, List.of("Chunker"),
+            DATA_LOADER, List.of("Data Loader", "loader"),
+            SHORT_TERM_MEMORY_STORE, List.of("Short Term Memory Store", "memory"),
+            KNOWLEDGE_BASE, List.of("Knowledge Base", "knowledge", "azure")
     );
 
     private static final String PACKAGE = "package";
