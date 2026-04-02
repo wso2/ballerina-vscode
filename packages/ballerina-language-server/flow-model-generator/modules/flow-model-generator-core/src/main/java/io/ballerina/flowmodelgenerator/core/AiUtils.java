@@ -902,7 +902,8 @@ public class AiUtils {
                 .flatMap(Documentation::description)
                 .orElse(getDefaultNodeLabel(kind, label.split(" ")[0]));
 
-        Metadata metadata = new Metadata.Builder<>(null).label(label).description(description).build();
+        String icon = CommonUtils.generateIcon(moduleInfo.org(), moduleInfo.packageName(), moduleInfo.version());
+        Metadata metadata = new Metadata.Builder<>(null).label(label).description(description).icon(icon).build();
         Codedata.Builder<Object> codedataBuilder = new Codedata.Builder<>(null).version(codedataVersion)
                 .packageName(moduleInfo.packageName()).module(moduleInfo.moduleName()).org(moduleInfo.org())
                 .node(kind);
