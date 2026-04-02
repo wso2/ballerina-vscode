@@ -174,10 +174,10 @@ function getWaitDataInfo(node: FlowNode): { title: string; subtitle: string } {
     if (dataWaits && typeof dataWaits === "object") {
         const entries = Object.values(dataWaits as Record<string, any>);
         const dataNames = entries
-            .map((entry: any) => entry?.value?.dataName?.value as string | undefined)
+            .map((entry: any) => normalizeNodePropertyValue(entry?.value?.dataName?.value as string | undefined))
             .filter(Boolean) as string[];
         const varNames = entries
-            .map((entry: any) => entry?.value?.variable?.value as string | undefined)
+            .map((entry: any) => normalizeNodePropertyValue(entry?.value?.variable?.value as string | undefined))
             .filter(Boolean) as string[];
         if (dataNames.length > 0) {
             return {
@@ -192,7 +192,7 @@ function getWaitDataInfo(node: FlowNode): { title: string; subtitle: string } {
     if (directDataName) {
         return {
             title: `Wait for ${directDataName}`,
-            subtitle: (node.properties as any)?.variable?.value as string || "",
+            subtitle: normalizeNodePropertyValue((node.properties as any)?.variable?.value as string | undefined),
         };
     }
 
