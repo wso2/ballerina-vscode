@@ -310,6 +310,7 @@ public class CodeAnalyzer extends NodeVisitor {
         if (symbol.isEmpty()) {
             return;
         }
+        Symbol funcSymbol = symbol.get();
         FunctionBodyNode functionBodyNode = functionDefinitionNode.functionBody();
 
         // Set the function kind to display in the flow model
@@ -329,9 +330,9 @@ public class CodeAnalyzer extends NodeVisitor {
         } else if (functionDefinitionNode.qualifierList().stream()
                 .anyMatch(qualifier -> qualifier.kind() == SyntaxKind.REMOTE_KEYWORD)) {
             kind = FunctionKind.REMOTE_FUNCTION;
-        } else if (isWorkflowFunction(semanticModel.symbol(functionDefinitionNode).orElse(null))) {
+        } else if (isWorkflowFunction(funcSymbol)) {
             kind = FunctionKind.WORKFLOW;
-        } else if (isActivityFunction(semanticModel.symbol(functionDefinitionNode).orElse(null))) {
+        } else if (isActivityFunction(funcSymbol)) {
             kind = FunctionKind.ACTIVITY;
         } else {
             kind = FunctionKind.FUNCTION;
