@@ -215,6 +215,7 @@ import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.SEND_DATA_
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_MODULE;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ORG;
 import static io.ballerina.flowmodelgenerator.core.model.node.WaitDataBuilder.EXCLUDED_KEYS;
+import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isActivityFunction;
 import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isWorkflowFunction;
 import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isWorkflowModule;
 import static io.ballerina.modelgenerator.commons.CommonUtils.BALLERINA_ORG_NAME;
@@ -330,6 +331,8 @@ public class CodeAnalyzer extends NodeVisitor {
             kind = FunctionKind.REMOTE_FUNCTION;
         } else if (isWorkflowFunction(semanticModel.symbol(functionDefinitionNode).orElse(null))) {
             kind = FunctionKind.WORKFLOW;
+        } else if (isActivityFunction(semanticModel.symbol(functionDefinitionNode).orElse(null))) {
+            kind = FunctionKind.ACTIVITY;
         } else {
             kind = FunctionKind.FUNCTION;
         }
@@ -3691,7 +3694,8 @@ public class CodeAnalyzer extends NodeVisitor {
         REMOTE_FUNCTION("Remote Function"),
         RESOURCE("Resource"),
         AI_CHAT_AGENT("AI Chat Agent"),
-        WORKFLOW("Workflow");
+        WORKFLOW("Workflow"),
+        ACTIVITY("Activity");
 
         private final String value;
 
