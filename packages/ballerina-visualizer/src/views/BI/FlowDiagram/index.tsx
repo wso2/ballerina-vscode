@@ -929,8 +929,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const fetchNodesAndAISuggestions = (
         parent: FlowNode | Branch,
         target: LineRange,
-        fetchAiSuggestions = true,
-        updateFlowModel = true
+        fetchAiSuggestions = false, // By default, we fetch available nodes without fetching AI suggestions.
     ) => {
         if (!parent || !target) {
             console.error(">>> No parent or target found");
@@ -3092,7 +3091,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             breakpointInfo,
             readOnly: showProgressSpinner || showProgressIndicator || hasDraft || selectedNodeId !== undefined,
             overlay: {
-                visible: selectedNodeId !== undefined,
+                visible: selectedNodeId !== undefined || topNodeRef.current !== undefined,
                 onClickOverlay: handleOnCloseSidePanel,
             },
             isUserAuthenticated,
