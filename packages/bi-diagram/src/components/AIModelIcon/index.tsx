@@ -30,9 +30,6 @@ interface AIModelIconProps {
 export function AIModelIcon(props: AIModelIconProps): React.ReactElement {
     const { type, codedata, iconUrl } = props;
 
-    // DEBUG
-    console.log("[DEBUG AIModelIcon]", { type, iconUrl, module: codedata?.module, hasHardcodedIcon: !!getAIModuleIcon(type, 24) });
-
     if (codedata && isWso2Module(codedata)) {
         return <Icon name="bi-wso2" sx={{ width: 24, height: 24, fontSize: 24 }} />;
     }

@@ -237,26 +237,13 @@ export function convertModelProviderCategoriesToSidePanelCategories(categories: 
         category.items?.forEach((item) => {
             if ((item as PanelNode).metadata?.codedata) {
                 const codedata = (item as PanelNode).metadata.codedata;
-                const iconUrl = (item as PanelNode).metadata?.metadata?.icon;
+                const iconUrl = (item as PanelNode)?.metadata?.metadata?.icon;
                 const iconType = codedata?.module == "ai" ? codedata.object : codedata?.module;
-                // DEBUG
-                console.log("[DEBUG convertModelProvider]", {
-                    module: codedata?.module,
-                    iconType,
-                    iconUrl,
-                    fullMetadata: (item as PanelNode).metadata,
-                });
                 item.icon = <AIModelIcon type={iconType} codedata={codedata} iconUrl={iconUrl} />;
             } else if (((item as PanelCategory).items.at(0) as PanelNode)?.metadata?.codedata) {
                 const codedata = ((item as PanelCategory).items.at(0) as PanelNode)?.metadata.codedata;
-                const iconUrl = ((item as PanelCategory).items.at(0) as PanelNode)?.metadata?.icon;
+                const iconUrl = ((item as PanelCategory).items.at(0) as PanelNode)?.metadata?.metadata?.icon;
                 const iconType = codedata?.module == "ai" ? codedata.object : codedata?.module;
-                // DEBUG
-                console.log("[DEBUG convertModelProvider nested]", {
-                    module: codedata?.module,
-                    iconType,
-                    iconUrl,
-                });
                 item.icon = <AIModelIcon type={iconType} codedata={codedata} iconUrl={iconUrl} />;
             }
         });
@@ -292,7 +279,7 @@ export function convertCategoriesToSidePanelCategoriesWithIcon(
         category.items?.forEach((item) => {
             if ((item as PanelNode).metadata?.codedata) {
                 const codedata = (item as PanelNode).metadata.codedata;
-                const iconUrl = (item as PanelNode).metadata?.metadata?.icon;
+                const iconUrl = (item as PanelNode)?.metadata?.metadata?.icon;
                 item.icon = iconFactory(codedata, iconUrl);
             } else if (((item as PanelCategory).items.at(0) as PanelNode)?.metadata?.codedata) {
                 const codedata = ((item as PanelCategory).items.at(0) as PanelNode)?.metadata.codedata;
