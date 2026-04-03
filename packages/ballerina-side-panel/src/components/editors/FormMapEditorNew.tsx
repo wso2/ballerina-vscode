@@ -18,12 +18,12 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
-import { InputType } from "@wso2/ballerina-core";
+import { FormDiagnostics, InputType, Property } from "@wso2/ballerina-core";
 import { Form, FormValues, S, useFormContext, useModeSwitcherContext, FormField, FormFieldEditorProps } from "../..";
 import { Codicon } from "@wso2/ui-toolkit/lib/components/Codicon/Codicon";
 import { ScrollableList, ScrollableListRef } from "@wso2/ui-toolkit/lib/components/ScrollableList/ScrollableList";
 import ModeSwitcher from "../ModeSwitcher";
-import { getMapSubFormFieldFromTypes, buildStringMap, stringToRawObjectEntries, getRecordTypeFields } from "./utils";
+import { getMapSubFormFieldFromTypes, buildStringMap, stringToRawObjectEntries, getRecordTypeFields, mapDiagnosticsServerityToFormSeverity, getPropertyFromFormField } from "./utils";
 
 export const FormMapEditorNew = (props: FormFieldEditorProps & {
     onChange: (value: any) => void;
@@ -31,7 +31,7 @@ export const FormMapEditorNew = (props: FormFieldEditorProps & {
 }) => {
     const [repeatableFields, setRepeatableFields] = useState<FormField[][]>([]);
     const scrollableListRef = useRef<ScrollableListRef>(null);
-    const isInternalUpdate = useRef(false);
+    const elementDiagnosticsRef = useRef<FormDiagnostics[]>([]);
     const { expressionEditor } = useFormContext();
 
     const modeSwitcherContext = useModeSwitcherContext();
@@ -102,12 +102,60 @@ export const FormMapEditorNew = (props: FormFieldEditorProps & {
         return fields;
     }
 
+    const makeDiagnosticsKey = (diagnostics?: any[]) => {
+        if (!Array.isArray(diagnostics) || diagnostics.length === 0) return "";
+        return diagnostics.map(d => `${d.message}|${d.severity}`).join("||");
+    };
+
+    const handleSetDiagnosticsInfoChange = (diagnostics: FormDiagnostics) => {
+        const existingDiagnostics = elementDiagnosticsRef.current.filter(d => d.key !== diagnostics.key);
+        elementDiagnosticsRef.current = [...existingDiagnostics, diagnostics];
+        setRepeatableFields(prev => prev.map(fieldPair => {
+            const valueField = fieldPair[1];
+            if (valueField.key !== diagnostics.key) return fieldPair;
+            return [
+                fieldPair[0],
+                {
+                    ...valueField,
+                    diagnostics: diagnostics.diagnostics.map(diag => ({
+                        message: diag.message,
+                        severity: mapDiagnosticsServerityToFormSeverity(diag.severity)
+                    }))
+                }
+            ];
+        }));
+    };
+
+    const handleFormDiagnosticsChange = async (showDiagnostics: boolean, expression: string, key: string, property: Property, setDiagnosticsInfo: (diagnostics: FormDiagnostics) => void, shouldUpdateNode?: boolean, variableType?: string) => {
+        return expressionEditor?.getExpressionFormDiagnostics?.(
+            showDiagnostics,
+            expression,
+            key,
+            property,
+            (diagnostics: FormDiagnostics) => {
+                handleSetDiagnosticsInfoChange(diagnostics);
+                setDiagnosticsInfo(diagnostics);
+            },
+            shouldUpdateNode,
+            variableType
+        );
+    };
+
+    const handleElementFormValidation = async (data: FormValues, _dirtyFields?: any): Promise<boolean> => {
+        const valueFieldKey = Object.keys(data).find(k => k.startsWith('mp-val-'));
+        if (!valueFieldKey) return true;
+        const value = data[valueFieldKey];
+        const valueField = repeatableFields.flat().find(field => field.key === valueFieldKey);
+        if (!valueField) return true;
+        handleFormDiagnosticsChange(true, value, valueFieldKey, getPropertyFromFormField(valueField), () => { }, false, (props.field.types[0] as any).name);
+        return true;
+    };
+
     const handleAddNewItem = () => {
         const key = crypto.randomUUID();
         if (!(props.field.types[0] as any).template) return;
         const newField = getMapSubFormFieldFromTypes(key, (props.field.types[0] as any).template.types as InputType[])
         setRepeatableFields(prev => [...prev, newField]);
-        isInternalUpdate.current = true;
         // Wait for the dom update
         setTimeout(() => {
             scrollableListRef.current?.scrollToBottom();
@@ -126,7 +174,6 @@ export const FormMapEditorNew = (props: FormFieldEditorProps & {
             return formFields;
         });
         setRepeatableFields(newRepeatableFields);
-        isInternalUpdate.current = true;
         props.onChange(processToOutputFormat(newRepeatableFields));
     }
 
@@ -135,7 +182,6 @@ export const FormMapEditorNew = (props: FormFieldEditorProps & {
         if (deduped.length !== repeatableFields.length) {
             setRepeatableFields(deduped);
         }
-        isInternalUpdate.current = true;
         const stringValue = buildStringMap(deduped);
         props.onChange(stringValue);
     }
@@ -143,14 +189,13 @@ export const FormMapEditorNew = (props: FormFieldEditorProps & {
     const handleDeleteItem = (keyToDelete: string) => {
         const newRepeatableFields = repeatableFields.filter((formField) => formField[0].key !== keyToDelete);
         setRepeatableFields(newRepeatableFields);
-        isInternalUpdate.current = true;
         props.onChange(processToOutputFormat(newRepeatableFields));
     };
 
     useEffect(() => {
         if (!props.value) return;
-        if (isInternalUpdate.current) {
-            isInternalUpdate.current = false;
+        if (typeof props.value !== 'string' &&
+            JSON.stringify(props.value) === JSON.stringify(processToOutputFormat(repeatableFields))) {
             return;
         }
         let processedInputValue: string | FormField[][] = "";
@@ -263,12 +308,12 @@ export const FormMapEditorNew = (props: FormFieldEditorProps & {
                                     onChange={(fieldKey: string, value: any, allValues: FormValues) => {
                                         handleFormOnChange(fieldKey, value, allValues, formField[0].key);
                                     }}
+                                    onFormValidation={handleElementFormValidation}
                                     onSubmit={() => {
                                         const deduped = dedupeFields(repeatableFields);
                                         if (deduped.length !== repeatableFields.length) {
                                             setRepeatableFields(deduped);
                                         }
-                                        isInternalUpdate.current = true;
                                         props.onChange(processToOutputFormat(deduped));
                                     }}
                                     expressionEditor={{
@@ -279,7 +324,8 @@ export const FormMapEditorNew = (props: FormFieldEditorProps & {
                                         referenceTypes: expressionEditor?.referenceTypes,
                                         retrieveVisibleTypes: expressionEditor?.retrieveVisibleTypes,
                                         getTypeHelper: expressionEditor?.getTypeHelper,
-                                        helperPaneHeight: expressionEditor?.helperPaneHeight
+                                        helperPaneHeight: expressionEditor?.helperPaneHeight,
+                                        getExpressionFormDiagnostics: handleFormDiagnosticsChange,
                                     }}
                                     submitText={'Save'}
                                     nestedForm={true}
