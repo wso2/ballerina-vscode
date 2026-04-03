@@ -5,7 +5,7 @@
   "orgName": "ballerinax",
   "packageName": "postgresql",
   "moduleName": "postgresql",
-  "version": "1.16.2",
+  "version": "1.17.0",
   "type": "event",
   "properties": {
     "configureListener": {
@@ -53,6 +53,27 @@
               "editable": true,
               "advanced": false,
               "properties": {
+                "listenerVarName": {
+                  "metadata": {
+                    "label": "Listener Name",
+                    "description": "Provide a name for the listener being created"
+                  },
+                  "codedata": {
+                    "argType": "LISTENER_VAR_NAME"
+                  },
+                  "value": "postgresqlCdcListener",
+                  "placeholder": "postgresqlCdcListener",
+                  "types": [
+                    {
+                      "fieldType": "IDENTIFIER",
+                      "ballerinaType": "CdcListener"
+                    }
+                  ],
+                  "enabled": true,
+                  "editable": true,
+                  "optional": false,
+                  "advanced": false
+                },
                 "host": {
                   "metadata": {
                     "label": "Host",
@@ -237,27 +258,6 @@
                   "editable": false,
                   "advanced": false,
                   "properties": {
-                    "listenerVarName": {
-                      "metadata": {
-                        "label": "Listener Name",
-                        "description": "Provide a name for the listener being created"
-                      },
-                      "codedata": {
-                        "argType": "LISTENER_VAR_NAME"
-                      },
-                      "value": "postgresqlCdcListener",
-                      "placeholder": "postgresqlCdcListener",
-                      "types": [
-                        {
-                          "fieldType": "IDENTIFIER",
-                          "ballerinaType": "CdcListener"
-                        }
-                      ],
-                      "enabled": true,
-                      "editable": true,
-                      "optional": true,
-                      "advanced": false
-                    },
                     "secureSocket": {
                       "metadata": {
                         "label": "Secure Socket",
@@ -275,7 +275,7 @@
                           "typeMembers": [
                             {
                               "type": "SecureDatabaseConnection",
-                              "packageInfo": "ballerinax:cdc:1.0.3",
+                              "packageInfo": "ballerinax:cdc:1.3.0",
                               "packageName": "cdc",
                               "kind": "RECORD_TYPE",
                               "selected": false
@@ -310,7 +310,7 @@
                           "typeMembers": [
                             {
                               "type": "Options",
-                              "packageInfo": "ballerinax:cdc:1.0.3",
+                              "packageInfo": "ballerinax:cdc:1.3.0",
                               "packageName": "cdc",
                               "kind": "RECORD_TYPE",
                               "selected": true

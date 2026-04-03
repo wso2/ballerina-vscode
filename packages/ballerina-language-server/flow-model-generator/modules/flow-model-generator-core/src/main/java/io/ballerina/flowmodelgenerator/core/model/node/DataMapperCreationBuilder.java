@@ -114,7 +114,7 @@ public class DataMapperCreationBuilder extends NodeBuilder {
                     .label(OUTPUT_LABEL)
                     .description(getOutputDoc())
                 .stepOut()
-                .value((String) null)
+                .value("")
                 .type(Property.ValueType.TYPE, RETURN_TYPE)
                 .editable()
                 .stepOut()
