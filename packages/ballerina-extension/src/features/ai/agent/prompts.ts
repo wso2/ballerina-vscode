@@ -28,6 +28,7 @@ import { formatCodebaseStructure, formatCodeContext } from "./utils";
 import { GenerateAgentCodeRequest, OperationType, ProjectSource } from "@wso2/ballerina-core";
 import { getRequirementAnalysisCodeGenPrefix, getRequirementAnalysisTestGenPrefix } from "./np/prompts";
 import { extractResourceDocumentContent, flattenProjectToFiles } from "../utils/ai-utils";
+import { BALLERINA_RUN_TOOL_NAME } from "./tools/ballerina-run";
 
 /**
  * Generates the system prompt for the design agent
@@ -218,7 +219,7 @@ When working with Ballerina workspace projects (projects with a root Ballerina.t
 ## Test Runner
 When running tests:
 1. Tell the user what is being tested in one line.
-2. Use ${TEST_RUNNER_TOOL_NAME} to run the test suite.
+2. Use ${TEST_RUNNER_TOOL_NAME} to run the test suite. Note that you don't have to use ${BALLERINA_RUN_TOOL_NAME} prior to using ${TEST_RUNNER_TOOL_NAME} as the tool will automatically run the app and then run the tests.
 3. Only if there are failures or errors, briefly mention what failed and fix them, then re-run.
 
 # Web Tools
@@ -272,10 +273,14 @@ ${attachmentsText}
         });
     }
 
+    const queryParts = [params.usecase];
+    if (params.hiddenContext) {
+        queryParts.push(params.hiddenContext);
+    }
     content.push({
         type: 'text' as const,
         text: `<User Query>
-${params.usecase}
+${queryParts.join('\n\n')}
 </User Query>`
     });
 
