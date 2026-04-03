@@ -20,9 +20,10 @@ export type StreamItem =
     | { kind: "text"; text: string }
     | { kind: "tool_call"; toolCallId?: string; toolName?: string; toolInput?: any }
     | { kind: "tool_result"; toolCallId?: string; toolName?: string; toolOutput?: any; failed?: boolean }
-    | { kind: "plan"; tasks: any[]; message?: string; approvalStatus?: "approved" | "revised"; approvalComment?: string }
+    | { kind: "plan"; requestId: string; tasks: any[]; message?: string; approvalStatus?: "approved" | "revised"; approvalComment?: string }
     | { kind: "config"; data: Record<string, any> }
     | { kind: "connector"; data: Record<string, any> }
+    | { kind: "ask"; data: Record<string, any> }
     | { kind: "try_it"; toolCallId?: string; input?: any; output?: any }
     | { kind: "component"; id?: string; componentType: string; data: Record<string, any> };
 

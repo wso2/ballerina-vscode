@@ -722,31 +722,13 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         setIsNew(false);
     };
 
-    const handleServiceTryIt = async () => {
+    const handleServiceTryIt = () => {
         const basePath = serviceModel.properties?.basePath?.value?.trim();
         const listenerProperty = serviceModel.properties?.listener;
         const listener = (listenerProperty?.value ?? listenerProperty?.values?.[0] ?? '').trim();
 
-        const baseUrl = buildBaseUrl(listener, basePath);
-        const serviceName = basePath?.replace(/^\//, "") || serviceModel.name || "Service";
-
-        const firstPath = resources.find(r => r.type === DIRECTORY_MAP.RESOURCE && r.path)?.path;
-
-        let oasSpec: any | undefined;
-        try {
-            const oasResult = await rpcClient.getServiceDesignerRpcClient().getOASSpec({
-                documentFilePath: firstPath,
-                basePath
-            });
-            oasSpec = oasResult.spec ?? undefined;
-        } catch {
-            // spec unavailable — extension will fall back to minimal placeholders
-        }
-
-        // Delegate cell-building to the extension so both Service Try It and Code Lens Try It
-        // share the same buildHurlCellsFromOASSpec logic via ballerina.startService
         rpcClient.getCommonRpcClient().executeCommand({
-            commands: ["ballerina.startService", { oasSpec, baseUrl, serviceName }, { savable: true }, { basePath, listener }]
+            commands: ["ballerina.tryIt", false, undefined, { basePath, listener }]
         });
     }
 
@@ -973,7 +955,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                                     key={`${index}-${resource.name}`}
                                                     resource={resource}
                                                     readOnly={serviceModel.properties.hasOwnProperty('serviceTypeName')}
-                                                    onEditResource={handleFunctionEdit}
+                                                    onEditResource={null}
                                                     onDeleteResource={handleFunctionDelete}
                                                     onResourceImplement={() => { openInit(resource) }}
                                                 />

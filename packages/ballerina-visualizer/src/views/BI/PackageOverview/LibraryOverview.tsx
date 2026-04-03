@@ -157,6 +157,7 @@ const SectionCard = styled.button`
     border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
     border-radius: 4px;
     background: ${ThemeColors.SURFACE_DIM};
+    color: ${ThemeColors.ON_SURFACE};
     cursor: pointer;
     font: inherit;
     text-align: left;
@@ -178,10 +179,11 @@ const SectionCardIconWrapper = styled.div`
     flex-shrink: 0;
     display: flex;
     align-items: center;
+    justify-content: center;
     > div:first-child {
-        width: 18px;
-        height: 18px;
-        font-size: 18px;
+        width: 24px;
+        height: 24px;
+        font-size: 24px;
     }
 `;
 
@@ -288,6 +290,7 @@ const ArtifactCardIconContainer = styled.div`
     display: flex;
     align-items: center;
     justify-content: center;
+    color: ${ThemeColors.ON_SURFACE};
     > div:first-child {
         width: 24px;
         height: 24px;

@@ -37,9 +37,9 @@ import {
 } from './utils/state-machine-utils';
 import * as path from 'path';
 import { extension } from './BalExtensionContext';
-import { AIStateMachine } from './views/ai-panel/aiMachine';
+import { AIStateMachine, openAIPanelWithPrompt } from './views/ai-panel/aiMachine';
 import { StateMachinePopup } from './stateMachinePopup';
-import { checkIsBallerinaPackage, checkIsBI, fetchScope, getOrgPackageName, UndoRedoManager, getProjectTomlValues, getOrgAndPackageName, checkIsBallerinaWorkspace } from './utils';
+import { checkIsBallerinaPackage, checkIsBI, fetchScope, getOrgPackageName, UndoRedoManager, getProjectTomlValues, getOrgAndPackageName, checkIsBallerinaWorkspace, isInWI } from './utils';
 import { activateDevantFeatures } from './features/devant/activator';
 import { buildProjectsStructure } from './utils/project-artifacts';
 import { runCommandWithOutput } from './utils/runCommand';
@@ -66,6 +66,7 @@ interface MachineContext extends VisualizerLocation {
 export let history: History;
 export let undoRedoManager: IUndoRedoManager;
 let pendingProjectRootUpdateResolvers: Array<() => void> = [];
+let scaffoldPromptTriggered = false;
 
 const stateMachine = createMachine<MachineContext>(
     {
@@ -391,6 +392,22 @@ const stateMachine = createMachine<MachineContext>(
                         }
                     },
                     viewReady: {
+                        entry: () => {
+                            if (!scaffoldPromptTriggered) {
+                                const scaffoldPrompt = process.env.INITIAL_SCAFFOLD_PROMPT;
+                                const scaffoldSteps = process.env.INITIAL_SCAFFOLD_STEPS;
+                                if (scaffoldPrompt && scaffoldSteps) {
+                                    scaffoldPromptTriggered = true;
+                                    openAIPanelWithPrompt({
+                                        type: 'text',
+                                        text: scaffoldPrompt,
+                                        planMode: true,
+                                        autoSubmit: true,
+                                        hiddenContext: scaffoldSteps
+                                    });
+                                }
+                            }
+                        },
                         on: {
                             OPEN_VIEW: {
                                 target: "viewInit",
@@ -537,7 +554,7 @@ const stateMachine = createMachine<MachineContext>(
                         undoRedoManager = new UndoRedoManager();
                         const webview = VisualizerWebview.currentPanel?.getWebview();
                         if (webview && (context.isBI || context.view === MACHINE_VIEW.BIWelcome)) {
-                            const biExtension = extensions.getExtension('wso2.ballerina-integrator');
+                            const biExtension = isInWI() || extensions.getExtension('wso2.ballerina-integrator');
                             webview.iconPath = {
                                 light: Uri.file(path.join(extension.context.extensionPath, 'resources', 'icons', biExtension ? 'wso2-dark.svg' : 'ballerina.svg')),
                                 dark: Uri.file(path.join(extension.context.extensionPath, 'resources', 'icons', biExtension ? 'wso2-light.svg' : 'ballerina-inverse.svg'))
@@ -663,6 +680,8 @@ const stateMachine = createMachine<MachineContext>(
                             documentUri: context.documentUri,
                             position: context.position,
                             identifier: context.identifier,
+                            parentIdentifier: context.parentIdentifier,
+                            artifactType: context.artifactType,
                             org: orgName || context.org,
                             package: packageName || context.package,
                             type: context?.type,
@@ -844,6 +863,9 @@ export const StateMachine = {
     refreshProjectInfo: () => {
         stateService.send({ type: 'REFRESH_PROJECT_INFO' });
     },
+    updateProjectInfo: (projectInfo: ProjectInfo) => {
+        stateService.send({ type: 'UPDATE_PROJECT_INFO', projectInfo });
+    },
     resetToExtensionReady: () => {
         stateService.send({ type: 'RESET_TO_EXTENSION_READY' });
     },
@@ -882,8 +904,8 @@ export function updateView(refreshTreeView?: boolean, updatedIdentifier?: string
         let currentArtifact: ProjectStructureArtifactResponse;
         let targetedArtifactType = lastView.location?.artifactType;
 
-        if (targetedArtifactType === DIRECTORY_MAP.RESOURCE) {
-            // If the artifact type is resource, we need to target the service
+        if (targetedArtifactType === DIRECTORY_MAP.RESOURCE || targetedArtifactType === DIRECTORY_MAP.REMOTE) {
+            // If the artifact type is resource/remote, we need to target the service
             targetedArtifactType = DIRECTORY_MAP.SERVICE;
         }
 

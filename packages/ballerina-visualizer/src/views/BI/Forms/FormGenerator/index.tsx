@@ -522,7 +522,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             const updatedField = { ...field };
 
             const isRepeatableList = field.types?.length === 1 && getPrimaryInputType(field.types)?.fieldType === "REPEATABLE_LIST";
-            const selectedInputType = isRepeatableList? getPrimaryInputType(field.types) : field.types?.find(t => t.selected);
+            const selectedInputType = isRepeatableList ? getPrimaryInputType(field.types) : field.types?.find(t => t.selected);
 
             const nodeProperties = nodeWithDiagnostics?.properties as any;
             let propertyDiagnostics: any = nodeProperties?.[field.key]?.diagnostics?.diagnostics;
@@ -589,7 +589,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     };
 
     const diagnosticsTargetRange = useMemo(
-        () => node.codedata?.lineRange || nodeFormTemplate?.codedata?.lineRange || targetLineRange,
+        () => node?.codedata?.lineRange || nodeFormTemplate?.codedata?.lineRange || targetLineRange,
         [node, nodeFormTemplate, targetLineRange]
     );
 
@@ -922,7 +922,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
         return Object.values(nodeProperties).some((property) => {
             let diagnostics: DiagnosticMessage[] = [];
-            if ( property?.types?.length === 1 && getPrimaryInputType(property.types)?.fieldType === "REPEATABLE_LIST") {
+            if (property?.types?.length === 1 && getPrimaryInputType(property.types)?.fieldType === "REPEATABLE_LIST") {
                 // For repeatable list, check diagnostics for each element in the list
                 const valueDiagnostics = (property.value as any[])?.map((val) => val?.diagnostics?.diagnostics ?? []).flat() ?? [];
                 diagnostics = [...diagnostics, ...valueDiagnostics];
@@ -1399,13 +1399,24 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     /**
      * Handles type selection from completion items (used in type editor)
      */
-    const handleSelectedTypeChange = (type: CompletionItem | string) => {
-        if (typeof type === "string") {
-            handleSelectedTypeByName(type);
-            return;
+    const handleSelectedTypeChange = async (type: CompletionItem | string) => {
+        try {
+            if (typeof type === "string") {
+                await handleSelectedTypeByName(type);
+                return;
+            }
+            else {
+                // If the type is a Completion item, then it can be found in the reference types.
+                // Which cannot be an imported type.
+                importsCodedataRef.current = null;
+                await fetchVisualizableFields(fileName, (type as CompletionItem).label);
+            }
+            setSelectedType(type);
+            updateRecordTypeFields(type);
         }
-        setSelectedType(type);
-        updateRecordTypeFields(type);
+        catch (error) {
+            console.error("Error handling selected type change", error);
+        }
     };
 
     const findMatchedType = (items: TypeHelperItem[], typeName: string) => {
@@ -1463,14 +1474,22 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     const handleSelectedTypeByName = async (typeName: string) => {
         // Early return for invalid input
         if (!typeName || typeName.length === 0) {
+            importsCodedataRef.current = null;
+            await fetchVisualizableFields(fileName, typeName);
             setValueTypeConstraints('');
             return;
         }
 
         const type = await searchImportedTypeByName(typeName);
         if (!type) {
+            importsCodedataRef.current = null;
+            await fetchVisualizableFields(fileName, typeName);
             setValueTypeConstraints('');
             return;
+        }
+        else {
+            importsCodedataRef.current = type.codedata;
+            await fetchVisualizableFields(fileName, typeName);
         }
 
         setValueTypeConstraints(type.insertText);
@@ -1839,7 +1858,9 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     preserveOrder={
                         node.codedata.node === ("VARIABLE" as NodeKind) ||
                         node.codedata.node === ("CONFIG_VARIABLE" as NodeKind) ||
-                        node.codedata.node === ("ASSIGN" as NodeKind)
+                        node.codedata.node === ("ASSIGN" as NodeKind) ||
+                        node.codedata.node === ("FUNCTION_CREATION" as NodeKind) ||
+                        node.codedata.node === ("DATA_MAPPER_CREATION" as NodeKind)
                     }
                     scopeFieldAddon={scopeFieldAddon}
                     onChange={onChange}

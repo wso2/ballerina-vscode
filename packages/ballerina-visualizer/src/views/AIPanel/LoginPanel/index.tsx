@@ -39,8 +39,11 @@ const TopSpacer = styled.div`
 `;
 
 const BottomSpacer = styled.div`
+    height: 32px;
+`;
+
+const EndSpacer = styled.div`
     flex-grow: 1;
-    min-height: 48px;
 `;
 
 const HeaderContent = styled.div`
@@ -59,7 +62,6 @@ const FooterContent = styled.div`
     width: 100%;
     max-width: 360px;
     align-self: center;
-    margin-bottom: 60px;
 `;
 
 const Title = styled.h2`
@@ -223,6 +225,7 @@ const LoginPanel: React.FC = () => {
                 <TextButton onClick={handleAwsBedrockClick}>Enter your AWS Bedrock credentials</TextButton>
                 <TextButton onClick={handleVertexAiClick}>Enter your Google Vertex AI credentials</TextButton>
             </FooterContent>
+            <EndSpacer />
         </PanelWrapper>
     );
 };

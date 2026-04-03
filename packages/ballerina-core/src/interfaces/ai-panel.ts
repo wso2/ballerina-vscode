@@ -25,7 +25,8 @@ export enum Command {
     NaturalProgramming = '/natural-programming (experimental)',
     OpenAPI = '/openapi',
     Agent = '/agent', // Internal use only - agent is the default behavior
-    Doc = '/doc'
+    Doc = '/doc',
+    // Compact = '/compact'
 }
 
 export enum TemplateId {
@@ -51,5 +52,8 @@ export enum TemplateId {
     GenerateCodeFromFollowingRequirements = 'generate-code-from-following-requirements',
 
     // Command.Doc
-    GenerateUserDoc = 'generate-user-doc'
+    GenerateUserDoc = 'generate-user-doc',
+
+    // Command.Compact
+    // CompactConversation = 'compact-conversation'
 }
