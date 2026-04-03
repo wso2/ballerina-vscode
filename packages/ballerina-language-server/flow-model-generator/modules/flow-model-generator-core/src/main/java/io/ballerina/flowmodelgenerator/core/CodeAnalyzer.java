@@ -212,8 +212,7 @@ import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CALL_ACTIV
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CONTEXT_CLASS_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.RUN_METHOD_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.SEND_DATA_METHOD_NAME;
-import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_MODULE;
-import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ORG;
+import static io.ballerina.flowmodelgenerator.core.model.node.ActivityCallBuilder.EXCLUDED_CALL_ACTIVITY_PARAMS;
 import static io.ballerina.flowmodelgenerator.core.model.node.WaitDataBuilder.EXCLUDED_KEYS;
 import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isActivityFunction;
 import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isWorkflowFunction;
@@ -462,9 +461,6 @@ public class CodeAnalyzer extends NodeVisitor {
         setFunctionProperties(functionName, expressionNode, remoteMethodCallActionNode, functionSymbol,
                 classSymbol.getName().orElse(""), metadataData);
 
-        // For ACTIVITY_CALL, override the symbol with the actual activity function (first positional argument)
-        // and set the org/module from the activity function's defining module
-        // TODO: This may not be ideal. revisit again
         if (isWorkflowCtxOperation(remoteMethodCallActionNode, classSymbol, CALL_ACTIVITY_METHOD_NAME)) {
             overrideSymbolFromFirstArg(remoteMethodCallActionNode.arguments());
             populateActivityCallProperties(remoteMethodCallActionNode);
@@ -817,49 +813,43 @@ public class CodeAnalyzer extends NodeVisitor {
         nodeBuilder.codedata().symbol(functionRefName);
 
         Optional<Symbol> resolvedSymbol = semanticModel.symbol(expr);
-        if (resolvedSymbol.isPresent()) {
-            nodeBuilder.symbolInfo(resolvedSymbol.get());
-        }
+        resolvedSymbol.ifPresent(symbol -> nodeBuilder.symbolInfo(symbol));
     }
 
     /**
-     * Reverses {@link ActivityCallBuilder#populateActivityCallArg}: flattens the args map literal from
-     * the second positional argument of {@code ctx->callActivity(activityFn, {...}, namedArgs...)} into
-     * individual flat properties, and gathers named arguments into the {@code ADVANCED_PARAM_KEY} nested
-     * property.
-     *
-     * <p>The wrong properties previously added by {@code processFunctionSymbol} for the {@code callActivity}
-     * function signature ({@code activityFunction}, {@code args}, and any ActivityOptions fields) are first
-     * removed, and then correct flat properties derived from the activity function's own parameters are added.
+     * Fixes properties after {@code processFunctionSymbol} runs on {@code callActivity}: removes excluded
+     * params, moves advance params into {@code ADVANCED_PARAM_KEY}, and adds flat activity function params
+     * from the args map literal.
      *
      * @param remoteMethodCallActionNode the {@code ctx->callActivity(...)} call node
      */
     private void populateActivityCallProperties(RemoteMethodCallActionNode remoteMethodCallActionNode) {
         SeparatedNodeList<FunctionArgumentNode> args = remoteMethodCallActionNode.arguments();
 
-        // Step 1: Remove the wrong properties set by processFunctionSymbol for callActivity's own params.
-        // Keep only the standard variable/type/checkError properties.
+        // Step 1: Move the advance params (already populated with actual values) into ADVANCED_PARAM_KEY.
         Map<String, Property> currentProps = nodeBuilder.properties().build();
-        Set<String> standardKeys = Set.of(Property.VARIABLE_KEY, Property.TYPE_KEY, Property.CHECK_ERROR_KEY);
-        currentProps.keySet().removeIf(key -> !standardKeys.contains(key));
+        currentProps.keySet().removeIf(EXCLUDED_CALL_ACTIVITY_PARAMS::contains);
+        Map<String, Property> advancedProps = new LinkedHashMap<>(currentProps);
+        currentProps.clear();
+        nodeBuilder.properties().nestedProperty();
+        nodeBuilder.properties().build().putAll(advancedProps);
+        nodeBuilder.properties().endNestedProperty(
+                Property.ValueType.ADVANCE_PARAM_LIST,
+                Property.ADVANCED_PARAM_KEY,
+                ActivityCallBuilder.ADVANCE_CONFIGURATIONS,
+                ActivityCallBuilder.ADVANCE_CONFIGURATIONS);
 
-        // Step 2: Resolve activity function symbol and build its FunctionData to get parameter metadata.
-        Map<String, ParameterData> activityParams = new LinkedHashMap<>();
+        // Step 2: Get activity function params directly from the symbol (avoids expensive FunctionDataBuilder).
+        List<ParameterSymbol> activityParamSymbols = List.of();
         if (!args.isEmpty() && args.get(0) instanceof PositionalArgumentNode firstArg) {
             Optional<Symbol> resolvedSymbol = semanticModel.symbol(firstArg.expression());
             if (resolvedSymbol.isPresent() && resolvedSymbol.get() instanceof FunctionSymbol activityFuncSymbol) {
-                Optional<Package> resolvedPackage = moduleInfo != null
-                        ? PackageUtil.resolveModulePackage(moduleInfo.org(), moduleInfo.packageName(),
-                                moduleInfo.version())
-                        : Optional.empty();
-                FunctionData activityFunctionData = new FunctionDataBuilder()
-                        .functionSymbol(activityFuncSymbol)
-                        .semanticModel(semanticModel)
-                        .userModuleInfo(moduleInfo)
-                        .resolvedPackage(resolvedPackage.orElse(null))
-                        .build();
-                activityParams = activityFunctionData.parameters();
+                activityParamSymbols = activityFuncSymbol.typeDescriptor().params().orElse(List.of());
             }
+        }
+
+        if (activityParamSymbols.isEmpty()) {
+            return;
         }
 
         // Step 3: Parse the args map literal (second positional arg) into a Map<paramName, Node>.
@@ -879,118 +869,37 @@ public class CodeAnalyzer extends NodeVisitor {
         }
 
         // Step 4: Add flat properties for each activity function parameter, setting values from the args map.
-        for (Map.Entry<String, ParameterData> paramEntry : activityParams.entrySet()) {
-            ParameterData paramResult = paramEntry.getValue();
-            if (paramResult.kind() == ParameterData.Kind.PARAM_FOR_TYPE_INFER
-                    || paramResult.kind() == ParameterData.Kind.INCLUDED_RECORD) {
+        for (ParameterSymbol paramSymbol : activityParamSymbols) {
+            String paramName = paramSymbol.getName().orElse("");
+            if (paramName.isEmpty()) {
                 continue;
             }
-            String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
-            Node valueNode = argsValues.get(unescapedParamName);
+            Node valueNode = argsValues.get(paramName);
             String value = valueNode != null ? valueNode.toSourceCode().strip() : null;
+            boolean isOptional = paramSymbol.paramKind() == ParameterKind.DEFAULTABLE;
+            String kind = isOptional ? ParameterData.Kind.DEFAULTABLE.name() : ParameterData.Kind.REQUIRED.name();
+            TypeSymbol typeSymbol = paramSymbol.typeDescriptor();
+            String typeSignature = CommonUtils.getTypeSignature(typeSymbol, moduleInfo);
 
             Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder = nodeBuilder.properties().custom();
             FormBuilder<NodeBuilder> nodeBuilderFormBuilder = customPropBuilder
                     .metadata()
-                        .label(paramResult.label())
-                        .description(paramResult.description())
+                        .label(paramName)
+                        .description("")
                         .stepOut()
                     .codedata()
-                        .kind(paramResult.kind().name())
-                        .originalName(paramResult.name())
+                        .kind(kind)
+                        .originalName(paramName)
                         .stepOut()
                     .value(value)
-                    .placeholder(paramResult.placeholder())
-                    .defaultValue(paramResult.defaultValue())
-                    .imports(paramResult.importStatements())
+                    .placeholder(typeSignature)
                     .editable()
-                    .defaultable(paramResult.optional())
+                    .defaultable(isOptional)
                     .stepOut();
-            buildPropertyType(customPropBuilder, paramResult, valueNode);
-            nodeBuilderFormBuilder.addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName), valueNode);
+            customPropBuilder.typeWithExpression(typeSymbol, moduleInfo, valueNode, semanticModel,
+                    customPropBuilder, diagnosticHandler);
+            nodeBuilderFormBuilder.addProperty(FlowNodeUtil.getPropertyKey(paramName), valueNode);
         }
-
-        // Step 5: Collect named args (after the two positional args) for the advanced property.
-        Map<String, Node> namedArgValueMap = new LinkedHashMap<>();
-        for (FunctionArgumentNode arg : args) {
-            if (arg instanceof NamedArgumentNode namedArg) {
-                String name = namedArg.argumentName().name().text();
-                namedArgValueMap.put(name, namedArg.expression());
-            }
-        }
-
-        // Step 6: Build the ADVANCED_PARAM_KEY nested property from callActivity's non-excluded params
-        // with actual values filled in from named args.
-        buildActivityAdvancedProperty(namedArgValueMap);
-    }
-
-    /**
-     * Builds the {@code ADVANCED_PARAM_KEY} nested property for an activity call node.
-     *
-     * <p>Loads {@code callActivity}'s {@link FunctionData}, filters out
-     * {@link ActivityCallBuilder#EXCLUDED_CALL_ACTIVITY_PARAMS}, and creates a nested property that mirrors
-     * what {@link ActivityCallBuilder#addAdvancedParameters} produces — but with actual values from the
-     * source-code named arguments supplied in {@code namedArgValueMap}.
-     *
-     * @param namedArgValueMap map from named-argument name to its expression node (may be empty)
-     */
-    private void buildActivityAdvancedProperty(Map<String, Node> namedArgValueMap) {
-        ModuleInfo workflowModuleInfo = new ModuleInfo(WORKFLOW_ORG, WORKFLOW_MODULE, WORKFLOW_MODULE, null);
-        FunctionData callActivityData = new FunctionDataBuilder()
-                .name(ActivityCallBuilder.CALL_ACTIVITY_METHOD)
-                .moduleInfo(workflowModuleInfo)
-                .parentSymbolType(CONTEXT_CLASS_NAME)
-                .functionResultKind(FunctionData.Kind.REMOTE)
-                .project(PackageUtil.loadProject(workspaceManager, filePath))
-                .userModuleInfo(moduleInfo)
-                .workspaceManager(workspaceManager)
-                .filePath(filePath)
-                .build();
-
-        // Filter out params that are handled separately (activityFunction, args, T)
-        LinkedHashMap<String, ParameterData> filteredParams =
-                new LinkedHashMap<>(callActivityData.parameters());
-        ActivityCallBuilder.EXCLUDED_CALL_ACTIVITY_PARAMS.forEach(filteredParams::remove);
-
-        // Start a nested property scope for ADVANCED_PARAM_KEY
-        nodeBuilder.properties().nestedProperty();
-
-        for (Map.Entry<String, ParameterData> entry : filteredParams.entrySet()) {
-            ParameterData paramResult = entry.getValue();
-            if (paramResult.kind() == ParameterData.Kind.INCLUDED_RECORD) {
-                continue;
-            }
-            String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
-            Node valueNode = namedArgValueMap.get(unescapedParamName);
-            String value = valueNode != null ? valueNode.toSourceCode().strip() : null;
-
-            Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder = nodeBuilder.properties().custom();
-            FormBuilder<NodeBuilder> nodeBuilderFormBuilder = customPropBuilder
-                    .metadata()
-                        .label(paramResult.label())
-                        .description(paramResult.description())
-                        .stepOut()
-                    .codedata()
-                        .kind(paramResult.kind().name())
-                        .originalName(paramResult.name())
-                        .stepOut()
-                    .value(value)
-                    .placeholder(paramResult.placeholder())
-                    .defaultValue(paramResult.defaultValue())
-                    .imports(paramResult.importStatements())
-                    .editable()
-                    .defaultable(true) // advanced params are always optional
-                    .stepOut();
-            buildPropertyType(customPropBuilder, paramResult, valueNode);
-            nodeBuilderFormBuilder.addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName), valueNode);
-        }
-
-        // Close the nested property scope as ADVANCE_PARAM_LIST under ADVANCED_PARAM_KEY
-        nodeBuilder.properties().endNestedProperty(
-                Property.ValueType.ADVANCE_PARAM_LIST,
-                Property.ADVANCED_PARAM_KEY,
-                ActivityCallBuilder.ADVANCE_CONFIGURATIONS,
-                ActivityCallBuilder.ADVANCE_CONFIGURATIONS);
     }
 
     /**
@@ -1042,18 +951,8 @@ public class CodeAnalyzer extends NodeVisitor {
         }
 
         // Extract variable names and types from typedBindingPatternNode
-        if (typedBindingPatternNode != null && !entries.isEmpty()) {
-            if (entries.size() == 1) {
-                // Simple: Type var = check ctx->await([data.field]);
-                entries.set(0, entries.get(0).withVarAndType(
-                        typedBindingPatternNode.bindingPattern().toSourceCode().strip(),
-                        typedBindingPatternNode.typeDescriptor().toSourceCode().strip()));
-            } else {
-                // Tuple: [Type1, Type2] [var1, var2] = check ctx->await([data.f1, data.f2]);
-                populateTupleEntries(entries);
-            }
-        }
-
+        // Tuple: [Type1, Type2] [var1, var2] = check ctx->await([data.f1, data.f2]);
+        populateTupleEntries(entries);
         buildDataWaitsProperty(entries);
     }
 
