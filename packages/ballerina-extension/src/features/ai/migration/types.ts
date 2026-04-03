@@ -66,6 +66,8 @@ export interface EnhanceTomlData {
     currentPackage?: string;
     /** Zero-based index of the stage currently being run within `currentPackage`. */
     currentStage?: number;
+    /** `true` when this project is a multi-package workspace (cross-dependent packages). */
+    multiProject?: boolean;
 }
 
 /**
