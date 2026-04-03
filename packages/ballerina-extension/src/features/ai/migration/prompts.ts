@@ -59,18 +59,80 @@ export function getEnhancementStages(): EnhancementStage[] {
     ];
 }
 
+// ---------------------------------------------------------------------------
+// Per-project enhancement stages (for multi-package workspaces)
+// ---------------------------------------------------------------------------
+
 /**
- * Returns the monolithic enhancement prompt (all stages in one).
- * Kept as a convenience / fallback for `runMigrationAgent()` which still uses
- * a single-shot execution model.
+ * Returns enhancement stages scoped to a single package inside a
+ * multi-package workspace.  The shared context is augmented with a
+ * per-package preamble so the agent knows:
+ *
+ * 1. Which package it is currently enhancing.
+ * 2. Where the package sits within the overall workspace.
+ * 3. A light-weight cross-package manifest (names + public symbols)
+ *    so it can write correct `import` statements.
+ *
+ * @param packageName   Display name of the package (from Ballerina.toml).
+ * @param packagePath   Relative path of the package from the workspace root.
+ * @param packageIndex  Zero-based position in the ordered package list.
+ * @param totalPackages Total number of packages in the workspace.
+ * @param crossPackageManifest  Markdown snippet listing peer packages and symbols.
  */
-export function getWizardEnhancementPrompt(): string {
-    const shared = getSharedEnhancementContext();
-    return shared + "\n\n"
-        + getStage1Prompt() + "\n\n"
-        + getStage2Prompt() + "\n\n"
-        + getStage3Prompt() + "\n\n"
-        + getStage4Prompt();
+export function getPerProjectEnhancementStages(
+    packageName: string,
+    packagePath: string,
+    packageIndex: number,
+    totalPackages: number,
+    crossPackageManifest: string,
+): EnhancementStage[] {
+    const preamble = getPerProjectPreamble(
+        packageName, packagePath, packageIndex, totalPackages, crossPackageManifest,
+    );
+    const shared = preamble + "\n\n" + getSharedEnhancementContext();
+    return [
+        {
+            name: `[${packageName}] Stage 1 — Fidelity Check & TODO Resolution`,
+            prompt: shared + "\n\n" + getStage1Prompt(),
+            agentLimits: { maxSteps: 200, maxOutputTokens: 16384 },
+        },
+        {
+            name: `[${packageName}] Stage 2 — Zero Compilation Diagnostics`,
+            prompt: shared + "\n\n" + getStage2Prompt(),
+            agentLimits: { maxSteps: 100, maxOutputTokens: 16384 },
+        },
+        {
+            name: `[${packageName}] Stage 3 — Test Refinement`,
+            prompt: shared + "\n\n" + getStage3Prompt(),
+            agentLimits: { maxSteps: 100, maxOutputTokens: 16384 },
+        },
+        {
+            name: `[${packageName}] Stage 4 — Final Validation & Documentation`,
+            prompt: shared + "\n\n" + getStage4Prompt(),
+            agentLimits: { maxSteps: 50, maxOutputTokens: 16384 },
+        },
+    ];
+}
+
+/**
+ * Builds a preamble injected before the shared context for per-project runs.
+ */
+function getPerProjectPreamble(
+    packageName: string,
+    packagePath: string,
+    packageIndex: number,
+    totalPackages: number,
+    crossPackageManifest: string,
+): string {
+    return `## Per-Package Enhancement Context
+
+You are enhancing **package ${packageIndex + 1} of ${totalPackages}**: \`${packageName}\` (path: \`${packagePath}/\`).
+
+**Scope rules:**
+- Only modify files inside this package (\`${packagePath}/\`).
+- Do NOT modify files in other packages.${crossPackageManifest}
+
+---`;
 }
 
 // ---------------------------------------------------------------------------
