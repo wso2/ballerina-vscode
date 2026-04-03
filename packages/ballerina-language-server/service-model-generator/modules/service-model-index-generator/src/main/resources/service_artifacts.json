@@ -1715,7 +1715,7 @@
     },
     {
       "name": "mssql",
-      "version": "1.16.1",
+      "version": "1.17.0",
       "serviceTypeSkipList": [],
       "serviceDeclaration": {
         "displayName": "CDC for Microsoft SQL Server",
@@ -1929,7 +1929,7 @@
     },
     {
       "name": "postgresql",
-      "version": "1.16.2",
+      "version": "1.17.0",
       "serviceTypeSkipList": [],
       "serviceDeclaration": {
         "displayName": "CDC for PostgreSQL",
