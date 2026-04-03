@@ -20,7 +20,7 @@ import React, { useRef } from "react";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import styled from '@emotion/styled';
 import { EditorFactory, FormField, InputMode, useFormContext, Provider as FormContextProvider, FormValues } from "../..";
-import { Imports, InputType, ExpressionProperty } from "@wso2/ballerina-core";
+import { Imports, InputType, ExpressionProperty, getPrimaryInputType } from "@wso2/ballerina-core";
 import { NodeKind, NodeProperties, RecordTypeField, SubPanel, SubPanelView } from "@wso2/ballerina-core";
 import { CompletionItem } from "@wso2/ui-toolkit";
 import { getInputModeFromTypes } from "./MultiModeExpressionEditor/ChipExpressionEditor/utils";
@@ -156,6 +156,16 @@ export const FieldFactory = (props: FieldFactoryProps) => {
         return props.field.types[props.field.types.length - 1];
     }
 
+    const checkAndReturnCompatibleInputMode = (selectedInputType: InputType): InputMode => {
+        if (
+            (getPrimaryInputType(props.field.types)?.fieldType !== "REPEATABLE_MAP") &&
+            (getPrimaryInputType(props.field.types)?.fieldType !== "REPEATABLE_LIST")
+        ) return getInputModeFromTypes(selectedInputType);
+        if (selectedInputType.fieldType !== "EXPRESSION") return getInputModeFromTypes(selectedInputType);
+        if (!props.field.value || typeof props.field.value === "string") return getInputModeFromTypes(selectedInputType);
+        return getInputModeFromTypes(getPrimaryInputType(props.field.types));
+    }
+
     useEffect(() => {
         if (!props.field.types || props.field.types.length === 0) {
             throw new Error("Field types are not defined");
@@ -167,7 +177,8 @@ export const FieldFactory = (props: FieldFactoryProps) => {
         setRenderingEditors(newRenderingTypes);
 
         const selectedInputType = getInitialSelectedInputType();
-        const initialInputMode = getInputModeFromTypes(selectedInputType) || InputMode.EXP;
+        let initialInputMode = getInputModeFromTypes(selectedInputType) || InputMode.EXP;
+        initialInputMode = checkAndReturnCompatibleInputMode(selectedInputType)
         setInputMode(initialInputMode);
         updateFieldTypesSelection(initialInputMode);
     }, [props.field, props.recordTypeFields]);
