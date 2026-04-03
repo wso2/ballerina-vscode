@@ -19,9 +19,7 @@
 package io.ballerina.flowmodelgenerator.core.search;
 
 import com.google.gson.reflect.TypeToken;
-import io.ballerina.centralconnector.CentralAPI;
 import io.ballerina.centralconnector.RemoteCentral;
-import io.ballerina.centralconnector.response.ConnectorsResponse;
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ClassSymbol;
@@ -37,6 +35,7 @@ import io.ballerina.flowmodelgenerator.core.model.Item;
 import io.ballerina.flowmodelgenerator.core.model.Metadata;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.node.NewConnectionBuilder;
+import io.ballerina.flowmodelgenerator.core.utils.CentralSearchUtil;
 import io.ballerina.flowmodelgenerator.core.utils.ConnectorUtil;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.PackageUtil;
@@ -45,12 +44,10 @@ import io.ballerina.projects.Module;
 import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.Project;
 import io.ballerina.tools.text.LineRange;
-import org.ballerinalang.diagramutil.connector.models.connector.Connector;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -75,8 +72,6 @@ public class ConnectorSearchCommand extends SearchCommand {
     public static final String IS_AGENT_SUPPORT = "isAgentSupport";
     private static final Set<String> BLACKLISTED_CONNECTOR_NAME_PATTERNS = Set.of("ModelProvider");
     private static final Set<String> ALLOWED_ORGANIZATIONS = Set.of("ballerina", "ballerinax", "wso2");
-    private static final int OVERFETCH_FACTOR = 3;
-    private static final int MAX_FETCH_ITERATIONS = 3;
 
     private static boolean isBlacklisted(String connectorName) {
         return BLACKLISTED_CONNECTOR_NAME_PATTERNS.stream().anyMatch(connectorName::contains);
@@ -130,7 +125,9 @@ public class ConnectorSearchCommand extends SearchCommand {
             allowedOrgs.add(currentOrg);
         }
 
-        List<SearchResult> centralConnectors = fetchConnectorsFromCentral(allowedOrgs);
+        CentralSearchUtil centralSearch = new CentralSearchUtil(RemoteCentral.getInstance());
+        List<SearchResult> centralConnectors = centralSearch.searchConnectors(query, limit, offset,
+                allowedOrgs, BLACKLISTED_CONNECTOR_NAME_PATTERNS);
         if (centralConnectors != null) {
             centralConnectors.forEach(searchResult -> rootBuilder.node(generateAvailableNode(searchResult)));
         } else {
@@ -142,109 +139,14 @@ public class ConnectorSearchCommand extends SearchCommand {
         return rootBuilder.build().items();
     }
 
-    /**
-     * Fetches connectors from Ballerina Central with over-fetching to compensate for post-filtering by allowed
-     * organizations and blacklisted names. Returns null if the request fails or times out (relying on the HTTP
-     * client's configured connect/read/call timeouts), allowing the caller to fall back to the local database.
-     */
-    private List<SearchResult> fetchConnectorsFromCentral(Set<String> allowedOrgs) {
-        try {
-            CentralAPI centralClient = RemoteCentral.getInstance();
-            List<SearchResult> filteredResults = new ArrayList<>();
-            int fetchOffset = offset;
-            int fetchLimit = limit * OVERFETCH_FACTOR;
-
-            for (int iteration = 0; iteration < MAX_FETCH_ITERATIONS; iteration++) {
-                Map<String, String> centralQueryMap = new HashMap<>();
-                if (!query.isEmpty()) {
-                    centralQueryMap.put("q", query);
-                }
-                centralQueryMap.put("limit", String.valueOf(fetchLimit));
-                centralQueryMap.put("offset", String.valueOf(fetchOffset));
-                ConnectorsResponse connectorsResponse = centralClient.connectors(centralQueryMap);
-
-                if (connectorsResponse == null || connectorsResponse.connectors() == null) {
-                    break;
-                }
-
-                for (Connector connector : connectorsResponse.connectors()) {
-                    if (connector == null || connector.packageInfo == null) {
-                        continue;
-                    }
-                    if (!allowedOrgs.contains(connector.packageInfo.getOrganization())) {
-                        continue;
-                    }
-                    if (isBlacklisted(connector.name)) {
-                        continue;
-                    }
-                    SearchResult.Package packageInfo = new SearchResult.Package(
-                            connector.packageInfo.getOrganization(),
-                            connector.packageInfo.getName(),
-                            connector.moduleName,
-                            connector.packageInfo.getVersion()
-                    );
-                    filteredResults.add(SearchResult.from(packageInfo, connector.name,
-                            connector.packageInfo.getSummary(), false));
-                    if (filteredResults.size() >= limit) {
-                        return filteredResults.subList(0, limit);
-                    }
-                }
-
-                // Check if Central has more results
-                if (connectorsResponse.count() <= fetchOffset + fetchLimit) {
-                    break;
-                }
-                fetchOffset += fetchLimit;
-            }
-
-            return filteredResults;
-        } catch (RuntimeException e) {
-            // Failed to fetch connectors from Central, falling back to local database
-            return null;
-        }
-    }
-
     @Override
     protected List<Item> searchCurrentOrganization(String currentOrg) {
-        List<SearchResult> organizationConnectors = new ArrayList<>();
-        CentralAPI centralClient = RemoteCentral.getInstance();
-        Map<String, String> queryMap = new HashMap<>();
-        boolean success = false;
-        if (centralClient.hasAuthorizedAccess()) {
-            queryMap.put("user-packages", "true");
-            success = true;
-        }
-        if (currentOrg != null && !currentOrg.isEmpty()) {
-            queryMap.put("org", currentOrg);
-            success = true;
-        }
-        if (success) {
-            if (!query.isEmpty()) {
-                queryMap.put("q", query);
-            }
-            queryMap.put("limit", String.valueOf(limit));
-            queryMap.put("offset", String.valueOf(offset));
-            ConnectorsResponse connectorsResponse = centralClient.connectors(queryMap);
-            if (connectorsResponse != null && connectorsResponse.connectors() != null) {
-                for (Connector connector : connectorsResponse.connectors()) {
-                    if (connector == null || connector.packageInfo == null) {
-                        continue;
-                    }
-                    SearchResult.Package packageInfo = new SearchResult.Package(
-                            connector.packageInfo.getOrganization(),
-                            connector.packageInfo.getName(),
-                            connector.moduleName,
-                            connector.packageInfo.getVersion()
-                    );
-                    SearchResult searchResult = SearchResult.from(packageInfo, connector.name,
-                            connector.packageInfo.getSummary(), true);
-                    organizationConnectors.add(searchResult);
-                }
-            }
-            organizationConnectors.stream()
-                    .filter(result -> !isBlacklisted(result.name()))
-                    .forEach(searchResult -> rootBuilder.node(generateAvailableNode(searchResult)));
-        }
+        CentralSearchUtil centralSearch = new CentralSearchUtil(RemoteCentral.getInstance());
+        List<SearchResult> organizationConnectors = centralSearch.searchConnectorsByOrganization(
+                currentOrg, query, limit, offset);
+        organizationConnectors.stream()
+                .filter(result -> !isBlacklisted(result.name()))
+                .forEach(searchResult -> rootBuilder.node(generateAvailableNode(searchResult)));
         return rootBuilder.build().items();
     }
 

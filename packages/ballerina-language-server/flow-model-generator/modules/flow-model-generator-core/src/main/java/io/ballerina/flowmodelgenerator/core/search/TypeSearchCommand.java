@@ -18,10 +18,9 @@
 
 package io.ballerina.flowmodelgenerator.core.search;
 
-import io.ballerina.centralconnector.CentralAPI;
 import io.ballerina.centralconnector.RemoteCentral;
-import io.ballerina.centralconnector.response.SymbolResponse;
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.flowmodelgenerator.core.utils.CentralSearchUtil;
 import io.ballerina.compiler.api.symbols.ClassSymbol;
 import io.ballerina.compiler.api.symbols.Documentable;
 import io.ballerina.compiler.api.symbols.Documentation;
@@ -55,7 +54,6 @@ import org.ballerinalang.langserver.common.utils.SymbolUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -133,46 +131,11 @@ class TypeSearchCommand extends SearchCommand {
      */
     @Override
     protected List<Item> searchCurrentOrganization(String currentOrg) {
-        List<SearchResult> organizationTypes = new ArrayList<>();
-        CentralAPI centralClient = RemoteCentral.getInstance();
-        Map<String, String> queryMap = new HashMap<>();
-        boolean success = false;
-        // TODO: Enable once https://github.com/ballerina-platform/ballerina-central/issues/284 is resolved
-//        if (centralClient.hasAuthorizedAccess()) {
-//            queryMap.put("user-packages", "true");
-//            success = true;
-//        }
-        if (currentOrg != null && !currentOrg.isEmpty()) {
-            String orgQuery = "org:" + currentOrg;
-            queryMap.put("q", query.isEmpty() ? orgQuery : query + " " + orgQuery);
-            success = true;
-        }
-        if (success) {
-            queryMap.put("limit", String.valueOf(limit));
-            queryMap.put("offset", String.valueOf(offset));
-            SymbolResponse symbolResponse = centralClient.searchSymbols(queryMap);
-            if (symbolResponse != null && symbolResponse.symbols() != null) {
-                for (SymbolResponse.Symbol symbol : symbolResponse.symbols()) {
-                    // Consider records and other type-like symbols
-                    if ("record".equals(symbol.symbolType()) || symbol.symbolType().contains("type")) {
-                        SearchResult.Package packageInfo = new SearchResult.Package(
-                                symbol.organization(),
-                                symbol.name(),
-                                symbol.name(),
-                                symbol.version()
-                        );
-                        SearchResult searchResult = SearchResult.from(
-                                packageInfo,
-                                symbol.symbolName(),
-                                symbol.description(),
-                                true
-                        );
-                        organizationTypes.add(searchResult);
-                    }
-                }
-            }
-            buildLibraryNodes(organizationTypes);
-        }
+        CentralSearchUtil centralSearch = new CentralSearchUtil(RemoteCentral.getInstance());
+        List<SearchResult> organizationTypes = centralSearch.searchSymbolsByOrganization(
+                currentOrg, query, limit, offset,
+                s -> "record".equals(s) || s.contains("type"));
+        buildLibraryNodes(organizationTypes);
         return rootBuilder.build().items();
     }
 
