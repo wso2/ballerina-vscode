@@ -37,10 +37,12 @@ import * as path from 'path';
 import { approvalViewManager } from '../state/ApprovalViewManager';
 import {
     buildContextManagementOptions,
+    buildBedrockContextManagementOptions,
     detectAppliedCompaction,
     estimateFloorTokens,
     extractCompactionSummary,
     stripAnalysisFromCompactionBlocks,
+    COMPACTION_BLOCK_PREFIX,
 } from '@wso2/copilot-utilities/context-management';
 import { getLoginMethod } from '../../../utils/ai/auth';
 import {
@@ -59,6 +61,17 @@ import { runningServicesManager } from './tools/running-service-manager';
 
 const RESERVED_OUTPUT_TOKENS = 8_192;
 
+/**
+ * Tracks threads that have already received a compaction_disabled warning this session.
+ * Keyed by `${projectRootPath}:${threadId}`. Cleared on chat clear.
+ */
+const compactionDisabledWarnedThreads = new Set<string>();
+
+/** Called by clearChat to reset the warned state for a workspace. */
+export function clearCompactionDisabledWarning(projectRootPath: string, threadId: string): void {
+    compactionDisabledWarnedThreads.delete(`${projectRootPath}:${threadId}`);
+}
+
 /** Estimate character length of a message's content for proportional token breakdown. */
 function msgCharLen(msg: ModelMessage): number {
     return JSON.stringify(msg.content).length;
@@ -68,6 +81,10 @@ function msgCharLen(msg: ModelMessage): number {
  * Estimates per-category token breakdown by scaling character-based proportions to the
  * actual API-reported inputTokens total. The grand total is always exact; per-category
  * values are ~75-85% accurate.
+ *
+ * codebaseCharsPerTurn: char length of the codebase structure block injected as the first
+ * content block of each user message. Multiplied by user message count to estimate total
+ * file content across the full conversation history.
  */
 function computeTokenBreakdown(
     baseMessages: ModelMessage[],
@@ -75,7 +92,8 @@ function computeTokenBreakdown(
     accToolCallChars: number,
     accToolResultChars: number,
     inputTokens: number,
-): { systemInstructions: number; toolDefinitions: number; reservedOutput: number; messages: number; toolResults: number } {
+    codebaseCharsPerTurn: number,
+): { systemInstructions: number; toolDefinitions: number; reservedOutput: number; files: number; messages: number; toolResults: number } {
     const systemChars = baseMessages.filter(m => m.role === 'system').reduce((s, m) => s + msgCharLen(m), 0);
     const baseConvChars = baseMessages.filter(m => m.role === 'user' || m.role === 'assistant').reduce((s, m) => s + msgCharLen(m), 0);
     const baseToolChars = baseMessages.filter(m => m.role === 'tool').reduce((s, m) => s + msgCharLen(m), 0);
@@ -85,11 +103,17 @@ function computeTokenBreakdown(
     const toolDefsChars = JSON.stringify(tools ?? {}).length;
     const totalChars = systemChars + convChars + toolChars + toolDefsChars || 1;
 
+    // Estimate total file content chars: codebase block appears in every user message turn
+    const userMsgCount = baseMessages.filter(m => m.role === 'user').length;
+    const totalCodebaseChars = Math.min(codebaseCharsPerTurn * userMsgCount, convChars);
+    const pureConvChars = convChars - totalCodebaseChars;
+
     const systemInstructions = Math.round(inputTokens * systemChars / totalChars);
-    const messages = Math.round(inputTokens * convChars / totalChars);
+    const files = Math.round(inputTokens * totalCodebaseChars / totalChars);
+    const messages = Math.round(inputTokens * pureConvChars / totalChars);
     const toolResults = Math.round(inputTokens * toolChars / totalChars);
-    const toolDefinitions = Math.max(0, inputTokens - systemInstructions - messages - toolResults);
-    return { systemInstructions, toolDefinitions, reservedOutput: RESERVED_OUTPUT_TOKENS, messages, toolResults };
+    const toolDefinitions = Math.max(0, inputTokens - systemInstructions - files - messages - toolResults);
+    return { systemInstructions, toolDefinitions, reservedOutput: RESERVED_OUTPUT_TOKENS, files, messages, toolResults };
 }
 
 /**
@@ -220,15 +244,20 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             const systemPromptText = getSystemPrompt(projects, params.operationType);
             const floorTokens = estimateFloorTokens(systemPromptText, JSON.stringify(userMessageContent));
 
-            // Only ANTHROPIC_KEY supports contextManagement for now (BI_INTEL pending backend verification)
-            const supportsContextMgmt = loginMethod === LoginMethod.ANTHROPIC_KEY;
-            const contextMgmtOptions = supportsContextMgmt
-                ? buildContextManagementOptions({ estimatedFloorTokens: floorTokens })
-                : null;
+            const supportsContextMgmt = loginMethod === LoginMethod.ANTHROPIC_KEY || loginMethod === LoginMethod.BI_INTEL || loginMethod === LoginMethod.VERTEX_AI || loginMethod === LoginMethod.AWS_BEDROCK;
+            const contextMgmtOptions = loginMethod === LoginMethod.AWS_BEDROCK
+                ? buildBedrockContextManagementOptions({ estimatedFloorTokens: floorTokens })
+                : supportsContextMgmt
+                    ? buildContextManagementOptions({ estimatedFloorTokens: floorTokens })
+                    : null;
 
+            const projectRootPath = this.config.executionContext.workspacePath || this.config.executionContext.projectPath || '';
             if (supportsContextMgmt && contextMgmtOptions === null) {
-                // Floor exceeds trigger — compaction disabled, warn user once
-                this.config.eventHandler({ type: 'compaction_disabled' });
+                const warnKey = `${projectRootPath}:default`;
+                if (!compactionDisabledWarnedThreads.has(warnKey)) {
+                    compactionDisabledWarnedThreads.add(warnKey);
+                    this.config.eventHandler({ type: 'compaction_disabled' });
+                }
             }
 
             // 3. Add generation to chat storage (if enabled)
@@ -280,7 +309,10 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             let accToolResultChars = 0;
 
             // === SERVER-SIDE COMPACTION STATE ===
-            // Detected mid-stream via providerMetadata on text-start events.
+            // Primary detection: providerMetadata on text-start (Anthropic/BI_INTEL/Vertex).
+            // Fallback detection: content-based (<analysis> prefix) for Bedrock, which emits
+            // bare text-start events with no providerMetadata.
+            const useContentBasedDetection = loginMethod === LoginMethod.AWS_BEDROCK;
             let isCompactionBlock = false;
             let compactionContent = '';
             let cleanedCompactionSummary: string | null = null;
@@ -332,7 +364,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                                 cacheReadInputTokens: (step.usage as any).cacheReadInputTokens || 0,
                                 outputTokens: step.usage.outputTokens || 0,
                             },
-                            breakdown: computeTokenBreakdown(allMessages, tools, accToolCallChars, accToolResultChars, inputTokens),
+                            breakdown: computeTokenBreakdown(allMessages, tools, accToolCallChars, accToolResultChars, inputTokens, (userMessageContent[0] as any)?.text?.length ?? 0),
                         });
                     }
                 },
@@ -381,6 +413,11 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                                     type: 'usage_metrics',
                                     usage: { inputTokens: 0, cacheCreationInputTokens: 0, cacheReadInputTokens: 0, outputTokens: 0 },
                                 });
+                                // Inline notice before the continuing response
+                                this.config.eventHandler({
+                                    type: 'content_block',
+                                    content: '<compaction>Context compacted — key context preserved, conversation continues below.</compaction>',
+                                });
                             }
                             // Normal text-start: emit paragraph break
                             this.config.eventHandler({ type: 'content_block', content: ' \n' });
@@ -391,6 +428,11 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                     if (part.type === 'text-delta') {
                         if (isCompactionBlock) {
                             compactionContent += part.text;
+                        } else if (useContentBasedDetection && !isCompactionBlock && compactionContent === '' && part.text.trimStart().startsWith(COMPACTION_BLOCK_PREFIX)) {
+                            // Bedrock: no providerMetadata on text-start, detect via content
+                            isCompactionBlock = true;
+                            compactionContent = part.text;
+                            this.config.eventHandler({ type: 'compaction_start' });
                         } else {
                             this.config.eventHandler({ type: 'content_block', content: part.text });
                         }
@@ -409,6 +451,10 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                     this.config.eventHandler({
                         type: 'usage_metrics',
                         usage: { inputTokens: 0, cacheCreationInputTokens: 0, cacheReadInputTokens: 0, outputTokens: 0 },
+                    });
+                    this.config.eventHandler({
+                        type: 'content_block',
+                        content: '<compaction>Context compacted — key context preserved.</compaction>',
                     });
                 }
 

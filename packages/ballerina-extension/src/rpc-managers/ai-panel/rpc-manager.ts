@@ -83,6 +83,7 @@ import {
 import { addToIntegration, searchDocumentation } from "./utils";
 
 import { createExecutorConfig, generateAgent, resolveProjectRootPath } from '../../features/ai/agent/index';
+import { clearCompactionDisabledWarning } from '../../features/ai/agent/AgentExecutor';
 import { LLM_API_BASE_PATH, WI_EXTENSION_ID } from "../../features/ai/constants";
 import { ContextTypesExecutor } from '../../features/ai/executors/datamapper/ContextTypesExecutor';
 import { FunctionMappingExecutor } from '../../features/ai/executors/datamapper/FunctionMappingExecutor';
@@ -638,6 +639,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
         // Clear the workspace (all threads)
         await chatStateStorage.clearWorkspace(projectRootPath);
+        clearCompactionDisabledWarning(projectRootPath, 'default');
 
         console.log(`[RPC] Cleared chat for projectRootPath: ${projectRootPath}`);
     }

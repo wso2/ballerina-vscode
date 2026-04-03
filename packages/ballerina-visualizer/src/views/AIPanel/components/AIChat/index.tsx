@@ -106,6 +106,32 @@ const MessageBody = styled.div<{ isUserMessage: boolean }>(({ isUserMessage }: {
     overflowWrap: "anywhere",
 }));
 
+const CompactionNotice = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--vscode-textCodeBlock-background);
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 4px;
+    padding: 6px 12px;
+    margin: 6px 0;
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+
+    &::before {
+        content: '';
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        background: var(--vscode-descriptionForeground);
+        mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M4.5 3h7l1.5 3v1H3V6L4.5 3zM3 8h10v5H3V8zm2 1v3h6V9H5z'/%3E%3C/svg%3E");
+        mask-size: contain;
+        mask-repeat: no-repeat;
+        flex-shrink: 0;
+        opacity: 0.7;
+    }
+`;
+
 // ── Agent stream serialization ────────────────────────────────────────────────
 
 function serializeStream(entries: StreamEntry[], existingContent: string): string {
@@ -698,14 +724,6 @@ const AIChat: React.FC = () => {
 
         } else if (type === "compaction_end") {
             setIsCompacting(false);
-            // Show compaction summary bubble in chat if summary was extracted
-            const summary = (response as any).summary as string | undefined;
-            if (summary) {
-                setMessages(prev => [
-                    ...prev,
-                    { role: "Copilot", content: `**Context automatically compacted.**\n\n${summary}`, type: "assistant_message" },
-                ]);
-            }
 
         } else if (type === "compaction_disabled") {
             setMessages(prev => [
@@ -1856,6 +1874,8 @@ const AIChat: React.FC = () => {
                                                 );
                                             } else if (segment.type === SegmentType.References) {
                                                 return <ReferenceDropdown key={`references-${i}`} links={JSON.parse(segment.text)} />;
+                                            } else if (segment.type === SegmentType.Compaction) {
+                                                return <CompactionNotice key={`compaction-${i}`}>{segment.text}</CompactionNotice>;
                                             } else {
                                                 if (message.type === "Error") {
                                                     return <ErrorBox key={`error-${i}`}>{segment.text}</ErrorBox>;
