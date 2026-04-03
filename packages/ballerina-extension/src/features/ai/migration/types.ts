@@ -32,6 +32,12 @@ export const AI_MIGRATION_DIR = ".ballerina-ai-migration";
 /** State TOML filename inside AI_MIGRATION_DIR. */
 export const AI_ENHANCE_TOML_FILENAME = "state.toml";
 
+/** Subdirectory inside AI_MIGRATION_DIR that holds per-stage transcript files. */
+export const AI_TRANSCRIPT_DIR = "transcripts";
+
+/** Filename for the structured summary written at pause / completion. */
+export const AI_SUMMARY_FILENAME = "summary.md";
+
 /**
  * Shape of the value stored in VS Code globalState before the
  * `vscode.openFolder` reload so that the enhancement pipeline can
