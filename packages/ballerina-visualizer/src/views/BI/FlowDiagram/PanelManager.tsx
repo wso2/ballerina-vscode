@@ -43,6 +43,7 @@ import { RelativeLoader } from "../../../components/RelativeLoader";
 import { LoaderContainer } from "../../../components/RelativeLoader/styles";
 import { ConnectionListItem } from "@wso2/wso2-platform-core";
 import { ConnectorErrorView } from "./components/ErrorContainer";
+import { PanelLoadingView } from "./components/LoadingContainer";
 
 const Container = styled.div`
     display: flex;
@@ -83,7 +84,8 @@ export enum SidePanelView {
     AGENT_MEMORY_MANAGER = "AGENT_MEMORY_MANAGER",
     AGENT_CONFIG = "AGENT_CONFIG",
     AGENT_LIST = "AGENT_LIST",
-    CONNECTOR_ERROR = "CONNECTOR_ERROR",
+    ERROR = "ERROR",
+    LOADING = "LOADING",
     ALL = "ALL"
 }
 
@@ -637,13 +639,16 @@ export function PanelManager(props: PanelManagerProps) {
                     />
                 );
 
-            case SidePanelView.CONNECTOR_ERROR:
+            case SidePanelView.ERROR:
                 return (
                     <ConnectorErrorView
                         errorMessage={errorMessage}
                         onBack={onBack}
                     />
                 );
+
+            case SidePanelView.LOADING:
+                return <PanelLoadingView />;
 
             case SidePanelView.FORM:
                 return (
@@ -699,7 +704,7 @@ export function PanelManager(props: PanelManagerProps) {
                 return handleOnBackToAddTool;
             case SidePanelView.CONNECTION_SELECT:
             case SidePanelView.CONNECTION_CREATE:
-            case SidePanelView.CONNECTOR_ERROR:
+            case SidePanelView.ERROR:
                 return onBack;
             case SidePanelView.FORM:
                 return !showEditForm ? onBack : undefined;

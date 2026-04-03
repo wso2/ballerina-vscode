@@ -477,8 +477,10 @@ export function getContainerTitle(view: SidePanelView, activeNode: FlowNode, cli
             return `Select ${getConnectionDisplayName(connectionKind)}`;
         case SidePanelView.CONNECTION_CREATE:
             return `Create ${getConnectionDisplayName(connectionKind)}`;
-        case SidePanelView.CONNECTOR_ERROR:
+        case SidePanelView.ERROR:
             return "Error";
+        case SidePanelView.LOADING:
+            return "";
         case SidePanelView.AGENT_MEMORY_MANAGER:
             return "Configure Memory";
         case SidePanelView.AGENT_TOOL:
