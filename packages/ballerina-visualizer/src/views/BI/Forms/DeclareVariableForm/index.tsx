@@ -33,9 +33,7 @@ export const VariableForm = (props: FormProps) => {
     }, [props.formFields]);
 
     const handleOnTypeChange = (type: string | CompletionItem) => {
-        Promise.resolve(handleSelectedTypeChange?.(type)).catch((error) => {
-            console.error("Error in handleSelectedTypeChange", error);
-        });
+        handleSelectedTypeChange(type);
     };
     return (
         <>
