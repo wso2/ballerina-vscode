@@ -26,8 +26,8 @@
     "properties": {
       "functionName": {
         "metadata": {
-          "label": "Data Mapper Name",
-          "description": "Name of the data mapper"
+          "label": "Function Name",
+          "description": "Name of the function"
         },
         "types": [
           {
