@@ -172,6 +172,7 @@ export function AddProjectFormFields({
                     label={`${resourceTypeLabel} Name`}
                     placeholder={`Enter a ${resourceTypeLabelLower} name`}
                     autoFocus={isInProject}
+                    onFocus={(e) => (e.target as HTMLInputElement).select()}
                     required={true}
                 />
             </FieldGroup>
