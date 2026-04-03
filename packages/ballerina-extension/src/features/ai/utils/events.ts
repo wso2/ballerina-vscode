@@ -93,7 +93,8 @@ export function createWebviewEventHandler(command: Command): CopilotEventHandler
                     event.tasks,
                     event.taskDescription,
                     event.message,
-                    event.requestId
+                    event.requestId,
+                    event.autoApproved
                 );
                 break;
             case "evals_tool_result":
