@@ -70,7 +70,7 @@ export function AddProjectFormFields({
 
     const handleProjectName = (value: string) => {
         const updates: Partial<AddProjectFormData> = { workspaceName: value };
-        if (isLoggedIn && !projectHandleTouched) {
+        if (!projectHandleTouched) {
             updates.projectHandle = sanitizeProjectHandle(value, { trimTrailing: false });
         }
         onFormDataChange(updates);
@@ -185,7 +185,7 @@ export function AddProjectFormFields({
                     packageName: formData.packageName,
                     orgName: formData.orgName,
                     version: formData.version,
-                    ...(!isInProject && isLoggedIn ? { projectHandle: formData.projectHandle ?? "" } : {}),
+                    projectHandle: !isInProject ? formData.projectHandle : undefined
                 }}
                 onChange={(data) => {
                     onFormDataChange(data);
