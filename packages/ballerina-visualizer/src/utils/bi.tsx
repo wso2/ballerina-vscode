@@ -221,6 +221,7 @@ export function convertFunctionCategoriesToSidePanelCategories(
     functionType: FUNCTION_TYPE
 ): PanelCategory[] {
     const panelCategories = categories
+        .filter((category) => category.metadata.label !== "Agent Tools")
         .map((category) => convertDiagramCategoryToSidePanelCategory(category, functionType))
         .filter((category) => category !== undefined);
     const functionCategory = panelCategories.find((category) => category.title === "Project");
