@@ -1,0 +1,5 @@
+function output(InRoot[] input) returns OutRoot[] => from var inputItem in input
+    select {
+        oArr1D: from var iArr1DItem in inputItem.iArr1D
+            select {p1: iArr1DItem.p2 + iArr1DItem.p3, p2: iArr1DItem.p2}
+    };

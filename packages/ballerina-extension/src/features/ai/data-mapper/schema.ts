@@ -43,5 +43,14 @@ const RepairedMappingsSchema = z.object({
   repairedMappings: z.array(RepairedMappingSchema),
 });
 
+// Schema for mapping instruction extraction from files (uses array since Anthropic API doesn't support dynamic keys)
+const MappingInstructionSchema = z.object({
+  mapping_fields: z.array(z.object({
+    output_field: z.string(),
+    MAPPING_TIP: z.string(),
+    INPUT_FIELDS: z.array(z.string()),
+  })),
+});
+
 // Export the schema for reuse
-export { GeneratedMappingSchema, RepairedMappingsSchema };
+export { GeneratedMappingSchema, RepairedMappingsSchema, MappingInstructionSchema };

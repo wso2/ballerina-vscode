@@ -16,12 +16,13 @@
  * under the License.
  */
 
-import { EditorState, Transaction } from "prosemirror-state";
+import { EditorState, Transaction, Selection, Plugin } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { toggleMark, setBlockType, wrapIn, lift } from "prosemirror-commands";
 import { wrapInList, liftListItem } from "prosemirror-schema-list";
-import { MarkType, NodeType } from "prosemirror-model";
+import { MarkType, NodeType, Fragment, Schema } from "prosemirror-model";
 import { undo, redo } from "prosemirror-history";
+import { InputRule, inputRules } from "prosemirror-inputrules";
 
 export type Command = (state: EditorState, dispatch?: (tr: Transaction) => void, view?: EditorView) => boolean;
 
@@ -192,3 +193,290 @@ export const canUndo = (state: EditorState): boolean => {
 export const canRedo = (state: EditorState): boolean => {
     return redo(state);
 };
+
+// Converts "---" on a line to a horizontal rule, or "```" to a code block,
+// when Enter is pressed. Returns false to let other Enter handlers run.
+export const handleMarkdownShortcutEnter: Command = (state, dispatch) => {
+    const { $from } = state.selection;
+
+    // Exit code block: Enter on an empty last line creates a paragraph after it
+    if ($from.parent.type.name === "code_block") {
+        const codeBlock = $from.parent;
+        const text = codeBlock.textContent;
+        const offset = $from.parentOffset;
+
+        // Check if cursor is at the end and the last line is empty
+        const isAtEnd = offset === text.length;
+        const endsWithNewline = text.endsWith("\n") || text === "";
+
+        if (isAtEnd && endsWithNewline) {
+            if (dispatch) {
+                const start = $from.before();
+                const end = $from.after();
+                const tr = state.tr as any;
+
+                // Build a new code block without the trailing newline, plus a paragraph
+                const trimmedText = text.endsWith("\n") ? text.slice(0, -1) : text;
+                const newCodeBlock = trimmedText
+                    ? state.schema.nodes.code_block.create(null, state.schema.text(trimmedText))
+                    : state.schema.nodes.code_block.create();
+                const paragraph = state.schema.nodes.paragraph.create();
+
+                tr.replaceWith(start, end, Fragment.from([newCodeBlock, paragraph]));
+                // Cursor in the new paragraph (after code block)
+                tr.setSelection(Selection.near(tr.doc.resolve(start + newCodeBlock.nodeSize + 1)));
+                dispatch(tr.scrollIntoView());
+            }
+            return true;
+        }
+        return false;
+    }
+
+    // Only handle remaining shortcuts when cursor is in a paragraph
+    if ($from.parent.type.name !== "paragraph") return false;
+
+    const text = $from.parent.textContent;
+
+    // --- → horizontal_rule
+    if (text === "---" || text === "***" || text === "___") {
+        const hrType = state.schema.nodes.horizontal_rule;
+        if (!hrType) return false;
+        if (dispatch) {
+            const start = $from.before();
+            const end = $from.after();
+            const nodes = Fragment.from([
+                hrType.create(),
+                state.schema.nodes.paragraph.create()
+            ]);
+            const tr = (state.tr as any).replaceWith(start, end, nodes);
+            tr.setSelection(Selection.near(tr.doc.resolve(start + hrType.create().nodeSize + 1)));
+            dispatch(tr.scrollIntoView());
+        }
+        return true;
+    }
+
+    // ``` → code_block
+    if (text === "```") {
+        const codeBlockType = state.schema.nodes.code_block;
+        if (!codeBlockType) return false;
+        if (dispatch) {
+            const start = $from.before();
+            const end = $from.after();
+            const tr = (state.tr as any).replaceWith(start, end, codeBlockType.create());
+            tr.setSelection(Selection.near(tr.doc.resolve(start + 1)));
+            dispatch(tr.scrollIntoView());
+        }
+        return true;
+    }
+
+    return false;
+};
+
+// When the cursor is at the right edge of an inline code span and the user
+// presses ArrowRight, clear stored marks so subsequent typing is unstyled.
+// This mirrors the behavior of Notion, Google Docs, and other rich editors.
+export const exitInlineCodeOnArrowRight: Command = (state, dispatch) => {
+    if (!state.selection.empty) return false;
+
+    const { $from } = state.selection;
+    const codeMark = state.schema.marks.code;
+    if (!codeMark) return false;
+
+    // Check if the cursor currently has code mark active
+    const storedMarks = state.storedMarks || $from.marks();
+    const hasCode = storedMarks.some((m: any) => m.type === codeMark);
+    if (!hasCode) return false;
+
+    const parent = $from.parent;
+    const offsetInParent = $from.parentOffset;
+
+    // At a mark boundary (end of code span, more text follows)
+    if (offsetInParent < parent.content.size) {
+        const after = parent.childAfter(offsetInParent);
+        const afterHasCode = after?.node?.marks.some((m: any) => m.type === codeMark) ?? false;
+
+        if (!afterHasCode) {
+            if (dispatch) {
+                // Move cursor one position right and clear code mark
+                const tr = state.tr;
+                tr.setSelection(Selection.near(state.doc.resolve($from.pos + 1)));
+                tr.setStoredMarks([]);
+                dispatch(tr.scrollIntoView());
+            }
+            return true;
+        }
+    }
+
+    // At end of parent — code span is the last thing in the paragraph
+    if (offsetInParent === parent.content.size) {
+        if (dispatch) {
+            // Just clear stored marks — cursor is already at the edge
+            const tr = state.tr.setStoredMarks([]);
+            dispatch(tr);
+        }
+        return true;
+    }
+
+    return false;
+};
+
+// ArrowDown at the end of a code block (or any last block) creates a paragraph
+// below and moves the cursor there. Without this, users get trapped in trailing
+// code blocks, tables, or blockquotes.
+export const exitBlockOnArrowDown: Command = (state, dispatch) => {
+    if (!state.selection.empty) return false;
+
+    const { $from } = state.selection;
+
+    // Check if cursor is at the very end of the document content
+    const topLevelNode = $from.node(1);
+    const isLastBlock = state.doc.lastChild === topLevelNode;
+    const atEndOfBlock = $from.parentOffset === $from.parent.content.size;
+
+    if (isLastBlock && atEndOfBlock) {
+        // Only act on blocks where you can get "trapped" (not paragraphs)
+        const blockType = topLevelNode?.type.name;
+        if (blockType === "code_block" || blockType === "table" || blockType === "blockquote") {
+            if (dispatch) {
+                const endOfDoc = state.doc.content.size;
+                const paragraph = state.schema.nodes.paragraph.create();
+                const tr = (state.tr as any).insert(endOfDoc, paragraph);
+                tr.setSelection(Selection.near(tr.doc.resolve(endOfDoc + 1)));
+                dispatch(tr.scrollIntoView());
+            }
+            return true;
+        }
+    }
+
+    return false;
+};
+
+// Input rule: typing `text` (backtick-wrapped) converts to inline code mark.
+export function createMarkdownInputRulesPlugin(schema: Schema): Plugin {
+    const rules: InputRule[] = [];
+
+    if (schema.marks.code) {
+        rules.push(new InputRule(
+            /`([^`]+)`$/,
+            (state, match, start, end) => {
+                const codeMark = schema.marks.code.create();
+                const tr = (state.tr as any).delete(start, end);
+                tr.insertText(match[1], start);
+                tr.addMark(start, start + match[1].length, codeMark);
+                tr.setStoredMarks([]);
+                return tr;
+            }
+        ));
+    }
+
+    // "- " or "* " at start of paragraph → bullet list
+    if (schema.nodes.bullet_list && schema.nodes.list_item) {
+        rules.push(new InputRule(
+            /^[-*]\s$/,
+            (_state, _match, start, _end) => {
+                const $from = _state.doc.resolve(start);
+                // Only in a top-level paragraph (not already in a list)
+                if ($from.parent.type !== schema.nodes.paragraph) return null;
+                for (let d = $from.depth - 1; d >= 0; d--) {
+                    if ($from.node(d).type === schema.nodes.list_item) return null;
+                }
+                const listItem = schema.nodes.list_item.create(null, schema.nodes.paragraph.create());
+                const list = schema.nodes.bullet_list.create(null, listItem);
+                const tr = (_state.tr as any).replaceWith($from.before(), $from.after(), list);
+                tr.setSelection(Selection.near(tr.doc.resolve($from.before() + 3)));
+                return tr;
+            }
+        ));
+    }
+
+    // "1. " at start of paragraph → ordered list
+    if (schema.nodes.ordered_list && schema.nodes.list_item) {
+        rules.push(new InputRule(
+            /^1\.\s$/,
+            (_state, _match, start, _end) => {
+                const $from = _state.doc.resolve(start);
+                if ($from.parent.type !== schema.nodes.paragraph) return null;
+                for (let d = $from.depth - 1; d >= 0; d--) {
+                    if ($from.node(d).type === schema.nodes.list_item) return null;
+                }
+                const listItem = schema.nodes.list_item.create(null, schema.nodes.paragraph.create());
+                const list = schema.nodes.ordered_list.create(null, listItem);
+                const tr = (_state.tr as any).replaceWith($from.before(), $from.after(), list);
+                tr.setSelection(Selection.near(tr.doc.resolve($from.before() + 3)));
+                return tr;
+            }
+        ));
+    }
+
+    // "> " at start of paragraph → blockquote
+    if (schema.nodes.blockquote) {
+        rules.push(new InputRule(
+            /^>\s$/,
+            (_state, _match, start, _end) => {
+                const $from = _state.doc.resolve(start);
+                if ($from.parent.type !== schema.nodes.paragraph) return null;
+                // Don't trigger inside lists or blockquotes
+                for (let d = $from.depth - 1; d >= 0; d--) {
+                    const ancestor = $from.node(d).type.name;
+                    if (ancestor === "list_item" || ancestor === "blockquote") return null;
+                }
+                const paragraph = schema.nodes.paragraph.create();
+                const blockquote = schema.nodes.blockquote.create(null, paragraph);
+                const tr = (_state.tr as any).replaceWith($from.before(), $from.after(), blockquote);
+                tr.setSelection(Selection.near(tr.doc.resolve($from.before() + 2)));
+                return tr;
+            }
+        ));
+    }
+
+    // "# " through "###### " at start of paragraph → heading
+    if (schema.nodes.heading) {
+        rules.push(new InputRule(
+            /^(#{1,6})\s$/,
+            (_state, _match, start, _end) => {
+                const $from = _state.doc.resolve(start);
+                if ($from.parent.type !== schema.nodes.paragraph) return null;
+                for (let d = $from.depth - 1; d >= 0; d--) {
+                    if ($from.node(d).type.name === "list_item") return null;
+                }
+                const level = _match[1].length;
+                const heading = schema.nodes.heading.create({ level });
+                const tr = (_state.tr as any).replaceWith($from.before(), $from.after(), heading);
+                tr.setSelection(Selection.near(tr.doc.resolve($from.before() + 1)));
+                return tr;
+            }
+        ));
+    }
+
+    // **text** → bold
+    if (schema.marks.strong) {
+        rules.push(new InputRule(
+            /\*\*([^*]+)\*\*$/,
+            (state, match, start, end) => {
+                const mark = schema.marks.strong.create();
+                const tr = (state.tr as any).delete(start, end);
+                tr.insertText(match[1], start);
+                tr.addMark(start, start + match[1].length, mark);
+                tr.setStoredMarks([]);
+                return tr;
+            }
+        ));
+    }
+
+    // *text* → italic (but not **text**)
+    if (schema.marks.em) {
+        rules.push(new InputRule(
+            /(?<!\*)\*([^*]+)\*$/,
+            (state, match, start, end) => {
+                const mark = schema.marks.em.create();
+                const tr = (state.tr as any).delete(start, end);
+                tr.insertText(match[1], start);
+                tr.addMark(start, start + match[1].length, mark);
+                tr.setStoredMarks([]);
+                return tr;
+            }
+        ));
+    }
+
+    return inputRules({ rules });
+}
