@@ -21,6 +21,7 @@ import { CopilotEventHandler } from '../../utils/events';
 import { chatStateStorage, ChatStateStorage } from '../../../../views/ai-panel/chatStateStorage';
 import { getTempProject, cleanupTempProject } from '../../utils/project/temp-project';
 import { getErrorMessage } from '../../utils/ai-utils';
+import { MigrationDebugLogger } from '../../migration/debug-logger';
 
 /**
  * Unified configuration for all AI command executors
@@ -94,6 +95,13 @@ export interface AICommandConfig<TParams = any> {
         /** Maximum output tokens per LLM response. */
         maxOutputTokens?: number;
     };
+
+    /**
+     * Optional debug logger for migration enhancement runs.
+     * When provided, `AgentExecutor` logs individual tool call durations and
+     * summaries to `.ballerina-ai-migration/debug.log` via this logger.
+     */
+    debugLogger?: MigrationDebugLogger;
 }
 
 /**
