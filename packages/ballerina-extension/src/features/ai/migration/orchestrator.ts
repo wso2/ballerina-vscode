@@ -25,9 +25,11 @@ import { AgentExecutor } from "../agent/AgentExecutor";
 import { AICommandConfig } from "../executors/base/AICommandExecutor";
 import { createMigrationEventHandler, createVisualizerMigrationEventHandler, createAIPanelMigrationEventHandler } from "../utils/events";
 import { sendVisualizerMigrationNotification, sendAIPanelNotification } from "../utils/ai-utils";
-import { getEnhancementStages } from "./prompts";
+import { getEnhancementStages, getPerProjectEnhancementStages, EnhancementStage } from "./prompts";
 import { saveAgentHistory, loadAgentHistory, clearAgentHistory } from "./history";
 import { chatStateStorage } from "../../../views/ai-panel/chatStateStorage";
+import { getWorkspaceTomlValues } from "../../../utils";
+import { setMigrationEnhancementActive } from "../../../utils/source-utils";
 
 // ── Wizard streaming emitter – exposed via extension.ts exports ──────────────
 const _wizardChatEmitter = new EventEmitter<ChatNotify>();
@@ -39,6 +41,7 @@ import {
     ActiveMigrationSessionLocal,
     EnhanceTomlData,
     MIGRATION_PROJECT_ROOT_KEY,
+    PackageEnhancementResult,
     PENDING_ENHANCEMENT_TTL_MS,
     PENDING_MIGRATION_ENHANCEMENT_KEY,
     PendingMigrationEnhancement,
@@ -75,10 +78,26 @@ export function readEnhanceToml(projectRoot: string): EnhanceTomlData | null {
         const aiFeatureUsedMatch = content.match(/aiFeatureUsed\s*=\s*(true|false)/);
         const fullyEnhancedMatch = content.match(/fullyEnhanced\s*=\s*(true|false)/);
         const sourcePathMatch = content.match(/sourcePath\s*=\s*"([^"]+)"/);
+        const currentPackageMatch = content.match(/currentPackage\s*=\s*"([^"]+)"/);
+        const currentStageMatch = content.match(/currentStage\s*=\s*(\d+)/);
+
+        // Parse completedPackages array
+        const completedPackagesMatch = content.match(/completedPackages\s*=\s*\[([^\]]*)\]/);
+        let completedPackages: string[] | undefined;
+        if (completedPackagesMatch?.[1]) {
+            completedPackages = completedPackagesMatch[1]
+                .split(",")
+                .map(s => s.trim().replace(/^"|"$/g, ""))
+                .filter(s => s.length > 0);
+        }
+
         return {
             aiFeatureUsed: aiFeatureUsedMatch?.[1] === "true",
             fullyEnhanced: fullyEnhancedMatch?.[1] === "true",
             sourcePath: sourcePathMatch?.[1],
+            completedPackages,
+            currentPackage: currentPackageMatch?.[1],
+            currentStage: currentStageMatch ? parseInt(currentStageMatch[1], 10) : undefined,
         };
     } catch {
         return null;
@@ -93,6 +112,9 @@ export function writeEnhanceToml(
     aiFeatureUsed: boolean,
     fullyEnhanced: boolean,
     sourcePath?: string,
+    completedPackages?: string[],
+    currentPackage?: string,
+    currentStage?: number,
 ): void {
     const dir = path.join(projectRoot, AI_MIGRATION_DIR);
     if (!fs.existsSync(dir)) {
@@ -102,6 +124,16 @@ export function writeEnhanceToml(
     let content = `[enhancement]\naiFeatureUsed = ${aiFeatureUsed}\nfullyEnhanced = ${fullyEnhanced}\n`;
     if (sourcePath) {
         content += `sourcePath = "${sourcePath}"\n`;
+    }
+    if (completedPackages && completedPackages.length > 0) {
+        const quoted = completedPackages.map(p => `"${p}"`).join(", ");
+        content += `completedPackages = [${quoted}]\n`;
+    }
+    if (currentPackage !== undefined) {
+        content += `currentPackage = "${currentPackage}"\n`;
+    }
+    if (currentStage !== undefined) {
+        content += `currentStage = ${currentStage}\n`;
     }
     fs.writeFileSync(filePath, content);
 }
@@ -338,6 +370,234 @@ export async function checkAndRunPendingEnhancement(): Promise<void> {
 // ===========================================================================
 
 // ===========================================================================
+// Workspace package detection
+// ===========================================================================
+
+/**
+ * Reads the root `Ballerina.toml` of a workspace and returns the list of
+ * relative package paths declared in the `[workspace]` section.
+ *
+ * Returns `null` when the project is a single package (no `[workspace]`
+ * section or the file does not exist).
+ */
+async function getWorkspacePackagePaths(projectRoot: string): Promise<string[] | null> {
+    const toml = await getWorkspaceTomlValues(projectRoot);
+    if (!toml?.workspace?.packages || toml.workspace.packages.length === 0) {
+        return null;
+    }
+    return toml.workspace.packages;
+}
+
+/**
+ * Builds a lightweight manifest of all packages in the workspace.
+ * For each peer package (i.e. _not_ the currently-being-enhanced package)
+ * the manifest lists the package name and its public function / type names
+ * so the agent can emit correct `import` statements without needing the
+ * full source code in its context window.
+ */
+function buildCrossPackageManifest(
+    projectRoot: string,
+    allPackagePaths: string[],
+    currentPackagePath: string,
+): string {
+    const entries: string[] = [];
+    for (const pkgPath of allPackagePaths) {
+        if (pkgPath === currentPackagePath) {
+            continue;
+        }
+        const fullPath = path.join(projectRoot, pkgPath);
+        const tomlPath = path.join(fullPath, "Ballerina.toml");
+
+        let pkgName = pkgPath;
+        if (fs.existsSync(tomlPath)) {
+            try {
+                const tomlContent = fs.readFileSync(tomlPath, "utf8");
+                const nameMatch = tomlContent.match(/name\s*=\s*"([^"]+)"/);
+                if (nameMatch?.[1]) {
+                    pkgName = nameMatch[1];
+                }
+            } catch { /* keep directory name */ }
+        }
+
+        // Collect public symbols from .bal files (excluding tests/)
+        const publicSymbols = collectPublicSymbols(fullPath);
+        entries.push(`- **${pkgName}** (\`${pkgPath}/\`): ${publicSymbols.length > 0 ? publicSymbols.join(", ") : "_no public symbols found_"}`);
+    }
+
+    if (entries.length === 0) {
+        return "";
+    }
+    return `\n\n## Other Packages in This Workspace\n\nYou can \`import ${entries.length > 0 ? "<package_name>" : ""}\` to use symbols from these packages.\n\n${entries.join("\n")}`;
+}
+
+/**
+ * Scans root .bal files (excluding tests/) for `public function`, `public type`,
+ * `public class`, `public const`, `public enum` declarations.
+ * Returns a short list of symbol names (max 30 per package to keep context lean).
+ */
+function collectPublicSymbols(packageDir: string): string[] {
+    const symbols: string[] = [];
+    const MAX_SYMBOLS = 30;
+
+    if (!fs.existsSync(packageDir)) {
+        return symbols;
+    }
+
+    try {
+        const files = fs.readdirSync(packageDir).filter(f => f.endsWith(".bal"));
+        for (const file of files) {
+            if (symbols.length >= MAX_SYMBOLS) { break; }
+            const content = fs.readFileSync(path.join(packageDir, file), "utf8");
+            const regex = /^public\s+(function|type|class|const|enum)\s+(\w+)/gm;
+            let match: RegExpExecArray | null;
+            while ((match = regex.exec(content)) !== null) {
+                symbols.push(`\`${match[2]}\``);
+                if (symbols.length >= MAX_SYMBOLS) { break; }
+            }
+        }
+    } catch { /* best-effort */ }
+
+    return symbols;
+}
+
+/**
+ * Reads the `package.name` from a package's `Ballerina.toml`.
+ * Returns `null` if the file does not exist or cannot be parsed.
+ */
+function readPackageName(packageDir: string): string | null {
+    const tomlPath = path.join(packageDir, "Ballerina.toml");
+    if (!fs.existsSync(tomlPath)) { return null; }
+    try {
+        const content = fs.readFileSync(tomlPath, "utf8");
+        const match = content.match(/name\s*=\s*"([^"]+)"/);
+        return match?.[1] ?? null;
+    } catch { return null; }
+}
+
+/**
+ * Emits a summary report of per-package enhancement results to the UI.
+ */
+function emitFinalReport(
+    eventHandler: (event: ChatNotify) => void,
+    results: PackageEnhancementResult[],
+): void {
+    const succeeded = results.filter(r => r.success);
+    const failed = results.filter(r => !r.success);
+
+    let report = `\n\n---\n\n## Enhancement Report\n\n`;
+    report += `**${succeeded.length}** of **${results.length}** packages enhanced successfully.\n\n`;
+
+    if (failed.length > 0) {
+        report += `### Failed packages\n\n`;
+        for (const f of failed) {
+            report += `- \`${f.packagePath}\`: ${f.error}\n`;
+        }
+        report += `\n`;
+    }
+
+    eventHandler({ type: "content_block", content: report });
+}
+
+// ===========================================================================
+// Per-package stage runner – shared by wizard and migration-panel flows
+// ===========================================================================
+
+interface StageRunnerOpts {
+    /** Absolute workspace root (or single-project root). */
+    projectRoot: string;
+    /** Absolute path to the package being enhanced (equals `projectRoot` for single-project). */
+    packagePath: string;
+    /** Absolute path to the original source project. */
+    sourcePath?: string;
+    /** Enhancement stages to execute. */
+    stages: EnhancementStage[];
+    /** Callback that sends events to UI. */
+    eventHandler: (event: ChatNotify) => void;
+    /** Shared abort controller — checked between stages. */
+    abortController: AbortController;
+    /** Whether this is running from AI Chat (enables chat storage). */
+    fromAIChat: boolean;
+    /** Prefix for generation IDs to avoid collisions. */
+    stageIdPrefix: string;
+    /** Whether to use `existingTempPath` (wizard/review flow) vs `immediate` cleanup. */
+    useExistingTempPath: boolean;
+}
+
+/**
+ * Runs the given enhancement stages sequentially for a single package path.
+ * Each stage gets a fresh `AgentExecutor` (fresh context window).
+ *
+ * When `useExistingTempPath` is true the agent edits files in-place at
+ * `packagePath` (wizard flow — files already on disk).
+ * When false (migration-panel flow) temp project cleanup is immediate.
+ */
+async function runStagesForPackage(opts: StageRunnerOpts): Promise<void> {
+    const {
+        projectRoot, packagePath, sourcePath, stages,
+        eventHandler, abortController, fromAIChat,
+        stageIdPrefix, useExistingTempPath,
+    } = opts;
+
+    for (let i = 0; i < stages.length; i++) {
+        const stage = stages[i];
+
+        if (abortController.signal.aborted) {
+            console.log(`[MigrationEnhancement] Aborted before ${stage.name}`);
+            break;
+        }
+
+        eventHandler({
+            type: "content_block",
+            content: `\n\n---\n\n**Starting ${stage.name}** (${i + 1} of ${stages.length})\n\n`,
+        });
+
+        const stageGenId = `${stageIdPrefix}-stage${i + 1}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+
+        // Scope the execution context to the single package so that
+        // `getProjectSource` only loads this package's source files.
+        const config: AICommandConfig = {
+            executionContext: {
+                projectPath: packagePath,
+                workspacePath: undefined,
+            },
+            eventHandler,
+            generationId: stageGenId,
+            abortController,
+            params: {
+                usecase: stage.prompt,
+                fileAttachmentContents: [],
+                isPlanMode: false,
+            },
+            chatStorage: fromAIChat
+                ? { projectRootPath: projectRoot, threadId: "default", enabled: true }
+                : undefined,
+            onMessagesAvailable: useExistingTempPath
+                ? (messages, status) => {
+                    saveAgentHistory(projectRoot, messages, status);
+                    console.log(`[MigrationEnhancement] Saved ${stage.name} history (${status}, ${messages.length} messages)`);
+                }
+                : undefined,
+            lifecycle: useExistingTempPath
+                ? { existingTempPath: packagePath, cleanupStrategy: "review" as const }
+                : { cleanupStrategy: "immediate" as const },
+            toolOptions: {
+                migrationSourcePath: sourcePath,
+            },
+            agentLimits: stage.agentLimits,
+        };
+
+        console.log(`[MigrationEnhancement] Running ${stage.name} (maxSteps: ${stage.agentLimits.maxSteps})`);
+        await new AgentExecutor(config).run();
+        console.log(`[MigrationEnhancement] ${stage.name} completed.`);
+
+        eventHandler({
+            type: "content_block",
+            content: `\n\n**${stage.name} — Complete** ✅\n\n`,
+        });
+    }
+}
+
+// ===========================================================================
 // Agent execution – called when the migration panel signals readiness
 // ===========================================================================
 
@@ -359,6 +619,10 @@ export function setMigrationModelId(modelId: string): void {
  * Fired by `migrationPanelReady` RPC – creates an `AICommandConfig` with the
  * migration event handler and runs `AgentExecutor` to stream results to the
  * standalone Migration Panel.
+ *
+ * For multi-package workspaces the enhancement iterates over each package
+ * individually so that only one package's source is in the context window
+ * at a time.  Single-package projects run the 4-stage pipeline directly.
  */
 export async function runMigrationAgent(): Promise<void> {
     // Determine the project root (workspace folder)
@@ -374,68 +638,83 @@ export async function runMigrationAgent(): Promise<void> {
     // via migration_source_list / migration_source_read tools.
     const tomlData = readEnhanceToml(projectRoot);
     const sourcePath = tomlData?.sourcePath;
-
-    const stages = getEnhancementStages();
     const eventHandler = createMigrationEventHandler(Command.Agent);
-
     _migrationAbortController = new AbortController();
-
-    console.log(`[MigrationEnhancement] Starting migration agent (${stages.length} stages) – model: ${_selectedModelId}, sourcePath: ${sourcePath ?? 'none'}`);
+    setMigrationEnhancementActive(true);
 
     try {
-        for (let i = 0; i < stages.length; i++) {
-            const stage = stages[i];
+        const packagePaths = await getWorkspacePackagePaths(projectRoot);
 
-            if (_migrationAbortController.signal.aborted) {
-                console.log(`[MigrationEnhancement] Aborted before ${stage.name}`);
-                break;
+        if (packagePaths && packagePaths.length > 1) {
+            // ── Multi-package workspace ──────────────────────────────────
+            const completedPackages = new Set<string>(tomlData?.completedPackages ?? []);
+            const results: PackageEnhancementResult[] = [];
+
+            console.log(`[MigrationEnhancement] Starting migration agent – ${packagePaths.length} packages, model: ${_selectedModelId}`);
+            eventHandler({
+                type: "content_block",
+                content: `\n\n**Workspace contains ${packagePaths.length} packages.** Enhancing each package individually.\n\n`,
+            });
+
+            for (let pkgIdx = 0; pkgIdx < packagePaths.length; pkgIdx++) {
+                const pkgRelPath = packagePaths[pkgIdx];
+                if (completedPackages.has(pkgRelPath)) {
+                    eventHandler({ type: "content_block", content: `\n\n⏭️ Skipping already-completed package: \`${pkgRelPath}\`\n\n` });
+                    results.push({ packagePath: pkgRelPath, success: true });
+                    continue;
+                }
+
+                if (_migrationAbortController.signal.aborted) { break; }
+
+                const fullPkgPath = path.join(projectRoot, pkgRelPath);
+                const pkgName = readPackageName(fullPkgPath) ?? pkgRelPath;
+                const manifest = buildCrossPackageManifest(projectRoot, packagePaths, pkgRelPath);
+                const stages = getPerProjectEnhancementStages(pkgName, pkgRelPath, pkgIdx, packagePaths.length, manifest);
+
+                eventHandler({ type: "content_block", content: `\n\n## 📦 Package ${pkgIdx + 1}/${packagePaths.length}: \`${pkgName}\`\n\n` });
+
+                // Persist progress
+                writeEnhanceToml(projectRoot, tomlData?.aiFeatureUsed ?? true, false, sourcePath, [...completedPackages], pkgRelPath, 0);
+
+                try {
+                    await runStagesForPackage({
+                        projectRoot, packagePath: fullPkgPath, sourcePath, stages,
+                        eventHandler, abortController: _migrationAbortController,
+                        fromAIChat: false, stageIdPrefix: `migration-${pkgRelPath}`,
+                        useExistingTempPath: false,
+                    });
+                    completedPackages.add(pkgRelPath);
+                    results.push({ packagePath: pkgRelPath, success: true });
+                    writeEnhanceToml(projectRoot, tomlData?.aiFeatureUsed ?? true, false, sourcePath, [...completedPackages]);
+                } catch (pkgError) {
+                    if (_migrationAbortController.signal.aborted) { throw pkgError; }
+                    const errMsg = pkgError instanceof Error ? pkgError.message : String(pkgError);
+                    console.error(`[MigrationEnhancement] Package ${pkgRelPath} failed:`, pkgError);
+                    eventHandler({ type: "content_block", content: `\n\n⚠️ Package \`${pkgRelPath}\` failed: ${errMsg}. Continuing to next package.\n\n` });
+                    results.push({ packagePath: pkgRelPath, success: false, error: errMsg });
+                }
             }
 
-            eventHandler({
-                type: "content_block",
-                content: `\n\n---\n\n**Starting ${stage.name}** (${i + 1} of ${stages.length})\n\n`,
+            if (!_migrationAbortController.signal.aborted) {
+                emitFinalReport(eventHandler, results);
+                markEnhancementComplete();
+            }
+        } else {
+            // ── Single-package project ───────────────────────────────────
+            const stages = getEnhancementStages();
+            console.log(`[MigrationEnhancement] Starting migration agent (${stages.length} stages) – model: ${_selectedModelId}, sourcePath: ${sourcePath ?? 'none'}`);
+
+            await runStagesForPackage({
+                projectRoot, packagePath: projectRoot, sourcePath, stages,
+                eventHandler, abortController: _migrationAbortController,
+                fromAIChat: false, stageIdPrefix: "migration",
+                useExistingTempPath: false,
             });
 
-            const stageGenId = `migration-stage${i + 1}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-
-            const config: AICommandConfig = {
-                executionContext: {
-                    projectPath: projectRoot,
-                    workspacePath: projectRoot,
-                },
-                eventHandler,
-                generationId: stageGenId,
-                abortController: _migrationAbortController,
-                params: {
-                    usecase: stage.prompt,
-                    fileAttachmentContents: [],
-                    isPlanMode: false,
-                },
-                chatStorage: undefined,
-                lifecycle: {
-                    cleanupStrategy: "immediate",
-                },
-                toolOptions: {
-                    migrationSourcePath: sourcePath,
-                },
-                agentLimits: stage.agentLimits,
-            };
-
-            console.log(`[MigrationEnhancement] Running ${stage.name} (maxSteps: ${stage.agentLimits.maxSteps})`);
-
-            await new AgentExecutor(config).run();
-
-            console.log(`[MigrationEnhancement] ${stage.name} completed.`);
-
-            eventHandler({
-                type: "content_block",
-                content: `\n\n**${stage.name} — Complete** ✅\n\n`,
-            });
-        }
-
-        if (!_migrationAbortController.signal.aborted) {
-            markEnhancementComplete();
-            console.log("[MigrationEnhancement] Migration agent completed all stages successfully.");
+            if (!_migrationAbortController.signal.aborted) {
+                markEnhancementComplete();
+                console.log("[MigrationEnhancement] Migration agent completed all stages successfully.");
+            }
         }
     } catch (error) {
         if (_migrationAbortController.signal.aborted) {
@@ -445,6 +724,7 @@ export async function runMigrationAgent(): Promise<void> {
         }
     } finally {
         _migrationAbortController = undefined;
+        setMigrationEnhancementActive(false);
     }
 }
 
@@ -625,85 +905,96 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
     const tomlData = readEnhanceToml(projectRoot);
     const sourcePath = tomlData?.sourcePath ?? _wizardSourcePath;
 
-    // --- Multi-stage execution ---
-    // Each stage runs in a fresh AgentExecutor with its own context window.
-    // Between stages the project files persist on disk (existingTempPath)
-    // and getProjectSource() re-reads them, so the next stage sees all
-    // changes made by the previous one.
-    const stages = getEnhancementStages();
-
     _migrationAbortController = new AbortController();
-
-    console.log(`[MigrationEnhancement] Starting wizard migration agent (${stages.length} stages) – projectRoot: ${projectRoot}, sourcePath: ${sourcePath ?? 'none'}`);
+    setMigrationEnhancementActive(true);
 
     try {
-        for (let i = 0; i < stages.length; i++) {
-            const stage = stages[i];
+        const packagePaths = await getWorkspacePackagePaths(projectRoot);
 
-            // Check for abort between stages
-            if (_migrationAbortController.signal.aborted) {
-                console.log(`[MigrationEnhancement] Aborted before ${stage.name}`);
-                break;
-            }
+        if (packagePaths && packagePaths.length > 1) {
+            // ── Multi-package workspace ──────────────────────────────────
+            const completedPackages = new Set<string>(tomlData?.completedPackages ?? []);
+            const results: PackageEnhancementResult[] = [];
 
-            // Notify the UI of stage progress
+            console.log(`[MigrationEnhancement] Starting wizard migration agent – ${packagePaths.length} packages, projectRoot: ${projectRoot}`);
             eventHandler({
                 type: "content_block",
-                content: `\n\n---\n\n**Starting ${stage.name}** (${i + 1} of ${stages.length})\n\n`,
+                content: `\n\n**Workspace contains ${packagePaths.length} packages.** Enhancing each package individually.\n\n`,
             });
 
-            const stageGenId = `wizard-migration-stage${i + 1}-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+            for (let pkgIdx = 0; pkgIdx < packagePaths.length; pkgIdx++) {
+                const pkgRelPath = packagePaths[pkgIdx];
+                if (completedPackages.has(pkgRelPath)) {
+                    eventHandler({ type: "content_block", content: `\n\n⏭️ Skipping already-completed package: \`${pkgRelPath}\`\n\n` });
+                    results.push({ packagePath: pkgRelPath, success: true });
+                    continue;
+                }
 
-            const config: AICommandConfig = {
-                executionContext: {
-                    projectPath: projectRoot,
-                    workspacePath: projectRoot,
-                },
-                eventHandler,
-                generationId: stageGenId,
-                abortController: _migrationAbortController,
-                params: {
-                    usecase: stage.prompt,
-                    fileAttachmentContents: [],
-                    isPlanMode: false,
-                },
-                chatStorage: fromAIChat
-                    ? { projectRootPath: projectRoot, threadId: "default", enabled: true }
-                    : undefined,
-                onMessagesAvailable: (messages, status) => {
-                    saveAgentHistory(projectRoot, messages, status);
-                    console.log(`[MigrationEnhancement] Saved ${stage.name} history (${status}, ${messages.length} messages)`);
-                },
-                lifecycle: {
-                    existingTempPath: projectRoot,
-                    cleanupStrategy: "review",
-                },
-                toolOptions: {
-                    migrationSourcePath: sourcePath,
-                },
-                agentLimits: stage.agentLimits,
-            };
+                if (_migrationAbortController.signal.aborted) { break; }
 
-            console.log(`[MigrationEnhancement] Running ${stage.name} (maxSteps: ${stage.agentLimits.maxSteps})`);
+                const fullPkgPath = path.join(projectRoot, pkgRelPath);
+                const pkgName = readPackageName(fullPkgPath) ?? pkgRelPath;
+                const manifest = buildCrossPackageManifest(projectRoot, packagePaths, pkgRelPath);
+                const stages = getPerProjectEnhancementStages(pkgName, pkgRelPath, pkgIdx, packagePaths.length, manifest);
 
-            await new AgentExecutor(config).run();
+                eventHandler({ type: "content_block", content: `\n\n## 📦 Package ${pkgIdx + 1}/${packagePaths.length}: \`${pkgName}\`\n\n` });
 
-            console.log(`[MigrationEnhancement] ${stage.name} completed.`);
+                // Persist progress so we can resume from this point
+                writeEnhanceToml(
+                    projectRoot, tomlData?.aiFeatureUsed ?? true, false, sourcePath,
+                    [...completedPackages], pkgRelPath, 0,
+                );
 
-            // Notify the UI of stage completion
-            eventHandler({
-                type: "content_block",
-                content: `\n\n**${stage.name} — Complete** ✅\n\n`,
-            });
-        }
-
-        // All stages finished — mark enhancement as complete in the toml
-        if (!_migrationAbortController.signal.aborted) {
-            const data = readEnhanceToml(projectRoot);
-            if (data) {
-                writeEnhanceToml(projectRoot, data.aiFeatureUsed, true, data.sourcePath);
+                try {
+                    await runStagesForPackage({
+                        projectRoot, packagePath: fullPkgPath, sourcePath, stages,
+                        eventHandler, abortController: _migrationAbortController,
+                        fromAIChat, stageIdPrefix: `wizard-${pkgRelPath}`,
+                        useExistingTempPath: true,
+                    });
+                    completedPackages.add(pkgRelPath);
+                    results.push({ packagePath: pkgRelPath, success: true });
+                    // Persist after each successful package
+                    writeEnhanceToml(
+                        projectRoot, tomlData?.aiFeatureUsed ?? true, false, sourcePath,
+                        [...completedPackages],
+                    );
+                } catch (pkgError) {
+                    if (_migrationAbortController.signal.aborted) { throw pkgError; }
+                    const errMsg = pkgError instanceof Error ? pkgError.message : String(pkgError);
+                    console.error(`[MigrationEnhancement] Package ${pkgRelPath} failed:`, pkgError);
+                    eventHandler({ type: "content_block", content: `\n\n⚠️ Package \`${pkgRelPath}\` failed: ${errMsg}. Continuing to next package.\n\n` });
+                    results.push({ packagePath: pkgRelPath, success: false, error: errMsg });
+                }
             }
-            console.log("[MigrationEnhancement] Wizard migration agent completed all stages successfully.");
+
+            if (!_migrationAbortController.signal.aborted) {
+                emitFinalReport(eventHandler, results);
+                const data = readEnhanceToml(projectRoot);
+                if (data) {
+                    writeEnhanceToml(projectRoot, data.aiFeatureUsed, true, data.sourcePath);
+                }
+                console.log("[MigrationEnhancement] Wizard migration agent completed all packages successfully.");
+            }
+        } else {
+            // ── Single-package project (existing behavior) ───────────────
+            const stages = getEnhancementStages();
+            console.log(`[MigrationEnhancement] Starting wizard migration agent (${stages.length} stages) – projectRoot: ${projectRoot}, sourcePath: ${sourcePath ?? 'none'}`);
+
+            await runStagesForPackage({
+                projectRoot, packagePath: projectRoot, sourcePath, stages,
+                eventHandler, abortController: _migrationAbortController,
+                fromAIChat, stageIdPrefix: "wizard-migration",
+                useExistingTempPath: true,
+            });
+
+            if (!_migrationAbortController.signal.aborted) {
+                const data = readEnhanceToml(projectRoot);
+                if (data) {
+                    writeEnhanceToml(projectRoot, data.aiFeatureUsed, true, data.sourcePath);
+                }
+                console.log("[MigrationEnhancement] Wizard migration agent completed all stages successfully.");
+            }
         }
     } catch (error) {
         if (_migrationAbortController.signal.aborted) {
@@ -711,7 +1002,7 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
             if (_runningFromAIChat && projectRoot) {
                 // Persist partial state so the Resume button can appear
                 const data = readEnhanceToml(projectRoot);
-                writeEnhanceToml(projectRoot, data?.aiFeatureUsed ?? true, false, data?.sourcePath);
+                writeEnhanceToml(projectRoot, data?.aiFeatureUsed ?? true, false, data?.sourcePath, data?.completedPackages);
                 // Notify AI Chat panel to show the interrupted message
                 sendAIPanelNotification({ type: "abort", command: Command.Agent });
                 // Show a VS Code notification so the user can jump back to AI Chat
@@ -732,6 +1023,7 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
     } finally {
         _runningFromAIChat = false;
         _migrationAbortController = undefined;
+        setMigrationEnhancementActive(false);
     }
 }
 

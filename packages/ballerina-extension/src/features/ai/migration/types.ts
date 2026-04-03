@@ -60,6 +60,24 @@ export interface EnhanceTomlData {
     fullyEnhanced: boolean;
     /** Absolute path to the original source project (e.g. Mule XML directory). */
     sourcePath?: string;
+    /** Relative paths of packages that have completed all enhancement stages. */
+    completedPackages?: string[];
+    /** Relative path of the package currently being enhanced. */
+    currentPackage?: string;
+    /** Zero-based index of the stage currently being run within `currentPackage`. */
+    currentStage?: number;
+}
+
+/**
+ * Outcome of enhancing a single package in a multi-package workspace.
+ */
+export interface PackageEnhancementResult {
+    /** Relative path of the package from the workspace root. */
+    packagePath: string;
+    /** Whether all stages completed successfully. */
+    success: boolean;
+    /** If `success` is false, a short description of what went wrong. */
+    error?: string;
 }
 
 /**
