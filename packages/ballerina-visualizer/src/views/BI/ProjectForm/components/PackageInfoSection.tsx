@@ -16,13 +16,27 @@
  * under the License.
  */
 
-import { TextField } from "@wso2/ui-toolkit";
-import { FieldGroup, Note } from "../styles";
+import { useEffect, useRef, useState } from "react";
+import styled from "@emotion/styled";
+import { Codicon, Dropdown, TextField } from "@wso2/ui-toolkit";
+import { WICommandIds } from "@wso2/wso2-platform-core";
+import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import { Description, FieldGroup, Note, SubSectionDivider, SubSectionLabel } from "../styles";
 import { CollapsibleSection } from "./CollapsibleSection";
+import { sanitizePackageName, sanitizeProjectHandle } from "../utils";
+import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
 
 export interface PackageInfoData {
+    packageName: string;
     orgName: string;
     version: string;
+    projectHandle?: string;
+}
+
+export interface Organization {
+    id?: number | string;
+    handle: string;
+    name: string;
 }
 
 export interface PackageInfoSectionProps {
@@ -34,35 +48,185 @@ export interface PackageInfoSectionProps {
     data: PackageInfoData;
     /** Callback when the package info changes */
     onChange: (data: Partial<PackageInfoData>) => void;
+    /** Whether the package is a library */
+    isLibrary?: boolean;
     /** Error message for org name validation */
     orgNameError?: string | null;
+    /** Error message for package name validation */
+    packageNameError?: string | null;
+    /** Error message for project handle validation */
+    projectHandleError?: string | null;
+    /** Organizations list — when provided, renders a dropdown instead of a free-text field */
+    organizations?: Organization[];
+    /** Whether the section contains validation errors */
+    hasError?: boolean;
 }
+
+// ── Sign-in hint styles ────────────────────────────────────────────────────────
+
+const SignInHint = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+`;
+
+const SignInHintButton = styled.button`
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0;
+    background: none;
+    border: none;
+    font-size: 12px;
+    font-family: var(--vscode-font-family);
+    color: var(--vscode-textLink-foreground);
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover:not(:disabled) {
+        color: var(--vscode-textLink-activeForeground);
+        text-decoration: underline;
+    }
+
+    &:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+    &:focus-visible {
+        outline: 1px solid var(--vscode-focusBorder);
+        outline-offset: 2px;
+    }
+`;
+
+// ── Component ──────────────────────────────────────────────────────────────────
 
 export function PackageInfoSection({
     isExpanded,
     onToggle,
     data,
     onChange,
+    isLibrary,
     orgNameError,
+    packageNameError,
+    projectHandleError,
+    organizations,
+    hasError,
 }: PackageInfoSectionProps) {
+    const { rpcClient } = useRpcContext();
+    const { platformExtState } = usePlatformExtContext();
+    const [isSigningIn, setIsSigningIn] = useState(false);
+    const signingInTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const hasOrgs = organizations && organizations.length > 0;
+
+    useEffect(() => {
+        if (platformExtState?.userInfo && isSigningIn) {
+            setIsSigningIn(false);
+            if (signingInTimeoutRef.current) {
+                clearTimeout(signingInTimeoutRef.current);
+                signingInTimeoutRef.current = null;
+            }
+        }
+    }, [platformExtState?.userInfo, isSigningIn]);
+
+    useEffect(() => {
+        return () => {
+            if (signingInTimeoutRef.current) clearTimeout(signingInTimeoutRef.current);
+        };
+    }, []);
+
+    const handleSignIn = () => {
+        setIsSigningIn(true);
+        signingInTimeoutRef.current = setTimeout(() => {
+            setIsSigningIn(false);
+            signingInTimeoutRef.current = null;
+        }, 15000);
+        rpcClient.getCommonRpcClient().executeCommand({ commands: [WICommandIds.SignIn] });
+    };
+
     return (
         <CollapsibleSection
             isExpanded={isExpanded}
             onToggle={onToggle}
-            icon="package"
-            title="Package Information"
+            icon="gear"
+            title="Advanced Configurations"
+            hasError={hasError}
         >
+            {data.projectHandle !== undefined && (
+                <>
+                    <SubSectionLabel>Project</SubSectionLabel>
+                    <FieldGroup>
+                        <TextField
+                            onTextChange={(value) => onChange({ projectHandle: sanitizeProjectHandle(value, { trimTrailing: false }) })}
+                            value={data.projectHandle}
+                            label="Project ID"
+                            errorMsg={projectHandleError || undefined}
+                        />
+                        <Description>Unique identifier for your project in various contexts. Cannot be changed after creation.</Description>
+                    </FieldGroup>
+                    <SubSectionDivider />
+                </>
+            )}
+            <SubSectionLabel>Ballerina Package</SubSectionLabel>
             <Note style={{ marginBottom: "16px" }}>
-                This integration is generated as a Ballerina package. Define the organization and version that will be assigned to it.     
+                {`This ${isLibrary ? "library" : "integration"} is generated as a Ballerina package. Specify the organization, package name and version to be assigned.`}
             </Note>
             <FieldGroup>
                 <TextField
-                    onTextChange={(value) => onChange({ orgName: value })}
-                    value={data.orgName}
-                    label="Organization Name"
-                    description="The organization that owns this Ballerina package."
-                    errorMsg={orgNameError || undefined}
+                    onTextChange={(value) => onChange({ packageName: sanitizePackageName(value) })}
+                    value={data.packageName}
+                    label="Package Name"
+                    errorMsg={packageNameError || undefined}
                 />
+                <Description>Specify the package name.</Description>
+            </FieldGroup>
+            <FieldGroup>
+                {hasOrgs ? (
+                    <>
+                        <Dropdown
+                            id="org-name-dropdown"
+                            label="Organization Name"
+                            items={organizations.map((org) => ({ value: org.handle, content: org.name }))}
+                            value={data.orgName}
+                            onValueChange={(value: string) => onChange({ orgName: value })}
+                        />
+                        <Description>The organization that owns this package.</Description>
+                    </>
+                ) : (
+                    <>
+                        <TextField
+                            onTextChange={(value) => onChange({ orgName: value })}
+                            value={data.orgName}
+                            label="Organization Name"
+                            errorMsg={orgNameError || undefined}
+                        />
+                        <SignInHint>
+                            <Codicon
+                                name="account"
+                                iconSx={{ color: "var(--vscode-descriptionForeground)" }}
+                                sx={{ display: "flex" }}
+                            />
+                            <span>Sign in to pick from your organizations —</span>
+                            <SignInHintButton type="button" onClick={handleSignIn} disabled={isSigningIn}>
+                                {isSigningIn ? (
+                                    <>
+                                        <Codicon
+                                            name="loading"
+                                            iconSx={{ fontSize: "11px", animation: "codicon-spin 1.5s steps(30) infinite" }}
+                                        />
+                                        Signing in...
+                                    </>
+                                ) : (
+                                    "Sign In"
+                                )}
+                            </SignInHintButton>
+                        </SignInHint>
+                    </>
+                )}
             </FieldGroup>
             <FieldGroup>
                 <TextField
@@ -70,10 +234,9 @@ export function PackageInfoSection({
                     value={data.version}
                     label="Package Version"
                     placeholder="0.1.0"
-                    description="Version of the Ballerina package."
                 />
+                <Description>Version of the package.</Description>
             </FieldGroup>
         </CollapsibleSection>
     );
 }
-

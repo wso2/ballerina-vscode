@@ -253,7 +253,7 @@ export function sendToolResultNotification(toolName: string, toolOutput?: any, t
     sendAIPanelNotification(msg);
 }
 
-export function sendTaskApprovalRequestNotification(approvalType: "plan" | "completion", tasks: any[], taskDescription?: string, message?: string, requestId?: string): void {
+export function sendTaskApprovalRequestNotification(approvalType: "plan" | "completion", tasks: any[], taskDescription?: string, message?: string, requestId?: string, autoApproved?: boolean): void {
     const msg: ChatNotify = {
         type: "task_approval_request",
         requestId: requestId || `approval-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
@@ -261,6 +261,7 @@ export function sendTaskApprovalRequestNotification(approvalType: "plan" | "comp
         tasks: tasks,
         taskDescription: taskDescription,
         message: message,
+        autoApproved: autoApproved,
     };
     sendAIPanelNotification(msg);
 }
@@ -305,6 +306,10 @@ export function sendConnectorGenerationNotification(event: ChatNotify & { type: 
 }
 
 export function sendConfigurationCollectionNotification(event: ChatNotify & { type: "configuration_collection_event" }): void {
+    sendAIPanelNotification(event);
+}
+
+export function sendClarifyNotification(event: ChatNotify & { type: "clarify_event" }): void {
     sendAIPanelNotification(event);
 }
 

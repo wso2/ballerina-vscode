@@ -34,6 +34,7 @@ import {
     sendSaveChatNotification,
     sendConnectorGenerationNotification,
     sendConfigurationCollectionNotification,
+    sendClarifyNotification,
     sendChatComponentNotification,
     sendUsageMetricsNotification,
 } from "./ai-utils";
@@ -92,7 +93,8 @@ export function createWebviewEventHandler(command: Command): CopilotEventHandler
                     event.tasks,
                     event.taskDescription,
                     event.message,
-                    event.requestId
+                    event.requestId,
+                    event.autoApproved
                 );
                 break;
             case "evals_tool_result":
@@ -109,6 +111,9 @@ export function createWebviewEventHandler(command: Command): CopilotEventHandler
                 break;
             case "configuration_collection_event":
                 sendConfigurationCollectionNotification(event);
+                break;
+            case "clarify_event":
+                sendClarifyNotification(event);
                 break;
             case "chat_component":
                 sendChatComponentNotification(event.componentType, event.data, event.id);

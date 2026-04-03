@@ -37,9 +37,9 @@ import {
 } from './utils/state-machine-utils';
 import * as path from 'path';
 import { extension } from './BalExtensionContext';
-import { AIStateMachine } from './views/ai-panel/aiMachine';
+import { AIStateMachine, openAIPanelWithPrompt } from './views/ai-panel/aiMachine';
 import { StateMachinePopup } from './stateMachinePopup';
-import { checkIsBallerinaPackage, checkIsBI, fetchScope, getOrgPackageName, UndoRedoManager, getProjectTomlValues, getOrgAndPackageName, checkIsBallerinaWorkspace } from './utils';
+import { checkIsBallerinaPackage, checkIsBI, fetchScope, getOrgPackageName, UndoRedoManager, getProjectTomlValues, getOrgAndPackageName, checkIsBallerinaWorkspace, isInWI } from './utils';
 import { activateDevantFeatures } from './features/devant/activator';
 import { buildProjectsStructure } from './utils/project-artifacts';
 import { runCommandWithOutput } from './utils/runCommand';
@@ -66,6 +66,7 @@ interface MachineContext extends VisualizerLocation {
 export let history: History;
 export let undoRedoManager: IUndoRedoManager;
 let pendingProjectRootUpdateResolvers: Array<() => void> = [];
+let scaffoldPromptTriggered = false;
 
 const stateMachine = createMachine<MachineContext>(
     {
@@ -391,6 +392,22 @@ const stateMachine = createMachine<MachineContext>(
                         }
                     },
                     viewReady: {
+                        entry: () => {
+                            if (!scaffoldPromptTriggered) {
+                                const scaffoldPrompt = process.env.INITIAL_SCAFFOLD_PROMPT;
+                                const scaffoldSteps = process.env.INITIAL_SCAFFOLD_STEPS;
+                                if (scaffoldPrompt && scaffoldSteps) {
+                                    scaffoldPromptTriggered = true;
+                                    openAIPanelWithPrompt({
+                                        type: 'text',
+                                        text: scaffoldPrompt,
+                                        planMode: true,
+                                        autoSubmit: true,
+                                        hiddenContext: scaffoldSteps
+                                    });
+                                }
+                            }
+                        },
                         on: {
                             OPEN_VIEW: {
                                 target: "viewInit",
@@ -537,7 +554,7 @@ const stateMachine = createMachine<MachineContext>(
                         undoRedoManager = new UndoRedoManager();
                         const webview = VisualizerWebview.currentPanel?.getWebview();
                         if (webview && (context.isBI || context.view === MACHINE_VIEW.BIWelcome)) {
-                            const biExtension = extensions.getExtension('wso2.ballerina-integrator');
+                            const biExtension = isInWI() || extensions.getExtension('wso2.ballerina-integrator');
                             webview.iconPath = {
                                 light: Uri.file(path.join(extension.context.extensionPath, 'resources', 'icons', biExtension ? 'wso2-dark.svg' : 'ballerina.svg')),
                                 dark: Uri.file(path.join(extension.context.extensionPath, 'resources', 'icons', biExtension ? 'wso2-light.svg' : 'ballerina-inverse.svg'))
@@ -845,6 +862,9 @@ export const StateMachine = {
     },
     refreshProjectInfo: () => {
         stateService.send({ type: 'REFRESH_PROJECT_INFO' });
+    },
+    updateProjectInfo: (projectInfo: ProjectInfo) => {
+        stateService.send({ type: 'UPDATE_PROJECT_INFO', projectInfo });
     },
     resetToExtensionReady: () => {
         stateService.send({ type: 'RESET_TO_EXTENSION_READY' });

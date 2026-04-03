@@ -128,7 +128,7 @@ function parseAuth(annotationValue: string, oauthKeys: string[]): Record<string,
  * Build the auth annotation fragment from OAuth config values.
  * Returns empty string if no config values are present.
  */
-function buildAuthAnnotation(config: Record<string, string>): string {
+function buildAuthAnnotation(config: Record<string, string>, expressionKeys: Set<string>): string {
     const entries = Object.entries(config);
     if (entries.length === 0) {
         return "";
@@ -145,7 +145,14 @@ function buildAuthAnnotation(config: Record<string, string>): string {
                 return `scopes: [${value}]`;
             }
         }
-        return `${key}: ${value}`;
+        if (expressionKeys.has(key)) {
+            return `${key}: ${value}`;
+        }
+        // Don't double-wrap if already quoted or a string template
+        if (/^".*"$/.test(value) || /^string\s*`.*`$/.test(value)) {
+            return `${key}: ${value}`;
+        }
+        return `${key}: "${value}"`;
     });
     return `auth: {\n        ${parts.join(",\n        ")}\n    }`;
 }
@@ -537,10 +544,17 @@ export function FunctionForm(props: FunctionFormProps) {
 
         // Inject OAuth client config into codedata.data.auth
         const oauthConfig: Record<string, string> = {};
+        const expressionKeys = new Set<string>();
         if (showOAuthConfig) {
             for (const { key } of oauthConfigPropertiesRef.current) {
                 if (key in data && data[key] !== undefined && data[key] !== "") {
                     oauthConfig[key] = String(data[key]);
+                    // Check if the field is in expression mode
+                    const field = functionFields.find(f => f.key === key);
+                    const selectedType = field?.types?.find(t => t.selected);
+                    if (selectedType?.fieldType === "EXPRESSION") {
+                        expressionKeys.add(key);
+                    }
                 }
             }
         }
@@ -557,7 +571,7 @@ export function FunctionForm(props: FunctionFormProps) {
         if (showOAuthConfig && functionNodeCopy.properties?.annotations) {
             let annotationStr = functionNodeCopy.properties.annotations.value as string;
             if (annotationStr.includes("@ai:AgentTool")) {
-                const configBlock = buildAuthAnnotation(oauthConfig);
+                const configBlock = buildAuthAnnotation(oauthConfig, expressionKeys);
                 if (annotationStr.match(/auth\s*:\s*\{[^}]*\}/s)) {
                     if (configBlock) {
                         // Replace existing auth block

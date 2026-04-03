@@ -21,12 +21,14 @@ import { TASK_WRITE_TOOL_NAME } from "./tools/task-writer";
 import { FILE_BATCH_EDIT_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME } from "./tools/text-editor";
 import { CONNECTOR_GENERATOR_TOOL } from "./tools/connector-generator";
 import { CONFIG_COLLECTOR_TOOL } from "./tools/config-collector";
+import { CLARIFY_TOOL } from "./tools/clarify";
 import { TEST_RUNNER_TOOL_NAME } from "./tools/test-runner";
 import { getLanglibInstructions } from "../utils/libs/langlibs";
 import { formatCodebaseStructure, formatCodeContext } from "./utils";
 import { GenerateAgentCodeRequest, OperationType, ProjectSource } from "@wso2/ballerina-core";
 import { getRequirementAnalysisCodeGenPrefix, getRequirementAnalysisTestGenPrefix } from "./np/prompts";
 import { extractResourceDocumentContent, flattenProjectToFiles } from "../utils/ai-utils";
+import { BALLERINA_RUN_TOOL_NAME } from "./tools/ballerina-run";
 
 /**
  * Generates the system prompt for the design agent
@@ -133,6 +135,12 @@ Once compilation is clean and if the project contains test cases, run the tests.
 ### Step 5: Provide a consise summary
 Once the code is written and validated, provide a very concise summary of the overall changes made. Avoid adding detailed explanations and NEVER create documentations files via ${FILE_WRITE_TOOL_NAME}.
 
+# Clarifying Questions
+
+Before starting implementation, use ${CLARIFY_TOOL} to resolve genuine requirement gaps — apply smart defaults where reasonable, but do not silently assume a specific technology when the user's intent or infrastructure determines the right choice.
+
+Use ${CLARIFY_TOOL} AT MOST ONCE — batch all questions into a single call.
+
 # Code Generation Guidelines
 When generating Ballerina code strictly follow these syntax and structure guidelines:
 
@@ -211,7 +219,7 @@ When working with Ballerina workspace projects (projects with a root Ballerina.t
 ## Test Runner
 When running tests:
 1. Tell the user what is being tested in one line.
-2. Use ${TEST_RUNNER_TOOL_NAME} to run the test suite.
+2. Use ${TEST_RUNNER_TOOL_NAME} to run the test suite. Note that you don't have to use ${BALLERINA_RUN_TOOL_NAME} prior to using ${TEST_RUNNER_TOOL_NAME} as the tool will automatically run the app and then run the tests.
 3. Only if there are failures or errors, briefly mention what failed and fix them, then re-run.
 
 # Web Tools
@@ -265,10 +273,14 @@ ${attachmentsText}
         });
     }
 
+    const queryParts = [params.usecase];
+    if (params.hiddenContext) {
+        queryParts.push(params.hiddenContext);
+    }
     content.push({
         type: 'text' as const,
         text: `<User Query>
-${params.usecase}
+${queryParts.join('\n\n')}
 </User Query>`
     });
 

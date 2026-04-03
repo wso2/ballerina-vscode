@@ -19,6 +19,7 @@
 import React from "react";
 import MarkdownRenderer from "../MarkdownRenderer";
 import TodoSection from "../TodoSection";
+import AskCard from "./AskCard";
 import ConfigCard from "./ConfigCard";
 import ConnectorCard from "./ConnectorCard";
 import CommandOutputCard from "./CommandOutputCard";
@@ -109,9 +110,10 @@ function getToolCallDisplay(toolName: string | undefined, toolInput: any): { lab
         case "HealthcareLibraryProviderTool": return { label: "Analyzing healthcare libraries..." };
         case "getCompilationErrors": return { label: "Checking for errors..." };
         case "ConfigCollector": return { label: "Reading config..." };
+        case "Clarify": return { label: "Waiting for answers..." };
         case "ConnectorGeneratorTool": return { label: "Generating connector..." };
         case "runTests": return { label: "Running tests..." };
-        case "curlRequest": return { label: "Sending HTTP request..." };
+        case "hurlRunnerTool": return { label: "Sending HTTP request..." };
         case "runBallerinaPackage": return { label: `Running ${toolInput?.runType === "service" ? "service" : "program"}...` };
         case "getServiceLogs": return { label: "Fetching logs..." };
         case "stopBallerinaService": return { label: "Stopping service..." };
@@ -145,9 +147,10 @@ function getToolResultDisplay(toolName: string | undefined, toolOutput: any, hin
             return { label: count > 0 ? `Found ${count} error(s)` : "No issues found" };
         }
         case "ConfigCollector": return { label: "Config loaded" };
+        case "Clarify": return { label: toolOutput?.skipped ? "Questions skipped" : "Questions answered" };
         case "ConnectorGeneratorTool": return { label: "Connector ready" };
         case "runTests": return { label: toolOutput?.summary ?? "Tests completed" };
-        case "curlRequest": return { label: "HTTP request completed" };
+        case "hurlRunnerTool": return { label: "HTTP request completed" };
         case "runBallerinaPackage": {
             const status = toolOutput?.status ?? "completed";
             return { label: status === "started" ? "Service started" : status === "completed" ? "Program completed" : status === "timeout" ? "Program timed out" : "Run failed" };
@@ -180,8 +183,8 @@ function renderItem(item: StreamItem, idx: number, streamActive: boolean, rpcCli
             );
         }
         case "tool_call": {
-            if (item.toolName === "curlRequest") {
-                return <TryItCard key={idx} input={item.toolInput} />;
+            if (item.toolName === "hurlRunnerTool") {
+                return <TryItCard key={idx} input={item.toolInput} rpcClient={rpcClient} />;
             }
             if (COMMAND_OUTPUT_TOOLS.has(item.toolName ?? "")) {
                 return <CommandOutputCard key={idx} toolName={item.toolName} toolInput={item.toolInput} />;
@@ -199,8 +202,9 @@ function renderItem(item: StreamItem, idx: number, streamActive: boolean, rpcCli
             );
         }
         case "tool_result": {
-            if (item.toolName === "curlRequest") {
-                return <TryItCard key={idx} input={item.toolOutput} output={item.toolOutput} />;
+            if (item.toolName === "Clarify" && !item.toolOutput?.skipped) return null;
+            if (item.toolName === "hurlRunnerTool") {
+                return <TryItCard key={idx} output={item.toolOutput} rpcClient={rpcClient} />;
             }
             if (COMMAND_OUTPUT_TOOLS.has(item.toolName ?? "")) {
                 return <CommandOutputCard key={idx} toolName={item.toolName} toolOutput={item.toolOutput} isResult={true} />;
@@ -229,6 +233,8 @@ function renderItem(item: StreamItem, idx: number, streamActive: boolean, rpcCli
                     approvalComment={item.approvalComment}
                 />
             );
+        case "ask":
+            return <AskCard key={idx} data={item.data} rpcClient={rpcClient} />;
         case "config":
             return <ConfigCard key={idx} data={item.data} rpcClient={rpcClient} />;
         case "connector":
