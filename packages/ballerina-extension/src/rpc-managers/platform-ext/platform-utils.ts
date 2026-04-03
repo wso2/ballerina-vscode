@@ -461,4 +461,4 @@ export const ProxyConfigEnvVars = {
     proxyConfig:{
         varName: "wso2CloudProxyConfig"
     }
-}
+};
