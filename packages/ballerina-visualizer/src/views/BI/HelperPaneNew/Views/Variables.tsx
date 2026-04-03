@@ -112,7 +112,7 @@ export const Variables = (props: VariablesPageProps) => {
         return path;
     }, [breadCrumbSteps]);
     const completionContext = useMemo(() => {
-        const context = navigationPath ? navigationPath + '.' : currentValue;
+        const context = navigationPath ? navigationPath + '.' : (currentValue ?? '');
         return context;
     }, [navigationPath, currentValue]);
 
