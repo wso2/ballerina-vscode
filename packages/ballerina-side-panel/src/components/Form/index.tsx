@@ -805,7 +805,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
 
     // Find the first editable field
     const firstEditableFieldIndex = formFields.findIndex(
-        (field) => field.editable !== false && (field.value == null || field.value === '')
+        (field) => field.editable !== false
     );
 
     const isValid = useMemo(() => {
