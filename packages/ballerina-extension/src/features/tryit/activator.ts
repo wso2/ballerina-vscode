@@ -23,7 +23,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { BallerinaExtension } from "src/core";
 import Handlebars from "handlebars";
-import { clientManager, findRunningBallerinaProcesses, handleError, HTTPYAC_CONFIG_TEMPLATE, TRYIT_TEMPLATE, waitForBallerinaService } from "./utils";
+import { clientManager, findRunningBallerinaProcesses, handleError, waitForBallerinaService } from "./utils";
 import { buildHurlCellsFromOASSpec } from "./hurl-builder";
 import { BIDesignModelResponse, EVENT_TYPE, MACHINE_VIEW, OpenAPISpec, ProjectInfo } from "@wso2/ballerina-core";
 import { getProjectWorkingDirectory } from "../../utils/file-utils";
@@ -38,9 +38,8 @@ import { TracerMachine } from "../tracing";
 
 // File constants
 const FILE_NAMES = {
-    TRYIT: 'tryit.http',
-    HTTPYAC_CONFIG: 'httpyac.config.js',
-    ERROR_LOG: 'httpyac_errors.log'
+    TRYIT: 'TryIt.hurl',
+    ERROR_LOG: 'tryit_errors.log'
 };
 
 let errorLogWatcher: FileSystemWatcher | undefined;
@@ -66,52 +65,7 @@ export function activateTryItCommand(ballerinaExtInstance: BallerinaExtension) {
             }
         });
 
-        // Command: start Ballerina service (no old Try It UI), then open WSO2 HTTP Client notebook
-        const startServiceDisposable = commands.registerCommand('ballerina.startService',
-            async (
-                content?: string | object[] | { oasSpec: any; baseUrl: string; serviceName: string; resourceMetadata?: { methodValue: string; pathValue: string } },
-                options?: { savable?: boolean },
-                serviceMetadata?: ServiceMetadata,
-                filePath?: string
-            ) => {
-                try {
-                    const projectAndServices = await getProjectPathAndServices(serviceMetadata, filePath);
-                    if (!projectAndServices) { return; }
-
-                    const { projectPath, services } = projectAndServices;
-                    const processesRunning = await checkBallerinaProcessRunning(projectPath);
-                    if (!processesRunning) { return; }
-
-                    if (content) {
-                        const savePath = path.join(projectPath, 'target', 'TryIt.hurl');
-                        if (isOasDescriptor(content)) {
-                            // Resolve the actual running service port (same logic as Code Lens Try It)
-                            let descriptor = content;
-                            try {
-                                const matchingService = services.find(s =>
-                                    s.basePath === serviceMetadata?.basePath &&
-                                    (!serviceMetadata?.listener || compareListeners(s.listener, serviceMetadata.listener))
-                                ) ?? (services.length === 1 ? services[0] : undefined);
-                                if (matchingService) {
-                                    const actualPort = await getServicePort(projectPath, matchingService, content.oasSpec);
-                                    const bp = matchingService.basePath === '/' ? '' : sanitizePath(matchingService.basePath);
-                                    descriptor = { ...content, baseUrl: `http://localhost:${actualPort}${bp}` };
-                                }
-                            } catch {
-                                // Fall back to the static baseUrl already in the descriptor
-                            }
-                            await openHurlNotebook(descriptor, savePath, options);
-                        } else {
-                            await openTryItNotebook(content, { ...options, savePath });
-                        }
-                    }
-                } catch (error) {
-                    handleError(error, "Starting Ballerina service");
-                }
-            }
-        );
-
-        return Disposable.from(disposable, startServiceDisposable, {
+        return Disposable.from(disposable, {
             dispose: disposeErrorWatcher
         });
     } catch (error) {
@@ -216,7 +170,8 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
             const baseUrl = `http://localhost:${selectedPort}${basePath}`;
             const serviceName = selectedService.name || selectedService.basePath;
             const savePath = path.join(projectPath, 'target', 'TryIt.hurl');
-            await openHurlNotebook({ oasSpec: openapiSpec, baseUrl, serviceName, resourceMetadata }, savePath, { savable: true });
+            // Service Try It is savable (Cmd+S saves in-place); Resource Try It is read-only.
+            await openHurlNotebook({ oasSpec: openapiSpec, baseUrl, serviceName, resourceMetadata }, savePath, { savable: !resourceMetadata });
         } else if (selectedService.type === ServiceType.GRAPHQL) {
             const selectedPort: number = await getServicePort(projectPath, selectedService);
             const port = selectedPort;
@@ -258,7 +213,7 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
 }
 
 // ---------------------------------------------------------------------------
-// Hurl notebook helpers — shared by ballerina.startService and openTryItView
+// Hurl notebook helpers
 // ---------------------------------------------------------------------------
 
 interface OasDescriptor {
@@ -268,15 +223,27 @@ interface OasDescriptor {
     resourceMetadata?: { methodValue: string; pathValue: string };
 }
 
-function isOasDescriptor(v: any): v is OasDescriptor {
-    return v !== null && typeof v === 'object' && !Array.isArray(v) && 'oasSpec' in v && 'baseUrl' in v && 'serviceName' in v;
-}
-
 async function openHurlNotebook(
     descriptor: OasDescriptor,
     savePath: string,
     options?: { savable?: boolean }
 ): Promise<void> {
+    // If TryIt.hurl is already open as a notebook, VS Code returns the cached in-memory
+    // document and ignores the freshly-written file (e.g. switching Service → Resource Try It).
+    // Close all tabs for that file first so the new content is read from disk.
+    const saveUri = vscode.Uri.file(savePath);
+    const isAlreadyOpen = vscode.workspace.notebookDocuments.some(d => d.uri.fsPath === saveUri.fsPath);
+    if (isAlreadyOpen) {
+        await Promise.all(
+            vscode.window.tabGroups.all
+                .flatMap(g => g.tabs)
+                .filter(t => {
+                    const input = t.input as any;
+                    return input?.uri?.fsPath === saveUri.fsPath || input?.notebook?.uri?.fsPath === saveUri.fsPath;
+                })
+                .map(tab => vscode.window.tabGroups.close(tab, true))
+        );
+    }
     const cells = buildHurlCellsFromOASSpec(descriptor.oasSpec, descriptor.baseUrl, descriptor.serviceName, descriptor.resourceMetadata);
     await openTryItNotebook(cells, { ...options, savePath });
 }
@@ -500,82 +467,6 @@ async function getAvailableServices(projectDir: string): Promise<ServiceInfo[] |
         return services || [];
     } catch (error) {
         return null;
-    }
-}
-
-async function generateTryItFileContent(targetDir: string, openapiSpec: OAISpec, service: ServiceInfo, resourceMetadata?: ResourceMetadata): Promise<vscode.Uri | undefined> {
-    try {
-        // Register Handlebars helpers
-        registerHandlebarsHelpers(openapiSpec);
-
-        let isResourceMode = false;
-        let resourcePath = '';
-        // Filter paths based on resourceMetadata if provided
-        if (resourceMetadata) {
-            const originalPaths = openapiSpec.paths;
-            const filteredPaths: Record<string, Record<string, Operation>> = {};
-
-            let matchingPath = '';
-            for (const path in originalPaths) {
-                const pathMatches = comparePathPatterns(path, resourceMetadata.pathValue);
-                if (pathMatches) {
-                    matchingPath = path;
-                    break;
-                }
-            }
-
-            if (matchingPath && originalPaths[matchingPath]) {
-                isResourceMode = true;
-                resourcePath = matchingPath;
-
-                const method = resourceMetadata.methodValue.toLowerCase();
-                if (originalPaths[matchingPath][method]) {
-                    // Create entry with only the specified method
-                    filteredPaths[matchingPath] = {
-                        [method]: {
-                            ...originalPaths[matchingPath][method]
-                        }
-                    };
-                } else {
-                    // Method not found in matching path
-                    vscode.window.showWarningMessage(`Method ${resourceMetadata.methodValue} not found for path ${matchingPath}. Showing all methods for this path.`);
-                    filteredPaths[matchingPath] = originalPaths[matchingPath];
-                }
-
-                openapiSpec.paths = filteredPaths;
-            } else {
-                // Path not found in OpenAPI spec
-                vscode.window.showWarningMessage(
-                    `Path ${resourceMetadata.pathValue} not found in service ${service.name || service.basePath}. Showing all resources.`
-                );
-            }
-        }
-
-        const tryitCompiledTemplate = Handlebars.compile(TRYIT_TEMPLATE);
-        const tryitContent = tryitCompiledTemplate({
-            ...openapiSpec,
-            port: service.port.toString(),
-            basePath: service.basePath === '/' ? '' : sanitizePath(service.basePath), // to avoid double slashes in the URL
-            serviceName: service.name || '/',
-            isResourceMode: isResourceMode,
-            resourceMethod: isResourceMode ? resourceMetadata?.methodValue.toUpperCase() : '',
-            resourcePath: resourcePath,
-        });
-
-        const httpyacCompiledTemplate = Handlebars.compile(HTTPYAC_CONFIG_TEMPLATE);
-        const httpyacContent = httpyacCompiledTemplate({
-            errorLogFile: FILE_NAMES.ERROR_LOG,
-        });
-
-        const tryitFilePath = path.join(targetDir, FILE_NAMES.TRYIT);
-        const configFilePath = path.join(targetDir, FILE_NAMES.HTTPYAC_CONFIG);
-        fs.writeFileSync(tryitFilePath, tryitContent);
-        fs.writeFileSync(configFilePath, httpyacContent);
-
-        return vscode.Uri.file(tryitFilePath);
-    } catch (error) {
-        handleError(error, "Try It client initialization failed");
-        return undefined;
     }
 }
 

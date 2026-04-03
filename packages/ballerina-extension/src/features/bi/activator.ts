@@ -73,7 +73,7 @@ export function activate(context: BallerinaExtension) {
             try {
                 const icpStatus = await stateMachineContext.langClient.isIcpEnabled({ projectPath });
                 if (icpStatus && 'enabled' in icpStatus && icpStatus.enabled) {
-                    const proceed = await ensureICPServerRunning();
+                    const proceed = await ensureICPServerRunning(projectPath);
                     if (!proceed) {
                         return;
                     }
