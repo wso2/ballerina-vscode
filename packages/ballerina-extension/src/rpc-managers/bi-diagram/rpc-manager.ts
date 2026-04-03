@@ -2426,14 +2426,17 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         const localProjectYamlPath = path.join(params.projectPath, '.choreo', 'local-project.yaml');
         try {
             const yamlContent = fs.readFileSync(localProjectYamlPath, 'utf-8');
-            const updatedYaml = yamlContent.replace(/^name\s*:.*$/m, `name: ${params.title}`);
+            const updatedYaml = yamlContent.replace(
+                /^name\s*:.*$/m,
+                `name: ${JSON.stringify(params.title)}`
+            );
             fs.writeFileSync(localProjectYamlPath, updatedYaml, 'utf-8');
         } catch {
             // file doesn't exist, skip
         }
 
         const currentProjectInfo = StateMachine.context().projectInfo;
-        if (currentProjectInfo) {
+        if (currentProjectInfo.projectPath === params.projectPath) {
             StateMachine.updateProjectInfo({ ...currentProjectInfo, title: params.title });
         } else {
             StateMachine.refreshProjectInfo();
