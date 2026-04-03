@@ -130,7 +130,7 @@ function DropdownOption({ title, description }: DropdownOptionProps) {
     return (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div>
-                <Typography variant="body2" sx={{ fontWeight: 'medium' }}>{title}</Typography>
+                <Typography variant="body2" sx={{ fontWeight: 'medium', lineHeight: 1 }}>{title}</Typography>
                 <Typography variant="body3" sx={{ color: 'var(--vscode-descriptionForeground)' }}>
                     {description}
                 </Typography>
