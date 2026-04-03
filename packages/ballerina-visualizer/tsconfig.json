@@ -9,7 +9,7 @@
     "outDir": "./lib",
     "rootDir": "./src",
 
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "sourceMap": true,
