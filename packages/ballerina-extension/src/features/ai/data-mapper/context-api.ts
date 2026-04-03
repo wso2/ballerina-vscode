@@ -14,9 +14,10 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { generateText, ModelMessage } from "ai";
+import { generateObject, generateText, ModelMessage } from "ai";
 import { getAnthropicClient, ANTHROPIC_SONNET_4 } from "../utils/ai-client";
 import { ContentPart, DataMapperRequest, DataMapperResponse, FileData, FileTypeHandler, ProcessType } from "./types";
+import { MappingInstructionSchema } from "./schema";
 
 
 // Maybe have better names and types?
@@ -37,7 +38,7 @@ async function processFiles(files: FileData[], processType: ProcessType, isRequi
 
         const fileContent = isRequirementAnalysis
             ? getRequirementsContent(message)
-            : extractBallerinaCode(message, processType);
+            : extractBallerinaCode(message);
             
         return { fileContent };
     } catch (error) {
@@ -45,21 +46,13 @@ async function processFiles(files: FileData[], processType: ProcessType, isRequi
     }
 }
 
-// Extract Ballerina code or mapping fields from the response
-function extractBallerinaCode(message: string, processType: ProcessType): string {
-    if (processType === "records") {
-        const ballerinaCodeMatch = message.match(/<ballerina_code>([\s\S]*?)<\/ballerina_code>/);
-        if (ballerinaCodeMatch) {
-            return ballerinaCodeMatch[1].trim();
-        }
-        console.log("No Ballerina code found.");
-    } else {
-        const mappingFieldsMatch = message.match(/<mapping_fields>([\s\S]*?)<\/mapping_fields>/);
-        if (mappingFieldsMatch) {
-            return mappingFieldsMatch[1].trim();
-        }
-        console.log("No mapping fields found.");
+// Extract Ballerina code from the response
+function extractBallerinaCode(message: string): string {
+    const ballerinaCodeMatch = message.match(/<ballerina_code>([\s\S]*?)<\/ballerina_code>/);
+    if (ballerinaCodeMatch) {
+        return ballerinaCodeMatch[1].trim();
     }
+    console.log("No Ballerina code found.");
     return "";
 }
 
@@ -156,7 +149,6 @@ Important:
     - Do not take any assumptions based on data types and mappings.
     - Do not include any mappings you are unsure about.
     - Consider all provided information, including comments and conditions.
-    - Final output has only Ballerina code within <mapping_fields> tags.
 
 Please follow these instructions carefully:
 
@@ -174,66 +166,34 @@ Please follow these instructions carefully:
 12. Document any nested mappings, operations, or data transformations required for the mapping.
 13. Do not map anything if you are unsure about the correct mapping.
 
-Before generating the final output, wrap your thought process inside <mapping_analysis> tags:
+Before generating the output, analyze the content thoroughly:
+- List all input fields and their exact data types
+- List all output fields and their exact data types
+- Identify direct field mappings, fields requiring transformations, and complex mappings involving multiple input fields
+- Note any array-to-array mappings and nested field mappings
+- Verify that all provided information has been considered
 
-1. Analyze the content:
-   - List all input fields and their exact data types (e.g., 1.1 field1: SI, 1.2 field2: int ).
-   - List all output fields and their exact data types (e.g., 1.1 field1: SI, 1.2 field2: int )
-   - Note any comments, conditions, or additional information provided
-
-2. Plan the mappings:
-   - Identify direct field mappings
-   - Identify fields requiring transformations or type conversions
-   - Identify and list complex mappings involving multiple input fields
-   - Note any array to array mappings
-   - Consider nested field mappings
-
-3. Identify complex transformations:
-   - List and describe any complex transformations or mappings
-   - Provide examples of how these transformations would work
-
-4. Review the mapping plan:
-   - Ensure all input fields are accounted for
-   - Check for any ambiguities or uncertainties
-   - Verify that all provided information has been considered
-
-After your analysis, provide the mapping in the following JSON format in <mapping_fields> tags:
+Example of expected field values:
 
 {
-    "mapping_fields": {
-        "output_field_name": {
-            "MAPPING_TIP": "Describe the mapping, including any transformations or special considerations",
-            "INPUT_FIELDS": ["input_field_name_1", "input_field_name_2", "input_field_name_3", ...] // Add more input fields as needed
-        },
-        // Add more output fields as needed
-    }
-}
-
-Simple example for the required format:
-
-{
-    "mapping_fields" : {
-        "id": {
+    "mapping_fields": [
+        {
+            "output_field": "id",
             "MAPPING_TIP": "Direct mapping from Person.id to Student.id",
             "INPUT_FIELDS": ["person.id"]
         },
-        "name": {
+        {
+            "output_field": "name",
             "MAPPING_TIP": "Direct mapping from Person.name to Student.name",
             "INPUT_FIELDS": ["person.name"]
         },
-        "age": {
-            "MAPPING_TIP": "Direct mapping from Person.age to Student.age",
-            "INPUT_FIELDS": ["person.age"]
-        },
-        "weight": {
+        {
+            "output_field": "weight",
             "MAPPING_TIP": "Direct mapping from Person.weight to Student.weight with type conversion from string to float",
             "INPUT_FIELDS": ["person.weight"]
         }
-    }
-}
-
-Generate only Ballerina code with in <mapping_fields> tags based on the provided content.
-`;
+    ]
+}`;
 }
 
 function getRecordsPrompt(): string {
@@ -332,8 +292,6 @@ Write your comprehensive explanation as a text.
 
 function getPromptForProcessType(processType: ProcessType): string {
     switch (processType) {
-        case "mapping_instruction":
-            return getMappingInstructionPrompt();
         case "records":
             return getRecordsPrompt();
         case "requirements":
@@ -343,11 +301,8 @@ function getPromptForProcessType(processType: ProcessType): string {
     }
 }
 
-// Process files with Claude (handles both single and multiple files)
-async function processFilesWithClaude(files: FileData[], processType: ProcessType): Promise<string> {
-    const promptText = getPromptForProcessType(processType);
-
-    // Build content array with all files
+// Build Claude messages from files and a prompt
+function buildClaudeMessages(files: FileData[], promptText: string): ModelMessage[] {
     const contentParts: Array<any> = [];
     const includeFileName = files.length > 1;
 
@@ -355,36 +310,48 @@ async function processFilesWithClaude(files: FileData[], processType: ProcessTyp
         contentParts.push(convertFileToContentPart(file, includeFileName));
     }
 
-    // Add the prompt at the end
-    contentParts.push({
-        type: "text",
-        text: promptText
-    });
+    contentParts.push({ type: "text", text: promptText });
 
-    const messages: ModelMessage[] = [
-        {
-            role: "user",
-            content: contentParts
-        }
-    ];
+    return [{ role: "user", content: contentParts }];
+}
+
+// Process files with Claude using generateText (for free-form text responses)
+async function processFilesWithClaude(files: FileData[], processType: ProcessType): Promise<string> {
+    const messages = buildClaudeMessages(files, getPromptForProcessType(processType));
 
     const { text } = await generateText({
         model: await getAnthropicClient(ANTHROPIC_SONNET_4),
         maxOutputTokens: 8192,
         temperature: 0,
-        messages: messages,
+        messages,
         abortSignal: new AbortController().signal
     });
 
     return text;
 }
 
-// Utility functions for specific use cases
-export async function generateMappingInstruction(input: { files: FileData[]; text?: string }): Promise<DataMapperResponse> {
-    return await processDataMapperInput({
-        ...input,
-        processType: "mapping_instruction"
+// Generate mapping instructions from files using structured output
+export async function generateMappingInstructionFromFiles(files: FileData[]): Promise<{ mapping_fields: Record<string, any> }> {
+    const messages = buildClaudeMessages(files, getMappingInstructionPrompt());
+
+    const { object } = await generateObject({
+        model: await getAnthropicClient(ANTHROPIC_SONNET_4),
+        maxOutputTokens: 8192,
+        temperature: 0,
+        messages,
+        schema: MappingInstructionSchema,
+        abortSignal: new AbortController().signal,
     });
+
+    // Transform array to record keyed by output_field
+    const mapping_fields: Record<string, any> = {};
+    for (const field of object.mapping_fields) {
+        mapping_fields[field.output_field] = {
+            MAPPING_TIP: field.MAPPING_TIP,
+            INPUT_FIELDS: field.INPUT_FIELDS,
+        };
+    }
+    return { mapping_fields };
 }
 
 export async function generateRecord(input: { files: FileData[]; text?: string }): Promise<DataMapperResponse> {

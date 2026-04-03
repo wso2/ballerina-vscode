@@ -132,7 +132,7 @@ function getComposerURI(webView: Webview): string {
 function getComposerCSSFiles(disableComDebug: boolean, devHost: string, webView: Webview): string[] {
     const filePath = join((extension.ballerinaExtInstance.context as ExtensionContext).extensionPath, 'resources', 'jslibs', 'themes', 'ballerina-default.min.css');
     return [
-        (isDevMode && !disableComDebug) ? join(devHost, 'themes', 'ballerina-default.min.css')
+        (isDevMode && !disableComDebug) ? new URL('themes/ballerina-default.min.css', devHost).toString()
             : webView.asWebviewUri(Uri.file(filePath)).toString()
     ];
 }
@@ -140,7 +140,7 @@ function getComposerCSSFiles(disableComDebug: boolean, devHost: string, webView:
 function getComposerJSFiles(componentName: string, disableComDebug: boolean, devHost: string, webView: Webview): string[] {
     const filePath = join((extension.ballerinaExtInstance.context as ExtensionContext).extensionPath, 'resources', 'jslibs') + sep + componentName + '.js';
     return [
-        (isDevMode && !disableComDebug) ? join(devHost, componentName + '.js')
+        (isDevMode && !disableComDebug) ? new URL(componentName + '.js', devHost).toString()
             : webView.asWebviewUri(Uri.file(filePath)).toString(),
         isDevMode ? 'http://localhost:8097' : '' // For React Dev Tools
     ];

@@ -277,6 +277,11 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             setRecordModel([recordConfig]);
             recordModelRef.current = [recordConfig];
             setSelectedMemberName(newRecordModel.name);
+
+            // Update selected flags so the backend receives the correct type on submit
+            recordTypeField.recordTypeMembers.forEach(m => {
+                m.selected = m.type === newRecordModel.name;
+            });
         }
 
         setIsLoading(false);
@@ -361,6 +366,10 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
     const handleMemberChange = async (value: string) => {
         const member = recordTypeField.recordTypeMembers.find(m => m.type === value);
         if (member) {
+            // Update selected flags so the backend receives the correct type on submit
+            recordTypeField.recordTypeMembers.forEach(m => {
+                m.selected = m.type === value;
+            });
             setIsLoading(true);
             setSelectedMemberName(member.type);
 
