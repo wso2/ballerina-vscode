@@ -119,6 +119,9 @@ async function determineAffectedPackages(
  * - Plan approval workflow (via ApprovalManager in TaskWrite tool)
  */
 export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
+    /** Tracks in-flight tool-call start times keyed by toolCallId for duration logging. */
+    private readonly _pendingToolCalls = new Map<string, number>();
+
     constructor(config: AICommandConfig<GenerateAgentCodeRequest>) {
         super(config);
     }
@@ -390,8 +393,31 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                 await this.handleStreamFinish(context);
                 break;
 
+            case "tool-call":
+                if (this.config.debugLogger) {
+                    this._pendingToolCalls.set((part as any).toolCallId, Date.now());
+                }
+                break;
+
+            case "tool-result":
+                if (this.config.debugLogger) {
+                    const startMs = this._pendingToolCalls.get((part as any).toolCallId);
+                    if (startMs !== undefined) {
+                        const durationMs = Date.now() - startMs;
+                        const rawResult = (part as any).result;
+                        const raw = typeof rawResult === "string"
+                            ? rawResult
+                            : rawResult === undefined
+                                ? "<no result>"
+                                : JSON.stringify(rawResult) ?? "<no result>";
+                        this.config.debugLogger.logToolCall((part as any).toolName, durationMs, raw);
+                        this._pendingToolCalls.delete((part as any).toolCallId);
+                    }
+                }
+                break;
+
             default:
-                // Tool calls/results handled automatically by SDK
+                // All other stream part types (step-finish, etc.) are handled by the SDK.
                 break;
         }
     }

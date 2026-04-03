@@ -64,6 +64,24 @@ export function getEnhancementStages(): EnhancementStage[] {
 // ---------------------------------------------------------------------------
 
 /**
+ * Injected at the end of per-package Stages 2 and 4 to prevent the agent
+ * from spending turns on errors that are an artefact of isolated compilation.
+ */
+const CROSS_PACKAGE_ISOLATION_NOTE = `---
+
+## Cross-Package Compilation Note
+
+This package is compiled **in isolation** from the rest of the workspace during this stage.
+Errors about missing modules from sibling packages (e.g. \`BCE2003: module 'org/otherPkg' not found\`)
+are **expected** and will be resolved during the final workspace validation stage that runs after all
+packages have been individually enhanced.
+
+**Do not attempt to fix these inter-package import errors.** They are not broken code — they are a
+temporary artefact of the isolated per-package compilation. Focus only on errors within **this
+package's own code**. Any package listed in the cross-package manifest above is a workspace sibling;
+their exports are correct as declared.`;
+
+/**
  * Returns enhancement stages scoped to a single package inside a
  * multi-package workspace.  The shared context is augmented with a
  * per-package preamble so the agent knows:
@@ -98,7 +116,7 @@ export function getPerProjectEnhancementStages(
         },
         {
             name: `[${packageName}] Stage 2 — Zero Compilation Diagnostics`,
-            prompt: shared + "\n\n" + getStage2Prompt(),
+            prompt: shared + "\n\n" + getStage2Prompt() + "\n\n" + CROSS_PACKAGE_ISOLATION_NOTE,
             agentLimits: { maxSteps: 100, maxOutputTokens: 16384 },
         },
         {
@@ -108,7 +126,7 @@ export function getPerProjectEnhancementStages(
         },
         {
             name: `[${packageName}] Stage 4 — Final Validation & Documentation`,
-            prompt: shared + "\n\n" + getStage4Prompt(),
+            prompt: shared + "\n\n" + getStage4Prompt() + "\n\n" + CROSS_PACKAGE_ISOLATION_NOTE,
             agentLimits: { maxSteps: 50, maxOutputTokens: 16384 },
         },
     ];
@@ -527,6 +545,60 @@ Summarise anything requiring human review.
 ### Completion Criteria for Stage 4
 
 Output the final status: checklist results and confirmation that \`ENHANCEMENT_SUMMARY.md\` was written.`;
+}
+
+// ---------------------------------------------------------------------------
+// Cross-package workspace validation stage (runs after all per-package stages)
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns a single workspace-level validation stage to run after all packages
+ * have been individually enhanced.  The executor should use the workspace root
+ * as `packagePath` so the compiler sees all packages simultaneously.
+ *
+ * @param packageCount  Total number of packages in the workspace.
+ */
+export function getWorkspaceValidationStage(packageCount: number): EnhancementStage {
+    return {
+        name: "Cross-Package Workspace Validation",
+        prompt: getWorkspaceValidationPrompt(packageCount),
+        agentLimits: { maxSteps: 10 + packageCount * 3, maxOutputTokens: 16384 },
+    };
+}
+
+function getWorkspaceValidationPrompt(packageCount: number): string {
+    return `## Workspace-Level Cross-Package Validation
+
+This is the **final stage** of the multi-package enhancement pipeline. All ${packageCount} packages have been
+individually enhanced and should now compile in isolation. Your task is to compile the full workspace and
+fix any remaining cross-package issues so that all packages build together successfully.
+
+### What to do
+
+1. Run the diagnostics tool **without** specifying a \`packagePath\` (or specify the workspace root \`.\`)
+   to compile the entire workspace at once.
+2. Review all errors. Focus especially on:
+   - **Inter-package import errors** (\`BCE2003\`, \`BCE2007\`): a module from one package cannot be found
+     by another. Check that:
+     - The exporting package declares the symbol with \`public\`.
+     - The importing package's \`Ballerina.toml\` lists the exporting package under \`[[dependency]]\`.
+   - **Type-compatibility errors** across package boundaries.
+   - **Missing public symbols**: a function or type expected by a peer package does not exist yet.
+3. Fix all cross-package errors using \`file_edit\` on the affected files.
+4. Re-run diagnostics and repeat until zero error-level diagnostics remain across the full workspace.
+5. If a cross-package fix requires touching a package that was already completed, apply the minimal
+   targeted fix needed to make the workspace compile.
+
+### Important Notes
+
+- Do NOT re-run Stage 1–4 work here — only fix errors that span package boundaries.
+- Only make changes that are strictly necessary to achieve zero workspace-level errors.
+- Do NOT create \`ENHANCEMENT_SUMMARY.md\` or any documentation in this stage.
+
+### Completion Criteria
+
+Zero error-level diagnostics across the complete workspace.
+Output: "Workspace validation complete — 0 errors across ${packageCount} packages."`;
 }
 
 /**
