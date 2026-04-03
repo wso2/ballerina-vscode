@@ -70,7 +70,7 @@ export function AddProjectFormFields({
 
     const handleProjectName = (value: string) => {
         const updates: Partial<AddProjectFormData> = { workspaceName: value };
-        if (!projectHandleTouched) {
+        if (isLoggedIn && !projectHandleTouched) {
             updates.projectHandle = sanitizeProjectHandle(value, { trimTrailing: false });
         }
         onFormDataChange(updates);
