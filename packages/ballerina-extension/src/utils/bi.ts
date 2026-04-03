@@ -32,7 +32,8 @@ import {
     STModification,
     SyntaxTreeResponse,
     WorkspaceTomlValues,
-    ValidateProjectFormErrorField
+    ValidateProjectFormErrorField,
+    SuggestedProjectDefaultsResponse
 } from "@wso2/ballerina-core";
 import { StateMachine, history, openView } from "../stateMachine";
 import { applyModifications, modifyFileContent, writeBallerinaFileDidOpen } from "./modification";
@@ -311,12 +312,16 @@ function setupProjectInfo(projectRequest: ProjectRequest): ProcessedProjectInfo 
 export async function createEmptyBIWorkspace(projectRequest: ProjectRequest): Promise<string> {
     const ballerinaTomlContent = `
 [workspace]
+title = "${projectRequest.workspaceName}"
 packages = []
 
 `;
 
     // Use the workspace-specific directory resolver
-    const workspaceRoot = resolveWorkspacePath(projectRequest.projectPath, projectRequest.workspaceName);
+    const workspaceRoot = resolveWorkspacePath(
+        projectRequest.projectPath, 
+        projectRequest?.projectHandle ?? projectRequest.workspaceName
+    );
 
     // Create Ballerina.toml file
     const ballerinaTomlPath = path.join(workspaceRoot, 'Ballerina.toml');
@@ -332,12 +337,16 @@ packages = []
 export async function createBIWorkspaceWithProject(projectRequest: ProjectRequest): Promise<string> {
     const ballerinaTomlContent = `
 [workspace]
+title = "${projectRequest.workspaceName}"
 packages = ["${projectRequest.packageName}"]
 
 `;
 
     // Use the workspace-specific directory resolver
-    const workspaceRoot = resolveWorkspacePath(projectRequest.projectPath, projectRequest.workspaceName);
+    const workspaceRoot = resolveWorkspacePath(
+        projectRequest.projectPath, 
+        projectRequest?.projectHandle ?? projectRequest.workspaceName
+    );
 
     // Create Ballerina.toml file
     const ballerinaTomlPath = path.join(workspaceRoot, 'Ballerina.toml');
@@ -445,16 +454,23 @@ export async function convertProjectToWorkspace(params: AddProjectToWorkspaceReq
         throw new Error('No package name found in Ballerina.toml');
     }
 
-    const newDirectory = path.join(path.dirname(currentProjectPath), params.workspaceName);
+    const projectDirectoryName = params.projectHandle ?? params.workspaceName;
+    const newDirectory = path.join(path.dirname(currentProjectPath), projectDirectoryName);
 
-    if (!fs.existsSync(newDirectory)) {
-        fs.mkdirSync(newDirectory, { recursive: true });
+    try {
+        fs.mkdirSync(newDirectory);
+    } catch (err: unknown) {
+        const code = (err as NodeJS.ErrnoException).code;
+        if (code === 'EEXIST') {
+            throw new Error(`A directory named "${projectDirectoryName}" already exists at the selected location`);
+        }
+        throw err;
     }
 
     const updatedProjectPath = path.join(newDirectory, path.basename(currentProjectPath));
     fs.renameSync(currentProjectPath, updatedProjectPath);
 
-    createWorkspaceToml(newDirectory, currentPackageName);
+    createWorkspaceToml(newDirectory, params.workspaceName, currentPackageName);
     addToWorkspaceToml(newDirectory, params.packageName);
 
     await createProjectInWorkspace(params, newDirectory);
@@ -472,9 +488,10 @@ export async function addProjectToExistingWorkspace(params: AddProjectToWorkspac
     await createProjectInWorkspace(params, workspacePath);
 }
 
-function createWorkspaceToml(workspacePath: string, packageName: string) {
+function createWorkspaceToml(workspacePath: string, projectTitle: string, packageName: string) {
     const ballerinaTomlContent = `
 [workspace]
+title = "${projectTitle}"
 packages = ["${packageName}"]
 `;
     const ballerinaTomlPath = path.join(workspacePath, 'Ballerina.toml');
@@ -589,7 +606,8 @@ async function createProjectInWorkspace(params: AddProjectToWorkspaceRequest, wo
         createDirectory: true,
         orgName: params.orgName,
         version: params.version,
-        isLibrary: params.isLibrary
+        isLibrary: params.isLibrary,
+        projectHandle: params.projectHandle
     };
 
     return await createBIProjectPure(projectRequest);
@@ -786,4 +804,56 @@ export async function handleFunctionCreation(targetFile: string, params: Compone
 // Test_Integration test_integration   Test Integration testIntegration -> testintegration
 export function sanitizeName(name: string): string {
     return name.replace(/[^a-z0-9]_./gi, '_').toLowerCase(); // Replace invalid characters with underscores
+}
+
+export async function getSuggestedProjectDefaults(isInProject: boolean): Promise<SuggestedProjectDefaultsResponse> {
+    const BASE_PROJECT_NAME = "Default";
+    const BASE_INTEGRATION_NAME = "Untitled";
+
+    if (!isInProject) {
+        const currentProjectPath = StateMachine.context().projectPath;
+        const parentDir = path.dirname(currentProjectPath);
+        const tomlValues = await getProjectTomlValues(currentProjectPath);
+        const currentPackageName = tomlValues?.package?.name ?? "";
+
+        const baseHandle = BASE_PROJECT_NAME.toLowerCase();
+        let projectName = BASE_PROJECT_NAME;
+        let projectHandle = baseHandle;
+        if (fs.existsSync(path.join(parentDir, baseHandle))) {
+            for (let i = 2; ; i++) {
+                projectHandle = `${baseHandle}-${i}`;
+                if (!fs.existsSync(path.join(parentDir, projectHandle))) {
+                    projectName = `${BASE_PROJECT_NAME} ${i}`;
+                    break;
+                }
+            }
+        }
+
+        const basePackageName = BASE_INTEGRATION_NAME.toLowerCase();
+        let integrationName = BASE_INTEGRATION_NAME;
+        let packageName = basePackageName;
+        if (packageName === currentPackageName) {
+            for (let i = 2; ; i++) {
+                packageName = `${basePackageName}_${i}`;
+                if (packageName !== currentPackageName) {
+                    integrationName = `${BASE_INTEGRATION_NAME} ${i}`;
+                    break;
+                }
+            }
+        }
+
+        return { projectName, projectHandle, integrationName, packageName };
+    } else {
+        const workspacePath = StateMachine.context().workspacePath;
+        const basePackageName = BASE_INTEGRATION_NAME.toLowerCase();
+        if (!fs.existsSync(path.join(workspacePath, basePackageName))) {
+            return { projectName: BASE_PROJECT_NAME, projectHandle: BASE_PROJECT_NAME.toLowerCase(), integrationName: BASE_INTEGRATION_NAME, packageName: basePackageName };
+        }
+        for (let i = 2; ; i++) {
+            const packageName = `${basePackageName}_${i}`;
+            if (!fs.existsSync(path.join(workspacePath, packageName))) {
+                return { projectName: BASE_PROJECT_NAME, projectHandle: BASE_PROJECT_NAME.toLowerCase(), integrationName: `${BASE_INTEGRATION_NAME} ${i}`, packageName };
+            }
+        }
+    }
 }
