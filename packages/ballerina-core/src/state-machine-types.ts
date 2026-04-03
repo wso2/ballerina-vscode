@@ -468,6 +468,7 @@ export interface TaskApprovalRequest {
     tasks: Task[];
     taskDescription?: string;
     message?: string;
+    autoApproved?: boolean;
 }
 
 export interface WebToolApprovalEvent {
