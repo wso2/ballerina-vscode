@@ -84,6 +84,7 @@ export function AddServiceElementDropdown(props: AddServiceElementDropdownProps)
                 selecteOption={defaultOption ?? ""}
                 tooltip={toolTip ?? "Add Functions or Handlers"}
                 dropDownAlign="bottom"
+                selectIconSx={{marginRight: enablePrimaryAction ? 10: 0}}
                 buttonSx={{
                     appearance: 'none',
                     height: '28px',
