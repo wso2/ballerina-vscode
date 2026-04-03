@@ -18,6 +18,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import { CodeData } from "@wso2/ballerina-core";
 import { FormField } from "../../../Form/types";
 import { ConnectionIconSelect, ConnectionSelectItem } from "../../ConnectionIconSelect";
 import { useFormContext } from "../../../../context";
@@ -30,6 +31,8 @@ interface ConnectionSelectEditorProps {
 
 // Cache icon URLs by module name across remounts to avoid icon flicker
 const iconUrlCache = new Map<string, string>();
+// Cache fetched items by searchNodesKind across remounts to avoid redundant API calls
+const itemsCache = new Map<string, ConnectionSelectItem[]>();
 
 function enrichWithCachedIcons(items: ConnectionSelectItem[]): ConnectionSelectItem[] {
     return items.map(item => {
@@ -39,16 +42,45 @@ function enrichWithCachedIcons(items: ConnectionSelectItem[]): ConnectionSelectI
     });
 }
 
+function ensureValueInItems(
+    items: ConnectionSelectItem[],
+    value: string,
+    searchNodesKind?: string,
+): ConnectionSelectItem[] {
+    if (!value || items.some(item => item.value === value)) {
+        return items;
+    }
+    return [
+        ...items,
+        {
+            id: value,
+            label: value,
+            value,
+            codedata: searchNodesKind ? { node: searchNodesKind } as CodeData : undefined,
+        },
+    ];
+}
+
 export const ConnectionSelectEditor: React.FC<ConnectionSelectEditorProps> = ({ value, field, onChange }) => {
     const { rpcClient } = useRpcContext();
     const { targetLineRange, fileName } = useFormContext();
 
     const searchNodesKind = field.codedata?.searchNodesKind;
     const initialItems: ConnectionSelectItem[] = field.codedata?.initialItems ?? [];
-    const [selectItems, setSelectItems] = useState<ConnectionSelectItem[]>(enrichWithCachedIcons(initialItems));
+    const staticItems: ConnectionSelectItem[] = field.codedata?.staticItems ?? [];
+    const cachedItems = searchNodesKind ? itemsCache.get(searchNodesKind) : undefined;
+    const resolvedItems = [...staticItems, ...(cachedItems ?? enrichWithCachedIcons(initialItems))];
+    const [selectItems, setSelectItems] = useState<ConnectionSelectItem[]>(
+        ensureValueInItems(resolvedItems, value, searchNodesKind)
+    );
+    const [loading, setLoading] = useState<boolean>(!!searchNodesKind && !cachedItems);
 
     useEffect(() => {
         if (!searchNodesKind) return;
+        // Show loading only if we have no cached items to display
+        if (!itemsCache.has(searchNodesKind)) {
+            setLoading(true);
+        }
         rpcClient.getBIDiagramRpcClient().searchNodes({
             filePath: fileName,
             position: targetLineRange.startLine,
@@ -71,7 +103,10 @@ export const ConnectionSelectEditor: React.FC<ConnectionSelectEditorProps> = ({ 
                         iconUrl,
                     };
                 });
-            setSelectItems(items);
+            itemsCache.set(searchNodesKind, items);
+            setSelectItems([...staticItems, ...items]);
+        }).finally(() => {
+            setLoading(false);
         });
     }, [searchNodesKind, fileName]);
 
@@ -83,6 +118,7 @@ export const ConnectionSelectEditor: React.FC<ConnectionSelectEditorProps> = ({ 
                 value={value}
                 required={!field.optional}
                 disabled={!field.editable}
+                loading={loading}
                 onChange={(val) => onChange(val, val?.length)}
             />
         </>
