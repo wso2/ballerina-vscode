@@ -164,30 +164,46 @@ public class CentralSearchUtil {
     public List<SearchResult> searchSymbolsByOrganization(String currentOrg, String query, int limit, int offset,
                                                           Predicate<String> symbolTypeFilter) {
         List<SearchResult> organizationSymbols = new ArrayList<>();
-        Map<String, String> queryMap = new HashMap<>();
-        boolean success = false;
-        // TODO: Enable once https://github.com/ballerina-platform/ballerina-central/issues/284 is resolved
-//        if (centralClient.hasAuthorizedAccess()) {
-//            queryMap.put("user-packages", "true");
-//            success = true;
-//        }
-        if (currentOrg != null && !currentOrg.isEmpty()) {
-            String orgQuery = "org:" + currentOrg;
-            queryMap.put("q", query.isEmpty() ? orgQuery : query + " " + orgQuery);
-            success = true;
+        if (currentOrg == null || currentOrg.isEmpty()) {
+            return organizationSymbols;
         }
-        if (success) {
-            queryMap.put("limit", String.valueOf(limit));
-            queryMap.put("offset", String.valueOf(offset));
+
+        String orgQuery = "org:" + currentOrg;
+        String baseQuery = query.isEmpty() ? orgQuery : query + " " + orgQuery;
+        int fetchOffset = offset;
+        int fetchLimit = limit * OVERFETCH_FACTOR;
+
+        for (int iteration = 0; iteration < MAX_FETCH_ITERATIONS; iteration++) {
+            Map<String, String> queryMap = new HashMap<>();
+            // TODO: Enable once https://github.com/ballerina-platform/ballerina-central/issues/284 is resolved
+//            if (centralClient.hasAuthorizedAccess()) {
+//                queryMap.put("user-packages", "true");
+//            }
+            queryMap.put("q", baseQuery);
+            queryMap.put("limit", String.valueOf(fetchLimit));
+            queryMap.put("offset", String.valueOf(fetchOffset));
             SymbolResponse symbolResponse = centralClient.searchSymbols(queryMap);
-            if (symbolResponse != null && symbolResponse.symbols() != null) {
-                for (SymbolResponse.Symbol symbol : symbolResponse.symbols()) {
-                    if (symbolTypeFilter.test(symbol.symbolType())) {
-                        organizationSymbols.add(toSearchResult(symbol));
+
+            if (symbolResponse == null || symbolResponse.symbols() == null) {
+                break;
+            }
+
+            for (SymbolResponse.Symbol symbol : symbolResponse.symbols()) {
+                if (symbolTypeFilter.test(symbol.symbolType())) {
+                    organizationSymbols.add(toSearchResult(symbol));
+                    if (organizationSymbols.size() >= limit) {
+                        return organizationSymbols.subList(0, limit);
                     }
                 }
             }
+
+            // Check if Central has more results
+            if (symbolResponse.count() <= fetchOffset + fetchLimit) {
+                break;
+            }
+            fetchOffset += fetchLimit;
         }
+
         return organizationSymbols;
     }
 
