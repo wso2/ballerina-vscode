@@ -119,6 +119,8 @@ type NodePromptLaunchOptions = {
     planMode?: boolean;
 };
 
+const SIDE_PANEL_DEFAULT_ERROR_MESSAGE = "Error while performing the action.";
+
 export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const { projectPath, breakpointState, syntaxTree, onUpdate, onReady, onSave } = props;
     const { rpcClient } = useRpcContext();
@@ -888,7 +890,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             setModel(modelWithDraft);
         }
         setShowSidePanel(true);
-        isOnAddNode &&setSidePanelView(SidePanelView.LOADING);
+        isOnAddNode && setSidePanelView(SidePanelView.LOADING);
         rpcClient
             .getBIDiagramRpcClient()
             .getAvailableNodes(getNodeRequest)
@@ -896,7 +898,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 console.log(">>> Available nodes", response);
                 if (!response.categories) {
                     console.error(">>> Error getting available nodes", response);
-                    setErrorMessage("Error while performing the action.");
+                    topNodeRef.current = undefined;
+                    targetRef.current = undefined;
+                    changeTargetRange(undefined);
+                    setErrorMessage(SIDE_PANEL_DEFAULT_ERROR_MESSAGE);
                     setSidePanelView(SidePanelView.ERROR);
                     return;
                 }
@@ -1105,7 +1110,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     }, [rpcClient, model?.fileName]);
 
     const showConnectorError = () => {
-        setErrorMessage("An unexpected error occurred while fetching connection information.");
+        setErrorMessage(SIDE_PANEL_DEFAULT_ERROR_MESSAGE);
         setSidePanelView(SidePanelView.ERROR);
         setShowSidePanel(true);
     }
@@ -1839,7 +1844,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 setShowSidePanel(true);
             })
             .catch(() => {
-                setErrorMessage("An unexpected error occurred while fetching connection information.");
+                setErrorMessage(SIDE_PANEL_DEFAULT_ERROR_MESSAGE);
                 setSidePanelView(SidePanelView.ERROR);
                 setShowSidePanel(true);
             })

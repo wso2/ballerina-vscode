@@ -17,7 +17,7 @@
  */
 
 import { useEffect, useRef } from "react";
-import { PanelContainer, NodeList, CardList, ExpressionFormField } from "@wso2/ballerina-side-panel";
+import { PanelContainer, NodeList, CardList, ExpressionFormField, NodeListSkeleton } from "@wso2/ballerina-side-panel";
 import {
     FlowNode,
     LineRange,
@@ -43,7 +43,6 @@ import { RelativeLoader } from "../../../components/RelativeLoader";
 import { LoaderContainer } from "../../../components/RelativeLoader/styles";
 import { ConnectionListItem } from "@wso2/wso2-platform-core";
 import { ConnectorErrorView } from "./components/ErrorContainer";
-import { PanelLoadingView } from "./components/LoadingContainer";
 
 const Container = styled.div`
     display: flex;
@@ -648,7 +647,7 @@ export function PanelManager(props: PanelManagerProps) {
                 );
 
             case SidePanelView.LOADING:
-                return <PanelLoadingView />;
+                return <NodeListSkeleton />;
 
             case SidePanelView.FORM:
                 return (

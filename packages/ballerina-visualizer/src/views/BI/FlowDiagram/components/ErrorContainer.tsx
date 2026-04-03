@@ -24,7 +24,7 @@ const ErrorViewContainer = styled.div`
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: 16px;
     padding: 24px 16px;
     text-align: center;
     height: 100%;
@@ -38,9 +38,12 @@ const ErrorHeader = styled.div`
     justify-content: center;
 
     & .codicon {
-        display: inline-flex;
+        display: flex;
         align-items: center;
         justify-content: center;
+        font-size: 18px;
+        line-height: 1;
+        position: relative;
     }
     & h4, & h3, & .typography-h4 {
         margin: 0;
@@ -52,7 +55,7 @@ export function ConnectorErrorView({ errorMessage, onBack }: { errorMessage?: st
     return (
         <ErrorViewContainer role="alert" aria-live="polite">
             <ErrorHeader>
-                <Codicon name="error" iconSx={{ fontSize: "20px", color: ThemeColors.ERROR }} />
+                <Codicon name="error" iconSx={{ fontSize: "18px", color: ThemeColors.ERROR, display: "flex" }} />
                 <Typography variant="h4" sx={{ margin: 0 }}>Error</Typography>
             </ErrorHeader>
             <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
