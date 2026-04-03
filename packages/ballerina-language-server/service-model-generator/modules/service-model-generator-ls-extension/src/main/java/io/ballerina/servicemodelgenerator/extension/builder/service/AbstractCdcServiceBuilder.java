@@ -507,7 +507,7 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
         for (String key : List.of(KEY_OPTIONS, KEY_LIVENESS_INTERVAL,
                                   KEY_INTERNAL_SCHEMA_STORAGE, KEY_OFFSET_STORAGE)) {
             Value v = properties.get(key);
-            if (v != null && isInvalidValue(v.getValue())) {
+            if (v != null && v.getValue() != null && isInvalidValue(v.getValue())) {
                 properties.remove(key);
             }
         }
