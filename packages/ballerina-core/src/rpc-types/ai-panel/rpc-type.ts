@@ -49,8 +49,12 @@ import {
     UsageResponse,
     OpenFileDiffRequest,
     WebToolApprovalRequest,
+    CompactConversationRequest,
+    CompactConversationResponse,
     PromptEnhancementRequest,
-    PromptEnhancementResponse
+    PromptEnhancementResponse,
+    ClarifyAnswerRequest,
+    ClarifyCancelRequest,
 } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
@@ -104,5 +108,9 @@ export const getUsage: RequestType<void, UsageResponse | undefined> = { method: 
 export const openFileDiff: NotificationType<OpenFileDiffRequest> = { method: `${_preFix}/openFileDiff` };
 export const approveWebTool: RequestType<WebToolApprovalRequest, void> = { method: `${_preFix}/approveWebTool` };
 export const declineWebTool: RequestType<WebToolApprovalRequest, void> = { method: `${_preFix}/declineWebTool` };
+export const compactConversation: RequestType<CompactConversationRequest, CompactConversationResponse> = { method: `${_preFix}/compactConversation` };
+export const getShowContextUsage: RequestType<void, boolean> = { method: `${_preFix}/getShowContextUsage` };
 export const enhancePrompt: RequestType<PromptEnhancementRequest, PromptEnhancementResponse> = { method: `${_preFix}/enhancePrompt` };
 export const promptForLogin: NotificationType<void> = { method: `${_preFix}/promptForLogin` };
+export const submitClarifyAnswer: RequestType<ClarifyAnswerRequest, void> = { method: `${_preFix}/submitClarifyAnswer` };
+export const cancelClarify: RequestType<ClarifyCancelRequest, void> = { method: `${_preFix}/cancelClarify` };

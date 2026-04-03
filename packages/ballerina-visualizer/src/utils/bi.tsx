@@ -99,7 +99,7 @@ function convertAvailableNodeToPanelNode(
         return undefined;
     }
 
-    const isPersistConnection = connectorType === "persist";
+    const isDBConnection = connectorType === "persist" || connectorType === "Database";
 
     // Return common panel node structure
     return {
@@ -125,7 +125,7 @@ function convertAvailableNodeToPanelNode(
             <NodeIcon
                 type={functionType === FUNCTION_TYPE.EXPRESSION_BODIED ? "DATA_MAPPER_CALL" : node.codedata.node}
                 size={16}
-                isPersistConnection={isPersistConnection}
+                isDBConnection={isDBConnection}
             />
         ),
     };
@@ -221,6 +221,7 @@ export function convertFunctionCategoriesToSidePanelCategories(
     functionType: FUNCTION_TYPE
 ): PanelCategory[] {
     const panelCategories = categories
+        .filter((category) => category.metadata.label !== "Agent Tools")
         .map((category) => convertDiagramCategoryToSidePanelCategory(category, functionType))
         .filter((category) => category !== undefined);
     const functionCategory = panelCategories.find((category) => category.title === "Project");
@@ -879,13 +880,6 @@ export function convertRecordTypeToCompletionItem(type: Type): CompletionItem {
         sortText: label?.toLowerCase?.() || label,
     };
 }
-
-export const clearDiagramZoomAndPosition = () => {
-    localStorage.removeItem("diagram-file-path");
-    localStorage.removeItem("diagram-zoom-level");
-    localStorage.removeItem("diagram-offset-x");
-    localStorage.removeItem("diagram-offset-y");
-};
 
 export const convertToHelperPaneVariable = (variables: VisibleType[]): HelperPaneVariableInfo => {
     return {

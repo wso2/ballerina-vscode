@@ -313,32 +313,14 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     let isResource = parentMetadata?.kind === "Resource";
     let isRemote = parentMetadata?.kind === "Remote Function";
     let isAgent = parentMetadata?.kind === "AI Chat Agent" && parentMetadata?.label === "chat";
+    let isInitFunction = parentMetadata?.kind === "Function" && parentMetadata?.label === "init";
     let isNPFunction = view === FOCUS_FLOW_DIAGRAM_VIEW.NP_FUNCTION;
 
-    const handleResourceTryIt = async (methodValue: string, pathValue: string) => {
+    const handleResourceTryIt = (methodValue: string, pathValue: string) => {
         if (serviceType !== "http") { return; }
 
-        const baseUrl = buildBaseUrl(listener, basePath);
-        const serviceName = basePath?.replace(/^\//, "") || "Service";
-
-        const location = await rpcClient.getVisualizerLocation();
-        const docUri = filePath ?? location.documentUri;
-
-        let oasSpec: any | undefined;
-        try {
-            const oasResult = await rpcClient.getServiceDesignerRpcClient().getOASSpec({
-                documentFilePath: docUri,
-                basePath
-            });
-            oasSpec = oasResult.spec ?? undefined;
-        } catch {
-            // spec unavailable — extension will fall back to minimal placeholder
-        }
-
-        // Delegate cell-building to the extension so both Resource Try It (diagram) and Code Lens
-        // Try It share the same buildHurlCellsFromOASSpec logic via ballerina.startService
         rpcClient.getCommonRpcClient().executeCommand({
-            commands: ["ballerina.startService", { oasSpec, baseUrl, serviceName, resourceMetadata: { methodValue, pathValue } }, { savable: false }, { basePath, listener }]
+            commands: ["ballerina.tryIt", false, { methodValue, pathValue }, { basePath, listener }]
         });
     };
 
@@ -425,7 +407,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
             );
         }
 
-        if (parentMetadata && !isResource && !isRemote) {
+        if (parentMetadata && !isResource && !isRemote && !isInitFunction) {
             return (
                 <ActionButton id="bi-edit" appearance="secondary" onClick={() => handleEdit(fileName, currentPosition)}>
                     <Icon

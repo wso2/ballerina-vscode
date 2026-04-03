@@ -20,7 +20,7 @@ import { AICommandExecutor, AICommandConfig, AIExecutionResult } from '../execut
 import { Command, GenerateAgentCodeRequest, ProjectSource, ExecutionContext, SemanticDiff, ReviewModeData, PROJECT_KIND } from '@wso2/ballerina-core';
 import { StateMachine } from '../../../stateMachine';
 import { ModelMessage, stepCountIs, streamText, TextStreamPart } from 'ai';
-import { getAnthropicClient, getProviderCacheControl, ANTHROPIC_SONNET_4 } from '../utils/ai-client';
+import { getAnthropicClient, getProviderCacheControl, addCacheControlToMessages, ANTHROPIC_SONNET_4 } from '../utils/ai-client';
 import { populateHistoryForAgent, getErrorMessage } from '../utils/ai-utils';
 import { sendAgentDidOpenForFreshProjects } from '../utils/project/ls-schema-notifications';
 import { getSystemPrompt, getUserPrompt } from './prompts';
@@ -35,6 +35,9 @@ import { updateAndSaveChat } from '../utils/events';
 import { chatStateStorage } from '../../../views/ai-panel/chatStateStorage';
 import * as path from 'path';
 import { approvalViewManager } from '../state/ApprovalViewManager';
+import { compactionManager } from '../compaction-manager';
+import { CompactionGuard } from './compaction/CompactionGuard';
+import { contextExhausted } from './compaction/contextExhausted';
 import {
     sendTelemetryEvent,
     sendTelemetryException,
@@ -48,6 +51,41 @@ import { getProjectMetrics } from "../../telemetry/common/project-metrics";
 import { getHashedProjectId } from "../../telemetry/common/project-id";
 import { workspace } from 'vscode';
 import { runningServicesManager } from './tools/running-service-manager';
+
+const RESERVED_OUTPUT_TOKENS = 8_192;
+
+/** Estimate character length of a message's content for proportional token breakdown. */
+function msgCharLen(msg: ModelMessage): number {
+    return JSON.stringify(msg.content).length;
+}
+
+/**
+ * Estimates per-category token breakdown by scaling character-based proportions to the
+ * actual API-reported inputTokens total. The grand total is always exact; per-category
+ * values are ~75-85% accurate.
+ */
+function computeTokenBreakdown(
+    baseMessages: ModelMessage[],
+    tools: any,
+    accToolCallChars: number,
+    accToolResultChars: number,
+    inputTokens: number,
+): { systemInstructions: number; toolDefinitions: number; reservedOutput: number; messages: number; toolResults: number } {
+    const systemChars = baseMessages.filter(m => m.role === 'system').reduce((s, m) => s + msgCharLen(m), 0);
+    const baseConvChars = baseMessages.filter(m => m.role === 'user' || m.role === 'assistant').reduce((s, m) => s + msgCharLen(m), 0);
+    const baseToolChars = baseMessages.filter(m => m.role === 'tool').reduce((s, m) => s + msgCharLen(m), 0);
+
+    const convChars = baseConvChars + accToolCallChars;
+    const toolChars = baseToolChars + accToolResultChars;
+    const toolDefsChars = JSON.stringify(tools ?? {}).length;
+    const totalChars = systemChars + convChars + toolChars + toolDefsChars || 1;
+
+    const systemInstructions = Math.round(inputTokens * systemChars / totalChars);
+    const messages = Math.round(inputTokens * convChars / totalChars);
+    const toolResults = Math.round(inputTokens * toolChars / totalChars);
+    const toolDefinitions = Math.max(0, inputTokens - systemInstructions - messages - toolResults);
+    return { systemInstructions, toolDefinitions, reservedOutput: RESERVED_OUTPUT_TOKENS, messages, toolResults };
+}
 
 /**
  * Determines which packages have been affected by analyzing modified files
@@ -162,6 +200,34 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 console.log(`[AgentExecutor] Skipping didOpen (reusing temp for review continuation)`);
             }
 
+            const workspaceId = this.config.executionContext.workspacePath || this.config.executionContext.projectPath;
+            const threadId = (this.config.executionContext as any).threadId || 'default';
+            const projectState = {
+                modifiedFiles: modifiedFiles,
+                tempProjectPath,
+                workingDirectory: workspaceId,
+            };
+
+            // Resolve model ONCE — reused for both agent streaming and compaction (M02)
+            const model = await getAnthropicClient(ANTHROPIC_SONNET_4);
+
+            // Bind the authenticated model to the compaction manager
+            compactionManager.bindModel(model);
+
+            const userMessageContent = getUserPrompt(params, tempProjectPath, projects);
+
+            // PRE-TURN compaction: compact if context is already above threshold
+            // failures are handled gracefully inside checkAndCompact (returns without throwing)
+            // abortSignal ensures the summarization LLM call is also cancelled on user abort
+            await compactionManager.checkAndCompact(
+                workspaceId,
+                threadId,
+                projectState,
+                this.config.abortController.signal,
+                this.config.eventHandler,
+                [ { role: "user", content: userMessageContent } ]
+            );
+
             // 3. Add generation to chat storage (if enabled)
             this.addGeneration(params.usecase, {
                 isPlanMode: params.isPlanMode,
@@ -169,15 +235,14 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 generationType: 'agent',
             });
 
-            // 4. Get chat history from storage (if enabled)
+            // 4. Get chat history from storage (if enabled) — AFTER pre-turn compaction
             const chatHistory = this.getChatHistory();
             console.log(`[AgentExecutor] Using ${chatHistory.length} chat history messages`);
 
             // 5. Build LLM messages with history
             const historyMessages = populateHistoryForAgent(chatHistory);
             const cacheOptions = await getProviderCacheControl();
-            const userMessageContent = getUserPrompt(params, tempProjectPath, projects);
-
+            
             const allMessages: ModelMessage[] = [
                 {
                     role: "system",
@@ -213,15 +278,98 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 ctx: this.config.executionContext,
             });
 
-            // Stream LLM response
-            const { fullStream, response, usage } = streamText({
-                model: llmModel,
-                maxOutputTokens,
+            // Accumulate tool call/result character counts across steps for breakdown estimation
+            let accToolCallChars = 0;
+            let accToolResultChars = 0;
+
+            // === MID-STREAM COMPACTION GUARD ===
+            // Watches actual inputTokens between steps and compacts when threshold is reached.
+            // Uses 80% of the context window as the mid-stream trigger point.
+            const compactionGuard = new CompactionGuard({
+                engine: compactionManager.getEngine(),
+                tokenThreshold: Math.floor(200_000 * 0.80),  // 160K tokens = 80% of context window
+                maxCompactionAttempts: 3,
+                preserveRecentMessageCount: 6,  // Keep last 3 tool-call + tool-result pairs
+                eventHandler: this.config.eventHandler,
+                originalUserMessage: Array.isArray(userMessageContent) 
+                    ? userMessageContent.map((c: any) => c.text || '').join('\n') 
+                    : String(userMessageContent),
+                projectState,
+                abortSignal: this.config.abortController.signal,
+                persistCallback: (compactedMessages, metadata) =>
+                    compactionManager.persistMidStreamCompaction(
+                        workspaceId,
+                        threadId,
+                        this.config.generationId,
+                        compactedMessages,
+                        metadata
+                    ),
+            });
+
+            // Stream LLM response with mid-stream compaction and dual stop conditions
+            const { fullStream, response, totalUsage } = streamText({
+                model,
+                maxOutputTokens: 8192,
                 temperature: 0,
                 messages: allMessages,
-                stopWhen: stepCountIs(maxSteps),
                 tools,
                 abortSignal: this.config.abortController.signal,
+
+                // MID-STREAM COMPACTION + PROMPT CACHING: compact if needed, then apply
+                // incremental cache control to the last message so Anthropic caches the
+                // growing conversation history on each step.
+                prepareStep: async ({ steps, stepNumber, messages }) => {
+                    const compacted = await compactionGuard.maybeCompact({ steps, stepNumber, messages });
+                    const resolvedMessages = compacted ? compacted.messages : messages;
+                    return { messages: addCacheControlToMessages({ messages: resolvedMessages, model }) };
+                },
+
+                // Emit per-step token usage for context usage widget + observability
+                onStepFinish: (step) => {
+                    // Accumulate tool call/result chars for per-category breakdown estimation
+                    accToolCallChars += JSON.stringify(step.toolCalls ?? []).length;
+                    accToolResultChars += JSON.stringify(step.toolResults ?? []).length;
+
+                    // Persist partial modelMessages after each step so chat is recoverable mid-stream
+                    const stepMessages = step.response?.messages ?? [];
+                    if (stepMessages.length > 0) {
+                        console.log(`[AgentExecutor] Step ${step.stepNumber} saving ${stepMessages.length} message(s) to chat storage`);
+                        chatStateStorage.updateGeneration(workspaceId, threadId, this.config.generationId, {
+                            modelMessages: [
+                                { role: "user", content: userMessageContent },
+                                ...stepMessages,
+                            ],
+                        });
+                        updateAndSaveChat(this.config.generationId, Command.Agent, this.config.eventHandler);
+                    }
+
+                    if (step.usage) {
+                        const inputTokens = step.usage.inputTokens || 0;
+                        const cacheReadTokens = step.usage.inputTokenDetails?.cacheReadTokens || 0;
+                        const cacheWriteTokens = step.usage.inputTokenDetails?.cacheWriteTokens || 0;
+                        const outputTokens = step.usage.outputTokens || 0;
+                        const cacheRatio = inputTokens > 0 ? (cacheReadTokens / inputTokens * 100).toFixed(1) : '0';
+                        console.log(
+                            `[AgentExecutor] Step ${step.stepNumber} complete: ` +
+                            `input: ${inputTokens}, output: ${outputTokens}, ` +
+                            `cache read: ${cacheReadTokens}, cache write: ${cacheWriteTokens} ` +
+                            `(ratio: ${cacheRatio}%), finishReason: ${step.finishReason}`
+                        );
+                        this.config.eventHandler({
+                            type: "usage_metrics",
+                            usage: {
+                                inputTokens,
+                                cacheCreationInputTokens: (step.usage as any).cacheCreationInputTokens || 0,
+                                cacheReadInputTokens: (step.usage as any).cacheReadInputTokens || 0,
+                                outputTokens: step.usage.outputTokens || 0,
+                            },
+                            breakdown: computeTokenBreakdown(allMessages, tools, accToolCallChars, accToolResultChars, inputTokens),
+                        });
+                    }
+                },
+
+                // DUAL STOP CONDITIONS: step limit OR context exhaustion
+                stopWhen: [stepCountIs(50), contextExhausted(compactionGuard)],
             });
 
             // Send start event to frontend
@@ -237,7 +385,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 messageId: this.config.generationId,
                 userMessageContent,
                 response,
-                usage,
+                totalUsage,
                 ctx: this.config.executionContext,
                 generationStartTime,
                 projectId,
@@ -247,6 +395,11 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             try {
                 for await (const part of fullStream) {
                     await this.handleStreamPart(part, streamContext);
+                }
+
+                // Check if context was exhausted mid-stream and update context BEFORE handleStreamFinish logic
+                if (compactionGuard.lastCompactionFailed) {
+                    streamContext.compactionFailedMidStream = true;
                 }
 
                 // Check if abort was called after stream completed
@@ -289,7 +442,6 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                         });
                         updateAndSaveChat(this.config.generationId, Command.Agent, this.config.eventHandler);
                     }
-
                     // Clear review state
                     const pendingReview = chatStateStorage.getPendingReviewGeneration(projectRootPath, threadId);
                     if (pendingReview && pendingReview.id === this.config.generationId) {
@@ -325,6 +477,21 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
 
                 // Re-throw for base class error handling
                 throw error;
+            }
+
+            // Update token estimation context with actual total usage
+            try {
+                const resolvedUsage = await totalUsage;
+                if (resolvedUsage) {
+                    const toolDefinitionsChars = JSON.stringify(tools).length;
+                    compactionManager.updateTokenContext(
+                        resolvedUsage.inputTokens ?? 0,
+                        Math.ceil(getSystemPrompt(projects, params.operationType).length / 4),
+                        Math.ceil(toolDefinitionsChars / 4) // Dynamic estimate for tool definitions
+                    );
+                }
+            } catch (usageError) {
+                console.warn('[AgentExecutor] Could not retrieve usage for token context update:', usageError);
             }
 
             return {
@@ -500,6 +667,18 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         const assistantMessages = finalResponse.messages || [];
         const tempProjectPath = context.ctx.tempProjectPath!;
 
+        // Check if mid-stream compaction forcefully stopped the model
+        if (context.compactionFailedMidStream) {
+            assistantMessages.push({
+                role: 'assistant',
+                content: `\n\n> **Notice:** The context window limit was reached mid-task, and the generation was paused cleanly. Please review the current state and issue a new prompt to continue where I left off.`
+            });
+            context.eventHandler({
+                type: 'content_block',
+                content: `\n\n> **Notice:** The context window limit was reached mid-task, and the generation was paused cleanly. Please review the current state and issue a new prompt to continue where I left off.`
+            });
+        }
+
         // Run final diagnostics
         const finalDiagnostics = await checkCompilationErrors(tempProjectPath);
         context.eventHandler({
@@ -512,11 +691,21 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         const isPlanModeEnabled = workspace.getConfiguration('ballerina.ai').get<boolean>('planMode', false);
         const finalProjectMetrics = await getProjectMetrics(tempProjectPath);
 
-        // Get token usage from streamText result
-        const tokenUsage = await context.usage;
-        const inputTokens = tokenUsage.inputTokens || 0;
-        const outputTokens = tokenUsage.outputTokens || 0;
-        const totalTokens = tokenUsage.totalTokens || 0;
+        // Get total token usage across all agent steps (includes cache stats)
+        const totalTokenUsage = await context.totalUsage;
+        const inputTokens = totalTokenUsage.inputTokens || 0;
+        const outputTokens = totalTokenUsage.outputTokens || 0;
+        const totalTokens = totalTokenUsage.totalTokens || 0;
+        const totalCacheRead = totalTokenUsage.inputTokenDetails?.cacheReadTokens || 0;
+        const totalCacheWrite = totalTokenUsage.inputTokenDetails?.cacheWriteTokens || 0;
+        console.log('[AgentExecutor] Generation complete — token usage:', {
+            input: inputTokens,
+            output: outputTokens,
+            total: totalTokens,
+            cacheRead: totalCacheRead,
+            cacheWrite: totalCacheWrite,
+            cacheRatio: `${inputTokens > 0 ? (totalCacheRead / inputTokens * 100).toFixed(1) : '0'}%`,
+        });
 
         // Send telemetry for generation complete
         sendTelemetryEvent(

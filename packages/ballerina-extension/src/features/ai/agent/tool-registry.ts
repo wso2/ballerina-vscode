@@ -48,12 +48,13 @@ import {
     MIGRATION_SOURCE_LIST_TOOL,
     MIGRATION_SOURCE_READ_TOOL,
 } from './tools/migration-source-reader';
-import { createCurlTool, CURL_TOOL_NAME } from './tools/curl-tool';
 import { createBallerinaRunTool, BALLERINA_RUN_TOOL_NAME } from './tools/ballerina-run';
 import { createBallerinaGetLogsTool, BALLERINA_GET_LOGS_TOOL_NAME } from './tools/ballerina-get-logs';
 import { createBallerinaStopTool, BALLERINA_STOP_TOOL_NAME } from './tools/ballerina-stop';
 import { RunningServicesManager } from './tools/running-service-manager';
+import { createHurlTool, HURL_TOOL_NAME } from './tools/hurl-tool';
 import { createWebSearchTool, WEB_SEARCH_TOOL_NAME, createWebFetchTool, WEB_FETCH_TOOL_NAME } from './tools/web-tools';
+import { createClarifyTool, CLARIFY_TOOL } from './tools/clarify';
 
 export interface ToolRegistryOptions {
     eventHandler: CopilotEventHandler;
@@ -126,11 +127,12 @@ export function createToolRegistry(opts: ToolRegistryOptions) {
             [MIGRATION_SOURCE_LIST_TOOL]: createMigrationSourceListTool(eventHandler, migrationSourcePath),
             [MIGRATION_SOURCE_READ_TOOL]: createMigrationSourceReadTool(eventHandler, migrationSourcePath),
         } : {}),
-        [CURL_TOOL_NAME]: createCurlTool(eventHandler),
+        [HURL_TOOL_NAME]: createHurlTool(eventHandler),
         [BALLERINA_RUN_TOOL_NAME]: createBallerinaRunTool(tempProjectPath, opts.runningServices, eventHandler, modifiedFiles, allModifiedFiles, ctx),
         [BALLERINA_GET_LOGS_TOOL_NAME]: createBallerinaGetLogsTool(opts.runningServices, eventHandler),
         [BALLERINA_STOP_TOOL_NAME]: createBallerinaStopTool(opts.runningServices, eventHandler),
         [WEB_SEARCH_TOOL_NAME]: createWebSearchTool(eventHandler, webSearchEnabled),
         [WEB_FETCH_TOOL_NAME]: createWebFetchTool(eventHandler, webSearchEnabled),
+        [CLARIFY_TOOL]: createClarifyTool(eventHandler),
     };
 }

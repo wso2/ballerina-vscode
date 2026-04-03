@@ -367,8 +367,13 @@ export type ChatNotify =
     | GeneratedSourcesEvent
     | ConnectorGenerationNotification
     | ConfigurationCollectionEvent
+    | ClarifyEvent
     | ChatComponentEvent
-    | PlanUpdated;
+    | PlanUpdated
+    | CompactionStartEvent
+    | CompactionEndEvent
+    | CompactionFailedEvent
+    | ConfigChangeEvent;
 
 export interface ChatStart {
     type: "start";
@@ -447,6 +452,13 @@ export interface UsageMetricsEvent {
         cacheReadInputTokens: number;
         outputTokens: number;
     };
+    breakdown?: {
+        systemInstructions: number;
+        toolDefinitions: number;
+        reservedOutput: number;
+        messages: number;
+        toolResults: number;
+    };
 }
 
 export interface TaskApprovalRequest {
@@ -456,6 +468,7 @@ export interface TaskApprovalRequest {
     tasks: Task[];
     taskDescription?: string;
     message?: string;
+    autoApproved?: boolean;
 }
 
 export interface WebToolApprovalEvent {
@@ -514,6 +527,21 @@ export interface ConfigurationCollectionEvent {
     };
 }
 
+export interface ClarifyQuestion {
+    question: string;
+    tabLabel: string;
+    options: Array<{ label: string; value: string }>;
+    selectionType: "single" | "multiple";
+}
+
+export interface ClarifyEvent {
+    type: "clarify_event";
+    requestId: string;
+    stage: "asking" | "answered" | "skipped";
+    questions: ClarifyQuestion[];
+    answers?: Array<{ question: string; answers: string[] }>;
+}
+
 export interface ChatComponentEvent {
     type: "chat_component";
     id?: string;
@@ -524,6 +552,34 @@ export interface ChatComponentEvent {
 export interface PlanUpdated {
     type: "plan_updated";
     plan: Plan;
+}
+
+// ==================================
+// Mid-Stream Compaction Events
+// ==================================
+
+/** Fired when mid-stream compaction starts (stream naturally pauses) */
+export interface CompactionStartEvent {
+    type: 'compaction_start';
+}
+
+/** Fired when mid-stream compaction completes and streaming resumes */
+export interface CompactionEndEvent {
+    type: 'compaction_end';
+    metadata?: GenerationCompactionMetadata;
+}
+
+/** Fired when mid-stream compaction fails and context cannot be reduced */
+export interface CompactionFailedEvent {
+    type: 'compaction_failed';
+    reason: string;
+}
+
+/** Fired when a VS Code configuration setting relevant to the AI panel changes */
+export interface ConfigChangeEvent {
+    type: 'config_change';
+    key: 'showContextUsage';
+    value: boolean;
 }
 
 export const stateChanged: NotificationType<MachineStateValue> = { method: 'stateChanged' };
@@ -648,6 +704,32 @@ export interface GenerationReviewState {
 }
 
 /**
+ * Metadata attached to a compacted generation (C15 + M07).
+ */
+export interface GenerationCompactionMetadata {
+    /** Unix timestamp when compaction occurred */
+    compactedAt: number;
+    /** Message count before compaction */
+    originalMessageCount: number;
+    /** Token estimate before compaction */
+    originalTokenEstimate: number;
+    /** Token estimate after compaction */
+    compactedTokenEstimate: number;
+    /** Number of retry attempts used */
+    retries: number;
+    /** Whether triggered automatically or manually */
+    mode: 'auto' | 'manual';
+    /** Custom instructions provided by user, if any */
+    userInstructions?: string;
+    /** Path to pre-compaction backup file (M07) */
+    backupPath?: string;
+    /** IDs of generations that were replaced (M07) */
+    compactedGenerationIds?: string[];
+    /** Marker flag indicating this is a compacted synthetic generation (M07) */
+    isCompactedGeneration?: boolean;
+}
+
+/**
  * Metadata for a generation
  */
 export interface GenerationMetadata {
@@ -659,6 +741,8 @@ export interface GenerationMetadata {
     generationType?: 'agent' | 'datamapper';
     /** Command type if triggered by command */
     commandType?: string;
+    /** C15/M07: Compaction metadata if this generation was created by compaction */
+    compactionMetadata?: GenerationCompactionMetadata;
 }
 
 /**

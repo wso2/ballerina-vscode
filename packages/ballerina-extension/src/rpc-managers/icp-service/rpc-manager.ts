@@ -24,12 +24,13 @@ import {
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import * as vscode from 'vscode';
 import { StateMachine } from "../../stateMachine";
 import { updateSourceCode } from "../../utils/source-utils";
 import { getOrgAndPackageName } from "../../utils";
 import { parse, stringify } from "@iarna/toml";
-
-const ICP_DEFAULT_SECRET = 'tmp.single-integration-use-dev-env-secret-for-local-use-only-do-not-use-in-production';
+import { getStoredICPSecret } from "../../features/icp/setup";
+import { ensureICPServerRunning, isICPServerRunning } from "../../features/icp";
 
 const ICP_IMPORTS = [
     'import wso2/icp.runtime.bridge as _;',
@@ -213,7 +214,7 @@ function removeICPBuildOptions(projectPath: string): void {
     fs.writeFileSync(tomlPath, content, 'utf-8');
 }
 
-function addICPConfigToml(projectPath: string): void {
+async function addICPConfigToml(projectPath: string): Promise<void> {
     const configPath = path.join(projectPath, 'Config.toml');
     let config: Record<string, any> = {};
 
@@ -231,12 +232,17 @@ function addICPConfigToml(projectPath: string): void {
     if (!config.wso2.icp) { config.wso2.icp = {}; }
     if (!config.wso2.icp.runtime) { config.wso2.icp.runtime = {}; }
 
+    // Merge with existing bridge config to preserve keys like secret
+    const existingBridge = config.wso2?.icp?.runtime?.bridge ?? {};
+    const storedSecret = await getStoredICPSecret(projectPath);
+
     config.wso2.icp.runtime.bridge = {
+        ...existingBridge,
         environment: 'dev',
         project: getProjectName(projectPath),
         integration: getIntegrationName(projectPath),
         runtime: os.hostname(),
-        secret: ICP_DEFAULT_SECRET,
+        ...(storedSecret ? { secret: storedSecret } : {}),
     };
 
     fs.writeFileSync(configPath, stringify(config), 'utf-8');
@@ -282,7 +288,7 @@ export class ICPServiceRpcManager implements ICPServiceAPI {
                     await updateSourceCode({ textEdits: importEdits, description: 'ICP Creation' });
                 }
                 addICPBuildOptions(projectPath);
-                addICPConfigToml(projectPath);
+                await addICPConfigToml(projectPath);
                 const result: ICPEnabledResponse = await context.langClient.isIcpEnabled(param);
                 resolve(result);
             } catch (error) {
@@ -311,6 +317,39 @@ export class ICPServiceRpcManager implements ICPServiceAPI {
         });
     }
 
+
+    async viewInICP(params: ICPEnabledRequest): Promise<ICPEnabledResponse> {
+        try {
+            const icpUrl = vscode.workspace.getConfiguration('ballerina').get<string>('icpUrl') || 'https://localhost:9445';
+
+            if (isICPServerRunning()) {
+                await vscode.env.openExternal(vscode.Uri.parse(icpUrl));
+                return { enabled: true };
+            }
+
+            const action = await vscode.window.showWarningMessage(
+                'ICP server is not running. Start the server to view the ICP dashboard?',
+                'Start ICP Server',
+                'Cancel'
+            );
+
+            if (action !== 'Start ICP Server') {
+                return { enabled: false };
+            }
+
+            await vscode.commands.executeCommand('ballerina.icp.start');
+
+            if (!isICPServerRunning()) {
+                return { enabled: false };
+            }
+
+            await vscode.env.openExternal(vscode.Uri.parse(icpUrl));
+            return { enabled: true };
+        } catch (error) {
+            console.log(error);
+            return { enabled: false, errorMsg: `Failed to open ICP: ${error}` };
+        }
+    }
 
     async isIcpEnabled(params: ICPEnabledRequest): Promise<ICPEnabledResponse> {
         return new Promise(async (resolve) => {

@@ -60,7 +60,7 @@ import {
     getLoginMethod,
     getSemanticDiff,
     getServiceNames,
-    getUsage,
+    
     isCopilotSignedIn,
     isPlatformExtensionAvailable,
     isUserAuthenticated,
@@ -92,10 +92,20 @@ import {
     updateRequirementSpecification,
     approveWebTool,
     declineWebTool,
-    WebToolApprovalRequest
+    WebToolApprovalRequest,
+    getUsage,
+    compactConversation,
+    CompactConversationRequest,
+    getShowContextUsage,
+    submitClarifyAnswer,
+    cancelClarify,
+    ClarifyAnswerRequest,
+    ClarifyCancelRequest,
 } from "@wso2/ballerina-core";
+import { workspace } from 'vscode';
 import { Messenger } from "vscode-messenger";
 import { AiPanelRpcManager } from "./rpc-manager";
+import { sendConfigChangeNotification } from "../../features/ai/utils/ai-utils";
 
 export function registerAiPanelRpcHandlers(messenger: Messenger) {
     const rpcManger = new AiPanelRpcManager();
@@ -148,6 +158,18 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onNotification(openFileDiff, (args: OpenFileDiffRequest) => rpcManger.openFileDiff(args));
     messenger.onRequest(approveWebTool, (args: WebToolApprovalRequest) => rpcManger.approveWebTool(args));
     messenger.onRequest(declineWebTool, (args: WebToolApprovalRequest) => rpcManger.declineWebTool(args));
+    messenger.onRequest(compactConversation, (args: CompactConversationRequest) => rpcManger.compactConversation(args));
+    messenger.onRequest(getShowContextUsage, () => rpcManger.getShowContextUsage());
+
+    // Notify webview immediately when the showContextUsage setting is toggled
+    workspace.onDidChangeConfiguration((e) => {
+        if (e.affectsConfiguration('ballerina.ai.showContextUsage')) {
+            const value = workspace.getConfiguration('ballerina').get<boolean>('ai.showContextUsage', false);
+            sendConfigChangeNotification('showContextUsage', value);
+        }
+    });
     messenger.onRequest(enhancePrompt, (args: PromptEnhancementRequest) => rpcManger.enhancePrompt(args));
     messenger.onNotification(promptForLogin, () => rpcManger.promptForLogin());
+    messenger.onRequest(submitClarifyAnswer, (args: ClarifyAnswerRequest) => rpcManger.submitClarifyAnswer(args));
+    messenger.onRequest(cancelClarify, (args: ClarifyCancelRequest) => rpcManger.cancelClarify(args));
 }

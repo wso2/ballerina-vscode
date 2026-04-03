@@ -154,9 +154,9 @@ Rules:
 
                 if (eventHandler) {
                     if (input.isPlanApproval === true) {
-                        // Explicit plan approval gate — show full task list to user and wait for approval
                         approvalType = "plan";
-                        approvalResult = await handlePlanApproval(allTasks, eventHandler, projectRootPath, generationId, threadId);
+                        const autoApprove = !!(process.env.INITIAL_SCAFFOLD_PROMPT && process.env.INITIAL_SCAFFOLD_STEPS);
+                        approvalResult = await handlePlanApproval(allTasks, eventHandler, projectRootPath, generationId, threadId, autoApprove);
                     } else if (input.requestReview === true) {
                         // TODO: Re-enable approval gate (handleTaskCompletion) when review flow is ready
                         // Skip review gate — mark as completed and continue autonomously
@@ -261,14 +261,28 @@ async function handlePlanApproval(
     eventHandler: CopilotEventHandler,
     projectRootPath: string,
     generationId: string,
-    threadId: string
+    threadId: string,
+    autoApprove: boolean = false
 ): Promise<{ approved: boolean; comment?: string }> {
-    console.log(`[TaskWrite Tool] Plan approval requested`);
+    console.log(`[TaskWrite Tool] Plan approval requested, autoApprove=${autoApprove}`);
 
     const plan = createPlan(allTasks);
 
     // Store plan in ChatStateStorage with the generation
     chatStateStorage.updateGeneration(projectRootPath, threadId, generationId, { plan });
+
+    if (autoApprove) {
+        // Emit event so the plan card renders in the UI, marked as auto-approved
+        eventHandler({
+            type: "task_approval_request",
+            requestId: `plan-auto-${Date.now()}`,
+            approvalType: "plan",
+            tasks: allTasks,
+            message: "Plan auto-approved",
+            autoApproved: true,
+        });
+        return { approved: true };
+    }
 
     // Use ApprovalManager for plan approval (replaces state machine subscription)
     const requestId = `plan-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;

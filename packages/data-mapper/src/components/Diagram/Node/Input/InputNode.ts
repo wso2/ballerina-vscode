@@ -148,20 +148,10 @@ export class InputNode extends DataMapperNodeModel {
                 } else if (!parentPort.attributes.collapsed) {
                     this.numberOfFields += 4.8; // This is for payload widget
                 }
-            } else {
-                await this.addPortsForInputField({
-                    field: this.filteredInputType,
-                    portType: "OUT",
-                    parentId: this.identifier,
-                    unsafeParentId: this.identifier,
-                    parent: parentPort,
-                    collapsedFields,
-                    expandedFields,
-                    hidden: parentPort.attributes.collapsed,
-                    isOptional: this.filteredInputType.optional,
-                    focusedFieldFQNs
-                });
             }
+            // For non-expandable types (primitives, unions, anydata, etc.), the header port created
+            // by addPortsForHeader is sufficient. No child port is needed, and creating
+            // one would overwrite the header port when it has a category.
         }
     }
 

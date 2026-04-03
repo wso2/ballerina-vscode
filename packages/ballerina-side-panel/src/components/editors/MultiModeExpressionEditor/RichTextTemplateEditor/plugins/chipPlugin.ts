@@ -19,6 +19,7 @@
 import { Plugin, PluginKey } from 'prosemirror-state';
 import { Schema, NodeSpec, DOMOutputSpec } from 'prosemirror-model';
 import { schema as markdownSchema } from 'prosemirror-markdown';
+import { tableNodes } from 'prosemirror-tables';
 import {
     getParsedExpressionTokens,
     detectTokenPatterns,
@@ -110,7 +111,29 @@ const chipNodeSpec: NodeSpec = {
 };
 
 export function createChipSchema(): Schema {
-    const nodes = markdownSchema.spec.nodes.addToEnd('chip', chipNodeSpec);
+    const tNodes = tableNodes({
+        tableGroup: "block",
+        cellContent: "block+",
+        cellAttributes: {
+            alignment: {
+                default: null,
+                getFromDOM(dom: HTMLElement) {
+                    return dom.style.textAlign || null;
+                },
+                setDOMAttr(value, attrs) {
+                    if (value) {
+                        attrs.style = ((attrs.style as string) || "") + `text-align: ${value};`;
+                    }
+                }
+            }
+        }
+    });
+
+    let nodes = markdownSchema.spec.nodes;
+    for (const [name, spec] of Object.entries(tNodes)) {
+        nodes = nodes.addToEnd(name, spec);
+    }
+    nodes = nodes.addToEnd('chip', chipNodeSpec);
 
     return new Schema({
         nodes,

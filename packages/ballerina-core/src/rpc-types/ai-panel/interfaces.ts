@@ -27,8 +27,8 @@ import { ComponentInfo, DataMapperMetadata, Diagnostics, DMModel, ImportStatemen
 // General Interfaces
 // ==================================
 export type AIPanelPrompt =
-    | { type: 'command-template'; command: Command; templateId: TemplateId; text?: string; params?: Record<string, string>; metadata?: Record<string, any> }
-    | { type: 'text'; text: string; planMode: boolean; codeContext?: CodeContext; autoSubmit?: boolean }
+    | { type: 'command-template'; command: Command; templateId: TemplateId; text?: string; params?: Record<string, string>; metadata?: Record<string, any>; hiddenContext?: string }
+    | { type: 'text'; text: string; planMode: boolean; codeContext?: CodeContext; autoSubmit?: boolean; hiddenContext?: string }
     | undefined;
 
 export interface AIMachineSnapshot {
@@ -299,6 +299,7 @@ export type CodeContext =
 
 export interface GenerateAgentCodeRequest {
     usecase: string;
+    hiddenContext?: string;
     operationType?: OperationType;
     fileAttachmentContents: FileAttatchment[];
     threadId?: string; //TODO: Make this required once we support threads in UI
@@ -463,6 +464,15 @@ export interface WebToolApprovalRequest {
     requestId: string;
 }
 
+export interface ClarifyAnswerRequest {
+    requestId: string;
+    answers: Array<{ question: string; answers: string[] }>;
+}
+
+export interface ClarifyCancelRequest {
+    requestId: string;
+}
+
 export type ErrorCode = {
     code: number;
     message: string;
@@ -511,6 +521,29 @@ export interface UsageResponse {
 export interface OpenFileDiffRequest {
     relativePath: string;
 }
+// ==================================
+// Compaction Related Interfaces
+// ==================================
+
+export interface CompactConversationRequest {
+    /** Optional user instructions for guiding the summarization (e.g., "focus on test changes") */
+    customInstructions?: string;
+}
+
+export interface CompactConversationResponse {
+    success: boolean;
+    /** Token count before compaction */
+    originalTokens?: number;
+    /** Token count after compaction */
+    compactedTokens?: number;
+    /** Percentage of tokens reduced */
+    reductionPercentage?: number;
+    /** The LLM-generated summary text shown to the user after compaction */
+    summary?: string;
+    /** Error message if compaction failed */
+    error?: string;
+}
+
 // ==================================
 // Prompt Enhancement Related Interfaces
 // ==================================

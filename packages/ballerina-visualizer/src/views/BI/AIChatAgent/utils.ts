@@ -44,7 +44,7 @@ export const fetchOAuthConfigProperties = async (
         if (!response?.flowNode?.properties) return [];
         return Object.entries(response.flowNode.properties).map(([key, property]) => ({
             key,
-            property: property as Property,
+            property: { ...property, optional: true, advanced: true } as Property,
         }));
     } catch (error) {
         console.error("Error fetching OAuth config properties:", error);

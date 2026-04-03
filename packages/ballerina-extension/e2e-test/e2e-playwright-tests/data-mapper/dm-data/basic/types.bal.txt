@@ -1,0 +1,46 @@
+type InRoot record {|
+    string iPrimDirect;
+    string iPrimDirectErr;
+    string iManyOne1;
+    string iManyOne2;
+    string iManyOne3;
+    int iManyOneErr1;
+    boolean iManyOneErr2;
+    InObjDirect iObjDirect;
+    InObjProp iObjProp;
+|};
+
+type InObjDirect record {|
+    string d1;
+    int d2;
+|};
+
+type InObjProp record {|
+    string op1;
+    string op2;
+|};
+
+type OutRoot record {|
+    string oPrimDirect;
+    int oPrimDirectErr;
+    string oManyOne;
+    int oManyOneErr;
+    OutObjDirect oObjDirect;
+    OutObjDirectErr oObjDirectErr;
+    OutObjProp oObjProp;
+|};
+
+type OutObjDirect record {|
+    string d1;
+    int d2;
+|};
+
+type OutObjDirectErr record {|
+    string d1;
+    string d2;
+|};
+
+type OutObjProp record {|
+    string p1;
+    int p2;
+|};

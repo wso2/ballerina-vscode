@@ -255,7 +255,7 @@ export function sendToolResultNotification(toolName: string, toolOutput?: any, t
     sendAIPanelNotification(msg);
 }
 
-export function sendTaskApprovalRequestNotification(approvalType: "plan" | "completion", tasks: any[], taskDescription?: string, message?: string, requestId?: string): void {
+export function sendTaskApprovalRequestNotification(approvalType: "plan" | "completion", tasks: any[], taskDescription?: string, message?: string, requestId?: string, autoApproved?: boolean): void {
     const msg: ChatNotify = {
         type: "task_approval_request",
         requestId: requestId || `approval-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
@@ -263,6 +263,7 @@ export function sendTaskApprovalRequestNotification(approvalType: "plan" | "comp
         tasks: tasks,
         taskDescription: taskDescription,
         message: message,
+        autoApproved: autoApproved,
     };
     sendAIPanelNotification(msg);
 }
@@ -310,6 +311,10 @@ export function sendConfigurationCollectionNotification(event: ChatNotify & { ty
     sendAIPanelNotification(event);
 }
 
+export function sendClarifyNotification(event: ChatNotify & { type: "clarify_event" }): void {
+    sendAIPanelNotification(event);
+}
+
 export function sendWebToolToggleNotification(active: boolean): void {
     RPCLayer._messenger.sendNotification(
         webToolToggle,
@@ -337,6 +342,17 @@ export function sendMigrationPanelNotification(msg: ChatNotify): void {
  */
 export function sendVisualizerMigrationNotification(msg: ChatNotify): void {
     RPCLayer._messenger.sendNotification(onChatNotify, { type: "webview", webviewType: VisualizerWebview.viewType }, msg);
+}
+
+export function sendUsageMetricsNotification(
+    usage: { inputTokens: number; cacheCreationInputTokens: number; cacheReadInputTokens: number; outputTokens: number },
+    breakdown?: { systemInstructions: number; toolDefinitions: number; reservedOutput: number; messages: number; toolResults: number },
+): void {
+    sendAIPanelNotification({ type: "usage_metrics", usage, breakdown });
+}
+
+export function sendConfigChangeNotification(key: 'showContextUsage', value: boolean): void {
+    sendAIPanelNotification({ type: 'config_change', key, value });
 }
 
 export function getGenerationMode(generationType: GenerationType) {
