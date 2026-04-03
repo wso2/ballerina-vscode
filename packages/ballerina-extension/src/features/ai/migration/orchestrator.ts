@@ -25,10 +25,9 @@ import { AgentExecutor } from "../agent/AgentExecutor";
 import { AICommandConfig } from "../executors/base/AICommandExecutor";
 import { createMigrationEventHandler, createVisualizerMigrationEventHandler, createAIPanelMigrationEventHandler } from "../utils/events";
 import { sendVisualizerMigrationNotification, sendAIPanelNotification } from "../utils/ai-utils";
-import { getEnhancementStages, getPerProjectEnhancementStages, getWorkspaceValidationStage, EnhancementStage } from "./prompts";
-import { saveAgentHistory, loadAgentHistory, clearAgentHistory } from "./history";
+import { getEnhancementStages, getPerProjectEnhancementStages, getWorkspaceValidationStage, getResumePreamble, EnhancementStage } from "./prompts";
 import { MigrationDebugLogger } from "./debug-logger";
-import { chatStateStorage } from "../../../views/ai-panel/chatStateStorage";
+import { TranscriptWriter } from "./transcript-writer";
 import { getWorkspaceTomlValues } from "../../../utils";
 import { setMigrationEnhancementActive } from "../../../utils/source-utils";
 
@@ -39,6 +38,7 @@ export const onWizardChatNotify = _wizardChatEmitter.event;
 import {
     AI_ENHANCE_TOML_FILENAME,
     AI_MIGRATION_DIR,
+    AI_SUMMARY_FILENAME,
     ActiveMigrationSessionLocal,
     EnhanceTomlData,
     MIGRATION_PROJECT_ROOT_KEY,
@@ -203,50 +203,19 @@ export function markEnhancementComplete(): void {
         if (data) {
             writeEnhanceToml(projectRoot, data.aiFeatureUsed, true, data.sourcePath);
         }
-        // Clean up the history file – no longer needed after full completion
-        clearAgentHistory(projectRoot);
     }
     _activeSession = { isActive: false, aiFeatureUsed: _activeSession.aiFeatureUsed, fullyEnhanced: true };
     console.log("[MigrationEnhancement] Enhancement marked as complete.");
 }
 
 /**
- * Seeds the AI Chat's `chatStateStorage` with the migration conversation
- * history loaded from disk.  This allows the AI Chat agent to pick up
- * previous messages as context when the user resumes enhancement.
+ * Previously seeded raw conversation history into chatStateStorage.
+ * Now a no-op — resume context is injected via the prompt preamble from summary.md.
  *
- * @returns `true` if history was loaded and seeded successfully.
+ * @returns Always `false` (no history seeded).
  */
 export function seedMigrationHistoryIntoChatState(): boolean {
-    const projectRoot = _resolveCurrentProjectRoot();
-    if (!projectRoot) {
-        return false;
-    }
-    const history = loadAgentHistory(projectRoot);
-    if (!history || history.messages.length === 0) {
-        return false;
-    }
-
-    const workspaceId = projectRoot;
-    const threadId = "default";
-
-    // Add a synthetic generation that carries the migration history messages
-    const gen = chatStateStorage.addGeneration(
-        workspaceId,
-        threadId,
-        "[Migration AI Enhancement – prior conversation]",
-        { generationType: "agent" },
-        `migration-history-${Date.now()}`
-    );
-
-    chatStateStorage.updateGeneration(workspaceId, threadId, gen.id, {
-        modelMessages: history.messages,
-    });
-
-    console.log(
-        `[MigrationEnhancement] Seeded ${history.messages.length} messages into chatStateStorage (thread: ${threadId})`
-    );
-    return true;
+    return false;
 }
 
 /**
@@ -349,7 +318,10 @@ export async function checkAndRunPendingEnhancement(): Promise<void> {
         // Set session state so other parts of the extension know about the migration
         _activeSession = { isActive: false, aiFeatureUsed: true, fullyEnhanced: false };
 
-        const message = loadAgentHistory(stored.projectRoot)
+        const hasSummary = fs.existsSync(
+            path.join(stored.projectRoot, AI_MIGRATION_DIR, AI_SUMMARY_FILENAME),
+        );
+        const message = hasSummary
             ? "Migration AI enhancement was paused. You can resume it from AI Chat."
             : "Migration project created. You can start AI enhancement from AI Chat.";
 
@@ -509,6 +481,22 @@ function emitFinalReport(
     eventHandler({ type: "content_block", content: report });
 }
 
+/**
+ * If a `summary.md` exists for the project, prepend the resume preamble to
+ * the first stage's prompt so the agent knows this is a continuation.
+ */
+function injectResumePreamble(projectRoot: string, stages: EnhancementStage[]): void {
+    if (stages.length === 0) { return; }
+    const preamble = getResumePreamble(projectRoot);
+    if (preamble) {
+        stages[0] = {
+            ...stages[0],
+            prompt: preamble + "\n\n" + stages[0].prompt,
+        };
+        console.log("[MigrationEnhancement] Resume preamble injected into first stage prompt.");
+    }
+}
+
 // ===========================================================================
 // Per-package stage runner – shared by wizard and migration-panel flows
 // ===========================================================================
@@ -534,6 +522,10 @@ interface StageRunnerOpts {
     useExistingTempPath: boolean;
     /** Optional debug logger — when provided, tool call timings are written to debug.log. */
     debugLogger?: MigrationDebugLogger;
+    /** Optional transcript writer — when provided, stage content is recorded to disk. */
+    transcriptWriter?: TranscriptWriter;
+    /** Relative package path used for transcript file layout (empty string for single-package). */
+    packageRelPath?: string;
 }
 
 /**
@@ -549,6 +541,7 @@ async function runStagesForPackage(opts: StageRunnerOpts): Promise<void> {
         projectRoot, packagePath, sourcePath, stages,
         eventHandler, abortController, fromAIChat,
         stageIdPrefix, useExistingTempPath, debugLogger,
+        transcriptWriter, packageRelPath,
     } = opts;
 
     for (let i = 0; i < stages.length; i++) {
@@ -559,7 +552,30 @@ async function runStagesForPackage(opts: StageRunnerOpts): Promise<void> {
             break;
         }
 
-        eventHandler({
+        // Start transcript recording for this stage
+        const isWorkspaceValidation = stageIdPrefix.includes("workspace-validation");
+        if (transcriptWriter) {
+            transcriptWriter.startStage(packageRelPath ?? "", i, stage.name, isWorkspaceValidation);
+        }
+
+        // Wrap the event handler to also capture content/tool events to transcript
+        const recordingHandler: typeof eventHandler = transcriptWriter
+            ? (event) => {
+                if (event.type === "content_block" && "content" in event) {
+                    transcriptWriter!.appendContent(event.content);
+                } else if (event.type === "tool_call" && "toolName" in event) {
+                    const inputSummary = event.toolInput
+                        ? (typeof event.toolInput === "string" ? event.toolInput : JSON.stringify(event.toolInput))
+                        : undefined;
+                    transcriptWriter!.appendToolCall(event.toolName, inputSummary);
+                } else if (event.type === "tool_result" && "toolName" in event) {
+                    transcriptWriter!.appendToolResult(event.toolName, !event.failed);
+                }
+                eventHandler(event);
+            }
+            : eventHandler;
+
+        recordingHandler({
             type: "content_block",
             content: `\n\n---\n\n**Starting ${stage.name}** (${i + 1} of ${stages.length})\n\n`,
         });
@@ -573,7 +589,7 @@ async function runStagesForPackage(opts: StageRunnerOpts): Promise<void> {
                 projectPath: packagePath,
                 workspacePath: undefined,
             },
-            eventHandler,
+            eventHandler: recordingHandler,
             generationId: stageGenId,
             abortController,
             params: {
@@ -583,12 +599,6 @@ async function runStagesForPackage(opts: StageRunnerOpts): Promise<void> {
             },
             chatStorage: fromAIChat
                 ? { projectRootPath: projectRoot, threadId: "default", enabled: true }
-                : undefined,
-            onMessagesAvailable: useExistingTempPath
-                ? (messages, status) => {
-                    saveAgentHistory(projectRoot, messages, status);
-                    console.log(`[MigrationEnhancement] Saved ${stage.name} history (${status}, ${messages.length} messages)`);
-                }
                 : undefined,
             lifecycle: useExistingTempPath
                 ? { existingTempPath: packagePath, cleanupStrategy: "review" as const }
@@ -610,10 +620,14 @@ async function runStagesForPackage(opts: StageRunnerOpts): Promise<void> {
         }
         console.log(`[MigrationEnhancement] ${stage.name} completed.`);
 
-        eventHandler({
+        recordingHandler({
             type: "content_block",
             content: `\n\n**${stage.name} — Complete** ✅\n\n`,
         });
+
+        if (transcriptWriter) {
+            transcriptWriter.finalizeStage();
+        }
     }
 }
 
@@ -662,6 +676,7 @@ export async function runMigrationAgent(): Promise<void> {
     _migrationAbortController = new AbortController();
     setMigrationEnhancementActive(true);
     const debugLogger = new MigrationDebugLogger(projectRoot, _selectedModelId);
+    const transcriptWriter = new TranscriptWriter(projectRoot);
 
     try {
         const packagePaths = await getWorkspacePackagePaths(projectRoot);
@@ -670,6 +685,7 @@ export async function runMigrationAgent(): Promise<void> {
             // ── Multi-package workspace ──────────────────────────────────
             const completedPackages = new Set<string>(tomlData?.completedPackages ?? []);
             const results: PackageEnhancementResult[] = [];
+            let resumeInjected = false;
 
             console.log(`[MigrationEnhancement] Starting migration agent – ${packagePaths.length} packages, model: ${_selectedModelId}`);
             debugLogger.logMilestone(`Run start — ${packagePaths.length} packages, model: ${_selectedModelId}, projectRoot: ${projectRoot}`);
@@ -692,6 +708,10 @@ export async function runMigrationAgent(): Promise<void> {
                 const pkgName = readPackageName(fullPkgPath) ?? pkgRelPath;
                 const manifest = buildCrossPackageManifest(projectRoot, packagePaths, pkgRelPath);
                 const stages = getPerProjectEnhancementStages(pkgName, pkgRelPath, pkgIdx, packagePaths.length, manifest);
+                if (!resumeInjected) {
+                    injectResumePreamble(projectRoot, stages);
+                    resumeInjected = true;
+                }
 
                 eventHandler({ type: "content_block", content: `\n\n## 📦 Package ${pkgIdx + 1}/${packagePaths.length}: \`${pkgName}\`\n\n` });
                 debugLogger.logMilestone(`Package ${pkgIdx + 1}/${packagePaths.length}: ${pkgRelPath} — starting`);
@@ -705,6 +725,7 @@ export async function runMigrationAgent(): Promise<void> {
                         eventHandler, abortController: _migrationAbortController,
                         fromAIChat: false, stageIdPrefix: `migration-${pkgRelPath}`,
                         useExistingTempPath: false, debugLogger,
+                        transcriptWriter, packageRelPath: pkgRelPath,
                     });
                     completedPackages.add(pkgRelPath);
                     results.push({ packagePath: pkgRelPath, success: true });
@@ -732,6 +753,7 @@ export async function runMigrationAgent(): Promise<void> {
                             eventHandler, abortController: _migrationAbortController,
                             fromAIChat: false, stageIdPrefix: "migration-workspace-validation",
                             useExistingTempPath: false, debugLogger,
+                            transcriptWriter, packageRelPath: "",
                         });
                         debugLogger.logMilestone("Workspace validation — completed");
                     } catch (wsError) {
@@ -744,6 +766,12 @@ export async function runMigrationAgent(): Promise<void> {
                 }
                 emitFinalReport(eventHandler, results);
                 debugLogger.logMilestone(`Run complete — ${results.filter(r => r.success).length}/${results.length} packages succeeded`);
+                // Write summary before marking complete
+                const updatedToml = readEnhanceToml(projectRoot);
+                if (updatedToml) {
+                    const summary = transcriptWriter.generateSummary(updatedToml, results);
+                    transcriptWriter.writeSummary(summary);
+                }
                 markEnhancementComplete();
             } else {
                 debugLogger.logMilestone("Run aborted by user");
@@ -751,6 +779,7 @@ export async function runMigrationAgent(): Promise<void> {
         } else {
             // ── Single-package project ───────────────────────────────────
             const stages = getEnhancementStages();
+            injectResumePreamble(projectRoot, stages);
             console.log(`[MigrationEnhancement] Starting migration agent (${stages.length} stages) – model: ${_selectedModelId}, sourcePath: ${sourcePath ?? 'none'}`);
             debugLogger.logMilestone(`Run start — single package, model: ${_selectedModelId}, projectRoot: ${projectRoot}`);
 
@@ -759,10 +788,17 @@ export async function runMigrationAgent(): Promise<void> {
                 eventHandler, abortController: _migrationAbortController,
                 fromAIChat: false, stageIdPrefix: "migration",
                 useExistingTempPath: false, debugLogger,
+                transcriptWriter, packageRelPath: "",
             });
 
             if (!_migrationAbortController.signal.aborted) {
                 debugLogger.logMilestone("Run complete — single package succeeded");
+                // Write summary before marking complete
+                const updatedToml = readEnhanceToml(projectRoot);
+                if (updatedToml) {
+                    const summary = transcriptWriter.generateSinglePackageSummary(updatedToml, false);
+                    transcriptWriter.writeSummary(summary);
+                }
                 markEnhancementComplete();
                 console.log("[MigrationEnhancement] Migration agent completed all stages successfully.");
             } else {
@@ -773,6 +809,14 @@ export async function runMigrationAgent(): Promise<void> {
         if (_migrationAbortController.signal.aborted) {
             console.log("[MigrationEnhancement] Migration agent was aborted by user.");
             debugLogger.logMilestone("Run aborted by user (outer catch)");
+            // Write summary on abort for resume context
+            const abortToml = readEnhanceToml(projectRoot);
+            if (abortToml) {
+                const summary = abortToml.multiProject
+                    ? transcriptWriter.generateSummary(abortToml, [])
+                    : transcriptWriter.generateSinglePackageSummary(abortToml, true);
+                transcriptWriter.writeSummary(summary);
+            }
         } else {
             console.error("[MigrationEnhancement] Migration agent error:", error);
             debugLogger.logError("run", error);
@@ -794,31 +838,11 @@ export function abortMigrationAgent(): void {
 }
 
 /**
- * Returns the persisted migration conversation history messages as simple
- * role/content pairs suitable for display in the AI Chat panel.
+ * Previously returned raw history messages for display.
+ * Now returns empty — transcript files and summary.md replace history.json.
  */
 export function getMigrationHistoryMessages(): Array<{ role: string; content: string }> {
-    const projectRoot = _resolveCurrentProjectRoot();
-    if (!projectRoot) {
-        return [];
-    }
-    const history = loadAgentHistory(projectRoot);
-    if (!history) {
-        return [];
-    }
-    return history.messages
-        .filter((m) => m.role === "user" || m.role === "assistant")
-        .map((m) => ({
-            role: m.role,
-            content: typeof m.content === "string"
-                ? m.content
-                : Array.isArray(m.content)
-                    ? m.content
-                          .filter((part: any) => part.type === "text")
-                          .map((part: any) => part.text)
-                          .join("")
-                    : String(m.content),
-        }));
+    return [];
 }
 
 // ===========================================================================
@@ -963,6 +987,7 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
     _migrationAbortController = new AbortController();
     setMigrationEnhancementActive(true);
     const debugLogger = new MigrationDebugLogger(projectRoot, _selectedModelId);
+    const transcriptWriter = new TranscriptWriter(projectRoot);
 
     try {
         const packagePaths = await getWorkspacePackagePaths(projectRoot);
@@ -971,6 +996,7 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
             // ── Multi-package workspace ──────────────────────────────────
             const completedPackages = new Set<string>(tomlData?.completedPackages ?? []);
             const results: PackageEnhancementResult[] = [];
+            let resumeInjected = false;
 
             // Suppress per-stage "stop" events so the wizard doesn't prematurely
             // show "completed" after the first package. The real final "stop" is
@@ -1001,6 +1027,10 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
                 const pkgName = readPackageName(fullPkgPath) ?? pkgRelPath;
                 const manifest = buildCrossPackageManifest(projectRoot, packagePaths, pkgRelPath);
                 const stages = getPerProjectEnhancementStages(pkgName, pkgRelPath, pkgIdx, packagePaths.length, manifest);
+                if (!resumeInjected) {
+                    injectResumePreamble(projectRoot, stages);
+                    resumeInjected = true;
+                }
 
                 eventHandler({ type: "content_block", content: `\n\n## 📦 Package ${pkgIdx + 1}/${packagePaths.length}: \`${pkgName}\`\n\n` });
                 debugLogger.logMilestone(`Package ${pkgIdx + 1}/${packagePaths.length}: ${pkgRelPath} — starting`);
@@ -1017,6 +1047,7 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
                         eventHandler: stageEventHandler, abortController: _migrationAbortController,
                         fromAIChat, stageIdPrefix: `wizard-${pkgRelPath}`,
                         useExistingTempPath: true, debugLogger,
+                        transcriptWriter, packageRelPath: pkgRelPath,
                     });
                     completedPackages.add(pkgRelPath);
                     results.push({ packagePath: pkgRelPath, success: true });
@@ -1048,6 +1079,7 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
                             eventHandler: stageEventHandler, abortController: _migrationAbortController,
                             fromAIChat, stageIdPrefix: "wizard-workspace-validation",
                             useExistingTempPath: true, debugLogger,
+                            transcriptWriter, packageRelPath: "",
                         });
                         debugLogger.logMilestone("Workspace validation — completed (wizard)");
                     } catch (wsError) {
@@ -1061,6 +1093,8 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
                 emitFinalReport(eventHandler, results);
                 const data = readEnhanceToml(projectRoot);
                 if (data) {
+                    const summary = transcriptWriter.generateSummary(data, results);
+                    transcriptWriter.writeSummary(summary);
                     writeEnhanceToml(projectRoot, data.aiFeatureUsed, true, data.sourcePath);
                 }
                 debugLogger.logMilestone(`Run complete — ${results.filter(r => r.success).length}/${results.length} packages succeeded (wizard)`);
@@ -1073,6 +1107,7 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
         } else {
             // ── Single-package project (existing behavior) ───────────────
             const stages = getEnhancementStages();
+            injectResumePreamble(projectRoot, stages);
             console.log(`[MigrationEnhancement] Starting wizard migration agent (${stages.length} stages) – projectRoot: ${projectRoot}, sourcePath: ${sourcePath ?? 'none'}`);
             debugLogger.logMilestone(`Run start — single package (wizard), model: ${_selectedModelId}, projectRoot: ${projectRoot}`);
 
@@ -1081,11 +1116,14 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
                 eventHandler, abortController: _migrationAbortController,
                 fromAIChat, stageIdPrefix: "wizard-migration",
                 useExistingTempPath: true, debugLogger,
+                transcriptWriter, packageRelPath: "",
             });
 
             if (!_migrationAbortController.signal.aborted) {
                 const data = readEnhanceToml(projectRoot);
                 if (data) {
+                    const summary = transcriptWriter.generateSinglePackageSummary(data, false);
+                    transcriptWriter.writeSummary(summary);
                     writeEnhanceToml(projectRoot, data.aiFeatureUsed, true, data.sourcePath);
                 }
                 debugLogger.logMilestone("Run complete — single package succeeded (wizard)");
@@ -1102,6 +1140,13 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
                 // Persist partial state so the Resume button can appear
                 const data = readEnhanceToml(projectRoot);
                 writeEnhanceToml(projectRoot, data?.aiFeatureUsed ?? true, false, data?.sourcePath, data?.completedPackages);
+                // Write summary on abort for resume context
+                if (data) {
+                    const summary = data.multiProject
+                        ? transcriptWriter.generateSummary(data, [])
+                        : transcriptWriter.generateSinglePackageSummary(data, true);
+                    transcriptWriter.writeSummary(summary);
+                }
                 // Notify AI Chat panel to show the interrupted message
                 sendAIPanelNotification({ type: "abort", command: Command.Agent });
                 // Show a VS Code notification so the user can jump back to AI Chat

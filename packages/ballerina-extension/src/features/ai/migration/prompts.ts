@@ -18,6 +18,10 @@
 // Enhancement stage definitions
 // ---------------------------------------------------------------------------
 
+import * as fs from "fs";
+import * as path from "path";
+import { AI_MIGRATION_DIR, AI_SUMMARY_FILENAME } from "./types";
+
 /** Describes a single stage of the multi-stage migration enhancement. */
 export interface EnhancementStage {
     /** Human-readable name shown in progress messages. */
@@ -614,4 +618,44 @@ Perform the following quick improvements:
 2. **Run diagnostics** – Use the diagnostics tool to check for compilation errors. If there are any obvious one-line fixes (e.g. missing imports, unused variables), fix them. Do NOT attempt large refactors.
 
 Stop once license headers have been added and trivial diagnostics are resolved.`;
+}
+
+// ---------------------------------------------------------------------------
+// Resume preamble – injected when resuming a paused enhancement
+// ---------------------------------------------------------------------------
+
+/**
+ * Reads `summary.md` from `.ballerina-ai-migration/` and wraps it in an
+ * instruction preamble that tells the agent this is a continuation.
+ *
+ * Returns `null` when no summary exists (fresh run — no resume context needed).
+ */
+export function getResumePreamble(projectRoot: string): string | null {
+    const summaryPath = path.join(projectRoot, AI_MIGRATION_DIR, AI_SUMMARY_FILENAME);
+    try {
+        if (!fs.existsSync(summaryPath)) {
+            return null;
+        }
+        const summary = fs.readFileSync(summaryPath, "utf8");
+        if (!summary.trim()) {
+            return null;
+        }
+        return [
+            "## ⚠️ CONTINUATION — This is a RESUMED enhancement session",
+            "",
+            "A previous enhancement run was paused. The summary below describes what was already done.",
+            "Do NOT repeat work that was already completed — pick up from where it left off.",
+            "If you need more detail about a specific stage, read the transcript files in",
+            "`.ballerina-ai-migration/transcripts/`.",
+            "",
+            "---",
+            "",
+            summary,
+            "",
+            "---",
+            "",
+        ].join("\n");
+    } catch {
+        return null;
+    }
 }
