@@ -75,6 +75,8 @@ public class ConnectorSearchCommand extends SearchCommand {
     public static final String IS_AGENT_SUPPORT = "isAgentSupport";
     private static final Set<String> BLACKLISTED_CONNECTOR_NAME_PATTERNS = Set.of("ModelProvider");
     private static final Set<String> ALLOWED_ORGANIZATIONS = Set.of("ballerina", "ballerinax", "wso2");
+    private static final int OVERFETCH_FACTOR = 3;
+    private static final int MAX_FETCH_ITERATIONS = 3;
 
     private static boolean isBlacklisted(String connectorName) {
         return BLACKLISTED_CONNECTOR_NAME_PATTERNS.stream().anyMatch(connectorName::contains);
@@ -128,42 +130,51 @@ public class ConnectorSearchCommand extends SearchCommand {
             allowedOrgs.add(currentOrg);
         }
 
-        List<SearchResult> centralConnectors = fetchConnectorsFromCentral();
+        List<SearchResult> centralConnectors = fetchConnectorsFromCentral(allowedOrgs);
         if (centralConnectors != null) {
-            filterAndAddToRootNode(centralConnectors, allowedOrgs);
+            centralConnectors.forEach(searchResult -> rootBuilder.node(generateAvailableNode(searchResult)));
         } else {
-            List<SearchResult> indexSearchResults = dbManager.searchConnectors(query, limit, offset);
-            filterAndAddToRootNode(indexSearchResults, allowedOrgs);
+            List<SearchResult> indexSearchResults = dbManager.searchConnectors(query, limit, offset,
+                    allowedOrgs, BLACKLISTED_CONNECTOR_NAME_PATTERNS);
+            indexSearchResults.forEach(searchResult -> rootBuilder.node(generateAvailableNode(searchResult)));
         }
 
         return rootBuilder.build().items();
     }
 
-    private void filterAndAddToRootNode(List<SearchResult> indexSearchResults, Set<String> allowedOrgs) {
-        indexSearchResults.stream()
-                .filter(result -> allowedOrgs.contains(result.packageInfo().org()))
-                .filter(result -> !isBlacklisted(result.name()))
-                .forEach(searchResult -> rootBuilder.node(generateAvailableNode(searchResult)));
-    }
-
     /**
-     * Fetches connectors from Ballerina Central. Returns null if the request fails or times out (relying on the
-     * HTTP client's configured connect/read/call timeouts), allowing the caller to fall back to the local database.
+     * Fetches connectors from Ballerina Central with over-fetching to compensate for post-filtering by allowed
+     * organizations and blacklisted names. Returns null if the request fails or times out (relying on the HTTP
+     * client's configured connect/read/call timeouts), allowing the caller to fall back to the local database.
      */
-    private List<SearchResult> fetchConnectorsFromCentral() {
+    private List<SearchResult> fetchConnectorsFromCentral(Set<String> allowedOrgs) {
         try {
             CentralAPI centralClient = RemoteCentral.getInstance();
-            Map<String, String> centralQueryMap = new HashMap<>();
-            if (!query.isEmpty()) {
-                centralQueryMap.put("q", query);
-            }
-            centralQueryMap.put("limit", String.valueOf(limit));
-            centralQueryMap.put("offset", String.valueOf(offset));
-            ConnectorsResponse connectorsResponse = centralClient.connectors(centralQueryMap);
-            List<SearchResult> results = new ArrayList<>();
-            if (connectorsResponse != null && connectorsResponse.connectors() != null) {
+            List<SearchResult> filteredResults = new ArrayList<>();
+            int fetchOffset = offset;
+            int fetchLimit = limit * OVERFETCH_FACTOR;
+
+            for (int iteration = 0; iteration < MAX_FETCH_ITERATIONS; iteration++) {
+                Map<String, String> centralQueryMap = new HashMap<>();
+                if (!query.isEmpty()) {
+                    centralQueryMap.put("q", query);
+                }
+                centralQueryMap.put("limit", String.valueOf(fetchLimit));
+                centralQueryMap.put("offset", String.valueOf(fetchOffset));
+                ConnectorsResponse connectorsResponse = centralClient.connectors(centralQueryMap);
+
+                if (connectorsResponse == null || connectorsResponse.connectors() == null) {
+                    break;
+                }
+
                 for (Connector connector : connectorsResponse.connectors()) {
                     if (connector == null || connector.packageInfo == null) {
+                        continue;
+                    }
+                    if (!allowedOrgs.contains(connector.packageInfo.getOrganization())) {
+                        continue;
+                    }
+                    if (isBlacklisted(connector.name)) {
                         continue;
                     }
                     SearchResult.Package packageInfo = new SearchResult.Package(
@@ -172,11 +183,21 @@ public class ConnectorSearchCommand extends SearchCommand {
                             connector.moduleName,
                             connector.packageInfo.getVersion()
                     );
-                    results.add(SearchResult.from(packageInfo, connector.name,
+                    filteredResults.add(SearchResult.from(packageInfo, connector.name,
                             connector.packageInfo.getSummary(), false));
+                    if (filteredResults.size() >= limit) {
+                        return filteredResults.subList(0, limit);
+                    }
                 }
+
+                // Check if Central has more results
+                if (connectorsResponse.count() <= fetchOffset + fetchLimit) {
+                    break;
+                }
+                fetchOffset += fetchLimit;
             }
-            return results;
+
+            return filteredResults;
         } catch (RuntimeException e) {
             // Failed to fetch connectors from Central, falling back to local database
             return null;
