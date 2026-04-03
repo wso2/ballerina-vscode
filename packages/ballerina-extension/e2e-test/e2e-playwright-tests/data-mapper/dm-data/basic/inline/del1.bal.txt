@@ -1,0 +1,11 @@
+import ballerina/log;
+
+public function main() returns error? {
+    do {
+        InRoot input = {};
+        OutRoot output = {oObjDirect: input.iObjDirect, oObjDirectErr: input.iObjDirect, oObjProp: {p2: input.iObjProp.op2}};
+    } on fail error e {
+        log:printError("Error occurred", 'error = e);
+        return e;
+    }
+}

@@ -441,6 +441,8 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
 
     const { inputMode } = modeSwitcherContext;
 
+    const isPromptWithDiagnostics = inputMode === InputMode.PROMPT && key !== 'role' && key !== 'instructions';
+
     // Use to fetch initial diagnostics
     const previousDiagnosticsFetchContext = useRef<diagnosticsFetchContext>({
         fetchedInitialDiagnostics: false,
@@ -453,7 +455,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         if (!targetLineRange) return;
         // Fetch initial diagnostics
         if (getExpressionEditorDiagnostics && fieldValue !== undefined
-            && (inputMode === InputMode.EXP || inputMode === InputMode.PROMPT || inputMode === InputMode.TEMPLATE)
+            && (inputMode === InputMode.EXP || inputMode === InputMode.TEMPLATE || isPromptWithDiagnostics)
             && (previousDiagnosticsFetchContext.current.fetchedInitialDiagnostics === false
                 || previousDiagnosticsFetchContext.current.diagnosticsFetchedTargetLineRange !== targetLineRange
             )) {
@@ -720,7 +722,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                             rawExpression ? rawExpression(typeof updatedValue === 'string' ? updatedValue : JSON.stringify(updatedValue)) : updatedValue;
 
                                         onChange(rawValue);
-                                        if (getExpressionEditorDiagnostics && (currentMode === InputMode.EXP || currentMode === InputMode.PROMPT || currentMode === InputMode.TEMPLATE)) {
+                                        if (getExpressionEditorDiagnostics && (currentMode === InputMode.EXP || currentMode === InputMode.TEMPLATE || isPromptWithDiagnostics)) {
                                             getExpressionEditorDiagnostics(
                                                 (required ?? !field.optional) || updatedValue !== '',
                                                 typeof rawValue === 'string' ? rawValue : JSON.stringify(rawValue),
@@ -798,7 +800,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                             const rawValue = (currentMode === InputMode.PROMPT || currentMode === InputMode.TEMPLATE) && rawExpression ? rawExpression(updatedValue) : updatedValue;
 
                                             onChange(rawValue);
-                                            if (getExpressionEditorDiagnostics && (inputMode === InputMode.EXP || inputMode === InputMode.PROMPT || inputMode === InputMode.TEMPLATE)) {
+                                            if (getExpressionEditorDiagnostics && (inputMode === InputMode.EXP || inputMode === InputMode.TEMPLATE || isPromptWithDiagnostics)) {
                                                 getExpressionEditorDiagnostics(
                                                     (required ?? !field.optional) || rawValue !== '',
                                                     rawValue,
