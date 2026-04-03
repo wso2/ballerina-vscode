@@ -72,6 +72,34 @@ export function clearCompactionDisabledWarning(projectRootPath: string, threadId
     compactionDisabledWarnedThreads.delete(`${projectRootPath}:${threadId}`);
 }
 
+function supportsCompaction(loginMethod: LoginMethod): boolean {
+    return loginMethod === LoginMethod.ANTHROPIC_KEY
+        || loginMethod === LoginMethod.BI_INTEL
+        || loginMethod === LoginMethod.VERTEX_AI
+        || loginMethod === LoginMethod.AWS_BEDROCK;
+}
+
+function buildCompactionProviderOptions(loginMethod: LoginMethod, floorTokens: number) {
+    if (!supportsCompaction(loginMethod)) { return undefined; }
+    const config = { estimatedFloorTokens: floorTokens };
+    const options = loginMethod === LoginMethod.AWS_BEDROCK
+        ? buildBedrockContextManagementOptions(config)
+        : buildContextManagementOptions(config);
+    return options ?? undefined;
+}
+
+function warnCompactionDisabledOnce(projectRootPath: string, eventHandler: (e: any) => void): void {
+    const warnKey = `${projectRootPath}:default`;
+    if (!compactionDisabledWarnedThreads.has(warnKey)) {
+        compactionDisabledWarnedThreads.add(warnKey);
+        eventHandler({ type: 'compaction_disabled' });
+    }
+}
+
+function usesContentBasedCompactionDetection(loginMethod: LoginMethod): boolean {
+    return loginMethod === LoginMethod.AWS_BEDROCK;
+}
+
 /** Estimate character length of a message's content for proportional token breakdown. */
 function msgCharLen(msg: ModelMessage): number {
     return JSON.stringify(msg.content).length;
@@ -244,20 +272,10 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             const systemPromptText = getSystemPrompt(projects, params.operationType);
             const floorTokens = estimateFloorTokens(systemPromptText, JSON.stringify(userMessageContent));
 
-            const supportsContextMgmt = loginMethod === LoginMethod.ANTHROPIC_KEY || loginMethod === LoginMethod.BI_INTEL || loginMethod === LoginMethod.VERTEX_AI || loginMethod === LoginMethod.AWS_BEDROCK;
-            const contextMgmtOptions = loginMethod === LoginMethod.AWS_BEDROCK
-                ? buildBedrockContextManagementOptions({ estimatedFloorTokens: floorTokens })
-                : supportsContextMgmt
-                    ? buildContextManagementOptions({ estimatedFloorTokens: floorTokens })
-                    : null;
-
             const projectRootPath = this.config.executionContext.workspacePath || this.config.executionContext.projectPath || '';
-            if (supportsContextMgmt && contextMgmtOptions === null) {
-                const warnKey = `${projectRootPath}:default`;
-                if (!compactionDisabledWarnedThreads.has(warnKey)) {
-                    compactionDisabledWarnedThreads.add(warnKey);
-                    this.config.eventHandler({ type: 'compaction_disabled' });
-                }
+            const providerOptions = buildCompactionProviderOptions(loginMethod, floorTokens);
+            if (supportsCompaction(loginMethod) && providerOptions === undefined) {
+                warnCompactionDisabledOnce(projectRootPath, this.config.eventHandler);
             }
 
             // 3. Add generation to chat storage (if enabled)
@@ -312,10 +330,10 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             // Primary detection: providerMetadata on text-start (Anthropic/BI_INTEL/Vertex).
             // Fallback detection: content-based (<analysis> prefix) for Bedrock, which emits
             // bare text-start events with no providerMetadata.
-            const useContentBasedDetection = loginMethod === LoginMethod.AWS_BEDROCK;
+            const useContentBasedDetection = usesContentBasedCompactionDetection(loginMethod);
             let isCompactionBlock = false;
             let compactionContent = '';
-            let cleanedCompactionSummary: string | null = null;
+            let cleanedCompactionSummary: string | undefined;
 
             // Stream LLM response with server-side context management
             const { fullStream, response, usage, totalUsage } = streamText({
@@ -325,7 +343,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 messages: allMessages,
                 tools,
                 abortSignal: this.config.abortController.signal,
-                providerOptions: (contextMgmtOptions ?? undefined) as any,
+                providerOptions: providerOptions as any,
 
                 // Strip <analysis> blocks from compaction entries before each subsequent step
                 // to avoid re-sending thousands of reasoning tokens.

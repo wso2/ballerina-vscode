@@ -107,7 +107,7 @@ const MessageBody = styled.div<{ isUserMessage: boolean }>(({ isUserMessage }: {
     overflowWrap: "anywhere",
 }));
 
-const CompactionNotice = styled.div`
+const CompactionNoticeContainer = styled.div`
     display: flex;
     align-items: center;
     gap: 8px;
@@ -118,20 +118,14 @@ const CompactionNotice = styled.div`
     margin: 6px 0;
     font-size: 12px;
     color: var(--vscode-descriptionForeground);
-
-    &::before {
-        content: '';
-        display: inline-block;
-        width: 14px;
-        height: 14px;
-        background: var(--vscode-descriptionForeground);
-        mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M4.5 3h7l1.5 3v1H3V6L4.5 3zM3 8h10v5H3V8zm2 1v3h6V9H5z'/%3E%3C/svg%3E");
-        mask-size: contain;
-        mask-repeat: no-repeat;
-        flex-shrink: 0;
-        opacity: 0.7;
-    }
 `;
+
+const CompactionNotice: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+    <CompactionNoticeContainer>
+        <span className="codicon codicon-fold" role="img" />
+        {children}
+    </CompactionNoticeContainer>
+);
 
 // ── Agent stream serialization ────────────────────────────────────────────────
 
@@ -229,7 +223,7 @@ const AIChat: React.FC = () => {
     const [contextUsage, setContextUsage] = useState<{
         inputTokens: number;
         percentage: number;
-        breakdown?: { systemInstructions: number; toolDefinitions: number; reservedOutput: number; messages: number; toolResults: number };
+        breakdown?: { systemInstructions: number; toolDefinitions: number; reservedOutput: number; files: number; messages: number; toolResults: number };
     } | null>(null);
     const [showContextUsage, setShowContextUsage] = useState(false);
 
@@ -752,14 +746,17 @@ const AIChat: React.FC = () => {
             setIsCompacting(false);
 
         } else if (type === "compaction_disabled") {
-            setMessages(prev => [
-                ...prev,
-                {
-                    role: "Copilot",
-                    content: "> **Note:** Your project is large — automatic context compaction is disabled. You may hit the context limit on long sessions. Start a new thread if that happens.",
-                    type: "assistant_message",
-                },
-            ]);
+            setIsCompacting(false);
+            setMessages(prevMessages => {
+                const msgs = [...prevMessages];
+                const targetIndex = ensureAssistantMessage(msgs);
+                const last = msgs[targetIndex];
+                msgs[targetIndex] = {
+                    ...last,
+                    content: last.content + "\n<compaction>Your project is large — automatic context compaction is disabled. You may hit the context limit on long sessions. Start a new thread if that happens.</compaction>"
+                };
+                return msgs;
+            });
 
         } else if (type === "usage_metrics") {
             const inputTokens = (response as any).usage?.inputTokens ?? 0;

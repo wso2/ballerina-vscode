@@ -190,7 +190,7 @@ export const getAnthropicClient = async (model: AnthropicModel): Promise<any> =>
             // Map Anthropic model names to AWS Bedrock model IDs (base models without region prefix)
             const baseModelMap: Record<AnthropicModel, string> = {
                 [ANTHROPIC_HAIKU]: "anthropic.claude-haiku-4-5-20251001-v1:0",
-                [ANTHROPIC_SONNET_4]: "anthropic.claude-sonnet-4-6-20261231-v1:0",
+                [ANTHROPIC_SONNET_4]: "anthropic.claude-sonnet-4-6",
             };
             
             const baseModelId = baseModelMap[model];
@@ -222,7 +222,7 @@ export const getAnthropicClient = async (model: AnthropicModel): Promise<any> =>
 
             const vertexModelMap: Record<AnthropicModel, string> = {
                 [ANTHROPIC_HAIKU]: "claude-3-5-haiku@20241022",
-                [ANTHROPIC_SONNET_4]: "claude-sonnet-4-6@20261231",
+                [ANTHROPIC_SONNET_4]: "claude-sonnet-4-6",
             };
 
             const vertexModelId = vertexModelMap[model];
