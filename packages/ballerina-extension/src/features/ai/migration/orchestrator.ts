@@ -81,6 +81,7 @@ export function readEnhanceToml(projectRoot: string): EnhanceTomlData | null {
         const sourcePathMatch = content.match(/sourcePath\s*=\s*"([^"]+)"/);
         const currentPackageMatch = content.match(/currentPackage\s*=\s*"([^"]+)"/);
         const currentStageMatch = content.match(/currentStage\s*=\s*(\d+)/);
+        const multiProjectMatch = content.match(/multiProject\s*=\s*(true|false)/);
 
         // Parse completedPackages array
         const completedPackagesMatch = content.match(/completedPackages\s*=\s*\[([^\]]*)\]/);
@@ -99,6 +100,7 @@ export function readEnhanceToml(projectRoot: string): EnhanceTomlData | null {
             completedPackages,
             currentPackage: currentPackageMatch?.[1],
             currentStage: currentStageMatch ? parseInt(currentStageMatch[1], 10) : undefined,
+            multiProject: multiProjectMatch ? multiProjectMatch[1] === "true" : undefined,
         };
     } catch {
         return null;
@@ -116,6 +118,7 @@ export function writeEnhanceToml(
     completedPackages?: string[],
     currentPackage?: string,
     currentStage?: number,
+    multiProject?: boolean,
 ): void {
     const dir = path.join(projectRoot, AI_MIGRATION_DIR);
     if (!fs.existsSync(dir)) {
@@ -135,6 +138,13 @@ export function writeEnhanceToml(
     }
     if (currentStage !== undefined) {
         content += `currentStage = ${currentStage}\n`;
+    }
+    // When multiProject is not explicitly provided, preserve the existing value from disk.
+    const effectiveMultiProject = multiProject !== undefined
+        ? multiProject
+        : readEnhanceToml(projectRoot)?.multiProject;
+    if (effectiveMultiProject !== undefined) {
+        content += `multiProject = ${effectiveMultiProject}\n`;
     }
     fs.writeFileSync(filePath, content);
 }
@@ -962,6 +972,14 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
             const completedPackages = new Set<string>(tomlData?.completedPackages ?? []);
             const results: PackageEnhancementResult[] = [];
 
+            // Suppress per-stage "stop" events so the wizard doesn't prematurely
+            // show "completed" after the first package. The real final "stop" is
+            // emitted explicitly once all packages finish (or "abort" if cancelled).
+            const stageEventHandler = (event: ChatNotify) => {
+                if (event.type === "stop") { return; }
+                eventHandler(event);
+            };
+
             console.log(`[MigrationEnhancement] Starting wizard migration agent – ${packagePaths.length} packages, projectRoot: ${projectRoot}`);
             debugLogger.logMilestone(`Run start — ${packagePaths.length} packages (wizard), model: ${_selectedModelId}, projectRoot: ${projectRoot}`);
             eventHandler({
@@ -990,13 +1008,13 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
                 // Persist progress so we can resume from this point
                 writeEnhanceToml(
                     projectRoot, tomlData?.aiFeatureUsed ?? true, false, sourcePath,
-                    [...completedPackages], pkgRelPath, 0,
+                    [...completedPackages], pkgRelPath, 0, true,
                 );
 
                 try {
                     await runStagesForPackage({
                         projectRoot, packagePath: fullPkgPath, sourcePath, stages,
-                        eventHandler, abortController: _migrationAbortController,
+                        eventHandler: stageEventHandler, abortController: _migrationAbortController,
                         fromAIChat, stageIdPrefix: `wizard-${pkgRelPath}`,
                         useExistingTempPath: true, debugLogger,
                     });
@@ -1027,7 +1045,7 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
                         await runStagesForPackage({
                             projectRoot, packagePath: projectRoot, sourcePath,
                             stages: [getWorkspaceValidationStage(packagePaths.length)],
-                            eventHandler, abortController: _migrationAbortController,
+                            eventHandler: stageEventHandler, abortController: _migrationAbortController,
                             fromAIChat, stageIdPrefix: "wizard-workspace-validation",
                             useExistingTempPath: true, debugLogger,
                         });
@@ -1047,8 +1065,10 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
                 }
                 debugLogger.logMilestone(`Run complete — ${results.filter(r => r.success).length}/${results.length} packages succeeded (wizard)`);
                 console.log("[MigrationEnhancement] Wizard migration agent completed all packages successfully.");
+                eventHandler({ type: "stop", command: Command.Agent });
             } else {
                 debugLogger.logMilestone("Run aborted by user (wizard)");
+                eventHandler({ type: "abort", command: Command.Agent });
             }
         } else {
             // ── Single-package project (existing behavior) ───────────────
