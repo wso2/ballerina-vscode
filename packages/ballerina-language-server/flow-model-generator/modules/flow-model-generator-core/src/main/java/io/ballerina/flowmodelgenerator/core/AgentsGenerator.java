@@ -510,7 +510,10 @@ public class AgentsGenerator {
             }
             sourceBuilder.token()
                     .keyword(SyntaxKind.CLOSE_BRACE_TOKEN);
-            sourceBuilder.textEdit(SourceBuilder.SourceKind.DECLARATION).acceptImport();
+            sourceBuilder.textEdit(SourceBuilder.SourceKind.DECLARATION);
+            if (needsModuleImport(flowNode, returnType, paramList)) {
+                sourceBuilder.acceptImport();
+            }
             return gson.toJsonTree(sourceBuilder.build());
         } else if (nodeKind == NodeKind.RESOURCE_ACTION_CALL) {
             boolean hasDescription = genDescription(description, sourceBuilder);
@@ -630,7 +633,10 @@ public class AgentsGenerator {
             }
             sourceBuilder.token()
                     .keyword(SyntaxKind.CLOSE_BRACE_TOKEN);
-            sourceBuilder.textEdit(SourceBuilder.SourceKind.DECLARATION).acceptImport();
+            sourceBuilder.textEdit(SourceBuilder.SourceKind.DECLARATION);
+            if (needsModuleImport(flowNode, returnType, paramList)) {
+                sourceBuilder.acceptImport();
+            }
             return gson.toJsonTree(sourceBuilder.build());
         }
         throw new IllegalStateException("Unsupported node kind to generate tool");
@@ -679,6 +685,19 @@ public class AgentsGenerator {
                 continue;
             }
             if (optName.get().equals(TOOL_ANNOTATION)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean needsModuleImport(FlowNode flowNode, String returnType, List<String> paramList) {
+        String modulePrefix = flowNode.codedata().getModulePrefix() + ":";
+        if (returnType.contains(modulePrefix)) {
+            return true;
+        }
+        for (String param : paramList) {
+            if (param.contains(modulePrefix)) {
                 return true;
             }
         }
