@@ -366,18 +366,23 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
         return convertFunctionCategoriesToSidePanelCategories(filteredResponse, functionType);
     };
 
-    const extractRecordTypeFields = (properties: NodeProperties): RecordTypeField[] => {
-        return Object.entries(properties)
-            .filter(([_, property]) => {
+    const extractRecordTypeFieldsFromEntries = (entries: { key: string; property: Property }[]): RecordTypeField[] => {
+        return entries
+            .filter(({ property }) => {
                 const primaryInputType = getPrimaryInputType(property?.types);
                 return primaryInputType?.typeMembers &&
                     primaryInputType?.typeMembers.some(member => member.kind === "RECORD_TYPE");
             })
-            .map(([key, property]) => ({
+            .map(({ key, property }) => ({
                 key,
                 property,
                 recordTypeMembers: getPrimaryInputType(property?.types)?.typeMembers.filter(member => member.kind === "RECORD_TYPE")
             }));
+    };
+
+    const extractRecordTypeFields = (properties: NodeProperties): RecordTypeField[] => {
+        const entries = Object.entries(properties).map(([key, property]) => ({ key, property }));
+        return extractRecordTypeFieldsFromEntries(entries);
     };
 
     const loadFunctionCallFields = async (node: AvailableNode): Promise<void> => {
@@ -432,9 +437,11 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             );
             setShowOAuthConfig(oauthFields.length > 0);
 
-            if (functionNodeTemplate.flowNode?.properties) {
-                setRecordTypeFields(extractRecordTypeFields(functionNodeTemplate.flowNode.properties));
-            }
+            const nodeRecordTypeFields = functionNodeTemplate.flowNode?.properties
+                ? extractRecordTypeFields(functionNodeTemplate.flowNode.properties)
+                : [];
+            const oauthRecordTypeFields = extractRecordTypeFieldsFromEntries(oauthProperties);
+            setRecordTypeFields([...nodeRecordTypeFields, ...oauthRecordTypeFields]);
 
             setFields((prevFields) => [
                 ...prevFields.map((field) =>
@@ -477,9 +484,11 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             );
             setShowOAuthConfig(oauthFields.length > 0);
 
-            if (nodeTemplate.flowNode?.properties) {
-                setRecordTypeFields(extractRecordTypeFields(nodeTemplate.flowNode.properties));
-            }
+            const nodeRecordTypeFields = nodeTemplate.flowNode?.properties
+                ? extractRecordTypeFields(nodeTemplate.flowNode.properties)
+                : [];
+            const oauthRecordTypeFields = extractRecordTypeFieldsFromEntries(oauthProperties);
+            setRecordTypeFields([...nodeRecordTypeFields, ...oauthRecordTypeFields]);
 
             setFields((prevFields) => [
                 ...prevFields.map((field) =>
