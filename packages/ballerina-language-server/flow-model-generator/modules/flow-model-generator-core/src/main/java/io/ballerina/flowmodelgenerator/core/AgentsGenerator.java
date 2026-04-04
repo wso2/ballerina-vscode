@@ -715,16 +715,34 @@ public class AgentsGenerator {
             String key = entry.getKey();
             String value = entry.getValue().getAsString();
 
+            // Skip fields with empty or default values
+            if (value == null || value.isEmpty() || value.equals("()") || value.trim().matches("\\{\\s*}")) {
+                continue;
+            }
+
             if (key.equals("scopes")) {
                 String[] scopeParts = value.split(",");
                 List<String> scopeItems = new ArrayList<>();
                 for (String part : scopeParts) {
-                    scopeItems.add(part.trim());
+                    String trimmed = part.trim();
+                    if (!trimmed.isEmpty()) {
+                        scopeItems.add(trimmed);
+                    }
+                }
+                if (scopeItems.isEmpty()) {
+                    continue;
                 }
                 fields.add("        " + key + ": [" + String.join(", ", scopeItems) + "]");
             } else {
                 fields.add("        " + key + ": " + value);
             }
+        }
+
+        if (fields.isEmpty()) {
+            sourceBuilder.token()
+                    .name("@ai:AgentTool")
+                    .name(System.lineSeparator());
+            return;
         }
 
         sb.append(String.join("," + System.lineSeparator(), fields)).append(System.lineSeparator());
