@@ -222,7 +222,7 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
 
             return serviceInitModel;
         } catch (IOException e) {
-            LOGGER.warning("Failed to extract Solace service init configurations: "+ e.getMessage());
+            LOGGER.warning("Failed to extract Solace service init configurations: " + e.getMessage());
             return null;
         }
     }
