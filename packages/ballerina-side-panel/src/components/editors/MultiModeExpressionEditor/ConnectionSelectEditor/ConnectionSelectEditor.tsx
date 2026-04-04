@@ -75,7 +75,7 @@ export const ConnectionSelectEditor: React.FC<ConnectionSelectEditorProps> = ({ 
     );
     const [loading, setLoading] = useState<boolean>(!!searchNodesKind && !cachedItems);
 
-    useEffect(() => {
+    const fetchItems = () => {
         if (!searchNodesKind) return;
         // Show loading only if we have no cached items to display
         if (!itemsCache.has(searchNodesKind)) {
@@ -108,7 +108,22 @@ export const ConnectionSelectEditor: React.FC<ConnectionSelectEditorProps> = ({ 
         }).finally(() => {
             setLoading(false);
         });
+    };
+
+    useEffect(() => {
+        fetchItems();
     }, [searchNodesKind, fileName]);
+
+    // When value changes to something not in the current items (e.g. after creating
+    // a new connection via an overlay), inject a placeholder and re-fetch
+    useEffect(() => {
+        if (!value || selectItems.some(item => item.value === value)) return;
+        setSelectItems(prev => ensureValueInItems(prev, value, searchNodesKind));
+        if (searchNodesKind) {
+            itemsCache.delete(searchNodesKind);
+        }
+        fetchItems();
+    }, [value]);
 
     return (
         <>
