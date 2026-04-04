@@ -271,28 +271,17 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
                 ? (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [memoryFileName] })).filePath
                 : agentFilePath.current;
 
-            console.log("[MemoryConfig] save - memoryFileName:", memoryFileName, "memoryFilePath:", memoryFilePath);
-            console.log("[MemoryConfig] save - updatedNode lineRange:", JSON.stringify(updatedNode?.codedata?.lineRange));
-            console.log("[MemoryConfig] save - updatedNode isNew:", updatedNode?.codedata?.isNew);
-
             const memoryResponse = await rpcClient.getBIDiagramRpcClient().getSourceCode({
                 filePath: memoryFilePath,
                 flowNode: updatedNode,
             });
 
-            console.log("[MemoryConfig] save - memoryResponse artifacts:", JSON.stringify(memoryResponse?.artifacts?.map(a => ({ name: a.name, position: a.position }))));
-
             const updatedAgentNode = cloneDeep(agentNode);
-
-            console.log("[MemoryConfig] save - agentNode variable:", agentNode?.properties?.variable?.value);
-            console.log("[MemoryConfig] save - agentNode lineRange:", JSON.stringify(agentNode?.codedata?.lineRange));
-            console.log("[MemoryConfig] save - sameFile:", updatedNode?.codedata?.lineRange?.fileName === agentNode?.codedata?.lineRange?.fileName);
 
             if (updatedNode?.codedata?.lineRange?.fileName === agentNode?.codedata?.lineRange?.fileName && memoryResponse?.artifacts?.length > 0) {
                 const updatedAgentArtifact = memoryResponse.artifacts.find(
                     artifact => artifact?.name === agentNode?.properties?.variable?.value
                 );
-                console.log("[MemoryConfig] save - matched artifact:", JSON.stringify(updatedAgentArtifact));
                 if (updatedAgentArtifact?.position) {
                     updatedAgentNode.codedata.lineRange.startLine.line = updatedAgentArtifact.position.startLine;
                     updatedAgentNode.codedata.lineRange.startLine.offset = updatedAgentArtifact.position.startColumn;
@@ -303,10 +292,6 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
 
             const agentNodeFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [updatedAgentNode?.codedata?.lineRange?.fileName] })).filePath;
             updatedAgentNode.properties.memory.value = updatedNode?.properties.variable.value || "";
-
-            console.log("[MemoryConfig] save - agentNode lineRange after update:", JSON.stringify(updatedAgentNode.codedata.lineRange));
-            console.log("[MemoryConfig] save - agentNode memory value:", updatedAgentNode.properties.memory.value);
-            console.log("[MemoryConfig] save - agentNodeFilePath:", agentNodeFilePath);
 
             await rpcClient.getBIDiagramRpcClient().getSourceCode({
                 filePath: agentNodeFilePath,
