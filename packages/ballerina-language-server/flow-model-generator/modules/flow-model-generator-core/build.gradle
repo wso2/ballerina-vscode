@@ -46,6 +46,7 @@ dependencies {
     implementation "org.ballerinalang:central-client:${ballerinaLangVersion}"
     implementation "org.ballerinalang:formatter-core:${ballerinaLangVersion}"
     implementation "com.google.code.gson:gson:${gsonVersion}"
+    implementation "com.github.ben-manes.caffeine:caffeine:${caffeineVersion}"
     implementation "com.graphql-java:graphql-java:${graphqlJavaVersion}"
     compileOnly "org.eclipse.lsp4j:org.eclipse.lsp4j:${eclipseLsp4jVersion}"
 

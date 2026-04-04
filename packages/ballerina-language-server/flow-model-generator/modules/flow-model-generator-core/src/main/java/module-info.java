@@ -28,6 +28,7 @@ module io.ballerina.flow.model.generator {
     requires io.ballerina.diagram.util;
     requires io.ballerina.central.client;
     requires com.google.gson;
+    requires com.github.benmanes.caffeine;
     requires com.graphqljava;
     requires io.ballerina.openapi.core;
     requires io.swagger.v3.oas.models;
