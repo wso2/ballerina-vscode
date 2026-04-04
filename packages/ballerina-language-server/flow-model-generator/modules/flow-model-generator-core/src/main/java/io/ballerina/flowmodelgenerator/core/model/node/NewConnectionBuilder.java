@@ -20,6 +20,7 @@ package io.ballerina.flowmodelgenerator.core.model.node;
 
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
+import io.ballerina.flowmodelgenerator.core.ConnectionActionProvider;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
@@ -46,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Represents a new connection node in the flow model.
@@ -170,6 +172,7 @@ public class NewConnectionBuilder extends CallBuilder {
                 .version(functionData.version())
                 .symbol(INIT_SYMBOL)
                 .isGenerated(codedata.isGenerated());
+        preloadConnectorActions(context);
 
         Module module = context.workspaceManager().module(context.filePath()).orElse(null);
         setParameterProperties(functionData, module);
@@ -181,6 +184,17 @@ public class NewConnectionBuilder extends CallBuilder {
         properties()
                 .scope(Property.GLOBAL_SCOPE)
                 .checkError(true, CHECK_ERROR_DOC, false);
+    }
+
+    private void preloadConnectorActions(TemplateContext context) {
+        CompletableFuture.runAsync(() -> {
+            try {
+                ConnectionActionProvider.getInstance().populate(codedataBuilder.build(),
+                        context.workspaceManager(), context.filePath());
+            } catch (RuntimeException ignored) {
+                // Ignore preload failures and continue template generation.
+            }
+        });
     }
 
     @Override
