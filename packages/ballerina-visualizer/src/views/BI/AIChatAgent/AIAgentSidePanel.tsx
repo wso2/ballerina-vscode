@@ -41,6 +41,7 @@ import {
     ToolParameterItem,
     NodeProperties,
     Diagnostic,
+    RecordTypeField,
     getPrimaryInputType,
 } from "@wso2/ballerina-core";
 
@@ -164,6 +165,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
 
     const [loading, setLoading] = useState<boolean>(false);
     const [fields, setFields] = useState<FormField[]>(INITIAL_FIELDS);
+    const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
     const [showOAuthConfig, setShowOAuthConfig] = useState<boolean>(false);
 
     const targetRef = useRef<LineRange>({ startLine: { line: 0, offset: 0 }, endLine: { line: 0, offset: 0 } });
@@ -364,6 +366,20 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
         return convertFunctionCategoriesToSidePanelCategories(filteredResponse, functionType);
     };
 
+    const extractRecordTypeFields = (properties: NodeProperties): RecordTypeField[] => {
+        return Object.entries(properties)
+            .filter(([_, property]) => {
+                const primaryInputType = getPrimaryInputType(property?.types);
+                return primaryInputType?.typeMembers &&
+                    primaryInputType?.typeMembers.some(member => member.kind === "RECORD_TYPE");
+            })
+            .map(([key, property]) => ({
+                key,
+                property,
+                recordTypeMembers: getPrimaryInputType(property?.types)?.typeMembers.filter(member => member.kind === "RECORD_TYPE")
+            }));
+    };
+
     const loadFunctionCallFields = async (node: AvailableNode): Promise<void> => {
         try {
             const functionNodeResponse = await rpcClient.getBIDiagramRpcClient().getFunctionNode({
@@ -416,6 +432,10 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             );
             setShowOAuthConfig(oauthFields.length > 0);
 
+            if (functionNodeTemplate.flowNode?.properties) {
+                setRecordTypeFields(extractRecordTypeFields(functionNodeTemplate.flowNode.properties));
+            }
+
             setFields((prevFields) => [
                 ...prevFields.map((field) =>
                     field.key === "description" ? { ...field, value: templateDescription } : field
@@ -456,6 +476,10 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 convertNodePropertyToFormField(key, property)
             );
             setShowOAuthConfig(oauthFields.length > 0);
+
+            if (nodeTemplate.flowNode?.properties) {
+                setRecordTypeFields(extractRecordTypeFields(nodeTemplate.flowNode.properties));
+            }
 
             setFields((prevFields) => [
                 ...prevFields.map((field) =>
@@ -689,6 +713,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                     fileName={agentFilePath.current}
                     targetLineRange={{ startLine: { line: 0, offset: 0 }, endLine: { line: 0, offset: 0 } }}
                     fields={fields}
+                    recordTypeFields={recordTypeFields}
                     onSubmit={handleToolSubmit}
                     submitText={"Save Tool"}
                     helperPaneSide="left"
