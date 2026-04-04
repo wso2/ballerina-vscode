@@ -159,6 +159,7 @@ interface FormProps {
     derivedFields?: FieldDerivation[]; // Configuration for auto-deriving field values from other fields
     devantExpressionEditor?: ExpressionEditorDevantProps;
     customValidator?: (fieldKey: string, value: any, allValues: FormValues) => string | undefined; // Custom validation function for form fields
+    defaultExpandAdvanced?: boolean;
 }
 
 // Styled component for the action button description
@@ -1848,6 +1849,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     injectedComponents={injectedComponents}
                     derivedFields={props.derivedFields}
                     updateImports={handleUpdateImports}
+                    defaultExpandAdvanced={props.defaultExpandAdvanced}
                 />
             )}
             {stack.map((item, i) => (

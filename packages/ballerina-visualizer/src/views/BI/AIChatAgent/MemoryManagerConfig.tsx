@@ -17,7 +17,7 @@
  */
 
 import styled from "@emotion/styled";
-import { CodeData, FlowNode, NodeMetadata } from "@wso2/ballerina-core";
+import { CodeData, FlowNode, NodeMetadata, ProjectStructureArtifactResponse } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Codicon, Dropdown } from "@wso2/ui-toolkit";
 import { cloneDeep } from "lodash";
@@ -81,6 +81,7 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isSaving, setIsSaving] = useState<boolean>(false);
+    const [formKey, setFormKey] = useState<number>(0);
 
     const agentFilePath = useRef<string>("");
     const aiModuleOrg = useRef<string>("");
@@ -265,19 +266,50 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
         setIsSaving(true);
 
         try {
-            // Save the memory configuration
-            await rpcClient.getBIDiagramRpcClient().getSourceCode({
-                filePath: agentFilePath.current,
+            const memoryFileName = updatedNode?.codedata?.lineRange?.fileName;
+            const memoryFilePath = memoryFileName
+                ? (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [memoryFileName] })).filePath
+                : agentFilePath.current;
+
+            console.log("[MemoryConfig] save - memoryFileName:", memoryFileName, "memoryFilePath:", memoryFilePath);
+            console.log("[MemoryConfig] save - updatedNode lineRange:", JSON.stringify(updatedNode?.codedata?.lineRange));
+            console.log("[MemoryConfig] save - updatedNode isNew:", updatedNode?.codedata?.isNew);
+
+            const memoryResponse = await rpcClient.getBIDiagramRpcClient().getSourceCode({
+                filePath: memoryFilePath,
                 flowNode: updatedNode,
             });
 
-            // Update the agent node with the memory reference
+            console.log("[MemoryConfig] save - memoryResponse artifacts:", JSON.stringify(memoryResponse?.artifacts?.map(a => ({ name: a.name, position: a.position }))));
+
             const updatedAgentNode = cloneDeep(agentNode);
-            const filePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [updatedAgentNode?.codedata?.lineRange?.fileName] })).filePath;
+
+            console.log("[MemoryConfig] save - agentNode variable:", agentNode?.properties?.variable?.value);
+            console.log("[MemoryConfig] save - agentNode lineRange:", JSON.stringify(agentNode?.codedata?.lineRange));
+            console.log("[MemoryConfig] save - sameFile:", updatedNode?.codedata?.lineRange?.fileName === agentNode?.codedata?.lineRange?.fileName);
+
+            if (updatedNode?.codedata?.lineRange?.fileName === agentNode?.codedata?.lineRange?.fileName && memoryResponse?.artifacts?.length > 0) {
+                const updatedAgentArtifact = memoryResponse.artifacts.find(
+                    artifact => artifact?.name === agentNode?.properties?.variable?.value
+                );
+                console.log("[MemoryConfig] save - matched artifact:", JSON.stringify(updatedAgentArtifact));
+                if (updatedAgentArtifact?.position) {
+                    updatedAgentNode.codedata.lineRange.startLine.line = updatedAgentArtifact.position.startLine;
+                    updatedAgentNode.codedata.lineRange.startLine.offset = updatedAgentArtifact.position.startColumn;
+                    updatedAgentNode.codedata.lineRange.endLine.line = updatedAgentArtifact.position.endLine;
+                    updatedAgentNode.codedata.lineRange.endLine.offset = updatedAgentArtifact.position.endColumn;
+                }
+            }
+
+            const agentNodeFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [updatedAgentNode?.codedata?.lineRange?.fileName] })).filePath;
             updatedAgentNode.properties.memory.value = updatedNode?.properties.variable.value || "";
 
+            console.log("[MemoryConfig] save - agentNode lineRange after update:", JSON.stringify(updatedAgentNode.codedata.lineRange));
+            console.log("[MemoryConfig] save - agentNode memory value:", updatedAgentNode.properties.memory.value);
+            console.log("[MemoryConfig] save - agentNodeFilePath:", agentNodeFilePath);
+
             await rpcClient.getBIDiagramRpcClient().getSourceCode({
-                filePath: filePath,
+                filePath: agentNodeFilePath,
                 flowNode: updatedAgentNode,
             });
 
@@ -290,36 +322,40 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
     };
 
 
-    const handleStoreCreated = (createdNode: FlowNode) => {
-        // Extract the store reference from the created node
-        const storeReference = createdNode.properties?.store?.value as string;
-
-        if (!storeReference) {
+    const handleStoreCreated = (createdNode: FlowNode, artifacts?: ProjectStructureArtifactResponse[]) => {
+        const storeProperty = createdNode.properties?.store;
+        if (!storeProperty?.value) {
             console.error("No store reference found in created node");
+            closeTopOverlay();
             return;
         }
 
-        // Update the memory template with the new store reference
-        if (memoryNodeTemplate) {
-            const updatedTemplate = cloneDeep(memoryNodeTemplate);
-            const storeProperty = (updatedTemplate.properties as any)['store'];
-            if (storeProperty) {
-                storeProperty.value = storeReference;
-            }
-            setMemoryNodeTemplate(updatedTemplate);
-
-            // If there's an existing memory node, update it too
-            if (memoryNode) {
-                const updatedNode = cloneDeep(memoryNode);
-                const nodeStoreProperty = (updatedNode.properties as any)['store'];
-                if (nodeStoreProperty) {
-                    nodeStoreProperty.value = storeReference;
-                }
-                setMemoryNode(updatedNode);
+        // Update the agent node's line range if the store creation shifted lines
+        if (artifacts?.length > 0) {
+            const agentArtifact = artifacts.find(a => a.name === agentNode?.properties?.variable?.value);
+            if (agentArtifact?.position) {
+                agentNode.codedata.lineRange.startLine.line = agentArtifact.position.startLine;
+                agentNode.codedata.lineRange.startLine.offset = agentArtifact.position.startColumn;
+                agentNode.codedata.lineRange.endLine.line = agentArtifact.position.endLine;
+                agentNode.codedata.lineRange.endLine.offset = agentArtifact.position.endColumn;
             }
         }
 
-        // Close the overlay
+        setMemoryNodeTemplate(prev => {
+            if (!prev) return prev;
+            const updated = cloneDeep(prev);
+            (updated.properties as any)['store'] = cloneDeep(storeProperty);
+            return updated;
+        });
+
+        setMemoryNode(prev => {
+            if (!prev) return prev;
+            const updated = cloneDeep(prev);
+            (updated.properties as any)['store'] = cloneDeep(storeProperty);
+            return updated;
+        });
+
+        setFormKey(prev => prev + 1);
         closeTopOverlay();
     };
 
@@ -416,6 +452,7 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
             )}
             {!isLoading && memoryNodeTemplate && targetLineRange.current && (
                 <FormGenerator
+                    key={formKey}
                     fileName={agentFilePath.current}
                     node={memoryNode || memoryNodeTemplate}
                     nodeFormTemplate={memoryNodeTemplate}
@@ -424,6 +461,7 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
                     disableSaveButton={isSaving}
                     submitText={isSaving ? "Saving..." : "Save"}
                     showProgressIndicator={isSaving}
+                    defaultExpandAdvanced={formKey > 0}
                     fieldOverrides={{
                         store: {
                             type: "ACTION_EXPRESSION",
