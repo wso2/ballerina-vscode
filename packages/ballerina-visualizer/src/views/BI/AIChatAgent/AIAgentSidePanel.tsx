@@ -613,6 +613,18 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 // so inject the constructed toolParameters so genTool can read it
                 (clonedFunctionNode.properties as any).parameters = toolParameters;
             }
+
+            // Update mapping field values from form data into the function node properties
+            if (clonedFunctionNode?.properties) {
+                const props = clonedFunctionNode.properties as Record<string, Property>;
+                Object.keys(props).forEach((key) => {
+                    if (key === "parameters") return; // already handled above
+                    const formValue = data[key];
+                    if (formValue !== undefined && props[key]) {
+                        props[key] = { ...props[key], value: formValue };
+                    }
+                });
+            }
         } else if ((toolNodeId === REMOTE_ACTION_CALL || toolNodeId === RESOURCE_ACTION_CALL || toolNodeId === METHOD_CALL) && Array.isArray(data["parameters"])) {
             clonedFlowNode = flowNode.current ? cloneDeep(flowNode.current) : null;
             toolParameters = updateToolParameters(data["parameters"]);
