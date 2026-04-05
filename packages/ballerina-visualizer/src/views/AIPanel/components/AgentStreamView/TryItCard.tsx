@@ -26,10 +26,28 @@ import {
     InlineCardTitle,
     InlineCardSubtitle
 } from "./styles";
-import { Button, Divider } from "@wso2/ui-toolkit";
-import { HeaderLeft } from "../../../BI/ProjectForm/styles";
+import { Button} from "@wso2/ui-toolkit";
 
 const HURL_IMPORT_VSCODE_COMMAND = "HTTPClient.importHurlString";
+let sharedRunCheckPromise: Promise<boolean> | undefined;
+
+async function runSharedBallerinaCheck(commonRpcClient: any): Promise<boolean> {
+    if (!sharedRunCheckPromise) {
+        sharedRunCheckPromise = (async () => {
+            try {
+                const result = await commonRpcClient.executeCommand({
+                    commands: ["ballerina.project.run.check"],
+                });
+
+                return result !== false;
+            } finally {
+                sharedRunCheckPromise = undefined;
+            }
+        })();
+    }
+
+    return sharedRunCheckPromise;
+}
 // ── Styled components ─────────────────────────────────────────────────────────
 
 const METHOD_COLORS: Record<string, string> = {
@@ -89,23 +107,6 @@ const StatusBadge = styled.span<{ status: number }>`
     font-weight: 700;
     color: ${(props: { status: number }) => getStatusColor(props.status)};
     flex-shrink: 0;
-`;
-
-const ExpandButton = styled.button`
-    background: none;
-    border: none;
-    color: var(--vscode-descriptionForeground);
-    cursor: pointer;
-    padding: 2px;
-    border-radius: 3px;
-    font-size: 11px;
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
-    &:hover {
-        color: var(--vscode-foreground);
-        background-color: var(--vscode-toolbar-hoverBackground);
-    }
 `;
 
 const DetailsBlock = styled.div`
@@ -226,20 +227,17 @@ const ScenarioGroup = styled.div`
     overflow: hidden;
 `;
 
-const ScenarioHeader = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    color: var(--vscode-foreground);
-    padding: 4px 10px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-`;
-
-const EditButton = styled.div`
-
+const Divider = styled.hr`
+    border: none;
+    height: 1px;
+    margin: 0;
+    background: linear-gradient(
+        to right,
+        transparent,
+        var(--vscode-panel-border) 36px,
+        var(--vscode-panel-border) calc(100% - 36px),
+        transparent
+    );
 `;
 
 const ScenarioContent = styled.div`
@@ -270,6 +268,11 @@ const HeaderActions = styled.div`
     display: flex;
     align-items: center;
     flex: 0 0 auto;
+`;
+
+const EditLoadingIcon = styled.span`
+    font-size: 10px;
+    line-height: 1;
 `;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -337,9 +340,9 @@ const HTTPEntryRow: React.FC<HTTPEntryRowProps> = ({ entry, request }) => {
                 {entry.method && <MethodBadge method={entry.method}>{entry.method}</MethodBadge>}
                 <UrlLabel>{entry.url ?? entry.name}</UrlLabel>
                 {entry.statusCode !== undefined && <StatusBadge status={entry.statusCode}>{entry.statusCode}</StatusBadge>}
-                <ExpandButton onClick={() => setExpanded(p => !p)} title={expanded ? "Collapse" : "Expand"}>
+                <Button appearance="icon" onClick={() => setExpanded(p => !p)} tooltip={expanded ? "Collapse" : "Expand"}>
                     <span className={`codicon ${expanded ? "codicon-chevron-up" : "codicon-chevron-down"}`} />
-                </ExpandButton>
+                </Button>
             </RequestRow>
 
             {expanded && (
@@ -474,20 +477,42 @@ interface TryItCardProps {
 }
 
 const TryItCard: React.FC<TryItCardProps> = ({ input, output, rpcClient, loading }) => {
+    const [isEditing, setIsEditing] = useState(false);
+
     if (!input?.hurlScript && !output?.hurlScript) return null;
     const hurlScript = input?.hurlScript ?? output?.hurlScript;
     const scenario = input?.scenario ?? output?.scenario;
     const handleEdit = async () => {
+        if (!hurlScript || !rpcClient) {
+            return;
+        }
+
+        setIsEditing(true);
+
         try {
-            await rpcClient?.getCommonRpcClient?.()?.executeCommand?.({
+            const commonRpcClient = rpcClient.getCommonRpcClient();
+            const canProceed = await runSharedBallerinaCheck(commonRpcClient);
+
+            if (!canProceed) {
+                return;
+            }
+
+            await commonRpcClient?.executeCommand?.({
+                commands: ["workbench.action.focusFirstEditorGroup"]
+            });
+
+            await commonRpcClient?.executeCommand?.({
                 commands: [
                     HURL_IMPORT_VSCODE_COMMAND,
                     hurlScript,
+                    { viewColumn: "active" }
                 ]
             });
         } catch (e) {
             // eslint-disable-next-line no-console
             console.error("Failed to invoke edit command", e);
+        } finally {
+            setIsEditing(false);
         }
     };
 
@@ -512,14 +537,23 @@ const TryItCard: React.FC<TryItCardProps> = ({ input, output, rpcClient, loading
                 </HeaderLeftStack>
                 <HeaderRightStack>
                     <HeaderActions>
-                        <Button appearance="icon" tooltip="Edit in HTTP Client" onClick={handleEdit} disabled={loading}>
-                            <span className="codicon codicon-edit" />
+                        <Button
+                            appearance="icon"
+                            tooltip={isEditing ? "Opening in HTTP Client..." : "Edit in HTTP Client"}
+                            onClick={handleEdit}
+                            disabled={loading || isEditing}
+                        >
+                            {isEditing ? (
+                                <EditLoadingIcon className="codicon codicon-loading codicon-modifier-spin" />
+                            ) : (
+                                <span className="codicon codicon-edit" />
+                            )}
                         </Button>
                     </HeaderActions>
                 </HeaderRightStack>
             </InlineCardHeader>
             <ScenarioGroup>
-                <Divider sx={{ margin: '6px 0' }} />
+                <Divider />
                 {scenario && <HeaderScenario>{scenario}</HeaderScenario>}
                 <ScenarioContent>{content}</ScenarioContent>
             </ScenarioGroup>

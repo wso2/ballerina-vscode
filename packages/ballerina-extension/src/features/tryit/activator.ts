@@ -65,7 +65,18 @@ export function activateTryItCommand(ballerinaExtInstance: BallerinaExtension) {
             }
         });
 
-        return Disposable.from(disposable, {
+        const runCheckDisposable = commands.registerCommand(PALETTE_COMMANDS.RUN_CHECK, async (requestedProjectPath?: string) => {
+            const projectPath = requestedProjectPath || StateMachine.context().projectPath;
+
+            if (!projectPath) {
+                vscode.window.showErrorMessage('No project found to run');
+                return false;
+            }
+
+            return await checkBallerinaProcessRunning(projectPath);
+        });
+
+        return Disposable.from(disposable, runCheckDisposable, {
             dispose: disposeErrorWatcher
         });
     } catch (error) {
