@@ -240,6 +240,10 @@ export function prepareToolInputFields(fields: FormField[]): FormField[] {
             field.hidden = true;
             return;
         }
+        if (field.codedata?.kind === "PARAM_FOR_TYPE_INFER") {
+            field.hidden = true;
+            return;
+        }
         if (field.key === "targetType") {
             field.optional = true;
             field.advanced = true;
@@ -251,6 +255,10 @@ export function prepareToolInputFields(fields: FormField[]): FormField[] {
         }
         if (field.optional == false && getPrimaryInputType(field.types)?.fieldType !== "TYPE") field.value = field.key;
         field.label = `${field.label} Mapping`;
+        if (field.type === "SQL_QUERY" && field.types) {
+            field.type = "EXPRESSION";
+            field.types = field.types.map(t => ({ ...t, selected: t.fieldType === "EXPRESSION" }));
+        }
         includedKeys.push(field.key);
     });
     return fields.filter(field => includedKeys.includes(field.key));
