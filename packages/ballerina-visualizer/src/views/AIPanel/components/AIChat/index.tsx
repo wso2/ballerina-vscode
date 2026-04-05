@@ -764,6 +764,7 @@ const AIChat: React.FC = () => {
             setIsCodeLoading(false);
             setIsLoading(false);
             fetchUsage();
+            setAgentMode(AgentMode.Edit);
 
         } else if (type === "abort") {
             console.log("Received abort signal");
