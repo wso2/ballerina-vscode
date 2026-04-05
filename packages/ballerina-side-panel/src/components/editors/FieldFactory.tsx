@@ -56,6 +56,8 @@ type FieldFactoryProps = {
 export const FieldFactory = (props: FieldFactoryProps) => {
     const [renderingEditors, setRenderingEditors] = useState<InputType[]>(null);
     const [inputMode, setInputMode] = useState<InputMode>(InputMode.EXP);
+    const currentFieldKeyRef = useRef<string | null>(null);
+    const currentInputModeRef = useRef<InputMode>(InputMode.EXP);
 
     const formContext = useFormContext();
     const { expressionEditor } = formContext;
@@ -176,10 +178,19 @@ export const FieldFactory = (props: FieldFactoryProps) => {
             : [props.field.types[0], props.field.types[props.field.types.length - 1]];
         setRenderingEditors(newRenderingTypes);
 
+        const isNewField = currentFieldKeyRef.current !== props.field.key;
+        currentFieldKeyRef.current = props.field.key;
+
         const selectedInputType = getInitialSelectedInputType();
-        let initialInputMode = getInputModeFromTypes(selectedInputType) || InputMode.EXP;
-        initialInputMode = checkAndReturnCompatibleInputMode(selectedInputType)
-        setInputMode(initialInputMode);
+        let initialInputMode: InputMode;
+        if (isNewField) {
+            initialInputMode = checkAndReturnCompatibleInputMode(selectedInputType) || InputMode.EXP;
+            currentInputModeRef.current = initialInputMode;
+            setInputMode(initialInputMode);
+        } else {
+            // Preserve the user's current mode selection when the same field is updated
+            initialInputMode = currentInputModeRef.current;
+        }
         updateFieldTypesSelection(initialInputMode);
     }, [props.field, props.recordTypeFields]);
 
@@ -200,6 +211,7 @@ export const FieldFactory = (props: FieldFactoryProps) => {
     };
 
     const handleModeChange = useCallback((mode: InputMode) => {
+        currentInputModeRef.current = mode;
         setInputMode(mode);
         updateFieldTypesSelection(mode);
 
