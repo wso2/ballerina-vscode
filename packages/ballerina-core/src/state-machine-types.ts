@@ -446,6 +446,7 @@ export interface EvalsToolResult {
 export interface UsageMetricsEvent {
     type: "usage_metrics";
     isRepair?: boolean;
+    model?: string;
     usage: {
         inputTokens: number;
         cacheCreationInputTokens: number;

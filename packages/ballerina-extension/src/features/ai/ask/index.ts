@@ -121,8 +121,8 @@ async function fetchDocumentationFromVectorStore(query: string): Promise<Documen
 }
 
 async function extractCentralApiDocs(query: string): Promise<LibraryWithUrl[]> {
-    const selectedLibs: string[] = await getSelectedLibraries(query, GenerationType.CODE_GENERATION);
-    const relevantTrimmedFuncs: Library[] = await selectRequiredFunctions(query, selectedLibs, GenerationType.CODE_GENERATION);
+    const { libraries: selectedLibs } = await getSelectedLibraries(query, GenerationType.CODE_GENERATION);
+    const { libraries: relevantTrimmedFuncs } = await selectRequiredFunctions(query, selectedLibs, GenerationType.CODE_GENERATION);
     const apiDocs: LibraryWithUrl[] = relevantTrimmedFuncs.map(lib => {
         return {
             ...lib,

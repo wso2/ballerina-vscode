@@ -52,6 +52,7 @@ import { createClarifyTool, CLARIFY_TOOL } from './tools/clarify';
 
 export interface ToolRegistryOptions {
     eventHandler: CopilotEventHandler;
+    toolModelUsage: Record<string, { inputTokens: number; outputTokens: number }>;
     tempProjectPath: string;
     modifiedFiles: string[];
     allModifiedFiles: Set<string>;
@@ -66,7 +67,7 @@ export interface ToolRegistryOptions {
 }
 
 export function createToolRegistry(opts: ToolRegistryOptions) {
-    const { eventHandler, tempProjectPath, modifiedFiles, allModifiedFiles, projects, generationType, projectRootPath, generationId, threadId, webSearchEnabled, ctx } = opts;
+    const { eventHandler, toolModelUsage, tempProjectPath, modifiedFiles, allModifiedFiles, projects, generationType, projectRootPath, generationId, threadId, webSearchEnabled, ctx } = opts;
     return {
         [TASK_WRITE_TOOL_NAME]: createTaskWriteTool(
             eventHandler,
@@ -78,13 +79,15 @@ export function createToolRegistry(opts: ToolRegistryOptions) {
         ),
         [LIBRARY_GET_TOOL]: getLibraryGetTool(
             generationType,
-            eventHandler
+            eventHandler,
+            toolModelUsage
         ),
         [LIBRARY_SEARCH_TOOL]: getLibrarySearchTool(
             eventHandler
         ),
         [HEALTHCARE_LIBRARY_PROVIDER_TOOL]: getHealthcareLibraryProviderTool(
-            eventHandler
+            eventHandler,
+            toolModelUsage
         ),
         [CONNECTOR_GENERATOR_TOOL]: createConnectorGeneratorTool(
             eventHandler,
