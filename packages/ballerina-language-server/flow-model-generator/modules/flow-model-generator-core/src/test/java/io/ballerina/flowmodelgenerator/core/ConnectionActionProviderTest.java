@@ -61,7 +61,7 @@ public class ConnectionActionProviderTest {
 
     @AfterMethod
     public void cleanup() throws IOException {
-        provider.clearAllForTest();
+        provider.clearAll();
         deleteRecursively(tempDir);
     }
 
@@ -113,7 +113,7 @@ public class ConnectionActionProviderTest {
             Assert.assertEquals(buildCount.get(), 1);
             Assert.assertEquals(actual, expected);
         } finally {
-            freshProvider.clearAllForTest();
+            freshProvider.clearAll();
         }
     }
 
@@ -174,7 +174,7 @@ public class ConnectionActionProviderTest {
             Assert.assertEquals(buildCount.get(), 2);
             Assert.assertEquals(reloaded, List.of(availableNode("one", null, null)));
         } finally {
-            sizeBoundProvider.clearAllForTest();
+            sizeBoundProvider.clearAll();
         }
     }
 
@@ -195,7 +195,7 @@ public class ConnectionActionProviderTest {
             Assert.assertTrue(actual.get(0) instanceof Category);
             Assert.assertTrue(((Category) actual.get(0)).items().get(0) instanceof AvailableNode);
         } finally {
-            freshProvider.clearAllForTest();
+            freshProvider.clearAll();
         }
     }
 
@@ -230,7 +230,7 @@ public class ConnectionActionProviderTest {
             Assert.assertEquals(actual, expected);
             Assert.assertFalse(Files.isDirectory(invalidCacheRoot));
         } finally {
-            invalidProvider.clearAllForTest();
+            invalidProvider.clearAll();
             Files.deleteIfExists(invalidCacheRoot);
         }
     }

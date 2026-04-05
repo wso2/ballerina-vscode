@@ -86,16 +86,6 @@ public class ConnectionActionProvider {
     private final Gson gson;
     private final AtomicBoolean diskAvailable;
 
-    private static final class ProviderHolder {
-
-        private static final ConnectionActionProvider INSTANCE = new ConnectionActionProvider();
-    }
-
-    private record ConnectorContext(String cacheKey, ClassSymbol classSymbol, String className, ModuleInfo moduleInfo,
-                                    Package resolvedPackage, boolean knowledgeBase, boolean agentClass,
-                                    String iconOverride) {
-    }
-
     public static ConnectionActionProvider getInstance() {
         return ProviderHolder.INSTANCE;
     }
@@ -117,14 +107,31 @@ public class ConnectionActionProvider {
                 .build();
     }
 
+    ConnectionActionProvider(Path cacheDirectory, long maxCacheSize) {
+        this.cacheDirectory = cacheDirectory;
+        this.diskAvailable = new AtomicBoolean(true);
+        this.gson = new GsonBuilder()
+                .registerTypeAdapter(Item.class, new ItemDeserializer())
+                .registerTypeAdapter(Category.class, new CategoryDeserializer())
+                .create();
+        this.cache = Caffeine.newBuilder()
+                .maximumSize(maxCacheSize)
+                .removalListener((String key, List<Item> value, RemovalCause cause) -> {
+                    if (cause == RemovalCause.EXPLICIT && key != null) {
+                        deleteFromDisk(key);
+                    }
+                })
+                .build();
+    }
+
     public List<Item> getActions(ClassSymbol classSymbol, String parentSymbolName, Project project,
                                  SemanticModel semanticModel, boolean includeAgentToolCompatibility) {
         ConnectorContext context = createContext(classSymbol, project, semanticModel);
-        List<Item> cachedTemplates = getOrBuildTemplates(context, project);
+        List<Item> cachedTemplates = getOrBuildTemplates(context);
         Map<String, Boolean> compatibilityMap = includeAgentToolCompatibility
                 ? getAgentToolCompatibilityMap(classSymbol, semanticModel)
                 : Map.of();
-        return bindParentSymbol(cachedTemplates, parentSymbolName, compatibilityMap);
+        return bindForParentSymbol(cachedTemplates, parentSymbolName, compatibilityMap);
     }
 
     public void populate(Codedata codedata, WorkspaceManager workspaceManager, Path filePath) {
@@ -137,11 +144,46 @@ public class ConnectionActionProvider {
         if (context == null) {
             return;
         }
-        getOrBuildTemplates(context, project);
+        getOrBuildTemplates(context);
     }
 
     public void invalidate(String cacheKey) {
         cache.invalidate(cacheKey);
+        deleteFromDisk(cacheKey);
+    }
+
+    void clearAll() {
+        cache.invalidateAll();
+        diskAvailable.set(true);
+    }
+
+    void cleanUp() {
+        cache.cleanUp();
+    }
+
+    Path cacheFilePath(String cacheKey) {
+        return cacheDirectory.resolve(keyToFileName(cacheKey));
+    }
+
+    List<Item> bindForParentSymbol(List<Item> cachedMethods, String parentSymbolName,
+                                   Map<String, Boolean> compatibilityMap) {
+        return bindParentSymbol(cachedMethods, parentSymbolName, compatibilityMap);
+    }
+
+    List<Item> getOrBuild(String cacheKey, SupplierFn<List<Item>> supplier) {
+        return cache.get(cacheKey, key -> {
+            List<Item> fromDisk = loadFromDisk(key);
+            if (fromDisk != null && !fromDisk.isEmpty()) {
+                return List.copyOf(fromDisk);
+            }
+            List<Item> built = supplier.get();
+            if (built == null || built.isEmpty()) {
+                return List.of();
+            }
+            List<Item> immutable = List.copyOf(built);
+            persistToDisk(key, immutable);
+            return immutable;
+        });
     }
 
     public static String generateKey(String org, String packageName, String moduleName, String className,
@@ -159,17 +201,8 @@ public class ConnectionActionProvider {
         return generateKey(codedata.org(), packageName, codedata.module(), codedata.object(), codedata.version());
     }
 
-    private List<Item> getOrBuildTemplates(ConnectorContext context, Project project) {
-        List<Item> cachedItems = getCachedTemplates(context.cacheKey());
-        if (!cachedItems.isEmpty()) {
-            return cachedItems;
-        }
-
-        List<Item> builtItems = buildTemplates(context, project);
-        List<Item> immutableItems = List.copyOf(builtItems);
-        cache.put(context.cacheKey(), immutableItems);
-        persistToDisk(context.cacheKey(), immutableItems);
-        return immutableItems;
+    private List<Item> getOrBuildTemplates(ConnectorContext context) {
+        return getOrBuild(context.cacheKey(), () -> buildTemplates(context, context.project()));
     }
 
     private ConnectorContext createContext(ClassSymbol classSymbol, Project project, SemanticModel semanticModel) {
@@ -188,7 +221,8 @@ public class ConnectionActionProvider {
                 resolvedPackage,
                 isAiKnowledgeBase(classSymbol),
                 isAgentClass(classSymbol),
-                persistClient ? getPersistDatabaseIcon(classSymbol).orElse(null) : null
+                persistClient ? getPersistDatabaseIcon(classSymbol).orElse(null) : null,
+                project
         );
     }
 
@@ -379,21 +413,6 @@ public class ConnectionActionProvider {
                 .findFirst();
     }
 
-    private List<Item> getCachedTemplates(String cacheKey) {
-        List<Item> inMemory = cache.getIfPresent(cacheKey);
-        if (inMemory != null && !inMemory.isEmpty()) {
-            return inMemory;
-        }
-
-        List<Item> fromDisk = loadFromDisk(cacheKey);
-        if (fromDisk != null && !fromDisk.isEmpty()) {
-            List<Item> immutableItems = List.copyOf(fromDisk);
-            cache.put(cacheKey, immutableItems);
-            return immutableItems;
-        }
-        return List.of();
-    }
-
     private List<Item> loadFromDisk(String cacheKey) {
         if (!diskAvailable.get()) {
             return null;
@@ -411,7 +430,6 @@ public class ConnectionActionProvider {
                 return List.of(items);
             }
         } catch (Exception ignored) {
-            diskAvailable.set(false);
             return null;
         }
     }
@@ -448,6 +466,23 @@ public class ConnectionActionProvider {
 
     private static String keyToFileName(String cacheKey) {
         return cacheKey.replace(":", "_").replace("/", "-").replace("\\", "-") + ".json";
+    }
+
+    private static final class ProviderHolder {
+
+        private static final ConnectionActionProvider INSTANCE = new ConnectionActionProvider();
+    }
+
+    private record ConnectorContext(String cacheKey, ClassSymbol classSymbol, String className, ModuleInfo moduleInfo,
+                                    Package resolvedPackage, boolean knowledgeBase, boolean agentClass,
+                                    String iconOverride, Project project) {
+    }
+
+    // Exposed for core tests: getOrBuild using Caffeine atomic loading
+    @FunctionalInterface
+    interface SupplierFn<T> {
+
+        T get();
     }
 
     private static class ItemDeserializer implements JsonDeserializer<Item> {
