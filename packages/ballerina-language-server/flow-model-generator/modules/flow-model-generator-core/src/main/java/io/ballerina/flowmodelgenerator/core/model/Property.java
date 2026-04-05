@@ -1021,6 +1021,21 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                         } else {
                             MappingConstructorExpressionNode mappingCtrExprNode =
                                     (MappingConstructorExpressionNode) value;
+
+                            boolean hasSpreadField = mappingCtrExprNode.fields().stream()
+                                    .anyMatch(f -> !(f instanceof SpecificFieldNode));
+                            if (hasSpreadField) {
+                                matchingPropType.selected(false);
+                                builder.types.stream()
+                                        .filter(pt -> pt.fieldType() == ValueType.EXPRESSION)
+                                        .findFirst()
+                                        .ifPresent(pt -> {
+                                            pt.selected(true);
+                                            builder.value(mappingCtrExprNode.toSourceCode().trim());
+                                        });
+                                return;
+                            }
+
                             for (MappingFieldNode fieldNode : mappingCtrExprNode.fields()) {
                                 if (fieldNode instanceof SpecificFieldNode specificField) {
                                     String fieldKey = specificField.fieldName().toSourceCode().trim();
