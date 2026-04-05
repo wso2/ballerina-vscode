@@ -360,12 +360,14 @@ public class AgentsGenerator {
             sourceBuilder.token().keyword(SyntaxKind.CLOSE_PAREN_TOKEN);
 
             Optional<Property> returnType = flowNode.getProperty(Property.TYPE_KEY);
-            boolean hasReturn = returnType.isPresent() && !returnType.get().value().toString().isEmpty();
+            String returnTypeStr = returnType.isPresent()
+                    ? resolveTypeInferParams(returnType.get().value().toString(), flowNode) : "";
+            boolean hasReturn = !returnTypeStr.isEmpty();
             boolean hasCheckError = FlowNodeUtil.hasCheckKeyFlagSet(flowNode);
             if (hasReturn) {
                 sourceBuilder.token()
                         .keyword(SyntaxKind.RETURNS_KEYWORD)
-                        .name(returnType.get().value().toString());
+                        .name(returnTypeStr);
                 if (hasCheckError) {
                     sourceBuilder.token().keyword(SyntaxKind.PIPE_TOKEN).keyword(SyntaxKind.ERROR_KEYWORD);
                 }
@@ -378,7 +380,7 @@ public class AgentsGenerator {
             sourceBuilder.token().keyword(SyntaxKind.OPEN_BRACE_TOKEN);
             if (hasReturn) {
                 sourceBuilder.token()
-                        .name(returnType.get().value().toString())
+                        .name(returnTypeStr)
                         .whiteSpace()
                         .name("result")
                         .whiteSpace()
@@ -502,6 +504,7 @@ public class AgentsGenerator {
                 }
                 sourceBuilder.token().returnDoc(returnProperty.metadata().description());
             }
+            returnType = resolveTypeInferParams(returnType, flowNode);
 
             genAgentToolAnnotation(flowNode, sourceBuilder);
             sourceBuilder.token()
@@ -614,6 +617,7 @@ public class AgentsGenerator {
                     returnType = optReturnType.get().value().toString();
                 }
             }
+            returnType = resolveTypeInferParams(returnType, flowNode);
 
             if (!returnType.isEmpty()) {
                 sourceBuilder.token()
@@ -748,6 +752,25 @@ public class AgentsGenerator {
             }
         }
         return false;
+    }
+
+    private String resolveTypeInferParams(String returnType, FlowNode flowNode) {
+        if (flowNode.properties() == null) {
+            return returnType;
+        }
+        for (Map.Entry<String, Property> entry : flowNode.properties().entrySet()) {
+            PropertyCodedata propCodedata = entry.getValue().codedata();
+            if (propCodedata != null
+                    && ParameterData.Kind.PARAM_FOR_TYPE_INFER.name().equals(propCodedata.kind())) {
+                String paramName = entry.getKey();
+                String defaultType = entry.getValue().defaultValue();
+                if (defaultType == null || defaultType.isEmpty()) {
+                    defaultType = "json";
+                }
+                returnType = returnType.replace(paramName, defaultType);
+            }
+        }
+        return returnType;
     }
 
     private boolean genDescription(String description, SourceBuilder sourceBuilder) {
