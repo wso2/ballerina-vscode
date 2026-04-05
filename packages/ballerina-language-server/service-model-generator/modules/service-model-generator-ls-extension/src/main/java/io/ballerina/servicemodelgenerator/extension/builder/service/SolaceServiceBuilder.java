@@ -18,8 +18,28 @@
 
 package io.ballerina.servicemodelgenerator.extension.builder.service;
 
+import com.google.gson.Gson;
+import com.google.gson.stream.JsonReader;
+import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.Qualifier;
+import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.VariableSymbol;
+import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
+import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
+import io.ballerina.compiler.syntax.tree.ListenerDeclarationNode;
+import io.ballerina.compiler.syntax.tree.ModulePartNode;
+import io.ballerina.compiler.syntax.tree.NamedArgumentNode;
+import io.ballerina.compiler.syntax.tree.NewExpressionNode;
+import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.NonTerminalNode;
+import io.ballerina.compiler.syntax.tree.PositionalArgumentNode;
+import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
+import io.ballerina.projects.Document;
+import io.ballerina.projects.DocumentId;
+import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
+import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
@@ -29,15 +49,29 @@ import io.ballerina.servicemodelgenerator.extension.model.context.GetServiceInit
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.UpdateModelContext;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
+import io.ballerina.servicemodelgenerator.extension.util.Utils;
+import io.ballerina.tools.diagnostics.Location;
+import io.ballerina.tools.text.TextRange;
 import org.eclipse.lsp4j.TextEdit;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Logger;
 
+import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getArgList;
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_CONFIGURE_LISTENER;
+import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_EXISTING_LISTENER;
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
@@ -50,14 +84,9 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TWO_NEW_LINES;
 import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.addDataBindingParam;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.ON_MESSAGE_FUNCTION_NAME;
-import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.PROPERTY_SESSION_ACK_MODE;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.applyAckModeToOnMessageFunction;
-import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildAuthenticationChoice;
-import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildDestinationChoice;
-import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildSecureSocketChoice;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildServiceAnnotation;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildServiceCodeEdits;
-import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildSessionAckModeProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.cleanSecureSocketProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.updateModelWithAckMode;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getRequiredFunctionsForServiceType;
@@ -71,100 +100,252 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.applyEnabl
  */
 public final class SolaceServiceBuilder extends AbstractServiceBuilder {
 
-    private static final String PROPERTY_URL = "url";
-    private static final String PROPERTY_MESSAGE_VPN = "messageVpn";
+    private static final Logger LOGGER = Logger.getLogger(SolaceServiceBuilder.class.getName());
+    private static final String SOLACE_SERVICE_MODEL_LOCATION = "services/solace.json";
+
     private static final String PROPERTY_DESTINATION = "destination";
     private static final String PROPERTY_AUTHENTICATION = "authentication";
-    private static final String PROPERTY_SECURE_SOCKET = "secureSocket";
     private static final String TYPE_SOLACE_SERVICE_CONFIG = "solace:ServiceConfig";
     private static final String SERVICE_TYPE = "solace:Service";
     private static final String CALLER_TYPE = "solace:Caller";
 
     // Display labels
     public static final String LABEL_SOLACE = "Solace";
-    private static final String LABEL_QUEUE = "Queue";
-    private static final String LABEL_TOPIC = "Topic";
-    private static final String LABEL_QUEUE_NAME = "Queue Name";
-    private static final String LABEL_TOPIC_NAME = "Topic Name";
-    private static final String LABEL_DESTINATION = "Destination";
-
-    // Descriptions
-    private static final String DESC_QUEUE = "Listen to messages from a queue";
-    private static final String DESC_TOPIC = "Listen to messages from a topic";
-    private static final String DESC_QUEUE_NAME = "Queue to listen for incoming messages.";
-    private static final String DESC_TOPIC_NAME = "Topic to listen for incoming messages.";
-    private static final String DESC_DESTINATION = "The Solace destination to expect messages from.";
 
     // Function and parameter names
     public static final String PAYLOAD_FIELD_NAME = "payload";
     public static final String TYPE_PREFIX = "SolaceMessage";
 
-    // Listener configuration property keys
-    private static final List<String> LISTENER_CONFIG_KEYS = List.of(
-            KEY_LISTENER_VAR_NAME, PROPERTY_URL, PROPERTY_MESSAGE_VPN, PROPERTY_AUTHENTICATION, PROPERTY_SECURE_SOCKET
-    );
-
     @Override
     public ServiceInitModel getServiceInitModel(GetServiceInitModelContext context) {
-        ServiceInitModel serviceInitModel = super.getServiceInitModel(context);
-        if (serviceInitModel == null) {
+        InputStream resourceStream = this.getClass().getClassLoader()
+                .getResourceAsStream(SOLACE_SERVICE_MODEL_LOCATION);
+        if (resourceStream == null) {
             return null;
         }
+        try (JsonReader reader = new JsonReader(new InputStreamReader(resourceStream, StandardCharsets.UTF_8))) {
+            ServiceInitModel serviceInitModel = new Gson().fromJson(reader, ServiceInitModel.class);
+            Map<String, Value> properties = serviceInitModel.getProperties();
 
-        Map<String, Value> properties = serviceInitModel.getProperties();
-        Value authenticationChoice = buildAuthenticationChoice();
-        properties.put(PROPERTY_AUTHENTICATION, authenticationChoice);
+            // Navigate to listenerVarName in advancedConfigurations
+            Value configureListener = properties.get(KEY_CONFIGURE_LISTENER);
+            Value createNewChoice = configureListener.getChoices().get(0);
+            Value listenerConfig = createNewChoice.getProperties().get("listenerConfig");
+            Value advancedSection = listenerConfig.getProperties().get("advancedConfigurations");
 
-        Value secureSocket = buildSecureSocketChoice(serviceInitModel.getOrgName(),
-                serviceInitModel.getModuleName(), serviceInitModel.getVersion());
-        properties.put(PROPERTY_SECURE_SOCKET, secureSocket);
+            // Generate a unique listener variable name
+            String listenerVarName = Utils.generateVariableIdentifier(context.semanticModel(), context.document(),
+                    context.document().syntaxTree().rootNode().lineRange().endLine(),
+                    listenerConfig.getProperties().get(KEY_LISTENER_VAR_NAME).getValue());
+            listenerConfig.getProperties().get(KEY_LISTENER_VAR_NAME).setValue(listenerVarName);
 
-        Set<String> listeners = ListenerUtil.getCompatibleListeners(context.moduleName(),
-                context.semanticModel(), context.project());
+            // Check for existing compatible listeners
+            Set<String> compatibleListeners = ListenerUtil.getCompatibleListeners(context.moduleName(),
+                    context.semanticModel(), context.project());
 
-        if (!listeners.isEmpty()) {
-            Map<String, Value> listenerProps =
-                    ListenerUtil.removeAndCollectListenerProperties(properties, LISTENER_CONFIG_KEYS);
-            Value choicesProperty = ListenerUtil.buildListenerChoiceProperty(listenerProps, listeners, LABEL_SOLACE);
-            properties.put(KEY_CONFIGURE_LISTENER, choicesProperty);
+            if (!compatibleListeners.isEmpty()) {
+                // Determine which keys are "advanced" from the template
+                Set<String> advancedKeys = advancedSection.getProperties() != null
+                        ? advancedSection.getProperties().keySet() : Set.of();
+
+                // Extract configs from existing listener declarations
+                Map<String, Map<String, Value>> listenerConfigs = extractSolaceListenerConfigs(
+                        compatibleListeners, context.semanticModel(), context.project());
+
+                // Enable and populate "Use existing" choice
+                Value existingChoice = configureListener.getChoices().get(1);
+                existingChoice.setMetadata(new MetaData("Use existing", "Select an existing Solace listener"));
+                existingChoice.setEnabled(true);
+                existingChoice.setEditable(true);
+
+                // Build per-listener config groups
+                List<String> listenerNames = new ArrayList<>(compatibleListeners);
+                Map<String, Value> perListenerConfigs = new LinkedHashMap<>();
+                for (String name : listenerNames) {
+                    Map<String, Value> config = listenerConfigs.getOrDefault(name, new LinkedHashMap<>());
+                    Map<String, Value> basicProps = new LinkedHashMap<>();
+                    Map<String, Value> advancedProps = new LinkedHashMap<>();
+                    for (Map.Entry<String, Value> entry : config.entrySet()) {
+                        entry.getValue().setEditable(false);
+                        if (advancedKeys.contains(entry.getKey())) {
+                            advancedProps.put(entry.getKey(), entry.getValue());
+                        } else {
+                            basicProps.put(entry.getKey(), entry.getValue());
+                        }
+                    }
+
+                    if (!advancedProps.isEmpty()) {
+                        Value advancedGroup = new Value.ValueBuilder()
+                                .metadata("Advanced Configurations", "")
+                                .types(List.of(new PropertyType.Builder()
+                                        .fieldType(Value.FieldType.GROUP_SECTION)
+                                        .selected(false)
+                                        .build()))
+                                .enabled(true)
+                                .editable(false)
+                                .setProperties(advancedProps)
+                                .build();
+                        advancedGroup.getTypes().getFirst().selected(false);
+                        basicProps.put("advancedConfigurations", advancedGroup);
+                    }
+
+                    Value configGroup = new Value.ValueBuilder()
+                            .metadata(name, "Solace source: " + name)
+                            .value(name)
+                            .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                            .enabled(true)
+                            .editable(false)
+                            .setProperties(basicProps)
+                            .build();
+                    perListenerConfigs.put(name, configGroup);
+                }
+
+                // Build SINGLE_SELECT dropdown with per-listener configs
+                Value listenerDropdown = new Value.ValueBuilder()
+                        .metadata("Listener Name", "Select an existing Solace listener")
+                        .value(listenerNames.get(0))
+                        .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT)))
+                        .enabled(true)
+                        .editable(true)
+                        .setItems(new ArrayList<>(listenerNames))
+                        .setProperties(perListenerConfigs)
+                        .build();
+
+                Map<String, Value> existingProps = new LinkedHashMap<>();
+                existingProps.put(KEY_EXISTING_LISTENER, listenerDropdown);
+                existingChoice.getProperties().get("listenerConfig").setProperties(existingProps);
+
+                // Set "Use existing" as default selection
+                configureListener.setValue("1");
+                createNewChoice.setEnabled(false);
+            }
+
+            return serviceInitModel;
+        } catch (IOException e) {
+            LOGGER.warning("Failed to extract Solace service init configurations: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private Map<String, Map<String, Value>> extractSolaceListenerConfigs(
+            Set<String> listenerNames, SemanticModel semanticModel, Project project) {
+        Map<String, Map<String, Value>> configs = new LinkedHashMap<>();
+        for (String listenerName : listenerNames) {
+            Map<String, Value> config = extractSolaceListenerConfig(listenerName, semanticModel, project);
+            if (config != null && !config.isEmpty()) {
+                configs.put(listenerName, config);
+            }
+        }
+        return configs;
+    }
+
+    private Map<String, Value> extractSolaceListenerConfig(
+            String listenerName, SemanticModel semanticModel, Project project) {
+        Optional<VariableSymbol> listenerSymbol = Optional.empty();
+        for (Symbol moduleSymbol : semanticModel.moduleSymbols()) {
+            if (!(moduleSymbol instanceof VariableSymbol variableSymbol)
+                    || !variableSymbol.qualifiers().contains(Qualifier.LISTENER)) {
+                continue;
+            }
+            if (variableSymbol.getName().isPresent() && variableSymbol.getName().get().equals(listenerName)) {
+                listenerSymbol = Optional.of(variableSymbol);
+                break;
+            }
+        }
+        if (listenerSymbol.isEmpty() || listenerSymbol.get().getLocation().isEmpty()) {
+            return Collections.emptyMap();
         }
 
-        Value destinationChoice = buildDestinationChoice(
-                "\"test-queue\"",
-                "\"test/topic\"",
-                LABEL_QUEUE,
-                LABEL_TOPIC,
-                LABEL_QUEUE_NAME,
-                DESC_QUEUE_NAME,
-                LABEL_TOPIC_NAME,
-                DESC_TOPIC_NAME,
-                LABEL_DESTINATION,
-                DESC_DESTINATION,
-                DESC_QUEUE,
-                DESC_TOPIC,
-                null);
+        Location location = listenerSymbol.get().getLocation().get();
+        try {
+            Path path = project.sourceRoot().resolve(location.lineRange().fileName());
+            DocumentId documentId = project.documentId(path);
+            Document document = project.currentPackage().getDefaultModule().document(documentId);
+            if (document == null) {
+                return null;
+            }
 
-        properties.put(PROPERTY_DESTINATION, destinationChoice);
+            ModulePartNode modulePartNode = document.syntaxTree().rootNode();
+            TextRange range = TextRange.from(location.textRange().startOffset(), location.textRange().length());
+            NonTerminalNode foundNode = modulePartNode.findNode(range);
+            while (foundNode != null && !(foundNode instanceof ListenerDeclarationNode)) {
+                foundNode = foundNode.parent();
+            }
+            if (foundNode == null) {
+                return null;
+            }
 
-        Value sessionAckMode = buildSessionAckModeProperty();
-        properties.put(PROPERTY_SESSION_ACK_MODE, sessionAckMode);
+            ListenerDeclarationNode listenerNode = (ListenerDeclarationNode) foundNode;
+            return extractConfigFromSolaceListenerDeclaration(listenerNode, listenerName);
+        } catch (RuntimeException e) {
+            LOGGER.warning("Failed to extract Solace listener config for '" + listenerName + "': " + e.getMessage());
+            return null;
+        }
+    }
 
-        return serviceInitModel;
+    private Map<String, Value> extractConfigFromSolaceListenerDeclaration(
+            ListenerDeclarationNode listenerNode, String listenerName) {
+        Map<String, Value> config = new LinkedHashMap<>();
+
+        Node initializer = listenerNode.initializer();
+        NewExpressionNode newExpressionNode;
+        if (initializer instanceof CheckExpressionNode checkExpressionNode) {
+            if (!(checkExpressionNode.expression() instanceof NewExpressionNode newExpr)) {
+                return config;
+            }
+            newExpressionNode = newExpr;
+        } else if (initializer instanceof NewExpressionNode newExpr) {
+            newExpressionNode = newExpr;
+        } else {
+            return config;
+        }
+
+        SeparatedNodeList<FunctionArgumentNode> arguments = getArgList(newExpressionNode);
+        if (arguments == null) {
+            return config;
+        }
+
+        boolean firstPositional = true;
+        for (FunctionArgumentNode argument : arguments) {
+            if (argument instanceof PositionalArgumentNode positionalArg && firstPositional) {
+                String url = positionalArg.expression().toSourceCode().trim();
+                config.put("url", ListenerUtil.buildReadOnlyTextValue("Broker URL",
+                        "The Solace broker URL", url));
+                firstPositional = false;
+            } else if (argument instanceof NamedArgumentNode namedArg) {
+                firstPositional = false;
+                String argName = namedArg.argumentName().name().text().trim();
+                String argValue = namedArg.expression().toSourceCode().trim();
+                switch (argName) {
+                    case "messageVpn" -> config.put("messageVpn", ListenerUtil.buildReadOnlyTextValue(
+                            "Message VPN", "The message VPN to connect to", argValue));
+                    case "auth" -> config.put(PROPERTY_AUTHENTICATION, ListenerUtil.buildReadOnlyTextValue(
+                            "Authentication", "Authentication configuration for Solace broker connection",
+                            argValue));
+                    case "secureSocket" -> config.put("secureSocket", ListenerUtil.buildReadOnlyTextValue(
+                            "Secure Socket", "Configure SSL/TLS configuration for secure connection",
+                            argValue));
+                    default -> {
+                    }
+                }
+            }
+        }
+
+        return config;
     }
 
     @Override
     public Map<String, List<TextEdit>> addServiceInitSource(AddServiceInitModelContext context) {
         ServiceInitModel serviceInitModel = context.serviceInitModel();
+
+        // Apply destination choice first (Queue or Topic)
         applyEnabledChoiceProperty(serviceInitModel, PROPERTY_DESTINATION);
 
-        Map<String, Value> properties = serviceInitModel.getProperties();
-
-        cleanSecureSocketProperty(properties);
-        if (!properties.containsKey(KEY_CONFIGURE_LISTENER)) {
-            applyAuthenticationProperty(properties);
-            return addServiceWithNewListener(context);
-        }
+        // Apply configure listener choice and flatten nested GROUP_SECTION wrappers
         applyEnabledChoiceProperty(serviceInitModel, KEY_CONFIGURE_LISTENER);
+        Map<String, Value> properties = serviceInitModel.getProperties();
+        unwrapGroupSections(properties);
+
         cleanSecureSocketProperty(properties);
         applyAuthenticationProperty(properties);
 
@@ -177,7 +358,6 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
         }
 
         String serviceCode = buildJMSServiceCode(context, listenerDTO);
-
         return buildServiceCodeEdits(context, serviceCode, null);
     }
 
@@ -193,12 +373,6 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
                     .build();
             properties.put("auth", authValue);
         }
-    }
-
-    private Map<String, List<TextEdit>> addServiceWithNewListener(AddServiceInitModelContext context) {
-        ListenerDTO listenerDTO = buildListenerDTO(context);
-        String serviceCode = buildJMSServiceCode(context, listenerDTO);
-        return buildServiceCodeEdits(context, serviceCode, null);
     }
 
     private String buildJMSServiceCode(AddServiceInitModelContext context, ListenerDTO listenerDTO) {

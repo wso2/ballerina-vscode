@@ -489,24 +489,6 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
         }
     }
 
-    private void unwrapGroupSections(Map<String, Value> properties) {
-        List<String> groupKeys = new ArrayList<>();
-        Map<String, Value> childProps = new LinkedHashMap<>();
-        for (Map.Entry<String, Value> entry : properties.entrySet()) {
-            Value value = entry.getValue();
-            if (value.getTypes() != null && value.getTypes().stream()
-                    .anyMatch(t -> t.fieldType() == Value.FieldType.GROUP_SECTION)) {
-                groupKeys.add(entry.getKey());
-                if (value.getProperties() != null) {
-                    unwrapGroupSections(value.getProperties());
-                    childProps.putAll(value.getProperties());
-                }
-            }
-        }
-        groupKeys.forEach(properties::remove);
-        properties.putAll(childProps);
-    }
-
     private void addDatabaseConfiguration(Map<String, Value> properties) {
         String databaseConfig = buildDatabaseConfig(properties);
         Value databaseValue = new Value.ValueBuilder()
