@@ -491,7 +491,11 @@ public class AgentsGenerator {
             String returnType = "";
             if (optReturnType.isPresent()) {
                 Property returnProperty = optReturnType.get();
-                if (flowNode.getProperty(TARGET_TYPE).isPresent()) {
+                Optional<Property> optTargetType = flowNode.getProperty(TARGET_TYPE);
+                if (optTargetType.isPresent() && optTargetType.get().value() != null
+                        && !optTargetType.get().value().toString().isEmpty()) {
+                    returnType = optTargetType.get().value().toString();
+                } else if (optTargetType.isPresent()) {
                     returnType = "json";
                 } else {
                     returnType = returnProperty.value().toString();
@@ -600,7 +604,11 @@ public class AgentsGenerator {
             Optional<Property> optReturnType = flowNode.getProperty(Property.TYPE_KEY);
             String returnType = "";
             if (optReturnType.isPresent()) {
-                if (flowNode.getProperty(TARGET_TYPE).isPresent()) {
+                Optional<Property> optTargetType = flowNode.getProperty(TARGET_TYPE);
+                if (optTargetType.isPresent() && optTargetType.get().value() != null
+                        && !optTargetType.get().value().toString().isEmpty()) {
+                    returnType = optTargetType.get().value().toString();
+                } else if (optTargetType.isPresent()) {
                     returnType = "json";
                 } else {
                     returnType = optReturnType.get().value().toString();
