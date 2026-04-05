@@ -188,13 +188,9 @@ public class NewConnectionBuilder extends CallBuilder {
 
     private void preloadConnectorActions(SourceBuilder sourceBuilder) {
         CompletableFuture.runAsync(() -> {
-            try {
-                ConnectionActionProvider.getInstance().populate(sourceBuilder.flowNode.codedata(),
-                        sourceBuilder.workspaceManager, sourceBuilder.filePath);
-            } catch (RuntimeException ignored) {
-                // Ignore preload failures and continue template generation.
-            }
-        }, ConnectionActionProvider.backgroundExecutor());
+            ConnectionActionProvider.getInstance().populate(sourceBuilder.flowNode.codedata(),
+                    sourceBuilder.workspaceManager, sourceBuilder.filePath);
+        });
     }
 
     @Override
