@@ -533,12 +533,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
             // Update value from current form data and update diagnostics
             if (data[field.key] !== undefined) {
-                if (isContainingRepeatableList) {
-                    if (
-                        !Array.isArray(nodeProperties?.[field.key]?.value)
-                    ) {
-                        throw new Error(`Expected value for repeatable list field "${field.key}" to be an array, but got string.`);
-                    }
+                if (isContainingRepeatableList && Array.isArray(nodeProperties?.[field.key]?.value)) {
                     if (selectedInputType?.fieldType === "REPEATABLE_LIST") {
                         let initialValues: string[];
                         if (typeof data[field.key] === 'string') {

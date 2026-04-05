@@ -230,6 +230,38 @@ export const FormMapEditorNew = (props: FormFieldEditorProps & {
         setRepeatableFields(initialFields);
     }, [props.value, props.field.types]);
 
+    // When the server responds with updated diagnostics (e.g. after flowDesignService/diagnostics),
+    // props.field.value is updated asynchronously after the MAP editor has already rendered.
+    // This effect applies the new per-entry diagnostics to existing repeatableFields without
+    // recreating the whole list (which would discard in-progress edits).
+    useEffect(() => {
+        if (!props.field.value || typeof props.field.value !== 'object' || Array.isArray(props.field.value)) return;
+
+        const diagnosticsMap: Record<string, any[]> = {};
+        Object.entries(props.field.value as Record<string, any>).forEach(([entryKey, entryVal]) => {
+            if (entryVal?.diagnostics) {
+                const diags = entryVal.diagnostics;
+                diagnosticsMap[entryKey] = Array.isArray(diags) ? diags : (diags?.diagnostics ?? []);
+            }
+        });
+
+        setRepeatableFields(prev => {
+            if (prev.length === 0) return prev;
+            return prev.map(fieldPair => {
+                const keyVal = fieldPair[0].value as string;
+                if (!keyVal || diagnosticsMap[keyVal] === undefined) return fieldPair;
+                // Don't overwrite diagnostics that have already been locally managed
+                // (e.g. cleared or updated via an inner value field mode change).
+                const isLocallyManaged = elementDiagnosticsRef.current.some(d => d.key === fieldPair[1].key);
+                if (isLocallyManaged) return fieldPair;
+                return [
+                    fieldPair[0],
+                    { ...fieldPair[1], diagnostics: diagnosticsMap[keyVal] }
+                ];
+            });
+        });
+    }, [props.field.value]);
+
     const duplicateEntryKeys = new Set<string>();
     const seenKeyValues = new Set<string>();
     repeatableFields.forEach((formField) => {
@@ -309,13 +341,6 @@ export const FormMapEditorNew = (props: FormFieldEditorProps & {
                                         handleFormOnChange(fieldKey, value, allValues, formField[0].key);
                                     }}
                                     onFormValidation={handleElementFormValidation}
-                                    onSubmit={() => {
-                                        const deduped = dedupeFields(repeatableFields);
-                                        if (deduped.length !== repeatableFields.length) {
-                                            setRepeatableFields(deduped);
-                                        }
-                                        props.onChange(processToOutputFormat(deduped));
-                                    }}
                                     expressionEditor={{
                                         ...expressionEditor,
                                         onCompletionItemSelect: expressionEditor?.onCompletionItemSelect,
