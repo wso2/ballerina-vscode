@@ -385,7 +385,7 @@ function getFormFieldValue(expression: Property, clientName?: string) {
         console.log(">>> client name as set field value", clientName);
         return clientName;
     }
-    return expression.value as string;
+    return (expression.value ?? "") as string;
 }
 
 function getFormFieldItems(expression: Property, connections: FlowNode[]): string[] {
