@@ -498,7 +498,8 @@ public class AgentsGenerator {
                         && !optTargetType.get().value().toString().isEmpty()) {
                     returnType = optTargetType.get().value().toString();
                 } else if (optTargetType.isPresent()) {
-                    returnType = "json";
+                    String defaultType = optTargetType.get().defaultValue();
+                    returnType = (defaultType != null && !defaultType.isEmpty()) ? defaultType : "json";
                 } else {
                     returnType = returnProperty.value().toString();
                 }
@@ -612,7 +613,8 @@ public class AgentsGenerator {
                         && !optTargetType.get().value().toString().isEmpty()) {
                     returnType = optTargetType.get().value().toString();
                 } else if (optTargetType.isPresent()) {
-                    returnType = "json";
+                    String defaultType = optTargetType.get().defaultValue();
+                    returnType = (defaultType != null && !defaultType.isEmpty()) ? defaultType : "json";
                 } else {
                     returnType = optReturnType.get().value().toString();
                 }
