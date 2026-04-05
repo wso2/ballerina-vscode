@@ -21,46 +21,8 @@ import { Library } from "../../utils/libs/library-types";
 import { selectRequiredFunctions } from "../../utils/libs/function-registry";
 import { toSyntaxString } from "../../utils/libs/to-syntax-string";
 import { CopilotEventHandler } from "../../utils/events";
-import * as fs from "fs";
 
 export const LIBRARY_GET_TOOL = "LibraryGetTool";
-
-/**
- * Counts tokens for the given content by calling the Anthropic token counting API.
- * This is a debug/measurement utility — safe to remove entirely.
- */
-async function logTokenCount(content: string, label: string): Promise<void> {
-    const apiKey = process.env.ANTHROPIC_API_KEY1;
-    if (!apiKey) {
-        console.log(`[LibraryGetTool][TokenCount] ANTHROPIC_API_KEY not set, skipping token count for ${label}.`);
-        return;
-    }
-
-    try {
-        const response = await fetch("https://api.anthropic.com/v1/messages/count_tokens", {
-            method: "POST",
-            headers: {
-                "x-api-key": apiKey,
-                "content-type": "application/json",
-                "anthropic-version": "2023-06-01",
-            },
-            body: JSON.stringify({
-                model: "claude-sonnet-4-5",
-                messages: [{ role: "user", content }],
-            }),
-        });
-
-        if (!response.ok) {
-            console.error(`[LibraryGetTool][TokenCount] API error for ${label}: ${response.status} ${response.statusText}`);
-            return;
-        }
-
-        const result: any = await response.json();
-        console.log(`[LibraryGetTool][TokenCount] ${label}: ${result.input_tokens} tokens`);
-    } catch (error) {
-        console.error(`[LibraryGetTool][TokenCount] Failed to count tokens for ${label}: ${error}`);
-    }
-}
 
 /**
  * Emits tool_result event for library get with filtering
@@ -178,16 +140,7 @@ name, description, type definitions (records, objects, enums, type aliases), cli
                 )} and prompt: ${input.userPrompt} [toolCallId: ${toolCallId}]`
             );
             const rawLibraries: Library[] = await LibraryGetTool(input, generationType, eventHandler, toolCallId);
-            const beforeContent = JSON.stringify(rawLibraries);
             const afterContent = toSyntaxString(rawLibraries);
-            await Promise.all([
-                logTokenCount(beforeContent, "before toSyntaxString"),
-                logTokenCount(afterContent, "after toSyntaxString"),
-            ]);
-
-            // --- Write beforeContent to test resource file (comment/uncomment to toggle) ---
-            fs.writeFileSync("/Users/wso2/repos/vscode-extensions/workspaces/ballerina/ballerina-extension/test/ai/unit_tests/libs/resources/input/library-get-tool.json", beforeContent, "utf-8");
-            // --- End test resource write ---
 
             return afterContent;
         },

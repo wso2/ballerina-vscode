@@ -821,9 +821,8 @@ export enum TaskStatus {
 
 export enum TaskTypes {
     SERVICE_DESIGN = "service_design",
-    CONNECTIONS_INIT = "connections_init",
     IMPLEMENTATION = "implementation",
-    TESTING = "testing"
+    EXECUTION = "execution"
 }
 
 /**
