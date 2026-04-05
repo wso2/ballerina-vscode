@@ -108,6 +108,7 @@ public class NewConnectionBuilder extends CallBuilder {
             sourceBuilder.acceptImport();
         }
 
+        preloadConnectorActions(sourceBuilder);
         return sourceBuilder.build();
     }
 
@@ -172,7 +173,6 @@ public class NewConnectionBuilder extends CallBuilder {
                 .version(functionData.version())
                 .symbol(INIT_SYMBOL)
                 .isGenerated(codedata.isGenerated());
-        preloadConnectorActions(context);
 
         Module module = context.workspaceManager().module(context.filePath()).orElse(null);
         setParameterProperties(functionData, module);
@@ -186,15 +186,15 @@ public class NewConnectionBuilder extends CallBuilder {
                 .checkError(true, CHECK_ERROR_DOC, false);
     }
 
-    private void preloadConnectorActions(TemplateContext context) {
+    private void preloadConnectorActions(SourceBuilder sourceBuilder) {
         CompletableFuture.runAsync(() -> {
             try {
-                ConnectionActionProvider.getInstance().populate(codedataBuilder.build(),
-                        context.workspaceManager(), context.filePath());
+                ConnectionActionProvider.getInstance().populate(sourceBuilder.flowNode.codedata(),
+                        sourceBuilder.workspaceManager, sourceBuilder.filePath);
             } catch (RuntimeException ignored) {
                 // Ignore preload failures and continue template generation.
             }
-        });
+        }, ConnectionActionProvider.backgroundExecutor());
     }
 
     @Override
