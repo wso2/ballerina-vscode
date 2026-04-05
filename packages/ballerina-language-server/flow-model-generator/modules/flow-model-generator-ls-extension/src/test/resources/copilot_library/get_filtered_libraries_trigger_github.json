@@ -6246,7 +6246,13 @@
                 "name": "listenerConfig",
                 "description": "The configuration of GitHub listener.",
                 "type": {
-                  "name": "github:ListenerConfig"
+                  "name": "ListenerConfig",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "ListenerConfig"
+                    }
+                  ]
                 }
               }
             ]
@@ -6260,27 +6266,13 @@
                   "name": "payload",
                   "description": "The information about the triggered event.",
                   "type": {
-                    "name": "github:IssuesEvent"
-                  },
-                  "optional": false
-                }
-              ],
-              "return": {
-                "type": {
-                  "name": "error?"
-                }
-              },
-              "optional": false
-            },
-            {
-              "type": "remote",
-              "description": "",
-              "parameters": [
-                {
-                  "name": "payload",
-                  "description": "The information about the triggered event.",
-                  "type": {
-                    "name": "github:IssuesEvent"
+                    "name": "IssuesEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "IssuesEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6300,7 +6292,13 @@
                   "name": "payload",
                   "description": "The information about the triggered event.",
                   "type": {
-                    "name": "github:IssuesEvent"
+                    "name": "IssuesEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "IssuesEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6320,7 +6318,13 @@
                   "name": "payload",
                   "description": "The information about the triggered event.",
                   "type": {
-                    "name": "github:IssuesEvent"
+                    "name": "IssuesEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "IssuesEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6340,7 +6344,13 @@
                   "name": "payload",
                   "description": "The information about the triggered event.",
                   "type": {
-                    "name": "github:IssuesEvent"
+                    "name": "IssuesEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "IssuesEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6360,7 +6370,13 @@
                   "name": "payload",
                   "description": "The information about the triggered event.",
                   "type": {
-                    "name": "github:IssuesEvent"
+                    "name": "IssuesEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "IssuesEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6380,7 +6396,39 @@
                   "name": "payload",
                   "description": "The information about the triggered event.",
                   "type": {
-                    "name": "github:IssuesEvent"
+                    "name": "IssuesEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "IssuesEvent"
+                      }
+                    ]
+                  },
+                  "optional": false
+                }
+              ],
+              "return": {
+                "type": {
+                  "name": "error?"
+                }
+              },
+              "optional": false
+            },
+            {
+              "type": "remote",
+              "description": "",
+              "parameters": [
+                {
+                  "name": "payload",
+                  "description": "The information about the triggered event.",
+                  "type": {
+                    "name": "IssuesEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "IssuesEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6403,7 +6451,13 @@
                 "name": "listenerConfig",
                 "description": "The configuration of GitHub listener.",
                 "type": {
-                  "name": "github:ListenerConfig"
+                  "name": "ListenerConfig",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "ListenerConfig"
+                    }
+                  ]
                 }
               }
             ]
@@ -6416,7 +6470,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "IssuesEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "IssuesEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6435,7 +6495,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "IssueCommentEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "IssueCommentEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6454,7 +6520,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "IssueCommentEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "IssueCommentEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6477,7 +6549,13 @@
                 "name": "listenerConfig",
                 "description": "The configuration of GitHub listener.",
                 "type": {
-                  "name": "github:ListenerConfig"
+                  "name": "ListenerConfig",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "ListenerConfig"
+                    }
+                  ]
                 }
               }
             ]
@@ -6490,7 +6568,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "PullRequestEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "PullRequestEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6509,7 +6593,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "PullRequestEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "PullRequestEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6528,7 +6618,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "PullRequestEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "PullRequestEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6547,7 +6643,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "PullRequestEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "PullRequestEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6566,7 +6668,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "PullRequestEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "PullRequestEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6585,7 +6693,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "PullRequestEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "PullRequestEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6604,7 +6718,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "PullRequestEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "PullRequestEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6623,7 +6743,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "PullRequestEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "PullRequestEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6642,7 +6768,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "PullRequestEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "PullRequestEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6661,7 +6793,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "PullRequestEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "PullRequestEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6684,7 +6822,13 @@
                 "name": "listenerConfig",
                 "description": "The configuration of GitHub listener.",
                 "type": {
-                  "name": "github:ListenerConfig"
+                  "name": "ListenerConfig",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "ListenerConfig"
+                    }
+                  ]
                 }
               }
             ]
@@ -6697,7 +6841,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "PullRequestReviewEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "PullRequestReviewEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6716,7 +6866,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "PullRequestReviewEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "PullRequestReviewEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6735,7 +6891,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "PullRequestReviewEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "PullRequestReviewEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6758,7 +6920,13 @@
                 "name": "listenerConfig",
                 "description": "The configuration of GitHub listener.",
                 "type": {
-                  "name": "github:ListenerConfig"
+                  "name": "ListenerConfig",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "ListenerConfig"
+                    }
+                  ]
                 }
               }
             ]
@@ -6771,7 +6939,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "PullRequestReviewCommentEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "PullRequestReviewCommentEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6790,7 +6964,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "PullRequestReviewCommentEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "PullRequestReviewCommentEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6809,7 +6989,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "PullRequestReviewCommentEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "PullRequestReviewCommentEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6832,7 +7018,13 @@
                 "name": "listenerConfig",
                 "description": "The configuration of GitHub listener.",
                 "type": {
-                  "name": "github:ListenerConfig"
+                  "name": "ListenerConfig",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "ListenerConfig"
+                    }
+                  ]
                 }
               }
             ]
@@ -6845,7 +7037,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "ReleaseEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "ReleaseEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6864,7 +7062,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "ReleaseEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "ReleaseEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6883,7 +7087,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "ReleaseEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "ReleaseEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6902,7 +7112,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "ReleaseEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "ReleaseEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6921,7 +7137,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "ReleaseEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "ReleaseEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6940,7 +7162,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "ReleaseEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "ReleaseEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6959,7 +7187,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "ReleaseEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "ReleaseEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -6982,7 +7216,13 @@
                 "name": "listenerConfig",
                 "description": "The configuration of GitHub listener.",
                 "type": {
-                  "name": "github:ListenerConfig"
+                  "name": "ListenerConfig",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "ListenerConfig"
+                    }
+                  ]
                 }
               }
             ]
@@ -6995,7 +7235,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "LabelEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "LabelEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -7014,7 +7260,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "LabelEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "LabelEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -7033,7 +7285,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "LabelEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "LabelEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -7056,7 +7314,13 @@
                 "name": "listenerConfig",
                 "description": "The configuration of GitHub listener.",
                 "type": {
-                  "name": "github:ListenerConfig"
+                  "name": "ListenerConfig",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "ListenerConfig"
+                    }
+                  ]
                 }
               }
             ]
@@ -7069,7 +7333,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "MilestoneEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "MilestoneEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -7088,7 +7358,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "MilestoneEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "MilestoneEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -7107,7 +7383,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "MilestoneEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "MilestoneEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -7126,7 +7408,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "MilestoneEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "MilestoneEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -7145,7 +7433,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "MilestoneEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "MilestoneEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -7168,7 +7462,13 @@
                 "name": "listenerConfig",
                 "description": "The configuration of GitHub listener.",
                 "type": {
-                  "name": "github:ListenerConfig"
+                  "name": "ListenerConfig",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "ListenerConfig"
+                    }
+                  ]
                 }
               }
             ]
@@ -7181,7 +7481,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "PushEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "PushEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -7204,7 +7510,13 @@
                 "name": "listenerConfig",
                 "description": "The configuration of GitHub listener.",
                 "type": {
-                  "name": "github:ListenerConfig"
+                  "name": "ListenerConfig",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "ListenerConfig"
+                    }
+                  ]
                 }
               }
             ]
@@ -7217,7 +7529,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "ProjectCardEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "ProjectCardEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -7236,7 +7554,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "ProjectCardEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "ProjectCardEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -7255,7 +7579,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "ProjectCardEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "ProjectCardEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -7274,7 +7604,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "ProjectCardEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "ProjectCardEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
@@ -7293,7 +7629,13 @@
                 {
                   "name": "payload",
                   "type": {
-                    "name": "record"
+                    "name": "ProjectCardEvent",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "ProjectCardEvent"
+                      }
+                    ]
                   },
                   "optional": false
                 }
