@@ -84,6 +84,7 @@ import org.wso2.ballerinalang.compiler.tree.BLangPackage;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -402,17 +403,56 @@ public class AgentsGenerator {
                 }
             }
 
-            List<String> args = new ArrayList<>();
+            // Build a lookup of tool input variable names keyed by parameter name
+            Map<String, String> toolInputVarNames = new LinkedHashMap<>();
             Optional<Property> funcCallArgs = flowNode.getProperty(Property.PARAMETERS_KEY);
             if (funcCallArgs.isPresent() && funcCallArgs.get().value() instanceof Map<?, ?> paramMap) {
-                for (Object obj : paramMap.values()) {
-                    Property paramProperty = gson.fromJson(gson.toJsonTree(obj), Property.class);
+                for (Map.Entry<?, ?> paramEntry : paramMap.entrySet()) {
+                    Property paramProperty = gson.fromJson(gson.toJsonTree(paramEntry.getValue()),
+                            Property.class);
                     if (!(paramProperty.value() instanceof Map<?, ?> paramData)) {
                         continue;
                     }
                     Map<String, Property> paramProperties = gson.fromJson(gson.toJsonTree(paramData),
                             FormBuilder.NODE_PROPERTIES_TYPE);
-                    args.add(paramProperties.get(Property.VARIABLE_KEY).value().toString());
+                    toolInputVarNames.put(paramEntry.getKey().toString(),
+                            paramProperties.get(Property.VARIABLE_KEY).value().toString());
+                }
+            }
+
+            List<String> args = new ArrayList<>();
+            if (nodeKind == NodeKind.FUNCTION_CALL && flowNode.properties() != null) {
+                // FUNCTION_CALL: iterate properties in order to preserve argument position.
+                // Only include properties that are actual function call arguments (have a
+                // codedata.kind like REQUIRED or DEFAULTABLE), not metadata properties.
+                for (Map.Entry<String, Property> entry : flowNode.properties().entrySet()) {
+                    String key = entry.getKey();
+                    Property prop = entry.getValue();
+                    PropertyCodedata propCodedata = prop.codedata();
+                    if (propCodedata == null || propCodedata.kind() == null
+                            || propCodedata.kind().equals(
+                                    ParameterData.Kind.PARAM_FOR_TYPE_INFER.name())) {
+                        continue;
+                    }
+
+                    String toolInputVar = toolInputVarNames.get(key);
+                    if (toolInputVar != null) {
+                        // Has a tool input — use mapping override if set, otherwise the variable name
+                        if (prop.value() != null && !prop.value().toString().isEmpty()
+                                && !prop.value().toString().equals(toolInputVar)) {
+                            args.add(prop.value().toString());
+                        } else {
+                            args.add(toolInputVar);
+                        }
+                    } else if (prop.value() != null && !prop.value().toString().isEmpty()) {
+                        // No tool input — use the mapping expression directly
+                        args.add(prop.value().toString());
+                    }
+                }
+            } else {
+                // FUNCTION_DEFINITION: arguments come only from the parameters map
+                for (String varName : toolInputVarNames.values()) {
+                    args.add(varName);
                 }
             }
 
@@ -538,8 +578,6 @@ public class AgentsGenerator {
                     if (kind.equals(ParameterData.Kind.PATH_PARAM.name()) ||
                             kind.equals(ParameterData.Kind.PATH_REST_PARAM.name())) {
                         pathParams.add(key);
-                    } else if (kind.equals(ParameterData.Kind.DEFAULTABLE.name())) {
-                        ignoredKeys.add(key);
                     }
                 }
             }
