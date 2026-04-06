@@ -18,8 +18,14 @@
 
 package io.ballerina.flowmodelgenerator.core;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import io.ballerina.centralconnector.RemoteCentral;
+import io.ballerina.centralconnector.response.DependentPackage;
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.AnnotationAttachmentSymbol;
 import io.ballerina.compiler.api.symbols.ClassSymbol;
 import io.ballerina.compiler.api.symbols.Documentation;
 import io.ballerina.compiler.api.symbols.FunctionTypeSymbol;
@@ -30,6 +36,7 @@ import io.ballerina.compiler.api.symbols.StreamTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
+import io.ballerina.compiler.api.values.ConstantValue;
 import io.ballerina.flowmodelgenerator.core.model.AvailableNode;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
@@ -55,6 +62,10 @@ import io.ballerina.projects.environment.ResolutionOptions;
 import io.ballerina.projects.environment.ResolutionRequest;
 import io.ballerina.projects.environment.ResolutionResponse;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -63,16 +74,20 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.ballerina.flowmodelgenerator.core.Constants.AI;
 import static io.ballerina.flowmodelgenerator.core.Constants.Ai;
 import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA;
+import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINAX;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.CHUNKER;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.CHUNKERS;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.CLASS_INIT;
@@ -80,20 +95,26 @@ import static io.ballerina.flowmodelgenerator.core.model.NodeKind.DATA_LOADER;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.DATA_LOADERS;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.EMBEDDING_PROVIDER;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.EMBEDDING_PROVIDERS;
+import static io.ballerina.flowmodelgenerator.core.model.NodeKind.KNOWLEDGE_BASE;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.KNOWLEDGE_BASES;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.MODEL_PROVIDER;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.MODEL_PROVIDERS;
+import static io.ballerina.flowmodelgenerator.core.model.NodeKind.SHORT_TERM_MEMORY_STORE;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.VECTOR_STORE;
 import static io.ballerina.flowmodelgenerator.core.model.NodeKind.VECTOR_STORES;
 
 /**
  * Utility class for resolving Ballerina AI module versions, their dependent modules, and supported features.
- * <b>Note:</b> This mapping must be updated when new {@code ballerina/ai} versions
- * introduce additional features or dependencies.
+ * <p>
+ * Dependent modules are resolved dynamically from Ballerina Central at runtime. A hardcoded fallback map is maintained
+ * for offline scenarios. The {@code versionToFeatures} mapping must be updated when new {@code ballerina/ai} versions
+ * introduce new feature categories.
  *
  * @since 1.2.0
  */
 public class AiUtils {
+
+    private static final Logger LOGGER = Logger.getLogger(AiUtils.class.getName());
 
     private static final Map<String, Set<NodeKind>> versionToFeatures = new HashMap<>();
     private static final Map<String, List<Module>> dependentModules = new HashMap<>();
@@ -102,9 +123,28 @@ public class AiUtils {
     private static final Map<String, List<AvailableNode>> cachedVectorStoreMap = new HashMap<>();
     private static final Map<String, List<AvailableNode>> cachedChunkerMap = new HashMap<>();
     private static final Map<String, List<AvailableNode>> cachedDataLoaderMap = new HashMap<>();
+    private static final Map<String, List<AvailableNode>> cachedShortTermMemoryStoreMap = new HashMap<>();
+    private static final Map<String, List<AvailableNode>> cachedKnowledgeBaseMap = new HashMap<>();
 
-    // Ensures that all dependent modules of the specified AI versions in the set are already cached
-    private static final Set<String> cachedDependentModules = new HashSet<>();
+    // Tracks which categories have been fully built for each AI version
+    private static final Map<String, Set<NodeKind>> completedCategories = new HashMap<>();
+
+    // Whether dynamic resolution from Ballerina Central has been attempted
+    private static volatile boolean dependentModulesResolved = false;
+
+    // Keyword cache: "org:name:version" -> list of keywords from Central
+    private static final Map<String, List<String>> moduleKeywordsCache = new HashMap<>();
+
+    // Interim keyword filter map — maps each category to keywords that identify relevant packages.
+    private static final Map<NodeKind, List<String>> CATEGORY_KEYWORD_FILTERS = Map.of(
+            MODEL_PROVIDER, List.of("Model Provider", "model", "llm"),
+            EMBEDDING_PROVIDER, List.of("Embedding Provider", "embedding", "openai", "openrouter", "azure"),
+            VECTOR_STORE, List.of("Vector Store", "vector"),
+            CHUNKER, List.of("Chunker", "devant"),
+            DATA_LOADER, List.of("Data Loader", "loader", "devant"),
+            SHORT_TERM_MEMORY_STORE, List.of("Short Term Memory Store", "memory"),
+            KNOWLEDGE_BASE, List.of("Knowledge Base", "knowledge", "azure")
+    );
 
     private static final String PACKAGE = "package";
     private static final String ORG = "org";
@@ -119,64 +159,34 @@ public class AiUtils {
         versionToFeatures.put("1.0.0",
                 Set.of(MODEL_PROVIDERS, EMBEDDING_PROVIDERS, VECTOR_STORES, KNOWLEDGE_BASES));
         versionToFeatures.put("1.3.0", Set.of(CHUNKERS, DATA_LOADERS));
+        versionToFeatures.put("1.6.0", Set.of(SHORT_TERM_MEMORY_STORE));
+        initFallbackDependentModules();
+    }
 
-        dependentModules.put("1.0.0", List.of(
-                new Module("ballerinax", "ai.openai", "1.0.0"),
-                new Module("ballerinax", "ai.azure", "1.0.0"),
-                new Module("ballerinax", "ai.anthropic", "1.0.0"),
-                new Module("ballerinax", "ai.deepseek", "1.0.0"),
-                new Module("ballerinax", "ai.ollama", "1.0.0"),
-                new Module("ballerinax", "ai.mistral", "1.0.0"),
-                new Module("ballerinax", "ai.pinecone", "1.0.0")
-        ));
-
-        dependentModules.put("1.1.0", List.of(
-                new Module("ballerinax", "ai.openai", "1.1.0"),
-                new Module("ballerinax", "ai.anthropic", "1.0.1"),
-                new Module("ballerinax", "ai.azure", "1.0.1"),
-                new Module("ballerinax", "ai.deepseek", "1.0.1"),
-                new Module("ballerinax", "ai.mistral", "1.0.1"),
-                new Module("ballerinax", "ai.pinecone", "1.0.1"),
-                new Module("ballerinax", "ai.ollama", "1.0.1"),
-
-                new Module("ballerinax", "ai.azure", "1.1.0"),
-                new Module("ballerinax", "ai.openai", "1.2.0"),
-                new Module("ballerinax", "ai.anthropic", "1.1.0"),
-                new Module("ballerinax", "ai.mistral", "1.1.0"),
-                new Module("ballerinax", "ai.ollama", "1.1.0"),
-                new Module("ballerinax", "ai.deepseek", "1.0.2"),
-
-                new Module("ballerinax", "ai.openai", "1.2.1"),
-                new Module("ballerinax", "ai.azure", "1.1.1"),
-                new Module("ballerinax", "ai.anthropic", "1.1.1"),
-                new Module("ballerinax", "ai.mistral", "1.1.1"),
-                new Module("ballerinax", "ai.ollama", "1.1.1"),
-                new Module("ballerinax", "ai.deepseek", "1.0.3"),
-
-                new Module("ballerinax", "ai.devant", "1.0.0"),
-                new Module("ballerinax", "ai.openai", "1.2.2")
-        ));
-
-        dependentModules.put("1.5.0", List.of(
-                new Module("ballerinax", "ai.pinecone", "1.1.0"),
-                new Module("ballerinax", "ai.milvus", "1.0.0"),
-                new Module("ballerinax", "ai.pgvector", "1.0.0"),
-                new Module("ballerinax", "ai.weaviate", "1.0.0")
-        ));
-
-        dependentModules.put("1.6.0", List.of(
-                new Module("ballerinax", "ai.azure", "1.2.0")
-        ));
-
-        dependentModules.put("1.7.0", List.of(
-                new Module("ballerinax", "ai.azure", "1.4.0"),
-                new Module("ballerinax", "ai.openai", "1.3.0"),
-                new Module("ballerinax", "ai.ollama", "1.2.0"),
-                new Module("ballerinax", "ai.mistral", "1.2.0"),
-                new Module("ballerinax", "ai.deepseek", "1.1.0"),
-                new Module("ballerinax", "ai.anthropic", "1.2.0"),
-                new Module("ballerinax", "ai.openrouter", "1.0.0")
-        ));
+    private static void initFallbackDependentModules() {
+        InputStream is = AiUtils.class.getClassLoader()
+                .getResourceAsStream("dependent_modules_fallback.json");
+        if (is == null) {
+            LOGGER.log(Level.WARNING, "dependent_modules_fallback.json not found on classpath");
+            return;
+        }
+        try (InputStreamReader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
+            JsonObject json = new Gson().fromJson(reader, JsonObject.class);
+            for (Map.Entry<String, JsonElement> entry : json.entrySet()) {
+                List<Module> modules = new ArrayList<>();
+                for (JsonElement elem : entry.getValue().getAsJsonArray()) {
+                    JsonObject obj = elem.getAsJsonObject();
+                    modules.add(new Module(
+                            obj.get("org").getAsString(),
+                            obj.get("name").getAsString(),
+                            obj.get("version").getAsString()
+                    ));
+                }
+                dependentModules.put(entry.getKey(), List.copyOf(modules));
+            }
+        } catch (IOException | RuntimeException e) {
+            LOGGER.log(Level.WARNING, "Failed to load dependent_modules_fallback.json", e);
+        }
     }
 
     /**
@@ -503,12 +513,25 @@ public class AiUtils {
     }
 
     public static String getBallerinaAiModuleVersion(Project project) {
-        return project.currentPackage().dependenciesToml().map(DependenciesToml::tomlDocument).map(TomlDocument::toml)
+        return project.currentPackage().dependenciesToml()
+                .map(DependenciesToml::tomlDocument).map(TomlDocument::toml)
                 .map(toml -> toml.getTables(PACKAGE)).orElse(List.of()).stream()
                 .filter(pkg -> BALLERINA.equals(pkg.get(ORG).map(Object::toString).orElse(""))
                         && AI.equals(pkg.get(NAME).map(Object::toString).orElse("")))
                 .findFirst().flatMap(aiPackage -> aiPackage.get(VERSION).map(Objects::toString))
                 .orElse(null);
+    }
+
+    /**
+     * Resolves the AI module version for internal use (Central API calls, keyword fetching). Falls back to local
+     * distribution if not in Dependencies.toml.
+     */
+    private static String resolveAiModuleVersion(Project project) {
+        String version = getBallerinaAiModuleVersion(project);
+        if (version != null) {
+            return version;
+        }
+        return resolvePackageVersion(BALLERINA, AI).orElse(null);
     }
 
     public static Optional<String> resolvePackageVersion(String org, String packageName) {
@@ -529,7 +552,47 @@ public class AiUtils {
         }
     }
 
+    private static synchronized void ensureDependentModulesResolved() {
+        if (dependentModulesResolved) {
+            return;
+        }
+        try {
+            loadDependentModulesFromCentral();
+        } catch (RuntimeException e) {
+            LOGGER.log(Level.WARNING,
+                    "Failed to resolve dependent modules from Ballerina Central, using hardcoded fallback", e);
+        } finally {
+            dependentModulesResolved = true;
+        }
+    }
+
+    private static void loadDependentModulesFromCentral() {
+        List<String> allVersions = RemoteCentral.getInstance().allPackageVersions(BALLERINA, AI);
+        if (allVersions.isEmpty()) {
+            return;
+        }
+
+        Map<String, List<DependentPackage>> allDeps =
+                RemoteCentral.getInstance().dependentPackages(BALLERINA, AI, allVersions);
+
+        Map<String, List<Module>> resolved = new HashMap<>();
+        for (Map.Entry<String, List<DependentPackage>> entry : allDeps.entrySet()) {
+            List<Module> modules = entry.getValue().stream()
+                    .filter(dep -> BALLERINAX.equals(dep.organization()) && dep.name().startsWith("ai."))
+                    .map(dep -> new Module(dep.organization(), dep.name(), dep.version()))
+                    .toList();
+            if (!modules.isEmpty()) {
+                resolved.put(entry.getKey(), modules);
+            }
+        }
+
+        // Replace the fallback map with fresh data from Central
+        dependentModules.clear();
+        dependentModules.putAll(resolved);
+    }
+
     public static List<Module> getLatestCompatibleModules(String version) {
+        ensureDependentModulesResolved();
         Collection<List<Module>> candidateModules = (version == null)
                 ? dependentModules.values()
                 : dependentModules.entrySet().stream()
@@ -578,66 +641,109 @@ public class AiUtils {
     }
 
     public static List<AvailableNode> getModelProviders(Project project) {
-        String aiModuleVersion = AiUtils.getBallerinaAiModuleVersion(project);
-        if (!cachedModelProviderMap.containsKey(aiModuleVersion)) {
-            buildAiComponentsCache(project);
-        }
-        return cachedModelProviderMap.get(aiModuleVersion);
+        buildCategoryCache(project, MODEL_PROVIDER);
+        return cachedModelProviderMap.getOrDefault(getProjectCacheKey(project), List.of());
     }
 
     public static List<AvailableNode> getEmbeddingProviders(Project project) {
-        String aiModuleVersion = AiUtils.getBallerinaAiModuleVersion(project);
-        if (!cachedEmbeddingProviderMap.containsKey(aiModuleVersion)) {
-            buildAiComponentsCache(project);
-        }
-        return cachedEmbeddingProviderMap.get(aiModuleVersion);
+        buildCategoryCache(project, EMBEDDING_PROVIDER);
+        return cachedEmbeddingProviderMap.getOrDefault(getProjectCacheKey(project), List.of());
     }
 
     public static List<AvailableNode> getVectorStores(Project project) {
-        String aiModuleVersion = AiUtils.getBallerinaAiModuleVersion(project);
-        if (!cachedVectorStoreMap.containsKey(aiModuleVersion)) {
-            buildAiComponentsCache(project);
-        }
-        return cachedVectorStoreMap.get(aiModuleVersion);
+        buildCategoryCache(project, VECTOR_STORE);
+        return cachedVectorStoreMap.getOrDefault(getProjectCacheKey(project), List.of());
     }
 
     public static List<AvailableNode> getChunkers(Project project) {
-        String aiModuleVersion = AiUtils.getBallerinaAiModuleVersion(project);
-        if (!cachedChunkerMap.containsKey(aiModuleVersion)) {
-            buildAiComponentsCache(project);
-        }
-        return cachedChunkerMap.get(aiModuleVersion);
+        buildCategoryCache(project, CHUNKER);
+        return cachedChunkerMap.getOrDefault(getProjectCacheKey(project), List.of());
     }
 
     public static List<AvailableNode> getDataLoaders(Project project) {
-        String aiModuleVersion = AiUtils.getBallerinaAiModuleVersion(project);
-        if (!cachedDataLoaderMap.containsKey(aiModuleVersion)) {
-            buildAiComponentsCache(project);
-        }
-        return cachedDataLoaderMap.get(aiModuleVersion);
+        buildCategoryCache(project, DATA_LOADER);
+        return cachedDataLoaderMap.getOrDefault(getProjectCacheKey(project), List.of());
     }
 
-    private static void buildAiComponentsCache(Project project) {
-        String aiModuleVersion = getBallerinaAiModuleVersion(project);
-        if (cachedDependentModules.contains(aiModuleVersion)) {
+    public static List<AvailableNode> getShortTermMemoryStores(Project project) {
+        buildCategoryCache(project, SHORT_TERM_MEMORY_STORE);
+        return cachedShortTermMemoryStoreMap.getOrDefault(getProjectCacheKey(project), List.of());
+    }
+
+    public static List<AvailableNode> getKnowledgeBases(Project project) {
+        buildCategoryCache(project, KNOWLEDGE_BASE);
+        return cachedKnowledgeBaseMap.getOrDefault(getProjectCacheKey(project), List.of());
+    }
+
+    private static String getProjectCacheKey(Project project) {
+        return project.sourceRoot().toAbsolutePath().toString();
+    }
+
+    /**
+     * Checks if an available node matches the search query by comparing against both the module name and the display
+     * label (case-insensitive).
+     */
+    public static boolean matchesQuery(AvailableNode node, String query) {
+        String lowerQuery = query.toLowerCase(Locale.ROOT);
+        String module = node.codedata().module();
+        String label = node.metadata() != null ? node.metadata().label() : null;
+        return (module != null && module.toLowerCase(Locale.ROOT).contains(lowerQuery))
+                || (label != null && label.toLowerCase(Locale.ROOT).contains(lowerQuery));
+    }
+
+    private static List<Module> pinUserDeclaredVersions(Project project, List<Module> modules) {
+        Map<String, String> userVersions = project.currentPackage().dependenciesToml()
+                .map(DependenciesToml::tomlDocument).map(TomlDocument::toml)
+                .map(toml -> toml.getTables(PACKAGE)).orElse(List.of()).stream()
+                .collect(Collectors.toMap(
+                        pkg -> pkg.get(ORG).map(Object::toString).orElse("") + ":"
+                                + pkg.get(NAME).map(Object::toString).orElse(""),
+                        pkg -> pkg.get(VERSION).map(Objects::toString).orElse(""),
+                        (v1, v2) -> v1
+                ));
+
+        return modules.stream()
+                .map(m -> {
+                    String key = m.org() + ":" + m.name();
+                    String userVersion = userVersions.get(key);
+                    return (userVersion != null && !userVersion.isEmpty())
+                            ? new Module(m.org(), m.name(), userVersion) : m;
+                })
+                .toList();
+    }
+
+    private static synchronized void buildCategoryCache(Project project, NodeKind category) {
+        String cacheKey = getProjectCacheKey(project);
+        // Use resolveAiModuleVersion for internal resolution (falls back to local distribution)
+        String aiModuleVersion = resolveAiModuleVersion(project);
+        Set<NodeKind> completed = completedCategories.computeIfAbsent(cacheKey, k -> new HashSet<>());
+        if (completed.contains(category)) {
             return;
         }
-        List<AvailableNode> cachedModelProviders = new ArrayList<>();
-        List<AvailableNode> cachedEmbeddingProviders = new ArrayList<>();
-        List<AvailableNode> cachedVectorStores = new ArrayList<>();
-        List<AvailableNode> cachedChunkers = new ArrayList<>();
-        List<AvailableNode> cachedDataLoaders = new ArrayList<>();
-        List<ModuleInfo> modules = AiUtils.getLatestCompatibleModules(aiModuleVersion).stream()
+
+        List<Module> allModules = getLatestCompatibleModules(aiModuleVersion);
+        boolean hasDependenciesToml = project.currentPackage().dependenciesToml().isPresent();
+        allModules = pinUserDeclaredVersions(project, allModules);
+        ensureKeywordsLoaded(allModules);
+
+        List<ModuleInfo> modules = allModules.stream()
+                .filter(m -> moduleMatchesCategory(m, category))
                 .map(m -> new ModuleInfo(m.org(), m.name(), m.name(), m.version()))
                 .toList();
+
+        List<AvailableNode> modelProviders = new ArrayList<>();
+        List<AvailableNode> embeddingProviders = new ArrayList<>();
+        List<AvailableNode> vectorStores = new ArrayList<>();
+        List<AvailableNode> chunkers = new ArrayList<>();
+        List<AvailableNode> dataLoaders = new ArrayList<>();
+        List<AvailableNode> shortTermMemoryStores = new ArrayList<>();
+        List<AvailableNode> knowledgeBases = new ArrayList<>();
+
         for (ModuleInfo module : modules) {
-            // The following method call may take additional time if the module is not already available,
-            // as it may need to pull the module first.
             Optional<SemanticModel> semanticModel;
             try {
                 semanticModel = getSemanticModel(module);
             } catch (Exception e) {
-                // Skip modules that fail to load due to dependency resolution or compilation issues
                 continue;
             }
             if (semanticModel.isEmpty()) {
@@ -646,36 +752,98 @@ public class AiUtils {
             Stream<ClassSymbol> classSymbols = semanticModel.get().moduleSymbols().stream()
                     .filter(ClassSymbol.class::isInstance).map(ClassSymbol.class::cast);
 
+            // Include version in codedata only if the project has a Dependencies.toml.
+            // Omitting version (null) means "use latest from Central".
+            String codedataVersion = hasDependenciesToml ? module.version() : null;
+
             for (var classSymbol : classSymbols.toList()) {
                 if (isModelProviderClass(classSymbol)) {
-                    AvailableNode node = buildAvailableNode(classSymbol, module, aiModuleVersion, MODEL_PROVIDER);
-                    cachedModelProviders.add(node);
+                    modelProviders.add(buildAvailableNode(classSymbol, module, codedataVersion, MODEL_PROVIDER));
                 } else if (isEmbeddingProviderClass(classSymbol)) {
-                    AvailableNode node = buildAvailableNode(classSymbol, module, aiModuleVersion, EMBEDDING_PROVIDER);
-                    cachedEmbeddingProviders.add(node);
+                    embeddingProviders.add(buildAvailableNode(classSymbol, module, codedataVersion,
+                            EMBEDDING_PROVIDER));
                 } else if (isVectorStoreClass(classSymbol)) {
-                    AvailableNode node = buildAvailableNode(classSymbol, module, aiModuleVersion, VECTOR_STORE);
-                    cachedVectorStores.add(node);
+                    vectorStores.add(buildAvailableNode(classSymbol, module, codedataVersion, VECTOR_STORE));
                 } else if (isChunkerClass(classSymbol)) {
-                    AvailableNode node = buildAvailableNode(classSymbol, module, aiModuleVersion, CHUNKER);
-                    cachedChunkers.add(node);
+                    chunkers.add(buildAvailableNode(classSymbol, module, codedataVersion, CHUNKER));
                 } else if (isDataLoaderClass(classSymbol)) {
-                    AvailableNode node = buildAvailableNode(classSymbol, module, aiModuleVersion, DATA_LOADER);
-                    cachedDataLoaders.add(node);
+                    dataLoaders.add(buildAvailableNode(classSymbol, module, codedataVersion, DATA_LOADER));
+                } else if (isShortTermMemoryStoreClass(classSymbol)) {
+                    shortTermMemoryStores.add(buildAvailableNode(classSymbol, module, codedataVersion,
+                            SHORT_TERM_MEMORY_STORE));
+                } else if (isKnowledgeBaseClass(classSymbol)) {
+                    knowledgeBases.add(buildAvailableNode(classSymbol, module, codedataVersion, KNOWLEDGE_BASE));
                 }
             }
         }
-        cachedModelProviderMap.put(aiModuleVersion, cachedModelProviders.stream()
-                .sorted(Comparator.comparing(node -> node.codedata().module())).toList());
-        cachedEmbeddingProviderMap.put(aiModuleVersion, cachedEmbeddingProviders.stream()
-                .sorted(Comparator.comparing(node -> node.codedata().module())).toList());
-        cachedVectorStoreMap.put(aiModuleVersion, cachedVectorStores.stream()
-                .sorted(Comparator.comparing(node -> node.codedata().module())).toList());
-        cachedChunkerMap.put(aiModuleVersion, cachedChunkers.stream()
-                .sorted(Comparator.comparing(node -> node.codedata().module())).toList());
-        cachedDataLoaderMap.put(aiModuleVersion, cachedDataLoaders.stream()
-                .sorted(Comparator.comparing(node -> node.codedata().module())).toList());
-        cachedDependentModules.add(aiModuleVersion);
+
+        mergeIntoCache(cachedModelProviderMap, cacheKey, modelProviders);
+        mergeIntoCache(cachedEmbeddingProviderMap, cacheKey, embeddingProviders);
+        mergeIntoCache(cachedVectorStoreMap, cacheKey, vectorStores);
+        mergeIntoCache(cachedChunkerMap, cacheKey, chunkers);
+        mergeIntoCache(cachedDataLoaderMap, cacheKey, dataLoaders);
+        mergeIntoCache(cachedShortTermMemoryStoreMap, cacheKey, shortTermMemoryStores);
+        mergeIntoCache(cachedKnowledgeBaseMap, cacheKey, knowledgeBases);
+
+        completed.add(category);
+    }
+
+    private static void mergeIntoCache(Map<String, List<AvailableNode>> cacheMap,
+                                       String version, List<AvailableNode> newNodes) {
+        if (newNodes.isEmpty()) {
+            return;
+        }
+        List<AvailableNode> sorted = newNodes.stream()
+                .sorted(Comparator.comparing(n -> n.codedata().module())).toList();
+        cacheMap.merge(version, sorted,
+                (existing, incoming) -> Stream.concat(existing.stream(), incoming.stream())
+                        .distinct()
+                        .sorted(Comparator.comparing(n -> n.codedata().module()))
+                        .toList());
+    }
+
+    private static synchronized void ensureKeywordsLoaded(List<Module> allModules) {
+        try {
+            // Only fetch keywords for modules not already in the cache
+            List<DependentPackage> modulesToFetch = allModules.stream()
+                    .filter(m -> BALLERINAX.equals(m.org()) && m.version() != null)
+                    .filter(m -> !moduleKeywordsCache.containsKey(
+                            m.org() + ":" + m.name() + ":" + m.version()))
+                    .map(m -> new DependentPackage(m.org(), m.name(), m.version()))
+                    .toList();
+            if (!modulesToFetch.isEmpty()) {
+                Map<String, List<String>> keywords =
+                        RemoteCentral.getInstance().packageKeywords(modulesToFetch);
+                moduleKeywordsCache.putAll(keywords);
+            }
+        } catch (RuntimeException e) {
+            LOGGER.log(Level.WARNING, "Failed to fetch package keywords from Central, skipping keyword filtering", e);
+        }
+    }
+
+    private static boolean moduleMatchesCategory(Module module, NodeKind category) {
+        // ballerina/ai is always included — it's the core module
+        if (BALLERINA.equals(module.org()) && AI.equals(module.name())) {
+            return true;
+        }
+
+        List<String> filterKeywords = CATEGORY_KEYWORD_FILTERS.get(category);
+        if (filterKeywords == null || filterKeywords.isEmpty()) {
+            // No filter defined for this category — include all modules
+            return true;
+        }
+
+        String key = module.org() + ":" + module.name() + ":" + module.version();
+        List<String> moduleKeywords = moduleKeywordsCache.get(key);
+        if (moduleKeywords == null || moduleKeywords.isEmpty()) {
+            // No keywords available (offline or not fetched) — include the module to be safe
+            return true;
+        }
+
+        // Case-insensitive substring match: does any module keyword contain any filter keyword?
+        return moduleKeywords.stream().anyMatch(kw ->
+                filterKeywords.stream().anyMatch(filter ->
+                        kw.toLowerCase(Locale.ROOT).contains(filter.toLowerCase(Locale.ROOT))));
     }
 
     private static Optional<SemanticModel> getSemanticModel(ModuleInfo module) {
@@ -713,16 +881,30 @@ public class AiUtils {
                 .anyMatch(inclusion -> inclusion.nameEquals(Ai.DATA_LOADER_TYPE_NAME));
     }
 
+    private static boolean isShortTermMemoryStoreClass(ClassSymbol classSymbol) {
+        return classSymbol.getName().isPresent()
+                && classSymbol.typeInclusions().stream()
+                .anyMatch(inclusion -> inclusion.nameEquals(Ai.SHORT_TERM_MEMORY_STORE_TYPE_NAME));
+    }
+
+    private static boolean isKnowledgeBaseClass(ClassSymbol classSymbol) {
+        return classSymbol.getName().isPresent()
+                && classSymbol.typeInclusions().stream()
+                .anyMatch(inclusion -> inclusion.nameEquals(Ai.KNOWLEDGE_BASE_TYPE_NAME));
+    }
+
     private static AvailableNode buildAvailableNode(ClassSymbol classSymbol, ModuleInfo moduleInfo,
-                                                    String aiModuleVersion, NodeKind kind) {
+                                                    String codedataVersion, NodeKind kind) {
         String className = classSymbol.getName().orElse("");
-        String label = buildLabel(moduleInfo.moduleName(), className);
+        String label = getDisplayLabel(classSymbol)
+                .orElseGet(() -> buildLabel(moduleInfo.moduleName(), className));
         String description = classSymbol.documentation()
                 .flatMap(Documentation::description)
                 .orElse(getDefaultNodeLabel(kind, label.split(" ")[0]));
 
-        Metadata metadata = new Metadata.Builder<>(null).label(label).description(description).build();
-        Codedata.Builder<Object> codedataBuilder = new Codedata.Builder<>(null).version(moduleInfo.version())
+        String icon = CommonUtils.generateIcon(moduleInfo.org(), moduleInfo.packageName(), moduleInfo.version());
+        Metadata metadata = new Metadata.Builder<>(null).label(label).description(description).icon(icon).build();
+        Codedata.Builder<Object> codedataBuilder = new Codedata.Builder<>(null).version(codedataVersion)
                 .packageName(moduleInfo.packageName()).module(moduleInfo.moduleName()).org(moduleInfo.org())
                 .node(kind);
 
@@ -734,6 +916,18 @@ public class AiUtils {
         return new AvailableNode(metadata, codedataBuilder.build(), true);
     }
 
+    private static Optional<String> getDisplayLabel(ClassSymbol classSymbol) {
+        return classSymbol.annotAttachments().stream()
+                .filter(a -> a.typeDescriptor().getName().map("display"::equals).orElse(false))
+                .findFirst()
+                .flatMap(AnnotationAttachmentSymbol::attachmentValue)
+                .filter(v -> v.value() instanceof Map)
+                .map(v -> ((Map<?, ?>) v.value()).get("label"))
+                .filter(ConstantValue.class::isInstance)
+                .map(v -> ((ConstantValue) v).value().toString())
+                .filter(label -> !label.isEmpty());
+    }
+
     private static String buildLabel(String moduleName, String className) {
         if (Ai.WSO2_MODEL_PROVIDER_NAME.equals(className)) {
             return "Default Model Provider (WSO2)";
@@ -742,23 +936,25 @@ public class AiUtils {
             return "Default Embedding Provider (WSO2)";
         }
 
-        String providerName = capitalizeFirstChar(moduleName.replaceAll("^ai|\\.", ""));
-        String label = providerName + " " + className;
-        if (className.contains("ModelProvider")) {
-            label = providerName + " " + className.replace("ModelProvider", " Model Provider");
-        } else if (className.contains("EmbeddingProvider")) {
-            label = providerName + " " + className.replace("EmbeddingProvider", " Embedding Provider");
-        } else if (className.contains("VectorStore")) {
-            label = providerName + " " + className.replace("VectorStore", " Vector Store");
-        } else if (className.contains("Chunker")) {
-            label = providerName + " " + className.replace("Chunker", " Chunker");
-        } else if (className.contains("DataLoader")) {
-            label = providerName + " " + className.replace("DataLoader", " Data Loader");
-        }
+        int lastDot = moduleName.lastIndexOf('.');
+        String rawProviderName = lastDot >= 0 ? moduleName.substring(lastDot + 1) : moduleName.replaceAll("^ai", "");
+        String providerName = splitPascalCase(capitalizeFirstChar(rawProviderName));
+        String splitClassName = splitPascalCase(className);
+        String label = (providerName + " " + splitClassName)
+                .replaceAll("(?i)openai", "OpenAI")
+                .replaceAll("(?i)mssql", "MSSQL")
+                .replaceAll("(?i)\\bai\\b", "AI")
+                .replace("Open AI", "OpenAI")
+                .replace("Openrouter", "OpenRouter")
+                .trim().replaceAll("\\s+", " ");
+        return label;
+    }
 
-        return label.replaceAll("(?i)openai", "OpenAI")
-                .replace("GenericRecursive", "Generic Recursive")
-                .replaceAll("^\\s+", "").replaceAll("\\s+", " ");
+    private static String splitPascalCase(String input) {
+        if (input == null || input.isEmpty()) {
+            return input;
+        }
+        return input.replaceAll("(?<=[a-z0-9])(?=[A-Z])", " ");
     }
 
     private static String capitalizeFirstChar(String word) {
@@ -775,6 +971,8 @@ public class AiUtils {
             case VECTOR_STORE -> "Vector store implementation to connect with " + providerName + " vector database.";
             case CHUNKER -> "Splits the provided document.";
             case DATA_LOADER -> "Loads documents from specified data source.";
+            case SHORT_TERM_MEMORY_STORE -> "Short-term memory store for " + providerName + " chat messages.";
+            case KNOWLEDGE_BASE -> "Knowledge base for semantic retrieval and RAG workflows.";
             default -> null;
         };
     }

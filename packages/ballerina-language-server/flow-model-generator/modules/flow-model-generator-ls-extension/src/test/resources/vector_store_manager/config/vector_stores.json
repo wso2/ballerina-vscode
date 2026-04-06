@@ -9,8 +9,9 @@
         "items": [
           {
             "metadata": {
-              "label": "InMemory Vector Store",
-              "description": "An in-memory vector store implementation that provides simple storage for vector entries."
+              "label": "In Memory Vector Store",
+              "description": "An in-memory vector store implementation that provides simple storage for vector entries.",
+              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.0.png"
             },
             "codedata": {
               "node": "VECTOR_STORE",
@@ -25,7 +26,8 @@
           {
             "metadata": {
               "label": "Milvus Vector Store",
-              "description": "Milvus Vector Store implementation with support for Dense, Sparse, and Hybrid vector search modes.\n\nThis class implements the ai:VectorStore interface and integrates with the Milvus vector database\nto provide functionality for vector upsert, query, and deletion.\n"
+              "description": "Milvus Vector Store implementation with support for Dense, Sparse, and Hybrid vector search modes.\n\nThis class implements the ai:VectorStore interface and integrates with the Milvus vector database\nto provide functionality for vector upsert, query, and deletion.\n",
+              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.milvus_1.0.2.png"
             },
             "codedata": {
               "node": "VECTOR_STORE",
@@ -40,7 +42,8 @@
           {
             "metadata": {
               "label": "Pgvector Vector Store",
-              "description": "Pgvector Vector Store implementation with support for Dense, Sparse, and Hybrid vector search modes.\n\nThis class implements the ai:VectorStore interface and integrates with the Pgvector vector database\nto provide functionality for vector upsert, query, and deletion.\n"
+              "description": "Pgvector Vector Store implementation with support for Dense, Sparse, and Hybrid vector search modes.\n\nThis class implements the ai:VectorStore interface and integrates with the Pgvector vector database\nto provide functionality for vector upsert, query, and deletion.\n",
+              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.pgvector_1.0.3.png"
             },
             "codedata": {
               "node": "VECTOR_STORE",
@@ -55,7 +58,8 @@
           {
             "metadata": {
               "label": "Pinecone Vector Store",
-              "description": "Pinecone Vector Store implementation with support for Dense, Sparse, and Hybrid vector search modes.\n\nThis class implements the ai:VectorStore interface and integrates with the Pinecone vector database\nto provide functionality for vector upsert, query, and deletion.\n\n- pineconeClient: Underlying client used to communicate with Pinecone\n- queryMode: The search mode (DENSE, SPARSE, or HYBRID)\n- namespace: Optional namespace to isolate vectors within Pinecone\n- filters: Metadata filters applied during search\n- similarityTopK: Number of top similar vectors to return in queries\n- id: Unique identifier for the vector store instance"
+              "description": "Pinecone Vector Store implementation with support for Dense, Sparse, and Hybrid vector search modes.\n\nThis class implements the ai:VectorStore interface and integrates with the Pinecone vector database\nto provide functionality for vector upsert, query, and deletion.\n\n- pineconeClient: Underlying client used to communicate with Pinecone\n- queryMode: The search mode (DENSE, SPARSE, or HYBRID)\n- namespace: Optional namespace to isolate vectors within Pinecone\n- filters: Metadata filters applied during search\n- similarityTopK: Number of top similar vectors to return in queries\n- id: Unique identifier for the vector store instance",
+              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.pinecone_1.1.2.png"
             },
             "codedata": {
               "node": "VECTOR_STORE",
@@ -70,7 +74,8 @@
           {
             "metadata": {
               "label": "Weaviate Vector Store",
-              "description": "Weaviate Vector Store implementation with support for Dense, Sparse, and Hybrid vector search modes.\n\nThis class implements the ai:VectorStore interface and integrates with the Weaviate vector database\nto provide functionality for vector upsert, query, and deletion.\n"
+              "description": "Weaviate Vector Store implementation with support for Dense, Sparse, and Hybrid vector search modes.\n\nThis class implements the ai:VectorStore interface and integrates with the Weaviate vector database\nto provide functionality for vector upsert, query, and deletion.\n",
+              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.weaviate_1.0.3.png"
             },
             "codedata": {
               "node": "VECTOR_STORE",

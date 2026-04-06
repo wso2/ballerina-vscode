@@ -110,7 +110,7 @@ public class Constants {
         public static final String RECURSIVE_DOCUMENT_CHUNKER_LABEL = "Recursive Document Chunker";
         public static final String AUGMENT_QUERY_LABEL = "Augment Query";
 
-        public static final String KNOWLEDGE_BASE_TYPE_NAME = "VectorKnowledgeBase";
+        public static final String KNOWLEDGE_BASE_TYPE_NAME = "KnowledgeBase";
         public static final String AGENT_TYPE_NAME = "Agent";
 
         public static final String AGENT_RUN_METHOD_NAME = "run";
@@ -123,6 +123,7 @@ public class Constants {
         public static final String VECTOR_STORE_TYPE_NAME = "VectorStore";
         public static final String CHUNKER_TYPE_NAME = "Chunker";
         public static final String DATA_LOADER_TYPE_NAME = "DataLoader";
+        public static final String SHORT_TERM_MEMORY_STORE_TYPE_NAME = "ShortTermMemoryStore";
         public static final String WSO2_MODEL_PROVIDER_NAME = "Wso2ModelProvider";
         public static final String WSO2_EMBEDDING_PROVIDER_NAME = "Wso2EmbeddingProvider";
         public static final String GET_DEFAULT_MODEL_PROVIDER_METHOD = "getDefaultModelProvider";

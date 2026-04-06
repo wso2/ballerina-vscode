@@ -70,7 +70,7 @@
                 "org": "ballerina",
                 "module": "ai",
                 "packageName": "ai",
-                "object": "VectorKnowledgeBase",
+                "object": "KnowledgeBase",
                 "symbol": "init",
                 "data": {
                   "filePath": "tests/test_function_body.bal"

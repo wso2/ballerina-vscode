@@ -10,7 +10,8 @@
           {
             "metadata": {
               "label": "Default Model Provider (WSO2)",
-              "description": "WSO2 model provider implementation that provides chat completion capabilities using WSO2's AI services."
+              "description": "WSO2 model provider implementation that provides chat completion capabilities using WSO2's AI services.",
+              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.0.png"
             },
             "codedata": {
               "node": "MODEL_PROVIDER",
@@ -24,7 +25,8 @@
           {
             "metadata": {
               "label": "Anthropic Model Provider",
-              "description": "Provider is a client class that provides an interface for interacting with Anthropic Large Language Models."
+              "description": "Provider is a client class that provides an interface for interacting with Anthropic Large Language Models.",
+              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.anthropic_1.3.1.png"
             },
             "codedata": {
               "node": "MODEL_PROVIDER",
@@ -39,7 +41,8 @@
           {
             "metadata": {
               "label": "Azure OpenAI Model Provider",
-              "description": "OpenAiProvider is a client class that provides an interface for interacting with Azure-hosted OpenAI language models."
+              "description": "OpenAiProvider is a client class that provides an interface for interacting with Azure-hosted OpenAI language models.",
+              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.azure_1.4.1.png"
             },
             "codedata": {
               "node": "MODEL_PROVIDER",
@@ -54,7 +57,8 @@
           {
             "metadata": {
               "label": "Deepseek Model Provider",
-              "description": "Deepseek is a client class that provides an interface for interacting with Deepseek Large Language Models."
+              "description": "Deepseek is a client class that provides an interface for interacting with Deepseek Large Language Models.",
+              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.deepseek_1.1.1.png"
             },
             "codedata": {
               "node": "MODEL_PROVIDER",
@@ -69,7 +73,8 @@
           {
             "metadata": {
               "label": "Mistral Model Provider",
-              "description": "MistralAiProvider is a client class that provides an interface for interacting with Mistral AI Large Language Models."
+              "description": "MistralAiProvider is a client class that provides an interface for interacting with Mistral AI Large Language Models.",
+              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.mistral_1.2.2.png"
             },
             "codedata": {
               "node": "MODEL_PROVIDER",
@@ -84,7 +89,8 @@
           {
             "metadata": {
               "label": "Ollama Model Provider",
-              "description": "Provider represents a client for interacting with an Ollama language models."
+              "description": "Provider represents a client for interacting with an Ollama language models.",
+              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.ollama_1.2.1.png"
             },
             "codedata": {
               "node": "MODEL_PROVIDER",
@@ -99,7 +105,8 @@
           {
             "metadata": {
               "label": "OpenAI Model Provider",
-              "description": "ModelProvider is a client class that provides an interface for interacting with OpenAI Large Language Models."
+              "description": "ModelProvider is a client class that provides an interface for interacting with OpenAI Large Language Models.",
+              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.openai_1.3.1.png"
             },
             "codedata": {
               "node": "MODEL_PROVIDER",
@@ -113,8 +120,9 @@
           },
           {
             "metadata": {
-              "label": "Openrouter Model Provider",
-              "description": "ModelProvider is a client class that provides an interface for interacting with\nLLMs via the OpenRouter unified API, which supports models from OpenAI, Anthropic,\nGoogle, Meta, Mistral, and many other providers."
+              "label": "OpenRouter Model Provider",
+              "description": "ModelProvider is a client class that provides an interface for interacting with\nLLMs via the OpenRouter unified API, which supports models from OpenAI, Anthropic,\nGoogle, Meta, Mistral, and many other providers.",
+              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.openrouter_1.0.0.png"
             },
             "codedata": {
               "node": "MODEL_PROVIDER",

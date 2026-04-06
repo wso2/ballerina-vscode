@@ -64,7 +64,7 @@
                 "org": "ballerina",
                 "module": "ai",
                 "packageName": "ai",
-                "object": "VectorKnowledgeBase",
+                "object": "KnowledgeBase",
                 "symbol": "init",
                 "version": "1.0.0"
               },

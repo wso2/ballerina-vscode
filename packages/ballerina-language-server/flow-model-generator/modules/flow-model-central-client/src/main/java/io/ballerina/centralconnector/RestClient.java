@@ -136,6 +136,14 @@ class RestClient {
         }
     }
 
+    public List<String> allPackageVersions(String org, String name) {
+        try {
+            return centralClient.getPackageVersions(org, name, supportedPlatform, RepoUtils.getBallerinaVersion());
+        } catch (CentralClientException e) {
+            throw new RuntimeException("Package versions cannot be pulled: " + e.getMessage(), e);
+        }
+    }
+
     public boolean hasAuthorizedAccess() {
         return this.accessToken != null && !this.accessToken.isEmpty();
     }
