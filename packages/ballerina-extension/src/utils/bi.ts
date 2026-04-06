@@ -32,7 +32,8 @@ import {
     STModification,
     SyntaxTreeResponse,
     WorkspaceTomlValues,
-    ValidateProjectFormErrorField
+    ValidateProjectFormErrorField,
+    SuggestedProjectDefaultsResponse
 } from "@wso2/ballerina-core";
 import { StateMachine, history, openView } from "../stateMachine";
 import { applyModifications, modifyFileContent, writeBallerinaFileDidOpen } from "./modification";
@@ -42,6 +43,7 @@ import { debug } from "./logger";
 import { parse } from "@iarna/toml";
 import { getProjectTomlValues, isLibraryProject, VALIDATOR_PACKAGE_NAME } from "./config";
 import { extension } from "../BalExtensionContext";
+import { scheduleMigrationEnhancement, writeEnhanceToml } from "../features/ai/migration/orchestrator";
 import { runBackgroundTerminalCommand } from "./runCommand";
 
 export const README_FILE = "README.md";
@@ -311,12 +313,16 @@ function setupProjectInfo(projectRequest: ProjectRequest): ProcessedProjectInfo 
 export async function createEmptyBIWorkspace(projectRequest: ProjectRequest): Promise<string> {
     const ballerinaTomlContent = `
 [workspace]
+title = "${projectRequest.workspaceName}"
 packages = []
 
 `;
 
     // Use the workspace-specific directory resolver
-    const workspaceRoot = resolveWorkspacePath(projectRequest.projectPath, projectRequest.workspaceName);
+    const workspaceRoot = resolveWorkspacePath(
+        projectRequest.projectPath, 
+        projectRequest?.projectHandle ?? projectRequest.workspaceName
+    );
 
     // Create Ballerina.toml file
     const ballerinaTomlPath = path.join(workspaceRoot, 'Ballerina.toml');
@@ -332,12 +338,16 @@ packages = []
 export async function createBIWorkspaceWithProject(projectRequest: ProjectRequest): Promise<string> {
     const ballerinaTomlContent = `
 [workspace]
-packages = ["${projectRequest.packageName}"]
+title = "${projectRequest.workspaceName}"
+packages = ["${sanitizeName(projectRequest.packageName)}"]
 
 `;
 
     // Use the workspace-specific directory resolver
-    const workspaceRoot = resolveWorkspacePath(projectRequest.projectPath, projectRequest.workspaceName);
+    const workspaceRoot = resolveWorkspacePath(
+        projectRequest.projectPath, 
+        projectRequest?.projectHandle ?? projectRequest.workspaceName
+    );
 
     // Create Ballerina.toml file
     const ballerinaTomlPath = path.join(workspaceRoot, 'Ballerina.toml');
@@ -445,17 +455,25 @@ export async function convertProjectToWorkspace(params: AddProjectToWorkspaceReq
         throw new Error('No package name found in Ballerina.toml');
     }
 
-    const newDirectory = path.join(path.dirname(currentProjectPath), params.workspaceName);
+    const projectDirectoryName = params.projectHandle ?? params.workspaceName;
+    const newDirectory = path.join(path.dirname(currentProjectPath), projectDirectoryName);
 
-    if (!fs.existsSync(newDirectory)) {
-        fs.mkdirSync(newDirectory, { recursive: true });
+    try {
+        fs.mkdirSync(newDirectory);
+    } catch (err: unknown) {
+        const code = (err as NodeJS.ErrnoException).code;
+        if (code === 'EEXIST') {
+            throw new Error(`A directory named "${projectDirectoryName}" already exists at the selected location`);
+        }
+        throw err;
     }
 
     const updatedProjectPath = path.join(newDirectory, path.basename(currentProjectPath));
     fs.renameSync(currentProjectPath, updatedProjectPath);
 
-    createWorkspaceToml(newDirectory, currentPackageName);
-    addToWorkspaceToml(newDirectory, params.packageName);
+    const existingProjectDirName = path.basename(currentProjectPath);
+    createWorkspaceToml(newDirectory, params.workspaceName, existingProjectDirName);
+    addToWorkspaceToml(newDirectory, sanitizeName(params.packageName));
 
     await createProjectInWorkspace(params, newDirectory);
 
@@ -467,14 +485,15 @@ export async function convertProjectToWorkspace(params: AddProjectToWorkspaceReq
 
 export async function addProjectToExistingWorkspace(params: AddProjectToWorkspaceRequest): Promise<void> {
     const workspacePath = StateMachine.context().workspacePath;
-    addToWorkspaceToml(workspacePath, params.packageName);
+    addToWorkspaceToml(workspacePath, sanitizeName(params.packageName));
 
     await createProjectInWorkspace(params, workspacePath);
 }
 
-function createWorkspaceToml(workspacePath: string, packageName: string) {
+function createWorkspaceToml(workspacePath: string, projectTitle: string, packageName: string) {
     const ballerinaTomlContent = `
 [workspace]
+title = "${projectTitle}"
 packages = ["${packageName}"]
 `;
     const ballerinaTomlPath = path.join(workspacePath, 'Ballerina.toml');
@@ -518,11 +537,12 @@ export function deleteProjectFromWorkspace(workspacePath: string, packagePath: s
         const tomlData = parse(ballerinaTomlContent) as Partial<WorkspaceTomlValues>;
         const existingPackages: string[] = tomlData?.workspace?.packages ?? [];
 
-        if (!existingPackages.includes(relativeProjectPath)) {
+        const matchedEntry = existingPackages.find(p => path.normalize(p) === relativeProjectPath);
+        if (!matchedEntry) {
             return; // Package not found
         }
 
-        const updatedContent = removePackageFromToml(ballerinaTomlContent, relativeProjectPath);
+        const updatedContent = removePackageFromToml(ballerinaTomlContent, matchedEntry);
         fs.writeFileSync(ballerinaTomlPath, updatedContent);
 
         // send didChange event to the language server
@@ -589,7 +609,8 @@ async function createProjectInWorkspace(params: AddProjectToWorkspaceRequest, wo
         createDirectory: true,
         orgName: params.orgName,
         version: params.version,
-        isLibrary: params.isLibrary
+        isLibrary: params.isLibrary,
+        projectHandle: params.projectHandle
     };
 
     return await createBIProjectPure(projectRequest);
@@ -638,7 +659,28 @@ export async function createBIProjectFromMigration(params: MigrateRequest) {
     fs.writeFileSync(gitignorePath, gitignoreContent.trim());
 
     debug(`BI project created successfully at ${projectRoot}`);
-    commands.executeCommand('vscode.openFolder', Uri.file(path.resolve(projectRoot)));
+
+    const resolvedRoot = path.resolve(projectRoot);
+    const aiEnabled = params.aiFeatureUsed ?? false;
+
+    // Write the AI enhancement state file – acts as the source of truth for the
+    // migration UI banner.  This is done for ALL values of aiFeatureUsed so
+    // the card can offer a "Start Enhancement" button even when the user skipped.
+    writeEnhanceToml(resolvedRoot, aiEnabled, false, params.sourcePath);
+
+    if (aiEnabled) {
+        // When AI enhancement is enabled, return the project root to the caller
+        // so the wizard can run the enhancement pipeline before opening the folder.
+        // The caller (RPC manager) will notify the webview with the project root
+        // and kick off the agent; vscode.openFolder is deferred until the
+        // enhancement completes or the user skips.
+        return resolvedRoot;
+    }
+
+    // No AI enhancement – open the project immediately.
+    scheduleMigrationEnhancement(aiEnabled, resolvedRoot, params.sourcePath);
+    commands.executeCommand('vscode.openFolder', Uri.file(resolvedRoot));
+    return resolvedRoot;
 }
 
 async function createProjectFiles(project: ProjectMigrationResult, projectRoot: string) {
@@ -786,4 +828,56 @@ export async function handleFunctionCreation(targetFile: string, params: Compone
 // Test_Integration test_integration   Test Integration testIntegration -> testintegration
 export function sanitizeName(name: string): string {
     return name.replace(/[^a-z0-9]_./gi, '_').toLowerCase(); // Replace invalid characters with underscores
+}
+
+export async function getSuggestedProjectDefaults(isInProject: boolean): Promise<SuggestedProjectDefaultsResponse> {
+    const BASE_PROJECT_NAME = "Default";
+    const BASE_INTEGRATION_NAME = "Untitled";
+
+    if (!isInProject) {
+        const currentProjectPath = StateMachine.context().projectPath;
+        const parentDir = path.dirname(currentProjectPath);
+        const tomlValues = await getProjectTomlValues(currentProjectPath);
+        const currentPackageName = tomlValues?.package?.name ?? "";
+
+        const baseHandle = BASE_PROJECT_NAME.toLowerCase();
+        let projectName = BASE_PROJECT_NAME;
+        let projectHandle = baseHandle;
+        if (fs.existsSync(path.join(parentDir, baseHandle))) {
+            for (let i = 2; ; i++) {
+                projectHandle = `${baseHandle}-${i}`;
+                if (!fs.existsSync(path.join(parentDir, projectHandle))) {
+                    projectName = `${BASE_PROJECT_NAME} ${i}`;
+                    break;
+                }
+            }
+        }
+
+        const basePackageName = BASE_INTEGRATION_NAME.toLowerCase();
+        let integrationName = BASE_INTEGRATION_NAME;
+        let packageName = basePackageName;
+        if (packageName === currentPackageName) {
+            for (let i = 2; ; i++) {
+                packageName = `${basePackageName}_${i}`;
+                if (packageName !== currentPackageName) {
+                    integrationName = `${BASE_INTEGRATION_NAME} ${i}`;
+                    break;
+                }
+            }
+        }
+
+        return { projectName, projectHandle, integrationName, packageName };
+    } else {
+        const workspacePath = StateMachine.context().workspacePath;
+        const basePackageName = BASE_INTEGRATION_NAME.toLowerCase();
+        if (!fs.existsSync(path.join(workspacePath, basePackageName))) {
+            return { projectName: BASE_PROJECT_NAME, projectHandle: BASE_PROJECT_NAME.toLowerCase(), integrationName: BASE_INTEGRATION_NAME, packageName: basePackageName };
+        }
+        for (let i = 2; ; i++) {
+            const packageName = `${basePackageName}_${i}`;
+            if (!fs.existsSync(path.join(workspacePath, packageName))) {
+                return { projectName: BASE_PROJECT_NAME, projectHandle: BASE_PROJECT_NAME.toLowerCase(), integrationName: `${BASE_INTEGRATION_NAME} ${i}`, packageName };
+            }
+        }
+    }
 }

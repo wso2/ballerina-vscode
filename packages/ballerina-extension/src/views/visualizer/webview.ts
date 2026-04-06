@@ -40,6 +40,7 @@ export class VisualizerWebview {
     public static readonly biTitle = "WSO2 Integrator";
     private _panel: vscode.WebviewPanel | undefined;
     private _disposables: vscode.Disposable[] = [];
+    private _pendingProjectInfoRefresh = false;
 
     constructor() {
         this._panel = VisualizerWebview.createWebview();
@@ -52,6 +53,10 @@ export class VisualizerWebview {
             if (this._panel) {
                 updateView(refreshTreeView);
             }
+        }, 500);
+
+        const debouncedRefreshWorkspaceProjectInfo = debounce(() => {
+            StateMachine.refreshProjectInfo();
         }, 500);
 
         const debouncedRefreshDataMapper = debounce(async () => {
@@ -81,11 +86,18 @@ export class VisualizerWebview {
             if (document?.contentChanges.length === 0 || !machineReady) { return; }
 
             const balFileModified = document?.document.languageId === LANGUAGE.BALLERINA;
+
             const configTomlModified = document.document.languageId === LANGUAGE.TOML &&
                 document.document.fileName.endsWith("Config.toml") &&
                 vscode.window.visibleTextEditors.some(editor =>
                     editor.document.fileName === document.document.fileName
                 );
+
+            const workspacePath = StateMachine.context().workspacePath;
+            const workspaceBallerinaTomlModified = !!workspacePath &&
+                document.document.languageId === LANGUAGE.TOML &&
+                document.document.fileName === path.join(workspacePath, "Ballerina.toml");
+
             const dataMapperModified = balFileModified &&
                 (
                     StateMachine.context().view === MACHINE_VIEW.InlineDataMapper ||
@@ -95,6 +107,9 @@ export class VisualizerWebview {
 
             if (dataMapperModified) {
                 debouncedRefreshDataMapper();
+            } else if (workspaceBallerinaTomlModified) {
+                // Defer the project info refresh until the webview is active
+                this._pendingProjectInfoRefresh = true;
             } else if ((this._panel?.active || AiPanelWebview.currentPanel?.getWebview()?.active) && balFileModified) {
                 sendUpdateNotificationToWebview();
             } else if (configTomlModified) {
@@ -124,7 +139,12 @@ export class VisualizerWebview {
             const machineReady = typeof state === 'object' && 'viewActive' in state && state.viewActive === "viewReady";
             const popupActive = typeof popupState === 'object' && 'open' in popupState && popupState.open === "active";
             if (this._panel?.active && machineReady && !popupActive) {
-                sendUpdateNotificationToWebview(true);
+                if (this._pendingProjectInfoRefresh) {
+                    this._pendingProjectInfoRefresh = false;
+                    debouncedRefreshWorkspaceProjectInfo();
+                } else {
+                    sendUpdateNotificationToWebview(true);
+                }
             }
         });
 
