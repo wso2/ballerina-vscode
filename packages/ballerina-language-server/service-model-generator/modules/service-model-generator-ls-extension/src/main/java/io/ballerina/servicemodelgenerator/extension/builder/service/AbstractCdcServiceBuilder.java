@@ -220,8 +220,8 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
             // Generate a unique listener variable name
             String listenerVarName = Utils.generateVariableIdentifier(context.semanticModel(), context.document(),
                     context.document().syntaxTree().rootNode().lineRange().endLine(),
-                    advancedSection.getProperties().get(KEY_LISTENER_VAR_NAME).getValue());
-            advancedSection.getProperties().get(KEY_LISTENER_VAR_NAME).setValue(listenerVarName);
+                    listenerConfig.getProperties().get(KEY_LISTENER_VAR_NAME).getValue());
+            listenerConfig.getProperties().get(KEY_LISTENER_VAR_NAME).setValue(listenerVarName);
 
             // Check for existing compatible listeners
             Set<String> compatibleListeners = ListenerUtil.getCompatibleListeners(context.moduleName(),
@@ -612,7 +612,7 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
                 .ballerinaType(SERVICE_CONFIG_ANNOTATION_CONSTRAINT)
                 .setMembers(List.of(new PropertyTypeMemberInfo(
                         SERVICE_CONFIG_ANNOTATION_CONSTRAINT,
-                        "ballerinax:cdc:1.1.0", // TODO: resolve the correct version when there is a value
+                        "ballerinax:cdc:1.3.0", // TODO: resolve the correct version when there is a value
                         CDC_MODULE_NAME,
                         "RECORD_TYPE",
                         true

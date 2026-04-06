@@ -16,10 +16,10 @@
     "displayName": "CDC for Microsoft SQL Server",
     "moduleName": "mssql",
     "orgName": "ballerinax",
-    "version": "1.16.1",
+    "version": "1.17.0",
     "packageName": "mssql",
     "listenerProtocol": "mssql",
-    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mssql_1.16.1.png",
+    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mssql_1.17.0.png",
     "documentation": {
       "metadata": {
         "label": "Description",
@@ -159,7 +159,7 @@
             "typeMembers": [
               {
                 "type": "cdc:CdcServiceConfig",
-                "packageInfo": "ballerinax:cdc:1.1.0",
+                "packageInfo": "ballerinax:cdc:1.3.0",
                 "packageName": "cdc",
                 "kind": "RECORD_TYPE",
                 "selected": true

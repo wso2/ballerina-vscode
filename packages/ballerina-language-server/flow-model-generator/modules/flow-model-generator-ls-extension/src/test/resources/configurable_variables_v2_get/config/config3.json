@@ -4,7 +4,7 @@
     "config_tests/complexconfigs": {
       "": [
         {
-          "id": "38725",
+          "id": "39717",
           "metadata": {
             "label": "Config",
             "description": "Create a configurable variable"
@@ -14,11 +14,11 @@
             "lineRange": {
               "fileName": "main.bal",
               "startLine": {
-                "line": 7,
+                "line": 8,
                 "offset": 0
               },
               "endLine": {
-                "line": 7,
+                "line": 8,
                 "offset": 37
               }
             }
@@ -120,7 +120,7 @@
           "flags": 0
         },
         {
-          "id": "39711",
+          "id": "40703",
           "metadata": {
             "label": "Config",
             "description": "Create a configurable variable"
@@ -130,11 +130,11 @@
             "lineRange": {
               "fileName": "main.bal",
               "startLine": {
-                "line": 8,
+                "line": 9,
                 "offset": 0
               },
               "endLine": {
-                "line": 8,
+                "line": 9,
                 "offset": 31
               }
             }
@@ -244,7 +244,7 @@
           "flags": 0
         },
         {
-          "id": "40706",
+          "id": "41698",
           "metadata": {
             "label": "Config",
             "description": "Create a configurable variable"
@@ -254,11 +254,11 @@
             "lineRange": {
               "fileName": "main.bal",
               "startLine": {
-                "line": 9,
+                "line": 10,
                 "offset": 0
               },
               "endLine": {
-                "line": 9,
+                "line": 10,
                 "offset": 34
               }
             }
@@ -360,7 +360,7 @@
           "flags": 0
         },
         {
-          "id": "41738",
+          "id": "42730",
           "metadata": {
             "label": "Config",
             "description": "Create a configurable variable"
@@ -370,11 +370,11 @@
             "lineRange": {
               "fileName": "main.bal",
               "startLine": {
-                "line": 10,
+                "line": 11,
                 "offset": 0
               },
               "endLine": {
-                "line": 10,
+                "line": 11,
                 "offset": 74
               }
             }
@@ -476,7 +476,7 @@
           "flags": 0
         },
         {
-          "id": "42718",
+          "id": "43710",
           "metadata": {
             "label": "Config",
             "description": "Create a configurable variable"
@@ -486,11 +486,11 @@
             "lineRange": {
               "fileName": "main.bal",
               "startLine": {
-                "line": 11,
+                "line": 12,
                 "offset": 0
               },
               "endLine": {
-                "line": 11,
+                "line": 12,
                 "offset": 62
               }
             }
@@ -584,6 +584,382 @@
               "value": "",
               "optional": true,
               "editable": true,
+              "advanced": false,
+              "hidden": false,
+              "modified": false
+            }
+          },
+          "flags": 0
+        },
+        {
+          "id": "44700",
+          "metadata": {
+            "label": "Config",
+            "description": "Create a configurable variable"
+          },
+          "codedata": {
+            "node": "CONFIG_VARIABLE",
+            "lineRange": {
+              "fileName": "main.bal",
+              "startLine": {
+                "line": 13,
+                "offset": 0
+              },
+              "endLine": {
+                "line": 13,
+                "offset": 60
+              }
+            }
+          },
+          "returning": false,
+          "properties": {
+            "variable": {
+              "metadata": {
+                "label": "Variable Name",
+                "description": "Name of the variable"
+              },
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "scope": "Global",
+                  "selected": true
+                }
+              ],
+              "value": "oauthConfig",
+              "optional": false,
+              "editable": true,
+              "advanced": false,
+              "hidden": false
+            },
+            "type": {
+              "metadata": {
+                "label": "Variable Type",
+                "description": "Type of the variable"
+              },
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "typeMembers": [
+                    {
+                      "type": "RefreshTokenGrantConfig",
+                      "packageInfo": "ballerina:oauth2:2.15.0",
+                      "packageName": "oauth2",
+                      "kind": "RECORD_TYPE",
+                      "selected": false
+                    }
+                  ],
+                  "selected": false
+                }
+              ],
+              "value": "oauth2:RefreshTokenGrantConfig",
+              "placeholder": "var",
+              "optional": false,
+              "editable": true,
+              "advanced": false,
+              "hidden": false
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "Default value of the variable"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
+              "value": "",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": false,
+              "modified": false
+            },
+            "configValue": {
+              "metadata": {
+                "label": "Config Value",
+                "description": "Config value of the variable, to be used in Config.toml"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
+              "value": "{refreshUrl: \"refresh\", refreshToken: \"token\", clientId: \"cid\", clientConfig: {secureSocket: {cert: \"cert\"}, connectTimeout: 10, reqTimeout: 9}}",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": true,
+              "modified": false
+            },
+            "documentation": {
+              "metadata": {
+                "label": "Documentation",
+                "description": "Variable documentation in Markdown format"
+              },
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "selected": true
+                }
+              ],
+              "value": "",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": false,
+              "modified": false
+            }
+          },
+          "flags": 0
+        }
+      ]
+    },
+    "ballerina/oauth2": {
+      "": [
+        {
+          "id": "55689",
+          "metadata": {
+            "label": "Config",
+            "description": "Create a configurable variable"
+          },
+          "codedata": {
+            "node": "CONFIG_VARIABLE",
+            "lineRange": {
+              "fileName": "init.bal",
+              "startLine": {
+                "line": 24,
+                "offset": 0
+              },
+              "endLine": {
+                "line": 26,
+                "offset": 75
+              }
+            }
+          },
+          "returning": false,
+          "properties": {
+            "variable": {
+              "metadata": {
+                "label": "Variable Name",
+                "description": "Name of the variable"
+              },
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "scope": "Global",
+                  "selected": true
+                }
+              ],
+              "value": "globalConnectTimeout",
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "type": {
+              "metadata": {
+                "label": "Variable Type",
+                "description": "Type of the variable"
+              },
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "typeMembers": [
+                    {
+                      "type": "decimal",
+                      "packageInfo": "",
+                      "packageName": "",
+                      "kind": "BASIC_TYPE",
+                      "selected": false
+                    }
+                  ],
+                  "selected": false
+                }
+              ],
+              "value": "decimal",
+              "placeholder": "var",
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "Default value of the variable"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
+              "value": "DEFAULT_CONNECT_TIMEOUT",
+              "optional": true,
+              "editable": false,
+              "advanced": false,
+              "hidden": false,
+              "modified": false
+            },
+            "configValue": {
+              "metadata": {
+                "label": "Config Value",
+                "description": "Config value of the variable, to be used in Config.toml"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
+              "value": "",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": true,
+              "modified": false
+            },
+            "documentation": {
+              "metadata": {
+                "label": "Documentation",
+                "description": "Variable documentation in Markdown format"
+              },
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "selected": true
+                }
+              ],
+              "value": "Represents the maximum time(in seconds) to wait for a connection to be established with the oauth2 endpoint.\nDefaults to 15 seconds. This is a global configuration which will be applied to all the internal oauth2 client calls.",
+              "optional": true,
+              "editable": false,
+              "advanced": false,
+              "hidden": false,
+              "modified": false
+            }
+          },
+          "flags": 0
+        },
+        {
+          "id": "59649",
+          "metadata": {
+            "label": "Config",
+            "description": "Create a configurable variable"
+          },
+          "codedata": {
+            "node": "CONFIG_VARIABLE",
+            "lineRange": {
+              "fileName": "init.bal",
+              "startLine": {
+                "line": 28,
+                "offset": 0
+              },
+              "endLine": {
+                "line": 30,
+                "offset": 67
+              }
+            }
+          },
+          "returning": false,
+          "properties": {
+            "variable": {
+              "metadata": {
+                "label": "Variable Name",
+                "description": "Name of the variable"
+              },
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "scope": "Global",
+                  "selected": true
+                }
+              ],
+              "value": "globalReqTimeout",
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "type": {
+              "metadata": {
+                "label": "Variable Type",
+                "description": "Type of the variable"
+              },
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "typeMembers": [
+                    {
+                      "type": "decimal",
+                      "packageInfo": "",
+                      "packageName": "",
+                      "kind": "BASIC_TYPE",
+                      "selected": false
+                    }
+                  ],
+                  "selected": false
+                }
+              ],
+              "value": "decimal",
+              "placeholder": "var",
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "Default value of the variable"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
+              "value": "DEFAULT_REQ_TIMEOUT",
+              "optional": true,
+              "editable": false,
+              "advanced": false,
+              "hidden": false,
+              "modified": false
+            },
+            "configValue": {
+              "metadata": {
+                "label": "Config Value",
+                "description": "Config value of the variable, to be used in Config.toml"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
+              "value": "",
+              "optional": true,
+              "editable": true,
+              "advanced": false,
+              "hidden": true,
+              "modified": false
+            },
+            "documentation": {
+              "metadata": {
+                "label": "Documentation",
+                "description": "Variable documentation in Markdown format"
+              },
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "selected": true
+                }
+              ],
+              "value": "Represents the maximum time(in seconds) to wait for a response before the oauth2 endpoint request times out.\nDefaults to 30 seconds. This is a global configuration which will be applied to all the internal oauth2 client calls.",
+              "optional": true,
+              "editable": false,
               "advanced": false,
               "hidden": false,
               "modified": false

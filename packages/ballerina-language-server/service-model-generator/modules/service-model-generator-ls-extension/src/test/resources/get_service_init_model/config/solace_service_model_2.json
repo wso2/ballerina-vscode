@@ -37,6 +37,28 @@
                     "description": "Configure the Solace listener"
                   },
                   "properties": {
+                    "listenerVarName": {
+                      "metadata": {
+                        "label": "Listener Name",
+                        "description": "Provide a name for the listener being created"
+                      },
+                      "codedata": {
+                        "argType": "LISTENER_VAR_NAME"
+                      },
+                      "placeholder": "solaceListener",
+                      "value": "solaceListener1",
+                      "types": [
+                        {
+                          "fieldType": "IDENTIFIER",
+                          "ballerinaType": "Listener",
+                          "selected": false
+                        }
+                      ],
+                      "enabled": true,
+                      "editable": true,
+                      "optional": true,
+                      "advanced": false
+                    },
                     "url": {
                       "metadata": {
                         "label": "Broker URL",
@@ -375,28 +397,6 @@
                         "description": ""
                       },
                       "properties": {
-                        "listenerVarName": {
-                          "metadata": {
-                            "label": "Listener Name",
-                            "description": "Provide a name for the listener being created"
-                          },
-                          "codedata": {
-                            "argType": "LISTENER_VAR_NAME"
-                          },
-                          "placeholder": "solaceListener",
-                          "value": "solaceListener1",
-                          "types": [
-                            {
-                              "fieldType": "IDENTIFIER",
-                              "ballerinaType": "Listener",
-                              "selected": false
-                            }
-                          ],
-                          "enabled": true,
-                          "editable": true,
-                          "optional": true,
-                          "advanced": false
-                        },
                         "secureSocket": {
                           "metadata": {
                             "label": "Secure Socket",

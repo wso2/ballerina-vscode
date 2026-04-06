@@ -1,12 +1,12 @@
 {
-  "description": "Add config with its type being from an imported module",
+  "description": "Update the config value of an imported complex record variable with nested inline tables",
   "project": "config_update_test_project",
   "request": {
     "packageName": "config_tests/config_update_test_project",
     "moduleName": "",
     "configFilePath": "config_with_import.bal",
     "configVariable": {
-      "id": "32790",
+      "id": "0",
       "metadata": {
         "label": "Config",
         "description": "Create a configurable variable"
@@ -16,12 +16,12 @@
         "lineRange": {
           "fileName": "config_with_import.bal",
           "startLine": {
-            "line": 3,
+            "line": 4,
             "offset": 0
           },
           "endLine": {
-            "line": 3,
-            "offset": 54
+            "line": 4,
+            "offset": 55
           }
         }
       },
@@ -32,94 +32,66 @@
             "label": "Variable Name",
             "description": "Name of the variable"
           },
-          "types": [
-            {
-              "fieldType": "IDENTIFIER",
-              "scope": "Global",
-              "selected": true
-            }
-          ],
+          "valueType": "IDENTIFIER",
+          "valueTypeConstraint": "Global",
+          "value": "oauthConfig",
           "optional": false,
           "editable": true,
           "advanced": false,
           "hidden": false,
-          "modified": false,
-          "value": "token"
+          "modified": false
         },
         "type": {
           "metadata": {
             "label": "Variable Type",
             "description": "Type of the variable"
           },
-          "types": [
-            {
-              "fieldType": "TYPE",
-              "selected": true
-            }
-          ],
-          "value": "http:CredentialsConfig",
+          "valueType": "TYPE",
+          "value": "oauth2:RefreshTokenGrantConfig",
           "placeholder": "var",
           "optional": false,
           "editable": true,
           "advanced": false,
           "hidden": false,
-          "modified": true,
-          "codedata": {},
-          "imports": {
-            "http": "ballerina/http:2.14.7"
-          }
-        },
-        "configValue": {
-          "metadata": {
-            "label": "Config Value",
-            "description": "Config value of the variable, to be used in Config.toml"
-          },
-          "types": [
-            {
-              "fieldType": "EXPRESSION",
-              "selected": true
-            }
-          ],
-          "value": "",
-          "optional": true,
-          "editable": true,
-          "advanced": false,
-          "hidden": true,
-          "modified": false
+          "modified": false,
+          "codedata": {}
         },
         "defaultValue": {
           "metadata": {
             "label": "Default Value",
             "description": "Default value of the variable"
           },
-          "types": [
-            {
-              "fieldType": "EXPRESSION",
-              "selected": true
-            }
-          ],
+          "valueType": "EXPRESSION",
           "value": "",
+          "optional": true,
+          "editable": true,
+          "advanced": true,
+          "hidden": false,
+          "modified": false
+        },
+        "configValue": {
+          "metadata": {
+            "label": "Config Value",
+            "description": "Config value of the variable, to be used in Config.toml"
+          },
+          "valueType": "EXPRESSION",
           "optional": true,
           "editable": true,
           "advanced": false,
           "hidden": false,
-          "modified": true
+          "modified": true,
+          "value": "{refreshUrl: \"refresh\", refreshToken: \"token\", clientId: \"cid\", clientConfig: {secureSocket: {cert: \"cert\"}, connectTimeout: 10, reqTimeout: 9}}"
         },
         "documentation": {
           "metadata": {
             "label": "Documentation",
-            "description": "Variable documentation in Markdown format"
+            "description": "Variable documentation in Markdown format."
           },
-          "types": [
-            {
-              "fieldType": "TEXT",
-              "selected": true
-            }
-          ],
+          "valueType": "STRING",
           "value": "",
           "optional": true,
           "editable": true,
-          "advanced": false,
+          "advanced": true,
           "hidden": false,
           "modified": false
         }
@@ -129,7 +101,7 @@
   },
   "response": {
     "textEdits": {
-      "config_with_import.bal": [
+      "Config.toml": [
         {
           "range": {
             "start": {
@@ -138,10 +110,10 @@
             },
             "end": {
               "line": 3,
-              "character": 54
+              "character": 0
             }
           },
-          "newText": "configurable http:CredentialsConfig token = ?;"
+          "newText": "oauthConfig = {refreshUrl = \"refresh\", refreshToken = \"token\", clientId = \"cid\", clientConfig = {secureSocket = {cert = \"cert\"}, connectTimeout = 10, reqTimeout = 9}}\n"
         }
       ]
     }
