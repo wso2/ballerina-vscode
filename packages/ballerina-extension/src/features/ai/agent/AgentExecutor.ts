@@ -730,6 +730,34 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         // Update chat state storage
         await this.updateChatState(context, assistantMessages, tempProjectPath);
 
+        // Integrate generated code into workspace immediately so user sees changes during review.
+        // Skip for in-place editing flows (e.g. migration wizard where existingTempPath IS the
+        // real workspace directory — tools already write directly to disk there).
+        const isInPlaceEditing = !!this.config.lifecycle?.existingTempPath;
+        if (!isInPlaceEditing) {
+            const workspaceId = context.ctx.workspacePath || context.ctx.projectPath;
+            const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, 'default');
+            if (pendingReview && pendingReview.reviewState.modifiedFiles.length > 0) {
+                const integrationCtx = { ...context.ctx };
+                // In workspace mode, resolve project path from modified files if not set
+                if (!integrationCtx.projectPath && integrationCtx.workspacePath && pendingReview.reviewState.modifiedFiles.length > 0) {
+                    const firstBalFile = pendingReview.reviewState.modifiedFiles.find(f => f.endsWith('.bal'));
+                    if (firstBalFile) {
+                        const packageName = firstBalFile.split('/')[0];
+                        if (packageName) {
+                            integrationCtx.projectPath = path.join(integrationCtx.workspacePath, packageName);
+                            StateMachine.context().projectPath = integrationCtx.projectPath;
+                        }
+                    }
+                }
+                await integrateCodeToWorkspace(
+                    pendingReview.reviewState.tempProjectPath!,
+                    new Set(pendingReview.reviewState.modifiedFiles),
+                    integrationCtx
+                );
+            }
+        }
+
         // Emit UI events
         await this.emitReviewActions(context);
     }
