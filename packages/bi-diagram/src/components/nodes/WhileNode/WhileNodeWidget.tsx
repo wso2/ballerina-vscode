@@ -140,10 +140,10 @@ export namespace NodeStyles {
             props.hasError
                 ? ThemeColors.ERROR
                 : (props.isSelected || props.selected) && !props.disabled
-                ? ThemeColors.SECONDARY
-                : props.hovered && !props.disabled && !props.readOnly
-                ? ThemeColors.SECONDARY
-                : ThemeColors.OUTLINE_VARIANT};
+                    ? ThemeColors.SECONDARY
+                    : props.hovered && !props.disabled && !props.readOnly
+                        ? ThemeColors.SECONDARY
+                        : ThemeColors.OUTLINE_VARIANT};
         border-radius: 8px;
         background-color: ${(props: NodeStyleProp) =>
             props?.isActiveBreakpoint ? ThemeColors.DEBUGGER_BREAKPOINT_BACKGROUND : ThemeColors.SURFACE_DIM};
@@ -332,6 +332,7 @@ export function WhileNodeWidget(props: WhileNodeWidgetProps) {
                     >
                         {hasBreakpoint && (
                             <div
+                                data-testid={isActiveBreakpoint ? "breakpoint-indicator-diagram-active" : "breakpoint-indicator-diagram"}
                                 style={{
                                     position: "absolute",
                                     left: 1,

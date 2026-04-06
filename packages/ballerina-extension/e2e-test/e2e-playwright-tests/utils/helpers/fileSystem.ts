@@ -17,7 +17,7 @@
  */
 
 import path from "path";
-import { newProjectPath } from "./setup";
+import { newProjectPath, page } from "./setup";
 import fs from "fs";
 
 type FileType = 'agents.bal' | 'config.bal' | 'connections.bal' | 'data_mappings.bal' | 'functions.bal' | 'main.bal' | 'types.bal' | 'automation.bal';
@@ -27,5 +27,20 @@ export namespace FileUtils {
         const filePath = path.join(newProjectPath, fileName);
         fs.mkdirSync(newProjectPath, { recursive: true });
         fs.writeFileSync(filePath, content);
+    }
+
+    /**
+     * Opens a project file in the VS Code editor via Quick Open.
+     * This triggers `textDocument/didOpen` to the language server,
+     * ensuring it picks up on-disk changes made by {@link updateProjectFile}.
+     */
+    export async function openProjectFileInEditor(fileName: FileType) {
+        const modifier = process.platform === 'darwin' ? 'Meta' : 'Control';
+        await page.page.keyboard.press(`${modifier}+p`);
+        await page.page.waitForTimeout(500);
+        await page.page.keyboard.type(fileName);
+        await page.page.waitForTimeout(500);
+        await page.page.keyboard.press('Enter');
+        await page.page.waitForTimeout(1000);
     }
 }
