@@ -34,7 +34,6 @@ export const PALETTE_COMMANDS = {
     FOCUS_EXPLORER: 'ballerinaExplorerTreeView.focus',
     RUN_CMD: 'ballerina.project.run.cmd',
     RUN: 'ballerina.project.run',
-    RUN_CHECK: 'ballerina.project.run.check',
     SAVE_ALL: 'workbench.action.files.saveFiles',
     TEST: 'ballerina.project.test',
     PASTE_JSON_AS_RECORD: 'ballerina.pasteAsRecord',

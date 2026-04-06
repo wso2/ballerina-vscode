@@ -31,23 +31,6 @@ import { Button} from "@wso2/ui-toolkit";
 const HURL_IMPORT_VSCODE_COMMAND = "HTTPClient.importHurlString";
 let sharedRunCheckPromise: Promise<boolean> | undefined;
 
-async function runSharedBallerinaCheck(commonRpcClient: any): Promise<boolean> {
-    if (!sharedRunCheckPromise) {
-        sharedRunCheckPromise = (async () => {
-            try {
-                const result = await commonRpcClient.executeCommand({
-                    commands: ["ballerina.project.run.check"],
-                });
-
-                return result !== false;
-            } finally {
-                sharedRunCheckPromise = undefined;
-            }
-        })();
-    }
-
-    return sharedRunCheckPromise;
-}
 // ── Styled components ─────────────────────────────────────────────────────────
 
 const METHOD_COLORS: Record<string, string> = {
@@ -491,11 +474,6 @@ const TryItCard: React.FC<TryItCardProps> = ({ input, output, rpcClient, loading
 
         try {
             const commonRpcClient = rpcClient.getCommonRpcClient();
-            const canProceed = await runSharedBallerinaCheck(commonRpcClient);
-
-            if (!canProceed) {
-                return;
-            }
 
             await commonRpcClient?.executeCommand?.({
                 commands: ["workbench.action.focusFirstEditorGroup"]
@@ -505,7 +483,9 @@ const TryItCard: React.FC<TryItCardProps> = ({ input, output, rpcClient, loading
                 commands: [
                     HURL_IMPORT_VSCODE_COMMAND,
                     hurlScript,
-                    { viewColumn: "active" }
+                    { viewColumn: "active",
+                      fileName: scenario
+                     }
                 ]
             });
         } catch (e) {
