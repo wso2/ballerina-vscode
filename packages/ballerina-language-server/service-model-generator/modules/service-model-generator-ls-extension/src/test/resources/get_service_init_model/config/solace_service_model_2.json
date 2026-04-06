@@ -14,205 +14,71 @@
       "moduleName": "solace",
       "version": "0.3.0",
       "type": "solace",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_solace_0.3.0.png",
       "properties": {
         "configureListener": {
           "metadata": {
-            "label": "Use Existing Listener",
-            "description": "Use Existing Listener or Create New Listener"
+            "label": "Configure Solace Listener",
+            "description": "Select an existing Solace listener or create a new one"
           },
-          "value": "",
+          "placeholder": "",
+          "value": "1",
           "choices": [
             {
               "metadata": {
-                "label": "Use Existing Listener",
-                "description": "Use Existing Listener"
-              },
-              "value": "true",
-              "properties": {
-                "existingListener": {
-                  "metadata": {
-                    "label": "Select Listener",
-                    "description": "Select from the existing Solace listeners"
-                  },
-                  "value": "solaceListener",
-                  "types": [
-                    {
-                      "fieldType": "SINGLE_SELECT",
-                      "options": [
-                        {
-                          "label": "solaceListener",
-                          "value": "solaceListener"
-                        }
-                      ],
-                      "selected": true
-                    }
-                  ],
-                  "enabled": true,
-                  "editable": true,
-                  "optional": false,
-                  "advanced": false
-                }
-              },
-              "types": [
-                {
-                  "fieldType": "FORM",
-                  "selected": true
-                }
-              ],
-              "enabled": true,
-              "editable": true,
-              "optional": false,
-              "advanced": false
-            },
-            {
-              "metadata": {
-                "label": "Create New Listener",
+                "label": "Create new",
                 "description": "Create a new Solace listener"
               },
+              "placeholder": "true",
               "value": "true",
               "properties": {
-                "listenerVarName": {
+                "listenerConfig": {
                   "metadata": {
-                    "label": "Listener Name",
-                    "description": "Provide a name for the listener being created"
+                    "label": "Listener Configurations",
+                    "description": "Configure the Solace listener"
                   },
-                  "codedata": {
-                    "type": "LISTENER_VAR_NAME"
-                  },
-                  "value": "solaceListener1",
-                  "types": [
-                    {
-                      "fieldType": "IDENTIFIER",
-                      "selected": true
-                    }
-                  ],
-                  "enabled": true,
-                  "editable": true,
-                  "optional": false,
-                  "advanced": true
-                },
-                "url": {
-                  "metadata": {
-                    "label": "Broker URL",
-                    "description": "The Solace broker URL"
-                  },
-                  "codedata": {
-                    "argType": "LISTENER_PARAM_REQUIRED"
-                  },
-                  "placeholder": "\"smf://localhost:55554\"",
-                  "value": "\"smf://localhost:55554\"",
-                  "types": [
-                    {
-                      "fieldType": "TEXT",
-                      "ballerinaType": "string",
-                      "selected": true
-                    },
-                    {
-                      "fieldType": "EXPRESSION",
-                      "ballerinaType": "string",
-                      "selected": false
-                    }
-                  ],
-                  "enabled": true,
-                  "editable": true,
-                  "optional": false,
-                  "advanced": false
-                },
-                "messageVpn": {
-                  "metadata": {
-                    "label": "Message VPN",
-                    "description": "The message VPN to connect to"
-                  },
-                  "codedata": {
-                    "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
-                  },
-                  "placeholder": "\"default\"",
-                  "value": "\"default\"",
-                  "types": [
-                    {
-                      "fieldType": "TEXT",
-                      "ballerinaType": "string",
-                      "selected": true
-                    },
-                    {
-                      "fieldType": "EXPRESSION",
-                      "ballerinaType": "string",
-                      "selected": false
-                    }
-                  ],
-                  "enabled": true,
-                  "editable": true,
-                  "optional": false,
-                  "advanced": false
-                },
-                "authentication": {
-                  "metadata": {
-                    "label": "Authentication",
-                    "description": "Select the authentication method for Solace broker connection"
-                  },
-                  "value": 0,
-                  "choices": [
-                    {
+                  "properties": {
+                    "listenerVarName": {
                       "metadata": {
-                        "label": "Basic Authentication",
-                        "description": "Username and password authentication"
+                        "label": "Listener Name",
+                        "description": "Provide a name for the listener being created"
                       },
-                      "value": "true",
-                      "properties": {
-                        "username": {
-                          "metadata": {
-                            "label": "Username",
-                            "description": "Username for broker authentication"
-                          },
-                          "placeholder": "default",
-                          "value": "\"default\"",
-                          "types": [
-                            {
-                              "fieldType": "TEXT",
-                              "ballerinaType": "string",
-                              "selected": true
-                            },
-                            {
-                              "fieldType": "EXPRESSION",
-                              "ballerinaType": "string",
-                              "selected": false
-                            }
-                          ],
-                          "enabled": true,
-                          "editable": true,
-                          "optional": false,
-                          "advanced": false
-                        },
-                        "password": {
-                          "metadata": {
-                            "label": "Password",
-                            "description": "Password for broker authentication"
-                          },
-                          "placeholder": "",
-                          "value": "",
-                          "types": [
-                            {
-                              "fieldType": "TEXT",
-                              "ballerinaType": "string",
-                              "selected": true
-                            },
-                            {
-                              "fieldType": "EXPRESSION",
-                              "ballerinaType": "string",
-                              "selected": false
-                            }
-                          ],
-                          "enabled": true,
-                          "editable": true,
-                          "optional": true,
-                          "advanced": false
-                        }
+                      "codedata": {
+                        "argType": "LISTENER_VAR_NAME"
                       },
+                      "placeholder": "solaceListener",
+                      "value": "solaceListener1",
                       "types": [
                         {
-                          "fieldType": "FORM",
+                          "fieldType": "IDENTIFIER",
+                          "ballerinaType": "Listener",
+                          "selected": false
+                        }
+                      ],
+                      "enabled": true,
+                      "editable": true,
+                      "optional": true,
+                      "advanced": false
+                    },
+                    "url": {
+                      "metadata": {
+                        "label": "Broker URL",
+                        "description": "The Solace broker URL"
+                      },
+                      "codedata": {
+                        "argType": "LISTENER_PARAM_REQUIRED"
+                      },
+                      "placeholder": "\"smf://localhost:55554\"",
+                      "value": "\"smf://localhost:55554\"",
+                      "types": [
+                        {
+                          "fieldType": "TEXT",
+                          "ballerinaType": "string",
                           "selected": true
+                        },
+                        {
+                          "fieldType": "EXPRESSION",
+                          "ballerinaType": "string",
+                          "selected": false
                         }
                       ],
                       "enabled": true,
@@ -220,130 +86,99 @@
                       "optional": false,
                       "advanced": false
                     },
-                    {
+                    "messageVpn": {
                       "metadata": {
-                        "label": "Kerberos Authentication",
-                        "description": "Kerberos (GSS-KRB) authentication."
+                        "label": "Message VPN",
+                        "description": "The message VPN to connect to"
                       },
-                      "value": "true",
-                      "properties": {
-                        "serviceName": {
-                          "metadata": {
-                            "label": "Service Name",
-                            "description": "Kerberos service name."
-                          },
-                          "placeholder": "solace",
-                          "value": "\"solace\"",
-                          "types": [
-                            {
-                              "fieldType": "TEXT",
-                              "ballerinaType": "string",
-                              "selected": true
-                            },
-                            {
-                              "fieldType": "EXPRESSION",
-                              "ballerinaType": "string",
-                              "selected": false
-                            }
-                          ],
-                          "enabled": true,
-                          "editable": true,
-                          "optional": true,
-                          "advanced": false
-                        },
-                        "jaasLoginContext": {
-                          "metadata": {
-                            "label": "JAAS Login Context",
-                            "description": "JAAS login context name."
-                          },
-                          "placeholder": "SolaceGSS",
-                          "value": "\"SolaceGSS\"",
-                          "types": [
-                            {
-                              "fieldType": "TEXT",
-                              "ballerinaType": "string",
-                              "selected": true
-                            },
-                            {
-                              "fieldType": "EXPRESSION",
-                              "ballerinaType": "string",
-                              "selected": false
-                            }
-                          ],
-                          "enabled": true,
-                          "editable": true,
-                          "optional": true,
-                          "advanced": false
-                        },
-                        "mutualAuthentication": {
-                          "metadata": {
-                            "label": "Mutual Authentication",
-                            "description": "Enable Kerberos mutual authentication."
-                          },
-                          "value": true,
-                          "types": [
-                            {
-                              "fieldType": "FLAG",
-                              "selected": true
-                            }
-                          ],
-                          "enabled": true,
-                          "editable": true,
-                          "optional": true,
-                          "advanced": false
-                        },
-                        "jaasConfigReloadEnabled": {
-                          "metadata": {
-                            "label": "JAAS Config Reload",
-                            "description": "Enable automatic JAAS configuration reload."
-                          },
-                          "value": false,
-                          "types": [
-                            {
-                              "fieldType": "FLAG",
-                              "selected": true
-                            }
-                          ],
-                          "enabled": true,
-                          "editable": true,
-                          "optional": true,
-                          "advanced": false
-                        }
+                      "codedata": {
+                        "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
                       },
+                      "placeholder": "\"default\"",
+                      "value": "\"default\"",
                       "types": [
                         {
-                          "fieldType": "FORM",
+                          "fieldType": "TEXT",
+                          "ballerinaType": "string",
                           "selected": true
+                        },
+                        {
+                          "fieldType": "EXPRESSION",
+                          "ballerinaType": "string",
+                          "selected": false
                         }
                       ],
-                      "enabled": false,
+                      "enabled": true,
                       "editable": true,
                       "optional": false,
                       "advanced": false
                     },
-                    {
+                    "authentication": {
                       "metadata": {
-                        "label": "OAuth 2.0 Authentication",
-                        "description": "OAuth 2.0 token-based authentication"
+                        "label": "Authentication",
+                        "description": "Select the authentication method for Solace broker connection"
                       },
-                      "value": "true",
-                      "properties": {
-                        "issuer": {
+                      "value": 0.0,
+                      "choices": [
+                        {
                           "metadata": {
-                            "label": "Issuer",
-                            "description": "OAuth 2.0 issuer identifier URI"
+                            "label": "Basic Authentication",
+                            "description": "Username and password authentication"
                           },
-                          "placeholder": "https://auth.example.com",
-                          "value": "",
+                          "value": "true",
+                          "properties": {
+                            "username": {
+                              "metadata": {
+                                "label": "Username",
+                                "description": "Username for broker authentication"
+                              },
+                              "placeholder": "default",
+                              "value": "\"default\"",
+                              "types": [
+                                {
+                                  "fieldType": "TEXT",
+                                  "ballerinaType": "string",
+                                  "selected": true
+                                },
+                                {
+                                  "fieldType": "EXPRESSION",
+                                  "ballerinaType": "string",
+                                  "selected": false
+                                }
+                              ],
+                              "enabled": true,
+                              "editable": true,
+                              "optional": false,
+                              "advanced": false
+                            },
+                            "password": {
+                              "metadata": {
+                                "label": "Password",
+                                "description": "Password for broker authentication"
+                              },
+                              "placeholder": "",
+                              "value": "",
+                              "types": [
+                                {
+                                  "fieldType": "TEXT",
+                                  "ballerinaType": "string",
+                                  "selected": true
+                                },
+                                {
+                                  "fieldType": "EXPRESSION",
+                                  "ballerinaType": "string",
+                                  "selected": false
+                                }
+                              ],
+                              "enabled": true,
+                              "editable": true,
+                              "optional": true,
+                              "advanced": false
+                            }
+                          },
                           "types": [
                             {
-                              "fieldType": "TEXT",
-                              "ballerinaType": "string",
-                              "selected": true
-                            },
-                            {
-                              "fieldType": "EXPRESSION",
-                              "ballerinaType": "string",
+                              "fieldType": "FORM",
                               "selected": false
                             }
                           ],
@@ -352,46 +187,244 @@
                           "optional": false,
                           "advanced": false
                         },
-                        "accessToken": {
+                        {
                           "metadata": {
-                            "label": "Access Token",
-                            "description": "OAuth 2.0 access token for authentication"
+                            "label": "Kerberos Authentication",
+                            "description": "Kerberos (GSS-KRB) authentication."
                           },
-                          "placeholder": "",
-                          "value": "",
+                          "value": "true",
+                          "properties": {
+                            "serviceName": {
+                              "metadata": {
+                                "label": "Service Name",
+                                "description": "Kerberos service name."
+                              },
+                              "placeholder": "solace",
+                              "value": "\"solace\"",
+                              "types": [
+                                {
+                                  "fieldType": "TEXT",
+                                  "ballerinaType": "string",
+                                  "selected": true
+                                },
+                                {
+                                  "fieldType": "EXPRESSION",
+                                  "ballerinaType": "string",
+                                  "selected": false
+                                }
+                              ],
+                              "enabled": true,
+                              "editable": true,
+                              "optional": true,
+                              "advanced": false
+                            },
+                            "jaasLoginContext": {
+                              "metadata": {
+                                "label": "JAAS Login Context",
+                                "description": "JAAS login context name."
+                              },
+                              "placeholder": "SolaceGSS",
+                              "value": "\"SolaceGSS\"",
+                              "types": [
+                                {
+                                  "fieldType": "TEXT",
+                                  "ballerinaType": "string",
+                                  "selected": true
+                                },
+                                {
+                                  "fieldType": "EXPRESSION",
+                                  "ballerinaType": "string",
+                                  "selected": false
+                                }
+                              ],
+                              "enabled": true,
+                              "editable": true,
+                              "optional": true,
+                              "advanced": false
+                            },
+                            "mutualAuthentication": {
+                              "metadata": {
+                                "label": "Mutual Authentication",
+                                "description": "Enable Kerberos mutual authentication."
+                              },
+                              "value": true,
+                              "types": [
+                                {
+                                  "fieldType": "FLAG",
+                                  "selected": true
+                                }
+                              ],
+                              "enabled": true,
+                              "editable": true,
+                              "optional": true,
+                              "advanced": false
+                            },
+                            "jaasConfigReloadEnabled": {
+                              "metadata": {
+                                "label": "JAAS Config Reload",
+                                "description": "Enable automatic JAAS configuration reload."
+                              },
+                              "value": false,
+                              "types": [
+                                {
+                                  "fieldType": "FLAG",
+                                  "selected": true
+                                }
+                              ],
+                              "enabled": true,
+                              "editable": true,
+                              "optional": true,
+                              "advanced": false
+                            }
+                          },
                           "types": [
                             {
-                              "fieldType": "TEXT",
-                              "ballerinaType": "string",
-                              "selected": true
-                            },
-                            {
-                              "fieldType": "EXPRESSION",
-                              "ballerinaType": "string",
+                              "fieldType": "FORM",
                               "selected": false
                             }
                           ],
-                          "enabled": true,
+                          "enabled": false,
                           "editable": true,
-                          "optional": true,
+                          "optional": false,
                           "advanced": false
                         },
-                        "oidcToken": {
+                        {
                           "metadata": {
-                            "label": "OIDC Token",
-                            "description": "OpenID Connect ID token for authentication"
+                            "label": "OAuth 2.0 Authentication",
+                            "description": "OAuth 2.0 token-based authentication"
+                          },
+                          "value": "true",
+                          "properties": {
+                            "issuer": {
+                              "metadata": {
+                                "label": "Issuer",
+                                "description": "OAuth 2.0 issuer identifier URI"
+                              },
+                              "placeholder": "https://auth.example.com",
+                              "value": "",
+                              "types": [
+                                {
+                                  "fieldType": "TEXT",
+                                  "ballerinaType": "string",
+                                  "selected": true
+                                },
+                                {
+                                  "fieldType": "EXPRESSION",
+                                  "ballerinaType": "string",
+                                  "selected": false
+                                }
+                              ],
+                              "enabled": true,
+                              "editable": true,
+                              "optional": false,
+                              "advanced": false
+                            },
+                            "accessToken": {
+                              "metadata": {
+                                "label": "Access Token",
+                                "description": "OAuth 2.0 access token for authentication"
+                              },
+                              "placeholder": "",
+                              "value": "",
+                              "types": [
+                                {
+                                  "fieldType": "TEXT",
+                                  "ballerinaType": "string",
+                                  "selected": true
+                                },
+                                {
+                                  "fieldType": "EXPRESSION",
+                                  "ballerinaType": "string",
+                                  "selected": false
+                                }
+                              ],
+                              "enabled": true,
+                              "editable": true,
+                              "optional": true,
+                              "advanced": false
+                            },
+                            "oidcToken": {
+                              "metadata": {
+                                "label": "OIDC Token",
+                                "description": "OpenID Connect ID token for authentication"
+                              },
+                              "placeholder": "",
+                              "value": "",
+                              "types": [
+                                {
+                                  "fieldType": "TEXT",
+                                  "ballerinaType": "string",
+                                  "selected": true
+                                },
+                                {
+                                  "fieldType": "EXPRESSION",
+                                  "ballerinaType": "string",
+                                  "selected": false
+                                }
+                              ],
+                              "enabled": true,
+                              "editable": true,
+                              "optional": true,
+                              "advanced": false
+                            }
+                          },
+                          "types": [
+                            {
+                              "fieldType": "FORM",
+                              "selected": false
+                            }
+                          ],
+                          "enabled": false,
+                          "editable": true,
+                          "optional": false,
+                          "advanced": false
+                        }
+                      ],
+                      "types": [
+                        {
+                          "fieldType": "CHOICE",
+                          "selected": false
+                        }
+                      ],
+                      "enabled": true,
+                      "editable": true,
+                      "optional": false,
+                      "advanced": true
+                    },
+                    "advancedConfigurations": {
+                      "metadata": {
+                        "label": "Advanced Configurations",
+                        "description": ""
+                      },
+                      "properties": {
+                        "secureSocket": {
+                          "metadata": {
+                            "label": "Secure Socket",
+                            "description": "Configure SSL/TLS configuration for secure connection"
+                          },
+                          "codedata": {
+                            "argType": "LISTENER_PARAM_INCLUDED_FIELD"
                           },
                           "placeholder": "",
                           "value": "",
                           "types": [
                             {
-                              "fieldType": "TEXT",
-                              "ballerinaType": "string",
+                              "fieldType": "RECORD_MAP_EXPRESSION",
+                              "ballerinaType": "solace:SecureSocket",
+                              "typeMembers": [
+                                {
+                                  "type": "SecureSocket",
+                                  "packageInfo": "ballerinax:solace:0.3.0",
+                                  "packageName": "solace",
+                                  "kind": "RECORD_TYPE",
+                                  "selected": true
+                                }
+                              ],
                               "selected": true
                             },
                             {
                               "fieldType": "EXPRESSION",
-                              "ballerinaType": "string",
+                              "ballerinaType": "solace:SecureSocket",
                               "selected": false
                             }
                           ],
@@ -403,70 +436,160 @@
                       },
                       "types": [
                         {
-                          "fieldType": "FORM",
-                          "selected": true
+                          "fieldType": "GROUP_SECTION",
+                          "selected": false
                         }
                       ],
-                      "enabled": false,
-                      "editable": true,
+                      "enabled": true,
+                      "editable": false,
                       "optional": false,
                       "advanced": false
                     }
-                  ],
+                  },
                   "types": [
                     {
-                      "fieldType": "CHOICE",
+                      "fieldType": "GROUP_SECTION",
                       "selected": true
                     }
                   ],
                   "enabled": true,
                   "editable": true,
                   "optional": false,
-                  "advanced": true
-                },
-                "secureSocket": {
-                  "metadata": {
-                    "label": "Secure Socket",
-                    "description": "Configure SSL/TLS configuration for secure connection"
-                  },
-                  "codedata": {
-                    "argType": "LISTENER_PARAM_INCLUDED_FIELD"
-                  },
-                  "value": "",
-                  "types": [
-                    {
-                      "fieldType": "RECORD_MAP_EXPRESSION",
-                      "ballerinaType": "solace:SecureSocket",
-                      "typeMembers": [
-                        {
-                          "type": "SecureSocket",
-                          "packageInfo": "ballerinax:solace:0.3.0",
-                          "packageName": "solace",
-                          "kind": "RECORD_TYPE",
-                          "selected": true
-                        }
-                      ],
-                      "selected": true
-                    },
-                    {
-                      "fieldType": "EXPRESSION",
-                      "ballerinaType": "solace:SecureSocket",
-                      "selected": false
-                    }
-                  ],
-                  "enabled": true,
-                  "editable": true,
-                  "optional": true,
-                  "advanced": true
+                  "advanced": false
                 }
               },
               "types": [
                 {
                   "fieldType": "FORM",
-                  "selected": true
+                  "selected": false
                 }
               ],
               "enabled": false,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            {
+              "metadata": {
+                "label": "Use existing",
+                "description": "Select an existing Solace listener"
+              },
+              "placeholder": "true",
+              "value": "true",
+              "properties": {
+                "listenerConfig": {
+                  "metadata": {
+                    "label": "Listener Configurations",
+                    "description": "Configure the Solace listener"
+                  },
+                  "properties": {
+                    "existingListener": {
+                      "metadata": {
+                        "label": "Listener Name",
+                        "description": "Select an existing Solace listener"
+                      },
+                      "value": "solaceListener",
+                      "items": [
+                        "solaceListener"
+                      ],
+                      "properties": {
+                        "solaceListener": {
+                          "metadata": {
+                            "label": "solaceListener",
+                            "description": "Solace source: solaceListener"
+                          },
+                          "value": "solaceListener",
+                          "properties": {
+                            "url": {
+                              "metadata": {
+                                "label": "Broker URL",
+                                "description": "The Solace broker URL"
+                              },
+                              "value": "\"smf://localhost:55554\"",
+                              "types": [
+                                {
+                                  "fieldType": "TEXT",
+                                  "ballerinaType": "string",
+                                  "selected": true
+                                },
+                                {
+                                  "fieldType": "EXPRESSION",
+                                  "ballerinaType": "string",
+                                  "selected": false
+                                }
+                              ],
+                              "enabled": true,
+                              "editable": false,
+                              "optional": false,
+                              "advanced": false
+                            },
+                            "messageVpn": {
+                              "metadata": {
+                                "label": "Message VPN",
+                                "description": "The message VPN to connect to"
+                              },
+                              "value": "\"default\"",
+                              "types": [
+                                {
+                                  "fieldType": "TEXT",
+                                  "ballerinaType": "string",
+                                  "selected": true
+                                },
+                                {
+                                  "fieldType": "EXPRESSION",
+                                  "ballerinaType": "string",
+                                  "selected": false
+                                }
+                              ],
+                              "enabled": true,
+                              "editable": false,
+                              "optional": false,
+                              "advanced": false
+                            }
+                          },
+                          "types": [
+                            {
+                              "fieldType": "FORM",
+                              "selected": true
+                            }
+                          ],
+                          "enabled": true,
+                          "editable": false,
+                          "optional": false,
+                          "advanced": false
+                        }
+                      },
+                      "types": [
+                        {
+                          "fieldType": "SINGLE_SELECT",
+                          "selected": true
+                        }
+                      ],
+                      "enabled": true,
+                      "editable": true,
+                      "optional": false,
+                      "advanced": false
+                    }
+                  },
+                  "types": [
+                    {
+                      "fieldType": "GROUP_SECTION",
+                      "selected": true
+                    }
+                  ],
+                  "enabled": true,
+                  "editable": false,
+                  "optional": false,
+                  "advanced": false
+                }
+              },
+              "types": [
+                {
+                  "fieldType": "FORM",
+                  "selected": false
+                }
+              ],
+              "enabled": true,
               "editable": true,
               "optional": false,
               "advanced": false
@@ -475,20 +598,20 @@
           "types": [
             {
               "fieldType": "CHOICE",
-              "selected": true
+              "selected": false
             }
           ],
           "enabled": true,
           "editable": true,
           "optional": false,
-          "advanced": true
+          "advanced": false
         },
         "destination": {
           "metadata": {
             "label": "Destination",
             "description": "The Solace destination to expect messages from."
           },
-          "value": 0,
+          "value": 0.0,
           "choices": [
             {
               "metadata": {
@@ -525,7 +648,7 @@
               "types": [
                 {
                   "fieldType": "FORM",
-                  "selected": true
+                  "selected": false
                 }
               ],
               "enabled": true,
@@ -609,7 +732,7 @@
               "types": [
                 {
                   "fieldType": "FORM",
-                  "selected": true
+                  "selected": false
                 }
               ],
               "enabled": false,
@@ -621,7 +744,7 @@
           "types": [
             {
               "fieldType": "CHOICE",
-              "selected": true
+              "selected": false
             }
           ],
           "enabled": true,

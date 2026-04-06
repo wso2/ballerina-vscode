@@ -1,0 +1,52 @@
+{
+  "source": "sub_mapping1.bal",
+  "description": "",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "sub_mapping1.bal",
+      "startLine": {
+        "line": 12,
+        "offset": 8
+      },
+      "endLine": {
+        "line": 12,
+        "offset": 63
+      }
+    }
+  },
+  "mapping": {
+    "output": "detail",
+    "inputs": [
+      "input1"
+    ],
+    "expression": "input1",
+    "diagnostics": [
+      {
+        "code": "BCE2066",
+        "message": "incompatible types: expected 'kavindu/hello_world:0.1.0:Detail', found 'kavindu/hello_world:0.1.0:Input1'"
+      }
+    ],
+    "elements": [],
+    "isQueryExpression": false,
+    "isFunctionCall": false
+  },
+  "targetField": "detail",
+  "output": {
+    "sub_mapping1.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 12,
+            "character": 56
+          },
+          "end": {
+            "line": 12,
+            "character": 62
+          }
+        },
+        "newText": "{}"
+      }
+    ]
+  }
+}

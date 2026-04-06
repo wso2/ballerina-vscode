@@ -647,6 +647,29 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
         }
     }
 
+    /**
+     * Recursively unwraps GROUP_SECTION values by promoting their children into the parent map.
+     *
+     * @param properties the properties map to unwrap in-place
+     */
+    protected static void unwrapGroupSections(Map<String, Value> properties) {
+        List<String> groupKeys = new ArrayList<>();
+        Map<String, Value> childProps = new LinkedHashMap<>();
+        for (Map.Entry<String, Value> entry : properties.entrySet()) {
+            Value value = entry.getValue();
+            if (value.getTypes() != null && value.getTypes().stream()
+                    .anyMatch(t -> t.fieldType() == Value.FieldType.GROUP_SECTION)) {
+                groupKeys.add(entry.getKey());
+                if (value.getProperties() != null) {
+                    unwrapGroupSections(value.getProperties());
+                    childProps.putAll(value.getProperties());
+                }
+            }
+        }
+        groupKeys.forEach(properties::remove);
+        properties.putAll(childProps);
+    }
+
     public abstract String kind();
 
     protected record ListenerDTO(String listenerProtocol, String listenerVarName, String listenerDeclaration) {
