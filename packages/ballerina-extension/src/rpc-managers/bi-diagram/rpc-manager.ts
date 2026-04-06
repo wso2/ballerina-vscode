@@ -152,7 +152,9 @@ import {
     Item,
     Category,
     NodePosition,
-    PackageTomlValues
+    PackageTomlValues,
+    UpdateProjectTitleRequest,
+    SuggestedProjectDefaultsResponse
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
@@ -190,8 +192,9 @@ import {
     createBIWorkspaceWithProject,
     createEmptyBIWorkspace,
     deleteProjectFromWorkspace,
-    openInVSCode
-    , validateProjectPath
+    openInVSCode,
+    validateProjectPath,
+    getSuggestedProjectDefaults
 } from "../../utils/bi";
 import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
@@ -702,7 +705,12 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async validateProjectPath(params: ValidateProjectFormRequest): Promise<ValidateProjectFormResponse> {
-        return validateProjectPath(params.projectPath, params.projectName, params.createDirectory, params.createAsWorkspace);
+        // When converting an integtatino/library to a project, the new directory is created as a sibling of the
+        // current integration/library (i.e. under path.dirname(projectPath)), not inside the project itself.
+        const basePath = params.createAsWorkspace
+            ? path.dirname(StateMachine.context().projectPath)
+            : params.projectPath;
+        return validateProjectPath(basePath, params.projectName, params.createDirectory, params.createAsWorkspace);
     }
 
     async deleteProject(params: DeleteProjectRequest): Promise<void> {
@@ -2384,6 +2392,59 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     resolve(undefined);
                 });
         });
+    }
+
+    async updateProjectTitle(params: UpdateProjectTitleRequest): Promise<void> {
+        const ballerinaTomlPath = path.join(params.projectPath, 'Ballerina.toml');
+        let content: string;
+        try {
+            content = fs.readFileSync(ballerinaTomlPath, 'utf-8');
+        } catch {
+            throw new Error(`Ballerina.toml not found at ${ballerinaTomlPath}`);
+        }
+        let doc: ReturnType<typeof toml.parse>;
+        try {
+            doc = toml.parse(content);
+        } catch (e) {
+            const message = e instanceof Error ? e.message : String(e);
+            throw new Error(`Invalid TOML in ${ballerinaTomlPath}: ${message}`);
+        }
+        const workspace = doc.workspace;
+        if (
+            workspace !== undefined &&
+            workspace !== null &&
+            typeof workspace === "object" &&
+            !Array.isArray(workspace) &&
+            !(workspace instanceof Date)
+        ) {
+            (workspace as ReturnType<typeof toml.parse>).title = params.title;
+        } else {
+            doc.workspace = { title: params.title };
+        }
+        fs.writeFileSync(ballerinaTomlPath, toml.stringify(doc), "utf-8");
+
+        const localProjectYamlPath = path.join(params.projectPath, '.choreo', 'local-project.yaml');
+        try {
+            const yamlContent = fs.readFileSync(localProjectYamlPath, 'utf-8');
+            const updatedYaml = yamlContent.replace(
+                /^name\s*:.*$/m,
+                `name: ${JSON.stringify(params.title)}`
+            );
+            fs.writeFileSync(localProjectYamlPath, updatedYaml, 'utf-8');
+        } catch {
+            // file doesn't exist, skip
+        }
+
+        const currentProjectInfo = StateMachine.context().projectInfo;
+        if (currentProjectInfo.projectPath === params.projectPath) {
+            StateMachine.updateProjectInfo({ ...currentProjectInfo, title: params.title });
+        } else {
+            StateMachine.refreshProjectInfo();
+        }
+    }
+
+    async getSuggestedProjectDefaults(params: { isInProject: boolean }): Promise<SuggestedProjectDefaultsResponse> {
+        return getSuggestedProjectDefaults(params.isInProject);
     }
 }
 
