@@ -642,7 +642,7 @@ export function PanelManager(props: PanelManagerProps) {
                 return (
                     <ConnectorErrorView
                         errorMessage={errorMessage}
-                        onBack={onBack}
+                        onRetry={onBack}
                     />
                 );
 

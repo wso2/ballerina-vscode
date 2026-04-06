@@ -51,7 +51,7 @@ const ErrorHeader = styled.div`
     }
 `;
 
-export function ConnectorErrorView({ errorMessage, onBack }: { errorMessage?: string; onBack?: () => void }) {
+export function ConnectorErrorView({ errorMessage, onRetry }: { errorMessage?: string; onRetry?: () => void }) {
     return (
         <ErrorViewContainer role="alert" aria-live="polite">
             <ErrorHeader>
@@ -61,9 +61,9 @@ export function ConnectorErrorView({ errorMessage, onBack }: { errorMessage?: st
             <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
                 {errorMessage || "An error occurred while fetching connection information."}
             </Typography>
-            {onBack && (
-                <Button appearance="secondary" onClick={onBack}>
-                    Go Back
+            {onRetry && (
+                <Button appearance="secondary" onClick={onRetry}>
+                    Retry
                 </Button>
             )}
         </ErrorViewContainer>
