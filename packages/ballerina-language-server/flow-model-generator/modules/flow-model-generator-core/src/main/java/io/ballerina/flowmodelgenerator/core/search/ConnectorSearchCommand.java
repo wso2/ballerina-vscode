@@ -143,10 +143,8 @@ public class ConnectorSearchCommand extends SearchCommand {
     protected List<Item> searchCurrentOrganization(String currentOrg) {
         CentralSearchUtil centralSearch = new CentralSearchUtil(RemoteCentral.getInstance());
         List<SearchResult> organizationConnectors = centralSearch.searchConnectorsByOrganization(
-                currentOrg, query, limit, offset);
-        organizationConnectors.stream()
-                .filter(result -> !isBlacklisted(result.name()))
-                .forEach(searchResult -> rootBuilder.node(generateAvailableNode(searchResult)));
+                currentOrg, query, limit, offset, BLACKLISTED_CONNECTOR_NAME_PATTERNS);
+        organizationConnectors.forEach(searchResult -> rootBuilder.node(generateAvailableNode(searchResult)));
         return rootBuilder.build().items();
     }
 

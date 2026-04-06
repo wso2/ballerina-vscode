@@ -42,6 +42,7 @@ public class CentralSearchUtil {
 
     private static final int OVERFETCH_FACTOR = 3;
     private static final int MAX_FETCH_ITERATIONS = 3;
+    private static final int MAX_FETCH_LIMIT = 1000;
 
     private final CentralAPI centralClient;
 
@@ -63,10 +64,13 @@ public class CentralSearchUtil {
      */
     public List<SearchResult> searchConnectors(String query, int limit, int offset, Set<String> allowedOrgs,
                                                Set<String> blacklistedNamePatterns) {
+        if (allowedOrgs.isEmpty()) {
+            return new ArrayList<>();
+        }
         try {
             List<SearchResult> filteredResults = new ArrayList<>();
             int fetchOffset = 0;
-            int fetchLimit = (limit + offset) * OVERFETCH_FACTOR;
+            int fetchLimit = safeFetchLimit(limit, offset);
             int skipped = 0;
 
             for (int iteration = 0; iteration < MAX_FETCH_ITERATIONS; iteration++) {
@@ -125,7 +129,8 @@ public class CentralSearchUtil {
      * @param offset     the pagination offset
      * @return a list of matching search results from the organization
      */
-    public List<SearchResult> searchConnectorsByOrganization(String currentOrg, String query, int limit, int offset) {
+    public List<SearchResult> searchConnectorsByOrganization(String currentOrg, String query, int limit, int offset,
+                                                             Set<String> blacklistedNamePatterns) {
         List<SearchResult> organizationConnectors = new ArrayList<>();
         Map<String, String> queryMap = new HashMap<>();
         boolean success = false;
@@ -147,6 +152,9 @@ public class CentralSearchUtil {
             if (connectorsResponse != null && connectorsResponse.connectors() != null) {
                 for (Connector connector : connectorsResponse.connectors()) {
                     if (connector == null || connector.packageInfo == null) {
+                        continue;
+                    }
+                    if (isBlacklisted(connector.name, blacklistedNamePatterns)) {
                         continue;
                     }
                     organizationConnectors.add(toSearchResult(connector, true));
@@ -177,7 +185,7 @@ public class CentralSearchUtil {
             String orgQuery = "org:" + currentOrg;
             String baseQuery = query.isEmpty() ? orgQuery : query + " " + orgQuery;
             int fetchOffset = 0;
-            int fetchLimit = (limit + offset) * OVERFETCH_FACTOR;
+            int fetchLimit = safeFetchLimit(limit, offset);
             int skipped = 0;
 
             for (int iteration = 0; iteration < MAX_FETCH_ITERATIONS; iteration++) {
@@ -244,5 +252,10 @@ public class CentralSearchUtil {
 
     private static boolean isBlacklisted(String connectorName, Set<String> patterns) {
         return connectorName != null && patterns.stream().anyMatch(connectorName::contains);
+    }
+
+    private static int safeFetchLimit(int limit, int offset) {
+        long raw = (long) (Math.max(limit, 0) + Math.max(offset, 0)) * OVERFETCH_FACTOR;
+        return (int) Math.min(raw, MAX_FETCH_LIMIT);
     }
 }
