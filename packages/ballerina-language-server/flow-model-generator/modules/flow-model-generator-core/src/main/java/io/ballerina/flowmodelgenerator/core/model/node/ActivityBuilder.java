@@ -22,6 +22,8 @@ import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
+import io.ballerina.modelgenerator.commons.ModuleInfo;
+import io.ballerina.modelgenerator.commons.PackageUtil;
 
 import java.util.Map;
 
@@ -58,6 +60,8 @@ public class ActivityBuilder extends FunctionDefinitionBuilder {
 
     @Override
     public void setConcreteTemplateData(TemplateContext context) {
+        ModuleInfo workflowModuleInfo = new ModuleInfo(WORKFLOW_ORG, WORKFLOW_MODULE, WORKFLOW_MODULE, null);
+        PackageUtil.pullModuleAndNotify(context.lsClientLogger(), workflowModuleInfo);
         properties().functionNameTemplate(ACTIVITY_NAME, context.getAllVisibleSymbolNames(),
                 ACTIVITY_LABEL,
                 ACTIVITY_DESCRIPTION);
