@@ -356,6 +356,12 @@ export enum FUNCTION_TYPE {
     ALL = "all",
 }
 
+export enum VISIBILITY {
+    PUBLIC = "public",
+    PRIVATE = "private",
+    MODULE = "module",
+}
+
 /**
  * Represents the directory structure of artifacts in a project.
  */
@@ -413,7 +419,7 @@ export interface ProjectStructureArtifactResponse {
     position?: NodePosition;
     resources?: ProjectStructureArtifactResponse[];
     isNew?: boolean;
-    isPublic?: boolean;
+    visibility?: VISIBILITY;
 }
 
 export interface UpdatedArtifactsResponse {
