@@ -83,6 +83,7 @@ export const ChatWrapper = styled.div`
     flex-direction: column;
     height: 100vh;
     width: 100%;
+    container-type: inline-size;
 `;
 
 export const ChatContainer = styled.div`
@@ -105,15 +106,15 @@ export const Messages = styled.div`
     padding: 8px 20px;
     height: 100%;
 
-    @media (min-width: 1000px) {
+    @container (min-width: 1000px) {
         padding: 8px 10%;
     }
 
-    @media (min-width: 1600px) {
+    @container (min-width: 1600px) {
         padding: 8px 15%;
     }
 
-    @media (min-width: 2000px) {
+    @container (min-width: 2000px) {
         padding: 8px 20%;
     }
 `;
@@ -342,7 +343,7 @@ const AgentSelectorName = styled.span`
     text-overflow: ellipsis;
     min-width: 0;
 
-    @media (max-width: 500px) {
+    @media (max-width: 400px) {
         display: none;
     }
 `;
@@ -421,7 +422,8 @@ const ModalContent = styled.div<{ maxWidth: string }>(({ maxWidth }: { maxWidth:
     border: `1px solid ${ThemeColors.OUTLINE_VARIANT}`,
     borderRadius: '4px',
     boxShadow: '0 4px 24px rgba(0, 0, 0, 0.4)',
-    width: maxWidth,
+    maxWidth: maxWidth,
+    margin: '0 16px',
     textAlign: 'center'
 }));
 
@@ -466,7 +468,7 @@ interface ClearChatWarningPopupProps {
 
 const ClearChatWarningPopup: React.FC<ClearChatWarningPopupProps> = ({ isOpen, onContinue, onCancel }) => {
     return (
-        <Modal isOpen={isOpen} onClose={onCancel} maxWidth='60%'>
+        <Modal isOpen={isOpen} onClose={onCancel} maxWidth='450px'>
             <p>Are you sure you want to clear the chat? This will remove all messages and cannot be undone.</p>
             <ButtonContainer>
                 <Button
@@ -490,7 +492,8 @@ function toDisplayName(name: string): string {
         .replace(/[-_]/g, ' ')
         .replace(/([a-z])([A-Z])/g, '$1 $2')
         .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
-        .replace(/\b\w/g, c => c.toUpperCase());
+        .replace(/\b\w/g, c => c.toUpperCase())
+        .replace("Agent Chat/", "");
 }
 
 // Preprocess LaTeX delimiters to convert \(...\) and \[...\] to $...$ and $$...$$
@@ -903,7 +906,7 @@ const ChatInterface: React.FC = () => {
                 {messages.length === 0 && (
                     <Watermark>
                         <ChatIcon className="codicon codicon-comment-discussion" />
-                        <WatermarkTitle>{activeAgentName ? `Agent Chat - ${toDisplayName(activeAgentName)}` : 'Agent Chat'}</WatermarkTitle>
+                        <WatermarkTitle>Agent Chat</WatermarkTitle>
                         <WatermarkSubTitle>
                             Use this chat interface to evaluate your AI agent's responses and refine its conversational flow.
                         </WatermarkSubTitle>

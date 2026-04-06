@@ -17,7 +17,7 @@
  */
 
 import { LineRange } from "../../interfaces/common";
-import { DIRECTORY_MAP, Flow, OverviewFlow } from "../../interfaces/bi";
+import { DIRECTORY_MAP, Flow, FlowNode, OverviewFlow } from "../../interfaces/bi";
 import { BallerinaProjectComponents } from "../../interfaces/extended-lang-client";
 import { RemoteFunction, ServiceType } from "../../interfaces/ballerina";
 import { ImportInfo } from "../ai-panel/interfaces";
@@ -165,6 +165,12 @@ export interface CurrentBreakpointsResponse {
 export interface AIChatRequest {
     readme: boolean;
     planMode: boolean;
+}
+
+export interface InlineAgentChatRequest {
+    agentVarName: string;
+    filePath: string;
+    agentNode?: FlowNode;
 }
 
 export interface ImportStatements {

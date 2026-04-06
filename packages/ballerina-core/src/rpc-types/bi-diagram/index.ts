@@ -113,6 +113,7 @@ import {
     BIAiSuggestionsRequest,
     BIAiSuggestionsResponse,
     AIChatRequest,
+    InlineAgentChatRequest,
     BreakpointRequest,
     CurrentBreakpointsResponse,
     FormDidOpenParams,
@@ -173,6 +174,8 @@ export interface BIDiagramAPI {
     deployProject: (params: DeploymentRequest) => Promise<DeploymentResponse>;
     deployWorkspace: (params: WorkspaceDeploymentRequest) => Promise<DeploymentResponse>;
     openAIChat: (params: AIChatRequest) => void;
+    startInlineAgentChat: (params: InlineAgentChatRequest) => void;
+    cleanupAgentChatServices: () => Promise<boolean>;
     getSignatureHelp: (params: SignatureHelpRequest) => Promise<SignatureHelpResponse>;
     buildProject: (mode: BuildMode) => void;
     runProject: () => void;
