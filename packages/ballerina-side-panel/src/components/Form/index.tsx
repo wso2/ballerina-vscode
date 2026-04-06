@@ -583,7 +583,9 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                         }
                     }
 
-                    diagnosticsMap.push({ key: field.key, diagnostics: [] });
+                    const rawDiag = (field.diagnostics as any);
+                    const diagArray = Array.isArray(rawDiag) ? rawDiag : (rawDiag?.diagnostics ?? []);
+                    diagnosticsMap.push({ key: field.key, diagnostics: diagArray });
                 }
 
                 // Handle the case where the name is updated dynamically (e.g., from a sibling field's onValueChange like headerName)
@@ -825,7 +827,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                     continue;
                 }
 
-                let diagnostics: Diagnostic[] = diagnosticsInfoItem.diagnostics || [];
+                let diagnostics: Diagnostic[] = Array.isArray(diagnosticsInfoItem.diagnostics) ? diagnosticsInfoItem.diagnostics : [];
                 if (diagnostics.length === 0) {
                     // Only clear errors that were set by the expression diagnostics system,
                     // not errors set by other validators (e.g., PathEditor)
