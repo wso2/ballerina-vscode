@@ -154,9 +154,9 @@ import {
     Category,
     NodePosition,
     PackageTomlValues,
+    EVENT_TYPE,
     UpdateProjectTitleRequest,
     SuggestedProjectDefaultsResponse,
-    EVENT_TYPE,
     MACHINE_VIEW
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
@@ -1283,23 +1283,19 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async startInlineAgentChat(params: InlineAgentChatRequest): Promise<void> {
         try {
-            // 1. Confirm with the user
             const confirm = await window.showInformationMessage(
                 'This will generate a chat service for this agent in your project.',
                 'Continue',
                 'Cancel'
             );
-            if (confirm !== 'Continue') {
-                return;
-            }
+            if (confirm !== 'Continue') { return; }
 
-            // 2. Call LS to add agent service to _agent_chat.bal
+            const agentChatFile = path.join(path.dirname(params.filePath), '_agent_chat.bal');
+            const fileExisted = fs.existsSync(agentChatFile);
+
             const result: any = await StateMachine.langClient().sendRequest(
                 "agentManager/addAgentChatService",
-                {
-                    filePath: params.filePath,
-                    agentVariableName: params.agentVarName,
-                }
+                { filePath: params.filePath, agentVariableName: params.agentVarName }
             );
 
             if (result.errorMsg) {
@@ -1315,37 +1311,27 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 endColumn: result.endColumn as number,
             };
 
-            // 3. Add _agent_chat.bal to .gitignore
-            const projectRoot = path.dirname(params.filePath);
-            ensureGitignoreEntry(projectRoot);
+            ensureGitignoreEntry(path.dirname(generatedFilePath));
 
-            console.log(`[agent-chat] Service added for ${params.agentVarName} in ${generatedFilePath}`);
-
-            // 4. Notify the LS that the file changed so it reloads before we navigate
+            // Notify LS about the file change so it reloads before navigation
             const fileUri = vscode.Uri.file(generatedFilePath);
             await StateMachine.langClient().sendNotification(
                 'workspace/didChangeWatchedFiles',
-                { changes: [{ uri: fileUri.toString(), type: 2 /* Changed */ }] }
+                { changes: [{ uri: fileUri.toString(), type: fileExisted ? 2 : 1 }] }
             );
 
-            // 5. Navigate the visualizer to the flow diagram of the chat resource function
+            // Navigate to the chat resource function flow diagram
             openView(EVENT_TYPE.OPEN_VIEW, {
-                view: MACHINE_VIEW.BIDiagram,
                 documentUri: generatedFilePath,
                 position: servicePosition,
             });
 
-            // 7. Auto-trigger the Try It / Chat panel
-            //    Pass only serviceMetadata (no resourceMetadata) to avoid OpenAPI-based lookup
-            //    which fails before the project is running.
+            // Auto-trigger the chat panel
             vscode.commands.executeCommand('ballerina.tryIt',
-                false,
-                undefined,
+                false, undefined,
                 { basePath: `/agent-chat/${params.agentVarName}`, listener: 'agentChatListener' },
-                generatedFilePath,
-                true, // autoRun — skip "Run Integration" prompt, start automatically
+                generatedFilePath, true,
             );
-
         } catch (error) {
             window.showErrorMessage(`Failed to set up agent chat: ${error}`);
         }

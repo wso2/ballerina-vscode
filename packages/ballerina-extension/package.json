@@ -772,11 +772,6 @@
                 "enablement": "isSupportedProject"
             },
             {
-                "command": "ballerina.startTraceServer",
-                "title": "Start Trace Server",
-                "category": "Ballerina"
-            },
-            {
                 "command": "ballerina.enableTracing",
                 "title": "Enable Tracing",
                 "category": "Ballerina",

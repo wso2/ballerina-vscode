@@ -227,6 +227,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
     }
 
     const loadEmptyForm = async () => {
+        setSelectedEvalsetFile('');
         const emptyTestFunction = getEmptyTestFunctionModel();
         setTestFunction(emptyTestFunction);
         let formFields = generateFormFields(emptyTestFunction);

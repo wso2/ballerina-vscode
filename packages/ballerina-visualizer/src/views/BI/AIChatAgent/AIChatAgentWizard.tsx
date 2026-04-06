@@ -99,7 +99,7 @@ function toCamelCase(name: string): string {
         lowerFirst = firstWord.charAt(0).toLowerCase() + firstWord.slice(1);
     }
     return lowerFirst
-        + words.slice(1).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join("");
+        + words.slice(1).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join("");
 }
 
 function toBaseName(name: string): string {

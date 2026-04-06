@@ -112,7 +112,7 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
             }
         }
 
-        let selectedService: ServiceInfo;
+        let selectedService: ServiceInfo | undefined;
         // If in resource try it mode, find the service containing the resource path
         if (resourceMetadata) {
             const matchingService = await findServiceForResource(services, resourceMetadata, serviceMetadata);
