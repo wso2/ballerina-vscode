@@ -25,7 +25,6 @@ import com.google.gson.JsonObject;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ClassSymbol;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
-import io.ballerina.compiler.api.symbols.MethodSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.Qualifier;
 import io.ballerina.compiler.api.symbols.Symbol;
@@ -43,7 +42,6 @@ import io.ballerina.flowmodelgenerator.core.model.Category;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.Item;
 import io.ballerina.flowmodelgenerator.core.model.Metadata;
-import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.node.AgentRunBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ChunkerBuilder;
@@ -55,8 +53,6 @@ import io.ballerina.flowmodelgenerator.core.model.node.NPFunctionCall;
 import io.ballerina.flowmodelgenerator.core.model.node.VectorStoreBuilder;
 import io.ballerina.flowmodelgenerator.core.utils.ConnectorUtil;
 import io.ballerina.modelgenerator.commons.CommonUtils;
-import io.ballerina.modelgenerator.commons.FunctionData;
-import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
@@ -76,7 +72,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static io.ballerina.flowmodelgenerator.core.Constants.Ai;
-import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA;
 import static io.ballerina.flowmodelgenerator.core.Constants.NaturalFunctions;
 import static io.ballerina.modelgenerator.commons.CommonUtils.CONNECTOR_TYPE;
 import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST;
@@ -85,7 +80,6 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.getPersistDatabase
 import static io.ballerina.modelgenerator.commons.CommonUtils.getPersistModelFilePath;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiEmbeddingProvider;
-import static io.ballerina.modelgenerator.commons.CommonUtils.isAiKnowledgeBase;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelProvider;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isPersistClient;
 
@@ -102,9 +96,6 @@ public class AvailableNodesGenerator {
     private final Package pkg;
     private final Gson gson;
     private final Path filePath;
-    private static final String HTTP_MODULE = "http";
-    private static final List<String> HTTP_REMOTE_METHOD_SKIP_LIST = List.of("get", "put", "post", "head",
-            "delete", "patch", "options");
     private static final String BALLERINAX = "ballerinax";
     private static final String TEST_MODULE_PREFIX = "test";
     private static final String TEST_CONFIG_ANNOTATION = "Config";
@@ -474,7 +465,6 @@ public class AvailableNodesGenerator {
                 return Optional.empty();
             }
             String parentSymbolName = symbol.getName().orElseThrow();
-            String className = classSymbol.getName().orElseThrow();
             ModuleInfo moduleInfo = classSymbol.getModule()
                     .map(moduleSymbol -> ModuleInfo.from(moduleSymbol.id()))
                     .orElse(null);
@@ -484,94 +474,10 @@ public class AvailableNodesGenerator {
                     PackageUtil.resolveModulePackage(moduleInfo.org(), moduleInfo.packageName(), moduleInfo.version()) :
                     Optional.empty();
 
-            FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
-                    .parentSymbol(classSymbol)
-                    .parentSymbolType(className)
-                    .project(pkg.project())
-                    .moduleInfo(moduleInfo)
-                    .resolvedPackage(resolvedPackage.orElse(null))
-                    .enableIndex();
-
-            // Obtain methods of the classes
-            List<FunctionData> methodFunctionsData = functionDataBuilder.buildChildNodes();
-
-            // Compute tool compatibility for each method using the semantic model (only when requested)
-            if (checkAgentToolCompatibility) {
-                Map<String, MethodSymbol> classMethodSymbols = classSymbol.methods();
-                for (FunctionData methodFunction : methodFunctionsData) {
-                    MethodSymbol methodSymbol = classMethodSymbols.get(methodFunction.name());
-                    if (methodSymbol != null) {
-                        try {
-                            AiUtils.AgentToolCompatibility toolCompat = AiUtils.checkAgentToolCompatibility(
-                                    methodSymbol.qualifiers(), methodSymbol.typeDescriptor(), semanticModel);
-                            methodFunction.setAgentToolCompatible(toolCompat.compatible());
-                        } catch (Throwable ignored) {
-                            // Default to false on failure
-                        }
-                    }
-                }
-            }
-
             Optional<String> persistIcon = isPersistClient(classSymbol, semanticModel)
                     ? getPersistDatabaseIcon(classSymbol) : Optional.empty();
-
-            List<Item> methods = new ArrayList<>();
-            for (FunctionData methodFunction : methodFunctionsData) {
-                String org = methodFunction.org();
-                String packageName = methodFunction.packageName();
-                String version = methodFunction.version();
-                boolean isHttpModule = org.equals(BALLERINA) && packageName.equals(HTTP_MODULE);
-
-                NodeBuilder nodeBuilder;
-                String label;
-                if (methodFunction.kind() == FunctionData.Kind.RESOURCE) {
-                    // TODO: Move this logic to the index
-                    if (isHttpModule && HTTP_REMOTE_METHOD_SKIP_LIST.contains(methodFunction.name())) {
-                        continue;
-                    }
-                    label = methodFunction.name() + (isHttpModule ? "" : methodFunction.resourcePath());
-                    nodeBuilder = NodeBuilder.getNodeFromKind(NodeKind.RESOURCE_ACTION_CALL);
-                } else {
-                    label = methodFunction.name();
-                    FunctionData.Kind kind = methodFunction.kind();
-                    if (kind == FunctionData.Kind.REMOTE) {
-                        nodeBuilder = NodeBuilder.getNodeFromKind(NodeKind.REMOTE_ACTION_CALL);
-                    } else if (isAgentClass(classSymbol) && label.equals(Ai.AGENT_RUN_METHOD_NAME)) {
-                        nodeBuilder = NodeBuilder.getNodeFromKind(NodeKind.AGENT_RUN);
-                    } else if (kind == FunctionData.Kind.FUNCTION && isAiKnowledgeBase(classSymbol)) {
-                        nodeBuilder = NodeBuilder.getNodeFromKind(NodeKind.KNOWLEDGE_BASE_CALL);
-                    } else if (kind == FunctionData.Kind.FUNCTION) {
-                        nodeBuilder = NodeBuilder.getNodeFromKind(NodeKind.METHOD_CALL);
-                    } else {
-                        throw new IllegalStateException("Unexpected value: " + kind);
-                    }
-                }
-
-                String icon = persistIcon.orElse(CommonUtils.generateIcon(org, packageName, version));
-                nodeBuilder
-                        .metadata()
-                        .label(label)
-                        .icon(icon)
-                        .description(methodFunction.description())
-                        .stepOut()
-                        .codedata()
-                        .org(org)
-                        .module(moduleInfo.moduleName())
-                        .packageName(moduleInfo.packageName())
-                        .object(className)
-                        .symbol(methodFunction.name())
-                        .version(version)
-                        .parentSymbol(parentSymbolName)
-                        .resourcePath(methodFunction.resourcePath());
-                if (checkAgentToolCompatibility) {
-                    nodeBuilder.codedata()
-                            .addData("agentToolCompatible", methodFunction.agentToolCompatible());
-                }
-                Item node = nodeBuilder.codedata()
-                        .stepOut()
-                        .buildAvailableNode();
-                methods.add(node);
-            }
+            List<Item> methods = ConnectionActionProvider.getInstance().getActions(classSymbol, parentSymbolName,
+                    pkg.project(), semanticModel, checkAgentToolCompatibility);
 
             Metadata.Builder<?> metadataBuilder = new Metadata.Builder<>(null)
                     .label(parentSymbolName);
