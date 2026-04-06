@@ -844,7 +844,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         isCreatingAgent.current = false;
         setShowProgressIndicator(false);
         setShowProgressSpinner(false);
-        setConnectorErrorMessage(undefined);
         clearNavigationStack();
     };
 
