@@ -731,11 +731,15 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         await this.updateChatState(context, assistantMessages, tempProjectPath);
 
         // Integrate generated code into workspace immediately so user sees changes during review.
-        // Skip for in-place editing flows (e.g. migration wizard where existingTempPath IS the
-        // real workspace directory — tools already write directly to disk there).
-        const isInPlaceEditing = !!this.config.lifecycle?.existingTempPath;
+        // Skip only when the temp path IS the real workspace directory (migration wizard in-place
+        // editing). A review-continuation run also sets existingTempPath but to a temp dir, so we
+        // compare resolved paths rather than just checking existingTempPath presence.
+        const workspaceRoot = context.ctx.workspacePath || context.ctx.projectPath;
+        const isInPlaceEditing =
+            !!workspaceRoot &&
+            path.resolve(tempProjectPath) === path.resolve(workspaceRoot);
         if (!isInPlaceEditing) {
-            const workspaceId = context.ctx.workspacePath || context.ctx.projectPath;
+            const workspaceId = workspaceRoot;
             const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, 'default');
             if (pendingReview && pendingReview.reviewState.modifiedFiles.length > 0) {
                 const integrationCtx = { ...context.ctx };
