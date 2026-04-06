@@ -462,11 +462,13 @@ export function WizardAIEnhancementView() {
             });
     }, [rpcClient]);
 
-    const handleSkipAndOpen = useCallback(() => {
+    const handleSkipAndOpen = useCallback(async () => {
         const client = rpcClient.getMigrateIntegrationRpcClient();
-        client.abortMigrationAgent().catch(() => {
+        try {
+            await client.abortMigrationAgent();
+        } catch {
             /* best effort */
-        });
+        }
         client.openMigratedProject().catch((err: unknown) => {
             console.error(
                 "[WizardAIEnhancementView] openMigratedProject (skip) failed:",
