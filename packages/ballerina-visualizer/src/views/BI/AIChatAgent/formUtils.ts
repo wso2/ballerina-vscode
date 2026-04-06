@@ -240,13 +240,10 @@ export function prepareToolInputFields(fields: FormField[]): FormField[] {
             field.hidden = true;
             return;
         }
-        if (field.codedata?.kind === "PARAM_FOR_TYPE_INFER" && field.key !== "targetType") {
-            field.hidden = true;
-            return;
-        }
-        if (field.key === "targetType") {
+        if (field.codedata?.kind === "PARAM_FOR_TYPE_INFER" || field.key === "targetType") {
             field.optional = true;
             field.advanced = true;
+            field.value = "";
             return;
         }
         if (getPrimaryInputType(field.types)?.fieldType === "TYPE") {
