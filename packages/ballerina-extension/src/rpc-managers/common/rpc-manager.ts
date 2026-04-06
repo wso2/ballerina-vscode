@@ -735,6 +735,14 @@ export class CommonRpcManager implements CommonRPCAPI {
         }
     }
 
+    async getPreferredTryItOption(): Promise<string | undefined> {
+        return extension.context.globalState.get<string>("ballerina.bi.preferredTryItOption");
+    }
+
+    async setPreferredTryItOption(option: string): Promise<void> {
+        await extension.context.globalState.update("ballerina.bi.preferredTryItOption", option);
+    }
+
     async hasCentralPATConfigured(): Promise<boolean> {
         // check if the central PAT is configured in the environment variable
         const token = process.env.BALLERINA_CENTRAL_ACCESS_TOKEN;

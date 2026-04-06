@@ -26,7 +26,8 @@ import {
     ProjectStructureArtifactResponse,
     ComponentInfo,
     ServiceModel,
-    Protocol
+    Protocol,
+    SHARED_COMMANDS
 } from "@wso2/ballerina-core";
 import { buildBaseUrl } from "./buildHurlString";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -51,6 +52,7 @@ import { removeForwardSlashes, canDataBind, getReadableListenerName } from "./ut
 import { DatabindForm } from "./Forms/DatabindForm";
 import { FileIntegrationForm } from "./Forms/FileIntegrationForm";
 import FileIntegrationConfigForm from "./Forms/FileIntegrationForm/FileIntegrationConfigForm";
+import { getTryItAIDefaultPromptService, getTryItDropdownOptions, TryItOptionValue, TryItQuickPickItem } from "../shared/tryIt";
 
 const LoadingContainer = styled.div`
     display: flex;
@@ -223,6 +225,8 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     const [initFunction, setInitFunction] = useState<FunctionModel>(undefined);
     const [selectedFTPHandler, setSelectedFTPHandler] = useState<string>(undefined);
     const [addMore, setAddMore] = useState<boolean>(false);
+    const [selectedTryItOption, setSelectedTryItOption] = useState<TryItOptionValue>(TryItOptionValue.TRY_IT);
+    const [isTryItInProgress, setIsTryItInProgress] = useState<boolean>(false);
 
     const handleCloseInitFunction = () => {
         setInitFunction(undefined);
@@ -283,6 +287,26 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             isMountedRef.current = false;
         };
     }, [position]);
+
+    // Load persisted preferred Try It option on mount (if set)
+    useEffect(() => {
+    (async () => {
+        try {
+            const preferred = await rpcClient.getCommonRpcClient().getPreferredTryItOption();
+
+            if (!isMountedRef.current) return;
+
+            if (
+                preferred === TryItOptionValue.TRY_IT ||
+                preferred === TryItOptionValue.TRY_IT_WITH_AI
+            ) {
+                setSelectedTryItOption(preferred as TryItOptionValue);
+            }
+        } catch (e) {
+            // ignore
+        }
+    })();
+}, [rpcClient]);
 
     const fetchService = (targetPosition: NodePosition) => {
         const lineRange: LineRange = {
@@ -722,18 +746,96 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         setIsNew(false);
     };
 
-    const handleServiceTryIt = () => {
+    const handleServiceTryIt = async () => {
         const basePath = serviceModel.properties?.basePath?.value?.trim();
         const listenerProperty = serviceModel.properties?.listener;
         const listener = (listenerProperty?.value ?? listenerProperty?.values?.[0] ?? '').trim();
 
-        rpcClient.getCommonRpcClient().executeCommand({
+        await rpcClient.getCommonRpcClient().executeCommand({
             commands: ["ballerina.tryIt", false, undefined, { basePath, listener }]
         });
     }
 
+    const handleServiceTryItWithAI = async () => {
+        const basePath = serviceModel.properties?.basePath?.value?.trim();
+        const serviceName = serviceModel.name || "Service";
+
+        const prompt = getTryItAIDefaultPromptService(serviceName, basePath);
+
+        await rpcClient.getCommonRpcClient().executeCommand({
+            commands: [SHARED_COMMANDS.OPEN_AI_PANEL, prompt]
+        });
+    };
+
     const handleExportOAS = () => {
         rpcClient.getServiceDesignerRpcClient().exportOASFile({});
+    };
+
+    const handleTryItDropdownOption = async (option: string) => {
+        if (isTryItInProgress) {
+            return;
+        }
+
+        const selectedOption = option as TryItOptionValue;
+        if (isMountedRef.current) {
+            setSelectedTryItOption(selectedOption);
+            setIsTryItInProgress(true);
+        }
+        await rpcClient.getCommonRpcClient().setPreferredTryItOption(selectedOption).catch((error: unknown) => {
+            console.error("Error saving preferred Try It option:", error);
+        });
+        try {
+            switch (selectedOption) {
+                case TryItOptionValue.TRY_IT:
+                    await handleServiceTryIt();
+                    break;
+                case TryItOptionValue.TRY_IT_WITH_AI:
+                    await handleServiceTryItWithAI();
+                    break;
+            }
+        } finally {
+            if (isMountedRef.current) {
+                setIsTryItInProgress(false);
+            }
+        }
+    };
+
+    const handleTryItPrimaryAction = async () => {
+        if (isTryItInProgress) {
+            return;
+        }
+        let optionToRun = selectedTryItOption;
+        try {
+            const preferredOption = await rpcClient.getCommonRpcClient().getPreferredTryItOption();
+            if (preferredOption === TryItOptionValue.TRY_IT || preferredOption === TryItOptionValue.TRY_IT_WITH_AI) {
+                optionToRun = preferredOption;
+                if (isMountedRef.current) {
+                    setSelectedTryItOption(optionToRun);
+                }
+            } else {
+                const tryItOptions = getTryItDropdownOptions("service").map(option => ({
+                    label: option.title,
+                    description: `(${option.description})`,
+                    value: option.value
+                }));
+                const selected: TryItQuickPickItem = await rpcClient.getCommonRpcClient().showQuickPick({
+                    items: tryItOptions,
+                    options: { title: "Choose how you want to try out your service", placeHolder: "Select an option" }
+                }) as TryItQuickPickItem;
+
+                if (!selected) {
+                    return;
+                }
+                optionToRun = selected.value;
+                if (isMountedRef.current) {
+                    setSelectedTryItOption(optionToRun);
+                }
+                await rpcClient.getCommonRpcClient().setPreferredTryItOption(optionToRun);
+            }
+            await handleTryItDropdownOption(optionToRun);
+        } catch (error) {
+            console.error("Error handling Try It first-time flow:", error);
+        }
     };
 
     const handleAddListener = () => {
@@ -779,6 +881,10 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearchValue(event.target.value);
     };
+
+    const tryItDropdownOptions: DropdownOptionProps[] = getTryItDropdownOptions("service");
+    const activeTryItOption =
+        tryItDropdownOptions.find((option) => option.value === selectedTryItOption) ?? tryItDropdownOptions[0];
 
     const haveServiceTypeName = serviceModel?.properties["serviceTypeName"]?.value;
     const displayServiceName = isFtpService
@@ -865,8 +971,25 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         /> Configure
                                     </Button>
                                     {
-                                        serviceModel && (isHttpService || isMcpService) && (
+                                        serviceModel && (isHttpService) && (
                                             <>
+                                                <AddServiceElementDropdown
+                                                    buttonTitle={activeTryItOption?.title || "Try It"}
+                                                    toolTip="Try Service"
+                                                    defaultOption={selectedTryItOption}
+                                                    onPrimaryAction={handleTryItPrimaryAction}
+                                                    buttonIconName={isTryItInProgress ? "loading" : activeTryItOption?.iconName}
+                                                    buttonIconIsCodicon={isTryItInProgress ? true : activeTryItOption?.iconIsCodicon}
+                                                    showButtonSpinner={isTryItInProgress}
+                                                    onOptionChange={handleTryItDropdownOption}
+                                                    options={tryItDropdownOptions}
+                                                />
+                                            </>
+                                        )
+                                    }
+                                    {
+                                        serviceModel && (isMcpService) && (  
+                                             <>
                                                 <Button appearance="secondary" tooltip="Try Service" onClick={handleServiceTryIt}>
                                                     <><Icon name="play" isCodicon={true} sx={{ marginRight: 8, fontSize: 16 }} /> <ButtonText>Try It</ButtonText></>
                                                 </Button>

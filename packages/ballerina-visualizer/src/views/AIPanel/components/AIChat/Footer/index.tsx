@@ -22,7 +22,7 @@ import { keyframes } from "@emotion/css";
 import AIChatInput, { AIChatInputRef, TagOptions } from "../../AIChatInput";
 import { Input } from "../../AIChatInput/utils/inputUtils";
 import { AIPanelPrompt, Attachment, TemplateId, CodeContext } from "@wso2/ballerina-core";
-import { commandTemplates, suggestedCommandTemplates } from "../../../commandTemplates/data/commandTemplates.const";
+import { commandTemplates, suggestedCommandTemplates as defaultSuggestedCommandTemplates } from "../../../commandTemplates/data/commandTemplates.const";
 import { AttachmentOptions } from "../../AIChatInput/hooks/useAttachments";
 import { getTemplateTextById } from "../../../commandTemplates/utils/utils";
 import CodeContextCard from "../../CodeContextCard";
@@ -149,6 +149,7 @@ type FooterProps = {
     aiChatInputRef: React.RefObject<AIChatInputRef>;
     tagOptions: TagOptions;
     attachmentOptions: AttachmentOptions;
+    suggestedCommandTemplates?: AIPanelPrompt[];
     inputPlaceholder: string;
     onSend: (content: { input: Input[]; attachments: Attachment[]; metadata?: Record<string, any> }) => Promise<void>;
     onStop: () => void;
@@ -171,6 +172,7 @@ const Footer: React.FC<FooterProps> = ({
     aiChatInputRef,
     tagOptions,
     attachmentOptions,
+    suggestedCommandTemplates,
     inputPlaceholder,
     onSend,
     onStop,
@@ -188,6 +190,7 @@ const Footer: React.FC<FooterProps> = ({
     disabled,
     contextUsage,
 }) => {
+    const footerSuggestedCommandTemplates = suggestedCommandTemplates ?? defaultSuggestedCommandTemplates;
     const [animatedText, setAnimatedText] = useState("Generating.");
 
     useEffect(() => {
@@ -215,7 +218,7 @@ const Footer: React.FC<FooterProps> = ({
         <FooterContainer>
             {showSuggestedCommands && (
                 <SuggestedCommandsWrapper>
-                    {suggestedCommandTemplates.map((item, index) => renderPrompt(item, index, aiChatInputRef))}
+                    {footerSuggestedCommandTemplates.map((item, index) => renderPrompt(item, index, aiChatInputRef))}
                 </SuggestedCommandsWrapper>
             )}
             {codeContext && onRemoveCodeContext && (
