@@ -375,14 +375,11 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
         const selectedOption = option as TryItOptionValue;
         if (isMountedRef.current) {
             setSelectedTryItOption(selectedOption);
+            setIsTryItInProgress(true);
         }
         rpcClient.getCommonRpcClient().setPreferredTryItOption(selectedOption).catch((error: unknown) => {
             console.error("Error saving preferred Try It option:", error);
         });
-
-        if (isMountedRef.current) {
-            setIsTryItInProgress(true);
-        }
 
         try {
             switch (selectedOption) {
@@ -422,7 +419,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
             } else {
                 const tryItOptions = getTryItDropdownOptions("resource").map(option => ({
                     label: option.title,
-                    description: option.description,
+                    description: `(${option.description})`,
                     value: option.value
                 }));
                 const selected: TryItQuickPickItem = await rpcClient.getCommonRpcClient().showQuickPick({

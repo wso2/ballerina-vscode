@@ -815,7 +815,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             } else {
                 const tryItOptions = getTryItDropdownOptions("service").map(option => ({
                     label: option.title,
-                    description: option.description,
+                    description: `(${option.description})`,
                     value: option.value
                 }));
                 const selected: TryItQuickPickItem = await rpcClient.getCommonRpcClient().showQuickPick({
