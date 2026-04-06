@@ -83,12 +83,19 @@ public class RecordValueGenerator {
             return;
         }
 
+        // Only applicable for the FTP coordination config's `task:DatabaseConfig` union
+        // type
+        boolean needsExplicitTypeCast = isAmbiguousUnionModulePrefix(union);
         if (union.has("members")) {
             JsonElement members = union.get("members");
             if (members.isJsonArray()) {
                 for (JsonElement member : members.getAsJsonArray()) {
                     JsonObject memberObj = member.getAsJsonObject();
                     if (memberObj.has("selected") && memberObj.get("selected").getAsBoolean()) {
+                        if (needsExplicitTypeCast) {
+                            memberObj.addProperty("explicitTypeCast",
+                                    "task:" + memberObj.get("name").getAsString());
+                        }
                         generateValue(memberObj, builder, indentLevel);
                         break;
                     }
@@ -97,9 +104,35 @@ public class RecordValueGenerator {
         }
     }
 
+    /**
+     * Returns the module prefix for the {@code task:DatabaseConfig} union type used
+     * in the FTP
+     * coordination config, or {@code null} if this is not that union. Both members
+     * ({@code MysqlConfig} and {@code PostgresqlConfig}) are structurally
+     * identical, so the
+     * compiler requires an explicit type cast like {@code <task:MysqlConfig>}.
+     */
+    private static boolean isAmbiguousUnionModulePrefix(JsonObject union) {
+        if (!union.has("name") || !"databaseConfig".equals(union.get("name").getAsString())
+                || !union.has("typeInfo") || !union.get("typeInfo").isJsonObject()) {
+            return false;
+        }
+        JsonObject typeInfo = union.get("typeInfo").getAsJsonObject();
+        if ("task".equals(typeInfo.has("moduleName") ? typeInfo.get("moduleName").getAsString() : null)
+                && "DatabaseConfig".equals(typeInfo.has("name") ? typeInfo.get("name").getAsString() : null)) {
+            return true;
+        }
+        return false;
+    }
+
     private static void generateRecordValue(JsonObject jsonObject, StringBuilder builder, int indentLevel) {
         if (jsonObject.has("selected") && !jsonObject.get("selected").getAsBoolean()) {
             return;
+        }
+
+        // Add explicit type cast if specified (for ambiguous union record types)
+        if (jsonObject.has("explicitTypeCast") && !jsonObject.get("explicitTypeCast").getAsString().isEmpty()) {
+            builder.append("<").append(jsonObject.get("explicitTypeCast").getAsString()).append("> ");
         }
 
         String indent = getIndent(indentLevel);
