@@ -703,7 +703,6 @@ export function PanelManager(props: PanelManagerProps) {
                 return handleOnBackToAddTool;
             case SidePanelView.CONNECTION_SELECT:
             case SidePanelView.CONNECTION_CREATE:
-            case SidePanelView.ERROR:
                 return onBack;
             case SidePanelView.FORM:
                 return !showEditForm ? onBack : undefined;
