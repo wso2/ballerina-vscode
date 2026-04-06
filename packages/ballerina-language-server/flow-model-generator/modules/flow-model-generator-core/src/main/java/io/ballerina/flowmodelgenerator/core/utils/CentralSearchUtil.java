@@ -64,6 +64,8 @@ public class CentralSearchUtil {
      */
     public List<SearchResult> searchConnectors(String query, int limit, int offset, Set<String> allowedOrgs,
                                                Set<String> blacklistedNamePatterns) {
+        limit = Math.max(limit, 0);
+        offset = Math.max(offset, 0);
         if (allowedOrgs.isEmpty()) {
             return new ArrayList<>();
         }
@@ -121,16 +123,22 @@ public class CentralSearchUtil {
     }
 
     /**
-     * Searches connectors within the current organization from Ballerina Central.
+     * Searches connectors from Ballerina Central scoped to the given organization. When the client has authorized
+     * access, user-owned packages are also included in the results. Results matching any of the blacklisted name
+     * patterns are excluded.
      *
-     * @param currentOrg the current organization name
-     * @param query      the search query string
-     * @param limit      the desired number of results
-     * @param offset     the pagination offset
-     * @return a list of matching search results from the organization
+     * @param currentOrg             the organization name to filter by
+     * @param query                  the search query string
+     * @param limit                  the desired number of results
+     * @param offset                 the pagination offset
+     * @param blacklistedNamePatterns the set of connector name patterns to exclude from results
+     * @return a list of matching search results, or an empty list if no organization is provided and the client
+     *         lacks authorized access
      */
     public List<SearchResult> searchConnectorsByOrganization(String currentOrg, String query, int limit, int offset,
                                                              Set<String> blacklistedNamePatterns) {
+        limit = Math.max(limit, 0);
+        offset = Math.max(offset, 0);
         List<SearchResult> organizationConnectors = new ArrayList<>();
         Map<String, String> queryMap = new HashMap<>();
         boolean success = false;
@@ -151,7 +159,7 @@ public class CentralSearchUtil {
             ConnectorsResponse connectorsResponse = centralClient.connectors(queryMap);
             if (connectorsResponse != null && connectorsResponse.connectors() != null) {
                 for (Connector connector : connectorsResponse.connectors()) {
-                    if (connector == null || connector.packageInfo == null) {
+                    if (connector == null || connector.packageInfo == null || connector.name == null) {
                         continue;
                     }
                     if (isBlacklisted(connector.name, blacklistedNamePatterns)) {
@@ -176,6 +184,8 @@ public class CentralSearchUtil {
      */
     public List<SearchResult> searchSymbolsByOrganization(String currentOrg, String query, int limit, int offset,
                                                           Predicate<String> symbolTypeFilter) {
+        limit = Math.max(limit, 0);
+        offset = Math.max(offset, 0);
         List<SearchResult> organizationSymbols = new ArrayList<>();
         if (currentOrg == null || currentOrg.isEmpty()) {
             return organizationSymbols;
@@ -204,6 +214,9 @@ public class CentralSearchUtil {
                 }
 
                 for (SymbolResponse.Symbol symbol : symbolResponse.symbols()) {
+                    if (symbol == null || symbol.symbolType() == null) {
+                        continue;
+                    }
                     if (symbolTypeFilter.test(symbol.symbolType())) {
                         if (skipped < offset) {
                             skipped++;
