@@ -17,7 +17,7 @@
  */
 
 import { useEffect, useRef } from "react";
-import { PanelContainer, NodeList, CardList, ExpressionFormField } from "@wso2/ballerina-side-panel";
+import { PanelContainer, NodeList, CardList, ExpressionFormField, NodeListSkeleton } from "@wso2/ballerina-side-panel";
 import {
     FlowNode,
     LineRange,
@@ -83,7 +83,8 @@ export enum SidePanelView {
     AGENT_MEMORY_MANAGER = "AGENT_MEMORY_MANAGER",
     AGENT_CONFIG = "AGENT_CONFIG",
     AGENT_LIST = "AGENT_LIST",
-    CONNECTOR_ERROR = "CONNECTOR_ERROR",
+    ERROR = "ERROR",
+    LOADING = "LOADING",
     ALL = "ALL"
 }
 
@@ -639,13 +640,16 @@ export function PanelManager(props: PanelManagerProps) {
                     />
                 );
 
-            case SidePanelView.CONNECTOR_ERROR:
+            case SidePanelView.ERROR:
                 return (
                     <ConnectorErrorView
                         errorMessage={errorMessage}
-                        onBack={onBack}
+                        onRetry={onBack}
                     />
                 );
+
+            case SidePanelView.LOADING:
+                return <NodeListSkeleton />;
 
             case SidePanelView.FORM:
                 return (
@@ -701,7 +705,6 @@ export function PanelManager(props: PanelManagerProps) {
                 return handleOnBackToAddTool;
             case SidePanelView.CONNECTION_SELECT:
             case SidePanelView.CONNECTION_CREATE:
-            case SidePanelView.CONNECTOR_ERROR:
                 return onBack;
             case SidePanelView.FORM:
                 return !showEditForm ? onBack : undefined;

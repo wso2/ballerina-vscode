@@ -119,6 +119,8 @@ type NodePromptLaunchOptions = {
     planMode?: boolean;
 };
 
+const SIDE_PANEL_DEFAULT_ERROR_MESSAGE = "Error while performing the action.";
+
 export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const { projectPath, breakpointState, syntaxTree, onUpdate, onReady, onSave } = props;
     const { rpcClient } = useRpcContext();
@@ -145,7 +147,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const [projectOrg, setProjectOrg] = useState<string>("");
     const [entrypointContext, setEntrypointContext] = useState<{ serviceName?: string; functionName?: string }>();
     const [isUserAuthenticated, setIsUserAuthenticated] = useState<boolean>(false);
-    const [connectorErrorMessage, setConnectorErrorMessage] = useState<string | undefined>(undefined);
+    const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
     // Navigation stack for back navigation
     const [navigationStack, setNavigationStack] = useState<NavigationStackItem[]>([]);
 
@@ -838,10 +840,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         isCreatingNewVectorKnowledgeBase.current = false;
         isCreatingNewDataLoader.current = false;
         isCreatingNewChunker.current = false;
+        setErrorMessage(undefined);
         isCreatingAgent.current = false;
         setShowProgressIndicator(false);
         setShowProgressSpinner(false);
-        setConnectorErrorMessage(undefined);
         clearNavigationStack();
     };
 
@@ -873,7 +875,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         parent: FlowNode | Branch,
         target: LineRange,
         fetchAiSuggestions = true,
-        updateFlowModel = true
+        updateFlowModel = true,
+        isOnAddNode = false
     ) => {
         if (!parent || !target) {
             console.error(">>> No parent or target found");
@@ -890,6 +893,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             const modelWithDraft = addDraftNode(parent, target);
             setModel(modelWithDraft);
         }
+        setShowSidePanel(true);
+        isOnAddNode && setSidePanelView(SidePanelView.LOADING);
         rpcClient
             .getBIDiagramRpcClient()
             .getAvailableNodes(getNodeRequest)
@@ -897,6 +902,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 console.log(">>> Available nodes", response);
                 if (!response.categories) {
                     console.error(">>> Error getting available nodes", response);
+                    setErrorMessage(SIDE_PANEL_DEFAULT_ERROR_MESSAGE);
+                    setSidePanelView(SidePanelView.ERROR);
                     return;
                 }
 
@@ -908,7 +915,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 let finalCategories = convertedCategories;
                 initialCategoriesRef.current = convertedCategories;
 
-                setShowSidePanel(true);
                 setSidePanelView(SidePanelView.NODE_LIST);
                 setCategories(convertedCategories);
             })
@@ -951,7 +957,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         // handle add new node
         topNodeRef.current = parent;
         changeTargetRange(target)
-        fetchNodesAndAISuggestions(parent, target);
+        fetchNodesAndAISuggestions(parent, target, undefined, undefined, true);
     };
 
     const handleOnAddNodePrompt = (
@@ -1104,9 +1110,15 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         }
     }, [rpcClient, model?.fileName]);
 
+    const handleRetryNodeFetch = () => {
+        if (topNodeRef.current && targetRef.current) {
+            fetchNodesAndAISuggestions(topNodeRef.current, targetRef.current, false, false, true);
+        }
+    };
+
     const showConnectorError = () => {
-        setConnectorErrorMessage("An unexpected error occurred while fetching connection information.");
-        setSidePanelView(SidePanelView.CONNECTOR_ERROR);
+        setErrorMessage(SIDE_PANEL_DEFAULT_ERROR_MESSAGE);
+        setSidePanelView(SidePanelView.ERROR);
         setShowSidePanel(true);
     }
 
@@ -1496,7 +1508,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     });
                 break;
 
-                default:
+            default:
                 // default node
                 selectedClientName.current = category;
                 setShowProgressIndicator(true);
@@ -1839,8 +1851,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 setShowSidePanel(true);
             })
             .catch(() => {
-                setConnectorErrorMessage("An unexpected error occurred while fetching connection information.");
-                setSidePanelView(SidePanelView.CONNECTOR_ERROR);
+                setErrorMessage(SIDE_PANEL_DEFAULT_ERROR_MESSAGE);
+                setSidePanelView(SidePanelView.ERROR);
                 setShowSidePanel(true);
             })
             .finally(() => {
@@ -2879,7 +2891,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 // Regular callbacks
                 onClose={handleOnCloseSidePanel}
                 onSaveAndRefresh={closeSidePanelAndFetchUpdatedFlowModel}
-                onBack={handleOnFormBack}
+                onBack={sidePanelView === SidePanelView.ERROR ? handleRetryNodeFetch : handleOnFormBack}
                 onSelectNode={handleOnSelectNode}
                 // Add node callbacks
                 onAddConnection={handleOnAddConnection}
@@ -2921,7 +2933,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 onSelectConnectorPopup={handleOnSelectConnectorConfiguration}
                 selectedMcpToolkitName={selectedMcpToolkitName}
                 onNavigateToPanel={handleOnNavigateToPanel}
-                errorMessage={connectorErrorMessage}
+                errorMessage={errorMessage}
                 // Devant specific callbacks
                 onImportDevantConn={handleClickImportDevantConn}
                 onLinkDevantProject={(platformExtState?.isExtInstalled && !platformExtState?.selectedContext?.project) ? onLinkDevantProject : undefined}
