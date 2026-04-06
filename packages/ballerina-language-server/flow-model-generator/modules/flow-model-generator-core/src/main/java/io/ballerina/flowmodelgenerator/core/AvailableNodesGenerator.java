@@ -465,7 +465,6 @@ public class AvailableNodesGenerator {
                 return Optional.empty();
             }
             String parentSymbolName = symbol.getName().orElseThrow();
-            String className = classSymbol.getName().orElseThrow();
             ModuleInfo moduleInfo = classSymbol.getModule()
                     .map(moduleSymbol -> ModuleInfo.from(moduleSymbol.id()))
                     .orElse(null);

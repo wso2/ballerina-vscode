@@ -50,6 +50,7 @@ import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.Project;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 
+import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Type;
@@ -429,7 +430,7 @@ public class ConnectionActionProvider {
                 }
                 return List.of(items);
             }
-        } catch (Exception ignored) {
+        } catch (IOException | RuntimeException ignored) {
             return null;
         }
     }
@@ -444,7 +445,7 @@ public class ConnectionActionProvider {
             try (Writer writer = Files.newBufferedWriter(file)) {
                 gson.toJson(items, writer);
             }
-        } catch (Exception ignored) {
+        } catch (IOException ignored) {
             diskAvailable.set(false);
         }
     }
@@ -455,7 +456,7 @@ public class ConnectionActionProvider {
         }
         try {
             Files.deleteIfExists(cacheDirectory.resolve(keyToFileName(cacheKey)));
-        } catch (Exception ignored) {
+        } catch (IOException ignored) {
             diskAvailable.set(false);
         }
     }
