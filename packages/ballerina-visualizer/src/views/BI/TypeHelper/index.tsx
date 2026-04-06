@@ -244,10 +244,12 @@ const TypeHelperEl = (props: TypeHelperProps) => {
         const response = await addFunction(item);
 
         if (response) {
-            const importStatement = {
-                [response.prefix]: response.moduleId
-            };
-            updateImports(fieldKey, importStatement, item.codedata);
+            if (response.prefix && response.moduleId) {
+                const importStatement = {
+                    [response.prefix]: response.moduleId
+                };
+                updateImports(fieldKey, importStatement, item.codedata);
+            }
             return response.template;
         }
 

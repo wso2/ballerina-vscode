@@ -480,9 +480,11 @@ async function traverseUpdatedComponents(publishedArtifacts: Artifacts, currentP
     const projectPath = StateMachine.context().projectPath;
     const project = currentProjectStructure.projects.find(project => project.projectPath === projectPath);
     try {
-        for (const key of Object.keys(project.directoryMap)) {
-            if (project.directoryMap[key]) {
-                project.directoryMap[key].sort((a, b) => a.name.localeCompare(b.name));
+        if (project) {
+            for (const key of Object.keys(project.directoryMap)) {
+                if (project.directoryMap[key]) {
+                    project.directoryMap[key].sort((a, b) => a.name.localeCompare(b.name));
+                }
             }
         }
     } catch (error) {

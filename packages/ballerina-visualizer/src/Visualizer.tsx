@@ -25,6 +25,7 @@ import { Global, css } from '@emotion/react';
 import { DownloadIcon } from "./components/DownloadIcon";
 import { WebviewErrorBoundary } from "./components/WebviewErrorBoundary";
 import { ThemeColors } from "@wso2/ui-toolkit";
+import { LoadingRing } from "./components/Loader";
 
 const MainPanel = React.lazy(() => import("./MainPanel"));
 const AIPanel = React.lazy(() => import("./views/AIPanel/AIPanel"));
@@ -140,7 +141,7 @@ export function Visualizer({ mode }: { mode: string }) {
                         case MODES.RUNTIME_SERVICES:
                             return <MainPanel />
                         case MODES.AI:
-                            return <AIPanel state={aiState} />
+                            return <Suspense fallback={<LoadingRing />}><AIPanel state={aiState} /></Suspense>
                         case MODES.AGENT_CHAT:
                             return <AgentChat />
                         case MODES.EVALUATION_HISTORY:
