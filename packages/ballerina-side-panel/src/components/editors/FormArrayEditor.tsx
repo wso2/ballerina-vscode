@@ -100,10 +100,14 @@ export const FormArrayEditor = (props: FormFieldEditorProps & {
 
     const handleElementFormValidation = async (data: FormValues, dirtyFields?: any): Promise<boolean> => {
         const key = Object.keys(data)[0];
+        if (!key) return true;
         const value = data[key];
-        handleFormDiagnosticsChange(true, value, key, getPropertyFromFormField(repeatableFields.find(field => field.key === key)), () => { }, false, (props.field.types[0] as any).name);
+        const valueField = repeatableFields.find(field => field.key === key);
+        if (!valueField) return true;
+        await handleFormDiagnosticsChange(true, value, key, getPropertyFromFormField(valueField), () => { }, false, (props.field.types[0] as any).name);
 
         return true;
+    }
 
     }
 
