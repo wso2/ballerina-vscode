@@ -461,6 +461,7 @@ const EXCLUDED_ATTRIBUTE_KEYS = [
     'gen_ai.system_instructions',
     'gen_ai.input.tools',
     'gen_ai.input.content',
+    'gen_ai.knowledge_base.ingest.input.chunks',
     'error.message'
 ];
 
@@ -536,13 +537,15 @@ export function SpanDetails({ spanData, spanName, totalInputTokens, totalOutputT
         const toolArguments = getAttributeValue(spanData.attributes, 'gen_ai.tool.arguments');
         const inputTools = getAttributeValue(spanData.attributes, 'gen_ai.input.tools');
         const inputContent = getAttributeValue(spanData.attributes, 'gen_ai.input.content');
+        const kbIngestChunks = getAttributeValue(spanData.attributes, 'gen_ai.knowledge_base.ingest.input.chunks');
 
         return {
             systemInstructions,
             messages: inputMessages || toolArguments,
             messagesLabel: toolArguments ? 'Tool Arguments' : (operationName?.includes('invoke_agent') ? 'User' : 'Messages'),
             tools: inputTools,
-            inputContent
+            inputContent,
+            kbIngestChunks
         };
     }, [spanData.attributes, operationName]);
 
@@ -564,7 +567,8 @@ export function SpanDetails({ spanData, spanName, totalInputTokens, totalOutputT
         return textContainsSearch(inputData.systemInstructions, searchQuery) ||
             textContainsSearch(inputData.messages, searchQuery) ||
             textContainsSearch(inputData.tools, searchQuery) ||
-            textContainsSearch(inputData.inputContent, searchQuery);
+            textContainsSearch(inputData.inputContent, searchQuery) ||
+            textContainsSearch(inputData.kbIngestChunks, searchQuery);
     }, [searchQuery, inputData]);
 
     const outputMatches = useMemo(() => {
@@ -634,7 +638,7 @@ export function SpanDetails({ spanData, spanName, totalInputTokens, totalOutputT
         return technicalIdsMatch || filteredAdvancedAttributes.length > 0;
     }, [searchQuery, technicalIdsMatch, filteredAdvancedAttributes]);
 
-    const hasInput = inputData.systemInstructions || inputData.messages || inputData.tools || inputData.inputContent;
+    const hasInput = inputData.systemInstructions || inputData.messages || inputData.tools || inputData.inputContent || inputData.kbIngestChunks;
     const hasOutput = outputData.messages || outputData.error;
     const hasError = !!outputData.error;
     const noMatches = searchQuery && !inputMatches && !outputMatches && !metricsMatch && !advancedMatches;
@@ -883,6 +887,15 @@ export function SpanDetails({ spanData, spanName, totalInputTokens, totalOutputT
                                         <InputContentBlock>
                                             {highlightText(inputData.inputContent, searchQuery)}
                                         </InputContentBlock>
+                                    </SubSection>
+                                )}
+                                {inputData.kbIngestChunks && textContainsSearch(inputData.kbIngestChunks, searchQuery) && (
+                                    <SubSection>
+                                        <JsonViewer
+                                            value={inputData.kbIngestChunks}
+                                            title="Input Chunks"
+                                            searchQuery={searchQuery}
+                                        />
                                     </SubSection>
                                 )}
                             </SectionContent>
