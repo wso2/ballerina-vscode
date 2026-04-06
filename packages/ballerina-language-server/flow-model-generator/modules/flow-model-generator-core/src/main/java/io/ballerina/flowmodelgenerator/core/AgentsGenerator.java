@@ -765,11 +765,18 @@ public class AgentsGenerator {
             if (propCodedata != null
                     && ParameterData.Kind.PARAM_FOR_TYPE_INFER.name().equals(propCodedata.kind())) {
                 String paramName = entry.getKey();
-                String defaultType = entry.getValue().defaultValue();
-                if (defaultType == null || defaultType.isEmpty()) {
-                    defaultType = "json";
+                // Use user-provided value if set, otherwise fall back to defaultValue
+                String resolvedType = null;
+                Object value = entry.getValue().value();
+                if (value != null && !value.toString().isEmpty()) {
+                    resolvedType = value.toString();
+                } else {
+                    resolvedType = entry.getValue().defaultValue();
                 }
-                returnType = returnType.replace(paramName, defaultType);
+                if (resolvedType == null || resolvedType.isEmpty()) {
+                    resolvedType = "json";
+                }
+                returnType = returnType.replace(paramName, resolvedType);
             }
         }
         return returnType;
