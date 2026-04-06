@@ -400,13 +400,16 @@ const getSpanBgColor = (type: string) => {
     return 'var(--vscode-editor-background)';
 };
 
-const getSpanType = (span: SpanData): 'invoke' | 'chat' | 'tool' | 'error' | 'client' | 'server' | 'other' => {
+const getSpanType = (span: SpanData): 'invoke' | 'chat' | 'tool' | 'kb_retrieve' | 'kb_ingest' | 'embeddings' | 'error' | 'client' | 'server' | 'other' => {
     if (span.status?.code === 2) return 'error';
 
     const operationName = span.attributes?.find(attr => attr.key === 'gen_ai.operation.name')?.value || '';
     if (operationName.startsWith('invoke_agent')) return 'invoke';
     if (operationName.startsWith('chat') || span.name.toLowerCase().startsWith('chat')) return 'chat';
     if (operationName.startsWith('execute_tool') || span.name.toLowerCase().startsWith('execute_tool')) return 'tool';
+    if (operationName.startsWith('knowledge_base_retrieve') || span.name.toLowerCase().startsWith('knowledge_base_retrieve')) return 'kb_retrieve';
+    if (operationName.startsWith('knowledge_base_ingest') || span.name.toLowerCase().startsWith('knowledge_base_ingest')) return 'kb_ingest';
+    if (operationName.startsWith('embeddings') || span.name.toLowerCase().startsWith('embeddings')) return 'embeddings';
 
     const kind = getSpanKindString(span.kind);
     if (kind === 'client') return 'client';
@@ -420,6 +423,9 @@ const getTypeLabel = (type: string): string => {
         case 'invoke': return 'Agent';
         case 'chat': return 'Model';
         case 'tool': return 'Tool';
+        case 'kb_retrieve': return 'Knowledge Base Retrieve';
+        case 'kb_ingest': return 'Knowledge Base Ingest';
+        case 'embeddings': return 'Embeddings';
         case 'error': return 'Error';
         case 'client': return 'Client';
         case 'server': return 'Server';
@@ -432,6 +438,9 @@ const getTypeIcon = (type: string): string => {
         case 'invoke': return 'bi-ai-agent';
         case 'chat': return 'bi-chat';
         case 'tool': return 'bi-wrench';
+        case 'kb_retrieve': return 'bi-ai-search';
+        case 'kb_ingest': return 'bi-import';
+        case 'embeddings': return 'bi-ai-model';
         case 'error': return 'bi-error';
         case 'client': return 'bi-arrow-outward';
         case 'server': return 'bi-server';
