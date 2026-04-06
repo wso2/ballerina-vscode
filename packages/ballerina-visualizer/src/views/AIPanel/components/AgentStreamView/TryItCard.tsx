@@ -26,10 +26,9 @@ import {
     InlineCardTitle,
     InlineCardSubtitle
 } from "./styles";
-import { Button} from "@wso2/ui-toolkit";
+import { Button } from "@wso2/ui-toolkit";
 
 const HURL_IMPORT_VSCODE_COMMAND = "HTTPClient.importHurlString";
-
 // ── Styled components ─────────────────────────────────────────────────────────
 
 const METHOD_COLORS: Record<string, string> = {
@@ -520,8 +519,9 @@ const TryItCard: React.FC<TryItCardProps> = ({ input, output, rpcClient }) => {
             </InlineCardHeader>
             <ScenarioGroup>
                 <Divider />
-                {scenario && <InlineCardSubtitle>{scenario}</InlineCardSubtitle>}
-                <ScenarioContent>{content}</ScenarioContent>
+                <ScenarioContent>
+                    {scenario && <InlineCardSubtitle>{scenario}</InlineCardSubtitle>}
+                    {content}</ScenarioContent>
             </ScenarioGroup>
         </InlineCard>
     );
