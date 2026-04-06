@@ -22,7 +22,7 @@ import { Form, FormField, FormFieldEditorProps, FormValues, S, useFormContext, u
 import { Codicon } from "@wso2/ui-toolkit/lib/components/Codicon/Codicon";
 import { ScrollableList, ScrollableListRef } from "@wso2/ui-toolkit/lib/components/ScrollableList/ScrollableList";
 import ModeSwitcher from "../ModeSwitcher";
-import { getArraySubFormFieldFromTypes, stringToRawArrayElements, buildStringArray, getRecordTypeFields, mapDiagnosticsServerityToFormSeverity } from "./utils";
+import { getArraySubFormFieldFromTypes, stringToRawArrayElements, buildStringArray, getRecordTypeFields, mapDiagnosticsServerityToFormSeverity, getPropertyFromFormField } from "./utils";
 
 export const FormArrayEditor = (props: FormFieldEditorProps & {
     onChange: (value: any) => void;
@@ -72,6 +72,16 @@ export const FormArrayEditor = (props: FormFieldEditorProps & {
     const handleSetDiagnosticsInfoChange = (diagnostics: FormDiagnostics) => {
         const existingDiagnostics = elementDiagnosticsRef.current.filter(d => d.key !== diagnostics.key);
         elementDiagnosticsRef.current = [...existingDiagnostics, diagnostics];
+        setRepeatableFields(prev => prev.map(field => {
+            if (field.key !== diagnostics.key) return field;
+            return {
+                ...field,
+                diagnostics: diagnostics.diagnostics.map(diag => ({
+                    message: diag.message,
+                    severity: mapDiagnosticsServerityToFormSeverity(diag.severity)
+                }))
+            };
+        }));
     }
 
     const handleFormDiagnosticsChange = async (showDiagnostics: boolean, expression: string, key: string, property: Property, setDiagnosticsInfo: (diagnostics: FormDiagnostics) => void, shouldUpdateNode?: boolean, variableType?: string) => {
@@ -87,6 +97,15 @@ export const FormArrayEditor = (props: FormFieldEditorProps & {
             shouldUpdateNode,
             variableType);
     };
+
+    const handleElementFormValidation = async (data: FormValues, dirtyFields?: any): Promise<boolean> => {
+        const key = Object.keys(data)[0];
+        const value = data[key];
+        handleFormDiagnosticsChange(true, value, key, getPropertyFromFormField(repeatableFields.find(field => field.key === key)), () => { }, false, (props.field.types[0] as any).name);
+
+        return true;
+
+    }
 
     const applyDiagnosticsToField = (field: FormField): FormField => {
         const diagnostics = elementDiagnosticsRef.current.find(diag => diag.key === field.key);
@@ -233,6 +252,7 @@ export const FormArrayEditor = (props: FormFieldEditorProps & {
                                 onChange={(fieldKey: string, value: any, allValues: FormValues) => {
                                     handleFormOnChange(fieldKey, value, allValues, formField.key);
                                 }}
+                                onFormValidation={handleElementFormValidation}
                                 expressionEditor={{
                                     ...expressionEditor,
                                     onCompletionItemSelect: expressionEditor?.onCompletionItemSelect,

@@ -463,6 +463,15 @@ export interface WebToolApprovalRequest {
     requestId: string;
 }
 
+export interface ClarifyAnswerRequest {
+    requestId: string;
+    answers: Array<{ question: string; answers: string[] }>;
+}
+
+export interface ClarifyCancelRequest {
+    requestId: string;
+}
+
 export type ErrorCode = {
     code: number;
     message: string;
