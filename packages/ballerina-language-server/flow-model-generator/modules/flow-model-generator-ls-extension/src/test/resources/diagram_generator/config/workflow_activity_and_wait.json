@@ -120,44 +120,6 @@
         },
         "returning": false,
         "properties": {
-          "checkError": {
-            "metadata": {
-              "label": "Check Error",
-              "description": "Trigger error flow"
-            },
-            "types": [
-              {
-                "fieldType": "FLAG",
-                "selected": true
-              }
-            ],
-            "value": true,
-            "optional": false,
-            "editable": true,
-            "advanced": true,
-            "hidden": true
-          },
-          "input": {
-            "metadata": {
-              "label": "Input"
-            },
-            "types": [
-              {
-                "fieldType": "EXPRESSION",
-                "ballerinaType": "record {|decimal amount; anydata...;|}",
-                "selected": false
-              }
-            ],
-            "placeholder": "{amount: 0.0d}",
-            "optional": false,
-            "editable": true,
-            "advanced": false,
-            "hidden": false,
-            "codedata": {
-              "kind": "REQUIRED",
-              "originalName": "input"
-            }
-          },
           "advanced": {
             "metadata": {
               "label": "Activity call configurations",
@@ -315,6 +277,28 @@
             "editable": false,
             "advanced": false,
             "hidden": false
+          },
+          "input": {
+            "metadata": {
+              "label": "input",
+              "description": ""
+            },
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "record {|decimal amount; anydata...;|}",
+                "selected": false
+              }
+            ],
+            "placeholder": "record {|decimal amount; anydata...;|}",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "REQUIRED",
+              "originalName": "input"
+            }
           },
           "variable": {
             "metadata": {
