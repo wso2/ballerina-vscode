@@ -56,6 +56,8 @@ export function TraceVisualizer({
     useEffect(() => {
         if (initialTraceData) {
             setCurrentTraceData(initialTraceData);
+            setSessionTraces([]);
+            setCurrentSessionId(undefined);
             setViewMode('details');
         }
     }, [initialTraceData]);
