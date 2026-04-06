@@ -103,6 +103,11 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
     protected static final String CDC_MODULE_NAME = "cdc";
     protected static final String UNNAMED_IMPORT_SUFFIX = " as _";
 
+    // Schema driver module names
+    private static final String SCHEMA_DRIVER_AMAZON_S3 = "cdc.schema.aws.s3.driver";
+    private static final String SCHEMA_DRIVER_AZURE_BLOB = "cdc.schema.azure.blob.driver";
+    private static final String SCHEMA_DRIVER_ROCKETMQ = "cdc.schema.rocketmq.driver";
+
     // Property keys
     protected static final String KEY_LISTENER_VAR_NAME = "listenerVarName";
     protected static final String KEY_HOST = "host";
@@ -113,6 +118,9 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
     protected static final String KEY_SCHEMAS = "schemas";
     protected static final String KEY_SECURE_SOCKET = "secureSocket";
     protected static final String KEY_OPTIONS = "options";
+    protected static final String KEY_LIVENESS_INTERVAL = "livenessInterval";
+    protected static final String KEY_INTERNAL_SCHEMA_STORAGE = "internalSchemaStorage";
+    protected static final String KEY_OFFSET_STORAGE = "offsetStorage";
     protected static final String KEY_CONFIGURE_LISTENER = "configureListener";
     protected static final String KEY_ADVANCED_CONFIGURATIONS = "advancedConfigurations";
     protected static final String KEY_TABLE = "table";
@@ -360,6 +368,11 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
         } else {
             // Build new listener declaration
             applyListenerConfigurations(properties);
+            // Add driver imports for schema storage types that require external drivers
+            List<Import> schemaDriverImports = getSchemaDriverImports(properties);
+            if (!schemaDriverImports.isEmpty()) {
+                addImportTextEdits(modulePartNode, schemaDriverImports.toArray(new Import[0]), edits);
+            }
             ListenerDTO listenerDTO = buildCdcListenerDTO(
                     serviceInitModel.getModuleName(), properties);
             listenerName = listenerDTO.listenerVarName();
@@ -422,7 +435,15 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
                 requiredParams.add(value.getValue());
             } else if (argType.equals(ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD)
                     || argType.equals(ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD)) {
-                includedParams.add(entry.getKey() + " = " + value.getValue());
+                String key = entry.getKey();
+                String fieldValue = value.getValue();
+                if (KEY_INTERNAL_SCHEMA_STORAGE.equals(key) || KEY_OFFSET_STORAGE.equals(key)) {
+                    String selectedType = getSelectedTypeMemberName(value);
+                    if (selectedType != null) {
+                        fieldValue = "<" + CDC_MODULE_NAME + ":" + selectedType + ">" + fieldValue;
+                    }
+                }
+                includedParams.add(key + " = " + fieldValue);
             }
         }
         String listenerProtocol = getProtocol(moduleName);
@@ -441,7 +462,7 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
      */
     private void applyListenerConfigurations(Map<String, Value> properties) {
         addDatabaseConfiguration(properties);
-        validateAndRemoveInvalidOptions(properties);
+        validateAndRemoveInvalidParams(properties);
     }
 
     private String buildServiceConfigurations(Value tableValue) {
@@ -482,29 +503,52 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
         return value.isBlank() || emptyStringTemplate.matcher(value.trim()).matches();
     }
 
-    private void validateAndRemoveInvalidOptions(Map<String, Value> properties) {
-        Value optionsValue = properties.get(KEY_OPTIONS);
-        if (optionsValue != null && isInvalidValue(optionsValue.getValue())) {
-            properties.remove(KEY_OPTIONS);
+    private void validateAndRemoveInvalidParams(Map<String, Value> properties) {
+        for (String key : List.of(KEY_OPTIONS, KEY_LIVENESS_INTERVAL,
+                                  KEY_INTERNAL_SCHEMA_STORAGE, KEY_OFFSET_STORAGE)) {
+            Value v = properties.get(key);
+            if (v != null && v.getValue() != null && isInvalidValue(v.getValue())) {
+                properties.remove(key);
+            }
         }
     }
 
-    private void unwrapGroupSections(Map<String, Value> properties) {
-        List<String> groupKeys = new ArrayList<>();
-        Map<String, Value> childProps = new LinkedHashMap<>();
-        for (Map.Entry<String, Value> entry : properties.entrySet()) {
-            Value value = entry.getValue();
-            if (value.getTypes() != null && value.getTypes().stream()
-                    .anyMatch(t -> t.fieldType() == Value.FieldType.GROUP_SECTION)) {
-                groupKeys.add(entry.getKey());
-                if (value.getProperties() != null) {
-                    unwrapGroupSections(value.getProperties());
-                    childProps.putAll(value.getProperties());
-                }
-            }
+    private String getSelectedTypeMemberName(Value value) {
+        if (value == null || value.getTypes() == null) {
+            return null;
         }
-        groupKeys.forEach(properties::remove);
-        properties.putAll(childProps);
+        return value.getTypes().stream()
+                .filter(t -> t.fieldType() == Value.FieldType.RECORD_MAP_EXPRESSION && t.selected())
+                .findFirst()
+                .map(t -> t.typeMembers() == null ? null :
+                        t.typeMembers().stream()
+                                .filter(PropertyTypeMemberInfo::selected)
+                                .findFirst()
+                                .map(PropertyTypeMemberInfo::type)
+                                .orElse(null))
+                .orElse(null);
+    }
+
+    private List<Import> getSchemaDriverImports(Map<String, Value> properties) {
+        List<Import> driverImports = new ArrayList<>();
+        Value schemaStorage = properties.get(KEY_INTERNAL_SCHEMA_STORAGE);
+        if (schemaStorage == null) {
+            return driverImports;
+        }
+        String selectedType = getSelectedTypeMemberName(schemaStorage);
+        if (selectedType == null) {
+            return driverImports;
+        }
+        switch (selectedType) {
+            case "AmazonS3InternalSchemaStorage" ->
+                    driverImports.add(new Import(BALLERINAX, SCHEMA_DRIVER_AMAZON_S3, true));
+            case "AzureBlobInternalSchemaStorage" ->
+                    driverImports.add(new Import(BALLERINAX, SCHEMA_DRIVER_AZURE_BLOB, true));
+            case "RocketMQInternalSchemaStorage" ->
+                    driverImports.add(new Import(BALLERINAX, SCHEMA_DRIVER_ROCKETMQ, true));
+            default -> { }
+        }
+        return driverImports;
     }
 
     private void addDatabaseConfiguration(Map<String, Value> properties) {

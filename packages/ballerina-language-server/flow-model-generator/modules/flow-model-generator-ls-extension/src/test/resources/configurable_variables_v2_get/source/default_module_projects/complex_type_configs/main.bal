@@ -1,4 +1,5 @@
 import ballerina/io;
+import ballerina/oauth2;
 
 type Person record {
     string name;
@@ -10,6 +11,7 @@ configurable Person person = ?;
 configurable int|string myVal = ?;
 configurable map<int> itemCodes = {"item1": 11, "item2": 12, "item3": 45};
 configurable string[] itemNames = ["item1", "item2", "item3"];
+configurable oauth2:RefreshTokenGrantConfig oauthConfig = ?;
 
 public function main() {
     io:println("Hello, World!");

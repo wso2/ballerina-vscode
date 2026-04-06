@@ -70,7 +70,8 @@ public final class PostgresqlCdcServiceBuilder extends AbstractCdcServiceBuilder
     private static final String DISPLAY_LABEL = "PostgreSQL CDC";
     private static final Set<String> METADATA_KEYS = Set.of(
             KEY_HOST, KEY_PORT, KEY_USERNAME, KEY_PASSWORD,
-            KEY_DATABASE, KEY_SCHEMAS, KEY_SECURE_SOCKET, KEY_OPTIONS
+            KEY_DATABASE, KEY_SCHEMAS, KEY_SECURE_SOCKET, KEY_OPTIONS,
+            KEY_LIVENESS_INTERVAL, KEY_INTERNAL_SCHEMA_STORAGE, KEY_OFFSET_STORAGE
     );
 
     @Override
@@ -216,6 +217,18 @@ public final class PostgresqlCdcServiceBuilder extends AbstractCdcServiceBuilder
                 case "options" -> config.put(KEY_OPTIONS,
                         ListenerUtil.buildReadOnlyTextValue("Options",
                                 "Additional options for the CDC engine",
+                                namedArg.expression().toSourceCode().trim()));
+                case "livenessInterval" -> config.put(KEY_LIVENESS_INTERVAL,
+                        ListenerUtil.buildReadOnlyNumberValue("Liveness Interval",
+                                "Interval in seconds for the CDC engine liveness check",
+                                namedArg.expression().toSourceCode().trim()));
+                case "internalSchemaStorage" -> config.put(KEY_INTERNAL_SCHEMA_STORAGE,
+                        ListenerUtil.buildReadOnlyTextValue("Internal Schema Storage",
+                                "Storage configuration for the internal schema history",
+                                namedArg.expression().toSourceCode().trim()));
+                case "offsetStorage" -> config.put(KEY_OFFSET_STORAGE,
+                        ListenerUtil.buildReadOnlyTextValue("Offset Storage",
+                                "Storage configuration for CDC offsets",
                                 namedArg.expression().toSourceCode().trim()));
                 default -> {
                 }
