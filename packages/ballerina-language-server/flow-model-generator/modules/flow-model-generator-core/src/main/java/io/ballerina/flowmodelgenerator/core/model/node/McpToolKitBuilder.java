@@ -16,7 +16,7 @@
  *  under the License.
  */
 
-package io.ballerina.flowmodelgenerator.core.model;
+package io.ballerina.flowmodelgenerator.core.model.node;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -25,6 +25,12 @@ import com.google.gson.JsonSyntaxException;
 import io.ballerina.compiler.syntax.tree.SyntaxInfo;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.flowmodelgenerator.core.AiUtils;
+import io.ballerina.flowmodelgenerator.core.model.Codedata;
+import io.ballerina.flowmodelgenerator.core.model.FlowNode;
+import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
+import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
+import io.ballerina.flowmodelgenerator.core.model.Property;
+import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.flowmodelgenerator.core.utils.FlowNodeUtil;
 import io.ballerina.flowmodelgenerator.core.utils.ParamUtils;
@@ -292,6 +298,7 @@ public class McpToolKitBuilder extends NodeBuilder {
                         .resolve(lineRange.fileName());
                 Range classRange = CommonUtils.toRange(lineRange);
 
+                // OAuth scopes require log (error logging) and http (auth config) in generated code
                 if (!toolScopesMap.isEmpty()) {
                     sourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.LOG_PACKAGE);
                     sourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.HTTP_PACKAGE);
@@ -302,6 +309,7 @@ public class McpToolKitBuilder extends NodeBuilder {
                 // Use default agents.bal location
                 sourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.MCP_PACKAGE);
                 sourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.AI_PACKAGE);
+                // OAuth scopes require log (error logging) and http (auth config) in generated code
                 if (!toolScopesMap.isEmpty()) {
                     sourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.LOG_PACKAGE);
                     sourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.HTTP_PACKAGE);
@@ -345,7 +353,7 @@ public class McpToolKitBuilder extends NodeBuilder {
     }
 
     private String generateMcpToolKitClassSource(String className, String permittedTools,
-                                                  Map<String, List<String>> toolScopesMap) {
+                                                 Map<String, List<String>> toolScopesMap) {
         String initBody;
         String toolFunctions;
         boolean hasAnyScopes = !toolScopesMap.isEmpty();

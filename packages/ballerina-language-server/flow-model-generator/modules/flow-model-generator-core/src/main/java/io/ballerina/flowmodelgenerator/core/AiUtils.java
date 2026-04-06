@@ -828,7 +828,7 @@ public class AiUtils {
         }
 
         List<String> filterKeywords = CATEGORY_KEYWORD_FILTERS.get(category);
-        if (filterKeywords == null) {
+        if (filterKeywords == null || filterKeywords.isEmpty()) {
             // No filter defined for this category — include all modules
             return true;
         }

@@ -58,6 +58,7 @@ import io.ballerina.flowmodelgenerator.core.model.node.KnowledgeBaseBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.KnowledgeBaseCallBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.LockBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.MatchBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.McpToolKitBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.MemoryBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.MethodCall;
 import io.ballerina.flowmodelgenerator.core.model.node.ModelProviderBuilder;
