@@ -42,7 +42,7 @@ export default function createTests() {
             await form.switchToFormView(false, artifactWebView);
             await form.fill({
                 values: {
-                    'NameName of the agent': {
+                    "NameName of the agent (e.g. 'Customer Support Assistant', 'Sales Advisor', 'Data Analyst')": {
                         type: 'input',
                         value: sampleName,
                     }
@@ -50,9 +50,6 @@ export default function createTests() {
             });
             await form.submit('Create');
             console.log('AI Chat Agent creation form submitted');
-            // Wait until the create button is detached
-            await artifactWebView.getByRole('button', { name: 'Creating' }).waitFor({ state: 'detached' });
-            await artifactWebView.getByRole('button', { name: 'Creating...' }).waitFor({ state: 'detached', timeout: 240000 });
 
             // Check if the diagram canvas is visible
             const diagramCanvas = artifactWebView.locator('#bi-diagram-canvas');
