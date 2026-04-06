@@ -352,6 +352,9 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
         return CompletableFuture.supplyAsync(() -> {
             AddAgentChatServiceResponse response = new AddAgentChatServiceResponse();
             try {
+                if (request.agentVariableName() == null || request.agentVariableName().isBlank()) {
+                    throw new IllegalArgumentException("agentVariableName must not be null or blank");
+                }
                 Path filePath = Path.of(request.filePath());
                 Path projectRoot = this.workspaceManager.projectRoot(filePath);
 

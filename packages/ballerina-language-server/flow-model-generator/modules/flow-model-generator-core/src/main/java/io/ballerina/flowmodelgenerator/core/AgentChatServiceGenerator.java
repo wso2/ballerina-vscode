@@ -81,7 +81,7 @@ public class AgentChatServiceGenerator {
                                            Path projectRoot) throws IOException {
         Path chatFile = projectRoot.resolve(AGENT_CHAT_FILE);
         String absolutePath = chatFile.toAbsolutePath().toString();
-        String endpointPath = "/agent\\-chat/" + serviceName + "/chat";
+        String endpointPath = "/agent-chat/" + serviceName + "/chat";
         String serviceMarker = "service /agent\\-chat/" + serviceName + " on";
 
         if (Files.exists(chatFile)) {
