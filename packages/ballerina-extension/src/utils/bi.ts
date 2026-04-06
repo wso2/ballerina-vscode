@@ -43,6 +43,7 @@ import { debug } from "./logger";
 import { parse } from "@iarna/toml";
 import { getProjectTomlValues, isLibraryProject, VALIDATOR_PACKAGE_NAME } from "./config";
 import { extension } from "../BalExtensionContext";
+import { scheduleMigrationEnhancement, writeEnhanceToml } from "../features/ai/migration/orchestrator";
 import { runBackgroundTerminalCommand } from "./runCommand";
 
 export const README_FILE = "README.md";
@@ -658,7 +659,28 @@ export async function createBIProjectFromMigration(params: MigrateRequest) {
     fs.writeFileSync(gitignorePath, gitignoreContent.trim());
 
     debug(`BI project created successfully at ${projectRoot}`);
-    commands.executeCommand('vscode.openFolder', Uri.file(path.resolve(projectRoot)));
+
+    const resolvedRoot = path.resolve(projectRoot);
+    const aiEnabled = params.aiFeatureUsed ?? false;
+
+    // Write the AI enhancement state file – acts as the source of truth for the
+    // migration UI banner.  This is done for ALL values of aiFeatureUsed so
+    // the card can offer a "Start Enhancement" button even when the user skipped.
+    writeEnhanceToml(resolvedRoot, aiEnabled, false, params.sourcePath);
+
+    if (aiEnabled) {
+        // When AI enhancement is enabled, return the project root to the caller
+        // so the wizard can run the enhancement pipeline before opening the folder.
+        // The caller (RPC manager) will notify the webview with the project root
+        // and kick off the agent; vscode.openFolder is deferred until the
+        // enhancement completes or the user skips.
+        return resolvedRoot;
+    }
+
+    // No AI enhancement – open the project immediately.
+    scheduleMigrationEnhancement(aiEnabled, resolvedRoot, params.sourcePath);
+    commands.executeCommand('vscode.openFolder', Uri.file(resolvedRoot));
+    return resolvedRoot;
 }
 
 async function createProjectFiles(project: ProjectMigrationResult, projectRoot: string) {

@@ -42,6 +42,12 @@ import { createConnectorGeneratorTool, CONNECTOR_GENERATOR_TOOL } from './tools/
 import { LIBRARY_SEARCH_TOOL, getLibrarySearchTool } from './tools/library-search';
 import { createConfigCollectorTool, CONFIG_COLLECTOR_TOOL } from './tools/config-collector';
 import { createTestRunnerTool, TEST_RUNNER_TOOL_NAME } from './tools/test-runner';
+import {
+    createMigrationSourceListTool,
+    createMigrationSourceReadTool,
+    MIGRATION_SOURCE_LIST_TOOL,
+    MIGRATION_SOURCE_READ_TOOL,
+} from './tools/migration-source-reader';
 import { createBallerinaRunTool, BALLERINA_RUN_TOOL_NAME } from './tools/ballerina-run';
 import { createBallerinaGetLogsTool, BALLERINA_GET_LOGS_TOOL_NAME } from './tools/ballerina-get-logs';
 import { createBallerinaStopTool, BALLERINA_STOP_TOOL_NAME } from './tools/ballerina-stop';
@@ -60,13 +66,15 @@ export interface ToolRegistryOptions {
     projectRootPath: string;
     generationId: string;
     threadId?: string;
+    /** Absolute path to the original migration source project (Mule, Tibco, etc.). */
+    migrationSourcePath?: string;
     runningServices: RunningServicesManager;
     webSearchEnabled: boolean;
     ctx: ExecutionContext;
 }
 
 export function createToolRegistry(opts: ToolRegistryOptions) {
-    const { eventHandler, tempProjectPath, modifiedFiles, allModifiedFiles, projects, generationType, projectRootPath, generationId, threadId, webSearchEnabled, ctx } = opts;
+    const { eventHandler, tempProjectPath, modifiedFiles, allModifiedFiles, projects, generationType, projectRootPath, generationId, threadId, migrationSourcePath, webSearchEnabled, ctx } = opts;
     return {
         [TASK_WRITE_TOOL_NAME]: createTaskWriteTool(
             eventHandler,
@@ -114,6 +122,11 @@ export function createToolRegistry(opts: ToolRegistryOptions) {
         ),
         [DIAGNOSTICS_TOOL_NAME]: createDiagnosticsTool(tempProjectPath, eventHandler),
         [TEST_RUNNER_TOOL_NAME]: createTestRunnerTool(tempProjectPath, eventHandler, modifiedFiles, allModifiedFiles, ctx),
+        // Migration source tools — registered only when a source project path is available
+        ...(migrationSourcePath ? {
+            [MIGRATION_SOURCE_LIST_TOOL]: createMigrationSourceListTool(eventHandler, migrationSourcePath),
+            [MIGRATION_SOURCE_READ_TOOL]: createMigrationSourceReadTool(eventHandler, migrationSourcePath),
+        } : {}),
         [HURL_TOOL_NAME]: createHurlTool(eventHandler),
         [BALLERINA_RUN_TOOL_NAME]: createBallerinaRunTool(tempProjectPath, opts.runningServices, eventHandler, modifiedFiles, allModifiedFiles, ctx),
         [BALLERINA_GET_LOGS_TOOL_NAME]: createBallerinaGetLogsTool(opts.runningServices, eventHandler),

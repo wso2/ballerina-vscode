@@ -34,6 +34,7 @@ import { useEffect, useState } from "react";
 import { ConfigureProjectForm } from "./ConfigureProjectForm";
 import { ImportIntegrationForm } from "./ImportIntegrationForm";
 import { MigrationProgressView } from "./MigrationProgressView";
+import { WizardAIEnhancementView } from "./WizardAIEnhancementView";
 import { FormContainer, TitleContainer, IconButton } from "./styles";
 import { FinalIntegrationParams } from "./types";
 
@@ -53,8 +54,11 @@ export function ImportIntegration() {
     const [migrationCompleted, setMigrationCompleted] = useState(false);
     const [migrationSuccessful, setMigrationSuccessful] = useState(false);
     const [migrationResponse, setMigrationResponse] = useState<ImportIntegrationResponse | null>(null);
+    const [aiEnhancementEnabled, setAiEnhancementEnabled] = useState(false);
 
-    const defaultSteps = ["Select Source Integration", "Migration Status", "Create and Open Project"];
+    const steps = aiEnhancementEnabled
+        ? ["Select Source Project", "Static Migration Progress", "Configure Project", "AI Enhancement"]
+        : ["Select Source Project", "Static Migration Progress", "Configure Project"];
 
     const isMultiProject = migratedProjects.length! > 0;
 
@@ -99,15 +103,26 @@ export function ImportIntegration() {
             });
     };
 
-    const handleCreateIntegrationFiles = (project: ProjectRequest) => {
-        console.log("Creating integration files with params:", importParams);
+    const handleCreateIntegrationFiles = (project: ProjectRequest, aiFeatureUsed: boolean) => {
+        console.log("Creating integration files with params:", importParams, "aiFeatureUsed:", aiFeatureUsed);
         if (migrationResponse) {
             const params: MigrateRequest = {
                 project: project,
                 textEdits: migrationResponse.textEdits,
                 projects: migratedProjects,
+                aiFeatureUsed: aiFeatureUsed,
+                sourcePath: importParams?.importSourcePath,
             };
             rpcClient.getMigrateIntegrationRpcClient().migrateProject(params);
+
+            // Track whether AI enhancement is enabled for the stepper
+            setAiEnhancementEnabled(aiFeatureUsed);
+
+            if (aiFeatureUsed) {
+                // Advance to the AI Enhancement step (step 3)
+                setStep(3);
+            }
+            // When AI is not enabled, migrateProject opens the project directly
         }
     };
 
@@ -178,7 +193,7 @@ export function ImportIntegration() {
     }, [toolPullProgress, importParams, selectedIntegration]);
 
     return (
-        <FormContainer>
+        <FormContainer wide={step === 3}>
             <TitleContainer>
                 <IconButton onClick={gotToWelcome}>
                     <Icon name="bi-arrow-back" iconSx={{ color: "var(--vscode-foreground)" }} />
@@ -187,7 +202,7 @@ export function ImportIntegration() {
             </TitleContainer>
 
             <StepperContainer style={{ marginBottom: "4%" }}>
-                <Stepper alignment="flex-start" steps={defaultSteps} currentStep={step} />
+                <Stepper alignment="flex-start" steps={steps} currentStep={step} />
             </StepperContainer>
             {step === 0 && (
                 <ImportIntegrationForm
@@ -215,7 +230,8 @@ export function ImportIntegration() {
                     onBack={handleStepBack}
                 />
             )}
-            {step === 2 && <ConfigureProjectForm isMultiProject={isMultiProject} onNext={handleCreateIntegrationFiles} onBack={handleStepBack} />}
+            {step === 2 && <ConfigureProjectForm isMultiProject={isMultiProject} importSourcePath={importParams?.importSourcePath} onNext={handleCreateIntegrationFiles} onBack={handleStepBack} />}
+            {step === 3 && <WizardAIEnhancementView />}
         </FormContainer>
     );
 }

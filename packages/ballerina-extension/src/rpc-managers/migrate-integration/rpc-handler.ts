@@ -37,6 +37,18 @@ import {
 import { Messenger } from "vscode-messenger";
 import { MigrateIntegrationRpcManager } from "./rpc-manager";
 
+// Defined locally to avoid depending on a rebuilt @wso2/ballerina-core
+const getActiveMigrationSession = { method: "migrate-integration/getActiveMigrationSession" } as const;
+const markEnhancementCompleteMethod = { method: "migrate-integration/markEnhancementComplete" } as const;
+const startMigrationEnhancementMethod = { method: "migrate-integration/startMigrationEnhancement" } as const;
+const migrationPanelReadyMethod = { method: "migrate-integration/migrationPanelReady" } as const;
+const abortMigrationAgentMethod = { method: "migrate-integration/abortMigrationAgent" } as const;
+const setMigrationModelMethod = { method: "migrate-integration/setMigrationModel" } as const;
+const wizardEnhancementReadyMethod = { method: "migrate-integration/wizardEnhancementReady" } as const;
+const openMigratedProjectMethod = { method: "migrate-integration/openMigratedProject" } as const;
+const seedMigrationHistoryMethod = { method: "migrate-integration/seedMigrationHistory" } as const;
+const getMigrationHistoryMessagesMethod = { method: "migrate-integration/getMigrationHistoryMessages" } as const;
+
 export function registerMigrateIntegrationRpcHandlers(messenger: Messenger) {
     const rpcManger = MigrateIntegrationRpcManager.getInstance();
     messenger.onRequest(getMigrationTools, () => rpcManger.getMigrationTools());
@@ -47,4 +59,14 @@ export function registerMigrateIntegrationRpcHandlers(messenger: Messenger) {
     messenger.onNotification(storeSubProjectReports, (args: StoreSubProjectReportsRequest) => rpcManger.storeSubProjectReports(args));
     messenger.onNotification(saveMigrationReport, (args: SaveMigrationReportRequest) => rpcManger.saveMigrationReport(args));
     messenger.onNotification(migrateProject, (args: MigrateRequest) => rpcManger.migrateProject(args));
+    messenger.onRequest(getActiveMigrationSession, () => rpcManger.getActiveMigrationSession());
+    messenger.onRequest(markEnhancementCompleteMethod, () => rpcManger.markEnhancementComplete());
+    messenger.onRequest(startMigrationEnhancementMethod, () => rpcManger.startMigrationEnhancement());
+    messenger.onRequest(migrationPanelReadyMethod, () => rpcManger.migrationPanelReady());
+    messenger.onRequest(wizardEnhancementReadyMethod, () => rpcManger.wizardEnhancementReady());
+    messenger.onRequest(openMigratedProjectMethod, () => rpcManger.openMigratedProjectInVSCode());
+    messenger.onRequest(abortMigrationAgentMethod, () => rpcManger.abortMigrationAgent());
+    messenger.onRequest(setMigrationModelMethod, (args: { modelId: string }) => rpcManger.setMigrationModel(args.modelId));
+    messenger.onRequest(seedMigrationHistoryMethod, () => rpcManger.seedMigrationHistory());
+    messenger.onRequest(getMigrationHistoryMessagesMethod, () => rpcManger.getMigrationHistoryMessages());
 }
