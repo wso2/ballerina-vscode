@@ -456,10 +456,9 @@ interface TryItCardProps {
     input?: any;
     output?: {hurlScript: string; scenario?: string; runResult: HurlToolOutput};
     rpcClient?: any;
-    loading: boolean;
 }
 
-const TryItCard: React.FC<TryItCardProps> = ({ input, output, rpcClient, loading }) => {
+const TryItCard: React.FC<TryItCardProps> = ({ input, output, rpcClient }) => {
     const [isEditing, setIsEditing] = useState(false);
 
     if (!input?.hurlScript && !output?.hurlScript) return null;
@@ -521,7 +520,7 @@ const TryItCard: React.FC<TryItCardProps> = ({ input, output, rpcClient, loading
                             appearance="icon"
                             tooltip={isEditing ? "Opening in HTTP Client..." : "Edit in HTTP Client"}
                             onClick={handleEdit}
-                            disabled={loading || isEditing}
+                            disabled={isEditing}
                         >
                             {isEditing ? (
                                 <EditLoadingIcon className="codicon codicon-loading codicon-modifier-spin" />
