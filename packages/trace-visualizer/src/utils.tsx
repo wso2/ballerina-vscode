@@ -96,7 +96,7 @@ export const getSpanKindLabel = (kind: string | number): string => {
 };
 
 export const stripSpanPrefix = (spanName: string): string => {
-  const prefixes = ['invoke_agent ', 'execute_tool ', 'chat ', 'knowledge_base_retrieve ', 'knowledge_base_ingest ', 'embeddings '];
+  const prefixes = ['invoke_agent ', 'execute_tool ', 'chat ', 'knowledge_base_retrieve ', 'knowledge_base_ingest ', 'embeddings ', 'generate_content '];
   for (const prefix of prefixes) {
     if (spanName.startsWith(prefix)) {
       return spanName.substring(prefix.length);
@@ -105,7 +105,7 @@ export const stripSpanPrefix = (spanName: string): string => {
   return spanName;
 };
 
-export const getSpanTypeBadge = (span: SpanData): 'invoke' | 'chat' | 'tool' | 'kb_retrieve' | 'kb_ingest' | 'embeddings' | 'other' => {
+export const getSpanTypeBadge = (span: SpanData): 'invoke' | 'chat' | 'tool' | 'kb_retrieve' | 'kb_ingest' | 'embeddings' | 'generate_content' | 'other' => {
   const operationName = span.attributes?.find(attr => attr.key === 'gen_ai.operation.name')?.value || '';
   if (operationName.startsWith('invoke_agent')) return 'invoke';
   if (operationName.startsWith('chat') || span.name.toLowerCase().startsWith('chat')) return 'chat';
@@ -113,6 +113,7 @@ export const getSpanTypeBadge = (span: SpanData): 'invoke' | 'chat' | 'tool' | '
   if (operationName.startsWith('knowledge_base_retrieve') || span.name.toLowerCase().startsWith('knowledge_base_retrieve')) return 'kb_retrieve';
   if (operationName.startsWith('knowledge_base_ingest') || span.name.toLowerCase().startsWith('knowledge_base_ingest')) return 'kb_ingest';
   if (operationName.startsWith('embeddings') || span.name.toLowerCase().startsWith('embeddings')) return 'embeddings';
+  if (operationName.startsWith('generate_content') || span.name.toLowerCase().startsWith('generate_content')) return 'generate_content';
   return 'other';
 };
 
@@ -262,6 +263,7 @@ export const getSpanLabel = (type: string) => {
     case 'kb_retrieve': return 'Knowledge Base Retrieve';
     case 'kb_ingest': return 'Knowledge Base Ingest';
     case 'embeddings': return 'Embeddings';
+    case 'generate_content': return 'Generate Content';
     default: return 'Operation';
   }
 };
@@ -346,7 +348,7 @@ export function formatDate(isoString: string): string {
 /**
  * Gets the appropriate icon name for a span type
  */
-export function getSpanIconName(spanType: 'invoke' | 'chat' | 'tool' | 'kb_retrieve' | 'kb_ingest' | 'embeddings' | 'other', spanKind?: string): string {
+export function getSpanIconName(spanType: 'invoke' | 'chat' | 'tool' | 'kb_retrieve' | 'kb_ingest' | 'embeddings' | 'generate_content' | 'other', spanKind?: string): string {
   switch (spanType) {
     case 'invoke':
       return 'bi-ai-agent';
@@ -360,6 +362,8 @@ export function getSpanIconName(spanType: 'invoke' | 'chat' | 'tool' | 'kb_retri
       return 'bi-import';
     case 'embeddings':
       return 'bi-ai-model';
+    case 'generate_content':
+      return 'bi-doc';
     case 'other':
       // For non-AI spans, use icons based on span kind (server/client)
       switch (spanKind?.toLowerCase()) {
@@ -392,6 +396,8 @@ export function getSpanColor(type: string): string {
       return 'var(--vscode-charts-purple)';
     case 'embeddings':
       return 'var(--vscode-terminalSymbolIcon-optionForeground)';
+    case 'generate_content':
+      return 'var(--vscode-charts-green)';
     case 'error':
       return 'var(--vscode-terminal-ansiRed)';
     case 'client':

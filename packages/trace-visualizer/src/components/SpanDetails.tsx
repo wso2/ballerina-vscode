@@ -88,6 +88,7 @@ const SpanIcon = styled.span<{ type: string; spanKind?: string }>`
             case 'kb_retrieve': return 'var(--vscode-charts-purple)';
             case 'kb_ingest': return 'var(--vscode-charts-purple)';
             case 'embeddings': return 'var(--vscode-terminalSymbolIcon-optionForeground)';
+            case 'generate_content': return 'var(--vscode-charts-green)';
             case 'other':
                 // Use span kind colors for non-AI spans (matching TraceDetails)
                 switch (props.spanKind?.toLowerCase()) {
@@ -481,6 +482,7 @@ export function SpanDetails({ spanData, spanName, totalInputTokens, totalOutputT
         if (operationName.startsWith('knowledge_base_retrieve') || spanName?.toLowerCase().startsWith('knowledge_base_retrieve')) return 'kb_retrieve';
         if (operationName.startsWith('knowledge_base_ingest') || spanName?.toLowerCase().startsWith('knowledge_base_ingest')) return 'kb_ingest';
         if (operationName.startsWith('embeddings') || spanName?.toLowerCase().startsWith('embeddings')) return 'embeddings';
+        if (operationName.startsWith('generate_content') || spanName?.toLowerCase().startsWith('generate_content')) return 'generate_content';
         return 'other';
     }, [operationName, spanName]);
 
@@ -694,6 +696,7 @@ export function SpanDetails({ spanData, spanName, totalInputTokens, totalOutputT
                             {spanType === 'kb_retrieve' && 'Knowledge Base Retrieve - '}
                             {spanType === 'kb_ingest' && 'Knowledge Base Ingest - '}
                             {spanType === 'embeddings' && 'Embeddings - '}
+                            {spanType === 'generate_content' && 'Generate Content - '}
                             {spanType === 'other' && spanKind.toLowerCase() === 'server' && 'Server - '}
                             {spanType === 'other' && spanKind.toLowerCase() === 'client' && 'Client - '}
                         </span>

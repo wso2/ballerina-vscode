@@ -400,7 +400,7 @@ const getSpanBgColor = (type: string) => {
     return 'var(--vscode-editor-background)';
 };
 
-const getSpanType = (span: SpanData): 'invoke' | 'chat' | 'tool' | 'kb_retrieve' | 'kb_ingest' | 'embeddings' | 'error' | 'client' | 'server' | 'other' => {
+const getSpanType = (span: SpanData): 'invoke' | 'chat' | 'tool' | 'kb_retrieve' | 'kb_ingest' | 'embeddings' | 'generate_content' | 'error' | 'client' | 'server' | 'other' => {
     if (span.status?.code === 2) return 'error';
 
     const operationName = span.attributes?.find(attr => attr.key === 'gen_ai.operation.name')?.value || '';
@@ -410,6 +410,7 @@ const getSpanType = (span: SpanData): 'invoke' | 'chat' | 'tool' | 'kb_retrieve'
     if (operationName.startsWith('knowledge_base_retrieve') || span.name.toLowerCase().startsWith('knowledge_base_retrieve')) return 'kb_retrieve';
     if (operationName.startsWith('knowledge_base_ingest') || span.name.toLowerCase().startsWith('knowledge_base_ingest')) return 'kb_ingest';
     if (operationName.startsWith('embeddings') || span.name.toLowerCase().startsWith('embeddings')) return 'embeddings';
+    if (operationName.startsWith('generate_content') || span.name.toLowerCase().startsWith('generate_content')) return 'generate_content';
 
     const kind = getSpanKindString(span.kind);
     if (kind === 'client') return 'client';
@@ -426,6 +427,7 @@ const getTypeLabel = (type: string): string => {
         case 'kb_retrieve': return 'Knowledge Base Retrieve';
         case 'kb_ingest': return 'Knowledge Base Ingest';
         case 'embeddings': return 'Embeddings';
+        case 'generate_content': return 'Generate Content';
         case 'error': return 'Error';
         case 'client': return 'Client';
         case 'server': return 'Server';
@@ -441,6 +443,7 @@ const getTypeIcon = (type: string): string => {
         case 'kb_retrieve': return 'bi-ai-search';
         case 'kb_ingest': return 'bi-import';
         case 'embeddings': return 'bi-ai-model';
+        case 'generate_content': return 'bi-doc';
         case 'error': return 'bi-error';
         case 'client': return 'bi-arrow-outward';
         case 'server': return 'bi-server';
