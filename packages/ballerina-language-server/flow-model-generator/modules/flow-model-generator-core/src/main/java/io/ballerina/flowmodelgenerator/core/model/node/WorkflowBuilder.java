@@ -22,6 +22,8 @@ import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
+import io.ballerina.modelgenerator.commons.ModuleInfo;
+import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.tools.text.LineRange;
 import org.eclipse.lsp4j.TextEdit;
 
@@ -60,6 +62,9 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
 
     @Override
     public void setConcreteTemplateData(TemplateContext context) {
+        ModuleInfo workflowModuleInfo = new ModuleInfo(WORKFLOW_ORG, WORKFLOW_MODULE, WORKFLOW_MODULE, null);
+        PackageUtil.pullModuleAndNotify(context.lsClientLogger(), workflowModuleInfo);
+
         // Add function name
         properties().functionNameTemplate("workflow", context.getAllVisibleSymbolNames());
 
