@@ -16,8 +16,8 @@
  * under the License.
  */
 
-import axios from 'axios';
 import * as https from 'https';
+import * as net from 'net';
 import * as fs from 'fs';
 import * as path from 'path';
 import { workspace, window } from 'vscode';
@@ -25,12 +25,72 @@ import { extension } from '../../BalExtensionContext';
 import { parse, stringify } from '@iarna/toml';
 
 const ICP_SECRET_KEY_PREFIX = 'ICP_ORG_SECRET_';
-const CREATE_ORG_SECRET_MUTATION = '{"query":"mutation CreateOrgSecret { createOrgSecret(environmentId: \\"750e8400-e29b-41d4-a716-446655440001\\") }"}';
+const CREATE_ORG_SECRET_MUTATION = JSON.stringify({
+    query: 'mutation CreateOrgSecret { createOrgSecret(environmentId: "750e8400-e29b-41d4-a716-446655440001") }'
+});
 
-const httpsAgent = new https.Agent({ rejectUnauthorized: false });
+function isLoopback(hostname: string): boolean {
+    return hostname === '127.0.0.1' || hostname === 'localhost' || hostname === '::1';
+}
+
+function waitForPort(hostname: string, port: number, timeoutMs: number = 10000): Promise<boolean> {
+    const start = Date.now();
+    return new Promise((resolve) => {
+        function tryConnect() {
+            if (Date.now() - start > timeoutMs) {
+                resolve(false);
+                return;
+            }
+            const socket = new net.Socket();
+            socket.once('connect', () => {
+                socket.destroy();
+                resolve(true);
+            });
+            socket.once('error', () => {
+                socket.destroy();
+                setTimeout(tryConnect, 500);
+            });
+            socket.connect(port, hostname);
+        }
+        tryConnect();
+    });
+}
+
+function httpsPost(url: string, body: string, headers: Record<string, string>): Promise<{ status: number; data: any }> {
+    return new Promise((resolve, reject) => {
+        const parsed = new URL(url);
+        const options: https.RequestOptions = {
+            hostname: parsed.hostname,
+            port: parsed.port || 443,
+            path: parsed.pathname + parsed.search,
+            method: 'POST',
+            headers: { ...headers, 'Content-Length': Buffer.byteLength(body) },
+            rejectUnauthorized: !isLoopback(parsed.hostname),
+        };
+
+        const req = https.request(options, (res) => {
+            const chunks: Buffer[] = [];
+            res.on('data', (chunk) => chunks.push(chunk));
+            res.on('end', () => {
+                const raw = Buffer.concat(chunks).toString();
+                let data: any;
+                try {
+                    data = JSON.parse(raw);
+                } catch {
+                    data = raw;
+                }
+                resolve({ status: res.statusCode || 0, data });
+            });
+        });
+
+        req.on('error', reject);
+        req.write(body);
+        req.end();
+    });
+}
 
 function getICPUrl(): string {
-    return workspace.getConfiguration('ballerina').get<string>('icpUrl') || 'https://localhost:9445';
+    return workspace.getConfiguration('ballerina').get<string>('icpUrl') || 'https://127.0.0.1:9445';
 }
 
 function getICPCredentials(): { username: string; password: string } {
@@ -45,22 +105,21 @@ function getGraphQLUrl(): string {
     const icpUrl = getICPUrl();
     try {
         const url = new URL(icpUrl);
-        const port = parseInt(url.port || '9445', 10);
-        url.port = String(port + 1);
         return `${url.origin}/graphql`;
     } catch {
-        return 'https://localhost:9446/graphql';
+        return 'https://127.0.0.1:9445/graphql';
     }
 }
 
 async function getICPToken(): Promise<string> {
     const icpUrl = getICPUrl();
     const { username, password } = getICPCredentials();
+    const loginUrl = `${icpUrl}/auth/login`;
 
-    const response = await axios.post(
-        `${icpUrl}/auth/login`,
-        { username, password },
-        { httpsAgent, headers: { 'Content-Type': 'application/json' } }
+    const response = await httpsPost(
+        loginUrl,
+        JSON.stringify({ username, password }),
+        { 'Content-Type': 'application/json' }
     );
 
     return response.data.token;
@@ -69,15 +128,12 @@ async function getICPToken(): Promise<string> {
 async function createOrgSecret(token: string): Promise<string> {
     const graphqlUrl = getGraphQLUrl();
 
-    const response = await axios.post(
+    const response = await httpsPost(
         graphqlUrl,
         CREATE_ORG_SECRET_MUTATION,
         {
-            httpsAgent,
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-            },
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
         }
     );
 
@@ -126,6 +182,16 @@ export async function provisionICPSecret(projectPath: string): Promise<string | 
     }
 
     try {
+        const icpUrl = getICPUrl();
+        const parsed = new URL(icpUrl);
+        const port = parseInt(parsed.port || '9445', 10);
+        const hostname = parsed.hostname;
+
+        const ready = await waitForPort(hostname, port);
+        if (!ready) {
+            throw new Error(`ICP server not reachable at ${hostname}:${port}`);
+        }
+
         const token = await getICPToken();
         const secret = await createOrgSecret(token);
 
@@ -133,9 +199,8 @@ export async function provisionICPSecret(projectPath: string): Promise<string | 
         writeSecretToConfigToml(projectPath, secret);
 
         return secret;
-    } catch (error) {
+    } catch (error: any) {
         const message = error instanceof Error ? error.message : String(error);
-        console.error('[ICP] Failed to provision secret:', message);
         window.showWarningMessage(
             `Failed to provision ICP secret: ${message}. You can set it manually in Config.toml.`
         );
