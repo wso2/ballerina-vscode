@@ -51,6 +51,7 @@ import { getProjectMetrics } from "../../telemetry/common/project-metrics";
 import { getHashedProjectId } from "../../telemetry/common/project-id";
 import { workspace } from 'vscode';
 import { runningServicesManager } from './tools/running-service-manager';
+import { DEFAULT_MODEL_CONFIG } from '@wso2/copilot-utilities/compaction';
 
 const RESERVED_OUTPUT_TOKENS = 8_192;
 
@@ -283,7 +284,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             // Uses 80% of the context window as the mid-stream trigger point.
             const compactionGuard = new CompactionGuard({
                 engine: compactionManager.getEngine(),
-                tokenThreshold: Math.floor(200_000 * 0.80),  // 160K tokens = 80% of context window
+                tokenThreshold: Math.floor(DEFAULT_MODEL_CONFIG.maxContextWindow * 0.80),  // 80% of context window
                 maxCompactionAttempts: 3,
                 preserveRecentMessageCount: 6,  // Keep last 3 tool-call + tool-result pairs
                 eventHandler: this.config.eventHandler,
