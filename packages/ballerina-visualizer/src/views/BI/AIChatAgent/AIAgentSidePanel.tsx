@@ -116,6 +116,26 @@ export interface ExtendedAgentToolRequest extends AgentToolRequest {
     flowNode?: FlowNode;
 }
 
+// Ensure "io", "log", and "time" module functions always appear under "Standard Library",
+// even if they've been imported (which moves them to "Imported Functions" from the LS)
+const STANDARD_LIB_MODULES = ["io", "log", "time"];
+function ensureStandardLibModules(categories: PanelCategory[]): PanelCategory[] {
+    const stdLib = categories.find((cat) => cat.title === "Standard Library");
+    const imported = categories.find((cat) => cat.title?.includes("Imported"));
+    if (!stdLib || !imported) return categories;
+
+    const isCategoryItem = (item: unknown): item is PanelCategory => typeof item === "object" && item !== null && "title" in item;
+    const existingModules = new Set(stdLib.items.filter(isCategoryItem).map((item) => item.title));
+
+    for (const name of STANDARD_LIB_MODULES) {
+        if (existingModules.has(name)) continue;
+        const match = imported.items.find((item) => isCategoryItem(item) && item.title === name);
+        if (match) stdLib.items.push({ ...match });
+    }
+
+    return categories;
+}
+
 // Reorder function categories: move "Imported Functions" to the end
 function reorderFunctionCategories(categories: PanelCategory[]): PanelCategory[] {
     const importedIndex = categories.findIndex((cat) => cat.title?.includes("Imported"));
@@ -357,13 +377,13 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
         }
 
         if (isSearching && searchText) {
-            setCategories(reorderFunctionCategories(convertFunctionCategoriesToSidePanelCategories(filteredResponse, functionType)));
+            setCategories(ensureStandardLibModules(reorderFunctionCategories(convertFunctionCategoriesToSidePanelCategories(filteredResponse, functionType))));
             return;
         }
         if (!response || !filteredResponse) {
             return [];
         }
-        return convertFunctionCategoriesToSidePanelCategories(filteredResponse, functionType);
+        return ensureStandardLibModules(convertFunctionCategoriesToSidePanelCategories(filteredResponse, functionType));
     };
 
     const extractRecordTypeFieldsFromEntries = (entries: { key: string; property: Property }[]): RecordTypeField[] => {
