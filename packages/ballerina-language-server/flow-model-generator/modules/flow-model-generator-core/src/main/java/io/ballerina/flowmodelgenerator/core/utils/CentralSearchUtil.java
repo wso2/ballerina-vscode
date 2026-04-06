@@ -140,35 +140,61 @@ public class CentralSearchUtil {
         limit = Math.max(limit, 0);
         offset = Math.max(offset, 0);
         List<SearchResult> organizationConnectors = new ArrayList<>();
-        Map<String, String> queryMap = new HashMap<>();
+        Map<String, String> baseQueryMap = new HashMap<>();
         boolean success = false;
         if (centralClient.hasAuthorizedAccess()) {
-            queryMap.put("user-packages", "true");
+            baseQueryMap.put("user-packages", "true");
             success = true;
         }
         if (currentOrg != null && !currentOrg.isEmpty()) {
-            queryMap.put("org", currentOrg);
+            baseQueryMap.put("org", currentOrg);
             success = true;
         }
-        if (success) {
-            if (!query.isEmpty()) {
-                queryMap.put("q", query);
-            }
-            queryMap.put("limit", String.valueOf(limit));
-            queryMap.put("offset", String.valueOf(offset));
+        if (!success) {
+            return organizationConnectors;
+        }
+        if (!query.isEmpty()) {
+            baseQueryMap.put("q", query);
+        }
+
+        int fetchOffset = 0;
+        int fetchLimit = safeFetchLimit(limit, offset);
+        int skipped = 0;
+
+        for (int iteration = 0; iteration < MAX_FETCH_ITERATIONS; iteration++) {
+            Map<String, String> queryMap = new HashMap<>(baseQueryMap);
+            queryMap.put("limit", String.valueOf(fetchLimit));
+            queryMap.put("offset", String.valueOf(fetchOffset));
             ConnectorsResponse connectorsResponse = centralClient.connectors(queryMap);
-            if (connectorsResponse != null && connectorsResponse.connectors() != null) {
-                for (Connector connector : connectorsResponse.connectors()) {
-                    if (connector == null || connector.packageInfo == null || connector.name == null) {
-                        continue;
-                    }
-                    if (isBlacklisted(connector.name, blacklistedNamePatterns)) {
-                        continue;
-                    }
-                    organizationConnectors.add(toSearchResult(connector, true));
+
+            if (connectorsResponse == null || connectorsResponse.connectors() == null) {
+                break;
+            }
+
+            for (Connector connector : connectorsResponse.connectors()) {
+                if (connector == null || connector.packageInfo == null || connector.name == null) {
+                    continue;
+                }
+                if (isBlacklisted(connector.name, blacklistedNamePatterns)) {
+                    continue;
+                }
+                if (skipped < offset) {
+                    skipped++;
+                    continue;
+                }
+                organizationConnectors.add(toSearchResult(connector, true));
+                if (organizationConnectors.size() >= limit) {
+                    return organizationConnectors.subList(0, limit);
                 }
             }
+
+            // Check if Central has more results
+            if (connectorsResponse.count() <= fetchOffset + fetchLimit) {
+                break;
+            }
+            fetchOffset += fetchLimit;
         }
+
         return organizationConnectors;
     }
 
