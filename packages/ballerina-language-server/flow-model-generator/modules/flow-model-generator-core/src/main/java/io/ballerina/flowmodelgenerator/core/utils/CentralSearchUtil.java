@@ -65,8 +65,9 @@ public class CentralSearchUtil {
                                                Set<String> blacklistedNamePatterns) {
         try {
             List<SearchResult> filteredResults = new ArrayList<>();
-            int fetchOffset = offset;
-            int fetchLimit = limit * OVERFETCH_FACTOR;
+            int fetchOffset = 0;
+            int fetchLimit = (limit + offset) * OVERFETCH_FACTOR;
+            int skipped = 0;
 
             for (int iteration = 0; iteration < MAX_FETCH_ITERATIONS; iteration++) {
                 Map<String, String> centralQueryMap = new HashMap<>();
@@ -82,13 +83,17 @@ public class CentralSearchUtil {
                 }
 
                 for (Connector connector : connectorsResponse.connectors()) {
-                    if (connector == null || connector.packageInfo == null) {
+                    if (connector == null || connector.packageInfo == null || connector.name == null) {
                         continue;
                     }
                     if (!allowedOrgs.contains(connector.packageInfo.getOrganization())) {
                         continue;
                     }
                     if (isBlacklisted(connector.name, blacklistedNamePatterns)) {
+                        continue;
+                    }
+                    if (skipped < offset) {
+                        skipped++;
                         continue;
                     }
                     filteredResults.add(toSearchResult(connector, false));
@@ -228,6 +233,6 @@ public class CentralSearchUtil {
     }
 
     private static boolean isBlacklisted(String connectorName, Set<String> patterns) {
-        return patterns.stream().anyMatch(connectorName::contains);
+        return connectorName != null && patterns.stream().anyMatch(connectorName::contains);
     }
 }

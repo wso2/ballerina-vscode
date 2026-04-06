@@ -308,6 +308,9 @@ public class SearchDatabaseManager {
     public List<SearchResult> searchConnectors(String q, int limit, int offset,
                                                Set<String> allowedOrgs, Set<String> blacklistedNamePatterns) {
         List<SearchResult> results = new ArrayList<>();
+        if (allowedOrgs.isEmpty()) {
+            return results;
+        }
         String sanitizedQuery = sanitizeQuery(q);
 
         String orgPlaceholders = String.join(",", Collections.nCopies(allowedOrgs.size(), "?"));
