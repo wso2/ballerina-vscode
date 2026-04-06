@@ -160,8 +160,6 @@ public final class RabbitMQServiceBuilder extends AbstractServiceBuilder {
                     context.semanticModel(), context.project());
 
             if (!compatibleListeners.isEmpty()) {
-                Set<String> advancedKeys = Set.of();
-
                 // Extract configs from existing listener declarations
                 Map<String, Map<String, Value>> listenerConfigs = extractRabbitMQListenerConfigs(
                         compatibleListeners, context.semanticModel(), context.project());
@@ -178,29 +176,9 @@ public final class RabbitMQServiceBuilder extends AbstractServiceBuilder {
                 for (String name : listenerNames) {
                     Map<String, Value> config = listenerConfigs.getOrDefault(name, new LinkedHashMap<>());
                     Map<String, Value> basicProps = new LinkedHashMap<>();
-                    Map<String, Value> advancedProps = new LinkedHashMap<>();
                     for (Map.Entry<String, Value> entry : config.entrySet()) {
                         entry.getValue().setEditable(false);
-                        if (advancedKeys.contains(entry.getKey())) {
-                            advancedProps.put(entry.getKey(), entry.getValue());
-                        } else {
-                            basicProps.put(entry.getKey(), entry.getValue());
-                        }
-                    }
-
-                    if (!advancedProps.isEmpty()) {
-                        Value advancedGroup = new Value.ValueBuilder()
-                                .metadata("Advanced Configurations", "")
-                                .types(List.of(new PropertyType.Builder()
-                                        .fieldType(Value.FieldType.GROUP_SECTION)
-                                        .selected(false)
-                                        .build()))
-                                .enabled(true)
-                                .editable(false)
-                                .setProperties(advancedProps)
-                                .build();
-                        advancedGroup.getTypes().getFirst().selected(false);
-                        basicProps.put("advancedConfigurations", advancedGroup);
+                        basicProps.put(entry.getKey(), entry.getValue());
                     }
 
                     Value configGroup = new Value.ValueBuilder()
