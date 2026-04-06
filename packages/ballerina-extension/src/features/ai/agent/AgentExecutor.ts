@@ -31,7 +31,7 @@ import { integrateCodeToWorkspace } from './utils';
 import { getWorkspaceTomlValues } from '../../../utils';
 import { StreamContext } from './stream-handlers/stream-context';
 import { checkCompilationErrors } from './tools/diagnostics-utils';
-import { updateAndSaveChat } from '../utils/events';
+import { updateAndSaveChat, calculateTotalCost } from '../utils/events';
 import { chatStateStorage } from '../../../views/ai-panel/chatStateStorage';
 import * as path from 'path';
 import { approvalViewManager } from '../state/ApprovalViewManager';
@@ -51,6 +51,7 @@ import { getProjectMetrics } from "../../telemetry/common/project-metrics";
 import { getHashedProjectId } from "../../telemetry/common/project-id";
 import { workspace } from 'vscode';
 import { runningServicesManager } from './tools/running-service-manager';
+import { DEFAULT_MODEL_CONFIG } from '@wso2/copilot-utilities/compaction';
 
 const RESERVED_OUTPUT_TOKENS = 8_192;
 
@@ -256,14 +257,14 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 },
             ];
 
-            // Resolve model and limits
-            const llmModel = this.config.model ?? await getAnthropicClient(ANTHROPIC_SONNET_4);
-            const maxSteps = this.config.agentLimits?.maxSteps ?? 50;
-            const maxOutputTokens = this.config.agentLimits?.maxOutputTokens ?? 8192;
+            // Accumulator for token usage from tool-internal LLM calls (e.g. Haiku filtering)
+            // These are separate API calls NOT included in the main agent loop's totalUsage
+            const toolModelUsage: Record<string, { inputTokens: number; outputTokens: number }> = {};
 
             // Create tools
             const tools = createToolRegistry({
                 eventHandler: this.config.eventHandler,
+                toolModelUsage,
                 tempProjectPath,
                 modifiedFiles,
                 allModifiedFiles,
@@ -287,7 +288,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             // Uses 80% of the context window as the mid-stream trigger point.
             const compactionGuard = new CompactionGuard({
                 engine: compactionManager.getEngine(),
-                tokenThreshold: Math.floor(200_000 * 0.80),  // 160K tokens = 80% of context window
+                tokenThreshold: Math.floor(DEFAULT_MODEL_CONFIG.maxContextWindow * 0.80),  // 80% of context window
                 maxCompactionAttempts: 3,
                 preserveRecentMessageCount: 6,  // Keep last 3 tool-call + tool-result pairs
                 eventHandler: this.config.eventHandler,
@@ -357,11 +358,12 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                         );
                         this.config.eventHandler({
                             type: "usage_metrics",
+                            model: ANTHROPIC_SONNET_4,
                             usage: {
                                 inputTokens,
-                                cacheCreationInputTokens: (step.usage as any).cacheCreationInputTokens || 0,
-                                cacheReadInputTokens: (step.usage as any).cacheReadInputTokens || 0,
-                                outputTokens: step.usage.outputTokens || 0,
+                                cacheCreationInputTokens: cacheWriteTokens,
+                                cacheReadInputTokens: cacheReadTokens,
+                                outputTokens,
                             },
                             breakdown: computeTokenBreakdown(allMessages, tools, accToolCallChars, accToolResultChars, inputTokens),
                         });
@@ -389,6 +391,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 ctx: this.config.executionContext,
                 generationStartTime,
                 projectId,
+                toolModelUsage,
             };
 
             // Process stream events - NATIVE V6 PATTERN
@@ -695,16 +698,28 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         const totalTokenUsage = await context.totalUsage;
         const inputTokens = totalTokenUsage.inputTokens || 0;
         const outputTokens = totalTokenUsage.outputTokens || 0;
-        const totalTokens = totalTokenUsage.totalTokens || 0;
         const totalCacheRead = totalTokenUsage.inputTokenDetails?.cacheReadTokens || 0;
         const totalCacheWrite = totalTokenUsage.inputTokenDetails?.cacheWriteTokens || 0;
+        // Aggregate tool-internal LLM usage across all models
+        const toolTokens = Object.values(context.toolModelUsage).reduce(
+            (acc, u) => ({ input: acc.input + u.inputTokens, output: acc.output + u.outputTokens }),
+            { input: 0, output: 0 }
+        );
+
+        const totalCost = calculateTotalCost(
+            ANTHROPIC_SONNET_4,
+            { inputTokens, outputTokens, cacheReadTokens: totalCacheRead, cacheWriteTokens: totalCacheWrite },
+            context.toolModelUsage
+        );
+
         console.log('[AgentExecutor] Generation complete — token usage:', {
             input: inputTokens,
             output: outputTokens,
-            total: totalTokens,
             cacheRead: totalCacheRead,
             cacheWrite: totalCacheWrite,
             cacheRatio: `${inputTokens > 0 ? (totalCacheRead / inputTokens * 100).toFixed(1) : '0'}%`,
+            toolModelUsage: context.toolModelUsage,
+            cost: `$${totalCost.toFixed(4)}`,
         });
 
         // Send telemetry for generation complete
@@ -715,15 +730,21 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             {
                 'message.id': context.messageId,
                 'project.id': context.projectId,
-                'generation.modified_files_count': context.modifiedFiles.length.toString(),
                 'generation.start_time': context.generationStartTime.toString(),
                 'generation.end_time': generationEndTime.toString(),
                 'plan_mode': isPlanModeEnabled.toString(),
-                'project.files_after': finalProjectMetrics.fileCount.toString(),
-                'project.lines_after': finalProjectMetrics.lineCount.toString(),
-                'tokens.input': inputTokens.toString(),
-                'tokens.output': outputTokens.toString(),
-                'tokens.total': totalTokens.toString(),
+            },
+            {
+                'tokens.input': inputTokens,
+                'tokens.output': outputTokens,
+                'tokens.cache_read': totalCacheRead,
+                'tokens.cache_creation': totalCacheWrite,
+                'tokens.tool.input': toolTokens.input,
+                'tokens.tool.output': toolTokens.output,
+                'generation.modified_files_count': context.modifiedFiles.length,
+                'project.files_after': finalProjectMetrics.fileCount,
+                'project.lines_after': finalProjectMetrics.lineCount,
+                'cost.total': totalCost,
             }
         );
 

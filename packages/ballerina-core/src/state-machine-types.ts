@@ -446,6 +446,7 @@ export interface EvalsToolResult {
 export interface UsageMetricsEvent {
     type: "usage_metrics";
     isRepair?: boolean;
+    model?: string;
     usage: {
         inputTokens: number;
         cacheCreationInputTokens: number;
@@ -821,9 +822,8 @@ export enum TaskStatus {
 
 export enum TaskTypes {
     SERVICE_DESIGN = "service_design",
-    CONNECTIONS_INIT = "connections_init",
     IMPLEMENTATION = "implementation",
-    TESTING = "testing"
+    EXECUTION = "execution"
 }
 
 /**

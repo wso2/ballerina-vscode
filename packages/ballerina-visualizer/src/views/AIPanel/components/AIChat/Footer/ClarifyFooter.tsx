@@ -87,7 +87,7 @@ const OptionButton = styled.button<{ selected: boolean }>`
     gap: 0;
     width: 100%;
     background: ${({ selected }: { selected: boolean }) =>
-        selected ? "var(--vscode-list-activeSelectionBackground, var(--vscode-list-hoverBackground))" : "transparent"};
+        selected ? "var(--vscode-list-inactiveSelectionBackground, var(--vscode-list-hoverBackground))" : "transparent"};
     border: 1px solid ${({ selected }: { selected: boolean }) =>
         selected ? "var(--vscode-focusBorder, var(--vscode-input-border))" : "transparent"};
     cursor: pointer;
