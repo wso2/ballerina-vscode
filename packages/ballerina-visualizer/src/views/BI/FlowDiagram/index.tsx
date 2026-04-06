@@ -896,11 +896,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             .getAvailableNodes(getNodeRequest)
             .then((response) => {
                 console.log(">>> Available nodes", response);
-                if (!response.categories) {
+                if (response.categories) {
                     console.error(">>> Error getting available nodes", response);
-                    topNodeRef.current = undefined;
-                    targetRef.current = undefined;
-                    changeTargetRange(undefined);
                     setErrorMessage(SIDE_PANEL_DEFAULT_ERROR_MESSAGE);
                     setSidePanelView(SidePanelView.ERROR);
                     return;
@@ -1108,6 +1105,12 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             setShowProgressIndicator(false);
         }
     }, [rpcClient, model?.fileName]);
+
+    const handleRetryNodeFetch = () => {
+        if (topNodeRef.current && targetRef.current) {
+            fetchNodesAndAISuggestions(topNodeRef.current, targetRef.current, false, false, true);
+        }
+    };
 
     const showConnectorError = () => {
         setErrorMessage(SIDE_PANEL_DEFAULT_ERROR_MESSAGE);
@@ -2847,7 +2850,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 // Regular callbacks
                 onClose={handleOnCloseSidePanel}
                 onSaveAndRefresh={closeSidePanelAndFetchUpdatedFlowModel}
-                onBack={handleOnFormBack}
+                onBack={sidePanelView === SidePanelView.ERROR ? handleRetryNodeFetch : handleOnFormBack}
                 onSelectNode={handleOnSelectNode}
                 // Add node callbacks
                 onAddConnection={handleOnAddConnection}
