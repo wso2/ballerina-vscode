@@ -29,7 +29,6 @@ import {
 import { Button} from "@wso2/ui-toolkit";
 
 const HURL_IMPORT_VSCODE_COMMAND = "HTTPClient.importHurlString";
-let sharedRunCheckPromise: Promise<boolean> | undefined;
 
 // ── Styled components ─────────────────────────────────────────────────────────
 
@@ -235,16 +234,6 @@ const HeaderRightStack = styled.div`
     justify-content: center;
     min-width: 0;
     gap: 2px;
-`;
-
-const HeaderLeftStack = styled.div`
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-    gap: 2px;
-`;
-const HeaderScenario = styled(InlineCardSubtitle)`
 `;
 
 const HeaderActions = styled.div`
@@ -511,9 +500,7 @@ const TryItCard: React.FC<TryItCardProps> = ({ input, output, rpcClient }) => {
                 <InlineCardIcon>
                     <span className="codicon codicon-send" />
                 </InlineCardIcon>
-                <HeaderLeftStack>
                 <InlineCardTitle>HTTP Request{multipleEntries && `s`}</InlineCardTitle>
-                </HeaderLeftStack>
                 <HeaderRightStack>
                     <HeaderActions>
                         <Button
@@ -533,7 +520,7 @@ const TryItCard: React.FC<TryItCardProps> = ({ input, output, rpcClient }) => {
             </InlineCardHeader>
             <ScenarioGroup>
                 <Divider />
-                {scenario && <HeaderScenario>{scenario}</HeaderScenario>}
+                {scenario && <InlineCardSubtitle>{scenario}</InlineCardSubtitle>}
                 <ScenarioContent>{content}</ScenarioContent>
             </ScenarioGroup>
         </InlineCard>
