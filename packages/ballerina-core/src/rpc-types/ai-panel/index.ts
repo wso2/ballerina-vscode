@@ -50,7 +50,9 @@ import {
     CompactConversationRequest,
     CompactConversationResponse,
     PromptEnhancementRequest,
-    PromptEnhancementResponse
+    PromptEnhancementResponse,
+    ClarifyAnswerRequest,
+    ClarifyCancelRequest,
 } from "./interfaces";
 
 export interface AIPanelAPI {
@@ -124,4 +126,6 @@ export interface AIPanelAPI {
     // ==================================
     enhancePrompt: (params: PromptEnhancementRequest) => Promise<PromptEnhancementResponse>;
     promptForLogin: () => void;
+    submitClarifyAnswer: (params: ClarifyAnswerRequest) => Promise<void>;
+    cancelClarify: (params: ClarifyCancelRequest) => Promise<void>;
 }

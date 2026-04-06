@@ -17,11 +17,14 @@
  */
 
 import * as vscode from 'vscode';
+import * as cp from 'child_process';
 import { BallerinaExtension } from '../../core';
 import { resolveICPPath } from './detect';
+import { provisionICPSecret, getStoredICPSecret, writeSecretToConfigToml } from './setup';
 
 const ICP_START_COMMAND = 'ballerina.icp.start';
 const ICP_STOP_COMMAND = 'ballerina.icp.stop';
+const ICP_FOCUS_COMMAND = 'ballerina.icp.focus';
 const ICP_TASK_NAME = 'ICP Server';
 const ICP_TASK_SOURCE = 'ballerina-icp';
 
@@ -38,8 +41,24 @@ function getICPCredentials(): { username: string; password: string } {
 }
 
 let icpTaskExecution: vscode.TaskExecution | undefined;
+let icpProcess: cp.ChildProcess | undefined;
 let isRunning = false;
 let statusBarItem: vscode.StatusBarItem;
+
+function killICPProcess(): void {
+    if (icpProcess && !icpProcess.killed && icpProcess.pid) {
+        try {
+            if (process.platform === 'win32') {
+                cp.execSync(`taskkill /pid ${icpProcess.pid} /t /f`, { stdio: 'ignore' });
+            } else {
+                process.kill(-icpProcess.pid, 'SIGTERM');
+            }
+        } catch {
+            icpProcess.kill();
+        }
+    }
+    icpProcess = undefined;
+}
 
 /**
  * Returns whether the ICP server is currently running.
@@ -49,28 +68,70 @@ export function isICPServerRunning(): boolean {
 }
 
 /**
- * Prompts the user to start the ICP server if it's not running.
- * Returns true if the server is running (or was just started), false if the user declined.
+ * Ensures the ICP server is running and the project secret is provisioned.
+ * - If secret exists in keychain, writes it to Config.toml silently.
+ * - If no secret, prompts user to start ICP server and provision one.
+ * Returns true if the run should proceed, false if cancelled.
  */
-export async function ensureICPServerRunning(): Promise<boolean> {
-    if (isRunning) {
+export async function ensureICPServerRunning(projectPath?: string): Promise<boolean> {
+    const storedSecret = projectPath ? await getStoredICPSecret(projectPath) : undefined;
+    if (projectPath && storedSecret) {
+        writeSecretToConfigToml(projectPath, storedSecret);
+    }
+
+    if (isRunning && (!projectPath || storedSecret)) {
         return true;
     }
 
+    // Server is running but this project has no secret — provision it now
+    if (isRunning && projectPath && !storedSecret) {
+        const secret = await provisionICPSecret(projectPath);
+        if (!secret) {
+            vscode.window.showErrorMessage('Failed to provision ICP secret. The project may not connect to ICP at runtime.');
+            return false;
+        }
+        return true;
+    }
+
+    const hasSecret = projectPath ? !!storedSecret : true;
+    const message = hasSecret
+        ? 'ICP is enabled for this project but the ICP server is not running.'
+        : 'ICP is enabled but not configured. Start ICP server to set up?';
+
     const action = await vscode.window.showWarningMessage(
-        'ICP is enabled for this project but the ICP server is not running.',
-        'Start ICP Server',
+        message,
+        'Start & Setup',
         'Run Anyway'
     );
 
-    if (action === 'Start ICP Server') {
+    if (action === 'Start & Setup') {
         await vscode.commands.executeCommand(ICP_START_COMMAND);
-        if (isRunning) {
-            const icpUrl = getICPUrl();
-            const { username, password } = getICPCredentials();
-            const credentialsHint = (username === 'admin' && password === 'admin')
-                ? ' (default credentials: admin/admin)'
-                : '';
+        if (!isRunning) {
+            return false;
+        }
+
+        const icpUrl = getICPUrl();
+        const { username, password } = getICPCredentials();
+        const credentialsHint = (username === 'admin' && password === 'admin')
+            ? ' (default credentials: admin/admin)'
+            : '';
+
+        // Provision the secret if we have a project path and no stored secret
+        if (projectPath && !hasSecret) {
+            const secret = await provisionICPSecret(projectPath);
+            if (!secret) {
+                vscode.window.showErrorMessage('Failed to provision ICP secret. The project may not connect to ICP at runtime.');
+                return false;
+            }
+            vscode.window.showInformationMessage(
+                `ICP server started and configured. Access it at ${icpUrl}${credentialsHint}`,
+                'Open in Browser'
+            ).then((selection) => {
+                if (selection === 'Open in Browser') {
+                    vscode.env.openExternal(vscode.Uri.parse(icpUrl));
+                }
+            });
+        } else {
             vscode.window.showInformationMessage(
                 `ICP server started. Access it at ${icpUrl}${credentialsHint}`,
                 'Open in Browser'
@@ -80,6 +141,7 @@ export async function ensureICPServerRunning(): Promise<boolean> {
                 }
             });
         }
+
         return isRunning;
     }
 
@@ -89,13 +151,12 @@ export async function ensureICPServerRunning(): Promise<boolean> {
 function updateStatusBar(): void {
     if (isRunning) {
         statusBarItem.text = '$(server-process) ICP: Running';
-        statusBarItem.tooltip = 'Integration Control Plane is running. Click to stop.';
-        statusBarItem.command = ICP_STOP_COMMAND;
+        statusBarItem.tooltip = 'Integration Control Plane is running. Click to view output.';
     } else {
         statusBarItem.text = '$(server-environment) ICP: Stopped';
         statusBarItem.tooltip = 'Integration Control Plane is stopped. Click to start.';
-        statusBarItem.command = ICP_START_COMMAND;
     }
+    statusBarItem.command = ICP_FOCUS_COMMAND;
 }
 
 function setICPState(running: boolean): void {
@@ -104,23 +165,110 @@ function setICPState(running: boolean): void {
     updateStatusBar();
 }
 
+const ICP_STARTED_PATTERN = 'ICP Console started at';
+const ICP_START_TIMEOUT_MS = 30000;
+
+let icpServerReadyPromise: Promise<boolean> | undefined;
+let startupTimeout: ReturnType<typeof setTimeout> | undefined;
+
 function createICPTask(icpPath: string): vscode.Task {
     const taskDefinition: vscode.TaskDefinition = {
         type: 'shell',
         task: 'start-icp-server',
     };
 
-    const shellExecution = new vscode.ShellExecution(
-        { value: icpPath, quoting: vscode.ShellQuoting.Strong },
-        []
-    );
+    let resolveReady: (value: boolean) => void;
+    let resolved = false;
+    icpServerReadyPromise = new Promise<boolean>((resolve) => {
+        resolveReady = (value: boolean) => {
+            if (resolved) { return; }
+            resolved = true;
+            resolve(value);
+        };
+    });
+
+    startupTimeout = setTimeout(() => {
+        resolveReady(false);
+        killICPProcess();
+        if (icpTaskExecution) {
+            icpTaskExecution.terminate();
+            icpTaskExecution = undefined;
+        }
+        icpServerReadyPromise = undefined;
+    }, ICP_START_TIMEOUT_MS);
+
+    const customExecution = new vscode.CustomExecution(async () => {
+        const writeEmitter = new vscode.EventEmitter<string>();
+        const closeEmitter = new vscode.EventEmitter<number | void>();
+
+        let outputBuffer = '';
+
+        function checkStartupPattern(text: string): void {
+            outputBuffer += text;
+            if (outputBuffer.includes(ICP_STARTED_PATTERN)) {
+                if (startupTimeout) {
+                    clearTimeout(startupTimeout);
+                    startupTimeout = undefined;
+                }
+                resolveReady(true);
+            }
+        }
+
+        const pty: vscode.Pseudoterminal = {
+            onDidWrite: writeEmitter.event,
+            onDidClose: closeEmitter.event,
+            open: () => {
+                icpProcess = cp.spawn(icpPath, [], {
+                    shell: true,
+                    detached: true,
+                    env: { ...process.env },
+                });
+
+                icpProcess.on('error', (err) => {
+                    writeEmitter.fire(`Failed to start ICP: ${err.message}\r\n`);
+                    if (startupTimeout) {
+                        clearTimeout(startupTimeout);
+                        startupTimeout = undefined;
+                    }
+                    resolveReady(false);
+                    closeEmitter.fire(1);
+                });
+
+                icpProcess.stdout?.on('data', (data: Buffer) => {
+                    const text = data.toString();
+                    writeEmitter.fire(text.replace(/\n/g, '\r\n'));
+                    checkStartupPattern(text);
+                });
+
+                icpProcess.stderr?.on('data', (data: Buffer) => {
+                    const text = data.toString();
+                    writeEmitter.fire(text.replace(/\n/g, '\r\n'));
+                    checkStartupPattern(text);
+                });
+
+                icpProcess.on('close', (code) => {
+                    if (startupTimeout) {
+                        clearTimeout(startupTimeout);
+                        startupTimeout = undefined;
+                    }
+                    resolveReady(false);
+                    closeEmitter.fire(code ?? undefined);
+                });
+            },
+            close: () => {
+                killICPProcess();
+            },
+        };
+
+        return pty;
+    });
 
     const task = new vscode.Task(
         taskDefinition,
         vscode.TaskScope.Workspace,
         ICP_TASK_NAME,
         ICP_TASK_SOURCE,
-        shellExecution
+        customExecution
     );
 
     task.isBackground = true;
@@ -144,6 +292,12 @@ export function activateICP(ballerinaExtInstance: BallerinaExtension) {
             return;
         }
 
+        if (icpServerReadyPromise) {
+            // A start is already in progress — wait for it
+            await icpServerReadyPromise;
+            return;
+        }
+
         const icpPath = await resolveICPPath();
         if (!icpPath) {
             return;
@@ -151,7 +305,14 @@ export function activateICP(ballerinaExtInstance: BallerinaExtension) {
 
         const task = createICPTask(icpPath);
         icpTaskExecution = await vscode.tasks.executeTask(task);
-        setICPState(true);
+
+        const started = await icpServerReadyPromise;
+        icpServerReadyPromise = undefined;
+        if (started) {
+            setICPState(true);
+        } else {
+            vscode.window.showErrorMessage('ICP server failed to start within the expected time.');
+        }
     });
 
     const stopCommand = vscode.commands.registerCommand(ICP_STOP_COMMAND, () => {
@@ -160,13 +321,27 @@ export function activateICP(ballerinaExtInstance: BallerinaExtension) {
             return;
         }
 
+        killICPProcess();
         icpTaskExecution.terminate();
         icpTaskExecution = undefined;
         setICPState(false);
     });
 
+    const focusCommand = vscode.commands.registerCommand(ICP_FOCUS_COMMAND, async () => {
+        if (!isRunning) {
+            // Start the server if not running
+            await vscode.commands.executeCommand(ICP_START_COMMAND);
+        }
+        // Focus the task terminal
+        if (icpTaskExecution) {
+            // Reveal the task's terminal in the panel
+            vscode.commands.executeCommand('workbench.action.terminal.focus');
+        }
+    });
+
     const taskEndListener = vscode.tasks.onDidEndTask((e) => {
         if (e.execution === icpTaskExecution) {
+            killICPProcess();
             icpTaskExecution = undefined;
             setICPState(false);
         }
@@ -176,6 +351,7 @@ export function activateICP(ballerinaExtInstance: BallerinaExtension) {
         statusBarItem,
         startCommand,
         stopCommand,
+        focusCommand,
         taskEndListener
     );
 }

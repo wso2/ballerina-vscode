@@ -52,8 +52,12 @@ import {
     UpdateChatMessageRequest,
     UsageResponse,
     WebToolApprovalRequest,
+    ClarifyAnswerRequest,
+    ClarifyCancelRequest,
     approveWebTool,
     declineWebTool,
+    submitClarifyAnswer,
+    cancelClarify,
     abortAIGeneration,
     acceptChanges,
     addFilesToProject,
@@ -330,5 +334,13 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     promptForLogin(): void {
         return this._messenger.sendNotification(promptForLogin, HOST_EXTENSION);
+    }
+
+    submitClarifyAnswer(params: ClarifyAnswerRequest): Promise<void> {
+        return this._messenger.sendRequest(submitClarifyAnswer, HOST_EXTENSION, params);
+    }
+
+    cancelClarify(params: ClarifyCancelRequest): Promise<void> {
+        return this._messenger.sendRequest(cancelClarify, HOST_EXTENSION, params);
     }
 }
