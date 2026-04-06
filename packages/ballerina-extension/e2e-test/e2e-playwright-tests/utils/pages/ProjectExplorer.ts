@@ -17,12 +17,19 @@
  */
 
 import { Locator, Page } from "@playwright/test";
+import { BI_INTEGRATOR_LABEL } from "../helpers/constants";
 
 export class ProjectExplorer {
     private explorer!: Locator;
 
     constructor(private page: Page) {
         this.explorer = this.page.getByRole('tree').locator('div').first();
+    }
+
+    public async init() {
+        const activityBar = this.page.locator('#workbench\\.parts\\.activitybar');
+        const wso2IntegratorActivityTab = activityBar.locator(`[role="tab"][aria-label="${BI_INTEGRATOR_LABEL}"]`).first();
+        await wso2IntegratorActivityTab.click();
     }
 
     public async findItem(path: string[], click: boolean = false) {

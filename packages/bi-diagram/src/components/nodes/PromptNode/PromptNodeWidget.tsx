@@ -415,6 +415,7 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
             >
                 {hasBreakpoint && (
                     <div
+                        data-testid={isActiveBreakpoint ? "breakpoint-indicator-diagram-active" : "breakpoint-indicator-diagram"}
                         style={{
                             position: "absolute",
                             left: -5,

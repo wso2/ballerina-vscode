@@ -127,10 +127,10 @@ export namespace NodeStyles {
             props.hasError
                 ? ThemeColors.ERROR
                 : (props.isSelected || props.selected) && !props.disabled
-                ? ThemeColors.SECONDARY
-                : props.hovered && !props.disabled
-                ? ThemeColors.SECONDARY
-                : ThemeColors.OUTLINE_VARIANT};
+                    ? ThemeColors.SECONDARY
+                    : props.hovered && !props.disabled
+                        ? ThemeColors.SECONDARY
+                        : ThemeColors.OUTLINE_VARIANT};
         border-radius: 8px;
         background-color: ${(props: NodeStyleProp) =>
             props?.isActiveBreakpoint ? ThemeColors.DEBUGGER_BREAKPOINT_BACKGROUND : ThemeColors.SURFACE_DIM};
@@ -171,7 +171,7 @@ interface ErrorNodeWidgetProps {
     onClick?: (node: FlowNode) => void;
 }
 
-export interface NodeWidgetProps extends Omit<ErrorNodeWidgetProps, "children"> {}
+export interface NodeWidgetProps extends Omit<ErrorNodeWidgetProps, "children"> { }
 
 export function ErrorNodeWidget(props: ErrorNodeWidgetProps) {
     const { model, engine, onClick } = props;
@@ -293,6 +293,7 @@ export function ErrorNodeWidget(props: ErrorNodeWidgetProps) {
                     >
                         {hasBreakpoint && (
                             <div
+                                data-testid={isActiveBreakpoint ? "breakpoint-indicator-diagram-active" : "breakpoint-indicator-diagram"}
                                 style={{
                                     position: "absolute",
                                     left: 1,
