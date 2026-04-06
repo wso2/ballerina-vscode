@@ -174,11 +174,11 @@ public class ConnectionActionProvider {
     List<Item> getOrBuild(String cacheKey, SupplierFn<List<Item>> supplier) {
         return cache.get(cacheKey, key -> {
             List<Item> fromDisk = loadFromDisk(key);
-            if (fromDisk != null && !fromDisk.isEmpty()) {
+            if (fromDisk != null) {
                 return List.copyOf(fromDisk);
             }
             List<Item> built = supplier.get();
-            if (built == null || built.isEmpty()) {
+            if (built == null) {
                 return List.of();
             }
             List<Item> immutable = List.copyOf(built);
