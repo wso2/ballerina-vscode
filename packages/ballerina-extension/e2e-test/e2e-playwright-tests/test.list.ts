@@ -161,6 +161,11 @@ test.afterAll(async () => {
         const activePage = page?.page;
         if (activePage) {
             const video = activePage.video();
+            await withTimeout(
+                activePage.close(),
+                PAGE_CLOSE_TIMEOUT_MS,
+                `Page close timed out after ${PAGE_CLOSE_TIMEOUT_MS}ms`
+            );
             if (video) {
                 fs.mkdirSync(videosFolder, { recursive: true });
                 const videoFilePath = path.join(videosFolder, `test_${dateTime}.webm`);
@@ -173,11 +178,6 @@ test.afterAll(async () => {
             } else {
                 console.log('ℹ️  No video available to save');
             }
-            await withTimeout(
-                activePage.close(),
-                PAGE_CLOSE_TIMEOUT_MS,
-                `Page close timed out after ${PAGE_CLOSE_TIMEOUT_MS}ms`
-            );
         } else {
             console.log('ℹ️  No active browser page found, skipping video save');
         }

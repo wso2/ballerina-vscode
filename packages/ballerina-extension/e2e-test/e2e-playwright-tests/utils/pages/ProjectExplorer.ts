@@ -27,9 +27,11 @@ export class ProjectExplorer {
     }
 
     public async init() {
-        const activityBar = this.page.locator('#workbench\\.parts\\.activitybar');
-        const wso2IntegratorActivityTab = activityBar.locator(`[role="tab"][aria-label="${BI_INTEGRATOR_LABEL}"]`).first();
-        await wso2IntegratorActivityTab.click();
+        const wso2IntegratorActivityTab = this.page.locator(`[role="tab"][aria-label="${BI_INTEGRATOR_LABEL}"]`).first();
+        const isChecked = await wso2IntegratorActivityTab.evaluate((el) => el.classList.contains('checked'));
+        if (!isChecked) {
+            await wso2IntegratorActivityTab.click();
+        }
     }
 
     public async findItem(path: string[], click: boolean = false) {
@@ -37,7 +39,7 @@ export class ProjectExplorer {
         for (let i = 0; i < path.length; i++) {
 
             currentItem = this.explorer.locator(`div[role="treeitem"][aria-label='${path[i]}']`);
-            await currentItem.waitFor();
+            await currentItem.waitFor({ timeout: 500 });
 
             if (i < path.length - 1) {
                 const isExpanded = await currentItem.getAttribute('aria-expanded');

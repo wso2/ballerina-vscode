@@ -78,11 +78,9 @@ export default function createTests() {
             await sequenceTab.waitFor({ timeout: 10000, state: 'visible' });
 
             // 12. Verify the flow diagram shows a "Start" node
-            const startNode = artifactWebView.locator('[data-testid="start-node"], .start-node, [class*="start"]').first();
-            await startNode.waitFor({ timeout: 10000 }).catch(() => {
-                // If specific test ID not found, try to find by text
-                return artifactWebView.getByText('Start').first().waitFor({ timeout: 5000 });
-            });
+            // Check if "Start" node is present using data-testid
+            const startNode = artifactWebView.locator('[data-testid="start-node"]');
+            await startNode.waitFor({ timeout: 10000, state: 'visible' });
 
             // 13. Verify the flow diagram shows an "Error Handler" node
             // Check if "Error Handler" node is present without using CSS class selectors

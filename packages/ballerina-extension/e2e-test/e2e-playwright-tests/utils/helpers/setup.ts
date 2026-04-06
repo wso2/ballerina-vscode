@@ -257,6 +257,7 @@ export function initTest(newProject: boolean = true, skipProjectCreation: boolea
         console.log(`\n▶️  STARTING TEST: ${testInfo.title} (Attempt ${testInfo.retry + 1})`);
         fs.mkdirSync(dataFolder, { recursive: true });
         if (newProject) {
+            console.log('Resetting test project from template');
             resetTestProjectFromTemplate();
         }
         if (!vscode || !page) {
@@ -264,6 +265,12 @@ export function initTest(newProject: boolean = true, skipProjectCreation: boolea
             await initVSCode();
         } else {
             console.log('  🔄 Reloading VS Code after project reset...');
+            await page.page.keyboard.press('Escape');
+            await page.page.keyboard.press('Escape');
+            try {
+                await page.executePaletteCommand('Terminal: Kill All Terminals');
+                await page.page.waitForTimeout(500);
+            } catch { }
             await page.executePaletteCommand('Reload Window');
             page = new ExtendedPage(await vscode!.firstWindow({ timeout: 60000 }));
             await page.page.waitForLoadState();
@@ -275,10 +282,7 @@ export function initTest(newProject: boolean = true, skipProjectCreation: boolea
         console.log('  ✅ Test environment ready');
     });
 
-    test.afterAll(async ({ }, testInfo) => {
-        if (cleanupAfter && fs.existsSync(newProjectPath)) {
-            fs.rmSync(newProjectPath, { recursive: true });
-        }
+    test.afterEach(async ({ }, testInfo) => {
         const status = testInfo.status ?? 'skipped';
         const statusEmoji = status === 'passed' ? '✅' : status === 'failed' ? '❌' : '⏭️';
         console.log(`${statusEmoji} FINISHED TEST: ${testInfo.title} (${status.toUpperCase()}, Attempt ${testInfo.retry + 1})\n`);
