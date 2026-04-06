@@ -236,6 +236,7 @@ public final class RabbitMQServiceBuilder extends AbstractServiceBuilder {
 
             return serviceInitModel;
         } catch (IOException e) {
+            LOGGER.warning("Failed to extract RabbitMQ service init configurations: " + e.getMessage());
             return null;
         }
     }
