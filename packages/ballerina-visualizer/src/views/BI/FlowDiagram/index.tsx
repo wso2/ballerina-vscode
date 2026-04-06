@@ -896,7 +896,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             .getAvailableNodes(getNodeRequest)
             .then((response) => {
                 console.log(">>> Available nodes", response);
-                if (response.categories) {
+                if (!response.categories) {
                     console.error(">>> Error getting available nodes", response);
                     setErrorMessage(SIDE_PANEL_DEFAULT_ERROR_MESSAGE);
                     setSidePanelView(SidePanelView.ERROR);
