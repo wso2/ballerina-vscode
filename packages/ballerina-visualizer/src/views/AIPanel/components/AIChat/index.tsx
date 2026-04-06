@@ -202,6 +202,8 @@ const AIChat: React.FC = () => {
 
     const [currentFileArray, setCurrentFileArray] = useState<SourceFile[]>([]);
     const [codeContext, setCodeContext] = useState<CodeContext | undefined>(undefined);
+    const [footerSuggestedCommandTemplates, setFooterSuggestedCommandTemplates] = useState<AIPanelPrompt[] | undefined>(undefined);
+    const [footerInputPlaceholder, setFooterInputPlaceholder] = useState("Describe your integration...");
 
     const [migrationSession, setMigrationSession] = useState<ActiveMigrationSession | null>(null);
     const [isMigrationEnhancementRunning, setIsMigrationEnhancementRunning] = useState(false);
@@ -267,7 +269,10 @@ const AIChat: React.FC = () => {
 
                         // Handle plan mode for text-type prompts
                         if (defaultPrompt.type === 'text') {
+                            const textPrompt = defaultPrompt;
                             setAgentMode(defaultPrompt.planMode ? AgentMode.Plan : AgentMode.Edit);
+                            setFooterSuggestedCommandTemplates(textPrompt.suggestedCommandTemplates);
+                            setFooterInputPlaceholder(textPrompt.inputPlaceholder ?? "Describe your integration...");
 
                             if (defaultPrompt.autoSubmit && defaultPrompt.text.trim().length > 0) {
                                 void handleSend({
@@ -276,6 +281,9 @@ const AIChat: React.FC = () => {
                                 });
                                 return;
                             }
+                        } else {
+                            setFooterSuggestedCommandTemplates(undefined);
+                            setFooterInputPlaceholder("Describe your integration...");
                         }
 
                         aiChatInputRef.current?.setInputContent(defaultPrompt);
@@ -2064,34 +2072,35 @@ const AIChat: React.FC = () => {
                         }
                         return (
                             <Footer
-                                aiChatInputRef={aiChatInputRef}
-                                tagOptions={{
-                                    placeholderTags: placeholderTags,
-                                    loadGeneralTags: loadGeneralTags,
-                                    injectPlaceholderTags: injectPlaceholderTags,
-                                }}
-                                attachmentOptions={{
-                                    multiple: true,
-                                    acceptResolver: acceptResolver,
-                                    handleAttachmentSelection: handleAttachmentSelection,
-                                }}
-                                inputPlaceholder="Describe your integration..."
-                                onSend={handleSend}
-                                onStop={handleStop}
-                                isLoading={isLoading}
-                                loadingLabel={isCompacting ? "Compacting conversation" : undefined}
-                                showSuggestedCommands={Array.isArray(otherMessages) && otherMessages.length === 0}
-                                codeContext={codeContext}
-                                onRemoveCodeContext={() => updateCodeContext(undefined)}
-                                agentMode={agentMode}
-                                onChangeAgentMode={handleChangeAgentMode}
-                                isAutoApproveEnabled={isAutoApproveEnabled}
-                                onDisableAutoApprove={handleToggleAutoApprove}
-                                isWebToolsEnabled={isWebToolsEnabled}
-                                onToggleWebSearch={handleToggleWebSearch}
-                                disabled={isUsageExceeded}
-                                contextUsage={showContextUsage ? contextUsage : null}
-                            />
+                            aiChatInputRef={aiChatInputRef}
+                            tagOptions={{
+                                placeholderTags: placeholderTags,
+                                loadGeneralTags: loadGeneralTags,
+                                injectPlaceholderTags: injectPlaceholderTags,
+                            }}
+                            attachmentOptions={{
+                                multiple: true,
+                                acceptResolver: acceptResolver,
+                                handleAttachmentSelection: handleAttachmentSelection,
+                            }}
+                            suggestedCommandTemplates={footerSuggestedCommandTemplates}
+                            inputPlaceholder={footerInputPlaceholder}
+                            onSend={handleSend}
+                            onStop={handleStop}
+                            isLoading={isLoading}
+                            loadingLabel={isCompacting ? "Compacting conversation" : undefined}
+                            showSuggestedCommands={Array.isArray(otherMessages) && otherMessages.length === 0}
+                            codeContext={codeContext}
+                            onRemoveCodeContext={() => updateCodeContext(undefined)}
+                            agentMode={agentMode}
+                            onChangeAgentMode={handleChangeAgentMode}
+                            isAutoApproveEnabled={isAutoApproveEnabled}
+                            onDisableAutoApprove={handleToggleAutoApprove}
+                            isWebToolsEnabled={isWebToolsEnabled}
+                            onToggleWebSearch={handleToggleWebSearch}
+                            disabled={isUsageExceeded}
+                            contextUsage={showContextUsage ? contextUsage : null}
+                        />
                         );
                     })()}
                 </AIChatView>
