@@ -109,6 +109,7 @@ interface PanelManagerProps {
     selectedConnectionKind?: ConnectionKind;
     showProgressSpinner?: boolean;
     progressMessage?: string;
+    progressTitle?: string;
     errorMessage?: string;
 
     // Action handlers
@@ -187,6 +188,7 @@ export function PanelManager(props: PanelManagerProps) {
         selectedConnectionKind,
         showProgressSpinner = false,
         progressMessage = "Loading...",
+        progressTitle,
         setSidePanelView,
         onClose,
         onSaveAndRefresh,
@@ -710,7 +712,7 @@ export function PanelManager(props: PanelManagerProps) {
 
     return (
         <PanelContainer
-            title={getContainerTitle(sidePanelView, selectedNode, selectedClientName, selectedConnectionKind)}
+            title={showProgressSpinner && progressTitle ? progressTitle : getContainerTitle(sidePanelView, selectedNode, selectedClientName, selectedConnectionKind)}
             show={showSidePanel}
             onClose={onClose}
             onBack={onBackCallback}

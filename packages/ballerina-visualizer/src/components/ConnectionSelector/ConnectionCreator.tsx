@@ -95,7 +95,7 @@ export function ConnectionCreator(props: ConnectionCreatorProps): JSX.Element {
             updateNodeWithConnectionVariable(connectionKind, selectedNode, nodeTemplate?.properties?.variable?.value as string);
             // Update the line range for the selected node if it was updated
             updateNodeLineRange(selectedNode, response.artifacts);
-            onSave?.(selectedNode);
+            onSave?.(selectedNode, response.artifacts);
         } catch (error) {
             console.error(`>>> Error creating ${connectionKind}`, error);
         }

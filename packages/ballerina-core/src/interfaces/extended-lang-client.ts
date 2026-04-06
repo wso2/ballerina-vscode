@@ -966,7 +966,7 @@ export type SearchKind =
     | "CHUNKER"
     | "AGENT"
     | "MEMORY"
-    | "MEMORY_STORE"
+    | "SHORT_TERM_MEMORY_STORE"
     | "AGENT_TOOL"
     | "CLASS_INIT"
     | "ALL";

@@ -255,6 +255,7 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
     const field: ExpressionProperty = useMemo(() => model.node.properties['prompt'], [model]);
     const nodeMetadata = (model.node.properties?.modelProvider?.metadata?.data as NodeMetadata);
     const nodeModelType = nodeMetadata?.type === "ModelProvider" ? nodeMetadata?.module : nodeMetadata?.type;
+    const nodeModelIconUrl = (model.node.metadata?.data as NodeMetadata)?.model?.path || (nodeMetadata as any)?.iconUrl;
 
     const handleOnClick = async (event: React.MouseEvent<HTMLDivElement>) => {
         if (event.metaKey) {
@@ -516,7 +517,7 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
                         fill={ThemeColors.ON_SURFACE}
                         style={{ pointerEvents: "none" }}
                     >
-                        {getAIModuleIcon(nodeModelType) ?? <DefaultLlmIcon />}
+                        {getAIModuleIcon(nodeModelType) ?? (nodeModelIconUrl ? <img src={nodeModelIconUrl} style={{ width: 24, height: 24 }} /> : <DefaultLlmIcon />)}
                     </foreignObject>
                     <line
                         x1="0"

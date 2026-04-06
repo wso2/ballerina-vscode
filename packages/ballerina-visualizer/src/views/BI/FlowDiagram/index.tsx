@@ -134,6 +134,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const [showProgressIndicator, setShowProgressIndicator] = useState(false);
     const [showProgressSpinner, setShowProgressSpinner] = useState<boolean>(false);
     const [progressMessage, setProgressMessage] = useState<string>(LOADING_MESSAGE);
+    const [progressTitle, setProgressTitle] = useState<string>("");
     const [subPanel, setSubPanel] = useState<SubPanel>({ view: SubPanelView.UNDEFINED });
     const [updatedExpressionField, setUpdatedExpressionField] = useState<any>(undefined);
     const [breakpointInfo, setBreakpointInfo] = useState<BreakpointInfo>();
@@ -837,6 +838,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         isCreatingNewVectorKnowledgeBase.current = false;
         isCreatingNewDataLoader.current = false;
         isCreatingNewChunker.current = false;
+        isCreatingAgent.current = false;
+        setShowProgressIndicator(false);
+        setShowProgressSpinner(false);
         setConnectorErrorMessage(undefined);
         clearNavigationStack();
     };
@@ -2064,6 +2068,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         isCreatingAgent.current = true;
         setShowProgressIndicator(true);
         setShowProgressSpinner(true);
+        setProgressTitle("AI Agent");
 
         // Push current state to navigation stack
         pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
@@ -2081,6 +2086,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             },
         })
             .then((response) => {
+                if (!isCreatingAgent.current) return;
                 selectedNodeRef.current = response.flowNode;
                 nodeTemplateRef.current = response.flowNode;
                 showEditForm.current = false;
@@ -2097,6 +2103,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         isCreatingNewModelProvider.current = true;
         setShowProgressIndicator(true);
         setShowProgressSpinner(true);
+        setProgressTitle("Model Providers");
         const messageTimeout = setupProgressMessageTimeout();
 
         // Push current state to navigation stack
@@ -2112,6 +2119,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 searchKind: "MODEL_PROVIDER",
             })
             .then((response) => {
+                if (!isCreatingNewModelProvider.current) return;
                 setCategories(convertModelProviderCategoriesToSidePanelCategories(response.categories as Category[]));
                 setSidePanelView(SidePanelView.MODEL_PROVIDERS);
                 setShowSidePanel(true);
@@ -2127,6 +2135,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         isCreatingNewVectorStore.current = true;
         setShowProgressIndicator(true);
         setShowProgressSpinner(true);
+        setProgressTitle("Vector Stores");
         const messageTimeout = setupProgressMessageTimeout();
 
         // Push current state to navigation stack
@@ -2142,6 +2151,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 searchKind: "VECTOR_STORE",
             })
             .then((response) => {
+                if (!isCreatingNewVectorStore.current) return;
                 setCategories(convertVectorStoreCategoriesToSidePanelCategories(response.categories as Category[]));
                 setSidePanelView(SidePanelView.VECTOR_STORES);
                 setShowSidePanel(true);
@@ -2157,6 +2167,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         isCreatingNewEmbeddingProvider.current = true;
         setShowProgressIndicator(true);
         setShowProgressSpinner(true);
+        setProgressTitle("Embedding Providers");
         const messageTimeout = setupProgressMessageTimeout();
 
         // Push current state to navigation stack
@@ -2172,6 +2183,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 searchKind: "EMBEDDING_PROVIDER",
             })
             .then((response) => {
+                if (!isCreatingNewEmbeddingProvider.current) return;
                 setCategories(
                     convertEmbeddingProviderCategoriesToSidePanelCategories(response.categories as Category[])
                 );
@@ -2189,6 +2201,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         isCreatingNewVectorKnowledgeBase.current = true;
         setShowProgressIndicator(true);
         setShowProgressSpinner(true);
+        setProgressTitle("Knowledge Bases");
         const messageTimeout = setupProgressMessageTimeout();
 
         // Push current state to navigation stack
@@ -2204,6 +2217,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 searchKind: "KNOWLEDGE_BASE",
             })
             .then((response) => {
+                if (!isCreatingNewVectorKnowledgeBase.current) return;
                 setCategories(convertKnowledgeBaseCategoriesToSidePanelCategories(response.categories as Category[]));
                 setSidePanelView(SidePanelView.KNOWLEDGE_BASES);
                 setShowSidePanel(true);
@@ -2219,6 +2233,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         isCreatingNewDataLoader.current = true;
         setShowProgressIndicator(true);
         setShowProgressSpinner(true);
+        setProgressTitle("Data Loaders");
         const messageTimeout = setupProgressMessageTimeout();
 
         // Push current state to navigation stack
@@ -2234,6 +2249,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 searchKind: "DATA_LOADER",
             })
             .then((response) => {
+                if (!isCreatingNewDataLoader.current) return;
                 setCategories(convertDataLoaderCategoriesToSidePanelCategories(response.categories as Category[]));
                 setSidePanelView(SidePanelView.DATA_LOADERS);
                 setShowSidePanel(true);
@@ -2249,6 +2265,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         isCreatingNewChunker.current = true;
         setShowProgressIndicator(true);
         setShowProgressSpinner(true);
+        setProgressTitle("Chunkers");
         const messageTimeout = setupProgressMessageTimeout();
 
         // Push current state to navigation stack
@@ -2264,6 +2281,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 searchKind: "CHUNKER",
             })
             .then((response) => {
+                if (!isCreatingNewChunker.current) return;
                 setCategories(convertChunkerCategoriesToSidePanelCategories(response.categories as Category[]));
                 setSidePanelView(SidePanelView.CHUNKERS);
                 setShowSidePanel(true);
@@ -2835,6 +2853,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 setSidePanelView={setSidePanelView}
                 showProgressSpinner={showProgressSpinner}
                 progressMessage={progressMessage}
+                progressTitle={progressTitle}
                 // Regular callbacks
                 onClose={handleOnCloseSidePanel}
                 onSaveAndRefresh={closeSidePanelAndFetchUpdatedFlowModel}

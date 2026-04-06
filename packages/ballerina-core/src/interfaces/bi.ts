@@ -542,7 +542,7 @@ export type NodeKind =
     | "MATCH"
     | "METHOD_CALL"
     | "MEMORY"
-    | "MEMORY_STORE"
+    | "SHORT_TERM_MEMORY_STORE"
     | "MODEL_PROVIDER"
     | "MODEL_PROVIDERS"
     | "VARIABLE"
