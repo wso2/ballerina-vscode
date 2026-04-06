@@ -25,7 +25,7 @@ import {
     DMModelDiagnosticsResult,
 } from "./types";
 import { GeneratedMappingSchema, RepairedMappingsSchema } from "./schema";
-import { DataMapperModelResponse, DMModel, Mapping, repairCodeRequest, SourceFile, ImportInfo, ProcessMappingParametersRequest, Command, MetadataWithAttachments, InlineMappingsSourceResult, ProcessContextTypeCreationRequest, ProjectImports, ImportStatements, TemplateId, GetModuleDirParams, TextEdit, DataMapperSourceRequest, AllDataMapperSourceRequest, DataMapperModelRequest, DeleteMappingRequest, CodeData } from "@wso2/ballerina-core";
+import { DataMapperModelResponse, DMModel, Mapping, repairCodeRequest, SourceFile, ImportInfo, ProcessMappingParametersRequest, Command, MetadataWithAttachments, InlineMappingsSourceResult, ProcessContextTypeCreationRequest, ProjectImports, ImportStatements, TemplateId, GetModuleDirParams, TextEdit, DataMapperSourceRequest, AllDataMapperSourceRequest, DataMapperModelRequest, DeleteMappingRequest, CodeData, keywords } from "@wso2/ballerina-core";
 import { getDataMappingPrompt } from "./prompts/mapping-prompt";
 import { getBallerinaCodeRepairPrompt } from "./prompts/repair-prompt";
 import { CopilotEventHandler, createWebviewEventHandler, updateAndSaveChat } from "../utils/events";
@@ -128,7 +128,8 @@ async function generateAIMappings(
         JSON.stringify(dataModelStructure),
         JSON.stringify(existingUserMappings || []),
         JSON.stringify(userProvidedMappingHints || {}),
-        JSON.stringify(existingSubMappings || [])
+        JSON.stringify(existingSubMappings || []),
+        keywords
     );
 
     const chatMessages: ModelMessage[] = [

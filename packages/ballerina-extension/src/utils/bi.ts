@@ -43,6 +43,7 @@ import { debug } from "./logger";
 import { parse } from "@iarna/toml";
 import { getProjectTomlValues, isLibraryProject, VALIDATOR_PACKAGE_NAME } from "./config";
 import { extension } from "../BalExtensionContext";
+import { scheduleMigrationEnhancement, writeEnhanceToml } from "../features/ai/migration/orchestrator";
 import { runBackgroundTerminalCommand } from "./runCommand";
 
 export const README_FILE = "README.md";
@@ -338,7 +339,7 @@ export async function createBIWorkspaceWithProject(projectRequest: ProjectReques
     const ballerinaTomlContent = `
 [workspace]
 title = "${projectRequest.workspaceName}"
-packages = ["${projectRequest.packageName}"]
+packages = ["${sanitizeName(projectRequest.packageName)}"]
 
 `;
 
@@ -470,8 +471,9 @@ export async function convertProjectToWorkspace(params: AddProjectToWorkspaceReq
     const updatedProjectPath = path.join(newDirectory, path.basename(currentProjectPath));
     fs.renameSync(currentProjectPath, updatedProjectPath);
 
-    createWorkspaceToml(newDirectory, params.workspaceName, currentPackageName);
-    addToWorkspaceToml(newDirectory, params.packageName);
+    const existingProjectDirName = path.basename(currentProjectPath);
+    createWorkspaceToml(newDirectory, params.workspaceName, existingProjectDirName);
+    addToWorkspaceToml(newDirectory, sanitizeName(params.packageName));
 
     await createProjectInWorkspace(params, newDirectory);
 
@@ -483,7 +485,7 @@ export async function convertProjectToWorkspace(params: AddProjectToWorkspaceReq
 
 export async function addProjectToExistingWorkspace(params: AddProjectToWorkspaceRequest): Promise<void> {
     const workspacePath = StateMachine.context().workspacePath;
-    addToWorkspaceToml(workspacePath, params.packageName);
+    addToWorkspaceToml(workspacePath, sanitizeName(params.packageName));
 
     await createProjectInWorkspace(params, workspacePath);
 }
@@ -535,11 +537,12 @@ export function deleteProjectFromWorkspace(workspacePath: string, packagePath: s
         const tomlData = parse(ballerinaTomlContent) as Partial<WorkspaceTomlValues>;
         const existingPackages: string[] = tomlData?.workspace?.packages ?? [];
 
-        if (!existingPackages.includes(relativeProjectPath)) {
+        const matchedEntry = existingPackages.find(p => path.normalize(p) === relativeProjectPath);
+        if (!matchedEntry) {
             return; // Package not found
         }
 
-        const updatedContent = removePackageFromToml(ballerinaTomlContent, relativeProjectPath);
+        const updatedContent = removePackageFromToml(ballerinaTomlContent, matchedEntry);
         fs.writeFileSync(ballerinaTomlPath, updatedContent);
 
         // send didChange event to the language server
@@ -656,7 +659,28 @@ export async function createBIProjectFromMigration(params: MigrateRequest) {
     fs.writeFileSync(gitignorePath, gitignoreContent.trim());
 
     debug(`BI project created successfully at ${projectRoot}`);
-    commands.executeCommand('vscode.openFolder', Uri.file(path.resolve(projectRoot)));
+
+    const resolvedRoot = path.resolve(projectRoot);
+    const aiEnabled = params.aiFeatureUsed ?? false;
+
+    // Write the AI enhancement state file – acts as the source of truth for the
+    // migration UI banner.  This is done for ALL values of aiFeatureUsed so
+    // the card can offer a "Start Enhancement" button even when the user skipped.
+    writeEnhanceToml(resolvedRoot, aiEnabled, false, params.sourcePath);
+
+    if (aiEnabled) {
+        // When AI enhancement is enabled, return the project root to the caller
+        // so the wizard can run the enhancement pipeline before opening the folder.
+        // The caller (RPC manager) will notify the webview with the project root
+        // and kick off the agent; vscode.openFolder is deferred until the
+        // enhancement completes or the user skips.
+        return resolvedRoot;
+    }
+
+    // No AI enhancement – open the project immediately.
+    scheduleMigrationEnhancement(aiEnabled, resolvedRoot, params.sourcePath);
+    commands.executeCommand('vscode.openFolder', Uri.file(resolvedRoot));
+    return resolvedRoot;
 }
 
 async function createProjectFiles(project: ProjectMigrationResult, projectRoot: string) {

@@ -85,7 +85,7 @@ interface TextEditorResult {
 // ============================================================================
 
 const VALID_FILE_EXTENSIONS = [
-    '.bal', '.toml', '.md', '.sql'
+    '.bal', '.toml', '.md', '.sql', ".yaml", ".yml", ".json", ".graphql", ".txt"
 ];
 
 const RESTRICTED_READ_FILES = ['Config.toml'];
