@@ -86,14 +86,14 @@ export function getTryItDropdownOptions(context: "service" | "resource"): TryItD
     return [
         {
             title: "Try It",
-            description: `Try out the ${context} with WSO2 HTTP Client`,
+            description: `Try ${context} with Hurl Client`,
             value: TryItOptionValue.TRY_IT,
             iconName: "play",
             iconIsCodicon: true,
         },
         {
             title: "Try It with AI",
-            description: `Try out the ${context} with WSO2 Integrator Copilot`,
+            description: `Describe your try it scenario to AI`,
             value: TryItOptionValue.TRY_IT_WITH_AI,
             iconName: "bi-ai-chat",
         },
