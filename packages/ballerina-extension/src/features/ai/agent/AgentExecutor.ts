@@ -158,6 +158,9 @@ async function determineAffectedPackages(
  * - Plan approval workflow (via ApprovalManager in TaskWrite tool)
  */
 export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
+    /** Tracks in-flight tool-call start times keyed by toolCallId for duration logging. */
+    private readonly _pendingToolCalls = new Map<string, number>();
+
     constructor(config: AICommandConfig<GenerateAgentCodeRequest>) {
         super(config);
     }
@@ -270,6 +273,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 projectRootPath: this.config.executionContext.workspacePath || this.config.executionContext.projectPath || '',
                 generationId: this.config.generationId,
                 threadId: 'default',
+                migrationSourcePath: this.config.toolOptions?.migrationSourcePath,
                 runningServices: runningServicesManager,
                 webSearchEnabled: params.webSearchEnabled ?? false,
                 ctx: this.config.executionContext,
@@ -463,6 +467,14 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                         }
                     );
 
+                    // Notify caller with partial messages (wizard migration history persistence)
+                    if (this.config.onMessagesAvailable) {
+                        this.config.onMessagesAvailable(
+                            [{ role: "user", content: streamContext.userMessageContent }, ...partialLLMMessages],
+                            'aborted'
+                        );
+                    }
+
                     // Note: Abort event is sent by base class handleExecutionError()
                 }
 
@@ -495,9 +507,17 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                 throw error;
             }
 
+            console.error("[AgentExecutor] Non-abort error in execute():", error);
+
+            // Abort the controller so that any in-flight tool executions
+            // managed by the AI SDK are cancelled and stop emitting events.
+            if (!this.config.abortController.signal.aborted) {
+                this.config.abortController.abort();
+            }
+
             this.config.eventHandler({
                 type: "error",
-                content: "An error occurred during agent execution. Please check the logs for details."
+                content: getErrorMessage(error)
             });
 
             // For other errors, return result with error
@@ -543,8 +563,31 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                 await this.handleStreamFinish(context);
                 break;
 
+            case "tool-call":
+                if (this.config.debugLogger) {
+                    this._pendingToolCalls.set((part as any).toolCallId, Date.now());
+                }
+                break;
+
+            case "tool-result":
+                if (this.config.debugLogger) {
+                    const startMs = this._pendingToolCalls.get((part as any).toolCallId);
+                    if (startMs !== undefined) {
+                        const durationMs = Date.now() - startMs;
+                        const rawResult = (part as any).result;
+                        const raw = typeof rawResult === "string"
+                            ? rawResult
+                            : rawResult === undefined
+                                ? "<no result>"
+                                : JSON.stringify(rawResult) ?? "<no result>";
+                        this.config.debugLogger.logToolCall((part as any).toolName, durationMs, raw);
+                        this._pendingToolCalls.delete((part as any).toolCallId);
+                    }
+                }
+                break;
+
             default:
-                // Tool calls/results handled automatically by SDK
+                // All other stream part types (step-finish, etc.) are handled by the SDK.
                 break;
         }
     }
@@ -708,27 +751,36 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         // Update chat state storage
         await this.updateChatState(context, assistantMessages, tempProjectPath);
 
-        // Integrate generated code into workspace immediately so user sees changes during review
-        const workspaceId = context.ctx.workspacePath || context.ctx.projectPath;
-        const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, 'default');
-        if (pendingReview && pendingReview.reviewState.modifiedFiles.length > 0) {
-            const integrationCtx = { ...context.ctx };
-            // In workspace mode, resolve project path from modified files if not set
-            if (!integrationCtx.projectPath && integrationCtx.workspacePath && pendingReview.reviewState.modifiedFiles.length > 0) {
-                const firstBalFile = pendingReview.reviewState.modifiedFiles.find(f => f.endsWith('.bal'));
-                if (firstBalFile) {
-                    const packageName = firstBalFile.split('/')[0];
-                    if (packageName) {
-                        integrationCtx.projectPath = path.join(integrationCtx.workspacePath, packageName);
-                        StateMachine.context().projectPath = integrationCtx.projectPath;
+        // Integrate generated code into workspace immediately so user sees changes during review.
+        // Skip only when the temp path IS the real workspace directory (migration wizard in-place
+        // editing). A review-continuation run also sets existingTempPath but to a temp dir, so we
+        // compare resolved paths rather than just checking existingTempPath presence.
+        const workspaceRoot = context.ctx.workspacePath || context.ctx.projectPath;
+        const isInPlaceEditing =
+            !!workspaceRoot &&
+            path.resolve(tempProjectPath) === path.resolve(workspaceRoot);
+        if (!isInPlaceEditing) {
+            const workspaceId = workspaceRoot;
+            const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, 'default');
+            if (pendingReview && pendingReview.reviewState.modifiedFiles.length > 0) {
+                const integrationCtx = { ...context.ctx };
+                // In workspace mode, resolve project path from modified files if not set
+                if (!integrationCtx.projectPath && integrationCtx.workspacePath && pendingReview.reviewState.modifiedFiles.length > 0) {
+                    const firstBalFile = pendingReview.reviewState.modifiedFiles.find(f => f.endsWith('.bal'));
+                    if (firstBalFile) {
+                        const packageName = firstBalFile.split('/')[0];
+                        if (packageName) {
+                            integrationCtx.projectPath = path.join(integrationCtx.workspacePath, packageName);
+                            StateMachine.context().projectPath = integrationCtx.projectPath;
+                        }
                     }
                 }
+                await integrateCodeToWorkspace(
+                    pendingReview.reviewState.tempProjectPath!,
+                    new Set(pendingReview.reviewState.modifiedFiles),
+                    integrationCtx
+                );
             }
-            await integrateCodeToWorkspace(
-                pendingReview.reviewState.tempProjectPath!,
-                new Set(pendingReview.reviewState.modifiedFiles),
-                integrationCtx
-            );
         }
 
         // Emit UI events
