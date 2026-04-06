@@ -338,7 +338,7 @@ export async function createBIWorkspaceWithProject(projectRequest: ProjectReques
     const ballerinaTomlContent = `
 [workspace]
 title = "${projectRequest.workspaceName}"
-packages = ["${projectRequest.packageName}"]
+packages = ["${sanitizeName(projectRequest.packageName)}"]
 
 `;
 
@@ -470,8 +470,9 @@ export async function convertProjectToWorkspace(params: AddProjectToWorkspaceReq
     const updatedProjectPath = path.join(newDirectory, path.basename(currentProjectPath));
     fs.renameSync(currentProjectPath, updatedProjectPath);
 
-    createWorkspaceToml(newDirectory, params.workspaceName, currentPackageName);
-    addToWorkspaceToml(newDirectory, params.packageName);
+    const existingProjectDirName = path.basename(currentProjectPath);
+    createWorkspaceToml(newDirectory, params.workspaceName, existingProjectDirName);
+    addToWorkspaceToml(newDirectory, sanitizeName(params.packageName));
 
     await createProjectInWorkspace(params, newDirectory);
 
@@ -483,7 +484,7 @@ export async function convertProjectToWorkspace(params: AddProjectToWorkspaceReq
 
 export async function addProjectToExistingWorkspace(params: AddProjectToWorkspaceRequest): Promise<void> {
     const workspacePath = StateMachine.context().workspacePath;
-    addToWorkspaceToml(workspacePath, params.packageName);
+    addToWorkspaceToml(workspacePath, sanitizeName(params.packageName));
 
     await createProjectInWorkspace(params, workspacePath);
 }
@@ -535,11 +536,12 @@ export function deleteProjectFromWorkspace(workspacePath: string, packagePath: s
         const tomlData = parse(ballerinaTomlContent) as Partial<WorkspaceTomlValues>;
         const existingPackages: string[] = tomlData?.workspace?.packages ?? [];
 
-        if (!existingPackages.includes(relativeProjectPath)) {
+        const matchedEntry = existingPackages.find(p => path.normalize(p) === relativeProjectPath);
+        if (!matchedEntry) {
             return; // Package not found
         }
 
-        const updatedContent = removePackageFromToml(ballerinaTomlContent, relativeProjectPath);
+        const updatedContent = removePackageFromToml(ballerinaTomlContent, matchedEntry);
         fs.writeFileSync(ballerinaTomlPath, updatedContent);
 
         // send didChange event to the language server
