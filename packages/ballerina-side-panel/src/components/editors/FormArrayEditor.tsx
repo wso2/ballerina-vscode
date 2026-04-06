@@ -109,8 +109,6 @@ export const FormArrayEditor = (props: FormFieldEditorProps & {
         return true;
     }
 
-    }
-
     const applyDiagnosticsToField = (field: FormField): FormField => {
         const diagnostics = elementDiagnosticsRef.current.find(diag => diag.key === field.key);
         if (!diagnostics) return field;
