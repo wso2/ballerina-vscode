@@ -61,8 +61,31 @@ The tool analyzes the entire Ballerina package and returns:
                 ? path.join(tempProjectPath, packagePath)
                 : tempProjectPath;
 
-            // Use shared utility to check compilation errors
-            const result = await checkCompilationErrors(targetPath);
+            // For large workspaces the Language Server must compile the full dependency
+            // tree, which can take several minutes.  Notify the user so the stream view
+            // does not appear frozen, and race the LS call against a generous timeout so
+            // the agent is never left waiting indefinitely.
+            eventHandler({
+                type: "content_block",
+                content: "\n\n_Requesting compilation diagnostics from the Language Server — this may take a moment for large workspaces…_\n\n",
+            });
+
+            const DIAGNOSTICS_TIMEOUT_MS = 3 * 60 * 1000; // 3 minutes
+            const timeoutResult: DiagnosticsCheckResult = {
+                diagnostics: [],
+                message:
+                    "Diagnostics check timed out — the Language Server is still compiling the workspace " +
+                    "(large multi-package project). Treat the current code as potentially having compilation " +
+                    "errors and continue fixing any issues you can identify from the source. " +
+                    "You may call this tool again later to recheck.",
+            };
+
+            const result = await Promise.race([
+                checkCompilationErrors(targetPath),
+                new Promise<DiagnosticsCheckResult>((resolve) =>
+                    setTimeout(() => resolve(timeoutResult), DIAGNOSTICS_TIMEOUT_MS)
+                ),
+            ]);
 
             // Emit tool_result event to visualizer (shows result in UI)
             eventHandler({

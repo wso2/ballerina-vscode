@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
     ProjectStructureResponse,
     SHARED_COMMANDS,
@@ -186,6 +186,19 @@ const TitleContainer = styled.div`
     display: flex;
     align-items: flex-end;
     gap: 8px;
+    position: relative;
+`;
+
+const EditableTitleWrapper = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+
+    &:is(:hover, :focus-visible) .edit-title-icon-wrapper {
+        opacity: 1;
+        max-width: 28px;
+    }
 `;
 
 const ProjectTitle = styled.h1`
@@ -193,9 +206,58 @@ const ProjectTitle = styled.h1`
     font-size: 1.5rem;
     margin-bottom: 0;
     margin-top: 0;
+    transition: opacity 0.40s ease;
     @media (min-width: 768px) {
         font-size: 1.875rem;
     }
+`;
+
+const TitleInput = styled.input<{ $hasError?: boolean }>`
+    font-weight: bold;
+    font-size: 1.5rem;
+    margin-bottom: 0;
+    margin-top: 0;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid ${({ $hasError }: { $hasError?: boolean }) => $hasError
+        ? 'var(--vscode-inputValidation-errorBorder)'
+        : 'var(--vscode-focusBorder)'};
+    color: var(--vscode-foreground);
+    outline: none;
+    padding: 0;
+    font-family: inherit;
+    min-width: 120px;
+    width: auto;
+    @media (min-width: 768px) {
+        font-size: 1.875rem;
+    }
+`;
+
+const TitleValidationMessage = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.72rem;
+    color: var(--vscode-inputValidation-errorForeground, var(--vscode-errorForeground));
+    background: var(--vscode-inputValidation-errorBackground, transparent);
+    border: 1px solid var(--vscode-inputValidation-errorBorder);
+    border-radius: 2px;
+    padding: 2px 6px;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    white-space: nowrap;
+    z-index: 10;
+`;
+
+const EditTitleIconWrapper = styled.div`
+    max-width: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-width 0.15s ease, opacity 0.15s ease;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
 `;
 
 const ProjectSubtitle = styled.h2`
@@ -625,6 +687,12 @@ export function WorkspaceOverview() {
     const [readmeContent, setReadmeContent] = React.useState<string>("");
     const [projectCollection, setProjectCollection] = React.useState<ProjectStructureResponse>();
     const [icpStatusByProjectPath, setIcpStatusByProjectPath] = React.useState<Record<string, boolean>>({});
+    const [isEditingTitle, setIsEditingTitle] = useState(false);
+    const [titleInputValue, setTitleInputValue] = useState("");
+    const [titleError, setTitleError] = useState("");
+    const titleInputRef = useRef<HTMLInputElement>(null);
+    const [displayedTitle, setDisplayedTitle] = useState("");
+    const [titleVisible, setTitleVisible] = useState(true);
 
     const [showAlert, setShowAlert] = React.useState(false);
     const [icpActionLoading, setIcpActionLoading] = React.useState<IcpAction | null>(null);
@@ -701,6 +769,25 @@ export function WorkspaceOverview() {
         });
     }, []);
 
+    useEffect(() => {
+        const newTitle = projectCollection?.workspaceTitle || projectCollection?.workspaceName || "";
+        if (newTitle === displayedTitle) {
+            return;
+        }
+        if (!displayedTitle) {
+            // First load — no animation needed
+            setDisplayedTitle(newTitle);
+            return;
+        }
+        // Fade out → swap → fade in
+        setTitleVisible(false);
+        const swap = setTimeout(() => {
+            setDisplayedTitle(newTitle);
+            setTitleVisible(true);
+        }, 400);
+        return () => clearTimeout(swap);
+    }, [projectCollection?.workspaceTitle, projectCollection?.workspaceName]);
+
     const isEmptyProject = useMemo(() => {
         return projectCollection?.projects.length === 0;
     }, [projectCollection]);
@@ -749,6 +836,78 @@ export function WorkspaceOverview() {
     const deployableProjectPaths = useMemo(() => {
         return new Set(projectScopes.map(scope => scope.projectPath));
     }, [projectScopes]);
+
+    const validateTitle = useCallback((value: string): string => {
+        const trimmed = value.trim();
+        if (!trimmed) {
+            return "You are required to enter a project name.";
+        }
+        if (!/^[a-zA-Z]/.test(trimmed)) {
+            return "Name must start with an alphabetical letter.";
+        }
+        if (trimmed.length < 3) {
+            return "The name must have at least three characters.";
+        }
+        if (/[^a-zA-Z0-9\-_ ]/.test(trimmed)) {
+            return "The name cannot contain special characters.";
+        }
+        return "";
+    }, []);
+
+    const startEditingTitle = useCallback(() => {
+        const currentTitle = projectCollection?.workspaceTitle || projectCollection?.workspaceName || "";
+        setTitleInputValue(currentTitle);
+        setTitleError("");
+        setIsEditingTitle(true);
+        setTimeout(() => {
+            titleInputRef.current?.select();
+        }, 0);
+    }, [projectCollection]);
+
+    const commitTitleEdit = useCallback(async () => {
+        const trimmed = titleInputValue.trim();
+        if (!projectCollection?.workspacePath) {
+            setIsEditingTitle(false);
+            return;
+        }
+        // Empty input — silently restore the previous name
+        if (!trimmed) {
+            setTitleError("");
+            setIsEditingTitle(false);
+            return;
+        }
+        // Invalid name — restore previous name instead of saving
+        if (titleError) {
+            setTitleError("");
+            setIsEditingTitle(false);
+            return;
+        }
+        // No change — skip commit
+        const currentTitle = projectCollection?.workspaceTitle || projectCollection?.workspaceName || "";
+        if (trimmed === currentTitle) {
+            setIsEditingTitle(false);
+            return;
+        }
+        try {
+            await rpcClient.getBIDiagramRpcClient().updateProjectTitle({
+                projectPath: projectCollection.workspacePath,
+                title: trimmed
+            });
+            setIsEditingTitle(false);
+        } catch {
+            // keep edit mode open on failure
+        }
+    }, [titleInputValue, titleError, projectCollection, rpcClient]);
+
+    const handleTitleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            e.currentTarget.blur();
+        } else if (e.key === "Escape") {
+            setTitleError("");
+            setIsEditingTitle(false);
+        }
+    }, []);
 
     if (!projectCollection) {
         return (
@@ -875,7 +1034,45 @@ export function WorkspaceOverview() {
         <PageLayout>
             <HeaderRow>
                 <TitleContainer>
-                    <ProjectTitle>{projectCollection?.workspaceTitle || projectCollection?.workspaceName}</ProjectTitle>
+                    {isEditingTitle ? (
+                        <>
+                            <TitleInput
+                                ref={titleInputRef}
+                                value={titleInputValue}
+                                size={Math.max(titleInputValue.length, 8)}
+                                $hasError={!!titleError}
+                                onChange={(e) => { setTitleInputValue(e.target.value); setTitleError(validateTitle(e.target.value)); }}
+                                onKeyDown={handleTitleKeyDown}
+                                onBlur={commitTitleEdit}
+                                autoFocus
+                            />
+                            {titleError && (
+                                <TitleValidationMessage>
+                                    <Codicon name="info" sx={{ fontSize: '12px', flexShrink: 0 }} />
+                                    {titleError}
+                                </TitleValidationMessage>
+                            )}
+                        </>
+                    ) : (
+                        <EditableTitleWrapper
+                            role="button"
+                            tabIndex={0}
+                            onClick={startEditingTitle}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault();
+                                    startEditingTitle();
+                                }
+                            }}
+                            title="Click to edit project title"
+                            aria-label="Edit project title"
+                        >
+                            <ProjectTitle style={{ opacity: titleVisible ? 1 : 0 }}>{displayedTitle}</ProjectTitle>
+                            <EditTitleIconWrapper className="edit-title-icon-wrapper">
+                                <Codicon name="edit" sx={{ color: 'var(--vscode-descriptionForeground)', fontSize: '14px', width: '16px' }} />
+                            </EditTitleIconWrapper>
+                        </EditableTitleWrapper>
+                    )}
                     <ProjectSubtitle>Project</ProjectSubtitle>
                 </TitleContainer>
             </HeaderRow>
