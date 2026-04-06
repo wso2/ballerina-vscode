@@ -440,7 +440,7 @@ public class ConnectionActionProvider {
             try (Writer writer = Files.newBufferedWriter(file)) {
                 gson.toJson(items, writer);
             }
-        } catch (IOException ignored) {
+        } catch (IOException | RuntimeException ignored) {
             diskAvailable.set(false);
         }
     }
@@ -451,8 +451,7 @@ public class ConnectionActionProvider {
         }
         try {
             Files.deleteIfExists(cacheDirectory.resolve(keyToFileName(cacheKey)));
-        } catch (IOException ignored) {
-            diskAvailable.set(false);
+        } catch (IOException | RuntimeException ignored) {
         }
     }
 
