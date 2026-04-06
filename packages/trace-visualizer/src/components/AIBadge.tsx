@@ -20,7 +20,7 @@ import styled from "@emotion/styled";
 import { Icon } from "@wso2/ui-toolkit";
 
 interface AIBadgeProps {
-    type: 'invoke' | 'chat' | 'tool' | 'kb_retrieve' | 'kb_ingest' | 'embeddings' | 'other';
+    type: 'invoke' | 'chat' | 'tool' | 'kb_retrieve' | 'kb_ingest' | 'embeddings' | 'generate_content' | 'other';
 }
 
 const AISpanBadge = styled.span<{ type: string }>`
@@ -41,6 +41,7 @@ const AISpanBadge = styled.span<{ type: string }>`
             case 'kb_retrieve': return 'var(--vscode-charts-purple)';
             case 'kb_ingest': return 'var(--vscode-charts-purple)';
             case 'embeddings': return 'var(--vscode-terminalSymbolIcon-optionForeground)';
+            case 'generate_content': return 'var(--vscode-charts-green)';
             default: return 'var(--vscode-badge-foreground)';
         }
     }};
@@ -60,6 +61,7 @@ export function AIBadge({ type }: AIBadgeProps) {
             case 'kb_retrieve': return 'bi-ai-search';
             case 'kb_ingest': return 'bi-import';
             case 'embeddings': return 'bi-ai-model';
+            case 'generate_content': return 'bi-doc';
             default: return 'bi-action';
         }
     };
