@@ -22,7 +22,6 @@ const typeLabel = {
     marginLeft: "3px",
     marginRight: "3px",
     padding: "5px 8px",
-    minWidth: "100px",
     color: "var(--vscode-foreground)",
     fontFamily: "GilmerRegular",
     verticalAlign: "middle",

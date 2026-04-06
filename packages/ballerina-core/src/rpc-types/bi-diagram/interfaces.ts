@@ -32,6 +32,7 @@ export interface ProjectRequest {
     orgName?: string;
     version?: string;
     isLibrary?: boolean;
+    projectHandle?: string;
 }
 
 export interface AddProjectToWorkspaceRequest {
@@ -43,6 +44,7 @@ export interface AddProjectToWorkspaceRequest {
     orgName?: string;
     version?: string;
     isLibrary?: boolean;
+    projectHandle?: string;
 }
 
 export interface WorkspacesResponse {
@@ -226,6 +228,13 @@ export interface ValidateProjectFormRequest {
     createAsWorkspace?: boolean;
 }
 
+export interface SuggestedProjectDefaultsResponse {
+    projectName: string;
+    projectHandle: string;
+    integrationName: string;
+    packageName: string;
+}
+
 export interface ValidateProjectFormResponse {
     isValid: boolean;
     errorMessage?: string;
@@ -235,4 +244,9 @@ export interface ValidateProjectFormResponse {
 export enum ValidateProjectFormErrorField {
     PATH = 'path',
     NAME = 'name'
+}
+
+export interface UpdateProjectTitleRequest {
+    projectPath: string;
+    title: string;
 }
