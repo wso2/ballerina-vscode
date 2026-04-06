@@ -18,7 +18,8 @@
 
 import React, { useEffect, useState } from "react";
 
-import { Dropdown, LocationSelector, RadioButtonGroup } from "@wso2/ui-toolkit";
+import { Codicon, Dropdown, LinkButton, LocationSelector, RadioButtonGroup, ThemeColors } from "@wso2/ui-toolkit";
+import { FormRow, FormButtonContainer } from "../Form";
 
 import { FormField } from "../Form/types";
 import { buildRequiredRule, capitalize, getValueForDropdown } from "./utils";
@@ -57,6 +58,7 @@ export function DropdownChoiceForm(props: DropdownChoiceFormProps) {
     const [selectedOption, setSelectedOption] = useState<string>(initialOption);
 
     const [dynamicFields, setDynamicFields] = useState<FormField[]>([]);
+    const [showGroupSections, setShowGroupSections] = useState<{ [key: string]: boolean }>({});
 
     // Update dynamic fields when selection changes
     useEffect(() => {
@@ -66,6 +68,7 @@ export function DropdownChoiceForm(props: DropdownChoiceFormProps) {
             setDynamicFields([]);
         }
         setValue(field.key, selectedOption);
+        setShowGroupSections({});
     }, [selectedOption]);
 
     return (
@@ -91,17 +94,50 @@ export function DropdownChoiceForm(props: DropdownChoiceFormProps) {
                 />
             </ChoiceSection>
             <FormSection>
-                {dynamicFields.map((dfield, index) => {
-                    if (!dfield.advanced && !dfield.optional) {
+                {dynamicFields
+                    .filter(dfield => dfield.type !== "GROUP_SECTION" && !dfield.advanced && !dfield.optional)
+                    .map((dfield, index) => (
+                        <FieldFactory
+                            key={dfield.key}
+                            field={dfield}
+                            autoFocus={index === 0}
+                        />
+                    ))
+                }
+                {dynamicFields
+                    .filter(dfield => dfield.type === "GROUP_SECTION")
+                    .map(groupField => {
+                        const collapsedFields = groupField.advanceProps || [];
+                        if (collapsedFields.length === 0) return null;
+                        const isExpanded = showGroupSections[groupField.key] || false;
                         return (
-                            <FieldFactory
-                                key={dfield.key}
-                                field={dfield}
-                                autoFocus={index === 0 ? true : false}
-                            />
+                            <React.Fragment key={groupField.key}>
+                                <FormRow>
+                                    {groupField.label}
+                                    <FormButtonContainer>
+                                        <LinkButton
+                                            onClick={() => setShowGroupSections(prev => ({
+                                                ...prev,
+                                                [groupField.key]: !isExpanded
+                                            }))}
+                                            sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
+                                        >
+                                            <Codicon
+                                                name={isExpanded ? "chevron-up" : "chevron-down"}
+                                                iconSx={{ fontSize: 12 }}
+                                                sx={{ height: 12 }}
+                                            />
+                                            {isExpanded ? "Collapse" : "Expand"}
+                                        </LinkButton>
+                                    </FormButtonContainer>
+                                </FormRow>
+                                {isExpanded && collapsedFields.map(childField => (
+                                    <FieldFactory key={childField.key} field={childField} />
+                                ))}
+                            </React.Fragment>
                         );
-                    }
-                })}
+                    })
+                }
             </FormSection>
         </FormContainer>
     );

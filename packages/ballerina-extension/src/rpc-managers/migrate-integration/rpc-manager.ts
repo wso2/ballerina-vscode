@@ -27,7 +27,7 @@ import {
     OpenMigrationReportRequest,
     OpenSubProjectReportRequest,
     SaveMigrationReportRequest,
-    StoreSubProjectReportsRequest
+    StoreSubProjectReportsRequest,
 } from "@wso2/ballerina-core";
 import os from "os";
 import path from "path";
@@ -36,6 +36,25 @@ import { StateMachine } from "../../stateMachine";
 import { createBIProjectFromMigration, getUsername, sanitizeName } from "../../utils/bi";
 import { pullMigrationTool } from "../../utils/migrate-integration";
 import { MigrationReportWebview } from "../../views/migration-report/webview";
+import {
+    getActiveMigrationSessionState,
+    markEnhancementComplete,
+    startMigrationEnhancement,
+    runMigrationAgent,
+    abortMigrationAgent,
+    setMigrationModelId,
+    setWizardProjectRoot,
+    runWizardMigrationEnhancement,
+    openMigratedProject,
+    seedMigrationHistoryIntoChatState,
+    getMigrationHistoryMessages,
+} from "../../features/ai/migration/orchestrator";
+
+interface ActiveMigrationSession {
+    isActive: boolean;
+    aiFeatureUsed: boolean;
+    fullyEnhanced: boolean;
+}
 
 export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
     private static instance: MigrateIntegrationRpcManager;
@@ -154,7 +173,7 @@ export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
                 const aggregateReportPath = path.join(baseDir.fsPath, params.defaultFileName);
                 await vscode.workspace.fs.writeFile(
                     vscode.Uri.file(aggregateReportPath),
-                    Buffer.from(params.reportContent, 'utf8')
+                    new TextEncoder().encode(params.reportContent)
                 );
                 console.log(`Aggregate migration report saved to ${aggregateReportPath}`);
 
@@ -169,7 +188,7 @@ export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
                     // Write project report
                     await vscode.workspace.fs.writeFile(
                         vscode.Uri.file(projectReportPath),
-                        Buffer.from(reportContent, 'utf8')
+                        new TextEncoder().encode(reportContent)
                     );
                     console.log(`Project migration report saved to ${projectReportPath}`);
                 }
@@ -193,13 +212,82 @@ export class MigrateIntegrationRpcManager implements MigrateIntegrationAPI {
 
             if (saveUri) {
                 // Write the report content to the selected file
-                await vscode.workspace.fs.writeFile(saveUri, Buffer.from(params.reportContent, 'utf8'));
+                await vscode.workspace.fs.writeFile(saveUri, new TextEncoder().encode(params.reportContent));
                 vscode.window.showInformationMessage(`Migration report saved to ${saveUri.fsPath}`);
             }
         }
     }
 
     async migrateProject(params: MigrateRequest): Promise<void> {
-        createBIProjectFromMigration(params);
+        const projectRoot = await createBIProjectFromMigration(params);
+
+        if (params.aiFeatureUsed === true && projectRoot) {
+            // Store the project root for wizard-level AI enhancement.
+            // The webview will call wizardEnhancementReady once it shows the
+            // enhancement step, which triggers the agent.
+            setWizardProjectRoot(projectRoot, params.sourcePath);
+        }
+    }
+
+    async getActiveMigrationSession(): Promise<ActiveMigrationSession> {
+        return getActiveMigrationSessionState() as ActiveMigrationSession;
+    }
+
+    async markEnhancementComplete(): Promise<void> {
+        markEnhancementComplete();
+    }
+
+    async startMigrationEnhancement(): Promise<void> {
+        await startMigrationEnhancement();
+    }
+
+    /**
+     * Called by the migration panel webview once it's mounted and ready to
+     * receive streaming events. If the session is active and not yet enhanced,
+     * kicks off the migration agent.
+     */
+    async migrationPanelReady(): Promise<void> {
+        const session = getActiveMigrationSessionState();
+        if (session.isActive && !session.fullyEnhanced) {
+            // Fire and forget – the agent streams events back to the panel
+            runMigrationAgent().catch((err) =>
+                console.error("[MigrateIntegrationRpc] Migration agent failed:", err)
+            );
+        }
+    }
+
+    /**
+     * Called by the Visualizer webview (ImportIntegration wizard) once the
+     * AI enhancement step is visible and ready to receive streaming events.
+     * Kicks off the wizard-level migration agent.
+     */
+    async wizardEnhancementReady(): Promise<void> {
+        runWizardMigrationEnhancement().catch((err) =>
+            console.error("[MigrateIntegrationRpc] Wizard migration agent failed:", err)
+        );
+    }
+
+    /**
+     * Opens the migrated project in VS Code after wizard-level AI enhancement
+     * completes or the user skips it.
+     */
+    async openMigratedProjectInVSCode(): Promise<void> {
+        openMigratedProject();
+    }
+
+    async abortMigrationAgent(): Promise<void> {
+        abortMigrationAgent();
+    }
+
+    async setMigrationModel(modelId: string): Promise<void> {
+        setMigrationModelId(modelId);
+    }
+
+    async seedMigrationHistory(): Promise<boolean> {
+        return seedMigrationHistoryIntoChatState();
+    }
+
+    async getMigrationHistoryMessages(): Promise<Array<{ role: string; content: string }>> {
+        return getMigrationHistoryMessages();
     }
 }
