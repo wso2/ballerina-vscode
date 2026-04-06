@@ -18,43 +18,49 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
-import { Codicon, Icon, DefaultLlmIcon, getAIModuleIcon } from "@wso2/ui-toolkit";
+import { Codicon, Icon, DefaultLlmIcon, getAIModuleIcon, ProgressRing } from "@wso2/ui-toolkit";
 import { CodeData } from "@wso2/ballerina-core";
 
 const ICON_SIZE = 16;
 
-export function getConnectionIcon(codedata: CodeData): React.ReactElement {
-    // Check AI module icon map first
+const NODE_ICON_MAP: Record<string, string> = {
+    MODEL_PROVIDER: "bi-ai-model",
+    VECTOR_STORE: "bi-db",
+    EMBEDDING_PROVIDER: "bi-doc",
+    DATA_LOADER: "bi-data-table",
+    CHUNKER: "bi-cut",
+    SHORT_TERM_MEMORY_STORE: "bi-memory",
+};
+
+// Modules that always use node-type icons, skipping the icon URL fallback
+const GENERIC_ICON_MODULES = new Set(["ai.devant"]);
+
+export function getConnectionIcon(codedata: CodeData, iconUrl?: string): React.ReactElement {
+    const iconSx = { width: ICON_SIZE, height: ICON_SIZE, fontSize: ICON_SIZE };
+
+    // Check AI module icon map first (e.g. OpenAI, Anthropic, etc.)
     if (codedata.module) {
         const icon = getAIModuleIcon(codedata.module, ICON_SIZE);
         if (icon) return icon;
     }
 
-    // Handle WSO2 AI module
+    // WSO2 "ai" module: use bi-wso2 for model providers and embedding providers
     if (codedata.module === "ai") {
-        if (codedata.node === "VECTOR_STORE") {
-            return <Icon name="bi-db" sx={{ width: ICON_SIZE, height: ICON_SIZE, fontSize: ICON_SIZE }} />;
+        if (codedata.node === "MODEL_PROVIDER" || codedata.node === "EMBEDDING_PROVIDER") {
+            return <Icon name="bi-wso2" sx={iconSx} />;
         }
-        return <Icon name="bi-wso2" sx={{ width: ICON_SIZE, height: ICON_SIZE, fontSize: ICON_SIZE }} />;
     }
 
-    // Fallback by node type
-    switch (codedata?.node) {
-        case "MODEL_PROVIDER":
-            return <Icon name="bi-ai-model" sx={{ width: ICON_SIZE, height: ICON_SIZE, fontSize: ICON_SIZE }} />;
-        case "VECTOR_STORE":
-            return <Icon name="bi-db" sx={{ width: ICON_SIZE, height: ICON_SIZE, fontSize: ICON_SIZE }} />;
-        case "EMBEDDING_PROVIDER":
-            return <Icon name="bi-doc" sx={{ width: ICON_SIZE, height: ICON_SIZE, fontSize: ICON_SIZE }} />;
-        case "DATA_LOADER":
-            return <Icon name="bi-data-table" sx={{ width: ICON_SIZE, height: ICON_SIZE, fontSize: ICON_SIZE }} />;
-        case "CHUNKER":
-            return <Icon name="bi-cut" sx={{ width: ICON_SIZE, height: ICON_SIZE, fontSize: ICON_SIZE }} />;
-        case "MEMORY_STORE":
-            return <Icon name="bi-memory" sx={{ width: ICON_SIZE, height: ICON_SIZE, fontSize: ICON_SIZE }} />;
-        default:
-            return <DefaultLlmIcon size={ICON_SIZE} />;
+    // Icon by node type
+    const nodeIcon = codedata.node && NODE_ICON_MAP[codedata.node];
+    if (nodeIcon) return <Icon name={nodeIcon} sx={iconSx} />;
+
+    // Icon URL from metadata (fetched from Central) — skip for modules that prefer generic icons
+    if (iconUrl && !(codedata.module && GENERIC_ICON_MODULES.has(codedata.module))) {
+        return <img src={iconUrl} style={{ width: ICON_SIZE, height: ICON_SIZE }} />;
     }
+
+    return <DefaultLlmIcon size={ICON_SIZE} />;
 }
 
 // --- Select Item type ---
@@ -64,6 +70,7 @@ export interface ConnectionSelectItem {
     label: string;
     value: string;
     codedata?: CodeData;
+    iconUrl?: string;
 }
 
 // --- Styled Components ---
@@ -175,6 +182,7 @@ interface ConnectionIconSelectProps {
     emptyMessage?: string;
     disabled?: boolean;
     required?: boolean;
+    loading?: boolean;
     onChange: (value: string) => void;
 }
 
@@ -187,6 +195,7 @@ export const ConnectionIconSelect: React.FC<ConnectionIconSelectProps> = ({
     emptyMessage = "No items available. Create one below.",
     disabled = false,
     required = false,
+    loading = false,
     onChange,
 }) => {
     const [open, setOpen] = useState(false);
@@ -271,22 +280,27 @@ export const ConnectionIconSelect: React.FC<ConnectionIconSelectProps> = ({
                     role="combobox"
                     aria-expanded={open}
                     aria-haspopup="listbox"
-                    tabIndex={disabled || isEmpty ? -1 : 0}
-                    disabled={disabled || isEmpty}
-                    onClick={() => !disabled && !isEmpty && setOpen(!open)}
+                    tabIndex={disabled || isEmpty || loading ? -1 : 0}
+                    disabled={disabled || isEmpty || loading}
+                    onClick={() => !disabled && !isEmpty && !loading && setOpen(!open)}
                     onKeyDown={handleKeyDown}
                 >
                     <SelectedDisplay>
-                        {selectedItem ? (
+                        {loading ? (
                             <>
-                                {selectedItem.codedata && getConnectionIcon(selectedItem.codedata)}
+                                <ProgressRing sx={{ height: 16, width: 16 }} color="var(--vscode-input-placeholderForeground)" />
+                                <Placeholder>Loading...</Placeholder>
+                            </>
+                        ) : selectedItem ? (
+                            <>
+                                {selectedItem.codedata && getConnectionIcon(selectedItem.codedata, selectedItem.iconUrl)}
                                 <SelectedLabel>{selectedItem.label}</SelectedLabel>
                             </>
                         ) : (
                             <Placeholder>{isEmpty ? emptyMessage : placeholder}</Placeholder>
                         )}
                     </SelectedDisplay>
-                    {!isEmpty && <Codicon name="chevron-down" sx={{ fontSize: 14, flexShrink: 0 }} />}
+                    {!loading && !isEmpty && <Codicon name="chevron-down" sx={{ fontSize: 14, flexShrink: 0 }} />}
                 </SelectTrigger>
                 {open && items.length > 0 && (
                     <DropdownPanel role="listbox">
@@ -300,7 +314,7 @@ export const ConnectionIconSelect: React.FC<ConnectionIconSelectProps> = ({
                                 onClick={() => handleSelect(item.value)}
                                 onKeyDown={(e: React.KeyboardEvent) => handleOptionKeyDown(e, index, item.value)}
                             >
-                                {item.codedata && getConnectionIcon(item.codedata)}
+                                {item.codedata && getConnectionIcon(item.codedata, item.iconUrl)}
                                 <OptionLabel>{item.label}</OptionLabel>
                             </OptionItem>
                         ))}

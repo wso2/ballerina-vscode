@@ -424,6 +424,7 @@ export interface FormProps {
     openFormTypeEditor?: (open: boolean, newType?: string, editingField?: FormField) => void;
     derivedFields?: FieldDerivation[]; // Configuration for auto-deriving field values from other fields
     updateImports?: (key: string, imports: Imports) => void;
+    defaultExpandAdvanced?: boolean;
 }
 
 export const Form = forwardRef((props: FormProps, _ref) => {
@@ -494,7 +495,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
         rpcClient.getBIDiagramRpcClient().formDirtyDidChange({ filePath: fileName, isDirty });
     }, [isDirty, fileName, rpcClient]);
 
-    const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
+    const [showAdvancedOptions, setShowAdvancedOptions] = useState(props.defaultExpandAdvanced ?? false);
     const [activeFormField, setActiveFormField] = useState<string | undefined>(undefined);
     const [diagnosticsInfo, setDiagnosticsInfo] = useState<FormDiagnostics[] | undefined>(undefined);
     const [isMarkdownExpanded, setIsMarkdownExpanded] = useState(false);

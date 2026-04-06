@@ -711,6 +711,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     const nodeTitle = "AI Agent";
     const hasError = nodeHasError(model.node);
     const nodeMetadata = model?.node.metadata.data as NodeMetadata;
+    const nodeModelIconUrl = nodeMetadata?.model?.path;
     const tools = nodeMetadata?.tools || [];
 
     const sanitizedAgent = nodeMetadata?.agent ? sanitizeAgentData(nodeMetadata.agent) : undefined;
@@ -1031,7 +1032,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                         fill={ThemeColors.ON_SURFACE}
                         style={{ pointerEvents: "none" }}
                     >
-                        {getAIModuleIcon(nodeMetadata?.model?.type) ?? <DefaultLlmIcon />}
+                        {getAIModuleIcon(nodeMetadata?.model?.type) ?? (nodeModelIconUrl ? <img src={nodeModelIconUrl} style={{ width: 24, height: 24 }} /> : <DefaultLlmIcon />)}
                     </foreignObject>
 
                     {/* Base Line */}
