@@ -197,11 +197,6 @@ public class ConnectionActionProvider {
                 sanitizeSegment(version));
     }
 
-    public static String generateKey(Codedata codedata) {
-        String packageName = codedata.packageName() == null ? codedata.module() : codedata.packageName();
-        return generateKey(codedata.org(), packageName, codedata.module(), codedata.object(), codedata.version());
-    }
-
     private List<Item> getOrBuildTemplates(ConnectorContext context) {
         return getOrBuild(context.cacheKey(), () -> buildTemplates(context, context.project()));
     }
