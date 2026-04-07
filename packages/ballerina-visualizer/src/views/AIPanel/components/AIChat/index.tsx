@@ -110,6 +110,26 @@ const MessageBody = styled.div<{ isUserMessage: boolean }>(({ isUserMessage }: {
     overflowWrap: "anywhere",
 }));
 
+const CompactionNoticeContainer = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--vscode-textCodeBlock-background);
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 4px;
+    padding: 6px 12px;
+    margin: 6px 0;
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+`;
+
+const CompactionNotice: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+    <CompactionNoticeContainer>
+        <span className="codicon codicon-fold" role="img" />
+        {children}
+    </CompactionNoticeContainer>
+);
+
 // ── Agent stream serialization ────────────────────────────────────────────────
 
 function serializeStream(entries: StreamEntry[], existingContent: string): string {
@@ -215,7 +235,7 @@ const AIChat: React.FC = () => {
     const [contextUsage, setContextUsage] = useState<{
         inputTokens: number;
         percentage: number;
-        breakdown?: { systemInstructions: number; toolDefinitions: number; reservedOutput: number; messages: number; toolResults: number };
+        breakdown?: { systemInstructions: number; toolDefinitions: number; reservedOutput: number; files: number; messages: number; toolResults: number };
     } | null>(null);
     const [showContextUsage, setShowContextUsage] = useState(false);
 
@@ -809,12 +829,21 @@ const AIChat: React.FC = () => {
         } else if (type === "compaction_start") {
             setIsCompacting(true);
 
-        } else if (type === "compaction_end" || type === "compaction_failed") {
+        } else if (type === "compaction_end") {
             setIsCompacting(false);
-            // Compaction wipes pre-compaction generations — refresh so restore buttons disappear
-            rpcClient.getAiPanelRpcClient().getCheckpoints()
-                .then(cps => setAvailableCheckpointIds(new Set(cps.map(cp => cp.id))))
-                .catch(() => {});
+
+        } else if (type === "compaction_disabled") {
+            setIsCompacting(false);
+            setMessages(prevMessages => {
+                const msgs = [...prevMessages];
+                const targetIndex = ensureAssistantMessage(msgs);
+                const last = msgs[targetIndex];
+                msgs[targetIndex] = {
+                    ...last,
+                    content: last.content + "\n<compaction>Your project is large — automatic context compaction is disabled. You may hit the context limit on long sessions. Start a new thread if that happens.</compaction>"
+                };
+                return msgs;
+            });
 
         } else if (type === "usage_metrics") {
             const inputTokens = (response as any).usage?.inputTokens ?? 0;
@@ -2039,6 +2068,8 @@ const AIChat: React.FC = () => {
                                                 );
                                             } else if (segment.type === SegmentType.References) {
                                                 return <ReferenceDropdown key={`references-${i}`} links={JSON.parse(segment.text)} />;
+                                            } else if (segment.type === SegmentType.Compaction) {
+                                                return <CompactionNotice key={`compaction-${i}`}>{segment.text}</CompactionNotice>;
                                             } else {
                                                 if (message.type === "Error") {
                                                     return <ErrorBox key={`error-${i}`}>{segment.text}</ErrorBox>;

@@ -199,8 +199,8 @@ export function createWebviewEventHandler(command: Command): CopilotEventHandler
                 console.log('[Compaction] Context compaction completed');
                 RPCLayer._messenger.sendNotification(onChatNotify, { type: "webview", webviewType: AiPanelWebview.viewType }, event);
                 break;
-            case "compaction_failed":
-                console.warn(`[Compaction] Context compaction failed: ${event.reason}`);
+            case "compaction_disabled":
+                console.warn('[Compaction] Compaction disabled — codebase floor exceeds trigger threshold');
                 RPCLayer._messenger.sendNotification(onChatNotify, { type: "webview", webviewType: AiPanelWebview.viewType }, event);
                 break;
             default:

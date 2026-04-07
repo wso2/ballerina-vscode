@@ -19,7 +19,6 @@
 import React, { useRef, useState } from "react";
 import styled from "@emotion/styled";
 
-const PRE_TURN_THRESHOLD = 178_808;
 const MAX_CONTEXT_WINDOW = 200_000;
 const TOOLTIP_SHOW_MS = 300;
 const TOOLTIP_HIDE_MS = 200;
@@ -28,6 +27,7 @@ interface UsageBreakdown {
     systemInstructions: number;
     toolDefinitions: number;
     reservedOutput: number;
+    files: number;
     messages: number;
     toolResults: number;
 }
@@ -247,6 +247,10 @@ const ContextUsageWidget: React.FC<ContextUsageWidgetProps> = ({ percentage, inp
                             </CategoryRow>
 
                             <SectionLabel>User Context</SectionLabel>
+                            <CategoryRow>
+                                <CategoryName>Project Files</CategoryName>
+                                <CategoryPct>{toPct(breakdown.files)}</CategoryPct>
+                            </CategoryRow>
                             <CategoryRow>
                                 <CategoryName>Messages</CategoryName>
                                 <CategoryPct>{toPct(breakdown.messages)}</CategoryPct>
