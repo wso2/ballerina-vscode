@@ -457,6 +457,7 @@ export interface UsageMetricsEvent {
         systemInstructions: number;
         toolDefinitions: number;
         reservedOutput: number;
+        files: number;
         messages: number;
         toolResults: number;
     };

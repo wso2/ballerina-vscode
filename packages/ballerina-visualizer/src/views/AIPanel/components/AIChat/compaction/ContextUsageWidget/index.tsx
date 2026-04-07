@@ -19,7 +19,6 @@
 import React, { useRef, useState } from "react";
 import styled from "@emotion/styled";
 
-const PRE_TURN_THRESHOLD = 178_808;
 const MAX_CONTEXT_WINDOW = 200_000;
 const TOOLTIP_SHOW_MS = 300;
 const TOOLTIP_HIDE_MS = 200;
