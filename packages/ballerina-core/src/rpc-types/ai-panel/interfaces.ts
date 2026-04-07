@@ -521,6 +521,28 @@ export interface UsageResponse {
 export interface OpenFileDiffRequest {
     relativePath: string;
 }
+
+// ==================================
+// Running Services (long-lived processes started by the AI agent)
+// ==================================
+
+/** Serializable view of a running service tracked by the agent's RunningServicesManager. */
+export interface RunningServiceInfo {
+    /** Unique identifier returned by the runBallerinaPackage tool. */
+    taskId: string;
+    /** Filesystem path of the package being run. */
+    packagePath: string;
+    /** Epoch ms when the process started. */
+    startedAt: number;
+    /** True once the process has exited (naturally or via stop). */
+    exited: boolean;
+    /** Exit code of the process. 0 while still running. */
+    exitCode: number;
+}
+
+export interface StopRunningServiceRequest {
+    taskId: string;
+}
 // ==================================
 // Compaction Related Interfaces
 // ==================================

@@ -46,6 +46,7 @@ import { extension } from './BalExtensionContext';
 import { ExtendedClientCapabilities } from '@wso2/ballerina-core';
 import { RPCLayer } from './RPCLayer';
 import { activateAIFeatures } from './features/ai/activator';
+import { runningServicesManager } from './features/ai/agent/tools/running-service-manager';
 import { activateTryItCommand } from './features/tryit/activator';
 import { activate as activateNPFeatures } from './features/natural-programming/activator';
 import { activateAgentChatPanel } from './views/agent-chat/activate';
@@ -305,12 +306,14 @@ async function updateCodeServerConfig() {
     await config.update('enableRunFast', true);
 }
 
-export function deactivate(): Thenable<void> | undefined {
+export async function deactivate(): Promise<void> {
     debug('Deactive the Ballerina VS Code extension.');
+
+    await runningServicesManager.dispose();
 
     if (!langClient) {
         return;
     }
     extension.ballerinaExtInstance.telemetryReporter.dispose();
-    return langClient.stop();
+    await langClient.stop();
 }
