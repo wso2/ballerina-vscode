@@ -19,7 +19,7 @@
 /// <reference types="node" />
 
 import { test } from '@playwright/test';
-import { page, extensionsFolder, newProjectPath } from './utils/helpers';
+import { page, extensionsFolder, newProjectPath, zipProjectSnapshot } from './utils/helpers';
 import { downloadExtensionFromMarketplace } from '@wso2/playwright-vscode-tester';
 import fs from 'fs';
 import path from 'path';
@@ -184,6 +184,9 @@ test.afterAll(async () => {
     } catch (error) {
         console.warn('⚠️  Failed to save/close test video page, continuing cleanup...', error);
     }
+
+    // Snapshot the project when the suite is interrupted (e.g. manually stopped)
+    zipProjectSnapshot('suite_teardown');
 
     // Clean up the test project directory
     console.log('🧹 Cleaning up test project...');

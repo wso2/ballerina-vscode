@@ -20,7 +20,7 @@ import { downloadExtensionFromMarketplace, ExtendedPage, Form, startVSCode, swit
 import { test } from '@playwright/test';
 import fs, { existsSync } from 'fs';
 import path from 'path';
-import { exec } from 'child_process';
+import { exec, execSync } from 'child_process';
 import { promisify } from 'util';
 import { getWebview } from './webview';
 import { BI_INTEGRATOR_LABEL, BI_WEBVIEW_NOT_FOUND_ERROR, DEFAULT_PROJECT_FOLDER_NAME, DEFAULT_PROJECT_NAME } from './constants';
@@ -39,10 +39,36 @@ const extensionsWorkRoot = path.join(resourcesFolder, 'extensions-install');
 const marketplaceExtensionsFolder = path.join(extensionsWorkRoot, 'marketplace-cache');
 const preExtensionId = 'WSO2.wso2-integrator';
 export const newProjectPath = path.join(dataFolder, DEFAULT_PROJECT_FOLDER_NAME);
+const snapshotsFolder = path.join(resourcesFolder, 'snapshots');
 export let vscode: any;
 export let page: ExtendedPage;
 
 const execAsync = promisify(exec);
+
+/**
+ * Zips the current test project directory so the source state can be inspected
+ * after a failure. The archive is written to test-resources/snapshots/.
+ */
+export function zipProjectSnapshot(testTitle: string): void {
+    if (!fs.existsSync(newProjectPath)) {
+        console.log('ℹ️  Test project directory does not exist, skipping snapshot');
+        return;
+    }
+    try {
+        fs.mkdirSync(snapshotsFolder, { recursive: true });
+        const safeName = testTitle.replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 120);
+        const timestamp = new Date().toISOString().replace(/:/g, '-');
+        const zipFileName = `${safeName}_${timestamp}.zip`;
+        const zipFilePath = path.join(snapshotsFolder, zipFileName);
+        execSync(`zip -r "${zipFilePath}" "${DEFAULT_PROJECT_FOLDER_NAME}"`, {
+            cwd: dataFolder,
+            timeout: 30000,
+        });
+        console.log(`📦 Project snapshot saved: ${zipFilePath}`);
+    } catch (error) {
+        console.warn('⚠️  Failed to save project snapshot:', error);
+    }
+}
 
 function getVsCodeProfileName(): string {
     if (process.env.BI_E2E_PROFILE_NAME) {
@@ -271,9 +297,18 @@ export function initTest(newProject: boolean = true, skipProjectCreation: boolea
                 await page.executePaletteCommand('Terminal: Kill All Terminals');
                 await page.page.waitForTimeout(500);
             } catch { }
+            try {
+                await page.executePaletteCommand('View: Close All Editors');
+                await page.page.waitForTimeout(500);
+            } catch { }
             await page.executePaletteCommand('Reload Window');
+            await page.page.waitForTimeout(3000);
             page = new ExtendedPage(await vscode!.firstWindow({ timeout: 60000 }));
             await page.page.waitForLoadState();
+            await page.page.waitForTimeout(5000);
+            console.log('  ⏳ Waiting for BI extension to initialize after reload...');
+            await waitForBISidebarTreeView(page);
+            console.log('  ✅ BI extension ready after reload');
         }
         await toggleNotifications(true);
         if (!skipProjectCreation) {
@@ -286,6 +321,9 @@ export function initTest(newProject: boolean = true, skipProjectCreation: boolea
         const status = testInfo.status ?? 'skipped';
         const statusEmoji = status === 'passed' ? '✅' : status === 'failed' ? '❌' : '⏭️';
         console.log(`${statusEmoji} FINISHED TEST: ${testInfo.title} (${status.toUpperCase()}, Attempt ${testInfo.retry + 1})\n`);
+        if (status === 'failed' || status === 'timedOut' || status === 'interrupted') {
+            zipProjectSnapshot(testInfo.title);
+        }
     });
 }
 

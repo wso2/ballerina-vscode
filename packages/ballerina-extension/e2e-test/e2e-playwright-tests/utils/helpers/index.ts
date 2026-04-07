@@ -27,7 +27,8 @@ export {
     initMigrationTest, 
     createProject, 
     setupBallerinaIntegrator, 
-    toggleNotifications 
+    toggleNotifications,
+    zipProjectSnapshot
 } from './setup';
 
 // Re-export from webview
