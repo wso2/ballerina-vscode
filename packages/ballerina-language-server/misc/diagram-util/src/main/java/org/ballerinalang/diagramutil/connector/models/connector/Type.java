@@ -124,6 +124,26 @@ public class Type {
         this.documentation = documentation;
     }
 
+    public Type copy() {
+        Type copy = new Type();
+        copyBaseFields(copy);
+        return copy;
+    }
+
+    protected void copyBaseFields(Type target) {
+        target.name = this.name;
+        target.typeName = this.typeName;
+        target.optional = this.optional;
+        target.typeInfo = this.typeInfo;
+        target.defaultable = this.defaultable;
+        target.defaultValue = this.defaultValue;
+        target.displayAnnotation = this.displayAnnotation;
+        target.documentation = this.documentation;
+        target.isRestType = this.isRestType;
+        target.value = this.value;
+        target.selected = this.selected;
+    }
+
     public static void clearVisitedTypeMap() {
         visitedTypeMap.clear();
     }

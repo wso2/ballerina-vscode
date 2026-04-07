@@ -21,11 +21,13 @@ package io.ballerina.flowmodelgenerator.core.type;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
+import io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import org.ballerinalang.diagramutil.connector.models.connector.Type;
+import org.ballerinalang.diagramutil.connector.models.connector.types.ArrayType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.RecordType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.UnionType;
 
@@ -113,6 +115,9 @@ public class TypeSymbolAnalyzerFromTypeModel {
                     } else if (matchingType instanceof UnionType ut) {
                         updateUnionTypeConfig(ut, mapping);
                     }
+                } else if (expr instanceof ListConstructorExpressionNode listExpr
+                        && matchingType instanceof ArrayType arrayType) {
+                    updateArrayTypeConfig(arrayType, listExpr);
                 } else {
                     if (matchingType instanceof UnionType ut) {
                         for (Type memberType : ut.members) {
@@ -139,12 +144,46 @@ public class TypeSymbolAnalyzerFromTypeModel {
         }
     }
 
+    private static void updateArrayTypeConfig(ArrayType arrayType,
+                                              ListConstructorExpressionNode listExpr) {
+        arrayType.elements = new ArrayList<>();
+        for (var memberExpr : listExpr.expressions()) {
+            Type element = arrayType.memberType.copy();
+            if (memberExpr instanceof MappingConstructorExpressionNode mapping) {
+                if (element instanceof RecordType rt) {
+                    updateTypeConfig(rt, mapping);
+                } else if (element instanceof UnionType ut) {
+                    updateUnionTypeConfig(ut, mapping);
+                }
+            } else if (memberExpr instanceof ListConstructorExpressionNode nestedList
+                    && element instanceof ArrayType nestedArray) {
+                updateArrayTypeConfig(nestedArray, nestedList);
+            } else {
+                element.value = memberExpr.toSourceCode().trim();
+                element.selected = true;
+            }
+            arrayType.elements.add(element);
+        }
+        arrayType.selected = true;
+    }
+
     private static void reset(Type type) {
         type.selected = false;
         type.value = "";
         if (type instanceof RecordType rt) {
             for (Type field : rt.fields) {
                 reset(field);
+            }
+        } else if (type instanceof ArrayType at) {
+            if (at.elements != null) {
+                at.elements = null;
+            }
+            if (at.memberType != null) {
+                reset(at.memberType);
+            }
+        } else if (type instanceof UnionType ut) {
+            for (Type member : ut.members) {
+                reset(member);
             }
         }
     }
