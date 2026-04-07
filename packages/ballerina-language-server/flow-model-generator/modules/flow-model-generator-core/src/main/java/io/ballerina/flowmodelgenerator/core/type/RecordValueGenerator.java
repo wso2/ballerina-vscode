@@ -122,6 +122,9 @@ public class RecordValueGenerator {
             List<String> elementValues = new ArrayList<>();
             for (JsonElement element : elements) {
                 JsonObject elementObj = element.getAsJsonObject();
+                if (elementObj.has("selected") && !elementObj.get("selected").getAsBoolean()) {
+                    continue;
+                }
                 StringBuilder elementBuilder = new StringBuilder();
                 generateValue(elementObj, elementBuilder, indentLevel + 1);
                 String value = elementBuilder.toString().trim();

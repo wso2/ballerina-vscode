@@ -20,6 +20,7 @@ package org.ballerinalang.diagramutil.connector.models.connector.types;
 import com.google.gson.annotations.Expose;
 import org.ballerinalang.diagramutil.connector.models.connector.Type;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -66,5 +67,18 @@ public class RecordType extends Type {
         if (restType != null) {
             this.hasRestType = true;
         }
+    }
+
+    @Override
+    public RecordType copy() {
+        RecordType copy = new RecordType(this);
+        copy.fields = new ArrayList<>();
+        for (Type field : this.fields) {
+            copy.fields.add(field.copy());
+        }
+        if (this.restType != null) {
+            copy.restType = this.restType.copy();
+        }
+        return copy;
     }
 }
