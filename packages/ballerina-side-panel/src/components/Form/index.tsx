@@ -409,7 +409,7 @@ export interface FormProps {
     formDiagnostics?: { message: string; severity: "ERROR" | "WARNING" | "INFO" }[];
     formDiagnosticsAction?: React.ReactNode;
     preserveOrder?: boolean;
-    handleSelectedTypeChange?: (type: string | CompletionItem) => void | Promise<void>;
+    handleSelectedTypeChange?: (type: string | CompletionItem) => void;
     scopeFieldAddon?: React.ReactNode;
     onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
     injectedComponents?: {
@@ -424,6 +424,7 @@ export interface FormProps {
     openFormTypeEditor?: (open: boolean, newType?: string, editingField?: FormField) => void;
     derivedFields?: FieldDerivation[]; // Configuration for auto-deriving field values from other fields
     updateImports?: (key: string, imports: Imports) => void;
+    defaultExpandAdvanced?: boolean;
 }
 
 export const Form = forwardRef((props: FormProps, _ref) => {
@@ -494,7 +495,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
         rpcClient.getBIDiagramRpcClient().formDirtyDidChange({ filePath: fileName, isDirty });
     }, [isDirty, fileName, rpcClient]);
 
-    const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
+    const [showAdvancedOptions, setShowAdvancedOptions] = useState(props.defaultExpandAdvanced ?? false);
     const [activeFormField, setActiveFormField] = useState<string | undefined>(undefined);
     const [diagnosticsInfo, setDiagnosticsInfo] = useState<FormDiagnostics[] | undefined>(undefined);
     const [isMarkdownExpanded, setIsMarkdownExpanded] = useState(false);
@@ -556,6 +557,9 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                             setValue(field.key, newType);
                             getVisualiableFields();
                         }
+                        else if (newType === undefined) {
+                             defaultValues[field.key] = "";
+                        }
                     }
 
                     // Handle choice fields and their properties
@@ -579,7 +583,9 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                         }
                     }
 
-                    diagnosticsMap.push({ key: field.key, diagnostics: [] });
+                    const rawDiag = (field.diagnostics as any);
+                    const diagArray = Array.isArray(rawDiag) ? rawDiag : (rawDiag?.diagnostics ?? []);
+                    diagnosticsMap.push({ key: field.key, diagnostics: diagArray });
                 }
 
                 // Handle the case where the name is updated dynamically (e.g., from a sibling field's onValueChange like headerName)
@@ -661,10 +667,12 @@ export const Form = forwardRef((props: FormProps, _ref) => {
         openSubPanel(updatedSubPanel);
     };
 
+    const handleOnTypeChange = () => {
+        getVisualiableFields();
+    };
+
     const handleNewTypeSelected = (type: string | CompletionItem) => {
-        Promise.resolve(handleSelectedTypeChange?.(type)).catch((error) => {
-            console.error("Error in handleSelectedTypeChange", error);
-        });
+        handleSelectedTypeChange && handleSelectedTypeChange(type);
     }
 
     const getVisualiableFields = () => {
@@ -805,7 +813,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
 
     // Find the first editable field
     const firstEditableFieldIndex = formFields.findIndex(
-        (field) => field.editable !== false && (field.value == null || field.value === '')
+        (field) => field.editable !== false
     );
 
     const isValid = useMemo(() => {
@@ -819,7 +827,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                     continue;
                 }
 
-                let diagnostics: Diagnostic[] = diagnosticsInfoItem.diagnostics || [];
+                let diagnostics: Diagnostic[] = Array.isArray(diagnosticsInfoItem.diagnostics) ? diagnosticsInfoItem.diagnostics : [];
                 if (diagnostics.length === 0) {
                     // Only clear errors that were set by the expression diagnostics system,
                     // not errors set by other validators (e.g., PathEditor)
@@ -1099,6 +1107,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                                     autoFocus={firstEditableFieldIndex === formFields.indexOf(updatedField) && !hideSaveButton}
                                     recordTypeFields={recordTypeFields}
                                     onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                    handleOnTypeChange={handleOnTypeChange}
                                     setSubComponentEnabled={setIsSubComponentEnabled}
                                     handleNewTypeSelected={handleNewTypeSelected}
                                     onBlur={handleOnBlur}
@@ -1199,6 +1208,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                                             handleOnFieldFocus={handleOnFieldFocus}
                                             recordTypeFields={recordTypeFields}
                                             onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                            handleOnTypeChange={handleOnTypeChange}
                                             onBlur={handleOnBlur}
                                         />
                                     </S.Row>
@@ -1238,6 +1248,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                                     handleOnFieldFocus={handleOnFieldFocus}
                                     recordTypeFields={recordTypeFields}
                                     onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                    handleOnTypeChange={handleOnTypeChange}
                                     onBlur={handleOnBlur}
                                     handleFormValidation={handleFormValidation}
                                 />
@@ -1267,6 +1278,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                                 ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, typeField, newType))
                             }
                             handleOnFieldFocus={handleOnFieldFocus}
+                            handleOnTypeChange={handleOnTypeChange}
                             recordTypeFields={recordTypeFields}
                             onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                             handleNewTypeSelected={handleNewTypeSelected}
@@ -1282,6 +1294,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                                 recordTypeFields={recordTypeFields}
                                 onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                                 handleNewTypeSelected={handleNewTypeSelected}
+                                handleOnTypeChange={handleOnTypeChange}
                                 onBlur={handleOnBlur}
                                 handleFormValidation={handleFormValidation}
                             />

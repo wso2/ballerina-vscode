@@ -502,6 +502,19 @@ export class AiAgentRpcManager implements AIAgentAPI {
             } else {
                 toolsValue = `[${mcpToolKitVarName}]`;
             }
+        } else if (Array.isArray(toolsValue) && typeof mcpToolKitVarName === "string") {
+            const toolExists = toolsValue.some((tool: any) => tool.value === mcpToolKitVarName);
+            if (!toolExists) {
+                (toolsValue as any[]).push({
+                    metadata: {
+                        label: mcpToolKitVarName,
+                        description: "",
+                    },
+                    value: mcpToolKitVarName,
+                    optional: false,
+                    editable: false,
+                });
+            }
         } else {
             toolsValue = `[${mcpToolKitVarName}]`;
         }

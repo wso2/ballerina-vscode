@@ -116,10 +116,12 @@ export const FunctionsPage = ({
         const response = await addFunction(item);
 
         if (response) {
-            const importStatement = {
-                [response.prefix]: response.moduleId
-            };
-            updateImports(fieldKey, importStatement);
+            if (response.prefix && response.moduleId) {
+                const importStatement = {
+                    [response.prefix]: response.moduleId
+                };
+                updateImports(fieldKey, importStatement);
+            }
             return extractFunctionInsertText(response.template);
         }
 

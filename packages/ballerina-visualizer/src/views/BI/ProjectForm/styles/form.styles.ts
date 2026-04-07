@@ -258,6 +258,21 @@ export const RadioDescription = styled.span`
     line-height: 1.4;
 `;
 
+export const SubSectionLabel = styled.div`
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--vscode-descriptionForeground);
+    margin-bottom: 12px;
+`;
+
+export const SubSectionDivider = styled.div`
+    height: 1px;
+    background: var(--vscode-panel-border);
+    margin: 16px 0;
+`;
+
 export const Note = styled.div`
     font-size: 11px;
     color: var(--vscode-descriptionForeground);

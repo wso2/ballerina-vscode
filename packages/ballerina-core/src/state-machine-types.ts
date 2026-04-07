@@ -21,7 +21,7 @@ import { NodePosition, STNode } from "@wso2/syntax-tree";
 import { Command } from "./interfaces/ai-panel";
 import { LinePosition } from "./interfaces/common";
 import { ProjectInfo, ProjectMigrationResult, Type } from "./interfaces/extended-lang-client";
-import { CodeData, DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
+import { CodeData, DIRECTORY_MAP, FlowNode, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
 import { DiagnosticEntry, DocumentationGeneratorIntermediaryState, SourceFile, CodeContext, FileAttatchment } from "./rpc-types/ai-panel/interfaces";
 
 export type MachineStateValue =
@@ -446,6 +446,7 @@ export interface EvalsToolResult {
 export interface UsageMetricsEvent {
     type: "usage_metrics";
     isRepair?: boolean;
+    model?: string;
     usage: {
         inputTokens: number;
         cacheCreationInputTokens: number;
@@ -468,6 +469,7 @@ export interface TaskApprovalRequest {
     tasks: Task[];
     taskDescription?: string;
     message?: string;
+    autoApproved?: boolean;
 }
 
 export interface WebToolApprovalEvent {
@@ -820,9 +822,8 @@ export enum TaskStatus {
 
 export enum TaskTypes {
     SERVICE_DESIGN = "service_design",
-    CONNECTIONS_INIT = "connections_init",
     IMPLEMENTATION = "implementation",
-    TESTING = "testing"
+    EXECUTION = "execution"
 }
 
 /**

@@ -27,8 +27,8 @@ import { ComponentInfo, DataMapperMetadata, Diagnostics, DMModel, ImportStatemen
 // General Interfaces
 // ==================================
 export type AIPanelPrompt =
-    | { type: 'command-template'; command: Command; templateId: TemplateId; text?: string; params?: Record<string, string>; metadata?: Record<string, any> }
-    | { type: 'text'; text: string; planMode: boolean; codeContext?: CodeContext; autoSubmit?: boolean }
+    | { type: 'command-template'; command: Command; templateId: TemplateId; text?: string; params?: Record<string, string>; metadata?: Record<string, any>; hiddenContext?: string }
+    | { type: 'text'; text: string; planMode: boolean; codeContext?: CodeContext; autoSubmit?: boolean; hiddenContext?: string; suggestedCommandTemplates?: AIPanelPrompt[];    inputPlaceholder?:string; }
     | undefined;
 
 export interface AIMachineSnapshot {
@@ -299,6 +299,7 @@ export type CodeContext =
 
 export interface GenerateAgentCodeRequest {
     usecase: string;
+    hiddenContext?: string;
     operationType?: OperationType;
     fileAttachmentContents: FileAttatchment[];
     threadId?: string; //TODO: Make this required once we support threads in UI

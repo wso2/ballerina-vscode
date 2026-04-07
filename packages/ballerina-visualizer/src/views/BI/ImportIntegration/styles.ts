@@ -20,9 +20,9 @@ import styled from "@emotion/styled";
 import { Button, Codicon, Typography } from "@wso2/ui-toolkit";
 
 // Main container styles
-export const FormContainer = styled.div`
-    max-width: 660px;
-    margin: 80px 120px;
+export const FormContainer = styled.div<{ wide?: boolean }>`
+    max-width: ${(props: { wide?: boolean }) => (props.wide ? "960px" : "660px")};
+    margin: ${(props: { wide?: boolean }) => (props.wide ? "40px 60px" : "80px 120px")};
     overflow-y: auto;
     max-height: calc(100vh - 100px);
 
@@ -54,6 +54,45 @@ export const ButtonWrapper = styled.div`
     margin-top: 20px;
     display: flex;
     justify-content: flex-end;
+`;
+
+export const AIEnhancementSection = styled.div`
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid var(--vscode-editorWidget-border, var(--vscode-panel-border));
+`;
+
+export const AIEnhancementTitle = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--vscode-foreground);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+`;
+
+export const AIEnhancementToggleRow = styled.div`
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 4px;
+    border: 1px solid var(--vscode-editorWidget-border, var(--vscode-panel-border));
+    cursor: pointer;
+    transition: border-color 0.1s, background 0.1s;
+    &:hover {
+        border-color: var(--vscode-focusBorder);
+        background: var(--vscode-list-hoverBackground);
+    }
+`;
+
+export const AIEnhancementDescription = styled.div`
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    margin-top: 2px;
 `;
 
 // Form-specific styles

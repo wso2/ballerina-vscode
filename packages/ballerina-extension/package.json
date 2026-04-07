@@ -772,11 +772,6 @@
                 "enablement": "isSupportedProject"
             },
             {
-                "command": "ballerina.startTraceServer",
-                "title": "Start Trace Server",
-                "category": "Ballerina"
-            },
-            {
                 "command": "ballerina.enableTracing",
                 "title": "Enable Tracing",
                 "category": "Ballerina",
@@ -788,6 +783,12 @@
                 "category": "Ballerina",
                 "icon": "$(circle-slash)",
                 "enablement": "isSupportedProject"
+            },
+            {
+                "command": "ballerina.startTraceServer",
+                "title": "Start Trace Server",
+                "category": "Ballerina",
+                "enablement": "isSupportedProject && ballerina.tracingEnabled"
             },
             {
                 "command": "ballerina.clearTraces",
@@ -1222,14 +1223,14 @@
                 "description": "start",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f21f"
+                    "fontCharacter": "\\f246"
                 }
             },
             "ballerina-debug": {
                 "description": "debug",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f17a"
+                    "fontCharacter": "\\f1be"
                 }
             },
             "ballerina-source-view": {
@@ -1243,7 +1244,7 @@
                 "description": "persist-diagram",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f1f9"
+                    "fontCharacter": "\\f21d"
                 }
             },
             "ballerina-cached-rounded": {
@@ -1341,7 +1342,7 @@
                 "description": "design-view",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f1bf"
+                    "fontCharacter": "\\f1c3"
                 }
             },
             "distro-file-submodule": {

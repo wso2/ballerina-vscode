@@ -113,6 +113,7 @@ import {
     BIAiSuggestionsRequest,
     BIAiSuggestionsResponse,
     AIChatRequest,
+    InlineAgentChatRequest,
     BreakpointRequest,
     CurrentBreakpointsResponse,
     FormDidOpenParams,
@@ -128,7 +129,9 @@ import {
     DeleteProjectRequest,
     OpenReadmeRequest,
     ValidateProjectFormRequest,
-    ValidateProjectFormResponse
+    ValidateProjectFormResponse,
+    SuggestedProjectDefaultsResponse,
+    UpdateProjectTitleRequest
 } from "./interfaces";
 
 export interface BIDiagramAPI {
@@ -149,6 +152,7 @@ export interface BIDiagramAPI {
     getAiSuggestions: (params: BIAiSuggestionsRequest) => Promise<BIAiSuggestionsResponse>;
     createProject: (params: ProjectRequest) => void;
     validateProjectPath: (params: ValidateProjectFormRequest) => Promise<ValidateProjectFormResponse>;
+    getSuggestedProjectDefaults: (params: { isInProject: boolean }) => Promise<SuggestedProjectDefaultsResponse>;
     deleteProject: (params: DeleteProjectRequest) => void;
     addProjectToWorkspace: (params: AddProjectToWorkspaceRequest) => void;
     getWorkspaces: () => Promise<WorkspacesResponse>;
@@ -170,6 +174,8 @@ export interface BIDiagramAPI {
     deployProject: (params: DeploymentRequest) => Promise<DeploymentResponse>;
     deployWorkspace: (params: WorkspaceDeploymentRequest) => Promise<DeploymentResponse>;
     openAIChat: (params: AIChatRequest) => void;
+    startInlineAgentChat: (params: InlineAgentChatRequest) => void;
+    cleanupAgentChatServices: () => Promise<boolean>;
     getSignatureHelp: (params: SignatureHelpRequest) => Promise<SignatureHelpResponse>;
     buildProject: (mode: BuildMode) => void;
     runProject: () => void;
@@ -214,4 +220,5 @@ export interface BIDiagramAPI {
     getOpenApiGeneratedModules: (params: OpenAPIGeneratedModulesRequest) => Promise<OpenAPIGeneratedModulesResponse>;
     deleteOpenApiGeneratedModules: (params: OpenAPIClientDeleteRequest) => Promise<OpenAPIClientDeleteResponse>;
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
+    updateProjectTitle: (params: UpdateProjectTitleRequest) => Promise<void>;
 }

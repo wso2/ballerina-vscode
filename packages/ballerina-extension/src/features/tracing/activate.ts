@@ -112,8 +112,7 @@ export function activateTracing(ballerinaExtInstance: BallerinaExtension) {
         }
 
         TracerMachine.enable(targetPath);
-        // Reveal/focus the ballerina-traceView (shows trace panel in panel)
-        vscode.commands.executeCommand('workbench.view.extension.ballerina-traceView');
+        vscode.window.showInformationMessage('Tracing enabled.');
     });
 
     const disableTracingCommand = vscode.commands.registerCommand(DISABLE_TRACING_COMMAND, async () => {
@@ -122,6 +121,7 @@ export function activateTracing(ballerinaExtInstance: BallerinaExtension) {
             return;
         }
         TracerMachine.disable(targetPath);
+        vscode.window.showInformationMessage('Tracing disabled.');
     });
 
     const clearTracesCommand = vscode.commands.registerCommand(CLEAR_TRACES_COMMAND, () => {
