@@ -53,6 +53,8 @@ import {
     PromptEnhancementResponse,
     ClarifyAnswerRequest,
     ClarifyCancelRequest,
+    RunningServiceInfo,
+    StopRunningServiceRequest,
 } from "./interfaces";
 
 export interface AIPanelAPI {
@@ -128,4 +130,9 @@ export interface AIPanelAPI {
     promptForLogin: () => void;
     submitClarifyAnswer: (params: ClarifyAnswerRequest) => Promise<void>;
     cancelClarify: (params: ClarifyCancelRequest) => Promise<void>;
+    // ==================================
+    // Running Services (long-lived agent processes)
+    // ==================================
+    getRunningServices: () => Promise<RunningServiceInfo[]>;
+    stopRunningService: (params: StopRunningServiceRequest) => Promise<boolean>;
 }

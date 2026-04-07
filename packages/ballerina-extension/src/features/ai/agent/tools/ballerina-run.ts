@@ -118,19 +118,13 @@ async function executeRun(
         exitCode: -1,
     };
 
-    // Track process exit
-    proc.on('close', (code) => {
-        service.exited = true;
-        service.exitCode = code ?? -1;
-    });
-
     runningServices.register(service);
 
     if (input.runType === "service") {
         const readyResult = await waitForServiceReady(service, DEFAULT_SERVICE_READY_TIMEOUT);
 
         if (!readyResult.ready) {
-            killProcessGroup(proc, 'SIGTERM');
+            await killProcessGroup(proc, 'SIGTERM');
             runningServices.remove(taskId);
             return {
                 status: "error",
@@ -155,7 +149,7 @@ async function executeRun(
     const completionResult = await waitForCompletion(service, timeout);
 
     if (completionResult.timedOut) {
-        killProcessGroup(proc, 'SIGTERM');
+        await killProcessGroup(proc, 'SIGTERM');
         runningServices.remove(taskId);
         return {
             status: "timeout",
