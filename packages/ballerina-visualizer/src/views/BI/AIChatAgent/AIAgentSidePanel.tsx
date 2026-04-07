@@ -482,7 +482,10 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                     field.key === "description" ? { ...field, value: templateDescription } : field
                 ),
                 ...toolInputFields,
-                ...functionParameterFields,
+                ...functionParameterFields.map(field => ({
+                    ...field,
+                    value: typeof field.value === 'string' ? field.value.replace(/^\$/, '') : field.value
+                })),
                 ...oauthFields,
             ]);
         } catch (error) {
@@ -530,7 +533,10 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                     field.key === "description" ? { ...field, value: templateDescription } : field
                 ),
                 ...toolInputFields,
-                ...nodeParameterFields,
+                ...nodeParameterFields.map(field => ({
+                    ...field,
+                    value: typeof field.value === 'string' ? field.value.replace(/^\$/, '') : field.value
+                })),
                 ...oauthFields,
             ]);
         } catch (error) {
