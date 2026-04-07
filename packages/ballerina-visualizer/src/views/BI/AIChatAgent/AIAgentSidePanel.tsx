@@ -69,6 +69,19 @@ const LoaderContainer = styled.div`
     height: 100%;
 `;
 
+const ImplementationBadge = styled.div`
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: var(--vscode-input-background);
+    border: 1px solid var(--vscode-editorWidget-border);
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 12px;
+    color: var(--vscode-foreground);
+    margin-bottom: 4px;
+`;
+
 const ImplementationInfoContainer = styled.div`
     width: 100%;
     display: flex;
@@ -770,6 +783,21 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                     injectedComponents={[
                         {
                             component: (
+                                <ImplementationBadge>
+                                    {selectedNodeRef.current.metadata?.icon && (
+                                        <img
+                                            src={selectedNodeRef.current.metadata.icon}
+                                            style={{ width: 14, height: 14 }}
+                                            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                                        />
+                                    )}
+                                    {getImplementationString(selectedNodeRef.current.codedata)}
+                                </ImplementationBadge>
+                            ),
+                            index: 0,
+                        },
+                        {
+                            component: (
                                 <ImplementationInfoContainer>
                                     <p style={{ margin: "0px", fontWeight: "bold" }}>Implementation</p>
                                     <ImplementationDescription>Configure how tool inputs map to the {mode === NewToolSelectionMode.CONNECTION ? "connection" : "function"}.</ImplementationDescription>
@@ -778,7 +806,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                                     </ImplementationInfo>
                                 </ImplementationInfoContainer>
                             ),
-                            index: 3,
+                            index: 4,
                         },
                         ...(showOAuthConfig ? [{
                             component: (
