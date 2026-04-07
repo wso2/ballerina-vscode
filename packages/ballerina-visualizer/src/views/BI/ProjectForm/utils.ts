@@ -18,6 +18,31 @@
 
 import { AddProjectFormData, ProjectFormData } from "./types";
 
+export const PROJECT_HANDLE_MAX_LENGTH = 63;
+
+export const sanitizeProjectHandle = (name: string, { trimTrailing = true } = {}): string => {
+    let result = name
+        .toLowerCase()
+        .replace(/[^a-z0-9-]/g, "-")
+        .replace(/-{2,}/g, "-")
+        .replace(/^-+/, "")
+        .slice(0, PROJECT_HANDLE_MAX_LENGTH);
+    if (trimTrailing) {
+        result = result.replace(/-+$/, "");
+    }
+    return result;
+};
+
+export const validateProjectHandle = (handle: string): string | null => {
+    if (!handle || handle.length === 0) return "Project handle is required";
+    if (handle.length < 2) return "Project handle must be at least 2 characters";
+    if (handle.length > PROJECT_HANDLE_MAX_LENGTH) return `Project handle cannot exceed ${PROJECT_HANDLE_MAX_LENGTH} characters`;
+    if (!/^[a-z0-9-]+$/.test(handle)) return "Project handle can only contain lowercase letters, digits, or hyphens";
+    if (handle.startsWith("-")) return "Project handle cannot start with a hyphen";
+    if (handle.endsWith("-")) return "Project handle cannot end with a hyphen";
+    return null;
+};
+
 export const isValidPackageName = (name: string): boolean => {
     return /^[a-z0-9_.]+$/.test(name);
 };
@@ -68,7 +93,8 @@ export const isFormValidAddProject = (formData: AddProjectFormData, isInProject:
         formData.packageName.length >= 2 &&
         (isInProject || (formData.workspaceName?.length ?? 0) >= 1) &&
         validatePackageName(formData.packageName, formData.integrationName) === null &&
-        validateOrgName(formData.orgName) === null
+        validateOrgName(formData.orgName) === null &&
+        (formData.projectHandle === undefined || validateProjectHandle(formData.projectHandle) === null)
     );
 };
 

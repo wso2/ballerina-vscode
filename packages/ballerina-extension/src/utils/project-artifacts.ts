@@ -210,7 +210,6 @@ async function getComponents(
 
 async function getEntryValue(artifact: BaseArtifact, projectPath: string, icon: string, moduleName?: string) {
     const targetFile = Utils.joinPath(URI.file(projectPath), artifact.location.fileName).fsPath;
-    const isPublic = artifact.scope?.toLowerCase() === "global";
     const entryValue: ProjectStructureArtifactResponse = {
         id: artifact.id,
         name: artifact.name,
@@ -220,7 +219,7 @@ async function getEntryValue(artifact: BaseArtifact, projectPath: string, icon: 
         icon: artifact.module ? `bi-${artifact.module}` : icon,
         context: artifact.name === "automation" ? "main" : artifact.name,
         resources: [],
-        isPublic,
+        visibility: artifact.visibility,
         position: {
             endColumn: artifact.location.endLine.offset,
             endLine: artifact.location.endLine.line,
@@ -480,9 +479,11 @@ async function traverseUpdatedComponents(publishedArtifacts: Artifacts, currentP
     const projectPath = StateMachine.context().projectPath;
     const project = currentProjectStructure.projects.find(project => project.projectPath === projectPath);
     try {
-        for (const key of Object.keys(project.directoryMap)) {
-            if (project.directoryMap[key]) {
-                project.directoryMap[key].sort((a, b) => a.name.localeCompare(b.name));
+        if (project) {
+            for (const key of Object.keys(project.directoryMap)) {
+                if (project.directoryMap[key]) {
+                    project.directoryMap[key].sort((a, b) => a.name.localeCompare(b.name));
+                }
             }
         }
     } catch (error) {

@@ -40,6 +40,8 @@ import { ModelMessage } from "ai";
 import { MessageRole } from "./ai-types";
 import { RPCLayer } from "../../../RPCLayer";
 import { AiPanelWebview } from "../../../views/ai-panel/webview";
+import { MigrationPanelWebview } from "../../../views/migration-panel/webview";
+import { VisualizerWebview } from "../../../views/visualizer/webview";
 import { GenerationType } from "./libs/libraries";
 // import { REQUIREMENTS_DOCUMENT_KEY } from "./code/np_prompts";
 
@@ -253,7 +255,7 @@ export function sendToolResultNotification(toolName: string, toolOutput?: any, t
     sendAIPanelNotification(msg);
 }
 
-export function sendTaskApprovalRequestNotification(approvalType: "plan" | "completion", tasks: any[], taskDescription?: string, message?: string, requestId?: string): void {
+export function sendTaskApprovalRequestNotification(approvalType: "plan" | "completion", tasks: any[], taskDescription?: string, message?: string, requestId?: string, autoApproved?: boolean): void {
     const msg: ChatNotify = {
         type: "task_approval_request",
         requestId: requestId || `approval-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
@@ -261,6 +263,7 @@ export function sendTaskApprovalRequestNotification(approvalType: "plan" | "comp
         tasks: tasks,
         taskDescription: taskDescription,
         message: message,
+        autoApproved: autoApproved,
     };
     sendAIPanelNotification(msg);
 }
@@ -320,8 +323,25 @@ export function sendWebToolToggleNotification(active: boolean): void {
     );
 }
 
-function sendAIPanelNotification(msg: ChatNotify): void {
+export function sendAIPanelNotification(msg: ChatNotify): void {
     RPCLayer._messenger.sendNotification(onChatNotify, { type: "webview", webviewType: AiPanelWebview.viewType }, msg);
+}
+
+/**
+ * Sends a chat notification to the standalone Migration Enhancement Panel.
+ * Mirrors `sendAIPanelNotification` but targets `MigrationPanelWebview.viewType`.
+ */
+export function sendMigrationPanelNotification(msg: ChatNotify): void {
+    RPCLayer._messenger.sendNotification(onChatNotify, { type: "webview", webviewType: MigrationPanelWebview.viewType }, msg);
+}
+
+/**
+ * Sends a chat notification to the Visualizer webview.
+ * Used by the wizard-level migration AI enhancement to stream progress
+ * back to the ImportIntegration wizard before the project is opened.
+ */
+export function sendVisualizerMigrationNotification(msg: ChatNotify): void {
+    RPCLayer._messenger.sendNotification(onChatNotify, { type: "webview", webviewType: VisualizerWebview.viewType }, msg);
 }
 
 export function sendUsageMetricsNotification(
@@ -349,13 +369,31 @@ export function getErrorMessage(error: unknown): string {
             return "Usage limit exceeded.";
         }
         if (error.name === "AI_RetryError") {
-            return "An error occured connecting with the AI service. Please try again later.";
+            return "An error occurred connecting with the AI service. Please try again later.";
         }
         if (error.name === "AbortError") {
             return "Generation stopped by the user.";
         }
 
-        return error.message;
+        // Friendly message for connection / stream interruption errors
+        const msg = error.message;
+        if (
+            msg.includes("Remote host closed the connection") ||
+            msg.includes("reading stream") ||
+            msg.includes("inbound response body") ||
+            msg.includes("ECONNRESET") ||
+            msg.includes("socket hang up")
+        ) {
+            return "The AI service connection was interrupted. Please try again.";
+        }
+        if (msg.includes("JSON parsing failed")) {
+            return "The AI service returned an invalid response. Please try again.";
+        }
+        if (msg.includes("Unsupported login method")) {
+            return "Please sign in to BI Copilot to use AI features.";
+        }
+
+        return msg;
     }
     // If it's an object with a .message field, use that
     if (

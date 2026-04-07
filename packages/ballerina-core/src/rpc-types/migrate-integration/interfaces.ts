@@ -65,12 +65,29 @@ export interface SaveMigrationReportRequest {
     };
 }
 
+/**
+ * Describes the current state of a migration AI enhancement session.
+ * Returned by `getActiveMigrationSession` so the UI can show a live banner.
+ */
+export interface ActiveMigrationSession {
+    /** `true` while the enhancement pipeline is running. */
+    isActive: boolean;
+    /** `true` when the AI enhancement feature was used (wizard or post-wizard). */
+    aiFeatureUsed: boolean;
+    /** `true` once the AI enhancement pipeline has completed successfully. */
+    fullyEnhanced: boolean;
+}
+
 export interface MigrateRequest {
     project: ProjectRequest;
     textEdits: {
         [key: string]: string;
     };
     projects?: ProjectMigrationResult[];
+    /** `true` when the AI enhancement feature was used (wizard or post-wizard). */
+    aiFeatureUsed?: boolean;
+    /** Absolute path to the original source project (e.g. Mule XML directory). */
+    sourcePath?: string;
 }
 
 export interface OpenSubProjectReportRequest {

@@ -21,6 +21,7 @@ import { CopilotEventHandler } from '../../utils/events';
 import { chatStateStorage, ChatStateStorage } from '../../../../views/ai-panel/chatStateStorage';
 import { getTempProject, cleanupTempProject } from '../../utils/project/temp-project';
 import { getErrorMessage } from '../../utils/ai-utils';
+import { MigrationDebugLogger } from '../../migration/debug-logger';
 
 /**
  * Unified configuration for all AI command executors
@@ -38,6 +39,14 @@ export interface AICommandConfig<TParams = any> {
     /** Command-specific parameters */
     params: TParams;
 
+    /**
+     * Optional LLM model override.
+     * When provided, the executor uses this model instead of the default
+     * (Anthropic Sonnet via WSO2/direct key). This enables plugging in
+     * models from the VS Code Language Model API or other providers.
+     */
+    model?: any;
+
     /** Optional chat storage configuration */
     chatStorage?: {
         projectRootPath: string;
@@ -52,6 +61,47 @@ export interface AICommandConfig<TParams = any> {
         /** Cleanup strategy: 'immediate' (DataMapper) or 'review' (Agent) */
         cleanupStrategy: 'immediate' | 'review';
     };
+
+    /**
+     * Optional callback invoked when the full `ModelMessage[]` array becomes
+     * available — either on successful completion or on abort (partial messages).
+     * Used by the wizard migration flow to persist conversation history to disk
+     * so it can be resumed later via AI Chat.
+     *
+     * @param messages  The conversation messages from the Vercel AI SDK.
+     * @param status    How the run ended: `'completed'`, `'aborted'`, or `'error'`.
+     */
+    onMessagesAvailable?: (messages: any[], status: 'completed' | 'aborted' | 'error') => void;
+
+    /**
+     * Optional per-execution tool configuration.
+     * Allows the caller to inject context-specific tool options without changing
+     * the base executor interface for every new feature.
+     */
+    toolOptions?: {
+        /** Absolute path to the original migration source project (Mule, Tibco, etc.). */
+        migrationSourcePath?: string;
+    };
+
+    /**
+     * Optional overrides for the agent loop limits.
+     * Defaults (for normal agent usage): maxSteps = 50, maxOutputTokens = 8192.
+     * Migration enhancement should use higher values because the agent needs to
+     * read source files, edit many large files, run diagnostics repeatedly, etc.
+     */
+    agentLimits?: {
+        /** Maximum number of LLM ↔ tool roundtrips before the agent stops. */
+        maxSteps?: number;
+        /** Maximum output tokens per LLM response. */
+        maxOutputTokens?: number;
+    };
+
+    /**
+     * Optional debug logger for migration enhancement runs.
+     * When provided, `AgentExecutor` logs individual tool call durations and
+     * summaries to `.ballerina-ai-migration/debug.log` via this logger.
+     */
+    debugLogger?: MigrationDebugLogger;
 }
 
 /**
@@ -149,6 +199,9 @@ export abstract class AICommandExecutor<TParams = any> {
      * Stage 1: Initialize workspace/thread in chat storage (if enabled)
      */
     protected async initializeWorkspaceThread(): Promise<void> {
+        if (!this.config.chatStorage) {
+            return;
+        }
         try {
             const { projectRootPath, threadId } = this.config.chatStorage;
 
@@ -277,9 +330,12 @@ export abstract class AICommandExecutor<TParams = any> {
             });
         }
 
-        // Attempt cleanup on error
+        // Attempt cleanup on error, but never delete an existingTempPath —
+        // that is a real project directory supplied by the caller (e.g. migration
+        // enhancement), not a throwaway temp created by this executor.
         const tempProjectPath = this.config.executionContext.tempProjectPath;
-        if (tempProjectPath && !process.env.AI_TEST_ENV) {
+        const isExistingPath = this.config.lifecycle?.existingTempPath === tempProjectPath;
+        if (tempProjectPath && !isExistingPath && !process.env.AI_TEST_ENV) {
             try {
                 await cleanupTempProject(tempProjectPath);
             } catch (cleanupError) {
@@ -293,6 +349,9 @@ export abstract class AICommandExecutor<TParams = any> {
      * @returns Array of chat messages, or empty array if storage disabled
      */
     protected getChatHistory(): any[] {
+        if (!this.config.chatStorage) {
+            return [];
+        }
         const { projectRootPath, threadId } = this.config.chatStorage;
         return chatStateStorage.getChatHistoryForLLM(projectRootPath, threadId);
     }
@@ -303,6 +362,9 @@ export abstract class AICommandExecutor<TParams = any> {
      * @param metadata - Generation metadata (operation type, etc.)
      */
     protected addGeneration(userPrompt: string, metadata: any): any {
+        if (!this.config.chatStorage) {
+            return undefined;
+        }
         const { projectRootPath, threadId } = this.config.chatStorage;
         return chatStateStorage.addGeneration(
             projectRootPath,
