@@ -37,6 +37,7 @@ import {
     ApprovalOverlayState,
     WebToolToggle,
     LoginMethod,
+    RunningServiceInfo,
 } from "@wso2/ballerina-core";
 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -217,6 +218,8 @@ const AIChat: React.FC = () => {
         breakdown?: { systemInstructions: number; toolDefinitions: number; reservedOutput: number; messages: number; toolResults: number };
     } | null>(null);
     const [showContextUsage, setShowContextUsage] = useState(false);
+
+    const [runningServices, setRunningServices] = useState<RunningServiceInfo[]>([]);
 
     //TODO: Need a better way of storing data related to last generation to be in the repair state.
     const currentDiagnosticsRef = useRef<DiagnosticEntry[]>([]);
@@ -426,6 +429,43 @@ const AIChat: React.FC = () => {
             setIsWebToolsEnabled(payload.active ? true : userWebSearchPreferenceRef.current);
         });
     }, [rpcClient]);
+
+    // Initial fetch covers services started before the webview opened;
+    // the subscription keeps the list live for the rest of the session.
+    useEffect(() => {
+        let cancelled = false;
+        rpcClient.getAiPanelRpcClient().getRunningServices().then((services) => {
+            if (!cancelled) {
+                setRunningServices(services);
+            }
+        }).catch(() => { /* manager not initialized yet */ });
+        const disposeListener = rpcClient.onRunningServicesChanged((services: RunningServiceInfo[]) => {
+            setRunningServices(services);
+        });
+        return () => {
+            cancelled = true;
+            disposeListener();
+        };
+    }, [rpcClient]);
+
+    const handleStopRunningService = async (taskId: string) => {
+        try {
+            await rpcClient.getAiPanelRpcClient().stopRunningService({ taskId });
+        } catch (err) {
+            console.error("Failed to stop running service", err);
+        }
+    };
+
+    const handleStopAllRunningServices = async () => {
+        const active = runningServices.filter((s) => !s.exited);
+        await Promise.all(
+            active.map((s) =>
+                rpcClient.getAiPanelRpcClient().stopRunningService({ taskId: s.taskId }).catch((err) => {
+                    console.error("Failed to stop running service", err);
+                })
+            )
+        );
+    };
 
     /**
      * Effect: Load initial chat history from aiChatMachine context
@@ -2100,6 +2140,11 @@ const AIChat: React.FC = () => {
                             onToggleWebSearch={handleToggleWebSearch}
                             disabled={isUsageExceeded}
                             contextUsage={showContextUsage ? contextUsage : null}
+                            runningServicesPanel={{
+                                services: runningServices,
+                                onStopService: handleStopRunningService,
+                                onStopAll: handleStopAllRunningServices,
+                            }}
                         />
                         );
                     })()}

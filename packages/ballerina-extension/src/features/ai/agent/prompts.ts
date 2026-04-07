@@ -29,6 +29,7 @@ import { GenerateAgentCodeRequest, OperationType, ProjectSource } from "@wso2/ba
 import { getRequirementAnalysisCodeGenPrefix, getRequirementAnalysisTestGenPrefix } from "./np/prompts";
 import { extractResourceDocumentContent, flattenProjectToFiles } from "../utils/ai-utils";
 import { BALLERINA_RUN_TOOL_NAME } from "./tools/ballerina-run";
+import { BALLERINA_STOP_TOOL_NAME } from "./tools/ballerina-stop";
 
 /**
  * Generates the system prompt for the design agent
@@ -203,7 +204,7 @@ When working with Ballerina workspace projects (projects with a root Ballerina.t
 - You should only Run or write tests if the user explicitly asks to do so.
 - Providing values to configurables is a runtime task and should only do it before running or executing the tests.
 - For Config.toml configuration value management, use ${CONFIG_COLLECTOR_TOOL} to request for values. Check the different modes of the tool for various usecases.
-- Make sure to stop service once you are done using it.
+- You can call ${BALLERINA_STOP_TOOL_NAME} when you need to restart a service (e.g. after code changes) or when the user explicitly asks to stop it.
 
 ## Test Runner
 When running tests:
