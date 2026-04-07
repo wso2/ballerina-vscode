@@ -196,12 +196,12 @@ export async function getStoredICPSecret(projectPath: string): Promise<string | 
 function getProjectHandle(projectPath: string): string {
     // projectPath is the package dir; project root is its parent
     const projectRoot = path.dirname(projectPath);
-    const localProjectYaml = path.join(projectRoot, '.choreo', 'local-project.yaml');
+    const contextYaml = path.join(projectRoot, '.choreo', 'context.yaml');
     try {
-        const content = fs.readFileSync(localProjectYaml, 'utf-8');
-        const data = yaml.load(content) as Record<string, any>;
-        if (data?.handle) {
-            return data.handle;
+        const content = fs.readFileSync(contextYaml, 'utf-8');
+        const data = yaml.load(content) as Array<Record<string, any>>;
+        if (Array.isArray(data) && data[0]?.project) {
+            return data[0].project;
         }
     } catch {
         // file not found or parse error
