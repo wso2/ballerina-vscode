@@ -222,7 +222,7 @@ export const getAnthropicClient = async (model: AnthropicModel): Promise<any> =>
 
             const vertexModelMap: Record<AnthropicModel, string> = {
                 [ANTHROPIC_HAIKU]: "claude-3-5-haiku@20241022",
-                [ANTHROPIC_SONNET_4]: "claude-sonnet-4-5@20250929",
+                [ANTHROPIC_SONNET_4]: "claude-sonnet-4-6",
             };
 
             const vertexModelId = vertexModelMap[model];

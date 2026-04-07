@@ -138,7 +138,7 @@ interface AIChatInputProps {
     isWebToolsEnabled?: boolean;
     onToggleWebSearch?: () => void;
     disabled?: boolean;
-    contextUsage?: { inputTokens: number; percentage: number; breakdown?: { systemInstructions: number; toolDefinitions: number; reservedOutput: number; messages: number; toolResults: number } } | null;
+    contextUsage?: { inputTokens: number; percentage: number; breakdown?: { systemInstructions: number; toolDefinitions: number; reservedOutput: number; files: number; messages: number; toolResults: number } } | null;
     runningServicesPanel?: RunningServicesPanel;
 }
 
