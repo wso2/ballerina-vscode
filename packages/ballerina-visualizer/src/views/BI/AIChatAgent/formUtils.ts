@@ -22,23 +22,26 @@ import { FormField, Parameter } from "@wso2/ballerina-side-panel";
 export function createToolInputFields(filteredNodeParameterFields: FormField[]): FormField[] {
     const paramManagerValues = filteredNodeParameterFields
         .filter(field => !(field.optional && field.advanced))
-        .map((field, idx) => ({
-            id: idx,
-            icon: "",
-            key: field.key,
-            value: `${getPrimaryInputType(field.types)?.fieldType} ${field.key}`,
-            identifierEditable: true,
-            identifierRange: {
-                fileName: "functions.bal",
-                startLine: { line: 0, offset: 0 },
-                endLine: { line: 0, offset: 0 }
-            },
-            formValues: {
-                variable: field.key,
-                type: getPrimaryInputType(field.types)?.ballerinaType,
-                parameterDescription: field.documentation || ""
+        .map((field, idx) => {
+            const cleanKey = field.key.replace(/^\$/, '');
+            return {
+                id: idx,
+                icon: "",
+                key: field.key,
+                value: `${getPrimaryInputType(field.types)?.fieldType} ${cleanKey}`,
+                identifierEditable: true,
+                identifierRange: {
+                    fileName: "functions.bal",
+                    startLine: { line: 0, offset: 0 },
+                    endLine: { line: 0, offset: 0 }
+                },
+                formValues: {
+                    variable: cleanKey,
+                    type: getPrimaryInputType(field.types)?.ballerinaType,
+                    parameterDescription: field.documentation || ""
+                }
             }
-        }));
+        });
 
     const paramManagerFormFields: FormField[] = [
         {
