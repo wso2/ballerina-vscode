@@ -526,9 +526,6 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                 modifiedFiles,
                 error: error as Error,
             };
-        } finally {
-            // Stop all services started during this agent loop
-            runningServicesManager.stopAll();
         }
     }
 

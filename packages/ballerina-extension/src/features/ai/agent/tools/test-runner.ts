@@ -129,7 +129,7 @@ async function runBallerinaTests(cwd: string): Promise<TestRunResult> {
     const output = logs.join('');
 
     if (!exited) {
-        killProcessGroup(proc, 'SIGTERM');
+        await killProcessGroup(proc, 'SIGTERM');
         return {
             output: output + `\n\nTest execution timed out after ${DEFAULT_TEST_TIMEOUT}ms.`,
             exitCode: -1,

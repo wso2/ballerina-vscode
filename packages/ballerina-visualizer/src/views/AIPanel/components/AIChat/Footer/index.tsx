@@ -20,6 +20,7 @@ import React, { useState, useEffect } from "react";
 import styled from "@emotion/styled";
 import { keyframes } from "@emotion/css";
 import AIChatInput, { AIChatInputRef, TagOptions } from "../../AIChatInput";
+import { RunningServicesPanel } from "../../AIChatInput/RunningServicesChip";
 import { Input } from "../../AIChatInput/utils/inputUtils";
 import { AIPanelPrompt, Attachment, TemplateId, CodeContext } from "@wso2/ballerina-core";
 import { commandTemplates, suggestedCommandTemplates as defaultSuggestedCommandTemplates } from "../../../commandTemplates/data/commandTemplates.const";
@@ -166,6 +167,7 @@ type FooterProps = {
     onToggleWebSearch?: () => void;
     disabled?: boolean;
     contextUsage?: { inputTokens: number; percentage: number; breakdown?: { systemInstructions: number; toolDefinitions: number; reservedOutput: number; messages: number; toolResults: number } } | null;
+    runningServicesPanel?: RunningServicesPanel;
 };
 
 const Footer: React.FC<FooterProps> = ({
@@ -189,6 +191,7 @@ const Footer: React.FC<FooterProps> = ({
     onToggleWebSearch,
     disabled,
     contextUsage,
+    runningServicesPanel,
 }) => {
     const footerSuggestedCommandTemplates = suggestedCommandTemplates ?? defaultSuggestedCommandTemplates;
     const [animatedText, setAnimatedText] = useState("Generating.");
@@ -251,6 +254,7 @@ const Footer: React.FC<FooterProps> = ({
                 onToggleWebSearch={onToggleWebSearch}
                 disabled={disabled}
                 contextUsage={contextUsage}
+                runningServicesPanel={runningServicesPanel}
             />
             <DisclaimerText visible={!showSuggestedCommands}>
                 AI-generated content may contain mistakes. Always review changes.
