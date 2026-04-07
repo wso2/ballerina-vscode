@@ -52,6 +52,8 @@ import {
     CompactConversationResponse,
     ClarifyAnswerRequest,
     ClarifyCancelRequest,
+    RunningServiceInfo,
+    StopRunningServiceRequest,
 } from "@wso2/ballerina-core";
 import * as fs from 'fs';
 import path from "path";
@@ -95,6 +97,7 @@ import { chatStateStorage } from '../../views/ai-panel/chatStateStorage';
 import { compactionManager } from '../../features/ai/compaction-manager';
 import { getAnthropicClient, ANTHROPIC_SONNET_4 } from '../../features/ai/utils/ai-client';
 import { restoreWorkspaceSnapshot } from '../../views/ai-panel/checkpoint/checkpointUtils';
+import { runningServicesManager } from '../../features/ai/agent/tools/running-service-manager';
 
 export class AiPanelRpcManager implements AIPanelAPI {
 
@@ -869,5 +872,13 @@ export class AiPanelRpcManager implements AIPanelAPI {
         await vscode.commands.executeCommand('vscode.diff', originalUri, modifiedUri, title, {
             viewColumn: vscode.ViewColumn.One,
         });
+    }
+
+    async getRunningServices(): Promise<RunningServiceInfo[]> {
+        return runningServicesManager.getAll();
+    }
+
+    async stopRunningService(params: StopRunningServiceRequest): Promise<boolean> {
+        return runningServicesManager.stopOne(params.taskId);
     }
 }
