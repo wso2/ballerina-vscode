@@ -49,8 +49,13 @@ export default function createTests() {
                 }
             });
             await form.submit('Create');
-            const context = artifactWebView.locator(`text=${sampleName}`);
-            await context.waitFor();
+            // Check for both possible text matches to avoid strict mode violation
+            const httpServiceLabel = artifactWebView.locator(`text=HTTP Service - ${sampleName}`);
+            const servicePathLabel = artifactWebView.locator(`text=${sampleName}`).first();
+            await Promise.race([
+                httpServiceLabel.waitFor(),
+                servicePathLabel.waitFor()
+            ]);
             const projectExplorer = new ProjectExplorer(page.page);
             await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `HTTP Service - ${sampleName}`], true);
             const updateArtifactWebView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page);

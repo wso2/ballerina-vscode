@@ -60,7 +60,7 @@ export class GraphQLServiceUtils {
         await this.waitForElement(fieldNameBox);
         await fieldNameBox.fill(fieldName.value);
 
-        const fieldTypeBox = this.webView.getByRole('textbox', { name: fieldType.label });
+        const fieldTypeBox = this.getTypeEditorByLabel(fieldType.label);
         await this.waitForElement(fieldTypeBox);
         await fieldTypeBox.fill(fieldType.value);
         console.log(`Filled ${fieldType.label} with value: ${fieldType.value}`);
@@ -93,7 +93,7 @@ export class GraphQLServiceUtils {
 
     async addOutputObject(outputType: string) {
         const createFromScratchTab = this.webView.getByTestId('create-from-scratch-tab');
-        await this.webView.getByRole('textbox', { name: 'Field Type' }).click();
+        await this.getTypeEditorByLabel('Field Type').click();
         console.log('Clicked on Field Type textbox');
         await this.webView.getByText('Create New Type').click();
 
@@ -123,7 +123,7 @@ export class GraphQLServiceUtils {
     async createInputObjectFromScratch(argument: { name: string, type: string }) {
         const form = new Form(this.page, BI_INTEGRATOR_LABEL, this.webView);
         await this.webView.getByText('Add Argument').click();
-        await this.webView.getByRole('textbox', { name: 'Argument Type' }).click();
+        await this.getTypeEditorByLabel('Argument Type').click();
         await this.webView.getByText('Create New Type').click();
         await form.fill({
             values: {
@@ -145,12 +145,18 @@ export class GraphQLServiceUtils {
 
     async addArgumentToGraphQLService(argument: { name: string, type: string }) {
         await this.webView.getByText('Add Argument').click();
-        await this.webView.getByRole('textbox', { name: 'Argument Type' }).click();
+        await this.getTypeEditorByLabel('Argument Type').click();
         await this.webView.getByText(argument.type, { exact: true }).click();
         await this.webView.getByText('Argument Type*').click();
         await this.webView.getByRole('textbox', { name: 'Argument Name*The name of the' }).fill(argument.name);
         await this.webView.getByText('Argument Name*').click();
         await this.webView.getByRole('button', { name: 'Add' }).click();
+    }
+
+    getTypeEditorByLabel(label: string) {
+        return this.webView.locator(`label:has-text("${label}")`)
+            .locator('xpath=ancestor::*[.//vscode-text-area][1]//vscode-text-area')
+            .locator('textarea');
     }
 
     async waitForElement(locator: any, timeout = 10000) {
