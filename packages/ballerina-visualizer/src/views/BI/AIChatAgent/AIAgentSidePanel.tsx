@@ -446,7 +446,8 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 });
             }
 
-            const templateDescription = functionNodeTemplate.flowNode?.metadata?.description || "";
+            const templateDescription = (functionNodeTemplate.flowNode?.metadata?.description || "")
+                .replace(/```[\s\S]*?```/g, "").trim();
 
             let oauthFields: FormField[] = [];
             const position = funcDef?.codedata.lineRange.startLine || { line: 0, offset: 0 };
@@ -495,7 +496,8 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 : [];
 
             const toolInputFields = createToolInputFields(prepareToolInputFields(nodeParameterFields));
-            const templateDescription = nodeTemplate.flowNode?.metadata?.description || "";
+            const templateDescription = (nodeTemplate.flowNode?.metadata?.description || "")
+                .replace(/```[\s\S]*?```/g, "").trim();
             let oauthFields: FormField[] = [];
             const oauthProperties = await fetchOAuthConfigProperties(rpcClient, agentFilePath.current);
             oauthConfigPropertiesRef.current = oauthProperties;
@@ -598,9 +600,9 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
         const name = data["name"] || "";
         const cleanName = name.trim().replace(/[^a-zA-Z0-9]/g, "") || "newTool";
 
-        // HACK: Remove new lines from description fields
+        // HACK: Remove code blocks and new lines from description fields
         if (data.description) {
-            data.description = data.description.replace(/\n/g, " ");
+            data.description = data.description.replace(/```[\s\S]*?```/g, "").replace(/\n/g, " ").trim();
         }
 
         console.log(">>> handleToolSubmit", { data });
