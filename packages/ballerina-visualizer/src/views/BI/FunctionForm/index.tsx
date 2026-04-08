@@ -490,6 +490,17 @@ export function FunctionForm(props: FunctionFormProps) {
             }
         }
 
+        // Override the node kind so the correct builder (WorkflowBuilder / ActivityBuilder)
+        // is used when generating source code for an existing workflow or activity function.
+        // ModuleNodeAnalyzer returns FUNCTION_DEFINITION for these; using the wrong kind causes
+        // the artifact-update subscription to filter for FUNCTION instead of WORKFLOW/ACTIVITY,
+        // resulting in a 10-second timeout and incorrect source generation (e.g. adds `public`).
+        if (isWorkflow) {
+            flowNode = { ...flowNode, codedata: { ...flowNode.codedata, node: 'WORKFLOW' as NodeKind } };
+        } else if (isActivity) {
+            flowNode = { ...flowNode, codedata: { ...flowNode.codedata, node: 'ACTIVITY' as NodeKind } };
+        }
+
         setFunctionNode(flowNode);
         setIsLoading(false);
         console.log("Existing Function Node: ", flowNode);
@@ -692,6 +703,8 @@ export function FunctionForm(props: FunctionFormProps) {
             return "Natural Function";
         } else if (isWorkflow) {
             return "Workflow";
+        } else if (isActivity) {
+            return "Workflow Activity";
         } else if (isAutomation || functionName === "main") {
             return "Automation";
         }
