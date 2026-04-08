@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { RefObject, useEffect, useRef, useState } from 'react';
 
 import { ExpandableList } from './Components/ExpandableList';
 import { Variables } from './Views/Variables';
@@ -26,18 +26,16 @@ import { DocumentConfig } from './Views/DocumentConfig';
 import { CompletionInsertText, EditorConfig, ExpressionProperty, FlowNode, getPrimaryInputType, InputType, LineRange, RecordTypeField } from '@wso2/ballerina-core';
 import { CompletionItem, HelperPaneCustom, HelperPaneHeight, Typography } from '@wso2/ui-toolkit';
 import { SlidingPane, SlidingPaneHeader, SlidingPaneNavContainer, SlidingWindow } from '@wso2/ui-toolkit';
-import { CreateValue } from './Views/CreateValue';
 import { FunctionsPage } from './Views/Functions';
 import { FormSubmitOptions } from '../FlowDiagram';
 import { Configurables } from './Views/Configurables';
 import { DevantConfigurables } from './Views/DevantConfigurables';
 import styled from '@emotion/styled';
-import { useModalStack } from '../../../Context';
-import { getDefaultValue } from './utils/types';
 import { HelperPaneIconType, getHelperPaneIcon } from './utils/iconUtils';
 import { ExpressionEditorDevantProps, HelperpaneOnChangeOptions, InputMode } from '@wso2/ballerina-side-panel';
+import { ResolvedType } from '../Forms/FormGenerator';
 
-const AI_PROMPT_TYPE = "ai:Prompt";
+export const AI_PROMPT_TYPE = "ai:Prompt";
 
 export type ValueCreationOption = {
     typeCheck: string | null;
@@ -61,7 +59,7 @@ export type HelperPaneNewProps = {
     completions: CompletionItem[],
     projectPath?: string,
     handleOnFormSubmit?: (updatedNode?: FlowNode, editorConfig?: EditorConfig, options?: FormSubmitOptions) => void
-    selectedType?: CompletionItem;
+    selectedType?: ResolvedType;
     filteredCompletions?: CompletionItem[];
     isInModal?: boolean;
     types?: InputType[];
@@ -195,62 +193,6 @@ const HelperPaneNewEl = ({
             });
         }
     }, [selectedItem]);
-
-    const isSelectedTypeContainsType = (selectedType: string | string[], searchType: string) => {
-        if (Array.isArray(selectedType)) {
-            return selectedType.some(type => type.includes(searchType));
-        }
-        const unionTypes = selectedType.split("|").map(type => type.trim());
-        return unionTypes.includes(searchType);
-    };
-
-    const defaultValue = getDefaultValue(selectedType?.label);
-
-    const allValueCreationOptions = [
-        {
-            typeCheck: "string",
-            value: "\"TEXT_HERE\"",
-            label: "Create a string value"
-        },
-        {
-            typeCheck: "log:PrintableRawTemplate",
-            value: "string `TEXT_HERE`",
-            label: "Create a printable template"
-        },
-        {
-            typeCheck: "error",
-            value: "error(\"ERROR_MESSAGE_HERE\")",
-            label: "Create an error"
-        },
-        {
-            typeCheck: "json",
-            value: "{}",
-            label: "Create an empty json"
-        },
-        {
-            typeCheck: "xml",
-            value: "xml ``",
-            label: "Create an xml template"
-        },
-        {
-            typeCheck: "anydata",
-            value: "{}",
-            label: "Create an empty object"
-        }
-    ];
-
-    // Filter options based on type matching, and add default value if it exists
-    const valueCreationOptions = [
-        ...(defaultValue ? [{
-            typeCheck: null, // Special case for default value (if type is primitive)
-            value: defaultValue,
-            label: `Initialize to ${defaultValue}`
-        }] : []),
-        ...allValueCreationOptions.filter(option =>
-            forcedValueTypeConstraint &&
-            isSelectedTypeContainsType(forcedValueTypeConstraint, option.typeCheck)
-        )
-    ];
 
     return (
         <HelperPaneCustom anchorRef={anchorRef}>
@@ -390,18 +332,6 @@ const HelperPaneNewEl = ({
                             />
                         </SlidingPane>
                     )}
-
-                    <SlidingPane name="CREATE_VALUE" paneWidth={300}>
-                        <SlidingPaneHeader> Create Value</SlidingPaneHeader>
-                        <CreateValue
-                            fileName={fileName}
-                            onChange={handleChange}
-                            currentValue={currentValue}
-                            selectedType={getPrimaryInputType(types)?.ballerinaType || forcedValueTypeConstraint || ''}
-                            recordTypeField={recordTypeField}
-                            valueCreationOptions={valueCreationOptions}
-                            anchorRef={anchorRef} />
-                    </SlidingPane>
 
                     <SlidingPane name="FUNCTIONS" paneWidth={300}>
                         <SlidingPaneHeader>

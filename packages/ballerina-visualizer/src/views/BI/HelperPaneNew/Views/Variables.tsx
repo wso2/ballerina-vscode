@@ -24,7 +24,7 @@ import { Codicon, CompletionItem, Divider, HelperPaneCustom, SearchBox, ThemeCol
 import { useEffect, useMemo, useRef, useState } from "react"
 import { getPropertyFromFormField, useFieldContext, InputMode } from "@wso2/ballerina-side-panel"
 import FooterButtons from "../Components/FooterButtons"
-import { FormGenerator } from "../../Forms/FormGenerator"
+import { FormGenerator, ResolvedType } from "../../Forms/FormGenerator"
 import { ScrollableContainer } from "../Components/ScrollableContainer"
 import { FormSubmitOptions } from "../../FlowDiagram"
 import { URI } from "vscode-uri"
@@ -43,7 +43,7 @@ type VariablesPageProps = {
     targetLineRange: LineRange;
     anchorRef: React.RefObject<HTMLDivElement>;
     handleOnFormSubmit?: (updatedNode?: FlowNode, editorConfig?: EditorConfig, options?: FormSubmitOptions, openDMInPopup?: boolean) => void;
-    selectedType?: CompletionItem;
+    selectedType?: ResolvedType;
     filteredCompletions: CompletionItem[];
     currentValue: string;
     recordTypeField?: RecordTypeField;
@@ -283,7 +283,7 @@ export const Variables = (props: VariablesPageProps) => {
                     description: "Type of the variable",
                 },
                 types: [{ fieldType: "TYPE", selected: false }],
-                value: selectedType?.label,
+                value: selectedType?.value,
                 placeholder: "var",
                 optional: false,
                 editable: true,

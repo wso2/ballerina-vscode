@@ -72,7 +72,7 @@ import { EXPRESSION_EXTRACTION_REGEX, TypeHelperContext } from "../../../../cons
 import { getHelperPaneNew } from "../../HelperPaneNew";
 import { ConfigureRecordPage } from "../../HelperPaneNew/Views/RecordConfigModal";
 import React from "react";
-import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../FormGenerator";
+import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator, ResolvedType } from "../FormGenerator";
 import { EditorContext, StackItem } from "@wso2/type-editor";
 import DynamicModal from "../../../../components/Modal";
 import { useModalStack } from "../../../../Context";
@@ -184,7 +184,6 @@ export function FormGeneratorNew(props: FormProps) {
     const fieldsRef = useRef<FormField[]>(fields);
     const fieldsValuesRef = useRef<FormField[]>(fields);
     const [formImports, setFormImports] = useState<FormImports>({});
-    const [selectedType, setSelectedType] = useState<CompletionItem | null>(null);
     const [refetchStates, setRefetchStates] = useState<boolean[]>([false]);
     const [valueTypeConstraints, setValueTypeConstraints] = useState<string>();
 
@@ -762,7 +761,6 @@ export function FormGeneratorNew(props: FormProps) {
             updateImports: handleUpdateImports,
             completions: completions,
             projectPath: projectPath,
-            selectedType: selectedType,
             filteredCompletions: filteredCompletions,
             isInModal: false,
             types: types,

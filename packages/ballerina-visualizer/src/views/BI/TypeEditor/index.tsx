@@ -147,11 +147,11 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                         searchKind: 'TYPE'
                     });
 
-                    const workspaceTypes = getFilteredTypesByKind(searchResponse.categories, functionKinds.CURRENT);
+                    const workspaceTypes = getFilteredTypesByKind(searchResponse.categories, [functionKinds.CURRENT]);
                     setWorkspaceTypes(workspaceTypes);
 
                     if (!isGraphql && !isCdcService) {
-                        const importedTypes = getFilteredTypesByKind(searchResponse.categories, functionKinds.IMPORTED);
+                        const importedTypes = getFilteredTypesByKind(searchResponse.categories, [functionKinds.IMPORTED]);
                         setImportedTypes(importedTypes);
                     }
 
@@ -176,8 +176,8 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                             searchKind: 'TYPE'
                         });
 
-                        const importedTypes = getFilteredTypesByKind(response.categories, functionKinds.IMPORTED);
-                        const workspaceTypes = getFilteredTypesByKind(response.categories, functionKinds.CURRENT);
+                        const importedTypes = getFilteredTypesByKind(response.categories, [functionKinds.IMPORTED]);
+                        const workspaceTypes = getFilteredTypesByKind(response.categories, [functionKinds.CURRENT]);
                         setImportedTypes(importedTypes);
                         setWorkspaceTypes(workspaceTypes);
                     } catch (error) {
