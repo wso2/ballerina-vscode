@@ -291,6 +291,7 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                     <TypeEditor
                         type={type}
                         rpcClient={rpcClient}
+                        filePath={filePath}
                         isPopupTypeForm={isPopupTypeForm}
                         onTypeChange={onTypeChange}
                         newType={newType}
