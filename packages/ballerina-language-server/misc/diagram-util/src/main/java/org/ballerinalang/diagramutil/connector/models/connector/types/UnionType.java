@@ -55,6 +55,7 @@ public class UnionType extends Type {
     @Override
     public UnionType copy() {
         UnionType copy = new UnionType(this);
+        copyBaseFields(copy);
         copy.members = new ArrayList<>();
         for (Type member : this.members) {
             copy.members.add(member.copy());

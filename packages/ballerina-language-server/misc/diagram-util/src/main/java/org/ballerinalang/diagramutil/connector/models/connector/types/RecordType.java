@@ -72,6 +72,7 @@ public class RecordType extends Type {
     @Override
     public RecordType copy() {
         RecordType copy = new RecordType(this);
+        copyBaseFields(copy);
         copy.fields = new ArrayList<>();
         for (Type field : this.fields) {
             copy.fields.add(field.copy());
