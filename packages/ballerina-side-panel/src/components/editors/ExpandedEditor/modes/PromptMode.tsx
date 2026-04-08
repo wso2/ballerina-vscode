@@ -234,7 +234,7 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
     };
 
     const handleRefine = async (instructions: string) => {
-        const currentEnhanced = getCurrentPrompt();
+        const currentEnhanced = showDiff ? enhancedPromptRef.current : getCurrentPrompt();
         setEnhancementState({ mode: 'enhancing' });
 
         try {
@@ -283,13 +283,18 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
     const handleVersionNavigate = (index: number) => {
         if (index < 0 || index >= versionHistoryRef.current.length) return;
         const prompt = versionHistoryRef.current[index];
-        applyPrompt(prompt);
+        // Only dispatch to the editor when it's mounted (diff view unmounts it)
+        if (!showDiff) {
+            applyPrompt(prompt);
+        }
         enhancedPromptRef.current = prompt;
         setCurrentVersionIndex(index);
 
-        const cursorPos = isSourceView && codeMirrorView
+        const cursorPos = !showDiff && isSourceView && codeMirrorView
             ? codeMirrorView.state.selection.main.head
-            : proseMirrorView?.state.selection.head || 0;
+            : !showDiff && proseMirrorView
+                ? proseMirrorView.state.selection.head
+                : 0;
         onChange(prompt, cursorPos);
     };
 
@@ -371,7 +376,7 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
                 <ConditionalEditorContainer isEnhanced>
                     <DiffView
                         original={originalPromptRef.current}
-                        modified={getCurrentPrompt()}
+                        modified={enhancedPromptRef.current}
                     />
                 </ConditionalEditorContainer>
             ) : (
