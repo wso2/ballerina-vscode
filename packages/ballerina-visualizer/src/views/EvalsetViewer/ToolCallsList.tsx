@@ -205,9 +205,10 @@ const ActionButton = styled.button<{ $danger?: boolean }>`
 // --- HELPER ---
 
 const formatArgs = (args: any) => {
-    if (!args) return "()";
+    if (!args) return "";
     if (typeof args === 'string') return args;
     try {
+        if (typeof args === 'object' && Object.keys(args).length === 0) return "";
         return JSON.stringify(args).replace(/"/g, '').replace(/:/g, ': ').replace(/,/g, ', ');
     } catch (e) {
         return "Invalid arguments";
@@ -264,9 +265,11 @@ const SortableToolCallItem: React.FC<SortableToolCallItemProps> = ({
                     onClick={isEditMode && onEdit ? onEdit : undefined}
                 >
                     <ToolName>{toolCall.name}</ToolName>
-                    <ArgumentsPreview>
-                        {formatArgs(toolCall.arguments)}
-                    </ArgumentsPreview>
+                    {formatArgs(toolCall.arguments) && (
+                        <ArgumentsPreview>
+                            {formatArgs(toolCall.arguments)}
+                        </ArgumentsPreview>
+                    )}
                 </ToolInfo>
 
                 {isEditMode && onDelete && (
