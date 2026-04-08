@@ -463,6 +463,8 @@ const EXCLUDED_ATTRIBUTE_KEYS = [
     'gen_ai.input.tools',
     'gen_ai.input.content',
     'gen_ai.knowledge_base.ingest.input.chunks',
+    'gen_ai.knowledge_base.retrieve.input.query',
+    'gen_ai.knowledge_base.retrieve.output',
     'error.message'
 ];
 
@@ -540,6 +542,7 @@ export function SpanDetails({ spanData, spanName, totalInputTokens, totalOutputT
         const inputTools = getAttributeValue(spanData.attributes, 'gen_ai.input.tools');
         const inputContent = getAttributeValue(spanData.attributes, 'gen_ai.input.content');
         const kbIngestChunks = getAttributeValue(spanData.attributes, 'gen_ai.knowledge_base.ingest.input.chunks');
+        const kbRetrieveQuery = getAttributeValue(spanData.attributes, 'gen_ai.knowledge_base.retrieve.input.query');
 
         return {
             systemInstructions,
@@ -547,7 +550,8 @@ export function SpanDetails({ spanData, spanName, totalInputTokens, totalOutputT
             messagesLabel: toolArguments ? 'Tool Arguments' : (operationName?.includes('invoke_agent') ? 'User' : 'Messages'),
             tools: inputTools,
             inputContent,
-            kbIngestChunks
+            kbIngestChunks,
+            kbRetrieveQuery
         };
     }, [spanData.attributes, operationName]);
 
@@ -555,11 +559,13 @@ export function SpanDetails({ spanData, spanName, totalInputTokens, totalOutputT
         const outputMessages = getAttributeValue(spanData.attributes, 'gen_ai.output.messages');
         const toolOutput = getAttributeValue(spanData.attributes, 'gen_ai.tool.output');
         const errorMessage = getAttributeValue(spanData.attributes, 'error.message');
+        const kbRetrieveOutput = getAttributeValue(spanData.attributes, 'gen_ai.knowledge_base.retrieve.output');
 
         return {
             messages: outputMessages || toolOutput,
             messagesLabel: toolOutput ? 'Tool Output' : 'Messages',
-            error: errorMessage
+            error: errorMessage,
+            kbRetrieveOutput
         };
     }, [spanData.attributes]);
 
@@ -570,13 +576,15 @@ export function SpanDetails({ spanData, spanName, totalInputTokens, totalOutputT
             textContainsSearch(inputData.messages, searchQuery) ||
             textContainsSearch(inputData.tools, searchQuery) ||
             textContainsSearch(inputData.inputContent, searchQuery) ||
-            textContainsSearch(inputData.kbIngestChunks, searchQuery);
+            textContainsSearch(inputData.kbIngestChunks, searchQuery) ||
+            textContainsSearch(inputData.kbRetrieveQuery, searchQuery);
     }, [searchQuery, inputData]);
 
     const outputMatches = useMemo(() => {
         if (!searchQuery) return true;
         return textContainsSearch(outputData.messages, searchQuery) ||
-            textContainsSearch(outputData.error, searchQuery);
+            textContainsSearch(outputData.error, searchQuery) ||
+            textContainsSearch(outputData.kbRetrieveOutput, searchQuery);
     }, [searchQuery, outputData]);
 
     const metricsMatch = useMemo(() => {
@@ -640,8 +648,8 @@ export function SpanDetails({ spanData, spanName, totalInputTokens, totalOutputT
         return technicalIdsMatch || filteredAdvancedAttributes.length > 0;
     }, [searchQuery, technicalIdsMatch, filteredAdvancedAttributes]);
 
-    const hasInput = inputData.systemInstructions || inputData.messages || inputData.tools || inputData.inputContent || inputData.kbIngestChunks;
-    const hasOutput = outputData.messages || outputData.error;
+    const hasInput = inputData.systemInstructions || inputData.messages || inputData.tools || inputData.inputContent || inputData.kbIngestChunks || inputData.kbRetrieveQuery;
+    const hasOutput = outputData.messages || outputData.error || outputData.kbRetrieveOutput;
     const hasError = !!outputData.error;
     const noMatches = searchQuery && !inputMatches && !outputMatches && !metricsMatch && !advancedMatches;
 
@@ -892,6 +900,14 @@ export function SpanDetails({ spanData, spanName, totalInputTokens, totalOutputT
                                         </InputContentBlock>
                                     </SubSection>
                                 )}
+                                {inputData.kbRetrieveQuery && textContainsSearch(inputData.kbRetrieveQuery, searchQuery) && (
+                                    <SubSection>
+                                        <SubSectionTitle>Query</SubSectionTitle>
+                                        <InputContentBlock>
+                                            {highlightText(inputData.kbRetrieveQuery, searchQuery)}
+                                        </InputContentBlock>
+                                    </SubSection>
+                                )}
                                 {inputData.kbIngestChunks && textContainsSearch(inputData.kbIngestChunks, searchQuery) && (
                                     <SubSection>
                                         <JsonViewer
@@ -955,6 +971,15 @@ export function SpanDetails({ spanData, spanName, totalInputTokens, totalOutputT
                                             title={outputData.messagesLabel}
                                             searchQuery={searchQuery}
                                             expandLastOnly={true}
+                                        />
+                                    </SubSection>
+                                )}
+                                {outputData.kbRetrieveOutput && textContainsSearch(outputData.kbRetrieveOutput, searchQuery) && (
+                                    <SubSection>
+                                        <JsonViewer
+                                            value={outputData.kbRetrieveOutput}
+                                            title="Retrieved Results"
+                                            searchQuery={searchQuery}
                                         />
                                     </SubSection>
                                 )}
