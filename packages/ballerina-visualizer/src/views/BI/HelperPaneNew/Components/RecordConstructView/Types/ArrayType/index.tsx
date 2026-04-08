@@ -64,7 +64,7 @@ function getElementDisplayName(type: TypeField | undefined): string {
     }
     if ((type.typeName === "union" || type.typeName === "enum")
             && (type.members?.length ?? 0) > 0) {
-        return type.members!.map(m => m.typeInfo?.name || m.name || m.typeName).join("|");
+        return "(" + type.members!.map(m => m.typeInfo?.name || m.name || m.typeName).join("|") + ")";
     }
     return type.typeInfo?.name || type.typeName || "unknown";
 }
@@ -237,6 +237,12 @@ export default function ArrayType(props: TypeProps & { bodyOnly?: boolean }) {
                 >
                     <Codicon name="add" iconSx={{ fontSize: '13px' }} />
                 </Button>
+                <div onClick={handleAddElement} className={helperStyleClass.arrayAddLabel}
+                    style={{ marginRight: '4px' }}>
+                    <Typography variant="body3" sx={{ opacity: 0.7 }}>
+                        Add
+                    </Typography>
+                </div>
                 {isUnionElement && unionMembers && (
                     <div className={helperStyleClass.listDropdownWrapper}>
                         <Dropdown
@@ -254,7 +260,7 @@ export default function ArrayType(props: TypeProps & { bodyOnly?: boolean }) {
                 {!isUnionElement && (
                     <div onClick={handleAddElement} className={helperStyleClass.arrayAddLabel}>
                         <Typography variant="body3" sx={{ opacity: 0.7 }}>
-                            Add {elementTypeName}
+                            {elementTypeName}
                         </Typography>
                     </div>
                 )}
