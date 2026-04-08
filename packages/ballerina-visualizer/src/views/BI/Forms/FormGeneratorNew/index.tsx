@@ -765,8 +765,6 @@ export function FormGeneratorNew(props: FormProps) {
             isInModal: false,
             types: types,
             handleRetrieveCompletions: handleRetrieveCompletions,
-            handleValueTypeConstChange: handleValueTypeConstChange,
-            forcedValueTypeConstraint: valueTypeConstraints,
             inputMode: inputMode,
         });
     };

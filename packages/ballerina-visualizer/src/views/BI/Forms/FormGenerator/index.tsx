@@ -270,7 +270,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     const [typeEditorState, setTypeEditorState] = useState<TypeEditorState>({ isOpen: false, newTypeValue: "" });
     const [visualizableField, setVisualizableField] = useState<VisualizableField>();
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
-    const [valueTypeConstraints, setValueTypeConstraints] = useState<string>();
 
     const fields = useMemo(() => {
         if (!props.fieldOverrides || baseFields.length === 0) {
@@ -1071,16 +1070,13 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                 name: matchedReferenceType.label,
                 labelDetails: matchedReferenceType.labelDetails,
             })
-            setValueTypeConstraints(valueTypeConstraint);
         }
         else {
             const type = await searchImportedTypeByName(valueTypeConstraint);
             if (!type) {
-                setValueTypeConstraints(valueTypeConstraint);
                 return;
             };
 
-            setValueTypeConstraints(type.insertText);
             // Create the record type field for expression
             const expressionEntry = Object.entries(getFormProperties(node))
                 .find(([_, property]) => property.metadata?.label === "Expression");
@@ -1146,8 +1142,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             isInModal: isInModal,
             types: defaultTypes,
             handleRetrieveCompletions: handleRetrieveCompletions,
-            forcedValueTypeConstraint: valueTypeConstraints,
-            handleValueTypeConstChange: handleValueTypeConstChange,
             inputMode: inputMode,
             devantExpressionEditor: props.devantExpressionEditor,
         });
@@ -1374,7 +1368,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
         // If not a Record, remove the 'expression' entry from recordTypeFields and return
         if (type?.labelDetails?.description?.toLocaleLowerCase() !== "record" && type.codeData?.node !== "RECORD") {
-            setValueTypeConstraints(type.value === AI_PROMPT_TYPE ? type.value : '');
             setRecordTypeFields(prevFields => prevFields.filter(f => f.key !== "expression"));
             setBaseFields(prevFields => prevFields.map(field => {
                 if (field.key === key) {
@@ -1388,9 +1381,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                 return field;
             }));
             return;
-        }
-        else {
-            setValueTypeConstraints(type.name);
         }
         const packageInfo = type.codeData ? `${type.codeData.org}:${type.codeData.module}:${type.codeData.version}` : '';
         const recordTypeField = createExpressionRecordTypeField(key, property, packageInfo, type, type.codeData?.module);
