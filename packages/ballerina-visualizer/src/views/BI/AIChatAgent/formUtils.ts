@@ -21,7 +21,7 @@ import { FormField, Parameter } from "@wso2/ballerina-side-panel";
 
 export function createToolInputFields(filteredNodeParameterFields: FormField[]): FormField[] {
     const paramManagerValues = filteredNodeParameterFields
-        .filter(field => !(field.optional && field.advanced))
+        .filter(field => !(field.optional && field.advanced) && field.key !== "targetType")
         .map((field, idx) => {
             const cleanKey = field.key.replace(/^\$/, '');
             return {
@@ -244,10 +244,15 @@ export function prepareToolInputFields(fields: FormField[]): FormField[] {
             return;
         }
         if (field.codedata?.kind === "PARAM_FOR_TYPE_INFER" || field.key === "targetType") {
-            field.optional = true;
-            field.advanced = true;
-            field.value = "";
-            return;
+            if (field.types?.[0]?.fieldType === "RECORD_FIELD_SELECTOR") {
+                field.optional = false;
+                field.advanced = false;
+            } else {
+                field.optional = true;
+                field.advanced = true;
+                field.value = "";
+                return;
+            }
         }
         if (getPrimaryInputType(field.types)?.fieldType === "TYPE") {
             fields[idx].documentation = "The data type this tool will return to the agent.";

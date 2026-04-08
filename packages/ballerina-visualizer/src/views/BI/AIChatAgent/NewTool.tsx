@@ -186,7 +186,6 @@ export function NewTool(props: NewToolProps): JSX.Element {
                     endLine: agentNode.codedata.lineRange.startLine,
                 };
             }
-
             const toolResponse = await rpcClient.getAIAgentRpcClient().genTool({
                 toolName: data.toolName,
                 description: data.description,
@@ -206,8 +205,8 @@ export function NewTool(props: NewToolProps): JSX.Element {
                 console.error("Failed to add tool to agent node");
                 return;
             }
-
             // Find the updated agent node in the response artifacts and update the local state
+            let agentArtifactFound = false;
             if (toolResponse.artifacts?.length > 0) {
                 const updatedAgentArtifact = toolResponse.artifacts.find(artifact => artifact?.name === agentNode?.properties?.variable?.value);
                 // Update line range so subsequent tool additions target the correct source location
@@ -216,6 +215,15 @@ export function NewTool(props: NewToolProps): JSX.Element {
                     updatedAgentNode.codedata.lineRange.startLine.offset = updatedAgentArtifact.position.startColumn;
                     updatedAgentNode.codedata.lineRange.endLine.line = updatedAgentArtifact.position.endLine;
                     updatedAgentNode.codedata.lineRange.endLine.offset = updatedAgentArtifact.position.endColumn;
+                    agentArtifactFound = true;
+                }
+            }
+
+            // If artifact not found, re-fetch the agent node to get the correct line range
+            if (!agentArtifactFound) {
+                const refreshedAgentNode = await findAgentNodeFromAgentCallNode(agentCallNode, rpcClient);
+                if (refreshedAgentNode?.codedata?.lineRange) {
+                    updatedAgentNode.codedata.lineRange = refreshedAgentNode.codedata.lineRange;
                 }
             }
 
