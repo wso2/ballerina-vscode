@@ -675,7 +675,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                     onSelect={handleOnSelectNode}
                     onAddConnection={handleOnAddConnection}
                     onAddFunction={() => handleOnAddFunction(MACHINE_VIEW.BIFunctionForm, DIRECTORY_MAP.FUNCTION)}
-                    onSearchTextChange={(searchText) => handleSearchFunction(searchText, FUNCTION_TYPE.REGULAR, true)}
+                    onSearchTextChange={mode !== NewToolSelectionMode.CONNECTION ? (searchText) => handleSearchFunction(searchText, FUNCTION_TYPE.REGULAR, true) : undefined}
                     title={"Functions"}
                     searchPlaceholder={searchPlaceholder}
                     panelBodySx={{ height: "calc(100vh - 140px)" }}

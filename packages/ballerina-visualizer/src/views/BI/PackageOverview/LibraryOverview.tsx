@@ -25,6 +25,7 @@ import {
     MACHINE_VIEW,
     ProjectStructure,
     ProjectStructureArtifactResponse,
+    VISIBILITY,
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Button, Codicon, Icon, ThemeColors, Typography } from "@wso2/ui-toolkit";
@@ -313,6 +314,18 @@ const ArtifactCardTitle = styled.p`
     text-overflow: ellipsis;
 `;
 
+const PublicBadge = styled.span`
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: -8px;
+    color: ${ThemeColors.ON_SURFACE};
+    opacity: 0.7;
+    line-height: 1;
+    > * { display: flex; align-items: center; justify-content: center; }
+`;
+
 const HighlightMatch = styled.span`
     font-weight: 700;
     text-decoration: underline;
@@ -509,10 +522,11 @@ interface ArtifactCardProps {
     icon: React.ReactNode;
     title: string;
     query: string;
+    isPublic?: boolean;
     onClick: () => void;
 }
 
-function ArtifactCard({ icon, title, query, onClick }: ArtifactCardProps) {
+function ArtifactCard({ icon, title, query, isPublic, onClick }: ArtifactCardProps) {
     const highlightedTitle = useMemo(() => {
         if (!query) return <>{title}</>;
         const idx = title.toLowerCase().indexOf(query);
@@ -534,6 +548,11 @@ function ArtifactCard({ icon, title, query, onClick }: ArtifactCardProps) {
         >
             <ArtifactCardInner>
                 <ArtifactCardIconContainer>{icon}</ArtifactCardIconContainer>
+                {isPublic && (
+                    <PublicBadge title="Public">
+                        <Codicon name="globe" iconSx={{ fontSize: 13 }} />
+                    </PublicBadge>
+                )}
                 <ArtifactCardContent>
                     <ArtifactCardTitle>{highlightedTitle}</ArtifactCardTitle>
                 </ArtifactCardContent>
@@ -740,6 +759,7 @@ export function LibraryOverview({ projectStructure, isNPSupported, projectPath, 
                 icon={<Icon name={icon} />}
                 title={item.name}
                 query={query}
+                isPublic={item.visibility === VISIBILITY.PUBLIC}
                 onClick={() => handleItemClick(sectionKey, item)}
             />
             {item.position && item.path && (

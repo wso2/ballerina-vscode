@@ -67,7 +67,9 @@ import {
     traceAnimationChanged,
     TraceAnimationEvent,
     webToolToggle,
-    WebToolToggle
+    WebToolToggle,
+    runningServicesChanged,
+    RunningServiceInfo
 } from "@wso2/ballerina-core";
 import { LangClientRpcClient } from "./rpc-clients/lang-client/rpc-client";
 import { LibraryBrowserRpcClient } from "./rpc-clients/library-browser/rpc-client";
@@ -106,6 +108,7 @@ export class BallerinaRpcClient {
     private _agentChat: AgentChatRpcClient;
     private _platformExt: PlatformExtRpcClient;
     private _identifierUpdatedCallbacks = new Set<(response: ProjectStructureArtifactResponse[]) => void>();
+    private _runningServicesChangedCallbacks = new Set<(services: RunningServiceInfo[]) => void>();
 
     constructor() {
         this.messenger = new Messenger(vscode);
@@ -131,6 +134,9 @@ export class BallerinaRpcClient {
         this._platformExt = new PlatformExtRpcClient(this.messenger);
         this.messenger.onNotification(onIdentifierUpdated, (response: ProjectStructureArtifactResponse[]) => {
             this._identifierUpdatedCallbacks.forEach((callback) => callback(response));
+        });
+        this.messenger.onNotification(runningServicesChanged, (services: RunningServiceInfo[]) => {
+            this._runningServicesChangedCallbacks.forEach((callback) => callback(services));
         });
     }
 
@@ -321,5 +327,12 @@ export class BallerinaRpcClient {
 
     onTraceAnimationChanged(callback: (event: TraceAnimationEvent) => void) {
         this.messenger.onNotification(traceAnimationChanged, callback);
+    }
+
+    onRunningServicesChanged(callback: (services: RunningServiceInfo[]) => void): () => void {
+        this._runningServicesChangedCallbacks.add(callback);
+        return () => {
+            this._runningServicesChangedCallbacks.delete(callback);
+        };
     }
 }
