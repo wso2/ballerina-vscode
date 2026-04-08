@@ -579,6 +579,7 @@ export type NodeKind =
     | "WAIT"
     | "WHILE"
     | "WORKER"
+    | "RECORD"
     | "VARIABLE";
 
 export type OverviewFlow = {
