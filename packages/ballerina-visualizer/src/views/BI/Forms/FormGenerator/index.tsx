@@ -422,7 +422,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         if ((node.codedata.node === "VARIABLE" || node.codedata.node === "CONFIG_VARIABLE") &&
             node.properties?.type?.value &&
             (node.properties.type.value as string).length > 0) {
-            handleSelectedTypeChange(node.properties.type.value as string);
+            handleValueTypeConstChange(node.properties.type.value as string);
         }
         if (node.codedata.node === "IF") {
             return;
@@ -1141,35 +1141,16 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                 name: matchedReferenceType.label,
                 labelDetails: matchedReferenceType.labelDetails,
             })
+            return;
         }
-        else {
-            const type = await searchImportedTypeByName(valueTypeConstraint);
-            if (!type) {
-                return;
-            };
-
-            // Create the record type field for expression
-            const expressionEntry = Object.entries(getFormProperties(node))
-                .find(([_, property]) => property.metadata?.label === "Expression");
-
-            if (!expressionEntry) return;
-
-            const [key, property] = expressionEntry;
-            const typeForRecord = { name: type.insertText, labelDetails: type.labelDetails };
-            const recordTypeField = createExpressionRecordTypeField(key, property, `${type.codedata.org}:${type.codedata.module}:${type.codedata.version}`, typeForRecord);
-            if (!recordTypeField) return;
-
-            setRecordTypeFields(prevFields => {
-                const prevIndex = prevFields.findIndex(f => f.key === recordTypeField.key);
-                if (prevIndex !== -1) {
-                    const updated = [...prevFields];
-                    updated[prevIndex] = recordTypeField;
-                    return updated;
-                } else {
-                    return [...prevFields, recordTypeField];
-                }
-            });
-        }
+        const type = await searchImportedTypeByName(valueTypeConstraint);
+        if (!type) return;
+        
+        updateRecordTypeFields({
+            value: type.name,
+            name: type.name,
+            labelDetails: type.labelDetails,
+        });
     }
 
     const handleGetHelperPane = (
