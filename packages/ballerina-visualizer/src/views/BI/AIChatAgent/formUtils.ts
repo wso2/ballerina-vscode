@@ -19,9 +19,14 @@
 import { ValueTypeConstraint, ToolParameters, getPrimaryInputType } from "@wso2/ballerina-core";
 import { FormField, Parameter } from "@wso2/ballerina-side-panel";
 
+const SQL_PARAMETERIZED_TYPES = ["sql:ParameterizedQuery", "sql:ParameterizedCallQuery"];
+const isSqlParameterizedField = (field: FormField): boolean =>
+    field.types?.some(t => t.ballerinaType && SQL_PARAMETERIZED_TYPES.includes(t.ballerinaType)) ?? false;
+
 export function createToolInputFields(filteredNodeParameterFields: FormField[]): FormField[] {
     const paramManagerValues = filteredNodeParameterFields
-        .filter(field => !(field.optional && field.advanced) && field.key !== "targetType")
+        .filter(field => !(field.optional && field.advanced) && field.key !== "targetType"
+            && !isSqlParameterizedField(field))
         .map((field, idx) => {
             const cleanKey = field.key.replace(/^\$/, '');
             let inputType = getPrimaryInputType(field.types);
@@ -247,6 +252,11 @@ export function prepareToolInputFields(fields: FormField[]): FormField[] {
             field.hidden = true;
             return;
         }
+        if (isSqlParameterizedField(field)) {
+            field.value = "";
+            field.optional = false;
+            field.advanced = false;
+        }
         if (field.codedata?.kind === "PARAM_FOR_TYPE_INFER" || field.key === "targetType") {
             if (field.types?.[0]?.fieldType === "RECORD_FIELD_SELECTOR") {
                 field.optional = false;
@@ -263,11 +273,13 @@ export function prepareToolInputFields(fields: FormField[]): FormField[] {
             return;
         }
         if (field.optional == false && getPrimaryInputType(field.types)?.fieldType !== "TYPE") field.value = field.key;
-        if (field.optional == false && field.key != "type") {
+        if (field.optional == false && field.key != "type"
+            && !isSqlParameterizedField(field)) {
             field.value = field.key.startsWith('$') ? "'" + field.key.substring(1) : field.key;
         }
         field.label = `${field.label} Mapping`;
-        if (field.type === "SQL_QUERY" && field.types) {
+        if (field.type === "SQL_QUERY" && field.types
+            && !field.types.some(t => t.ballerinaType === "sql:ParameterizedQuery")) {
             field.type = "EXPRESSION";
             field.types = field.types.map(t => ({ ...t, selected: t.fieldType === "EXPRESSION" }));
         }
