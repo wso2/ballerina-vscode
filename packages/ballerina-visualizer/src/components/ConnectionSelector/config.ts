@@ -55,14 +55,14 @@ export const CONNECTION_TYPE_CONFIGS: Record<ConnectionKind, ConnectionKindConfi
         nodePropertyKey: "chunker",
         categoryConverter: convertChunkerCategoriesToSidePanelCategories,
     },
-    MEMORY_STORE: {
+    SHORT_TERM_MEMORY_STORE: {
         displayName: "Memory Store",
         types: [{ fieldType: "ACTION_EXPRESSION", ballerinaType: "ai:MemoryStore", selected: true }, { fieldType: "EXPRESSION", selected: false }],
         nodePropertyKey: "store",
         categoryConverter: convertMemoryStoreCategoriesToSidePanelCategories,
         searchConfig: (): ConnectionSearchConfig => ({
             query: "",
-            searchKind: "MEMORY_STORE"
+            searchKind: "SHORT_TERM_MEMORY_STORE"
         })
     }
 };

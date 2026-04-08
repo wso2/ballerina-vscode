@@ -692,6 +692,17 @@ export function FormGeneratorNew(props: FormProps) {
                 try {
                     const field = fieldsRef.current.find(f => f.key === key);
                     if (field) {
+                        const propertyPrimaryFieldType = getPrimaryInputType(property.types);
+                        if (property.types.length>1 && propertyPrimaryFieldType.fieldType !== "REPEATABLE_LIST" && propertyPrimaryFieldType.fieldType !== "REPEATABLE_MAP") {
+                            property.types.forEach(t => {
+                                if (t.fieldType === "EXPRESSION") {
+                                    t.selected = true;
+                                }
+                                else{
+                                    t.selected = false;
+                                }
+                            });
+                        }
                         const response = await rpcClient.getBIDiagramRpcClient().getExpressionDiagnostics({
                             filePath: fileName,
                             context: {

@@ -46,7 +46,7 @@ export type FormField = {
     placeholder?: string;
     defaultValue?: string;
     documentation: string;
-    value: string | any[];
+    value: string | any;
     advanceProps?: FormField[];
     diagnostics?: DiagnosticMessage[];
     items?: string[];

@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { STNode } from "@wso2/syntax-tree";
 import { Button, Icon, Switch, View, ThemeColors, Tooltip } from "@wso2/ui-toolkit";
 import { BIFlowDiagram } from "../FlowDiagram";
@@ -24,7 +24,7 @@ import { BISequenceDiagram } from "../SequenceDiagram";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { TitleBar } from "../../../components/TitleBar";
-import { CodeData, EVENT_TYPE, FOCUS_FLOW_DIAGRAM_VIEW, FocusFlowDiagramView, FunctionModel, LineRange, ParentMetadata } from "@wso2/ballerina-core";
+import { CodeData, EVENT_TYPE, FOCUS_FLOW_DIAGRAM_VIEW, FocusFlowDiagramView, FunctionModel, LineRange, ParentMetadata, SHARED_COMMANDS } from "@wso2/ballerina-core";
 import { VisualizerLocation, NodePosition } from "@wso2/ballerina-core";
 import { MACHINE_VIEW } from "@wso2/ballerina-core";
 import styled from "@emotion/styled";
@@ -33,8 +33,9 @@ import { getColorByMethod } from "../ServiceDesigner/components/ResourceAccordio
 import { SwitchSkeleton, TitleBarSkeleton } from "../../../components/Skeletons";
 import { PanelContainer } from "@wso2/ballerina-side-panel";
 import { ResourceForm } from "../ServiceDesigner/Forms/ResourceForm";
+import { AddServiceElementDropdown, DropdownOptionProps } from "../ServiceDesigner/components/AddServiceElementDropdown";
 import { removeForwardSlashes } from "../ServiceDesigner/utils";
-import { buildBaseUrl } from "../ServiceDesigner/buildHurlString";
+import { getTryItAIDefaultPromptResource, getTryItDropdownOptions, TryItOptionValue, TryItQuickPickItem } from "../shared/tryIt";
 
 const ActionButton = styled(Button)`
     display: flex;
@@ -116,6 +117,16 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     const [isSaving, setIsSaving] = useState(false);
     const [isTracingEnabled, setIsTracingEnabled] = useState(false);
     const [isToggling, setIsToggling] = useState(false);
+    const [selectedTryItOption, setSelectedTryItOption] = useState<TryItOptionValue>(TryItOptionValue.TRY_IT);
+    const [isTryItInProgress, setIsTryItInProgress] = useState(false);
+    const isMountedRef = useRef(true);
+
+    useEffect(() => {
+        isMountedRef.current = true;
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
 
     useEffect(() => {
         rpcClient.getVisualizerLocation().then((location) => {
@@ -167,6 +178,26 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                     }
                 });
         });
+    }, [rpcClient]);
+
+    // Load persisted preferred Try It option on mount (if set)
+    useEffect(() => {
+        (async () => {
+            try {
+                const preferred = await rpcClient.getCommonRpcClient().getPreferredTryItOption();
+
+                if (!isMountedRef.current) return;
+
+                if (
+                    preferred === TryItOptionValue.TRY_IT ||
+                    preferred === TryItOptionValue.TRY_IT_WITH_AI
+                ) {
+                    setSelectedTryItOption(preferred as TryItOptionValue);
+                }
+            } catch (e) {
+                // ignore
+            }
+        })();
     }, [rpcClient]);
 
 
@@ -316,13 +347,116 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     let isInitFunction = parentMetadata?.kind === "Function" && parentMetadata?.label === "init";
     let isNPFunction = view === FOCUS_FLOW_DIAGRAM_VIEW.NP_FUNCTION;
 
-    const handleResourceTryIt = (methodValue: string, pathValue: string) => {
+    const handleResourceTryIt = async (methodValue: string, pathValue: string) => {
         if (serviceType !== "http") { return; }
 
-        rpcClient.getCommonRpcClient().executeCommand({
+        await rpcClient.getCommonRpcClient().executeCommand({
             commands: ["ballerina.tryIt", false, { methodValue, pathValue }, { basePath, listener }]
         });
     };
+
+    const handleResourceTryItWithAI = async () => {
+        if (serviceType !== "http") { return; }
+        const methodValue = parentMetadata?.accessor || "GET";
+        const pathValue = removeForwardSlashes(parentMetadata?.label || "/");
+        const serviceName = basePath?.replace(/^\//, "") || "Service";
+        const prompt = getTryItAIDefaultPromptResource(methodValue, pathValue, serviceName, basePath);
+
+        await rpcClient.getCommonRpcClient().executeCommand({
+            commands: [SHARED_COMMANDS.OPEN_AI_PANEL, prompt]
+        });
+    };
+
+    const handleTryItDropdownOption = async (option: string) => {
+        if (isTryItInProgress) {
+            return;
+        }
+
+        const selectedOption = option as TryItOptionValue;
+        if (isMountedRef.current) {
+            setSelectedTryItOption(selectedOption);
+            setIsTryItInProgress(true);
+        }
+        rpcClient.getCommonRpcClient().setPreferredTryItOption(selectedOption).catch((error: unknown) => {
+            console.error("Error saving preferred Try It option:", error);
+        });
+
+        try {
+            switch (selectedOption) {
+                case TryItOptionValue.TRY_IT:
+                    await handleResourceTryIt(parentMetadata?.accessor || "", parentMetadata?.label || "");
+                    break;
+                case TryItOptionValue.TRY_IT_WITH_AI:
+                    await handleResourceTryItWithAI();
+                    break;
+            }
+        } catch (error) {
+            console.error("Error handling Try It option:", error);
+        } finally {
+            if (isMountedRef.current) {
+                setIsTryItInProgress(false);
+            }
+        }
+    };
+
+    const handleTryItPrimaryAction = async () => {
+        if (isTryItInProgress) {
+            return;
+        }
+
+        if (isMountedRef.current) {
+            setIsTryItInProgress(true);
+        }
+
+        let optionToRun = selectedTryItOption;
+        try {
+            const preferredOption = await rpcClient.getCommonRpcClient().getPreferredTryItOption();
+            if (preferredOption === TryItOptionValue.TRY_IT || preferredOption === TryItOptionValue.TRY_IT_WITH_AI) {
+                optionToRun = preferredOption;
+                if (isMountedRef.current) {
+                    setSelectedTryItOption(optionToRun);
+                }
+            } else {
+                const tryItOptions = getTryItDropdownOptions("resource").map(option => ({
+                    label: option.title,
+                    description: `(${option.description})`,
+                    value: option.value
+                }));
+                const selected: TryItQuickPickItem = await rpcClient.getCommonRpcClient().showQuickPick({
+                    items: tryItOptions,
+                    options: { title: "Choose how you want to try out your resource", placeHolder: "Select an option" }
+                }) as TryItQuickPickItem;
+
+                if (!selected) {
+                    return;
+                }
+                optionToRun = selected.value;
+                if (isMountedRef.current) {
+                    setSelectedTryItOption(optionToRun);
+                }
+                await rpcClient.getCommonRpcClient().setPreferredTryItOption(optionToRun); 
+            }
+
+            switch (optionToRun) {
+                case TryItOptionValue.TRY_IT:
+                    await handleResourceTryIt(parentMetadata?.accessor || "", parentMetadata?.label || "");
+                    break;
+                case TryItOptionValue.TRY_IT_WITH_AI:
+                    await handleResourceTryItWithAI();
+                    break;
+            }
+        } catch (error) {
+            console.error("Error handling Try It first-time flow:", error);
+        } finally {
+            if (isMountedRef.current) {
+                setIsTryItInProgress(false);
+            }
+        }
+    };
+
+    const tryItDropdownOptions: DropdownOptionProps[] = getTryItDropdownOptions("resource");
+    const activeTryItOption =
+        tryItDropdownOptions.find((option) => option.value === selectedTryItOption) ?? tryItDropdownOptions[0];
 
     // Calculate title based on conditions
     const getTitle = () => {
@@ -396,13 +530,17 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                         />
                         Configure
                     </ActionButton >
-                    <ActionButton
-                        appearance="secondary"
-                        onClick={() => handleResourceTryIt(parentMetadata?.accessor || "", parentMetadata?.label || "")}
-                    >
-                        <Icon name={"play"} isCodicon={true} sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
-                        {"Try It"}
-                    </ActionButton>
+                    <AddServiceElementDropdown
+                        buttonTitle={activeTryItOption?.title || "Try It"}
+                        toolTip="Try Resource"
+                        defaultOption={selectedTryItOption}
+                        onPrimaryAction={handleTryItPrimaryAction}
+                        buttonIconName={isTryItInProgress ? "loading" : activeTryItOption?.iconName}
+                        buttonIconIsCodicon={isTryItInProgress ? true : activeTryItOption?.iconIsCodicon}
+                        showButtonSpinner={isTryItInProgress}
+                        onOptionChange={handleTryItDropdownOption}
+                        options={tryItDropdownOptions}
+                    />
                 </>
             );
         }

@@ -101,11 +101,16 @@ import {
     cancelClarify,
     ClarifyAnswerRequest,
     ClarifyCancelRequest,
+    getRunningServices,
+    stopRunningService,
+    StopRunningServiceRequest,
 } from "@wso2/ballerina-core";
 import { workspace } from 'vscode';
 import { Messenger } from "vscode-messenger";
 import { AiPanelRpcManager } from "./rpc-manager";
 import { sendConfigChangeNotification } from "../../features/ai/utils/ai-utils";
+import { runningServicesManager } from "../../features/ai/agent/tools/running-service-manager";
+import { notifyRunningServicesChanged } from "../../RPCLayer";
 
 export function registerAiPanelRpcHandlers(messenger: Messenger) {
     const rpcManger = new AiPanelRpcManager();
@@ -172,4 +177,11 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onNotification(promptForLogin, () => rpcManger.promptForLogin());
     messenger.onRequest(submitClarifyAnswer, (args: ClarifyAnswerRequest) => rpcManger.submitClarifyAnswer(args));
     messenger.onRequest(cancelClarify, (args: ClarifyCancelRequest) => rpcManger.cancelClarify(args));
+    messenger.onRequest(getRunningServices, () => rpcManger.getRunningServices());
+    messenger.onRequest(stopRunningService, (args: StopRunningServiceRequest) => rpcManger.stopRunningService(args));
+
+    // Push updates to the webview whenever the set of running services changes.
+    runningServicesManager.onChange = (services) => {
+        notifyRunningServicesChanged(services);
+    };
 }
