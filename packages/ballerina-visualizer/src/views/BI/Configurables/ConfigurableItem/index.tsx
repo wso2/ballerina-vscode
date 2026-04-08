@@ -98,7 +98,7 @@ interface ConfigurableItemProps {
     isTestsContext?: boolean;
     onDeleteConfigVariable?: (index: number) => void;
     onFormSubmit: () => void;
-    updateErrorMessage?: (message: string) => void;
+    updateErrorMessage: (message: string) => void;
 }
 
 export function ConfigurableItem(props: ConfigurableItemProps) {
