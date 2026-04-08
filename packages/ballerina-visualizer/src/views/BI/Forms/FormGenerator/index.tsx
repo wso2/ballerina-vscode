@@ -422,7 +422,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         if ((node.codedata.node === "VARIABLE" || node.codedata.node === "CONFIG_VARIABLE") &&
             node.properties?.type?.value &&
             (node.properties.type.value as string).length > 0) {
-            handleValueTypeConstChange(node.properties.type.value as string);
+            handleSelectedTypeChange(node.properties.type.value as string);
         }
         if (node.codedata.node === "IF") {
             return;
