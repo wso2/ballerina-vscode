@@ -437,6 +437,7 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
                     onVersionNavigate={handleVersionNavigate}
                     showDiff={showDiff}
                     onToggleDiff={() => setShowDiff(!showDiff)}
+                    isGeneration={isGenerationRef.current}
                 />
             )}
 

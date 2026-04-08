@@ -31,6 +31,7 @@ interface RefinementBarProps {
     onVersionNavigate: (index: number) => void;
     showDiff: boolean;
     onToggleDiff: () => void;
+    isGeneration?: boolean;
 }
 
 const BarContainer = styled.div`
@@ -173,6 +174,7 @@ export const RefinementBar: React.FC<RefinementBarProps> = ({
     onVersionNavigate,
     showDiff,
     onToggleDiff,
+    isGeneration = false,
 }) => {
     const [refineText, setRefineText] = useState("");
 
@@ -232,7 +234,7 @@ export const RefinementBar: React.FC<RefinementBarProps> = ({
                                 <Icon name="chevron-left" isCodicon sx={{ fontSize: "14px" }} />
                             </NavButton>
                             <span>
-                                {currentVersionIndex === 0 ? "Original" : `Version ${currentVersionIndex}`} / {versionCount - 1}
+                                {currentVersionIndex === 0 ? (isGeneration ? "Generated" : "Original") : `Version ${currentVersionIndex}`} / {versionCount - 1}
                             </span>
                             <NavButton
                                 onClick={() => onVersionNavigate(currentVersionIndex + 1)}
@@ -242,7 +244,7 @@ export const RefinementBar: React.FC<RefinementBarProps> = ({
                             </NavButton>
                         </>
                     ) : (
-                        <span>Original Version</span>
+                        <span>{isGeneration ? "Generated Version" : "Original Version"}</span>
                     )}
                 </VersionControl>
 
