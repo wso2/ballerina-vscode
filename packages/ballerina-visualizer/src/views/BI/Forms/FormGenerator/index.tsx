@@ -313,6 +313,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     }, [node]);
 
     const importsCodedataRef = useRef<any>(null); // To store codeData for getVisualizableFields
+    const typeResolutionId = useRef(0);
 
     //stack for recursive type creation
     const [stack, setStack] = useState<StackItem[]>([{
@@ -1421,7 +1422,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         if (!expressionEntry) return;
         const [key, property] = expressionEntry;
         if (!type) {
-            setRecordTypeFields(prevFields => prevFields.filter(f => f.key !== "expression"));
+            setRecordTypeFields(prevFields => prevFields.filter(f => f.key !== key));
             setBaseFields(prevFields => prevFields.map(field => {
                 if (field.key === key) {
                     return {
@@ -1438,7 +1439,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
         // If not a Record, remove the 'expression' entry from recordTypeFields and return
         if (type?.labelDetails?.description?.toLocaleLowerCase() !== "record" && type.codeData?.node !== "RECORD") {
-            setRecordTypeFields(prevFields => prevFields.filter(f => f.key !== "expression"));
+            setRecordTypeFields(prevFields => prevFields.filter(f => f.key !== key));
             setBaseFields(prevFields => prevFields.map(field => {
                 if (field.key === key) {
                     return {
@@ -1485,8 +1486,9 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
      * Handles type selection from completion items (used in type editor)
      */
     const handleSelectedTypeChange = async (type: CompletionItem | string) => {
+        const resolutionId = ++typeResolutionId.current;
         if (!type) {
-            setSelectedType(undefined);
+            setSelectedType(null);
             updateRecordTypeFields(undefined);
             return;
         }
@@ -1502,7 +1504,10 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                 labelDetails: type.labelDetails
             };
         }
-        setSelectedType(matchedType);
+        if (resolutionId !== typeResolutionId.current) {
+            return;
+        }
+        setSelectedType(matchedType ?? null);
         updateRecordTypeFields(matchedType);
     };
 
