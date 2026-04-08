@@ -24,11 +24,15 @@ export function createToolInputFields(filteredNodeParameterFields: FormField[]):
         .filter(field => !(field.optional && field.advanced) && field.key !== "targetType")
         .map((field, idx) => {
             const cleanKey = field.key.replace(/^\$/, '');
+            let inputType = getPrimaryInputType(field.types);
+            if (inputType?.fieldType === "SINGLE_SELECT" && !inputType.ballerinaType) {
+                inputType = field.types?.find(t => t.ballerinaType) || inputType;
+            }
             return {
                 id: idx,
                 icon: "",
                 key: field.key,
-                value: `${getPrimaryInputType(field.types)?.fieldType} ${cleanKey}`,
+                value: `${inputType?.ballerinaType || inputType?.fieldType} ${cleanKey}`,
                 identifierEditable: true,
                 identifierRange: {
                     fileName: "functions.bal",
@@ -37,7 +41,7 @@ export function createToolInputFields(filteredNodeParameterFields: FormField[]):
                 },
                 formValues: {
                     variable: cleanKey,
-                    type: getPrimaryInputType(field.types)?.ballerinaType,
+                    type: inputType?.ballerinaType,
                     parameterDescription: field.documentation || ""
                 }
             }
@@ -259,6 +263,9 @@ export function prepareToolInputFields(fields: FormField[]): FormField[] {
             return;
         }
         if (field.optional == false && getPrimaryInputType(field.types)?.fieldType !== "TYPE") field.value = field.key;
+        if (field.optional == false && field.key != "type") {
+            field.value = field.key.startsWith('$') ? "'" + field.key.substring(1) : field.key;
+        }
         field.label = `${field.label} Mapping`;
         if (field.type === "SQL_QUERY" && field.types) {
             field.type = "EXPRESSION";
