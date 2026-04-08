@@ -246,7 +246,7 @@ export const EnhanceModeDialog: React.FC<EnhanceModeDialogProps> = ({
                                 }
                                 value={customInstructions}
                                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setCustomInstructions(e.target.value)}
-                                rows={2}
+                                rows={3}
                                 disabled={isLoading}
                                 style={{ fontSize: '13px', fontFamily: 'inherit', width: '100%' }}
                             />
