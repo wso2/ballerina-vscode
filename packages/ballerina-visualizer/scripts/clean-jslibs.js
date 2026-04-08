@@ -20,19 +20,24 @@ const fs = require('fs').promises;
 const path = require('path');
 
 async function main() {
+    const targetDir = path.resolve(__dirname, '..', '..', 'ballerina-extension', 'resources', 'jslibs');
+
     try {
-        const targetDir = path.resolve(__dirname, '..', 'ballerina-extension', 'resources', 'jslibs');
         await fs.access(targetDir);
     } catch (e) {
-        console.log('Target jslibs directory not found, skipping cleanup.');
+        if (e.code === 'ENOENT') {
+            console.log(`Target jslibs directory not found (${targetDir}), skipping cleanup.`);
+            return;
+        }
+        console.error(`Cannot access jslibs directory (${targetDir}):`, e);
+        process.exitCode = 1;
         return;
     }
 
-    const targetDir = path.resolve(__dirname, '..', 'ballerina-extension', 'resources', 'jslibs');
     try {
         const entries = await fs.readdir(targetDir, { withFileTypes: true });
         const deletes = entries
-            .filter((d) => d.isFile() && /^[0-9].*\.js$/.test(d.name))
+            .filter((d) => d.isFile() && /^.+\.[0-9a-f]{8}\.js$/.test(d.name))
             .map((d) => fs.unlink(path.join(targetDir, d.name)));
 
         if (deletes.length === 0) {
