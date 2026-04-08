@@ -94,7 +94,7 @@ export function TextAreaEditor(props: TextAreaEditorProps) {
                                 aria-label={field.label}
                                 required={!field.optional}
                                 placeholder={field.placeholder}
-                                readOnly={!field.editable}
+                                readOnly={!field.editable || undefined}
                                 value={value}
                                 sx={{ width: "100%" }}
                                 errorMsg={errorMsg}

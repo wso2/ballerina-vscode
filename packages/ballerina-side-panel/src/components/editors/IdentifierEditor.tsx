@@ -44,6 +44,17 @@ const TextFieldWrapper = styled.div`
     flex: 1;
 `;
 
+const ReadonlyTextFieldWrapper = styled.div`
+    flex: 1;
+
+    vscode-text-field::part(label) {
+        cursor: default;
+    }
+    vscode-text-field::part(control) {
+        cursor: default;
+    }
+`;
+
 const EditButton = styled(Button)`
     margin-top: 39px;
 `;
@@ -239,7 +250,7 @@ export function IdentifierEditor(props: IdentifierEditorProps) {
         <>
             {!field.editable && !isEditing && (
                 <InputWrapper>
-                    <TextFieldWrapper>
+                    <ReadonlyTextFieldWrapper>
                         <TextField
                             id={field.key}
                             name={field.key}
@@ -252,11 +263,11 @@ export function IdentifierEditor(props: IdentifierEditorProps) {
                             description={field.documentation}
                             placeholder={field.placeholder}
                             errorMsg={errorMsg}
-                            readOnly={!field.editable}
+                            readonly={!field.editable || undefined}
                             onFocus={() => handleOnFieldFocus?.(field.key)}
                             autoFocus={autoFocus}
                         />
-                    </TextFieldWrapper>
+                    </ReadonlyTextFieldWrapper>
                     <EditButton appearance="icon" onClick={startEditing} tooltip="Rename">
                         <Icon name="bi-edit" sx={{ width: 18, height: 18, fontSize: 18 }} />
                     </EditButton>

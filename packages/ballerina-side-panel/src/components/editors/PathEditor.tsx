@@ -72,7 +72,7 @@ export function PathEditor(props: PathEditorProps) {
             required={!field.optional}
             description={field.documentation}
             placeholder={field.placeholder}
-            readOnly={!field.editable}
+            readonly={!field.editable || undefined}
             sx={{ width: "100%" }}
             errorMsg={pathErrorMsg}
             onKeyUp={(e) => validatePath(e.currentTarget.value)}
