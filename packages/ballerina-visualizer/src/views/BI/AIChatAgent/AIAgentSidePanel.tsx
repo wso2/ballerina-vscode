@@ -80,6 +80,10 @@ const ImplementationBadge = styled.div`
     font-size: 12px;
     color: var(--vscode-foreground);
     margin-bottom: 4px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 `;
 
 const ImplementationInfoContainer = styled.div`
@@ -100,8 +104,12 @@ const ImplementationInfo = styled.div`
     padding: 10px 10px;
     border-radius: 4px;
     margin-top: 4px;
+    overflow: hidden;
     p {
         margin: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 `;
 
@@ -808,7 +816,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                     injectedComponents={[
                         {
                             component: (
-                                <ImplementationBadge>
+                                <ImplementationBadge title={getImplementationString(selectedNodeRef.current.codedata)}>
                                     {selectedNodeRef.current.metadata?.icon && (
                                         <img
                                             src={selectedNodeRef.current.metadata.icon}
@@ -826,7 +834,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                                 <ImplementationInfoContainer>
                                     <p style={{ margin: "0px", fontWeight: "bold" }}>Implementation</p>
                                     <ImplementationDescription>Configure how tool inputs map to the {mode === NewToolSelectionMode.CONNECTION ? "connection" : "function"}.</ImplementationDescription>
-                                    <ImplementationInfo>
+                                    <ImplementationInfo title={getImplementationString(selectedNodeRef.current.codedata)}>
                                         <p>{getImplementationString(selectedNodeRef.current.codedata)}</p>
                                     </ImplementationInfo>
                                 </ImplementationInfoContainer>
