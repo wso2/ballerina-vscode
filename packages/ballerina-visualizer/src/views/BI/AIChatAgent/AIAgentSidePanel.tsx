@@ -831,7 +831,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                                     </ImplementationInfo>
                                 </ImplementationInfoContainer>
                             ),
-                            index: 4,
+                            index: 3,
                         },
                         ...(showOAuthConfig ? [{
                             component: (
