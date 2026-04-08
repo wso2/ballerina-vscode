@@ -346,6 +346,7 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
                     configValue={sanitizeConfigValue()}
                     typeValue={configVariable?.properties?.type}
                     onChange={(newValue: string) => handleUpdateConfigValue(newValue, configVariable)}
+                    disabled={isUpdating}
                 />}
                 {!isRecordType() && <div style={{ position: 'relative', width: '100%', maxWidth: '350px' }}>
                     <VSCodeTextArea

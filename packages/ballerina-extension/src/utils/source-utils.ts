@@ -125,6 +125,12 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
             }
         }
 
+        // If modificationRequests is empty, return empty array
+        if (Object.keys(modificationRequests).length === 0) {
+            StateMachine.setReadyMode();
+            return [];
+        }
+
         // Iterate through modificationRequests and apply modifications
         try {
             // <-------- Using simply the text edits to update the source code -------->
