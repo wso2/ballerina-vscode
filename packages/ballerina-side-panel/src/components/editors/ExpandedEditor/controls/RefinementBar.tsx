@@ -196,7 +196,7 @@ export const RefinementBar: React.FC<RefinementBarProps> = ({
                 <InputWrapper>
                     <RefineInput
                         type="text"
-                        placeholder="Describe how to refine... (e.g., 'Make it more concise')"
+                        placeholder="Describe how to refine the prompt..."
                         value={refineText}
                         onChange={(e) => setRefineText(e.target.value)}
                         onKeyDown={handleKeyDown}

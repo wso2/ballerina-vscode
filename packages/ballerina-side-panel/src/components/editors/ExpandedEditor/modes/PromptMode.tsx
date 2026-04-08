@@ -19,7 +19,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { EditorView as CodeMirrorView } from "@codemirror/view";
 import { EditorView as ProseMirrorView } from "prosemirror-view";
-import { EditorState as ProseMirrorState } from "prosemirror-state";
+import { EditorState as ProseMirrorState, Transaction } from "prosemirror-state";
 import { EditorModeExpressionProps } from "./types";
 import { ChipExpressionEditorComponent } from "../../MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor";
 import { RichTextTemplateEditor, customMarkdownParser, customMarkdownSerializer } from "../../MultiModeExpressionEditor/RichTextTemplateEditor/RichTextTemplateEditor";
@@ -154,13 +154,10 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
         } else if (proseMirrorView) {
             const doc = customMarkdownParser.parse(prompt);
             if (doc) {
-                // Create new editor state with the new document
-                const newState = ProseMirrorState.create({
-                    doc: doc,
-                    schema: proseMirrorView.state.schema,
-                    plugins: proseMirrorView.state.plugins
-                });
-                proseMirrorView.updateState(newState);
+                const tr = proseMirrorView.state.tr;
+                (tr as any).replaceWith(0, proseMirrorView.state.doc.content.size, doc.content);
+                tr.setMeta('addToHistory', false);
+                proseMirrorView.dispatch(tr);
             }
         }
     };
