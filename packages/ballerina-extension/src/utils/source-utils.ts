@@ -120,6 +120,9 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                 }
             }
             if (edits.length === 0) {
+                if (!skipUndoRedoStack) {
+                    undoRedoManager?.cancelBatchOperation();
+                }
                 StateMachine.setReadyMode();
                 return [];
             }
@@ -127,6 +130,9 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
 
         // If modificationRequests is empty, return empty array
         if (Object.keys(modificationRequests).length === 0) {
+            if (!skipUndoRedoStack) {
+                undoRedoManager?.cancelBatchOperation();
+            }
             StateMachine.setReadyMode();
             return [];
         }
