@@ -188,8 +188,18 @@ export const FieldFactory = (props: FieldFactoryProps) => {
             currentInputModeRef.current = initialInputMode;
             setInputMode(initialInputMode);
         } else {
-            // Preserve the user's current mode selection when the same field is updated
-            initialInputMode = currentInputModeRef.current;
+            // Preserve the user's current mode selection when the same field is updated,
+            // but reset if the current mode is no longer available in the new types.
+            const isCurrentModeAvailable = newRenderingTypes.some(
+                t => getInputModeFromTypes(t) === currentInputModeRef.current
+            );
+            if (!isCurrentModeAvailable) {
+                initialInputMode = checkAndReturnCompatibleInputMode(selectedInputType) || InputMode.EXP;
+                currentInputModeRef.current = initialInputMode;
+                setInputMode(initialInputMode);
+            } else {
+                initialInputMode = currentInputModeRef.current;
+            }
         }
         updateFieldTypesSelection(initialInputMode);
     }, [props.field, props.recordTypeFields]);
