@@ -2149,8 +2149,8 @@ export class BallerinaExtension {
                 debug("[AUTO_DETECT] Windows platform detected, using cmd.exe to run .bat files");
                 // On Windows, use cmd.exe to run .bat files
                 execOptions.shell = true;
-                response = spawnSync('cmd.exe', ['/c', this.ballerinaCmd, ...args], execOptions);
-                debug(`[AUTO_DETECT] Windows command executed: cmd.exe /c ${this.ballerinaCmd} ${args.join(' ')}`);
+                response = spawnSync('cmd.exe', ['/c', quoteShellPath(this.ballerinaCmd), ...args], execOptions);
+                debug(`[AUTO_DETECT] Windows command executed: cmd.exe /c ${quoteShellPath(this.ballerinaCmd)} ${args.join(' ')}`);
             } else if (isWSL()) {
                 debug("[AUTO_DETECT] WSL environment detected");
                 // In WSL, try to use native 'bal' command first
@@ -2165,8 +2165,8 @@ export class BallerinaExtension {
                     if (this.ballerinaCmd.endsWith('.bat')) {
                         // Fallback to .bat file with shell execution
                         execOptions.shell = true;
-                        response = spawnSync(this.ballerinaCmd, args, execOptions);
-                        debug(`[AUTO_DETECT] WSL command executed: ${this.ballerinaCmd} ${args.join(' ')}`);
+                        response = spawnSync(quoteShellPath(this.ballerinaCmd), args, execOptions);
+                        debug(`[AUTO_DETECT] WSL command executed: ${quoteShellPath(this.ballerinaCmd)} ${args.join(' ')}`);
                     } else {
                         // Use the configured command
                         response = spawnSync(this.ballerinaCmd, args, execOptions);
