@@ -63,9 +63,7 @@ export type HelperPaneNewProps = {
     filteredCompletions?: CompletionItem[];
     isInModal?: boolean;
     types?: InputType[];
-    forcedValueTypeConstraint?: string;
     handleRetrieveCompletions: (value: string, property: ExpressionProperty, offset: number, triggerCharacter?: string) => Promise<void>;
-    handleValueTypeConstChange: (valueTypeConstraint: string) => void;
     inputMode?: InputMode;
     devantExpressionEditor?: ExpressionEditorDevantProps;
 };
@@ -92,24 +90,14 @@ const HelperPaneNewEl = ({
     isInModal,
     types,
     handleRetrieveCompletions,
-    forcedValueTypeConstraint,
-    handleValueTypeConstChange,
     inputMode,
     devantExpressionEditor,
 }: HelperPaneNewProps) => {
     const [selectedItem, setSelectedItem] = useState<number>();
-    const currentMenuItemCount = types ?
-        (forcedValueTypeConstraint?.includes(AI_PROMPT_TYPE) ? 6 : 5) :
-        (forcedValueTypeConstraint?.includes(AI_PROMPT_TYPE) ? 5 : 4)
+    const currentMenuItemCount = getPrimaryInputType(types)?.ballerinaType === AI_PROMPT_TYPE ? 5 : 4; 
 
     // Create refs array for all menu items
     const menuItemRefs = useRef<(HTMLDivElement | null)[]>([]);
-
-    useEffect(() => {
-        if (types?.length > 0) {
-            handleValueTypeConstChange(getPrimaryInputType(types)?.ballerinaType);
-        }
-    }, [types, forcedValueTypeConstraint])
 
     const ifCTRLandUP = (e: KeyboardEvent) => {
         return (
@@ -260,7 +248,7 @@ const HelperPaneNewEl = ({
                                         </Typography>
                                     </ExpandableList.Item>
                                 </SlidingPaneNavContainer>
-                                {forcedValueTypeConstraint?.includes(AI_PROMPT_TYPE) && (
+                                {getPrimaryInputType(types)?.ballerinaType === AI_PROMPT_TYPE && (
                                     <SlidingPaneNavContainer
                                         ref={el => menuItemRefs.current[6] = el}
                                         to="DOCUMENTS"
@@ -435,8 +423,6 @@ export const getHelperPaneNew = (props: HelperPaneNewProps) => {
         filteredCompletions,
         isInModal,
         types,
-        forcedValueTypeConstraint,
-        handleValueTypeConstChange,
     } = props;
 
     return (
@@ -461,8 +447,6 @@ export const getHelperPaneNew = (props: HelperPaneNewProps) => {
             isInModal={isInModal}
             types={types}
             handleRetrieveCompletions={props.handleRetrieveCompletions}
-            forcedValueTypeConstraint={forcedValueTypeConstraint}
-            handleValueTypeConstChange={handleValueTypeConstChange}
             inputMode={props.inputMode}
             devantExpressionEditor={props.devantExpressionEditor}
         />
