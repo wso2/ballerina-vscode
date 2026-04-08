@@ -442,6 +442,16 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 id: node.codedata,
             });
 
+            // Remove imports from optional+advanced properties to avoid unnecessary imports in genTool
+            if (functionNodeTemplate.flowNode?.properties) {
+                for (const key of Object.keys(functionNodeTemplate.flowNode.properties)) {
+                    const prop = (functionNodeTemplate.flowNode.properties as Record<string, any>)[key];
+                    if (prop.optional && prop.advanced && prop.imports) {
+                        delete prop.imports;
+                    }
+                }
+            }
+
             let functionParameterFields: FormField[] = [];
             if (toolInputFields.length === 0 && functionNodeTemplate.flowNode?.properties) {
                 functionParameterFields = convertConfig(functionNodeTemplate.flowNode.properties, ["variable"], false);
@@ -502,6 +512,15 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             });
 
             if (nodeTemplate.flowNode) {
+                // Remove imports from optional+advanced properties to avoid unnecessary imports in genTool
+                if (nodeTemplate.flowNode.properties) {
+                    for (const key of Object.keys(nodeTemplate.flowNode.properties)) {
+                        const prop = (nodeTemplate.flowNode.properties as Record<string, any>)[key];
+                        if (prop.optional && prop.advanced && prop.imports) {
+                            delete prop.imports;
+                        }
+                    }
+                }
                 flowNode.current = nodeTemplate.flowNode;
             } else {
                 console.error("Node template flowNode not found");
