@@ -45,8 +45,10 @@ import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.StatementNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
+import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.flowmodelgenerator.core.analyzers.function.ModuleNodeAnalyzer;
+import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
@@ -73,6 +75,7 @@ import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocumentChange;
 import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
+import org.ballerinalang.langserver.common.utils.NameUtil;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
@@ -90,6 +93,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static io.ballerina.flowmodelgenerator.core.Constants.AI;
 import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA;
@@ -493,19 +497,9 @@ public class AgentsGenerator {
             String returnType = "";
             if (optReturnType.isPresent()) {
                 Property returnProperty = optReturnType.get();
-                Optional<Property> optTargetType = flowNode.getProperty(TARGET_TYPE);
-                if (optTargetType.isPresent() && optTargetType.get().value() != null
-                        && !optTargetType.get().value().toString().isEmpty()) {
-                    returnType = optTargetType.get().value().toString();
-                } else if (optTargetType.isPresent()) {
-                    String defaultType = optTargetType.get().defaultValue();
-                    returnType = (defaultType != null && !defaultType.isEmpty()) ? defaultType : "json";
-                } else {
-                    returnType = returnProperty.value().toString();
-                }
+                returnType = resolveReturnType(flowNode, returnProperty, sourceBuilder);
                 sourceBuilder.token().returnDoc(returnProperty.metadata().description());
             }
-            returnType = resolveTypeInferParams(returnType, flowNode);
 
             genAgentToolAnnotation(flowNode, sourceBuilder);
             sourceBuilder.token()
@@ -608,18 +602,8 @@ public class AgentsGenerator {
             Optional<Property> optReturnType = flowNode.getProperty(Property.TYPE_KEY);
             String returnType = "";
             if (optReturnType.isPresent()) {
-                Optional<Property> optTargetType = flowNode.getProperty(TARGET_TYPE);
-                if (optTargetType.isPresent() && optTargetType.get().value() != null
-                        && !optTargetType.get().value().toString().isEmpty()) {
-                    returnType = optTargetType.get().value().toString();
-                } else if (optTargetType.isPresent()) {
-                    String defaultType = optTargetType.get().defaultValue();
-                    returnType = (defaultType != null && !defaultType.isEmpty()) ? defaultType : "json";
-                } else {
-                    returnType = optReturnType.get().value().toString();
-                }
+                returnType = resolveReturnType(flowNode, optReturnType.get(), sourceBuilder);
             }
-            returnType = resolveTypeInferParams(returnType, flowNode);
 
             if (!returnType.isEmpty()) {
                 sourceBuilder.token()
@@ -780,6 +764,71 @@ public class AgentsGenerator {
             }
         }
         return returnType;
+    }
+
+    private boolean hasRecordFieldSelector(FlowNode flowNode) {
+        if (flowNode.properties() == null) {
+            return false;
+        }
+        return flowNode.properties().values().stream()
+                .anyMatch(p -> p.codedata() != null
+                        && ParameterData.Kind.PARAM_FOR_TYPE_INFER.name().equals(p.codedata().kind())
+                        && p.types() != null && !p.types().isEmpty()
+                        && p.types().getFirst().recordSelectorType() != null);
+    }
+
+    private String resolveReturnType(FlowNode flowNode, Property returnProperty, SourceBuilder sourceBuilder) {
+        if (flowNode.codedata().inferredReturnType() != null && hasRecordFieldSelector(flowNode)) {
+            Optional<Property> variable = flowNode.getProperty(Property.VARIABLE_KEY);
+            if (variable.isPresent()) {
+                // Ensure the variable name produces a unique type name by checking types.bal
+                Property varProp = variable.get();
+                Path typesFilePath = sourceBuilder.filePath.resolveSibling("types.bal");
+                Document typesDoc = FileSystemUtils.getDocument(
+                        sourceBuilder.workspaceManager, typesFilePath);
+                if (typesDoc != null) {
+                    ModulePartNode typesRoot = typesDoc.syntaxTree().rootNode();
+                    Set<String> existingTypeNames = typesRoot.members().stream()
+                            .filter(m -> m.kind() == SyntaxKind.TYPE_DEFINITION)
+                            .map(m -> ((TypeDefinitionNode) m).typeName().text())
+                            .collect(Collectors.toSet());
+                    String varName = varProp.toSourceCode();
+                    String candidateTypeName = varName.substring(0, 1).toUpperCase()
+                            + varName.substring(1) + "Type";
+                    if (existingTypeNames.contains(candidateTypeName)) {
+                        // Strip trailing digits to get the base prefix (e.g. "var1" -> "var"),
+                        // matching how the LS generates unique variable names (var, var1, var2...)
+                        String baseVarName = varName.replaceAll("\\d+$", "");
+                        // Convert type names to their variable form for collision checking
+                        Set<String> usedVarNames = new HashSet<>();
+                        // Include the base name so numbering starts from 1 (var1, var2...)
+                        usedVarNames.add(baseVarName);
+                        for (String typeName : existingTypeNames) {
+                            if (typeName.endsWith("Type") && typeName.length() > 4) {
+                                String prefix = typeName.substring(0, typeName.length() - 4);
+                                usedVarNames.add(prefix.substring(0, 1).toLowerCase() + prefix.substring(1));
+                            }
+                        }
+                        String uniqueVarName = NameUtil.generateTypeName(baseVarName, usedVarNames);
+                        varProp = new Property.Builder<>(null).value(uniqueVarName).build();
+                    }
+                }
+                return sourceBuilder.getTypeNameForInferredParam(varProp,
+                        returnProperty.value().toString());
+            }
+        }
+        Optional<Property> optTargetType = flowNode.getProperty(TARGET_TYPE);
+        String returnType;
+        if (optTargetType.isPresent() && optTargetType.get().value() != null
+                && !optTargetType.get().value().toString().isEmpty()) {
+            returnType = optTargetType.get().value().toString();
+        } else if (optTargetType.isPresent()) {
+            String defaultType = optTargetType.get().defaultValue();
+            returnType = (defaultType != null && !defaultType.isEmpty()) ? defaultType : "json";
+        } else {
+            returnType = returnProperty.value().toString();
+        }
+        return resolveTypeInferParams(returnType, flowNode);
     }
 
     private boolean genDescription(String description, SourceBuilder sourceBuilder) {
