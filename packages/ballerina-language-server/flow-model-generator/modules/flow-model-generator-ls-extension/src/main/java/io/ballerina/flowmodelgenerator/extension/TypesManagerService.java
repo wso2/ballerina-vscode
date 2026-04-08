@@ -69,7 +69,9 @@ import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.diagramutil.connector.models.connector.Type;
 import org.ballerinalang.langserver.common.utils.PathUtil;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
+import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManagerProxy;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
@@ -613,6 +615,19 @@ public class TypesManagerService implements ExtendedLanguageServerService {
         cachedModel = semanticModelCache.get(keyWithoutPath);
         if (cachedModel != null) {
             return Optional.of(cachedModel);
+        }
+
+        // Check workspace sibling projects (same workspace, different integration)
+        try {
+            Project project = workspaceManager.loadProject(filePath);
+            Optional<SemanticModel> workspaceModel = PackageUtil.getSemanticModelFromWorkspace(
+                    project, org, packageName, moduleName);
+            if (workspaceModel.isPresent()) {
+                semanticModelCache.put(keyWithoutPath, workspaceModel.get());
+                return workspaceModel;
+            }
+        } catch (WorkspaceDocumentException | EventSyncException e) {
+            // Fall through to general package lookup
         }
 
         ModuleInfo moduleInfo = new ModuleInfo(org, packageName, moduleName, version);

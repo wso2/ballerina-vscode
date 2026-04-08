@@ -41,6 +41,7 @@ import io.ballerina.projects.environment.ResolutionRequest;
 import io.ballerina.projects.environment.ResolutionResponse;
 import io.ballerina.projects.repos.TempDirCompilationCache;
 import org.ballerinalang.langserver.LSClientLogger;
+import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
@@ -53,6 +54,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -277,6 +279,44 @@ public class PackageUtil {
                 return Optional.of(PackageUtil.getCompilation(currentPackage).getSemanticModel(moduleId));
             }
         } catch (WorkspaceDocumentException | EventSyncException e) {
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Retrieves the semantic model for a package from sibling projects within the same workspace.
+     *
+     * @param project     the current project used to find the workspace
+     * @param org         the organization name of the target package
+     * @param packageName the package name of the target package
+     * @param moduleName  the module name of the target package
+     * @return an Optional containing the semantic model if a matching sibling project is found
+     */
+    public static Optional<SemanticModel> getSemanticModelFromWorkspace(Project project, String org,
+                                                                        String packageName, String moduleName) {
+        BallerinaCompilerApi compilerApi = BallerinaCompilerApi.getInstance();
+        Optional<Project> workspaceProject = compilerApi.getWorkspaceProject(project);
+        if (workspaceProject.isEmpty()) {
+            return Optional.empty();
+        }
+        List<Project> childProjects = compilerApi.getWorkspaceProjectsInOrder(workspaceProject.get());
+        for (Project childProject : childProjects) {
+            Package currentPackage = childProject.currentPackage();
+            String currentPackageName = currentPackage.packageName().value();
+            if (currentPackage.packageOrg().value().equals(org) &&
+                    (currentPackageName.equals(packageName) ||
+                            currentPackageName.equals(moduleName))) {
+                ModuleId moduleId = currentPackage.getDefaultModule().moduleId();
+                if (moduleName != null && !moduleName.isEmpty() && !packageName.equals(moduleName)) {
+                    for (Module mod : currentPackage.modules()) {
+                        if (mod.moduleName().toString().equals(moduleName)) {
+                            moduleId = mod.moduleId();
+                            break;
+                        }
+                    }
+                }
+                return Optional.of(getCompilation(childProject).getSemanticModel(moduleId));
+            }
         }
         return Optional.empty();
     }

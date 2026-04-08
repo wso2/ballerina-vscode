@@ -2690,7 +2690,7 @@ public class DataMapManager {
         return modules;
     }
 
-    public JsonElement getVisualizableProperties(SemanticModel sm, JsonElement node) {
+    public JsonElement getVisualizableProperties(SemanticModel sm, JsonElement node, Project project) {
         Codedata codedata = gson.fromJson(node, Codedata.class);
         String org = codedata.org();
         SemanticModel semanticModel;
@@ -2698,7 +2698,11 @@ public class DataMapManager {
             semanticModel = sm;
         } else {
             ModuleInfo moduleInfo = new ModuleInfo(org, codedata.packageName(), codedata.module(), codedata.version());
-            Optional<SemanticModel> optSemanticModel = PackageUtil.getSemanticModel(moduleInfo);
+            Optional<SemanticModel> optSemanticModel = PackageUtil.getSemanticModelFromWorkspace(
+                    project, org, codedata.packageName(), codedata.module());
+            if (optSemanticModel.isEmpty()) {
+                optSemanticModel = PackageUtil.getSemanticModel(moduleInfo);
+            }
             if (optSemanticModel.isEmpty()) {
                 throw new IllegalStateException("Semantic model cannot be found for the module: " + moduleInfo);
             }
