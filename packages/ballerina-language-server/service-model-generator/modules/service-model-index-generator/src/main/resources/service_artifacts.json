@@ -1378,6 +1378,23 @@
             }
           ],
           "sourceKind": "ARG_TYPE_LISTENER_PARAM_CONFIG_FIELD"
+        },
+        "basePath": {
+          "label": "Event Channel",
+          "description": "The event channel name",
+          "defaultValue": "/data/ChangeEvents",
+          "placeholder": "/data/ChangeEvents",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string"
+            }
+          ],
+          "sourceKind": "SERVICE_BASE_PATH"
         }
       }
     },
