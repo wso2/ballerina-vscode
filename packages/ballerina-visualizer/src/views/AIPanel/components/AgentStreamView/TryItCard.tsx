@@ -305,11 +305,9 @@ const HTTPEntryRow: React.FC<HTTPEntryRowProps> = ({ entry, request }) => {
     return (
         <>
             <RequestRow>
-                <InlineCardIcon style={{ fontSize: 12, color: isPassed ? "var(--vscode-charts-green, #388a34)" : "var(--vscode-errorForeground)" }}>
-                    <span className={`codicon ${isPassed ? "codicon-check" : "codicon-chrome-close"}`} />
-                </InlineCardIcon>
                 {entry.method && <MethodBadge method={entry.method}>{entry.method}</MethodBadge>}
                 <UrlLabel>{entry.url ?? entry.name}</UrlLabel>
+                {!isPassed && <span style={{fontSize: "14px", fontWeight: 500}} className="codicon codicon-warning" />}
                 {entry.statusCode !== undefined && <StatusBadge status={entry.statusCode}>{entry.statusCode}</StatusBadge>}
                 <Button appearance="icon" onClick={() => setExpanded(p => !p)} tooltip={expanded ? "Collapse" : "Expand"}>
                     <span className={`codicon ${expanded ? "codicon-chevron-up" : "codicon-chevron-down"}`} />
