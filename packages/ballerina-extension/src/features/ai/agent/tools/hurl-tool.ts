@@ -53,10 +53,6 @@ Use triple backticks whenever the body spans multiple structured lines or includ
 
 Avoid using unnecessary newlines in the hurl script, as they can lead to parsing issues.
 `;
-function prepareHurlScript(input: HURLInput): string {
-	// Attaching the try-it scenario as a comment at the top of the Hurl script
-    return `# @collectionName ${input.tryItScenario}\n${input.hurlScript}`;
-}
 
 export const HURLInputSchema = z.object({
     hurlScript: z.string().describe(TOOL_DESCRIPTION),
@@ -131,12 +127,12 @@ export function createHurlTool(eventHandler: CopilotEventHandler) {
 
 export const executeHurlRequest = async (input: HURLInput, eventHandler: CopilotEventHandler, context?: { toolCallId?: string }): Promise<HurlToolOutput> => {
 	const toolCallId = context?.toolCallId || `fallback-${Date.now()}`;
-    const hurlScript = prepareHurlScript(input);
+    const hurlScript = input.hurlScript;
     try {
 		eventHandler({
             type: "tool_call",
             toolName: HURL_TOOL_NAME,
-            toolInput: { hurlScript: input.hurlScript, scenario: input.tryItScenario },
+            toolInput: { hurlScript, scenario: input.tryItScenario },
             toolCallId
         });
 		const lmToolResult = await vscode.lm.invokeTool(HURL_LM_TOOL_NAME, { input: { hurlScript }, toolInvocationToken: undefined });
