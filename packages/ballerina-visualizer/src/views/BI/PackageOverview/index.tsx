@@ -17,6 +17,7 @@
  */
 
 import React, { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { EditableTitle } from "../../../components/EditableTitle";
 import {
     ProjectStructure,
     EVENT_TYPE,
@@ -255,67 +256,6 @@ const ProjectSubtitle = styled.h2`
     @media (min-width: 768px) {
         font-size: 1.875rem;
     }
-`;
-
-const EditableTitleWrapper = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    outline: none;
-
-    &:is(:hover, :focus-visible) .edit-title-icon-wrapper {
-        opacity: 1;
-        max-width: 28px;
-    }
-`;
-
-const EditTitleIconWrapper = styled.div`
-    opacity: 0;
-    max-width: 0;
-    overflow: hidden;
-    transition: opacity 0.2s, max-width 0.2s;
-    display: flex;
-    align-items: center;
-`;
-
-const TitleInput = styled.input<{ $hasError?: boolean }>`
-    font-weight: bold;
-    font-size: 1.5rem;
-    margin-bottom: 0;
-    margin-top: 0;
-    background: transparent;
-    border: none;
-    border-bottom: 2px solid ${({ $hasError }: { $hasError?: boolean }) => $hasError
-        ? 'var(--vscode-inputValidation-errorBorder)'
-        : 'var(--vscode-focusBorder)'};
-    color: var(--vscode-foreground);
-    outline: none;
-    padding: 0;
-    font-family: inherit;
-    min-width: 120px;
-    width: auto;
-    @media (min-width: 768px) {
-        font-size: 1.875rem;
-    }
-`;
-
-const TitleValidationMessage = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 0.72rem;
-    color: var(--vscode-inputValidation-errorForeground, var(--vscode-errorForeground));
-    background: var(--vscode-inputValidation-errorBackground, transparent);
-    border: 1px solid var(--vscode-inputValidation-errorBorder);
-    border-radius: 2px;
-    padding: 2px 6px;
-    margin-top: 2px;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    white-space: nowrap;
-    z-index: 10;
 `;
 
 const DeployButton = styled.div`
@@ -722,11 +662,6 @@ export function PackageOverview(props: PackageOverviewProps) {
     const [isInProject, setIsInProject] = useState(false);
     const [isLibrary, setIsLibrary] = useState<boolean>(false);
     const [isNPSupported, setIsNPSupported] = useState<boolean>(false);
-    const [isEditingTitle, setIsEditingTitle] = useState(false);
-    const [titleInputValue, setTitleInputValue] = useState("");
-    const [titleError, setTitleError] = useState("");
-    const titleInputRef = useRef<HTMLInputElement>(null);
-
     const fetchContext = useCallback(() => {
         rpcClient
             .getBIDiagramRpcClient()
@@ -771,14 +706,19 @@ export function PackageOverview(props: PackageOverviewProps) {
         });
     }, [projectPath, fetchContext]);
 
+    // Keep a stable ref so the subscription callback always calls the latest fetchContext
+    // without needing to re-register the listener every time fetchContext changes.
+    const fetchContextRef = useRef(fetchContext);
+    fetchContextRef.current = fetchContext;
+
     useEffect(() => {
         if (!rpcClient) return;
         rpcClient.onProjectContentUpdated((state: boolean) => {
             if (state) {
-                fetchContext();
+                fetchContextRef.current();
             }
         });
-    }, [projectPath, fetchContext]);
+    }, [rpcClient]);
 
     const deployableIntegrationTypes = useMemo(() => {
         return getIntegrationTypes(projectStructure);
@@ -792,13 +732,6 @@ export function PackageOverview(props: PackageOverviewProps) {
         return validateComponentName(value.trim(), isLibrary) ?? "";
     }, [isLibrary]);
 
-    const startEditingTitle = useCallback(() => {
-        setTitleInputValue(integrationTitle || "");
-        setTitleError("");
-        setIsEditingTitle(true);
-        setTimeout(() => { titleInputRef.current?.select(); }, 0);
-    }, [integrationTitle]);
-
     const handleTitleUpdate = useCallback(async (newTitle: string) => {
         await rpcClient.getBIDiagramRpcClient().updatePackageTitle({
             packagePath: projectPath,
@@ -811,38 +744,6 @@ export function PackageOverview(props: PackageOverviewProps) {
         // which triggers onProjectContentUpdated → fetchContext() as the background confirm.
         setProjectStructure(prev => prev ? { ...prev, projectTitle: newTitle } : prev);
     }, [projectPath, rpcClient]);
-
-    // Used only by the standalone HeaderRow (isInProject=false) where PackageOverview
-    // owns the input element and its state.  TitleBar manages its own input, so
-    // passing commitTitleEdit there would always read a stale "" from titleInputValue.
-    const commitTitleEdit = useCallback(async () => {
-        const trimmed = titleInputValue.trim();
-        if (!trimmed || titleError) {
-            setTitleError("");
-            setIsEditingTitle(false);
-            return;
-        }
-        if (trimmed === integrationTitle) {
-            setIsEditingTitle(false);
-            return;
-        }
-        try {
-            await handleTitleUpdate(trimmed);
-            setIsEditingTitle(false);
-        } catch {
-            // keep edit mode open on failure
-        }
-    }, [titleInputValue, titleError, integrationTitle, handleTitleUpdate]);
-
-    const handleTitleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            e.currentTarget.blur();
-        } else if (e.key === "Escape") {
-            setTitleError("");
-            setIsEditingTitle(false);
-        }
-    }, []);
 
     function isEmptyIntegration(): boolean {
         // Filter out connections that start with underscore
@@ -1021,50 +922,13 @@ export function PackageOverview(props: PackageOverviewProps) {
                 ) : (
                     <HeaderRow>
                         <TitleContainer>
-                            <div style={{ position: "relative" }}>
-                                {isEditingTitle ? (
-                                    <>
-                                        <TitleInput
-                                            ref={titleInputRef}
-                                            value={titleInputValue}
-                                            size={Math.max(titleInputValue.length, 8)}
-                                            $hasError={!!titleError}
-                                            onChange={(e) => {
-                                                setTitleInputValue(e.target.value);
-                                                setTitleError(validateTitle(e.target.value));
-                                            }}
-                                            onKeyDown={handleTitleKeyDown}
-                                            onBlur={commitTitleEdit}
-                                            autoFocus
-                                        />
-                                        {titleError && (
-                                            <TitleValidationMessage>
-                                                <Codicon name="info" sx={{ fontSize: '12px', flexShrink: 0 }} />
-                                                {titleError}
-                                            </TitleValidationMessage>
-                                        )}
-                                    </>
-                                ) : (
-                                    <EditableTitleWrapper
-                                        role="button"
-                                        tabIndex={0}
-                                        onClick={startEditingTitle}
-                                        onKeyDown={(e) => {
-                                            if (e.key === "Enter" || e.key === " ") {
-                                                e.preventDefault();
-                                                startEditingTitle();
-                                            }
-                                        }}
-                                        title="Click to edit name"
-                                        aria-label="Edit name"
-                                    >
-                                        <ProjectTitle>{integrationTitle}</ProjectTitle>
-                                        <EditTitleIconWrapper className="edit-title-icon-wrapper">
-                                            <Codicon name="edit" sx={{ color: 'var(--vscode-descriptionForeground)', fontSize: '14px', width: '16px' }} />
-                                        </EditTitleIconWrapper>
-                                    </EditableTitleWrapper>
-                                )}
-                            </div>
+                            <EditableTitle
+                                title={integrationTitle}
+                                onCommit={handleTitleUpdate}
+                                validate={validateTitle}
+                            >
+                                <ProjectTitle>{integrationTitle}</ProjectTitle>
+                            </EditableTitle>
                             <ProjectSubtitle>{isLibrary ? "Library" : "Integration"}</ProjectSubtitle>
                         </TitleContainer>
                         <HeaderControls>
