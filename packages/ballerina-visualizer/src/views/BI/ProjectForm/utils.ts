@@ -89,6 +89,10 @@ export const validatePackageName = (name: string, integrationName: string): stri
         return "Package name cannot end with an underscore";
     }
 
+    if (name.length < 2) {
+        return `Package name must be at least 2 characters`;
+    }
+
     if (name.endsWith(".")) {
         return "Package name cannot end with a dot";
     }
@@ -123,8 +127,6 @@ export const validateComponentName = (name: string, isLibrary: boolean): string 
 
 export const isFormValidAddProject = (formData: AddProjectFormData, isInProject: boolean): boolean => {
     return (
-        formData.integrationName.length >= 2 &&
-        formData.packageName.length >= 2 &&
         (isInProject || (formData.workspaceName?.length ?? 0) >= 1) &&
         validateComponentName(formData.integrationName, formData.isLibrary) === null &&
         validatePackageName(formData.packageName, formData.integrationName) === null &&
