@@ -91,7 +91,7 @@
                 },
                 "ballerina.icpUrl": {
                     "type": "string",
-                    "default": "https://localhost:9445",
+                    "default": "https://localhost:9446",
                     "description": "URL of the Integration Control Plane (ICP) server."
                 },
                 "ballerina.icpUsername": {
