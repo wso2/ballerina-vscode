@@ -254,8 +254,6 @@ export function prepareToolInputFields(fields: FormField[]): FormField[] {
         }
         if (isSqlParameterizedField(field)) {
             field.value = "";
-            field.optional = false;
-            field.advanced = false;
         }
         if (field.codedata?.kind === "PARAM_FOR_TYPE_INFER" || field.key === "targetType") {
             if (field.types?.[0]?.fieldType === "RECORD_FIELD_SELECTOR") {
