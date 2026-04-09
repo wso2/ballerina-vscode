@@ -20,7 +20,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { FlowNode, LineRange, NodeKind, NodeProperties } from "@wso2/ballerina-core";
 import { FormField, FormImports, FormValues } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { FormGeneratorNew } from "../../views/BI/Forms/FormGeneratorNew";
+import { ArtifactForm } from "../../views/BI/Forms/ArtifactForm";
 import { RelativeLoader } from "../RelativeLoader";
 import { InfoBox } from "../InfoBox";
 import { ConnectionConfigProps } from "./types";
@@ -213,7 +213,7 @@ export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
             )}
             {!loading && selectedConnectionFields?.length > 0 && (
                 <>
-                    <FormGeneratorNew
+                    <ArtifactForm
                         key={selectedConnectionValue}
                         fileName={currentFilePath.current || projectPath.current}
                         targetLineRange={targetLineRangeRef.current}

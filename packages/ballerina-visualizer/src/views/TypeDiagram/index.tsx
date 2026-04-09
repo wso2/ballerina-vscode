@@ -28,7 +28,7 @@ import { TitleBar } from "../../components/TitleBar";
 import { FormTypeEditor } from "../BI/TypeEditor";
 import { NodeSelector } from "./NodeSelectorView/NodeSelector";
 import DynamicModal from "../../components/Modal";
-import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../BI/Forms/FormGenerator";
+import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../BI/Forms/FlowNodeForm";
 import { EditorContext, StackItem } from "@wso2/type-editor";
 
 export const Title: React.FC<any> = styled.div`
