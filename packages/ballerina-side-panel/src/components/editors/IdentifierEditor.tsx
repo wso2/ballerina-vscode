@@ -252,7 +252,7 @@ export function IdentifierEditor(props: IdentifierEditorProps) {
                             description={field.documentation}
                             placeholder={field.placeholder}
                             errorMsg={errorMsg}
-                            readonly={!field.editable || undefined}
+                            readOnly={!field.editable}
                             onFocus={() => handleOnFieldFocus?.(field.key)}
                             autoFocus={autoFocus}
                         />
