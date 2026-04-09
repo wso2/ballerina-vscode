@@ -160,7 +160,7 @@
             "packageName": "ftp",
             "object": "Client",
             "symbol": "init",
-            "version": "2.16.1",
+            "version": "2.16.0",
             "isGenerated": false
           },
           "enabled": true

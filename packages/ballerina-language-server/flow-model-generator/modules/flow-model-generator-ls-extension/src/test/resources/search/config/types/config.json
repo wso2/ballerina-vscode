@@ -581,7 +581,7 @@
                 "module": "ftp",
                 "packageName": "ftp",
                 "symbol": "ClientConfiguration",
-                "version": "2.16.1"
+                "version": "2.16.0"
               },
               "enabled": true
             }
