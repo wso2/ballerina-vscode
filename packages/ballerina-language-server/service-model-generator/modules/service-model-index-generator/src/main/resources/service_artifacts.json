@@ -1341,14 +1341,14 @@
         "typeDescriptorDescription": "The name of the service contract type",
         "typeDescriptorDefaultValue": "Service",
         "addDefaultTypeDescriptor": 0,
-        "optionalAbsoluteResourcePath": 1,
-        "absoluteResourcePathLabel": "Service Base Path",
-        "absoluteResourcePathDescription": "",
-        "absoluteResourcePathDefaultValue": "",
-        "optionalStringLiteral": 0,
-        "stringLiteralLabel": "Event Channel",
-        "stringLiteralDescription": "The event channel name",
-        "stringLiteralDefaultValue": "/data/ChangeEvents",
+        "optionalAbsoluteResourcePath": 0,
+        "absoluteResourcePathLabel": "Event Channel",
+        "absoluteResourcePathDescription": "The event channel name",
+        "absoluteResourcePathDefaultValue": "/data/ChangeEvents",
+        "optionalStringLiteral": 1,
+        "stringLiteralLabel": "Service Base Path",
+        "stringLiteralDescription": "",
+        "stringLiteralDefaultValue": "",
         "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "event"
       },
@@ -1386,11 +1386,7 @@
           "placeholder": "/data/ChangeEvents",
           "types": [
             {
-              "fieldType": "TEXT",
-              "ballerinaType": "string"
-            },
-            {
-              "fieldType": "EXPRESSION",
+              "fieldType": "SERVICE_PATH",
               "ballerinaType": "string"
             }
           ],
