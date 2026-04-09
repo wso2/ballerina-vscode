@@ -22,7 +22,7 @@ import { Typography, ProgressRing } from "@wso2/ui-toolkit";
 import { FormField, FormImports, FormValues, StringTemplateEditorConfig } from "@wso2/ballerina-side-panel";
 import { ListenerModel, LineRange, RecordTypeField, Property, getPrimaryInputType } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import FormGeneratorNew from "../../Forms/FormGeneratorNew";
+import ArtifactForm from "../../Forms/ArtifactForm";
 import { getImportsForProperty } from "../../../../utils/bi";
 import { isValueEqual } from "../utils";
 
@@ -183,7 +183,7 @@ export function ListenerConfigForm(props: ListenerConfigFormProps) {
                     {listenerFields.length > 0 &&
                         <FormContainer>
                             {filePath && targetLineRange &&
-                                <FormGeneratorNew
+                                <ArtifactForm
                                     fileName={filePath}
                                     targetLineRange={targetLineRange}
                                     fields={listenerFields}

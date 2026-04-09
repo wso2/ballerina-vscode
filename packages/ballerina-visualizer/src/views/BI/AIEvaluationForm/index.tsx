@@ -26,7 +26,7 @@ import { EVENT_TYPE } from "@wso2/ballerina-core";
 import { TitleBar } from "../../../components/TitleBar";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { FormHeader } from "../../../components/FormHeader";
-import FormGeneratorNew from "../Forms/FormGeneratorNew";
+import ArtifactForm from "../Forms/ArtifactForm";
 import { getImportsForProperty } from "../../../utils/bi";
 import { CardSelector } from "./CardSelector";
 
@@ -831,7 +831,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                     <FormContainer>
 
                         {targetLineRange && (
-                            <FormGeneratorNew
+                            <ArtifactForm
                                 fileName={filePath}
                                 fields={formFields}
                                 targetLineRange={targetLineRange}
