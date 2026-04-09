@@ -363,7 +363,7 @@ public class AgentsGenerator {
             sourceBuilder.token().name(String.join(", ", paramList));
             sourceBuilder.token().keyword(SyntaxKind.CLOSE_PAREN_TOKEN);
 
-            Optional<Property> returnType = flowNode.getProperty(Property.TYPE_KEY);
+            Optional<Property> returnType = sourceBuilder.getProperty(Property.TYPE_KEY);
             String returnTypeStr = returnType.isPresent()
                     ? resolveTypeInferParams(returnType.get().value().toString(), flowNode) : "";
             boolean hasReturn = !returnTypeStr.isEmpty();
@@ -493,7 +493,7 @@ public class AgentsGenerator {
 
             List<String> paramList = populateToolParams(toolParams, hasDescription, sourceBuilder);
 
-            Optional<Property> optReturnType = flowNode.getProperty(Property.TYPE_KEY);
+            Optional<Property> optReturnType = sourceBuilder.getProperty(Property.TYPE_KEY);
             String returnType = "";
             if (optReturnType.isPresent()) {
                 Property returnProperty = optReturnType.get();
@@ -599,7 +599,7 @@ public class AgentsGenerator {
             sourceBuilder.token().name(String.join(", ", paramList));
             sourceBuilder.token().keyword(SyntaxKind.CLOSE_PAREN_TOKEN);
 
-            Optional<Property> optReturnType = flowNode.getProperty(Property.TYPE_KEY);
+            Optional<Property> optReturnType = sourceBuilder.getProperty(Property.TYPE_KEY);
             String returnType = "";
             if (optReturnType.isPresent()) {
                 returnType = resolveReturnType(flowNode, optReturnType.get(), sourceBuilder);
