@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { TextField } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { usePlatformExtContext } from "../../../providers/platform-ext-ctx-provider";
@@ -25,7 +25,7 @@ import {
     ProjectSection,
     SectionDivider,
 } from "./styles";
-import { ProjectTypeSelector, PackageInfoSection } from "./components";
+import { ProjectTypeSelector, AdvancedConfigurationSection } from "./components";
 import { AddProjectFormData } from "./types";
 import {
     sanitizePackageName,
@@ -87,28 +87,37 @@ export function AddProjectFormFields({
     const orgNameRef = useRef(formData.orgName);
     orgNameRef.current = formData.orgName;
 
-    useEffect(() => {
-        let isMounted = true;
+    const fetchAndSetDefaultOrgName = useCallback(async (signal: AbortSignal) => {
+        try {
+            const { orgName } = await rpcClient.getCommonRpcClient().getDefaultOrgName();
+            if (!signal.aborted && orgName) {
+                onFormDataChange({ orgName });
+            }
+        } catch (error) {
+            if (!signal.aborted) {
+                console.error("Failed to fetch default org name:", error);
+            }
+        }
+    }, [rpcClient, onFormDataChange]);
 
-        if (organizations.length > 0 && !orgNameRef.current) {
+    useEffect(() => {
+        const controller = new AbortController();
+
+        if (isInProject || organizations.length === 0) {
+            // When inside a project, always use the project's org name.
+            // When no organizations are loaded yet, fall back to the default.
+            if (isInProject || !orgNameRef.current) {
+                fetchAndSetDefaultOrgName(controller.signal);
+            }
+        } else if (!orgNameRef.current) {
+            // Organizations are available — use the first one as the default.
             onFormDataChange({ orgName: organizations[0].handle });
-        } else if (organizations.length === 0 && !orgNameRef.current) {
-            (async () => {
-                try {
-                    const { orgName } = await rpcClient.getCommonRpcClient().getDefaultOrgName();
-                    if (isMounted) {
-                        onFormDataChange({ orgName });
-                    }
-                } catch (error) {
-                    console.error("Failed to fetch default org name:", error);
-                }
-            })();
         }
 
         return () => {
-            isMounted = false;
+            controller.abort();
         };
-    }, [organizations, onFormDataChange, rpcClient]);
+    }, [isInProject, organizations, fetchAndSetDefaultOrgName, onFormDataChange]);
 
     // Effect to trigger validation when requested by parent
     useEffect(() => {
@@ -179,7 +188,7 @@ export function AddProjectFormFields({
 
             <SectionDivider />
 
-            <PackageInfoSection
+            <AdvancedConfigurationSection
                 isExpanded={isPackageInfoExpanded}
                 onToggle={() => setIsPackageInfoExpanded(!isPackageInfoExpanded)}
                 data={{

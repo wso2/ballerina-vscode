@@ -480,12 +480,16 @@ export class CommonRpcManager implements CommonRPCAPI {
 
     async getDefaultOrgName(): Promise<DefaultOrgNameResponse> {
         try {
-            const contextYamlPath = path.join(os.homedir(), ".choreo", "context.yaml");
-            if (fs.existsSync(contextYamlPath)) {
-                const content = fs.readFileSync(contextYamlPath, "utf-8");
-                const parsed = loadYaml(content);
-                if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0].org === "string" && parsed[0].org) {
-                    return { orgName: parsed[0].org };
+            const projectPath = StateMachine.context()?.workspacePath;
+
+            if (projectPath) {
+                const contextYamlPath = path.join(projectPath, ".choreo", "context.yaml");
+                if (fs.existsSync(contextYamlPath)) {
+                    const content = fs.readFileSync(contextYamlPath, "utf-8");
+                    const parsed = loadYaml(content);
+                    if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0].org === "string" && parsed[0].org) {
+                        return { orgName: parsed[0].org };
+                    }
                 }
             }
         } catch {
