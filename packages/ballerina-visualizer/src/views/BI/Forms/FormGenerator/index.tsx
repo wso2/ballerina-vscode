@@ -1149,6 +1149,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         updateRecordTypeFields({
             value: type.name,
             name: type.name,
+            codeData: type.codedata,
             labelDetails: type.labelDetails,
         });
     }
