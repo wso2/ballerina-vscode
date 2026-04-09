@@ -52,6 +52,8 @@ import {
     CompactConversationResponse,
     ClarifyAnswerRequest,
     ClarifyCancelRequest,
+    RunningServiceInfo,
+    StopRunningServiceRequest,
 } from "@wso2/ballerina-core";
 import * as fs from 'fs';
 import path from "path";
@@ -85,6 +87,7 @@ import {
 import { addToIntegration, searchDocumentation } from "./utils";
 
 import { createExecutorConfig, generateAgent, resolveProjectRootPath } from '../../features/ai/agent/index';
+import { clearCompactionDisabledWarning } from '../../features/ai/agent/AgentExecutor';
 import { LLM_API_BASE_PATH, WI_EXTENSION_ID } from "../../features/ai/constants";
 import { ContextTypesExecutor } from '../../features/ai/executors/datamapper/ContextTypesExecutor';
 import { FunctionMappingExecutor } from '../../features/ai/executors/datamapper/FunctionMappingExecutor';
@@ -92,9 +95,8 @@ import { InlineMappingExecutor } from '../../features/ai/executors/datamapper/In
 import { approvalManager } from '../../features/ai/state/ApprovalManager';
 import { cleanupTempProject } from "../../features/ai/utils/project/temp-project";
 import { chatStateStorage } from '../../views/ai-panel/chatStateStorage';
-import { compactionManager } from '../../features/ai/compaction-manager';
-import { getAnthropicClient, ANTHROPIC_SONNET_4 } from '../../features/ai/utils/ai-client';
 import { restoreWorkspaceSnapshot } from '../../views/ai-panel/checkpoint/checkpointUtils';
+import { runningServicesManager } from '../../features/ai/agent/tools/running-service-manager';
 
 export class AiPanelRpcManager implements AIPanelAPI {
 
@@ -650,6 +652,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
         // Clear the workspace (all threads)
         await chatStateStorage.clearWorkspace(projectRootPath);
+        clearCompactionDisabledWarning(projectRootPath, 'default');
 
         console.log(`[RPC] Cleared chat for projectRootPath: ${projectRootPath}`);
     }
@@ -738,48 +741,13 @@ export class AiPanelRpcManager implements AIPanelAPI {
         return projectPath;
     }
 
-    async compactConversation(params: CompactConversationRequest): Promise<CompactConversationResponse> {
-        const workspaceId = resolveProjectRootPath();
-        const threadId = 'default';
-
-        // M05: Reject manual compact if an AI generation is in progress
-        const activeExecution = chatStateStorage.getActiveExecution(workspaceId, threadId);
-        if (activeExecution) {
-            return {
-                success: false,
-                error: 'Cannot compact while a generation is in progress. Please wait for it to complete or stop it first.',
-            };
-        }
-
-        try {
-            const model = await getAnthropicClient(ANTHROPIC_SONNET_4);
-
-            const result = await compactionManager.manualCompact(
-                workspaceId,
-                threadId,
-                model,
-                params.customInstructions
-            );
-
-            console.log(
-                `[RPC] Compacted conversation for workspace: ${workspaceId} ` +
-                `(${result.reductionPercentage.toFixed(1)}% reduction)`
-            );
-
-            return {
-                success: true,
-                originalTokens: result.originalTokens,
-                compactedTokens: result.compactedTokens,
-                reductionPercentage: result.reductionPercentage,
-                summary: result.summary,
-            };
-        } catch (error) {
-            console.error(`[RPC] Compaction failed for workspace: ${workspaceId}`, error);
-            return {
-                success: false,
-                error: error instanceof Error ? error.message : 'Compaction failed',
-            };
-        }
+    async compactConversation(_params: CompactConversationRequest): Promise<CompactConversationResponse> {
+        // Manual compaction is no longer supported. Context is managed automatically
+        // server-side via the compact_20260112 API during agent execution.
+        return {
+            success: false,
+            error: 'Manual compaction is not available. Context is automatically managed by the server during agent execution.',
+        };
     }
 
     async getShowContextUsage(): Promise<boolean> {
@@ -869,5 +837,13 @@ export class AiPanelRpcManager implements AIPanelAPI {
         await vscode.commands.executeCommand('vscode.diff', originalUri, modifiedUri, title, {
             viewColumn: vscode.ViewColumn.One,
         });
+    }
+
+    async getRunningServices(): Promise<RunningServiceInfo[]> {
+        return runningServicesManager.getAll();
+    }
+
+    async stopRunningService(params: StopRunningServiceRequest): Promise<boolean> {
+        return runningServicesManager.stopOne(params.taskId);
     }
 }

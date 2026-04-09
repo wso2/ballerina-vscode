@@ -20,7 +20,7 @@ import React, { useRef } from "react";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import styled from '@emotion/styled';
 import { EditorFactory, FormField, InputMode, useFormContext, Provider as FormContextProvider, FormValues } from "../..";
-import { Imports, InputType, ExpressionProperty } from "@wso2/ballerina-core";
+import { Imports, InputType, ExpressionProperty, getPrimaryInputType } from "@wso2/ballerina-core";
 import { NodeKind, NodeProperties, RecordTypeField, SubPanel, SubPanelView } from "@wso2/ballerina-core";
 import { CompletionItem } from "@wso2/ui-toolkit";
 import { getInputModeFromTypes } from "./MultiModeExpressionEditor/ChipExpressionEditor/utils";
@@ -56,6 +56,8 @@ type FieldFactoryProps = {
 export const FieldFactory = (props: FieldFactoryProps) => {
     const [renderingEditors, setRenderingEditors] = useState<InputType[]>(null);
     const [inputMode, setInputMode] = useState<InputMode>(InputMode.EXP);
+    const currentFieldKeyRef = useRef<string | null>(null);
+    const currentInputModeRef = useRef<InputMode>(InputMode.EXP);
 
     const formContext = useFormContext();
     const { expressionEditor } = formContext;
@@ -156,6 +158,16 @@ export const FieldFactory = (props: FieldFactoryProps) => {
         return props.field.types[props.field.types.length - 1];
     }
 
+    const checkAndReturnCompatibleInputMode = (selectedInputType: InputType): InputMode => {
+        if (
+            (getPrimaryInputType(props.field.types)?.fieldType !== "REPEATABLE_MAP") &&
+            (getPrimaryInputType(props.field.types)?.fieldType !== "REPEATABLE_LIST")
+        ) return getInputModeFromTypes(selectedInputType);
+        if (selectedInputType.fieldType !== "EXPRESSION") return getInputModeFromTypes(selectedInputType);
+        if (!props.field.value || typeof props.field.value === "string") return getInputModeFromTypes(selectedInputType);
+        return getInputModeFromTypes(getPrimaryInputType(props.field.types));
+    }
+
     useEffect(() => {
         if (!props.field.types || props.field.types.length === 0) {
             throw new Error("Field types are not defined");
@@ -166,9 +178,19 @@ export const FieldFactory = (props: FieldFactoryProps) => {
             : [props.field.types[0], props.field.types[props.field.types.length - 1]];
         setRenderingEditors(newRenderingTypes);
 
+        const isNewField = currentFieldKeyRef.current !== props.field.key;
+        currentFieldKeyRef.current = props.field.key;
+
         const selectedInputType = getInitialSelectedInputType();
-        const initialInputMode = getInputModeFromTypes(selectedInputType) || InputMode.EXP;
-        setInputMode(initialInputMode);
+        let initialInputMode: InputMode;
+        if (isNewField) {
+            initialInputMode = checkAndReturnCompatibleInputMode(selectedInputType) || InputMode.EXP;
+            currentInputModeRef.current = initialInputMode;
+            setInputMode(initialInputMode);
+        } else {
+            // Preserve the user's current mode selection when the same field is updated
+            initialInputMode = currentInputModeRef.current;
+        }
         updateFieldTypesSelection(initialInputMode);
     }, [props.field, props.recordTypeFields]);
 
@@ -189,6 +211,7 @@ export const FieldFactory = (props: FieldFactoryProps) => {
     };
 
     const handleModeChange = useCallback((mode: InputMode) => {
+        currentInputModeRef.current = mode;
         setInputMode(mode);
         updateFieldTypesSelection(mode);
 

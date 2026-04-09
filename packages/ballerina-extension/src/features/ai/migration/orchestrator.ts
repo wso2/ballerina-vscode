@@ -946,6 +946,87 @@ async function ensureAuthenticated(): Promise<boolean> {
     });
 }
 
+/**
+ * Returns true when the AI state machine is currently in the Authenticated state.
+ * Safe to call synchronously from any context.
+ */
+export function isAIAuthenticated(): boolean {
+    return AIStateMachine.state() === "Authenticated";
+}
+
+/**
+ * Triggers the BI Copilot browser sign-in flow and waits until the user is
+ * authenticated, cancels, or the 2-minute timeout elapses.
+ *
+ * Unlike `ensureAuthenticated`, this function does NOT emit any messages to a
+ * streaming UI — it is intended for use by the wizard before kicking off the
+ * enhancement pipeline.
+ *
+ * @returns `true` on successful authentication, `false` otherwise.
+ */
+export async function signInForAI(): Promise<{ success: boolean; error?: string }> {
+    const AUTH_TIMEOUT_MS = 120_000;
+
+    const state = AIStateMachine.state();
+    console.log('[orchestrator] signInForAI called. AIStateMachine state:', JSON.stringify(state));
+    if (state === "Authenticated") {
+        return { success: true };
+    }
+    if (state === "Disabled") {
+        console.log('[orchestrator] signInForAI: AI is disabled');
+        return { success: false, error: "AI features are disabled." };
+    }
+
+    // Wait for the initialisation check to settle before acting.
+    if (state === "Initialize") {
+        console.log('[orchestrator] signInForAI: waiting for Initialize to settle...');
+        const resolved = await new Promise<boolean>((resolve) => {
+            const timeout = setTimeout(() => { sub.unsubscribe(); resolve(false); }, AUTH_TIMEOUT_MS);
+            const sub = AIStateMachine.service().subscribe((snapshot) => {
+                const s = snapshot.value;
+                if (s === "Authenticated") { clearTimeout(timeout); sub.unsubscribe(); resolve(true); }
+                else if (s === "Unauthenticated" || s === "Disabled") { clearTimeout(timeout); sub.unsubscribe(); resolve(false); }
+            });
+        });
+        console.log('[orchestrator] signInForAI: Initialize settled. resolved:', resolved, 'currentState:', JSON.stringify(AIStateMachine.state()));
+        if (resolved) { return { success: true }; }
+        if (AIStateMachine.state() === "Disabled") { return { success: false, error: "AI features are disabled." }; }
+    }
+
+    // Trigger the browser-based login flow.
+    const preLoginState = AIStateMachine.state();
+    console.log('[orchestrator] signInForAI: sending LOGIN event. preLoginState:', JSON.stringify(preLoginState));
+    AIStateMachine.sendEvent(AIMachineEventType.LOGIN);
+    const postLoginState = AIStateMachine.state();
+    console.log('[orchestrator] signInForAI: LOGIN sent. postLoginState:', JSON.stringify(postLoginState));
+
+    return new Promise<{ success: boolean; error?: string }>((resolve) => {
+        let settled = false;
+        const finish = (result: { success: boolean; error?: string }, reason: string) => {
+            if (settled) { return; }
+            settled = true;
+            clearTimeout(timeout);
+            sub.unsubscribe();
+            console.log('[orchestrator] signInForAI resolved:', result.success, 'reason:', reason, 'finalState:', JSON.stringify(AIStateMachine.state()));
+            resolve(result);
+        };
+
+        const timeout = setTimeout(() => finish({ success: false, error: "Sign-in timed out. Please try again." }, 'timeout'), AUTH_TIMEOUT_MS);
+
+        const sub = AIStateMachine.service().subscribe((snapshot) => {
+            const s = snapshot.value;
+            console.log('[orchestrator] signInForAI subscriber: state =', JSON.stringify(s));
+            if (s === "Authenticated") {
+                finish({ success: true }, 'authenticated');
+            } else if (s === "Unauthenticated" || s === "Disabled") {
+                const ctx = AIStateMachine.context();
+                const errorMsg = ctx?.errorMessage || "Sign-in was cancelled or failed.";
+                finish({ success: false, error: errorMsg }, `state-${s}`);
+            }
+        });
+    });
+}
+
 export async function runWizardMigrationEnhancement(): Promise<void> {
     console.log('[orchestrator] runWizardMigrationEnhancement called. _wizardProjectRoot:', _wizardProjectRoot);
     const projectRoot = _wizardProjectRoot;
@@ -973,7 +1054,7 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
     if (!isAuthenticated) {
         eventHandler({
             type: "error",
-            content: "Please sign in to BI Copilot to use AI enhancement. You can sign in from the AI Chat panel and retry.",
+            content: "Please sign in to WSO2 Integrator Copilot to use AI enhancement. Please retry the AI Enhancement step.",
         });
         return;
     }

@@ -772,11 +772,6 @@
                 "enablement": "isSupportedProject"
             },
             {
-                "command": "ballerina.startTraceServer",
-                "title": "Start Trace Server",
-                "category": "Ballerina"
-            },
-            {
                 "command": "ballerina.enableTracing",
                 "title": "Enable Tracing",
                 "category": "Ballerina",
@@ -788,6 +783,12 @@
                 "category": "Ballerina",
                 "icon": "$(circle-slash)",
                 "enablement": "isSupportedProject"
+            },
+            {
+                "command": "ballerina.startTraceServer",
+                "title": "Start Trace Server",
+                "category": "Ballerina",
+                "enablement": "isSupportedProject && ballerina.tracingEnabled"
             },
             {
                 "command": "ballerina.clearTraces",
@@ -1222,14 +1223,14 @@
                 "description": "start",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f245"
+                    "fontCharacter": "\\f246"
                 }
             },
             "ballerina-debug": {
                 "description": "debug",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f1bd"
+                    "fontCharacter": "\\f1be"
                 }
             },
             "ballerina-source-view": {
@@ -1243,7 +1244,7 @@
                 "description": "persist-diagram",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f21c"
+                    "fontCharacter": "\\f21d"
                 }
             },
             "ballerina-cached-rounded": {
@@ -1341,7 +1342,7 @@
                 "description": "design-view",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f1c2"
+                    "fontCharacter": "\\f1c3"
                 }
             },
             "distro-file-submodule": {
@@ -1421,12 +1422,12 @@
         "build": "pnpm run compile && pnpm run lint && pnpm run postbuild",
         "rebuild": "pnpm run clean && pnpm run compile && pnpm run postbuild",
         "postbuild": "pnpm run download-ls && pnpm run copyFonts && pnpm run copyJSLibs && pnpm run package && pnpm run copyVSIX",
-        "copyJSLibs": "copyfiles -f ../ballerina-visualizer/build/*.js resources/jslibs && copyfiles -f ../trace-visualizer/build/*.js resources/jslibs"
+        "copyJSLibs": "copyfiles -f ../ballerina-visualizer/build/*.js resources/jslibs && copyfiles -f ../ballerina-visualizer/build/images/* resources/jslibs/images && copyfiles -f ../trace-visualizer/build/*.js resources/jslibs"
     },
     "dependencies": {
-        "@ai-sdk/amazon-bedrock": "4.0.67",
-        "@ai-sdk/anthropic": "3.0.48",
-        "@ai-sdk/google-vertex": "4.0.66",
+        "@ai-sdk/amazon-bedrock": "4.0.83",
+        "@ai-sdk/anthropic": "3.0.64",
+        "@ai-sdk/google-vertex": "4.0.94",
         "@iarna/toml": "2.2.5",
         "@types/lodash": "4.14.200",
         "@vscode/test-electron": "2.5.2",
