@@ -33,7 +33,7 @@ const NODE_ICON_MAP: Record<string, string> = {
 };
 
 // Modules that always use node-type icons, skipping the icon URL fallback
-const GENERIC_ICON_MODULES = new Set(["ai.devant"]);
+const GENERIC_ICON_MODULES = new Set(["ai.devant", "ai"]);
 
 export function getConnectionIcon(codedata: CodeData, iconUrl?: string): React.ReactElement {
     const iconSx = { width: ICON_SIZE, height: ICON_SIZE, fontSize: ICON_SIZE };
@@ -51,14 +51,14 @@ export function getConnectionIcon(codedata: CodeData, iconUrl?: string): React.R
         }
     }
 
-    // Icon by node type
-    const nodeIcon = codedata.node && NODE_ICON_MAP[codedata.node];
-    if (nodeIcon) return <Icon name={nodeIcon} sx={iconSx} />;
-
     // Icon URL from metadata (fetched from Central) — skip for modules that prefer generic icons
     if (iconUrl && !(codedata.module && GENERIC_ICON_MODULES.has(codedata.module))) {
         return <img src={iconUrl} style={{ width: ICON_SIZE, height: ICON_SIZE }} />;
     }
+
+    // Icon by node type
+    const nodeIcon = codedata.node && NODE_ICON_MAP[codedata.node];
+    if (nodeIcon) return <Icon name={nodeIcon} sx={iconSx} />;
 
     return <DefaultLlmIcon size={ICON_SIZE} />;
 }
