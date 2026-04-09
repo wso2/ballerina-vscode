@@ -25,6 +25,7 @@ import * as yaml from 'js-yaml';
 import { workspace, window } from 'vscode';
 import { extension } from '../../BalExtensionContext';
 import { parse, stringify } from '@iarna/toml';
+import { getICPUrl, ICP_DEFAULT_PORT } from './index';
 
 const ICP_SECRET_KEY_PREFIX = 'ICP_ORG_SECRET_';
 const CREATE_ORG_SECRET_MUTATION = JSON.stringify({
@@ -105,10 +106,6 @@ function httpsPost(url: string, body: string, headers: Record<string, string>): 
     });
 }
 
-function getICPUrl(): string {
-    return workspace.getConfiguration('ballerina').get<string>('icpUrl') || 'https://127.0.0.1:9445';
-}
-
 function getICPCredentials(): { username: string; password: string } {
     const config = workspace.getConfiguration('ballerina');
     return {
@@ -123,7 +120,7 @@ function getGraphQLUrl(): string {
         const url = new URL(icpUrl);
         return `${url.origin}/graphql`;
     } catch {
-        return 'https://127.0.0.1:9445/graphql';
+        return `https://127.0.0.1:${ICP_DEFAULT_PORT}/graphql`;
     }
 }
 
@@ -260,7 +257,7 @@ export async function provisionICPSecret(projectPath: string): Promise<string | 
     try {
         const icpUrl = getICPUrl();
         const parsed = new URL(icpUrl);
-        const port = parseInt(parsed.port || '9445', 10);
+        const port = parseInt(parsed.port || String(ICP_DEFAULT_PORT), 10);
         const hostname = parsed.hostname;
 
         const ready = await waitForPort(hostname, port);
