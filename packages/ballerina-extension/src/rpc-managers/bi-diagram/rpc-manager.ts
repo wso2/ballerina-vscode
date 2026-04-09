@@ -156,8 +156,10 @@ import {
     PackageTomlValues,
     EVENT_TYPE,
     UpdateProjectTitleRequest,
+    UpdatePackageTitleRequest,
     SuggestedProjectDefaultsResponse,
-    MACHINE_VIEW
+    ProjectInfo,
+    PROJECT_KIND
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
@@ -2540,6 +2542,61 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         } else {
             StateMachine.refreshProjectInfo();
         }
+    }
+
+    async updatePackageTitle(params: UpdatePackageTitleRequest): Promise<void> {
+        const ballerinaTomlPath = path.join(params.packagePath, 'Ballerina.toml');
+        let content: string;
+        try {
+            content = fs.readFileSync(ballerinaTomlPath, 'utf-8');
+        } catch {
+            throw new Error(`Ballerina.toml not found at ${ballerinaTomlPath}`);
+        }
+        let doc: ReturnType<typeof toml.parse>;
+        try {
+            doc = toml.parse(content);
+        } catch (e) {
+            const message = e instanceof Error ? e.message : String(e);
+            throw new Error(`Invalid TOML in ${ballerinaTomlPath}: ${message}`);
+        }
+        const pkg = doc.package;
+        if (
+            pkg !== undefined &&
+            pkg !== null &&
+            typeof pkg === "object" &&
+            !Array.isArray(pkg) &&
+            !(pkg instanceof Date)
+        ) {
+            (pkg as Record<string, unknown>).title = params.title;
+        } else {
+            const existing = (typeof doc.package === "object" && doc.package !== null && !Array.isArray(doc.package))
+                ? (doc.package as Record<string, unknown>)
+                : {};
+            doc.package = { ...existing, title: params.title };
+        }
+        fs.writeFileSync(ballerinaTomlPath, toml.stringify(doc), "utf-8");
+
+        // Update projectInfo so that any subsequent buildProjectsStructure call
+        // (e.g., from the LS file watcher) uses the new title.
+        const currentProjectInfo = StateMachine.context().projectInfo;
+        let updatedProjectInfo: ProjectInfo;
+        if (
+            currentProjectInfo.projectKind === PROJECT_KIND.WORKSPACE_PROJECT &&
+            currentProjectInfo.children &&
+            currentProjectInfo.children.length > 0
+        ) {
+            updatedProjectInfo = {
+                ...currentProjectInfo,
+                children: currentProjectInfo.children.map((child) =>
+                    child.projectPath === params.packagePath
+                        ? { ...child, title: params.title }
+                        : child
+                ),
+            };
+        } else {
+            updatedProjectInfo = { ...currentProjectInfo, title: params.title };
+        }
+        StateMachine.updateProjectInfo(updatedProjectInfo, { silent: true });
     }
 
     async getSuggestedProjectDefaults(params: { isInProject: boolean }): Promise<SuggestedProjectDefaultsResponse> {
