@@ -1377,7 +1377,7 @@
               "ballerinaType": "salesforce:CredentialsConfig"
             }
           ],
-          "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD"
+          "sourceKind": "ARG_TYPE_LISTENER_PARAM_CONFIG_FIELD"
         }
       }
     },

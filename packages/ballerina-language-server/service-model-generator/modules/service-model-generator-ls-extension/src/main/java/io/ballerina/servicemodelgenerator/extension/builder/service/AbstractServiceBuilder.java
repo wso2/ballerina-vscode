@@ -71,6 +71,7 @@ import java.util.Set;
 import static io.ballerina.servicemodelgenerator.extension.model.PropertyType.deserializeTypes;
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ANNOT_PREFIX;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_CONFIG_FIELD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_REQUIRED;
@@ -179,6 +180,8 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
             } else if (argType.equals(ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD)
                     || argType.equals(ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD)) {
                 includedParams.add(entry.getKey() + " = " + value.getValue());
+            } else if (argType.equals(ARG_TYPE_LISTENER_PARAM_CONFIG_FIELD)) {
+                requiredParams.add(String.format("{ %s: %s }", entry.getKey(), value.getValue()));
             }
         }
         String listenerProtocol = getProtocol(serviceInitModel.getModuleName());
