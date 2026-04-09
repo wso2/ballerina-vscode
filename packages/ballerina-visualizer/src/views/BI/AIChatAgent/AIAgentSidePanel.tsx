@@ -475,7 +475,10 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                         return;
                     }
                     field.label = `${field.label} Mapping`;
-                    if (field.optional == false) field.value = field.key;
+                    if (field.optional == false) {
+                        field.value = getPrimaryInputType(field.types)?.fieldType === "REPEATABLE_LIST"
+                            ? `[${field.key}]` : field.key;
+                    }
                 });
             }
 
