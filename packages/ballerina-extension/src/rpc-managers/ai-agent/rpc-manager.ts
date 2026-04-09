@@ -51,7 +51,7 @@ import { StateMachine } from "../../stateMachine";
 import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { isLibraryProject } from "../../utils/config";
-import { addMissingImports, checkProjectDiagnostics } from "../ai-panel/repair-utils";
+import { addMissingImports, checkProjectDiagnostics, removeUnusedImports } from "../ai-panel/repair-utils";
 import { CONFIGURE_DEFAULT_MODEL_COMMAND } from "../../features/ai/constants";
 
 
@@ -155,6 +155,7 @@ export class AiAgentRpcManager implements AIAgentAPI {
         try {
             const projectDiags = await checkProjectDiagnostics(context.langClient, context.projectPath);
             await addMissingImports(projectDiags, context.langClient);
+            await removeUnusedImports(projectDiags, context.langClient);
         } catch (e) {
             console.log("fixMissingImports failed", e);
         }
