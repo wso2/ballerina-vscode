@@ -16,13 +16,14 @@
  * under the License.
  */
 
-import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 import styled from "@emotion/styled";
-import { Codicon, Icon } from "@wso2/ui-toolkit";
+import { Icon } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { BetaSVG } from "../../views/Connectors/Marketplace/BetaSVG";
 import { UndoRedoGroup } from "../UndoRedoGroup";
 import { MACHINE_VIEW } from "@wso2/ballerina-core";
+import { EditableTitle } from "../EditableTitle";
 
 const TitleBarContainer = styled.div`
     display: flex;
@@ -99,65 +100,6 @@ const BetaSVGWrapper = styled.span`
     margin-top: 2px;
 `;
 
-const EditableTitleWrapper = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    outline: none;
-
-    &:is(:hover, :focus-visible) .edit-title-icon-wrapper {
-        opacity: 1;
-        max-width: 28px;
-    }
-`;
-
-const EditTitleIconWrapper = styled.div`
-    opacity: 0;
-    max-width: 0;
-    overflow: hidden;
-    transition: opacity 0.2s, max-width 0.2s;
-    display: flex;
-    align-items: center;
-`;
-
-const TitleInput = styled.input<{ $hasError?: boolean }>`
-    font-size: 20px;
-    font-weight: 600;
-    margin: 0;
-    background: transparent;
-    border: none;
-    border-bottom: 2px solid ${({ $hasError }: { $hasError?: boolean }) => $hasError
-        ? 'var(--vscode-inputValidation-errorBorder)'
-        : 'var(--vscode-focusBorder)'};
-    color: var(--vscode-foreground);
-    outline: none;
-    padding: 0;
-    font-family: inherit;
-    min-width: 120px;
-    white-space: nowrap;
-`;
-
-const TitleValidationMessage = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 0.72rem;
-    color: var(--vscode-inputValidation-errorForeground, var(--vscode-errorForeground));
-    background: var(--vscode-inputValidation-errorBackground, transparent);
-    border: 1px solid var(--vscode-inputValidation-errorBorder);
-    border-radius: 2px;
-    padding: 2px 6px;
-    margin-top: 2px;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    max-width: 320px;
-    white-space: normal;
-    word-break: break-word;
-    z-index: 10;
-`;
-
 interface TitleBarProps {
     title: string;
     subtitle?: string;
@@ -171,16 +113,19 @@ interface TitleBarProps {
     validateTitle?: (value: string) => string;
 }
 
+// Input style overrides to match the TitleBar's Title styled component (20px, 600 weight).
+const TITLE_BAR_INPUT_STYLE: React.CSSProperties = {
+    fontSize: '20px',
+    fontWeight: '600',
+    whiteSpace: 'nowrap',
+    margin: 0,
+};
+
 export function TitleBar(props: TitleBarProps) {
     const { title, subtitle, subtitleElement, actions, hideBack, hideUndoRedo, onBack, isBetaFeature, onTitleEdit, validateTitle } = props;
     const { rpcClient } = useRpcContext();
 
     const [isDiagramView, setIsDiagramView] = useState(false);
-    const [isEditingTitle, setIsEditingTitle] = useState(false);
-    const [titleInputValue, setTitleInputValue] = useState("");
-    const [titleError, setTitleError] = useState("");
-    const titleInputRef = useRef<HTMLInputElement>(null);
-    const wrapperRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         rpcClient.getVisualizerLocation().then((res) => {
@@ -191,49 +136,6 @@ export function TitleBar(props: TitleBarProps) {
             }
         });
     }, [title]);
-
-    const startEditingTitle = useCallback(() => {
-        setTitleInputValue(title);
-        setTitleError("");
-        setIsEditingTitle(true);
-        setTimeout(() => { titleInputRef.current?.select(); }, 0);
-    }, [title]);
-
-    const commitTitleEdit = useCallback(async () => {
-        const trimmed = titleInputValue.trim();
-        const liveError = validateTitle ? validateTitle(trimmed) : "";
-        if (!trimmed || liveError) {
-            setTitleError("");
-            setIsEditingTitle(false);
-            setTimeout(() => { wrapperRef.current?.focus(); }, 0);
-            return;
-        }
-        if (trimmed === title) {
-            setIsEditingTitle(false);
-            setTimeout(() => { wrapperRef.current?.focus(); }, 0);
-            return;
-        }
-        // Guard against onTitleEdit being absent at call-time (e.g. prop removed between renders).
-        if (!onTitleEdit) { setIsEditingTitle(false); setTimeout(() => { wrapperRef.current?.focus(); }, 0); return; }
-        try {
-            await onTitleEdit(trimmed);
-            setIsEditingTitle(false);
-            setTimeout(() => { wrapperRef.current?.focus(); }, 0);
-        } catch {
-            // Keep edit mode open so the user can correct or cancel — do not silently discard their input.
-        }
-    }, [titleInputValue, title, onTitleEdit, validateTitle]);
-
-    const handleTitleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            e.currentTarget.blur();
-        } else if (e.key === "Escape") {
-            setTitleError("");
-            setIsEditingTitle(false);
-            setTimeout(() => { wrapperRef.current?.focus(); }, 0);
-        }
-    }, []);
 
     const handleBackButtonClick = () => {
         if (onBack) {
@@ -253,52 +155,14 @@ export function TitleBar(props: TitleBarProps) {
                 )}
                 <TitleSection>
                     {onTitleEdit ? (
-                        <div style={{ position: "relative" }}>
-                            {isEditingTitle ? (
-                                <>
-                                    <TitleInput
-                                        ref={titleInputRef}
-                                        value={titleInputValue}
-                                        size={Math.max(titleInputValue.length, 8)}
-                                        $hasError={!!titleError}
-                                        aria-label="Edit name"
-                                        onChange={(e) => {
-                                            setTitleInputValue(e.target.value);
-                                            setTitleError(validateTitle ? validateTitle(e.target.value) : "");
-                                        }}
-                                        onKeyDown={handleTitleKeyDown}
-                                        onBlur={commitTitleEdit}
-                                        autoFocus
-                                    />
-                                    {titleError && (
-                                        <TitleValidationMessage>
-                                            <Codicon name="info" sx={{ fontSize: '12px', flexShrink: 0 }} />
-                                            {titleError}
-                                        </TitleValidationMessage>
-                                    )}
-                                </>
-                            ) : (
-                                <EditableTitleWrapper
-                                    ref={wrapperRef}
-                                    role="button"
-                                    tabIndex={0}
-                                    onClick={startEditingTitle}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter" || e.key === " ") {
-                                            e.preventDefault();
-                                            startEditingTitle();
-                                        }
-                                    }}
-                                    title="Click to edit name"
-                                    aria-label="Edit name"
-                                >
-                                    <Title>{title}</Title>
-                                    <EditTitleIconWrapper className="edit-title-icon-wrapper">
-                                        <Codicon name="edit" sx={{ color: 'var(--vscode-descriptionForeground)', fontSize: '14px', width: '16px' }} />
-                                    </EditTitleIconWrapper>
-                                </EditableTitleWrapper>
-                            )}
-                        </div>
+                        <EditableTitle
+                            title={title}
+                            onCommit={onTitleEdit}
+                            validate={validateTitle}
+                            inputStyle={TITLE_BAR_INPUT_STYLE}
+                        >
+                            <Title>{title}</Title>
+                        </EditableTitle>
                     ) : (
                         <Title>{title}</Title>
                     )}

@@ -237,6 +237,34 @@ function ensureGitignoreEntry(projectRoot: string): void {
     }
 }
 
+/**
+ * Reads a Ballerina.toml file, sets `doc[section][field] = value`, and writes it back.
+ * Throws if the file is missing or unparseable.
+ */
+function setTomlSectionField(filePath: string, section: string, field: string, value: string): void {
+    let content: string;
+    try {
+        content = fs.readFileSync(filePath, 'utf-8');
+    } catch {
+        throw new Error(`Ballerina.toml not found at ${filePath}`);
+    }
+    let doc: ReturnType<typeof toml.parse>;
+    try {
+        doc = toml.parse(content);
+    } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        throw new Error(`Invalid TOML in ${filePath}: ${message}`);
+    }
+    const sectionObj = doc[section];
+    if (sectionObj !== null && typeof sectionObj === "object" && !Array.isArray(sectionObj)) {
+        (sectionObj as Record<string, unknown>)[field] = value;
+    } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (doc as any)[section] = { [field]: value };
+    }
+    fs.writeFileSync(filePath, toml.stringify(doc), "utf-8");
+}
+
 export class BiDiagramRpcManager implements BIDiagramAPI {
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
 
@@ -2508,34 +2536,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async updateProjectTitle(params: UpdateProjectTitleRequest): Promise<void> {
-        const ballerinaTomlPath = path.join(params.projectPath, 'Ballerina.toml');
-        let content: string;
-        try {
-            content = fs.readFileSync(ballerinaTomlPath, 'utf-8');
-        } catch {
-            throw new Error(`Ballerina.toml not found at ${ballerinaTomlPath}`);
-        }
-        let doc: ReturnType<typeof toml.parse>;
-        try {
-            doc = toml.parse(content);
-        } catch (e) {
-            const message = e instanceof Error ? e.message : String(e);
-            throw new Error(`Invalid TOML in ${ballerinaTomlPath}: ${message}`);
-        }
-        const workspace = doc.workspace;
-        if (
-            workspace !== undefined &&
-            workspace !== null &&
-            typeof workspace === "object" &&
-            !Array.isArray(workspace) &&
-            !(workspace instanceof Date)
-        ) {
-            (workspace as ReturnType<typeof toml.parse>).title = params.title;
-        } else {
-            doc.workspace = { title: params.title };
-        }
-        fs.writeFileSync(ballerinaTomlPath, toml.stringify(doc), "utf-8");
-
+        setTomlSectionField(path.join(params.projectPath, 'Ballerina.toml'), 'workspace', 'title', params.title);
         const currentProjectInfo = StateMachine.context().projectInfo;
         if (currentProjectInfo.projectPath === params.projectPath) {
             StateMachine.updateProjectInfo({ ...currentProjectInfo, title: params.title });
@@ -2545,45 +2546,13 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async updatePackageTitle(params: UpdatePackageTitleRequest): Promise<void> {
-        const ballerinaTomlPath = path.join(params.packagePath, 'Ballerina.toml');
-        let content: string;
-        try {
-            content = fs.readFileSync(ballerinaTomlPath, 'utf-8');
-        } catch {
-            throw new Error(`Ballerina.toml not found at ${ballerinaTomlPath}`);
-        }
-        let doc: ReturnType<typeof toml.parse>;
-        try {
-            doc = toml.parse(content);
-        } catch (e) {
-            const message = e instanceof Error ? e.message : String(e);
-            throw new Error(`Invalid TOML in ${ballerinaTomlPath}: ${message}`);
-        }
-        const pkg = doc.package;
-        if (
-            pkg !== undefined &&
-            pkg !== null &&
-            typeof pkg === "object" &&
-            !Array.isArray(pkg) &&
-            !(pkg instanceof Date)
-        ) {
-            (pkg as Record<string, unknown>).title = params.title;
-        } else {
-            const existing = (typeof doc.package === "object" && doc.package !== null && !Array.isArray(doc.package))
-                ? (doc.package as Record<string, unknown>)
-                : {};
-            doc.package = { ...existing, title: params.title };
-        }
-        fs.writeFileSync(ballerinaTomlPath, toml.stringify(doc), "utf-8");
-
-        // Update projectInfo so that any subsequent buildProjectsStructure call
-        // (e.g., from the LS file watcher) uses the new title.
+        setTomlSectionField(path.join(params.packagePath, 'Ballerina.toml'), 'package', 'title', params.title);
+        // Update projectInfo so any subsequent buildProjectsStructure call uses the new title.
         const currentProjectInfo = StateMachine.context().projectInfo;
         let updatedProjectInfo: ProjectInfo;
         if (
             currentProjectInfo.projectKind === PROJECT_KIND.WORKSPACE_PROJECT &&
-            currentProjectInfo.children &&
-            currentProjectInfo.children.length > 0
+            currentProjectInfo.children?.length > 0
         ) {
             updatedProjectInfo = {
                 ...currentProjectInfo,
