@@ -388,29 +388,17 @@ const HTTPTestScenarioDetail: React.FC<HTTPTestScenarioDetailProps> = ({ loading
                 <InlineCardIcon style={{ fontSize: 12, color: "var(--vscode-charts-blue)" }}>
                     <span className="codicon codicon-loading codicon-modifier-spin" />
                 </InlineCardIcon>
-                <span>Running test scenario...</span>
+                <span>Sending Requests...</span>
             </StatusLine>
         );
     }
 
     if (!output) return null;
 
-    const showSummary = output.entries.length > 1;
     const hasNoEntries = output.entries.length === 0;
 
     return (
         <>
-            {showSummary && <SubHeader>Summary</SubHeader>}
-            {showSummary && (
-                <SummaryStatusLine style={{ marginBottom: 6 }}>
-                    <SummaryDetails>
-                        <span>Total: {output.summary.totalEntries}</span>
-                        <span style={{ color: "var(--vscode-charts-green, #388a34)" }}>Passed: {output.summary.passedEntries}</span>
-                        <span style={{ color: "var(--vscode-errorForeground)" }}>Failed: {output.summary.failedEntries}</span>
-                    </SummaryDetails>
-                </SummaryStatusLine>
-            )}
-
             {hasNoEntries ? (
                 <Section>
                     <SummaryStatusLine style={{ marginBottom: 6 }}>
