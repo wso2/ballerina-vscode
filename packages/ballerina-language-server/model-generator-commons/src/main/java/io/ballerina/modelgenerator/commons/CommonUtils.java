@@ -1674,4 +1674,16 @@ public class CommonUtils {
         return valueExpression.toSourceCode().trim();
     }
 
+    /**
+     * Escapes a form field name to a valid Ballerina identifier by replacing the leading {@code $} with a
+     * single quote prefix.
+     *
+     * @param name the form field name to escape
+     * @return the escaped identifier
+     */
+    public static String escapeIdentifierFromFormField(String name) {
+        return name.startsWith("$") ? "'" + name.substring(1) : name;
+    }
+
 }
+

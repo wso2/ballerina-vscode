@@ -1,0 +1,107 @@
+{
+  "source": "process_order.bal",
+  "description": "Function call with 'order parameter",
+  "diagram": {
+    "id": "103329",
+    "metadata": {
+      "label": "processOrder"
+    },
+    "codedata": {
+      "node": "FUNCTION_CALL",
+      "org": "$anon",
+      "module": ".",
+      "symbol": "processOrder",
+      "version": "0.0.0",
+      "lineRange": {
+        "fileName": "process_order.bal",
+        "startLine": {
+          "line": 0,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 2,
+          "offset": 1
+        }
+      },
+      "sourceCode": "processOrder();"
+    },
+    "returning": false,
+    "properties": {
+      "firstVal": {
+        "metadata": {
+          "label": "First Val"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string",
+            "selected": true
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": false
+          }
+        ],
+        "placeholder": "\"\"",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "firstVal"
+        },
+        "defaultValue": "\"first\"",
+        "modified": false
+      },
+      "$type": {
+        "metadata": {
+          "label": "Type"
+        },
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "int",
+            "selected": true
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "int",
+            "selected": false
+          }
+        ],
+        "placeholder": "0",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "'type"
+        },
+        "defaultValue": "\"second\"",
+        "modified": true,
+        "value": "10"
+      }
+    },
+    "flags": 0
+  },
+  "output": {
+    "process_order.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 2,
+            "character": 1
+          }
+        },
+        "newText": "processOrder('type = 10);"
+      }
+    ]
+  }
+}
