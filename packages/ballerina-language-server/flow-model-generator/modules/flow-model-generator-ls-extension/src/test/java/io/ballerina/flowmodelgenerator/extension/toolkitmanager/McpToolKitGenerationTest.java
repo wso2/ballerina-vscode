@@ -66,7 +66,7 @@ public class McpToolKitGenerationTest extends AbstractLSTest {
         JsonObject response = getSourceGenerationResponse(filePath, testConfig);
         if (!response.equals(testConfig.expectedResponse())) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.flowNode(), response);
-            updateConfig(configJsonPath, updatedConfig);
+//            updateConfig(configJsonPath, updatedConfig);
             compareJsonElements(response, testConfig.expectedResponse());
             Assert.fail(String.format("Failed test: '%s'", configJsonPath));
         }

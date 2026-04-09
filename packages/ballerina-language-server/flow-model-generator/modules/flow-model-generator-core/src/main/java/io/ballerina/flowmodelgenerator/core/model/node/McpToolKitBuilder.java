@@ -301,6 +301,8 @@ public class McpToolKitBuilder extends NodeBuilder {
                 SourceBuilder classSourceBuilder = new SourceBuilder(sourceBuilder.flowNode,
                         sourceBuilder.workspaceManager, classFilePath);
 
+                classSourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.MCP_PACKAGE);
+                classSourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.AI_PACKAGE);
                 // OAuth scopes require log (error logging) and http (auth config) in generated code
                 if (!toolScopesMap.isEmpty()) {
                     classSourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.LOG_PACKAGE);
