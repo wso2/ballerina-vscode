@@ -29,6 +29,7 @@ import {
     createStatusMetadata,
     readExistingConfigValues,
 } from "../../../../utils/toml-utils";
+import { resolveContained, resolvePackageBasePath } from "./path-utils";
 
 export const CONFIG_COLLECTOR_TOOL = "ConfigCollector";
 
@@ -257,12 +258,11 @@ async function handleCollectMode(
     const validationError = validateConfigVariables(variables);
     if (validationError) { return validationError; }
 
-    // Resolve the package base path. For workspace projects, the agent passes
-    // packagePath so Config.toml lands inside the target package rather than the
-    // workspace root.
-    const packageBasePath = packagePath
-        ? path.join(paths.tempPath, packagePath)
-        : paths.tempPath;
+    // Resolve and validate the package base path. For workspace projects, the
+    // agent must pass packagePath so Config.toml lands inside the target
+    // package rather than the workspace root. The helper rejects directory
+    // traversal attempts and missing-but-required values.
+    const packageBasePath = resolvePackageBasePath(paths.tempPath, packagePath);
 
     // Determine paths based on isTestConfig flag
     const configPath = getConfigPath(packageBasePath, isTestConfig);
@@ -371,16 +371,16 @@ async function handleCheckMode(
     isTestConfig?: boolean,
     packagePath?: string
 ): Promise<ConfigCollectorResult> {
-    // Resolve the package base path. For workspace projects the agent passes
-    // packagePath to inspect a specific package's Config.toml.
-    const packageBasePath = packagePath
-        ? path.join(paths.tempPath, packagePath)
-        : paths.tempPath;
+    // Resolve and validate the package base path. For workspace projects the
+    // agent must pass packagePath to inspect a specific package's Config.toml.
+    const packageBasePath = resolvePackageBasePath(paths.tempPath, packagePath);
 
     let configPath: string;
     let configFileName: string;
     if (filePath) {
-        configPath = path.join(packageBasePath, filePath);
+        // filePath is also untrusted agent input — validate containment so
+        // it cannot escape the package directory via `..` segments.
+        configPath = resolveContained(packageBasePath, filePath);
         configFileName = path.basename(filePath);
     } else {
         configPath = getConfigPath(packageBasePath, isTestConfig);
