@@ -444,12 +444,22 @@ public class AgentsGenerator {
                     String toolInputVar = toolInputVarNames.get(key);
                     if (toolInputVar != null) {
                         // Has a tool input — use mapping override if set, otherwise the variable name
-                        if (prop.value() != null && !prop.value().toString().isEmpty()
+                        if (prop.value() instanceof List<?> valueList) {
+                            List<String> listArgs = extractListArgs(valueList);
+                            if (!listArgs.isEmpty()) {
+                                args.addAll(listArgs);
+                            } else {
+                                args.add(toolInputVar);
+                            }
+                        } else if (prop.value() != null && !prop.value().toString().isEmpty()
                                 && !prop.value().toString().equals(toolInputVar)) {
                             args.add(prop.value().toString());
                         } else {
                             args.add(toolInputVar);
                         }
+                    } else if (prop.value() instanceof List<?> valueList) {
+                        List<String> listArgs = extractListArgs(valueList);
+                        args.addAll(listArgs);
                     } else if (prop.value() != null && !prop.value().toString().isEmpty()) {
                         // No tool input — use the mapping expression directly
                         args.add(prop.value().toString());
@@ -837,6 +847,15 @@ public class AgentsGenerator {
             sourceBuilder.token().descriptionDoc(description);
         }
         return hasDescription;
+    }
+
+    private static List<String> extractListArgs(List<?> valueList) {
+        return valueList.stream()
+                .filter(Map.class::isInstance)
+                .map(Map.class::cast)
+                .map(val -> Property.convertToProperty(val).toSourceCode())
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
     }
 
     // TODO: The agent tool annotation form is currently in the extension side, need to move to LS
