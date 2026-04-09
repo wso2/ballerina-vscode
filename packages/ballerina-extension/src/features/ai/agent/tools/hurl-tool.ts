@@ -21,36 +21,20 @@ import { CopilotEventHandler } from '../../utils/events';
 
 export const HURL_TOOL_NAME = "hurlRunnerTool";
 const HURL_LM_TOOL_NAME = "run-hurl-test";
-const TOOL_DESCRIPTION = `The hurl script to execute. Hurl is a command-line tool and DSL for running HTTP requests defined in a simple text format. The script can contain one or more HTTP requests, along with optional assertions to validate the responses. You can capture values from previous requests and use them in subsequent requests. 
+const TOOL_DESCRIPTION = `The hurl script to execute. Hurl is a command-line tool for running HTTP requests written in a simple text format. A script can contain one or more requests.
+Example Script:
+GET http://example.com/api/resource
+Accept: application/json
 
-Example Hurl script:
-GET http://api.example.com/users
-HTTP 200
-
-[Captures]
-userId: jsonpath("$.id")
-
-POST http://api.example.com/posts
-Content-Type: application/json
-
-{
-    "userId": "{{userId}}",
-    "title": "New Post",
-    "content": "This post belongs to the user captured from the previous request"
-}
-HTTP 201
-
-When defining a request body in Hurl, you must follow strict syntax rules. For simple bodies (e.g., JSON), you can write them directly after a blank line. However, for complex or multi-line raw bodies (such as multipart/form-data, raw HTTP payloads, or content containing special characters), you MUST wrap the entire body inside triple backticks (\`\`\`).
-
-This ensures the Hurl parser treats the content as a literal body instead of interpreting lines as new requests or syntax elements. Failing to do this will result in parsing errors (e.g., "invalid HTTP method").
-
-Example (standard JSON body):
 POST http://example.com/api
 Content-Type: application/json
 
 {
-  "name": "test"
+  "name": "try-it"
 }
+
+When defining a request body in Hurl, you must follow strict syntax rules. For simple bodies (e.g., JSON), you can write them directly after a blank line. However, for complex or multi-line raw bodies (such as multipart/form-data, raw HTTP payloads, or content containing special characters), you MUST wrap the entire body inside triple backticks (\`\`\`).
+Failing to do this will result in parsing errors (e.g., "invalid HTTP method").
 
 Example (raw multipart body using triple backticks):
 POST http://example.com/upload
@@ -58,7 +42,7 @@ Content-Type: multipart/form-data; boundary=----Boundary123
 
 \`\`\`
 ------Boundary123
-Content-Disposition: form-data; name="file"; filename="test.txt"
+Content-Disposition: form-data; name="file"; filename="sample.txt"
 Content-Type: text/plain
 
 hello world
@@ -70,13 +54,13 @@ Use triple backticks whenever the body spans multiple structured lines or includ
 Avoid using unnecessary newlines in the hurl script, as they can lead to parsing issues.
 `;
 function prepareHurlScript(input: HURLInput): string {
-	// Attaching the test scenario as a comment at the top of the Hurl script
-    return `# @collectionName ${input.testScenario}\n${input.hurlScript}`;
+	// Attaching the try-it scenario as a comment at the top of the Hurl script
+    return `# @collectionName ${input.tryItScenario}\n${input.hurlScript}`;
 }
 
 export const HURLInputSchema = z.object({
     hurlScript: z.string().describe(TOOL_DESCRIPTION),
-    testScenario: z.string().max(30).describe("A short description of the test scenario being executed. This is used for logging and reporting purposes to provide context about the Hurl script execution.")
+    tryItScenario: z.string().max(30).describe("A short description of the try-it scenario being executed. This is used for logging and reporting purposes to provide context about the Hurl script execution.")
 });
 
 export type HURLInput = z.infer<typeof HURLInputSchema>;
@@ -96,11 +80,6 @@ type HurlToolOutput = {
     output: {
         status: string;
         durationMs: number;
-        summary: {
-            totalEntries: number;
-            passedEntries: number;
-            failedEntries: number;
-        };
         entries: Array<{
             name: string;
             method?: string;
@@ -123,10 +102,28 @@ type HurlToolOutput = {
     };
 };
 
+type RawHurlToolOutput = HurlToolOutput & {
+    output: HurlToolOutput["output"] & {
+        summary?: {
+            totalEntries: number;
+            passedEntries: number;
+            failedEntries: number;
+        };
+    };
+};
+
+function removeSummaryFromHurlOutput(response: RawHurlToolOutput): HurlToolOutput {
+    const { summary: _summary, ...outputWithoutSummary } = response.output;
+    return {
+        ...response,
+        output: outputWithoutSummary
+    };
+}
+
 
 export function createHurlTool(eventHandler: CopilotEventHandler) {
     return tool({
-        description: `A tool to execute Hurl scripts. The input is a Hurl script as a string. The output includes the execution results, including request details, response details, assertion results, and any warnings. Use this tool to try out endpoints, or to execute HTTP test scenarios.`,
+        description: `A tool to execute Hurl scripts. The input is a Hurl script as a string. The output includes the execution results, including response details. Use this tool to try out HTTP endpoints. Prefer requests without assertions for simple try-it scenarios ( without including status code assertions such as HTTP 200 or other types of assertions)`,
         inputSchema: HURLInputSchema,
         execute: async (input): Promise<HurlToolOutput> => await executeHurlRequest(input, eventHandler)
     });
@@ -139,13 +136,14 @@ export const executeHurlRequest = async (input: HURLInput, eventHandler: Copilot
 		eventHandler({
             type: "tool_call",
             toolName: HURL_TOOL_NAME,
-            toolInput: { hurlScript: input.hurlScript, scenario: input.testScenario },
+            toolInput: { hurlScript: input.hurlScript, scenario: input.tryItScenario },
             toolCallId
         });
 		const lmToolResult = await vscode.lm.invokeTool(HURL_LM_TOOL_NAME, { input: { hurlScript }, toolInvocationToken: undefined });
         const resultTextPart = (lmToolResult.content[0] as vscode.LanguageModelTextPart);
-        const response: HurlToolOutput = JSON.parse(resultTextPart.value);
-		const toolOutput = { hurlScript: input.hurlScript, scenario: input.testScenario, runResult: response };
+        const rawResponse: RawHurlToolOutput = JSON.parse(resultTextPart.value);
+        const response = removeSummaryFromHurlOutput(rawResponse);
+		const toolOutput = { hurlScript: input.hurlScript, scenario: input.tryItScenario, runResult: response };
 		eventHandler({
             type: "tool_result",
             toolName: HURL_TOOL_NAME,
@@ -161,16 +159,11 @@ export const executeHurlRequest = async (input: HURLInput, eventHandler: Copilot
 			output: {
 				status: "error",
 				durationMs: 0,
-				summary: {
-					totalEntries: 0,
-					passedEntries: 0,
-					failedEntries: 0
-				},
 				entries: [],
 				warnings: [`Failed to execute Hurl script. Error: ${error instanceof Error ? error.message : String(error)}`]
 			}
         };
-        const toolOutput = { hurlScript: input.hurlScript, scenario: input.testScenario, runResult: genericErrorOutput };
+        const toolOutput = { hurlScript: input.hurlScript, scenario: input.tryItScenario, runResult: genericErrorOutput };
         eventHandler({
             type: "tool_result",
             toolName: HURL_TOOL_NAME,
