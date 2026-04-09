@@ -86,6 +86,9 @@ public class ModelToJsonConverter {
             if (library.getInstructions() != null) {
                 json.addProperty("instructions", library.getInstructions());
             }
+            if (library.getReadme() != null) {
+                json.addProperty("readme", library.getReadme());
+            }
 
             // Always include collections (empty array if null or empty)
             json.add("typeDefs", library.getTypeDefs() != null
