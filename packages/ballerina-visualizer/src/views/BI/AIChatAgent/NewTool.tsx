@@ -18,7 +18,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
-import { EVENT_TYPE, FlowNode } from "@wso2/ballerina-core";
+import { EVENT_TYPE, FlowNode, Property } from "@wso2/ballerina-core";
 import { NodePosition } from "@wso2/syntax-tree";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { AIAgentSidePanel, ExtendedAgentToolRequest } from "./AIAgentSidePanel";
@@ -186,6 +186,22 @@ export function NewTool(props: NewToolProps): JSX.Element {
                     endLine: agentNode.codedata.lineRange.startLine,
                 };
             }
+
+            // Merge parameter type imports onto a flowNode property so genTool includes them
+            console.log(">>> parameter imports", { parameterImports: data.parameterImports, flowNode });
+            if (data.parameterImports && flowNode.properties) {
+                const props = flowNode.properties as Record<string, Property>;
+                const targetKey = props["type"] ? "type" : Object.keys(props)[0];
+                if (targetKey && props[targetKey]) {
+                    // Strip version suffix to match the format the backend expects (e.g. "ballerina/time" not "ballerina/time:2.8.0")
+                    const cleanedImports: Record<string, string> = {};
+                    for (const [prefix, moduleId] of Object.entries(data.parameterImports)) {
+                        cleanedImports[prefix] = moduleId.replace(/:[^/]+$/, "");
+                    }
+                    props[targetKey].imports = { ...props[targetKey].imports, ...cleanedImports };
+                }
+            }
+
             const toolResponse = await rpcClient.getAIAgentRpcClient().genTool({
                 toolName: data.toolName,
                 description: data.description,

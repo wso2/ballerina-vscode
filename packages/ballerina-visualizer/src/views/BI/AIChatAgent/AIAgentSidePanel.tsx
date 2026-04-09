@@ -18,7 +18,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { NodeList, Category as PanelCategory, FormField, FormValues } from "@wso2/ballerina-side-panel";
+import { NodeList, Category as PanelCategory, FormField, FormImports, FormValues } from "@wso2/ballerina-side-panel";
 import {
     BIAvailableNodesRequest,
     Category,
@@ -50,7 +50,8 @@ import {
     convertConfig,
     convertFunctionCategoriesToSidePanelCategories,
     convertNodePropertyToFormField,
-    filterToolInputSymbolDiagnostics
+    filterToolInputSymbolDiagnostics,
+    getImportsForProperty
 } from "../../../utils/bi";
 import ArtifactForm from "../Forms/ArtifactForm";
 import { RelativeLoader } from "../../../components/RelativeLoader";
@@ -135,6 +136,7 @@ export interface BIFlowDiagramProps {
 export interface ExtendedAgentToolRequest extends AgentToolRequest {
     functionNode?: FunctionNode;
     flowNode?: FlowNode;
+    parameterImports?: { [prefix: string]: string };
 }
 
 // Ensure "io", "log", and "time" module functions always appear under "Standard Library",
@@ -641,7 +643,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
         return newToolParameters;
     };
 
-    const handleToolSubmit = (data: FormValues) => {
+    const handleToolSubmit = (data: FormValues, formImports?: FormImports) => {
         // Safely convert name to camelCase, handling any input
         const name = data["name"] || "";
         const cleanName = name.trim().replace(/[^a-zA-Z0-9]/g, "") || "newTool";
@@ -757,6 +759,9 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
         console.log(">>> clonedFunctionNode", { clonedFunctionNode });
         console.log(">>> clonedFlowNode", { clonedFlowNode });
 
+        // Extract parameter type imports so they can be added after genTool
+        const paramImports = formImports ? getImportsForProperty("parameters", formImports) : undefined;
+
         const toolModel: ExtendedAgentToolRequest = {
             toolName: cleanName,
             description: data["description"],
@@ -764,6 +769,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             toolParameters: toolParameters,
             functionNode: clonedFunctionNode,
             flowNode: clonedFlowNode,
+            parameterImports: paramImports,
         };
         console.log("New Agent Tool:", toolModel);
         onSubmit(toolModel);
