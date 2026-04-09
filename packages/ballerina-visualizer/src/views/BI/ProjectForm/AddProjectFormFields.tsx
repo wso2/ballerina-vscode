@@ -116,7 +116,7 @@ export function AddProjectFormFields({
     useEffect(() => {
         const error = validateComponentName(formData.integrationName, formData.isLibrary);
         setIntegrationNameError(error);
-    }, [formData.integrationName]);
+    }, [formData.integrationName, formData.isLibrary]);
 
     // Effect to trigger validation when requested by parent
     useEffect(() => {

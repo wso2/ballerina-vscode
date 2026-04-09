@@ -713,11 +713,12 @@ export function PackageOverview(props: PackageOverviewProps) {
 
     useEffect(() => {
         if (!rpcClient) return;
-        rpcClient.onProjectContentUpdated((state: boolean) => {
+        const unsubscribe = rpcClient.onProjectContentUpdated((state: boolean) => {
             if (state) {
                 fetchContextRef.current();
             }
         });
+        return unsubscribe;
     }, [rpcClient]);
 
     const deployableIntegrationTypes = useMemo(() => {

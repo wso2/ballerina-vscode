@@ -113,7 +113,7 @@ export const validateComponentName = (name: string, isLibrary: boolean): string 
         return `${componentType} name cannot contain special characters`;
     }
     if (name.length < 3) {
-        return `${componentType} name must be least 3 characters`;
+        return `${componentType} name must be at least 3 characters`;
     }
     if (name.length > COMPONENT_NAME_MAX_LENGTH) {
         return `${componentType} name cannot exceed ${COMPONENT_NAME_MAX_LENGTH} characters`;
