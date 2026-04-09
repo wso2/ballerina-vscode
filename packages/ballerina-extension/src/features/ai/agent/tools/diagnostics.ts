@@ -1,7 +1,7 @@
 import { tool } from 'ai';
 import { z } from 'zod';
-import * as path from 'path';
 import { checkCompilationErrors, DiagnosticsCheckResult } from './diagnostics-utils';
+import { resolvePackageBasePath } from './path-utils';
 import { CopilotEventHandler } from '../../utils/events';
 
 export const DIAGNOSTICS_TOOL_NAME = "getCompilationErrors";
@@ -56,10 +56,26 @@ The tool analyzes the entire Ballerina package and returns:
                 toolName: DIAGNOSTICS_TOOL_NAME,
             });
 
-            // Resolve the target path: append packagePath for workspace projects
-            const targetPath = packagePath
-                ? path.join(tempProjectPath, packagePath)
-                : tempProjectPath;
+            // Validate and resolve packagePath. The helper rejects directory
+            // traversal and requires packagePath for workspace projects, so an
+            // agent-supplied path can never escape tempProjectPath and steer
+            // the language server at an unrelated directory on disk.
+            let targetPath: string;
+            try {
+                targetPath = resolvePackageBasePath(tempProjectPath, packagePath);
+            } catch (e: any) {
+                console.error("[Diagnostics] Invalid packagePath:", e?.message);
+                const errorResult: DiagnosticsCheckResult = {
+                    diagnostics: [],
+                    message: e?.message ?? "Invalid packagePath",
+                };
+                eventHandler({
+                    type: "tool_result",
+                    toolName: DIAGNOSTICS_TOOL_NAME,
+                    toolOutput: errorResult,
+                });
+                return errorResult;
+            }
 
 
             const DIAGNOSTICS_TIMEOUT_MS = 3 * 60 * 1000; // 3 minutes
