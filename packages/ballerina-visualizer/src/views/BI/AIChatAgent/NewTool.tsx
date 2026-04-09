@@ -250,6 +250,9 @@ export function NewTool(props: NewToolProps): JSX.Element {
             // Generate the source code
             await rpcClient.getBIDiagramRpcClient().getSourceCode({ filePath, flowNode: updatedAgentNode });
 
+            // Safety net: fix any missing imports after all edits are applied
+            await rpcClient.getAIAgentRpcClient().fixMissingImports();
+
             // Invalidate cache so the updated agent node is re-fetched next time
             agentNodeCache.delete(getAgentCacheKey(agentCallNode));
             onSave?.();
