@@ -199,11 +199,17 @@ function createICPTask(icpPath: string): vscode.Task {
             onDidWrite: writeEmitter.event,
             onDidClose: closeEmitter.event,
             open: () => {
-                icpProcess = cp.spawn(icpPath, [], {
-                    shell: true,
-                    detached: true,
-                    env: { ...process.env },
-                });
+                icpProcess = process.platform === 'win32'
+                    ? cp.spawn(icpPath, [], {
+                        shell: true,
+                        detached: true,
+                        windowsHide: true,
+                        env: { ...process.env },
+                    })
+                    : cp.spawn('sh', [icpPath], {
+                        detached: true,
+                        env: { ...process.env },
+                    });
 
                 icpProcess.on('error', (err) => {
                     writeEmitter.fire(`Failed to start ICP: ${err.message}\r\n`);
