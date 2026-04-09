@@ -20,6 +20,7 @@ package io.ballerina.flowmodelgenerator.core.utils;
 
 import com.google.gson.Gson;
 import io.ballerina.flowmodelgenerator.core.model.AnnotationAttachment;
+import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.Function;
 import io.ballerina.flowmodelgenerator.core.model.Member;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
@@ -125,8 +126,13 @@ public class SourceCodeGenerator {
             docs = generateDocs(typeData.metadata().description(), "");
         }
         String annots = "";
-        if (typeData.annotationAttachments() != null && !typeData.annotationAttachments().isEmpty()) {
-            annots = typeData.annotationAttachments().stream()
+        List<AnnotationAttachment> annotationAttachments = typeData.annotationAttachments();
+        if (annotationAttachments != null && !annotationAttachments.isEmpty()) {
+            annotationAttachments.forEach(annot -> {
+                addCodedataImports(annot.codedata());
+            });
+
+            annots = annotationAttachments.stream()
                     .map(annot -> annot.toString() + LS)
                     .collect(Collectors.joining());
         }
@@ -157,6 +163,7 @@ public class SourceCodeGenerator {
         StringBuilder annotationsBuilder = new StringBuilder();
         for (AnnotationAttachment annot : annotAttachments) {
             annotationsBuilder.append(annot.toString()).append(" ");
+            addCodedataImports(annot.codedata());
         }
 
         return annotationsBuilder + generateTypeDescriptor(typeData);
@@ -244,7 +251,7 @@ public class SourceCodeGenerator {
 
     private String generateFieldMember(Member member, boolean withDefaultValue) {
         // Add the imports
-        addMemberImports(member);
+        addImports(member.imports());
 
         StringBuilder stringBuilder = new StringBuilder();
         String docs = generateDocs(member.docs(), "\t");
@@ -258,7 +265,7 @@ public class SourceCodeGenerator {
 
     private String generateAnnotatedFieldMember(Member member, boolean withDefaultValue) {
         // Add the imports
-        addMemberImports(member);
+        addImports(member.imports());
 
         // Docs
         String docs = generateDocs(member.docs(), "\t");
@@ -266,6 +273,7 @@ public class SourceCodeGenerator {
         // Annotation
         StringBuilder annotationsBuilder = new StringBuilder();
         for (AnnotationAttachment annot : getAnnotationAttachments(member)) {
+            addCodedataImports(annot.codedata());
             annotationsBuilder.append("\t").append(annot.toString()).append(LS);
         }
 
@@ -428,7 +436,7 @@ public class SourceCodeGenerator {
 
     private String generateTypeFromMember(Member member) {
         // Add the imports
-        addMemberImports(member);
+        addImports(member.imports());
 
         // Generate the type descriptor
         return generateTypeDescriptor(member.type());
@@ -442,7 +450,7 @@ public class SourceCodeGenerator {
 
     private String generateFunctionParameter(Member member, boolean withDefaultValue) {
         // Add the imports
-        addMemberImports(member);
+        addImports(member.imports());
 
         // Annotation and type descriptor
         List<AnnotationAttachment> copyOfAnnotAttachments = getAnnotationAttachments(member);
@@ -474,6 +482,10 @@ public class SourceCodeGenerator {
             copyOfAnnotAttachments.add(new AnnotationAttachment(
                     TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX,
                     TypeUtils.GRAPHQL_ID_ANNOTATION_NAME,
+                    new Codedata.Builder<>(null)
+                            .org(TypeUtils.BALLERINA_ORG)
+                            .module(TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX)
+                            .build(),
                     null
             ));
         }
@@ -515,7 +527,7 @@ public class SourceCodeGenerator {
 
     private String generateResourceFunction(Function function) {
         // Add the imports
-        addFunctionImports(function);
+        addImports(function.imports());
 
         String docs = generateDocs(function.description(), "\t");
 
@@ -530,6 +542,10 @@ public class SourceCodeGenerator {
             returnTypeAnnotAttachments.add(new AnnotationAttachment(
                     TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX,
                     TypeUtils.GRAPHQL_ID_ANNOTATION_NAME,
+                    new Codedata.Builder<>(null)
+                            .org(TypeUtils.BALLERINA_ORG)
+                            .module(TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX)
+                            .build(),
                     null
             ));
         }
@@ -577,36 +593,24 @@ public class SourceCodeGenerator {
     }
 
     /**
-     * Helper method to add imports from a member to the imports map.
+     * Helper method to add imports derived from a {@link Codedata} instance to the imports map.
      *
-     * @param member The member whose imports need to be added
+     * @param codedata The codedata containing module/org info for import resolution
      */
-    private void addMemberImports(Member member) {
-        if (Objects.nonNull(member.imports())) {
-            member.imports().forEach(this.imports::putIfAbsent);
-        }
-
-        // Add GraphQL import when GraphQL ID annotation is used
-        if (member.isGraphqlId()) {
-            this.imports.putIfAbsent(TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX,
-                    TypeUtils.BALLERINA_ORG + "/" + TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX);
+    private void addCodedataImports(Codedata codedata) {
+        if (codedata != null && codedata.org() != null && codedata.module() != null) {
+            this.imports.putIfAbsent(codedata.getModulePrefix(), codedata.getImportSignature());
         }
     }
 
     /**
-     * Helper method to add imports from a function to the imports map.
+     * Helper method to add imports.
      *
-     * @param function The function whose imports need to be added
+     * @param imports The imports need to be added
      */
-    private void addFunctionImports(Function function) {
-        if (Objects.nonNull(function.imports())) {
-            function.imports().forEach(this.imports::putIfAbsent);
-        }
-
-        // Add GraphQL import when GraphQL ID annotation is used on function return type
-        if (function.isGraphqlId()) {
-            this.imports.putIfAbsent(TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX,
-                    TypeUtils.BALLERINA_ORG + "/" + TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX);
+    private void addImports(Map<String, String> imports) {
+        if (Objects.nonNull(imports)) {
+            imports.forEach(this.imports::putIfAbsent);
         }
     }
 }
