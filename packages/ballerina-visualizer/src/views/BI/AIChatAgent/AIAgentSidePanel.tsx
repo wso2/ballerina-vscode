@@ -50,7 +50,7 @@ import {
     convertNodePropertyToFormField,
     filterToolInputSymbolDiagnostics
 } from "../../../utils/bi";
-import FormGeneratorNew from "../Forms/FormGeneratorNew";
+import ArtifactForm from "../Forms/ArtifactForm";
 import { RelativeLoader } from "../../../components/RelativeLoader";
 import styled from "@emotion/styled";
 import { URI, Utils } from "vscode-uri";
@@ -683,7 +683,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 />
             )}
             {sidePanelView === SidePanelView.TOOL_FORM && (
-                <FormGeneratorNew
+                <ArtifactForm
                     preserveFieldOrder={false}
                     fileName={agentFilePath.current}
                     targetLineRange={{ startLine: { line: 0, offset: 0 }, endLine: { line: 0, offset: 0 } }}

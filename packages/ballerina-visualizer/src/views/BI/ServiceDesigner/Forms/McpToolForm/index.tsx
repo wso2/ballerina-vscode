@@ -30,7 +30,7 @@ import {
 } from "@wso2/ballerina-core";
 import { FormField, FormImports, FormValues, Parameter } from "@wso2/ballerina-side-panel";
 import { getImportsForProperty } from "../../../../../utils/bi";
-import FormGeneratorNew from "../../../Forms/FormGeneratorNew";
+import ArtifactForm from "../../../Forms/ArtifactForm";
 
 interface McpToolFormProps {
     model: FunctionModel;
@@ -270,7 +270,7 @@ export function McpToolForm(props: McpToolFormProps) {
     return (
         <>
             {fields.length > 0 && (
-                <FormGeneratorNew
+                <ArtifactForm
                     fileName={filePath}
                     targetLineRange={lineRange}
                     fields={fields}
