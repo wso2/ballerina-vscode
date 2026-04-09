@@ -20,9 +20,10 @@ import React, { useState, useEffect } from "react";
 import styled from "@emotion/styled";
 import { keyframes } from "@emotion/css";
 import AIChatInput, { AIChatInputRef, TagOptions } from "../../AIChatInput";
+import { RunningServicesPanel } from "../../AIChatInput/RunningServicesChip";
 import { Input } from "../../AIChatInput/utils/inputUtils";
 import { AIPanelPrompt, Attachment, TemplateId, CodeContext } from "@wso2/ballerina-core";
-import { commandTemplates, suggestedCommandTemplates } from "../../../commandTemplates/data/commandTemplates.const";
+import { commandTemplates, suggestedCommandTemplates as defaultSuggestedCommandTemplates } from "../../../commandTemplates/data/commandTemplates.const";
 import { AttachmentOptions } from "../../AIChatInput/hooks/useAttachments";
 import { getTemplateTextById } from "../../../commandTemplates/utils/utils";
 import CodeContextCard from "../../CodeContextCard";
@@ -149,6 +150,7 @@ type FooterProps = {
     aiChatInputRef: React.RefObject<AIChatInputRef>;
     tagOptions: TagOptions;
     attachmentOptions: AttachmentOptions;
+    suggestedCommandTemplates?: AIPanelPrompt[];
     inputPlaceholder: string;
     onSend: (content: { input: Input[]; attachments: Attachment[]; metadata?: Record<string, any> }) => Promise<void>;
     onStop: () => void;
@@ -164,13 +166,15 @@ type FooterProps = {
     isWebToolsEnabled?: boolean;
     onToggleWebSearch?: () => void;
     disabled?: boolean;
-    contextUsage?: { inputTokens: number; percentage: number; breakdown?: { systemInstructions: number; toolDefinitions: number; reservedOutput: number; messages: number; toolResults: number } } | null;
+    contextUsage?: { inputTokens: number; percentage: number; breakdown?: { systemInstructions: number; toolDefinitions: number; reservedOutput: number; files: number; messages: number; toolResults: number } } | null;
+    runningServicesPanel?: RunningServicesPanel;
 };
 
 const Footer: React.FC<FooterProps> = ({
     aiChatInputRef,
     tagOptions,
     attachmentOptions,
+    suggestedCommandTemplates,
     inputPlaceholder,
     onSend,
     onStop,
@@ -187,7 +191,9 @@ const Footer: React.FC<FooterProps> = ({
     onToggleWebSearch,
     disabled,
     contextUsage,
+    runningServicesPanel,
 }) => {
+    const footerSuggestedCommandTemplates = suggestedCommandTemplates ?? defaultSuggestedCommandTemplates;
     const [animatedText, setAnimatedText] = useState("Generating.");
 
     useEffect(() => {
@@ -215,7 +221,7 @@ const Footer: React.FC<FooterProps> = ({
         <FooterContainer>
             {showSuggestedCommands && (
                 <SuggestedCommandsWrapper>
-                    {suggestedCommandTemplates.map((item, index) => renderPrompt(item, index, aiChatInputRef))}
+                    {footerSuggestedCommandTemplates.map((item, index) => renderPrompt(item, index, aiChatInputRef))}
                 </SuggestedCommandsWrapper>
             )}
             {codeContext && onRemoveCodeContext && (
@@ -248,6 +254,7 @@ const Footer: React.FC<FooterProps> = ({
                 onToggleWebSearch={onToggleWebSearch}
                 disabled={disabled}
                 contextUsage={contextUsage}
+                runningServicesPanel={runningServicesPanel}
             />
             <DisclaimerText visible={!showSuggestedCommands}>
                 AI-generated content may contain mistakes. Always review changes.

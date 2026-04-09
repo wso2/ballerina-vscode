@@ -20,7 +20,7 @@ import styled from "@emotion/styled";
 import { Icon } from "@wso2/ui-toolkit";
 
 interface AIBadgeProps {
-    type: 'invoke' | 'chat' | 'tool' | 'other';
+    type: 'invoke' | 'chat' | 'tool' | 'kb_retrieve' | 'kb_ingest' | 'embeddings' | 'generate_content' | 'other';
 }
 
 const AISpanBadge = styled.span<{ type: string }>`
@@ -38,6 +38,10 @@ const AISpanBadge = styled.span<{ type: string }>`
             case 'invoke': return 'var(--vscode-terminal-ansiCyan)';
             case 'chat': return 'var(--vscode-terminalSymbolIcon-optionForeground)';
             case 'tool': return 'var(--vscode-terminal-ansiBrightMagenta)';
+            case 'kb_retrieve': return 'var(--vscode-charts-purple)';
+            case 'kb_ingest': return 'var(--vscode-charts-purple)';
+            case 'embeddings': return 'var(--vscode-terminalSymbolIcon-optionForeground)';
+            case 'generate_content': return 'var(--vscode-charts-green)';
             default: return 'var(--vscode-badge-foreground)';
         }
     }};
@@ -54,6 +58,10 @@ export function AIBadge({ type }: AIBadgeProps) {
             case 'invoke': return 'bi-ai-agent';
             case 'chat': return 'bi-chat';
             case 'tool': return 'bi-wrench';
+            case 'kb_retrieve': return 'bi-ai-search';
+            case 'kb_ingest': return 'bi-import';
+            case 'embeddings': return 'bi-ai-model';
+            case 'generate_content': return 'bi-doc';
             default: return 'bi-action';
         }
     };

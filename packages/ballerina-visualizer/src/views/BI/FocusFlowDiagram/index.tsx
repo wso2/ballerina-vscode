@@ -159,6 +159,16 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
 
                             if (node?.functionDefinition) {
                                 const flowNode = getFlowNodeForNaturalFunction(node.functionDefinition);
+                                // Enrich model provider metadata with icon URL from connections
+                                const modelProviderValue = flowNode.properties?.modelProvider?.value as string;
+                                if (modelProviderValue && Array.isArray(model.flowModel.connections)) {
+                                    const matchingConnection = model.flowModel.connections.find(
+                                        (c: any) => c?.properties?.variable?.value === modelProviderValue
+                                    );
+                                    if (matchingConnection?.metadata?.icon && flowNode.properties?.modelProvider?.metadata?.data) {
+                                        (flowNode.properties.modelProvider.metadata.data as any).iconUrl = matchingConnection.metadata.icon;
+                                    }
+                                }
                                 model.flowModel.nodes.push(flowNode);
                                 setModel(model.flowModel);
                                 const parentMetadata = model.flowModel.nodes.find(

@@ -185,7 +185,9 @@ export function ComponentDiagram(props: ComponentDiagramProps) {
         setIsDeleting(true);
         try {
             // If deleting an AI service, remove associated agent nodes first
-            if ((component as CDService).type === "ai:Service") {
+            // Skip for test chat services (_agent_chat.bal) — they wrap existing agents that shouldn't be deleted
+            const isTestChatService = (component as CDService).location?.filePath?.endsWith('_agent_chat.bal');
+            if ((component as CDService).type === "ai:Service" && !isTestChatService) {
                 await removeAgentNodesForService(component as CDService);
             }
 
@@ -242,6 +244,14 @@ export function ComponentDiagram(props: ComponentDiagramProps) {
                             onAutomationSelect={handleGoToAutomation}
                             onConnectionSelect={handleGoToConnection}
                             onDeleteComponent={handleDeleteComponent}
+                            onCleanupTestServices={
+                                project.services?.some(s => s.location?.filePath?.endsWith('_agent_chat.bal'))
+                                    ? async () => {
+                                        const deleted = await rpcClient.getBIDiagramRpcClient().cleanupAgentChatServices();
+                                        if (deleted) { fetchProject(); }
+                                    }
+                                    : undefined
+                            }
                         />
                     )}
                 </>

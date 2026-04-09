@@ -37,6 +37,7 @@ import {
     ApprovalOverlayState,
     WebToolToggle,
     LoginMethod,
+    RunningServiceInfo,
 } from "@wso2/ballerina-core";
 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -108,6 +109,26 @@ const MessageBody = styled.div<{ isUserMessage: boolean }>(({ isUserMessage }: {
     background: isUserMessage ? "var(--vscode-editor-inactiveSelectionBackground)" : "transparent",
     overflowWrap: "anywhere",
 }));
+
+const CompactionNoticeContainer = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--vscode-textCodeBlock-background);
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 4px;
+    padding: 6px 12px;
+    margin: 6px 0;
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+`;
+
+const CompactionNotice: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+    <CompactionNoticeContainer>
+        <span className="codicon codicon-fold" role="img" />
+        {children}
+    </CompactionNoticeContainer>
+);
 
 // ── Agent stream serialization ────────────────────────────────────────────────
 
@@ -202,6 +223,8 @@ const AIChat: React.FC = () => {
 
     const [currentFileArray, setCurrentFileArray] = useState<SourceFile[]>([]);
     const [codeContext, setCodeContext] = useState<CodeContext | undefined>(undefined);
+    const [footerSuggestedCommandTemplates, setFooterSuggestedCommandTemplates] = useState<AIPanelPrompt[] | undefined>(undefined);
+    const [footerInputPlaceholder, setFooterInputPlaceholder] = useState("Describe your integration...");
 
     const [migrationSession, setMigrationSession] = useState<ActiveMigrationSession | null>(null);
     const [isMigrationEnhancementRunning, setIsMigrationEnhancementRunning] = useState(false);
@@ -212,9 +235,11 @@ const AIChat: React.FC = () => {
     const [contextUsage, setContextUsage] = useState<{
         inputTokens: number;
         percentage: number;
-        breakdown?: { systemInstructions: number; toolDefinitions: number; reservedOutput: number; messages: number; toolResults: number };
+        breakdown?: { systemInstructions: number; toolDefinitions: number; reservedOutput: number; files: number; messages: number; toolResults: number };
     } | null>(null);
     const [showContextUsage, setShowContextUsage] = useState(false);
+
+    const [runningServices, setRunningServices] = useState<RunningServiceInfo[]>([]);
 
     //TODO: Need a better way of storing data related to last generation to be in the repair state.
     const currentDiagnosticsRef = useRef<DiagnosticEntry[]>([]);
@@ -267,7 +292,10 @@ const AIChat: React.FC = () => {
 
                         // Handle plan mode for text-type prompts
                         if (defaultPrompt.type === 'text') {
+                            const textPrompt = defaultPrompt;
                             setAgentMode(defaultPrompt.planMode ? AgentMode.Plan : AgentMode.Edit);
+                            setFooterSuggestedCommandTemplates(textPrompt.suggestedCommandTemplates);
+                            setFooterInputPlaceholder(textPrompt.inputPlaceholder ?? "Describe your integration...");
 
                             if (defaultPrompt.autoSubmit && defaultPrompt.text.trim().length > 0) {
                                 void handleSend({
@@ -276,6 +304,9 @@ const AIChat: React.FC = () => {
                                 });
                                 return;
                             }
+                        } else {
+                            setFooterSuggestedCommandTemplates(undefined);
+                            setFooterInputPlaceholder("Describe your integration...");
                         }
 
                         aiChatInputRef.current?.setInputContent(defaultPrompt);
@@ -418,6 +449,43 @@ const AIChat: React.FC = () => {
             setIsWebToolsEnabled(payload.active ? true : userWebSearchPreferenceRef.current);
         });
     }, [rpcClient]);
+
+    // Initial fetch covers services started before the webview opened;
+    // the subscription keeps the list live for the rest of the session.
+    useEffect(() => {
+        let cancelled = false;
+        rpcClient.getAiPanelRpcClient().getRunningServices().then((services) => {
+            if (!cancelled) {
+                setRunningServices(services);
+            }
+        }).catch(() => { /* manager not initialized yet */ });
+        const disposeListener = rpcClient.onRunningServicesChanged((services: RunningServiceInfo[]) => {
+            setRunningServices(services);
+        });
+        return () => {
+            cancelled = true;
+            disposeListener();
+        };
+    }, [rpcClient]);
+
+    const handleStopRunningService = async (taskId: string) => {
+        try {
+            await rpcClient.getAiPanelRpcClient().stopRunningService({ taskId });
+        } catch (err) {
+            console.error("Failed to stop running service", err);
+        }
+    };
+
+    const handleStopAllRunningServices = async () => {
+        const active = runningServices.filter((s) => !s.exited);
+        await Promise.all(
+            active.map((s) =>
+                rpcClient.getAiPanelRpcClient().stopRunningService({ taskId: s.taskId }).catch((err) => {
+                    console.error("Failed to stop running service", err);
+                })
+            )
+        );
+    };
 
     /**
      * Effect: Load initial chat history from aiChatMachine context
@@ -761,12 +829,21 @@ const AIChat: React.FC = () => {
         } else if (type === "compaction_start") {
             setIsCompacting(true);
 
-        } else if (type === "compaction_end" || type === "compaction_failed") {
+        } else if (type === "compaction_end") {
             setIsCompacting(false);
-            // Compaction wipes pre-compaction generations — refresh so restore buttons disappear
-            rpcClient.getAiPanelRpcClient().getCheckpoints()
-                .then(cps => setAvailableCheckpointIds(new Set(cps.map(cp => cp.id))))
-                .catch(() => {});
+
+        } else if (type === "compaction_disabled") {
+            setIsCompacting(false);
+            setMessages(prevMessages => {
+                const msgs = [...prevMessages];
+                const targetIndex = ensureAssistantMessage(msgs);
+                const last = msgs[targetIndex];
+                msgs[targetIndex] = {
+                    ...last,
+                    content: last.content + "\n<compaction>Your project is large — automatic context compaction is disabled. You may hit the context limit on long sessions. Start a new thread if that happens.</compaction>"
+                };
+                return msgs;
+            });
 
         } else if (type === "usage_metrics") {
             const inputTokens = (response as any).usage?.inputTokens ?? 0;
@@ -789,6 +866,7 @@ const AIChat: React.FC = () => {
             setIsLoading(false);
             setIsMigrationEnhancementRunning(false);
             fetchUsage();
+            setAgentMode(AgentMode.Edit);
 
         } else if (type === "abort") {
             console.log("Received abort signal");
@@ -1990,6 +2068,8 @@ const AIChat: React.FC = () => {
                                                 );
                                             } else if (segment.type === SegmentType.References) {
                                                 return <ReferenceDropdown key={`references-${i}`} links={JSON.parse(segment.text)} />;
+                                            } else if (segment.type === SegmentType.Compaction) {
+                                                return <CompactionNotice key={`compaction-${i}`}>{segment.text}</CompactionNotice>;
                                             } else {
                                                 if (message.type === "Error") {
                                                     return <ErrorBox key={`error-${i}`}>{segment.text}</ErrorBox>;
@@ -2063,34 +2143,40 @@ const AIChat: React.FC = () => {
                         }
                         return (
                             <Footer
-                                aiChatInputRef={aiChatInputRef}
-                                tagOptions={{
-                                    placeholderTags: placeholderTags,
-                                    loadGeneralTags: loadGeneralTags,
-                                    injectPlaceholderTags: injectPlaceholderTags,
-                                }}
-                                attachmentOptions={{
-                                    multiple: true,
-                                    acceptResolver: acceptResolver,
-                                    handleAttachmentSelection: handleAttachmentSelection,
-                                }}
-                                inputPlaceholder="Describe your integration..."
-                                onSend={handleSend}
-                                onStop={handleStop}
-                                isLoading={isLoading}
-                                loadingLabel={isCompacting ? "Compacting conversation" : undefined}
-                                showSuggestedCommands={Array.isArray(otherMessages) && otherMessages.length === 0}
-                                codeContext={codeContext}
-                                onRemoveCodeContext={() => updateCodeContext(undefined)}
-                                agentMode={agentMode}
-                                onChangeAgentMode={handleChangeAgentMode}
-                                isAutoApproveEnabled={isAutoApproveEnabled}
-                                onDisableAutoApprove={handleToggleAutoApprove}
-                                isWebToolsEnabled={isWebToolsEnabled}
-                                onToggleWebSearch={handleToggleWebSearch}
-                                disabled={isUsageExceeded}
-                                contextUsage={showContextUsage ? contextUsage : null}
-                            />
+                            aiChatInputRef={aiChatInputRef}
+                            tagOptions={{
+                                placeholderTags: placeholderTags,
+                                loadGeneralTags: loadGeneralTags,
+                                injectPlaceholderTags: injectPlaceholderTags,
+                            }}
+                            attachmentOptions={{
+                                multiple: true,
+                                acceptResolver: acceptResolver,
+                                handleAttachmentSelection: handleAttachmentSelection,
+                            }}
+                            suggestedCommandTemplates={footerSuggestedCommandTemplates}
+                            inputPlaceholder={footerInputPlaceholder}
+                            onSend={handleSend}
+                            onStop={handleStop}
+                            isLoading={isLoading}
+                            loadingLabel={isCompacting ? "Compacting conversation" : undefined}
+                            showSuggestedCommands={Array.isArray(otherMessages) && otherMessages.length === 0}
+                            codeContext={codeContext}
+                            onRemoveCodeContext={() => updateCodeContext(undefined)}
+                            agentMode={agentMode}
+                            onChangeAgentMode={handleChangeAgentMode}
+                            isAutoApproveEnabled={isAutoApproveEnabled}
+                            onDisableAutoApprove={handleToggleAutoApprove}
+                            isWebToolsEnabled={isWebToolsEnabled}
+                            onToggleWebSearch={handleToggleWebSearch}
+                            disabled={isUsageExceeded}
+                            contextUsage={showContextUsage ? contextUsage : null}
+                            runningServicesPanel={{
+                                services: runningServices,
+                                onStopService: handleStopRunningService,
+                                onStopAll: handleStopAllRunningServices,
+                            }}
+                        />
                         );
                     })()}
                 </AIChatView>

@@ -61,14 +61,6 @@ The tool analyzes the entire Ballerina package and returns:
                 ? path.join(tempProjectPath, packagePath)
                 : tempProjectPath;
 
-            // For large workspaces the Language Server must compile the full dependency
-            // tree, which can take several minutes.  Notify the user so the stream view
-            // does not appear frozen, and race the LS call against a generous timeout so
-            // the agent is never left waiting indefinitely.
-            eventHandler({
-                type: "content_block",
-                content: "\n\n_Requesting compilation diagnostics from the Language Server — this may take a moment for large workspaces…_\n\n",
-            });
 
             const DIAGNOSTICS_TIMEOUT_MS = 3 * 60 * 1000; // 3 minutes
             const timeoutResult: DiagnosticsCheckResult = {

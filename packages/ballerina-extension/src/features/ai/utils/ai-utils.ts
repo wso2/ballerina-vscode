@@ -346,7 +346,7 @@ export function sendVisualizerMigrationNotification(msg: ChatNotify): void {
 
 export function sendUsageMetricsNotification(
     usage: { inputTokens: number; cacheCreationInputTokens: number; cacheReadInputTokens: number; outputTokens: number },
-    breakdown?: { systemInstructions: number; toolDefinitions: number; reservedOutput: number; messages: number; toolResults: number },
+    breakdown?: { systemInstructions: number; toolDefinitions: number; reservedOutput: number; files: number; messages: number; toolResults: number },
 ): void {
     sendAIPanelNotification({ type: "usage_metrics", usage, breakdown });
 }
