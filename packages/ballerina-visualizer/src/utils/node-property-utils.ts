@@ -121,9 +121,7 @@ export function convertNodePropertyToFormField(
             ? Object.fromEntries(
                 Object.entries(property.dynamicFormFields).map(([optKey, props]) => [
                     optKey,
-                    Object.entries(props).map(([propKey, prop]) =>
-                        convertNodePropertyToFormField(propKey, prop, connections, clientName)
-                    ),
+                    convertNodePropertiesToFormFields(props, connections, clientName),
                 ])
             )
             : undefined,
