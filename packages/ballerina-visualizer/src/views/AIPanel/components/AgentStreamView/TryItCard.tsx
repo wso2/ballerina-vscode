@@ -64,11 +64,13 @@ const RequestRow = styled.div`
 
 const MethodBadge = styled.span<{ method: string }>`
     display: inline-block;
-    padding: 1px 5px;
+    width: 54px;
+    padding: 1px 0;
     border-radius: 3px;
     font-size: 10px;
     font-weight: 700;
     text-transform: uppercase;
+    text-align: center;
     color: #fff;
     background-color: ${(props: { method: string }) => METHOD_COLORS[props.method?.toUpperCase()] ?? "#666"};
     flex-shrink: 0;
@@ -305,11 +307,9 @@ const HTTPEntryRow: React.FC<HTTPEntryRowProps> = ({ entry, request }) => {
     return (
         <>
             <RequestRow>
-                <InlineCardIcon style={{ fontSize: 12, color: isPassed ? "var(--vscode-charts-green, #388a34)" : "var(--vscode-errorForeground)" }}>
-                    <span className={`codicon ${isPassed ? "codicon-check" : "codicon-chrome-close"}`} />
-                </InlineCardIcon>
                 {entry.method && <MethodBadge method={entry.method}>{entry.method}</MethodBadge>}
                 <UrlLabel>{entry.url ?? entry.name}</UrlLabel>
+                {!isPassed && <span style={{fontSize: "14px", fontWeight: 500}} className="codicon codicon-warning" />}
                 {entry.statusCode !== undefined && <StatusBadge status={entry.statusCode}>{entry.statusCode}</StatusBadge>}
                 <Button appearance="icon" onClick={() => setExpanded(p => !p)} tooltip={expanded ? "Collapse" : "Expand"}>
                     <span className={`codicon ${expanded ? "codicon-chevron-up" : "codicon-chevron-down"}`} />
@@ -388,29 +388,17 @@ const HTTPTestScenarioDetail: React.FC<HTTPTestScenarioDetailProps> = ({ loading
                 <InlineCardIcon style={{ fontSize: 12, color: "var(--vscode-charts-blue)" }}>
                     <span className="codicon codicon-loading codicon-modifier-spin" />
                 </InlineCardIcon>
-                <span>Running test scenario...</span>
+                <span>Sending Requests...</span>
             </StatusLine>
         );
     }
 
     if (!output) return null;
 
-    const showSummary = output.entries.length > 1;
     const hasNoEntries = output.entries.length === 0;
 
     return (
         <>
-            {showSummary && <SubHeader>Summary</SubHeader>}
-            {showSummary && (
-                <SummaryStatusLine style={{ marginBottom: 6 }}>
-                    <SummaryDetails>
-                        <span>Total: {output.summary.totalEntries}</span>
-                        <span style={{ color: "var(--vscode-charts-green, #388a34)" }}>Passed: {output.summary.passedEntries}</span>
-                        <span style={{ color: "var(--vscode-errorForeground)" }}>Failed: {output.summary.failedEntries}</span>
-                    </SummaryDetails>
-                </SummaryStatusLine>
-            )}
-
             {hasNoEntries ? (
                 <Section>
                     <SummaryStatusLine style={{ marginBottom: 6 }}>
