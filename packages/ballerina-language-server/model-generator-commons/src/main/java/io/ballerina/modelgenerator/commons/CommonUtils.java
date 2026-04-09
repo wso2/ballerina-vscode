@@ -88,6 +88,7 @@ import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4j.jsonrpc.validation.NonNull;
 import org.wso2.ballerinalang.compiler.tree.BLangPackage;
 
 import java.net.URI;
@@ -1681,7 +1682,7 @@ public class CommonUtils {
      * @param name the form field name to escape
      * @return the escaped identifier
      */
-    public static String escapeIdentifierFromFormField(String name) {
+    public static String escapeIdentifierFromFormField(@NonNull String name) {
         return name.startsWith("$") ? "'" + name.substring(1) : name;
     }
 
