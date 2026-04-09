@@ -1145,7 +1145,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         }
         const type = await searchImportedTypeByName(valueTypeConstraint);
         if (!type) return;
-        
+
         updateRecordTypeFields({
             value: type.name,
             name: type.name,
@@ -1479,12 +1479,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             matchedType = await findTypeByName(type);
         }
         else {
-            matchedType = {
-                name: type.label,
-                value: type.value,
-                sortText: type.sortText,
-                labelDetails: type.labelDetails
-            };
+            matchedType = await findTypeByName(type.value);
         }
         if (resolutionId !== typeResolutionId.current) {
             return;
@@ -1546,16 +1541,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         if (!typeName || typeName.length === 0) {
             return undefined;
         }
-        let matchedReferenceType = types.find(t => t.label === typeName);
-        if (matchedReferenceType) {
-            return ({
-                name: matchedReferenceType.label,
-                value: matchedReferenceType.value,
-                sortText: matchedReferenceType.sortText,
-                labelDetails: matchedReferenceType.labelDetails
-            });
-        }
-
         let matchedOtherTypes = await searchImportedTypeByName(typeName);
         if (matchedOtherTypes) {
             return ({
@@ -1564,6 +1549,15 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                 codeData: matchedOtherTypes.codedata,
                 sortText: matchedOtherTypes.sortText,
                 labelDetails: matchedOtherTypes.labelDetails
+            });
+        }
+        let matchedReferenceType = types.find(t => t.label === typeName);
+        if (matchedReferenceType) {
+            return ({
+                name: matchedReferenceType.label,
+                value: matchedReferenceType.value,
+                sortText: matchedReferenceType.sortText,
+                labelDetails: matchedReferenceType.labelDetails
             });
         }
         return undefined;
