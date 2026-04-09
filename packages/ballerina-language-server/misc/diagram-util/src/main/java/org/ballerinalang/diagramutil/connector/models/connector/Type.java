@@ -137,7 +137,9 @@ public class Type {
         target.typeInfo = this.typeInfo;
         target.defaultable = this.defaultable;
         target.defaultValue = this.defaultValue;
-        target.displayAnnotation = this.displayAnnotation;
+        target.displayAnnotation = this.displayAnnotation == null
+                ? null
+                : new HashMap<>(this.displayAnnotation);
         target.documentation = this.documentation;
         target.isRestType = this.isRestType;
         target.value = this.value;
