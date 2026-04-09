@@ -1377,7 +1377,7 @@
               "ballerinaType": "salesforce:CredentialsConfig"
             }
           ],
-          "sourceKind": "ARG_TYPE_LISTENER_PARAM_CONFIG_FIELD"
+          "sourceKind": "LISTENER_PARAM_CONFIG_FIELD"
         },
         "basePath": {
           "label": "Event Channel",
