@@ -67,7 +67,7 @@ export function TextEditor(props: TextEditorProps) {
             required={!field.optional}
             description={field.documentation}
             placeholder={field.placeholder}
-            readonly={!field.editable || undefined}
+            readOnly={!field.editable}
             sx={{ width: "100%" }}
             errorMsg={errorMsg}
             onFocus={() => handleOnFieldFocus?.(field.key)}

@@ -106,7 +106,7 @@ export function IdentifierField(props: IdentifierFieldProps) {
                 required={!field.optional}
                 description={field.documentation}
                 placeholder={field.placeholder}
-                readonly={!field.editable || undefined}
+                readOnly={!field.editable}
                 errorMsg={errors[field.key]?.message.toString()}
                 onBlur={(e) => handleOnBlur(e)}
                 onFocus={(e) => handleOnFocus(e)}
