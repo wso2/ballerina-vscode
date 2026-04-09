@@ -133,7 +133,8 @@ import {
     ValidateProjectFormRequest,
     ValidateProjectFormResponse,
     SuggestedProjectDefaultsResponse,
-    UpdateProjectTitleRequest
+    UpdateProjectTitleRequest,
+    UpdatePackageTitleRequest
 } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
@@ -225,3 +226,4 @@ export const deleteOpenApiGeneratedModules: RequestType<OpenAPIClientDeleteReque
 export const openConfigToml: RequestType<OpenConfigTomlRequest, void> = { method: `${_preFix}/openConfigToml` };
 export const getExpressionTokens: RequestType<ExpressionTokensRequest, number[]> = { method: `${_preFix}/getExpressionTokens` };
 export const updateProjectTitle: RequestType<UpdateProjectTitleRequest, void> = { method: `${_preFix}/updateProjectTitle` };
+export const updatePackageTitle: RequestType<UpdatePackageTitleRequest, void> = { method: `${_preFix}/updatePackageTitle` };
