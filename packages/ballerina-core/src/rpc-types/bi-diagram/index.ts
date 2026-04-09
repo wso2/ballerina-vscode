@@ -131,7 +131,8 @@ import {
     ValidateProjectFormRequest,
     ValidateProjectFormResponse,
     SuggestedProjectDefaultsResponse,
-    UpdateProjectTitleRequest
+    UpdateProjectTitleRequest,
+    UpdatePackageTitleRequest
 } from "./interfaces";
 
 export interface BIDiagramAPI {
@@ -221,4 +222,5 @@ export interface BIDiagramAPI {
     deleteOpenApiGeneratedModules: (params: OpenAPIClientDeleteRequest) => Promise<OpenAPIClientDeleteResponse>;
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
     updateProjectTitle: (params: UpdateProjectTitleRequest) => Promise<void>;
+    updatePackageTitle: (params: UpdatePackageTitleRequest) => Promise<void>;
 }
