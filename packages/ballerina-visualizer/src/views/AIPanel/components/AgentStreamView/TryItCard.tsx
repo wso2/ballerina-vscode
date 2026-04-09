@@ -64,11 +64,13 @@ const RequestRow = styled.div`
 
 const MethodBadge = styled.span<{ method: string }>`
     display: inline-block;
-    padding: 1px 5px;
+    width: 54px;
+    padding: 1px 0;
     border-radius: 3px;
     font-size: 10px;
     font-weight: 700;
     text-transform: uppercase;
+    text-align: center;
     color: #fff;
     background-color: ${(props: { method: string }) => METHOD_COLORS[props.method?.toUpperCase()] ?? "#666"};
     flex-shrink: 0;
