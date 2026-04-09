@@ -12,7 +12,7 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { debounce } from "lodash";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RelativeLoader } from "../../../components/RelativeLoader";
-import FormGenerator from "../Forms/FormGenerator";
+import FlowNodeForm from "../Forms/FlowNodeForm";
 import { McpToolsSelection, ToolScopes } from "./Mcp/McpToolsSelection";
 import { DiscoverToolsModal } from "./Mcp/DiscoverToolsModal";
 import { RequiresAuthCheckbox } from "./Mcp/RequiresAuthCheckbox";
@@ -279,7 +279,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
 
             const { serverUrl: savedUrl, auth: savedAuth, permittedTools, requiresAuth: savedRequiresAuth, toolScopes: savedToolScopes } = extractOriginalValues(node);
 
-            // Update form state so FormGenerator displays values
+            // Update form state so FlowNodeForm displays values
             setRequiresAuth(savedRequiresAuth);
 
             // Restore saved tool scopes
@@ -476,7 +476,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
             )}
 
             {mcpToolKitNodeTemplateRef && (
-                <FormGenerator
+                <FlowNodeForm
                     ref={formRef}
                     fileName={mcpToolKitNodeRef.current?.codedata?.lineRange?.fileName ? mcpToolKitNodeRef.current.codedata.lineRange?.fileName : agentFileEndLineRangeRef.current?.fileName}
                     targetLineRange={mcpToolKitNodeRef.current?.codedata?.lineRange ? mcpToolKitNodeRef.current.codedata.lineRange : agentFileEndLineRangeRef.current}

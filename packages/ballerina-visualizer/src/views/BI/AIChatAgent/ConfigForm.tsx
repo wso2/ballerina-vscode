@@ -18,7 +18,7 @@
 
 import styled from "@emotion/styled";
 import { FormField, FormImports, FormValues } from "@wso2/ballerina-side-panel";
-import { FormGeneratorNew } from "../Forms/FormGeneratorNew";
+import { ArtifactForm } from "../Forms/ArtifactForm";
 import { getImportsForProperty } from "../../../utils/bi";
 import { LineRange } from "@wso2/ballerina-core";
 
@@ -86,7 +86,7 @@ export function ConfigForm(props: ConfigProps) {
             {formFields && formFields.length > 0 && (
                 <FormContainer>
                     {targetLineRange && (
-                        <FormGeneratorNew
+                        <ArtifactForm
                             fileName={fileName}
                             targetLineRange={targetLineRange}
                             fields={formFields}

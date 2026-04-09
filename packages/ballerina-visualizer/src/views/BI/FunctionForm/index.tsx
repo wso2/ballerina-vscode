@@ -22,7 +22,7 @@ import { Button, Codicon, Typography, View, ViewContent } from "@wso2/ui-toolkit
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { FormField, FormImports, FormValues } from "@wso2/ballerina-side-panel";
-import FormGeneratorNew from "../Forms/FormGeneratorNew";
+import ArtifactForm from "../Forms/ArtifactForm";
 import { TitleBar } from "../../../components/TitleBar";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { FormHeader } from "../../../components/FormHeader";
@@ -742,7 +742,7 @@ export function FunctionForm(props: FunctionFormProps) {
                     )}
                     <FormContainer>
                         {filePath && targetLineRange && functionFields.length > 0 &&
-                            <FormGeneratorNew
+                            <ArtifactForm
                                 fileName={filePath}
                                 nestedForm={true}
                                 targetLineRange={targetLineRange}
