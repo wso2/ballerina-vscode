@@ -35,6 +35,7 @@ import java.security.KeyStore;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManagerFactory;
@@ -127,7 +128,7 @@ public class McpClient {
     }
 
     private static KeyStore loadTrustStore(String path, String password) throws Exception {
-        String lowerPath = path.toLowerCase();
+        String lowerPath = path.toLowerCase(Locale.ROOT);
         char[] passwordChars = password != null ? password.toCharArray() : new char[0];
 
         if (lowerPath.endsWith(".p12") || lowerPath.endsWith(".pfx") || lowerPath.endsWith(".jks")) {
@@ -167,7 +168,7 @@ public class McpClient {
     }
 
     private static KeyStore loadKeyStore(String path, String password) throws Exception {
-        String lowerPath = path.toLowerCase();
+        String lowerPath = path.toLowerCase(Locale.ROOT);
         char[] passwordChars = password != null ? password.toCharArray() : new char[0];
 
         String type;
@@ -176,7 +177,9 @@ public class McpClient {
         } else if (lowerPath.endsWith(".jks")) {
             type = "JKS";
         } else {
-            type = "PKCS12"; // default for key files
+            throw new IllegalArgumentException(
+                    "Unsupported key file format: " + path +
+                            ". Client key must be a keystore file (.p12, .pfx, or .jks)");
         }
 
         KeyStore keyStore = KeyStore.getInstance(type);
