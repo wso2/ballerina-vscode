@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { WICommandIds } from "@wso2/wso2-platform-core";
 import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -36,12 +36,12 @@ export function useSignIn() {
     const [isSigningIn, setIsSigningIn] = useState(false);
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    const clearSignInTimeout = () => {
+    const clearSignInTimeout = useCallback(() => {
         if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
             timeoutRef.current = null;
         }
-    };
+    }, []);
 
     useEffect(() => {
         if (!platformExtState?.userInfo) return;
@@ -53,20 +53,21 @@ export function useSignIn() {
     // Clean up on unmount.
     useEffect(() => () => clearSignInTimeout(), []);
 
-    const handleSignIn = () => {
+    const handleSignIn = useCallback(() => {
+        clearSignInTimeout();
         setIsSigningIn(true);
         timeoutRef.current = setTimeout(() => {
             setIsSigningIn(false);
             timeoutRef.current = null;
         }, SIGN_IN_TIMEOUT_MS);
         rpcClient.getCommonRpcClient().executeCommand({ commands: [WICommandIds.SignIn] });
-    };
+    }, [setIsSigningIn, clearSignInTimeout, rpcClient]);
 
-    const handleCancelSignIn = () => {
+    const handleCancelSignIn = useCallback(() => {
         setIsSigningIn(false);
         clearSignInTimeout();
         rpcClient.getCommonRpcClient().executeCommand({ commands: [WICommandIds.CancelSignIn] });
-    };
+    }, [setIsSigningIn, clearSignInTimeout, rpcClient]);
 
     return { isSigningIn, handleSignIn, handleCancelSignIn };
 }
