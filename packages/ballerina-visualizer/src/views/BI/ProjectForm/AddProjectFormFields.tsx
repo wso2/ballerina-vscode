@@ -105,8 +105,8 @@ export function AddProjectFormFields({
     useEffect(() => {
         const controller = new AbortController();
 
-        if (isInProject) {
-            // When inside a project, always fetch the project's org name.
+        if (isInProject && !orgNameRef.current) {
+            // When inside a project and no org has been set, fetch the project's org name.
             fetchAndSetDefaultOrgName(controller.signal);
         } else if (!orgNameRef.current) {
             if (organizations.length > 0) {
