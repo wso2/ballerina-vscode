@@ -18,7 +18,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import styled from "@emotion/styled";
-import { Codicon, Dropdown, TextField } from "@wso2/ui-toolkit";
+import { Codicon, TextField } from "@wso2/ui-toolkit";
 import { Description, FieldGroup, Note, SubSectionDivider, SubSectionLabel } from "../styles";
 import { CollapsibleSection } from "./CollapsibleSection";
 import { sanitizePackageName, sanitizeProjectHandle } from "../utils";
