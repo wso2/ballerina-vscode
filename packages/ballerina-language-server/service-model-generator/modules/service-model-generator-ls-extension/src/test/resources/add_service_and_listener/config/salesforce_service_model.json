@@ -1,0 +1,8 @@
+{
+  "filePath": "sample1/main.bal",
+  "description": "Test adding a salesforce service",
+  "serviceInitModel": {},
+  "output": {
+    "sample1/main.bal": []
+  }
+}
