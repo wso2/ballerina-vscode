@@ -21,16 +21,13 @@ import * as cp from 'child_process';
 import { BallerinaExtension } from '../../core';
 import { resolveICPPath } from './detect';
 import { provisionICPSecret } from './setup';
+import { getICPUrl } from './index';
 
 const ICP_START_COMMAND = 'ballerina.icp.start';
 const ICP_STOP_COMMAND = 'ballerina.icp.stop';
 const ICP_FOCUS_COMMAND = 'ballerina.icp.focus';
 const ICP_TASK_NAME = 'ICP Server';
 const ICP_TASK_SOURCE = 'ballerina-icp';
-
-function getICPUrl(): string {
-    return vscode.workspace.getConfiguration('ballerina').get<string>('icpUrl') || 'https://localhost:9445';
-}
 
 function getICPCredentials(): { username: string; password: string } {
     const config = vscode.workspace.getConfiguration('ballerina');

@@ -30,6 +30,7 @@ import { AddProjectFormData } from "./types";
 import {
     sanitizePackageName,
     sanitizeProjectHandle,
+    validateComponentName,
     validatePackageName,
     validateOrgName,
     validateProjectHandle
@@ -62,6 +63,7 @@ export function AddProjectFormFields({
     const [packageNameTouched, setPackageNameTouched] = useState(false);
     const [projectHandleTouched, setProjectHandleTouched] = useState(false);
     const [isPackageInfoExpanded, setIsPackageInfoExpanded] = useState(false);
+    const [integrationNameError, setIntegrationNameError] = useState<string | null>(null);
     const [packageNameError, setPackageNameError] = useState<string | null>(null);
     const [orgNameError, setOrgNameError] = useState<string | null>(null);
     const [projectHandleError, setProjectHandleError] = useState<string | null>(null);
@@ -120,6 +122,12 @@ export function AddProjectFormFields({
             controller.abort();
         };
     }, [isInProject, organizations, fetchAndSetDefaultOrgName, onFormDataChange]);
+
+    // Real-time validation for integration/library name
+    useEffect(() => {
+        const error = validateComponentName(formData.integrationName, formData.isLibrary);
+        setIntegrationNameError(error);
+    }, [formData.integrationName, formData.isLibrary]);
 
     // Effect to trigger validation when requested by parent
     useEffect(() => {
@@ -185,6 +193,7 @@ export function AddProjectFormFields({
                     autoFocus={isInProject}
                     onFocus={(e) => (e.target as HTMLInputElement).select()}
                     required={true}
+                    errorMsg={integrationNameError || ""}
                 />
             </FieldGroup>
 
