@@ -36,6 +36,7 @@ import io.ballerina.flowmodelgenerator.extension.request.GetPackageVersionReques
 import io.ballerina.flowmodelgenerator.extension.request.GetToolRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetToolsRequest;
 import io.ballerina.flowmodelgenerator.extension.request.McpToolsRequest;
+import io.ballerina.flowmodelgenerator.extension.request.SecureSocketConfig;
 import io.ballerina.flowmodelgenerator.extension.response.AddAgentChatServiceResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GenToolResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetAgentsResponse;
@@ -240,14 +241,28 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
                 // Get the access token from the request (if provided)
                 String accessToken = request.accessToken();
 
+                // Build SSL config if provided
+                McpClient.SslConfig sslConfig = null;
+                if (request.secureSocket() != null) {
+                    SecureSocketConfig sc = request.secureSocket();
+                    sslConfig = new McpClient.SslConfig(
+                            sc.cert() != null ? sc.cert().path() : null,
+                            sc.cert() != null ? sc.cert().password() : null,
+                            sc.key() != null ? sc.key().path() : null,
+                            sc.key() != null ? sc.key().password() : null,
+                            sc.insecure()
+                    );
+                }
+
                 // Send initialize request with optional authentication
-                String sessionId = McpClient.sendInitializeRequest(serviceUrl, accessToken);
+                String sessionId = McpClient.sendInitializeRequest(serviceUrl, accessToken, sslConfig);
 
                 // Send initialized notification to complete the handshake
-                McpClient.sendInitializedNotification(serviceUrl, sessionId, accessToken);
+                McpClient.sendInitializedNotification(serviceUrl, sessionId, accessToken, sslConfig);
 
                 // Now we can send operational requests
-                JsonArray toolsJsonArray = McpClient.sendToolsListRequest(serviceUrl, sessionId, accessToken);
+                JsonArray toolsJsonArray = McpClient.sendToolsListRequest(serviceUrl, sessionId, accessToken,
+                        sslConfig);
 
                 response.setTools(toolsJsonArray);
                 return response;

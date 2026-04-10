@@ -23,6 +23,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -30,8 +31,17 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyStore;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Map;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 
 /**
  * Client for sending requests to the MCP service.
@@ -43,11 +53,150 @@ public class McpClient {
     private static final Integer CONNECTION_TIMEOUT_MS = 10000; // 10 seconds
     private static final Integer READ_TIMEOUT_MS = 10000; // 10 seconds
 
+    /**
+     * Secure socket configuration for SSL/TLS connections.
+     *
+     * @param certPath     Path to the CA certificate or truststore file
+     * @param certPassword Password for the truststore (if .p12/.jks)
+     * @param keyPath      Path to the client certificate/key file (for mTLS)
+     * @param keyPassword  Password for the client key/keystore
+     * @param insecure     If true, skip all certificate verification
+     */
+    public record SslConfig(String certPath, String certPassword, String keyPath, String keyPassword,
+                            boolean insecure) {
+    }
+
+    private static void applySslConfig(HttpURLConnection conn, SslConfig sslConfig) throws IOException {
+        if (sslConfig == null || !(conn instanceof HttpsURLConnection httpsConn)) {
+            return;
+        }
+
+        try {
+            if (sslConfig.insecure()) {
+                TrustManager[] trustAllCerts = new TrustManager[]{
+                        new X509TrustManager() {
+                            public X509Certificate[] getAcceptedIssuers() {
+                                return new X509Certificate[0];
+                            }
+
+                            public void checkClientTrusted(X509Certificate[] certs, String authType) {
+                            }
+
+                            public void checkServerTrusted(X509Certificate[] certs, String authType) {
+                            }
+                        }
+                };
+                SSLContext sslContext = SSLContext.getInstance("TLS");
+                sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+                httpsConn.setSSLSocketFactory(sslContext.getSocketFactory());
+                httpsConn.setHostnameVerifier((hostname, session) -> true);
+                return;
+            }
+
+            javax.net.ssl.KeyManager[] keyManagers = null;
+            javax.net.ssl.TrustManager[] trustManagers = null;
+
+            // Load client key for mTLS
+            if (sslConfig.keyPath() != null && !sslConfig.keyPath().trim().isEmpty()) {
+                KeyStore keyStore = loadKeyStore(sslConfig.keyPath(), sslConfig.keyPassword());
+                KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+                kmf.init(keyStore, sslConfig.keyPassword() != null
+                        ? sslConfig.keyPassword().toCharArray() : new char[0]);
+                keyManagers = kmf.getKeyManagers();
+            }
+
+            // Load CA certificate / truststore
+            if (sslConfig.certPath() != null && !sslConfig.certPath().trim().isEmpty()) {
+                KeyStore trustStore = loadTrustStore(sslConfig.certPath(), sslConfig.certPassword());
+                TrustManagerFactory tmf =
+                        TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+                tmf.init(trustStore);
+                trustManagers = tmf.getTrustManagers();
+            }
+
+            if (keyManagers != null || trustManagers != null) {
+                SSLContext sslContext = SSLContext.getInstance("TLS");
+                sslContext.init(keyManagers, trustManagers, new java.security.SecureRandom());
+                httpsConn.setSSLSocketFactory(sslContext.getSocketFactory());
+            }
+        } catch (IOException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IOException("Failed to configure SSL: " + e.getMessage(), e);
+        }
+    }
+
+    private static KeyStore loadTrustStore(String path, String password) throws Exception {
+        String lowerPath = path.toLowerCase();
+        char[] passwordChars = password != null ? password.toCharArray() : new char[0];
+
+        if (lowerPath.endsWith(".p12") || lowerPath.endsWith(".pfx") || lowerPath.endsWith(".jks")) {
+            // Load the keystore, then extract all certificates into a new truststore
+            // so they are recognized as trustedCertEntry by TrustManagerFactory
+            String type = lowerPath.endsWith(".jks") ? "JKS" : "PKCS12";
+            KeyStore source = KeyStore.getInstance(type);
+            try (FileInputStream fis = new FileInputStream(path)) {
+                source.load(fis, passwordChars);
+            }
+
+            KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+            trustStore.load(null, null);
+            java.util.Enumeration<String> aliases = source.aliases();
+            int index = 0;
+            while (aliases.hasMoreElements()) {
+                String alias = aliases.nextElement();
+                java.security.cert.Certificate cert = source.getCertificate(alias);
+                if (cert != null) {
+                    trustStore.setCertificateEntry("trust-" + index++, cert);
+                }
+            }
+            return trustStore;
+        } else {
+            // PEM/CRT format — load certificates directly
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+            trustStore.load(null, null);
+            try (FileInputStream fis = new FileInputStream(path)) {
+                int index = 0;
+                for (java.security.cert.Certificate cert : cf.generateCertificates(fis)) {
+                    trustStore.setCertificateEntry("cert-" + index++, cert);
+                }
+            }
+            return trustStore;
+        }
+    }
+
+    private static KeyStore loadKeyStore(String path, String password) throws Exception {
+        String lowerPath = path.toLowerCase();
+        char[] passwordChars = password != null ? password.toCharArray() : new char[0];
+
+        String type;
+        if (lowerPath.endsWith(".p12") || lowerPath.endsWith(".pfx")) {
+            type = "PKCS12";
+        } else if (lowerPath.endsWith(".jks")) {
+            type = "JKS";
+        } else {
+            type = "PKCS12"; // default for key files
+        }
+
+        KeyStore keyStore = KeyStore.getInstance(type);
+        try (FileInputStream fis = new FileInputStream(path)) {
+            keyStore.load(fis, passwordChars);
+        }
+        return keyStore;
+    }
+
     public static String sendInitializeRequest(String serviceUrl, String accessToken) throws IOException {
+        return sendInitializeRequest(serviceUrl, accessToken, null);
+    }
+
+    public static String sendInitializeRequest(String serviceUrl, String accessToken, SslConfig sslConfig)
+            throws IOException {
         HttpURLConnection conn = null;
         try {
             URL url = URI.create(serviceUrl).toURL();
             conn = (HttpURLConnection) url.openConnection();
+            applySslConfig(conn, sslConfig);
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Accept", "application/json, text/event-stream");
@@ -118,10 +267,16 @@ public class McpClient {
 
     public static void sendInitializedNotification(String serviceUrl, String sessionId, String accessToken)
             throws IOException {
+        sendInitializedNotification(serviceUrl, sessionId, accessToken, null);
+    }
+
+    public static void sendInitializedNotification(String serviceUrl, String sessionId, String accessToken,
+                                                    SslConfig sslConfig) throws IOException {
         HttpURLConnection conn = null;
         try {
             URL url = URI.create(serviceUrl).toURL();
             conn = (HttpURLConnection) url.openConnection();
+            applySslConfig(conn, sslConfig);
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Accept", "application/json, text/event-stream");
@@ -182,10 +337,16 @@ public class McpClient {
 
     public static JsonArray sendToolsListRequest(String serviceUrl, String sessionId, String accessToken)
             throws IOException {
+        return sendToolsListRequest(serviceUrl, sessionId, accessToken, null);
+    }
+
+    public static JsonArray sendToolsListRequest(String serviceUrl, String sessionId, String accessToken,
+                                                  SslConfig sslConfig) throws IOException {
         HttpURLConnection conn = null;
         try {
             URL url = URI.create(serviceUrl).toURL();
             conn = (HttpURLConnection) url.openConnection();
+            applySslConfig(conn, sslConfig);
             // Configure request
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");

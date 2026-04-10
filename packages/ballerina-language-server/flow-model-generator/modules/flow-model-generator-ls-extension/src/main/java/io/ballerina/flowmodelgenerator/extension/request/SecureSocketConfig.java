@@ -19,14 +19,22 @@
 package io.ballerina.flowmodelgenerator.extension.request;
 
 /**
- * Request to initialize MCP tools with a service URL and optional authentication.
+ * Configuration for secure socket (SSL/TLS) connections.
  *
- * @param serviceUrl   The URL of the MCP service
- * @param accessToken  Optional OAuth 2.0 bearer token for authentication
- * @param secureSocket Optional secure socket (SSL/TLS) configuration
+ * @param cert     Truststore/CA certificate configuration for verifying the server
+ * @param key      Client certificate/key configuration for mutual TLS (mTLS)
+ * @param insecure If true, skip all certificate verification (development/testing only)
  *
  * @since 1.1.0
  */
-public record McpToolsRequest(String serviceUrl, String accessToken, SecureSocketConfig secureSocket) {
-}
+public record SecureSocketConfig(CertConfig cert, CertConfig key, boolean insecure) {
 
+    /**
+     * Certificate/key file configuration.
+     *
+     * @param path     Path to the certificate or key file (.pem, .crt, .p12, .jks)
+     * @param password Password for the keystore (required for .p12/.jks, optional for .pem/.crt)
+     */
+    public record CertConfig(String path, String password) {
+    }
+}
