@@ -45,10 +45,9 @@ import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.StatementNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
-import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.compiler.syntax.tree.Token;
+import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.flowmodelgenerator.core.analyzers.function.ModuleNodeAnalyzer;
-import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
@@ -58,6 +57,7 @@ import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.PropertyCodedata;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
+import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.flowmodelgenerator.core.utils.FlowNodeUtil;
 import io.ballerina.flowmodelgenerator.core.utils.ParamUtils;
 import io.ballerina.modelgenerator.commons.CommonUtils;
@@ -437,7 +437,7 @@ public class AgentsGenerator {
                     PropertyCodedata propCodedata = prop.codedata();
                     if (propCodedata == null || propCodedata.kind() == null
                             || propCodedata.kind().equals(
-                                    ParameterData.Kind.PARAM_FOR_TYPE_INFER.name())) {
+                            ParameterData.Kind.PARAM_FOR_TYPE_INFER.name())) {
                         continue;
                     }
 
@@ -755,7 +755,8 @@ public class AgentsGenerator {
             return returnType;
         }
         for (Map.Entry<String, Property> entry : flowNode.properties().entrySet()) {
-            PropertyCodedata propCodedata = entry.getValue().codedata();
+            PropertyCodedata propCodedata = entry.getValue()
+                    .codedata();
             if (propCodedata != null
                     && ParameterData.Kind.PARAM_FOR_TYPE_INFER.name().equals(propCodedata.kind())) {
                 String paramName = entry.getKey();
