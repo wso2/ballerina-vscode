@@ -28,7 +28,6 @@ interface ReadonlyFieldProps {
 
 const Container = styled.div`
     width: 100%;
-    cursor: not-allowed;
 `;
 
 const Label = styled.div`
@@ -60,6 +59,7 @@ const InputContainer = styled.div`
     min-width: var(--input-min-width);
     margin-top: 10px;
     overflow: hidden;
+    cursor: not-allowed;
 `;
 
 const ExpressionRibbon = styled.div`

@@ -41,6 +41,7 @@ import {
     ToolParameterItem,
     NodeProperties,
     Diagnostic,
+    getPrimaryInputType,
 } from "@wso2/ballerina-core";
 
 import {
@@ -50,7 +51,7 @@ import {
     convertNodePropertyToFormField,
     filterToolInputSymbolDiagnostics
 } from "../../../utils/bi";
-import FormGeneratorNew from "../Forms/FormGeneratorNew";
+import ArtifactForm from "../Forms/ArtifactForm";
 import { RelativeLoader } from "../../../components/RelativeLoader";
 import styled from "@emotion/styled";
 import { URI, Utils } from "vscode-uri";
@@ -395,7 +396,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             } else if (functionNodeTemplate.flowNode?.properties) {
                 functionParameterFields = convertConfig(functionNodeTemplate.flowNode.properties, ["variable"], false);
                 functionParameterFields.forEach((field, idx) => {
-                    if (field.key === "type") {
+                    if (getPrimaryInputType(field.types)?.fieldType === "TYPE") {
                         functionParameterFields[idx].documentation = "The data type this tool will return to the agent.";
                         return;
                     }
@@ -683,7 +684,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 />
             )}
             {sidePanelView === SidePanelView.TOOL_FORM && (
-                <FormGeneratorNew
+                <ArtifactForm
                     preserveFieldOrder={false}
                     fileName={agentFilePath.current}
                     targetLineRange={{ startLine: { line: 0, offset: 0 }, endLine: { line: 0, offset: 0 } }}

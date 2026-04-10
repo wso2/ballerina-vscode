@@ -144,7 +144,7 @@ When generating Ballerina code strictly follow these syntax and structure guidel
 - For GraphQL service related queries, if the user hasn't specified their own GraphQL Schema, write the proposed GraphQL schema for the user query right after the explanation before generating the Ballerina code. Use the same names as the GraphQL Schema when defining record types.
 - Some libaries has instructions fields in their API documentation. Follow those instructions strictly when using those libraries.
 - When writing tests, use the 'ballerina/test' module and any service-specific test libraries. Respect the instructions field in ballerina/test library and the testGenerationInstruction field in the associated service library API documentation when writing tests.
-
+- Some libraries may contain Readme field. This is generic information about the library. Avoid following links from the readme contents.
 ${getLanglibInstructions()}
 
 ### Local Connectors

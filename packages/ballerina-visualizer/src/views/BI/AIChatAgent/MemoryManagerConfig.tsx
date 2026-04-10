@@ -23,7 +23,7 @@ import { Codicon, Dropdown } from "@wso2/ui-toolkit";
 import { cloneDeep } from "lodash";
 import { useEffect, useRef, useState } from "react";
 import { RelativeLoader } from "../../../components/RelativeLoader";
-import { FormGenerator } from "../Forms/FormGenerator";
+import { FlowNodeForm } from "../Forms/FlowNodeForm";
 import { getAiModuleOrg, getNodeTemplate } from "./utils";
 import { usePanelOverlay } from "../FlowDiagram/hooks/usePanelOverlay";
 import { ConnectionSelectionList } from "../../../components/ConnectionSelector/ConnectionSelectionList";
@@ -441,7 +441,7 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
                 </LoaderContainer>
             )}
             {!isLoading && memoryNodeTemplate && targetLineRange.current && (
-                <FormGenerator
+                <FlowNodeForm
                     key={formKey}
                     fileName={agentFilePath.current}
                     node={memoryNode || memoryNodeTemplate}

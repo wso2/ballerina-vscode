@@ -23,7 +23,7 @@ import ExpandableList from "../Components/ExpandableList";
 import { Button, CheckBox, Divider, SearchBox, TextField, Typography } from "@wso2/ui-toolkit";
 import { ScrollableContainer } from "../Components/ScrollableContainer";
 import FooterButtons from "../Components/FooterButtons";
-import FormGenerator from "../../Forms/FormGenerator";
+import FlowNodeForm from "../../Forms/FlowNodeForm";
 import { URI, Utils } from "vscode-uri";
 import { POPUP_IDS, useModalStack } from "../../../../Context";
 import { HelperPaneIconType, getHelperPaneIcon } from "../utils/iconUtils";
@@ -216,7 +216,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
         }
 
         addModal(
-            <FormGenerator
+            <FlowNodeForm
                 fileName={fileName}
                 node={configVarNode}
                 connections={[]}

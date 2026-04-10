@@ -448,6 +448,14 @@ export function toSyntaxString(libraries: Library[]): string {
             output.push(lib.instructions);
         }
 
+        // README (prepended if present)
+        if (lib.readme) {
+            output.push("");
+            output.push("// --- README ---");
+            output.push(lib.readme);
+            output.push("// --- END README ---");
+        }
+
         // Types section
         if (lib.typeDefs && lib.typeDefs.length > 0) {
             output.push("");
