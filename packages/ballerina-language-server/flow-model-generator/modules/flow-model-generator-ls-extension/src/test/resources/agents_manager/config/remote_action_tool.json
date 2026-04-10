@@ -274,19 +274,6 @@
             "character": 0
           }
         },
-        "newText": "import ballerina/http;"
-      },
-      {
-        "range": {
-          "start": {
-            "line": 0,
-            "character": 0
-          },
-          "end": {
-            "line": 0,
-            "character": 0
-          }
-        },
         "newText": "# + return - Type of the variable\n@ai:AgentTool\n@display {label: \"\", iconPath: \"https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.13.2.png\"}\nisolated function toolFunc(string foo, int... bar) returns json|error {\n    json response = check currencyClient->get(\"/latest?base=\" + 'from + \"&to=\" + to);\n    return response;\n}"
       }
     ]

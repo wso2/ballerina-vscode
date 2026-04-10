@@ -222,7 +222,7 @@ public class SourceBuilder {
         return this;
     }
 
-    private String getTypeNameForInferredParam(Property variable, String typeName) {
+    public String getTypeNameForInferredParam(Property variable, String typeName) {
         Optional<Property> inferredParam = flowNode.properties().values().stream()
                 .filter(property -> property.codedata() != null && property.codedata().kind() != null &&
                         property.codedata().kind().equals(ParameterData.Kind.PARAM_FOR_TYPE_INFER.name()))
