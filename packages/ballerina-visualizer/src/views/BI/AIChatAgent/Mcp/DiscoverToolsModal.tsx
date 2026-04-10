@@ -402,6 +402,7 @@ export const DiscoverToolsModal: React.FC<DiscoverToolsModalProps> = ({
                                         setAuthType(newAuthType);
                                         if (newAuthType === "none") {
                                             setAuthToken("");
+                                            setShowAuthToken(false);
                                         }
                                     }}
                                     disabled={loadingDiscovery}
@@ -464,8 +465,9 @@ export const DiscoverToolsModal: React.FC<DiscoverToolsModalProps> = ({
                                                 label="Path"
                                                 placeholder="Enter path or browse to select a certificate file..."
                                                 selectedPath={certPath}
-                                                onChange={(value: string) => setCertPath(value)}
+                                                onChange={(value: string) => { if (!insecure) setCertPath(value); }}
                                                 onSelect={async () => {
+                                                    if (insecure) return;
                                                     const result = await rpcClient.getCommonRpcClient()
                                                         .selectFileOrDirPath({
                                                             isFile: true,
@@ -474,7 +476,7 @@ export const DiscoverToolsModal: React.FC<DiscoverToolsModalProps> = ({
                                                         });
                                                     if (result?.path) setCertPath(result.path);
                                                 }}
-                                                sx={{ opacity: insecure ? 0.5 : 1 }}
+                                                sx={{ opacity: insecure ? 0.5 : 1, pointerEvents: insecure ? 'none' : 'auto' }}
                                             />
                                             <PasswordFieldWrapper style={{ opacity: insecure ? 0.5 : 1 }}>
                                                 <TextField
@@ -506,8 +508,9 @@ export const DiscoverToolsModal: React.FC<DiscoverToolsModalProps> = ({
                                                 label="Path"
                                                 placeholder="Enter path or browse to select a key file..."
                                                 selectedPath={keyPath}
-                                                onChange={(value: string) => setKeyPath(value)}
+                                                onChange={(value: string) => { if (!insecure) setKeyPath(value); }}
                                                 onSelect={async () => {
+                                                    if (insecure) return;
                                                     const result = await rpcClient.getCommonRpcClient()
                                                         .selectFileOrDirPath({
                                                             isFile: true,
@@ -516,7 +519,7 @@ export const DiscoverToolsModal: React.FC<DiscoverToolsModalProps> = ({
                                                         });
                                                     if (result?.path) setKeyPath(result.path);
                                                 }}
-                                                sx={{ opacity: insecure ? 0.5 : 1 }}
+                                                sx={{ opacity: insecure ? 0.5 : 1, pointerEvents: insecure ? 'none' : 'auto' }}
                                             />
                                             <PasswordFieldWrapper style={{ opacity: insecure ? 0.5 : 1 }}>
                                                 <TextField
@@ -542,17 +545,6 @@ export const DiscoverToolsModal: React.FC<DiscoverToolsModalProps> = ({
                                     </AdvancedContent>
                                 )}
                             </FormSection>
-
-                            {loadingDiscovery && (
-                                <LoadingMessage padding="12px 0">
-                                    <InlineSpinner />
-                                    Fetching tools from MCP server...
-                                </LoadingMessage>
-                            )}
-
-                            {discoveryError && !loadingDiscovery && (
-                                <ErrorMessage padding="8px 0">{formattedError}</ErrorMessage>
-                            )}
                         </>
                     ) : (
                         <>
@@ -598,6 +590,17 @@ export const DiscoverToolsModal: React.FC<DiscoverToolsModalProps> = ({
                         </>
                     )}
                 </StyledModalContent>
+
+                {currentStep === 1 && loadingDiscovery && (
+                    <LoadingMessage padding="4px 16px">
+                        <InlineSpinner />
+                        Fetching tools from MCP server...
+                    </LoadingMessage>
+                )}
+
+                {currentStep === 1 && discoveryError && !loadingDiscovery && (
+                    <ErrorMessage padding="4px 16px">{formattedError}</ErrorMessage>
+                )}
 
                 <ButtonContainer>
                     {currentStep === 1 ? (
