@@ -30,7 +30,7 @@ import { updateSourceCode } from "../../utils/source-utils";
 import { getOrgAndPackageName } from "../../utils";
 import { parse, stringify } from "@iarna/toml";
 import { getStoredICPSecret } from "../../features/icp/setup";
-import { ensureICPServerRunning, isICPServerRunning } from "../../features/icp";
+import { ensureICPServerRunning, isICPServerRunning, getICPUrl } from "../../features/icp";
 
 const ICP_IMPORTS = [
     'import wso2/icp.runtime.bridge as _;',
@@ -320,7 +320,7 @@ export class ICPServiceRpcManager implements ICPServiceAPI {
 
     async viewInICP(params: ICPEnabledRequest): Promise<ICPEnabledResponse> {
         try {
-            const icpUrl = vscode.workspace.getConfiguration('ballerina').get<string>('icpUrl') || 'https://localhost:9445';
+            const icpUrl = getICPUrl();
 
             if (isICPServerRunning()) {
                 await vscode.env.openExternal(vscode.Uri.parse(icpUrl));
