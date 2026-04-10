@@ -169,13 +169,13 @@
             "selected": false
           },
           {
-            "fieldType": "FLAG",
-            "ballerinaType": "boolean",
+            "fieldType": "NUMBER",
+            "ballerinaType": "int|decimal",
             "selected": false
           },
           {
-            "fieldType": "NUMBER",
-            "ballerinaType": "int|decimal",
+            "fieldType": "FLAG",
+            "ballerinaType": "boolean",
             "selected": false
           },
           {
