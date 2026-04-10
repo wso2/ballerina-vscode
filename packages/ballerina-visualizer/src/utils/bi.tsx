@@ -385,6 +385,11 @@ function getFormFieldValue(expression: Property, clientName?: string) {
         console.log(">>> client name as set field value", clientName);
         return clientName;
     }
+
+    if (expression.types?.some((type) => type.fieldType === "REPEATABLE_MAP")) {
+        return expression.value as any;
+    }
+
     return (expression.value ?? "") as string;
 }
 
