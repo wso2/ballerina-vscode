@@ -29,7 +29,7 @@ import {
     EditorConfig
 } from "@wso2/ballerina-core";
 import { HelperView } from "../HelperView";
-import FormGenerator from "../Forms/FormGenerator";
+import FlowNodeForm from "../Forms/FlowNodeForm";
 import { getContainerTitle, getSubPanelWidth } from "../../../utils/bi";
 import { ToolConfig } from "../AIChatAgent/ToolConfig";
 import { AddTool } from "../AIChatAgent/AddTool";
@@ -653,7 +653,7 @@ export function PanelManager(props: PanelManagerProps) {
 
             case SidePanelView.FORM:
                 return (
-                    <FormGenerator
+                    <FlowNodeForm
                         fileName={fileName}
                         node={selectedNode}
                         nodeFormTemplate={nodeFormTemplate}

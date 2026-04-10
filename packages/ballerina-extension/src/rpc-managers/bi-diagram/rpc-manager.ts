@@ -156,8 +156,10 @@ import {
     PackageTomlValues,
     EVENT_TYPE,
     UpdateProjectTitleRequest,
+    UpdatePackageTitleRequest,
     SuggestedProjectDefaultsResponse,
-    MACHINE_VIEW
+    ProjectInfo,
+    PROJECT_KIND
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
@@ -233,6 +235,34 @@ function ensureGitignoreEntry(projectRoot: string): void {
     } catch (e) {
         console.warn('[agent-chat] Failed to update .gitignore:', e);
     }
+}
+
+/**
+ * Reads a Ballerina.toml file, sets `doc[section][field] = value`, and writes it back.
+ * Throws if the file is missing or unparseable.
+ */
+function setTomlSectionField(filePath: string, section: string, field: string, value: string): void {
+    let content: string;
+    try {
+        content = fs.readFileSync(filePath, 'utf-8');
+    } catch {
+        throw new Error(`Ballerina.toml not found at ${filePath}`);
+    }
+    let doc: ReturnType<typeof toml.parse>;
+    try {
+        doc = toml.parse(content);
+    } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        throw new Error(`Invalid TOML in ${filePath}: ${message}`);
+    }
+    const sectionObj = doc[section];
+    if (sectionObj !== null && typeof sectionObj === "object" && !Array.isArray(sectionObj)) {
+        (sectionObj as Record<string, unknown>)[field] = value;
+    } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (doc as any)[section] = { [field]: value };
+    }
+    fs.writeFileSync(filePath, toml.stringify(doc), "utf-8");
 }
 
 export class BiDiagramRpcManager implements BIDiagramAPI {
@@ -2506,40 +2536,36 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async updateProjectTitle(params: UpdateProjectTitleRequest): Promise<void> {
-        const ballerinaTomlPath = path.join(params.projectPath, 'Ballerina.toml');
-        let content: string;
-        try {
-            content = fs.readFileSync(ballerinaTomlPath, 'utf-8');
-        } catch {
-            throw new Error(`Ballerina.toml not found at ${ballerinaTomlPath}`);
-        }
-        let doc: ReturnType<typeof toml.parse>;
-        try {
-            doc = toml.parse(content);
-        } catch (e) {
-            const message = e instanceof Error ? e.message : String(e);
-            throw new Error(`Invalid TOML in ${ballerinaTomlPath}: ${message}`);
-        }
-        const workspace = doc.workspace;
-        if (
-            workspace !== undefined &&
-            workspace !== null &&
-            typeof workspace === "object" &&
-            !Array.isArray(workspace) &&
-            !(workspace instanceof Date)
-        ) {
-            (workspace as ReturnType<typeof toml.parse>).title = params.title;
-        } else {
-            doc.workspace = { title: params.title };
-        }
-        fs.writeFileSync(ballerinaTomlPath, toml.stringify(doc), "utf-8");
-
+        setTomlSectionField(path.join(params.projectPath, 'Ballerina.toml'), 'workspace', 'title', params.title);
         const currentProjectInfo = StateMachine.context().projectInfo;
         if (currentProjectInfo.projectPath === params.projectPath) {
             StateMachine.updateProjectInfo({ ...currentProjectInfo, title: params.title });
         } else {
             StateMachine.refreshProjectInfo();
         }
+    }
+
+    async updatePackageTitle(params: UpdatePackageTitleRequest): Promise<void> {
+        setTomlSectionField(path.join(params.packagePath, 'Ballerina.toml'), 'package', 'title', params.title);
+        // Update projectInfo so any subsequent buildProjectsStructure call uses the new title.
+        const currentProjectInfo = StateMachine.context().projectInfo;
+        let updatedProjectInfo: ProjectInfo;
+        if (
+            currentProjectInfo.projectKind === PROJECT_KIND.WORKSPACE_PROJECT &&
+            currentProjectInfo.children?.length > 0
+        ) {
+            updatedProjectInfo = {
+                ...currentProjectInfo,
+                children: currentProjectInfo.children.map((child) =>
+                    child.projectPath === params.packagePath
+                        ? { ...child, title: params.title }
+                        : child
+                ),
+            };
+        } else {
+            updatedProjectInfo = { ...currentProjectInfo, title: params.title };
+        }
+        StateMachine.updateProjectInfo(updatedProjectInfo, { silent: true });
     }
 
     async getSuggestedProjectDefaults(params: { isInProject: boolean }): Promise<SuggestedProjectDefaultsResponse> {

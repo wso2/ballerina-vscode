@@ -290,23 +290,23 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
 
     // Load persisted preferred Try It option on mount (if set)
     useEffect(() => {
-    (async () => {
-        try {
-            const preferred = await rpcClient.getCommonRpcClient().getPreferredTryItOption();
+        (async () => {
+            try {
+                const preferred = await rpcClient.getCommonRpcClient().getPreferredTryItOption();
 
-            if (!isMountedRef.current) return;
+                if (!isMountedRef.current) return;
 
-            if (
-                preferred === TryItOptionValue.TRY_IT ||
-                preferred === TryItOptionValue.TRY_IT_WITH_AI
-            ) {
-                setSelectedTryItOption(preferred as TryItOptionValue);
+                if (
+                    preferred === TryItOptionValue.TRY_IT ||
+                    preferred === TryItOptionValue.TRY_IT_WITH_AI
+                ) {
+                    setSelectedTryItOption(preferred as TryItOptionValue);
+                }
+            } catch (e) {
+                // ignore
             }
-        } catch (e) {
-            // ignore
-        }
-    })();
-}, [rpcClient]);
+        })();
+    }, [rpcClient]);
 
     const fetchService = (targetPosition: NodePosition) => {
         const lineRange: LineRange = {
@@ -649,12 +649,16 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             const serviceArtifact = res.artifacts.find(res => res.isNew && res.name === serviceIdentifier);
             if (serviceArtifact) {
                 if (openDiagram) {
-                    const accessor = value.accessor.value;
+                    const accessor = value.accessor.value.toLowerCase();
                     const path = value.name.value;
-                    const resourceIdentifier = `${accessor}#${path}`.toLowerCase();
+                    const resourceIdentifier = `${accessor}#${path}`;
                     const resource = serviceArtifact.resources.find(res => res.id === resourceIdentifier);
                     if (resource) {
                         await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: { documentUri: resource.path, position: resource.position } });
+                    } else {
+                        setIsSaving(false);
+                        handleNewFunctionClose();
+                        return;
                     }
                 } else {
                     await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { documentUri: serviceArtifact.path, position: serviceArtifact.position } });
@@ -988,8 +992,8 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         )
                                     }
                                     {
-                                        serviceModel && (isMcpService) && (  
-                                             <>
+                                        serviceModel && (isMcpService) && (
+                                            <>
                                                 <Button appearance="secondary" tooltip="Try Service" onClick={handleServiceTryIt}>
                                                     <><Icon name="play" isCodicon={true} sx={{ marginRight: 8, fontSize: 16 }} /> <ButtonText>Try It</ButtonText></>
                                                 </Button>

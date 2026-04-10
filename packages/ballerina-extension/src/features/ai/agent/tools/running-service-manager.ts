@@ -15,6 +15,7 @@
 // under the License.
 
 import * as child_process from 'child_process';
+import { quoteShellPath } from '../../../../utils';
 
 const isWindows = process.platform === 'win32';
 
@@ -57,6 +58,12 @@ const DISPOSE_TIMEOUT_MS = 2_000;
 /**
  * Spawns a child process, capturing stdout/stderr into `logs`.
  * No VS Code terminal is created — output is consumed by the inline UI card.
+ *
+ * Because we run with `shell: true`, the shell would otherwise split the
+ * command on whitespace — breaking executable paths that contain spaces
+ * (e.g. `/Applications/WSO2 Integrator.app/.../bin/bal`). We pre-quote the
+ * command path and pass a single command string so the shell sees the path
+ * as one token.
  */
 export function spawnProcess(
     command: string,
@@ -64,7 +71,11 @@ export function spawnProcess(
     cwd: string,
     logs: string[]
 ): { process: child_process.ChildProcess } {
-    const proc = child_process.spawn(command, args, {
+    const fullCommand = args.length > 0
+        ? `${quoteShellPath(command)} ${args.join(' ')}`
+        : quoteShellPath(command);
+
+    const proc = child_process.spawn(fullCommand, {
         cwd,
         shell: true,
         detached: !isWindows,

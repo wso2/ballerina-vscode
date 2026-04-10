@@ -31,7 +31,7 @@ import {
     UpdatedArtifactsResponse
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { FormGeneratorNew } from "../Forms/FormGeneratorNew";
+import { ArtifactForm } from "../Forms/ArtifactForm";
 import { FormHeader } from "../../../components/FormHeader";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { TitleBar } from "../../../components/TitleBar";
@@ -227,7 +227,7 @@ export function ServiceClassConfig(props: ServiceClassConfigProps) {
                                     <FormContainer>
                                         <FormHeader title={`Service Class Configuration`} />
                                         {filePath &&
-                                            <FormGeneratorNew
+                                            <ArtifactForm
                                                 fileName={filePath}
                                                 targetLineRange={{
                                                     startLine: { line: position.startLine, offset: position.startColumn },

@@ -12,7 +12,7 @@
     "build": "webpack --config webpack.config.js --mode=production && pnpm run postbuild",
     "copy:assets": "copyfiles -u 1 \"src/**/*.scss\"  \"src/**/*.svg\"  \"src/**/*.css\" \"src/resources/assets/font/*.*\" lib/",
     "deploy": "npm publish",
-    "postbuild": "find ../ballerina-extension/resources/jslibs -maxdepth 1 -type f -name '[0-9]*.js' -delete && copyfiles -u 1 -V build/*.js build/fonts/* build/images/* -e build/*.txt ../ballerina-extension/resources/jslibs"
+    "postbuild": "node ./scripts/clean-jslibs.js && copyfiles -u 1 -V build/*.js build/fonts/* build/images/* -e build/*.txt ../ballerina-extension/resources/jslibs"
   },
   "keywords": [],
   "dependencies": {
@@ -62,7 +62,7 @@
     "highlight.js": "11.11.1",
     "rehype-raw": "7.0.0",
     "remark-breaks": "4.0.0",
-    "js-yaml": "4.1.0",
+    "js-yaml": "4.1.1",
     "swagger-ui-react": "5.22.0",
     "rehype-katex": "7.0.1",
     "remark-gfm": "4.0.1",

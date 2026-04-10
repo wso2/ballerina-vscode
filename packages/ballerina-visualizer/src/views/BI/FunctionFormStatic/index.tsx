@@ -22,7 +22,7 @@ import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { FormField, FormImports, FormValues } from "@wso2/ballerina-side-panel";
 import { URI, Utils } from "vscode-uri";
-import FormGeneratorNew from "../Forms/FormGeneratorNew";
+import ArtifactForm from "../Forms/ArtifactForm";
 import { FormHeader } from "../../../components/FormHeader";
 import { convertConfig, getImportsForProperty } from "../../../utils/bi";
 import { LoadingContainer } from "../../styles";
@@ -379,7 +379,7 @@ export function FunctionFormStatic(props: FunctionFormProps) {
             )}
             <FormContainer>
                 {filePath && targetLineRange && functionFields.length > 0 &&
-                    <FormGeneratorNew
+                    <ArtifactForm
                         fileName={filePath}
                         targetLineRange={targetLineRange}
                         fields={functionFields}
