@@ -41,6 +41,7 @@ import {
     ToolParameterItem,
     NodeProperties,
     Diagnostic,
+    getPrimaryInputType,
 } from "@wso2/ballerina-core";
 
 import {
@@ -395,7 +396,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             } else if (functionNodeTemplate.flowNode?.properties) {
                 functionParameterFields = convertConfig(functionNodeTemplate.flowNode.properties, ["variable"], false);
                 functionParameterFields.forEach((field, idx) => {
-                    if (field.key === "type") {
+                    if (getPrimaryInputType(field.types)?.fieldType === "TYPE") {
                         functionParameterFields[idx].documentation = "The data type this tool will return to the agent.";
                         return;
                     }
