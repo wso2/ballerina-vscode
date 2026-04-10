@@ -27,9 +27,11 @@ import java.util.Map;
 /**
  * @param modulePrefix module prefix
  * @param name         annotation name
+ * @param codedata     codedata containing module/org info for import resolution
  * @param properties   properties of the annotation attachment
  */
-public record AnnotationAttachment(String modulePrefix, String name, Map<String, Property> properties) {
+public record AnnotationAttachment(String modulePrefix, String name, Codedata codedata,
+                                   Map<String, Property> properties) {
 
     private static final Gson gson = new Gson();
     private static final String LS = System.lineSeparator();
