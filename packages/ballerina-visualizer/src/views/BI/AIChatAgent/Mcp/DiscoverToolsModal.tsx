@@ -107,7 +107,7 @@ const PasswordFieldWrapper = styled.div`
     position: relative;
 `;
 
-const PasswordToggle = styled.div`
+const PasswordToggle = styled.button`
     position: absolute;
     right: 8px;
     bottom: 6px;
@@ -115,7 +115,12 @@ const PasswordToggle = styled.div`
     display: flex;
     align-items: center;
     opacity: 0.7;
-    &:hover {
+    background: none;
+    border: none;
+    padding: 2px;
+    color: inherit;
+    &:hover,
+    &:focus-visible {
         opacity: 1;
     }
 `;
@@ -414,7 +419,11 @@ export const DiscoverToolsModal: React.FC<DiscoverToolsModalProps> = ({
                                             type={showAuthToken ? "text" : "password"}
                                         />
                                         {authToken && (
-                                            <PasswordToggle onClick={() => setShowAuthToken(prev => !prev)}>
+                                            <PasswordToggle
+                                                onClick={() => setShowAuthToken(prev => !prev)}
+                                                aria-label={showAuthToken ? "Hide token" : "Show token"}
+                                                title={showAuthToken ? "Hide token" : "Show token"}
+                                            >
                                                 <Codicon name={showAuthToken ? "eye-closed" : "eye"} />
                                             </PasswordToggle>
                                         )}
@@ -460,7 +469,8 @@ export const DiscoverToolsModal: React.FC<DiscoverToolsModalProps> = ({
                                                     const result = await rpcClient.getCommonRpcClient()
                                                         .selectFileOrDirPath({
                                                             isFile: true,
-                                                            filters: { 'Certificates': ['pem', 'crt', 'p12', 'pfx', 'jks'] }
+                                                            filters: { 'Certificates': ['pem', 'crt', 'p12', 'pfx', 'jks'] },
+                                                            allowOutsideProject: true
                                                         });
                                                     if (result?.path) setCertPath(result.path);
                                                 }}
@@ -477,7 +487,11 @@ export const DiscoverToolsModal: React.FC<DiscoverToolsModalProps> = ({
                                                     description="Required for .p12/.jks files, optional for .pem/.crt"
                                                 />
                                                 {certPassword && (
-                                                    <PasswordToggle onClick={() => setShowCertPassword(prev => !prev)}>
+                                                    <PasswordToggle
+                                                        onClick={() => setShowCertPassword(prev => !prev)}
+                                                        aria-label={showCertPassword ? "Hide password" : "Show password"}
+                                                        title={showCertPassword ? "Hide password" : "Show password"}
+                                                    >
                                                         <Codicon name={showCertPassword ? "eye-closed" : "eye"} />
                                                     </PasswordToggle>
                                                 )}
@@ -497,7 +511,8 @@ export const DiscoverToolsModal: React.FC<DiscoverToolsModalProps> = ({
                                                     const result = await rpcClient.getCommonRpcClient()
                                                         .selectFileOrDirPath({
                                                             isFile: true,
-                                                            filters: { 'Certificates': ['pem', 'crt', 'p12', 'pfx', 'jks'] }
+                                                            filters: { 'Keystores': ['p12', 'pfx', 'jks'] },
+                                                            allowOutsideProject: true
                                                         });
                                                     if (result?.path) setKeyPath(result.path);
                                                 }}
@@ -514,7 +529,11 @@ export const DiscoverToolsModal: React.FC<DiscoverToolsModalProps> = ({
                                                     description="Passphrase for the private key or keystore"
                                                 />
                                                 {keyPassword && (
-                                                    <PasswordToggle onClick={() => setShowKeyPassword(prev => !prev)}>
+                                                    <PasswordToggle
+                                                        onClick={() => setShowKeyPassword(prev => !prev)}
+                                                        aria-label={showKeyPassword ? "Hide password" : "Show password"}
+                                                        title={showKeyPassword ? "Hide password" : "Show password"}
+                                                    >
                                                         <Codicon name={showKeyPassword ? "eye-closed" : "eye"} />
                                                     </PasswordToggle>
                                                 )}
