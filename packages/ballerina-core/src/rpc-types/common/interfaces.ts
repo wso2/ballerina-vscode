@@ -87,6 +87,7 @@ export interface FileOrDirResponse {
 export interface FileOrDirRequest {
     isFile?: boolean;
     filters?: Record<string, string[]>;
+    allowOutsideProject?: boolean;
 }
 
 export interface ShowErrorMessageRequest {
