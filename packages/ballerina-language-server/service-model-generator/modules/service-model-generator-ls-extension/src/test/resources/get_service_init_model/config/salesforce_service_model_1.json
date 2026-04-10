@@ -5,6 +5,95 @@
   "pkgName": "salesforce",
   "moduleName": "salesforce",
   "response": {
-    "serviceInitModel": {}
+    "serviceInitModel": {
+      "id": "12",
+      "displayName": "Salesforce Event Integration",
+      "description": "Create a service to handle events from Salesforce",
+      "orgName": "ballerinax",
+      "packageName": "salesforce",
+      "moduleName": "salesforce",
+      "version": "8.2.0",
+      "type": "salesforce",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce_8.2.0.png",
+      "properties": {
+        "basePath": {
+          "metadata": {
+            "label": "Event Channel",
+            "description": "The event channel name"
+          },
+          "codedata": {
+            "argType": "SERVICE_BASE_PATH"
+          },
+          "placeholder": "/data/ChangeEvents",
+          "value": "/data/ChangeEvents",
+          "types": [
+            {
+              "fieldType": "SERVICE_PATH",
+              "ballerinaType": "string",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "auth": {
+          "metadata": {
+            "label": "Auth",
+            "description": "Configurations related to username/password authentication"
+          },
+          "codedata": {
+            "argType": "LISTENER_PARAM_CONFIG_FIELD"
+          },
+          "placeholder": "{username: \"\", password: \"\"}",
+          "value": "{username: \"\", password: \"\"}",
+          "types": [
+            {
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "salesforce:CredentialsConfig",
+              "typeMembers": [
+                {
+                  "type": "CredentialsConfig",
+                  "packageInfo": "ballerinax:salesforce:8.2.0",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "salesforce:CredentialsConfig",
+              "selected": false
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "listenerVarName": {
+          "metadata": {
+            "label": "Listener Name",
+            "description": "Provide a name for the listener being created"
+          },
+          "codedata": {
+            "type": "LISTENER_VAR_NAME"
+          },
+          "value": "salesforceListener",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": true
+        }
+      }
+    }
   }
 }
