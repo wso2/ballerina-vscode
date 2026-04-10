@@ -117,6 +117,14 @@ export function convertNodePropertyToFormField(
         lineRange: property?.codedata?.lineRange,
         metadata: property.metadata,
         codedata: property.codedata,
+        dynamicFormFields: property?.dynamicFormFields
+            ? Object.fromEntries(
+                Object.entries(property.dynamicFormFields).map(([optKey, props]) => [
+                    optKey,
+                    convertNodePropertiesToFormFields(props, connections, clientName),
+                ])
+            )
+            : undefined,
         imports: property.imports
     };
     return formField;
@@ -294,6 +302,46 @@ export function updateNodeProperties(
                     }
                 } else {
                     expression.value = dataValue;
+                }
+
+                // Reconstruct dynamicFormFields from form values
+                // Reverse the mapping done in convertNodePropertyToFormField (lines 120-127)
+                if (expression.dynamicFormFields) {
+                    const reconstructedDynamicFormFields: Record<string, NodeProperties> = {};
+                    for (const optKey in expression.dynamicFormFields) {
+                        if (expression.dynamicFormFields.hasOwnProperty(optKey)) {
+                            const dynamicFields = expression.dynamicFormFields[optKey];
+                            const dynamicProps: NodeProperties = {};
+
+                            // For each field in dynamicFormFields[optKey], look up its value in the form state
+                            if (typeof dataValue === "object" && dataValue !== null) {
+                                const dynamicFormValues = (dataValue as any)[optKey];
+                                if (dynamicFormValues && typeof dynamicFormValues === "object") {
+                                    // Reconstruct the nested property structure
+                                    for (const fieldKey in dynamicFormValues) {
+                                        if (dynamicFormValues.hasOwnProperty(fieldKey)) {
+                                            // Find the original property template from nodeProperties
+                                            const originalProp = nodeProperties[key as NodePropertyKey]?.dynamicFormFields?.[optKey]?.[fieldKey as NodePropertyKey];
+                                            if (originalProp) {
+                                                dynamicProps[fieldKey as NodePropertyKey] = {
+                                                    ...originalProp,
+                                                    value: dynamicFormValues[fieldKey],
+                                                    modified: dirtyFields?.[key]?.[optKey]?.[fieldKey] ?? false,
+                                                };
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (Object.keys(dynamicProps).length > 0) {
+                                reconstructedDynamicFormFields[optKey] = dynamicProps;
+                            }
+                        }
+                    }
+                    if (Object.keys(reconstructedDynamicFormFields).length > 0) {
+                        expression.dynamicFormFields = reconstructedDynamicFormFields;
+                    }
                 }
             }
         }

@@ -242,6 +242,7 @@ export type Property = {
     oldValue?: string;
     defaultValue?: string;
     itemOptions?: OptionProps[];
+    dynamicFormFields?: { [key: string]: NodeProperties }
 };
 
 export type PropertyTypeMemberInfo = {

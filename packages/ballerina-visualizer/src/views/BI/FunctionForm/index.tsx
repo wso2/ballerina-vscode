@@ -490,6 +490,17 @@ export function FunctionForm(props: FunctionFormProps) {
             }
         }
 
+        // Override the node kind so the correct builder (WorkflowBuilder / ActivityBuilder)
+        // is used when generating source code for an existing workflow or activity function.
+        // ModuleNodeAnalyzer returns FUNCTION_DEFINITION for these; using the wrong kind causes
+        // the artifact-update subscription to filter for FUNCTION instead of WORKFLOW/ACTIVITY,
+        // resulting in a 10-second timeout and incorrect source generation (e.g. adds `public`).
+        if (isWorkflow) {
+            flowNode = { ...flowNode, codedata: { ...flowNode.codedata, node: 'WORKFLOW' as NodeKind } };
+        } else if (isActivity) {
+            flowNode = { ...flowNode, codedata: { ...flowNode.codedata, node: 'ACTIVITY' as NodeKind } };
+        }
+
         setFunctionNode(flowNode);
         setIsLoading(false);
         console.log("Existing Function Node: ", flowNode);
@@ -557,6 +568,44 @@ export function FunctionForm(props: FunctionFormProps) {
                     }
                     const imports = getImportsForProperty(key, formImports);
                     property.imports = imports;
+
+                    // Reconstruct dynamicFormFields from form values
+                    // Reverse the mapping done in convertNodePropertyToFormField
+                    if (property.dynamicFormFields) {
+                        const reconstructedDynamicFormFields: Record<string, NodeProperties> = {};
+                        for (const optKey in property.dynamicFormFields) {
+                            if (property.dynamicFormFields.hasOwnProperty(optKey)) {
+                                const dynamicProps: NodeProperties = {};
+
+                                // For each field in dynamicFormFields[optKey], look up its value in the form state
+                                if (typeof dataValue === "object" && dataValue !== null) {
+                                    const dynamicFormValues = (dataValue as any)[optKey];
+                                    if (dynamicFormValues && typeof dynamicFormValues === "object") {
+                                        // Reconstruct the nested property structure
+                                        for (const fieldKey in dynamicFormValues) {
+                                            if (dynamicFormValues.hasOwnProperty(fieldKey)) {
+                                                // Find the original property template from functionNode
+                                                const originalProp = functionNode.properties[key as NodePropertyKey]?.dynamicFormFields?.[optKey]?.[fieldKey as NodePropertyKey];
+                                                if (originalProp) {
+                                                    dynamicProps[fieldKey as NodePropertyKey] = {
+                                                        ...originalProp,
+                                                        value: dynamicFormValues[fieldKey],
+                                                    };
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (Object.keys(dynamicProps).length > 0) {
+                                    reconstructedDynamicFormFields[optKey] = dynamicProps;
+                                }
+                            }
+                        }
+                        if (Object.keys(reconstructedDynamicFormFields).length > 0) {
+                            property.dynamicFormFields = reconstructedDynamicFormFields;
+                        }
+                    }
                 }
             }
         }
@@ -692,6 +741,8 @@ export function FunctionForm(props: FunctionFormProps) {
             return "Natural Function";
         } else if (isWorkflow) {
             return "Workflow";
+        } else if (isActivity) {
+            return "Workflow Activity";
         } else if (isAutomation || functionName === "main") {
             return "Automation";
         }
