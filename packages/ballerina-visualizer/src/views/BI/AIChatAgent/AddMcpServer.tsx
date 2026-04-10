@@ -300,7 +300,6 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                 projectPathUriRef.current,
                 agentFilePathRef.current
             );
-
             // Set toolSource BEFORE setToolsInclude to prevent the useEffect from triggering a duplicate fetch
             setToolSource(resolution.canResolve ? 'auto-fetched' : 'saved-mock');
             setToolsInclude("selected");
@@ -327,7 +326,11 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                 displayMockTools(permittedTools);
             }
         } finally {
-            isInitializingEditModeRef.current = false;
+            // Delay clearing the flag so the FlowNodeForm's initial onChange burst
+            // (which fires for every field after the form mounts) doesn't reset toolSource.
+            setTimeout(() => {
+                isInitializingEditModeRef.current = false;
+            }, 0);
         }
     };
 
