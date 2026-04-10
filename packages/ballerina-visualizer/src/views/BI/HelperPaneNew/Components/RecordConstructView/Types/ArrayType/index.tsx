@@ -230,17 +230,10 @@ export default function ArrayType(props: TypeProps & { bodyOnly?: boolean }) {
                 );
             })}
             <div className={helperStyleClass.listItemHeader}>
-                <Button
-                    appearance="icon"
-                    onClick={handleAddElement}
-                    className={helperStyleClass.arrayAddBtn}
-                >
+                <div onClick={handleAddElement} className={helperStyleClass.arrayAddWrapper}>
                     <Codicon name="add" iconSx={{ fontSize: '13px' }} />
-                </Button>
-                <div onClick={handleAddElement} className={helperStyleClass.arrayAddLabel}
-                    style={{ marginRight: '4px' }}>
                     <Typography variant="body3" sx={{ opacity: 0.7 }}>
-                        Add
+                        Add{!isUnionElement && ` ${elementTypeName}`}
                     </Typography>
                 </div>
                 {isUnionElement && unionMembers && (
@@ -255,13 +248,6 @@ export default function ArrayType(props: TypeProps & { bodyOnly?: boolean }) {
                             onValueChange={setSelectedUnionMember}
                             sx={{ width: 'fit-content' }}
                         />
-                    </div>
-                )}
-                {!isUnionElement && (
-                    <div onClick={handleAddElement} className={helperStyleClass.arrayAddLabel}>
-                        <Typography variant="body3" sx={{ opacity: 0.7 }}>
-                            {elementTypeName}
-                        </Typography>
                     </div>
                 )}
             </div>

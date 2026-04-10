@@ -348,16 +348,17 @@ export const useHelperPaneStyles = () => ({
         fontSize: '12px',
         minWidth: '24px',
     }),
-    arrayAddLabel: css({
+    arrayAddWrapper: css({
+        display: 'flex',
+        alignItems: 'center',
         cursor: 'pointer',
+        padding: '2px 4px',
+        borderRadius: '3px',
+        gap: '4px',
         '&:hover': {
             color: ThemeColors.PRIMARY,
+            backgroundColor: 'var(--vscode-list-hoverBackground)',
         },
-    }),
-    arrayAddBtn: css({
-        display: 'block',
-        alignSelf: 'center',
-        padding: '0px',
     }),
 });
 
