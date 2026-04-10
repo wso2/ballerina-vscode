@@ -851,7 +851,7 @@
         "modified": true
       },
       "permittedTools": {
-        "value": "[\"ask_question\"]",
+        "value": "[\"get_teams\", \"create_pull_request_with_copilot\"]",
         "placeholder": "()",
         "optional": false,
         "editable": true,
@@ -860,6 +860,23 @@
         "codedata": {
           "kind": "INCLUDED_FIELD",
           "originalName": "permittedTools"
+        },
+        "modified": false
+      },
+      "toolScopes": {
+        "metadata": {
+          "label": "Tool Scopes",
+          "description": "OAuth scopes for each tool"
+        },
+        "value": "{\"get_teams\":[\"scope-1\",\"scope-2\"]}",
+        "placeholder": "()",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "toolScopes"
         },
         "modified": false
       },
@@ -992,6 +1009,32 @@
         {
           "range": {
             "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 0,
+              "character": 0
+            }
+          },
+          "newText": "import ballerina/http;"
+        },
+        {
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 0,
+              "character": 0
+            }
+          },
+          "newText": "import ballerina/log;"
+        },
+        {
+          "range": {
+            "start": {
               "line": 7,
               "character": 0
             },
@@ -1000,7 +1043,7 @@
               "character": 1
             }
           },
-          "newText": "isolated class McpToolKit2 {\n    *ai:McpBaseToolKit;\n    private final mcp:StreamableHttpClient mcpClient;\n    private final readonly & ai:ToolConfig[] tools;\n\n    public isolated function init(string serverUrl, mcp:Implementation info = {name: \"MCP\", version: \"1.0.0\"},\n            *mcp:StreamableHttpClientTransportConfig config) returns ai:Error? {\n        final map<ai:FunctionTool> permittedTools = {\n                \"ask_question\" : self.ask_question\n        };\n\n        do {\n            self.mcpClient = check new mcp:StreamableHttpClient(serverUrl, config);\n            self.tools = check ai:getPermittedMcpToolConfigs(self.mcpClient, info, permittedTools).cloneReadOnly();\n        } on fail error e {\n            return error ai:Error(\"Failed to initialize MCP toolkit\", e);\n        }\n    }\n\n    public isolated function getTools() returns ai:ToolConfig[] => self.tools;\n\n    @ai:AgentTool\n    public isolated function ask_question(mcp:CallToolParams params) returns mcp:CallToolResult|error {\n        return self.mcpClient->callTool(params);\n    }\n}\n"
+          "newText": "isolated class McpToolKit2 {\n    *ai:McpBaseToolKit;\n    private final mcp:StreamableHttpClient mcpClient;\n    private final readonly & ai:ToolConfig[] tools;\n\n    public isolated function init(string serverUrl, mcp:Implementation info = {name: \"MCP\", version: \"1.0.0\"},\n            *ai:StreamableHttpClientTransportConfig config) returns ai:Error? {\n        final map<ai:FunctionTool> permittedTools = {\n                \"get_teams\" : self.get_teams,\n                \"create_pull_request_with_copilot\" : self.create_pull_request_with_copilot\n        };\n\n        do {\n            ai:StreamableHttpClientTransportConfig{auth, ...configs} = config;\n            mcp:StreamableHttpClientTransportConfig mcpConfig = {...configs};\n            ai:AgentIdAuthConfig? agentIdAuth = ();\n            if auth is http:ClientAuthConfig {\n                mcpConfig.auth = auth;\n                auth = ();\n            } else {\n                agentIdAuth = auth;\n            }\n            self.mcpClient = check new mcp:StreamableHttpClient(serverUrl, mcpConfig);\n            self.tools = check ai:getPermittedMcpToolConfigs(self.mcpClient, info, permittedTools, agentIdAuth).cloneReadOnly();\n        } on fail error e {\n            log:printError(\"Error initializing MCP toolkit\", e);\n            return error ai:Error(\"Failed to initialize MCP toolkit\", e);\n        }\n    }\n\n    public isolated function getTools() returns ai:ToolConfig[] => self.tools;\n\n    @ai:AgentTool {\n        auth: {\n            scopes: [\"scope-1\", \"scope-2\"]\n        }\n    }\n    public isolated function get_teams(ai:Context ctx, mcp:CallToolParams params) returns mcp:CallToolResult|error {\n        return self.mcpClient->callTool(params, headers = {\"Authorization\": string `Bearer ${check ctx.getAccessToken(params.name)}`});\n    }\n\n    @ai:AgentTool\n    public isolated function create_pull_request_with_copilot(mcp:CallToolParams params) returns mcp:CallToolResult|error {\n        return self.mcpClient->callTool(params);\n    }\n}\n"
         }
       ]
     }
