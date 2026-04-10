@@ -36,7 +36,7 @@ import { FunctionFormStatic } from "../../FunctionFormStatic";
 import { POPUP_IDS, useModalStack } from "../../../../Context";
 import { HelperPaneIconType, getHelperPaneIcon } from "../utils/iconUtils";
 import { HelperPaneListItem } from "../Components/HelperPaneListItem";
-import { ResolvedType } from "../../Forms/FormGenerator";
+import { ResolvedType } from "../../Forms/FlowNodeForm";
 
 type FunctionsPageProps = {
     fieldKey: string;

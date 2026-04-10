@@ -33,7 +33,7 @@ import { DevantConfigurables } from './Views/DevantConfigurables';
 import styled from '@emotion/styled';
 import { HelperPaneIconType, getHelperPaneIcon } from './utils/iconUtils';
 import { ExpressionEditorDevantProps, HelperpaneOnChangeOptions, InputMode } from '@wso2/ballerina-side-panel';
-import { ResolvedType } from '../Forms/FormGenerator';
+import { ResolvedType } from '../Forms/FlowNodeForm';
 
 export const AI_PROMPT_TYPE = "ai:Prompt";
 
