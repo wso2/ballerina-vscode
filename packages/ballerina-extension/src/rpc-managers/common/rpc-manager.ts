@@ -484,12 +484,10 @@ export class CommonRpcManager implements CommonRPCAPI {
 
             if (projectPath) {
                 const contextYamlPath = path.join(projectPath, ".choreo", "context.yaml");
-                if (fs.existsSync(contextYamlPath)) {
-                    const content = fs.readFileSync(contextYamlPath, "utf-8");
-                    const parsed = loadYaml(content);
-                    if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0].org === "string" && parsed[0].org) {
-                        return { orgName: parsed[0].org };
-                    }
+                const content = await fs.promises.readFile(contextYamlPath, "utf-8");
+                const parsed = loadYaml(content);
+                if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0].org === "string" && parsed[0].org) {
+                    return { orgName: parsed[0].org };
                 }
             }
         } catch {

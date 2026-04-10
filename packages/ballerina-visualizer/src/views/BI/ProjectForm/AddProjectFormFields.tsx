@@ -103,15 +103,17 @@ export function AddProjectFormFields({
     useEffect(() => {
         const controller = new AbortController();
 
-        if (isInProject || organizations.length === 0) {
-            // When inside a project, always use the project's org name.
-            // When no organizations are loaded yet, fall back to the default.
-            if (isInProject || !orgNameRef.current) {
+        if (isInProject) {
+            // When inside a project, always fetch the project's org name.
+            fetchAndSetDefaultOrgName(controller.signal);
+        } else if (!orgNameRef.current) {
+            if (organizations.length > 0) {
+                // Organizations are available — use the first one as the default.
+                onFormDataChange({ orgName: organizations[0].handle });
+            } else {
+                // No organizations loaded yet — fall back to the default.
                 fetchAndSetDefaultOrgName(controller.signal);
             }
-        } else if (!orgNameRef.current) {
-            // Organizations are available — use the first one as the default.
-            onFormDataChange({ orgName: organizations[0].handle });
         }
 
         return () => {
