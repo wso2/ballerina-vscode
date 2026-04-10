@@ -18,7 +18,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
-import { EVENT_TYPE, FlowNode } from "@wso2/ballerina-core";
+import { EVENT_TYPE, FlowNode, Property } from "@wso2/ballerina-core";
 import { NodePosition } from "@wso2/syntax-tree";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { AIAgentSidePanel, ExtendedAgentToolRequest } from "./AIAgentSidePanel";
@@ -187,6 +187,21 @@ export function NewTool(props: NewToolProps): JSX.Element {
                 };
             }
 
+            // Merge parameter type imports onto a flowNode property so genTool includes them
+            console.log(">>> parameter imports", { parameterImports: data.parameterImports, flowNode });
+            if (data.parameterImports && flowNode.properties) {
+                const props = flowNode.properties as Record<string, Property>;
+                const targetKey = props["type"] ? "type" : Object.keys(props)[0];
+                if (targetKey && props[targetKey]) {
+                    // Strip version suffix to match the format the backend expects (e.g. "ballerina/time" not "ballerina/time:2.8.0")
+                    const cleanedImports: Record<string, string> = {};
+                    for (const [prefix, moduleId] of Object.entries(data.parameterImports)) {
+                        cleanedImports[prefix] = moduleId.replace(/:[^/]+$/, "");
+                    }
+                    props[targetKey].imports = { ...props[targetKey].imports, ...cleanedImports };
+                }
+            }
+
             const toolResponse = await rpcClient.getAIAgentRpcClient().genTool({
                 toolName: data.toolName,
                 description: data.description,
@@ -206,8 +221,8 @@ export function NewTool(props: NewToolProps): JSX.Element {
                 console.error("Failed to add tool to agent node");
                 return;
             }
-
             // Find the updated agent node in the response artifacts and update the local state
+            let agentArtifactFound = false;
             if (toolResponse.artifacts?.length > 0) {
                 const updatedAgentArtifact = toolResponse.artifacts.find(artifact => artifact?.name === agentNode?.properties?.variable?.value);
                 // Update line range so subsequent tool additions target the correct source location
@@ -216,6 +231,15 @@ export function NewTool(props: NewToolProps): JSX.Element {
                     updatedAgentNode.codedata.lineRange.startLine.offset = updatedAgentArtifact.position.startColumn;
                     updatedAgentNode.codedata.lineRange.endLine.line = updatedAgentArtifact.position.endLine;
                     updatedAgentNode.codedata.lineRange.endLine.offset = updatedAgentArtifact.position.endColumn;
+                    agentArtifactFound = true;
+                }
+            }
+
+            // If artifact not found, re-fetch the agent node to get the correct line range
+            if (!agentArtifactFound) {
+                const refreshedAgentNode = await findAgentNodeFromAgentCallNode(agentCallNode, rpcClient);
+                if (refreshedAgentNode?.codedata?.lineRange) {
+                    updatedAgentNode.codedata.lineRange = refreshedAgentNode.codedata.lineRange;
                 }
             }
 
@@ -225,6 +249,9 @@ export function NewTool(props: NewToolProps): JSX.Element {
 
             // Generate the source code
             await rpcClient.getBIDiagramRpcClient().getSourceCode({ filePath, flowNode: updatedAgentNode });
+
+            // Safety net: fix any missing imports after all edits are applied
+            await rpcClient.getAIAgentRpcClient().fixMissingImports();
 
             // Invalidate cache so the updated agent node is re-fetched next time
             agentNodeCache.delete(getAgentCacheKey(agentCallNode));

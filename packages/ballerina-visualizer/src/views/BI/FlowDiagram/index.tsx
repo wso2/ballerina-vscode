@@ -2510,6 +2510,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             console.error("Error deleting memory manager:", error);
             alert("Failed to remove memory manager. Please try again.");
         } finally {
+            resetNodeSelectionStates();
             setShowProgressIndicator(false);
             debouncedGetFlowModel();
         }
@@ -2735,7 +2736,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             console.error("Error deleting tool:", error);
             alert(`Failed to remove tool "${tool.name}". Please try again.`);
         } finally {
-            selectedNodeRef.current = undefined;
+            resetNodeSelectionStates();
             setShowProgressIndicator(false);
             debouncedGetFlowModel();
         }

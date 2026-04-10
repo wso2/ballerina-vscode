@@ -19,26 +19,38 @@
 import { ValueTypeConstraint, ToolParameters, getPrimaryInputType } from "@wso2/ballerina-core";
 import { FormField, Parameter } from "@wso2/ballerina-side-panel";
 
+const SQL_PARAMETERIZED_TYPES = ["sql:ParameterizedQuery", "sql:ParameterizedCallQuery"];
+const isSqlParameterizedField = (field: FormField): boolean =>
+    field.types?.some(t => t.ballerinaType && SQL_PARAMETERIZED_TYPES.includes(t.ballerinaType)) ?? false;
+
 export function createToolInputFields(filteredNodeParameterFields: FormField[]): FormField[] {
     const paramManagerValues = filteredNodeParameterFields
-        .filter(field => !(field.optional && field.advanced))
-        .map((field, idx) => ({
-            id: idx,
-            icon: "",
-            key: field.key,
-            value: `${getPrimaryInputType(field.types)?.fieldType} ${field.key}`,
-            identifierEditable: true,
-            identifierRange: {
-                fileName: "functions.bal",
-                startLine: { line: 0, offset: 0 },
-                endLine: { line: 0, offset: 0 }
-            },
-            formValues: {
-                variable: field.key,
-                type: getPrimaryInputType(field.types)?.ballerinaType,
-                parameterDescription: field.documentation || ""
+        .filter(field => !(field.optional && field.advanced) && field.key !== "targetType"
+            && !isSqlParameterizedField(field))
+        .map((field, idx) => {
+            const cleanKey = field.key.replace(/^\$/, '');
+            let inputType = getPrimaryInputType(field.types);
+            if (inputType?.fieldType === "SINGLE_SELECT" && !inputType.ballerinaType) {
+                inputType = field.types?.find(t => t.ballerinaType) || inputType;
             }
-        }));
+            return {
+                id: idx,
+                icon: "",
+                key: field.key,
+                value: `${inputType?.ballerinaType || inputType?.fieldType} ${cleanKey}`,
+                identifierEditable: true,
+                identifierRange: {
+                    fileName: "functions.bal",
+                    startLine: { line: 0, offset: 0 },
+                    endLine: { line: 0, offset: 0 }
+                },
+                formValues: {
+                    variable: cleanKey,
+                    type: inputType?.ballerinaType,
+                    parameterDescription: field.documentation || ""
+                }
+            }
+        });
 
     const paramManagerFormFields: FormField[] = [
         {
@@ -240,17 +252,34 @@ export function prepareToolInputFields(fields: FormField[]): FormField[] {
             field.hidden = true;
             return;
         }
-        if (field.key === "targetType") {
-            field.optional = true;
-            field.advanced = true;
-            return;
+        if (isSqlParameterizedField(field)) {
+            field.value = "";
+        }
+        if (field.codedata?.kind === "PARAM_FOR_TYPE_INFER" || field.key === "targetType" || field.key === "rowType") {
+            if (field.types?.[0]?.fieldType === "RECORD_FIELD_SELECTOR") {
+                field.optional = false;
+                field.advanced = false;
+            } else {
+                field.optional = true;
+                field.advanced = true;
+                field.value = field?.defaultValue || "";
+                return;
+            }
         }
         if (getPrimaryInputType(field.types)?.fieldType === "TYPE") {
             fields[idx].documentation = "The data type this tool will return to the agent.";
             return;
         }
-        if (field.optional == false && getPrimaryInputType(field.types)?.fieldType !== "TYPE") field.value = field.key;
+        if (field.optional == false && field.key != "type" && !isSqlParameterizedField(field)) {
+            const rawValue = field.key.startsWith('$') ? "'" + field.key.substring(1) : field.key;
+            field.value = rawValue;
+        }
         field.label = `${field.label} Mapping`;
+        if (field.type === "SQL_QUERY" && field.types
+            && !field.types.some(t => t.ballerinaType === "sql:ParameterizedQuery")) {
+            field.type = "EXPRESSION";
+            field.types = field.types.map(t => ({ ...t, selected: t.fieldType === "EXPRESSION" }));
+        }
         includedKeys.push(field.key);
     });
     return fields.filter(field => includedKeys.includes(field.key));
