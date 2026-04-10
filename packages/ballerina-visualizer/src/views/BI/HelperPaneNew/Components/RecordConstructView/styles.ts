@@ -354,6 +354,11 @@ export const useHelperPaneStyles = () => ({
             color: ThemeColors.PRIMARY,
         },
     }),
+    arrayAddBtn: css({
+        display: 'block',
+        alignSelf: 'center',
+        padding: '0px',
+    }),
 });
 
 

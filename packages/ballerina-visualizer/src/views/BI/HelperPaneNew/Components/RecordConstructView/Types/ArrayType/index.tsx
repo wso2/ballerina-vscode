@@ -233,7 +233,7 @@ export default function ArrayType(props: TypeProps & { bodyOnly?: boolean }) {
                 <Button
                     appearance="icon"
                     onClick={handleAddElement}
-                    className={helperStyleClass.includedRecordPlusBtn}
+                    className={helperStyleClass.arrayAddBtn}
                 >
                     <Codicon name="add" iconSx={{ fontSize: '13px' }} />
                 </Button>
