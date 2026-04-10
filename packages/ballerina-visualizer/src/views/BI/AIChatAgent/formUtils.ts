@@ -255,14 +255,14 @@ export function prepareToolInputFields(fields: FormField[]): FormField[] {
         if (isSqlParameterizedField(field)) {
             field.value = "";
         }
-        if (field.codedata?.kind === "PARAM_FOR_TYPE_INFER" || field.key === "targetType") {
+        if (field.codedata?.kind === "PARAM_FOR_TYPE_INFER" || field.key === "targetType" || field.key === "rowType") {
             if (field.types?.[0]?.fieldType === "RECORD_FIELD_SELECTOR") {
                 field.optional = false;
                 field.advanced = false;
             } else {
                 field.optional = true;
                 field.advanced = true;
-                field.value = "";
+                field.value = field?.defaultValue || "";
                 return;
             }
         }
@@ -270,9 +270,7 @@ export function prepareToolInputFields(fields: FormField[]): FormField[] {
             fields[idx].documentation = "The data type this tool will return to the agent.";
             return;
         }
-        if (field.optional == false && getPrimaryInputType(field.types)?.fieldType !== "TYPE") field.value = field.key;
-        if (field.optional == false && field.key != "type"
-            && !isSqlParameterizedField(field)) {
+        if (field.optional == false && field.key != "type" && !isSqlParameterizedField(field)) {
             const rawValue = field.key.startsWith('$') ? "'" + field.key.substring(1) : field.key;
             field.value = getPrimaryInputType(field.types)?.fieldType === "REPEATABLE_LIST"
                 ? `[${rawValue}]` : rawValue;
