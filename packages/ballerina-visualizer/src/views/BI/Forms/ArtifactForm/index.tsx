@@ -229,7 +229,7 @@ export function ArtifactForm(props: ArtifactFormProps) {
         if (type) {
             const typeName = typeof type === 'string' ? type : (type as Type).name;
             setFields(fields.map((field) => {
-                if (field.key === 'type') {
+                if (getPrimaryInputType(field.types)?.fieldType === 'TYPE') {
                     return { ...field, value: typeName };
                 }
                 return field;

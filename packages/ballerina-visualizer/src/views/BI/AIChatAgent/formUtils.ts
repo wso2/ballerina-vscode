@@ -245,11 +245,11 @@ export function prepareToolInputFields(fields: FormField[]): FormField[] {
             field.advanced = true;
             return;
         }
-        if (field.key === "type") {
+        if (getPrimaryInputType(field.types)?.fieldType === "TYPE") {
             fields[idx].documentation = "The data type this tool will return to the agent.";
             return;
         }
-        if (field.optional == false && field.key != "type") field.value = field.key;
+        if (field.optional == false && getPrimaryInputType(field.types)?.fieldType !== "TYPE") field.value = field.key;
         field.label = `${field.label} Mapping`;
         includedKeys.push(field.key);
     });
