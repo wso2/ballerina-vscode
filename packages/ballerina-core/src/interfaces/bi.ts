@@ -361,6 +361,12 @@ export enum FUNCTION_TYPE {
     ALL = "all",
 }
 
+export enum VISIBILITY {
+    PUBLIC = "public",
+    PRIVATE = "private",
+    MODULE = "module",
+}
+
 /**
  * Represents the directory structure of artifacts in a project.
  */
@@ -420,7 +426,7 @@ export interface ProjectStructureArtifactResponse {
     position?: NodePosition;
     resources?: ProjectStructureArtifactResponse[];
     isNew?: boolean;
-    isPublic?: boolean;
+    visibility?: VISIBILITY;
 }
 
 export interface UpdatedArtifactsResponse {
@@ -553,7 +559,7 @@ export type NodeKind =
     | "MATCH"
     | "METHOD_CALL"
     | "MEMORY"
-    | "MEMORY_STORE"
+    | "SHORT_TERM_MEMORY_STORE"
     | "MODEL_PROVIDER"
     | "MODEL_PROVIDERS"
     | "VARIABLE"
@@ -594,6 +600,7 @@ export type NodeKind =
     | "WORKFLOW"
     | "WORKFLOW_RUN"
     | "WORKER"
+    | "RECORD"
     | "VARIABLE";
 
 export type OverviewFlow = {

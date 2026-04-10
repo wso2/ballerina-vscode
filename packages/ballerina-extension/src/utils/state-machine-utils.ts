@@ -292,6 +292,19 @@ function getViewByArtifacts(documentUri: string, position: NodePosition, project
                 }
             }
         }
+        // If no artifact matched but we're already on a BIDiagram for this file,
+        // stay on it instead of redirecting to Overview. This handles newly created files that aren't in the project structure yet.
+        const ctx = StateMachine.context();
+        if (ctx?.view === MACHINE_VIEW.BIDiagram && documentUri === ctx?.documentUri) {
+            return {
+                location: {
+                    view: MACHINE_VIEW.BIDiagram,
+                    documentUri,
+                    position,
+                    projectPath,
+                }
+            };
+        }
         // If no view is found, return the overview view
         return { location: { view: MACHINE_VIEW.PackageOverview, documentUri: documentUri } };
     }

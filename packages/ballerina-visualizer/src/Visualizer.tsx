@@ -20,11 +20,13 @@ import React, { Suspense, useEffect } from "react";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { AIMachineStateValue, MachineStateValue } from "@wso2/ballerina-core";
 import styled from '@emotion/styled';
+
 import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react";
 import { Global, css } from '@emotion/react';
 import { DownloadIcon } from "./components/DownloadIcon";
 import { WebviewErrorBoundary } from "./components/WebviewErrorBoundary";
 import { ThemeColors } from "@wso2/ui-toolkit";
+import { LoadingRing } from "./components/Loader";
 
 const MainPanel = React.lazy(() => import("./MainPanel"));
 const AIPanel = React.lazy(() => import("./views/AIPanel/AIPanel"));
@@ -36,6 +38,9 @@ const EvaluationHistory = React.lazy(() =>
 );
 const EvaluationReport = React.lazy(() =>
     import("./views/EvaluationReport/EvaluationReport").then((module) => ({ default: module.EvaluationReport }))
+);
+const MigrationPanel = React.lazy(() =>
+    import("./views/MigrationPanel/MigrationPanel").then((module) => ({ default: module.MigrationPanel }))
 );
 
 const ProgressRing = styled(VSCodeProgressRing)`
@@ -99,8 +104,9 @@ const MODES = {
     AI: "ai",
     RUNTIME_SERVICES: "runtime-services",
     AGENT_CHAT: "agent-chat",
+    MIGRATION: "migration",
     EVALUATION_HISTORY: "evaluation-history",
-    EVALUATION_REPORT: "evaluation-report"
+    EVALUATION_REPORT: "evaluation-report",
 };
 
 export function Visualizer({ mode }: { mode: string }) {
@@ -140,9 +146,11 @@ export function Visualizer({ mode }: { mode: string }) {
                         case MODES.RUNTIME_SERVICES:
                             return <MainPanel />
                         case MODES.AI:
-                            return <AIPanel state={aiState} />
+                            return <Suspense fallback={<LoadingRing />}><AIPanel state={aiState} /></Suspense>
                         case MODES.AGENT_CHAT:
                             return <AgentChat />
+                        case MODES.MIGRATION:
+                            return <MigrationPanel />
                         case MODES.EVALUATION_HISTORY:
                             return <EvaluationHistory />
                         case MODES.EVALUATION_REPORT:

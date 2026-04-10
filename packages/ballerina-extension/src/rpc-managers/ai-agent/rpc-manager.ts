@@ -51,6 +51,7 @@ import { StateMachine } from "../../stateMachine";
 import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { isLibraryProject } from "../../utils/config";
+import { addMissingImports, checkProjectDiagnostics, removeUnusedImports } from "../ai-panel/repair-utils";
 import { CONFIGURE_DEFAULT_MODEL_COMMAND } from "../../features/ai/constants";
 
 
@@ -147,6 +148,17 @@ export class AiAgentRpcManager implements AIAgentAPI {
                 console.log(error);
             }
         });
+    }
+
+    async fixMissingImports(): Promise<void> {
+        const context = StateMachine.context();
+        try {
+            const projectDiags = await checkProjectDiagnostics(context.langClient, context.projectPath);
+            await addMissingImports(projectDiags, context.langClient);
+            await removeUnusedImports(projectDiags, context.langClient);
+        } catch (e) {
+            console.log("fixMissingImports failed", e);
+        }
     }
 
     async getPackageVersion(params: AIGetPackageVersionRequest): Promise<AIGetPackageVersionResponse> {
@@ -501,6 +513,19 @@ export class AiAgentRpcManager implements AIAgentAPI {
                 toolsValue = `[${toolsArray.join(", ")}]`;
             } else {
                 toolsValue = `[${mcpToolKitVarName}]`;
+            }
+        } else if (Array.isArray(toolsValue) && typeof mcpToolKitVarName === "string") {
+            const toolExists = toolsValue.some((tool: any) => tool.value === mcpToolKitVarName);
+            if (!toolExists) {
+                (toolsValue as any[]).push({
+                    metadata: {
+                        label: mcpToolKitVarName,
+                        description: "",
+                    },
+                    value: mcpToolKitVarName,
+                    optional: false,
+                    editable: false,
+                });
             }
         } else {
             toolsValue = `[${mcpToolKitVarName}]`;

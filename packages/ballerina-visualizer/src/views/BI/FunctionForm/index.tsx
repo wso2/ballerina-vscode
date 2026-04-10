@@ -17,12 +17,12 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import { FunctionNode, LineRange, NodeKind, NodeProperties, NodePropertyKey, Property, DIRECTORY_MAP, EVENT_TYPE, getPrimaryInputType, isTemplateType } from "@wso2/ballerina-core";
+import { FunctionNode, LineRange, NodeKind, NodeProperties, NodePropertyKey, Property, DIRECTORY_MAP, EVENT_TYPE, getPrimaryInputType, isTemplateType, RecordTypeField } from "@wso2/ballerina-core";
 import { Button, Codicon, Typography, View, ViewContent } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { FormField, FormImports, FormValues } from "@wso2/ballerina-side-panel";
-import FormGeneratorNew from "../Forms/FormGeneratorNew";
+import ArtifactForm from "../Forms/ArtifactForm";
 import { TitleBar } from "../../../components/TitleBar";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { FormHeader } from "../../../components/FormHeader";
@@ -182,6 +182,7 @@ export function FunctionForm(props: FunctionFormProps) {
     const [saving, setSaving] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [showOAuthConfig, setShowOAuthConfig] = useState<boolean>(false);
+    const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
 
     const fileName = filePath.split(/[\\/]/).pop();
     const formType = useRef("Function");
@@ -344,6 +345,20 @@ export function FunctionForm(props: FunctionFormProps) {
             }
 
             if (!cancelled) {
+                // Extract record type fields from OAuth properties for record editor modal support
+                const oauthRecordTypeFields = oauthConfigPropertiesRef.current
+                    .filter(({ property }) => {
+                        const primaryInputType = getPrimaryInputType(property?.types);
+                        return primaryInputType?.typeMembers &&
+                            primaryInputType?.typeMembers.some(member => member.kind === "RECORD_TYPE");
+                    })
+                    .map(({ key, property }) => ({
+                        key,
+                        property,
+                        recordTypeMembers: getPrimaryInputType(property?.types)?.typeMembers.filter(member => member.kind === "RECORD_TYPE")
+                    }));
+                setRecordTypeFields(oauthRecordTypeFields);
+
                 setFunctionFields(fields);
                 setShowOAuthConfig(oauthSupported);
             }
@@ -825,11 +840,12 @@ export function FunctionForm(props: FunctionFormProps) {
                     )}
                     <FormContainer>
                         {filePath && targetLineRange && functionFields.length > 0 &&
-                            <FormGeneratorNew
+                            <ArtifactForm
                                 fileName={filePath}
                                 nestedForm={true}
                                 targetLineRange={targetLineRange}
                                 fields={functionFields}
+                                recordTypeFields={recordTypeFields}
                                 isSaving={saving}
                                 onSubmit={handleFormSubmit}
                                 submitText={saving ? (functionName ? "Saving..." : "Creating...") : (functionName ? "Save" : "Create")}

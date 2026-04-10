@@ -23,7 +23,7 @@ import { DocumentIdentifier, LinePosition, LineRange, NOT_SUPPORTED_TYPE, Positi
 import { BallerinaConnectorInfo, BallerinaExampleCategory, BallerinaModuleResponse, BallerinaModulesRequest, BallerinaTrigger, BallerinaTriggerInfo, BallerinaConnector, ExecutorPosition, ExpressionRange, JsonToRecordMapperDiagnostic, MainTriggerModifyRequest, NoteBookCellOutputValue, NotebookCellMetaInfo, OASpec, PackageSummary, PartialSTModification, ResolvedTypeForExpression, ResolvedTypeForSymbol, STModification, SequenceModel, SequenceModelDiagnostic, ServiceTriggerModifyRequest, SymbolDocumentation, XMLToRecordConverterDiagnostic, TypeField, ComponentInfo } from "./ballerina";
 import { ModulePart, STNode } from "@wso2/syntax-tree";
 import { CodeActionParams, DefinitionParams, DocumentSymbolParams, ExecuteCommandParams, InitializeParams, InitializeResult, LocationLink, RenameParams } from "vscode-languageserver-protocol";
-import { Category, Flow, FlowNode, CodeData, ConfigVariable, FunctionNode, Property, PropertyTypeMemberInfo, DIRECTORY_MAP, Imports, NodeKind, InputType, FormFieldInputType, ProjectStructureArtifactResponse } from "./bi";
+import { Category, Flow, FlowNode, CodeData, ConfigVariable, FunctionNode, Property, PropertyTypeMemberInfo, DIRECTORY_MAP, Imports, NodeKind, InputType, FormFieldInputType, ProjectStructureArtifactResponse, VISIBILITY } from "./bi";
 import { ConnectorRequest, ConnectorResponse } from "../rpc-types/connector-wizard/interfaces";
 import { SqFlow } from "../rpc-types/sequence-diagram/interfaces";
 import { FieldType, FunctionModel, ListenerModel, ServiceClassModel, ServiceInitModel, ServiceModel } from "./service";
@@ -968,7 +968,7 @@ export type SearchKind =
     | "CHUNKER"
     | "AGENT"
     | "MEMORY"
-    | "MEMORY_STORE"
+    | "SHORT_TERM_MEMORY_STORE"
     | "AGENT_TOOL"
     | "CLASS_INIT"
     | "ALL";
@@ -1869,9 +1869,21 @@ export interface AIToolResponse {
     };
 }
 
+export interface CertConfig {
+    path?: string;
+    password?: string;
+}
+
+export interface SecureSocketConfig {
+    cert?: CertConfig;
+    key?: CertConfig;
+    insecure?: boolean;
+}
+
 export interface McpToolsRequest {
     serviceUrl?: string;
     accessToken?: string;
+    secureSocket?: SecureSocketConfig;
 }
 
 export interface McpToolsResponse {
@@ -1989,6 +2001,7 @@ export interface BaseArtifact<T = any> {
     name: string;
     module?: string;
     scope: string;
+    visibility?: VISIBILITY;
     icon?: string; // Optional for those that have an icon
     children?: Record<string, BaseArtifact>; // To allow nested structures
     accessor?: string; // Specific to Entry Points

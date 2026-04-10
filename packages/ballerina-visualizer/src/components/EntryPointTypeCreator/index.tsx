@@ -23,35 +23,36 @@ import styled from "@emotion/styled";
 import DynamicModal from "../../components/Modal";
 
 import { EditorContext, StackItem } from "@wso2/type-editor";
+import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../../views/BI/Forms/FlowNodeForm";
 import { FormTypeEditor } from "../../views/BI/TypeEditor";
 
 export const Title = styled.div`
     color: ${ThemeColors.ON_SURFACE};
 `;
 
-const BreadcrumbContainer = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 20px;
-    background: ${ThemeColors.SURFACE_CONTAINER};
-    border-bottom: 1px solid ${ThemeColors.OUTLINE_VARIANT};
-`;
+// const BreadcrumbContainer = styled.div`
+//     display: flex;
+//     align-items: center;
+//     gap: 8px;
+//     padding: 8px 20px;
+//     background: ${ThemeColors.SURFACE_CONTAINER};
+//     border-bottom: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+// `;
 
-const BreadcrumbItem = styled.span`
-    color: ${ThemeColors.ON_SURFACE_VARIANT};
-    font-size: var(--vscode-font-size);
+// const BreadcrumbItem = styled.span`
+//     color: ${ThemeColors.ON_SURFACE_VARIANT};
+//     font-size: var(--vscode-font-size);
     
-    &:last-child {
-        color: ${ThemeColors.ON_SURFACE};
-        font-weight: 500;
-    }
-`;
+//     &:last-child {
+//         color: ${ThemeColors.ON_SURFACE};
+//         font-weight: 500;
+//     }
+// `;
 
-const BreadcrumbSeparator = styled.span`
-    color: ${ThemeColors.ON_SURFACE_VARIANT};
-    font-size: var(--vscode-font-size);
-`;
+// const BreadcrumbSeparator = styled.span`
+//     color: ${ThemeColors.ON_SURFACE_VARIANT};
+//     font-size: var(--vscode-font-size);
+// `;
 
 interface EntryPointTypeCreatorProps {
     isOpen: boolean;

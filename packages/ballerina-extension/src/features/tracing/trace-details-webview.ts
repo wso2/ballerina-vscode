@@ -104,6 +104,13 @@ export class TraceDetailsWebview {
                                 sessionId: this._sessionId,
                                 showSidebar: this._showSidebar,
                             });
+                        } else if (this._sessionId) {
+                            this._panel!.webview.postMessage({
+                                command: 'traceData',
+                                data: null,
+                                isAgentChat: this._isAgentChat,
+                                sessionId: this._sessionId,
+                            });
                         }
                         break;
                     case 'exportTrace':
@@ -229,6 +236,8 @@ export class TraceDetailsWebview {
 
         instance._panel!.reveal(ViewColumn.One);
         instance.updateWebview();
+
+        await instance.handleSessionTracesRequest(sessionId);
     }
 
     private updateWebview(): void {

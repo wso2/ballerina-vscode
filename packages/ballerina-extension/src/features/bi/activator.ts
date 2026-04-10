@@ -42,6 +42,7 @@ import {
     createBIWorkspaceWithProject,
     createEmptyBIWorkspace
 } from "../../utils/bi";
+import { checkAndRunPendingEnhancement } from "../ai/migration/orchestrator";
 import { createVersionNumber, findBallerinaPackageRoot, isSupportedSLVersion } from ".././../utils";
 import { extension } from "../../BalExtensionContext";
 import { VisualizerWebview } from "../../views/visualizer/webview";
@@ -225,6 +226,18 @@ export function activate(context: BallerinaExtension) {
 
     // Open the ballerina toml file as the first file for LS to trigger the project loading
     openBallerinaTomlFile(context);
+
+    // After the language server and project are fully ready, check whether a
+    // migration AI enhancement was scheduled before the last folder reload.
+    const service = StateMachine.service();
+    const subscription = service.subscribe((state) => {
+        if (state.value === "extensionReady" && state.changed) {
+            subscription.unsubscribe();
+            checkAndRunPendingEnhancement().catch((err) =>
+                console.error("[MigrationEnhancement] Unexpected error:", err)
+            );
+        }
+    });
 }
 
 

@@ -26,6 +26,7 @@ import {
     InlineCardTitle,
     InlineCardSubtitle
 } from "./styles";
+import { Button } from "@wso2/ui-toolkit";
 
 const HURL_IMPORT_VSCODE_COMMAND = "HTTPClient.importHurlString";
 // ── Styled components ─────────────────────────────────────────────────────────
@@ -63,11 +64,13 @@ const RequestRow = styled.div`
 
 const MethodBadge = styled.span<{ method: string }>`
     display: inline-block;
-    padding: 1px 5px;
+    width: 54px;
+    padding: 1px 0;
     border-radius: 3px;
     font-size: 10px;
     font-weight: 700;
     text-transform: uppercase;
+    text-align: center;
     color: #fff;
     background-color: ${(props: { method: string }) => METHOD_COLORS[props.method?.toUpperCase()] ?? "#666"};
     flex-shrink: 0;
@@ -87,23 +90,6 @@ const StatusBadge = styled.span<{ status: number }>`
     font-weight: 700;
     color: ${(props: { status: number }) => getStatusColor(props.status)};
     flex-shrink: 0;
-`;
-
-const ExpandButton = styled.button`
-    background: none;
-    border: none;
-    color: var(--vscode-descriptionForeground);
-    cursor: pointer;
-    padding: 2px;
-    border-radius: 3px;
-    font-size: 11px;
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
-    &:hover {
-        color: var(--vscode-foreground);
-        background-color: var(--vscode-toolbar-hoverBackground);
-    }
 `;
 
 const DetailsBlock = styled.div`
@@ -220,57 +206,25 @@ const ErrorMessage = styled.span`
 `;
 
 const ScenarioGroup = styled.div`
-    background-color: var(--vscode-input-background);
-    border: 1px solid var(--vscode-panel-border);
-    border-radius: 4px;
     margin: 4px 0 2px;
     overflow: hidden;
 `;
 
-const ScenarioHeader = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    color: var(--vscode-foreground);
-    padding: 4px 10px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-`;
-
-const EditButton = styled.button`
-    background: none;
+const Divider = styled.hr`
     border: none;
-    outline: none;
-    color: var(--vscode-foreground);
-    cursor: pointer;
-    padding: 1px 4px;
-    border-radius: 3px;
-    font-size: 7px;
-    font-weight: 600;
-    &:focus,
-    &:focus-visible {
-        outline: none;
-    }
-    &:hover {
-        background-color: var(--vscode-toolbar-hoverBackground);
-        color: var(--vscode-foreground);
-    }
+    height: 1px;
+    margin: 0;
+    background: linear-gradient(
+        to right,
+        transparent,
+        var(--vscode-panel-border) 36px,
+        var(--vscode-panel-border) calc(100% - 36px),
+        transparent
+    );
 `;
 
 const ScenarioContent = styled.div`
     padding: 2px 8px 4px;
-`;
-
-const HoverableInlineCardHeader = styled(InlineCardHeader)`
-    &:hover .header-actions,
-    &:focus-within .header-actions {
-        max-width: 28px;
-        opacity: 1;
-        transform: translateX(0);
-        pointer-events: auto;
-    }
 `;
 
 const HeaderRightStack = styled.div`
@@ -283,28 +237,15 @@ const HeaderRightStack = styled.div`
     gap: 2px;
 `;
 
-const HeaderScenario = styled(InlineCardSubtitle)`
-    flex: 1 1 auto;
-    min-width: 0;
-    max-width: 240px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    text-align: right;
-`;
-
 const HeaderActions = styled.div`
     display: flex;
     align-items: center;
-    overflow: hidden;
-    white-space: nowrap;
     flex: 0 0 auto;
-    max-width: 0;
-    opacity: 0;
-    transform: translateX(4px);
-    pointer-events: none;
-    transition: max-width 180ms ease, opacity 120ms ease, transform 180ms ease;
-    will-change: max-width, opacity, transform;
+`;
+
+const EditLoadingIcon = styled.span`
+    font-size: 10px;
+    line-height: 1;
 `;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -366,15 +307,13 @@ const HTTPEntryRow: React.FC<HTTPEntryRowProps> = ({ entry, request }) => {
     return (
         <>
             <RequestRow>
-                <InlineCardIcon style={{ fontSize: 12, color: isPassed ? "var(--vscode-charts-green, #388a34)" : "var(--vscode-errorForeground)" }}>
-                    <span className={`codicon ${isPassed ? "codicon-check" : "codicon-chrome-close"}`} />
-                </InlineCardIcon>
                 {entry.method && <MethodBadge method={entry.method}>{entry.method}</MethodBadge>}
                 <UrlLabel>{entry.url ?? entry.name}</UrlLabel>
+                {!isPassed && <span style={{fontSize: "14px", fontWeight: 500}} className="codicon codicon-warning" />}
                 {entry.statusCode !== undefined && <StatusBadge status={entry.statusCode}>{entry.statusCode}</StatusBadge>}
-                <ExpandButton onClick={() => setExpanded(p => !p)} title={expanded ? "Collapse" : "Expand"}>
+                <Button appearance="icon" onClick={() => setExpanded(p => !p)} tooltip={expanded ? "Collapse" : "Expand"}>
                     <span className={`codicon ${expanded ? "codicon-chevron-up" : "codicon-chevron-down"}`} />
-                </ExpandButton>
+                </Button>
             </RequestRow>
 
             {expanded && (
@@ -449,29 +388,17 @@ const HTTPTestScenarioDetail: React.FC<HTTPTestScenarioDetailProps> = ({ loading
                 <InlineCardIcon style={{ fontSize: 12, color: "var(--vscode-charts-blue)" }}>
                     <span className="codicon codicon-loading codicon-modifier-spin" />
                 </InlineCardIcon>
-                <span>Running test scenario...</span>
+                <span>Sending Requests...</span>
             </StatusLine>
         );
     }
 
     if (!output) return null;
 
-    const showSummary = output.entries.length > 1;
     const hasNoEntries = output.entries.length === 0;
 
     return (
         <>
-            {showSummary && <SubHeader>Summary</SubHeader>}
-            {showSummary && (
-                <SummaryStatusLine style={{ marginBottom: 6 }}>
-                    <SummaryDetails>
-                        <span>Total: {output.summary.totalEntries}</span>
-                        <span style={{ color: "var(--vscode-charts-green, #388a34)" }}>Passed: {output.summary.passedEntries}</span>
-                        <span style={{ color: "var(--vscode-errorForeground)" }}>Failed: {output.summary.failedEntries}</span>
-                    </SummaryDetails>
-                </SummaryStatusLine>
-            )}
-
             {hasNoEntries ? (
                 <Section>
                     <SummaryStatusLine style={{ marginBottom: 6 }}>
@@ -508,20 +435,39 @@ interface TryItCardProps {
 }
 
 const TryItCard: React.FC<TryItCardProps> = ({ input, output, rpcClient }) => {
+    const [isEditing, setIsEditing] = useState(false);
+
     if (!input?.hurlScript && !output?.hurlScript) return null;
     const hurlScript = input?.hurlScript ?? output?.hurlScript;
     const scenario = input?.scenario ?? output?.scenario;
     const handleEdit = async () => {
+        if (!hurlScript || !rpcClient) {
+            return;
+        }
+
+        setIsEditing(true);
+
         try {
-            await rpcClient?.getCommonRpcClient?.()?.executeCommand?.({
+            const commonRpcClient = rpcClient.getCommonRpcClient();
+
+            await commonRpcClient?.executeCommand?.({
+                commands: ["workbench.action.focusFirstEditorGroup"]
+            });
+
+            await commonRpcClient?.executeCommand?.({
                 commands: [
                     HURL_IMPORT_VSCODE_COMMAND,
                     hurlScript,
+                    { viewColumn: "active",
+                      fileName: scenario
+                     }
                 ]
             });
         } catch (e) {
             // eslint-disable-next-line no-console
             console.error("Failed to invoke edit command", e);
+        } finally {
+            setIsEditing(false);
         }
     };
 
@@ -537,22 +483,33 @@ const TryItCard: React.FC<TryItCardProps> = ({ input, output, rpcClient }) => {
 
     return (
         <InlineCard>
-            <HoverableInlineCardHeader>
+            <InlineCardHeader>
                 <InlineCardIcon>
                     <span className="codicon codicon-send" />
                 </InlineCardIcon>
                 <InlineCardTitle>HTTP Request{multipleEntries && `s`}</InlineCardTitle>
                 <HeaderRightStack>
-                    {scenario && <HeaderScenario>{scenario}</HeaderScenario>}
-                    <HeaderActions className="header-actions">
-                        <EditButton title="Edit in HTTP Client" onClick={handleEdit}>
-                            <span className="codicon codicon-edit" />
-                        </EditButton>
+                    <HeaderActions>
+                        <Button
+                            appearance="icon"
+                            tooltip={isEditing ? "Opening in HTTP Client..." : "Edit in HTTP Client"}
+                            onClick={handleEdit}
+                            disabled={isEditing}
+                        >
+                            {isEditing ? (
+                                <EditLoadingIcon className="codicon codicon-loading codicon-modifier-spin" />
+                            ) : (
+                                <span className="codicon codicon-edit" />
+                            )}
+                        </Button>
                     </HeaderActions>
                 </HeaderRightStack>
-            </HoverableInlineCardHeader>
+            </InlineCardHeader>
             <ScenarioGroup>
-                <ScenarioContent>{content}</ScenarioContent>
+                <Divider />
+                <ScenarioContent>
+                    {scenario && <InlineCardSubtitle>{scenario}</InlineCardSubtitle>}
+                    {content}</ScenarioContent>
             </ScenarioGroup>
         </InlineCard>
     );

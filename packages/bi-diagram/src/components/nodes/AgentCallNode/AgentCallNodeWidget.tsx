@@ -501,8 +501,7 @@ export interface NodeWidgetProps extends Omit<AgentCallNodeWidgetProps, "childre
 
 export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     const { model, engine, onClick } = props;
-    const { onNodeSelect, goToSource, onDeleteNode, removeBreakpoint, addBreakpoint, agentNode, readOnly, selectedNodeId, entrypointContext } =
-        useDiagramContext();
+    const { onNodeSelect, goToSource, onDeleteNode, removeBreakpoint, addBreakpoint, agentNode, readOnly, selectedNodeId, entrypointContext } = useDiagramContext();
     const traceAnimation = useTraceAnimation();
 
     const isSelected = selectedNodeId === model.node.id;
@@ -739,7 +738,17 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
         setAiColor(getAIColor());
     };
 
+    const onChatWithAgent = () => {
+        agentNode?.onChatWithAgent?.(model.node);
+        setMenuPos(null);
+    };
+
     const menuItems: Item[] = [
+        ...(agentNode?.onChatWithAgent ? [{
+            id: "chat",
+            label: "Chat",
+            onClick: () => onChatWithAgent(),
+        }] : []),
         {
             id: "edit",
             label: "Edit",
@@ -780,6 +789,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     const nodeTitle = "AI Agent";
     const hasError = nodeHasError(model.node);
     const nodeMetadata = model?.node.metadata.data as NodeMetadata;
+    const nodeModelIconUrl = nodeMetadata?.model?.path;
     const tools = nodeMetadata?.tools || [];
 
     const sanitizedAgent = nodeMetadata?.agent ? sanitizeAgentData(nodeMetadata.agent) : undefined;
@@ -1110,7 +1120,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                         fill={NODE_TEXT_COLOR}
                         style={{ pointerEvents: "none" }}
                     >
-                        {getAIModuleIcon(nodeMetadata?.model?.type) ?? <DefaultLlmIcon />}
+                        {getAIModuleIcon(nodeMetadata?.model?.type) ?? (nodeModelIconUrl ? <img src={nodeModelIconUrl} style={{ width: 24, height: 24 }} /> : <DefaultLlmIcon />)}
                     </foreignObject>
 
                     {/* Base Line */}

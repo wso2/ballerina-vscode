@@ -44,7 +44,7 @@ const getFunctionParametersList = (params: Parameter[], model: FunctionModel | n
     const paramFields = convertSchemaToFormFields(model.schema);
 
     params.forEach(param => {
-        const typeField = paramFields.find(field => field.key === 'type');
+        const typeField = paramFields.find(field => getPrimaryInputType(field.types)?.fieldType === 'TYPE');
         const nameField = paramFields.find(field => field.key === 'variable');
         const defaultField = paramFields.find(field => field.key === 'defaultable');
 

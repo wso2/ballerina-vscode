@@ -49,6 +49,7 @@ import {
     getWorkspaceFiles,
     getWorkspaceRoot,
     getWorkspaceType,
+    getPreferredTryItOption,
     goToSource,
     hasCentralPATConfigured,
     isNPSupported,
@@ -57,6 +58,7 @@ import {
     runBackgroundTerminalCommand,
     selectFileOrDirPath,
     selectFileOrFolderPath,
+    setPreferredTryItOption,
     showErrorMessage,
     SetWebviewCacheRequestParam,
     SetWebviewCache,
@@ -172,5 +174,13 @@ export class CommonRpcClient implements CommonRPCAPI {
 
     hasCentralPATConfigured(): Promise<boolean> {
         return this._messenger.sendRequest(hasCentralPATConfigured, HOST_EXTENSION);
+    }
+
+    getPreferredTryItOption(): Promise<string | undefined> {
+        return this._messenger.sendRequest(getPreferredTryItOption, HOST_EXTENSION);
+    }
+
+    setPreferredTryItOption(option: string): Promise<void> {
+        return this._messenger.sendRequest(setPreferredTryItOption, HOST_EXTENSION, option);
     }
 }

@@ -66,6 +66,7 @@ import {
     FormExpressionEditorRef,
     HelperPaneHeight,
     Icon,
+    LabelInfo,
     ThemeColors,
     Tooltip,
 } from "@wso2/ui-toolkit";
@@ -101,7 +102,7 @@ import { getTypeHelper } from "../../TypeHelper";
 import { EXPRESSION_EXTRACTION_REGEX, TypeHelperContext } from "../../../../constants";
 import MatchForm from "../MatchForm";
 import { FormSubmitOptions } from "../../FlowDiagram";
-import { getHelperPaneNew } from "../../HelperPaneNew";
+import { AI_PROMPT_TYPE, getHelperPaneNew } from "../../HelperPaneNew";
 import { ConfigureRecordPage } from "../../HelperPaneNew/Views/RecordConfigModal";
 import { VariableForm } from "../DeclareVariableForm";
 import KnowledgeBaseForm from "../KnowledgeBaseForm";
@@ -114,15 +115,31 @@ import { SidePanelView } from "../../FlowDiagram/PanelManager";
 import { ConnectionKind } from "../../../../components/ConnectionSelector";
 import { getFilteredTypesByKind } from "../../TypeEditor/utils";
 import { useModalStack } from "../../../../Context";
-import { getArraySubFormFieldFromTypes, stringToRawArrayElements } from "@wso2/ballerina-side-panel/lib/components/editors/utils";
+import { getArraySubFormFieldFromTypes, stringToRawArrayElements, stringToRawObjectEntries } from "@wso2/ballerina-side-panel/lib/components/editors/utils";
 
-interface TypeEditorState {
+interface FlowNodeTypeEditorState {
     isOpen: boolean;
     fieldKey?: string; // Optional, to store the key of the field being edited
     newTypeValue?: string;
 }
 
-interface FormProps {
+export interface ResolvedType {
+    name: string;
+    value: string;
+    sortText?: string;
+    codeData?: CodeData;
+    labelDetails?: LabelInfo;
+}
+
+export interface ResolvedType {
+    name: string;
+    value: string;
+    sortText?: string;
+    codeData?: CodeData;
+    labelDetails?: LabelInfo;
+}
+
+interface FlowNodeFormProps {
     fileName: string;
     node: FlowNode;
     nodeFormTemplate?: FlowNode; // used in edit forms
@@ -161,7 +178,38 @@ interface FormProps {
     derivedFields?: FieldDerivation[]; // Configuration for auto-deriving field values from other fields
     devantExpressionEditor?: ExpressionEditorDevantProps;
     customValidator?: (fieldKey: string, value: any, allValues: FormValues) => string | undefined; // Custom validation function for form fields
+    defaultExpandAdvanced?: boolean;
 }
+
+type RepeatableMapEntry = {
+    key: string;
+    value: string;
+};
+
+const getRepeatableMapEntriesFromValue = (value: unknown): RepeatableMapEntry[] => {
+    if (typeof value === "string") {
+        return stringToRawObjectEntries(value);
+    }
+
+    if (value && typeof value === "object" && !Array.isArray(value)) {
+        return Object.entries(value as Record<string, any>).map(([entryKey, entryValue]) => ({
+            key: entryKey,
+            value: typeof entryValue === "object" && entryValue !== null
+                ? String((entryValue as any).value ?? "")
+                : String(entryValue ?? "")
+        }));
+    }
+
+    return [];
+};
+
+const getRepeatableMapDiagnosticsByKey = (value: unknown): Record<string, any> | undefined => {
+    if (value && typeof value === "object" && !Array.isArray(value)) {
+        return value as Record<string, any>;
+    }
+
+    return undefined;
+};
 
 // Styled component for the action button description
 const ActionButtonDescription = styled.div`
@@ -225,7 +273,7 @@ export const BreadcrumbSeparator = styled.span`
     font-size: var(--vscode-font-size);
 `;
 
-export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(function FormGenerator(props: FormProps, ref: React.ForwardedRef<FormExpressionEditorRef>) {
+export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProps>(function FlowNodeForm(props: FlowNodeFormProps, ref: React.ForwardedRef<FormExpressionEditorRef>) {
     const {
         fileName,
         node,
@@ -260,12 +308,11 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     const [formDiagnostics, setFormDiagnostics] = useState<DiagnosticMessage[]>([]);
     const [isAiUserAuthenticated, setIsAiUserAuthenticated] = useState(false);
     const formImportsRef = useRef<FormImports>({});
-    const [typeEditorState, setTypeEditorState] = useState<TypeEditorState>({ isOpen: false, newTypeValue: "" });
-    const [isTypeEditorOpen, setIsTypeEditorOpen] = useState<boolean>(false);
+    const [typeEditorState, setTypeEditorState] = useState<FlowNodeTypeEditorState>({ isOpen: false, newTypeValue: "" });
+     const [isTypeEditorOpen, setIsTypeEditorOpen] = useState<boolean>(false);
     const [editingTypeName, setEditingTypeName] = useState<string>("");
     const [visualizableField, setVisualizableField] = useState<VisualizableField>();
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
-    const [valueTypeConstraints, setValueTypeConstraints] = useState<string>();
 
     const fields = useMemo(() => {
         if (!props.fieldOverrides || baseFields.length === 0) {
@@ -290,7 +337,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
     const { addModal, closeModal, popModal } = useModalStack()
 
-    const [selectedType, setSelectedType] = useState<CompletionItem | null>(null);
+    const [selectedType, setSelectedType] = useState<ResolvedType | null>(null);
 
     const skipFormValidation = useMemo(() => {
         const isAgentNode = node && (
@@ -308,6 +355,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     }, [node]);
 
     const importsCodedataRef = useRef<any>(null); // To store codeData for getVisualizableFields
+    const typeResolutionId = useRef(0);
 
     //stack for recursive type creation
     const [stack, setStack] = useState<StackItem[]>([{
@@ -585,23 +633,65 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
             const isRepeatableList = field.types?.length === 1 && getPrimaryInputType(field.types)?.fieldType === "REPEATABLE_LIST";
             const selectedInputType = isRepeatableList ? getPrimaryInputType(field.types) : field.types?.find(t => t.selected);
+            const isContainingRepeatableList = field.types?.some(t => t.fieldType === "REPEATABLE_LIST");
+            const isContainingRepeatableMap = field.types?.some(t => t.fieldType === "REPEATABLE_MAP");
+
 
             const nodeProperties = nodeWithDiagnostics?.properties as any;
             let propertyDiagnostics: any = nodeProperties?.[field.key]?.diagnostics?.diagnostics;
 
             // Update value from current form data and update diagnostics
             if (data[field.key] !== undefined) {
-                if (selectedInputType?.fieldType === "REPEATABLE_LIST" && typeof data[field.key] === "string") {
-                    const initialValues = stringToRawArrayElements(data[field.key]);
-                    const initialFields = initialValues.map((val, index) => {
-                        const key = crypto.randomUUID();
-                        return {
-                            ...getArraySubFormFieldFromTypes(key, (field.types[0] as any).template.types as InputType[]),
-                            value: val,
-                            diagnostics: nodeProperties?.[field.key]?.value?.[index]?.diagnostics?.diagnostics ?? []
-                        };
-                    });
-                    updatedField.value = initialFields;
+                if (isContainingRepeatableList && Array.isArray(nodeProperties?.[field.key]?.value)) {
+                    if (selectedInputType?.fieldType === "REPEATABLE_LIST") {
+                        let initialValues: string[];
+                        if (typeof data[field.key] === 'string') {
+                            initialValues = stringToRawArrayElements(data[field.key]);
+                        } else {
+                            // When the value is an array (from FormArrayEditor), extract values directly
+                            initialValues = (data[field.key] as any[]).map((val: any) =>
+                                typeof val === 'string' ? val : String(val?.value ?? '')
+                            );
+                        }
+                        const initialFields = initialValues.map((val, index) => {
+                            const key = crypto.randomUUID();
+                            return {
+                                ...getArraySubFormFieldFromTypes(key, (field.types[0] as any).template.types as InputType[]),
+                                value: val,
+                                diagnostics: nodeProperties?.[field.key]?.value?.[index]?.diagnostics?.diagnostics ?? []
+                            };
+                        });
+                        updatedField.value = initialFields;
+                    }
+                    else {
+                        updatedField.value = data[field.key];
+                        propertyDiagnostics = nodeProperties?.[field.key]?.value?.map((val: any) => val?.diagnostics?.diagnostics ?? []).flat() ?? [];
+                    }
+                }
+
+                else if (isContainingRepeatableMap) {
+                    // Diagnostics responses do not preserve a single map shape consistently.
+                    // Optional maps may omit `value`, while populated maps can come back either
+                    // as editor-friendly objects or as serialized source strings.
+                    const repeatableMapDiagnostics = getRepeatableMapDiagnosticsByKey(nodeProperties?.[field.key]?.value);
+                    if (selectedInputType?.fieldType === "REPEATABLE_MAP") {
+                        const initialValues = getRepeatableMapEntriesFromValue(data[field.key]);
+                        // Keep value as a Record to match processToOutputFormat shape expected by FormMapEditorNew
+                        const outputRecord: Record<string, unknown> = {};
+                        initialValues.forEach((val) => {
+                            const key = crypto.randomUUID();
+                            outputRecord[val.key] = {
+                                ...getArraySubFormFieldFromTypes(key, (field.types[0] as any).template.types as InputType[]),
+                                key: `mp-val-${key}`,
+                                value: val.value,
+                                diagnostics: repeatableMapDiagnostics?.[val.key]?.diagnostics?.diagnostics ?? []
+                            };
+                        });
+                        updatedField.value = outputRecord;
+                    }
+                    else {
+                        updatedField.value = data[field.key];
+                    }
                 }
                 else {
                     updatedField.value = data[field.key];
@@ -616,6 +706,19 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                 const collectedDiagnostics = (
                     nodeProperties?.[field.key]?.value?.map((val: any) => val?.diagnostics?.diagnostics) ?? []
                 ).flat().filter(Boolean) as Array<{ message?: string; severity?: string }>;
+
+                propertyDiagnostics = collectedDiagnostics.filter((d, i, arr) =>
+                    arr.findIndex(x => x.message === d.message) === i
+                );
+            }
+
+            if (isContainingRepeatableMap && !(Array.isArray(propertyDiagnostics) && propertyDiagnostics.length > 0)) {
+                const collectedDiagnostics = Object.values(
+                    getRepeatableMapDiagnosticsByKey(nodeProperties?.[field.key]?.value) ?? {}
+                )
+                    .map((value: any) => value?.diagnostics?.diagnostics)
+                    .flat()
+                    .filter(Boolean) as Array<{ message?: string; severity?: string }>;
 
                 propertyDiagnostics = collectedDiagnostics.filter((d, i, arr) =>
                     arr.findIndex(x => x.message === d.message) === i
@@ -642,7 +745,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     }
 
     const handleOnSubmit = (data: FormValues, dirtyFields: any) => {
-        console.log(">>> FormGenerator handleOnSubmit", data);
+        console.log(">>> FlowNodeForm handleOnSubmit", data);
         if (node && targetLineRange) {
             const updatedNode = mergeFormDataWithFlowNode(data, targetLineRange, dirtyFields);
             const editorConfig = data["editorConfig"];
@@ -797,7 +900,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                 handleUpdateImports(targetFieldKey, imports);
             }
         }
-        handleTypeEditorClose();
+        // handleTypeEditorClose();
     };
 
     /* Expression editor related functions */
@@ -1021,6 +1124,10 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                 // For repeatable list, check diagnostics for each element in the list
                 const valueDiagnostics = (property.value as any[])?.map((val) => val?.diagnostics?.diagnostics ?? []).flat() ?? [];
                 diagnostics = [...diagnostics, ...valueDiagnostics];
+            } else if (property?.types?.some(t => t.fieldType === "REPEATABLE_MAP") && typeof property.value === 'object' && property.value !== null && !Array.isArray(property.value)) {
+                // For repeatable map, check diagnostics for each entry in the map
+                const valueDiagnostics = Object.values(property.value as Record<string, any>)?.map((val) => val?.diagnostics?.diagnostics ?? []).flat() ?? [];
+                diagnostics = [...diagnostics, ...valueDiagnostics];
             } else {
                 diagnostics = property.diagnostics?.diagnostics ?? [];
             }
@@ -1070,10 +1177,22 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     ? { ...(existingImports || {}), ...newImports }
                     : existingImports;
                 const updatedProperty = mergedImports !== undefined
-                    ? { ...property, imports: mergedImports }
-                    : property;
+                    ? { ...property, imports: mergedImports, types: property.types.map(t => ({ ...t })) }
+                    : { ...property, types: property.types.map(t => ({ ...t })) };
 
                 try {
+                    const propertyPrimaryFieldType = getPrimaryInputType(updatedProperty.types);
+                    if (updatedProperty.types.length > 1 && propertyPrimaryFieldType.fieldType !== "REPEATABLE_LIST" && propertyPrimaryFieldType.fieldType !== "REPEATABLE_MAP") {
+                        updatedProperty.types.forEach(t => {
+                            if (t.fieldType === "EXPRESSION") {
+                                t.selected = true;
+                            }
+                            else {
+                                t.selected = false;
+                            }
+                        });
+                    }
+
                     const response = await rpcClient.getBIDiagramRpcClient().getExpressionDiagnostics({
                         filePath: fileName,
                         context: {
@@ -1152,39 +1271,22 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         });
         const matchedReferenceType = newTypes.find(t => t.label === valueTypeConstraint);
         if (matchedReferenceType) {
-            updateRecordTypeFields(matchedReferenceType)
-            setValueTypeConstraints(valueTypeConstraint);
+            updateRecordTypeFields({
+                value: matchedReferenceType.insertText,
+                name: matchedReferenceType.label,
+                labelDetails: matchedReferenceType.labelDetails,
+            })
+            return;
         }
-        else {
-            const type = await searchImportedTypeByName(valueTypeConstraint);
-            if (!type) {
-                setValueTypeConstraints(valueTypeConstraint);
-                return;
-            };
+        const type = await searchImportedTypeByName(valueTypeConstraint);
+        if (!type) return;
 
-            setValueTypeConstraints(type.insertText);
-            // Create the record type field for expression
-            const expressionEntry = Object.entries(getFormProperties(node))
-                .find(([_, property]) => property.metadata?.label === "Expression");
-
-            if (!expressionEntry) return;
-
-            const [key, property] = expressionEntry;
-            const typeForRecord = { label: type.insertText, labelDetails: type.labelDetails };
-            const recordTypeField = createExpressionRecordTypeField(key, property, `${type.codedata.org}:${type.codedata.module}:${type.codedata.version}`, typeForRecord);
-            if (!recordTypeField) return;
-
-            setRecordTypeFields(prevFields => {
-                const prevIndex = prevFields.findIndex(f => f.key === recordTypeField.key);
-                if (prevIndex !== -1) {
-                    const updated = [...prevFields];
-                    updated[prevIndex] = recordTypeField;
-                    return updated;
-                } else {
-                    return [...prevFields, recordTypeField];
-                }
-            });
-        }
+        updateRecordTypeFields({
+            value: type.name,
+            name: type.name,
+            codeData: type.codedata,
+            labelDetails: type.labelDetails,
+        });
     }
 
     const handleGetHelperPane = (
@@ -1228,8 +1330,6 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             isInModal: isInModal,
             types: defaultTypes,
             handleRetrieveCompletions: handleRetrieveCompletions,
-            forcedValueTypeConstraint: valueTypeConstraints,
-            handleValueTypeConstChange: handleValueTypeConstChange,
             inputMode: inputMode,
             devantExpressionEditor: props.devantExpressionEditor,
         });
@@ -1407,52 +1507,28 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         key: string,
         property: any,
         packageInfo: string,
-        type: { label: string; labelDetails?: { description?: string } }
+        type: { name: string; labelDetails?: { description?: string } },
+        packageName?: string,
     ) => {
         return {
             key,
             property,
             recordTypeMembers: [{
                 kind: "RECORD_TYPE",
-                type: type.label || "",
+                type: type.name || "",
                 packageInfo: packageInfo,
+                packageName: packageName,
                 selected: false
             }]
         };
     };
 
-    const isTypeExcludedFromValueTypeConstraint = (typeLabel: string) => {
-        return ["()"].includes(typeLabel);
-    }
 
     /**
      * Updates record type fields and value type constraints when a type is selected.
      * This is used in variable declaration forms where the variable type dynamically changes.
      */
-    const updateRecordTypeFields = (type?: { label: string; labelDetails?: { description?: string, detail?: string } }) => {
-        if (!type) {
-            setValueTypeConstraints('');
-            return;
-        }
-
-        // If not a Record, remove the 'expression' entry from recordTypeFields and return
-        if (type?.labelDetails?.description?.toLocaleLowerCase() !== "record") {
-            if (type.labelDetails.detail === "Structural Types"
-                || type.labelDetails.detail === "Behaviour Types"
-                || isTypeExcludedFromValueTypeConstraint(type.label)
-            ) {
-                setValueTypeConstraints('');
-            }
-            else {
-                setValueTypeConstraints(type.label);
-            }
-            setRecordTypeFields(prevFields => prevFields.filter(f => f.key !== "expression"));
-            return;
-        }
-        else {
-            setValueTypeConstraints(type.label);
-        }
-
+    const updateRecordTypeFields = (type?: { value: string, codeData?: CodeData, name: string; labelDetails?: { description?: string, detail?: string } }) => {
         // Create the record type field for expression
         const expressionEntry = Object.entries(getFormProperties(node))
             .find(([_, property]) => {
@@ -1465,9 +1541,41 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             });
 
         if (!expressionEntry) return;
-
         const [key, property] = expressionEntry;
-        const recordTypeField = createExpressionRecordTypeField(key, property, '', type);
+        if (!type) {
+            setRecordTypeFields(prevFields => prevFields.filter(f => f.key !== key));
+            setBaseFields(prevFields => prevFields.map(field => {
+                if (field.key === key) {
+                    return {
+                        ...field,
+                        types: [
+                            { fieldType: "EXPRESSION", selected: false },
+                        ]
+                    };
+                }
+                return field;
+            }));
+            return;
+        }
+
+        // If not a Record, remove the 'expression' entry from recordTypeFields and return
+        if (type?.labelDetails?.description?.toLocaleLowerCase() !== "record" && type.codeData?.node !== "RECORD") {
+            setRecordTypeFields(prevFields => prevFields.filter(f => f.key !== key));
+            setBaseFields(prevFields => prevFields.map(field => {
+                if (field.key === key) {
+                    return {
+                        ...field,
+                        types: [
+                            { fieldType: "EXPRESSION", selected: false },
+                        ]
+                    };
+                }
+                return field;
+            }));
+            return;
+        }
+        const packageInfo = type.codeData ? `${type.codeData.org}:${type.codeData.module}:${type.codeData.version}` : '';
+        const recordTypeField = createExpressionRecordTypeField(key, property, packageInfo, type, type.codeData?.module);
         if (!recordTypeField) return;
 
         setBaseFields(prevFields => prevFields.map(field => {
@@ -1499,23 +1607,24 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
      * Handles type selection from completion items (used in type editor)
      */
     const handleSelectedTypeChange = async (type: CompletionItem | string) => {
-        try {
-            if (typeof type === "string") {
-                await handleSelectedTypeByName(type);
-                return;
-            }
-            else {
-                // If the type is a Completion item, then it can be found in the reference types.
-                // Which cannot be an imported type.
-                importsCodedataRef.current = null;
-                await fetchVisualizableFields(fileName, (type as CompletionItem).label);
-            }
-            setSelectedType(type);
-            updateRecordTypeFields(type);
+        const resolutionId = ++typeResolutionId.current;
+        if (!type) {
+            setSelectedType(null);
+            updateRecordTypeFields(undefined);
+            return;
         }
-        catch (error) {
-            console.error("Error handling selected type change", error);
+        let matchedType: ResolvedType | undefined;
+        if (typeof type === "string") {
+            matchedType = await findTypeByName(type);
         }
+        else {
+            matchedType = await findTypeByName(type.value);
+        }
+        if (resolutionId !== typeResolutionId.current) {
+            return;
+        }
+        setSelectedType(matchedType ?? null);
+        updateRecordTypeFields(matchedType);
     };
 
     const findMatchedType = (items: TypeHelperItem[], typeName: string) => {
@@ -1547,7 +1656,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                 searchKind: 'TYPE'
             })
             .then((response) => {
-                return getFilteredTypesByKind(response.categories, functionKinds.IMPORTED);
+                return getFilteredTypesByKind(response.categories, [functionKinds.IMPORTED, functionKinds.CURRENT]);
             })
             .finally(() => {
 
@@ -1567,53 +1676,31 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         return type;
     };
 
-    /**
-     * Handles type selection by type name (used when type is created/changed)
-     */
-    const handleSelectedTypeByName = async (typeName: string) => {
-        // Early return for invalid input
+    const findTypeByName = async (typeName: string): Promise<ResolvedType | undefined> => {
         if (!typeName || typeName.length === 0) {
-            importsCodedataRef.current = null;
-            await fetchVisualizableFields(fileName, typeName);
-            setValueTypeConstraints('');
-            return;
+            return undefined;
         }
-
-        const type = await searchImportedTypeByName(typeName);
-        if (!type) {
-            importsCodedataRef.current = null;
-            await fetchVisualizableFields(fileName, typeName);
-            setValueTypeConstraints('');
-            return;
+        let matchedOtherTypes = await searchImportedTypeByName(typeName);
+        if (matchedOtherTypes) {
+            return ({
+                name: matchedOtherTypes.name,
+                value: matchedOtherTypes.insertText,
+                codeData: matchedOtherTypes.codedata,
+                sortText: matchedOtherTypes.sortText,
+                labelDetails: matchedOtherTypes.labelDetails
+            });
         }
-        else {
-            importsCodedataRef.current = type.codedata;
-            await fetchVisualizableFields(fileName, typeName);
+        let matchedReferenceType = types.find(t => t.label === typeName);
+        if (matchedReferenceType) {
+            return ({
+                name: matchedReferenceType.label,
+                value: matchedReferenceType.value,
+                sortText: matchedReferenceType.sortText,
+                labelDetails: matchedReferenceType.labelDetails
+            });
         }
-
-        setValueTypeConstraints(type.insertText);
-        // Create the record type field for expression
-        const expressionEntry = Object.entries(getFormProperties(node))
-            .find(([_, property]) => property.metadata?.label === "Expression");
-
-        if (!expressionEntry) return;
-
-        const [key, property] = expressionEntry;
-        const typeForRecord = { label: type.insertText, labelDetails: type.labelDetails };
-        const recordTypeField = createExpressionRecordTypeField(key, property, `${type.codedata.org}:${type.codedata.module}:${type.codedata.version}`, typeForRecord);
-        if (!recordTypeField) return;
-
-        setRecordTypeFields(prevFields => {
-            const prevIndex = prevFields.findIndex(f => f.key === recordTypeField.key);
-            if (prevIndex !== -1) {
-                const updated = [...prevFields];
-                updated[prevIndex] = recordTypeField;
-                return updated;
-            } else {
-                return [...prevFields, recordTypeField];
-            }
-        });
-    };
+        return undefined;
+    }
 
     const getDefaultValue = (typeName?: string) => {
         return ({
@@ -1785,7 +1872,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     // handle declare variable node form
     if (node?.codedata.node === "VARIABLE") {
         // HACK: make the type field optional for variable declaration form
-        const typeField = fields.find(field => field.key === "type");
+        const typeField = fields.find(field => getPrimaryInputType(field.types)?.fieldType === "TYPE");
         if (typeField) {
             typeField.optional = true;
         }
@@ -1999,6 +2086,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     injectedComponents={injectedComponents}
                     derivedFields={props.derivedFields}
                     updateImports={handleUpdateImports}
+                    defaultExpandAdvanced={props.defaultExpandAdvanced}
                 />
             )}
             <EntryPointTypeCreator
@@ -2090,4 +2178,4 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     );
 });
 
-export default FormGenerator;
+export default FlowNodeForm;

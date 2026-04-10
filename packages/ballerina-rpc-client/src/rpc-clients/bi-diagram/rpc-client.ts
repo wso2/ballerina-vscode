@@ -20,6 +20,7 @@
 import {
     AIChatRequest,
     AddFieldRequest,
+    InlineAgentChatRequest,
     AddFunctionRequest,
     AddImportItemResponse,
     AddProjectToWorkspaceRequest,
@@ -113,6 +114,7 @@ import {
     ServiceClassModelResponse,
     ServiceClassSourceRequest,
     SignatureHelpRequest,
+    SuggestedProjectDefaultsResponse,
     SignatureHelpResponse,
     SourceEditResponse,
     UpdateConfigVariableRequestV2,
@@ -127,6 +129,10 @@ import {
     UpdatedArtifactsResponse,
     ValidateProjectFormRequest,
     ValidateProjectFormResponse,
+    UpdateProjectTitleRequest,
+    UpdatePackageTitleRequest,
+    updateProjectTitle,
+    updatePackageTitle,
     VerifyTypeDeleteRequest,
     VerifyTypeDeleteResponse,
     VisibleTypesRequest,
@@ -177,6 +183,7 @@ import {
     getFormDiagnostics,
     getFunctionNames,
     getFunctionNode,
+    getSuggestedProjectDefaults,
     getModuleNodes,
     getNodeTemplate,
     getOpenApiGeneratedModules,
@@ -200,6 +207,8 @@ import {
     handleReadmeContent,
     openAIChat,
     openConfigToml,
+    startInlineAgentChat,
+    cleanupAgentChatServices,
     openReadme,
     removeBreakpointFromSource,
     renameIdentifier,
@@ -296,6 +305,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
         return this._messenger.sendRequest(validateProjectPath, HOST_EXTENSION, params);
     }
 
+    getSuggestedProjectDefaults(params: { isInProject: boolean }): Promise<SuggestedProjectDefaultsResponse> {
+        return this._messenger.sendRequest(getSuggestedProjectDefaults, HOST_EXTENSION, params);
+    }
+
     deleteProject(params: DeleteProjectRequest): void {
         return this._messenger.sendNotification(deleteProject, HOST_EXTENSION, params);
     }
@@ -382,6 +395,14 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     openAIChat(params: AIChatRequest): void {
         return this._messenger.sendNotification(openAIChat, HOST_EXTENSION, params);
+    }
+
+    startInlineAgentChat(params: InlineAgentChatRequest): void {
+        return this._messenger.sendNotification(startInlineAgentChat, HOST_EXTENSION, params);
+    }
+
+    cleanupAgentChatServices(): Promise<boolean> {
+        return this._messenger.sendRequest(cleanupAgentChatServices, HOST_EXTENSION);
     }
 
     getSignatureHelp(params: SignatureHelpRequest): Promise<SignatureHelpResponse> {
@@ -562,5 +583,13 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     getExpressionTokens(params: ExpressionTokensRequest): Promise<number[]> {
         return this._messenger.sendRequest(getExpressionTokens, HOST_EXTENSION, params);
+    }
+
+    updateProjectTitle(params: UpdateProjectTitleRequest): Promise<void> {
+        return this._messenger.sendRequest(updateProjectTitle, HOST_EXTENSION, params);
+    }
+
+    updatePackageTitle(params: UpdatePackageTitleRequest): Promise<void> {
+        return this._messenger.sendRequest(updatePackageTitle, HOST_EXTENSION, params);
     }
 }

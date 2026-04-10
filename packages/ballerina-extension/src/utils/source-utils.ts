@@ -28,6 +28,13 @@ import * as path from 'path';
 import { notifyCurrentWebview } from '../RPCLayer';
 import { applyBallerinaTomlEdit } from '../rpc-managers/bi-diagram/utils';
 
+/** True while any migration AI enhancement is actively running. */
+let _migrationEnhancementActive = false;
+/** Called by the migration orchestrator to suppress disruptive UI side-effects during enhancement. */
+export function setMigrationEnhancementActive(active: boolean): void {
+    _migrationEnhancementActive = active;
+}
+
 export interface UpdateSourceCodeRequest {
     textEdits: {
         [key: string]: TextEdit[];
@@ -113,9 +120,21 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                 }
             }
             if (edits.length === 0) {
+                if (!skipUndoRedoStack) {
+                    undoRedoManager?.cancelBatchOperation();
+                }
                 StateMachine.setReadyMode();
                 return [];
             }
+        }
+
+        // If modificationRequests is empty, return empty array
+        if (Object.keys(modificationRequests).length === 0) {
+            if (!skipUndoRedoStack) {
+                undoRedoManager?.cancelBatchOperation();
+            }
+            StateMachine.setReadyMode();
+            return [];
         }
 
         // Iterate through modificationRequests and apply modifications
@@ -234,7 +253,11 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                     console.log("No artifact update notification received within 10 seconds");
                     unsubscribe();
                     StateMachine.setReadyMode();
-                    openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
+                    // Don't navigate away while migration enhancement is running — it would
+                    // disrupt the agent pipeline and cause repeated "no project found" errors.
+                    if (!_migrationEnhancementActive) {
+                        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
+                    }
                     reject(new Error("Operation timed out. Please try again."));
                 }, 10000);
 

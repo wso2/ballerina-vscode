@@ -52,8 +52,12 @@ import {
     UpdateChatMessageRequest,
     UsageResponse,
     WebToolApprovalRequest,
+    ClarifyAnswerRequest,
+    ClarifyCancelRequest,
     approveWebTool,
     declineWebTool,
+    submitClarifyAnswer,
+    cancelClarify,
     abortAIGeneration,
     acceptChanges,
     addFilesToProject,
@@ -107,6 +111,10 @@ import {
     CompactConversationRequest,
     CompactConversationResponse,
     getShowContextUsage,
+    getRunningServices,
+    stopRunningService,
+    RunningServiceInfo,
+    StopRunningServiceRequest,
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -330,5 +338,21 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     promptForLogin(): void {
         return this._messenger.sendNotification(promptForLogin, HOST_EXTENSION);
+    }
+
+    submitClarifyAnswer(params: ClarifyAnswerRequest): Promise<void> {
+        return this._messenger.sendRequest(submitClarifyAnswer, HOST_EXTENSION, params);
+    }
+
+    cancelClarify(params: ClarifyCancelRequest): Promise<void> {
+        return this._messenger.sendRequest(cancelClarify, HOST_EXTENSION, params);
+    }
+
+    getRunningServices(): Promise<RunningServiceInfo[]> {
+        return this._messenger.sendRequest(getRunningServices, HOST_EXTENSION);
+    }
+
+    stopRunningService(params: StopRunningServiceRequest): Promise<boolean> {
+        return this._messenger.sendRequest(stopRunningService, HOST_EXTENSION, params);
     }
 }

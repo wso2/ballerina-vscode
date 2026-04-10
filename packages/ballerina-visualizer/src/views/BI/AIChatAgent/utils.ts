@@ -225,7 +225,9 @@ export const removeToolFromAgentNode = async (agentNode: FlowNode, toolName: str
     const updatedAgentNode = cloneDeep(agentNode);
     let toolsValue = updatedAgentNode.properties.tools.value;
     // remove new lines from the tools value
-    toolsValue = toolsValue.toString().replace(/\n/g, "");
+    if (typeof toolsValue === "string") {
+        toolsValue = toolsValue.replace(/\n/g, "");
+    }
     // Remove the tools from the tools array
     if (typeof toolsValue === "string") {
         const toolsArray = parseToolsString(toolsValue);
@@ -237,8 +239,10 @@ export const removeToolFromAgentNode = async (agentNode: FlowNode, toolName: str
         } else {
             toolsValue = `[]`;
         }
+    } else if (Array.isArray(toolsValue)) {
+        toolsValue = (toolsValue as Property[]).filter((tool: any) => tool.value !== toolName);
     } else {
-        console.error("Tools value is not a string", toolsValue);
+        console.error("Tools value is not a string or array", toolsValue);
         return agentNode;
     }
     // update the node
@@ -252,10 +256,8 @@ export const addToolToAgentNode = async (agentNode: FlowNode, toolName: string) 
     // clone the node to avoid modifying the original
     const updatedAgentNode = cloneDeep(agentNode);
     let toolsValue = updatedAgentNode.properties.tools.value;
-    // remove new lines and normalize whitespace from the tools value
-    // toolsValue = toolsValue.toString().replace(/\s+/g, "");
     if (toolsValue == undefined) {
-        toolsValue = `[]`;
+        toolsValue = [];
     }
     if (typeof toolsValue === "string") {
         const toolsArray = parseToolsString(toolsValue);
@@ -269,8 +271,22 @@ export const addToolToAgentNode = async (agentNode: FlowNode, toolName: string) 
         } else {
             toolsValue = `[${toolName}]`;
         }
+    } else if (Array.isArray(toolsValue)) {
+        // Check if the tool already exists in the array
+        const toolExists = toolsValue.some((tool: any) => tool.value === toolName);
+        if (!toolExists) {
+            (toolsValue as Property[]).push({
+                metadata: {
+                    label: toolName,
+                    description: "",
+                },
+                value: toolName,
+                optional: false,
+                editable: false
+            });
+        }
     } else {
-        console.error("Tools value is not a string", toolsValue);
+        console.error("Tools value is not a string or array", toolsValue);
         return agentNode;
     }
     updatedAgentNode.properties.tools.value = toolsValue;
@@ -296,34 +312,24 @@ export const updateMcpServerToAgentNode = async (
     const updatedAgentNode = cloneDeep(agentNode);
     let toolsValue = updatedAgentNode.properties.tools.value;
 
+    // Prepare the new tool string based on tool selection
+    let newToolString;
+    if (toolConfig.toolSelection.includes("Selected")) {
+        const toolsString = toolConfig.selectedTools.map(tool => `"${tool}"`).join(", ");
+        newToolString = `check new ai:McpToolKit("${toolConfig.serviceUrl}", permittedTools = [${toolsString}], info = {name: "${toolConfig.name}", version: ""})`;
+    } else {
+        newToolString = `check new ai:McpToolKit("${toolConfig.serviceUrl}", permittedTools = (), info = {name: "${toolConfig.name}", version: ""})`;
+    }
+
     if (typeof toolsValue === "string") {
-        console.log(">>> Current tools string", toolsValue);
-
-        // Prepare the new tool string based on tool selection
-        let newToolString;
-        if (toolConfig.toolSelection.includes("Selected")) {
-            const toolsString = toolConfig.selectedTools.map(tool => `"${tool}"`).join(", ");
-            newToolString = `check new ai:McpToolKit("${toolConfig.serviceUrl}", permittedTools = [${toolsString}], info = {name: "${toolConfig.name}", version: ""})`;
-        } else {
-            newToolString = `check new ai:McpToolKit("${toolConfig.serviceUrl}", permittedTools = (), info = {name: "${toolConfig.name}", version: ""})`;
-        }
-
         // Fixed regex pattern that matches only the specific McpToolKit with the target name
-        // Uses negated character classes to prevent crossing boundaries
         const pattern = new RegExp(
             `check new ai:McpToolKit\\([^}]*name:\\s*"${originalToolName}"[^}]*\\}\\)`,
             'g'
         );
 
-        console.log(">>> Regex pattern:", pattern);
-        console.log(">>> Testing pattern against toolsValue:", pattern.test(toolsValue));
-
-        // Reset the regex lastIndex since test() modifies it
-        pattern.lastIndex = 0;
-
         if (pattern.test(toolsValue)) {
-            console.log(">>> Found existing tool to replace");
-            // Reset lastIndex again before replace
+            // Reset lastIndex before replace
             pattern.lastIndex = 0;
             toolsValue = toolsValue.replace(pattern, newToolString);
         } else {
@@ -336,8 +342,27 @@ export const updateMcpServerToAgentNode = async (
                 ? `[${innerContent}, ${newToolString}]`
                 : `[${newToolString}]`;
         }
+    } else if (Array.isArray(toolsValue)) {
+        const pattern = new RegExp(`name:\\s*"${originalToolName}"`);
+        const index = (toolsValue as Property[]).findIndex((tool: any) => pattern.test(tool.value));
+        if (index !== -1) {
+            (toolsValue as Property[])[index] = {
+                ...(toolsValue as Property[])[index],
+                value: newToolString,
+            };
+        } else {
+            (toolsValue as Property[]).push({
+                metadata: {
+                    label: toolConfig.name,
+                    description: "",
+                },
+                value: newToolString,
+                optional: false,
+                editable: false,
+            });
+        }
     } else {
-        console.error("Tools value is not a string", toolsValue);
+        console.error("Tools value is not a string or array", toolsValue);
         return agentNode;
     }
 
@@ -373,8 +398,21 @@ export const addMcpServerToAgentNode = async (agentNode: FlowNode, toolConfig: M
         } else {
             toolsValue = `[${toolString}]`;
         }
+    } else if (Array.isArray(toolsValue)) {
+        const toolExists = (toolsValue as Property[]).some((tool: any) => tool.value === toolString);
+        if (!toolExists) {
+            (toolsValue as Property[]).push({
+                metadata: {
+                    label: toolConfig.name,
+                    description: "",
+                },
+                value: toolString,
+                optional: false,
+                editable: false,
+            });
+        }
     } else {
-        console.error("Tools value is not a string", toolsValue);
+        console.error("Tools value is not a string or array", toolsValue);
         return agentNode;
     }
     // update the node
@@ -392,69 +430,74 @@ export const removeMcpServerFromAgentNode = (
     const updatedAgentNode = cloneDeep(agentNode);
     let toolsValue = updatedAgentNode.properties.tools.value;
 
-    if (typeof toolsValue !== "string") {
-        console.error("Tools value is not a string", toolsValue);
-        return agentNode;
-    }
+    if (typeof toolsValue === "string") {
+        const startPattern = 'check new ai:McpToolKit(';
+        let startIndex = 0;
+        let found = false;
 
-    const startPattern = 'check new ai:McpToolKit(';
-    let startIndex = 0;
-    let found = false;
+        while (!found && startIndex < toolsValue.length) {
+            startIndex = toolsValue.indexOf(startPattern, startIndex);
+            if (startIndex === -1) break;
 
-    while (!found && startIndex < toolsValue.length) {
-        startIndex = toolsValue.indexOf(startPattern, startIndex);
-        if (startIndex === -1) break;
+            let endIndex = toolsValue.indexOf('})', startIndex);
+            if (endIndex === -1) break;
+            endIndex += 2; // Include the '})'
 
-        let endIndex = toolsValue.indexOf('})', startIndex);
-        if (endIndex === -1) break;
-        endIndex += 2; // Include the '})'
-
-        const declaration = toolsValue.substring(startIndex, endIndex);
-        if (declaration.includes(`name: "${toolkitNameToRemove}"`)) {
-            let hasCommaAfter = false;
-            if (toolsValue[endIndex] === ',') {
-                endIndex++;
-                hasCommaAfter = true;
-            }
-            let hasCommaBefore = false;
-            let newStartIndex = startIndex;
-            if (startIndex > 0 && toolsValue[startIndex - 1] === ',') {
-                newStartIndex--;
-                hasCommaBefore = true;
-            }
-
-            let isLastItem = !hasCommaAfter;
-
-            let before: string = toolsValue.substring(0, newStartIndex);
-            let after: string = toolsValue.substring(endIndex);
-
-            if (hasCommaBefore && hasCommaAfter) {
-                after = after.trim();
-            } else if (isLastItem) {
-                before = before.trim();
-                if (before.endsWith(',')) {
-                    before = before.substring(0, before.length - 1).trim();
+            const declaration = toolsValue.substring(startIndex, endIndex);
+            if (declaration.includes(`name: "${toolkitNameToRemove}"`)) {
+                let hasCommaAfter = false;
+                if (toolsValue[endIndex] === ',') {
+                    endIndex++;
+                    hasCommaAfter = true;
                 }
+                let hasCommaBefore = false;
+                let newStartIndex = startIndex;
+                if (startIndex > 0 && toolsValue[startIndex - 1] === ',') {
+                    newStartIndex--;
+                    hasCommaBefore = true;
+                }
+
+                let isLastItem = !hasCommaAfter;
+
+                let before: string = toolsValue.substring(0, newStartIndex);
+                let after: string = toolsValue.substring(endIndex);
+
+                if (hasCommaBefore && hasCommaAfter) {
+                    after = after.trim();
+                } else if (isLastItem) {
+                    before = before.trim();
+                    if (before.endsWith(',')) {
+                        before = before.substring(0, before.length - 1).trim();
+                    }
+                }
+
+                toolsValue = before + after;
+                found = true;
+            } else {
+                startIndex = endIndex;
             }
-
-            toolsValue = before + after;
-            found = true;
-        } else {
-            startIndex = endIndex;
         }
-    }
 
-    toolsValue = toolsValue
-        .replace(/,+/g, ',')
-        .replace(/, ,/g, ', ')
-        .replace(/\s*,\s*/g, ', ')
-        .replace(/, $/, '')
-        .replace(/^, /, '')
-        .replace(/\s+/g, ' ')
-        .trim();
+        toolsValue = toolsValue
+            .replace(/,+/g, ',')
+            .replace(/, ,/g, ', ')
+            .replace(/\s*,\s*/g, ', ')
+            .replace(/, $/, '')
+            .replace(/^, /, '')
+            .replace(/\s+/g, ' ')
+            .trim();
 
-    if (toolsValue === '[' || toolsValue === '[]') {
-        toolsValue = '[]';
+        if (toolsValue === '[' || toolsValue === '[]') {
+            toolsValue = '[]';
+        }
+    } else if (Array.isArray(toolsValue)) {
+        const pattern = new RegExp(`name:\\s*"${toolkitNameToRemove}"`);
+        toolsValue = (toolsValue as Property[]).filter(
+            (tool: any) => !pattern.test(tool.value) && tool.value !== toolkitNameToRemove
+        );
+    } else {
+        console.error("Tools value is not a string or array", toolsValue);
+        return agentNode;
     }
 
     updatedAgentNode.properties.tools.value = toolsValue;
@@ -559,7 +602,7 @@ export const getEndOfFileLineRange = async (
 
         // Return a LineRange object with both start and end at the file's end position
         return {
-            fileName: fileName,
+            fileName: filePath,
             startLine: endPosition,
             endLine: endPosition
         };

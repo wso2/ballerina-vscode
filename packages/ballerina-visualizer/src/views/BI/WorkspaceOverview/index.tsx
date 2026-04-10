@@ -16,7 +16,8 @@
  * under the License.
  */
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { EditableTitle } from "../../../components/EditableTitle";
 import {
     ProjectStructureResponse,
     SHARED_COMMANDS,
@@ -186,6 +187,7 @@ const TitleContainer = styled.div`
     display: flex;
     align-items: flex-end;
     gap: 8px;
+    position: relative;
 `;
 
 const ProjectTitle = styled.h1`
@@ -193,6 +195,7 @@ const ProjectTitle = styled.h1`
     font-size: 1.5rem;
     margin-bottom: 0;
     margin-top: 0;
+    transition: opacity 0.40s ease;
     @media (min-width: 768px) {
         font-size: 1.875rem;
     }
@@ -625,6 +628,8 @@ export function WorkspaceOverview() {
     const [readmeContent, setReadmeContent] = React.useState<string>("");
     const [projectCollection, setProjectCollection] = React.useState<ProjectStructureResponse>();
     const [icpStatusByProjectPath, setIcpStatusByProjectPath] = React.useState<Record<string, boolean>>({});
+    const [displayedTitle, setDisplayedTitle] = useState("");
+    const [titleVisible, setTitleVisible] = useState(true);
 
     const [showAlert, setShowAlert] = React.useState(false);
     const [icpActionLoading, setIcpActionLoading] = React.useState<IcpAction | null>(null);
@@ -701,6 +706,25 @@ export function WorkspaceOverview() {
         });
     }, []);
 
+    useEffect(() => {
+        const newTitle = projectCollection?.workspaceTitle || projectCollection?.workspaceName || "";
+        if (newTitle === displayedTitle) {
+            return;
+        }
+        if (!displayedTitle) {
+            // First load — no animation needed
+            setDisplayedTitle(newTitle);
+            return;
+        }
+        // Fade out → swap → fade in
+        setTitleVisible(false);
+        const swap = setTimeout(() => {
+            setDisplayedTitle(newTitle);
+            setTitleVisible(true);
+        }, 400);
+        return () => clearTimeout(swap);
+    }, [projectCollection?.workspaceTitle, projectCollection?.workspaceName]);
+
     const isEmptyProject = useMemo(() => {
         return projectCollection?.projects.length === 0;
     }, [projectCollection]);
@@ -749,6 +773,31 @@ export function WorkspaceOverview() {
     const deployableProjectPaths = useMemo(() => {
         return new Set(projectScopes.map(scope => scope.projectPath));
     }, [projectScopes]);
+
+    const validateTitle = useCallback((value: string): string => {
+        const trimmed = value.trim();
+        if (!trimmed) {
+            return "You are required to enter a project name.";
+        }
+        if (!/^[a-zA-Z]/.test(trimmed)) {
+            return "Name must start with an alphabetical letter.";
+        }
+        if (trimmed.length < 3) {
+            return "The name must have at least three characters.";
+        }
+        if (/[^a-zA-Z0-9\-_ ]/.test(trimmed)) {
+            return "The name cannot contain special characters.";
+        }
+        return "";
+    }, []);
+
+    const handleTitleUpdate = useCallback(async (newTitle: string) => {
+        if (!projectCollection?.workspacePath) return;
+        await rpcClient.getBIDiagramRpcClient().updateProjectTitle({
+            projectPath: projectCollection.workspacePath,
+            title: newTitle
+        });
+    }, [projectCollection, rpcClient]);
 
     if (!projectCollection) {
         return (
@@ -875,7 +924,13 @@ export function WorkspaceOverview() {
         <PageLayout>
             <HeaderRow>
                 <TitleContainer>
-                    <ProjectTitle>{projectCollection?.workspaceTitle || projectCollection?.workspaceName}</ProjectTitle>
+                    <EditableTitle
+                        title={projectCollection?.workspaceTitle || projectCollection?.workspaceName || ""}
+                        onCommit={handleTitleUpdate}
+                        validate={validateTitle}
+                    >
+                        <ProjectTitle style={{ opacity: titleVisible ? 1 : 0 }}>{displayedTitle}</ProjectTitle>
+                    </EditableTitle>
                     <ProjectSubtitle>Project</ProjectSubtitle>
                 </TitleContainer>
             </HeaderRow>

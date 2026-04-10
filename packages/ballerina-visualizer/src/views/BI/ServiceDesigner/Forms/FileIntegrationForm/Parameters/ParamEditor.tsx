@@ -21,7 +21,7 @@ import { Divider, Typography } from '@wso2/ui-toolkit';
 import { EditorContainer } from '../../../styles';
 import { getPrimaryInputType, LineRange, ParameterModel } from '@wso2/ballerina-core';
 import { FormField, FormImports } from '@wso2/ballerina-side-panel';
-import FormGeneratorNew from '../../../../Forms/FormGeneratorNew';
+import ArtifactForm from '../../../../Forms/ArtifactForm';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { getImportsForProperty } from '../../../../../../utils/bi';
 
@@ -152,7 +152,7 @@ export function ParamEditor(props: ParamEditorProps) {
             <Divider />
             <>
                 {filePath && targetLineRange &&
-                    <FormGeneratorNew
+                    <ArtifactForm
                         fileName={filePath}
                         targetLineRange={targetLineRange}
                         fields={currentFields}
