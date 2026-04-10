@@ -100,10 +100,10 @@ public class XMLConverterTest extends AbstractLSTest {
             }
         }
 
-        String generatedRecords = sb.toString().replaceAll("\\s+", "");
-        String expectedRecords = testConfig.records().replaceAll("\\s+", "");
+        String generatedTexts = sb.toString().replaceAll("\\s+", "");
+        String expectedTexts = testConfig.textEdits().replaceAll("\\s+", "");
 
-        if (!generatedRecords.equals(expectedRecords)) {
+        if (!generatedTexts.equals(expectedTexts)) {
             TestConfig updatedConfig = new TestConfig(testConfig.filePath(), testConfig.xmlString(),
                     testConfig.prefix(), testConfig.isClosed(), testConfig.isRecordTypeDesc(), sb.toString());
 //            updateConfig(configJsonPath, updatedConfig);
@@ -132,6 +132,6 @@ public class XMLConverterTest extends AbstractLSTest {
     }
 
     private record TestConfig(String filePath, String xmlString, String prefix, boolean isClosed,
-                              boolean isRecordTypeDesc, String records) {
+                              boolean isRecordTypeDesc, String textEdits) {
     }
 }

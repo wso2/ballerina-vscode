@@ -385,13 +385,13 @@
     },
     {
       "name": "ftp",
-      "version": "2.16.1",
+      "version": "2.18.0",
       "serviceTypeSkipList": [
         "Service"
       ],
       "serviceDeclaration": {
         "displayName": "FTP / SFTP",
-        "description": "Create a service to monitor a directory in a FTP server for file events",
+        "description": "Create a service to monitor a directory in a FTP/SFTP server for file events. Supports content-specific handlers for CSV, JSON, XML, text, and raw binary files, with optional data binding to custom record types and streaming for large files.",
         "optionalTypeDescriptor": 1,
         "typeDescriptorLabel": "Service Type",
         "typeDescriptorDescription": "The name of the service contract type",
@@ -408,28 +408,57 @@
         "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "file"
       },
+      "annotations": {
+        "ServiceConfig": {
+          "attachmentPoints": [
+            "SERVICE"
+          ],
+          "displayName": "Service Configuration",
+          "description": "Define service-level configuration such as the FTP directory path to monitor",
+          "typeConstraint": "ftp:FtpServiceConfig"
+        },
+        "FunctionConfig": {
+          "attachmentPoints": [
+            "OBJECT_METHOD"
+          ],
+          "displayName": "Function Configuration",
+          "description": "Configure pre/post processing actions on the file (e.g., move or delete the file after processing)",
+          "typeConstraint": "ftp:FtpFunctionConfig"
+        }
+      },
       "serviceTypes": {
         "Service": {
           "name": "Service",
-          "description": "",
+          "description": "FTP service that handles file events from a remote FTP/SFTP location",
           "functions": [
             {
-              "name": "onFileChange",
-              "description": "The `onFileChange` remote method will be triggered when a file change event occurs",
+              "name": "onFileCsv",
+              "description": "Triggered when a CSV file is added to the monitored FTP location. Supports raw 2D string arrays, data binding to custom record types, and streaming for large files",
               "accessor": "",
               "kind": "REMOTE",
               "returnType": "error?",
               "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 0,
-              "optional": 0,
+              "optional": 1,
               "parameters": [
                 {
-                  "name": "event",
-                  "label": "The File watch event",
-                  "description": "The File watch event",
+                  "name": "content",
+                  "label": "CSV Content",
+                  "description": "CSV file content. Can be string[][] for raw rows, record{}[] for data-bound rows, stream<string[]> for streaming raw rows from large files, or stream<record{}> for streaming data-bound rows",
+                  "kind": "DATA_BINDING",
+                  "type": "string[][]",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 1
+                },
+                {
+                  "name": "fileInfo",
+                  "label": "File Metadata",
+                  "description": "Additional file properties such as size, modification time, and permissions",
                   "kind": "REQUIRED",
-                  "type": "ftp:WatchEvent & readonly",
+                  "type": "ftp:FileInfo",
                   "defaultValue": "",
                   "importStatements": "",
                   "nameEditable": 1,
@@ -437,8 +466,262 @@
                 },
                 {
                   "name": "caller",
-                  "label": "Caller",
-                  "description": "The FTP caller object to execute file operations",
+                  "label": "FTP Connection",
+                  "description": "Optional FTP connection for performing additional file operations (move, delete) within this handler",
+                  "kind": "REQUIRED",
+                  "type": "ftp:Caller",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onFileJson",
+              "description": "Triggered when a JSON file is added to the monitored FTP location. Supports raw json or data binding to custom record types",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 0,
+              "optional": 1,
+              "parameters": [
+                {
+                  "name": "content",
+                  "label": "JSON Content",
+                  "description": "JSON file content. Can be json for raw JSON or a custom record type for data binding",
+                  "kind": "DATA_BINDING",
+                  "type": "json",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 1
+                },
+                {
+                  "name": "fileInfo",
+                  "label": "File Metadata",
+                  "description": "Additional file properties such as size, modification time, and permissions",
+                  "kind": "REQUIRED",
+                  "type": "ftp:FileInfo",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                },
+                {
+                  "name": "caller",
+                  "label": "FTP Connection",
+                  "description": "Optional FTP connection for performing additional file operations (move, delete) within this handler",
+                  "kind": "REQUIRED",
+                  "type": "ftp:Caller",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onFileXml",
+              "description": "Triggered when an XML file is added to the monitored FTP location",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 0,
+              "optional": 1,
+              "parameters": [
+                {
+                  "name": "content",
+                  "label": "XML Content",
+                  "description": "XML file content",
+                  "kind": "REQUIRED",
+                  "type": "xml",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                },
+                {
+                  "name": "fileInfo",
+                  "label": "File Metadata",
+                  "description": "Additional file properties such as size, modification time, and permissions",
+                  "kind": "REQUIRED",
+                  "type": "ftp:FileInfo",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                },
+                {
+                  "name": "caller",
+                  "label": "FTP Connection",
+                  "description": "Optional FTP connection for performing additional file operations (move, delete) within this handler",
+                  "kind": "REQUIRED",
+                  "type": "ftp:Caller",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onFileText",
+              "description": "Triggered when a text file is added to the monitored FTP location",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 0,
+              "optional": 1,
+              "parameters": [
+                {
+                  "name": "content",
+                  "label": "Text Content",
+                  "description": "Text file content",
+                  "kind": "REQUIRED",
+                  "type": "string",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                },
+                {
+                  "name": "fileInfo",
+                  "label": "File Metadata",
+                  "description": "Additional file properties such as size, modification time, and permissions",
+                  "kind": "REQUIRED",
+                  "type": "ftp:FileInfo",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                },
+                {
+                  "name": "caller",
+                  "label": "FTP Connection",
+                  "description": "Optional FTP connection for performing additional file operations (move, delete) within this handler",
+                  "kind": "REQUIRED",
+                  "type": "ftp:Caller",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onFile",
+              "description": "Triggered when any file is added to the monitored FTP location. Supports raw byte arrays and streaming for large binary files",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 0,
+              "optional": 1,
+              "parameters": [
+                {
+                  "name": "content",
+                  "label": "File Content",
+                  "description": "Raw file content as byte[] or stream<byte[]> for large files",
+                  "kind": "REQUIRED",
+                  "type": "byte[]",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 1
+                },
+                {
+                  "name": "fileInfo",
+                  "label": "File Metadata",
+                  "description": "Additional file properties such as size, modification time, and permissions",
+                  "kind": "REQUIRED",
+                  "type": "ftp:FileInfo",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                },
+                {
+                  "name": "caller",
+                  "label": "FTP Connection",
+                  "description": "Optional FTP connection for performing additional file operations (move, delete) within this handler",
+                  "kind": "REQUIRED",
+                  "type": "ftp:Caller",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onFileDelete",
+              "description": "Triggered when a file is deleted from the monitored FTP location",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 0,
+              "optional": 1,
+              "parameters": [
+                {
+                  "name": "deletedFile",
+                  "label": "Deleted File Path",
+                  "description": "Path of the deleted file",
+                  "kind": "REQUIRED",
+                  "type": "string",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                },
+                {
+                  "name": "caller",
+                  "label": "FTP Connection",
+                  "description": "Optional FTP connection for performing additional file operations (move, delete) within this handler",
+                  "kind": "REQUIRED",
+                  "type": "ftp:Caller",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onError",
+              "description": "Triggered when an error occurs during file processing. Implement this to handle failures gracefully",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 0,
+              "optional": 1,
+              "parameters": [
+                {
+                  "name": "ftpError",
+                  "label": "FTP Error",
+                  "description": "The error that occurred during file processing",
+                  "kind": "REQUIRED",
+                  "type": "ftp:Error",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                },
+                {
+                  "name": "caller",
+                  "label": "FTP Connection",
+                  "description": "Optional FTP connection for performing additional file operations (move, delete) within this handler",
                   "kind": "REQUIRED",
                   "type": "ftp:Caller",
                   "defaultValue": "",
@@ -515,7 +798,7 @@
         },
         "path": {
           "label": "Path",
-          "description": "The path to be monitored",
+          "description": "The remote FTP directory path to be monitored",
           "defaultValue": "\"/\"",
           "placeholder": "\"/\"",
           "types": [
@@ -528,13 +811,18 @@
               "ballerinaType": "string"
             }
           ],
-          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
+          "sourceKind": "SOURCE_ANNOTATION"
         }
       },
       "readOnlyMetadata": [
         {
           "key": "protocol",
           "displayName": "Protocol",
+          "kind": "LISTENER_PARAM"
+        },
+        {
+          "key": "path",
+          "displayName": "Path",
           "kind": "LISTENER_PARAM"
         }
       ]

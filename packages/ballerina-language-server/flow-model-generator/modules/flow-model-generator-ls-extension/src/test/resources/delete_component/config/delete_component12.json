@@ -1,0 +1,38 @@
+{
+  "description": "Delete component in a multi-file module should not process UNUSED_MODULE_PREFIX diagnostics from other files (helper.bal has unused import at line 0, same as main.bal's log import, causing duplicate TextEdit without fix)",
+  "filePath": "delete_component_multifile_project/main.bal",
+  "startLine": 2,
+  "startColumn": 0,
+  "endLine": 8,
+  "endColumn": 1,
+  "output": {
+    "delete_component_multifile_project/main.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 21
+          }
+        },
+        "newText": ""
+      },
+      {
+        "range": {
+          "start": {
+            "line": 2,
+            "character": 0
+          },
+          "end": {
+            "line": 8,
+            "character": 1
+          }
+        },
+        "newText": ""
+      }
+    ]
+  }
+}
