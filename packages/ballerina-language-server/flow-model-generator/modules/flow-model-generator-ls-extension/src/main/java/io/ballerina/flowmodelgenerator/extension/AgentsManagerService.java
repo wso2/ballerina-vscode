@@ -241,6 +241,13 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
                 // Get the access token from the request (if provided)
                 String accessToken = request.accessToken();
 
+                // Validate: SSL config should only be used with HTTPS URLs
+                if (request.secureSocket() != null && "http".equals(new java.net.URI(serviceUrl).getScheme())) {
+                    response.setError(new IllegalArgumentException(
+                            "Secure socket configuration is only applicable for HTTPS URLs"));
+                    return response;
+                }
+
                 // Build SSL config if provided
                 McpClient.SslConfig sslConfig = null;
                 if (request.secureSocket() != null) {
