@@ -62,7 +62,7 @@
     "highlight.js": "11.11.1",
     "rehype-raw": "7.0.0",
     "remark-breaks": "4.0.0",
-    "js-yaml": "4.1.0",
+    "js-yaml": "4.1.1",
     "swagger-ui-react": "5.22.0",
     "rehype-katex": "7.0.1",
     "remark-gfm": "4.0.1",

@@ -22,7 +22,7 @@ import { FormField, FormImports } from '@wso2/ballerina-side-panel';
 import { Divider, Typography } from '@wso2/ui-toolkit';
 import { useEffect, useState } from 'react';
 import { getImportsForProperty } from '../../../../../../utils/bi';
-import FormGeneratorNew from '../../../../Forms/FormGeneratorNew';
+import ArtifactForm from '../../../../Forms/ArtifactForm';
 import { EditorContainer } from '../../../styles';
 
 export interface ParamProps {
@@ -114,7 +114,7 @@ export function ParamEditor(props: ParamProps) {
             <Typography sx={{ marginBlockEnd: 10 }} variant="h4">{payloadFieldName} Configuration</Typography>
             <Divider />
             {filePath && targetLineRange && (
-                <FormGeneratorNew
+                <ArtifactForm
                     fileName={filePath}
                     targetLineRange={targetLineRange}
                     fields={currentFields}

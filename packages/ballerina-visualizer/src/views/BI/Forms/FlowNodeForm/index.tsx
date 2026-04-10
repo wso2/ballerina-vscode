@@ -114,13 +114,13 @@ import { getFilteredTypesByKind } from "../../TypeEditor/utils";
 import { useModalStack } from "../../../../Context";
 import { getArraySubFormFieldFromTypes, stringToRawArrayElements, stringToRawObjectEntries } from "@wso2/ballerina-side-panel/lib/components/editors/utils";
 
-interface TypeEditorState {
+interface FlowNodeTypeEditorState {
     isOpen: boolean;
     fieldKey?: string; // Optional, to store the key of the field being edited
     newTypeValue?: string;
 }
 
-interface FormProps {
+interface FlowNodeFormProps {
     fileName: string;
     node: FlowNode;
     nodeFormTemplate?: FlowNode; // used in edit forms
@@ -224,7 +224,7 @@ export const BreadcrumbSeparator = styled.span`
     font-size: var(--vscode-font-size);
 `;
 
-export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(function FormGenerator(props: FormProps, ref: React.ForwardedRef<FormExpressionEditorRef>) {
+export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProps>(function FlowNodeForm(props: FlowNodeFormProps, ref: React.ForwardedRef<FormExpressionEditorRef>) {
     const {
         fileName,
         node,
@@ -259,7 +259,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     const [formDiagnostics, setFormDiagnostics] = useState<DiagnosticMessage[]>([]);
     const [isAiUserAuthenticated, setIsAiUserAuthenticated] = useState(false);
     const formImportsRef = useRef<FormImports>({});
-    const [typeEditorState, setTypeEditorState] = useState<TypeEditorState>({ isOpen: false, newTypeValue: "" });
+    const [typeEditorState, setTypeEditorState] = useState<FlowNodeTypeEditorState>({ isOpen: false, newTypeValue: "" });
     const [visualizableField, setVisualizableField] = useState<VisualizableField>();
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
     const [valueTypeConstraints, setValueTypeConstraints] = useState<string>();
@@ -634,7 +634,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     }
 
     const handleOnSubmit = (data: FormValues, dirtyFields: any) => {
-        console.log(">>> FormGenerator handleOnSubmit", data);
+        console.log(">>> FlowNodeForm handleOnSubmit", data);
         if (node && targetLineRange) {
             const updatedNode = mergeFormDataWithFlowNode(data, targetLineRange, dirtyFields);
             const editorConfig = data["editorConfig"];
@@ -1737,7 +1737,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     // handle declare variable node form
     if (node?.codedata.node === "VARIABLE") {
         // HACK: make the type field optional for variable declaration form
-        const typeField = fields.find(field => field.key === "type");
+        const typeField = fields.find(field => getPrimaryInputType(field.types)?.fieldType === "TYPE");
         if (typeField) {
             typeField.optional = true;
         }
@@ -2001,4 +2001,4 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     );
 });
 
-export default FormGenerator;
+export default FlowNodeForm;

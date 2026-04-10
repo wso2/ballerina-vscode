@@ -30,7 +30,7 @@ import {
 } from "@wso2/ballerina-core";
 import { FormField, FormImports, FormValues, Parameter } from "@wso2/ballerina-side-panel";
 import { getImportsForProperty } from "../../../../../utils/bi";
-import FormGeneratorNew from "../../../Forms/FormGeneratorNew";
+import ArtifactForm from "../../../Forms/ArtifactForm";
 
 interface McpToolFormProps {
     model: FunctionModel;
@@ -103,7 +103,7 @@ export function McpToolForm(props: McpToolFormProps) {
 
         params.forEach((param) => {
             // Find matching field configurations from schema
-            const typeField = paramFields.find((field) => field.key === "type");
+            const typeField = paramFields.find((field) => getPrimaryInputType(field.types)?.fieldType === "TYPE");
             const nameField = paramFields.find((field) => field.key === "variable");
             const defaultField = paramFields.find((field) => field.key === "defaultable");
             const documentationField = paramFields.find((field) => field.key === "documentation");
@@ -270,7 +270,7 @@ export function McpToolForm(props: McpToolFormProps) {
     return (
         <>
             {fields.length > 0 && (
-                <FormGeneratorNew
+                <ArtifactForm
                     fileName={filePath}
                     targetLineRange={lineRange}
                     fields={fields}

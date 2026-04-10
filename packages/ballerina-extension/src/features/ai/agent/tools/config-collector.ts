@@ -29,6 +29,7 @@ import {
     createStatusMetadata,
     readExistingConfigValues,
 } from "../../../../utils/toml-utils";
+import { resolveContained, resolvePackageBasePath } from "./path-utils";
 
 export const CONFIG_COLLECTOR_TOOL = "ConfigCollector";
 
@@ -49,6 +50,11 @@ const ConfigCollectorSchema = z.object({
     variables: z.array(ConfigVariableSchema).optional().describe("Configuration variables"),
     variableNames: z.array(z.string()).optional().describe("Variable names for check mode"),
     isTestConfig: z.boolean().optional().describe("Set to true when collecting configuration for tests. Tool will automatically read from Config.toml and write to tests/Config.toml"),
+    packagePath: z.string().optional().describe(
+        "Relative path to the target package within the workspace project (e.g., \"pkg1\"). " +
+        "Required for workspace projects so Config.toml is written inside the correct package, not the workspace root. " +
+        "Omit for single-package (non-workspace) projects."
+    ),
 });
 
 interface ConfigCollectorInput {
@@ -57,6 +63,7 @@ interface ConfigCollectorInput {
     variables?: ConfigVariable[];
     variableNames?: string[];
     isTestConfig?: boolean;
+    packagePath?: string;
 }
 
 export interface ConfigCollectorResult {
@@ -123,12 +130,16 @@ Operation Modes:
    - Shows a form; nothing is written until the user confirms. If skipped, no file is created or modified
    - Pre-populates from existing Config.toml if it exists
    - When running tests, use isTestConfig: true — this is the only collect call needed; writes to tests/Config.toml after user confirms
+   - For workspace projects, you MUST pass packagePath so the file is written inside the target package (not the workspace root)
    - Example: { mode: "collect", variables: [{ name: "stripeApiKey", description: "Stripe API key", secret: true }] }
    - Example (test): { mode: "collect", variables: [...], isTestConfig: true }
+   - Example (workspace): { mode: "collect", variables: [...], packagePath: "pkg1" }
 
 2. CHECK: Inspect which values are filled or missing — can be called at any time
    - Returns status only, never actual values
+   - For workspace projects, pass packagePath to inspect the Config.toml of a specific package
    - Example: { mode: "check", variableNames: ["dbPassword", "apiKey"], filePath: "Config.toml" }
+   - Example (workspace): { mode: "check", variableNames: ["dbPassword"], packagePath: "pkg1" }
    - Returns: { status: { dbPassword: "filled", apiKey: "missing" } }
 
 VARIABLE NAMING:
@@ -212,7 +223,8 @@ export async function ConfigCollectorTool(
                     eventHandler,
                     requestId,
                     input.isTestConfig,
-                    modifiedFiles
+                    modifiedFiles,
+                    input.packagePath
                 );
 
             case "check":
@@ -220,7 +232,8 @@ export async function ConfigCollectorTool(
                     input.variableNames,
                     input.filePath,
                     paths,
-                    input.isTestConfig
+                    input.isTestConfig,
+                    input.packagePath
                 );
 
             default:
@@ -238,17 +251,24 @@ async function handleCollectMode(
     eventHandler: CopilotEventHandler,
     requestId: string,
     isTestConfig?: boolean,
-    modifiedFiles?: string[]
+    modifiedFiles?: string[],
+    packagePath?: string
 ): Promise<ConfigCollectorResult> {
     // Validate variable names
     const validationError = validateConfigVariables(variables);
     if (validationError) { return validationError; }
 
+    // Resolve and validate the package base path. For workspace projects, the
+    // agent must pass packagePath so Config.toml lands inside the target
+    // package rather than the workspace root. The helper rejects directory
+    // traversal attempts and missing-but-required values.
+    const packageBasePath = resolvePackageBasePath(paths.tempPath, packagePath);
+
     // Determine paths based on isTestConfig flag
-    const configPath = getConfigPath(paths.tempPath, isTestConfig);
+    const configPath = getConfigPath(packageBasePath, isTestConfig);
 
     // Priority: tests/Config.toml → Config.toml → empty
-    const mainConfigPath = path.join(paths.tempPath, "Config.toml");
+    const mainConfigPath = path.join(packageBasePath, "Config.toml");
     const sourceConfigPath = isTestConfig
         ? (fs.existsSync(configPath) ? configPath : mainConfigPath)
         : configPath;
@@ -307,11 +327,15 @@ async function handleCollectMode(
     // Write actual configuration values to determined config path
     writeConfigValuesToConfig(configPath, userResponse.configValues!, variables);
 
-    // Track modified file for syncing to workspace
+    // Track modified file for syncing to workspace.
+    // Path is relative to tempProjectPath, so prefix with packagePath for workspace projects.
     if (modifiedFiles) {
         const configFileName = getConfigFileName(isTestConfig);
-        if (!modifiedFiles.includes(configFileName)) {
-            modifiedFiles.push(configFileName);
+        const relativeConfigPath = packagePath
+            ? path.join(packagePath, configFileName)
+            : configFileName;
+        if (!modifiedFiles.includes(relativeConfigPath)) {
+            modifiedFiles.push(relativeConfigPath);
         }
     }
 
@@ -344,15 +368,22 @@ async function handleCheckMode(
     variableNames: string[],
     filePath: string | undefined,
     paths: ConfigCollectorPaths,
-    isTestConfig?: boolean
+    isTestConfig?: boolean,
+    packagePath?: string
 ): Promise<ConfigCollectorResult> {
+    // Resolve and validate the package base path. For workspace projects the
+    // agent must pass packagePath to inspect a specific package's Config.toml.
+    const packageBasePath = resolvePackageBasePath(paths.tempPath, packagePath);
+
     let configPath: string;
     let configFileName: string;
     if (filePath) {
-        configPath = path.join(paths.tempPath, filePath);
+        // filePath is also untrusted agent input — validate containment so
+        // it cannot escape the package directory via `..` segments.
+        configPath = resolveContained(packageBasePath, filePath);
         configFileName = path.basename(filePath);
     } else {
-        configPath = getConfigPath(paths.tempPath, isTestConfig);
+        configPath = getConfigPath(packageBasePath, isTestConfig);
         configFileName = getConfigFileName(isTestConfig);
     }
 

@@ -20,7 +20,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FormField, FormValues, FormImports } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { convertConfig } from "../../utils/bi";
-import { FormGeneratorNew } from "../../views/BI/Forms/FormGeneratorNew";
+import { ArtifactForm } from "../../views/BI/Forms/ArtifactForm";
 import { RelativeLoader } from "../RelativeLoader";
 import { InfoBox } from "../InfoBox";
 import { ConnectionCreatorProps } from "./types";
@@ -110,7 +110,7 @@ export function ConnectionCreator(props: ConnectionCreatorProps): JSX.Element {
             )}
             {!loading && connectionFields?.length > 0 && (
                 <>
-                    <FormGeneratorNew
+                    <ArtifactForm
                         fileName={connectionsFilePath.current || projectPath.current}
                         fields={connectionFields}
                         onSubmit={handleOnSave}
