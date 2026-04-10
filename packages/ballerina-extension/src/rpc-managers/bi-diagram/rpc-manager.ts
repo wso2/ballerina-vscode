@@ -803,6 +803,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             } catch (error) {
                 window.showErrorMessage("Error converting integration to workspace");
                 console.error("Error converting integration to workspace:", error);
+                return;
             }
         } else {
             try {

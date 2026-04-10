@@ -57,6 +57,7 @@ import * as unzipper from 'unzipper';
 import { commands, env, MarkdownString, ProgressLocation, QuickPickItem, Uri, window, workspace } from "vscode";
 import { URI } from "vscode-uri";
 import { parse } from "@iarna/toml";
+import { load as loadYaml } from "js-yaml";
 import { extension } from "../../BalExtensionContext";
 import { StateMachine } from "../../stateMachine";
 import {
@@ -478,6 +479,20 @@ export class CommonRpcManager implements CommonRPCAPI {
     }
 
     async getDefaultOrgName(): Promise<DefaultOrgNameResponse> {
+        try {
+            const projectPath = StateMachine.context()?.workspacePath;
+
+            if (projectPath) {
+                const contextYamlPath = path.join(projectPath, ".choreo", "context.yaml");
+                const content = await fs.promises.readFile(contextYamlPath, "utf-8");
+                const parsed = loadYaml(content);
+                if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0].org === "string" && parsed[0].org) {
+                    return { orgName: parsed[0].org };
+                }
+            }
+        } catch {
+            // fall through to default
+        }
         return { orgName: getUsername() };
     }
 

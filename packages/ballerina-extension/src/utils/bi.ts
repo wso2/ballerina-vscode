@@ -45,6 +45,7 @@ import { getProjectTomlValues, isLibraryProject, VALIDATOR_PACKAGE_NAME } from "
 import { extension } from "../BalExtensionContext";
 import { scheduleMigrationEnhancement, writeEnhanceToml } from "../features/ai/migration/orchestrator";
 import { runBackgroundTerminalCommand } from "./runCommand";
+import { stringify as stringifyYaml } from "yaml";
 
 export const README_FILE = "README.md";
 export const FUNCTIONS_FILE = "functions.bal";
@@ -60,6 +61,7 @@ interface ProcessedProjectInfo {
     finalVersion: string;
     packageName: string;
     integrationName: string;
+    orgHandle: string;
 }
 
 const settingsJsonContent = `
@@ -306,8 +308,32 @@ function setupProjectInfo(projectRequest: ProjectRequest): ProcessedProjectInfo 
         finalOrgName,
         finalVersion,
         packageName: projectRequest.packageName,
-        integrationName: projectRequest.projectName
+        integrationName: projectRequest.projectName,
+        orgHandle: projectRequest.orgHandle
     };
+}
+
+/**
+ * Writes a local context file for the given project.
+ * Creates (if missing) `{projectRoot}/.choreo/context.yaml` and stores the org/project handles with `local: true`.
+ * @param projectRoot - Absolute path to the project root directory
+ * @param orgHandle - Choreo organization handle
+ * @param projectHandle - Choreo project handle
+ */
+export async function writeLocalContextYaml(
+    projectRoot: string,
+    orgHandle: string,
+    projectHandle: string
+): Promise<void> {
+    try {
+        const choreoDir = path.join(projectRoot, '.choreo');
+        const localProjectFile = path.join(choreoDir, 'context.yaml');
+        const content = stringifyYaml([{ org: orgHandle, project: projectHandle, local: true }]);
+        await fs.promises.mkdir(choreoDir, { recursive: true });
+        await fs.promises.writeFile(localProjectFile, content, { encoding: 'utf8' });
+    } catch (error) {
+        console.warn("Failed to write context.yaml (non-critical):", error);
+    }
 }
 
 export async function createEmptyBIWorkspace(projectRequest: ProjectRequest): Promise<string> {
@@ -365,7 +391,14 @@ packages = ["${sanitizeName(projectRequest.packageName)}"]
 
 export async function createBIProjectPure(projectRequest: ProjectRequest): Promise<string> {
     const projectInfo = setupProjectInfo(projectRequest);
-    const { projectRoot, finalOrgName, finalVersion, packageName: finalPackageName, integrationName } = projectInfo;
+    const {
+        projectRoot,
+        finalOrgName,
+        finalVersion,
+        packageName,
+        integrationName,
+        orgHandle
+    } = projectInfo;
 
     const EMPTY = "\n";
 
@@ -377,8 +410,8 @@ export async function createBIProjectPure(projectRequest: ProjectRequest): Promi
 
     const ballerinaTomlContent = `
 [package]
-org = "${finalOrgName}"
-name = "${finalPackageName}"
+org = "${orgHandle ?? finalOrgName}"
+name = "${packageName}"
 version = "${finalVersion}"
 ${distributionLine}title = "${integrationName}"
 
@@ -479,6 +512,8 @@ export async function convertProjectToWorkspace(params: AddProjectToWorkspaceReq
 
     // create settings.json file
     createVSCodeSettings(newDirectory);
+    // write local context file
+    await writeLocalContextYaml(newDirectory, params.orgHandle, params.projectHandle);
 
     openInVSCode(newDirectory);
 }
@@ -608,6 +643,7 @@ async function createProjectInWorkspace(params: AddProjectToWorkspaceRequest, wo
         projectPath: workspacePath,
         createDirectory: true,
         orgName: params.orgName,
+        orgHandle: params.orgHandle,
         version: params.version,
         isLibrary: params.isLibrary,
         projectHandle: params.projectHandle
@@ -632,7 +668,7 @@ export async function createBIProjectFromMigration(params: MigrateRequest) {
 
         if (fileName === "Ballerina.toml") {
             content = content.replace(/name = ".*?"/, `name = "${sanitizedPackageName}"`);
-            content = content.replace(/org = ".*?"/, `org = "${projectInfo.finalOrgName}"`);
+            content = content.replace(/org = ".*?"/, `org = "${projectInfo.orgHandle ?? projectInfo.finalOrgName}"`);
 
             // Remove any existing distribution line
             content = content.replace(/^\s*distribution\s*=\s*".*?"\n?/m, '');
