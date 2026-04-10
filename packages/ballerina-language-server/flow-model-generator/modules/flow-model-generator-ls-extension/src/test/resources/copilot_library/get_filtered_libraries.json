@@ -1984,7 +1984,7 @@
           "type": "Union",
           "members": [
             {
-              "name": "ballerina/http:2.16.0:OAuth2ClientCredentialsGrantConfig",
+              "name": "ballerina/http:2.16.1:OAuth2ClientCredentialsGrantConfig",
               "type": {
                 "name": "OAuth2ClientCredentialsGrantConfig",
                 "links": [
@@ -1996,7 +1996,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:OAuth2PasswordGrantConfig",
+              "name": "ballerina/http:2.16.1:OAuth2PasswordGrantConfig",
               "type": {
                 "name": "OAuth2PasswordGrantConfig",
                 "links": [
@@ -2008,7 +2008,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:OAuth2RefreshTokenGrantConfig",
+              "name": "ballerina/http:2.16.1:OAuth2RefreshTokenGrantConfig",
               "type": {
                 "name": "OAuth2RefreshTokenGrantConfig",
                 "links": [
@@ -2020,7 +2020,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:OAuth2JwtBearerGrantConfig",
+              "name": "ballerina/http:2.16.1:OAuth2JwtBearerGrantConfig",
               "type": {
                 "name": "OAuth2JwtBearerGrantConfig",
                 "links": [
@@ -2381,7 +2381,7 @@
           "type": "Union",
           "members": [
             {
-              "name": "ballerina/http:2.16.0:CredentialsConfig",
+              "name": "ballerina/http:2.16.1:CredentialsConfig",
               "type": {
                 "name": "CredentialsConfig",
                 "links": [
@@ -2393,7 +2393,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:BearerTokenConfig",
+              "name": "ballerina/http:2.16.1:BearerTokenConfig",
               "type": {
                 "name": "BearerTokenConfig",
                 "links": [
@@ -2405,7 +2405,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:JwtIssuerConfig",
+              "name": "ballerina/http:2.16.1:JwtIssuerConfig",
               "type": {
                 "name": "JwtIssuerConfig",
                 "links": [
@@ -2417,7 +2417,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:OAuth2ClientCredentialsGrantConfig",
+              "name": "ballerina/http:2.16.1:OAuth2ClientCredentialsGrantConfig",
               "type": {
                 "name": "OAuth2ClientCredentialsGrantConfig",
                 "links": [
@@ -2429,7 +2429,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:OAuth2PasswordGrantConfig",
+              "name": "ballerina/http:2.16.1:OAuth2PasswordGrantConfig",
               "type": {
                 "name": "OAuth2PasswordGrantConfig",
                 "links": [
@@ -2441,7 +2441,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:OAuth2RefreshTokenGrantConfig",
+              "name": "ballerina/http:2.16.1:OAuth2RefreshTokenGrantConfig",
               "type": {
                 "name": "OAuth2RefreshTokenGrantConfig",
                 "links": [
@@ -2453,7 +2453,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:OAuth2JwtBearerGrantConfig",
+              "name": "ballerina/http:2.16.1:OAuth2JwtBearerGrantConfig",
               "type": {
                 "name": "OAuth2JwtBearerGrantConfig",
                 "links": [
@@ -2934,7 +2934,7 @@
           "type": "Union",
           "members": [
             {
-              "name": "ballerina/http:2.16.0:FileUserStoreConfigWithScopes",
+              "name": "ballerina/http:2.16.1:FileUserStoreConfigWithScopes",
               "type": {
                 "name": "FileUserStoreConfigWithScopes",
                 "links": [
@@ -2946,7 +2946,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:LdapUserStoreConfigWithScopes",
+              "name": "ballerina/http:2.16.1:LdapUserStoreConfigWithScopes",
               "type": {
                 "name": "LdapUserStoreConfigWithScopes",
                 "links": [
@@ -2958,7 +2958,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:JwtValidatorConfigWithScopes",
+              "name": "ballerina/http:2.16.1:JwtValidatorConfigWithScopes",
               "type": {
                 "name": "JwtValidatorConfigWithScopes",
                 "links": [
@@ -2970,7 +2970,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:OAuth2IntrospectionConfigWithScopes",
+              "name": "ballerina/http:2.16.1:OAuth2IntrospectionConfigWithScopes",
               "type": {
                 "name": "OAuth2IntrospectionConfigWithScopes",
                 "links": [
@@ -3533,7 +3533,7 @@
               "name": "serviceType",
               "description": "The service object type which defines the service contract. This is auto-generated at compile-time",
               "type": {
-                "name": "typedesc<ballerina/http:2.16.0:ServiceContract>"
+                "name": "typedesc<ballerina/http:2.16.1:ServiceContract>"
               },
               "optional": true
             },
@@ -3838,7 +3838,7 @@
               "name": "respondType",
               "description": "Specifies the type of response",
               "type": {
-                "name": "typedesc<ballerina/http:2.16.0:ResponseMessage|ballerina/http:2.16.0:StatusCodeResponse|ballerina/http:2.16.0:Error>"
+                "name": "typedesc<ballerina/http:2.16.1:ResponseMessage|ballerina/http:2.16.1:StatusCodeResponse|ballerina/http:2.16.1:Error>"
               },
               "optional": true
             }
@@ -4337,7 +4337,7 @@
               "return": {
                 "description": "A SseEvent stream from which the `http:SseEvent` can be read or `http:ClientError` in case of errors",
                 "type": {
-                  "name": "stream<ballerina/http:2.16.0:SseEvent, error?>|ClientError",
+                  "name": "stream<ballerina/http:2.16.1:SseEvent, error?>|ClientError",
                   "links": [
                     {
                       "category": "internal",
@@ -4832,7 +4832,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:Response",
+              "name": "ballerina/http:2.16.1:Response",
               "type": {
                 "name": "Response",
                 "links": [
@@ -4863,15 +4863,15 @@
               }
             },
             {
-              "name": "stream<ballerina/http:2.16.0:SseEvent, error?>",
+              "name": "stream<ballerina/http:2.16.1:SseEvent, error?>",
               "type": {
-                "name": "stream<ballerina/http:2.16.0:SseEvent, error?>"
+                "name": "stream<ballerina/http:2.16.1:SseEvent, error?>"
               }
             },
             {
-              "name": "stream<ballerina/http:2.16.0:SseEvent, error>",
+              "name": "stream<ballerina/http:2.16.1:SseEvent, error>",
               "type": {
-                "name": "stream<ballerina/http:2.16.0:SseEvent, error>"
+                "name": "stream<ballerina/http:2.16.1:SseEvent, error>"
               }
             }
           ]
@@ -8753,7 +8753,7 @@
           "type": "Union",
           "members": [
             {
-              "name": "ballerina/http:2.16.0:Continue",
+              "name": "ballerina/http:2.16.1:Continue",
               "type": {
                 "name": "Continue",
                 "links": [
@@ -8765,7 +8765,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:SwitchingProtocols",
+              "name": "ballerina/http:2.16.1:SwitchingProtocols",
               "type": {
                 "name": "SwitchingProtocols",
                 "links": [
@@ -8777,7 +8777,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:Processing",
+              "name": "ballerina/http:2.16.1:Processing",
               "type": {
                 "name": "Processing",
                 "links": [
@@ -8789,7 +8789,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:EarlyHints",
+              "name": "ballerina/http:2.16.1:EarlyHints",
               "type": {
                 "name": "EarlyHints",
                 "links": [
@@ -8801,7 +8801,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:Ok",
+              "name": "ballerina/http:2.16.1:Ok",
               "type": {
                 "name": "Ok",
                 "links": [
@@ -8813,7 +8813,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:Created",
+              "name": "ballerina/http:2.16.1:Created",
               "type": {
                 "name": "Created",
                 "links": [
@@ -8825,7 +8825,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:Accepted",
+              "name": "ballerina/http:2.16.1:Accepted",
               "type": {
                 "name": "Accepted",
                 "links": [
@@ -8837,7 +8837,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:NonAuthoritativeInformation",
+              "name": "ballerina/http:2.16.1:NonAuthoritativeInformation",
               "type": {
                 "name": "NonAuthoritativeInformation",
                 "links": [
@@ -8849,7 +8849,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:NoContent",
+              "name": "ballerina/http:2.16.1:NoContent",
               "type": {
                 "name": "NoContent",
                 "links": [
@@ -8861,7 +8861,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:ResetContent",
+              "name": "ballerina/http:2.16.1:ResetContent",
               "type": {
                 "name": "ResetContent",
                 "links": [
@@ -8873,7 +8873,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:PartialContent",
+              "name": "ballerina/http:2.16.1:PartialContent",
               "type": {
                 "name": "PartialContent",
                 "links": [
@@ -8885,7 +8885,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:MultiStatus",
+              "name": "ballerina/http:2.16.1:MultiStatus",
               "type": {
                 "name": "MultiStatus",
                 "links": [
@@ -8897,7 +8897,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:AlreadyReported",
+              "name": "ballerina/http:2.16.1:AlreadyReported",
               "type": {
                 "name": "AlreadyReported",
                 "links": [
@@ -8909,7 +8909,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:IMUsed",
+              "name": "ballerina/http:2.16.1:IMUsed",
               "type": {
                 "name": "IMUsed",
                 "links": [
@@ -8921,7 +8921,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:MultipleChoices",
+              "name": "ballerina/http:2.16.1:MultipleChoices",
               "type": {
                 "name": "MultipleChoices",
                 "links": [
@@ -8933,7 +8933,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:MovedPermanently",
+              "name": "ballerina/http:2.16.1:MovedPermanently",
               "type": {
                 "name": "MovedPermanently",
                 "links": [
@@ -8945,7 +8945,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:Found",
+              "name": "ballerina/http:2.16.1:Found",
               "type": {
                 "name": "Found",
                 "links": [
@@ -8957,7 +8957,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:SeeOther",
+              "name": "ballerina/http:2.16.1:SeeOther",
               "type": {
                 "name": "SeeOther",
                 "links": [
@@ -8969,7 +8969,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:NotModified",
+              "name": "ballerina/http:2.16.1:NotModified",
               "type": {
                 "name": "NotModified",
                 "links": [
@@ -8981,7 +8981,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:UseProxy",
+              "name": "ballerina/http:2.16.1:UseProxy",
               "type": {
                 "name": "UseProxy",
                 "links": [
@@ -8993,7 +8993,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:TemporaryRedirect",
+              "name": "ballerina/http:2.16.1:TemporaryRedirect",
               "type": {
                 "name": "TemporaryRedirect",
                 "links": [
@@ -9005,7 +9005,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:PermanentRedirect",
+              "name": "ballerina/http:2.16.1:PermanentRedirect",
               "type": {
                 "name": "PermanentRedirect",
                 "links": [
@@ -9017,7 +9017,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:BadRequest",
+              "name": "ballerina/http:2.16.1:BadRequest",
               "type": {
                 "name": "BadRequest",
                 "links": [
@@ -9029,7 +9029,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:Unauthorized",
+              "name": "ballerina/http:2.16.1:Unauthorized",
               "type": {
                 "name": "Unauthorized",
                 "links": [
@@ -9041,7 +9041,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:PaymentRequired",
+              "name": "ballerina/http:2.16.1:PaymentRequired",
               "type": {
                 "name": "PaymentRequired",
                 "links": [
@@ -9053,7 +9053,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:Forbidden",
+              "name": "ballerina/http:2.16.1:Forbidden",
               "type": {
                 "name": "Forbidden",
                 "links": [
@@ -9065,7 +9065,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:NotFound",
+              "name": "ballerina/http:2.16.1:NotFound",
               "type": {
                 "name": "NotFound",
                 "links": [
@@ -9077,7 +9077,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:MethodNotAllowed",
+              "name": "ballerina/http:2.16.1:MethodNotAllowed",
               "type": {
                 "name": "MethodNotAllowed",
                 "links": [
@@ -9089,7 +9089,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:NotAcceptable",
+              "name": "ballerina/http:2.16.1:NotAcceptable",
               "type": {
                 "name": "NotAcceptable",
                 "links": [
@@ -9101,7 +9101,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:ProxyAuthenticationRequired",
+              "name": "ballerina/http:2.16.1:ProxyAuthenticationRequired",
               "type": {
                 "name": "ProxyAuthenticationRequired",
                 "links": [
@@ -9113,7 +9113,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:RequestTimeout",
+              "name": "ballerina/http:2.16.1:RequestTimeout",
               "type": {
                 "name": "RequestTimeout",
                 "links": [
@@ -9125,7 +9125,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:Conflict",
+              "name": "ballerina/http:2.16.1:Conflict",
               "type": {
                 "name": "Conflict",
                 "links": [
@@ -9137,7 +9137,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:Gone",
+              "name": "ballerina/http:2.16.1:Gone",
               "type": {
                 "name": "Gone",
                 "links": [
@@ -9149,7 +9149,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:LengthRequired",
+              "name": "ballerina/http:2.16.1:LengthRequired",
               "type": {
                 "name": "LengthRequired",
                 "links": [
@@ -9161,7 +9161,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:PreconditionFailed",
+              "name": "ballerina/http:2.16.1:PreconditionFailed",
               "type": {
                 "name": "PreconditionFailed",
                 "links": [
@@ -9173,7 +9173,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:PayloadTooLarge",
+              "name": "ballerina/http:2.16.1:PayloadTooLarge",
               "type": {
                 "name": "PayloadTooLarge",
                 "links": [
@@ -9185,7 +9185,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:UriTooLong",
+              "name": "ballerina/http:2.16.1:UriTooLong",
               "type": {
                 "name": "UriTooLong",
                 "links": [
@@ -9197,7 +9197,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:UnsupportedMediaType",
+              "name": "ballerina/http:2.16.1:UnsupportedMediaType",
               "type": {
                 "name": "UnsupportedMediaType",
                 "links": [
@@ -9209,7 +9209,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:RangeNotSatisfiable",
+              "name": "ballerina/http:2.16.1:RangeNotSatisfiable",
               "type": {
                 "name": "RangeNotSatisfiable",
                 "links": [
@@ -9221,7 +9221,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:ExpectationFailed",
+              "name": "ballerina/http:2.16.1:ExpectationFailed",
               "type": {
                 "name": "ExpectationFailed",
                 "links": [
@@ -9233,7 +9233,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:MisdirectedRequest",
+              "name": "ballerina/http:2.16.1:MisdirectedRequest",
               "type": {
                 "name": "MisdirectedRequest",
                 "links": [
@@ -9245,7 +9245,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:UnprocessableEntity",
+              "name": "ballerina/http:2.16.1:UnprocessableEntity",
               "type": {
                 "name": "UnprocessableEntity",
                 "links": [
@@ -9257,7 +9257,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:Locked",
+              "name": "ballerina/http:2.16.1:Locked",
               "type": {
                 "name": "Locked",
                 "links": [
@@ -9269,7 +9269,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:FailedDependency",
+              "name": "ballerina/http:2.16.1:FailedDependency",
               "type": {
                 "name": "FailedDependency",
                 "links": [
@@ -9281,7 +9281,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:TooEarly",
+              "name": "ballerina/http:2.16.1:TooEarly",
               "type": {
                 "name": "TooEarly",
                 "links": [
@@ -9293,7 +9293,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:PreconditionRequired",
+              "name": "ballerina/http:2.16.1:PreconditionRequired",
               "type": {
                 "name": "PreconditionRequired",
                 "links": [
@@ -9305,7 +9305,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:UnavailableDueToLegalReasons",
+              "name": "ballerina/http:2.16.1:UnavailableDueToLegalReasons",
               "type": {
                 "name": "UnavailableDueToLegalReasons",
                 "links": [
@@ -9317,7 +9317,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:UpgradeRequired",
+              "name": "ballerina/http:2.16.1:UpgradeRequired",
               "type": {
                 "name": "UpgradeRequired",
                 "links": [
@@ -9329,7 +9329,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:TooManyRequests",
+              "name": "ballerina/http:2.16.1:TooManyRequests",
               "type": {
                 "name": "TooManyRequests",
                 "links": [
@@ -9341,7 +9341,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:RequestHeaderFieldsTooLarge",
+              "name": "ballerina/http:2.16.1:RequestHeaderFieldsTooLarge",
               "type": {
                 "name": "RequestHeaderFieldsTooLarge",
                 "links": [
@@ -9353,7 +9353,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:InternalServerError",
+              "name": "ballerina/http:2.16.1:InternalServerError",
               "type": {
                 "name": "InternalServerError",
                 "links": [
@@ -9365,7 +9365,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:NotImplemented",
+              "name": "ballerina/http:2.16.1:NotImplemented",
               "type": {
                 "name": "NotImplemented",
                 "links": [
@@ -9377,7 +9377,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:BadGateway",
+              "name": "ballerina/http:2.16.1:BadGateway",
               "type": {
                 "name": "BadGateway",
                 "links": [
@@ -9389,7 +9389,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:ServiceUnavailable",
+              "name": "ballerina/http:2.16.1:ServiceUnavailable",
               "type": {
                 "name": "ServiceUnavailable",
                 "links": [
@@ -9401,7 +9401,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:GatewayTimeout",
+              "name": "ballerina/http:2.16.1:GatewayTimeout",
               "type": {
                 "name": "GatewayTimeout",
                 "links": [
@@ -9413,7 +9413,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:HttpVersionNotSupported",
+              "name": "ballerina/http:2.16.1:HttpVersionNotSupported",
               "type": {
                 "name": "HttpVersionNotSupported",
                 "links": [
@@ -9425,7 +9425,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:VariantAlsoNegotiates",
+              "name": "ballerina/http:2.16.1:VariantAlsoNegotiates",
               "type": {
                 "name": "VariantAlsoNegotiates",
                 "links": [
@@ -9437,7 +9437,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:InsufficientStorage",
+              "name": "ballerina/http:2.16.1:InsufficientStorage",
               "type": {
                 "name": "InsufficientStorage",
                 "links": [
@@ -9449,7 +9449,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:LoopDetected",
+              "name": "ballerina/http:2.16.1:LoopDetected",
               "type": {
                 "name": "LoopDetected",
                 "links": [
@@ -9461,7 +9461,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:NotExtended",
+              "name": "ballerina/http:2.16.1:NotExtended",
               "type": {
                 "name": "NotExtended",
                 "links": [
@@ -9473,7 +9473,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:NetworkAuthenticationRequired",
+              "name": "ballerina/http:2.16.1:NetworkAuthenticationRequired",
               "type": {
                 "name": "NetworkAuthenticationRequired",
                 "links": [
@@ -9485,7 +9485,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:DefaultStatusCodeResponse",
+              "name": "ballerina/http:2.16.1:DefaultStatusCodeResponse",
               "type": {
                 "name": "DefaultStatusCodeResponse",
                 "links": [
@@ -9716,7 +9716,7 @@
               "name": "protocol",
               "description": "SSL/TLS protocol related options",
               "type": {
-                "name": "record {|ballerina/http:2.16.0:Protocol name; string[] versions;|}"
+                "name": "record {|ballerina/http:2.16.1:Protocol name; string[] versions;|}"
               },
               "optional": true
             },
@@ -9724,7 +9724,7 @@
               "name": "certValidation",
               "description": "Certificate validation against OCSP_CRL, OCSP_STAPLING related options",
               "type": {
-                "name": "record {|ballerina/http:2.16.0:CertValidationType 'type; int cacheSize; int cacheValidityPeriod;|}"
+                "name": "record {|ballerina/http:2.16.1:CertValidationType 'type; int cacheSize; int cacheValidityPeriod;|}"
               },
               "optional": true
             },
@@ -11012,7 +11012,7 @@
           "type": "Union",
           "members": [
             {
-              "name": "ballerina/http:2.16.0:SimpleQueryParamType[]",
+              "name": "ballerina/http:2.16.1:SimpleQueryParamType[]",
               "type": {
                 "name": "SimpleQueryParamType[]",
                 "links": [
@@ -11620,7 +11620,7 @@
           "type": "Union",
           "members": [
             {
-              "name": "ballerina/http:2.16.0:MediaTypeBindingStatusCodeClientError",
+              "name": "ballerina/http:2.16.1:MediaTypeBindingStatusCodeClientError",
               "type": {
                 "name": "MediaTypeBindingStatusCodeClientError",
                 "links": [
@@ -11632,7 +11632,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:PayloadBindingStatusCodeClientError",
+              "name": "ballerina/http:2.16.1:PayloadBindingStatusCodeClientError",
               "type": {
                 "name": "PayloadBindingStatusCodeClientError",
                 "links": [
@@ -11644,7 +11644,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:HeaderBindingStatusCodeClientError",
+              "name": "ballerina/http:2.16.1:HeaderBindingStatusCodeClientError",
               "type": {
                 "name": "HeaderBindingStatusCodeClientError",
                 "links": [
@@ -11688,7 +11688,7 @@
           "type": "Union",
           "members": [
             {
-              "name": "ballerina/http:2.16.0:RequestInterceptor",
+              "name": "ballerina/http:2.16.1:RequestInterceptor",
               "type": {
                 "name": "RequestInterceptor",
                 "links": [
@@ -11700,7 +11700,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:ResponseInterceptor",
+              "name": "ballerina/http:2.16.1:ResponseInterceptor",
               "type": {
                 "name": "ResponseInterceptor",
                 "links": [
@@ -11712,7 +11712,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:Service",
+              "name": "ballerina/http:2.16.1:Service",
               "type": {
                 "name": "Service",
                 "links": [
@@ -11731,7 +11731,7 @@
           "type": "Union",
           "members": [
             {
-              "name": "ballerina/http:2.16.0:RequestInterceptor",
+              "name": "ballerina/http:2.16.1:RequestInterceptor",
               "type": {
                 "name": "RequestInterceptor",
                 "links": [
@@ -11743,7 +11743,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:ResponseInterceptor",
+              "name": "ballerina/http:2.16.1:ResponseInterceptor",
               "type": {
                 "name": "ResponseInterceptor",
                 "links": [
@@ -11755,7 +11755,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:RequestErrorInterceptor",
+              "name": "ballerina/http:2.16.1:RequestErrorInterceptor",
               "type": {
                 "name": "RequestErrorInterceptor",
                 "links": [
@@ -11767,7 +11767,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:ResponseErrorInterceptor",
+              "name": "ballerina/http:2.16.1:ResponseErrorInterceptor",
               "type": {
                 "name": "ResponseErrorInterceptor",
                 "links": [
@@ -11987,7 +11987,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:Cloneable[]",
+              "name": "ballerina/http:2.16.1:Cloneable[]",
               "type": {
                 "name": "Cloneable[]",
                 "links": [
@@ -11999,15 +11999,15 @@
               }
             },
             {
-              "name": "map<ballerina/http:2.16.0:Cloneable>",
+              "name": "map<ballerina/http:2.16.1:Cloneable>",
               "type": {
-                "name": "map<ballerina/http:2.16.0:Cloneable>"
+                "name": "map<ballerina/http:2.16.1:Cloneable>"
               }
             },
             {
-              "name": "table<map<ballerina/http:2.16.0:Cloneable>>",
+              "name": "table<map<ballerina/http:2.16.1:Cloneable>>",
               "type": {
-                "name": "table<map<ballerina/http:2.16.0:Cloneable>>"
+                "name": "table<map<ballerina/http:2.16.1:Cloneable>>"
               }
             }
           ]
@@ -12030,7 +12030,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:Cloneable[]",
+              "name": "ballerina/http:2.16.1:Cloneable[]",
               "type": {
                 "name": "Cloneable[]",
                 "links": [
@@ -12042,15 +12042,15 @@
               }
             },
             {
-              "name": "map<ballerina/http:2.16.0:Cloneable>",
+              "name": "map<ballerina/http:2.16.1:Cloneable>",
               "type": {
-                "name": "map<ballerina/http:2.16.0:Cloneable>"
+                "name": "map<ballerina/http:2.16.1:Cloneable>"
               }
             },
             {
-              "name": "table<map<ballerina/http:2.16.0:Cloneable>>",
+              "name": "table<map<ballerina/http:2.16.1:Cloneable>>",
               "type": {
-                "name": "table<map<ballerina/http:2.16.0:Cloneable>>"
+                "name": "table<map<ballerina/http:2.16.1:Cloneable>>"
               }
             },
             {
@@ -12341,7 +12341,7 @@
               "name": "mutualSsl",
               "description": "Configures associated with mutual SSL operations",
               "type": {
-                "name": "record {|ballerina/http:2.16.0:VerifyClient verifyClient; ballerina/crypto:2.9.3:TrustStore|string cert;|}"
+                "name": "record {|ballerina/http:2.16.1:VerifyClient verifyClient; ballerina/crypto:2.9.3:TrustStore|string cert;|}"
               },
               "optional": true
             },
@@ -12349,7 +12349,7 @@
               "name": "protocol",
               "description": "SSL/TLS protocol related options",
               "type": {
-                "name": "record {|ballerina/http:2.16.0:Protocol name; string[] versions;|}"
+                "name": "record {|ballerina/http:2.16.1:Protocol name; string[] versions;|}"
               },
               "optional": true
             },
@@ -12357,7 +12357,7 @@
               "name": "certValidation",
               "description": "Certificate validation against OCSP_CRL, OCSP_STAPLING related options",
               "type": {
-                "name": "record {|ballerina/http:2.16.0:CertValidationType 'type; int cacheSize; int cacheValidityPeriod;|}"
+                "name": "record {|ballerina/http:2.16.1:CertValidationType 'type; int cacheSize; int cacheValidityPeriod;|}"
               },
               "optional": true
             },
@@ -13488,7 +13488,7 @@
               }
             },
             {
-              "name": "ballerina/http:2.16.0:Request",
+              "name": "ballerina/http:2.16.1:Request",
               "type": {
                 "name": "Request",
                 "links": [
@@ -13662,7 +13662,7 @@
               "name": "_links",
               "description": "Map of available links",
               "type": {
-                "name": "map<ballerina/http:2.16.0:Link>"
+                "name": "map<ballerina/http:2.16.1:Link>"
               }
             }
           ]
@@ -15863,7 +15863,7 @@
               "return": {
                 "description": "A `ListenerError` if an error occurred during the listener initialization",
                 "type": {
-                  "name": "ballerina/http:2.16.0:ListenerError?"
+                  "name": "ballerina/http:2.16.1:ListenerError?"
                 }
               }
             },
@@ -16683,7 +16683,7 @@
               "return": {
                 "description": "The `client` or an `http:ClientError` if the initialization failed",
                 "type": {
-                  "name": "ballerina/http:2.16.0:ClientError?"
+                  "name": "ballerina/http:2.16.1:ClientError?"
                 }
               }
             },
@@ -18668,7 +18668,7 @@
               "return": {
                 "description": "The `client` or an `http:ClientError` if the initialization failed",
                 "type": {
-                  "name": "ballerina/http:2.16.0:ClientError?"
+                  "name": "ballerina/http:2.16.1:ClientError?"
                 }
               }
             },
@@ -20507,7 +20507,7 @@
               "return": {
                 "description": "The `client` or an `http:ClientError` if the initialization failed",
                 "type": {
-                  "name": "ballerina/http:2.16.0:ClientError?"
+                  "name": "ballerina/http:2.16.1:ClientError?"
                 }
               }
             },
@@ -22222,7 +22222,7 @@
               "return": {
                 "description": "The `client` or an `http:ClientError` if the initialization failed",
                 "type": {
-                  "name": "ballerina/http:2.16.0:ClientError?"
+                  "name": "ballerina/http:2.16.1:ClientError?"
                 }
               }
             },
