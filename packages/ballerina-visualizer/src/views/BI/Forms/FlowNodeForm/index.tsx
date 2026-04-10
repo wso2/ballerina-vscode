@@ -1737,7 +1737,7 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
     // handle declare variable node form
     if (node?.codedata.node === "VARIABLE") {
         // HACK: make the type field optional for variable declaration form
-        const typeField = fields.find(field => field.key === "type");
+        const typeField = fields.find(field => getPrimaryInputType(field.types)?.fieldType === "TYPE");
         if (typeField) {
             typeField.optional = true;
         }
