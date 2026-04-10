@@ -92,7 +92,7 @@
         "metadata": {
           "label": "Run Workflow",
           "description": "Run a workflow instance",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.3.1.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.3.3.png"
         },
         "codedata": {
           "node": "WORKFLOW_RUN",
@@ -119,7 +119,7 @@
           "processFunction": {
             "metadata": {
               "label": "Process Function",
-              "description": "The process function to execute (must be annotated with @Workflow)"
+              "description": "The workflow function (must have `@Workflow`)"
             },
             "types": [
               {
@@ -142,7 +142,7 @@
           "input": {
             "metadata": {
               "label": "Input",
-              "description": "Optional workflow input data. If nil, the workflow is created with no input."
+              "description": "Optional input data for the workflow"
             },
             "types": [
               {
@@ -381,7 +381,7 @@
         "metadata": {
           "label": "Send Data",
           "description": "Send data to an existing workflow instance",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.3.1.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.3.3.png"
         },
         "codedata": {
           "node": "SEND_DATA",
@@ -389,7 +389,7 @@
           "module": "workflow",
           "packageName": "workflow",
           "symbol": "sendData",
-          "version": "0.3.1",
+          "version": "0.3.3",
           "lineRange": {
             "fileName": "workflow_operations.bal",
             "startLine": {
@@ -408,7 +408,7 @@
           "workflow": {
             "metadata": {
               "label": "Workflow",
-              "description": "The workflow function that identifies the workflow type (must be annotated with @Workflow)"
+              "description": "The workflow function (must have `@Workflow`)"
             },
             "types": [
               {
@@ -431,7 +431,7 @@
           "workflowId": {
             "metadata": {
               "label": "Workflow Id",
-              "description": "The unique workflow ID to send the data to (obtained from `run`)"
+              "description": "Target workflow ID (from `run`)"
             },
             "types": [
               {
@@ -459,7 +459,7 @@
           "dataName": {
             "metadata": {
               "label": "Data Name",
-              "description": "The name identifying the data. Must match a field name in the workflow's\nevents record parameter."
+              "description": "Field name in the workflow's events record"
             },
             "types": [
               {
@@ -496,7 +496,7 @@
           "data": {
             "metadata": {
               "label": "Data",
-              "description": "The data to send to the workflow"
+              "description": "The data payload"
             },
             "types": [
               {

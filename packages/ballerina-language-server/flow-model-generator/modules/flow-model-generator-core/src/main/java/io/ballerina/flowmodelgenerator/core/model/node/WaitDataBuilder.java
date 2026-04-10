@@ -66,6 +66,7 @@ import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
 
@@ -136,23 +137,27 @@ public class WaitDataBuilder extends CallBuilder {
         properties()
                 .endNestedProperty(Property.ValueType.REPEATABLE_PROPERTY, DATA_WAITS_KEY, DATA_WAITS_LABEL,
                         DATA_WAITS_DOC, getDataWaitSchema(), false, false);
+        addAdvancedProperties(context.workspaceManager().module(context.filePath()).orElse(null),
+                context.workspaceManager(), context.filePath());
+
+    }
+
+    public void addAdvancedProperties(Module module, WorkspaceManager workspaceManager, Path filePath) {
         ModuleInfo workflowModuleInfo = new ModuleInfo(WORKFLOW_ORG, WORKFLOW_MODULE, WORKFLOW_MODULE, null);
         FunctionData callActivityData = new FunctionDataBuilder()
                 .name(AWAIT_METHOD_NAME)
                 .moduleInfo(workflowModuleInfo)
                 .parentSymbolType(CONTEXT_CLASS_NAME)
                 .functionResultKind(FunctionData.Kind.REMOTE)
-                .project(PackageUtil.loadProject(context.workspaceManager(), context.filePath()))
+                .project(PackageUtil.loadProject(workspaceManager, filePath))
                 .userModuleInfo(moduleInfo)
-                .workspaceManager(context.workspaceManager())
-                .filePath(context.filePath())
+                .workspaceManager(workspaceManager)
+                .filePath(filePath)
                 .build();
 
         LinkedHashMap<String, ParameterData> filteredParams = new LinkedHashMap<>(callActivityData.parameters());
         filteredParams.keySet().removeAll(EXCLUDED_AWAIT_PARAMS);
         callActivityData.setParameters(filteredParams);
-
-        Module module = context.workspaceManager().module(context.filePath()).orElse(null);
         setParameterProperties(callActivityData, module);
     }
 
