@@ -184,7 +184,6 @@ export function ArtifactForm(props: ArtifactFormProps) {
     const fieldsRef = useRef<FormField[]>(fields);
     const fieldsValuesRef = useRef<FormField[]>(fields);
     const [formImports, setFormImports] = useState<FormImports>({});
-    const [selectedType, setSelectedType] = useState<CompletionItem | null>(null);
     const [refetchStates, setRefetchStates] = useState<boolean[]>([false]);
     const [valueTypeConstraints, setValueTypeConstraints] = useState<string>();
 
@@ -773,13 +772,10 @@ export function ArtifactForm(props: ArtifactFormProps) {
             updateImports: handleUpdateImports,
             completions: completions,
             projectPath: projectPath,
-            selectedType: selectedType,
             filteredCompletions: filteredCompletions,
             isInModal: false,
             types: types,
             handleRetrieveCompletions: handleRetrieveCompletions,
-            handleValueTypeConstChange: handleValueTypeConstChange,
-            forcedValueTypeConstraint: valueTypeConstraints,
             inputMode: inputMode,
         });
     };

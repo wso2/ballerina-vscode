@@ -127,10 +127,8 @@ export function createPromptHelperPane(params: CreatePromptHelperPaneParams): JS
         filteredCompletions: filteredCompletions,
         isInModal: false,
         types: [{ballerinaType: "ai:Prompt", fieldType: "RAW_TEMPLATE", selected: false}],
-        forcedValueTypeConstraint: valueTypeConstraint as string || "ai:Prompt",
         handleRetrieveCompletions: async (value: string, property: Property, offset: number, triggerCharacter?: string) =>
             await debouncedRetrieveCompletions(value, property, offset, triggerCharacter),
-        handleValueTypeConstChange: () => { },
         inputMode: inputMode || InputMode.PROMPT
     });
 
