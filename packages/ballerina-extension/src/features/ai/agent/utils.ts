@@ -20,6 +20,7 @@ import * as fs from "fs";
 import * as path from "path";
 import type { TextEdit } from "vscode-languageserver-protocol";
 import { StateMachine } from "../../../stateMachine";
+import { normalizeToLf, readAndNormalize, restoreEol } from "../utils/eol-utils";
 
 /**
  * Files that require path sanitization (temp paths replaced with workspace paths)
@@ -306,8 +307,10 @@ export async function applyTextEdits(filePath: string, textEdits: TextEdit[]): P
 
         // Read existing content or start with empty string
         let content = '';
+        let originalEol: import("../utils/eol-utils").EolSequence = '\n';
         if (fs.existsSync(filePath)) {
-            content = fs.readFileSync(filePath, 'utf-8');
+            const raw = fs.readFileSync(filePath, 'utf-8');
+            [content, originalEol] = readAndNormalize(raw);
         }
 
         // If file is new and empty, ensure at least empty content
@@ -334,8 +337,8 @@ export async function applyTextEdits(filePath: string, textEdits: TextEdit[]): P
             result = result.substring(0, edit.start) + edit.newText + result.substring(edit.end);
         }
 
-        // Write the modified content back to the file
-        fs.writeFileSync(filePath, result, 'utf-8');
+        // Write the modified content back to the file, restoring original line endings
+        fs.writeFileSync(filePath, restoreEol(result, originalEol), 'utf-8');
     } catch (error) {
         console.error(`[applyTextEdits] Error applying edits to ${filePath}:`, error);
         throw error;
@@ -351,7 +354,7 @@ export async function applyTextEdits(filePath: string, textEdits: TextEdit[]): P
 export function formatCodeContext(codeContext: CodeContext, tempProjectPath: string): string {
     const absolutePath = path.join(tempProjectPath, codeContext.filePath);
 
-    const fileContent = fs.readFileSync(absolutePath, "utf-8");
+    const fileContent = normalizeToLf(fs.readFileSync(absolutePath, "utf-8"));
     const lines = fileContent.split("\n");
     const totalLines = lines.length;
 

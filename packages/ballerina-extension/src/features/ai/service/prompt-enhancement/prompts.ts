@@ -162,8 +162,9 @@ When the user provides a task rather than a system prompt, convert it into a sys
 Keep the persona natural and proportional to the task.
 
 ### OUTPUT FORMAT
-- Output ONLY the optimized system prompt text.
-- Do not include explanations, "Here is your prompt:", or code block wrappers.
+- Output ONLY the improved prompt text — nothing else.
+- Do NOT include explanations, change summaries, "Changes made:", "Here is your prompt:", or any meta-commentary about what you changed or why.
+- The user sees your output directly as their new prompt. Anything that isn't the prompt itself will be shown to them as part of the prompt.
 
 ### CRITICAL: PRESERVE VARIABLES
 The prompt may contain interpolation variables wrapped in \${...}. These are template placeholders that get replaced at runtime. You MUST:

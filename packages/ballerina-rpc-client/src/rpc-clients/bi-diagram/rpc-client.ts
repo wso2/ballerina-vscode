@@ -128,7 +128,9 @@ import {
     ValidateProjectFormRequest,
     ValidateProjectFormResponse,
     UpdateProjectTitleRequest,
+    UpdatePackageTitleRequest,
     updateProjectTitle,
+    updatePackageTitle,
     VerifyTypeDeleteRequest,
     VerifyTypeDeleteResponse,
     VisibleTypesRequest,
@@ -578,5 +580,9 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     updateProjectTitle(params: UpdateProjectTitleRequest): Promise<void> {
         return this._messenger.sendRequest(updateProjectTitle, HOST_EXTENSION, params);
+    }
+
+    updatePackageTitle(params: UpdatePackageTitleRequest): Promise<void> {
+        return this._messenger.sendRequest(updatePackageTitle, HOST_EXTENSION, params);
     }
 }
