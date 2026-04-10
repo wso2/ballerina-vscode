@@ -553,7 +553,10 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                         const existingType = formValues[field.key];
                         const newType = field.value;
 
-                        if (existingType !== newType) {
+                        if (existingType === "") {
+                            // User has explicitly cleared the type field; preserve the empty value
+                            defaultValues[field.key] = "";
+                        } else if (existingType !== newType) {
                             setValue(field.key, newType);
                             getVisualiableFields();
                         }
