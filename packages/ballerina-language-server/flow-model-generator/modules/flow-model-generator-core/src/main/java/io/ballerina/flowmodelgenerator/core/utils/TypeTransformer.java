@@ -771,7 +771,7 @@ public class TypeTransformer {
         String modulePrefix = "";
         if (!CommonUtils.isWithinPackage(annotDefSymbol, moduleInfo)) {
             modulePrefix = moduleId.modulePrefix();
-            builder.addImport(modulePrefix, moduleId.orgName() + "/" + moduleId.packageName());
+            builder.addImport(modulePrefix, moduleId.orgName() + "/" + moduleId.moduleName());
         }
         String name = annotDefSymbol.getName().get();
 

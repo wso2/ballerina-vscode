@@ -128,9 +128,7 @@ public class SourceCodeGenerator {
         String annots = "";
         List<AnnotationAttachment> annotationAttachments = typeData.annotationAttachments();
         if (annotationAttachments != null && !annotationAttachments.isEmpty()) {
-            annotationAttachments.forEach(annot -> {
-                addCodedataImports(annot.codedata());
-            });
+            annotationAttachments.forEach(this::addCodedataImports);
 
             annots = annotationAttachments.stream()
                     .map(annot -> annot.toString() + LS)
@@ -163,7 +161,7 @@ public class SourceCodeGenerator {
         StringBuilder annotationsBuilder = new StringBuilder();
         for (AnnotationAttachment annot : annotAttachments) {
             annotationsBuilder.append(annot.toString()).append(" ");
-            addCodedataImports(annot.codedata());
+            addCodedataImports(annot);
         }
 
         return annotationsBuilder + generateTypeDescriptor(typeData);
@@ -273,7 +271,7 @@ public class SourceCodeGenerator {
         // Annotation
         StringBuilder annotationsBuilder = new StringBuilder();
         for (AnnotationAttachment annot : getAnnotationAttachments(member)) {
-            addCodedataImports(annot.codedata());
+            addCodedataImports(annot);
             annotationsBuilder.append("\t").append(annot.toString()).append(LS);
         }
 
@@ -593,13 +591,18 @@ public class SourceCodeGenerator {
     }
 
     /**
-     * Helper method to add imports derived from a {@link Codedata} instance to the imports map.
+     * Helper method to add imports derived from an {@link AnnotationAttachment} to the imports map.
+     * Skips local annotations (where modulePrefix is null or empty) to avoid self-imports.
      *
-     * @param codedata The codedata containing module/org info for import resolution
+     * @param annot The annotation attachment whose imports need to be added
      */
-    private void addCodedataImports(Codedata codedata) {
+    private void addCodedataImports(AnnotationAttachment annot) {
+        if (annot == null || annot.modulePrefix() == null || annot.modulePrefix().isEmpty()) {
+            return;
+        }
+        Codedata codedata = annot.codedata();
         if (codedata != null && codedata.org() != null && codedata.module() != null) {
-            this.imports.putIfAbsent(codedata.getModulePrefix(), codedata.getImportSignature());
+            this.imports.putIfAbsent(annot.codedata().module(), codedata.getImportSignature());
         }
     }
 
