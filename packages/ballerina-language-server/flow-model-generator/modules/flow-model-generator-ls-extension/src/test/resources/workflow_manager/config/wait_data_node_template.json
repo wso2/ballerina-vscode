@@ -107,7 +107,7 @@
       "minCount": {
         "metadata": {
           "label": "Min Count",
-          "description": "Minimum number of futures that must complete. Defaults to `futures.length()` (wait for all)."
+          "description": "Minimum completions required (default: all)"
         },
         "types": [
           {
@@ -135,7 +135,7 @@
       "timeout": {
         "metadata": {
           "label": "Timeout",
-          "description": "Optional maximum duration to wait. When exceeded an error is returned."
+          "description": "Maximum wait duration; returns error on timeout"
         },
         "types": [
           {

@@ -58,6 +58,7 @@ import io.ballerina.servicemodelgenerator.extension.model.PropertyTypeMemberInfo
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.TextRange;
+import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -724,5 +725,35 @@ public class FTPListenerUtil {
             return parts[parts.length - 1];
         }
         return moduleName;
+    }
+
+    /**
+     * Adds import text edits required by the FTP listener's coordination config.
+     * When the listener declaration contains {@code <task:MysqlConfig>} or {@code <task:PostgresqlConfig>},
+     * the corresponding driver import ({@code ballerinax/mysql.driver as _} or
+     * {@code ballerinax/postgresql.driver as _}) and the {@code ballerina/task} import are added.
+     *
+     * @param listenerDeclaration the generated listener declaration source code
+     * @param modulePartNode      the module part node for checking existing imports
+     * @param edits               the list of text edits to append to
+     */
+    public static void addCoordinationConfigImports(String listenerDeclaration, ModulePartNode modulePartNode,
+                                                    List<TextEdit> edits) {
+        if (listenerDeclaration.contains("<task:MysqlConfig>")) {
+            addImportIfMissing(modulePartNode, edits, "ballerina", "task", false);
+            addImportIfMissing(modulePartNode, edits, "ballerinax", "mysql.driver", true);
+        } else if (listenerDeclaration.contains("<task:PostgresqlConfig>")) {
+            addImportIfMissing(modulePartNode, edits, "ballerina", "task", false);
+            addImportIfMissing(modulePartNode, edits, "ballerinax", "postgresql.driver", true);
+        }
+    }
+
+    private static void addImportIfMissing(ModulePartNode modulePartNode, List<TextEdit> edits,
+                                           String org, String module, boolean unnamed) {
+        if (!Utils.importExists(modulePartNode, org, module)) {
+            String importModule = unnamed ? module + " as _" : module;
+            edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().startLine()),
+                    Utils.getImportStmt(org, importModule)));
+        }
     }
 }

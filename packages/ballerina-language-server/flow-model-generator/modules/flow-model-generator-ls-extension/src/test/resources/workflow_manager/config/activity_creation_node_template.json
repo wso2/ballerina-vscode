@@ -211,7 +211,7 @@
           "retryOnError": {
             "metadata": {
               "label": "Retry On Error",
-              "description": "If `true`, retry policy is applied when the activity fails:\nthe engine retries the activity up to `maxRetries` times before\npropagating the failure to the workflow. Set to `false` (default)\nto receive any error as a normal return value so that the workflow\ncan handle it with its own logic, without any automatic retries."
+              "description": "Enable automatic retries on failure (default: `false`)"
             },
             "types": [
               {
@@ -239,7 +239,7 @@
           "maxRetries": {
             "metadata": {
               "label": "Max Retries",
-              "description": "Number of times to retry the activity on failure (only used when\n`retryOnError = true`). `0` means no retries — the activity runs\nexactly once and its failure immediately propagates to the workflow."
+              "description": "Maximum retry attempts (default: 0, no retries)"
             },
             "types": [
               {
@@ -267,7 +267,7 @@
           "retryDelay": {
             "metadata": {
               "label": "Retry Delay",
-              "description": "Initial delay in seconds before the first retry (default: 1.0).\nOnly used when `retryOnError = true` and `maxRetries > 0`."
+              "description": "Initial delay in seconds before the first retry (default: 1.0)"
             },
             "types": [
               {
@@ -295,7 +295,7 @@
           "retryBackoff": {
             "metadata": {
               "label": "Retry Backoff",
-              "description": "Multiplier applied to `retryDelay` after each attempt (default: 2.0).\n`1.0` means a fixed interval; `2.0` doubles the delay each time.\nOnly used when `retryOnError = true` and `maxRetries > 0`."
+              "description": "Multiplier applied to delay after each retry (default: 2.0)"
             },
             "types": [
               {
@@ -323,7 +323,7 @@
           "maxRetryDelay": {
             "metadata": {
               "label": "Max Retry Delay",
-              "description": "Optional cap on the delay between retries, in seconds.\nPrevents exponential backoff from growing without limit.\nOnly used when `retryOnError = true` and `maxRetries > 0`."
+              "description": "Cap on the delay between retries, in seconds"
             },
             "types": [
               {

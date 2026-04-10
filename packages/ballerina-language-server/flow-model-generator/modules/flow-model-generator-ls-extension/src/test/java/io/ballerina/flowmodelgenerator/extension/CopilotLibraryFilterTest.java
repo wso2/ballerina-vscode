@@ -30,7 +30,10 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Tests for the Copilot Library Service getFilteredLibraries method.
@@ -118,6 +121,49 @@ public class CopilotLibraryFilterTest extends AbstractLSTest {
         Assert.assertNotNull(libraries, "Libraries array should not be null");
         Assert.assertTrue(libraries.isEmpty(),
                 "trigger.salesforce should be excluded and return empty libraries");
+    }
+
+    @Test
+    public void testReadmeIncludedOnlyForWhitelistedLibraries() throws IOException {
+        // ballerinax/salesforce is whitelisted in CopilotLibraryManager.README_WHITELIST;
+        // ballerina/http is not. Both libraries must still return their full runtime
+        // payload (clients/typeDefs); only the readme field should differ.
+        GetSelectedLibrariesRequest request = new GetSelectedLibrariesRequest(
+                new String[]{"ballerinax/salesforce", "ballerina/http"});
+        JsonObject response = getResponse(request);
+        JsonArray libraries = response.getAsJsonArray("libraries");
+
+        Assert.assertNotNull(libraries, "Libraries array should not be null");
+        Map<String, JsonObject> byName = new HashMap<>();
+        for (JsonElement libElement : libraries) {
+            JsonObject lib = libElement.getAsJsonObject();
+            byName.put(lib.get("name").getAsString(), lib);
+        }
+        Assert.assertEquals(byName.keySet(), Set.of("ballerinax/salesforce", "ballerina/http"));
+
+        // salesforce is a connector: API lives on the client, so module-level functions
+        // is naturally empty. clients/typeDefs prove the semantic model pass ran.
+        JsonObject salesforce = byName.get("ballerinax/salesforce");
+        assertHasNonEmptyArray(salesforce, "clients");
+        assertHasNonEmptyArray(salesforce, "typeDefs");
+        Assert.assertTrue(salesforce.has("readme"),
+                "ballerinax/salesforce should have readme as it is whitelisted");
+        Assert.assertFalse(salesforce.get("readme").getAsString().isEmpty(),
+                "ballerinax/salesforce readme should not be empty");
+
+        JsonObject http = byName.get("ballerina/http");
+        assertHasNonEmptyArray(http, "clients");
+        assertHasNonEmptyArray(http, "typeDefs");
+        assertHasNonEmptyArray(http, "functions");
+        Assert.assertFalse(http.has("readme"),
+                "ballerina/http should NOT have readme as it is not whitelisted");
+    }
+
+    private static void assertHasNonEmptyArray(JsonObject lib, String field) {
+        String name = lib.get("name").getAsString();
+        Assert.assertTrue(lib.has(field), name + " should have '" + field + "' field");
+        Assert.assertFalse(lib.getAsJsonArray(field).isEmpty(),
+                name + " '" + field + "' should not be empty");
     }
 
     @Override

@@ -47,7 +47,7 @@
       "isPublic": {
         "metadata": {
           "label": "public",
-          "description": "Make visible across the workspace"
+          "description": "Make visible across the project"
         },
         "types": [
           {
@@ -261,7 +261,7 @@
         "isPublic": {
           "metadata": {
             "label": "public",
-            "description": "Make visible across the workspace"
+            "description": "Make visible across the project"
           },
           "types": [
             {

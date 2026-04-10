@@ -18,8 +18,12 @@
 
 package io.ballerina.flowmodelgenerator.core.model.node;
 
+import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
+import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
+
+import java.util.Optional;
 
 /**
  * Represents the properties of function creation node.
@@ -79,10 +83,22 @@ public class FunctionCreationBuilder extends DataMapperCreationBuilder {
     }
 
     @Override
-    protected void endSourceGeneration(SourceBuilder sourceBuilder, String returnBody) {
+    protected void endSourceGeneration(SourceBuilder sourceBuilder) {
+        Optional<Property> returnType = sourceBuilder.getProperty(Property.TYPE_KEY);
+        if (returnType.isPresent() && !returnType.get().value().toString().isEmpty()) {
+            sourceBuilder.token()
+                    .keyword(SyntaxKind.RETURNS_KEYWORD)
+                    .name(returnType.get().value().toString());
+        }
+
         sourceBuilder
                 .token()
                 .openBrace()
                 .closeBrace();
+    }
+
+    @Override
+    protected boolean isOutputOptional() {
+        return true;
     }
 }

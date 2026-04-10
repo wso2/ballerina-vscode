@@ -18,15 +18,14 @@
 
 package io.ballerina.flowmodelgenerator.core.search;
 
-import io.ballerina.centralconnector.CentralAPI;
 import io.ballerina.centralconnector.RemoteCentral;
-import io.ballerina.centralconnector.response.SymbolResponse;
 import io.ballerina.flowmodelgenerator.core.model.AvailableNode;
 import io.ballerina.flowmodelgenerator.core.model.Category;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.Item;
 import io.ballerina.flowmodelgenerator.core.model.Metadata;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
+import io.ballerina.flowmodelgenerator.core.utils.CentralSearchUtil;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.SearchResult;
@@ -36,7 +35,6 @@ import io.ballerina.projects.Project;
 import io.ballerina.tools.text.LineRange;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -111,46 +109,10 @@ class FunctionSearchCommand extends SearchCommand {
 
     @Override
     protected List<Item> searchCurrentOrganization(String currentOrg) {
-        List<SearchResult> organizationFunctions = new ArrayList<>();
-        CentralAPI centralClient = RemoteCentral.getInstance();
-        Map<String, String> queryMap = new HashMap<>();
-        boolean success = false;
-        // TODO: Enable once https://github.com/ballerina-platform/ballerina-central/issues/284 is resolved
-//        if (centralClient.hasAuthorizedAccess()) {
-//            queryMap.put("user-packages", "true");
-//            success = true;
-//        }
-        if (currentOrg != null && !currentOrg.isEmpty()) {
-            String orgQuery = "org:" + currentOrg;
-            queryMap.put("q", query.isEmpty() ? orgQuery : query + " " + orgQuery);
-            success = true;
-        }
-        if (success) {
-            queryMap.put("limit", String.valueOf(limit));
-            queryMap.put("offset", String.valueOf(offset));
-            SymbolResponse symbolResponse = centralClient.searchSymbols(queryMap);
-            if (symbolResponse != null && symbolResponse.symbols() != null) {
-                for (SymbolResponse.Symbol symbol : symbolResponse.symbols()) {
-                    if ("function".equals(symbol.symbolType())) {
-                        SearchResult.Package packageInfo = new SearchResult.Package(
-                                symbol.organization(),
-                                symbol.name(),
-                                symbol.name(),
-                                symbol.version()
-                        );
-                        SearchResult searchResult = SearchResult.from(
-                                packageInfo,
-                                symbol.symbolName(),
-                                symbol.description(),
-                                true
-                        );
-                        organizationFunctions.add(searchResult);
-                    }
-                }
-            }
-            // Reuse existing building logic to add these to categories
-            buildLibraryNodes(organizationFunctions);
-        }
+        CentralSearchUtil centralSearch = new CentralSearchUtil(RemoteCentral.getInstance());
+        List<SearchResult> organizationFunctions = centralSearch.searchSymbolsByOrganization(
+                currentOrg, query, limit, offset, "function"::equals);
+        buildLibraryNodes(organizationFunctions);
         return rootBuilder.build().items();
     }
 

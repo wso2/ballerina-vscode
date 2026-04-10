@@ -2,6 +2,7 @@
 prices = [748, 930]
 itemNames = ["item1", "item2", "item3"]
 myVal = "hello"
+oauthConfig = {refreshUrl = "refresh", refreshToken = "token", clientId = "cid", clientConfig = {secureSocket = {cert = "cert"}, connectTimeout = 10, reqTimeout = 9}}
 
 [config_tests.complexconfigs.person]
 name = "john"

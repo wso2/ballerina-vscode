@@ -361,6 +361,7 @@ public class ServiceLoader {
     /**
      * Extracts type information from a JSON object containing type data.
      * Handles both "type" and "typeName" fields, where "type" can be either a string or an array.
+     * Falls back to "valueTypeConstraint" when "typeName" is a generic type category like "record".
      *
      * @param typeData the JSON object containing type information
      * @return JsonObject with "name" property containing the type name
@@ -370,15 +371,23 @@ public class ServiceLoader {
 
         if (typeData.has("typeName")) {
             typeName = typeData.get("typeName").getAsString();
-        } else if (typeData.has("type")) {
-            JsonElement typeElement = typeData.get("type");
-            if (typeElement.isJsonArray()) {
-                JsonArray typeArray = typeElement.getAsJsonArray();
-                if (!typeArray.isEmpty()) {
-                    typeName = typeArray.get(0).getAsString();
+        }
+
+        // When typeName is a generic type category (e.g., "record"), use valueTypeConstraint
+        // which has the specific record type name (e.g., "github:IssueCommentEvent")
+        if ("record".equals(typeName) && typeData.has("valueTypeConstraint")) {
+            typeName = typeData.get("valueTypeConstraint").getAsString();
+        } else if (typeName == null) {
+            if (typeData.has("type")) {
+                JsonElement typeElement = typeData.get("type");
+                if (typeElement.isJsonArray()) {
+                    JsonArray typeArray = typeElement.getAsJsonArray();
+                    if (!typeArray.isEmpty()) {
+                        typeName = typeArray.get(0).getAsString();
+                    }
+                } else {
+                    typeName = typeElement.getAsString();
                 }
-            } else {
-                typeName = typeElement.getAsString();
             }
         }
 
@@ -395,11 +404,11 @@ public class ServiceLoader {
      */
     private static JsonObject resolveTypeWithLinks(String typeName, String packageName) {
         JsonObject typeObj = new JsonObject();
-        String prefix = packageName + ":";
 
         // Fast path for non-union types (the common case)
         if (!typeName.contains("|")) {
-            if (typeName.startsWith(prefix)) {
+            String prefix = findMatchingPrefix(typeName, packageName);
+            if (prefix != null) {
                 String strippedName = typeName.substring(prefix.length());
                 String recordName = strippedName.endsWith("?") ?
                         strippedName.substring(0, strippedName.length() - 1) : strippedName;
@@ -423,7 +432,8 @@ public class ServiceLoader {
         for (int i = 0; i < parts.length; i++) {
             String part = parts[i].trim();
 
-            if (part.startsWith(prefix)) {
+            String prefix = findMatchingPrefix(part, packageName);
+            if (prefix != null) {
                 String strippedName = part.substring(prefix.length());
                 String recordName = strippedName.endsWith("?") ?
                         strippedName.substring(0, strippedName.length() - 1) : strippedName;
@@ -447,5 +457,29 @@ public class ServiceLoader {
         }
 
         return typeObj;
+    }
+
+    /**
+     * Finds the matching package prefix for a type name.
+     * For submodule packages (e.g., "trigger.github"), also tries the module alias
+     * (e.g., "github:") since Ballerina import aliases use the last segment.
+     *
+     * @param typeName the type name to check
+     * @param packageName the package name (e.g., "trigger.github" or "salesforce")
+     * @return the matching prefix string, or null if no prefix matches
+     */
+    private static String findMatchingPrefix(String typeName, String packageName) {
+        String fullPrefix = packageName + ":";
+        if (typeName.startsWith(fullPrefix)) {
+            return fullPrefix;
+        }
+        // For submodule packages (e.g., "trigger.github"), try the module alias ("github:")
+        if (packageName.contains(".")) {
+            String aliasPrefix = packageName.substring(packageName.lastIndexOf('.') + 1) + ":";
+            if (typeName.startsWith(aliasPrefix)) {
+                return aliasPrefix;
+            }
+        }
+        return null;
     }
 }

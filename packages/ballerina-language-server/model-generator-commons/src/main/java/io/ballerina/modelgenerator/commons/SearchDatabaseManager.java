@@ -30,6 +30,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -206,17 +207,31 @@ public class SearchDatabaseManager {
     }
 
     /**
-     * Searches for connectors in the database based on the given query.
+     * Searches for connectors in the database with org allowlist and name blacklist filtering applied at the SQL level,
+     * ensuring accurate pagination.
      *
-     * @param q      the search query string
-     * @param limit  the maximum number of results to return
-     * @param offset the offset from which to start returning results
-     * @return a list of search results matching the query
-     * @throws RuntimeException if there is an error executing the search or if the limit or offset values are invalid
+     * @param q                       the search query string
+     * @param limit                   the maximum number of results to return
+     * @param offset                  the offset from which to start returning results
+     * @param allowedOrgs             the set of allowed organization names
+     * @param blacklistedNamePatterns  the set of connector name patterns to exclude
+     * @return a list of search results matching the query and filters
      */
-    public List<SearchResult> searchConnectors(String q, int limit, int offset) {
+    public List<SearchResult> searchConnectors(String q, int limit, int offset,
+                                               Set<String> allowedOrgs, Set<String> blacklistedNamePatterns) {
         List<SearchResult> results = new ArrayList<>();
+        if (allowedOrgs.isEmpty()) {
+            return results;
+        }
         String sanitizedQuery = sanitizeQuery(q);
+
+        String orgPlaceholders = String.join(",", Collections.nCopies(allowedOrgs.size(), "?"));
+
+        StringBuilder blacklistClause = new StringBuilder();
+        for (int i = 0; i < blacklistedNamePatterns.size(); i++) {
+            blacklistClause.append(" AND c.name NOT LIKE ?");
+        }
+
         String sql;
         if (sanitizedQuery.isEmpty()) {
             sql = """
@@ -231,10 +246,12 @@ public class SearchDatabaseManager {
                     p.version AS package_version
                 FROM Connector AS c
                 JOIN Package AS p ON c.package_id = p.id
+                WHERE p.org IN (%ORG_PLACEHOLDERS)%BLACKLIST_CLAUSE
                 ORDER BY c.name
                 LIMIT ?
                 OFFSET ?;
-                """;
+                """.replace("%ORG_PLACEHOLDERS", orgPlaceholders)
+                   .replace("%BLACKLIST_CLAUSE", blacklistClause);
         } else {
             sql = """
                 SELECT
@@ -251,23 +268,29 @@ public class SearchDatabaseManager {
                 JOIN Connector AS c ON fts.rowid = c.id
                 JOIN Package AS p ON c.package_id = p.id
                 WHERE fts.ConnectorFTS MATCH ?
+                    AND p.org IN (%ORG_PLACEHOLDERS)%BLACKLIST_CLAUSE
                 ORDER BY fts.rank
                 LIMIT ?
                 OFFSET ?;
-                """;
+                """.replace("%ORG_PLACEHOLDERS", orgPlaceholders)
+                   .replace("%BLACKLIST_CLAUSE", blacklistClause);
         }
 
         try (Connection conn = DriverManager.getConnection(dbPath);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-            if (sanitizedQuery.isEmpty()) {
-                stmt.setInt(1, limit);
-                stmt.setInt(2, offset);
-            } else {
-                stmt.setString(1, sanitizedQuery + "*");
-                stmt.setInt(2, limit);
-                stmt.setInt(3, offset);
+            int paramIndex = 1;
+            if (!sanitizedQuery.isEmpty()) {
+                stmt.setString(paramIndex++, sanitizedQuery + "*");
             }
+            for (String org : allowedOrgs) {
+                stmt.setString(paramIndex++, org);
+            }
+            for (String pattern : blacklistedNamePatterns) {
+                stmt.setString(paramIndex++, "%" + pattern + "%");
+            }
+            stmt.setInt(paramIndex++, limit);
+            stmt.setInt(paramIndex, offset);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {

@@ -84,7 +84,7 @@ public class DataMapperDefinitionBuilder extends NodeBuilder {
                     .label(OUTPUT_LABEL)
                     .description(OUTPUT_DOC)
                     .stepOut()
-                .value(returnType)
+                .value(returnType == null ? "" : returnType)
                 .type(Property.ValueType.TYPE, RETURN_TYPE)
                 .editable()
                 .stepOut()
