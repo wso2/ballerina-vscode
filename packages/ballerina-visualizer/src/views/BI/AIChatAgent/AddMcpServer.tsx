@@ -93,11 +93,20 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
         return moduleNodes;
     };
 
-    const setupEditMode = (variables: FlowNode[]) => {
+    const setupEditMode = async (variables: FlowNode[]) => {
         const mcpToolKitVariable = variables?.find(
             (v) => v.codedata?.node === "MCP_TOOL_KIT" && v.properties.variable?.value === props.name
         );
         if (!mcpToolKitVariable) return;
+
+        // Resolve relative fileName to absolute path so formDidOpen gets a valid file URI
+        if (mcpToolKitVariable.codedata?.lineRange?.fileName) {
+            const resolvedPath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({
+                segments: [mcpToolKitVariable.codedata.lineRange.fileName]
+            })).filePath;
+            mcpToolKitVariable.codedata.lineRange.fileName = resolvedPath;
+        }
+
         mcpToolKitNodeRef.current = mcpToolKitVariable;
         initializeEditMode();
     };
