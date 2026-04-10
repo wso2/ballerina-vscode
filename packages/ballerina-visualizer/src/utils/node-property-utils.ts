@@ -117,6 +117,14 @@ export function convertNodePropertyToFormField(
         lineRange: property?.codedata?.lineRange,
         metadata: property.metadata,
         codedata: property.codedata,
+        dynamicFormFields: property?.dynamicFormFields
+            ? Object.fromEntries(
+                Object.entries(property.dynamicFormFields).map(([optKey, props]) => [
+                    optKey,
+                    convertNodePropertiesToFormFields(props, connections, clientName),
+                ])
+            )
+            : undefined,
         imports: property.imports
     };
     return formField;
