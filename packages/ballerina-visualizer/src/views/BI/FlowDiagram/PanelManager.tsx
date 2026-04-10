@@ -54,6 +54,8 @@ export enum SidePanelView {
     NODE_LIST = "NODE_LIST",
     FORM = "FORM",
     FUNCTION_LIST = "FUNCTION_LIST",
+    WORKFLOW_LIST = "WORKFLOW_LIST",
+    ACTIVITY_LIST = "ACTIVITY_LIST",
     DATA_MAPPER_LIST = "DATA_MAPPER_LIST",
     NP_FUNCTION_LIST = "NP_FUNCTION_LIST",
     MODEL_PROVIDERS = "MODEL_PROVIDERS",
@@ -118,6 +120,8 @@ interface PanelManagerProps {
     onSelectNode: (nodeId: string, metadata?: any) => void;
     onAddConnection?: () => void;
     onAddFunction?: () => void;
+    onAddWorkflow?: () => void;
+    onAddActivity?: () => void;
     onAddNPFunction?: () => void;
     onAddDataMapper?: () => void;
     onAddModelProvider?: () => void;
@@ -132,6 +136,8 @@ interface PanelManagerProps {
     onUpdateExpressionField: (updatedExpressionField: ExpressionFormField) => void;
     onResetUpdatedExpressionField: () => void;
     onSearchFunction?: (searchText: string, functionType: FUNCTION_TYPE) => void;
+    onSearchWorkflow?: (searchText: string, functionType: FUNCTION_TYPE) => void;
+    onSearchActivity?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchNpFunction?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchAll?: (searchText: string, functionType: FUNCTION_TYPE) => void;
     onSearchModelProvider?: (searchText: string, functionType: FUNCTION_TYPE) => void;
@@ -194,6 +200,8 @@ export function PanelManager(props: PanelManagerProps) {
         onSelectNode,
         onAddConnection,
         onAddFunction,
+        onAddWorkflow,
+        onAddActivity,
         onAddNPFunction,
         onAddDataMapper,
         onAddAgent,
@@ -209,6 +217,8 @@ export function PanelManager(props: PanelManagerProps) {
         onUpdateExpressionField,
         onResetUpdatedExpressionField,
         onSearchFunction,
+        onSearchWorkflow,
+        onSearchActivity,
         onSearchNpFunction,
         onSearchTextChange,
         searchText,
@@ -389,6 +399,34 @@ export function PanelManager(props: PanelManagerProps) {
                         title={"Functions"}
                         searchPlaceholder={"Search library functions"}
                         searchText={searchText}
+                        onBack={canGoBack ? onBack : undefined}
+                    />
+                );
+
+            case SidePanelView.WORKFLOW_LIST:
+                return (
+                    <NodeList
+                        categories={categories}
+                        onSelect={onSelectNode}
+                        onSearchTextChange={(searchText) => onSearchWorkflow?.(searchText, FUNCTION_TYPE.REGULAR)}
+                        onAddFunction={onAddWorkflow}
+                        onClose={onClose}
+                        title={"Workflows"}
+                        searchPlaceholder={"Search workflows"}
+                        onBack={canGoBack ? onBack : undefined}
+                    />
+                );
+
+            case SidePanelView.ACTIVITY_LIST:
+                return (
+                    <NodeList
+                        categories={categories}
+                        onSelect={onSelectNode}
+                        onSearchTextChange={(searchText) => onSearchActivity?.(searchText, FUNCTION_TYPE.REGULAR)}
+                        onAddFunction={onAddActivity}
+                        onClose={onClose}
+                        title={"Activities"}
+                        searchPlaceholder={"Search activities"}
                         onBack={canGoBack ? onBack : undefined}
                     />
                 );

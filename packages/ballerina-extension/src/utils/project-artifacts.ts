@@ -83,6 +83,8 @@ async function buildProjectArtifactsStructure(
             [DIRECTORY_MAP.NP_FUNCTION]: [],
             [DIRECTORY_MAP.AGENTS]: [],
             [DIRECTORY_MAP.LOCAL_CONNECTORS]: [],
+            [DIRECTORY_MAP.WORKFLOW]: [],
+            [DIRECTORY_MAP.ACTIVITY]: [],
         }
     };
     const designArtifacts = await langClient.getProjectArtifacts({ projectPath });
@@ -177,11 +179,19 @@ async function traverseComponents(artifacts: Artifacts, projectPath: string, res
     response.directoryMap[DIRECTORY_MAP.SERVICE].push(...await getComponents(artifacts[ARTIFACT_TYPE.EntryPoints], projectPath, DIRECTORY_MAP.SERVICE, "http-service"));
     response.directoryMap[DIRECTORY_MAP.LISTENER].push(...await getComponents(artifacts[ARTIFACT_TYPE.Listeners], projectPath, DIRECTORY_MAP.LISTENER, "http-service"));
     response.directoryMap[DIRECTORY_MAP.FUNCTION].push(...await getComponents(artifacts[ARTIFACT_TYPE.Functions], projectPath, DIRECTORY_MAP.FUNCTION, "function"));
+    response.directoryMap[DIRECTORY_MAP.WORKFLOW].push(...await getComponents(artifacts[ARTIFACT_TYPE.Workflows], projectPath, DIRECTORY_MAP.WORKFLOW, "function"));
+    response.directoryMap[DIRECTORY_MAP.ACTIVITY].push(...await getComponents(artifacts[ARTIFACT_TYPE.Workflows], projectPath, DIRECTORY_MAP.ACTIVITY, "function"));
     response.directoryMap[DIRECTORY_MAP.DATA_MAPPER].push(...await getComponents(artifacts[ARTIFACT_TYPE.DataMappers], projectPath, DIRECTORY_MAP.DATA_MAPPER, "dataMapper"));
     response.directoryMap[DIRECTORY_MAP.CONNECTION].push(...await getComponents(artifacts[ARTIFACT_TYPE.Connections], projectPath, DIRECTORY_MAP.CONNECTION, "connection"));
     response.directoryMap[DIRECTORY_MAP.TYPE].push(...await getComponents(artifacts[ARTIFACT_TYPE.Types], projectPath, DIRECTORY_MAP.TYPE, "type"));
     response.directoryMap[DIRECTORY_MAP.CONFIGURABLE].push(...await getComponents(artifacts[ARTIFACT_TYPE.Configurations], projectPath, DIRECTORY_MAP.CONFIGURABLE, "config"));
     response.directoryMap[DIRECTORY_MAP.NP_FUNCTION].push(...await getComponents(artifacts[ARTIFACT_TYPE.NaturalFunctions], projectPath, DIRECTORY_MAP.NP_FUNCTION, "function"));
+}
+
+function dedupeArtifactsById(artifacts: ProjectStructureArtifactResponse[]): ProjectStructureArtifactResponse[] {
+    const uniqueArtifacts = new Map<string, ProjectStructureArtifactResponse>();
+    artifacts.forEach((artifact) => uniqueArtifacts.set(artifact.id, artifact));
+    return Array.from(uniqueArtifacts.values());
 }
 
 async function getComponents(
@@ -267,11 +277,7 @@ async function getEntryValue(artifact: BaseArtifact, projectPath: string, icon: 
             entryValue.icon = getCustomEntryNodeIcon(getTypePrefix(artifact.module));
             break;
         case DIRECTORY_MAP.CONNECTION:
-            if ((artifact as any).metadata?.connectorType === "persist") {
-                entryValue.icon = "bi-db";
-            } else {
-                entryValue.icon = icon;
-            }
+            entryValue.icon = icon;
             break;
         case DIRECTORY_MAP.RESOURCE:
             // Do things related to resource
@@ -340,6 +346,11 @@ function getDirectoryMapKeyAndIcon(artifact: BaseArtifact, artifactCategoryKey: 
             return { mapKey: DIRECTORY_MAP.LISTENER, icon: "http-service" }; // Base icon, getEntryValue might refine
         case ARTIFACT_TYPE.Functions:
             return { mapKey: DIRECTORY_MAP.FUNCTION, icon: "function" };
+        case ARTIFACT_TYPE.Workflows:
+            if (artifact.type === DIRECTORY_MAP.ACTIVITY) {
+                return { mapKey: DIRECTORY_MAP.ACTIVITY, icon: "function" };
+            }
+            return { mapKey: DIRECTORY_MAP.WORKFLOW, icon: "function" };
         case ARTIFACT_TYPE.DataMappers:
             return { mapKey: DIRECTORY_MAP.DATA_MAPPER, icon: "dataMapper" };
         case ARTIFACT_TYPE.Connections:
@@ -367,10 +378,15 @@ function getDirectoryMapKeyAndIcon(artifact: BaseArtifact, artifactCategoryKey: 
 function processDeletion(artifact: BaseArtifact, artifactCategoryKey: string, projectStructure: ProjectStructureResponse): void {
     const mapping = getDirectoryMapKeyAndIcon(artifact, artifactCategoryKey);
     if (mapping) {
-        const projectPath = StateMachine.context().projectPath;
-        const project = projectStructure.projects.find(project => project.projectPath === projectPath);
-        project.directoryMap[mapping.mapKey] =
-            project.directoryMap[mapping.mapKey]?.filter(value => value.id !== artifact.id) ?? [];
+        try {
+            const projectPath = StateMachine.context().projectPath;
+            const project = projectStructure.projects.find(project => project.projectPath === projectPath);
+            project.directoryMap[mapping.mapKey] =
+                project.directoryMap[mapping.mapKey]?.filter(value => value.id !== artifact.id) ?? [];
+        } catch (error) {
+            //TODO: Hack: Properly fix for the workspace scenario
+            console.error(`Error processing deletion for artifact ${artifact.id} in category ${artifactCategoryKey}:`, error);
+        }
     } else {
         console.error(`Could not determine directory map key for deletion of artifact ${artifact.id} in category ${artifactCategoryKey}`);
     }
@@ -478,10 +494,15 @@ async function traverseUpdatedComponents(publishedArtifacts: Artifacts, currentP
 
     const projectPath = StateMachine.context().projectPath;
     const project = currentProjectStructure.projects.find(project => project.projectPath === projectPath);
-    for (const key of Object.keys(project.directoryMap)) {
-        if (project.directoryMap[key]) {
-            project.directoryMap[key].sort((a, b) => a.name.localeCompare(b.name));
+    try {
+        for (const key of Object.keys(project.directoryMap)) {
+            if (project.directoryMap[key]) {
+                project.directoryMap[key].sort((a, b) => a.name.localeCompare(b.name));
+            }
         }
+    } catch (error) {
+        //TODO: Hack: Properly fix for the workspace scenario
+        console.error(`Error sorting directory map entries for project ${projectPath}:`, error);
     }
 
     // Populate addition entry locations

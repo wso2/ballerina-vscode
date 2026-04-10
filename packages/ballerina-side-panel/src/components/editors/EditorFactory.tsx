@@ -183,7 +183,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
                 handleNewTypeSelected={handleNewTypeSelected}
             />
         );
-    } else if (!field.items && (field.key === "type" || fieldInputType.fieldType === "TYPE") && field.editable) {
+    } else if (!field.items && (field.key === "type" || field.type === "TYPE") && field.editable) {
         return (
             <TypeEditor
                 field={field}

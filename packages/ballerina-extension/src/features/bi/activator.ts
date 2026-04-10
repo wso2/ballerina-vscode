@@ -73,7 +73,7 @@ export function activate(context: BallerinaExtension) {
             try {
                 const icpStatus = await stateMachineContext.langClient.isIcpEnabled({ projectPath });
                 if (icpStatus && 'enabled' in icpStatus && icpStatus.enabled) {
-                    const proceed = await ensureICPServerRunning();
+                    const proceed = await ensureICPServerRunning(projectPath);
                     if (!proceed) {
                         return;
                     }
@@ -175,6 +175,14 @@ export function activate(context: BallerinaExtension) {
 
     commands.registerCommand(BI_COMMANDS.ADD_NATURAL_FUNCTION, async (item?: TreeItem) => {
         await handleCommandWithContext(item, MACHINE_VIEW.BINPFunctionForm);
+    });
+
+    commands.registerCommand(BI_COMMANDS.ADD_WORKFLOW, async (item?: TreeItem) => {
+        await handleCommandWithContext(item, MACHINE_VIEW.BIWorkflowForm);
+    });
+
+    commands.registerCommand(BI_COMMANDS.ADD_WORKFLOW_ACTIVITY, async (item?: TreeItem) => {
+        await handleCommandWithContext(item, MACHINE_VIEW.BIActivityForm);
     });
 
     commands.registerCommand(BI_COMMANDS.TOGGLE_TRACE_LOGS, toggleTraceLogs);

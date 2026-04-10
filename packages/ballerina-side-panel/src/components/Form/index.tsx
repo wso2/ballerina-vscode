@@ -264,7 +264,9 @@ namespace S {
     export const FormDiagnosticsActionContainer = styled.div`
         display: flex;
         justify-content: flex-end;
-        width: 100%;
+        align-items: center;
+        width: fit-content;
+        align-self: flex-end;
     `;
 
     export const MarkdownContainer = styled.div<{ isExpanded: boolean }>`
@@ -409,7 +411,7 @@ export interface FormProps {
     formDiagnostics?: { message: string; severity: "ERROR" | "WARNING" | "INFO" }[];
     formDiagnosticsAction?: React.ReactNode;
     preserveOrder?: boolean;
-    handleSelectedTypeChange?: (type: string | CompletionItem) => void;
+    handleSelectedTypeChange?: (type: string | CompletionItem) => void | Promise<void>;
     scopeFieldAddon?: React.ReactNode;
     onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
     injectedComponents?: {
@@ -661,12 +663,10 @@ export const Form = forwardRef((props: FormProps, _ref) => {
         openSubPanel(updatedSubPanel);
     };
 
-    const handleOnTypeChange = () => {
-        getVisualiableFields();
-    };
-
     const handleNewTypeSelected = (type: string | CompletionItem) => {
-        handleSelectedTypeChange && handleSelectedTypeChange(type);
+        Promise.resolve(handleSelectedTypeChange?.(type)).catch((error) => {
+            console.error("Error in handleSelectedTypeChange", error);
+        });
     }
 
     const getVisualiableFields = () => {
@@ -987,8 +987,14 @@ export const Form = forwardRef((props: FormProps, _ref) => {
         handleSubmit(
             async (data) => {
                 try {
+                    // HACK: skip form validation for activity/wait-data workflow nodes until fixed diagnostic issue from LS.
+                    if (selectedNode === "ACTIVITY_CALL" || selectedNode === "WAIT_DATA") {
+                        handleOnSave(data);
+                        return;
+                    }
                     const isValidForm = await handleFormValidation(data);
                     if (!isValidForm) {
+                        console.error(">>> Form validation failed, not saving", { data: props, formData: data });
                         setSavingButton(null);
                         return;
                     }
@@ -1034,7 +1040,10 @@ export const Form = forwardRef((props: FormProps, _ref) => {
             )}
             {formDiagnostics && formDiagnostics.length > 0 && (
                 <S.FormDiagnosticsContainer>
-                    <ErrorBanner errorMsg={formDiagnostics.map((diagnostic) => diagnostic.message).join("\n")} />
+                    <ErrorBanner
+                        errorMsg={formDiagnostics.map((diagnostic) => diagnostic.message).join("\n")}
+                        sx={{ alignItems: "flex-start" }}
+                    />
                     {formDiagnosticsAction && (
                         <S.FormDiagnosticsActionContainer>
                             {formDiagnosticsAction}
@@ -1101,7 +1110,6 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                                     autoFocus={firstEditableFieldIndex === formFields.indexOf(updatedField) && !hideSaveButton}
                                     recordTypeFields={recordTypeFields}
                                     onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
-                                    handleOnTypeChange={handleOnTypeChange}
                                     setSubComponentEnabled={setIsSubComponentEnabled}
                                     handleNewTypeSelected={handleNewTypeSelected}
                                     onBlur={handleOnBlur}
@@ -1202,7 +1210,6 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                                             handleOnFieldFocus={handleOnFieldFocus}
                                             recordTypeFields={recordTypeFields}
                                             onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
-                                            handleOnTypeChange={handleOnTypeChange}
                                             onBlur={handleOnBlur}
                                         />
                                     </S.Row>
@@ -1242,7 +1249,6 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                                     handleOnFieldFocus={handleOnFieldFocus}
                                     recordTypeFields={recordTypeFields}
                                     onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
-                                    handleOnTypeChange={handleOnTypeChange}
                                     onBlur={handleOnBlur}
                                     handleFormValidation={handleFormValidation}
                                 />
@@ -1272,7 +1278,6 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                                 ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, typeField, newType))
                             }
                             handleOnFieldFocus={handleOnFieldFocus}
-                            handleOnTypeChange={handleOnTypeChange}
                             recordTypeFields={recordTypeFields}
                             onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                             handleNewTypeSelected={handleNewTypeSelected}
@@ -1288,7 +1293,6 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                                 recordTypeFields={recordTypeFields}
                                 onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                                 handleNewTypeSelected={handleNewTypeSelected}
-                                handleOnTypeChange={handleOnTypeChange}
                                 onBlur={handleOnBlur}
                                 handleFormValidation={handleFormValidation}
                             />

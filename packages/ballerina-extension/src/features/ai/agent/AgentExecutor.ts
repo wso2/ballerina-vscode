@@ -20,7 +20,7 @@ import { AICommandExecutor, AICommandConfig, AIExecutionResult } from '../execut
 import { Command, GenerateAgentCodeRequest, ProjectSource, ExecutionContext, SemanticDiff, ReviewModeData, PROJECT_KIND } from '@wso2/ballerina-core';
 import { StateMachine } from '../../../stateMachine';
 import { ModelMessage, stepCountIs, streamText, TextStreamPart } from 'ai';
-import { getAnthropicClient, getProviderCacheControl, ANTHROPIC_SONNET_4 } from '../utils/ai-client';
+import { getAnthropicClient, getProviderCacheControl, addCacheControlToMessages, ANTHROPIC_SONNET_4 } from '../utils/ai-client';
 import { populateHistoryForAgent, getErrorMessage } from '../utils/ai-utils';
 import { sendAgentDidOpenForFreshProjects } from '../utils/project/ls-schema-notifications';
 import { getSystemPrompt, getUserPrompt } from './prompts';
@@ -298,7 +298,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             });
 
             // Stream LLM response with mid-stream compaction and dual stop conditions
-            const { fullStream, response, usage } = streamText({
+            const { fullStream, response, totalUsage } = streamText({
                 model,
                 maxOutputTokens: 8192,
                 temperature: 0,
@@ -306,9 +306,13 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 tools,
                 abortSignal: this.config.abortController.signal,
 
-                // MID-STREAM COMPACTION: check and compact between steps if needed
+                // MID-STREAM COMPACTION + PROMPT CACHING: compact if needed, then apply
+                // incremental cache control to the last message so Anthropic caches the
+                // growing conversation history on each step.
                 prepareStep: async ({ steps, stepNumber, messages }) => {
-                    return compactionGuard.maybeCompact({ steps, stepNumber, messages });
+                    const compacted = await compactionGuard.maybeCompact({ steps, stepNumber, messages });
+                    const resolvedMessages = compacted ? compacted.messages : messages;
+                    return { messages: addCacheControlToMessages({ messages: resolvedMessages, model }) };
                 },
 
                 // Emit per-step token usage for context usage widget + observability
@@ -317,13 +321,31 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                     accToolCallChars += JSON.stringify(step.toolCalls ?? []).length;
                     accToolResultChars += JSON.stringify(step.toolResults ?? []).length;
 
-                    console.log(
-                        `[AgentExecutor] Step ${step.stepNumber} complete: ` +
-                        `${step.usage?.inputTokens ?? 0} input tokens, ` +
-                        `finishReason: ${step.finishReason}`
-                    );
+                    // Persist partial modelMessages after each step so chat is recoverable mid-stream
+                    const stepMessages = step.response?.messages ?? [];
+                    if (stepMessages.length > 0) {
+                        console.log(`[AgentExecutor] Step ${step.stepNumber} saving ${stepMessages.length} message(s) to chat storage`);
+                        chatStateStorage.updateGeneration(workspaceId, threadId, this.config.generationId, {
+                            modelMessages: [
+                                { role: "user", content: userMessageContent },
+                                ...stepMessages,
+                            ],
+                        });
+                        updateAndSaveChat(this.config.generationId, Command.Agent, this.config.eventHandler);
+                    }
+
                     if (step.usage) {
                         const inputTokens = step.usage.inputTokens || 0;
+                        const cacheReadTokens = step.usage.inputTokenDetails?.cacheReadTokens || 0;
+                        const cacheWriteTokens = step.usage.inputTokenDetails?.cacheWriteTokens || 0;
+                        const outputTokens = step.usage.outputTokens || 0;
+                        const cacheRatio = inputTokens > 0 ? (cacheReadTokens / inputTokens * 100).toFixed(1) : '0';
+                        console.log(
+                            `[AgentExecutor] Step ${step.stepNumber} complete: ` +
+                            `input: ${inputTokens}, output: ${outputTokens}, ` +
+                            `cache read: ${cacheReadTokens}, cache write: ${cacheWriteTokens} ` +
+                            `(ratio: ${cacheRatio}%), finishReason: ${step.finishReason}`
+                        );
                         this.config.eventHandler({
                             type: "usage_metrics",
                             usage: {
@@ -354,7 +376,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 messageId: this.config.generationId,
                 userMessageContent,
                 response,
-                usage,
+                totalUsage,
                 ctx: this.config.executionContext,
                 generationStartTime,
                 projectId,
@@ -442,11 +464,11 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
 
             // Update token estimation context with actual total usage
             try {
-                const totalUsage = await usage;
-                if (totalUsage) {
+                const resolvedUsage = await totalUsage;
+                if (resolvedUsage) {
                     const toolDefinitionsChars = JSON.stringify(tools).length;
                     compactionManager.updateTokenContext(
-                        totalUsage.inputTokens ?? 0,
+                        resolvedUsage.inputTokens ?? 0,
                         Math.ceil(getSystemPrompt(projects, params.operationType).length / 4),
                         Math.ceil(toolDefinitionsChars / 4) // Dynamic estimate for tool definitions
                     );
@@ -621,11 +643,21 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         const isPlanModeEnabled = workspace.getConfiguration('ballerina.ai').get<boolean>('planMode', false);
         const finalProjectMetrics = await getProjectMetrics(tempProjectPath);
 
-        // Get token usage from streamText result
-        const tokenUsage = await context.usage;
-        const inputTokens = tokenUsage.inputTokens || 0;
-        const outputTokens = tokenUsage.outputTokens || 0;
-        const totalTokens = tokenUsage.totalTokens || 0;
+        // Get total token usage across all agent steps (includes cache stats)
+        const totalTokenUsage = await context.totalUsage;
+        const inputTokens = totalTokenUsage.inputTokens || 0;
+        const outputTokens = totalTokenUsage.outputTokens || 0;
+        const totalTokens = totalTokenUsage.totalTokens || 0;
+        const totalCacheRead = totalTokenUsage.inputTokenDetails?.cacheReadTokens || 0;
+        const totalCacheWrite = totalTokenUsage.inputTokenDetails?.cacheWriteTokens || 0;
+        console.log('[AgentExecutor] Generation complete — token usage:', {
+            input: inputTokens,
+            output: outputTokens,
+            total: totalTokens,
+            cacheRead: totalCacheRead,
+            cacheWrite: totalCacheWrite,
+            cacheRatio: `${inputTokens > 0 ? (totalCacheRead / inputTokens * 100).toFixed(1) : '0'}%`,
+        });
 
         // Send telemetry for generation complete
         sendTelemetryEvent(

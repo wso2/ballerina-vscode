@@ -548,6 +548,10 @@ function getDisplayLabel(location: VisualizerLocation): string {
             return "Automation";
         case MACHINE_VIEW.BIFunctionForm:
             return "Function Configuration";
+        case MACHINE_VIEW.BIWorkflowForm:
+            return "Workflow";
+        case MACHINE_VIEW.BIActivityForm:
+            return "Workflow Activity";
         case MACHINE_VIEW.BINPFunctionForm:
             return "Natural Function";
         case MACHINE_VIEW.BITestFunctionForm:

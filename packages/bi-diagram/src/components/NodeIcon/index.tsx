@@ -203,16 +203,16 @@ export const getAIColor = (): string => {
 };
 
 // Icon mapping by node type
-const NODE_ICONS: Record<NodeKind, React.FC<{ size: number; color: string; isPersistConnection?: boolean }>> = {
+const NODE_ICONS: Record<NodeKind, React.FC<{ size: number; color: string; isDBConnection?: boolean }>> = {
     IF: ({ size, color }) => <BranchIcon />,
     MATCH: ({ size, color }) => <Icon name="bi-match" sx={{ fontSize: size, width: size, height: size, color }} />,
     EXPRESSION: ({ size, color }) => <CodeIcon />,
-    REMOTE_ACTION_CALL: ({ size, color, isPersistConnection }) =>
-        isPersistConnection ? <Icon name="bi-db" sx={{ fontSize: size, width: size, height: size, color }} /> : <CallIcon />,
-    RESOURCE_ACTION_CALL: ({ size, color, isPersistConnection }) =>
-        isPersistConnection ? <Icon name="bi-db" sx={{ fontSize: size, width: size, height: size, color }} /> : <CallIcon />,
-    METHOD_CALL: ({ size, color, isPersistConnection }) =>
-        isPersistConnection ? <Icon name="bi-db" sx={{ fontSize: size, width: size, height: size, color }} /> : <CodeIcon />,
+    REMOTE_ACTION_CALL: ({ size, color, isDBConnection }) =>
+        isDBConnection ? <Icon name="bi-db" sx={{ fontSize: size, width: size, height: size, color }} /> : <CallIcon />,
+    RESOURCE_ACTION_CALL: ({ size, color, isDBConnection }) =>
+        isDBConnection ? <Icon name="bi-db" sx={{ fontSize: size, width: size, height: size, color }} /> : <CallIcon />,
+    METHOD_CALL: ({ size, color, isDBConnection }) =>
+        isDBConnection ? <Icon name="bi-db" sx={{ fontSize: size, width: size, height: size, color }} /> : <CodeIcon />,
     RETURN: ({ size, color }) => <ReturnIcon />,
     VARIABLE: ({ size, color }) => <VarIcon />,
     NEW_DATA: ({ size, color }) => <VarIcon />,
@@ -234,6 +234,10 @@ const NODE_ICONS: Record<NodeKind, React.FC<{ size: number; color: string; isPer
     NP_FUNCTION_CALL: ({ size, color }) => <Icon name="bi-ai-function" sx={{ fontSize: size, width: size, height: size, color }} />,
     NP_FUNCTION: ({ size, color }) => <Icon name="bi-ai-function" sx={{ fontSize: size, width: size, height: size, color }} />,
     DATA_MAPPER_CALL: ({ size, color }) => <Icon name="dataMapper" sx={{ fontSize: size, width: size, height: size, color }} />,
+    WORKFLOW_RUN: ({ size, color }) => <Icon name="bi-workflow" sx={{ fontSize: size, width: size, height: size, color }} />,
+    ACTIVITY_CALL: ({ size, color }) => <Icon name="bi-task" sx={{ fontSize: size, width: size, height: size, color }} />,
+    SEND_DATA: ({ size, color }) => <Icon name="bi-arrow-outward" sx={{ fontSize: size, width: size, height: size, color }} />,
+    WAIT_DATA: ({ size, color }) => <Icon name="bi-wait" sx={{ fontSize: size, width: size, height: size, color }} />,
     FORK: ({ size, color }) => <Icon name="bi-parallel" sx={{ fontSize: size, width: size, height: size, color }} />,
     WAIT: ({ size, color }) => <Icon name="bi-wait" sx={{ fontSize: size, width: size, height: size, color }} />,
     START: ({ size, color }) => <Icon name="bi-start" sx={{ fontSize: size, width: size, height: size, color }} />,
@@ -259,7 +263,7 @@ const NODE_ICONS: Record<NodeKind, React.FC<{ size: number; color: string; isPer
     CHUNKERS: ({ size, color }) => <Icon name="bi-cut" sx={{ fontSize: size, width: size, height: size, color }} />,
     MEMORY_STORE: ({ size, color }) => <Icon name="bi-memory" sx={{ fontSize: size, width: size, height: size, color }} />
     // Default case for any NodeKind not explicitly handled
-} as Record<NodeKind, React.FC<{ size: number; color: string; isPersistConnection?: boolean }>>;
+} as Record<NodeKind, React.FC<{ size: number; color: string; isDBConnection?: boolean }>>;
 
 // Component to listen for theme changes
 export const ThemeListener = ({ onThemeChange }: { onThemeChange: () => void }): React.ReactElement => {
@@ -291,11 +295,11 @@ interface NodeIconProps {
     type: NodeKind;
     size?: number;
     color?: string; // Optional override color
-    isPersistConnection?: boolean;
+    isDBConnection?: boolean;
 }
 
 export function NodeIcon(props: NodeIconProps) {
-    const { type, size = 16, color, isPersistConnection } = props;
+    const { type, size = 16, color, isDBConnection } = props;
     const [themeAwareColor, setThemeAwareColor] = useState<string>(color || getNodeChartColor(type));
 
     // Update color when theme changes
@@ -314,12 +318,12 @@ export function NodeIcon(props: NodeIconProps) {
     }, [color, type]);
 
     // Get icon renderer from the mapping or use CodeIcon as default
-    const IconRenderer = NODE_ICONS[type] || (({ size, color }: { size: number; color: string; isPersistConnection?: boolean }) => <CodeIcon />);
+    const IconRenderer = NODE_ICONS[type] || (({ size, color }: { size: number; color: string; isDBConnection?: boolean }) => <CodeIcon />);
     
     return (
         <>
             <IconWrapper color={themeAwareColor}>
-                <IconRenderer size={size} color={themeAwareColor} isPersistConnection={isPersistConnection}/>
+                <IconRenderer size={size} color={themeAwareColor} isDBConnection={isDBConnection}/>
             </IconWrapper>
             <ThemeListener onThemeChange={handleThemeChange} />
         </>

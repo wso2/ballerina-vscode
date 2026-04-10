@@ -1,0 +1,21 @@
+type InRoot record {|
+    InArrType[] iArr1D;
+    string p1;
+    int p2;
+|};
+
+type InArrType record {|
+    string p1;
+    int p2;
+    int p3;
+|};
+
+type OutRoot record {|
+    OutArrType[] oArr1D;
+|};
+
+type OutArrType record {|
+    int p1;
+    string p2;
+|};
+

@@ -18,9 +18,8 @@
 /** @jsxImportSource @emotion/react */
 import styled from "@emotion/styled";
 import { DiagramEngine, PortWidget } from "@projectstorm/react-diagrams-core";
-import { ThemeColors } from "@wso2/ui-toolkit";
 import { EndNodeModel } from "./EndNodeModel";
-import { END_NODE_WIDTH } from "../../../resources/constants";
+import { END_NODE_BG_COLOR, END_NODE_WIDTH } from "../../../resources/constants";
 
 namespace S {
     export const Node = styled.div<{}>`
@@ -38,7 +37,7 @@ namespace S {
         align-items: center;
         width: ${END_NODE_WIDTH}px;
         height: ${END_NODE_WIDTH}px;
-        background-color: ${ThemeColors.PRIMARY};
+        background-color: ${END_NODE_BG_COLOR};
         border-radius: 50%;
     `;
 

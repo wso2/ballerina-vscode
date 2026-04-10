@@ -296,6 +296,32 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
             return;
         }
 
+        if (isWorkflow) {
+            rpcClient.getVisualizerRpcClient().openView({
+                type: EVENT_TYPE.OPEN_VIEW,
+                location: {
+                    view: MACHINE_VIEW.BIWorkflowForm,
+                    identifier: parentMetadata?.label || "",
+                    documentUri: fileUri,
+                    position: position || currentPosition,
+                }
+            });
+            return;
+        }
+
+        if (isActivity) {
+            rpcClient.getVisualizerRpcClient().openView({
+                type: EVENT_TYPE.OPEN_VIEW,
+                location: {
+                    view: MACHINE_VIEW.BIActivityForm,
+                    identifier: parentMetadata?.label || "",
+                    documentUri: fileUri,
+                    position: position || currentPosition,
+                }
+            });
+            return;
+        }
+
         const context: VisualizerLocation = {
             view:
                 view === FOCUS_FLOW_DIAGRAM_VIEW.NP_FUNCTION
@@ -314,6 +340,8 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     let isRemote = parentMetadata?.kind === "Remote Function";
     let isAgent = parentMetadata?.kind === "AI Chat Agent" && parentMetadata?.label === "chat";
     let isInitFunction = parentMetadata?.kind === "Function" && parentMetadata?.label === "init";
+    let isWorkflow = parentMetadata?.kind === "Workflow";
+    let isActivity = parentMetadata?.kind === "Activity";
     let isNPFunction = view === FOCUS_FLOW_DIAGRAM_VIEW.NP_FUNCTION;
 
     const handleResourceTryIt = async (methodValue: string, pathValue: string) => {
@@ -343,10 +371,28 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
         });
     };
 
+    // HACK: This need to be fixed from getFlowModel API 
+    const getWorkflowTitleFromSource = () => {
+        if (parentMetadata?.kind !== "Function" || !parentMetadata?.sourceCode) {
+            return undefined;
+        }
+
+        const normalizedSource = parentMetadata.sourceCode.trimStart();
+        if (normalizedSource.startsWith("@workflow:Activity")) {
+            return "Workflow Activity";
+        }
+        if (normalizedSource.startsWith("@workflow:Process")) {
+            return "Workflow";
+        }
+        return undefined;
+    };
+
     // Calculate title based on conditions
     const getTitle = () => {
         if (isNPFunction) return "Natural Function";
         if (isAutomation) return "Automation";
+        const workflowTitle = getWorkflowTitleFromSource();
+        if (workflowTitle) return workflowTitle;
         if (parentCodedata?.sourceCode.includes("@ai:AgentTool")) return "Agent Tool";
         if ((parentCodedata?.sourceCode.includes("@test:Config")) && parentCodedata?.sourceCode.includes("\"evaluations\"")) return "AI Evaluation";
         if (parentCodedata?.sourceCode.includes("@test:Config")) return "Test";
