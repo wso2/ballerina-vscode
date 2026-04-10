@@ -271,7 +271,7 @@ public class McpClient {
     }
 
     public static void sendInitializedNotification(String serviceUrl, String sessionId, String accessToken,
-                                                    SslConfig sslConfig) throws IOException {
+                                                   SslConfig sslConfig) throws IOException {
         HttpURLConnection conn = null;
         try {
             URL url = URI.create(serviceUrl).toURL();
@@ -341,7 +341,7 @@ public class McpClient {
     }
 
     public static JsonArray sendToolsListRequest(String serviceUrl, String sessionId, String accessToken,
-                                                  SslConfig sslConfig) throws IOException {
+                                                 SslConfig sslConfig) throws IOException {
         HttpURLConnection conn = null;
         try {
             URL url = URI.create(serviceUrl).toURL();
