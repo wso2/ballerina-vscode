@@ -45,6 +45,7 @@ import { getProjectTomlValues, isLibraryProject, VALIDATOR_PACKAGE_NAME } from "
 import { extension } from "../BalExtensionContext";
 import { scheduleMigrationEnhancement, writeEnhanceToml } from "../features/ai/migration/orchestrator";
 import { runBackgroundTerminalCommand } from "./runCommand";
+import { stringify as stringifyYaml } from "yaml";
 
 export const README_FILE = "README.md";
 export const FUNCTIONS_FILE = "functions.bal";
@@ -310,6 +311,29 @@ function setupProjectInfo(projectRequest: ProjectRequest): ProcessedProjectInfo 
     };
 }
 
+/**
+ * Writes a local context file for the given project.
+ * Creates (if missing) `{projectRoot}/.choreo/context.yaml` and stores the org/project handles with `local: true`.
+ * @param projectRoot - Absolute path to the project root directory
+ * @param orgHandle - Choreo organization handle
+ * @param projectHandle - Choreo project handle
+ */
+export async function writeLocalContextYaml(
+    projectRoot: string,
+    orgHandle: string,
+    projectHandle: string
+): Promise<void> {
+    try {
+        const choreoDir = path.join(projectRoot, '.choreo');
+        const localProjectFile = path.join(choreoDir, 'context.yaml');
+        const content = stringifyYaml([{ org: orgHandle, project: projectHandle, local: true }]);
+        await fs.promises.mkdir(choreoDir, { recursive: true });
+        await fs.promises.writeFile(localProjectFile, content, { encoding: 'utf8' });
+    } catch (error) {
+        console.warn("Failed to write context.yaml (non-critical):", error);
+    }
+}
+
 export async function createEmptyBIWorkspace(projectRequest: ProjectRequest): Promise<string> {
     const ballerinaTomlContent = `
 [workspace]
@@ -479,6 +503,8 @@ export async function convertProjectToWorkspace(params: AddProjectToWorkspaceReq
 
     // create settings.json file
     createVSCodeSettings(newDirectory);
+    // write local context file
+    await writeLocalContextYaml(newDirectory, params.orgHandle, params.projectHandle);
 
     openInVSCode(newDirectory);
 }

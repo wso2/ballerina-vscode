@@ -184,3 +184,16 @@ export const validateOrgName = (orgName: string): string | null => {
 
     return null;
 };
+
+/**
+ * Sanitizes a string into a valid org handle.
+ * Rules: lowercase alphanumeric only (no hyphens, underscores, or spaces);
+ * cannot start with a digit;
+ */
+export const sanitizeOrgHandle = (name: string): string => {
+    const sanitized = name
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "")          // keep only lowercase letters and digits
+        .replace(/^[0-9]+/, "");            // strip leading digits
+    return sanitized;
+};
