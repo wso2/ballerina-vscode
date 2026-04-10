@@ -103,7 +103,7 @@ export function McpToolForm(props: McpToolFormProps) {
 
         params.forEach((param) => {
             // Find matching field configurations from schema
-            const typeField = paramFields.find((field) => field.key === "type");
+            const typeField = paramFields.find((field) => getPrimaryInputType(field.types)?.fieldType === "TYPE");
             const nameField = paramFields.find((field) => field.key === "variable");
             const defaultField = paramFields.find((field) => field.key === "defaultable");
             const documentationField = paramFields.find((field) => field.key === "documentation");
