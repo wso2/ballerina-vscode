@@ -1,0 +1,94 @@
+{
+  "description": "Record with array containing elements where some are unselected records (should be filtered)",
+  "filePath": "proj",
+  "type": {
+    "fields": [
+      {
+        "name": "entries",
+        "typeName": "array",
+        "optional": false,
+        "defaultable": false,
+        "isRestType": false,
+        "selected": true,
+        "memberType": {
+          "typeName": "record",
+          "optional": false,
+          "defaultable": false,
+          "isRestType": false,
+          "fields": [
+            {
+              "name": "key",
+              "typeName": "string",
+              "optional": false,
+              "defaultable": false,
+              "isRestType": false
+            }
+          ]
+        },
+        "elements": [
+          {
+            "typeName": "record",
+            "optional": false,
+            "defaultable": false,
+            "isRestType": false,
+            "selected": true,
+            "fields": [
+              {
+                "name": "key",
+                "typeName": "string",
+                "optional": false,
+                "defaultable": false,
+                "isRestType": false,
+                "value": "\"first\"",
+                "selected": true
+              }
+            ]
+          },
+          {
+            "typeName": "record",
+            "optional": false,
+            "defaultable": false,
+            "isRestType": false,
+            "selected": false,
+            "fields": [
+              {
+                "name": "key",
+                "typeName": "string",
+                "optional": false,
+                "defaultable": false,
+                "isRestType": false,
+                "value": "\"skipped\"",
+                "selected": true
+              }
+            ]
+          },
+          {
+            "typeName": "record",
+            "optional": false,
+            "defaultable": false,
+            "isRestType": false,
+            "selected": true,
+            "fields": [
+              {
+                "name": "key",
+                "typeName": "string",
+                "optional": false,
+                "defaultable": false,
+                "isRestType": false,
+                "value": "\"third\"",
+                "selected": true
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "hasRestType": false,
+    "typeName": "record",
+    "optional": false,
+    "defaultable": false,
+    "isRestType": false,
+    "selected": true
+  },
+  "output": "{\n    entries: [\n        {\n            key: \"first\"\n        },\n        {\n            key: \"third\"\n        }\n    ]\n}"
+}

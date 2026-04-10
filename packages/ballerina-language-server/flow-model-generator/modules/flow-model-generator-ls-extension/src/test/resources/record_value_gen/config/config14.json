@@ -1,0 +1,30 @@
+{
+  "description": "Record with empty array field",
+  "filePath": "proj",
+  "type": {
+    "fields": [
+      {
+        "name": "items",
+        "typeName": "array",
+        "optional": false,
+        "defaultable": false,
+        "isRestType": false,
+        "selected": true,
+        "memberType": {
+          "typeName": "int",
+          "optional": false,
+          "defaultable": false,
+          "isRestType": false
+        },
+        "elements": []
+      }
+    ],
+    "hasRestType": false,
+    "typeName": "record",
+    "optional": false,
+    "defaultable": false,
+    "isRestType": false,
+    "selected": true
+  },
+  "output": "{\n    items: []\n}"
+}
