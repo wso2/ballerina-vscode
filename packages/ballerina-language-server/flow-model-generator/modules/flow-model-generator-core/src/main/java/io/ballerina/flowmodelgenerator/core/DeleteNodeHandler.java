@@ -123,11 +123,15 @@ public class DeleteNodeHandler {
         NodeList<ImportDeclarationNode> imports = modulePartNode.imports();
 
         List<TextEdit> textEdits = new ArrayList<>();
+        String documentName = modifiedDoc.name();
         DiagnosticResult diagnostics = modifiedDoc.module().getCompilation().diagnostics();
         for (Diagnostic diagnostic : diagnostics.diagnostics()) {
             DiagnosticInfo diagnosticInfo = diagnostic.diagnosticInfo();
             if (diagnostic.diagnosticInfo().severity() == DiagnosticSeverity.ERROR &&
                     diagnosticInfo.code().equals(DiagnosticErrorCode.UNUSED_MODULE_PREFIX.diagnosticId())) {
+                if (!diagnostic.location().lineRange().fileName().equals(documentName)) {
+                    continue;
+                }
                 ImportDeclarationNode importNode = getUnusedImport(diagnostic.location().lineRange(), imports);
                 TextEdit deleteImportTextEdit = new TextEdit(CommonUtils.toRange(importNode.lineRange()), "");
                 textEdits.add(deleteImportTextEdit);

@@ -141,6 +141,23 @@
           {
             "modulePrefix": "xmldata",
             "name": "Attribute",
+            "codedata": {
+              "node": "ANNOTATION_ATTACHMENT",
+              "org": "ballerina",
+              "module": "data.xmldata",
+              "version": "1.6.2",
+              "lineRange": {
+                "fileName": "types.bal",
+                "startLine": {
+                  "line": 46,
+                  "offset": 4
+                },
+                "endLine": {
+                  "line": 46,
+                  "offset": 22
+                }
+              }
+            },
             "properties": {}
           }
         ],
@@ -155,6 +172,23 @@
       {
         "modulePrefix": "",
         "name": "Url",
+        "codedata": {
+          "node": "ANNOTATION_ATTACHMENT",
+          "org": "testorg",
+          "module": "test_pack4",
+          "version": "0.1.0",
+          "lineRange": {
+            "fileName": "types.bal",
+            "startLine": {
+              "line": 25,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 29,
+              "offset": 1
+            }
+          }
+        },
         "properties": {
           "protocol": {
             "types": [
@@ -215,6 +249,23 @@
       {
         "modulePrefix": "",
         "name": "Module",
+        "codedata": {
+          "node": "ANNOTATION_ATTACHMENT",
+          "org": "testorg",
+          "module": "test_pack4",
+          "version": "0.1.0",
+          "lineRange": {
+            "fileName": "types.bal",
+            "startLine": {
+              "line": 30,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 40,
+              "offset": 1
+            }
+          }
+        },
         "properties": {
           "__id": {
             "types": [
@@ -339,6 +390,23 @@
       {
         "modulePrefix": "xmldata",
         "name": "Namespace",
+        "codedata": {
+          "node": "ANNOTATION_ATTACHMENT",
+          "org": "ballerina",
+          "module": "data.xmldata",
+          "version": "1.6.2",
+          "lineRange": {
+            "fileName": "types.bal",
+            "startLine": {
+              "line": 41,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 43,
+              "offset": 1
+            }
+          }
+        },
         "properties": {
           "uri": {
             "types": [

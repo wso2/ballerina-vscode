@@ -50,6 +50,7 @@ public class McpToolKitGenerationTest extends AbstractLSTest {
                 {Path.of("mcp_toolkit_generation_with_class.json")},
                 {Path.of("mcp_toolkit_generation_without_class.json")},
                 {Path.of("mcp_toolkit_generation_edit.json")},
+                {Path.of("mcp_toolkit_generation_edit_with_scopes.json")},
                 {Path.of("mcp_toolkit_generation_edit_without_class.json")},
                 {Path.of("mcp_toolkit_generation_empty_permitted_tools.json")},
                 {Path.of("mcp_toolkit_generation_with_special_tool_names.json")}
@@ -65,7 +66,7 @@ public class McpToolKitGenerationTest extends AbstractLSTest {
         JsonObject response = getSourceGenerationResponse(filePath, testConfig);
         if (!response.equals(testConfig.expectedResponse())) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.flowNode(), response);
-            // updateConfig(configJsonPath, updatedConfig);
+//            updateConfig(configJsonPath, updatedConfig);
             compareJsonElements(response, testConfig.expectedResponse());
             Assert.fail(String.format("Failed test: '%s'", configJsonPath));
         }

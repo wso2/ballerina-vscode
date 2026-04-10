@@ -287,24 +287,30 @@ public class McpToolKitBuilder extends NodeBuilder {
 
             // Check if class definition data exists in codedata
             Map<String, Object> data = sourceBuilder.flowNode.codedata().data();
+            Map<Path, List<TextEdit>> classTextEdits = null;
             if (data != null && data.containsKey(MCP_CLASS_DEFINITION)) {
                 Object classDefinitionCodedata = data.get(MCP_CLASS_DEFINITION);
                 Codedata codedata = gson.fromJson(gson.toJsonTree(classDefinitionCodedata),
                         Codedata.class);
                 LineRange lineRange = codedata.lineRange();
 
-                // Use the class definition location for the text edit
+                // Use a separate SourceBuilder for the class file so imports target the correct file
                 Path classFilePath = sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath)
                         .resolve(lineRange.fileName());
                 Range classRange = CommonUtils.toRange(lineRange);
+                SourceBuilder classSourceBuilder = new SourceBuilder(sourceBuilder.flowNode,
+                        sourceBuilder.workspaceManager, classFilePath);
 
+                classSourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.MCP_PACKAGE);
+                classSourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.AI_PACKAGE);
                 // OAuth scopes require log (error logging) and http (auth config) in generated code
                 if (!toolScopesMap.isEmpty()) {
-                    sourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.LOG_PACKAGE);
-                    sourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.HTTP_PACKAGE);
+                    classSourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.LOG_PACKAGE);
+                    classSourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.HTTP_PACKAGE);
                 }
-                sourceBuilder.token().source(sourceCode).skipFormatting().stepOut()
+                classSourceBuilder.token().source(sourceCode).skipFormatting().stepOut()
                         .textEdit(SourceBuilder.SourceKind.STATEMENT, classFilePath, classRange);
+                classTextEdits = classSourceBuilder.build();
             } else {
                 // Use default agents.bal location
                 sourceBuilder.acceptImport(Ai.BALLERINA_ORG, Ai.MCP_PACKAGE);
@@ -327,8 +333,15 @@ public class McpToolKitBuilder extends NodeBuilder {
             sourceBuilder.token().keyword(SyntaxKind.FINAL_KEYWORD).stepOut().newVariable()
                     .token().keyword(SyntaxKind.CHECK_KEYWORD).keyword(SyntaxKind.NEW_KEYWORD).stepOut()
                     .functionParameters(sourceBuilder.flowNode, ignoredProperties);
+
+            Map<Path, List<TextEdit>> result =
+                    sourceBuilder.textEdit(SourceBuilder.SourceKind.STATEMENT, connectionsFilePath,
+                            defaultRange).build();
+            if (classTextEdits != null) {
+                combineTextEdits(classTextEdits, result);
+            }
+            return result;
         }
-        return sourceBuilder.textEdit(SourceBuilder.SourceKind.STATEMENT, connectionsFilePath, defaultRange).build();
     }
 
     private static Range getDefaultLineRange(SourceBuilder sourceBuilder, Path connectionsFilePath) {
@@ -592,6 +605,19 @@ public class McpToolKitBuilder extends NodeBuilder {
             return result;
         } catch (JsonSyntaxException | IllegalStateException e) {
             return Collections.emptyMap();
+        }
+    }
+
+    private static void combineTextEdits(Map<Path, List<TextEdit>> source,
+                                          Map<Path, List<TextEdit>> target) {
+        for (Map.Entry<Path, List<TextEdit>> sourceEntry : source.entrySet()) {
+            Path path = sourceEntry.getKey();
+            List<TextEdit> targetTextEdits = target.get(path);
+            if (targetTextEdits == null) {
+                target.put(path, sourceEntry.getValue());
+            } else {
+                targetTextEdits.addAll(sourceEntry.getValue());
+            }
         }
     }
 

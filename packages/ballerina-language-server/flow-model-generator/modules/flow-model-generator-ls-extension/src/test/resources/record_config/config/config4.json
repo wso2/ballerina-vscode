@@ -1,0 +1,38 @@
+{
+  "filePath": "multiproject/project2/functions.bal",
+  "codedata": {
+    "org": "org",
+    "module": "project1",
+    "packageName": "project1",
+    "version": "0.1.0"
+  },
+  "typeConstraint": "Student",
+  "output": {
+    "fields": [
+      {
+        "name": "name",
+        "typeName": "string",
+        "optional": false,
+        "defaultable": false,
+        "documentation": "",
+        "isRestType": false,
+        "selected": false
+      },
+      {
+        "name": "age",
+        "typeName": "int",
+        "optional": false,
+        "defaultable": false,
+        "documentation": "",
+        "isRestType": false,
+        "selected": false
+      }
+    ],
+    "hasRestType": false,
+    "typeName": "record",
+    "optional": false,
+    "defaultable": false,
+    "isRestType": false,
+    "selected": false
+  }
+}
