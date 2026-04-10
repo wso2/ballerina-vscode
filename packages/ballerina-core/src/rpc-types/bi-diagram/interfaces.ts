@@ -256,3 +256,8 @@ export interface UpdateProjectTitleRequest {
     projectPath: string;
     title: string;
 }
+
+export interface UpdatePackageTitleRequest {
+    packagePath: string;
+    title: string;
+}

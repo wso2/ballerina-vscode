@@ -22,6 +22,7 @@ import {
     ProjectStructureResponse,
     ProjectScopeMapping
 } from "@wso2/ballerina-core";
+export { validateComponentName } from "../ProjectForm/utils";
 
 const INTEGRATION_API_MODULES = [
     "http",

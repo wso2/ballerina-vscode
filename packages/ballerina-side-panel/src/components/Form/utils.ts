@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { NodeKind } from "@wso2/ballerina-core";
+import { NodeKind, getPrimaryInputType } from "@wso2/ballerina-core";
 import { FormField, FormImports } from "../..";
 
 // This function allows us to format strings by adding indentation as tabs to the lines
@@ -51,7 +51,7 @@ export function updateFormFieldWithImports(formField: FormField, fieldImports: F
 }
 
 export function isPrioritizedField(field: FormField): boolean {
-    return field.key === "variable" || field.key === "type" || field.codedata?.kind === "PARAM_FOR_TYPE_INFER";
+    return field.key === "variable" || getPrimaryInputType(field.types)?.fieldType === "TYPE" || field.codedata?.kind === "PARAM_FOR_TYPE_INFER";
 }
 
 export function hasRequiredParameters(formFields: FormField[], selectedNode?: NodeKind): boolean {
@@ -76,7 +76,7 @@ export function hasOptionalParameters(formFields: FormField[]): boolean {
 
 export function hasReturnType(formFields: FormField[]): boolean {
     return formFields.some(field => 
-        field.key === "variable" || field.key === "type" || field.codedata?.kind === "PARAM_FOR_TYPE_INFER"
+        field.key === "variable" || getPrimaryInputType(field.types)?.fieldType === "TYPE" || field.codedata?.kind === "PARAM_FOR_TYPE_INFER"
     );
 }
 

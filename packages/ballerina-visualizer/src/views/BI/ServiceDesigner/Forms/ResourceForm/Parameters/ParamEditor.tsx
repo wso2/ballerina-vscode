@@ -24,7 +24,7 @@ import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react";
 import { EditorContainer, EditorContent } from '../../../styles';
 import { getPrimaryInputType, LineRange, ParameterModel, PayloadContext, PropertyModel } from '@wso2/ballerina-core';
 import { FormField, FormImports } from '@wso2/ballerina-side-panel';
-import FormGeneratorNew from '../../../../Forms/FormGeneratorNew';
+import ArtifactForm from '../../../../Forms/ArtifactForm';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { URI, Utils } from 'vscode-uri';
 import { getImportsForProperty } from '../../../../../../utils/bi';
@@ -359,7 +359,7 @@ export function ParamEditor(props: ParamProps) {
             <Divider />
             <>
                 {filePath && targetLineRange &&
-                    <FormGeneratorNew
+                    <ArtifactForm
                         fileName={filePath}
                         targetLineRange={targetLineRange}
                         fields={currentFields}
