@@ -303,20 +303,23 @@ public class PackageUtil {
         for (Project childProject : childProjects) {
             Package currentPackage = childProject.currentPackage();
             String currentPackageName = currentPackage.packageName().value();
-            if (currentPackage.packageOrg().value().equals(org) &&
-                    (currentPackageName.equals(packageName) ||
-                            currentPackageName.equals(moduleName))) {
-                ModuleId moduleId = currentPackage.getDefaultModule().moduleId();
-                if (moduleName != null && !moduleName.isEmpty() && !packageName.equals(moduleName)) {
-                    for (Module mod : currentPackage.modules()) {
-                        if (mod.moduleName().toString().equals(moduleName)) {
-                            moduleId = mod.moduleId();
-                            break;
-                        }
-                    }
-                }
+            boolean orgMatches = currentPackage.packageOrg().value().equals(org);
+            boolean nameMatches = currentPackageName.equals(packageName) || currentPackageName.equals(moduleName);
+            if (!orgMatches || !nameMatches) {
+                continue;
+            }
+
+            ModuleId moduleId = currentPackage.getDefaultModule().moduleId();
+            if (moduleName == null || moduleName.isEmpty() || packageName.equals(moduleName)) {
                 return Optional.of(getCompilation(childProject).getSemanticModel(moduleId));
             }
+            for (Module mod : currentPackage.modules()) {
+                if (mod.moduleName().toString().equals(moduleName)) {
+                    moduleId = mod.moduleId();
+                    break;
+                }
+            }
+            return Optional.of(getCompilation(childProject).getSemanticModel(moduleId));
         }
         return Optional.empty();
     }

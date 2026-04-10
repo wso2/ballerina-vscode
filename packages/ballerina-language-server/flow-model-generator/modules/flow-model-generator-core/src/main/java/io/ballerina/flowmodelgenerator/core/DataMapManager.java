@@ -2698,15 +2698,15 @@ public class DataMapManager {
             semanticModel = sm;
         } else {
             ModuleInfo moduleInfo = new ModuleInfo(org, codedata.packageName(), codedata.module(), codedata.version());
-            Optional<SemanticModel> optSemanticModel = PackageUtil.getSemanticModelFromWorkspace(
+            Optional<SemanticModel> semanticModelOpt = PackageUtil.getSemanticModelFromWorkspace(
                     project, org, codedata.packageName(), codedata.module());
-            if (optSemanticModel.isEmpty()) {
-                optSemanticModel = PackageUtil.getSemanticModel(moduleInfo);
+            if (semanticModelOpt.isEmpty()) {
+                semanticModelOpt = PackageUtil.getSemanticModel(moduleInfo);
             }
-            if (optSemanticModel.isEmpty()) {
+            if (semanticModelOpt.isEmpty()) {
                 throw new IllegalStateException("Semantic model cannot be found for the module: " + moduleInfo);
             }
-            semanticModel = optSemanticModel.get();
+            semanticModel = semanticModelOpt.get();
         }
 
         String symbolStr = codedata.symbol();
