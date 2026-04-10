@@ -175,16 +175,7 @@ public class TypeSymbolAnalyzerFromTypeModel {
                 reset(field);
             }
         } else if (type instanceof ArrayType at) {
-            if (at.elements != null) {
-                at.elements = null;
-            }
-            if (at.memberType != null) {
-                reset(at.memberType);
-            }
-        } else if (type instanceof UnionType ut) {
-            for (Type member : ut.members) {
-                reset(member);
-            }
+            at.elements = null;
         }
     }
 
