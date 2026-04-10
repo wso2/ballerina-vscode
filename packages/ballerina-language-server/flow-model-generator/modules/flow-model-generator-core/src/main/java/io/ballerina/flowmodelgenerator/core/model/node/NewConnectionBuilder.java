@@ -20,6 +20,7 @@ package io.ballerina.flowmodelgenerator.core.model.node;
 
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
+import io.ballerina.flowmodelgenerator.core.ConnectionActionProvider;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
@@ -46,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Represents a new connection node in the flow model.
@@ -106,6 +108,7 @@ public class NewConnectionBuilder extends CallBuilder {
             sourceBuilder.acceptImport();
         }
 
+        preloadConnectorActions(sourceBuilder);
         return sourceBuilder.build();
     }
 
@@ -181,6 +184,13 @@ public class NewConnectionBuilder extends CallBuilder {
         properties()
                 .scope(Property.GLOBAL_SCOPE)
                 .checkError(true, CHECK_ERROR_DOC, false);
+    }
+
+    private void preloadConnectorActions(SourceBuilder sourceBuilder) {
+        CompletableFuture.runAsync(() -> {
+            ConnectionActionProvider.getInstance().populate(sourceBuilder.flowNode.codedata(),
+                    sourceBuilder.workspaceManager, sourceBuilder.filePath);
+        });
     }
 
     @Override

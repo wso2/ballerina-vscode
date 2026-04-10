@@ -37,11 +37,11 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Represents memory store node in the flow model.
+ * Represents short-term memory store node in the flow model.
  *
  * @since 1.3.0
  */
-public class MemoryStoreBuilder extends CallBuilder {
+public class ShortTermMemoryStoreBuilder extends CallBuilder {
 
     public static final String LABEL = "Memory Store";
 
@@ -52,17 +52,17 @@ public class MemoryStoreBuilder extends CallBuilder {
     @Override
     public void setConcreteConstData() {
         metadata().label(LABEL);
-        codedata().node(NodeKind.MEMORY_STORE);
+        codedata().node(NodeKind.SHORT_TERM_MEMORY_STORE);
     }
 
     @Override
     protected NodeKind getFunctionNodeKind() {
-        return NodeKind.MEMORY_STORE;
+        return NodeKind.SHORT_TERM_MEMORY_STORE;
     }
 
     @Override
     protected FunctionData.Kind getFunctionResultKind() {
-        return FunctionData.Kind.MEMORY_STORE;
+        return FunctionData.Kind.SHORT_TERM_MEMORY_STORE;
     }
 
     @Override
@@ -73,7 +73,8 @@ public class MemoryStoreBuilder extends CallBuilder {
 
         FunctionData functionData = new FunctionDataBuilder().moduleInfo(codedataModuleInfo).userModuleInfo(moduleInfo)
                 .parentSymbolType(codedata.object()).name(codedata.symbol())
-                .lsClientLogger(context.lsClientLogger()).functionResultKind(FunctionData.Kind.MEMORY_STORE)
+                .lsClientLogger(context.lsClientLogger())
+                .functionResultKind(FunctionData.Kind.SHORT_TERM_MEMORY_STORE)
                 .workspaceManager(context.workspaceManager())
                 .filePath(context.filePath())
                 .build();
@@ -81,7 +82,7 @@ public class MemoryStoreBuilder extends CallBuilder {
         metadata().label(functionData.packageName()).description(functionData.description())
                 .icon(CommonUtils.generateIcon(functionData.org(), functionData.packageName(), functionData.version()));
 
-        codedata().node(NodeKind.MEMORY_STORE)
+        codedata().node(NodeKind.SHORT_TERM_MEMORY_STORE)
                 .org(functionData.org()).module(functionData.moduleName())
                 .packageName(functionData.packageName()).version(functionData.version())
                 .object(functionData.name())

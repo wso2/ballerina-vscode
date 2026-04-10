@@ -20,12 +20,14 @@ package io.ballerina.centralconnector;
 
 import io.ballerina.centralconnector.response.ConnectorResponse;
 import io.ballerina.centralconnector.response.ConnectorsResponse;
+import io.ballerina.centralconnector.response.DependentPackage;
 import io.ballerina.centralconnector.response.FunctionResponse;
 import io.ballerina.centralconnector.response.FunctionsResponse;
 import io.ballerina.centralconnector.response.Listeners;
 import io.ballerina.centralconnector.response.PackageResponse;
 import io.ballerina.centralconnector.response.SymbolResponse;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -52,6 +54,12 @@ public interface CentralAPI {
     ConnectorResponse connector(String organization, String name, String version, String clientName);
 
     String latestPackageVersion(String org, String name);
+
+    List<String> allPackageVersions(String org, String name);
+
+    Map<String, List<DependentPackage>> dependentPackages(String org, String packageName, List<String> versions);
+
+    Map<String, List<String>> packageKeywords(List<DependentPackage> modules);
 
     boolean hasAuthorizedAccess();
 }

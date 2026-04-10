@@ -72,7 +72,8 @@ public final class MssqlCdcServiceBuilder extends AbstractCdcServiceBuilder {
     private static final Set<String> METADATA_KEYS = Set.of(
             KEY_HOST, KEY_PORT, KEY_USERNAME, KEY_PASSWORD,
             KEY_DATABASES, KEY_SCHEMAS, KEY_DATABASE_INSTANCE,
-            KEY_SECURE_SOCKET, KEY_OPTIONS
+            KEY_SECURE_SOCKET, KEY_OPTIONS,
+            KEY_LIVENESS_INTERVAL, KEY_INTERNAL_SCHEMA_STORAGE, KEY_OFFSET_STORAGE
     );
 
     @Override
@@ -219,6 +220,15 @@ public final class MssqlCdcServiceBuilder extends AbstractCdcServiceBuilder {
                 case "options" -> config.put(KEY_OPTIONS,
                         ListenerUtil.buildReadOnlyTextValue("Options",
                                 "Additional options for the CDC engine", argValue));
+                case "livenessInterval" -> config.put(KEY_LIVENESS_INTERVAL,
+                        ListenerUtil.buildReadOnlyNumberValue("Liveness Interval",
+                                "Interval in seconds for the CDC engine liveness check", argValue));
+                case "internalSchemaStorage" -> config.put(KEY_INTERNAL_SCHEMA_STORAGE,
+                        ListenerUtil.buildReadOnlyTextValue("Internal Schema Storage",
+                                "Storage configuration for the internal schema history", argValue));
+                case "offsetStorage" -> config.put(KEY_OFFSET_STORAGE,
+                        ListenerUtil.buildReadOnlyTextValue("Offset Storage",
+                                "Storage configuration for CDC offsets", argValue));
                 default -> {
                 }
             }

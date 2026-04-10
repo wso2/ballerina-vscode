@@ -753,8 +753,15 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
 
                 LineRange lineRange = listener.getCodedata().getLineRange();
                 String listenerDeclaration = listener.getListenerDefinition();
-                TextEdit basePathEdit = new TextEdit(Utils.toRange(lineRange), listenerDeclaration);
-                return new CommonSourceResponse(Map.of(request.filePath(), List.of(basePathEdit)));
+
+                List<TextEdit> edits = new ArrayList<>();
+                edits.add(new TextEdit(Utils.toRange(lineRange), listenerDeclaration));
+
+                // Add imports required by the FTP coordination config type cast
+                ModulePartNode modulePartNode = document.get().syntaxTree().rootNode();
+                FTPListenerUtil.addCoordinationConfigImports(listenerDeclaration, modulePartNode, edits);
+
+                return new CommonSourceResponse(Map.of(request.filePath(), edits));
             } catch (Throwable e) {
                 return new CommonSourceResponse(e);
             }
