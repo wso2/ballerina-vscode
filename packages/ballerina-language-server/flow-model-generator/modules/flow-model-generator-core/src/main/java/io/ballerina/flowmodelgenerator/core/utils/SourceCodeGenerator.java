@@ -481,6 +481,7 @@ public class SourceCodeGenerator {
                     TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX,
                     TypeUtils.GRAPHQL_ID_ANNOTATION_NAME,
                     new Codedata.Builder<>(null)
+                            .node(NodeKind.ANNOTATION_ATTACHMENT)
                             .org(TypeUtils.BALLERINA_ORG)
                             .module(TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX)
                             .build(),
@@ -541,6 +542,7 @@ public class SourceCodeGenerator {
                     TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX,
                     TypeUtils.GRAPHQL_ID_ANNOTATION_NAME,
                     new Codedata.Builder<>(null)
+                            .node(NodeKind.ANNOTATION_ATTACHMENT)
                             .org(TypeUtils.BALLERINA_ORG)
                             .module(TypeUtils.GRAPHQL_DEFAULT_MODULE_PREFIX)
                             .build(),
