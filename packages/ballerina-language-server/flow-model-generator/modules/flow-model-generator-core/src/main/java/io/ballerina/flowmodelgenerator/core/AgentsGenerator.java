@@ -90,6 +90,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -804,7 +805,7 @@ public class AgentsGenerator {
                             .map(m -> ((TypeDefinitionNode) m).typeName().text())
                             .collect(Collectors.toSet());
                     String varName = varProp.toSourceCode();
-                    String candidateTypeName = varName.substring(0, 1).toUpperCase()
+                    String candidateTypeName = varName.substring(0, 1).toUpperCase(Locale.ROOT)
                             + varName.substring(1) + "Type";
                     if (existingTypeNames.contains(candidateTypeName)) {
                         // Strip trailing digits to get the base prefix (e.g. "var1" -> "var"),
@@ -817,7 +818,7 @@ public class AgentsGenerator {
                         for (String typeName : existingTypeNames) {
                             if (typeName.endsWith("Type") && typeName.length() > 4) {
                                 String prefix = typeName.substring(0, typeName.length() - 4);
-                                usedVarNames.add(prefix.substring(0, 1).toLowerCase() + prefix.substring(1));
+                                usedVarNames.add(prefix.substring(0, 1).toLowerCase(Locale.ROOT) + prefix.substring(1));
                             }
                         }
                         String uniqueVarName = NameUtil.generateTypeName(baseVarName, usedVarNames);
