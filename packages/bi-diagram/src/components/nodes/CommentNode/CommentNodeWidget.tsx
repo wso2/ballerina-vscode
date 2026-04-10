@@ -25,12 +25,17 @@ import {
     COMMENT_NODE_GAP,
     COMMENT_NODE_WIDTH,
     DRAFT_NODE_BORDER_WIDTH,
+    LINK_COLOR,
+    NODE_BORDER_COLOR,
+    NODE_BORDER_SELECTED_COLOR,
     NODE_BORDER_WIDTH,
     NODE_HEIGHT,
     NODE_PADDING,
+    NODE_TEXT_COLOR,
     NODE_WIDTH,
+    PANEL_BG_COLOR,
 } from "../../../resources/constants";
-import { Button, Item, Menu, MenuItem, Popover, Tooltip, ThemeColors } from "@wso2/ui-toolkit";
+import { Button, Item, Menu, MenuItem, Popover, Tooltip } from "@wso2/ui-toolkit";
 import { MoreVertIcon } from "../../../resources";
 import { FlowNode } from "../../../utils/types";
 import { useDiagramContext } from "../../DiagramContext";
@@ -59,15 +64,15 @@ export namespace NodeStyles {
         width: ${COMMENT_NODE_WIDTH - COMMENT_NODE_GAP}px;
         height: ${NODE_HEIGHT}px;
         padding: 0 ${NODE_PADDING}px;
-        background-color: ${ThemeColors.SURFACE};
-        color: ${ThemeColors.ON_SURFACE};
+        background-color: ${PANEL_BG_COLOR};
+        color: ${NODE_TEXT_COLOR};
         border: ${NODE_BORDER_WIDTH}px solid;
         border-color: ${(props: NodeStyleProp) =>
             props.isSelected && !props.disabled
-                ? ThemeColors.SECONDARY
+                ? NODE_BORDER_SELECTED_COLOR
                 : props.hovered && !props.disabled && !props.readOnly
-                ? ThemeColors.SECONDARY
-                : ThemeColors.SURFACE};
+                ? NODE_BORDER_SELECTED_COLOR
+                : PANEL_BG_COLOR};
         border-radius: 10px;
         cursor: pointer;
     `;
@@ -79,16 +84,16 @@ export namespace NodeStyles {
         border: ${NODE_BORDER_WIDTH}px solid;
         border-color: ${(props: NodeStyleProp) =>
             props.isSelected && !props.disabled
-                ? ThemeColors.SECONDARY
+                ? NODE_BORDER_SELECTED_COLOR
                 : props.hovered && !props.disabled && !props.readOnly
-                ? ThemeColors.SECONDARY
-                : ThemeColors.PRIMARY};
+                ? NODE_BORDER_SELECTED_COLOR
+                : LINK_COLOR};
         background-color: ${(props: NodeStyleProp) =>
             props.isSelected && !props.disabled
-                ? ThemeColors.SECONDARY
+                ? NODE_BORDER_SELECTED_COLOR
                 : props.hovered && !props.disabled && !props.readOnly
-                ? ThemeColors.SECONDARY
-                : ThemeColors.PRIMARY};
+                ? NODE_BORDER_SELECTED_COLOR
+                : LINK_COLOR};
         display: flex;
         justify-content: center;
         align-items: flex-end;
@@ -139,7 +144,7 @@ export namespace NodeStyles {
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
-        color: ${ThemeColors.ON_SURFACE};
+        color: ${NODE_TEXT_COLOR};
         opacity: 0.7;
     `;
 

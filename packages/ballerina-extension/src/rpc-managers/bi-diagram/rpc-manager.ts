@@ -49,6 +49,8 @@ import {
     BISearchNodesResponse,
     BISearchRequest,
     BISearchResponse,
+    WorkflowDataRequest,
+    WorkflowDataResponse,
     BISourceCodeRequest,
     BISourceCodeResponse,
     BISuggestedFlowModelRequest,
@@ -420,6 +422,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 return { artifactType: DIRECTORY_MAP.DATA_MAPPER };
             case 'NP_FUNCTION_DEFINITION':
                 return { artifactType: DIRECTORY_MAP.NP_FUNCTION };
+            case 'WORKFLOW':
+                return { artifactType: DIRECTORY_MAP.WORKFLOW };
+            case 'ACTIVITY':
+                return { artifactType: DIRECTORY_MAP.ACTIVITY };
             // Add other cases as needed
             default:
                 return undefined;
@@ -2085,6 +2091,19 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 resolve(res);
             }).catch((error) => {
                 console.log(">>> error searching", error);
+                reject(error);
+            });
+        });
+    }
+
+    async getAllData(params: WorkflowDataRequest): Promise<WorkflowDataResponse> {
+        return new Promise((resolve, reject) => {
+            console.log(">>> requesting workflowManager/getAllData from ls", params);
+            StateMachine.langClient().getAllData(params).then((res) => {
+                console.log(">>> workflowManager/getAllData response from ls", res);
+                resolve(res);
+            }).catch((error) => {
+                console.log(">>> error fetching workflow data", error);
                 reject(error);
             });
         });

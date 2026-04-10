@@ -178,6 +178,14 @@ export function activate(context: BallerinaExtension) {
         await handleCommandWithContext(item, MACHINE_VIEW.BINPFunctionForm);
     });
 
+    commands.registerCommand(BI_COMMANDS.ADD_WORKFLOW, async (item?: TreeItem) => {
+        await handleCommandWithContext(item, MACHINE_VIEW.BIWorkflowForm);
+    });
+
+    commands.registerCommand(BI_COMMANDS.ADD_WORKFLOW_ACTIVITY, async (item?: TreeItem) => {
+        await handleCommandWithContext(item, MACHINE_VIEW.BIActivityForm);
+    });
+
     commands.registerCommand(BI_COMMANDS.TOGGLE_TRACE_LOGS, toggleTraceLogs);
 
     commands.registerCommand(BI_COMMANDS.CREATE_BI_PROJECT, async (params) => {

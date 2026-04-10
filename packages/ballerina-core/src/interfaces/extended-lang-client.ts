@@ -957,6 +957,8 @@ export type SearchKind =
     | "FUNCTION"
     | "CONNECTOR"
     | "TYPE"
+    | "WORKFLOW_RUN"
+    | "ACTIVITY_CALL"
     | "NP_FUNCTION"
     | "MODEL_PROVIDER"
     | "VECTOR_STORE"
@@ -980,6 +982,27 @@ export type BISearchRequest = {
 
 export type BISearchResponse = {
     categories: Category[];
+}
+
+export interface WorkflowDataRequest {
+    workflowName: string;
+    filePath: string;
+}
+
+export interface WorkflowData {
+    name: string;
+    type: string;
+}
+
+export interface WorkflowDataResponse {
+    data?: WorkflowData[];
+    output?: {
+        data?: WorkflowData[];
+        events?: WorkflowData[];
+    };
+    events?: WorkflowData[];
+    errorMsg?: string;
+    stacktrace?: string;
 }
 
 export type BISearchNodesRequest = {
@@ -1988,6 +2011,7 @@ export interface BaseArtifact<T = any> {
 // Artifact Types
 export enum ARTIFACT_TYPE {
     Functions = "Functions",
+    Workflows = "Workflows",
     Connections = "Connections",
     Listeners = "Listeners",
     EntryPoints = "Entry Points",
@@ -2005,6 +2029,7 @@ export enum PROJECT_KIND {
 
 export interface Artifacts {
     [ARTIFACT_TYPE.Functions]: Record<string, BaseArtifact>;
+    [ARTIFACT_TYPE.Workflows]?: Record<string, BaseArtifact>;
     [ARTIFACT_TYPE.Connections]: Record<string, BaseArtifact>;
     [ARTIFACT_TYPE.Listeners]: Record<string, BaseArtifact>;
     [ARTIFACT_TYPE.EntryPoints]: Record<string, BaseArtifact>;
@@ -2100,6 +2125,7 @@ export interface BIInterface extends BaseLangClientInterface {
     getTypes: (params: GetTypesRequest) => Promise<GetTypesResponse>;
     getSimpleTypeOfExpression: (params: GetSimpleTypeOfExpressionRequest) => Promise<GetSimpleTypeOfExpressionResponse>;
     updateType: (params: UpdateTypeRequest) => Promise<UpdateTypeResponse>;
+    getAllData: (params: WorkflowDataRequest) => Promise<WorkflowDataResponse>;
     updateImports: (params: UpdateImportsRequest) => Promise<ImportsInfoResponse>;
     addFunction: (params: AddFunctionRequest) => Promise<AddImportItemResponse>;
     convertJsonToRecordType: (params: JsonToRecordParams) => Promise<TypeDataWithReferences>;

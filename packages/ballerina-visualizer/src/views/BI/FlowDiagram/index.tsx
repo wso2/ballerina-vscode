@@ -65,6 +65,7 @@ import {
     enrichCategoryWithDevant,
     convertKnowledgeBaseCategoriesToSidePanelCategories
 } from "../../../utils/bi";
+import { findCurrentIntegrationCategory } from "../../../utils/function-category";
 import { useDraftNodeManager } from "./hooks/useDraftNodeManager";
 import { NodePosition, STNode } from "@wso2/syntax-tree";
 import { View, ProgressIndicator, ThemeColors } from "@wso2/ui-toolkit";
@@ -185,6 +186,12 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const isCreatingNewVectorKnowledgeBase = useRef<boolean>(false);
     const isCreatingNewDataLoader = useRef<boolean>(false);
     const isCreatingNewChunker = useRef<boolean>(false);
+    const isCreatingNewWorkflow = useRef<boolean>(false);
+    const isCreatingNewActivity = useRef<boolean>(false);
+
+    const clearWorkflowCreationState = () => {
+        isCreatingNewWorkflow.current = false;
+    };
 
     const { platformExtState, platformRpcClient, onLinkDevantProject, importConnection: importDevantConn } = usePlatformExtContext()
 
@@ -243,6 +250,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             }
             if (
                 parent.artifactType === DIRECTORY_MAP.FUNCTION ||
+                parent.artifactType === DIRECTORY_MAP.WORKFLOW ||
                 parent.artifactType === DIRECTORY_MAP.NP_FUNCTION ||
                 parent.artifactType === DIRECTORY_MAP.DATA_MAPPER
             ) {
@@ -555,6 +563,76 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             }
         } else {
             console.log(">>> CHUNKER_LIST not found in navigation stack, closing panel");
+            closeSidePanelAndFetchUpdatedFlowModel();
+        }
+    };
+
+    const handleActivityAdded = async () => {
+        // Try to navigate back to ACTIVITY_LIST in the stack
+        const foundInStack = popNavigationStackUntilView(SidePanelView.ACTIVITY_LIST);
+
+        if (foundInStack) {
+            setShowProgressIndicator(true);
+            try {
+                const response = await rpcClient.getBIDiagramRpcClient().search({
+                    position: { startLine: targetRef.current.startLine, endLine: targetRef.current.endLine },
+                    filePath: model?.fileName,
+                    queryMap: undefined,
+                    searchKind: "ACTIVITY_CALL",
+                });
+                const panelCategories = convertFunctionCategoriesToSidePanelCategories(
+                    response.categories as Category[],
+                    FUNCTION_TYPE.REGULAR
+                );
+                const currentIntegrationCategory = findCurrentIntegrationCategory(panelCategories);
+                if (currentIntegrationCategory && !currentIntegrationCategory.items.length) {
+                    currentIntegrationCategory.description = "No activities defined. Click below to create a new activity.";
+                }
+                setCategories(panelCategories);
+                setSidePanelView(SidePanelView.ACTIVITY_LIST);
+                setShowSidePanel(true);
+            } catch (error) {
+                console.error(">>> Error refreshing activities", error);
+            } finally {
+                setShowProgressIndicator(false);
+            }
+        } else {
+            console.log(">>> ACTIVITY_LIST not found in navigation stack, closing panel");
+            closeSidePanelAndFetchUpdatedFlowModel();
+        }
+    };
+
+    const handleWorkflowAdded = async () => {
+        // Try to navigate back to WORKFLOW_LIST in the stack
+        const foundInStack = popNavigationStackUntilView(SidePanelView.WORKFLOW_LIST);
+
+        if (foundInStack) {
+            setShowProgressIndicator(true);
+            try {
+                const response = await rpcClient.getBIDiagramRpcClient().search({
+                    position: { startLine: targetRef.current.startLine, endLine: targetRef.current.endLine },
+                    filePath: model?.fileName,
+                    queryMap: undefined,
+                    searchKind: "WORKFLOW_RUN",
+                });
+                const panelCategories = convertFunctionCategoriesToSidePanelCategories(
+                    response.categories as Category[],
+                    FUNCTION_TYPE.REGULAR
+                );
+                const currentIntegrationCategory = findCurrentIntegrationCategory(panelCategories);
+                if (currentIntegrationCategory && !currentIntegrationCategory.items.length) {
+                    currentIntegrationCategory.description = "No workflows defined. Click below to create a new workflow.";
+                }
+                setCategories(panelCategories);
+                setSidePanelView(SidePanelView.WORKFLOW_LIST);
+                setShowSidePanel(true);
+            } catch (error) {
+                console.error(">>> Error refreshing workflows", error);
+            } finally {
+                setShowProgressIndicator(false);
+            }
+        } else {
+            console.log(">>> WORKFLOW_LIST not found in navigation stack, closing panel");
             closeSidePanelAndFetchUpdatedFlowModel();
         }
     };
@@ -874,7 +952,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const fetchNodesAndAISuggestions = (
         parent: FlowNode | Branch,
         target: LineRange,
-        fetchAiSuggestions = true,
+        fetchAiSuggestions = false,
         updateFlowModel = true,
         isOnAddNode = false
     ) => {
@@ -992,6 +1070,15 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     const handleSearch = useCallback(async (searchText: string, functionType: FUNCTION_TYPE, searchKind: SearchKind) => {
+        const queryMap = searchText.trim()
+            ? {
+                q: searchText,
+                limit: 12,
+                offset: 0,
+                ...(searchKind === "FUNCTION" ? { includeAvailableFunctions: "true" } : {})
+            }
+            : undefined;
+
         const request: BISearchRequest = {
             position: {
                 startLine: targetRef.current.startLine,
@@ -1006,6 +1093,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             },
             searchKind,
         };
+        const isWorkflowSearch = searchKind === "WORKFLOW_RUN";
         console.log(`>>> Search ${searchKind.toLowerCase()} request`, request);
         setShowProgressIndicator(true);
         try {
@@ -1056,6 +1144,14 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                         [...response.categories] as Category[],
                         functionType
                     );
+                    const currentIntegrationCategory = findCurrentIntegrationCategory(currentCategories);
+                    if (currentIntegrationCategory && !currentIntegrationCategory.items.length) {
+                        if (isWorkflowSearch) {
+                            currentIntegrationCategory.description = "No workflows defined. Click below to create a new workflow.";
+                        } else if (searchKind === "ACTIVITY_CALL") {
+                            currentIntegrationCategory.description = "No activities defined. Click below to create a new activity.";
+                        }
+                    }
                     setCategories(currentCategories);
                 }
 
@@ -1067,6 +1163,12 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                             functionType === FUNCTION_TYPE.REGULAR
                                 ? SidePanelView.FUNCTION_LIST
                                 : SidePanelView.DATA_MAPPER_LIST;
+                        break;
+                    case "WORKFLOW_RUN":
+                        panelView = SidePanelView.WORKFLOW_LIST;
+                        break;
+                    case "ACTIVITY_CALL":
+                        panelView = SidePanelView.ACTIVITY_LIST;
                         break;
                     case "NP_FUNCTION":
                         panelView = SidePanelView.NP_FUNCTION_LIST;
@@ -1128,6 +1230,16 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
     const handleSearchFunction = async (searchText: string, functionType: FUNCTION_TYPE) => {
         await handleSearch(searchText, functionType, "FUNCTION");
+    };
+
+     const handleSearchWorkflow = async (searchText: string, functionType: FUNCTION_TYPE) => {
+        // NOTE: Backend payloads may still contain legacy "WORKFLOW_START" in some environments.
+        // FE is intentionally standardized on "WORKFLOW_RUN"; align API/LS payloads to avoid mismatches.
+        await handleSearch(searchText, functionType, "WORKFLOW_RUN");
+    };
+
+    const handleSearchActivity = async (searchText: string, functionType: FUNCTION_TYPE) => {
+        await handleSearch(searchText, functionType, "ACTIVITY_CALL");
     };
 
     const handleSearchModelProvider = async (_searchText: string, _functionType: FUNCTION_TYPE) => {
@@ -1271,6 +1383,16 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             await handleChunkerAdded();
             return;
         }
+        if (isCreatingNewWorkflow.current) {
+            clearWorkflowCreationState();
+            await handleWorkflowAdded();
+            return;
+        }
+        if (isCreatingNewActivity.current) {
+            isCreatingNewActivity.current = false;
+            await handleActivityAdded();
+            return;
+        }
         closeSidePanelAndFetchUpdatedFlowModel();
     };
 
@@ -1350,6 +1472,112 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                             )
                         );
                         setSidePanelView(SidePanelView.NP_FUNCTION_LIST);
+                        setShowSidePanel(true);
+                    })
+                    .finally(() => {
+                        setShowProgressIndicator(false);
+                    });
+                break;
+
+            case "WORKFLOW_RUN":
+                // First click from node list should open searchable workflow list.
+                if (sidePanelView === SidePanelView.NODE_LIST) {
+                    setShowProgressIndicator(true);
+                    const workflowSearchRequest: BISearchRequest = {
+                        position: { startLine: targetRef.current.startLine, endLine: targetRef.current.endLine },
+                        filePath: model?.fileName || fileName,
+                        queryMap: undefined,
+                        searchKind: "WORKFLOW_RUN",
+                    };
+                    const searchPromise = rpcClient.getBIDiagramRpcClient().search(workflowSearchRequest);
+                    searchPromise
+                        .then((response) => {
+                            const panelCategories = convertFunctionCategoriesToSidePanelCategories(
+                                response.categories as Category[],
+                                FUNCTION_TYPE.REGULAR
+                            );
+                            const currentIntegrationCategory = findCurrentIntegrationCategory(panelCategories);
+                            if (currentIntegrationCategory && !currentIntegrationCategory.items.length) {
+                                currentIntegrationCategory.description = "No workflows defined. Click below to create a new workflow.";
+                            }
+                            setCategories(panelCategories);
+                            setSidePanelView(SidePanelView.WORKFLOW_LIST);
+                            setShowSidePanel(true);
+                        })
+                        .finally(() => {
+                            setShowProgressIndicator(false);
+                        });
+                    break;
+                }
+
+                // Selecting an item from workflow list should open the node template form.
+                selectedClientName.current = category;
+                setShowProgressIndicator(true);
+                rpcClient
+                    .getBIDiagramRpcClient()
+                    .getNodeTemplate({
+                        position: targetRef.current.startLine,
+                        filePath: model?.fileName || fileName,
+                        id: node.codedata,
+                    })
+                    .then((response) => {
+                        selectedNodeRef.current = response.flowNode;
+                        nodeTemplateRef.current = response.flowNode;
+                        showEditForm.current = false;
+                        setSidePanelView(SidePanelView.FORM);
+                        setShowSidePanel(true);
+                    })
+                    .finally(() => {
+                        setShowProgressIndicator(false);
+                    });
+                break;
+
+            case "ACTIVITY_CALL":
+                // First click from node list should open searchable activity list.
+                if (sidePanelView === SidePanelView.NODE_LIST) {
+                    setShowProgressIndicator(true);
+                    rpcClient
+                        .getBIDiagramRpcClient()
+                        .search({
+                            position: { startLine: targetRef.current.startLine, endLine: targetRef.current.endLine },
+                            filePath: model?.fileName || fileName,
+                            queryMap: undefined,
+                            searchKind: "ACTIVITY_CALL",
+                        })
+                        .then((response) => {
+                            const panelCategories = convertFunctionCategoriesToSidePanelCategories(
+                                response.categories as Category[],
+                                FUNCTION_TYPE.REGULAR
+                            );
+                            const currentIntegrationCategory = findCurrentIntegrationCategory(panelCategories);
+                            if (currentIntegrationCategory && !currentIntegrationCategory.items.length) {
+                                currentIntegrationCategory.description = "No activities defined. Click below to create a new activity.";
+                            }
+                            setCategories(panelCategories);
+                            setSidePanelView(SidePanelView.ACTIVITY_LIST);
+                            setShowSidePanel(true);
+                        })
+                        .finally(() => {
+                            setShowProgressIndicator(false);
+                        });
+                    break;
+                }
+
+                // Selecting an item from activity list should open the node template form.
+                selectedClientName.current = category;
+                setShowProgressIndicator(true);
+                rpcClient
+                    .getBIDiagramRpcClient()
+                    .getNodeTemplate({
+                        position: targetRef.current.startLine,
+                        filePath: model?.fileName || fileName,
+                        id: node.codedata,
+                    })
+                    .then((response) => {
+                        selectedNodeRef.current = response.flowNode;
+                        nodeTemplateRef.current = response.flowNode;
+                        showEditForm.current = false;
+                        setSidePanelView(SidePanelView.FORM);
                         setShowSidePanel(true);
                     })
                     .finally(() => {
@@ -1561,7 +1789,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         }
     };
 
-    const handleOnFormSubmit = (
+    const handleOnFormSubmit = async (
         updatedNode?: FlowNode,
         editorConfig?: EditorConfig,
         options?: FormSubmitOptions
@@ -1612,6 +1840,11 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             updatedNode.codedata.lineRange.endLine = targetLine;
         }
 
+        const nodeToSubmit = cloneDeep(updatedNode);
+        if (nodeToSubmit?.codedata?.node === "ACTIVITY" && nodeToSubmit?.codedata?.isNew) {
+            delete nodeToSubmit.codedata.lineRange;
+        }
+
         if (
             editorConfig &&
             editorConfig.view === MACHINE_VIEW.InlineDataMapper &&
@@ -1621,7 +1854,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 .getDataMapperRpcClient()
                 .getInitialIDMSource({
                     filePath: model.fileName,
-                    flowNode: updatedNode,
+                    flowNode: nodeToSubmit,
                 })
                 .then((response) => {
                     if (response.codedata) {
@@ -1629,7 +1862,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                             options.postUpdateCallBack();
                         }
                         shouldUpdateLineRangeRef.current = options?.isChangeFromHelperPane;
-                        updatedNodeRef.current = updatedNode;
+                        updatedNodeRef.current = nodeToSubmit;
                         rpcClient.getVisualizerRpcClient().openView({
                             type: EVENT_TYPE.OPEN_VIEW,
                             location: {
@@ -1642,7 +1875,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                                     endColumn: response.codedata.lineRange.endLine.offset,
                                 },
                                 dataMapperMetadata: {
-                                    name: updatedNode.properties?.variable?.value as string,
+                                    name: nodeToSubmit.properties?.variable?.value as string,
                                     codeData: response.codedata,
                                 }
                             },
@@ -1664,7 +1897,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             .getBIDiagramRpcClient()
             .getSourceCode({
                 filePath: model.fileName,
-                flowNode: updatedNode,
+                flowNode: nodeToSubmit,
                 isFunctionNodeUpdate: editorConfig?.displayMode !== EditorDisplayMode.NONE,
                 isHelperPaneChange: options?.isChangeFromHelperPane,
                 artifactData: editorConfig &&
@@ -1725,7 +1958,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                         } else {
                             const newNode = searchNodesByName(
                                 updatedModel.flowModel.nodes,
-                                updatedNode.properties?.variable?.value as string
+                                nodeToSubmit.properties?.variable?.value as string
                             );
                             if (!newNode || !newTargetLineRange) {
                                 console.error(">>> New node or targetLineRange missing after helper-pane update");
@@ -1740,7 +1973,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                         }
                         shouldUpdateLineRangeRef.current = false;
                     }
-                    updatedNodeRef.current = updatedNode;
+                    updatedNodeRef.current = nodeToSubmit;
                 } else {
                     console.error(">>> Error updating source code", response);
                 }
@@ -1861,6 +2094,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     const handleOnFormBack = () => {
+        clearWorkflowCreationState();
+
         // Try to navigate back using the navigation stack
         const didNavigateBack = popFromNavigationStack();
 
@@ -1927,6 +2162,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 setSidePanelView(SidePanelView.KNOWLEDGE_BASE_LIST);
             } else if (
                 sidePanelView === SidePanelView.FUNCTION_LIST ||
+                sidePanelView === SidePanelView.WORKFLOW_LIST ||
+                sidePanelView === SidePanelView.ACTIVITY_LIST ||
                 sidePanelView === SidePanelView.DATA_MAPPER_LIST ||
                 sidePanelView === SidePanelView.NP_FUNCTION_LIST ||
                 sidePanelView === SidePanelView.MODEL_PROVIDER_LIST ||
@@ -2027,6 +2264,61 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 setShowProgressIndicator(false);
             });
     };
+
+    const handleOnAddWorkflow = () => {
+        isCreatingNewWorkflow.current = true;
+        setShowProgressIndicator(true);
+        pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
+
+        rpcClient
+            .getBIDiagramRpcClient()
+            .getNodeTemplate({
+                position: targetRef.current.startLine,
+                filePath: model?.fileName,
+                id: { node: "WORKFLOW" },
+            })
+            .then((response) => {
+                selectedNodeRef.current = response.flowNode;
+                nodeTemplateRef.current = response.flowNode;
+                showEditForm.current = false;
+                setSidePanelView(SidePanelView.FORM);
+                setShowSidePanel(true);
+            })
+            .catch((error) => {
+                console.error(">>> Error fetching workflow template", error);
+                clearWorkflowCreationState();
+                popFromNavigationStack();
+            })
+            .finally(() => {
+                setShowProgressIndicator(false);
+            });
+    };
+
+    const handleOnAddActivity = () => {
+        isCreatingNewActivity.current = true;
+        setShowProgressIndicator(true);
+        pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
+
+        rpcClient
+            .getBIDiagramRpcClient()
+            .getNodeTemplate({
+                position: targetRef.current.startLine,
+                filePath: model?.fileName,
+                id: { node: "ACTIVITY" },
+            })
+            .then((response) => {
+                selectedNodeRef.current = response.flowNode;
+                nodeTemplateRef.current = response.flowNode;
+                showEditForm.current = false;
+                setSidePanelView(SidePanelView.FORM);
+                setShowSidePanel(true);
+            })
+            .finally(() => {
+                setShowProgressIndicator(false);
+            });
+    };
+
+   
 
     const handleOnAddNPFunction = () => {
         rpcClient.getVisualizerRpcClient().openView({
@@ -2368,6 +2660,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
     const handleOpenView = async (location: VisualizerLocation) => {
         const context: VisualizerLocation = {
+            view: location.view,
             documentUri: location.documentUri,
             position: location.position,
             identifier: location.identifier,
@@ -2780,6 +3073,48 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         return rpcClient.getVisualizerRpcClient().joinProjectPath(props);
     };
 
+    const handleGetFunctionLocation = async (functionName: string): Promise<VisualizerLocation | undefined> => {
+        const projectComponents = await rpcClient.getBIDiagramRpcClient().getProjectComponents();
+        if (!projectComponents?.components) {
+            return undefined;
+        }
+
+        const functionInfo: any = findFunctionByName(projectComponents.components, functionName);
+        if (!functionInfo) {
+            return undefined;
+        }
+
+        const position =
+            (typeof functionInfo.startLine === "number" && typeof functionInfo.startColumn === "number"
+                ? {
+                    startLine: functionInfo.startLine,
+                    startColumn: functionInfo.startColumn,
+                    endLine: functionInfo.endLine,
+                    endColumn: functionInfo.endColumn,
+                }
+                : functionInfo.position) ||
+            (functionInfo.lineRange
+                ? {
+                    startLine: functionInfo.lineRange.startLine.line,
+                    startColumn: functionInfo.lineRange.startLine.offset,
+                    endLine: functionInfo.lineRange.endLine.line,
+                    endColumn: functionInfo.lineRange.endLine.offset,
+                }
+                : undefined);
+
+        if (!functionInfo.filePath || !position) {
+            return undefined;
+        }
+
+        return {
+            view: MACHINE_VIEW.BIDiagram,
+            documentUri: functionInfo.filePath,
+            position,
+            identifier: functionInfo.name,
+            projectPath,
+        };
+    };
+
     const flowModel = originalModel && suggestedModel ? suggestedModel : model;
 
     // Hide "Chat" button on agent nodes when already inside a chat agent flow diagram
@@ -2829,11 +3164,12 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 org: projectOrg,
                 path: projectPath,
                 getProjectPath: handleGetProjectPath,
+                getFunctionLocation: handleGetFunctionLocation,
             },
             breakpointInfo,
             readOnly: showProgressSpinner || showProgressIndicator || hasDraft || selectedNodeId !== undefined,
             overlay: {
-                visible: selectedNodeId !== undefined,
+                visible: selectedNodeId !== undefined || topNodeRef.current !== undefined,
                 onClickOverlay: handleOnCloseSidePanel,
             },
             isUserAuthenticated,
@@ -2897,6 +3233,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 // Add node callbacks
                 onAddConnection={handleOnAddConnection}
                 onAddFunction={handleOnAddFunction}
+                onAddWorkflow={handleOnAddWorkflow}
+                onAddActivity={handleOnAddActivity}
                 onAddNPFunction={handleOnAddNPFunction}
                 onAddDataMapper={handleOnAddDataMapper}
                 onAddModelProvider={handleOnAddNewModelProvider}
@@ -2912,6 +3250,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 onUpdateExpressionField={handleUpdateExpressionField}
                 onResetUpdatedExpressionField={handleResetUpdatedExpressionField}
                 onSearchFunction={handleSearchFunction}
+                onSearchWorkflow={handleSearchWorkflow}
+                onSearchActivity={handleSearchActivity}
                 onSearchNpFunction={handleSearchNpFunction}
                 onSearchTextChange={handleSearchTextChange}
                 searchText={searchText}

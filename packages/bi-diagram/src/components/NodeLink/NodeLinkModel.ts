@@ -17,9 +17,8 @@
  */
 
 import { DefaultLinkModel } from "@projectstorm/react-diagrams";
-import { NODE_GAP_Y, NODE_LINK, NodeTypes } from "../../resources/constants";
+import { LINK_COLOR, LINK_HOVERED_COLOR, NODE_GAP_Y, NODE_LINK, NodeTypes } from "../../resources/constants";
 import { Branch, FlowNode, LinePosition, NodeModel } from "../../utils/types";
-import { ThemeColors } from "@wso2/ui-toolkit";
 
 export const LINK_BOTTOM_OFFSET = 30;
 
@@ -60,8 +59,8 @@ export class NodeLinkModel extends DefaultLinkModel {
         super({
             type: NODE_LINK,
             width: 10,
-            color: ThemeColors.PRIMARY,
-            selectedColor: ThemeColors.SECONDARY,
+            color: LINK_COLOR,
+            selectedColor: LINK_HOVERED_COLOR,
             curvyness: 0,
         });
         if (options) {

@@ -18,6 +18,17 @@
 
 export type CategoryActionType = 'connection' | 'function' | 'add';
 
+export const CURRENT_INTEGRATION_CATEGORY_TITLE = "Current Integration";
+
+const CURRENT_INTEGRATION_CATEGORY_ALIASES = new Set([
+    CURRENT_INTEGRATION_CATEGORY_TITLE,
+    "Project",
+    "Current Project",
+    "Current Workspace",
+    "Workflows",
+    "Activities",
+]);
+
 export interface CategoryAction {
     type: CategoryActionType;
     codeIcon?: string;
@@ -35,6 +46,13 @@ export interface CategoryConfig {
     useConnectionContainer: boolean; // Whether to use getConnectionContainer for rendering
     fixed?: boolean; // Whether the header should be non-collapsible
 }
+
+export const normalizeCategoryTitle = (title: string): string => {
+    if (CURRENT_INTEGRATION_CATEGORY_ALIASES.has(title)) {
+        return CURRENT_INTEGRATION_CATEGORY_TITLE;
+    }
+    return title;
+};
 
 // Configuration for all categories with their specific behaviors
 export const CATEGORY_CONFIGS: Record<string, CategoryConfig> = {
@@ -68,8 +86,8 @@ export const CATEGORY_CONFIGS: Record<string, CategoryConfig> = {
         useConnectionContainer: true,
         fixed: true
     },
-    "Current Integration": {
-        title: "Current Integration",
+    [CURRENT_INTEGRATION_CATEGORY_TITLE]: {
+        title: CURRENT_INTEGRATION_CATEGORY_TITLE,
         actions: [
             {
                 type: 'function',
@@ -87,10 +105,24 @@ export const CATEGORY_CONFIGS: Record<string, CategoryConfig> = {
             },
             {
                 type: 'function',
+                tooltip: "Create Workflow",
+                emptyStateLabel: "Create Workflow",
+                handlerKey: 'onAddFunction',
+                condition: (title) => title === "Workflows"
+            },
+            {
+                type: 'function',
+                tooltip: "Create Activity",
+                emptyStateLabel: "Create Activity",
+                handlerKey: 'onAddFunction',
+                condition: (title) => title === "Activities"
+            },
+            {
+                type: 'function',
                 tooltip: "Create Function",
                 emptyStateLabel: "Create Function",
                 handlerKey: 'onAddFunction',
-                condition: (title) => title !== "Data Mappers" && title !== "Natural Functions"
+                condition: (title) => title !== "Data Mappers" && title !== "Natural Functions" && title !== "Workflows" && title !== "Activities"
             }
         ],
         showWhenEmpty: true,
@@ -185,15 +217,15 @@ export const CATEGORY_CONFIGS: Record<string, CategoryConfig> = {
 
 // Helper functions for category configuration
 export const getCategoryConfig = (title: string): CategoryConfig | undefined => {
-    return CATEGORY_CONFIGS[title];
+    return CATEGORY_CONFIGS[normalizeCategoryTitle(title)];
 };
 
 export const shouldShowEmptyCategory = (title: string, isSubCategory: boolean): boolean => {
+    const normalizedTitle = normalizeCategoryTitle(title);
     if (isSubCategory) {
-        // For subcategories, only show if it's "Current Integration"
-        return title === "Current Integration";
+        return normalizedTitle === CURRENT_INTEGRATION_CATEGORY_TITLE;
     }
-    const config = getCategoryConfig(title);
+    const config = getCategoryConfig(normalizedTitle);
     return config?.showWhenEmpty ?? false;
 };
 

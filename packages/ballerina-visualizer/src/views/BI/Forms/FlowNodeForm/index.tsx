@@ -99,15 +99,17 @@ import {
 import ForkForm from "../ForkForm";
 import { FormTypeEditor } from "../../TypeEditor";
 import { getTypeHelper } from "../../TypeHelper";
-import { EXPRESSION_EXTRACTION_REGEX } from "../../../../constants";
+import { EXPRESSION_EXTRACTION_REGEX, TypeHelperContext } from "../../../../constants";
 import MatchForm from "../MatchForm";
 import { FormSubmitOptions } from "../../FlowDiagram";
 import { AI_PROMPT_TYPE, getHelperPaneNew } from "../../HelperPaneNew";
 import { ConfigureRecordPage } from "../../HelperPaneNew/Views/RecordConfigModal";
 import { VariableForm } from "../DeclareVariableForm";
 import KnowledgeBaseForm from "../KnowledgeBaseForm";
+import SendEventForm from "../SendEventForm";
 import { EditorContext, StackItem, TypeHelperItem } from "@wso2/type-editor";
 import DynamicModal from "../../../../components/Modal";
+import { EntryPointTypeCreator } from "../../../../components/EntryPointTypeCreator";
 import React from "react";
 import { SidePanelView } from "../../FlowDiagram/PanelManager";
 import { ConnectionKind } from "../../../../components/ConnectionSelector";
@@ -232,10 +234,10 @@ const StyledActionButton = styled(Button)`
     }
 `;
 
-const DiagnosticsActionButton = styled(Button)`
+const ActionButton = styled(Button)`
     display: flex;
     align-items: center;
-    flex-shrink: 0;
+    gap: 4px;
 `;
 
 const DiagnosticsActionContent = styled.span`
@@ -307,6 +309,8 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
     const [isAiUserAuthenticated, setIsAiUserAuthenticated] = useState(false);
     const formImportsRef = useRef<FormImports>({});
     const [typeEditorState, setTypeEditorState] = useState<FlowNodeTypeEditorState>({ isOpen: false, newTypeValue: "" });
+     const [isTypeEditorOpen, setIsTypeEditorOpen] = useState<boolean>(false);
+    const [editingTypeName, setEditingTypeName] = useState<string>("");
     const [visualizableField, setVisualizableField] = useState<VisualizableField>();
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
 
@@ -457,6 +461,7 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
         if (!node) {
             return;
         }
+
         if ((node.codedata.node === "VARIABLE" || node.codedata.node === "CONFIG_VARIABLE") &&
             node.properties?.type?.value &&
             (node.properties.type.value as string).length > 0) {
@@ -512,6 +517,35 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
         });
     };
 
+    const normalizeTextFields = (fields: FormField[]): FormField[] => {
+        return fields.map((field) => {
+            const primaryInputType = getPrimaryInputType(field.types);
+            const isTextField = field.type === "TEXT" || primaryInputType?.fieldType === "TEXT";
+            const normalizedLabel = `${field.metadata?.label ?? field.label ?? ""}`.toLowerCase();
+            const isDescriptionField = normalizedLabel.includes("description") || normalizedLabel.includes("discription");
+
+            if (isTextField && isDescriptionField) {
+                return {
+                    ...field,
+                    type: "TEXTAREA",
+                };
+            }
+            return field;
+        });
+    };
+
+    const hideTypeDescriptionField = (fields: FormField[]): FormField[] => {
+        return fields.map((field) => {
+            if (field.key === "typeDescription") {
+                return {
+                    ...field,
+                    hidden: true,
+                };
+            }
+            return field;
+        });
+    };
+
     const initForm = (node: FlowNode) => {
         setFormDiagnostics(node.diagnostics?.diagnostics ?? []);
         const formProperties = getFormProperties(node);
@@ -519,6 +553,18 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
         if (nodeFormTemplate) {
             const formTemplateProperties = getFormProperties(nodeFormTemplate);
             enrichedNodeProperties = enrichFormTemplatePropertiesWithValues(formProperties, formTemplateProperties);
+        }
+
+        const nodeProperties = enrichedNodeProperties || formProperties;
+
+        if (node.codedata.node === "WORKFLOW" && nodeProperties?.inputType) {
+            const inputTypeProperty = nodeProperties.inputType;
+            const typeModelName = (getPrimaryInputType(inputTypeProperty.types) as any)?.typeModel?.name;
+            nodeProperties.inputType = {
+                ...inputTypeProperty,
+                editable: true,
+                value: inputTypeProperty.value || typeModelName || "",
+            };
         }
 
         // hide connection property if node is a REMOTE_ACTION_CALL or RESOURCE_ACTION_CALL node
@@ -557,7 +603,23 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
         setRecordTypeFields(recordTypeFields);
 
         // get node properties
-        const fields = convertNodePropertiesToFormFields(enrichedNodeProperties || formProperties, connections, clientName);
+        let fields = convertNodePropertiesToFormFields(nodeProperties, connections, clientName);
+
+        if (node.codedata.node === "WORKFLOW") {
+            fields = fields.map((field) => {
+                if (field.key !== "inputType") {
+                    return field;
+                }
+                return {
+                    ...field,
+                    editable: true,
+                    isContextTypeSupported: true,
+                };
+            });
+        }
+
+        fields = normalizeTextFields(fields);
+        fields = hideTypeDescriptionField(fields);
 
         const sortedFields = sortFieldsByPriority(fields);
         setBaseFields(sortedFields);
@@ -783,6 +845,21 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
         setTypeEditorState({ isOpen, fieldKey: editingField?.key, newTypeValue });
     };
 
+    const handleOpenFormTypeEditor = (open: boolean, typeName?: string, editingField?: FormField) => {
+        setTypeEditorState((prevState) => ({
+            ...prevState,
+            fieldKey: editingField?.key,
+            newTypeValue: typeName || "",
+        }));
+        setIsTypeEditorOpen(open);
+        setEditingTypeName(typeName || "");
+    };
+
+    const handleTypeEditorClose = () => {
+        setIsTypeEditorOpen(false);
+        setEditingTypeName("");
+    };
+
     const handleTypeEditorStateChange = (state: boolean) => {
         if (!state) {
             if (stack.length > 1) {
@@ -807,6 +884,24 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
             formImportsRef.current = { ...prevImports, [key]: imports };
         }
     }
+
+    const handleTypeCreated = (type: Type | string, imports?: Imports) => {
+        const typeName = typeof type === "string" ? type : type?.name;
+        if (typeName) {
+            const targetFieldKey = typeEditorState.fieldKey || "type";
+            const updatedFields = fields.map((field) => {
+                if (field.key === targetFieldKey) {
+                    return { ...field, value: typeName };
+                }
+                return field;
+            });
+            setBaseFields(updatedFields);
+            if (imports) {
+                handleUpdateImports(targetFieldKey, imports);
+            }
+        }
+        // handleTypeEditorClose();
+    };
 
     /* Expression editor related functions */
     const handleExpressionEditorCancel = () => {
@@ -1253,6 +1348,7 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
         onTypeCreate: () => void,
         exprRef?: RefObject<FormExpressionEditorRef>,
     ) => {
+        const formField = fields.find(f => f.key === fieldKey);
         const handleCreateNewType = (typeName: string) => {
             onTypeCreate();
             setTypeEditorState({ isOpen: true, newTypeValue: typeName, fieldKey: fieldKey });
@@ -1262,6 +1358,8 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
             debouncedGetVisibleTypes.cancel();
             handleExpressionEditorCancel();
         }
+
+        const typeHelperContext = TypeHelperContext.HTTP_STATUS_CODE;
 
         return getTypeHelper({
             fieldKey: fieldKey,
@@ -1279,6 +1377,7 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
             onTypeCreate: handleCreateNewType,
             onCloseCompletions: handleCloseCompletions,
             exprRef: exprRef,
+            typeHelperContext,
         });
     }
 
@@ -1811,6 +1910,15 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                     handleSelectedTypeChange={handleSelectedTypeChange}
                     preserveOrder={node.codedata.node === "VARIABLE" as NodeKind || node.codedata.node === "CONFIG_VARIABLE" as NodeKind}
                 />
+                <EntryPointTypeCreator
+                    isOpen={isTypeEditorOpen}
+                    onClose={handleTypeEditorClose}
+                    onTypeCreate={handleTypeCreated}
+                    initialTypeName={editingTypeName || "WorkflowInput"}
+                    modalTitle="Define Workflow Input Type"
+                    modalWidth={650}
+                    modalHeight={600}
+                />
                 {
                     stack.map((item, i) => <DynamicModal
                         key={i}
@@ -1892,6 +2000,31 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
         );
     }
 
+    if (node?.codedata.node === "SEND_DATA") {
+        return (
+            <SendEventForm
+                fileName={fileName}
+                node={node}
+                targetLineRange={targetLineRange}
+                expressionEditor={expressionEditor}
+                formFields={fields}
+                showProgressIndicator={showProgressIndicator}
+                onSubmit={onSubmit}
+                openSubPanel={openSubPanel}
+                updatedExpressionField={updatedExpressionField}
+                resetUpdatedExpressionField={resetUpdatedExpressionField}
+                subPanelView={subPanelView}
+                disableSaveButton={disableSaveButton}
+                submitText={submitText}
+                footerActionButton={footerActionButton}
+                scopeFieldAddon={scopeFieldAddon}
+                onChange={onChange}
+                projectPath={projectPath}
+                injectedComponents={injectedComponents}
+            />
+        );
+    }
+
     // default form
     return (
         <EditorContext.Provider
@@ -1904,19 +2037,18 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                     formDiagnostics={formDiagnostics}
                     formDiagnosticsAction={formDiagnostics.length > 0 ? (
                         <Tooltip content={formDiagnosticsFixTooltip}>
-                            <span>
-                                <DiagnosticsActionButton appearance="primary" buttonSx={{ width: 116, minWidth: 116 }} disabled={!canFixFormDiagnostics} onClick={handleFixFormDiagnostics}>
-                                    <DiagnosticsActionContent>
-                                        <Icon name="bi-ai-chat" sx={{ width: 14, height: 14, fontSize: 14 }} />
-                                        <span>Fix with AI</span>
-                                    </DiagnosticsActionContent>
-                                </DiagnosticsActionButton>
+                            <span style={{ display: "block" }}>
+                                <ActionButton onClick={handleFixFormDiagnostics} disabled={!canFixFormDiagnostics} appearance='primary'>
+                                <Icon name="bi-ai-agent" sx={{ width: 16, height: 16, fontSize: 16, marginRight: 8 }} />
+                                Fix with AI
+                            </ActionButton>
                             </span>
                         </Tooltip>
                     ) : undefined}
                     projectPath={projectPath}
                     selectedNode={node.codedata.node}
                     openRecordEditor={handleOpenTypeEditor}
+                    openFormTypeEditor={handleOpenFormTypeEditor}
                     popupManager={popupManager}
                     onSubmit={handleOnSubmit}
                     onBlur={handleOnBlur}
@@ -1957,6 +2089,15 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                     defaultExpandAdvanced={props.defaultExpandAdvanced}
                 />
             )}
+            <EntryPointTypeCreator
+                isOpen={isTypeEditorOpen}
+                onClose={handleTypeEditorClose}
+                onTypeCreate={handleTypeCreated}
+                initialTypeName={editingTypeName || "WorkflowInput"}
+                modalTitle="Define Workflow Input Type"
+                modalWidth={650}
+                modalHeight={600}
+            />
             {stack.map((item, i) => (
                 <DynamicModal
                     key={i}

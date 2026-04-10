@@ -264,7 +264,9 @@ namespace S {
     export const FormDiagnosticsActionContainer = styled.div`
         display: flex;
         justify-content: flex-end;
-        width: 100%;
+        align-items: center;
+        width: fit-content;
+        align-self: flex-end;
     `;
 
     export const MarkdownContainer = styled.div<{ isExpanded: boolean }>`
@@ -996,8 +998,14 @@ export const Form = forwardRef((props: FormProps, _ref) => {
         handleSubmit(
             async (data) => {
                 try {
+                    // HACK: skip form validation for activity/wait-data workflow nodes until fixed diagnostic issue from LS.
+                    if (selectedNode === "ACTIVITY_CALL" || selectedNode === "WAIT_DATA") {
+                        handleOnSave(data);
+                        return;
+                    }
                     const isValidForm = await handleFormValidation(data);
                     if (!isValidForm) {
+                        console.error(">>> Form validation failed, not saving", { data: props, formData: data });
                         setSavingButton(null);
                         return;
                     }
@@ -1043,7 +1051,10 @@ export const Form = forwardRef((props: FormProps, _ref) => {
             )}
             {formDiagnostics && formDiagnostics.length > 0 && (
                 <S.FormDiagnosticsContainer>
-                    <ErrorBanner errorMsg={formDiagnostics.map((diagnostic) => diagnostic.message).join("\n")} />
+                    <ErrorBanner
+                        errorMsg={formDiagnostics.map((diagnostic) => diagnostic.message).join("\n")}
+                        sx={{ alignItems: "flex-start" }}
+                    />
                     {formDiagnosticsAction && (
                         <S.FormDiagnosticsActionContainer>
                             {formDiagnosticsAction}
