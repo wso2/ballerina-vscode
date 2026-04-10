@@ -1203,6 +1203,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                                     <S.Row key={updatedField.key}>
                                         <FieldFactory
                                             field={updatedField}
+                                            handleFormValidation={handleFormValidation}
                                             openRecordEditor={
                                                 openRecordEditor &&
                                                 ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
