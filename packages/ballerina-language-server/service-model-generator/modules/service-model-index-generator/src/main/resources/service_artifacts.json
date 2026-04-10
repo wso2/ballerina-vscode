@@ -1355,6 +1355,19 @@
       "serviceTypes": {
       },
       "initForm": {
+        "basePath": {
+          "label": "Event Channel",
+          "description": "The event channel name",
+          "defaultValue": "/data/ChangeEvents",
+          "placeholder": "/data/ChangeEvents",
+          "types": [
+            {
+              "fieldType": "SERVICE_PATH",
+              "ballerinaType": "string"
+            }
+          ],
+          "sourceKind": "SERVICE_BASE_PATH"
+        },
         "auth": {
           "label": "Auth",
           "description": "Configurations related to username/password authentication",
@@ -1378,19 +1391,6 @@
             }
           ],
           "sourceKind": "LISTENER_PARAM_CONFIG_FIELD"
-        },
-        "basePath": {
-          "label": "Event Channel",
-          "description": "The event channel name",
-          "defaultValue": "/data/ChangeEvents",
-          "placeholder": "/data/ChangeEvents",
-          "types": [
-            {
-              "fieldType": "SERVICE_PATH",
-              "ballerinaType": "string"
-            }
-          ],
-          "sourceKind": "SERVICE_BASE_PATH"
         }
       }
     },
