@@ -272,8 +272,7 @@ export function prepareToolInputFields(fields: FormField[]): FormField[] {
         }
         if (field.optional == false && field.key != "type" && !isSqlParameterizedField(field)) {
             const rawValue = field.key.startsWith('$') ? "'" + field.key.substring(1) : field.key;
-            field.value = getPrimaryInputType(field.types)?.fieldType === "REPEATABLE_LIST"
-                ? `[${rawValue}]` : rawValue;
+            field.value = rawValue;
         }
         field.label = `${field.label} Mapping`;
         if (field.type === "SQL_QUERY" && field.types
