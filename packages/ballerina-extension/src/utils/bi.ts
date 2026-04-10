@@ -61,6 +61,7 @@ interface ProcessedProjectInfo {
     finalVersion: string;
     packageName: string;
     integrationName: string;
+    orgHandle: string;
 }
 
 const settingsJsonContent = `
@@ -307,7 +308,8 @@ function setupProjectInfo(projectRequest: ProjectRequest): ProcessedProjectInfo 
         finalOrgName,
         finalVersion,
         packageName: projectRequest.packageName,
-        integrationName: projectRequest.projectName
+        integrationName: projectRequest.projectName,
+        orgHandle: projectRequest.orgHandle
     };
 }
 
@@ -389,7 +391,14 @@ packages = ["${sanitizeName(projectRequest.packageName)}"]
 
 export async function createBIProjectPure(projectRequest: ProjectRequest): Promise<string> {
     const projectInfo = setupProjectInfo(projectRequest);
-    const { projectRoot, finalOrgName, finalVersion, packageName: finalPackageName, integrationName } = projectInfo;
+    const {
+        projectRoot,
+        finalOrgName,
+        finalVersion,
+        packageName,
+        integrationName,
+        orgHandle
+    } = projectInfo;
 
     const EMPTY = "\n";
 
@@ -401,8 +410,8 @@ export async function createBIProjectPure(projectRequest: ProjectRequest): Promi
 
     const ballerinaTomlContent = `
 [package]
-org = "${finalOrgName}"
-name = "${finalPackageName}"
+org = "${orgHandle ?? finalOrgName}"
+name = "${packageName}"
 version = "${finalVersion}"
 ${distributionLine}title = "${integrationName}"
 
@@ -634,6 +643,7 @@ async function createProjectInWorkspace(params: AddProjectToWorkspaceRequest, wo
         projectPath: workspacePath,
         createDirectory: true,
         orgName: params.orgName,
+        orgHandle: params.orgHandle,
         version: params.version,
         isLibrary: params.isLibrary,
         projectHandle: params.projectHandle
@@ -658,7 +668,7 @@ export async function createBIProjectFromMigration(params: MigrateRequest) {
 
         if (fileName === "Ballerina.toml") {
             content = content.replace(/name = ".*?"/, `name = "${sanitizedPackageName}"`);
-            content = content.replace(/org = ".*?"/, `org = "${projectInfo.finalOrgName}"`);
+            content = content.replace(/org = ".*?"/, `org = "${projectInfo.orgHandle ?? projectInfo.finalOrgName}"`);
 
             // Remove any existing distribution line
             content = content.replace(/^\s*distribution\s*=\s*".*?"\n?/m, '');
