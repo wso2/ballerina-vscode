@@ -236,18 +236,24 @@ export function OrgField({ organizations, orgName, orgNameError, description, is
                 return;
             }
             switch (e.key) {
-                case "ArrowDown":
+                case "ArrowDown": {
                     e.preventDefault();
-                    setActiveIndex((prev) =>
-                        prev < filteredSuggestions.length - 1 ? prev + 1 : 0
-                    );
+                    const nextDown =
+                        activeIndex < filteredSuggestions.length - 1 ? activeIndex + 1 : 0;
+                    setActiveIndex(nextDown);
+                    (listRef.current?.children[nextDown] as HTMLElement | undefined)
+                        ?.scrollIntoView({ block: "nearest", inline: "nearest" });
                     break;
-                case "ArrowUp":
+                }
+                case "ArrowUp": {
                     e.preventDefault();
-                    setActiveIndex((prev) =>
-                        prev > 0 ? prev - 1 : filteredSuggestions.length - 1
-                    );
+                    const nextUp =
+                        activeIndex > 0 ? activeIndex - 1 : filteredSuggestions.length - 1;
+                    setActiveIndex(nextUp);
+                    (listRef.current?.children[nextUp] as HTMLElement | undefined)
+                        ?.scrollIntoView({ block: "nearest", inline: "nearest" });
                     break;
+                }
                 case "Enter":
                     if (activeIndex >= 0 && activeIndex < filteredSuggestions.length) {
                         e.preventDefault();
