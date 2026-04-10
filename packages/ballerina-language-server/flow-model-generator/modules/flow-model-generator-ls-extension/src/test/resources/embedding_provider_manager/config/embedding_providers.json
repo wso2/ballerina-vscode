@@ -26,13 +26,29 @@
             "metadata": {
               "label": "Azure Embedding Provider",
               "description": "EmbeddingProvider provides an interface for interacting with Azure OpenAI Embedding Models.",
-              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.azure_1.4.1.png"
+              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.azure_1.4.2.png"
             },
             "codedata": {
               "node": "EMBEDDING_PROVIDER",
               "org": "ballerinax",
               "module": "ai.azure",
               "packageName": "ai.azure",
+              "object": "EmbeddingProvider",
+              "symbol": "init"
+            },
+            "enabled": true
+          },
+          {
+            "metadata": {
+              "label": "Google Vertex Embedding Provider",
+              "description": "EmbeddingProvider is a client class that provides an interface for generating\nvector embeddings using Google Vertex AI text embedding models.",
+              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.googleapis.vertex_1.0.0.png"
+            },
+            "codedata": {
+              "node": "EMBEDDING_PROVIDER",
+              "org": "ballerinax",
+              "module": "ai.googleapis.vertex",
+              "packageName": "ai.googleapis.vertex",
               "object": "EmbeddingProvider",
               "symbol": "init"
             },
