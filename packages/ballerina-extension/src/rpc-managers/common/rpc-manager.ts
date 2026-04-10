@@ -204,14 +204,14 @@ export class CommonRpcManager implements CommonRPCAPI {
     async selectFileOrDirPath(params: FileOrDirRequest): Promise<FileOrDirResponse> {
         return new Promise(async (resolve) => {
             if (params.isFile) {
-                const selectedFile = await askFilePath();
+                const selectedFile = await askFilePath(params.filters);
                 if (!selectedFile || selectedFile.length === 0) {
                     window.showErrorMessage('A file must be selected');
                     resolve({ path: "" });
                 } else {
                     const filePath = selectedFile[0].fsPath;
                     const projectPath = StateMachine.context().projectPath;
-                    if (projectPath && !filePath.startsWith(projectPath)) {
+                    if (!params.allowOutsideProject && projectPath && !filePath.startsWith(projectPath)) {
                         const resp = await window.showErrorMessage('The selected file is not within your project. Do you want to move it inside the project?', { modal: true }, 'Yes');
                         if (resp === 'Yes') {
                             // Move the file inside the project
