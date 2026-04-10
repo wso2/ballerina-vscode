@@ -1,0 +1,10 @@
+{
+  "description": "Test getting salesforce service init model with existing listeners",
+  "filePath": "sample2/main.bal",
+  "orgName": "ballerinax",
+  "pkgName": "salesforce",
+  "moduleName": "salesforce",
+  "response": {
+    "serviceInitModel": {}
+  }
+}
