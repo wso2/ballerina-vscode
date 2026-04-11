@@ -19,12 +19,14 @@
 import React, { useState } from "react";
 import styled from "@emotion/styled";
 import { Icon } from "@wso2/ui-toolkit";
+import { Spinner } from "./ProgressTextSegment";
 
 interface CheckpointSeparatorProps {
     checkpointId?: string;
     isAvailable: boolean;
     isDisabled: boolean;
     isCreating?: boolean;
+    isRestoring?: boolean;
     isGroupHovered: boolean;
     onRestore: (checkpointId: string) => void;
 }
@@ -82,11 +84,22 @@ const CreatingLabel = styled.div`
     white-space: nowrap;
 `;
 
+const RestoringLabel = styled.div`
+    color: var(--vscode-descriptionForeground);
+    padding: 0 8px;
+    font-size: 12px;
+    font-family: var(--vscode-font-family);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+`;
+
 const CheckpointSeparator: React.FC<CheckpointSeparatorProps> = ({
     checkpointId,
     isAvailable,
     isDisabled,
     isCreating = false,
+    isRestoring = false,
     isGroupHovered,
     onRestore
 }) => {
@@ -100,16 +113,24 @@ const CheckpointSeparator: React.FC<CheckpointSeparatorProps> = ({
 
     const effectiveDisabled = isDisabled || !isAvailable;
 
-    const labelOpacity = isGroupHovered ? (isLabelHovered ? 1 : 0.5) : 0;
+    // While restoring, keep the separator fully visible so the user sees
+    // the in-progress state even if their cursor leaves the row.
+    const lineVisible = isGroupHovered || isRestoring;
+    const labelOpacity = isRestoring ? 1 : (isGroupHovered ? (isLabelHovered ? 1 : 0.5) : 0);
 
     return (
         <SeparatorContainer>
-            <SeparatorLine visible={isGroupHovered}>
+            <SeparatorLine visible={lineVisible}>
                 <GradientLine direction="left" />
                 {isCreating ? (
                     <CreatingLabel>
                         Creating a checkpoint...
                     </CreatingLabel>
+                ) : isRestoring ? (
+                    <RestoringLabel>
+                        <Spinner className="codicon codicon-loading spin" role="img" />
+                        Restoring checkpoint...
+                    </RestoringLabel>
                 ) : (
                     <RestoreLabel
                         disabled={effectiveDisabled}
