@@ -128,15 +128,15 @@ test.dependsOn rootProject.pullBallerinaModule('ai', ballerinaAiVersion, "baller
 // TODO: Re-enable this once the `np` module is available on central
 //test.dependsOn rootProject.pullBallerinaModule('np')
 
-task copyInbuiltTriggers(type: Copy) {
-    from "${rootDir}/misc/ls-extensions/modules/trigger-service/src/main/resources/inbuilt-triggers"
-    into "${buildDir}/resources/test/inbuilt-triggers"
+task copyServiceIndex(type: Copy) {
+    from "${rootDir}/service-model-generator/modules/service-model-generator-ls-extension/src/main/resources/service-index.sqlite"
+    into "${buildDir}/resources/test"
 }
 
-checkstyleTest.dependsOn copyInbuiltTriggers
+checkstyleTest.dependsOn copyServiceIndex
 
 test {
-    dependsOn copyStdlibs, copyInbuiltTriggers
+    dependsOn copyStdlibs, copyServiceIndex
     systemProperty "ballerina.home", balDistribution
     useTestNG() {
         suites "src/test/resources/testng.xml"

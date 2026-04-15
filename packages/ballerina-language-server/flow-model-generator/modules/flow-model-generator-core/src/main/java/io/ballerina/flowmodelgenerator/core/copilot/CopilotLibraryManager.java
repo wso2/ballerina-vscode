@@ -146,7 +146,6 @@ public class CopilotLibraryManager {
             library.setFunctions(symbolResult.getFunctions());
             library.setTypeDefs(symbolResult.getTypeDefs());
 
-            // Load services from both inbuilt triggers and generic services
             JsonArray servicesJson = ServiceLoader.loadAllServices(libraryName);
             List<Service> services = new ArrayList<>();
             for (JsonElement serviceElement : servicesJson) {

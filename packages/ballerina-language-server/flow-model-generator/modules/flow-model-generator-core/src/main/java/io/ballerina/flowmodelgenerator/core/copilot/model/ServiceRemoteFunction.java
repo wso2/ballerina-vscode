@@ -29,6 +29,7 @@ import java.util.List;
  * @since 1.7.0
  */
 public class ServiceRemoteFunction {
+    private String name;
     private String type;
     private String description;
     private List<Parameter> parameters;
@@ -38,6 +39,14 @@ public class ServiceRemoteFunction {
 
     public ServiceRemoteFunction() {
         this.parameters = new ArrayList<>();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getType() {
