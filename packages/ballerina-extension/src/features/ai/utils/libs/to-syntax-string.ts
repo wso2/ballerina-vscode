@@ -32,7 +32,6 @@ import {
     GenericService,
     FixedService,
     Service,
-    ServiceRemoteFunction,
     ParameterDef,
     PathParameter,
 } from "./library-types";
@@ -387,22 +386,12 @@ function renderFixedService(service: FixedService): string {
     lines.push(`service on new ${service.listener.name}(${listenerParams}) {`);
 
     for (const method of service.methods) {
-        const methodWithName = method as ServiceRemoteFunction & { name?: string };
         const desc = method.description ? `    # ${method.description}\n` : "";
         const params = method.parameters.map((p) => renderParamDef(p as ParameterDef & { name?: string })).join(", ");
         const returnStr = method.return?.type ? ` returns ${method.return.type.name}` : "";
         const optionalComment = method.optional ? " // optional" : "";
 
-        // Try to extract method name from description
-        let methodName = methodWithName.name || "";
-        if (!methodName && method.description) {
-            const match = method.description.match(/`(\w+)`/);
-            if (match) {
-                methodName = match[1];
-            }
-        }
-
-        lines.push(`${desc}    remote function ${methodName}(${params})${returnStr};${optionalComment}`);
+        lines.push(`${desc}    remote function ${method.name}(${params})${returnStr};${optionalComment}`);
         lines.push("");
     }
 

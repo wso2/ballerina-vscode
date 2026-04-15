@@ -127,6 +127,7 @@ export interface ServiceRemoteFunction {
     parameters: ParameterDef[];
     return: Return;
     optional: boolean;
+    name: string;
 }
 
 export interface Client {

@@ -227,6 +227,7 @@
                 "methods": [
                     {
                         "type": "remote",
+                        "name": "onCreate",
                         "description": "The `onCreate` method is triggered when a new record create event is received from Salesforce.",
                         "parameters": [
                             {
@@ -241,6 +242,7 @@
                     },
                     {
                         "type": "remote",
+                        "name": "onUpdate",
                         "description": "The `onUpdate` method is triggered when a new record update event is received from Salesforce.",
                         "parameters": [
                             {
@@ -255,6 +257,7 @@
                     },
                     {
                         "type": "remote",
+                        "name": "onDelete",
                         "description": "The `onDelete` method is triggered when a new record delete event is received from Salesforce.",
                         "parameters": [
                             {
