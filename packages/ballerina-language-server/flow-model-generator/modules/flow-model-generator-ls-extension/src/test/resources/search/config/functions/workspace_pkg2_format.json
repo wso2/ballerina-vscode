@@ -220,6 +220,47 @@
         },
         {
           "metadata": {
+            "label": "health.dicom",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "parseDate",
+                "description": "Parses a DICOM Date string (DA VR) into a structured `DicomDate` record.\nThe DA VR format is `YYYYMMDD`.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.dicom_0.1.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerinax",
+                "module": "health.dicom",
+                "packageName": "health.dicom",
+                "symbol": "parseDate",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "parseTime",
+                "description": "Parses a DICOM Time string (TM VR) into a structured `DicomTime` record.\nThe TM VR format is `HHMMSS.FFFFFF` (only HH is required; the rest are optional).\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.dicom_0.1.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerinax",
+                "module": "health.dicom",
+                "packageName": "health.dicom",
+                "symbol": "parseTime",
+                "version": "0.1.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
             "label": "financial.iso20022",
             "description": "",
             "keywords": []

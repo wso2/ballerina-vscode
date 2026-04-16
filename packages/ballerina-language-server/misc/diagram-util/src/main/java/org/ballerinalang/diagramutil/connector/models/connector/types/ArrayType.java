@@ -20,6 +20,9 @@ package org.ballerinalang.diagramutil.connector.models.connector.types;
 import com.google.gson.annotations.Expose;
 import org.ballerinalang.diagramutil.connector.models.connector.Type;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Array type model.
  */
@@ -27,8 +30,25 @@ public class ArrayType extends Type {
     @Expose
     public Type memberType;
 
+    @Expose
+    public List<Type> elements;
+
     public ArrayType(Type memberType) {
         this.typeName = "array";
         this.memberType = memberType;
+    }
+
+    @Override
+    public ArrayType copy() {
+        Type copiedMemberType = this.memberType != null ? this.memberType.copy() : null;
+        ArrayType copy = new ArrayType(copiedMemberType);
+        copyBaseFields(copy);
+        if (this.elements != null) {
+            copy.elements = new ArrayList<>();
+            for (Type element : this.elements) {
+                copy.elements.add(element.copy());
+            }
+        }
+        return copy;
     }
 }

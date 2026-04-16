@@ -10,7 +10,7 @@
       "metadata": {
         "label": "Bulk",
         "description": "Ballerina Salesforce connector provides the capability to access Salesforce Bulk API.\nThis connector lets you to perform bulk data operations for CSV, JSON, and XML data types.\n",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce_8.2.0.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce_8.4.1.png",
         "data": {
           "isAgentSupport": false
         }
@@ -22,7 +22,7 @@
         "packageName": "salesforce",
         "object": "Client",
         "symbol": "init",
-        "version": "8.2.0",
+        "version": "8.4.1",
         "isGenerated": false
       },
       "enabled": true
@@ -31,7 +31,7 @@
       "metadata": {
         "label": "Salesforce",
         "description": "Ballerina Salesforce connector provides the capability to access Salesforce REST API.\nThis connector lets you to perform operations for SObjects, query using SOQL, search using SOSL, and describe SObjects\nand organizational data.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce_8.2.0.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce_8.4.1.png",
         "data": {
           "isAgentSupport": false
         }
@@ -43,7 +43,7 @@
         "packageName": "salesforce",
         "object": "Client",
         "symbol": "init",
-        "version": "8.2.0",
+        "version": "8.4.1",
         "isGenerated": false
       },
       "enabled": true
@@ -52,7 +52,7 @@
       "metadata": {
         "label": "Soap",
         "description": "Ballerina Salesforce SOAP connector provides the capability to access Salesforce SOAP API. \nThis connector lets you to perform operations like create, retrieve, update or delete sobjects, such as accounts,\nleads, custom objects, and etc..\n",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce_8.2.0.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce_8.4.1.png",
         "data": {
           "isAgentSupport": false
         }
@@ -64,7 +64,7 @@
         "packageName": "salesforce",
         "object": "Client",
         "symbol": "init",
-        "version": "8.2.0",
+        "version": "8.4.1",
         "isGenerated": false
       },
       "enabled": true
@@ -73,7 +73,7 @@
       "metadata": {
         "label": "Apex",
         "description": "Ballerina Salesforce Apex Client provides the capability to access Salesforce Apex REST API.\nThis client allows you to perform operations for custom Apex REST endpoints, execute HTTP methods on these endpoints,\nand handle responses appropriately.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce_8.2.0.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce_8.4.1.png",
         "data": {
           "isAgentSupport": false
         }
@@ -85,7 +85,7 @@
         "packageName": "salesforce",
         "object": "Client",
         "symbol": "init",
-        "version": "8.2.0",
+        "version": "8.4.1",
         "isGenerated": false
       },
       "enabled": true
@@ -94,7 +94,7 @@
       "metadata": {
         "label": "Marketingcloud",
         "description": "Salesforce Marketing Cloud APIs provide programmatic access to features such as Address, Assets (Content Builder), Audit, Contacts, Data Events, Event Notification, Interactions (Journey Builder), Push, SMS, Transactional Messaging, and Messaging. Refer to the official Salesforce documentation for detailed API usage and guidelines.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce.marketingcloud_1.0.1.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce.marketingcloud_1.0.2.png",
         "data": {
           "isAgentSupport": false
         }
@@ -106,7 +106,7 @@
         "packageName": "salesforce.marketingcloud",
         "object": "Client",
         "symbol": "init",
-        "version": "1.0.1",
+        "version": "1.0.2",
         "isGenerated": false
       },
       "enabled": true
@@ -136,7 +136,7 @@
       "metadata": {
         "label": "Bulkv2",
         "description": "Ballerina Salesforce Bulk v2 Client provides the capability to access Salesforce Bulk API v2.\nThis client allows you to perform bulk data operations such as creating, querying, updating, and deleting large volumes of data. \nYou can create and manage bulk jobs, upload data, check job status, and retrieve job results efficiently.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce_8.2.0.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce_8.4.1.png",
         "data": {
           "isAgentSupport": false
         }
@@ -148,7 +148,7 @@
         "packageName": "salesforce",
         "object": "Client",
         "symbol": "init",
-        "version": "8.2.0",
+        "version": "8.4.1",
         "isGenerated": false
       },
       "enabled": true
