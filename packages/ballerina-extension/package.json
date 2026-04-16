@@ -926,17 +926,22 @@
                 {
                     "command": "BI.test.edit.function.def",
                     "group": "inline",
-                    "when": "testId not in testGroups"
+                    "when": "(isBIProject || isBallerinaProject) && testId not in testGroups"
                 },
                 {
                     "command": "BI.test.edit.function",
                     "group": "inline",
-                    "when": "testId not in testGroups"
+                    "when": "(isBIProject || isBallerinaProject) && testId not in testGroups"
+                },
+                {
+                    "command": "BI.test.add.function",
+                    "group": "inline",
+                    "when": "(isBIProject || isBallerinaProject) && testId not in testGroups"
                 },
                 {
                     "command": "BI.test.delete.function",
                     "group": "inline",
-                    "when": "testId not in testGroups"
+                    "when": "(isBIProject || isBallerinaProject) && testId not in testGroups"
                 },
                 {
                     "command": "ballerina.openEvaluationHistory",
