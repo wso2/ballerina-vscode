@@ -25,10 +25,13 @@ const INTEGRATION_API_MODULES = ["http", "graphql", "tcp"];
 const EVENT_INTEGRATION_MODULES = ["kafka", "rabbitmq", "salesforce", "trigger.github", "mqtt", "asb"];
 const FILE_INTEGRATION_MODULES = ["ftp", "file"];
 const AI_AGENT_MODULE = "ai";
+const MCP_MODULE = "mcp";
 
 export function findScopeByModule(moduleName: string): SCOPE {
     if (AI_AGENT_MODULE === moduleName) {
         return SCOPE.AI_AGENT;
+    } else if (MCP_MODULE === moduleName) {
+        return SCOPE.MCP;
     } else if (INTEGRATION_API_MODULES.includes(moduleName)) {
         return SCOPE.INTEGRATION_AS_API;
     } else if (EVENT_INTEGRATION_MODULES.includes(moduleName)) {
