@@ -227,7 +227,7 @@ public class SourceBuilder {
         return this;
     }
 
-    private String getTypeNameForInferredParam(Property variable, String typeName) {
+    public String getTypeNameForInferredParam(Property variable, String typeName) {
         Optional<Property> inferredParam = flowNode.properties().values().stream()
                 .filter(property -> property.codedata() != null && property.codedata().kind() != null &&
                         property.codedata().kind().equals(ParameterData.Kind.PARAM_FOR_TYPE_INFER.name()))
@@ -639,8 +639,7 @@ public class SourceBuilder {
                     tokenBuilder.keyword(SyntaxKind.COMMA_TOKEN);
                 }
                 if (missedDefaultValue) {
-                    tokenBuilder.name(prop.codedata().originalName()).whiteSpace()
-                            .keyword(SyntaxKind.EQUAL_TOKEN).expression(prop);
+                    tokenBuilder.namedArg(prop);
                 } else {
                     tokenBuilder.param(prop);
                 }
@@ -651,8 +650,7 @@ public class SourceBuilder {
                 if (firstParamAdded) {
                     tokenBuilder.keyword(SyntaxKind.COMMA_TOKEN);
                 }
-                tokenBuilder.name(prop.codedata().originalName())
-                        .whiteSpace().keyword(SyntaxKind.EQUAL_TOKEN).expression(prop);
+                tokenBuilder.namedArg(prop);
             } else if (kind.equals(ParameterData.Kind.REST_PARAMETER.name())) {
                 if (isPropValueEmpty(prop) || ((List<?>) prop.value()).isEmpty()) {
                     continue;
@@ -962,11 +960,14 @@ public class SourceBuilder {
         }
 
         public TokenBuilder param(Property property) {
-            String source = property.toSourceCode();
-            if (source.startsWith("$")) {
-                source = "'" + source.substring(1);
-            }
-            sb.append(source);
+            sb.append(CommonUtils.escapeIdentifierFromFormField(property.toSourceCode()));
+            return this;
+        }
+
+        public TokenBuilder namedArg(Property property) {
+            sb.append(CommonUtils.escapeIdentifierFromFormField(property.codedata().originalName())).append(WHITE_SPACE)
+                    .append(SyntaxKind.EQUAL_TOKEN.stringValue()).append(WHITE_SPACE)
+                    .append(property.toSourceCode());
             return this;
         }
 

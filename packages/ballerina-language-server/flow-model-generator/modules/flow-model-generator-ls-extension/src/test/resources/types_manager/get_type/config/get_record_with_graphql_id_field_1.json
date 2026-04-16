@@ -128,6 +128,23 @@
           {
             "modulePrefix": "graphql",
             "name": "ID",
+            "codedata": {
+              "node": "ANNOTATION_ATTACHMENT",
+              "org": "ballerina",
+              "module": "graphql",
+              "version": "1.17.0",
+              "lineRange": {
+                "fileName": "types.bal",
+                "startLine": {
+                  "line": 3,
+                  "offset": 1
+                },
+                "endLine": {
+                  "line": 3,
+                  "offset": 12
+                }
+              }
+            },
             "properties": {}
           }
         ],

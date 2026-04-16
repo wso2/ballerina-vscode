@@ -128,6 +128,23 @@
           {
             "modulePrefix": "jsondata",
             "name": "Name",
+            "codedata": {
+              "node": "ANNOTATION_ATTACHMENT",
+              "org": "ballerina",
+              "module": "data.jsondata",
+              "version": "1.1.3",
+              "lineRange": {
+                "fileName": "types.bal",
+                "startLine": {
+                  "line": 51,
+                  "offset": 4
+                },
+                "endLine": {
+                  "line": 53,
+                  "offset": 5
+                }
+              }
+            },
             "properties": {
               "value": {
                 "types": [
@@ -169,6 +186,23 @@
           {
             "modulePrefix": "jsondata",
             "name": "Name",
+            "codedata": {
+              "node": "ANNOTATION_ATTACHMENT",
+              "org": "ballerina",
+              "module": "data.jsondata",
+              "version": "1.1.3",
+              "lineRange": {
+                "fileName": "types.bal",
+                "startLine": {
+                  "line": 56,
+                  "offset": 4
+                },
+                "endLine": {
+                  "line": 58,
+                  "offset": 5
+                }
+              }
+            },
             "properties": {
               "value": {
                 "types": [

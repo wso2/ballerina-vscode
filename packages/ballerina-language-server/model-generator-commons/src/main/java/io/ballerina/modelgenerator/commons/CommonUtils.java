@@ -88,6 +88,7 @@ import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4j.jsonrpc.validation.NonNull;
 import org.wso2.ballerinalang.compiler.tree.BLangPackage;
 
 import java.net.URI;
@@ -1674,4 +1675,16 @@ public class CommonUtils {
         return valueExpression.toSourceCode().trim();
     }
 
+    /**
+     * Escapes a form field name to a valid Ballerina identifier by replacing the leading {@code $} with a
+     * single quote prefix.
+     *
+     * @param name the form field name to escape
+     * @return the escaped identifier
+     */
+    public static String escapeIdentifierFromFormField(@NonNull String name) {
+        return name.startsWith("$") ? "'" + name.substring(1) : name;
+    }
+
 }
+

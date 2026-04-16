@@ -1,0 +1,8 @@
+[package]
+org = "org"
+name = "project1"
+version = "0.1.0"
+title = "project1"
+
+[build-options]
+sticky = true

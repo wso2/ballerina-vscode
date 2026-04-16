@@ -317,7 +317,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
     private static String buildListSourceCode(List<?> valueList) {
         if (valueList.isEmpty()) {
-            return "";
+            return "[]";
         }
 
         List<String> stringValues = valueList.stream()
@@ -326,7 +326,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 .map(val -> new Property.Builder<>(null).value(val.get("value")).build().toSourceCode())
                 .toList();
 
-        return stringValues.isEmpty() ? "" : "[%s]".formatted(String.join(", ", stringValues));
+        return stringValues.isEmpty() ? "[]" : "[%s]".formatted(String.join(", ", stringValues));
     }
 
     // Enum for backward compatibility
