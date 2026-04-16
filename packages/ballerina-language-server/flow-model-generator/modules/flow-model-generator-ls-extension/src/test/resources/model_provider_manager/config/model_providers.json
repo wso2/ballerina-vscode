@@ -26,7 +26,7 @@
             "metadata": {
               "label": "Anthropic Model Provider",
               "description": "Provider is a client class that provides an interface for interacting with Anthropic Large Language Models.",
-              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.anthropic_1.3.1.png"
+              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.anthropic_1.3.2.png"
             },
             "codedata": {
               "node": "MODEL_PROVIDER",
@@ -106,7 +106,7 @@
             "metadata": {
               "label": "Ollama Model Provider",
               "description": "Provider represents a client for interacting with an Ollama language models.",
-              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.ollama_1.2.1.png"
+              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.ollama_1.2.2.png"
             },
             "codedata": {
               "node": "MODEL_PROVIDER",
@@ -122,7 +122,7 @@
             "metadata": {
               "label": "OpenAI Model Provider",
               "description": "ModelProvider is a client class that provides an interface for interacting with OpenAI Large Language Models.",
-              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.openai_1.3.1.png"
+              "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai.openai_1.3.2.png"
             },
             "codedata": {
               "node": "MODEL_PROVIDER",
