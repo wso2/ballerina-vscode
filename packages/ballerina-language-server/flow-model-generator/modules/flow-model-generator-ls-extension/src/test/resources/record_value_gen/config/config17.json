@@ -1,0 +1,24 @@
+{
+  "description": "Record with array field using raw value fallback",
+  "filePath": "proj",
+  "type": {
+    "fields": [
+      {
+        "name": "data",
+        "typeName": "array",
+        "optional": false,
+        "defaultable": false,
+        "isRestType": false,
+        "selected": true,
+        "value": "[1, 2, 3]"
+      }
+    ],
+    "hasRestType": false,
+    "typeName": "record",
+    "optional": false,
+    "defaultable": false,
+    "isRestType": false,
+    "selected": true
+  },
+  "output": "{\n    data: [1, 2, 3]\n}"
+}

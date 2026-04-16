@@ -51,4 +51,15 @@ public class UnionType extends Type {
         this.displayAnnotation = unionType.displayAnnotation;
         this.documentation = unionType.documentation;
     }
+
+    @Override
+    public UnionType copy() {
+        UnionType copy = new UnionType(this);
+        copyBaseFields(copy);
+        copy.members = new ArrayList<>();
+        for (Type member : this.members) {
+            copy.members.add(member.copy());
+        }
+        return copy;
+    }
 }

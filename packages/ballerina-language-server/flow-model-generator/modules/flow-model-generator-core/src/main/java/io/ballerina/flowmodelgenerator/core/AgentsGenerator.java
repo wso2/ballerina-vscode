@@ -46,6 +46,7 @@ import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.StatementNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
+import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.flowmodelgenerator.core.analyzers.function.ModuleNodeAnalyzer;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
@@ -56,6 +57,7 @@ import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.PropertyCodedata;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
+import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.flowmodelgenerator.core.utils.FlowNodeUtil;
 import io.ballerina.flowmodelgenerator.core.utils.ParamUtils;
 import io.ballerina.modelgenerator.commons.CommonUtils;
@@ -73,6 +75,7 @@ import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextDocumentChange;
 import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
+import org.ballerinalang.langserver.common.utils.NameUtil;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
@@ -84,11 +87,14 @@ import org.wso2.ballerinalang.compiler.tree.BLangPackage;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static io.ballerina.flowmodelgenerator.core.Constants.AI;
 import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA;
@@ -358,13 +364,15 @@ public class AgentsGenerator {
             sourceBuilder.token().name(String.join(", ", paramList));
             sourceBuilder.token().keyword(SyntaxKind.CLOSE_PAREN_TOKEN);
 
-            Optional<Property> returnType = flowNode.getProperty(Property.TYPE_KEY);
-            boolean hasReturn = returnType.isPresent() && !returnType.get().value().toString().isEmpty();
+            Optional<Property> returnType = sourceBuilder.getProperty(Property.TYPE_KEY);
+            String returnTypeStr = returnType.isPresent()
+                    ? resolveTypeInferParams(returnType.get().value().toString(), flowNode) : "";
+            boolean hasReturn = !returnTypeStr.isEmpty();
             boolean hasCheckError = FlowNodeUtil.hasCheckKeyFlagSet(flowNode);
             if (hasReturn) {
                 sourceBuilder.token()
                         .keyword(SyntaxKind.RETURNS_KEYWORD)
-                        .name(returnType.get().value().toString());
+                        .name(returnTypeStr);
                 if (hasCheckError) {
                     sourceBuilder.token().keyword(SyntaxKind.PIPE_TOKEN).keyword(SyntaxKind.ERROR_KEYWORD);
                 }
@@ -377,7 +385,7 @@ public class AgentsGenerator {
             sourceBuilder.token().keyword(SyntaxKind.OPEN_BRACE_TOKEN);
             if (hasReturn) {
                 sourceBuilder.token()
-                        .name(returnType.get().value().toString())
+                        .name(returnTypeStr)
                         .whiteSpace()
                         .name("result")
                         .whiteSpace()
@@ -402,17 +410,66 @@ public class AgentsGenerator {
                 }
             }
 
-            List<String> args = new ArrayList<>();
+            // Build a lookup of tool input variable names keyed by parameter name
+            Map<String, String> toolInputVarNames = new LinkedHashMap<>();
             Optional<Property> funcCallArgs = flowNode.getProperty(Property.PARAMETERS_KEY);
             if (funcCallArgs.isPresent() && funcCallArgs.get().value() instanceof Map<?, ?> paramMap) {
-                for (Object obj : paramMap.values()) {
-                    Property paramProperty = gson.fromJson(gson.toJsonTree(obj), Property.class);
+                for (Map.Entry<?, ?> paramEntry : paramMap.entrySet()) {
+                    Property paramProperty = gson.fromJson(gson.toJsonTree(paramEntry.getValue()),
+                            Property.class);
                     if (!(paramProperty.value() instanceof Map<?, ?> paramData)) {
                         continue;
                     }
                     Map<String, Property> paramProperties = gson.fromJson(gson.toJsonTree(paramData),
                             FormBuilder.NODE_PROPERTIES_TYPE);
-                    args.add(paramProperties.get(Property.VARIABLE_KEY).value().toString());
+                    toolInputVarNames.put(paramEntry.getKey().toString(),
+                            paramProperties.get(Property.VARIABLE_KEY).value().toString());
+                }
+            }
+
+            List<String> args = new ArrayList<>();
+            if (nodeKind == NodeKind.FUNCTION_CALL && flowNode.properties() != null) {
+                // FUNCTION_CALL: iterate properties in order to preserve argument position.
+                // Only include properties that are actual function call arguments (have a
+                // codedata.kind like REQUIRED or DEFAULTABLE), not metadata properties.
+                for (Map.Entry<String, Property> entry : flowNode.properties().entrySet()) {
+                    String key = entry.getKey();
+                    Property prop = entry.getValue();
+                    PropertyCodedata propCodedata = prop.codedata();
+                    if (propCodedata == null || propCodedata.kind() == null
+                            || propCodedata.kind().equals(
+                            ParameterData.Kind.PARAM_FOR_TYPE_INFER.name())) {
+                        continue;
+                    }
+
+                    String toolInputVar = toolInputVarNames.get(key);
+                    if (toolInputVar != null) {
+                        // Has a tool input — use mapping override if set, otherwise the variable name
+                        if (prop.value() instanceof List<?> valueList) {
+                            List<String> listArgs = extractListArgs(valueList);
+                            if (!listArgs.isEmpty()) {
+                                args.addAll(listArgs);
+                            } else {
+                                args.add(toolInputVar);
+                            }
+                        } else if (prop.value() != null && !prop.value().toString().isEmpty()
+                                && !prop.value().toString().equals(toolInputVar)) {
+                            args.add(prop.value().toString());
+                        } else {
+                            args.add(toolInputVar);
+                        }
+                    } else if (prop.value() instanceof List<?> valueList) {
+                        List<String> listArgs = extractListArgs(valueList);
+                        args.addAll(listArgs);
+                    } else if (prop.value() != null && !prop.value().toString().isEmpty()) {
+                        // No tool input — use the mapping expression directly
+                        args.add(prop.value().toString());
+                    }
+                }
+            } else {
+                // FUNCTION_DEFINITION: arguments come only from the parameters map
+                for (String varName : toolInputVarNames.values()) {
+                    args.add(varName);
                 }
             }
 
@@ -447,15 +504,11 @@ public class AgentsGenerator {
 
             List<String> paramList = populateToolParams(toolParams, hasDescription, sourceBuilder);
 
-            Optional<Property> optReturnType = flowNode.getProperty(Property.TYPE_KEY);
+            Optional<Property> optReturnType = sourceBuilder.getProperty(Property.TYPE_KEY);
             String returnType = "";
             if (optReturnType.isPresent()) {
                 Property returnProperty = optReturnType.get();
-                if (flowNode.getProperty(TARGET_TYPE).isPresent()) {
-                    returnType = "json";
-                } else {
-                    returnType = returnProperty.value().toString();
-                }
+                returnType = resolveReturnType(flowNode, returnProperty, sourceBuilder);
                 sourceBuilder.token().returnDoc(returnProperty.metadata().description());
             }
 
@@ -510,7 +563,10 @@ public class AgentsGenerator {
             }
             sourceBuilder.token()
                     .keyword(SyntaxKind.CLOSE_BRACE_TOKEN);
-            sourceBuilder.textEdit(SourceBuilder.SourceKind.DECLARATION).acceptImport();
+            sourceBuilder.textEdit(SourceBuilder.SourceKind.DECLARATION);
+            if (needsModuleImport(flowNode, returnType, paramList)) {
+                sourceBuilder.acceptImport();
+            }
             return gson.toJsonTree(sourceBuilder.build());
         } else if (nodeKind == NodeKind.RESOURCE_ACTION_CALL) {
             boolean hasDescription = genDescription(description, sourceBuilder);
@@ -535,8 +591,6 @@ public class AgentsGenerator {
                     if (kind.equals(ParameterData.Kind.PATH_PARAM.name()) ||
                             kind.equals(ParameterData.Kind.PATH_REST_PARAM.name())) {
                         pathParams.add(key);
-                    } else if (kind.equals(ParameterData.Kind.DEFAULTABLE.name())) {
-                        ignoredKeys.add(key);
                     }
                 }
             }
@@ -556,14 +610,10 @@ public class AgentsGenerator {
             sourceBuilder.token().name(String.join(", ", paramList));
             sourceBuilder.token().keyword(SyntaxKind.CLOSE_PAREN_TOKEN);
 
-            Optional<Property> optReturnType = flowNode.getProperty(Property.TYPE_KEY);
+            Optional<Property> optReturnType = sourceBuilder.getProperty(Property.TYPE_KEY);
             String returnType = "";
             if (optReturnType.isPresent()) {
-                if (flowNode.getProperty(TARGET_TYPE).isPresent()) {
-                    returnType = "json";
-                } else {
-                    returnType = optReturnType.get().value().toString();
-                }
+                returnType = resolveReturnType(flowNode, optReturnType.get(), sourceBuilder);
             }
 
             if (!returnType.isEmpty()) {
@@ -630,7 +680,10 @@ public class AgentsGenerator {
             }
             sourceBuilder.token()
                     .keyword(SyntaxKind.CLOSE_BRACE_TOKEN);
-            sourceBuilder.textEdit(SourceBuilder.SourceKind.DECLARATION).acceptImport();
+            sourceBuilder.textEdit(SourceBuilder.SourceKind.DECLARATION);
+            if (needsModuleImport(flowNode, returnType, paramList)) {
+                sourceBuilder.acceptImport();
+            }
             return gson.toJsonTree(sourceBuilder.build());
         }
         throw new IllegalStateException("Unsupported node kind to generate tool");
@@ -685,12 +738,126 @@ public class AgentsGenerator {
         return false;
     }
 
+    private boolean needsModuleImport(FlowNode flowNode, String returnType, List<String> paramList) {
+        String modulePrefix = flowNode.codedata().getModulePrefix() + ":";
+        if (returnType.contains(modulePrefix)) {
+            return true;
+        }
+        for (String param : paramList) {
+            if (param.contains(modulePrefix)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String resolveTypeInferParams(String returnType, FlowNode flowNode) {
+        if (flowNode.properties() == null) {
+            return returnType;
+        }
+        for (Map.Entry<String, Property> entry : flowNode.properties().entrySet()) {
+            PropertyCodedata propCodedata = entry.getValue()
+                    .codedata();
+            if (propCodedata != null
+                    && ParameterData.Kind.PARAM_FOR_TYPE_INFER.name().equals(propCodedata.kind())) {
+                String paramName = entry.getKey();
+                // Use user-provided value if set, otherwise fall back to defaultValue
+                String resolvedType = null;
+                Object value = entry.getValue().value();
+                if (value != null && !value.toString().isEmpty()) {
+                    resolvedType = value.toString();
+                } else {
+                    resolvedType = entry.getValue().defaultValue();
+                }
+                if (resolvedType == null || resolvedType.isEmpty()) {
+                    resolvedType = "json";
+                }
+                returnType = returnType.replace(paramName, resolvedType);
+            }
+        }
+        return returnType;
+    }
+
+    private boolean hasRecordFieldSelector(FlowNode flowNode) {
+        if (flowNode.properties() == null) {
+            return false;
+        }
+        return flowNode.properties().values().stream()
+                .anyMatch(p -> p.codedata() != null
+                        && ParameterData.Kind.PARAM_FOR_TYPE_INFER.name().equals(p.codedata().kind())
+                        && p.types() != null && !p.types().isEmpty()
+                        && p.types().getFirst().recordSelectorType() != null);
+    }
+
+    private String resolveReturnType(FlowNode flowNode, Property returnProperty, SourceBuilder sourceBuilder) {
+        if (flowNode.codedata().inferredReturnType() != null && hasRecordFieldSelector(flowNode)) {
+            Optional<Property> variable = flowNode.getProperty(Property.VARIABLE_KEY);
+            if (variable.isPresent()) {
+                // Ensure the variable name produces a unique type name by checking types.bal
+                Property varProp = variable.get();
+                Path typesFilePath = sourceBuilder.filePath.resolveSibling("types.bal");
+                Document typesDoc = FileSystemUtils.getDocument(
+                        sourceBuilder.workspaceManager, typesFilePath);
+                if (typesDoc != null) {
+                    ModulePartNode typesRoot = typesDoc.syntaxTree().rootNode();
+                    Set<String> existingTypeNames = typesRoot.members().stream()
+                            .filter(m -> m.kind() == SyntaxKind.TYPE_DEFINITION)
+                            .map(m -> ((TypeDefinitionNode) m).typeName().text())
+                            .collect(Collectors.toSet());
+                    String varName = varProp.toSourceCode();
+                    String candidateTypeName = varName.substring(0, 1).toUpperCase(Locale.ROOT)
+                            + varName.substring(1) + "Type";
+                    if (existingTypeNames.contains(candidateTypeName)) {
+                        // Strip trailing digits to get the base prefix (e.g. "var1" -> "var"),
+                        // matching how the LS generates unique variable names (var, var1, var2...)
+                        String baseVarName = varName.replaceAll("\\d+$", "");
+                        // Convert type names to their variable form for collision checking
+                        Set<String> usedVarNames = new HashSet<>();
+                        // Include the base name so numbering starts from 1 (var1, var2...)
+                        usedVarNames.add(baseVarName);
+                        for (String typeName : existingTypeNames) {
+                            if (typeName.endsWith("Type") && typeName.length() > 4) {
+                                String prefix = typeName.substring(0, typeName.length() - 4);
+                                usedVarNames.add(prefix.substring(0, 1).toLowerCase(Locale.ROOT) + prefix.substring(1));
+                            }
+                        }
+                        String uniqueVarName = NameUtil.generateTypeName(baseVarName, usedVarNames);
+                        varProp = new Property.Builder<>(null).value(uniqueVarName).build();
+                    }
+                }
+                return sourceBuilder.getTypeNameForInferredParam(varProp,
+                        returnProperty.value().toString());
+            }
+        }
+        Optional<Property> optTargetType = flowNode.getProperty(TARGET_TYPE);
+        String returnType;
+        if (optTargetType.isPresent() && optTargetType.get().value() != null
+                && !optTargetType.get().value().toString().isEmpty()) {
+            returnType = optTargetType.get().value().toString();
+        } else if (optTargetType.isPresent()) {
+            String defaultType = optTargetType.get().defaultValue();
+            returnType = (defaultType != null && !defaultType.isEmpty()) ? defaultType : "json";
+        } else {
+            returnType = returnProperty.value().toString();
+        }
+        return resolveTypeInferParams(returnType, flowNode);
+    }
+
     private boolean genDescription(String description, SourceBuilder sourceBuilder) {
         boolean hasDescription = !description.isEmpty();
         if (hasDescription) {
             sourceBuilder.token().descriptionDoc(description);
         }
         return hasDescription;
+    }
+
+    private static List<String> extractListArgs(List<?> valueList) {
+        return valueList.stream()
+                .filter(Map.class::isInstance)
+                .map(Map.class::cast)
+                .map(val -> Property.convertToProperty(val).toSourceCode())
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
     }
 
     // TODO: The agent tool annotation form is currently in the extension side, need to move to LS
@@ -715,16 +882,34 @@ public class AgentsGenerator {
             String key = entry.getKey();
             String value = entry.getValue().getAsString();
 
+            // Skip fields with empty or default values
+            if (value == null || value.isEmpty() || value.equals("()") || value.trim().matches("\\{\\s*}")) {
+                continue;
+            }
+
             if (key.equals("scopes")) {
                 String[] scopeParts = value.split(",");
                 List<String> scopeItems = new ArrayList<>();
                 for (String part : scopeParts) {
-                    scopeItems.add(part.trim());
+                    String trimmed = part.trim();
+                    if (!trimmed.isEmpty()) {
+                        scopeItems.add(trimmed);
+                    }
+                }
+                if (scopeItems.isEmpty()) {
+                    continue;
                 }
                 fields.add("        " + key + ": [" + String.join(", ", scopeItems) + "]");
             } else {
                 fields.add("        " + key + ": " + value);
             }
+        }
+
+        if (fields.isEmpty()) {
+            sourceBuilder.token()
+                    .name("@ai:AgentTool")
+                    .name(System.lineSeparator());
+            return;
         }
 
         sb.append(String.join("," + System.lineSeparator(), fields)).append(System.lineSeparator());

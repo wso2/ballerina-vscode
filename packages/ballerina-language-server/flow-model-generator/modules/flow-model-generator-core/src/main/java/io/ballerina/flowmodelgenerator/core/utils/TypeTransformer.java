@@ -60,6 +60,7 @@ import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.flowmodelgenerator.core.model.AbstractBuilder;
 import io.ballerina.flowmodelgenerator.core.model.AnnotationAttachment;
+import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.Function;
 import io.ballerina.flowmodelgenerator.core.model.Member;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
@@ -770,14 +771,23 @@ public class TypeTransformer {
         String modulePrefix = "";
         if (!CommonUtils.isWithinPackage(annotDefSymbol, moduleInfo)) {
             modulePrefix = moduleId.modulePrefix();
-            builder.addImport(modulePrefix, moduleId.orgName() + "/" + moduleId.packageName());
+            builder.addImport(modulePrefix, moduleId.orgName() + "/" + moduleId.moduleName());
         }
         String name = annotDefSymbol.getName().get();
+
+        Codedata codedata = new Codedata.Builder<AbstractBuilder>(builder)
+                .node(NodeKind.ANNOTATION_ATTACHMENT)
+                .lineRange(annotAttachmentSymbol.getLocation().get().lineRange())
+                .module(moduleId.moduleName())
+                .org(moduleId.orgName())
+                .version(moduleId.version())
+                .build();
 
         if (!annotAttachmentSymbol.isConstAnnotation() || annotAttachmentSymbol.attachmentValue().isEmpty()) {
             return new AnnotationAttachment(
                     modulePrefix,
                     name,
+                    codedata,
                     Map.of()
             );
         }
@@ -785,7 +795,7 @@ public class TypeTransformer {
         ConstantValue constantValue = annotAttachmentSymbol.attachmentValue().get();
         HashMap<String, Property> properties = transformAnnotConstant(constantValue);
 
-        return new AnnotationAttachment(modulePrefix, name, properties);
+        return new AnnotationAttachment(modulePrefix, name, codedata, properties);
     }
 
     private Property createLeafAnnotConstValue(TypeDescKind typeDescKind, Object value) {

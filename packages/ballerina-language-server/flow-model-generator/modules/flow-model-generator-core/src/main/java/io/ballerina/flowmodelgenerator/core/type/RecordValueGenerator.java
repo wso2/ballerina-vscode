@@ -45,6 +45,7 @@ public class RecordValueGenerator {
                 case "record" -> generateRecordValue(json, builder, indentLevel);
                 case "union" -> generateUnionValue(json, builder, indentLevel);
                 case "enum" -> generateEnumValue(json, builder, indentLevel);
+                case "array" -> generateArrayValue(json, builder, indentLevel);
                 default -> {
                     if (json.has("value") && !json.get("value").getAsString().isEmpty()) {
                         builder.append(json.get("value").getAsString());
@@ -101,6 +102,47 @@ public class RecordValueGenerator {
                     }
                 }
             }
+        }
+    }
+
+    private static void generateArrayValue(JsonObject jsonObject, StringBuilder builder, int indentLevel) {
+        if (jsonObject.has("selected") && !jsonObject.get("selected").getAsBoolean()) {
+            return;
+        }
+
+        if (jsonObject.has("elements") && jsonObject.get("elements").isJsonArray()) {
+            var elements = jsonObject.get("elements").getAsJsonArray();
+            if (elements.isEmpty()) {
+                builder.append("[]");
+                return;
+            }
+
+            String indent = getIndent(indentLevel);
+            String nextIndent = getIndent(indentLevel + 1);
+            List<String> elementValues = new ArrayList<>();
+            for (JsonElement element : elements) {
+                JsonObject elementObj = element.getAsJsonObject();
+                if (elementObj.has("selected") && !elementObj.get("selected").getAsBoolean()) {
+                    continue;
+                }
+                StringBuilder elementBuilder = new StringBuilder();
+                generateValue(elementObj, elementBuilder, indentLevel + 1);
+                String value = elementBuilder.toString().trim();
+                if (!value.isEmpty()) {
+                    elementValues.add(nextIndent + value);
+                }
+            }
+            if (elementValues.isEmpty()) {
+                builder.append("[]");
+            } else {
+                builder.append("[\n");
+                builder.append(String.join(",\n", elementValues));
+                builder.append("\n").append(indent).append("]");
+            }
+        } else if (jsonObject.has("value") && !jsonObject.get("value").getAsString().trim().isEmpty()) {
+            builder.append(jsonObject.get("value").getAsString());
+        } else {
+            builder.append("[]");
         }
     }
 

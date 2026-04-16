@@ -78,6 +78,9 @@ public enum NodeKind {
     TABLE,
     TUPLE,
 
+    // Metadata
+    ANNOTATION_ATTACHMENT,
+
     AGENT,
     AGENT_CALL,
     AGENT_RUN,

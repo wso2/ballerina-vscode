@@ -1,0 +1,50 @@
+{
+  "description": "Delete node in a multi-file module should not process UNUSED_MODULE_PREFIX diagnostics from other files (diagnostic at line beyond main file imports causes IllegalStateException without fix)",
+  "functionStart": {
+    "line": 2,
+    "offset": 0
+  },
+  "functionEnd": {
+    "line": 6,
+    "offset": 1
+  },
+  "nodeStart": {
+    "line": 3,
+    "offset": 4
+  },
+  "nodeEnd": {
+    "line": 5,
+    "offset": 5
+  },
+  "source": "delete_node_project_1/main.bal",
+  "output": {
+    "delete_node_project_1/main.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 21
+          }
+        },
+        "newText": ""
+      },
+      {
+        "range": {
+          "start": {
+            "line": 3,
+            "character": 4
+          },
+          "end": {
+            "line": 5,
+            "character": 5
+          }
+        },
+        "newText": ""
+      }
+    ]
+  }
+}
