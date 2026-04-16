@@ -97,8 +97,13 @@ export default function createTests() {
             const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', `HTTP Service - ${serviceBasePath}`], true);
             await serviceTreeItem.click({ force: true });
 
-            const context = artifactWebView.locator(`text=${serviceBasePath}`);
-            await context.waitFor();
+            // Check for both possible text matches to avoid strict mode violation
+            const httpServiceLabel = artifactWebView.locator(`text=HTTP Service - ${serviceBasePath}`);
+            const servicePathLabel = artifactWebView.locator(`text=${serviceBasePath}`).first();
+            await Promise.race([
+                httpServiceLabel.waitFor(),
+                servicePathLabel.waitFor()
+            ]);
         });
 
         test('Add GET Resource to HTTP Service', async ({ }, testInfo) => {
@@ -413,7 +418,12 @@ export default function createTests() {
             await form.submit('Create');
 
             // Verify service is created
-            await artifactWebView.locator(`text=${serviceBasePath}`).waitFor();
+            const httpServiceLabel = artifactWebView.locator(`text=HTTP Service - ${serviceBasePath}`);
+            const servicePathLabel = artifactWebView.locator(`text=${serviceBasePath}`).first();
+            await Promise.race([
+                httpServiceLabel.waitFor(),
+                servicePathLabel.waitFor()
+            ]);
             const projectExplorer = new ProjectExplorer(page.page);
             await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `HTTP Service - ${serviceBasePath}`], true);
         });

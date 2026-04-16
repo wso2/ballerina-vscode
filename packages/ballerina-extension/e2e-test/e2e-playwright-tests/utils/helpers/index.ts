@@ -28,7 +28,8 @@ export {
     createProject, 
     setupBallerinaIntegrator, 
     toggleNotifications,
-    zipProjectSnapshot
+    zipProjectSnapshot,
+    captureFailureScreenshot
 } from './setup';
 
 // Re-export from webview
