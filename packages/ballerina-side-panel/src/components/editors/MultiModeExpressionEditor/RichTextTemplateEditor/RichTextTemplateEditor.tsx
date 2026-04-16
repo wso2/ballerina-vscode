@@ -485,6 +485,10 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
         const serialized = customMarkdownSerializer.serialize(view.state.doc);
         const newEditorValue = sanitizeText(configuration.deserializeValue(serialized));
         onChange?.(newEditorValue, cursorPosition);
+
+        // Explicitly trigger token fetch to convert inserted text to chips
+        pendingTokenFetchRef.current = true;
+        fetchAndUpdateTokens(view);
     };
 
     const fetchAndUpdateTokens = async (editorView: EditorView) => {

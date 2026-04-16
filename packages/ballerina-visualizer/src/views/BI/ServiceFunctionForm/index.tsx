@@ -20,7 +20,7 @@ import { useEffect, useState } from 'react';
 import { FunctionModel, LineRange, RecordTypeField, Property, PropertyTypeMemberInfo, NodePosition, getPrimaryInputType } from '@wso2/ballerina-core';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { FormField, FormImports, FormValues } from '@wso2/ballerina-side-panel';
-import { FormGeneratorNew } from '../Forms/FormGeneratorNew';
+import { ArtifactForm } from '../Forms/ArtifactForm';
 import { TopNavigationBar } from '../../../components/TopNavigationBar';
 import { TitleBar } from '../../../components/TitleBar';
 import { ViewContent, View } from '@wso2/ui-toolkit';
@@ -207,7 +207,7 @@ export function ServiceFunctionForm(props: ServiceFunctionFormProps) {
                     ) : (
                         <FormContainer>
                             {fields.length > 0 && (
-                                <FormGeneratorNew
+                                <ArtifactForm
                                     fileName={currentFilePath || ''}
                                     targetLineRange={model.codedata?.lineRange as LineRange}
                                     fields={fields}

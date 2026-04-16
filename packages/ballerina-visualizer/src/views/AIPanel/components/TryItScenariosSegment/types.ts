@@ -69,11 +69,6 @@ export type HurlToolOutput = {
     output: {
         status: string;
         durationMs: number;
-        summary: {
-            totalEntries: number;
-            passedEntries: number;
-            failedEntries: number;
-        };
         entries: Array<{
             name: string;
             method?: string;

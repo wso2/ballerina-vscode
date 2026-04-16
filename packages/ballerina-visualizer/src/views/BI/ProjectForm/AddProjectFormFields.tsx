@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { TextField } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { usePlatformExtContext } from "../../../providers/platform-ext-ctx-provider";
@@ -25,11 +25,12 @@ import {
     ProjectSection,
     SectionDivider,
 } from "./styles";
-import { ProjectTypeSelector, PackageInfoSection } from "./components";
+import { ProjectTypeSelector, AdvancedConfigurationSection } from "./components";
 import { AddProjectFormData } from "./types";
 import {
     sanitizePackageName,
     sanitizeProjectHandle,
+    validateComponentName,
     validatePackageName,
     validateOrgName,
     validateProjectHandle
@@ -62,6 +63,7 @@ export function AddProjectFormFields({
     const [packageNameTouched, setPackageNameTouched] = useState(false);
     const [projectHandleTouched, setProjectHandleTouched] = useState(false);
     const [isPackageInfoExpanded, setIsPackageInfoExpanded] = useState(false);
+    const [integrationNameError, setIntegrationNameError] = useState<string | null>(null);
     const [packageNameError, setPackageNameError] = useState<string | null>(null);
     const [orgNameError, setOrgNameError] = useState<string | null>(null);
     const [projectHandleError, setProjectHandleError] = useState<string | null>(null);
@@ -87,28 +89,45 @@ export function AddProjectFormFields({
     const orgNameRef = useRef(formData.orgName);
     orgNameRef.current = formData.orgName;
 
-    useEffect(() => {
-        let isMounted = true;
+    const fetchAndSetDefaultOrgName = useCallback(async (signal: AbortSignal) => {
+        try {
+            const { orgName } = await rpcClient.getCommonRpcClient().getDefaultOrgName();
+            if (!signal.aborted && orgName) {
+                onFormDataChange({ orgName });
+            }
+        } catch (error) {
+            if (!signal.aborted) {
+                console.error("Failed to fetch default org name:", error);
+            }
+        }
+    }, [rpcClient, onFormDataChange]);
 
-        if (organizations.length > 0 && !orgNameRef.current) {
-            onFormDataChange({ orgName: organizations[0].handle });
-        } else if (organizations.length === 0 && !orgNameRef.current) {
-            (async () => {
-                try {
-                    const { orgName } = await rpcClient.getCommonRpcClient().getDefaultOrgName();
-                    if (isMounted) {
-                        onFormDataChange({ orgName });
-                    }
-                } catch (error) {
-                    console.error("Failed to fetch default org name:", error);
-                }
-            })();
+    useEffect(() => {
+        const controller = new AbortController();
+
+        if (isInProject && !orgNameRef.current) {
+            // When inside a project and no org has been set, fetch the project's org name.
+            fetchAndSetDefaultOrgName(controller.signal);
+        } else if (!orgNameRef.current) {
+            if (organizations.length > 0) {
+                // Organizations are available — use the first one as the default.
+                onFormDataChange({ orgName: organizations[0].handle });
+            } else {
+                // No organizations loaded yet — fall back to the default.
+                fetchAndSetDefaultOrgName(controller.signal);
+            }
         }
 
         return () => {
-            isMounted = false;
+            controller.abort();
         };
-    }, [organizations, onFormDataChange, rpcClient]);
+    }, [isInProject, organizations, fetchAndSetDefaultOrgName, onFormDataChange]);
+
+    // Real-time validation for integration/library name
+    useEffect(() => {
+        const error = validateComponentName(formData.integrationName, formData.isLibrary);
+        setIntegrationNameError(error);
+    }, [formData.integrationName, formData.isLibrary]);
 
     // Effect to trigger validation when requested by parent
     useEffect(() => {
@@ -174,12 +193,13 @@ export function AddProjectFormFields({
                     autoFocus={isInProject}
                     onFocus={(e) => (e.target as HTMLInputElement).select()}
                     required={true}
+                    errorMsg={integrationNameError || ""}
                 />
             </FieldGroup>
 
             <SectionDivider />
 
-            <PackageInfoSection
+            <AdvancedConfigurationSection
                 isExpanded={isPackageInfoExpanded}
                 onToggle={() => setIsPackageInfoExpanded(!isPackageInfoExpanded)}
                 data={{

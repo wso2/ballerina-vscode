@@ -12,7 +12,7 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { debounce } from "lodash";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RelativeLoader } from "../../../components/RelativeLoader";
-import FormGenerator from "../Forms/FormGenerator";
+import FlowNodeForm from "../Forms/FlowNodeForm";
 import { McpToolsSelection, ToolScopes } from "./Mcp/McpToolsSelection";
 import { DiscoverToolsModal } from "./Mcp/DiscoverToolsModal";
 import { RequiresAuthCheckbox } from "./Mcp/RequiresAuthCheckbox";
@@ -93,11 +93,20 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
         return moduleNodes;
     };
 
-    const setupEditMode = (variables: FlowNode[]) => {
+    const setupEditMode = async (variables: FlowNode[]) => {
         const mcpToolKitVariable = variables?.find(
             (v) => v.codedata?.node === "MCP_TOOL_KIT" && v.properties.variable?.value === props.name
         );
         if (!mcpToolKitVariable) return;
+
+        // Resolve relative fileName to absolute path so formDidOpen gets a valid file URI
+        if (mcpToolKitVariable.codedata?.lineRange?.fileName) {
+            const resolvedPath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({
+                segments: [mcpToolKitVariable.codedata.lineRange.fileName]
+            })).filePath;
+            mcpToolKitVariable.codedata.lineRange.fileName = resolvedPath;
+        }
+
         mcpToolKitNodeRef.current = mcpToolKitVariable;
         initializeEditMode();
     };
@@ -279,7 +288,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
 
             const { serverUrl: savedUrl, auth: savedAuth, permittedTools, requiresAuth: savedRequiresAuth, toolScopes: savedToolScopes } = extractOriginalValues(node);
 
-            // Update form state so FormGenerator displays values
+            // Update form state so FlowNodeForm displays values
             setRequiresAuth(savedRequiresAuth);
 
             // Restore saved tool scopes
@@ -300,7 +309,6 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                 projectPathUriRef.current,
                 agentFilePathRef.current
             );
-
             // Set toolSource BEFORE setToolsInclude to prevent the useEffect from triggering a duplicate fetch
             setToolSource(resolution.canResolve ? 'auto-fetched' : 'saved-mock');
             setToolsInclude("selected");
@@ -327,7 +335,11 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                 displayMockTools(permittedTools);
             }
         } finally {
-            isInitializingEditModeRef.current = false;
+            // Delay clearing the flag so the FlowNodeForm's initial onChange burst
+            // (which fires for every field after the form mounts) doesn't reset toolSource.
+            setTimeout(() => {
+                isInitializingEditModeRef.current = false;
+            }, 0);
         }
     };
 
@@ -476,7 +488,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
             )}
 
             {mcpToolKitNodeTemplateRef && (
-                <FormGenerator
+                <FlowNodeForm
                     ref={formRef}
                     fileName={mcpToolKitNodeRef.current?.codedata?.lineRange?.fileName ? mcpToolKitNodeRef.current.codedata.lineRange?.fileName : agentFileEndLineRangeRef.current?.fileName}
                     targetLineRange={mcpToolKitNodeRef.current?.codedata?.lineRange ? mcpToolKitNodeRef.current.codedata.lineRange : agentFileEndLineRangeRef.current}

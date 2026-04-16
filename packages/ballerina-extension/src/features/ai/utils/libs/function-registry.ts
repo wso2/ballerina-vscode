@@ -71,7 +71,8 @@ export async function selectRequiredFunctions(prompt: string, selectedLibNames: 
     const maximizedLibraries: Library[] = await toMaximizedLibrariesFromLibJson(functionsResponse, selectedLibs);
     const mergedLibraries = mergeLibrariesWithoutDuplicates(maximizedLibraries, typeLibraries);
 
-    return { libraries: mergedLibraries, usage: mergeUsage(...allUsages) };
+    const result = { libraries: mergedLibraries, usage: mergeUsage(...allUsages) };
+    return result;
 }
 
 function getClientFunctionCount(clients: MinifiedClient[]): number {
@@ -376,6 +377,7 @@ export async function getMaximizedSelectedLibs(libNames: string[]): Promise<Libr
                 typeDefs: lib.typeDefs ? lib.typeDefs : [],
                 services: lib.services ? lib.services : [],
                 instructions: lib.instructions ? lib.instructions : null,
+                readme: lib.readme ? lib.readme : null,
             };
         });
 
@@ -408,6 +410,7 @@ export async function toMaximizedLibrariesFromLibJson(
             typeDefs: getOwnTypeDefsForLib(filteredClients, filteredFunctions, originalLib.typeDefs, originalLib.services),
             services: originalLib.services ? originalLib.services : null,
             instructions: originalLib.instructions ? originalLib.instructions : null,
+            readme: originalLib.readme ? originalLib.readme : null,
         };
 
         minifiedLibrariesWithoutRecords.push(maximizedLib);

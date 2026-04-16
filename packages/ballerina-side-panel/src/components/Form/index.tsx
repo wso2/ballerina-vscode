@@ -548,12 +548,15 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                         defaultValues[field.key] = formValues[field.key] ?? [];
                     }
 
-                    if (field.key === "type") {
+                    if (getPrimaryInputType(field.types)?.fieldType === "TYPE") {
                         // Handle the case where the type is changed via 'Add Type'
                         const existingType = formValues[field.key];
                         const newType = field.value;
 
-                        if (existingType !== newType) {
+                        if (existingType === "") {
+                            // User has explicitly cleared the type field; preserve the empty value
+                            defaultValues[field.key] = "";
+                        } else if (existingType !== newType) {
                             setValue(field.key, newType);
                             getVisualiableFields();
                         }
@@ -775,8 +778,8 @@ export const Form = forwardRef((props: FormProps, _ref) => {
     // has advance fields
     const hasAdvanceFields = formFields.some((field) => field.advanced && field.enabled && !field.hidden) || advancedChoiceFields.length > 0;
     const variableField = formFields.find((field) => field.key === "variable");
-    const typeField = formFields.find((field) => field.key === "type");
-    const expressionField = formFields.find((field) => field.key === "expression");
+    const typeField = formFields.find((field) => getPrimaryInputType(field.types)?.fieldType === "TYPE");
+    const expressionField = formFields.find((field) => getPrimaryInputType(field.types)?.fieldType === "EXPRESSION");
     const targetTypeField = formFields.find((field) => field.codedata?.kind === "PARAM_FOR_TYPE_INFER");
     const hasParameters = hasRequiredParameters(formFields, selectedNode) || hasOptionalParameters(formFields);
 

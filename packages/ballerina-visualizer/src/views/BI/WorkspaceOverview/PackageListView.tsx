@@ -204,6 +204,7 @@ const getTypeColor = (type: SCOPE): string => {
         [SCOPE.EVENT_INTEGRATION]: 'var(--vscode-charts-orange)',
         [SCOPE.FILE_INTEGRATION]: 'var(--vscode-charts-purple)',
         [SCOPE.AI_AGENT]: 'var(--vscode-terminal-ansiBlue)',
+        [SCOPE.MCP]: 'var(--vscode-terminal-ansiCyan)',
         [SCOPE.LIBRARY]: 'var(--vscode-charts-foreground)',
         [SCOPE.ANY]: 'var(--vscode-charts-gray)'
     };
@@ -217,6 +218,7 @@ const getTypeIcon = (type: SCOPE): { name: string; source: 'icon' | 'codicon' } 
         [SCOPE.EVENT_INTEGRATION]: { name: 'Event', source: 'icon' },
         [SCOPE.FILE_INTEGRATION]: { name: 'file', source: 'icon' },
         [SCOPE.AI_AGENT]: { name: 'bi-ai-agent', source: 'icon' },
+        [SCOPE.MCP]: { name: 'bi-mcp', source: 'icon' },
         [SCOPE.LIBRARY]: { name: 'library', source: 'codicon' },
         [SCOPE.ANY]: { name: 'package', source: 'codicon' }
     };
@@ -230,6 +232,7 @@ const getTypeLabel = (type: SCOPE): string => {
         [SCOPE.EVENT_INTEGRATION]: 'Event Integration',
         [SCOPE.FILE_INTEGRATION]: 'File Integration',
         [SCOPE.AI_AGENT]: 'AI Agent',
+        [SCOPE.MCP]: 'MCP Server',
         [SCOPE.LIBRARY]: 'Library',
         [SCOPE.ANY]: ''
     };
