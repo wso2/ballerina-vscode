@@ -1667,10 +1667,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 flowNode: updatedNode,
                 isFunctionNodeUpdate: editorConfig?.displayMode !== EditorDisplayMode.NONE,
                 isHelperPaneChange: options?.isChangeFromHelperPane,
-                artifactData: editorConfig &&
-                    editorConfig.displayMode !== EditorDisplayMode.NONE &&
-                    editorConfig.view === MACHINE_VIEW.DataMapper ?
-                    { artifactType: DIRECTORY_MAP.DATA_MAPPER } : undefined,
+                artifactData: getArtifactData(editorConfig),
             })
             .then(async (response) => {
                 if (response.artifacts.length > 0) {
@@ -1752,6 +1749,36 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 }
             });
     };
+
+
+    const getArtifactData = (editorConfig?: EditorConfig) => {
+        // When editorConfig is absent, derive the artifact type from the first node's metadata.data
+        //   kind="Function" + label="main" → AUTOMATION
+        //   kind="Function" + other label        → FUNCTION
+        //   isServiceFunction  → SERVICE
+        if (!editorConfig) {
+            const firstNode = model?.nodes?.[0];
+            const parentData = firstNode?.metadata?.data as ParentMetadata;
+            if (parentData) {
+                const { kind, label, isServiceFunction } = parentData;
+                if (!isServiceFunction && kind === "Function") {
+                    if (label?.toLowerCase() === "main") {
+                        return { artifactType: DIRECTORY_MAP.AUTOMATION };
+                    }
+                    return { artifactType: DIRECTORY_MAP.FUNCTION };
+                }
+                if (isServiceFunction) {
+                    return { artifactType: DIRECTORY_MAP.SERVICE };
+                }
+            }
+            return undefined;
+        }
+
+        return editorConfig &&
+            editorConfig.displayMode !== EditorDisplayMode.NONE &&
+            editorConfig.view === MACHINE_VIEW.DataMapper ?
+            { artifactType: DIRECTORY_MAP.DATA_MAPPER } : undefined;
+    }
 
     const handleOnDeleteNode = async (node: FlowNode) => {
         setShowProgressIndicator(true);
