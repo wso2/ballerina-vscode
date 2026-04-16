@@ -860,7 +860,7 @@ export function DataMapperView(props: DataMapperViewProps) {
                             onClose={() => setIsTypeEditorOpen(false)}
                             onTypeCreate={onTypeCreateRef.current}
                             initialTypeName={initialTypeNameRef.current}
-                            modalTitle={"Define Type for converted variable"}
+                            modalTitle={"Define Type"}
 
                             modalWidth={650}
                             modalHeight={600}
