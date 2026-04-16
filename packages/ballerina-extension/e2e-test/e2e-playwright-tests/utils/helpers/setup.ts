@@ -40,6 +40,7 @@ const marketplaceExtensionsFolder = path.join(extensionsWorkRoot, 'marketplace-c
 const preExtensionId = 'WSO2.wso2-integrator';
 export const newProjectPath = path.join(dataFolder, DEFAULT_PROJECT_FOLDER_NAME);
 const snapshotsFolder = path.join(resourcesFolder, 'snapshots');
+const screenshotsFolder = path.join(resourcesFolder, 'screenshots');
 export let vscode: any;
 export let page: ExtendedPage;
 
@@ -49,6 +50,23 @@ const execAsync = promisify(exec);
  * Zips the current test project directory so the source state can be inspected
  * after a failure. The archive is written to test-resources/snapshots/.
  */
+export async function captureFailureScreenshot(testTitle: string): Promise<void> {
+    if (!page?.page) {
+        console.log('ℹ️  No active page, skipping screenshot capture');
+        return;
+    }
+    try {
+        fs.mkdirSync(screenshotsFolder, { recursive: true });
+        const safeName = testTitle.replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 120);
+        const timestamp = new Date().toISOString().replace(/:/g, '-');
+        const screenshotPath = path.join(screenshotsFolder, `${safeName}_${timestamp}.png`);
+        await page.page.screenshot({ path: screenshotPath, fullPage: true });
+        console.log(`📸 Failure screenshot saved: ${screenshotPath}`);
+    } catch (error) {
+        console.warn('⚠️  Failed to capture screenshot:', error);
+    }
+}
+
 export function zipProjectSnapshot(testTitle: string): void {
     if (!fs.existsSync(newProjectPath)) {
         console.log('ℹ️  Test project directory does not exist, skipping snapshot');
@@ -293,12 +311,25 @@ export function initTest(newProject: boolean = true, skipProjectCreation: boolea
             console.log('  🔄 Reloading VS Code after project reset...');
             await page.page.keyboard.press('Escape');
             await page.page.keyboard.press('Escape');
+            // Close all terminals
             try {
                 await page.executePaletteCommand('Terminal: Kill All Terminals');
                 await page.page.waitForTimeout(500);
             } catch { }
             try {
-                await page.executePaletteCommand('View: Close All Editors');
+                await page.page.keyboard.press('Escape');
+                await page.page.keyboard.press('Escape');
+                // Save all unsaved files
+                await page.executePaletteCommand('workbench.action.files.saveFiles');
+           
+                await page.page.waitForTimeout(500);
+
+                await page.page.keyboard.press('Escape');
+                await page.page.keyboard.press('Escape');
+                // "View: Close All Editors" will prompt to save unsaved files, which can block test automation if editors are dirty.
+                // Force-close all tabs without prompt using the 'workbench.action.closeAllEditors' command via `executePaletteCommand`, although its effect may still prompt VSCode in some unsaved file cases.
+                // To ensure all editors close without prompt, consider discarding changes explicitly before running this.
+                await page.executePaletteCommand('workbench.action.closeAllEditors');
                 await page.page.waitForTimeout(500);
             } catch { }
             await page.executePaletteCommand('Reload Window');
@@ -311,6 +342,17 @@ export function initTest(newProject: boolean = true, skipProjectCreation: boolea
             console.log('  ✅ BI extension ready after reload');
         }
         await toggleNotifications(true);
+        // Skip the github popup if there is any
+        try {
+            const welcomePopup = page.page.locator('text=Welcome to VS Code');
+            await welcomePopup.waitFor({ timeout: 3000 });
+            const skipButton = page.page.getByRole('button', { name: 'Skip' });
+            await skipButton.click();
+            console.log('Skipped github popup');
+        } catch {
+            console.log('No github popup found');
+        }
+
         if (!skipProjectCreation) {
             await createProject(page, projectName);
         }
@@ -322,6 +364,7 @@ export function initTest(newProject: boolean = true, skipProjectCreation: boolea
         const statusEmoji = status === 'passed' ? '✅' : status === 'failed' ? '❌' : '⏭️';
         console.log(`${statusEmoji} FINISHED TEST: ${testInfo.title} (${status.toUpperCase()}, Attempt ${testInfo.retry + 1})\n`);
         if (status === 'failed' || status === 'timedOut' || status === 'interrupted') {
+            await captureFailureScreenshot(testInfo.title);
             zipProjectSnapshot(testInfo.title);
         }
     });
@@ -357,5 +400,15 @@ export function initMigrationTest() {
             throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
         }
         console.log('Migration test runner started');
+    });
+
+    test.afterEach(async ({ }, testInfo) => {
+        const status = testInfo.status ?? 'skipped';
+        const statusEmoji = status === 'passed' ? '✅' : status === 'failed' ? '❌' : '⏭️';
+        console.log(`${statusEmoji} FINISHED MIGRATION TEST: ${testInfo.title} (${status.toUpperCase()}, Attempt ${testInfo.retry + 1})\n`);
+        if (status === 'failed' || status === 'timedOut' || status === 'interrupted') {
+            await captureFailureScreenshot(testInfo.title);
+            zipProjectSnapshot(testInfo.title);
+        }
     });
 }

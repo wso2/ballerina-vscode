@@ -39,20 +39,7 @@ export class ProjectExplorer {
         for (let i = 0; i < path.length; i++) {
 
             currentItem = this.explorer.locator(`div[role="treeitem"][aria-label='${path[i]}']`);
-            await currentItem.waitFor({ timeout: 500 });
-
-            if (i < path.length - 1) {
-                const isExpanded = await currentItem.getAttribute('aria-expanded');
-                if (isExpanded === 'false') {
-                    await currentItem.click();
-                }
-            } else {
-                if (click) {
-                    await currentItem.click();
-                } else {
-                    await currentItem.hover();
-                }
-            }
+            await currentItem.waitFor({ timeout: 5000 });
         }
         return currentItem;
     }

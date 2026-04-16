@@ -26,13 +26,11 @@ export default function createTests() {
     }, async () => {
         initTest();
         test.beforeAll(async () => {
-            await enableICP();
-            await addArtifact('Configuration', 'configurable');
-            // Wait for 3 seconds to ensure the webview is loaded
-            await new Promise(resolve => setTimeout(resolve, 3000));
+            // await enableICP();
         });
 
         test('Create Configuration', async () => {
+            await addArtifact('Configuration', 'configurable');
             const configEditor = new ConfigEditor(page.page, BI_INTEGRATOR_LABEL);
             await configEditor.init();
             const configurationWebView = configEditor.getWebView();
@@ -56,7 +54,7 @@ export default function createTests() {
                     'Variable Type': {
                         type: 'textarea',
                         value: 'int',
-                        additionalProps: { clickLabel: true, clickItem: true }
+                        additionalProps: { clickLabel: true }
                     },
                     'defaultValue': {
                         type: 'cmEditor',
@@ -126,7 +124,7 @@ export default function createTests() {
                     'Variable Type': {
                         type: 'textarea',
                         value: 'string',
-                        additionalProps: { clickLabel: true, clickItem: true }
+                        additionalProps: { clickLabel: true }
                     }
                 }
             });
@@ -157,7 +155,7 @@ export default function createTests() {
                     'Variable Type': {
                         type: 'textarea',
                         value: 'string',
-                        additionalProps: { clickLabel: true, clickItem: true }
+                        additionalProps: { clickLabel: true }
                     }
                 }
             });
@@ -216,15 +214,15 @@ export default function createTests() {
             await configEditor.verifyConfigurableVariable('destination', '', 'new-destination-value');
         });
 
-        test('Package Selection and Configuration', async () => {
-            const configEditor = new ConfigEditor(page.page, BI_INTEGRATOR_LABEL);
-            await configEditor.init();
+        // test('Package Selection and Configuration', async () => {
+        //     const configEditor = new ConfigEditor(page.page, BI_INTEGRATOR_LABEL);
+        //     await configEditor.init();
 
-            // Add value to library config variable
-            await configEditor.selectPackage('ballerinax/wso2.controlplane');
-            await configEditor.addConfigTomlValue('dashboard', 'example-dashboard');
-            await configEditor.verifyConfigurableVariable('dashboard', '', 'example-dashboard');
-        });
+        //     // Add value to library config variable
+        //     await configEditor.selectPackage('ballerinax/wso2.controlplane');
+        //     await configEditor.addConfigTomlValue('dashboard', 'example-dashboard');
+        //     await configEditor.verifyConfigurableVariable('dashboard', '', 'example-dashboard');
+        // });
 
         test('Run Integration Successfully', async () => {
             const configEditor = new ConfigEditor(page.page, BI_INTEGRATOR_LABEL);

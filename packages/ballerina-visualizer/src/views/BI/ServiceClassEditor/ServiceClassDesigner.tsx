@@ -361,6 +361,7 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
                     description: "The initial value of the variable"
                 },
                 value: "",
+                types: [{ fieldType: "EXPRESSION", selected: false }],
                 enabled: true,
                 editable: true,
                 isType: false,
