@@ -153,7 +153,7 @@ export const transformTypesFromSearchToHelperCategory = (types: Category[]): Typ
     });
 }
 
-export const getFilteredTypesByKind = (types: Category[], kind: FunctionKind) => {
+export const getFilteredTypesByKind = (types: Category[], kinds: FunctionKind[]) => {
     const categories: TypeHelperCategory[] = [];
 
     for (const category of types) {
@@ -162,7 +162,7 @@ export const getFilteredTypesByKind = (types: Category[], kind: FunctionKind) =>
         }
 
         const categoryKind = getFunctionItemKind(category.metadata.label);
-        if (categoryKind !== kind) {
+        if (!kinds.includes(categoryKind)) {
             continue;
         }
 
@@ -175,7 +175,7 @@ export const getFilteredTypesByKind = (types: Category[], kind: FunctionKind) =>
                 }
 
                 let subCategoryKind = categoryKind;
-                if (kind === functionKinds.CURRENT) {
+                if (kinds.includes(functionKinds.CURRENT)) {
                     // HACK: If item is under the current project category,
                     // but it is not in the current integration, then 
                     // treat is as an imported item.

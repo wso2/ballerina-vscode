@@ -20,7 +20,7 @@ import React, { ReactNode, useEffect, useState } from "react";
 import styled from "@emotion/styled";
 import { ExpressionEditorDevantProps, ExpressionFormField, FormValues } from "@wso2/ballerina-side-panel";
 import { EditorConfig, FlowNode, LineRange, SubPanel } from "@wso2/ballerina-core";
-import FormGenerator from "../../Forms/FormGenerator";
+import FlowNodeForm from "../../Forms/FlowNodeForm";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { SidePanelView } from "../../FlowDiagram/PanelManager";
 import { ConnectionKind } from "../../../../components/ConnectionSelector";
@@ -116,7 +116,7 @@ export function ConnectionConfigView(props: ConnectionConfigViewProps) {
     return (
         <Container footerActionButton={footerActionButton}>
             {targetLineRange && (
-                <FormGenerator
+                <FlowNodeForm
                     showProgressIndicator={isSaving}
                     submitText={submitText}
                     fileName={fileName}

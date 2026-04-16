@@ -76,7 +76,6 @@ import {
     DevantMetadata,
     WorkspaceDevantMetadata,
     ProjectDevantMetadata,
-    Diagnostics,
     EndOfFileRequest,
     ExpressionCompletionsRequest,
     ExpressionCompletionsResponse,
@@ -156,8 +155,10 @@ import {
     PackageTomlValues,
     EVENT_TYPE,
     UpdateProjectTitleRequest,
+    UpdatePackageTitleRequest,
     SuggestedProjectDefaultsResponse,
-    MACHINE_VIEW
+    ProjectInfo,
+    PROJECT_KIND
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
@@ -181,7 +182,7 @@ import { DebugProtocol } from "vscode-debugprotocol";
 import { extension } from "../../BalExtensionContext";
 import { OLD_BACKEND_URL } from "../../features/ai/utils";
 import { fetchWithAuth } from "../../features/ai/utils/ai-client";
-import { cleanAndValidateProject, getCurrentBIProject } from "../../features/config-generator/configGenerator";
+import { getCurrentBIProject } from "../../features/config-generator/configGenerator";
 import { BreakpointManager } from "../../features/debugger/breakpoint-manager";
 import { StateMachine, updateView } from "../../stateMachine";
 import { getAccessToken, getLoginMethod } from "../../utils/ai/auth";
@@ -205,7 +206,6 @@ import { getView } from "../../utils/state-machine-utils";
 import { isLibraryProject } from "../../utils/config";
 import { PlatformExtRpcManager } from "../platform-ext/rpc-manager";
 import { openAIPanelWithPrompt } from "../../views/ai-panel/aiMachine";
-import { checkProjectDiagnostics, removeUnusedImports } from "../ai-panel/repair-utils";
 import { getCurrentBallerinaProject } from "../../utils/project-utils";
 import { CommonRpcManager } from "../common/rpc-manager";
 import * as toml from "@iarna/toml";
@@ -233,6 +233,34 @@ function ensureGitignoreEntry(projectRoot: string): void {
     } catch (e) {
         console.warn('[agent-chat] Failed to update .gitignore:', e);
     }
+}
+
+/**
+ * Reads a Ballerina.toml file, sets `doc[section][field] = value`, and writes it back.
+ * Throws if the file is missing or unparseable.
+ */
+function setTomlSectionField(filePath: string, section: string, field: string, value: string): void {
+    let content: string;
+    try {
+        content = fs.readFileSync(filePath, 'utf-8');
+    } catch {
+        throw new Error(`Ballerina.toml not found at ${filePath}`);
+    }
+    let doc: ReturnType<typeof toml.parse>;
+    try {
+        doc = toml.parse(content);
+    } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        throw new Error(`Invalid TOML in ${filePath}: ${message}`);
+    }
+    const sectionObj = doc[section];
+    if (sectionObj !== null && typeof sectionObj === "object" && !Array.isArray(sectionObj)) {
+        (sectionObj as Record<string, unknown>)[field] = value;
+    } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (doc as any)[section] = { [field]: value };
+    }
+    fs.writeFileSync(filePath, toml.stringify(doc), "utf-8");
 }
 
 export class BiDiagramRpcManager implements BIDiagramAPI {
@@ -773,6 +801,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             } catch (error) {
                 window.showErrorMessage("Error converting integration to workspace");
                 console.error("Error converting integration to workspace:", error);
+                return;
             }
         } else {
             try {
@@ -964,8 +993,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async deleteFlowNode(params: BISourceCodeRequest): Promise<UpdatedArtifactsResponse> {
         console.log(">>> requesting bi delete node from ls", params);
-        // Clean project diagnostics before deleting flow node
-        await cleanAndValidateProject(StateMachine.langClient(), StateMachine.context().projectPath);
 
         return new Promise((resolve) => {
             StateMachine.langClient()
@@ -1511,7 +1538,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async deleteByComponentInfo(params: BIDeleteByComponentInfoRequest): Promise<BIDeleteByComponentInfoResponse> {
         console.log(">>> requesting bi delete node from ls by componentInfo", params);
-        const projectDiags: Diagnostics[] = await checkProjectDiagnostics(StateMachine.langClient(), StateMachine.context().projectPath);
 
         const position: NodePosition = {
             startLine: params.component?.startLine,
@@ -1555,25 +1581,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         }
 
 
-        // If there are diagnostics, remove unused imports first, then delete component
-        if (projectDiags.length > 0) {
-            return new Promise((resolve, reject) => {
-                removeUnusedImports(projectDiags, StateMachine.langClient())
-                    .then(() => {
-                        // After removing unused imports, proceed with component deletion
-                        return performDelete();
-                    })
-                    .then((result) => {
-                        resolve(result);
-                    })
-                    .catch((error) => {
-                        reject("Error during delete operation: " + error);
-                    });
-            });
-        } else {
-            // No diagnostics, directly delete component
-            return performDelete();
-        }
+        return performDelete();
     }
 
     async getFormDiagnostics(params: FormDiagnosticsRequest): Promise<FormDiagnosticsResponse> {
@@ -2506,40 +2514,36 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async updateProjectTitle(params: UpdateProjectTitleRequest): Promise<void> {
-        const ballerinaTomlPath = path.join(params.projectPath, 'Ballerina.toml');
-        let content: string;
-        try {
-            content = fs.readFileSync(ballerinaTomlPath, 'utf-8');
-        } catch {
-            throw new Error(`Ballerina.toml not found at ${ballerinaTomlPath}`);
-        }
-        let doc: ReturnType<typeof toml.parse>;
-        try {
-            doc = toml.parse(content);
-        } catch (e) {
-            const message = e instanceof Error ? e.message : String(e);
-            throw new Error(`Invalid TOML in ${ballerinaTomlPath}: ${message}`);
-        }
-        const workspace = doc.workspace;
-        if (
-            workspace !== undefined &&
-            workspace !== null &&
-            typeof workspace === "object" &&
-            !Array.isArray(workspace) &&
-            !(workspace instanceof Date)
-        ) {
-            (workspace as ReturnType<typeof toml.parse>).title = params.title;
-        } else {
-            doc.workspace = { title: params.title };
-        }
-        fs.writeFileSync(ballerinaTomlPath, toml.stringify(doc), "utf-8");
-
+        setTomlSectionField(path.join(params.projectPath, 'Ballerina.toml'), 'workspace', 'title', params.title);
         const currentProjectInfo = StateMachine.context().projectInfo;
         if (currentProjectInfo.projectPath === params.projectPath) {
             StateMachine.updateProjectInfo({ ...currentProjectInfo, title: params.title });
         } else {
             StateMachine.refreshProjectInfo();
         }
+    }
+
+    async updatePackageTitle(params: UpdatePackageTitleRequest): Promise<void> {
+        setTomlSectionField(path.join(params.packagePath, 'Ballerina.toml'), 'package', 'title', params.title);
+        // Update projectInfo so any subsequent buildProjectsStructure call uses the new title.
+        const currentProjectInfo = StateMachine.context().projectInfo;
+        let updatedProjectInfo: ProjectInfo;
+        if (
+            currentProjectInfo.projectKind === PROJECT_KIND.WORKSPACE_PROJECT &&
+            currentProjectInfo.children?.length > 0
+        ) {
+            updatedProjectInfo = {
+                ...currentProjectInfo,
+                children: currentProjectInfo.children.map((child) =>
+                    child.projectPath === params.packagePath
+                        ? { ...child, title: params.title }
+                        : child
+                ),
+            };
+        } else {
+            updatedProjectInfo = { ...currentProjectInfo, title: params.title };
+        }
+        StateMachine.updateProjectInfo(updatedProjectInfo, { silent: true });
     }
 
     async getSuggestedProjectDefaults(params: { isInProject: boolean }): Promise<SuggestedProjectDefaultsResponse> {

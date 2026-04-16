@@ -72,18 +72,18 @@ import { EXPRESSION_EXTRACTION_REGEX, TypeHelperContext } from "../../../../cons
 import { getHelperPaneNew } from "../../HelperPaneNew";
 import { ConfigureRecordPage } from "../../HelperPaneNew/Views/RecordConfigModal";
 import React from "react";
-import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../FormGenerator";
+import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../FlowNodeForm";
 import { EditorContext, StackItem } from "@wso2/type-editor";
 import DynamicModal from "../../../../components/Modal";
 import { useModalStack } from "../../../../Context";
 
-interface TypeEditorState {
+interface ArtifactTypeEditorState {
     isOpen: boolean;
     field?: FormField; // Optional, to store the field being edited
     newTypeValue?: string;
 }
 
-interface FormProps {
+interface ArtifactFormProps {
     fileName: string;
     fields: FormField[];
     targetLineRange?: LineRange;
@@ -124,7 +124,7 @@ interface FormProps {
     recordsOnly?: boolean;
 }
 
-export function FormGeneratorNew(props: FormProps) {
+export function ArtifactForm(props: ArtifactFormProps) {
     const {
         fileName,
         fields,
@@ -168,7 +168,7 @@ export function FormGeneratorNew(props: FormProps) {
         return targetLineRange ? updateLineRange(targetLineRange, expressionOffset).startLine : undefined;
     };
 
-    const [typeEditorState, setTypeEditorState] = useState<TypeEditorState>({ isOpen: false, newTypeValue: "" });
+    const [typeEditorState, setTypeEditorState] = useState<ArtifactTypeEditorState>({ isOpen: false, newTypeValue: "" });
 
     /* Expression editor related state and ref variables */
     const prevCompletionFetchText = useRef<string>("");
@@ -184,7 +184,6 @@ export function FormGeneratorNew(props: FormProps) {
     const fieldsRef = useRef<FormField[]>(fields);
     const fieldsValuesRef = useRef<FormField[]>(fields);
     const [formImports, setFormImports] = useState<FormImports>({});
-    const [selectedType, setSelectedType] = useState<CompletionItem | null>(null);
     const [refetchStates, setRefetchStates] = useState<boolean[]>([false]);
     const [valueTypeConstraints, setValueTypeConstraints] = useState<string>();
 
@@ -229,7 +228,7 @@ export function FormGeneratorNew(props: FormProps) {
         if (type) {
             const typeName = typeof type === 'string' ? type : (type as Type).name;
             setFields(fields.map((field) => {
-                if (field.key === 'type') {
+                if (getPrimaryInputType(field.types)?.fieldType === 'TYPE') {
                     return { ...field, value: typeName };
                 }
                 return field;
@@ -773,13 +772,10 @@ export function FormGeneratorNew(props: FormProps) {
             updateImports: handleUpdateImports,
             completions: completions,
             projectPath: projectPath,
-            selectedType: selectedType,
             filteredCompletions: filteredCompletions,
             isInModal: false,
             types: types,
             handleRetrieveCompletions: handleRetrieveCompletions,
-            handleValueTypeConstChange: handleValueTypeConstChange,
-            forcedValueTypeConstraint: valueTypeConstraints,
             inputMode: inputMode,
         });
     };
@@ -1164,4 +1160,4 @@ export function FormGeneratorNew(props: FormProps) {
     );
 }
 
-export default FormGeneratorNew;
+export default ArtifactForm;
