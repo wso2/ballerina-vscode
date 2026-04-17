@@ -119,13 +119,13 @@ function buildTestCommand(test: TestItem, executor: string, projectName: string 
         const projectPath = getProjectPathFromTestItem(test);
         if (projectPath) { ensureEvalReportsGitignored(projectPath); }
         const testsPart = testCaseNames && testCaseNames.length > 0 ? ` --tests ${testCaseNames.join(',')}` : '';
-        const projectPart = projectName ? ` ${projectName}` : '';
+        const projectPart = projectName ? ` ${quoteShellPath(projectName)}` : '';
         const reportDir = projectName ? `${projectName}/tests/evaluation-reports` : 'tests/evaluation-reports';
-        return `${quoteShellPath(executor)} test --groups ${EVALUATION_GROUP} --test-report --test-report-dir=${reportDir}${testsPart}${projectPart}`;
+        return `${quoteShellPath(executor)} test --groups ${EVALUATION_GROUP} --test-report --test-report-dir=${quoteShellPath(reportDir)}${testsPart}${projectPart}`;
     } else {
         // Standard tests use code coverage and optional test filtering
         const testsPart = testCaseNames && testCaseNames.length > 0 ? ` --tests ${testCaseNames.join(',')}` : '';
-        const projectPart = projectName ? ` ${projectName}` : '';
+        const projectPart = projectName ? ` ${quoteShellPath(projectName)}` : '';
         return `${quoteShellPath(executor)} test --code-coverage${testsPart}${projectPart}`;
     }
 }
