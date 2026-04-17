@@ -252,7 +252,6 @@ public class ConnectionActionProvider {
                 .project(project)
                 .moduleInfo(context.moduleInfo())
                 .resolvedPackage(context.resolvedPackage())
-                .enableIndex()
                 .buildChildNodes();
 
         List<Item> methods = new ArrayList<>();
