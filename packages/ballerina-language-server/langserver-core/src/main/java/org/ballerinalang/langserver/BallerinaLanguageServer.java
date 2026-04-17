@@ -113,6 +113,12 @@ public class BallerinaLanguageServer extends AbstractExtendedLanguageServer
         return this.client;
     }
 
+    public void setEvictProjectOnLastClose(boolean enabled) {
+        if (workspaceManagerProxy instanceof BallerinaWorkspaceManagerProxyImpl ballerinaWorkspaceManagerProxy) {
+            ballerinaWorkspaceManagerProxy.setEvictProjectOnLastClose(enabled);
+        }
+    }
+
     @Override
     public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
         final InitializeResult res = new InitializeResult(new ServerCapabilities());
