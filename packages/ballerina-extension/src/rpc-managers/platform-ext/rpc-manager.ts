@@ -530,7 +530,11 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         const deployementParams: ICreateNewIntegrationCmdParams = {
             buildPackLang:"ballerina",
             workspaceDir: StateMachine.context().workspacePath || StateMachine.context().projectPath,
-            integrations: [{ fsPath: StateMachine.context().projectPath, supportedIntegrationTypes: [integrationType] }]
+            integrations: [{
+                fsPath: StateMachine.context().projectPath,
+                supportedIntegrationTypes: [integrationType],
+                name: project?.projectTitle || project?.projectName
+            }]
         };
         vscode.commands.executeCommand(WICommandIds.CreateNewComponent, deployementParams);
     }
