@@ -64,6 +64,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA;
+import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINAX;
 import static io.ballerina.modelgenerator.commons.CommonUtils.getPersistDatabaseIcon;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiKnowledgeBase;
@@ -78,8 +79,6 @@ public class ConnectionActionProvider {
 
     private static final int MAX_CACHE_SIZE = 25;
     private static final String CACHE_DIR_NAME = "ballerina-ls-connector-cache";
-    private static final String BALLERINA_ORG = "ballerina";
-    private static final String BALLERINAX_ORG = "ballerinax";
     private static final String HTTP_MODULE = "http";
     private static final List<String> HTTP_REMOTE_METHOD_SKIP_LIST = List.of("get", "put", "post", "head",
             "delete", "patch", "options");
@@ -201,11 +200,15 @@ public class ConnectionActionProvider {
                 sanitizeSegment(version));
     }
 
-    private List<Item> getOrBuildTemplates(ConnectorContext context) {
+    List<Item> getOrBuildTemplates(ConnectorContext context) {
+        return getOrBuildTemplates(context, () -> buildTemplates(context, context.project()));
+    }
+
+    List<Item> getOrBuildTemplates(ConnectorContext context, SupplierFn<List<Item>> supplier) {
         if (!context.cacheable()) {
-            return buildTemplates(context, context.project());
+            return supplier.get();
         }
-        return getOrBuild(context.cacheKey(), () -> buildTemplates(context, context.project()));
+        return getOrBuild(context.cacheKey(), supplier);
     }
 
     private ConnectorContext createContext(ClassSymbol classSymbol, Project project, SemanticModel semanticModel) {
@@ -217,7 +220,7 @@ public class ConnectionActionProvider {
         boolean persistClient = isPersistClient(classSymbol, semanticModel);
         String cacheKey = generateKey(moduleInfo.org(), moduleInfo.packageName(), moduleInfo.moduleName(), className,
                 moduleInfo.version());
-        boolean cacheable = BALLERINA_ORG.equals(moduleInfo.org()) || BALLERINAX_ORG.equals(moduleInfo.org());
+        boolean cacheable = BALLERINA.equals(moduleInfo.org()) || BALLERINAX.equals(moduleInfo.org());
         return new ConnectorContext(
                 cacheKey,
                 classSymbol,
@@ -474,9 +477,9 @@ public class ConnectionActionProvider {
         private static final ConnectionActionProvider INSTANCE = new ConnectionActionProvider();
     }
 
-    private record ConnectorContext(String cacheKey, ClassSymbol classSymbol, String className, ModuleInfo moduleInfo,
-                                    Package resolvedPackage, boolean knowledgeBase, boolean agentClass,
-                                    String iconOverride, Project project, boolean cacheable) {
+    record ConnectorContext(String cacheKey, ClassSymbol classSymbol, String className, ModuleInfo moduleInfo,
+                            Package resolvedPackage, boolean knowledgeBase, boolean agentClass,
+                            String iconOverride, Project project, boolean cacheable) {
     }
 
     // Exposed for core tests: getOrBuild using Caffeine atomic loading

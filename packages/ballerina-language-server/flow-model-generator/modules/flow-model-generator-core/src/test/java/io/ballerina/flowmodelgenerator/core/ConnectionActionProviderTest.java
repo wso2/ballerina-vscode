@@ -24,6 +24,7 @@ import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.Item;
 import io.ballerina.flowmodelgenerator.core.model.Metadata;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
+import io.ballerina.modelgenerator.commons.ModuleInfo;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -91,16 +92,27 @@ public class ConnectionActionProviderTest {
         Assert.assertEquals(second, expected);
     }
 
-    @Test(description = "Verifies non-ballerina connector entries bypass memory and disk cache.")
-    public void testNonBallerinaPackagesBypassMemoryAndDiskCache() {
+    @Test(description = "Verifies non-cacheable connector contexts bypass memory and disk cache.")
+    public void testGetOrBuildCachesRegardlessOfOrg() {
         String key = "acme:local_cache_test:local_cache_test:LocalClient:0.1.0";
         AtomicInteger buildCount = new AtomicInteger();
+        ConnectionActionProvider.ConnectorContext context = new ConnectionActionProvider.ConnectorContext(
+                key,
+                null,
+                "LocalClient",
+                new ModuleInfo("acme", "local_cache_test", "local_cache_test", "0.1.0"),
+                null,
+                false,
+                false,
+                null,
+                null,
+                false);
 
-        List<Item> first = provider.getOrBuild(key, () -> {
+        List<Item> first = provider.getOrBuildTemplates(context, () -> {
             buildCount.incrementAndGet();
             return List.of(availableNode("ping", null, null));
         });
-        List<Item> second = provider.getOrBuild(key, () -> {
+        List<Item> second = provider.getOrBuildTemplates(context, () -> {
             buildCount.incrementAndGet();
             return List.of(availableNode("pong", null, null));
         });
