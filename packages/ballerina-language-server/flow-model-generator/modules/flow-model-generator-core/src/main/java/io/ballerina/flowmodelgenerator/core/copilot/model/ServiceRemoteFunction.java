@@ -36,6 +36,8 @@ public class ServiceRemoteFunction {
     @SerializedName("return")
     private Return returnInfo;
     private boolean optional;
+    @SerializedName("isDeprecated")
+    private Boolean deprecated;
 
     public ServiceRemoteFunction() {
         this.parameters = new ArrayList<>();
@@ -87,5 +89,13 @@ public class ServiceRemoteFunction {
 
     public void setOptional(boolean optional) {
         this.optional = optional;
+    }
+
+    public Boolean isDeprecated() {
+        return deprecated;
+    }
+
+    public void setDeprecated(Boolean deprecated) {
+        this.deprecated = deprecated;
     }
 }

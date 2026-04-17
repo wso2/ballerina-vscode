@@ -37,6 +37,8 @@ public class LibraryFunction {
     private List<Parameter> parameters;
     @SerializedName("return")
     private Return returnInfo;
+    @SerializedName("isDeprecated")
+    private Boolean deprecated;
 
     public LibraryFunction() {
         this.parameters = new ArrayList<>();
@@ -96,5 +98,13 @@ public class LibraryFunction {
 
     public void setReturnInfo(Return returnInfo) {
         this.returnInfo = returnInfo;
+    }
+
+    public Boolean isDeprecated() {
+        return deprecated;
+    }
+
+    public void setDeprecated(Boolean deprecated) {
+        this.deprecated = deprecated;
     }
 }

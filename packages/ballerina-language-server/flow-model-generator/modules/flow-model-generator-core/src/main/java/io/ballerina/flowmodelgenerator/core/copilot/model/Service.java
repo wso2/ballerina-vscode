@@ -35,6 +35,8 @@ public class Service {
     @SerializedName("methods")
     private List<ServiceRemoteFunction> methods;
     private String testGenerationInstruction;
+    @SerializedName("isDeprecated")
+    private Boolean deprecated;
 
     public Service() {
     }
@@ -77,5 +79,13 @@ public class Service {
 
     public void setTestGenerationInstruction(String testGenerationInstruction) {
         this.testGenerationInstruction = testGenerationInstruction;
+    }
+
+    public Boolean isDeprecated() {
+        return deprecated;
+    }
+
+    public void setDeprecated(Boolean deprecated) {
+        this.deprecated = deprecated;
     }
 }

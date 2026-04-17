@@ -148,7 +148,7 @@ public class CopilotLibraryManager {
             library.setFunctions(symbolResult.getFunctions());
             library.setTypeDefs(symbolResult.getTypeDefs());
 
-            JsonArray servicesJson = ServiceLoader.loadAllServices(libraryName);
+            JsonArray servicesJson = ServiceLoader.loadAllServices(libraryName, semanticModel);
             List<Service> services = new ArrayList<>();
             for (JsonElement serviceElement : servicesJson) {
                 Service service = GSON.fromJson(serviceElement, Service.class);

@@ -22,6 +22,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.ballerina.compiler.api.SemanticModel;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,13 +52,17 @@ public class ServiceLoader {
 
     /**
      * Loads all services for a given library from the service-index DB and generic services.
+     * The optional {@code semanticModel} is used to enrich index-sourced services with
+     * deprecation information read from live symbols — the SQLite index does not store it.
      *
-     * @param libraryName the library name (e.g., "ballerina/http", "ballerinax/kafka")
+     * @param libraryName   the library name (e.g., "ballerina/http", "ballerinax/kafka")
+     * @param semanticModel the semantic model of the library package, or {@code null}
+     *                      if deprecation enrichment should be skipped
      * @return JsonArray containing all services for this library
      */
-    public static JsonArray loadAllServices(String libraryName) {
+    public static JsonArray loadAllServices(String libraryName, SemanticModel semanticModel) {
         JsonArray services = new JsonArray();
-        ServiceIndexLoader.loadFromServiceIndex(libraryName).forEach(services::add);
+        ServiceIndexLoader.loadFromServiceIndex(libraryName, semanticModel).forEach(services::add);
         getGenericServices(libraryName).forEach(services::add);
         return services;
     }

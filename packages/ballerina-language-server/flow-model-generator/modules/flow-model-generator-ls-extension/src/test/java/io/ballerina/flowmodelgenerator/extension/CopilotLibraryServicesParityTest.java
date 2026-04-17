@@ -74,7 +74,7 @@ public class CopilotLibraryServicesParityTest {
 
     @Test(dataProvider = "coveredLibraries")
     public void testServiceLoaderProducesNonEmptyResults(String libraryName) {
-        JsonArray services = ServiceLoader.loadAllServices(libraryName);
+        JsonArray services = ServiceLoader.loadAllServices(libraryName, null);
 
         Assert.assertFalse(services.isEmpty(),
                 "loadAllServices returned empty for covered library: " + libraryName);
@@ -96,7 +96,7 @@ public class CopilotLibraryServicesParityTest {
 
     @Test(dataProvider = "allLibraries")
     public void dumpServicesJson(String libraryName) throws IOException {
-        JsonArray services = ServiceLoader.loadAllServices(libraryName);
+        JsonArray services = ServiceLoader.loadAllServices(libraryName, null);
 
         String shortName = libraryName.contains("/")
                 ? libraryName.substring(libraryName.indexOf('/') + 1)
@@ -106,14 +106,12 @@ public class CopilotLibraryServicesParityTest {
         Path libDir = OUTPUT_DIR.resolve(shortName);
         Files.createDirectories(libDir);
         Files.writeString(libDir.resolve("services.json"), PRETTY.toJson(services));
-
-        System.out.println("[" + libraryName + "] " + services.size() + " service entries");
     }
 
     @Test
     public void testGenericServicesProduced() {
         for (String lib : new String[]{"ballerina/http", "ballerina/graphql", "ballerina/ai"}) {
-            JsonArray services = ServiceLoader.loadAllServices(lib);
+            JsonArray services = ServiceLoader.loadAllServices(lib, null);
             Assert.assertFalse(services.isEmpty(),
                     "loadAllServices returned empty for generic library: " + lib);
 
@@ -126,7 +124,7 @@ public class CopilotLibraryServicesParityTest {
     @Test
     public void testUncoveredLibraryReturnsEmpty() {
         for (String lib : new String[]{"ballerinax/jms", "ballerinax/nats"}) {
-            JsonArray services = ServiceLoader.loadAllServices(lib);
+            JsonArray services = ServiceLoader.loadAllServices(lib, null);
             Assert.assertTrue(services.isEmpty(),
                     "Expected empty services for uncovered library: " + lib);
         }
