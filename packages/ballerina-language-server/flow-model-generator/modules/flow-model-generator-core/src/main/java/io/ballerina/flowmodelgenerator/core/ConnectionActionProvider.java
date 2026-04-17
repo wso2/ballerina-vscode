@@ -78,6 +78,8 @@ public class ConnectionActionProvider {
 
     private static final int MAX_CACHE_SIZE = 25;
     private static final String CACHE_DIR_NAME = "ballerina-ls-connector-cache";
+    private static final String BALLERINA_ORG = "ballerina";
+    private static final String BALLERINAX_ORG = "ballerinax";
     private static final String HTTP_MODULE = "http";
     private static final List<String> HTTP_REMOTE_METHOD_SKIP_LIST = List.of("get", "put", "post", "head",
             "delete", "patch", "options");
@@ -200,6 +202,9 @@ public class ConnectionActionProvider {
     }
 
     private List<Item> getOrBuildTemplates(ConnectorContext context) {
+        if (!context.cacheable()) {
+            return buildTemplates(context, context.project());
+        }
         return getOrBuild(context.cacheKey(), () -> buildTemplates(context, context.project()));
     }
 
@@ -210,9 +215,11 @@ public class ConnectionActionProvider {
                 .orElseThrow();
         Package resolvedPackage = resolvePackage(moduleInfo, project).orElse(null);
         boolean persistClient = isPersistClient(classSymbol, semanticModel);
+        String cacheKey = generateKey(moduleInfo.org(), moduleInfo.packageName(), moduleInfo.moduleName(), className,
+                moduleInfo.version());
+        boolean cacheable = BALLERINA_ORG.equals(moduleInfo.org()) || BALLERINAX_ORG.equals(moduleInfo.org());
         return new ConnectorContext(
-                generateKey(moduleInfo.org(), moduleInfo.packageName(), moduleInfo.moduleName(), className,
-                        moduleInfo.version()),
+                cacheKey,
                 classSymbol,
                 className,
                 moduleInfo,
@@ -220,7 +227,8 @@ public class ConnectionActionProvider {
                 isAiKnowledgeBase(classSymbol),
                 isAgentClass(classSymbol),
                 persistClient ? getPersistDatabaseIcon(classSymbol).orElse(null) : null,
-                project
+                project,
+                cacheable
         );
     }
 
@@ -234,10 +242,7 @@ public class ConnectionActionProvider {
             return null;
         }
         Optional<ClassSymbol> classSymbol = resolveClassSymbol(semanticModel, codedata.object());
-        if (classSymbol.isEmpty()) {
-            return null;
-        }
-        return createContext(classSymbol.get(), project, semanticModel);
+        return classSymbol.map(symbol -> createContext(symbol, project, semanticModel)).orElse(null);
     }
 
     private List<Item> buildTemplates(ConnectorContext context, Project project) {
@@ -302,7 +307,7 @@ public class ConnectionActionProvider {
                     .buildAvailableNode();
             methods.add(node);
         }
-        return methods;
+        return List.copyOf(methods);
     }
 
     private List<Item> bindParentSymbol(List<Item> cachedMethods, String parentSymbolName,
@@ -472,7 +477,7 @@ public class ConnectionActionProvider {
 
     private record ConnectorContext(String cacheKey, ClassSymbol classSymbol, String className, ModuleInfo moduleInfo,
                                     Package resolvedPackage, boolean knowledgeBase, boolean agentClass,
-                                    String iconOverride, Project project) {
+                                    String iconOverride, Project project, boolean cacheable) {
     }
 
     // Exposed for core tests: getOrBuild using Caffeine atomic loading
