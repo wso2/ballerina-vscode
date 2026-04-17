@@ -165,10 +165,12 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                 const unsub = handler.subscribe(
                     ArtifactsUpdated.method, updateSourceCodeRequest.artifactData,
                     (payload) => {
-                        newArtifactIds = new Set(
-                            payload.data.filter(a => a.isNew).map(a => a.id)
-                        );
-                        clearTimeout(timeoutId); unsub(); resolve();
+                        if ((payload.data && payload.data.length > 0) || updateSourceCodeRequest.skipPayloadCheck) {
+                            newArtifactIds = new Set(
+                                payload.data.filter(a => a.isNew).map(a => a.id)
+                            );
+                            clearTimeout(timeoutId); unsub(); resolve();
+                        }
                     }
                 );
                 timeoutId = setTimeout(() => { unsub(); resolve(); }, 10000);
