@@ -18,8 +18,6 @@
 
 package io.ballerina.flowmodelgenerator.core.copilot.model;
 
-import com.google.gson.JsonObject;
-
 /**
  * Represents a library-level annotation (e.g., @ServiceConfig) exposed to Copilot.
  *
@@ -30,7 +28,7 @@ public class Annotation {
     private String attachmentPoint;
     private String displayName;
     private String description;
-    private JsonObject typeConstraint;
+    private Type typeConstraint;
 
     public String getName() {
         return name;
@@ -64,11 +62,11 @@ public class Annotation {
         this.description = description;
     }
 
-    public JsonObject getTypeConstraint() {
+    public Type getTypeConstraint() {
         return typeConstraint;
     }
 
-    public void setTypeConstraint(JsonObject typeConstraint) {
+    public void setTypeConstraint(Type typeConstraint) {
         this.typeConstraint = typeConstraint;
     }
 }

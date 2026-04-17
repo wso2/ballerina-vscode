@@ -30,6 +30,7 @@ import io.ballerina.flowmodelgenerator.core.copilot.model.Client;
 import io.ballerina.flowmodelgenerator.core.copilot.model.Library;
 import io.ballerina.flowmodelgenerator.core.copilot.model.Service;
 import io.ballerina.flowmodelgenerator.core.copilot.service.AnnotationLoader;
+import io.ballerina.flowmodelgenerator.core.copilot.service.CopilotDeprecationEnricher;
 import io.ballerina.flowmodelgenerator.core.copilot.service.ServiceLoader;
 import io.ballerina.flowmodelgenerator.core.copilot.util.SymbolProcessor;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
@@ -148,7 +149,8 @@ public class CopilotLibraryManager {
             library.setFunctions(symbolResult.getFunctions());
             library.setTypeDefs(symbolResult.getTypeDefs());
 
-            JsonArray servicesJson = ServiceLoader.loadAllServices(libraryName, semanticModel);
+            JsonArray servicesJson = ServiceLoader.loadAllServices(libraryName);
+            CopilotDeprecationEnricher.enrich(servicesJson, semanticModel);
             List<Service> services = new ArrayList<>();
             for (JsonElement serviceElement : servicesJson) {
                 Service service = GSON.fromJson(serviceElement, Service.class);

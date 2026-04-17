@@ -20,25 +20,14 @@ package io.ballerina.flowmodelgenerator.core.copilot.service;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.api.symbols.ClassSymbol;
-import io.ballerina.compiler.api.symbols.MethodSymbol;
-import io.ballerina.compiler.api.symbols.ObjectTypeSymbol;
-import io.ballerina.compiler.api.symbols.Symbol;
-import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
-import io.ballerina.compiler.api.symbols.TypeSymbol;
-import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
 import io.ballerina.modelgenerator.commons.ServiceTypeFunction;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -68,15 +57,14 @@ class ServiceIndexLoader {
 
     /**
      * Loads services from the service-index.sqlite database for the given library.
-     * Produces the same JSON shape as {@link ServiceLoader#loadAllServices} for migration parity.
-     * When a non-null {@code semanticModel} is supplied, deprecation flags for the service type
-     * and its methods are looked up live; the SQLite index does not carry this information.
+     * Each service entry carries a {@code serviceTypeName} join key used by
+     * {@link CopilotDeprecationEnricher} to apply deprecation flags post-load;
+     * the SQLite index does not store deprecation.
      *
-     * @param libraryName   the library name (e.g., "ballerinax/kafka")
-     * @param semanticModel semantic model of the library package, or {@code null} to skip enrichment
+     * @param libraryName the library name (e.g., "ballerinax/kafka")
      * @return JsonArray containing services, or empty array if not covered or on failure
      */
-    static JsonArray loadFromServiceIndex(String libraryName, SemanticModel semanticModel) {
+    static JsonArray loadFromServiceIndex(String libraryName) {
         JsonArray services = new JsonArray();
 
         String packageName = stripOrg(libraryName);
@@ -114,22 +102,13 @@ class ServiceIndexLoader {
                 return services;
             }
 
-            Map<String, ServiceTypeDeprecation> deprecationByType =
-                    resolveServiceTypeDeprecations(semanticModel, serviceTypes);
-
             for (String serviceTypeName : serviceTypes) {
                 JsonObject svc = new JsonObject();
                 svc.addProperty("type", "fixed");
+                svc.addProperty("serviceTypeName", serviceTypeName);
                 svc.add("listener", listenerJson);
 
-                ServiceTypeDeprecation deprecation = deprecationByType.getOrDefault(
-                        serviceTypeName, ServiceTypeDeprecation.EMPTY);
-                if (deprecation.typeDeprecated) {
-                    svc.addProperty("isDeprecated", true);
-                }
-
-                JsonArray methods = buildMethodsFromDb(db, packageId, serviceTypeName, packageName,
-                        deprecation.deprecatedMethods);
+                JsonArray methods = buildMethodsFromDb(db, packageId, serviceTypeName, packageName);
                 if (!methods.isEmpty()) {
                     svc.add("methods", methods);
                 }
@@ -183,8 +162,7 @@ class ServiceIndexLoader {
     }
 
     private static JsonArray buildMethodsFromDb(ServiceDatabaseManager db, int packageId,
-                                                 String serviceTypeName, String packageName,
-                                                 Set<String> deprecatedMethods) {
+                                                 String serviceTypeName, String packageName) {
         JsonArray methods = new JsonArray();
 
         List<ServiceTypeFunction> functions = db.getMatchingServiceTypeFunctions(packageId, serviceTypeName);
@@ -195,10 +173,6 @@ class ServiceIndexLoader {
             // Method name
             if (fn.name() != null && !fn.name().isEmpty()) {
                 method.addProperty("name", fn.name());
-            }
-
-            if (fn.name() != null && deprecatedMethods.contains(fn.name())) {
-                method.addProperty("isDeprecated", true);
             }
 
             // Map kind to lowercase type
@@ -248,11 +222,14 @@ class ServiceIndexLoader {
     }
 
     /**
-     * Canonicalizes return type signatures from the DB.
-     * Converts union forms with nil (e.g., "error|()") to the shorthand nullable form ("error?").
+     * Canonicalizes return type signatures from the DB by collapsing union-with-nil forms
+     * (e.g., {@code "error|()"}) to the shorthand nullable form ({@code "error?"}). Splits
+     * only on top-level {@code |} so parenthesized unions such as {@code "(int|string)|()"}
+     * are handled correctly.
      *
      * @param signature the raw return type string from the DB
      * @return the canonicalized form
+     * @since 1.7.0
      */
     static String canonicalizeReturnType(String signature) {
         if (signature == null || signature.isEmpty()) {
@@ -260,99 +237,46 @@ class ServiceIndexLoader {
         }
 
         String trimmed = signature.trim();
-
-        // Already in canonical form
         if (!trimmed.contains("()")) {
             return trimmed;
         }
 
-        String[] parts = trimmed.split("\\|");
-        StringBuilder nonNilParts = new StringBuilder();
+        List<String> members = new ArrayList<>();
         boolean hadNil = false;
-        int count = 0;
-
-        for (String part : parts) {
-            String p = part.trim();
-            if ("()".equals(p)) {
-                hadNil = true;
-            } else {
-                if (count > 0) {
-                    nonNilParts.append("|");
+        int depth = 0;
+        int start = 0;
+        for (int i = 0; i < trimmed.length(); i++) {
+            char c = trimmed.charAt(i);
+            if (c == '(') {
+                depth++;
+            } else if (c == ')') {
+                depth--;
+            } else if (c == '|' && depth == 0) {
+                String member = trimmed.substring(start, i).trim();
+                if ("()".equals(member)) {
+                    hadNil = true;
+                } else {
+                    members.add(member);
                 }
-                nonNilParts.append(p);
-                count++;
+                start = i + 1;
             }
+        }
+        String last = trimmed.substring(start).trim();
+        if ("()".equals(last)) {
+            hadNil = true;
+        } else {
+            members.add(last);
         }
 
         if (!hadNil) {
             return trimmed;
         }
-
-        String result = nonNilParts.toString();
-        if (result.isEmpty()) {
+        if (members.isEmpty()) {
             return "()";
         }
 
-        // Append ? if not already suffixed
-        if (!result.endsWith("?")) {
-            result = result + "?";
-        }
-
-        return result;
-    }
-
-    /**
-     * Resolves deprecation info for every service type in one pass over the module symbols.
-     * The service-index SQLite does not store deprecation, so it is read live from the
-     * {@link SemanticModel}. Returns an empty map when no enrichment is possible.
-     */
-    private static Map<String, ServiceTypeDeprecation> resolveServiceTypeDeprecations(
-            SemanticModel semanticModel, List<String> serviceTypeNames) {
-        if (semanticModel == null || serviceTypeNames == null || serviceTypeNames.isEmpty()) {
-            return Collections.emptyMap();
-        }
-
-        Set<String> wanted = new HashSet<>(serviceTypeNames);
-        Map<String, ServiceTypeDeprecation> result = new HashMap<>();
-
-        for (Symbol symbol : semanticModel.moduleSymbols()) {
-            String name = symbol.getName().orElse(null);
-            if (name == null || !wanted.contains(name) || result.containsKey(name)) {
-                continue;
-            }
-
-            boolean typeDeprecated;
-            ObjectTypeSymbol objectType;
-            if (symbol instanceof TypeDefinitionSymbol typeDef) {
-                typeDeprecated = typeDef.deprecated();
-                TypeSymbol raw = CommonUtils.getRawType(typeDef.typeDescriptor());
-                objectType = raw instanceof ObjectTypeSymbol ots ? ots : null;
-            } else if (symbol instanceof ClassSymbol classSymbol) {
-                typeDeprecated = classSymbol.deprecated();
-                objectType = classSymbol;
-            } else {
-                continue;
-            }
-
-            Set<String> deprecatedMethods = Collections.emptySet();
-            if (objectType != null) {
-                for (Map.Entry<String, MethodSymbol> entry : objectType.methods().entrySet()) {
-                    if (entry.getValue().deprecated()) {
-                        if (deprecatedMethods.isEmpty()) {
-                            deprecatedMethods = new HashSet<>();
-                        }
-                        deprecatedMethods.add(entry.getKey());
-                    }
-                }
-            }
-            result.put(name, new ServiceTypeDeprecation(typeDeprecated, deprecatedMethods));
-        }
-
-        return result;
-    }
-
-    private record ServiceTypeDeprecation(boolean typeDeprecated, Set<String> deprecatedMethods) {
-        static final ServiceTypeDeprecation EMPTY = new ServiceTypeDeprecation(false, Collections.emptySet());
+        String joined = String.join("|", members);
+        return joined.endsWith("?") ? joined : joined + "?";
     }
 
     static String stripOrg(String libraryName) {
