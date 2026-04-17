@@ -732,7 +732,7 @@
             "character": 0
           }
         },
-        "newText": "@ai:AgentTool\n@display {label: \"\", iconPath: \"https://bcentral-packageicons.azureedge.net/images/dulminakodagoda_birctesting_0.1.0.png\"}\nisolated function toolFunc(string foo, int... bar) returns testCon:HotelSearchResponse|error {\n    testCon:HotelSearchResponse testconHotelsearchresponse = check gmailClient->/hotels/search.get(propertyTypes = propertyTypes, amenities = amenities, rooms = rooms, destination = destination, minRating = minRating, pageSize = pageSize, checkInDate = checkInDate, checkOutDate = checkOutDate, minPrice = minPrice, guests = guests, sortBy = sortBy, maxPrice = maxPrice, page = page);\n    return testconHotelsearchresponse;\n}"
+        "newText": "@ai:AgentTool\n@display {label: \"\", iconPath: \"https://bcentral-packageicons.azureedge.net/images/dulminakodagoda_birctesting_0.1.0.png\"}\nisolated function toolFunc(string foo, int... bar) returns testCon:HotelSearchResponse|error {\n    testCon:HotelSearchResponse testconHotelsearchresponse = check gmailClient->/hotels/search.get(headers, propertyTypes = propertyTypes, amenities = amenities, rooms = rooms, destination = destination, minRating = minRating, pageSize = pageSize, checkInDate = checkInDate, checkOutDate = checkOutDate, minPrice = minPrice, guests = guests, sortBy = sortBy, maxPrice = maxPrice, page = page);\n    return testconHotelsearchresponse;\n}"
       }
     ]
   }

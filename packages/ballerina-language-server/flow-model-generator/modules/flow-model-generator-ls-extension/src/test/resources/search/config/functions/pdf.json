@@ -66,6 +66,63 @@
       "items": [
         {
           "metadata": {
+            "label": "pdf",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "extractText",
+                "description": "Extracts text content from each page of a PDF document.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_pdf_0.9.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "pdf",
+                "packageName": "pdf",
+                "symbol": "extractText",
+                "version": "0.9.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "fileExtractText",
+                "description": "Extracts text content from each page of a PDF file.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_pdf_0.9.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "pdf",
+                "packageName": "pdf",
+                "symbol": "fileExtractText",
+                "version": "0.9.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "urlExtractText",
+                "description": "Extracts text content from each page of a PDF at the given URL.\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_pdf_0.9.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "pdf",
+                "packageName": "pdf",
+                "symbol": "urlExtractText",
+                "version": "0.9.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
             "label": "pdfbox",
             "description": "",
             "keywords": []

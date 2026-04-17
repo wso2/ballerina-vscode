@@ -10,7 +10,7 @@
       "metadata": {
         "label": "MongoDB Database",
         "description": "Represents a MongoDB database.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mongodb_5.2.3.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mongodb_5.2.4.png",
         "data": {
           "isAgentSupport": false
         }
@@ -22,7 +22,7 @@
         "packageName": "mongodb",
         "object": "Database",
         "symbol": "init",
-        "version": "5.2.3",
+        "version": "5.2.4",
         "isGenerated": false
       },
       "enabled": true
@@ -50,30 +50,9 @@
     },
     {
       "metadata": {
-        "label": "PostgreSQL",
-        "description": "Represents a PostgreSQL database client.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_postgresql_1.16.2.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "postgresql",
-        "packageName": "postgresql",
-        "object": "Client",
-        "symbol": "init",
-        "version": "1.16.2",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
         "label": "Snowflake Advanced",
         "description": "Represents a Snowflake database client.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_snowflake_2.2.1.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_snowflake_2.2.2.png",
         "data": {
           "isAgentSupport": false
         }
@@ -85,7 +64,7 @@
         "packageName": "snowflake",
         "object": "AdvancedClient",
         "symbol": "init",
-        "version": "2.2.1",
+        "version": "2.2.2",
         "isGenerated": false
       },
       "enabled": true
@@ -94,7 +73,7 @@
       "metadata": {
         "label": "Snowflake",
         "description": "Represents a Snowflake database client.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_snowflake_2.2.1.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_snowflake_2.2.2.png",
         "data": {
           "isAgentSupport": false
         }
@@ -106,7 +85,7 @@
         "packageName": "snowflake",
         "object": "Client",
         "symbol": "init",
-        "version": "2.2.1",
+        "version": "2.2.2",
         "isGenerated": false
       },
       "enabled": true
@@ -134,27 +113,6 @@
     },
     {
       "metadata": {
-        "label": "Index",
-        "description": "This is a generated connector for the `Index Operations` under [Pinecone Vector Database API](https://docs.pinecone.io/reference) OpenAPI specification. Pinecone is a fully managed vector database which supports building developer-friendly, easily scalable, and high-performance vector search applications without infrastructure hassles.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pinecone.index_1.0.2.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "pinecone.index",
-        "packageName": "pinecone.index",
-        "object": "Client",
-        "symbol": "init",
-        "version": "1.0.2",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
         "label": "Vector",
         "description": "This is a generated connector for the `Vector Operations` under [Pinecone Vector Database API](https://docs.pinecone.io/reference) OpenAPI specification. Pinecone is a fully managed vector database which supports building developer-friendly, easily scalable, and high-performance vector search applications without infrastructure hassles.",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pinecone.vector_1.0.2.png",
@@ -176,9 +134,30 @@
     },
     {
       "metadata": {
+        "label": "Index",
+        "description": "This is a generated connector for the `Index Operations` under [Pinecone Vector Database API](https://docs.pinecone.io/reference) OpenAPI specification. Pinecone is a fully managed vector database which supports building developer-friendly, easily scalable, and high-performance vector search applications without infrastructure hassles.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pinecone.index_1.0.2.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "pinecone.index",
+        "packageName": "pinecone.index",
+        "object": "Client",
+        "symbol": "init",
+        "version": "1.0.2",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
         "label": "MySQL",
         "description": "MySQL database client that enables interaction with MySQL servers and supports standard SQL operations.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.16.1.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.18.0.png",
         "data": {
           "isAgentSupport": false
         }
@@ -190,7 +169,28 @@
         "packageName": "mysql",
         "object": "Client",
         "symbol": "init",
-        "version": "1.16.1",
+        "version": "1.18.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "PostgreSQL",
+        "description": "PostgreSQL database client that enables interaction with PostgreSQL servers and supports standard SQL operations.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_postgresql_1.18.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "postgresql",
+        "packageName": "postgresql",
+        "object": "Client",
+        "symbol": "init",
+        "version": "1.18.0",
         "isGenerated": false
       },
       "enabled": true
@@ -241,7 +241,7 @@
       "metadata": {
         "label": "Redis",
         "description": "Ballerina Redis connector provides the capability to access Redis cache.\nThis connector lets you to perform operations to access and manipulate key-value data stored in a Redis database. \n",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.2.1.png",
         "data": {
           "isAgentSupport": false
         }
@@ -253,7 +253,7 @@
         "packageName": "redis",
         "object": "Client",
         "symbol": "init",
-        "version": "3.1.0",
+        "version": "3.2.1",
         "isGenerated": false
       },
       "enabled": true
