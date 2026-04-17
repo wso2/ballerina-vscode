@@ -41,7 +41,7 @@ class ServiceIndexLoader {
 
     private static final Logger LOGGER = Logger.getLogger(ServiceIndexLoader.class.getName());
 
-    private static final Set<String> COVERED = Set.of(
+    static final Set<String> COVERED = Set.of(
             "kafka", "asb", "rabbitmq", "ftp", "mqtt", "salesforce", "trigger.github");
 
     private static final Set<ParameterData.Kind> LISTENER_PARAM_KINDS = Set.of(
@@ -271,7 +271,7 @@ class ServiceIndexLoader {
         return result;
     }
 
-    private static String stripOrg(String libraryName) {
+    static String stripOrg(String libraryName) {
         int idx = libraryName.indexOf('/');
         return idx >= 0 ? libraryName.substring(idx + 1) : libraryName;
     }

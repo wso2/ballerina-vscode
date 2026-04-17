@@ -25,9 +25,11 @@ import com.google.gson.reflect.TypeToken;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.flowmodelgenerator.core.InstructionLoader;
 import io.ballerina.flowmodelgenerator.core.copilot.database.LibraryDatabaseAccessor;
+import io.ballerina.flowmodelgenerator.core.copilot.model.Annotation;
 import io.ballerina.flowmodelgenerator.core.copilot.model.Client;
 import io.ballerina.flowmodelgenerator.core.copilot.model.Library;
 import io.ballerina.flowmodelgenerator.core.copilot.model.Service;
+import io.ballerina.flowmodelgenerator.core.copilot.service.AnnotationLoader;
 import io.ballerina.flowmodelgenerator.core.copilot.service.ServiceLoader;
 import io.ballerina.flowmodelgenerator.core.copilot.util.SymbolProcessor;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
@@ -153,6 +155,13 @@ public class CopilotLibraryManager {
                 services.add(service);
             }
             library.setServices(services);
+
+            JsonArray annotationsJson = AnnotationLoader.loadFromServiceIndex(libraryName);
+            List<Annotation> annotations = new ArrayList<>();
+            for (JsonElement annotationElement : annotationsJson) {
+                annotations.add(GSON.fromJson(annotationElement, Annotation.class));
+            }
+            library.setAnnotations(annotations);
 
             if (README_WHITELIST.contains(libraryName)) {
                 readPackageReadme(pkg).ifPresent(library::setReadme);
