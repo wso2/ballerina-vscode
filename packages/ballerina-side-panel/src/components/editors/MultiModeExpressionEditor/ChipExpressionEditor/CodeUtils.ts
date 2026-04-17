@@ -86,6 +86,10 @@ export function createChip(text: string, type: TokenType, start: number, end: nu
                 displayText = this.metadata?.content || this.text;
             }
 
+            if (this.metadata?.fullValue) {
+                span.title = this.metadata.fullValue;
+            }
+
             const colors = getTokenTypeColor(this.type);
 
             // Apply base styles to the chip container
