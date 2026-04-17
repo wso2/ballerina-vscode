@@ -1751,7 +1751,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
 
-    const getArtifactData = (editorConfig?: EditorConfig) => {
+    function getArtifactData(editorConfig?: EditorConfig) {
         // When editorConfig is absent, derive the artifact type from the EVENT_START node's metadata.
         //   kind="Function" + label="main" → AUTOMATION
         //   kind="Function" + other label  → FUNCTION

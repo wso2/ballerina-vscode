@@ -166,8 +166,9 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                     ArtifactsUpdated.method, updateSourceCodeRequest.artifactData,
                     (payload) => {
                         if ((payload.data && payload.data.length > 0) || updateSourceCodeRequest.skipPayloadCheck) {
+                            const artifactData = payload.data ?? [];
                             newArtifactIds = new Set(
-                                payload.data.filter(a => a.isNew).map(a => a.id)
+                                artifactData.filter(a => a.isNew).map(a => a.id)
                             );
                             clearTimeout(timeoutId); unsub(); resolve();
                         }
