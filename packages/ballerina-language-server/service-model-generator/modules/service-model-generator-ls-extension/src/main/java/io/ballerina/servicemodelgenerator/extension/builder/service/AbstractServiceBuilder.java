@@ -71,6 +71,7 @@ import java.util.Set;
 import static io.ballerina.servicemodelgenerator.extension.model.PropertyType.deserializeTypes;
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ANNOT_PREFIX;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_CONFIG_FIELD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_REQUIRED;
@@ -164,6 +165,7 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
         Map<String, Value> properties = serviceInitModel.getProperties();
         List<String> requiredParams = new ArrayList<>();
         List<String> includedParams = new ArrayList<>();
+        List<String> lnConfigParams = new ArrayList<>();
         for (Map.Entry<String, Value> entry : properties.entrySet()) {
             Value value = entry.getValue();
             if (value.getCodedata() == null) {
@@ -179,10 +181,16 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
             } else if (argType.equals(ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD)
                     || argType.equals(ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD)) {
                 includedParams.add(entry.getKey() + " = " + value.getValue());
+            } else if (argType.equals(ARG_TYPE_LISTENER_PARAM_CONFIG_FIELD)) {
+                lnConfigParams.add(String.format("%s: %s", entry.getKey(), value.getValue()));
             }
         }
         String listenerProtocol = getProtocol(serviceInitModel.getModuleName());
         String listenerVarName = properties.get(KEY_LISTENER_VAR_NAME).getValue();
+        if (!lnConfigParams.isEmpty()) {
+            String configParams = String.format("{%s}", String.join(", ", lnConfigParams));
+            requiredParams.add(configParams);
+        }
         requiredParams.addAll(includedParams);
         String args = String.join(", ", requiredParams);
         String listenerDeclaration = String.format("listener %s:%s %s = new (%s);",
