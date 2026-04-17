@@ -100,6 +100,7 @@ public class ConnectionActionProvider {
                 .create();
         this.cache = Caffeine.newBuilder()
                 .maximumSize(MAX_CACHE_SIZE)
+                .executor(Runnable::run)
                 .removalListener((String key, List<Item> value, RemovalCause cause) -> {
                     if (cause == RemovalCause.EXPLICIT && key != null) {
                         deleteFromDisk(key);
@@ -117,6 +118,7 @@ public class ConnectionActionProvider {
                 .create();
         this.cache = Caffeine.newBuilder()
                 .maximumSize(maxCacheSize)
+                .executor(Runnable::run)
                 .removalListener((String key, List<Item> value, RemovalCause cause) -> {
                     if (cause == RemovalCause.EXPLICIT && key != null) {
                         deleteFromDisk(key);
