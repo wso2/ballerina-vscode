@@ -124,23 +124,18 @@ export function DataMapperView(props: DataMapperViewProps) {
             prevPositionRef.current?.line !== position?.line ||
             prevPositionRef.current?.offset !== position?.offset;
         
-        if (viewStateRef.current.subMappingName && positionChanged) {
+        const subMappingName = viewStateRef.current.subMappingName;
+        if (subMappingName) {
             const viewId = viewStateRef.current.viewId;
             rpcClient.getDataMapperRpcClient()
                 .getSubMappingCodedata({
                     filePath,
                     codedata: codedata,
-                    view: viewId
+                    view: subMappingName
                 }).then((resp) => {
                     console.log(">>> [Data Mapper] getSubMappingCodedata response:", resp);
-                    setViewState({ viewId: viewId, codedata: resp.codedata, subMappingName: viewId });
+                    setViewState({ viewId: viewId, codedata: resp.codedata, subMappingName });
                 });
-        } else if (viewStateRef.current.subMappingName && !positionChanged) {
-            setViewState(prevState => ({
-                viewId: prevState.viewId || viewStateRef.current.subMappingName,
-                codedata: codedata,
-                subMappingName: prevState.subMappingName
-            }));
         } else {
             setViewState(prevState => ({
                 viewId: positionChanged ? name : prevState.viewId || name,
@@ -282,24 +277,26 @@ export function DataMapperView(props: DataMapperViewProps) {
 
     const handleView = async (viewId: string, isSubMapping?: boolean) => {
         if (isSubMapping) {
-            const resp = await rpcClient
-                .getDataMapperRpcClient()
-                .getSubMappingCodedata({
-                    filePath,
-                    codedata: viewState.codedata,
-                    view: viewId
-                });
-            console.log(">>> [Data Mapper] getSubMappingCodedata response:", resp);
-            setViewState({ viewId, codedata: resp.codedata, subMappingName: viewId });
+            const subMappingName = viewId.split(".")[0];
+            if (subMappingName !== viewState.subMappingName) {
+                const resp = await rpcClient
+                    .getDataMapperRpcClient()
+                    .getSubMappingCodedata({
+                        filePath,
+                        codedata: codedata,
+                        view: subMappingName
+                    });
+                console.log(">>> [Data Mapper] getSubMappingCodedata response:", resp);
+                setViewState({ viewId, codedata: resp.codedata, subMappingName });
+            } else {
+                setViewState(prev => ({
+                    viewId,
+                    codedata: prev.codedata,
+                    subMappingName: subMappingName
+                }));
+            }
         } else {
-            const res = await rpcClient
-                .getDataMapperRpcClient()
-                .getDataMapperCodedata({
-                    filePath,
-                    codedata: viewState.codedata,
-                    name: viewId.split(".")[0] // Get the root name
-                });
-            setViewState({ viewId, codedata: res.codedata, subMappingName: undefined });
+            setViewState({ viewId, codedata: codedata, subMappingName: undefined });
         }
         rpcClient.getVisualizerRpcClient().resetUndoRedoStack();
     };
