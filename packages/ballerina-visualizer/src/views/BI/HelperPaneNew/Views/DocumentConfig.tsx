@@ -111,7 +111,7 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
 
     const dropdownItems = useMemo(() => {
         const allowedTypes = getAllowedTypes(documentType);
-        const excludedDescriptions = ["Configurable", "Parameter", "Listener", "Client"];
+        const excludedDescriptions = ["Configurable", "Listener", "Client"];
         const otherAIDocTypes = AI_DOCUMENT_TYPES.filter(type => !allowedTypes.includes(type));
 
         return filteredCompletions.filter((completion) => {
