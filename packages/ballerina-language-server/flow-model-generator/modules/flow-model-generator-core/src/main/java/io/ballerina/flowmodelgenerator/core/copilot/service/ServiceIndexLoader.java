@@ -42,9 +42,6 @@ class ServiceIndexLoader {
 
     private static final Logger LOGGER = Logger.getLogger(ServiceIndexLoader.class.getName());
 
-    static final Set<String> COVERED = Set.of(
-            "kafka", "asb", "rabbitmq", "ftp", "mqtt", "salesforce", "trigger.github");
-
     private static final Set<ParameterData.Kind> LISTENER_PARAM_KINDS = Set.of(
             ParameterData.Kind.REQUIRED,
             ParameterData.Kind.DEFAULTABLE,
@@ -57,21 +54,17 @@ class ServiceIndexLoader {
 
     /**
      * Loads services from the service-index.sqlite database for the given library.
-     * Each service entry carries a {@code serviceTypeName} join key used by
-     * {@link CopilotDeprecationEnricher} to apply deprecation flags post-load;
-     * the SQLite index does not store deprecation.
+     * Each service entry carries a {@code name} field (the service-type name, e.g.
+     * {@code "IssuesService"}) used by {@link CopilotDeprecationEnricher} to apply
+     * deprecation flags post-load; the SQLite index does not store deprecation.
      *
      * @param libraryName the library name (e.g., "ballerinax/kafka")
-     * @return JsonArray containing services, or empty array if not covered or on failure
+     * @return JsonArray containing services, or empty array on failure
      */
     static JsonArray loadFromServiceIndex(String libraryName) {
         JsonArray services = new JsonArray();
 
         String packageName = stripOrg(libraryName);
-        if (!COVERED.contains(packageName)) {
-            return services;
-        }
-
         String org = libraryName.contains("/")
                 ? libraryName.substring(0, libraryName.indexOf('/'))
                 : "ballerinax";
@@ -105,7 +98,7 @@ class ServiceIndexLoader {
             for (String serviceTypeName : serviceTypes) {
                 JsonObject svc = new JsonObject();
                 svc.addProperty("type", "fixed");
-                svc.addProperty("serviceTypeName", serviceTypeName);
+                svc.addProperty("name", serviceTypeName);
                 svc.add("listener", listenerJson);
 
                 JsonArray methods = buildMethodsFromDb(db, packageId, serviceTypeName, packageName);

@@ -21,7 +21,6 @@ package io.ballerina.flowmodelgenerator.core.copilot.service;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ClassSymbol;
 import io.ballerina.compiler.api.symbols.MethodSymbol;
 import io.ballerina.compiler.api.symbols.ObjectTypeSymbol;
@@ -33,21 +32,23 @@ import io.ballerina.modelgenerator.commons.CommonUtils;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * Applies deprecation flags to Copilot service JSON using a live {@link SemanticModel}.
- * The SQLite service-index does not store deprecation, so it is resolved from module
- * symbols and written onto the services produced by
- * {@link ServiceLoader#loadAllServices(String)}. Reads the {@code serviceTypeName} join
- * key that the loader attaches to each index-sourced entry and strips it afterwards.
+ * Applies deprecation flags to Copilot service JSON using module symbols. The SQLite
+ * service-index does not store deprecation, so it is resolved from the symbols and
+ * written onto the services produced by {@link ServiceLoader#loadAllServices(String)}.
+ * Reads the service-type {@code name} on each index-sourced entry (e.g.
+ * {@code "IssuesService"}) as a lookup key; the field is left in place so downstream
+ * consumers can identify which service type each entry is.
  *
  * @since 1.7.0
  */
 public final class CopilotDeprecationEnricher {
 
-    private static final String JOIN_KEY = "serviceTypeName";
+    private static final String NAME_KEY = "name";
 
     private CopilotDeprecationEnricher() {
         // Prevent instantiation
@@ -55,34 +56,31 @@ public final class CopilotDeprecationEnricher {
 
     /**
      * Applies {@code isDeprecated: true} to services and methods whose underlying symbols
-     * are {@code @deprecated}. Strips {@link #JOIN_KEY} from every service entry so the
-     * intermediate key does not leak to downstream consumers. Both arguments may be null;
-     * a null {@code semanticModel} still strips the join key.
+     * are {@code @deprecated}. Both arguments may be null; a null or empty
+     * {@code moduleSymbols} is a no-op.
      */
-    public static void enrich(JsonArray services, SemanticModel semanticModel) {
-        if (services == null || services.isEmpty()) {
+    public static void enrich(JsonArray services, List<Symbol> moduleSymbols) {
+        if (services == null || services.isEmpty() || moduleSymbols == null || moduleSymbols.isEmpty()) {
             return;
         }
 
         Set<String> wanted = new HashSet<>();
         for (JsonElement element : services) {
             JsonObject svc = element.getAsJsonObject();
-            if (svc.has(JOIN_KEY)) {
-                wanted.add(svc.get(JOIN_KEY).getAsString());
+            if (svc.has(NAME_KEY)) {
+                wanted.add(svc.get(NAME_KEY).getAsString());
             }
         }
 
-        Map<String, ServiceTypeDeprecation> deprecationByType = semanticModel == null
-                ? Collections.emptyMap()
-                : resolveServiceTypeDeprecations(semanticModel, wanted);
+        Map<String, ServiceTypeDeprecation> deprecationByType =
+                resolveServiceTypeDeprecations(moduleSymbols, wanted);
 
         for (JsonElement element : services) {
             JsonObject svc = element.getAsJsonObject();
-            if (!svc.has(JOIN_KEY)) {
+            if (!svc.has(NAME_KEY)) {
                 continue;
             }
-            String serviceTypeName = svc.get(JOIN_KEY).getAsString();
-            svc.remove(JOIN_KEY);
+            String serviceTypeName = svc.get(NAME_KEY).getAsString();
 
             ServiceTypeDeprecation deprecation = deprecationByType.get(serviceTypeName);
             if (deprecation == null) {
@@ -107,13 +105,13 @@ public final class CopilotDeprecationEnricher {
     }
 
     private static Map<String, ServiceTypeDeprecation> resolveServiceTypeDeprecations(
-            SemanticModel semanticModel, Set<String> wanted) {
+            List<Symbol> moduleSymbols, Set<String> wanted) {
         if (wanted.isEmpty()) {
             return Collections.emptyMap();
         }
 
         Map<String, ServiceTypeDeprecation> result = new HashMap<>();
-        for (Symbol symbol : semanticModel.moduleSymbols()) {
+        for (Symbol symbol : moduleSymbols) {
             String name = symbol.getName().orElse(null);
             if (name == null || !wanted.contains(name) || result.containsKey(name)) {
                 continue;

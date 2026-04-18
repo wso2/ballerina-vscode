@@ -54,7 +54,7 @@ public class CopilotLibraryAnnotationsTest {
 
     @Test
     public void testUncoveredLibraryReturnsEmpty() {
-        for (String lib : new String[]{"ballerina/http", "ballerina/graphql", "ballerinax/jms"}) {
+        for (String lib : new String[]{"ballerina/graphql", "ballerinax/jms"}) {
             JsonArray annotations = AnnotationLoader.loadFromServiceIndex(lib);
             Assert.assertTrue(annotations.isEmpty(),
                     "Expected empty annotations for non-covered library: " + lib

@@ -28,7 +28,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -51,18 +53,39 @@ public class ServiceLoader {
 
     /**
      * Loads all services for a given library from the service-index DB and generic services.
-     * Index-sourced entries carry a {@code serviceTypeName} join key; callers that want
-     * deprecation flags should pass the result through
+     * Index-sourced entries carry a {@code name} field (the service-type name); callers that
+     * want deprecation flags should pass the result through
      * {@link CopilotDeprecationEnricher#enrich(JsonArray, io.ballerina.compiler.api.SemanticModel)}
      * before consuming.
+     *
+     * <p>If a generic-services.json entry shares its {@code name} with an index-sourced fixed
+     * entry, the generic entry takes precedence and the fixed one is dropped. This lets curated
+     * generic definitions (e.g. a hand-written {@code http:Listener} listener spec) override the
+     * raw shape produced by the SQLite index.
      *
      * @param libraryName the library name (e.g., "ballerina/http", "ballerinax/kafka")
      * @return JsonArray containing all services for this library
      */
     public static JsonArray loadAllServices(String libraryName) {
+        JsonArray genericServices = getGenericServices(libraryName);
+
+        Set<String> genericNames = new HashSet<>();
+        for (JsonElement element : genericServices) {
+            JsonObject svc = element.getAsJsonObject();
+            if (svc.has("name")) {
+                genericNames.add(svc.get("name").getAsString());
+            }
+        }
+
         JsonArray services = new JsonArray();
-        ServiceIndexLoader.loadFromServiceIndex(libraryName).forEach(services::add);
-        getGenericServices(libraryName).forEach(services::add);
+        for (JsonElement element : ServiceIndexLoader.loadFromServiceIndex(libraryName)) {
+            JsonObject svc = element.getAsJsonObject();
+            if (svc.has("name") && genericNames.contains(svc.get("name").getAsString())) {
+                continue;
+            }
+            services.add(svc);
+        }
+        genericServices.forEach(services::add);
         return services;
     }
 
@@ -114,6 +137,9 @@ public class ServiceLoader {
 
                         JsonObject serviceObj = new JsonObject();
                         serviceObj.addProperty("type", service.get("type").getAsString());
+                        if (service.has("name")) {
+                            serviceObj.addProperty("name", service.get("name").getAsString());
+                        }
                         serviceObj.addProperty("instructions", service.get("instructions").getAsString());
 
                         if (service.has("listener")) {

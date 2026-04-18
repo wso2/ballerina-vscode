@@ -29,6 +29,8 @@ import java.util.List;
  */
 public class Service {
     private String type;
+    @SerializedName("name")
+    private String name;
     @SerializedName("instructions")
     private String instructions;
     private Listener listener;
@@ -47,6 +49,14 @@ public class Service {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getInstructions() {

@@ -53,16 +53,12 @@ public final class AnnotationLoader {
      * Loads annotations from the service-index for the given library.
      *
      * @param libraryName the library name (e.g., "ballerinax/ftp")
-     * @return JsonArray of annotation objects, or an empty array if not covered or on failure
+     * @return JsonArray of annotation objects, or an empty array on failure
      */
     public static JsonArray loadFromServiceIndex(String libraryName) {
         JsonArray annotations = new JsonArray();
 
         String packageName = ServiceIndexLoader.stripOrg(libraryName);
-        if (!ServiceIndexLoader.COVERED.contains(packageName)) {
-            return annotations;
-        }
-
         String org = libraryName.contains("/")
                 ? libraryName.substring(0, libraryName.indexOf('/'))
                 : "ballerinax";
