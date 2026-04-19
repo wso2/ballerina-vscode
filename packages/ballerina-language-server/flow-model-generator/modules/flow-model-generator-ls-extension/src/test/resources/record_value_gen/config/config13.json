@@ -1,0 +1,35 @@
+{
+  "filePath": "proj",
+  "description": "Record with explicit type cast for ambiguous union types",
+  "type": {
+    "typeName": "record",
+    "name": "MysqlConfig",
+    "explicitTypeCast": "task:MysqlConfig",
+    "selected": true,
+    "fields": [
+      {
+        "name": "host",
+        "typeName": "string",
+        "optional": false,
+        "defaultable": true,
+        "isRestType": false,
+        "selected": true,
+        "value": "\"localhost\""
+      },
+      {
+        "name": "port",
+        "typeName": "int",
+        "optional": false,
+        "defaultable": true,
+        "isRestType": false,
+        "selected": true,
+        "value": "3306"
+      }
+    ],
+    "hasRestType": false,
+    "optional": false,
+    "defaultable": false,
+    "isRestType": false
+  },
+  "output": "<task:MysqlConfig> {\n    host: \"localhost\",\n    port: 3306\n}"
+}

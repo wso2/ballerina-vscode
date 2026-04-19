@@ -21,8 +21,10 @@ package io.ballerina.flowmodelgenerator.extension;
 import com.google.gson.JsonArray;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.flowmodelgenerator.core.AgentChatServiceGenerator;
 import io.ballerina.flowmodelgenerator.core.AgentsGenerator;
 import io.ballerina.flowmodelgenerator.core.McpClient;
+import io.ballerina.flowmodelgenerator.extension.request.AddAgentChatServiceRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GenToolRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetAiModuleOrgRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetAllAgentsRequest;
@@ -34,6 +36,8 @@ import io.ballerina.flowmodelgenerator.extension.request.GetPackageVersionReques
 import io.ballerina.flowmodelgenerator.extension.request.GetToolRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetToolsRequest;
 import io.ballerina.flowmodelgenerator.extension.request.McpToolsRequest;
+import io.ballerina.flowmodelgenerator.extension.request.SecureSocketConfig;
+import io.ballerina.flowmodelgenerator.extension.response.AddAgentChatServiceResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GenToolResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetAgentsResponse;
 import io.ballerina.flowmodelgenerator.extension.response.GetAiModuleOrgResponse;
@@ -78,6 +82,7 @@ import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINAX;
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
 @JsonSegment("agentManager")
 public class AgentsManagerService implements ExtendedLanguageServerService {
+
     private WorkspaceManager workspaceManager;
 
     @Override
@@ -236,14 +241,35 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
                 // Get the access token from the request (if provided)
                 String accessToken = request.accessToken();
 
+                // Validate: SSL config should only be used with HTTPS URLs
+                if (request.secureSocket() != null && "http".equals(new java.net.URI(serviceUrl).getScheme())) {
+                    response.setError(new IllegalArgumentException(
+                            "Secure socket configuration is only applicable for HTTPS URLs"));
+                    return response;
+                }
+
+                // Build SSL config if provided
+                McpClient.SslConfig sslConfig = null;
+                if (request.secureSocket() != null) {
+                    SecureSocketConfig sc = request.secureSocket();
+                    sslConfig = new McpClient.SslConfig(
+                            sc.cert() != null ? sc.cert().path() : null,
+                            sc.cert() != null ? sc.cert().password() : null,
+                            sc.key() != null ? sc.key().path() : null,
+                            sc.key() != null ? sc.key().password() : null,
+                            sc.insecure()
+                    );
+                }
+
                 // Send initialize request with optional authentication
-                String sessionId = McpClient.sendInitializeRequest(serviceUrl, accessToken);
+                String sessionId = McpClient.sendInitializeRequest(serviceUrl, accessToken, sslConfig);
 
                 // Send initialized notification to complete the handshake
-                McpClient.sendInitializedNotification(serviceUrl, sessionId, accessToken);
+                McpClient.sendInitializedNotification(serviceUrl, sessionId, accessToken, sslConfig);
 
                 // Now we can send operational requests
-                JsonArray toolsJsonArray = McpClient.sendToolsListRequest(serviceUrl, sessionId, accessToken);
+                JsonArray toolsJsonArray = McpClient.sendToolsListRequest(serviceUrl, sessionId, accessToken,
+                        sslConfig);
 
                 response.setTools(toolsJsonArray);
                 return response;
@@ -259,7 +285,7 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
                 return response;
             } catch (Exception e) {
                 String errorMsg = e.getMessage() != null ? e.getMessage() :
-                    e.getClass().getSimpleName() + " (no error message)";
+                        e.getClass().getSimpleName() + " (no error message)";
                 response.setError(new RuntimeException("Failed to get MCP tools: " + errorMsg, e));
                 return response;
             }
@@ -337,6 +363,38 @@ public class AgentsManagerService implements ExtendedLanguageServerService {
                         optProject.get(), document, this.workspaceManager, filePath));
             } catch (Throwable e) {
                 throw new RuntimeException(e);
+            }
+            return response;
+        });
+    }
+
+    @JsonRequest
+    public CompletableFuture<AddAgentChatServiceResponse> addAgentChatService(
+            AddAgentChatServiceRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            AddAgentChatServiceResponse response = new AddAgentChatServiceResponse();
+            try {
+                if (request.agentVariableName() == null || request.agentVariableName().isBlank()) {
+                    throw new IllegalArgumentException("agentVariableName must not be null or blank");
+                }
+                Path filePath = Path.of(request.filePath());
+                Path projectRoot = this.workspaceManager.projectRoot(filePath);
+
+                AgentChatServiceGenerator generator = new AgentChatServiceGenerator();
+                String serviceName = request.serviceName() != null && !request.serviceName().isEmpty()
+                        ? request.serviceName() : request.agentVariableName();
+                AgentChatServiceGenerator.AgentChatResult result =
+                        generator.addAgentService(request.agentVariableName(), serviceName, projectRoot);
+
+                response.setChatEndpointPath(result.endpointPath());
+                response.setAlreadyExists(result.alreadyExists());
+                response.setFilePath(result.filePath());
+                response.setStartLine(result.startLine());
+                response.setStartColumn(result.startColumn());
+                response.setEndLine(result.endLine());
+                response.setEndColumn(result.endColumn());
+            } catch (Throwable e) {
+                response.setError(e);
             }
             return response;
         });

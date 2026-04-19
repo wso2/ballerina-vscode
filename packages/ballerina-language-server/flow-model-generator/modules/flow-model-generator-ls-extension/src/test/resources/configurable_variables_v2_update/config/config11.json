@@ -16,11 +16,11 @@
         "lineRange": {
           "fileName": "config_with_import.bal",
           "startLine": {
-            "line": 1,
+            "line": 3,
             "offset": 0
           },
           "endLine": {
-            "line": 1,
+            "line": 3,
             "offset": 54
           }
         }
@@ -133,11 +133,11 @@
         {
           "range": {
             "start": {
-              "line": 1,
+              "line": 3,
               "character": 0
             },
             "end": {
-              "line": 1,
+              "line": 3,
               "character": 54
             }
           },

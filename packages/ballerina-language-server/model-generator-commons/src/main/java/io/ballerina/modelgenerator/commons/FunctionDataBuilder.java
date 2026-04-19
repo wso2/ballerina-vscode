@@ -268,7 +268,6 @@ public class FunctionDataBuilder {
         return this;
     }
 
-
     private void setParentSymbol(Stream<Symbol> symbolStream, String parentSymbolName) {
         this.parentSymbol = symbolStream
                 .filter(symbol -> symbol.kind() == SymbolKind.VARIABLE && symbol.nameEquals(parentSymbolName))

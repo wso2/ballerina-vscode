@@ -1,0 +1,2 @@
+[workspace]
+packages = ["project1", "project2"]

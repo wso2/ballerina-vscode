@@ -55,6 +55,7 @@ dependencies {
     }
     implementation "io.ballerina.openapi:core:${openAPICoreVersion}"
     implementation "io.ballerina.graphql-tool:code-generator:${graphqlToolVersion}"
+    dist "io.ballerina.graphql-tool:code-generator:${graphqlToolVersion}"
     implementation("io.swagger.parser.v3:swagger-parser:${swaggerParserVersion}") {
         exclude group: "io.swagger", module: "swagger-compat-spec-parser"
         exclude group: "org.slf4j", module: "slf4j-ext"
@@ -63,6 +64,7 @@ dependencies {
     implementation "io.swagger.core.v3:swagger-models"
     implementation "org.xerial:sqlite-jdbc:${sqliteJdbcVersion}"
     implementation "com.graphql-java:graphql-java:${graphqlJavaVersion}"
+    dist "com.graphql-java:graphql-java:${graphqlJavaVersion}"
 }
 
 def balDistribution = file("$project.buildDir/extracted-distribution/jballerina-tools-${ballerinaLangVersion}")

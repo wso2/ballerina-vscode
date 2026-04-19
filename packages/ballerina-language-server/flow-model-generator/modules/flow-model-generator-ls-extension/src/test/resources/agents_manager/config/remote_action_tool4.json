@@ -289,20 +289,7 @@
             "character": 0
           }
         },
-        "newText": "import ballerina/http;"
-      },
-      {
-        "range": {
-          "start": {
-            "line": 0,
-            "character": 0
-          },
-          "end": {
-            "line": 0,
-            "character": 0
-          }
-        },
-        "newText": "# + return - Type of the variable\n@ai:AgentTool\n@display {label: \"\", iconPath: \"https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.12.2.png\"}\nisolated function toolFunc(string foo, int... bar) returns json {\n    json variable = gmailClient->get(path, headers);\n    return variable;\n}"
+        "newText": "# + return - Type of the variable\n@ai:AgentTool\n@display {label: \"\", iconPath: \"https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.12.2.png\"}\nisolated function toolFunc(string foo, int... bar) returns targetType {\n    targetType variable = gmailClient->get(path, headers);\n    return variable;\n}"
       }
     ]
   }

@@ -1,0 +1,16 @@
+{
+  "source": "multiproject/project2/functions.bal",
+  "description": "Test reference type visualization",
+  "codedata": {
+    "node": "RECORD",
+    "org": "org",
+    "module": "project1",
+    "packageName": "project1",
+    "symbol": "Student",
+    "version": "0.1.0"
+  },
+  "visualizableProperties": {
+    "isDataMapped": true,
+    "defaultValue": "{}"
+  }
+}

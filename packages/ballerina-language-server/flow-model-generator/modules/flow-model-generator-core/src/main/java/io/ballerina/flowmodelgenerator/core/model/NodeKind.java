@@ -78,6 +78,9 @@ public enum NodeKind {
     TABLE,
     TUPLE,
 
+    // Metadata
+    ANNOTATION_ATTACHMENT,
+
     AGENT,
     AGENT_CALL,
     AGENT_RUN,
@@ -98,7 +101,7 @@ public enum NodeKind {
     CHUNKERS,
     CHUNKER,
     MEMORY,
-    MEMORY_STORE,
+    SHORT_TERM_MEMORY_STORE,
     MCP_TOOL_KIT,
     AGENT_ID_AUTH_CONFIG,
     WORKFLOW,

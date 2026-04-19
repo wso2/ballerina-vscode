@@ -152,7 +152,7 @@ public class SourceBuilder {
             case NEW_CONNECTION, MODEL_PROVIDER, EMBEDDING_PROVIDER, VECTOR_STORE, KNOWLEDGE_BASE,
                  DATA_LOADER, CHUNKER, CLASS_INIT, DATA_MAPPER_DEFINITION,
                  FUNCTION_DEFINITION, NP_FUNCTION, NP_FUNCTION_DEFINITION, AUTOMATION,
-                 AGENT, MEMORY, MEMORY_STORE, MCP_TOOL_KIT -> true;
+                 AGENT, MEMORY, SHORT_TERM_MEMORY_STORE, MCP_TOOL_KIT -> true;
             default -> false;
         };
     }
@@ -166,7 +166,7 @@ public class SourceBuilder {
                 case FUNCTION_DEFINITION, NP_FUNCTION, NP_FUNCTION_DEFINITION, WORKFLOW, ACTIVITY,
                      ACTIVITY_CREATION -> FUNCTIONS_BAL;
                 case AUTOMATION -> AUTOMATION_BAL;
-                case AGENT, MEMORY, MEMORY_STORE, MCP_TOOL_KIT -> AGENTS_BAL;
+                case AGENT, MEMORY, SHORT_TERM_MEMORY_STORE, MCP_TOOL_KIT -> AGENTS_BAL;
                 default -> null;
             };
             if (defaultFile == null) {
@@ -227,7 +227,7 @@ public class SourceBuilder {
         return this;
     }
 
-    private String getTypeNameForInferredParam(Property variable, String typeName) {
+    public String getTypeNameForInferredParam(Property variable, String typeName) {
         Optional<Property> inferredParam = flowNode.properties().values().stream()
                 .filter(property -> property.codedata() != null && property.codedata().kind() != null &&
                         property.codedata().kind().equals(ParameterData.Kind.PARAM_FOR_TYPE_INFER.name()))
@@ -639,8 +639,7 @@ public class SourceBuilder {
                     tokenBuilder.keyword(SyntaxKind.COMMA_TOKEN);
                 }
                 if (missedDefaultValue) {
-                    tokenBuilder.name(prop.codedata().originalName()).whiteSpace()
-                            .keyword(SyntaxKind.EQUAL_TOKEN).expression(prop);
+                    tokenBuilder.namedArg(prop);
                 } else {
                     tokenBuilder.param(prop);
                 }
@@ -651,8 +650,7 @@ public class SourceBuilder {
                 if (firstParamAdded) {
                     tokenBuilder.keyword(SyntaxKind.COMMA_TOKEN);
                 }
-                tokenBuilder.name(prop.codedata().originalName())
-                        .whiteSpace().keyword(SyntaxKind.EQUAL_TOKEN).expression(prop);
+                tokenBuilder.namedArg(prop);
             } else if (kind.equals(ParameterData.Kind.REST_PARAMETER.name())) {
                 if (isPropValueEmpty(prop) || ((List<?>) prop.value()).isEmpty()) {
                     continue;
@@ -962,11 +960,14 @@ public class SourceBuilder {
         }
 
         public TokenBuilder param(Property property) {
-            String source = property.toSourceCode();
-            if (source.startsWith("$")) {
-                source = "'" + source.substring(1);
-            }
-            sb.append(source);
+            sb.append(CommonUtils.escapeIdentifierFromFormField(property.toSourceCode()));
+            return this;
+        }
+
+        public TokenBuilder namedArg(Property property) {
+            sb.append(CommonUtils.escapeIdentifierFromFormField(property.codedata().originalName())).append(WHITE_SPACE)
+                    .append(SyntaxKind.EQUAL_TOKEN.stringValue()).append(WHITE_SPACE)
+                    .append(property.toSourceCode());
             return this;
         }
 

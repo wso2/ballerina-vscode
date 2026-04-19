@@ -248,15 +248,15 @@
       {
         "range": {
           "start": {
-            "line": 0,
-            "character": 0
+            "line": 2,
+            "character": 1
           },
           "end": {
-            "line": 0,
-            "character": 0
+            "line": 2,
+            "character": 1
           }
         },
-        "newText": "function transform1(string username, mod:Address address) returns Person {\n}"
+        "newText": "\nfunction transform1(string username, mod:Address address) returns Person {\n}"
       }
     ],
     "data_mapper/main.bal": [

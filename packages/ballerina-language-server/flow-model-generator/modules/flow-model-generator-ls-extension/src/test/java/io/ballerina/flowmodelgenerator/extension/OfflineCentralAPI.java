@@ -21,12 +21,14 @@ package io.ballerina.flowmodelgenerator.extension;
 import io.ballerina.centralconnector.CentralAPI;
 import io.ballerina.centralconnector.response.ConnectorResponse;
 import io.ballerina.centralconnector.response.ConnectorsResponse;
+import io.ballerina.centralconnector.response.DependentPackage;
 import io.ballerina.centralconnector.response.FunctionResponse;
 import io.ballerina.centralconnector.response.FunctionsResponse;
 import io.ballerina.centralconnector.response.Listeners;
 import io.ballerina.centralconnector.response.PackageResponse;
 import io.ballerina.centralconnector.response.SymbolResponse;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -79,6 +81,22 @@ public class OfflineCentralAPI implements CentralAPI {
 
     @Override
     public String latestPackageVersion(String org, String name) {
+        throw new UnsupportedOperationException("Central API is disabled for testing");
+    }
+
+    @Override
+    public List<String> allPackageVersions(String org, String name) {
+        throw new UnsupportedOperationException("Central API is disabled for testing");
+    }
+
+    @Override
+    public Map<String, List<DependentPackage>> dependentPackages(String org, String packageName,
+                                                                  List<String> versions) {
+        throw new UnsupportedOperationException("Central API is disabled for testing");
+    }
+
+    @Override
+    public Map<String, List<String>> packageKeywords(List<DependentPackage> modules) {
         throw new UnsupportedOperationException("Central API is disabled for testing");
     }
 

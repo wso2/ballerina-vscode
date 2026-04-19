@@ -94,7 +94,7 @@
       "data": {
         "metadata": {
           "label": "Data",
-          "description": "The data to send to the workflow"
+          "description": "The data payload"
         },
         "types": [
           {

@@ -27,6 +27,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
 import io.ballerina.centralconnector.response.ConnectorApiResponse;
+import io.ballerina.centralconnector.response.DependentPackage;
 import io.ballerina.centralconnector.response.Function;
 import io.ballerina.centralconnector.response.FunctionResponse;
 import io.ballerina.centralconnector.response.FunctionsResponse;
@@ -117,6 +118,92 @@ class GraphQlClient {
         String queryBody = String.format(queryTemplate, organization, name, version, clientName);
         String response = query(queryBody);
         return gson.fromJson(response, ConnectorApiResponse.class);
+    }
+
+    public Map<String, List<DependentPackage>> getDependentPackages(String org, String packageName,
+                                                                    List<String> versions) {
+        StringBuilder queryBody = new StringBuilder("query Package { ");
+        for (String version : versions) {
+            String alias = versionToAlias(version);
+            queryBody.append(alias)
+                    .append(": package(orgName: \\\"").append(org)
+                    .append("\\\", packageName: \\\"").append(packageName)
+                    .append("\\\", version: \\\"").append(version)
+                    .append("\\\") { dependentPackages { organization name version } } ");
+        }
+        queryBody.append("}");
+
+        String response = query(queryBody.toString());
+        JsonObject root = gson.fromJson(response, JsonObject.class);
+        if (root == null || !root.has("data") || root.getAsJsonObject("data") == null) {
+            throw new RuntimeException("Invalid GraphQL response: missing 'data' field");
+        }
+        JsonObject data = root.getAsJsonObject("data");
+
+        Map<String, List<DependentPackage>> result = new HashMap<>();
+        for (String version : versions) {
+            String alias = versionToAlias(version);
+            JsonObject pkgObj = data.getAsJsonObject(alias);
+            if (pkgObj == null || !pkgObj.has("dependentPackages")
+                    || !pkgObj.get("dependentPackages").isJsonArray()) {
+                continue;
+            }
+            List<DependentPackage> deps = new ArrayList<>();
+            for (JsonElement elem : pkgObj.getAsJsonArray("dependentPackages")) {
+                deps.add(gson.fromJson(elem, DependentPackage.class));
+            }
+            result.put(version, deps);
+        }
+        return result;
+    }
+
+    public Map<String, List<String>> getPackageKeywords(List<DependentPackage> modules) {
+        if (modules.isEmpty()) {
+            return Map.of();
+        }
+        StringBuilder queryBody = new StringBuilder("query Keywords { ");
+        Map<String, DependentPackage> aliasToModule = new HashMap<>();
+        for (DependentPackage module : modules) {
+            String alias = moduleToAlias(module);
+            aliasToModule.put(alias, module);
+            queryBody.append(alias)
+                    .append(": package(orgName: \\\"").append(module.organization())
+                    .append("\\\", packageName: \\\"").append(module.name())
+                    .append("\\\", version: \\\"").append(module.version())
+                    .append("\\\") { keywords } ");
+        }
+        queryBody.append("}");
+
+        String response = query(queryBody.toString());
+        JsonObject data = gson.fromJson(response, JsonObject.class).getAsJsonObject("data");
+        if (data == null) {
+            return Map.of();
+        }
+
+        Map<String, List<String>> result = new HashMap<>();
+        for (Map.Entry<String, DependentPackage> entry : aliasToModule.entrySet()) {
+            JsonObject pkgObj = data.getAsJsonObject(entry.getKey());
+            if (pkgObj == null || !pkgObj.has("keywords")) {
+                continue;
+            }
+            DependentPackage mod = entry.getValue();
+            String key = mod.organization() + ":" + mod.name() + ":" + mod.version();
+            List<String> keywords = new ArrayList<>();
+            for (JsonElement elem : pkgObj.getAsJsonArray("keywords")) {
+                keywords.add(elem.getAsString());
+            }
+            result.put(key, keywords);
+        }
+        return result;
+    }
+
+    private static String moduleToAlias(DependentPackage module) {
+        return (module.organization() + "_" + module.name() + "_" + module.version())
+                .replaceAll("[^a-zA-Z0-9]", "_");
+    }
+
+    private static String versionToAlias(String version) {
+        return "v" + version.replace(".", "_");
     }
 
     private String query(String queryBody) {

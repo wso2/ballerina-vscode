@@ -45,6 +45,7 @@ public class RecordValueGenerator {
                 case "record" -> generateRecordValue(json, builder, indentLevel);
                 case "union" -> generateUnionValue(json, builder, indentLevel);
                 case "enum" -> generateEnumValue(json, builder, indentLevel);
+                case "array" -> generateArrayValue(json, builder, indentLevel);
                 default -> {
                     if (json.has("value") && !json.get("value").getAsString().isEmpty()) {
                         builder.append(json.get("value").getAsString());
@@ -83,12 +84,19 @@ public class RecordValueGenerator {
             return;
         }
 
+        // Only applicable for the FTP coordination config's `task:DatabaseConfig` union
+        // type
+        boolean needsExplicitTypeCast = isAmbiguousUnionModulePrefix(union);
         if (union.has("members")) {
             JsonElement members = union.get("members");
             if (members.isJsonArray()) {
                 for (JsonElement member : members.getAsJsonArray()) {
                     JsonObject memberObj = member.getAsJsonObject();
                     if (memberObj.has("selected") && memberObj.get("selected").getAsBoolean()) {
+                        if (needsExplicitTypeCast) {
+                            memberObj.addProperty("explicitTypeCast",
+                                    "task:" + memberObj.get("name").getAsString());
+                        }
                         generateValue(memberObj, builder, indentLevel);
                         break;
                     }
@@ -97,9 +105,76 @@ public class RecordValueGenerator {
         }
     }
 
+    private static void generateArrayValue(JsonObject jsonObject, StringBuilder builder, int indentLevel) {
+        if (jsonObject.has("selected") && !jsonObject.get("selected").getAsBoolean()) {
+            return;
+        }
+
+        if (jsonObject.has("elements") && jsonObject.get("elements").isJsonArray()) {
+            var elements = jsonObject.get("elements").getAsJsonArray();
+            if (elements.isEmpty()) {
+                builder.append("[]");
+                return;
+            }
+
+            String indent = getIndent(indentLevel);
+            String nextIndent = getIndent(indentLevel + 1);
+            List<String> elementValues = new ArrayList<>();
+            for (JsonElement element : elements) {
+                JsonObject elementObj = element.getAsJsonObject();
+                if (elementObj.has("selected") && !elementObj.get("selected").getAsBoolean()) {
+                    continue;
+                }
+                StringBuilder elementBuilder = new StringBuilder();
+                generateValue(elementObj, elementBuilder, indentLevel + 1);
+                String value = elementBuilder.toString().trim();
+                if (!value.isEmpty()) {
+                    elementValues.add(nextIndent + value);
+                }
+            }
+            if (elementValues.isEmpty()) {
+                builder.append("[]");
+            } else {
+                builder.append("[\n");
+                builder.append(String.join(",\n", elementValues));
+                builder.append("\n").append(indent).append("]");
+            }
+        } else if (jsonObject.has("value") && !jsonObject.get("value").getAsString().trim().isEmpty()) {
+            builder.append(jsonObject.get("value").getAsString());
+        } else {
+            builder.append("[]");
+        }
+    }
+
+    /**
+     * Returns the module prefix for the {@code task:DatabaseConfig} union type used
+     * in the FTP
+     * coordination config, or {@code null} if this is not that union. Both members
+     * ({@code MysqlConfig} and {@code PostgresqlConfig}) are structurally
+     * identical, so the
+     * compiler requires an explicit type cast like {@code <task:MysqlConfig>}.
+     */
+    private static boolean isAmbiguousUnionModulePrefix(JsonObject union) {
+        if (!union.has("name") || !"databaseConfig".equals(union.get("name").getAsString())
+                || !union.has("typeInfo") || !union.get("typeInfo").isJsonObject()) {
+            return false;
+        }
+        JsonObject typeInfo = union.get("typeInfo").getAsJsonObject();
+        if ("task".equals(typeInfo.has("moduleName") ? typeInfo.get("moduleName").getAsString() : null)
+                && "DatabaseConfig".equals(typeInfo.has("name") ? typeInfo.get("name").getAsString() : null)) {
+            return true;
+        }
+        return false;
+    }
+
     private static void generateRecordValue(JsonObject jsonObject, StringBuilder builder, int indentLevel) {
         if (jsonObject.has("selected") && !jsonObject.get("selected").getAsBoolean()) {
             return;
+        }
+
+        // Add explicit type cast if specified (for ambiguous union record types)
+        if (jsonObject.has("explicitTypeCast") && !jsonObject.get("explicitTypeCast").getAsString().isEmpty()) {
+            builder.append("<").append(jsonObject.get("explicitTypeCast").getAsString()).append("> ");
         }
 
         String indent = getIndent(indentLevel);
