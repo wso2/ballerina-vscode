@@ -187,13 +187,13 @@
                         "selected": false
                       },
                       {
-                        "fieldType": "TEXT",
-                        "ballerinaType": "string",
+                        "fieldType": "NUMBER",
+                        "ballerinaType": "int|float|decimal",
                         "selected": false
                       },
                       {
-                        "fieldType": "NUMBER",
-                        "ballerinaType": "int|float|decimal",
+                        "fieldType": "TEXT",
+                        "ballerinaType": "string",
                         "selected": false
                       },
                       {
@@ -215,13 +215,13 @@
                   "selected": false
                 },
                 {
-                  "fieldType": "TEXT",
-                  "ballerinaType": "string",
+                  "fieldType": "NUMBER",
+                  "ballerinaType": "int|float|decimal",
                   "selected": false
                 },
                 {
-                  "fieldType": "NUMBER",
-                  "ballerinaType": "int|float|decimal",
+                  "fieldType": "TEXT",
+                  "ballerinaType": "string",
                   "selected": false
                 },
                 {

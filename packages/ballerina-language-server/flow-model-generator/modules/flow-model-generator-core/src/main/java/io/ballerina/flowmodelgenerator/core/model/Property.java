@@ -712,6 +712,8 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                                             .distinct()
                                             .reduce((a, b) -> a + "|" + b)
                                             .orElse("");
+                                    // find the index of the first grouped type to preserve order
+                                    int insertIndex = builder.types.indexOf(groupedTypes.getFirst());
                                     // remove the existing types
                                     builder.types.removeIf(t -> t.fieldType() == fieldType);
 
@@ -724,9 +726,10 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                                                 .toList());
                                     }
 
-                                    // add the merged type
-                                    builder.types.add(new PropertyType(fieldType, mergedBallerinaType, null,
-                                            null, null, distinctMembers, null, false));
+                                    // insert the merged type at the original position
+                                    builder.types.add(insertIndex, new PropertyType(fieldType,
+                                            mergedBallerinaType, null, null,
+                                            null, distinctMembers, null, false));
                                 }
                             });
                 }

@@ -42,3 +42,20 @@ type Department "Engineering"|"Sales"|"HR"|"Marketing";
 type Priority 1|2|3|4|5;
 
 type MixedValue string|int|boolean|decimal;
+
+public type VertexAiAuth OAuth2RefreshConfig|ServiceAccountConfig|ServiceAccountJsonFilePath;
+
+public type ServiceAccountJsonFilePath string;
+
+public type OAuth2RefreshConfig readonly & record {|
+    string clientId;
+    string clientSecret;
+    string refreshToken;
+    string refreshUrl = "https://oauth2.googleapis.com/token";
+|};
+
+public type ServiceAccountConfig readonly & record {|
+    string clientEmail;
+    string privateKey;
+    string[] scopes = ["https://www.googleapis.com/auth/cloud-platform"];
+|};
