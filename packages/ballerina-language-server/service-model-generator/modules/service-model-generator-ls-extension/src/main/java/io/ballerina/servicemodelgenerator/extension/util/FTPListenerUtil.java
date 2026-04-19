@@ -496,8 +496,29 @@ public class FTPListenerUtil {
                 .setAdvanced(false)
                 .build());
 
+        // Basic Authentication (supported for FTP, FTPS, and SFTP)
+        Map<String, Value> basicProps = new LinkedHashMap<>();
+        if (usernameExpr != null) {
+            basicProps.put("userName", buildReadOnlyTextValue("Username",
+                    "Remote server username for authentication", usernameExpr));
+        }
+        if (passwordExpr != null) {
+            basicProps.put("password", buildReadOnlyTextValue("Password",
+                    "Remote server password for authentication", passwordExpr));
+        }
+        Value basicChoice = new Value.ValueBuilder()
+                .metadata("Basic Authentication", "")
+                .value("true")
+                .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                .enabled(isBasicAuth)
+                .editable(false)
+                .setAdvanced(false)
+                .setProperties(basicProps)
+                .build();
+        choices.add(basicChoice);
+
         if (isSftp) {
-            // SFTP uses Certificate Based Authentication
+            // SFTP also supports Certificate Based Authentication
             Map<String, Value> certProps = new LinkedHashMap<>();
             if (hasPrivateKey && privateKeyExpr != null) {
                 certProps.put("privateKey", buildReadOnlyRecordValue("Private Key",
@@ -518,27 +539,6 @@ public class FTPListenerUtil {
                     .setProperties(certProps)
                     .build();
             choices.add(certChoice);
-        } else {
-            // FTP/FTPS uses Basic Authentication
-            Map<String, Value> basicProps = new LinkedHashMap<>();
-            if (usernameExpr != null) {
-                basicProps.put("userName", buildReadOnlyTextValue("Username",
-                        "Remote server username for authentication", usernameExpr));
-            }
-            if (passwordExpr != null) {
-                basicProps.put("password", buildReadOnlyTextValue("Password",
-                        "Remote server password for authentication", passwordExpr));
-            }
-            Value basicChoice = new Value.ValueBuilder()
-                    .metadata("Basic Authentication", "")
-                    .value("true")
-                    .types(List.of(PropertyType.types(Value.FieldType.FORM)))
-                    .enabled(isBasicAuth)
-                    .editable(false)
-                    .setAdvanced(false)
-                    .setProperties(basicProps)
-                    .build();
-            choices.add(basicChoice);
         }
 
         Value auth = new Value.ValueBuilder()

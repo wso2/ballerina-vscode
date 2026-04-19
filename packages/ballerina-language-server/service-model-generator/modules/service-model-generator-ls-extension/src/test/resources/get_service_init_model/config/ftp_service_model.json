@@ -310,6 +310,68 @@
                                 },
                                 {
                                   "metadata": {
+                                    "label": "Basic Authentication",
+                                    "description": ""
+                                  },
+                                  "placeholder": "true",
+                                  "value": "true",
+                                  "properties": {
+                                    "userName": {
+                                      "metadata": {
+                                        "label": "Username",
+                                        "description": "Remote server username for authentication"
+                                      },
+                                      "placeholder": "default",
+                                      "value": "\"default\"",
+                                      "types": [
+                                        {
+                                          "fieldType": "TEXT",
+                                          "ballerinaType": "string",
+                                          "selected": true
+                                        },
+                                        {
+                                          "fieldType": "EXPRESSION",
+                                          "ballerinaType": "string",
+                                          "selected": false
+                                        }
+                                      ],
+                                      "enabled": true,
+                                      "editable": true,
+                                      "optional": false,
+                                      "advanced": false
+                                    },
+                                    "password": {
+                                      "metadata": {
+                                        "label": "Password",
+                                        "description": "Remote server password for authentication"
+                                      },
+                                      "placeholder": "default",
+                                      "value": "\"default\"",
+                                      "types": [
+                                        {
+                                          "fieldType": "TEXT",
+                                          "ballerinaType": "string",
+                                          "selected": true
+                                        },
+                                        {
+                                          "fieldType": "EXPRESSION",
+                                          "ballerinaType": "string",
+                                          "selected": false
+                                        }
+                                      ],
+                                      "enabled": true,
+                                      "editable": true,
+                                      "optional": true,
+                                      "advanced": false
+                                    }
+                                  },
+                                  "enabled": false,
+                                  "editable": true,
+                                  "optional": false,
+                                  "advanced": false
+                                },
+                                {
+                                  "metadata": {
                                     "label": "Certificate Based Authentication",
                                     "description": ""
                                   },
