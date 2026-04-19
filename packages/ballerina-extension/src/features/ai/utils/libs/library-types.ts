@@ -58,6 +58,7 @@ export interface Field {
     description: string;
     type: Type;
     default?: string;
+    isDeprecated?: boolean;
 }
 
 export interface UnionValue {
@@ -74,6 +75,7 @@ export interface TypeDefinitionBase {
     name: string;
     description: string;
     type: string;
+    isDeprecated?: boolean;
 }
 
 export interface ConstantTypeDefinition extends TypeDefinitionBase {
@@ -110,6 +112,7 @@ export interface AbstractFunction {
     description: string;
     parameters: Parameter[];
     return: Return;
+    isDeprecated?: boolean;
 }
 
 export interface ResourceFunction extends AbstractFunction {
@@ -128,12 +131,14 @@ export interface ServiceRemoteFunction {
     return: Return;
     optional: boolean;
     name: string;
+    isDeprecated?: boolean;
 }
 
 export interface Client {
     name: string;
     description: string;
     functions: (RemoteFunction | ResourceFunction)[];
+    isDeprecated?: boolean;
 }
 
 export interface Listener {
@@ -144,6 +149,16 @@ export interface Listener {
 export interface Service {
     listener: Listener;
     type: "generic" | "fixed";
+    name?: string;
+    isDeprecated?: boolean;
+}
+
+export interface Annotation {
+    name: string;
+    attachmentPoint: string;
+    displayName?: string;
+    description?: string;
+    typeConstraint?: Type;
 }
 
 export interface GenericService extends Service {
@@ -163,6 +178,7 @@ export interface Library {
     clients: Client[];
     functions?: RemoteFunction[];
     services?: Service[];
+    annotations?: Annotation[];
     instructions?: string;
     readme?: string;
 }

@@ -34,7 +34,13 @@ import {
     Service,
     ParameterDef,
     PathParameter,
+    Annotation,
 } from "./library-types";
+
+const ATTACHMENT_POINT_LABELS: Record<string, string> = {
+    SERVICE: "service",
+    OBJECT_METHOD: "service_function",
+};
 
 /**
  * Derives a module prefix from a library name.
@@ -130,6 +136,9 @@ function renderDescription(description: string | undefined): string {
 function renderRecord(typeDef: RecordTypeDefinition): string {
     const lines: string[] = [];
     lines.push(renderDescription(typeDef.description));
+    if (typeDef.isDeprecated) {
+        lines.push("@deprecated");
+    }
     lines.push(`type ${typeDef.name} record {`);
 
     for (const field of typeDef.fields) {
@@ -138,12 +147,17 @@ function renderRecord(typeDef: RecordTypeDefinition): string {
         const optional = (field as any).optional ? "?" : "";
         const defaultVal = field.default !== undefined ? ` = ${field.default}` : "";
         const fieldDesc = field.description ? `    # ${field.description}\n` : "";
+        const fieldDeprecated = field.isDeprecated ? "    @deprecated\n" : "";
         const agentNote = buildSpecialAgentNote(externalLinks);
-        lines.push(`${fieldDesc}    ${typeName} ${field.name}${optional}${defaultVal};${agentNote}`);
+        lines.push(`${fieldDesc}${fieldDeprecated}    ${typeName} ${field.name}${optional}${defaultVal};${agentNote}`);
     }
 
     lines.push("};");
     return lines.join("\n");
+}
+
+function renderDeprecation(isDeprecated: boolean | undefined): string {
+    return isDeprecated ? "@deprecated\n" : "";
 }
 
 /**
@@ -152,6 +166,9 @@ function renderRecord(typeDef: RecordTypeDefinition): string {
 function renderEnum(typeDef: EnumTypeDefinition): string {
     const lines: string[] = [];
     lines.push(renderDescription(typeDef.description));
+    if (typeDef.isDeprecated) {
+        lines.push("@deprecated");
+    }
     const members = typeDef.members.map((m) => m.name).join(",\n    ");
     lines.push(`enum ${typeDef.name} {\n    ${members}\n}`);
     return lines.join("");
@@ -162,11 +179,12 @@ function renderEnum(typeDef: EnumTypeDefinition): string {
  */
 function renderUnion(typeDef: UnionTypeDefinition): string {
     const desc = renderDescription(typeDef.description);
+    const dep = renderDeprecation(typeDef.isDeprecated);
     if (!typeDef.members || typeDef.members.length === 0) {
-        return `${desc}type ${typeDef.name};`;
+        return `${desc}${dep}type ${typeDef.name};`;
     }
     const members = typeDef.members.map((m) => m.name).join("|");
-    return `${desc}type ${typeDef.name} ${members};`;
+    return `${desc}${dep}type ${typeDef.name} ${members};`;
 }
 
 /**
@@ -174,8 +192,9 @@ function renderUnion(typeDef: UnionTypeDefinition): string {
  */
 function renderConstant(typeDef: ConstantTypeDefinition): string {
     const desc = renderDescription(typeDef.description);
+    const dep = renderDeprecation(typeDef.isDeprecated);
     const value = typeDef.varType.name === "string" ? `"${typeDef.value}"` : typeDef.value;
-    return `${desc}const ${typeDef.varType.name} ${typeDef.name} = ${value};`;
+    return `${desc}${dep}const ${typeDef.varType.name} ${typeDef.name} = ${value};`;
 }
 
 /**
@@ -183,7 +202,8 @@ function renderConstant(typeDef: ConstantTypeDefinition): string {
  */
 function renderClass(typeDef: ClassTypeDefinition): string {
     const desc = renderDescription(typeDef.description);
-    return `${desc}class ${typeDef.name} {\n}`;
+    const dep = renderDeprecation(typeDef.isDeprecated);
+    return `${desc}${dep}class ${typeDef.name} {\n}`;
 }
 
 /**
@@ -257,10 +277,11 @@ function renderConstructor(func: RemoteFunction): string {
 function renderRemoteFunction(func: RemoteFunction, indent: string = "    "): string {
     const allExternalLinks = collectFunctionExternalLinks(func.parameters, func.return?.type);
     const desc = func.description ? `${indent}# ${func.description.split("\n").join(`\n${indent}# `)}\n` : "";
+    const dep = func.isDeprecated ? `${indent}@deprecated\n` : "";
     const params = func.parameters.map(renderParam).join(", ");
     const returnStr = func.return?.type ? ` returns ${applyPrefixToTypeName(func.return.type.name, allExternalLinks)}` : "";
     const agentNote = buildSpecialAgentNote(allExternalLinks);
-    return `${desc}${indent}remote function ${func.name}(${params})${returnStr};${agentNote}`;
+    return `${desc}${dep}${indent}remote function ${func.name}(${params})${returnStr};${agentNote}`;
 }
 
 /**
@@ -269,6 +290,7 @@ function renderRemoteFunction(func: RemoteFunction, indent: string = "    "): st
 function renderResourceFunction(func: ResourceFunction, indent: string = "    "): string {
     const allExternalLinks = collectFunctionExternalLinks(func.parameters, func.return?.type);
     const desc = func.description ? `${indent}# ${func.description.split("\n").join(`\n${indent}# `)}\n` : "";
+    const dep = func.isDeprecated ? `${indent}@deprecated\n` : "";
 
     // Build path string
     const pathSegments = func.paths.map((p) => {
@@ -290,7 +312,7 @@ function renderResourceFunction(func: ResourceFunction, indent: string = "    ")
 
     const returnStr = func.return?.type ? ` returns ${applyPrefixToTypeName(func.return.type.name, allExternalLinks)}` : "";
     const agentNote = buildSpecialAgentNote(allExternalLinks);
-    return `${desc}${indent}resource function ${func.accessor} ${pathStr}(${params})${returnStr};${agentNote}`;
+    return `${desc}${dep}${indent}resource function ${func.accessor} ${pathStr}(${params})${returnStr};${agentNote}`;
 }
 
 /**
@@ -299,7 +321,8 @@ function renderResourceFunction(func: ResourceFunction, indent: string = "    ")
 function renderClient(client: Client): string {
     const lines: string[] = [];
     const desc = client.description ? renderDescription(client.description) : "";
-    lines.push(`${desc}client class ${client.name} {`);
+    const dep = client.isDeprecated ? "@deprecated\n" : "";
+    lines.push(`${desc}${dep}client class ${client.name} {`);
 
     for (const func of client.functions) {
         if ("type" in func && func.type === "Constructor") {
@@ -343,6 +366,10 @@ function renderStandaloneFunction(func: RemoteFunction): string {
         lines.push(`# + return - ${func.return.description}`);
     }
 
+    if (func.isDeprecated) {
+        lines.push("@deprecated");
+    }
+
     const params = func.parameters.map(renderParam).join(", ");
     const returnStr = func.return?.type ? ` returns ${applyPrefixToTypeName(func.return.type.name, allExternalLinks)}` : "";
     const agentNote = buildSpecialAgentNote(allExternalLinks);
@@ -367,12 +394,28 @@ function renderGenericService(service: GenericService): string {
         (p) => `${p.type.name} ${p.name}`
     ).join(", ");
     lines.push(`// --- Service (generic) ---`);
+    if (service.name) {
+        lines.push(`// Service Type: ${service.name}`);
+    }
+    if (service.isDeprecated) {
+        lines.push(`// Deprecated`);
+    }
     lines.push(`// Listener: ${service.listener.name}(${listenerParams})`);
     lines.push(`// Instructions:`);
     if (service.instructions) {
         lines.push(service.instructions);
     }
     return lines.join("\n");
+}
+
+/**
+ * Derives the module alias from a listener name like `"kafka:Listener"` → `"kafka"`.
+ * Returns null when the listener name lacks a `:` separator so callers can fall back
+ * to the unprefixed `service on new ...` form.
+ */
+function deriveListenerAlias(listenerName: string): string | null {
+    const idx = listenerName.indexOf(":");
+    return idx > 0 ? listenerName.substring(0, idx) : null;
 }
 
 /**
@@ -383,15 +426,25 @@ function renderFixedService(service: FixedService): string {
     const listenerParams = service.listener.parameters.map(
         (p) => `${p.type.name} ${p.name}${(p as any).default !== undefined ? ` = ${(p as any).default}` : ""}`
     ).join(", ");
-    lines.push(`service on new ${service.listener.name}(${listenerParams}) {`);
+
+    if (service.isDeprecated) {
+        lines.push("@deprecated");
+    }
+
+    const alias = deriveListenerAlias(service.listener.name);
+    const serviceTypePrefix = service.name && alias
+        ? `${alias}:${service.name} `
+        : "";
+    lines.push(`service ${serviceTypePrefix}on new ${service.listener.name}(${listenerParams}) {`);
 
     for (const method of service.methods) {
         const desc = method.description ? `    # ${method.description}\n` : "";
+        const dep = method.isDeprecated ? "    @deprecated\n" : "";
         const params = method.parameters.map((p) => renderParamDef(p as ParameterDef & { name?: string })).join(", ");
         const returnStr = method.return?.type ? ` returns ${method.return.type.name}` : "";
         const optionalComment = method.optional ? " // optional" : "";
 
-        lines.push(`${desc}    remote function ${method.name}(${params})${returnStr};${optionalComment}`);
+        lines.push(`${desc}${dep}    remote function ${method.name}(${params})${returnStr};${optionalComment}`);
         lines.push("");
     }
 
@@ -401,6 +454,38 @@ function renderFixedService(service: FixedService): string {
     }
 
     lines.push("}");
+    return lines.join("\n");
+}
+
+/**
+ * Renders a library annotation. Only `SERVICE` and `OBJECT_METHOD` attachment points
+ * are supported; entries with other points are skipped by the caller.
+ */
+function renderAnnotation(annotation: Annotation): string | null {
+    const point = ATTACHMENT_POINT_LABELS[annotation.attachmentPoint];
+    if (!point) {
+        return null;
+    }
+
+    const lines: string[] = [];
+    if (annotation.description) {
+        const descBody = annotation.description
+            .split("\n")
+            .map((l) => `# ${l}`)
+            .join("\n");
+        lines.push(descBody);
+    }
+
+    let typeSlot = "";
+    let agentNote = "";
+    if (annotation.typeConstraint) {
+        const externalLinks = collectExternalLinks(annotation.typeConstraint);
+        const typeName = applyPrefixToTypeName(annotation.typeConstraint.name, externalLinks);
+        typeSlot = `${typeName} `;
+        agentNote = buildSpecialAgentNote(externalLinks);
+    }
+
+    lines.push(`public annotation ${typeSlot}${annotation.name} on ${point};${agentNote}`);
     return lines.join("\n");
 }
 
@@ -482,6 +567,21 @@ export function toSyntaxString(libraries: Library[]): string {
             for (const service of lib.services) {
                 output.push("");
                 output.push(renderService(service));
+            }
+        }
+
+        // Annotation section
+        if (lib.annotations && lib.annotations.length > 0) {
+            const renderedAnnotations = lib.annotations
+                .map(renderAnnotation)
+                .filter((rendered): rendered is string => rendered !== null);
+            if (renderedAnnotations.length > 0) {
+                output.push("");
+                output.push("// --- Annotations ---");
+                for (const rendered of renderedAnnotations) {
+                    output.push("");
+                    output.push(rendered);
+                }
             }
         }
 
