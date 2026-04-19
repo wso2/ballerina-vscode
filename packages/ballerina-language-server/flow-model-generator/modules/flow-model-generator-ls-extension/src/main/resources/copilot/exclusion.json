@@ -98,5 +98,8 @@
   },
   {
     "name": "ballerinax/ai"
+  },
+  {
+    "name": "xlibb/solace"
   }
 ]

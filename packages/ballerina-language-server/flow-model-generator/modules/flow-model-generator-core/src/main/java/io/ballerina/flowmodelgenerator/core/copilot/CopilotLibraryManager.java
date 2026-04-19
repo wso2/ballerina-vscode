@@ -70,7 +70,12 @@ public class CopilotLibraryManager {
     // Libraries for which README content should be included in the filtered response.
     private static final Set<String> README_WHITELIST = Set.of(
             "ballerinax/salesforce",
-            "ballerina/ai"
+            "ballerina/ai",
+            "ballerinax/cdc",
+            "ballerinax/mysql",
+            "ballerinax/postgresql",
+            "ballerina/ftp",
+            "ballerina/file"
     );
 
     /**
