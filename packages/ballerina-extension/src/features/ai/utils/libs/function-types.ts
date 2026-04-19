@@ -21,12 +21,19 @@ export interface GetFunctionsRequest {
     description: string;
     clients: MinifiedClient[];
     functions?: MinifiedRemoteFunction[];
+    services?: MinifiedService[];
 }
 
 export interface MinifiedClient {
     name: string;
     description?: string;
     functions: (MinifiedRemoteFunction | MinifiedResourceFunction)[];
+}
+
+export interface MinifiedService {
+    listener: string;
+    name?: string;
+    methods?: string[];
 }
 
 export interface MinifiedRemoteFunction extends MiniFunction {
@@ -52,6 +59,7 @@ export interface GetFunctionResponse {
     name: string;
     clients?: MinifiedClient[];
     functions?: MinifiedRemoteFunction[];
+    services?: MinifiedService[];
 }
 
 export interface PathParameter {
@@ -88,10 +96,17 @@ const clientSchema = z.object({
     functions: z.array(z.union([resourceFunctionSchema, remoteFunctionSchema])),
 });
 
+const minifiedServiceSchema = z.object({
+    listener: z.string(),
+    name: z.string().optional(),
+    methods: z.array(z.string()).optional(),
+});
+
 const libraryResponseSchema = z.object({
     name: z.string(),
     clients: z.array(clientSchema).optional(),
     functions: z.array(remoteFunctionSchema).optional(),
+    services: z.array(minifiedServiceSchema).optional(),
 });
 
 export const getFunctionsResponseSchema = z.object({
