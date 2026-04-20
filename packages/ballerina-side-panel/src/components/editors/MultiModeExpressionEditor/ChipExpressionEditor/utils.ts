@@ -404,6 +404,7 @@ export const detectTokenPatterns = (
             for (let j = startIndex; j <= endIndex; j++) {
                 usedIndices.add(j);
             }
+            i = endIndex;
         }
     }
 
