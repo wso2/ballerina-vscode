@@ -491,10 +491,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     filePath: model?.fileName,
                 });
                 setCategories(
-                    convertFunctionCategoriesToSidePanelCategories(
-                        response.categories as Category[],
-                        FUNCTION_TYPE.REGULAR
-                    )
+                    convertKnowledgeBaseCategoriesToSidePanelCategories(response.categories as Category[])
                 );
                 setSidePanelView(SidePanelView.KNOWLEDGE_BASE_LIST);
                 setShowSidePanel(true);
@@ -1459,10 +1456,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     })
                     .then((response) => {
                         setCategories(
-                            convertFunctionCategoriesToSidePanelCategories(
-                                response.categories as Category[],
-                                FUNCTION_TYPE.REGULAR
-                            )
+                            convertKnowledgeBaseCategoriesToSidePanelCategories(response.categories as Category[])
                         );
                         setSidePanelView(SidePanelView.KNOWLEDGE_BASE_LIST);
                         setShowSidePanel(true);
