@@ -74,6 +74,7 @@
         },
         "placeholder": "false",
         "value": {
+          "Path": [],
           "Protocol": []
         },
         "types": [
