@@ -27,19 +27,6 @@ import { refreshDataMapper } from '../../../../src/rpc-managers/data-mapper/util
 
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-function matchesPattern(filePath: string, pattern: string): boolean {
-    const normalizedPath = filePath.replace(/\\/g, '/');
-
-    const regexPattern = pattern
-        .replace(/\./g, '\\.')
-        .replace(/\*\*/g, '::DOUBLESTAR::')
-        .replace(/\*/g, '[^/]*')
-        .replace(/::DOUBLESTAR::/g, '.*');
-
-    const regex = new RegExp(`^${regexPattern}$`);
-    return regex.test(normalizedPath);
-}
-
 export async function captureWorkspaceSnapshot(messageId: string): Promise<Checkpoint | null> {
     const config = getCheckpointConfig();
 
@@ -235,41 +222,13 @@ export async function renderDatamapper() {
     await refreshDataMapper(filePath, dataMapperMetadata.codeData, varName);
 }
 
-async function getAllWorkspaceFiles(workspaceRoot: vscode.Uri, ignorePatterns: string[]): Promise<vscode.Uri[]> {
-    const files: vscode.Uri[] = [];
-
-    async function scanDirectory(dirUri: vscode.Uri): Promise<void> {
-        try {
-            const entries = await vscode.workspace.fs.readDirectory(dirUri);
-
-            for (const [name, type] of entries) {
-                const entryUri = vscode.Uri.joinPath(dirUri, name);
-                const relativePath = path.relative(workspaceRoot.fsPath, entryUri.fsPath);
-
-                if (shouldIgnoreFile(relativePath, ignorePatterns)) {
-                    continue;
-                }
-
-                if (type === vscode.FileType.File) {
-                    files.push(entryUri);
-                } else if (type === vscode.FileType.Directory) {
-                    await scanDirectory(entryUri);
-                }
-            }
-        } catch (error) {
-            console.error(`[Checkpoint] Failed to scan directory ${dirUri.fsPath}:`, error);
-        }
-    }
-
-    await scanDirectory(workspaceRoot);
-    return files;
-}
-
-function shouldIgnoreFile(filePath: string, ignorePatterns: string[]): boolean {
-    for (const pattern of ignorePatterns) {
-        if (matchesPattern(filePath, pattern)) {
-            return true;
-        }
-    }
-    return false;
+async function getAllWorkspaceFiles(
+    workspaceRoot: vscode.Uri,
+    ignorePatterns: string[]
+): Promise<vscode.Uri[]> {
+    const include = new vscode.RelativePattern(workspaceRoot, '**/*');
+    const exclude = ignorePatterns.length > 0
+        ? new vscode.RelativePattern(workspaceRoot, `{${ignorePatterns.join(',')}}`)
+        : null;
+    return vscode.workspace.findFiles(include, exclude);
 }
