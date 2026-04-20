@@ -27,6 +27,7 @@ import {
     InlineCardSubtitle
 } from "./styles";
 import { Button, Confirm } from "@wso2/ui-toolkit";
+import { RunningServiceInfo } from "@wso2/ballerina-core";
 
 const HURL_IMPORT_VSCODE_COMMAND = "HTTPClient.importHurlString";
 // ── Styled components ─────────────────────────────────────────────────────────
@@ -435,13 +436,6 @@ const HTTPTestScenarioDetail: React.FC<HTTPTestScenarioDetailProps> = ({ loading
 
 // ── TryItCard ─────────────────────────────────────────────────────────────────
 
-interface RunningServiceInfo {
-    taskId: string;
-    packagePath: string;
-    startedAt: number;
-    exited: boolean;
-    exitCode: number;
-}
 interface RunningServiceTarget {
     fullPackagePath: string;
     tempProjectPath: string;
