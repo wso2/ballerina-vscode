@@ -783,11 +783,12 @@ export function WorkspaceOverview() {
     // Collect paths of library projects so DeploymentOptions can exclude them from
     // deployment state calculations — libraries can never be deployed to cloud.
     const libraryProjectPaths = useMemo(() => {
-        return new Set(
-            (projectCollection?.projects ?? [])
-                .filter(p => p.isLibrary)
-                .map(p => p.projectPath!)
-        );
+        return (projectCollection?.projects ?? []).reduce<Set<string>>((paths, project) => {
+            if (project.isLibrary && project.projectPath) {
+                paths.add(project.projectPath);
+            }
+            return paths;
+        }, new Set<string>());
     }, [projectCollection?.projects]);
 
     const validateTitle = useCallback((value: string): string => {
