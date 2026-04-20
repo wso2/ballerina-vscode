@@ -54,6 +54,7 @@ import {
     ClarifyCancelRequest,
     RunningServiceInfo,
     StopRunningServiceRequest,
+    RunServiceRequest,
 } from "@wso2/ballerina-core";
 import * as fs from 'fs';
 import path from "path";
@@ -97,6 +98,7 @@ import { cleanupTempProject } from "../../features/ai/utils/project/temp-project
 import { chatStateStorage } from '../../views/ai-panel/chatStateStorage';
 import { restoreWorkspaceSnapshot } from '../../views/ai-panel/checkpoint/checkpointUtils';
 import { runningServicesManager } from '../../features/ai/agent/tools/running-service-manager';
+import { executeRun } from "../../features/ai/agent/tools/ballerina-run";
 
 export class AiPanelRpcManager implements AIPanelAPI {
 
@@ -845,5 +847,28 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async stopRunningService(params: StopRunningServiceRequest): Promise<boolean> {
         return runningServicesManager.stopOne(params.taskId);
+    }
+
+    async runService(params: RunServiceRequest): Promise<boolean> {
+        const { tempProjectPath, packagePath } = params;
+        try {
+            const result = await executeRun(
+                {
+                    runType: "service",
+                    packagePath: packagePath,
+                },
+                tempProjectPath,
+                runningServicesManager
+            );
+            if (!result || result.status !== 'started') {
+                window.showErrorMessage(`Failed to start service${packagePath ? ` in package ${packagePath}` : ''}.`);
+                return false;
+            }
+            return true;
+        } catch (error) {
+            console.error("[notifyAndRunServices] Failed to start required services:", error);
+            window.showErrorMessage(`Failed to start service${packagePath ? ` in package ${packagePath}` : ''}.`);
+            return false;
+        }
     }
 }
