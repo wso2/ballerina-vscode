@@ -425,8 +425,9 @@ public class FTPListenerUtil {
      *
      * <p>Parses the auth mapping constructor to determine which auth type is used
      * (No Auth / Basic / Certificate) and populates the selected choice's properties
-     * with actual values from the source code. The protocol determines which auth
-     * option is shown: Basic Authentication for FTP/FTPS, Certificate Based for SFTP.
+     * with actual values from the source code. No Authentication and Basic Authentication
+     * choices are always emitted; Certificate Based Authentication is additionally emitted
+     * only for SFTP.
      *
      * @param authExpression The auth argument expression node, or null if no auth argument
      * @param protocol       The protocol string (FTP, SFTP, or FTPS)
