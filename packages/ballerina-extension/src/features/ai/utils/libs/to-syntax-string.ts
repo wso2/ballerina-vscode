@@ -167,7 +167,7 @@ function renderEnum(typeDef: EnumTypeDefinition): string {
     const lines: string[] = [];
     lines.push(renderDescription(typeDef.description));
     if (typeDef.isDeprecated) {
-        lines.push("@deprecated");
+        lines.push("@deprecated\n");
     }
     const members = typeDef.members.map((m) => m.name).join(",\n    ");
     lines.push(`enum ${typeDef.name} {\n    ${members}\n}`);

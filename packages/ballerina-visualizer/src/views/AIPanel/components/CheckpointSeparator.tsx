@@ -115,7 +115,7 @@ const CheckpointSeparator: React.FC<CheckpointSeparatorProps> = ({
 
     // While restoring, keep the separator fully visible so the user sees
     // the in-progress state even if their cursor leaves the row.
-    const lineVisible = isGroupHovered || isRestoring;
+    const lineVisible = isGroupHovered || isRestoring || isCreating;
     const labelOpacity = isRestoring ? 1 : (isGroupHovered ? (isLabelHovered ? 1 : 0.5) : 0);
 
     return (
