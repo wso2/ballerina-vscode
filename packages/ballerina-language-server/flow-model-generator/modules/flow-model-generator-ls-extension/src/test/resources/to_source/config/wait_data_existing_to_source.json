@@ -1,0 +1,125 @@
+{
+  "source": "workflow_data/functions.bal",
+  "description": "Wait for data - single entry, adds new field to existing events type",
+  "diagram": {
+    "id": "1",
+    "metadata": {
+      "label": "Wait for Event",
+      "description": "Wait for a workflow event to be received"
+    },
+    "codedata": {
+      "node": "WAIT_DATA",
+      "isNew": true,
+      "lineRange": {
+        "fileName": "functions.bal",
+        "startLine": {
+          "line": 13,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 13,
+          "offset": 0
+        }
+      }
+    },
+    "returning": false,
+    "properties": {
+      "dataWaits": {
+        "metadata": {
+          "label": "Data Entries",
+          "description": "Data entries to wait for (one or more)"
+        },
+        "valueType": "REPEATABLE_PROPERTY",
+        "value": {
+          "approvalReceived": {
+            "metadata": {
+              "label": "Data Entries",
+              "description": "Data entries to wait for (one or more)"
+            },
+            "valueType": "FIXED_PROPERTY",
+            "value": {
+              "variable": {
+                "metadata": {
+                  "label": "Event Receive Variable Name",
+                  "description": "Variable name to receive the event data"
+                },
+                "valueType": "IDENTIFIER",
+                "value": "approval",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "dataType": {
+                "metadata": {
+                  "label": "Event Data Type",
+                  "description": "Type of the event data"
+                },
+                "valueType": "EXPRESSION",
+                "valueTypeConstraint": "anydata",
+                "value": "ApprovalData",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "dataName": {
+                "metadata": {
+                  "label": "Event Name",
+                  "description": "Name of the event to wait for"
+                },
+                "valueType": "IDENTIFIER",
+                "value": "approvalReceived",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  },
+  "output": {
+    "workflow_data/types.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 15,
+            "character": 35
+          },
+          "end": {
+            "line": 15,
+            "character": 35
+          }
+        },
+        "newText": "\nfuture<ApprovalData> approvalReceived;\n"
+      }
+    ],
+    "workflow_data/functions.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 13,
+            "character": 0
+          },
+          "end": {
+            "line": 13,
+            "character": 0
+          }
+        },
+        "newText": "\nApprovalData approval = check wait events.approvalReceived;"
+      }
+    ]
+  }
+}

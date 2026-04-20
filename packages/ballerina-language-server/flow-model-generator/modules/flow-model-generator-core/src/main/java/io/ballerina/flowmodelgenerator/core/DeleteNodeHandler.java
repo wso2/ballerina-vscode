@@ -19,26 +19,44 @@
 package io.ballerina.flowmodelgenerator.core;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.ParameterSymbol;
+import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
+import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
+import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.SymbolKind;
+import io.ballerina.compiler.api.symbols.TypeDescKind;
+import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.BlockStatementNode;
 import io.ballerina.compiler.syntax.tree.DoStatementNode;
 import io.ballerina.compiler.syntax.tree.ElseBlockNode;
+import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.IfElseStatementNode;
 import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ImportOrgNameNode;
 import io.ballerina.compiler.syntax.tree.ImportPrefixNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
+import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
+import io.ballerina.compiler.syntax.tree.ParameterNode;
+import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.StatementNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
+import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
+import io.ballerina.flowmodelgenerator.core.model.Property;
+import io.ballerina.flowmodelgenerator.core.model.node.WaitDataBuilder;
+import io.ballerina.flowmodelgenerator.core.utils.TypeUtils;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.projects.DiagnosticResult;
 import io.ballerina.projects.Document;
+import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Project;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.diagnostics.DiagnosticInfo;
@@ -51,16 +69,21 @@ import io.ballerina.tools.text.TextDocumentChange;
 import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.langserver.common.utils.PositionUtil;
 import org.ballerinalang.util.diagnostic.DiagnosticErrorCode;
+import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static io.ballerina.flowmodelgenerator.core.model.node.WaitDataBuilder.DATA_WAITS_KEY;
 
 /**
  * Generates text edits for the nodes that are requested to delete.
@@ -85,8 +108,14 @@ public class DeleteNodeHandler {
 
     @Deprecated
     public JsonElement getTextEditsToDeletedNode(Document document, Project project) {
-        if ((nodeToDelete.codedata() != null && nodeToDelete.codedata().node() == NodeKind.ERROR_HANDLER)) {
-            return handleErrorHandlerDeletion(nodeToDelete.codedata().lineRange(), filePath, document, project);
+        if (nodeToDelete.codedata() != null) {
+            if (nodeToDelete.codedata().node() == NodeKind.ERROR_HANDLER) {
+                return handleErrorHandlerDeletion(nodeToDelete.codedata().lineRange(), filePath, document, project);
+            }
+            if (nodeToDelete.codedata().node() == NodeKind.WAIT_DATA) {
+                return handleWaitDataDeletion(nodeToDelete, nodeToDelete.codedata().lineRange(), filePath,
+                        document, project);
+            }
         }
 
         LineRange lineRange = nodeToDelete.codedata().lineRange();
@@ -98,8 +127,13 @@ public class DeleteNodeHandler {
         FlowNode flowNode = gson.fromJson(node, FlowNode.class);
         LineRange lineRange = getNodeLineRange(node);
 
-        if (flowNode.codedata() != null && flowNode.codedata().node() == NodeKind.ERROR_HANDLER) {
-            return handleErrorHandlerDeletion(lineRange, filePath, document, project);
+        if (flowNode.codedata() != null) {
+            if (flowNode.codedata().node() == NodeKind.ERROR_HANDLER) {
+                return handleErrorHandlerDeletion(lineRange, filePath, document, project);
+            }
+            if (flowNode.codedata().node() == NodeKind.WAIT_DATA) {
+                return handleWaitDataDeletion(flowNode, lineRange, filePath, document, project);
+            }
         }
 
         return getTextEditsToDeletedNode(lineRange, filePath, document, project);
@@ -222,6 +256,241 @@ public class DeleteNodeHandler {
             }
         }
         return null;
+    }
+
+    /**
+     * Handles deletion of WAIT_DATA nodes by also removing the corresponding future field(s)
+     * from the data record type definition.
+     *
+     * @param flowNode  the flow node being deleted
+     * @param lineRange the line range of the WAIT_DATA node
+     * @param filePath  the file path
+     * @param document  the document
+     * @param project   the project
+     * @return the text edits including field deletions from the data record type
+     */
+    private static JsonElement handleWaitDataDeletion(FlowNode flowNode, LineRange lineRange,
+                                                       Path filePath, Document document, Project project) {
+        // Standard deletion of the wait statement
+        JsonElement standardResult = getTextEditsToDeletedNode(lineRange, filePath, document, project);
+
+        // Extract field names from the futures property
+        Optional<Property> futuresProp = flowNode.getProperty(DATA_WAITS_KEY);
+        if (futuresProp.isEmpty()) {
+            return standardResult;
+        }
+
+        Set<String> fieldNamesToDelete = new LinkedHashSet<>();
+        Object futuresValue = futuresProp.get().value();
+        if (futuresValue instanceof Map<?, ?> futuresMap && !futuresMap.isEmpty()) {
+            extractFieldNamesFromDataWaits(futuresMap, fieldNamesToDelete);
+        }
+
+        if (fieldNamesToDelete.isEmpty()) {
+            return standardResult;
+        }
+
+        FunctionDefinitionNode functionNode = findEnclosingFunction(document, lineRange);
+        if (functionNode == null) {
+            return standardResult;
+        }
+
+        // Find the data parameter (last param that is a record with all-future fields)
+        SeparatedNodeList<ParameterNode> parameters = functionNode.functionSignature().parameters();
+        if (parameters.isEmpty()) {
+            return standardResult;
+        }
+
+        SemanticModel semanticModel = project.currentPackage().module(document.module().moduleId())
+                .getCompilation().getSemanticModel();
+
+        Optional<Symbol> paramSymbol = semanticModel.symbol(parameters.get(parameters.size() - 1));
+        if (paramSymbol.isEmpty() || paramSymbol.get().kind() != SymbolKind.PARAMETER) {
+            return standardResult;
+        }
+
+        TypeSymbol typeSymbol = TypeUtils.resolveTypeReference(((ParameterSymbol) paramSymbol.get()).typeDescriptor());
+        if (typeSymbol.typeKind() != TypeDescKind.RECORD) {
+            return standardResult;
+        }
+
+        RecordTypeSymbol recordType = (RecordTypeSymbol) typeSymbol;
+        Map<String, RecordFieldSymbol> allFields = recordType.fieldDescriptors();
+
+        // Generate field deletion edits
+        JsonObject resultObject = standardResult.getAsJsonObject();
+        Path projectRoot = project.sourceRoot();
+
+        if (fieldNamesToDelete.containsAll(allFields.keySet())) {
+            deleteTypeDefinitionAndParam(typeSymbol, parameters, project, projectRoot, filePath,
+                    resultObject);
+        } else {
+            for (String fieldName : fieldNamesToDelete) {
+                deleteRecordField(allFields.get(fieldName), project, projectRoot, resultObject);
+            }
+        }
+
+        return resultObject;
+    }
+
+    /**
+     * Extracts field names from the dataWaits property value.
+     * The value is a map of indexed entries (e.g., "0", "1"), each containing a nested Property
+     * with sub-properties including "dataName".
+     *
+     * @param dataWaitsMap the dataWaits map value
+     * @param fieldNames   the set to add extracted field names to
+     */
+    private static void extractFieldNamesFromDataWaits(Map<?, ?> dataWaitsMap, Set<String> fieldNames) {
+        for (Object entry : dataWaitsMap.values()) {
+            Property entryProperty = gson.fromJson(gson.toJsonTree(entry), Property.class);
+            if (!(entryProperty.value() instanceof Map<?, ?> entryData)) {
+                continue;
+            }
+            Map<String, Property> entryProperties = gson.fromJson(gson.toJsonTree(entryData),
+                    FormBuilder.NODE_PROPERTIES_TYPE);
+            Property dataNameProp = entryProperties.get(WaitDataBuilder.DATA_NAME_KEY);
+            if (dataNameProp != null && dataNameProp.value() != null) {
+                String dataName = dataNameProp.value().toString();
+                if (!dataName.isBlank()) {
+                    fieldNames.add(dataName);
+                }
+            }
+        }
+    }
+
+    /**
+     * Finds the enclosing function definition for a given line range.
+     */
+    private static FunctionDefinitionNode findEnclosingFunction(Document document, LineRange lineRange) {
+        int txtPos = document.textDocument().textPositionFrom(lineRange.startLine());
+        Node node = ((ModulePartNode) document.syntaxTree().rootNode()).findNode(TextRange.from(txtPos, 0));
+        while (node != null) {
+            if (node.kind() == SyntaxKind.FUNCTION_DEFINITION) {
+                return (FunctionDefinitionNode) node;
+            }
+            node = node.parent();
+        }
+        return null;
+    }
+
+    /**
+     * Deletes the entire type definition and removes the last parameter (events param) from the function signature.
+     */
+    private static void deleteTypeDefinitionAndParam(TypeSymbol typeSymbol,
+                                                      SeparatedNodeList<ParameterNode> parameters,
+                                                      Project project, Path projectRoot,
+                                                      Path functionFilePath,
+                                                      JsonObject resultObject) {
+        // 1. Delete the type definition
+        if (typeSymbol.getLocation().isPresent()) {
+            LineRange typeNameRange = typeSymbol.getLocation().get().lineRange();
+            Path typesFilePath = projectRoot.resolve(typeNameRange.fileName());
+            DocumentId typesDocId = project.documentId(typesFilePath);
+            Document typesDocument = project.currentPackage()
+                    .module(typesDocId.moduleId()).document(typesDocId);
+            int textPos = typesDocument.textDocument()
+                    .textPositionFrom(typeNameRange.startLine());
+            Node typeNode = ((ModulePartNode) typesDocument.syntaxTree().rootNode())
+                    .findNode(TextRange.from(textPos, 0));
+            while (typeNode != null && typeNode.kind() != SyntaxKind.TYPE_DEFINITION) {
+                typeNode = typeNode.parent();
+            }
+            if (typeNode != null) {
+                LineRange typeDefLineRange = typeNode.lineRange();
+                String pathKey = typesFilePath.toString();
+                TextEdit deleteTypeEdit = new TextEdit(CommonUtils.toRange(typeDefLineRange), "");
+                addEditToResult(resultObject, pathKey, deleteTypeEdit);
+            }
+        }
+
+        // 2. Remove the last parameter (events param) from the function signature
+        ParameterNode lastParam = parameters.get(parameters.size() - 1);
+        LineRange paramLineRange = lastParam.lineRange();
+        String functionPathKey = functionFilePath.toString();
+
+        if (parameters.size() == 1) {
+            // Only parameter — delete just the parameter
+            TextEdit deleteParamEdit = new TextEdit(CommonUtils.toRange(paramLineRange), "");
+            addEditToResult(resultObject, functionPathKey, deleteParamEdit);
+        } else {
+            // Multiple parameters — delete the preceding comma separator and the parameter
+            // The separator before the last param is at index (size - 2) in the separator list
+            Token separator = parameters.getSeparator(parameters.size() - 2);
+            LineRange commaRange = separator.lineRange();
+            // Build a range from the start of the comma to the end of the parameter
+            Range deleteRange = new Range(
+                    new Position(commaRange.startLine().line(), commaRange.startLine().offset()),
+                    new Position(paramLineRange.endLine().line(), paramLineRange.endLine().offset()));
+            TextEdit deleteParamEdit = new TextEdit(deleteRange, "");
+            addEditToResult(resultObject, functionPathKey, deleteParamEdit);
+        }
+    }
+
+    /**
+     * Deletes a single record field from the type definition.
+     */
+    private static void deleteRecordField(RecordFieldSymbol fieldSymbol, Project project,
+                                           Path projectRoot, JsonObject resultObject) {
+        Optional<TextEdit> edit = getRecordFieldDeleteEdit(fieldSymbol, project, projectRoot);
+        if (edit.isEmpty() || fieldSymbol.getLocation().isEmpty()) {
+            return;
+        }
+        LineRange symbolLineRange = fieldSymbol.getLocation().get().lineRange();
+        Path typesFilePath = projectRoot.resolve(symbolLineRange.fileName());
+        addEditToResult(resultObject, typesFilePath.toString(), edit.get());
+    }
+
+    /**
+     * Computes a {@link TextEdit} that deletes a record field from its source file.
+     *
+     * @param fieldSymbol the record field symbol to delete
+     * @param project     the project containing the field
+     * @param projectRoot the project root path
+     * @return the delete edit, or empty if the field cannot be resolved
+     */
+    public static Optional<TextEdit> getRecordFieldDeleteEdit(RecordFieldSymbol fieldSymbol,
+                                                              Project project, Path projectRoot) {
+        if (fieldSymbol == null || fieldSymbol.getLocation().isEmpty()) {
+            return Optional.empty();
+        }
+        LineRange symbolLineRange = fieldSymbol.getLocation().get().lineRange();
+        Path typesFilePath = projectRoot.resolve(symbolLineRange.fileName());
+
+        // Find the full RecordFieldNode in the syntax tree to get the complete line range
+        // (including type descriptor and semicolon), not just the field name.
+        // If the expanded node is not found, skip emitting the edit to avoid deleting only the
+        // identifier and leaving a broken field fragment.
+        DocumentId typesDocId = project.documentId(typesFilePath);
+        Document typesDocument = project.currentPackage()
+                .module(typesDocId.moduleId()).document(typesDocId);
+        int textPos = typesDocument.textDocument()
+                .textPositionFrom(symbolLineRange.startLine());
+        Node fieldNode = ((ModulePartNode) typesDocument.syntaxTree().rootNode())
+                .findNode(TextRange.from(textPos, 0));
+        while (fieldNode != null && fieldNode.kind() != SyntaxKind.RECORD_FIELD
+                && fieldNode.kind() != SyntaxKind.RECORD_FIELD_WITH_DEFAULT_VALUE) {
+            fieldNode = fieldNode.parent();
+        }
+        if (fieldNode == null) {
+            return Optional.empty();
+        }
+
+        return Optional.of(new TextEdit(CommonUtils.toRange(fieldNode.lineRange()), ""));
+    }
+
+    /**
+     * Adds a text edit to the result JSON object under the given path key.
+     */
+    private static void addEditToResult(JsonObject resultObject, String pathKey, TextEdit edit) {
+        JsonArray editsArray;
+        if (resultObject.has(pathKey)) {
+            editsArray = resultObject.getAsJsonArray(pathKey);
+        } else {
+            editsArray = new JsonArray();
+            resultObject.add(pathKey, editsArray);
+        }
+        editsArray.add(gson.toJsonTree(edit));
     }
 
     /**

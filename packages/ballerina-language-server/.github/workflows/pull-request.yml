@@ -25,7 +25,7 @@ jobs:
       - name: Set Up Ballerina
         uses: ballerina-platform/setup-ballerina@v1.1.1
         with:
-          version: 2201.12.3
+          version: 2201.13.1
 
       - name: Cache Ballerina dependencies (Ubuntu)
         uses: actions/cache@v4
@@ -67,7 +67,7 @@ jobs:
       - name: Set Up Ballerina
         uses: ballerina-platform/setup-ballerina@v1.1.1
         with:
-          version: 2201.12.3
+          version: 2201.13.1
 
       - name: Cache Ballerina dependencies (Windows)
         uses: actions/cache@v4

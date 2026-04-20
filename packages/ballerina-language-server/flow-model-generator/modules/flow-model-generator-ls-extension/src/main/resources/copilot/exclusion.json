@@ -94,6 +94,14 @@
     ]
   },
   {
+    "name": "ballerina/workflow",
+    "functions": [
+      {
+        "name": "registerProcess"
+      }
+    ]
+  },
+  {
     "name": "ballerinax/trigger.salesforce"
   }
 ]

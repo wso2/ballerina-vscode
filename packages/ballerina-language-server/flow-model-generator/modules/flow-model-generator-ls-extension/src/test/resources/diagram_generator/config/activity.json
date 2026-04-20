@@ -1,0 +1,93 @@
+{
+  "start": {
+    "line": 37,
+    "offset": 0
+  },
+  "end": {
+    "line": 40,
+    "offset": 1
+  },
+  "source": "workflow_operations.bal",
+  "description": "Test the activity function kind and its properties",
+  "diagram": {
+    "fileName": "workflow_operations.bal",
+    "nodes": [
+      {
+        "id": "71890",
+        "metadata": {
+          "label": "Start",
+          "data": {
+            "kind": "Activity",
+            "label": "calculateDiscount",
+            "isServiceFunction": false,
+            "parameters": [
+              "record {decimal amount;} input"
+            ],
+            "return": "int|error"
+          }
+        },
+        "codedata": {
+          "node": "EVENT_START",
+          "lineRange": {
+            "fileName": "workflow_operations.bal",
+            "startLine": {
+              "line": 38,
+              "offset": 77
+            },
+            "endLine": {
+              "line": 40,
+              "offset": 1
+            }
+          },
+          "sourceCode": "# Activity function for calculating discount\n@workflow:Activity\nfunction calculateDiscount(record {decimal amount;} input) returns int|error {\n    return 10;\n}"
+        },
+        "returning": false,
+        "flags": 0
+      },
+      {
+        "id": "70570",
+        "metadata": {
+          "label": "Return",
+          "description": "Value of '10'"
+        },
+        "codedata": {
+          "node": "RETURN",
+          "lineRange": {
+            "fileName": "workflow_operations.bal",
+            "startLine": {
+              "line": 39,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 39,
+              "offset": 14
+            }
+          },
+          "sourceCode": "return 10;"
+        },
+        "returning": true,
+        "properties": {
+          "expression": {
+            "metadata": {
+              "label": "Expression",
+              "description": "Return value"
+            },
+            "types": [
+              {
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
+              }
+            ],
+            "value": "10",
+            "optional": true,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "flags": 0
+      }
+    ],
+    "connections": []
+  }
+}

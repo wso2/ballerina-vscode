@@ -121,7 +121,7 @@ public class SourceGeneratorTest extends AbstractLSTest {
                 "data_mapper1.json",
                 "data_mapper2.json",
                 "data_mapper-main.json",
-                "data_mapper-service.json",
+                "data_mapper-service.json"
         };
     }
 

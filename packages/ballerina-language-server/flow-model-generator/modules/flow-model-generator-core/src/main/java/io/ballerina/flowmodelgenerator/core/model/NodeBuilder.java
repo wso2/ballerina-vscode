@@ -23,6 +23,9 @@ import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.flowmodelgenerator.core.DiagnosticHandler;
+import io.ballerina.flowmodelgenerator.core.model.node.ActivityBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.ActivityCallBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.ActivityCreationBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AgentBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AgentCallBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AgentIdAuthConfigBuilder;
@@ -72,6 +75,7 @@ import io.ballerina.flowmodelgenerator.core.model.node.ResourceActionCallBuilder
 import io.ballerina.flowmodelgenerator.core.model.node.RetryBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ReturnBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.RollbackBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.SendDataBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ShortTermMemoryStoreBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.StartBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.StopBuilder;
@@ -79,7 +83,10 @@ import io.ballerina.flowmodelgenerator.core.model.node.TransactionBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.VariableBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.VectorStoreBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.WaitBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.WaitDataBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.WhileBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.WorkflowBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.WorkflowRunBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.XmlPayloadBuilder;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
@@ -177,6 +184,13 @@ public abstract class NodeBuilder implements DiagnosticHandler.DiagnosticCapable
         put(NodeKind.CHUNKER, ChunkerBuilder::new);
         put(NodeKind.MCP_TOOL_KIT, McpToolKitBuilder::new);
         put(NodeKind.AGENT_ID_AUTH_CONFIG, AgentIdAuthConfigBuilder::new);
+        put(NodeKind.WORKFLOW, WorkflowBuilder::new);
+        put(NodeKind.ACTIVITY, ActivityBuilder::new);
+        put(NodeKind.ACTIVITY_CALL, ActivityCallBuilder::new);
+        put(NodeKind.ACTIVITY_CREATION, ActivityCreationBuilder::new);
+        put(NodeKind.WAIT_DATA, WaitDataBuilder::new);
+        put(NodeKind.SEND_DATA, SendDataBuilder::new);
+        put(NodeKind.WORKFLOW_RUN, WorkflowRunBuilder::new);
     }};
 
     public static NodeBuilder getNodeFromKind(NodeKind kind) {

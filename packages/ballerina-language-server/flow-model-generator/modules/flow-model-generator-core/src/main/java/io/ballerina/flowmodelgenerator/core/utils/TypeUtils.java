@@ -27,6 +27,7 @@ import io.ballerina.compiler.api.symbols.MapTypeSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.StreamTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
+import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.modelgenerator.commons.CommonUtils;
@@ -152,5 +153,21 @@ public class TypeUtils {
                 typeRefs.add(ts.signature());
             }
         }
+    }
+
+    /**
+     * Resolves type references to get the actual underlying type.
+     *
+     * @param typeSymbol the type symbol which may be a type reference
+     * @return the resolved type (unwrapped from type reference if applicable)
+     */
+    public static TypeSymbol resolveTypeReference(TypeSymbol typeSymbol) {
+        if (typeSymbol.typeKind() == TypeDescKind.TYPE_REFERENCE) {
+            typeSymbol = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
+            if (typeSymbol.typeKind() == TypeDescKind.TYPE_REFERENCE) {
+                return resolveTypeReference(typeSymbol);
+            }
+        }
+        return typeSymbol;
     }
 }

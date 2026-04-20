@@ -1,46 +1,48 @@
 {
-  "description": "Delete node in a multi-file module should not process UNUSED_MODULE_PREFIX diagnostics from other files (diagnostic at line 0 in helper matches an import in main, causing duplicate deletion without fix)",
+  "description": "Delete ctx->await([data.b]) from workflow function with multi-field data record",
   "functionStart": {
-    "line": 2,
+    "line": 8,
     "offset": 0
   },
   "functionEnd": {
-    "line": 6,
+    "line": 12,
     "offset": 1
   },
   "nodeStart": {
-    "line": 3,
+    "line": 10,
     "offset": 4
   },
   "nodeEnd": {
-    "line": 5,
-    "offset": 5
+    "line": 10,
+    "offset": 46
   },
-  "source": "delete_node_project_2/main.bal",
+  "source": "delete_node_wait_data/functions.bal",
   "output": {
-    "delete_node_project_2/main.bal": [
+    "delete_node_wait_data/types.bal": [
       {
         "range": {
           "start": {
-            "line": 0,
-            "character": 0
+            "line": 11,
+            "character": 4
           },
           "end": {
-            "line": 0,
+            "line": 11,
             "character": 21
           }
         },
         "newText": ""
-      },
+      }
+    ],
+    "delete_node_wait_data/functions.bal": [
       {
         "range": {
           "start": {
-            "line": 3,
+            "line": 10,
             "character": 4
           },
           "end": {
-            "line": 5,
-            "character": 5
+            "line": 10,
+            "character": 46
           }
         },
         "newText": ""

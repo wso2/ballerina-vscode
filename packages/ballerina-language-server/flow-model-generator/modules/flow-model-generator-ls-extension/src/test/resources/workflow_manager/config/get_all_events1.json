@@ -1,0 +1,17 @@
+{
+  "source": "workflow_project/main.bal",
+  "description": "Get all data for a workflow with multiple data fields",
+  "workflowName": "orderWorkflow",
+  "output": {
+    "data": [
+      {
+        "name": "approve",
+        "type": "ApprovalData"
+      },
+      {
+        "name": "paymentReceived",
+        "type": "PaymentData"
+      }
+    ]
+  }
+}
