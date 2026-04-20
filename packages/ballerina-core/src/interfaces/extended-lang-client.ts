@@ -1846,9 +1846,21 @@ export interface AIToolResponse {
     };
 }
 
+export interface CertConfig {
+    path?: string;
+    password?: string;
+}
+
+export interface SecureSocketConfig {
+    cert?: CertConfig;
+    key?: CertConfig;
+    insecure?: boolean;
+}
+
 export interface McpToolsRequest {
     serviceUrl?: string;
     accessToken?: string;
+    secureSocket?: SecureSocketConfig;
 }
 
 export interface McpToolsResponse {

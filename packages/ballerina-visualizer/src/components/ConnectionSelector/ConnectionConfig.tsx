@@ -17,7 +17,7 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FlowNode, LineRange, NodeKind, NodeProperties } from "@wso2/ballerina-core";
+import { FlowNode, LineRange, NodeKind, NodeProperties, getPrimaryInputType } from "@wso2/ballerina-core";
 import { FormField, FormImports, FormValues } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ArtifactForm } from "../../views/BI/Forms/ArtifactForm";
@@ -101,7 +101,7 @@ export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
         const { variable, ...restProperties } = connectionNode.properties;
         const fields = convertNodePropertiesToFormFields(restProperties as NodeProperties);
         fields.forEach(field => {
-            if (field.key === "type") {
+            if (getPrimaryInputType(field.types)?.fieldType === "TYPE") {
                 field.hidden = true;
             }
         });

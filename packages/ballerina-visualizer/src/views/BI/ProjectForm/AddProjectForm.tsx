@@ -29,9 +29,8 @@ import {
 } from "./styles";
 import { AddProjectFormFields } from "./AddProjectFormFields";
 import { AddProjectFormData } from "./types";
-import { isFormValidAddProject } from "./utils";
+import { isFormValidAddProject, sanitizeOrgHandle } from "./utils";
 import { ValidateProjectFormErrorField } from "@wso2/ballerina-core";
-
 export function AddProjectForm() {
     const { rpcClient } = useRpcContext();
     const [formData, setFormData] = useState<AddProjectFormData>({
@@ -127,6 +126,8 @@ export function AddProjectForm() {
                 return;
             }
 
+            const orgHandle = sanitizeOrgHandle(formData.orgName);
+
             // If validation passes, add the project
             rpcClient.getBIDiagramRpcClient().addProjectToWorkspace({
                 projectName: formData.integrationName,
@@ -135,6 +136,7 @@ export function AddProjectForm() {
                 path: targetPath,
                 workspaceName: formData.workspaceName,
                 orgName: formData.orgName || undefined,
+                orgHandle,
                 version: formData.version || undefined,
                 isLibrary: formData.isLibrary,
                 projectHandle: formData.projectHandle,

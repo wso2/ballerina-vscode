@@ -335,6 +335,31 @@ export const useHelperPaneStyles = () => ({
         minWidth: '32px',
         marginLeft: '8px'
     }),
+    arrayElementHeader: css({
+        cursor: 'pointer',
+        '&:hover': {
+            backgroundColor: 'var(--vscode-list-hoverBackground)',
+        },
+    }),
+    arrayElementIndex: css({
+        fontFamily: 'monospace',
+        margin: '0px 4px',
+        opacity: 0.7,
+        fontSize: '12px',
+        minWidth: '24px',
+    }),
+    arrayAddWrapper: css({
+        display: 'flex',
+        alignItems: 'center',
+        cursor: 'pointer',
+        padding: '2px 4px',
+        borderRadius: '3px',
+        gap: '4px',
+        '&:hover': {
+            color: ThemeColors.PRIMARY,
+            backgroundColor: 'var(--vscode-list-hoverBackground)',
+        },
+    }),
 });
 
 

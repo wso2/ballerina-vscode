@@ -602,7 +602,7 @@ export const getEndOfFileLineRange = async (
 
         // Return a LineRange object with both start and end at the file's end position
         return {
-            fileName: fileName,
+            fileName: filePath,
             startLine: endPosition,
             endLine: endPosition
         };
