@@ -1,0 +1,124 @@
+{
+  "filePath": "sample2/main.bal",
+  "description": "Test adding a salesforce service",
+  "serviceInitModel": {
+    "id": "12",
+    "displayName": "Salesforce Event Integration",
+    "description": "Create a service to handle events from Salesforce",
+    "orgName": "ballerinax",
+    "packageName": "salesforce",
+    "moduleName": "salesforce",
+    "version": "8.2.0",
+    "type": "salesforce",
+    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_salesforce_8.2.0.png",
+    "properties": {
+      "basePath": {
+        "metadata": {
+          "label": "Event Channel",
+          "description": "The event channel name"
+        },
+        "codedata": {
+          "argType": "SERVICE_BASE_PATH"
+        },
+        "placeholder": "/data/ChangeEvents",
+        "value": "/data/ChangeEvents",
+        "types": [
+          {
+            "fieldType": "SERVICE_PATH",
+            "ballerinaType": "string",
+            "selected": true
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "auth": {
+        "metadata": {
+          "label": "Auth",
+          "description": "Configurations related to username/password authentication"
+        },
+        "codedata": {
+          "argType": "LISTENER_PARAM_CONFIG_FIELD"
+        },
+        "placeholder": "{username: \"\", password: \"\"}",
+        "value": "{username: \"\", password: \"\"}",
+        "types": [
+          {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "salesforce:CredentialsConfig",
+            "typeMembers": [
+              {
+                "type": "CredentialsConfig",
+                "packageInfo": "ballerinax:salesforce:8.2.0",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "selected": true
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "salesforce:CredentialsConfig",
+            "selected": false
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "listenerVarName": {
+        "metadata": {
+          "label": "Listener Name",
+          "description": "Provide a name for the listener being created"
+        },
+        "codedata": {
+          "type": "LISTENER_VAR_NAME"
+        },
+        "value": "salesforceListener",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": true
+      }
+    }
+  },
+  "output": {
+    "sample2/main.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "\nimport ballerinax/salesforce;\n"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "\nlistener salesforce:Listener salesforceListener = new ({auth: {username: \"\", password: \"\"}});\nservice /data/ChangeEvents on salesforceListener {\n\tremote function onCreate(salesforce:EventData payload) returns error|() {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n\n\tremote function onUpdate(salesforce:EventData payload) returns error|() {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n\n\tremote function onDelete(salesforce:EventData payload) returns error|() {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n\n\tremote function onRestore(salesforce:EventData payload) returns error|() {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n}\n"
+      }
+    ]
+  }
+}

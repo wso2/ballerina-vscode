@@ -917,6 +917,38 @@ public class TestWorkspaceManager {
                 "Package B project should still exist");
     }
 
+    @Test(description = "Test last-close eviction removes only the matching workspace package")
+    public void testDocumentLifecycleWithLastCloseEviction() throws WorkspaceDocumentException {
+        Path workspaceProjectsPath = RESOURCE_DIRECTORY.resolve("workspace-projects");
+        Path packageAFile = workspaceProjectsPath.resolve("simple-workspace")
+                .resolve("package-a").resolve("main.bal").toAbsolutePath();
+        Path packageAUtilsFile = workspaceProjectsPath.resolve("simple-workspace")
+                .resolve("package-a").resolve("modules").resolve("utils").resolve("utils.bal").toAbsolutePath();
+        Path packageBFile = workspaceProjectsPath.resolve("simple-workspace")
+                .resolve("package-b").resolve("main.bal").toAbsolutePath();
+        workspaceManager.setEvictProjectOnLastClose(true);
+
+        openFile(packageAFile);
+        openFile(packageAUtilsFile);
+        openFile(packageBFile);
+
+        DidCloseTextDocumentParams closePackageAMainParams = new DidCloseTextDocumentParams();
+        closePackageAMainParams.setTextDocument(new TextDocumentIdentifier(packageAFile.toUri().toString()));
+        workspaceManager.didClose(packageAFile, closePackageAMainParams);
+
+        Assert.assertTrue(workspaceManager.project(packageAFile).isPresent(),
+                "Package A project should remain while another package A document is open");
+
+        DidCloseTextDocumentParams closePackageAUtilsParams = new DidCloseTextDocumentParams();
+        closePackageAUtilsParams.setTextDocument(new TextDocumentIdentifier(packageAUtilsFile.toUri().toString()));
+        workspaceManager.didClose(packageAUtilsFile, closePackageAUtilsParams);
+
+        Assert.assertTrue(workspaceManager.project(packageAFile).isEmpty(),
+                "Package A project should be evicted after its last open document closes");
+        Assert.assertTrue(workspaceManager.project(packageBFile).isPresent(),
+                "Package B project should remain loaded after evicting package A");
+    }
+
     /**
      * Test module access within workspace project.
      */

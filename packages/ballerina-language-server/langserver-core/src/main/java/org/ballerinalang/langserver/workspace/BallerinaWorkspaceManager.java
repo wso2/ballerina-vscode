@@ -141,9 +141,11 @@ public class BallerinaWorkspaceManager implements WorkspaceManager {
      */
     private BuildOptions buildOptions;
 
+    private boolean evictProjectOnLastClose;
+
     protected final LSClientLogger clientLogger;
     private final LanguageServerContext serverContext;
-    private final Set<Path> openedDocuments = new HashSet<>();
+    private final Set<Path> openedDocuments = ConcurrentHashMap.newKeySet();
 
     public BallerinaWorkspaceManager(LanguageServerContext serverContext) {
         this.serverContext = serverContext;
@@ -846,6 +848,10 @@ public class BallerinaWorkspaceManager implements WorkspaceManager {
         this.buildOptions = buildOptions;
     }
 
+    void setEvictProjectOnLastClose(boolean evictProjectOnLastClose) {
+        this.evictProjectOnLastClose = evictProjectOnLastClose;
+    }
+
     private Optional<ProjectContext> projectOfWatchedFileChange(Path filePath, FileEvent fileEvent,
                                                                 boolean isBallerinaSourceChange,
                                                                 boolean isBallerinaTomlChange,
@@ -1489,9 +1495,9 @@ public class BallerinaWorkspaceManager implements WorkspaceManager {
         if (project.isEmpty()) {
             return;
         }
-        // If it is a single file project, remove project from mapping
-        if (project.get().kind() == ProjectKind.SINGLE_FILE_PROJECT) {
-            Path projectRoot = project.get().sourceRoot();
+        Path projectRoot = project.get().sourceRoot();
+        if (project.get().kind() == ProjectKind.SINGLE_FILE_PROJECT
+                || (this.evictProjectOnLastClose && !hasOpenDocuments(projectRoot))) {
             sourceRootToProject.remove(projectRoot);
             clientLogger.logTrace("Operation '" + LSContextOperation.TXT_DID_CLOSE.getName() +
                     "' {project: '" + projectRoot.toUri().toString() +
@@ -1521,6 +1527,12 @@ public class BallerinaWorkspaceManager implements WorkspaceManager {
         }
 
         return ProjectPaths.packageRoot(path);
+    }
+
+    private boolean hasOpenDocuments(Path projectRoot) {
+        return this.openedDocuments.stream()
+                .map(this::projectRoot)
+                .anyMatch(projectRoot::equals);
     }
 
     private Optional<ProjectContext> projectContext(Path projectRoot) {

@@ -1629,10 +1629,10 @@
         "typeDescriptorDescription": "The name of the service contract type",
         "typeDescriptorDefaultValue": "Service",
         "addDefaultTypeDescriptor": 0,
-        "optionalAbsoluteResourcePath": 1,
-        "absoluteResourcePathLabel": "Service Base Path",
-        "absoluteResourcePathDescription": "",
-        "absoluteResourcePathDefaultValue": "",
+        "optionalAbsoluteResourcePath": 0,
+        "absoluteResourcePathLabel": "Event Channel",
+        "absoluteResourcePathDescription": "The event channel name",
+        "absoluteResourcePathDefaultValue": "/data/ChangeEvents",
         "optionalStringLiteral": 1,
         "stringLiteralLabel": "Service Base Path",
         "stringLiteralDescription": "",
@@ -1643,6 +1643,19 @@
       "serviceTypes": {
       },
       "initForm": {
+        "basePath": {
+          "label": "Event Channel",
+          "description": "The event channel name",
+          "defaultValue": "/data/ChangeEvents",
+          "placeholder": "/data/ChangeEvents",
+          "types": [
+            {
+              "fieldType": "SERVICE_PATH",
+              "ballerinaType": "string"
+            }
+          ],
+          "sourceKind": "SERVICE_BASE_PATH"
+        },
         "auth": {
           "label": "Auth",
           "description": "Configurations related to username/password authentication",
@@ -1665,7 +1678,7 @@
               "ballerinaType": "salesforce:CredentialsConfig"
             }
           ],
-          "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD"
+          "sourceKind": "LISTENER_PARAM_CONFIG_FIELD"
         }
       }
     },
