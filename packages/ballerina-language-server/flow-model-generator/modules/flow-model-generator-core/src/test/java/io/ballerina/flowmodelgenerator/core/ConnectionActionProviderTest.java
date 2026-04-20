@@ -24,6 +24,7 @@ import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.Item;
 import io.ballerina.flowmodelgenerator.core.model.Metadata;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
+import io.ballerina.modelgenerator.commons.ModuleInfo;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -73,7 +74,7 @@ public class ConnectionActionProviderTest {
 
     @Test(description = "Verifies a built entry is reused from memory without rebuilding on a second lookup.")
     public void testBuildCachesInMemory() {
-        String key = "cache-hit";
+        String key = "ballerina:http:http:Client:cache-hit";
         AtomicInteger buildCount = new AtomicInteger();
         List<Item> expected = List.of(availableNode("listPets", null, null));
 
@@ -91,9 +92,40 @@ public class ConnectionActionProviderTest {
         Assert.assertEquals(second, expected);
     }
 
+    @Test(description = "Verifies non-cacheable connector contexts bypass memory and disk cache.")
+    public void testGetOrBuildCachesRegardlessOfOrg() {
+        String key = "acme:local_cache_test:local_cache_test:LocalClient:0.1.0";
+        AtomicInteger buildCount = new AtomicInteger();
+        ConnectionActionProvider.ConnectorContext context = new ConnectionActionProvider.ConnectorContext(
+                key,
+                null,
+                "LocalClient",
+                new ModuleInfo("acme", "local_cache_test", "local_cache_test", "0.1.0"),
+                null,
+                false,
+                false,
+                null,
+                null,
+                false);
+
+        List<Item> first = provider.getOrBuildTemplates(context, () -> {
+            buildCount.incrementAndGet();
+            return List.of(availableNode("ping", null, null));
+        });
+        List<Item> second = provider.getOrBuildTemplates(context, () -> {
+            buildCount.incrementAndGet();
+            return List.of(availableNode("pong", null, null));
+        });
+
+        Assert.assertEquals(buildCount.get(), 2);
+        Assert.assertEquals(first, List.of(availableNode("ping", null, null)));
+        Assert.assertEquals(second, List.of(availableNode("pong", null, null)));
+        Assert.assertFalse(Files.exists(provider.cacheFilePath(key)));
+    }
+
     @Test(description = "Verifies a persisted cache entry is reloaded from disk by a fresh provider instance.")
     public void testCachePersistsToDiskAndLoadsFromFreshProvider() {
-        String key = "disk-hit";
+        String key = "ballerina:http:http:Client:disk-hit";
         AtomicInteger buildCount = new AtomicInteger();
         List<Item> expected = List.of(availableNode("createOrder", null, null));
 
@@ -119,7 +151,7 @@ public class ConnectionActionProviderTest {
 
     @Test(description = "Verifies an unreadable cache file is treated as a miss and rebuilt successfully.")
     public void testCorruptDiskFileTriggersRebuild() throws IOException {
-        String key = "corrupt-entry";
+        String key = "ballerina:http:http:Client:corrupt-entry";
         Files.createDirectories(tempDir);
         Files.writeString(provider.cacheFilePath(key), "{ not-json");
 
@@ -138,7 +170,7 @@ public class ConnectionActionProviderTest {
 
     @Test(description = "Verifies explicit invalidation removes the corresponding persisted cache file.")
     public void testInvalidateDeletesDiskFile() {
-        String key = "invalidate";
+        String key = "ballerina:http:http:Client:invalidate";
         provider.getOrBuild(key, () -> List.of(availableNode("deleteCache", null, null)));
         Path cacheFile = provider.cacheFilePath(key);
 
@@ -154,19 +186,21 @@ public class ConnectionActionProviderTest {
         ConnectionActionProvider sizeBoundProvider = new ConnectionActionProvider(tempDir, 1);
         try {
             AtomicInteger buildCount = new AtomicInteger();
-            sizeBoundProvider.getOrBuild("one", () -> {
+            String firstKey = "ballerina:http:http:Client:one";
+            String secondKey = "ballerina:http:http:Client:two";
+            sizeBoundProvider.getOrBuild(firstKey, () -> {
                 buildCount.incrementAndGet();
                 return List.of(availableNode("one", null, null));
             });
-            sizeBoundProvider.getOrBuild("two", () -> {
+            sizeBoundProvider.getOrBuild(secondKey, () -> {
                 buildCount.incrementAndGet();
                 return List.of(availableNode("two", null, null));
             });
             sizeBoundProvider.cleanUp();
 
-            Assert.assertTrue(Files.exists(sizeBoundProvider.cacheFilePath("one")));
+            Assert.assertTrue(Files.exists(sizeBoundProvider.cacheFilePath(firstKey)));
 
-            List<Item> reloaded = sizeBoundProvider.getOrBuild("one", () -> {
+            List<Item> reloaded = sizeBoundProvider.getOrBuild(firstKey, () -> {
                 buildCount.incrementAndGet();
                 return List.of(availableNode("should-not-build", null, null));
             });
@@ -180,7 +214,7 @@ public class ConnectionActionProviderTest {
 
     @Test(description = "Verifies nested Item implementations serialize and deserialize correctly through Gson.")
     public void testPolymorphicSerializationRoundTrip() {
-        String key = "polymorphic";
+        String key = "ballerina:http:http:Client:polymorphic";
         List<Item> expected = List.of(new Category(
                 new Metadata("Connections", "Connector actions", null, null, null, null),
                 List.of(availableNode("query", null, null), availableNode("close", null, null))));
@@ -201,7 +235,7 @@ public class ConnectionActionProviderTest {
 
     @Test(description = "Verifies parent-symbol rebinding returns caller-specific nodes without mutating templates.")
     public void testBindForParentSymbolDoesNotMutateCachedTemplates() {
-        String key = "binding";
+        String key = "ballerina:http:http:Client:binding";
         List<Item> templates = provider.getOrBuild(key, () -> List.of(availableNode("invoke", null, null)));
 
         List<Item> firstBound = provider.bindForParentSymbol(templates, "clientA", Map.of("invoke", true));
@@ -225,7 +259,7 @@ public class ConnectionActionProviderTest {
         try {
             List<Item> expected = List.of(availableNode("memoryOnly", null, null));
 
-            List<Item> actual = invalidProvider.getOrBuild("memory-only", () -> expected);
+            List<Item> actual = invalidProvider.getOrBuild("ballerina:http:http:Client:memory-only", () -> expected);
 
             Assert.assertEquals(actual, expected);
             Assert.assertFalse(Files.isDirectory(invalidCacheRoot));
@@ -237,7 +271,7 @@ public class ConnectionActionProviderTest {
 
     @Test(description = "Verifies concurrent requests for the same missing key trigger only one build.")
     public void testConcurrentMissBuildsOnce() throws InterruptedException, ExecutionException {
-        String key = "concurrent";
+        String key = "ballerina:http:http:Client:concurrent";
         ExecutorService executor = Executors.newFixedThreadPool(4);
         CountDownLatch ready = new CountDownLatch(4);
         CountDownLatch start = new CountDownLatch(1);
