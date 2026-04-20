@@ -102,6 +102,10 @@ export const getSecondaryMode = (inputTypes: InputType[]): InputMode => {
     return getInputModeFromTypes(secondaryInputType);
 }
 
+export const getSecondaryInputType = (inputTypes: InputType[]) => {
+    return inputTypes?.length ? inputTypes[inputTypes.length - 1] : undefined;
+}
+
 export const getAbsoluteColumnOffset = (value: string, line: number, column: number) => {
     const lines = value.split("\n");
     let cumulativeLength = 0;
