@@ -55,7 +55,8 @@ export default function createTests() {
             await projectExplorer.refresh(DEFAULT_PROJECT_NAME);
 
             // 1. Navigate to the bar entry point
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main'], true);
+            const mainEntryPoint = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main'], true);
+            await mainEntryPoint.click();
 
             // 2. Navigate to the diagram view
             const diagramCanvas = artifactWebView.locator('#bi-diagram-canvas');

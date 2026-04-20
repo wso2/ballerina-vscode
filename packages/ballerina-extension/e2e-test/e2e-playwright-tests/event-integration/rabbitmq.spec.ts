@@ -128,7 +128,6 @@ export default function createTests() {
 
             // Try to detect if user got redirected to diagram view, otherwise click new resource under agent view
             const diagramCanvas = artifactWebView.locator('[data-testid="bi-diagram-canvas"]');
-            const visualizerContainer = artifactWebView.locator('#visualizer-container');
             let didRedirect = true;
             try {
                 await diagramCanvas.waitFor({ timeout: 10000 });
@@ -145,9 +144,10 @@ export default function createTests() {
                 // Now wait for the diagram canvas to appear
                 await diagramCanvas.waitFor({ timeout: 10000 });
             }
-            // Verify the resource is added in the diagram view
-            const resourceElement = visualizerContainer.getByText("onMessage", { exact: true });
-            await resourceElement.waitFor({ timeout: 30000 });
+            // Verify the selected handler name from the title bar area.
+            const titleBarContainer = artifactWebView.locator('[data-testid="title-bar-container"]');
+            await titleBarContainer.getByText('onMessage', { exact: true }).first()
+                .waitFor({ state: 'visible', timeout: 30000 });
         });
 
         test('Editing RabbitMQ Integration', async ({ }, testInfo) => {
