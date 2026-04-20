@@ -207,9 +207,9 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
     const stringVariableOptions = useMemo(() => {
         return filteredCompletions.filter((completion) => {
             const { kind, label, description = "", labelDetails } = completion;
-            const desc = description || labelDetails?.description || "";
+            const labelDesc = labelDetails?.description || "";
             if ((kind !== "variable" && kind !== "field") || label === "self") return false;
-            return /\bstring\b/.test(desc);
+            return /\bstring\b/.test(description) || /\bstring\b/.test(labelDesc);
         });
     }, [filteredCompletions]);
 
@@ -425,7 +425,7 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
                                                 <VariableItem
                                                     key={opt.label}
                                                     item={opt}
-                                                    onItemSelect={(val) => setMimeTypeVariable(val)}
+                                                    onItemSelect={(val) => setMimeTypeVariable(navigationPath ? `${navigationPath}.${val}` : val)}
                                                     onMoreIconClick={() => { }}
                                                     hideArrow={true}
                                                 />
