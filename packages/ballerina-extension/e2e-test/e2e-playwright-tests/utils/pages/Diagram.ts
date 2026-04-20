@@ -74,7 +74,7 @@ export class Diagram {
      */
     public async clickAddButtonByIndex(index: number): Promise<void> {
         const addButton = (await this.getDiagramContainer()).getByTestId(`empty-node-add-button-${index}`);
-        await addButton.click();
+        await addButton.click({ trial: false, force: true, timeout: 2000 });
     }
 
     private async getDiagramContainer(): Promise<Locator> {

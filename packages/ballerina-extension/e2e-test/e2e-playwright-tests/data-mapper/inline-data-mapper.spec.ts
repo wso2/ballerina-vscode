@@ -21,6 +21,7 @@ import { BI_INTEGRATOR_LABEL, BI_WEBVIEW_NOT_FOUND_ERROR, initTest, page } from 
 import { switchToIFrame } from '@wso2/playwright-vscode-tester';
 import { Diagram, ProjectExplorer } from '../utils/pages';
 import { TestScenarios, FileUtils } from './DataMapperUtils';
+import { FileUtils as FileSystemUtils } from '../utils/helpers/fileSystem';
 import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 
 export default function createTests() {
@@ -33,18 +34,20 @@ export default function createTests() {
 
             console.log('Inline Data Mapper - Create: START TEST ATTEMPT', testAttempt);
 
-            FileUtils.updateProjectFileSync('basic/types.bal.txt', 'types.bal');
-            FileUtils.updateProjectFileSync('create/inline/init.bal.txt', 'automation.bal');
+            await FileUtils.updateProjectFileSync('basic/types.bal.txt', 'types.bal');
+            await FileSystemUtils.openProjectFileInEditor('types.bal');
+            await FileUtils.updateProjectFileSync('create/inline/init.bal.txt', 'automation.bal');
+            await FileSystemUtils.openProjectFileInEditor('automation.bal');
 
             console.log(' - Add Declare Variable Node');
+
+            const projectExplorer = new ProjectExplorer(page.page);
+            await projectExplorer.refresh(DEFAULT_PROJECT_NAME);
 
             const webView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page);
             if (!webView) {
                 throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
             }
-
-            const projectExplorer = new ProjectExplorer(page.page);
-            await projectExplorer.refresh(DEFAULT_PROJECT_NAME);
 
             await webView.getByRole('heading', { name: DEFAULT_PROJECT_NAME }).waitFor();
             await page.page.getByRole('treeitem', { name: 'main' }).click();
@@ -58,11 +61,14 @@ export default function createTests() {
 
             await webView.getByText('Declare Variable').click();
 
-            const varType = webView.getByRole('textbox', { name: 'Type' });
+            const varType = webView.getByRole('textbox', { name: 'Type' })
+                .or(webView.locator(`vscode-text-area[arialabel="Type"] textarea`));
+
             await varType.click();
             await webView.getByText('OutRoot').click();
             await expect(varType).toHaveValue('OutRoot');
-
+            // Click escape key to close the dropdown
+            await page.page.keyboard.press('Escape');
             await webView.getByRole('button', { name: 'Open in Data Mapper' }).click();
 
             console.log(' - Wait for Data Mapper to open');
@@ -84,8 +90,11 @@ export default function createTests() {
 
             console.log('Inline Data Mapper - Basic: START TEST ATTEMPT', testAttempt);
 
-            FileUtils.updateProjectFileSync('basic/inline/init.bal.txt', 'automation.bal');
-            FileUtils.updateProjectFileSync('basic/types.bal.txt', 'types.bal');
+            await FileUtils.updateProjectFileSync('basic/inline/init.bal.txt', 'automation.bal');
+            await FileUtils.updateProjectFileSync('basic/types.bal.txt', 'types.bal');
+
+            const projectExplorer = new ProjectExplorer(page.page);
+            await projectExplorer.refresh(DEFAULT_PROJECT_NAME);
 
             const webView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page);
             if (!webView) {
@@ -99,6 +108,9 @@ export default function createTests() {
 
                 await webView.getByRole('heading', { name: 'Automation' }).waitFor();
                 await webView.getByText('output = {}').click();
+                // Click escape key to close the dropdown
+                await page.page.keyboard.press('Escape');
+                await page.page.keyboard.press('Escape');
                 await webView.getByRole('button', { name: 'Open in Data Mapper' }).click();
             }
 
@@ -112,8 +124,8 @@ export default function createTests() {
 
             console.log('Inline Data Mapper - Array Root: START TEST ATTEMPT', testAttempt);
 
-            FileUtils.updateProjectFileSync('array-root/inline/init.bal.txt', 'automation.bal');
-            FileUtils.updateProjectFileSync('array-root/types.bal.txt', 'types.bal');
+            await FileUtils.updateProjectFileSync('array-root/inline/init.bal.txt', 'automation.bal');
+            await FileUtils.updateProjectFileSync('array-root/types.bal.txt', 'types.bal');
 
             const webView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page);
             if (!webView) {
@@ -127,6 +139,8 @@ export default function createTests() {
 
                 await webView.getByRole('heading', { name: 'Automation' }).waitFor();
                 await webView.getByText('output = []').click();
+                // Click escape key to close the dropdown
+                await page.page.keyboard.press('Escape');
                 await webView.getByRole('button', { name: 'Open in Data Mapper' }).click();
             }
 
@@ -140,8 +154,8 @@ export default function createTests() {
 
             console.log('Inline Data Mapper - Array Inner: START TEST ATTEMPT', testAttempt);
 
-            FileUtils.updateProjectFileSync('array-inner/inline/init.bal.txt', 'automation.bal');
-            FileUtils.updateProjectFileSync('array-inner/types.bal.txt', 'types.bal');
+            await FileUtils.updateProjectFileSync('array-inner/inline/init.bal.txt', 'automation.bal');
+            await FileUtils.updateProjectFileSync('array-inner/types.bal.txt', 'types.bal');
 
             const webView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page);
             if (!webView) {
@@ -155,6 +169,8 @@ export default function createTests() {
 
                 await webView.getByRole('heading', { name: 'Automation' }).waitFor();
                 await webView.getByText('output = {}').click();
+                // Click escape key to close the dropdown
+                await page.page.keyboard.press('Escape');
                 await webView.getByRole('button', { name: 'Open in Data Mapper' }).click();
             }
 

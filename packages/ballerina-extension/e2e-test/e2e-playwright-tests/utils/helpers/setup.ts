@@ -321,7 +321,7 @@ export function initTest(newProject: boolean = true, skipProjectCreation: boolea
                 await page.page.keyboard.press('Escape');
                 // Save all unsaved files
                 await page.executePaletteCommand('workbench.action.files.saveFiles');
-           
+
                 await page.page.waitForTimeout(500);
 
                 await page.page.keyboard.press('Escape');
@@ -330,7 +330,7 @@ export function initTest(newProject: boolean = true, skipProjectCreation: boolea
                 // Force-close all tabs without prompt using the 'workbench.action.closeAllEditors' command via `executePaletteCommand`, although its effect may still prompt VSCode in some unsaved file cases.
                 // To ensure all editors close without prompt, consider discarding changes explicitly before running this.
                 await page.executePaletteCommand('workbench.action.closeAllEditors');
-                await page.page.waitForTimeout(500);
+                await page.page.waitForTimeout(1000);
             } catch { }
             await page.executePaletteCommand('Reload Window');
             await page.page.waitForTimeout(3000);

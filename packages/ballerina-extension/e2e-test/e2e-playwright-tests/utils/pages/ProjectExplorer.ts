@@ -59,5 +59,8 @@ export class ProjectExplorer {
         await this.page.getByRole('treeitem', { name: projectName }).hover();
         const refreshBtn = this.page.getByRole('button', { name: 'Refresh' });
         await refreshBtn.click();
+        // Open overview
+        const openOverviewBtn = this.page.getByRole('button', { name: 'Open Overview' });
+        await openOverviewBtn.click();
     }
 }
