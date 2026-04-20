@@ -56,19 +56,22 @@ export function ChoiceForm(props: ChoiceFormProps) {
     const { form } = useFormContext();
     const { setValue, clearErrors } = form;
 
-    const [selectedOption, setSelectedOption] = useState<number>(1);
+    const [selectedOption, setSelectedOption] = useState<number>(() => {
+        const idx = field.choices?.findIndex(choice => choice.enabled) ?? -1;
+        return idx !== -1 ? idx + 1 : 1;
+    });
 
     const [dynamicFields, setDynamicFields] = useState<FormField[]>([]);
     const [showAdvancedOptions, setShowAdvancedOptions] = useState<boolean>(false);
 
     useEffect(() => {
-        // Find the first enabled choice
+        // Find the first enabled choice and keep the radio selection + form state in sync
         const enabledChoiceIndex = field.choices.findIndex(choice => choice.enabled);
         if (enabledChoiceIndex !== -1) {
             const newSelectedOption = enabledChoiceIndex + 1;
+            setValue(field.key, enabledChoiceIndex);
             if (newSelectedOption !== selectedOption) {
                 setSelectedOption(newSelectedOption);
-                setValue(field.key, enabledChoiceIndex);
             }
         }
     }, [field.choices]);
