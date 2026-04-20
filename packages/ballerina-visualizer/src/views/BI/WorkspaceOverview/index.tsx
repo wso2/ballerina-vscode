@@ -378,6 +378,7 @@ interface DeploymentOptionsProps {
     hasDeployableIntegration: boolean;
     hasUndeployedIntegrations: boolean;
     deployableProjectPaths: Set<string>;
+    libraryProjectPaths: Set<string>;
 }
 
 function DeploymentOptions({
@@ -388,7 +389,8 @@ function DeploymentOptions({
     devantMetadata,
     hasDeployableIntegration,
     hasUndeployedIntegrations,
-    deployableProjectPaths
+    deployableProjectPaths,
+    libraryProjectPaths
 }: DeploymentOptionsProps) {
     const [expandedOptions, setExpandedOptions] = useState<Set<string>>(new Set(['cloud']));
     const { rpcClient } = useRpcContext();
@@ -406,9 +408,13 @@ function DeploymentOptions({
         });
     };
 
-    // Calculate deployment states
-    const deployedProjects = devantMetadata?.projectsMetadata?.filter(p => p.hasComponent) || [];
-    const undeployedProjects = devantMetadata?.projectsMetadata?.filter(p => !p.hasComponent) || [];
+    // Calculate deployment states, excluding library projects which are never deployable to cloud
+    const deployedProjects = devantMetadata?.projectsMetadata?.filter(
+        p => p.hasComponent && !libraryProjectPaths.has(p.projectPath)
+    ) || [];
+    const undeployedProjects = devantMetadata?.projectsMetadata?.filter(
+        p => !p.hasComponent && !libraryProjectPaths.has(p.projectPath)
+    ) || [];
     const deployedWithChanges = deployedProjects.filter(p => p.hasLocalChanges);
     
     const hasDeployedProjects = deployedProjects.length > 0;
@@ -417,7 +423,7 @@ function DeploymentOptions({
 
     // Determine title, description, button text, and whether deployment is allowed
     let title = "Deploy to WSO2 Cloud";
-    let description = "Deploy your project integrations to WSO2 Cloud.";
+    let description = "Deploy your integrations to WSO2 Cloud.";
     let buttonText = "Deploy";
     let primaryAction: () => void | Promise<void> = handleDeploy;
     let secondaryAction = undefined;
@@ -427,7 +433,7 @@ function DeploymentOptions({
     if (hasDeployedProjects && !hasUndeployedProjects) {
         // All projects are deployed - disable deployment button
         title = "Deployed in WSO2 Cloud";
-        description = "All project integrations are deployed in WSO2 Cloud.";
+        description = "All integrations are deployed in WSO2 Cloud.";
         buttonText = "View in Console";
         primaryAction = goToDevant;
         isDeploymentDisabled = false; // View action is always enabled
@@ -774,6 +780,16 @@ export function WorkspaceOverview() {
         return new Set(projectScopes.map(scope => scope.projectPath));
     }, [projectScopes]);
 
+    // Collect paths of library projects so DeploymentOptions can exclude them from
+    // deployment state calculations — libraries can never be deployed to cloud.
+    const libraryProjectPaths = useMemo(() => {
+        return new Set(
+            (projectCollection?.projects ?? [])
+                .filter(p => p.isLibrary)
+                .map(p => p.projectPath!)
+        );
+    }, [projectCollection?.projects]);
+
     const validateTitle = useCallback((value: string): string => {
         const trimmed = value.trim();
         if (!trimmed) {
@@ -1043,6 +1059,7 @@ export function WorkspaceOverview() {
                             hasDeployableIntegration={projectScopes.length > 0}
                             hasUndeployedIntegrations={undeployedProjectScopes.length > 0}
                             deployableProjectPaths={deployableProjectPaths}
+                            libraryProjectPaths={libraryProjectPaths}
                         />
                         <Divider sx={{ margin: "16px 0" }} />
                         <IntegrationControlPlane

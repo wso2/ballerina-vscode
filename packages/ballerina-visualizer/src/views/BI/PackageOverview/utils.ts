@@ -122,6 +122,7 @@ export function getWorkspaceProjectScopes(
     };
 
     return projectCollection.projects
+        .filter(project => !project.isLibrary)
         .map(mapProjectToScope)
         .filter((scopeMapping): scopeMapping is ProjectScopeMapping => scopeMapping !== undefined);
 }
