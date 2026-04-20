@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { useSlidingPane, CompletionItem, Divider, HelperPaneCustom, SearchBox, Typography, ThemeColors, Button, TextField } from "@wso2/ui-toolkit";
+import { useSlidingPane, CompletionItem, Divider, HelperPaneCustom, SearchBox, Typography, ThemeColors, Button, TextField, Codicon } from "@wso2/ui-toolkit";
 import { ExpressionProperty, LineRange } from "@wso2/ballerina-core";
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { getPropertyFromFormField, useFieldContext, InputMode } from "@wso2/ballerina-side-panel";
@@ -43,10 +43,63 @@ type DocumentConfigProps = {
 
 const AI_DOCUMENT_TYPES = Object.values(AIDocumentType);
 
+type DocumentMetadataInput = {
+    mimeType?: string;
+};
+
+const serializeMetadata = (metadata?: DocumentMetadataInput): string => {
+    if (!metadata) return '';
+    const parts: string[] = [];
+    const mime = metadata.mimeType?.trim();
+    if (mime) parts.push(`mimeType: ${mime}`);
+    return parts.length ? `, metadata: {${parts.join(', ')}}` : '';
+};
+
 // Helper function to wrap content in document structure
-const wrapInDocumentType = (documentType: AIDocumentType, content: string, isTemplateMode: boolean): string => {
-    const wrappedContent = `<${documentType}>{content: ${content}}`;
-    return wrappedContent;
+const wrapInDocumentType = (
+    documentType: AIDocumentType,
+    content: string,
+    isTemplateMode: boolean,
+    metadata?: DocumentMetadataInput
+): string => {
+    return `<${documentType}>{content: ${content}${serializeMetadata(metadata)}}`;
+};
+
+type MimeTypeMode = 'text' | 'variable';
+
+const ModeToggle = ({ mode, onChange }: { mode: MimeTypeMode; onChange: (m: MimeTypeMode) => void }) => {
+    const tabStyle = (active: boolean): React.CSSProperties => ({
+        padding: "2px 0",
+        marginRight: 12,
+        background: "transparent",
+        border: "none",
+        borderBottom: active ? `2px solid ${ThemeColors.PRIMARY}` : "2px solid transparent",
+        color: active ? ThemeColors.PRIMARY : ThemeColors.ON_SURFACE_VARIANT,
+        cursor: "pointer",
+        font: "inherit",
+        fontSize: 12,
+        fontWeight: active ? 600 : 400
+    });
+    return (
+        <div style={{ display: "flex", alignItems: "center" }}>
+            <button
+                type="button"
+                onClick={() => onChange('text')}
+                style={tabStyle(mode === 'text')}
+                aria-pressed={mode === 'text'}
+            >
+                Text
+            </button>
+            <button
+                type="button"
+                onClick={() => onChange('variable')}
+                style={tabStyle(mode === 'variable')}
+                aria-pressed={mode === 'variable'}
+            >
+                Variable
+            </button>
+        </div>
+    );
 };
 
 export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCompletions, currentValue, handleRetrieveCompletions, isInModal, inputMode }: DocumentConfigProps) => {
@@ -56,6 +109,17 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
     const [searchValue, setSearchValue] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [showContent, setShowContent] = useState<boolean>(false);
+    const [metadataExpanded, setMetadataExpanded] = useState<boolean>(false);
+    const [mimeTypeMode, setMimeTypeMode] = useState<'text' | 'variable'>('text');
+    const [mimeTypeLiteral, setMimeTypeLiteral] = useState<string>("");
+    const [mimeTypeVariable, setMimeTypeVariable] = useState<string>("");
+    const mimeTypeSerialized = useMemo(() => {
+        if (mimeTypeMode === 'text') {
+            const v = mimeTypeLiteral.trim();
+            return v ? `"${v}"` : '';
+        }
+        return mimeTypeVariable.trim();
+    }, [mimeTypeMode, mimeTypeLiteral, mimeTypeVariable]);
     const { breadCrumbSteps, navigateToNext, navigateToBreadcrumb, getCurrentNavigationPath } = useHelperPaneNavigation(`${documentType.charAt(0).toUpperCase() + documentType.slice(1)} Document`);
     const { addModal, closeModal } = useModalStack();
 
@@ -140,6 +204,15 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
         );
     }, [searchValue, dropdownItems]);
 
+    const stringVariableOptions = useMemo(() => {
+        return filteredCompletions.filter((completion) => {
+            const { kind, label, description = "", labelDetails } = completion;
+            const desc = description || labelDetails?.description || "";
+            if ((kind !== "variable" && kind !== "field") || label === "self") return false;
+            return /\bstring\b/.test(desc);
+        });
+    }, [filteredCompletions]);
+
     const handleSearch = (searchText: string) => {
         setSearchValue(searchText);
     };
@@ -170,7 +243,7 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
             }
         } else if (needsTypeCasting) {
             // Wrap the variable in the document structure with or without interpolation based on mode
-            const wrappedValue = wrapInDocumentType(documentType, fullPath, isTemplateMode);
+            const wrappedValue = wrapInDocumentType(documentType, fullPath, isTemplateMode, { mimeType: mimeTypeSerialized });
             onChange(wrappedValue, false);
         } else {
             // For other types (records, etc.), insert directly
@@ -212,7 +285,7 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
                 return;
             }
             const isTemplateMode = inputMode === InputMode.PROMPT;
-            const wrappedValue = wrapInDocumentType(documentType, `"${url.trim()}"`, isTemplateMode);
+            const wrappedValue = wrapInDocumentType(documentType, `"${url.trim()}"`, isTemplateMode, { mimeType: mimeTypeSerialized });
             onChange(wrappedValue, false, false);
             closeModal(POPUP_IDS.DOCUMENT_URL);
         };
@@ -288,6 +361,83 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
                 )}
             </ScrollableContainer>
 
+            <Divider sx={{ margin: "0px" }} />
+            <div>
+                <button
+                    type="button"
+                    onClick={() => setMetadataExpanded(prev => !prev)}
+                    style={{
+                        width: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        padding: "6px 10px",
+                        background: "transparent",
+                        border: "none",
+                        cursor: "pointer",
+                        color: ThemeColors.ON_SURFACE,
+                        font: "inherit",
+                        textAlign: "left"
+                    }}
+                    aria-expanded={metadataExpanded}
+                >
+                    <Codicon name={metadataExpanded ? "chevron-down" : "chevron-right"} iconSx={{ fontSize: 12 }} />
+                    <Typography variant="body3" sx={{ fontWeight: 600 }}>MIME Type (optional)</Typography>
+                    {!metadataExpanded && mimeTypeSerialized && (
+                        <Typography
+                            variant="body3"
+                            sx={{ color: ThemeColors.ON_SURFACE_VARIANT, marginLeft: "4px", fontWeight: 400 }}
+                        >
+                            — {mimeTypeSerialized}
+                        </Typography>
+                    )}
+                </button>
+                {metadataExpanded && (
+                    <div style={{ padding: "4px 10px 8px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                        <ModeToggle
+                            mode={mimeTypeMode}
+                            onChange={setMimeTypeMode}
+                        />
+                        {mimeTypeMode === 'text' ? (
+                            <TextField
+                                value={mimeTypeLiteral}
+                                onTextChange={setMimeTypeLiteral}
+                                placeholder="e.g. image/png"
+                            />
+                        ) : (
+                            <>
+                                <TextField
+                                    value={mimeTypeVariable}
+                                    onTextChange={setMimeTypeVariable}
+                                    placeholder="Pick a variable below, or type its name"
+                                />
+                                <div style={{ maxHeight: 140, overflowY: "auto" }}>
+                                    {stringVariableOptions.length === 0 ? (
+                                        <Typography
+                                            variant="body3"
+                                            sx={{ color: ThemeColors.ON_SURFACE_VARIANT, padding: "6px 4px" }}
+                                        >
+                                            No string variables available in this scope.
+                                        </Typography>
+                                    ) : (
+                                        <ExpandableList>
+                                            {stringVariableOptions.map((opt) => (
+                                                <VariableItem
+                                                    key={opt.label}
+                                                    item={opt}
+                                                    onItemSelect={(val) => setMimeTypeVariable(val)}
+                                                    onMoreIconClick={() => { }}
+                                                    hideArrow={true}
+                                                />
+                                            ))}
+                                        </ExpandableList>
+                                    )}
+                                </div>
+                            </>
+                        )}
+                    </div>
+                )}
+            </div>
             <Divider sx={{ margin: "0px" }} />
             {!isInModal && (
                 <div style={{ margin: '4px 0' }}>
