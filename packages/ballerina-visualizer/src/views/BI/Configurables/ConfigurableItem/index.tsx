@@ -246,11 +246,13 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
             }
 
             updateErrorMessage(response?.errorMsg || '');
+            const isUpdateSuccessful = !response?.errorMsg;
 
             // Only clear the dirty flag if nothing newer was typed AND no
             // further debounced update is scheduled. Otherwise we must stay
             // dirty so incoming prop updates don't clobber local state.
             if (
+                isUpdateSuccessful &&
                 debounceTimerRef.current === null &&
                 latestValueRef.current === newValue
             ) {
