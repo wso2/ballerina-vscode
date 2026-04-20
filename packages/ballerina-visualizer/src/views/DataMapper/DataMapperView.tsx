@@ -88,11 +88,6 @@ export function DataMapperView(props: DataMapperViewProps) {
         codedata: codedata
     });
 
-    const viewStateRef = useRef<DMViewState>(viewState);
-    useEffect(() => {
-        viewStateRef.current = viewState;
-    }, [viewState]);
-
     /* Completions related */
     const [completions, setCompletions] = useState<CompletionItem[]>([]);
     const prevCompletionFetchText = useRef<string>("");
@@ -124,9 +119,9 @@ export function DataMapperView(props: DataMapperViewProps) {
             prevPositionRef.current?.line !== position?.line ||
             prevPositionRef.current?.offset !== position?.offset;
         
-        const subMappingName = viewStateRef.current.subMappingName;
+        const subMappingName = viewState.subMappingName;
         if (subMappingName) {
-            const viewId = viewStateRef.current.viewId;
+            const viewId = viewState.viewId;
             rpcClient.getDataMapperRpcClient()
                 .getSubMappingCodedata({
                     filePath,
