@@ -50,7 +50,7 @@ import { registerPlatformExtRpcHandlers } from './rpc-managers/platform-ext/rpc-
 import { MigrationPanelWebview } from './views/migration-panel/webview';
 
 export class RPCLayer {
-    static _messenger: Messenger = new Messenger();
+    static _messenger: Messenger = new Messenger({ ignoreHiddenViews: false });
 
     constructor(webViewPanel: WebviewPanel | WebviewView) {
         if (isWebviewPanel(webViewPanel)) {

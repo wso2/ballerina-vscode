@@ -245,6 +245,38 @@ export class TranscriptWriter {
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
+    private buildStageFilePath(packageRelPath: string, stageIndex: number, isWorkspaceValidation: boolean): string {
+        const dir = packageRelPath
+            ? path.join(this.transcriptDir, packageRelPath)
+            : this.transcriptDir;
+        const filename = isWorkspaceValidation ? "workspace-validation.md" : `stage${stageIndex + 1}.md`;
+        return path.join(dir, filename);
+    }
+
+    /**
+     * Returns true if the stage transcript file exists and contains a completion marker.
+     */
+    isStageCompleted(packageRelPath: string, stageIndex: number, isWorkspaceValidation = false): boolean {
+        try {
+            const filePath = this.buildStageFilePath(packageRelPath, stageIndex, isWorkspaceValidation);
+            if (!fs.existsSync(filePath)) { return false; }
+            const content = fs.readFileSync(filePath, "utf8");
+            return content.includes("_Completed:");
+        } catch { return false; }
+    }
+
+    /**
+     * Returns the transcript file content for a stage, or null if not found.
+     * Used to inject partial work as a resume preamble when the stage was interrupted.
+     */
+    readStageTranscript(packageRelPath: string, stageIndex: number, isWorkspaceValidation = false): string | null {
+        try {
+            const filePath = this.buildStageFilePath(packageRelPath, stageIndex, isWorkspaceValidation);
+            if (!fs.existsSync(filePath)) { return null; }
+            return fs.readFileSync(filePath, "utf8");
+        } catch { return null; }
+    }
+
     private listStageFiles(dir: string): string[] {
         try {
             if (!fs.existsSync(dir)) { return []; }
