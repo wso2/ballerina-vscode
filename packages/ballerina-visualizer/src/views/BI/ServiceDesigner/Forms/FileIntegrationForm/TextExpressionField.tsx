@@ -633,8 +633,6 @@ export function TextExpressionField(props: TextExpressionFieldProps) {
                             isInModal: true,
                             types: property?.types,
                             handleRetrieveCompletions: handleRetrieveCompletions,
-                            forcedValueTypeConstraint: "string",
-                            handleValueTypeConstChange: () => { },
                             inputMode: inputMode,
                         })}
                     </FieldProvider>

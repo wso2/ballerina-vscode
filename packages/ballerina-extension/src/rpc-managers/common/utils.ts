@@ -91,13 +91,13 @@ export async function askProjectPath() {
     });
 }
 
-export async function askFilePath() {
+export async function askFilePath(filters?: Record<string, string[]>) {
     return await window.showOpenDialog({
         canSelectFiles: true,
         canSelectFolders: false,
         canSelectMany: false,
         defaultUri: Uri.file(StateMachine.context().projectPath  ?? os.homedir()),
-        filters: {
+        filters: filters ?? {
             'Files': ['yaml', 'json', 'yml', 'graphql', 'wsdl']
         },
         title: "Select a file",

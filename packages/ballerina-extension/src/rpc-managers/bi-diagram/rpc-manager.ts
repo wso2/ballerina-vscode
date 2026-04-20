@@ -76,7 +76,6 @@ import {
     DevantMetadata,
     WorkspaceDevantMetadata,
     ProjectDevantMetadata,
-    Diagnostics,
     EndOfFileRequest,
     ExpressionCompletionsRequest,
     ExpressionCompletionsResponse,
@@ -183,7 +182,7 @@ import { DebugProtocol } from "vscode-debugprotocol";
 import { extension } from "../../BalExtensionContext";
 import { OLD_BACKEND_URL } from "../../features/ai/utils";
 import { fetchWithAuth } from "../../features/ai/utils/ai-client";
-import { cleanAndValidateProject, getCurrentBIProject } from "../../features/config-generator/configGenerator";
+import { getCurrentBIProject } from "../../features/config-generator/configGenerator";
 import { BreakpointManager } from "../../features/debugger/breakpoint-manager";
 import { StateMachine, updateView } from "../../stateMachine";
 import { getAccessToken, getLoginMethod } from "../../utils/ai/auth";
@@ -207,7 +206,6 @@ import { getView } from "../../utils/state-machine-utils";
 import { isLibraryProject } from "../../utils/config";
 import { PlatformExtRpcManager } from "../platform-ext/rpc-manager";
 import { openAIPanelWithPrompt } from "../../views/ai-panel/aiMachine";
-import { checkProjectDiagnostics, removeUnusedImports } from "../ai-panel/repair-utils";
 import { getCurrentBallerinaProject } from "../../utils/project-utils";
 import { CommonRpcManager } from "../common/rpc-manager";
 import * as toml from "@iarna/toml";
@@ -803,6 +801,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             } catch (error) {
                 window.showErrorMessage("Error converting integration to workspace");
                 console.error("Error converting integration to workspace:", error);
+                return;
             }
         } else {
             try {
@@ -994,8 +993,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async deleteFlowNode(params: BISourceCodeRequest): Promise<UpdatedArtifactsResponse> {
         console.log(">>> requesting bi delete node from ls", params);
-        // Clean project diagnostics before deleting flow node
-        await cleanAndValidateProject(StateMachine.langClient(), StateMachine.context().projectPath);
 
         return new Promise((resolve) => {
             StateMachine.langClient()
@@ -1217,6 +1214,16 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     async deployProject(params: DeploymentRequest): Promise<DeploymentResponse> {
         const scopes = params.integrationTypes;
 
+        const componentPath = StateMachine.context().projectPath;
+        const projectInfo = StateMachine.context().projectInfo;
+
+        let componentInfo: ProjectInfo;
+        if (projectInfo?.projectPath === componentPath) {
+            componentInfo = projectInfo;
+        } else {
+            componentInfo = projectInfo?.children?.find(child => child.projectPath === componentPath);
+        }
+
         const integrationType = await this.selectIntegrationType(scopes);
 
         if (!integrationType) {
@@ -1225,7 +1232,11 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
         const deploymentParams: ICreateNewIntegrationCmdParams = {
             buildPackLang: "ballerina",
-            integrations: [{ fsPath: StateMachine.context().projectPath, supportedIntegrationTypes: [integrationType] }],
+            integrations: [{
+                fsPath: StateMachine.context().projectPath,
+                supportedIntegrationTypes: [integrationType],
+                name: componentInfo?.title || componentInfo?.name
+            }],
             workspaceDir: StateMachine.context().workspacePath || StateMachine.context().projectPath,
         };
         await commands.executeCommand(WICommandIds.CreateNewComponent, deploymentParams);
@@ -1234,6 +1245,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async deployWorkspace(params: WorkspaceDeploymentRequest): Promise<DeploymentResponse> {
+        const projectInfo = StateMachine.context().projectInfo;
         const projectScopes = params.projectScopes;
         if (!projectScopes?.length) {
             window.showWarningMessage("No deployable projects found in the workspace.");
@@ -1244,7 +1256,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         // If there is only one project in the workspace and it has multiple integration types,
         // ask the user to pick the type similar to the single project deploy flow.
         if (projectScopes.length === 1) {
-            const { projectPath, integrationTypes } = projectScopes[0];
+            const { projectPath, integrationTypes, projectTitle } = projectScopes[0];
 
             const integrationType = await this.selectIntegrationType(integrationTypes);
 
@@ -1252,16 +1264,24 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 return { isCompleted: true };
             }
 
-            integrations.push({ fsPath: projectPath, supportedIntegrationTypes: [integrationType] });
+            integrations.push({
+                fsPath: projectPath,
+                supportedIntegrationTypes: [integrationType],
+                name: projectTitle
+            });
         } else {
             for (const projectScope of projectScopes) {
-                const { projectPath, integrationTypes } = projectScope;
+                const { projectPath, integrationTypes, projectTitle } = projectScope;
                 if (!integrationTypes?.length) {
                     window.showWarningMessage(`No integration types found for ${path.basename(projectPath)}.`);
                     continue;
                 }
 
-                integrations.push({ fsPath: projectPath, supportedIntegrationTypes: integrationTypes });
+                integrations.push({
+                    fsPath: projectPath,
+                    supportedIntegrationTypes: integrationTypes,
+                    name: projectTitle
+                });
             }
         }
 
@@ -1271,7 +1291,11 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
         await commands.executeCommand(
             WICommandIds.CreateNewComponent,
-            { buildPackLang: 'ballerina', integrations, workspaceDir: StateMachine.context().workspacePath } as ICreateNewIntegrationCmdParams,
+            {
+                buildPackLang: 'ballerina',
+                integrations,
+                workspaceDir: StateMachine.context().workspacePath
+            } as ICreateNewIntegrationCmdParams,
             params.rootDirectory
         );
         return { isCompleted: true };
@@ -1541,7 +1565,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async deleteByComponentInfo(params: BIDeleteByComponentInfoRequest): Promise<BIDeleteByComponentInfoResponse> {
         console.log(">>> requesting bi delete node from ls by componentInfo", params);
-        const projectDiags: Diagnostics[] = await checkProjectDiagnostics(StateMachine.langClient(), StateMachine.context().projectPath);
 
         const position: NodePosition = {
             startLine: params.component?.startLine,
@@ -1585,25 +1608,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         }
 
 
-        // If there are diagnostics, remove unused imports first, then delete component
-        if (projectDiags.length > 0) {
-            return new Promise((resolve, reject) => {
-                removeUnusedImports(projectDiags, StateMachine.langClient())
-                    .then(() => {
-                        // After removing unused imports, proceed with component deletion
-                        return performDelete();
-                    })
-                    .then((result) => {
-                        resolve(result);
-                    })
-                    .catch((error) => {
-                        reject("Error during delete operation: " + error);
-                    });
-            });
-        } else {
-            // No diagnostics, directly delete component
-            return performDelete();
-        }
+        return performDelete();
     }
 
     async getFormDiagnostics(params: FormDiagnosticsRequest): Promise<FormDiagnosticsResponse> {

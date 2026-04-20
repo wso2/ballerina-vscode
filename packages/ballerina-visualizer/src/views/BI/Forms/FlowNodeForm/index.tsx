@@ -66,6 +66,7 @@ import {
     FormExpressionEditorRef,
     HelperPaneHeight,
     Icon,
+    LabelInfo,
     ThemeColors,
     Tooltip,
 } from "@wso2/ui-toolkit";
@@ -101,7 +102,7 @@ import { getTypeHelper } from "../../TypeHelper";
 import { EXPRESSION_EXTRACTION_REGEX } from "../../../../constants";
 import MatchForm from "../MatchForm";
 import { FormSubmitOptions } from "../../FlowDiagram";
-import { getHelperPaneNew } from "../../HelperPaneNew";
+import { AI_PROMPT_TYPE, getHelperPaneNew } from "../../HelperPaneNew";
 import { ConfigureRecordPage } from "../../HelperPaneNew/Views/RecordConfigModal";
 import { VariableForm } from "../DeclareVariableForm";
 import KnowledgeBaseForm from "../KnowledgeBaseForm";
@@ -118,6 +119,22 @@ interface FlowNodeTypeEditorState {
     isOpen: boolean;
     fieldKey?: string; // Optional, to store the key of the field being edited
     newTypeValue?: string;
+}
+
+export interface ResolvedType {
+    name: string;
+    value: string;
+    sortText?: string;
+    codeData?: CodeData;
+    labelDetails?: LabelInfo;
+}
+
+export interface ResolvedType {
+    name: string;
+    value: string;
+    sortText?: string;
+    codeData?: CodeData;
+    labelDetails?: LabelInfo;
 }
 
 interface FlowNodeFormProps {
@@ -161,6 +178,36 @@ interface FlowNodeFormProps {
     customValidator?: (fieldKey: string, value: any, allValues: FormValues) => string | undefined; // Custom validation function for form fields
     defaultExpandAdvanced?: boolean;
 }
+
+type RepeatableMapEntry = {
+    key: string;
+    value: string;
+};
+
+const getRepeatableMapEntriesFromValue = (value: unknown): RepeatableMapEntry[] => {
+    if (typeof value === "string") {
+        return stringToRawObjectEntries(value);
+    }
+
+    if (value && typeof value === "object" && !Array.isArray(value)) {
+        return Object.entries(value as Record<string, any>).map(([entryKey, entryValue]) => ({
+            key: entryKey,
+            value: typeof entryValue === "object" && entryValue !== null
+                ? String((entryValue as any).value ?? "")
+                : String(entryValue ?? "")
+        }));
+    }
+
+    return [];
+};
+
+const getRepeatableMapDiagnosticsByKey = (value: unknown): Record<string, any> | undefined => {
+    if (value && typeof value === "object" && !Array.isArray(value)) {
+        return value as Record<string, any>;
+    }
+
+    return undefined;
+};
 
 // Styled component for the action button description
 const ActionButtonDescription = styled.div`
@@ -262,7 +309,6 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
     const [typeEditorState, setTypeEditorState] = useState<FlowNodeTypeEditorState>({ isOpen: false, newTypeValue: "" });
     const [visualizableField, setVisualizableField] = useState<VisualizableField>();
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
-    const [valueTypeConstraints, setValueTypeConstraints] = useState<string>();
 
     const fields = useMemo(() => {
         if (!props.fieldOverrides || baseFields.length === 0) {
@@ -287,7 +333,7 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
 
     const { addModal, closeModal, popModal } = useModalStack()
 
-    const [selectedType, setSelectedType] = useState<CompletionItem | null>(null);
+    const [selectedType, setSelectedType] = useState<ResolvedType | null>(null);
 
     const skipFormValidation = useMemo(() => {
         const isAgentNode = node && (
@@ -305,6 +351,7 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
     }, [node]);
 
     const importsCodedataRef = useRef<any>(null); // To store codeData for getVisualizableFields
+    const typeResolutionId = useRef(0);
 
     //stack for recursive type creation
     const [stack, setStack] = useState<StackItem[]>([{
@@ -523,7 +570,6 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
             const updatedField = { ...field };
 
             const isRepeatableList = field.types?.length === 1 && getPrimaryInputType(field.types)?.fieldType === "REPEATABLE_LIST";
-            const isRepeatableMap = field.types?.length === 1 && getPrimaryInputType(field.types)?.fieldType === "REPEATABLE_MAP";
             const selectedInputType = isRepeatableList ? getPrimaryInputType(field.types) : field.types?.find(t => t.selected);
             const isContainingRepeatableList = field.types?.some(t => t.fieldType === "REPEATABLE_LIST");
             const isContainingRepeatableMap = field.types?.some(t => t.fieldType === "REPEATABLE_MAP");
@@ -562,37 +608,27 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                 }
 
                 else if (isContainingRepeatableMap) {
-                    if (!(typeof nodeProperties?.[field.key]?.value === "object")) {
-                        throw new Error(`Expected value for repeatable map field "${field.key}" to be an object, but got ${typeof nodeProperties?.[field.key]?.value}.`);
-                    }
+                    // Diagnostics responses do not preserve a single map shape consistently.
+                    // Optional maps may omit `value`, while populated maps can come back either
+                    // as editor-friendly objects or as serialized source strings.
+                    const repeatableMapDiagnostics = getRepeatableMapDiagnosticsByKey(nodeProperties?.[field.key]?.value);
                     if (selectedInputType?.fieldType === "REPEATABLE_MAP") {
-                        let initialValues: { key: string; value: string }[];
-                        if (typeof data[field.key] === 'string') {
-                            initialValues = stringToRawObjectEntries(data[field.key]);
-                        } else {
-                            // When the value is an object (from FormMapEditorNew), extract entries directly
-                            initialValues = Object.entries(data[field.key] as Record<string, any>).map(([entryKey, entryVal]) => ({
-                                key: entryKey,
-                                value: typeof entryVal === 'object' && entryVal !== null ? String((entryVal as any).value ?? '') : String(entryVal)
-                            }));
-                        }
+                        const initialValues = getRepeatableMapEntriesFromValue(data[field.key]);
                         // Keep value as a Record to match processToOutputFormat shape expected by FormMapEditorNew
                         const outputRecord: Record<string, unknown> = {};
                         initialValues.forEach((val) => {
                             const key = crypto.randomUUID();
-                            propertyDiagnostics = nodeProperties?.[field.key]?.value?.[val.key]?.diagnostics?.diagnostics ?? [];
                             outputRecord[val.key] = {
                                 ...getArraySubFormFieldFromTypes(key, (field.types[0] as any).template.types as InputType[]),
                                 key: `mp-val-${key}`,
                                 value: val.value,
-                                diagnostics: nodeProperties?.[field.key]?.value?.[val.key]?.diagnostics?.diagnostics ?? []
+                                diagnostics: repeatableMapDiagnostics?.[val.key]?.diagnostics?.diagnostics ?? []
                             };
                         });
                         updatedField.value = outputRecord;
                     }
                     else {
                         updatedField.value = data[field.key];
-                        propertyDiagnostics = nodeProperties?.[field.key]?.value?.map((val: any) => val?.diagnostics?.diagnostics ?? []).flat() ?? [];
                     }
                 }
                 else {
@@ -608,6 +644,19 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                 const collectedDiagnostics = (
                     nodeProperties?.[field.key]?.value?.map((val: any) => val?.diagnostics?.diagnostics) ?? []
                 ).flat().filter(Boolean) as Array<{ message?: string; severity?: string }>;
+
+                propertyDiagnostics = collectedDiagnostics.filter((d, i, arr) =>
+                    arr.findIndex(x => x.message === d.message) === i
+                );
+            }
+
+            if (isContainingRepeatableMap && !(Array.isArray(propertyDiagnostics) && propertyDiagnostics.length > 0)) {
+                const collectedDiagnostics = Object.values(
+                    getRepeatableMapDiagnosticsByKey(nodeProperties?.[field.key]?.value) ?? {}
+                )
+                    .map((value: any) => value?.diagnostics?.diagnostics)
+                    .flat()
+                    .filter(Boolean) as Array<{ message?: string; severity?: string }>;
 
                 propertyDiagnostics = collectedDiagnostics.filter((d, i, arr) =>
                     arr.findIndex(x => x.message === d.message) === i
@@ -976,7 +1025,7 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
 
         return Object.values(nodeProperties).some((property) => {
             let diagnostics: DiagnosticMessage[] = [];
-            if ( property?.types?.length === 1 && getPrimaryInputType(property.types)?.fieldType === "REPEATABLE_LIST") {
+            if (property?.types?.length === 1 && getPrimaryInputType(property.types)?.fieldType === "REPEATABLE_LIST") {
                 // For repeatable list, check diagnostics for each element in the list
                 const valueDiagnostics = (property.value as any[])?.map((val) => val?.diagnostics?.diagnostics ?? []).flat() ?? [];
                 diagnostics = [...diagnostics, ...valueDiagnostics];
@@ -1127,39 +1176,22 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
         });
         const matchedReferenceType = newTypes.find(t => t.label === valueTypeConstraint);
         if (matchedReferenceType) {
-            updateRecordTypeFields(matchedReferenceType)
-            setValueTypeConstraints(valueTypeConstraint);
+            updateRecordTypeFields({
+                value: matchedReferenceType.insertText,
+                name: matchedReferenceType.label,
+                labelDetails: matchedReferenceType.labelDetails,
+            })
+            return;
         }
-        else {
-            const type = await searchImportedTypeByName(valueTypeConstraint);
-            if (!type) {
-                setValueTypeConstraints(valueTypeConstraint);
-                return;
-            };
+        const type = await searchImportedTypeByName(valueTypeConstraint);
+        if (!type) return;
 
-            setValueTypeConstraints(type.insertText);
-            // Create the record type field for expression
-            const expressionEntry = Object.entries(getFormProperties(node))
-                .find(([_, property]) => property.metadata?.label === "Expression");
-
-            if (!expressionEntry) return;
-
-            const [key, property] = expressionEntry;
-            const typeForRecord = { label: type.insertText, labelDetails: type.labelDetails };
-            const recordTypeField = createExpressionRecordTypeField(key, property, `${type.codedata.org}:${type.codedata.module}:${type.codedata.version}`, typeForRecord);
-            if (!recordTypeField) return;
-
-            setRecordTypeFields(prevFields => {
-                const prevIndex = prevFields.findIndex(f => f.key === recordTypeField.key);
-                if (prevIndex !== -1) {
-                    const updated = [...prevFields];
-                    updated[prevIndex] = recordTypeField;
-                    return updated;
-                } else {
-                    return [...prevFields, recordTypeField];
-                }
-            });
-        }
+        updateRecordTypeFields({
+            value: type.name,
+            name: type.name,
+            codeData: type.codedata,
+            labelDetails: type.labelDetails,
+        });
     }
 
     const handleGetHelperPane = (
@@ -1203,8 +1235,6 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
             isInModal: isInModal,
             types: defaultTypes,
             handleRetrieveCompletions: handleRetrieveCompletions,
-            forcedValueTypeConstraint: valueTypeConstraints,
-            handleValueTypeConstChange: handleValueTypeConstChange,
             inputMode: inputMode,
             devantExpressionEditor: props.devantExpressionEditor,
         });
@@ -1378,52 +1408,28 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
         key: string,
         property: any,
         packageInfo: string,
-        type: { label: string; labelDetails?: { description?: string } }
+        type: { name: string; labelDetails?: { description?: string } },
+        packageName?: string,
     ) => {
         return {
             key,
             property,
             recordTypeMembers: [{
                 kind: "RECORD_TYPE",
-                type: type.label || "",
+                type: type.name || "",
                 packageInfo: packageInfo,
+                packageName: packageName,
                 selected: false
             }]
         };
     };
 
-    const isTypeExcludedFromValueTypeConstraint = (typeLabel: string) => {
-        return ["()"].includes(typeLabel);
-    }
 
     /**
      * Updates record type fields and value type constraints when a type is selected.
      * This is used in variable declaration forms where the variable type dynamically changes.
      */
-    const updateRecordTypeFields = (type?: { label: string; labelDetails?: { description?: string, detail?: string } }) => {
-        if (!type) {
-            setValueTypeConstraints('');
-            return;
-        }
-
-        // If not a Record, remove the 'expression' entry from recordTypeFields and return
-        if (type?.labelDetails?.description?.toLocaleLowerCase() !== "record") {
-            if (type.labelDetails.detail === "Structural Types"
-                || type.labelDetails.detail === "Behaviour Types"
-                || isTypeExcludedFromValueTypeConstraint(type.label)
-            ) {
-                setValueTypeConstraints('');
-            }
-            else {
-                setValueTypeConstraints(type.label);
-            }
-            setRecordTypeFields(prevFields => prevFields.filter(f => f.key !== "expression"));
-            return;
-        }
-        else {
-            setValueTypeConstraints(type.label);
-        }
-
+    const updateRecordTypeFields = (type?: { value: string, codeData?: CodeData, name: string; labelDetails?: { description?: string, detail?: string } }) => {
         // Create the record type field for expression
         const expressionEntry = Object.entries(getFormProperties(node))
             .find(([_, property]) => {
@@ -1436,9 +1442,41 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
             });
 
         if (!expressionEntry) return;
-
         const [key, property] = expressionEntry;
-        const recordTypeField = createExpressionRecordTypeField(key, property, '', type);
+        if (!type) {
+            setRecordTypeFields(prevFields => prevFields.filter(f => f.key !== key));
+            setBaseFields(prevFields => prevFields.map(field => {
+                if (field.key === key) {
+                    return {
+                        ...field,
+                        types: [
+                            { fieldType: "EXPRESSION", selected: false },
+                        ]
+                    };
+                }
+                return field;
+            }));
+            return;
+        }
+
+        // If not a Record, remove the 'expression' entry from recordTypeFields and return
+        if (type?.labelDetails?.description?.toLocaleLowerCase() !== "record" && type.codeData?.node !== "RECORD") {
+            setRecordTypeFields(prevFields => prevFields.filter(f => f.key !== key));
+            setBaseFields(prevFields => prevFields.map(field => {
+                if (field.key === key) {
+                    return {
+                        ...field,
+                        types: [
+                            { fieldType: "EXPRESSION", selected: false },
+                        ]
+                    };
+                }
+                return field;
+            }));
+            return;
+        }
+        const packageInfo = type.codeData ? `${type.codeData.org}:${type.codeData.module}:${type.codeData.version}` : '';
+        const recordTypeField = createExpressionRecordTypeField(key, property, packageInfo, type, type.codeData?.module);
         if (!recordTypeField) return;
 
         setBaseFields(prevFields => prevFields.map(field => {
@@ -1469,13 +1507,25 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
     /**
      * Handles type selection from completion items (used in type editor)
      */
-    const handleSelectedTypeChange = (type: CompletionItem | string) => {
-        if (typeof type === "string") {
-            handleSelectedTypeByName(type);
+    const handleSelectedTypeChange = async (type: CompletionItem | string) => {
+        const resolutionId = ++typeResolutionId.current;
+        if (!type) {
+            setSelectedType(null);
+            updateRecordTypeFields(undefined);
             return;
         }
-        setSelectedType(type);
-        updateRecordTypeFields(type);
+        let matchedType: ResolvedType | undefined;
+        if (typeof type === "string") {
+            matchedType = await findTypeByName(type);
+        }
+        else {
+            matchedType = await findTypeByName(type.value);
+        }
+        if (resolutionId !== typeResolutionId.current) {
+            return;
+        }
+        setSelectedType(matchedType ?? null);
+        updateRecordTypeFields(matchedType);
     };
 
     const findMatchedType = (items: TypeHelperItem[], typeName: string) => {
@@ -1507,7 +1557,7 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                 searchKind: 'TYPE'
             })
             .then((response) => {
-                return getFilteredTypesByKind(response.categories, functionKinds.IMPORTED);
+                return getFilteredTypesByKind(response.categories, [functionKinds.IMPORTED, functionKinds.CURRENT]);
             })
             .finally(() => {
 
@@ -1527,45 +1577,31 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
         return type;
     };
 
-    /**
-     * Handles type selection by type name (used when type is created/changed)
-     */
-    const handleSelectedTypeByName = async (typeName: string) => {
-        // Early return for invalid input
+    const findTypeByName = async (typeName: string): Promise<ResolvedType | undefined> => {
         if (!typeName || typeName.length === 0) {
-            setValueTypeConstraints('');
-            return;
+            return undefined;
         }
-
-        const type = await searchImportedTypeByName(typeName);
-        if (!type) {
-            setValueTypeConstraints('');
-            return;
+        let matchedOtherTypes = await searchImportedTypeByName(typeName);
+        if (matchedOtherTypes) {
+            return ({
+                name: matchedOtherTypes.name,
+                value: matchedOtherTypes.insertText,
+                codeData: matchedOtherTypes.codedata,
+                sortText: matchedOtherTypes.sortText,
+                labelDetails: matchedOtherTypes.labelDetails
+            });
         }
-
-        setValueTypeConstraints(type.insertText);
-        // Create the record type field for expression
-        const expressionEntry = Object.entries(getFormProperties(node))
-            .find(([_, property]) => property.metadata?.label === "Expression");
-
-        if (!expressionEntry) return;
-
-        const [key, property] = expressionEntry;
-        const typeForRecord = { label: type.insertText, labelDetails: type.labelDetails };
-        const recordTypeField = createExpressionRecordTypeField(key, property, `${type.codedata.org}:${type.codedata.module}:${type.codedata.version}`, typeForRecord);
-        if (!recordTypeField) return;
-
-        setRecordTypeFields(prevFields => {
-            const prevIndex = prevFields.findIndex(f => f.key === recordTypeField.key);
-            if (prevIndex !== -1) {
-                const updated = [...prevFields];
-                updated[prevIndex] = recordTypeField;
-                return updated;
-            } else {
-                return [...prevFields, recordTypeField];
-            }
-        });
-    };
+        let matchedReferenceType = types.find(t => t.label === typeName);
+        if (matchedReferenceType) {
+            return ({
+                name: matchedReferenceType.label,
+                value: matchedReferenceType.value,
+                sortText: matchedReferenceType.sortText,
+                labelDetails: matchedReferenceType.labelDetails
+            });
+        }
+        return undefined;
+    }
 
     const getDefaultValue = (typeName?: string) => {
         return ({
@@ -1737,7 +1773,7 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
     // handle declare variable node form
     if (node?.codedata.node === "VARIABLE") {
         // HACK: make the type field optional for variable declaration form
-        const typeField = fields.find(field => field.key === "type");
+        const typeField = fields.find(field => getPrimaryInputType(field.types)?.fieldType === "TYPE");
         if (typeField) {
             typeField.optional = true;
         }

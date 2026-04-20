@@ -184,7 +184,6 @@ export function ArtifactForm(props: ArtifactFormProps) {
     const fieldsRef = useRef<FormField[]>(fields);
     const fieldsValuesRef = useRef<FormField[]>(fields);
     const [formImports, setFormImports] = useState<FormImports>({});
-    const [selectedType, setSelectedType] = useState<CompletionItem | null>(null);
     const [refetchStates, setRefetchStates] = useState<boolean[]>([false]);
     const [valueTypeConstraints, setValueTypeConstraints] = useState<string>();
 
@@ -229,7 +228,7 @@ export function ArtifactForm(props: ArtifactFormProps) {
         if (type) {
             const typeName = typeof type === 'string' ? type : (type as Type).name;
             setFields(fields.map((field) => {
-                if (field.key === 'type') {
+                if (getPrimaryInputType(field.types)?.fieldType === 'TYPE') {
                     return { ...field, value: typeName };
                 }
                 return field;
@@ -389,7 +388,7 @@ export function ArtifactForm(props: ArtifactFormProps) {
                     isPublic: {
                         metadata: {
                             label: "public",
-                            description: "Make visible across the workspace"
+                            description: "Make visible across the project"
                         },
                         valueType: "FLAG",
                         value: isParamTypePublicByDefault() ? "true" : "false",
@@ -773,13 +772,10 @@ export function ArtifactForm(props: ArtifactFormProps) {
             updateImports: handleUpdateImports,
             completions: completions,
             projectPath: projectPath,
-            selectedType: selectedType,
             filteredCompletions: filteredCompletions,
             isInModal: false,
             types: types,
             handleRetrieveCompletions: handleRetrieveCompletions,
-            handleValueTypeConstChange: handleValueTypeConstChange,
-            forcedValueTypeConstraint: valueTypeConstraints,
             inputMode: inputMode,
         });
     };

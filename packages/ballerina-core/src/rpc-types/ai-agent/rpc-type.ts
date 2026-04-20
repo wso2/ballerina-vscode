@@ -32,6 +32,7 @@ export const getTool: RequestType<AIToolRequest, AIToolResponse> = { method: `${
 export const getMcpTools: RequestType<McpToolsRequest, McpToolsResponse> = { method: `${_preFix}/getMcpTools` };
 export const genTool: RequestType<AIGentToolsRequest, AIGentToolsResponse> = { method: `${_preFix}/genTool` };
 export const getPackageVersion: RequestType<AIGetPackageVersionRequest, AIGetPackageVersionResponse> = { method: `${_preFix}/getPackageVersion` };
+export const fixMissingImports: RequestType<void, void> = { method: `${_preFix}/fixMissingImports` };
 export const configureDefaultModelProvider: NotificationType<void> = { method: `${_preFix}/configureDefaultModelProvider` };
 export const createAIAgent: RequestType<AIAgentRequest, AIAgentResponse> = { method: `${_preFix}/createAIAgent` };
 export const updateAIAgentTools: RequestType<AIAgentToolsUpdateRequest, AIAgentResponse> = { method: `${_preFix}/updateAIAgentTools` };

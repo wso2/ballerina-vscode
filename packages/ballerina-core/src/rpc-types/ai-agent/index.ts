@@ -29,6 +29,7 @@ export interface AIAgentAPI {
     getTool: (params: AIToolRequest) => Promise<AIToolResponse>;
     getMcpTools: (params: McpToolsRequest) => Promise<McpToolsResponse>;
     genTool: (params: AIGentToolsRequest) => Promise<AIGentToolsResponse>;
+    fixMissingImports: () => Promise<void>;
     getPackageVersion: (params: AIGetPackageVersionRequest) => Promise<AIGetPackageVersionResponse>;
     configureDefaultModelProvider: () => Promise<void>;
     createAIAgent: (params: AIAgentRequest) => Promise<AIAgentResponse>;

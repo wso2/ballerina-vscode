@@ -30,6 +30,7 @@ export interface ProjectRequest {
     createAsWorkspace?: boolean;
     workspaceName?: string;
     orgName?: string;
+    orgHandle?: string;
     version?: string;
     isLibrary?: boolean;
     projectHandle?: string;
@@ -42,6 +43,7 @@ export interface AddProjectToWorkspaceRequest {
     convertToWorkspace?: boolean;
     workspaceName?: string;
     orgName?: string;
+    orgHandle?: string;
     version?: string;
     isLibrary?: boolean;
     projectHandle?: string;
