@@ -194,6 +194,10 @@ public class BallerinaWorkspaceManagerProxyImpl implements BallerinaWorkspaceMan
         this.clonedWorkspaceManager.setBuildOptions(buildOptions);
     }
 
+    public void setEvictProjectOnLastClose(boolean enabled) {
+        ((BallerinaWorkspaceManager) this.baseWorkspaceManager).setEvictProjectOnLastClose(enabled);
+    }
+
     private boolean isExprScheme(String uri) {
         return PathUtil.getEncodedURIPath(uri).getScheme().equals(CommonUtil.EXPR_SCHEME);
     }

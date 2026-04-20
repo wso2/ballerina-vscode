@@ -6,3 +6,6 @@ function foo() {
 function stringReturn() returns string {
     return "Hello";
 }
+
+function fn2(VertexAiAuth aiAuth) {
+}
