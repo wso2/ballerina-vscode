@@ -326,6 +326,8 @@ export function FunctionForm(props: FunctionFormProps) {
                 });
                 fields.push(...oauthFields);
                 oauthSupported = oauthFields.length > 0;
+            } else if (!cancelled) {
+                setIsLoading(false);
             }
 
             if (!cancelled) {
