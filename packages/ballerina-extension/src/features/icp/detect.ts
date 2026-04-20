@@ -72,7 +72,7 @@ function getPathFromWIExtension(): string | undefined {
  */
 const BASE_DIRS: Record<string, string[]> = {
     linux: ['/usr/share'],
-    darwin: [path.join(homedir(), 'Applications')],
+    darwin: ['/Applications', path.join(homedir(), 'Applications')],
     win32: [
         path.join(process.env.APPDATA || '', 'WSO2', 'Integrator'),
         path.join(process.env.LOCALAPPDATA || '', 'WSO2', 'Integrator'),
