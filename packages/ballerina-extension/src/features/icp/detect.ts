@@ -19,17 +19,56 @@
 import { existsSync, readdirSync } from 'fs';
 import { homedir } from 'os';
 import * as path from 'path';
-import { workspace, window, commands, ConfigurationTarget, env, Uri } from 'vscode';
+import { workspace, window, commands, extensions, ConfigurationTarget, env, Uri } from 'vscode';
 import { ICP_PATH } from '../../core/preferences';
+import { WI_EXTENSION_ID } from '../../utils/config';
 
 const ICP_BIN_RELATIVE = 'components/icp/bin';
 const ICP_SCRIPT_UNIX = 'icp.sh';
 const ICP_SCRIPT_WIN = 'icp.bat';
 
 /**
+ * Derives the ICP binary path from the WSO2 Integrator extension's install location.
+ * When running inside WSO2 Integrator, the extension is bundled within the installation,
+ * so we can walk up from its extensionPath to find the ICP binary — regardless of where
+ * the user installed the product.
+ *
+ * Expected layout:
+ *   <install-root>/resources/app/extensions/<ext-id>/  ← extensionPath
+ *   <install-root>/components/icp/bin/icp.sh           ← what we want
+ *
+ * On macOS the install root is inside the .app bundle:
+ *   <...>/WSO2 Integrator.app/Contents/resources/app/extensions/<ext-id>/
+ *   <...>/WSO2 Integrator.app/Contents/components/icp/bin/icp.sh
+ */
+function getPathFromWIExtension(): string | undefined {
+    const wiExt = extensions.getExtension(WI_EXTENSION_ID);
+    if (!wiExt) {
+        return undefined;
+    }
+
+    const script = process.platform === 'win32' ? ICP_SCRIPT_WIN : ICP_SCRIPT_UNIX;
+
+    // Walk up from extensionPath to the installation root.
+    // extensionPath is typically: <install-root>/resources/app/extensions/<ext-id>
+    // We need to go up 4 levels to reach <install-root>.
+    let dir = wiExt.extensionPath;
+    for (let i = 0; i < 4; i++) {
+        dir = path.dirname(dir);
+    }
+
+    const candidatePath = path.join(dir, ICP_BIN_RELATIVE, script);
+    if (existsSync(candidatePath)) {
+        return candidatePath;
+    }
+
+    return undefined;
+}
+
+/**
  * Default base directories where WSO2 Integrator is installed per OS.
- * The integrator directory name may include a version suffix (e.g., wso2-integrator-1.0.0),
- * so we search within these base directories for a matching folder.
+ * Used as a fallback when the ICP path cannot be derived from the running
+ * WSO2 Integrator extension (e.g., standalone VS Code with ICP installed separately).
  */
 const BASE_DIRS: Record<string, string[]> = {
     linux: ['/usr/share'],
@@ -42,6 +81,13 @@ const BASE_DIRS: Record<string, string[]> = {
 };
 
 function getDefaultPath(): string | undefined {
+    // Try to derive path from the running WSO2 Integrator extension first
+    const wiPath = getPathFromWIExtension();
+    if (wiPath) {
+        return wiPath;
+    }
+
+    // Fallback: scan well-known install directories
     const script = process.platform === 'win32' ? ICP_SCRIPT_WIN : ICP_SCRIPT_UNIX;
     const baseDirs = BASE_DIRS[process.platform];
     if (!baseDirs) {
