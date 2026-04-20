@@ -554,6 +554,22 @@ async function runStagesForPackage(opts: StageRunnerOpts): Promise<void> {
 
         // Start transcript recording for this stage
         const isWorkspaceValidation = stageIdPrefix.includes("workspace-validation");
+
+        // Skip stages already fully completed in a previous run
+        if (transcriptWriter?.isStageCompleted(packageRelPath ?? "", i, isWorkspaceValidation)) {
+            console.log(`[MigrationEnhancement] Skipping already-completed stage: ${stage.name}`);
+            eventHandler({ type: "content_block", content: `\n\n---\n\n⏭️ **${stage.name}** already completed — skipping.\n\n` });
+            continue;
+        }
+
+        // For partially-completed stages, inject transcript content as a resume preamble
+        const partialTranscript = transcriptWriter?.readStageTranscript(packageRelPath ?? "", i, isWorkspaceValidation);
+        if (partialTranscript) {
+            const resumeHeader = `## ⚠️ STAGE RESUME — Previous partial work is shown below. Continue from where it left off.\n\n`;
+            stages[i] = { ...stages[i], prompt: resumeHeader + partialTranscript + "\n\n---\n\n" + stages[i].prompt };
+            console.log(`[MigrationEnhancement] Injected partial transcript for resume: ${stage.name}`);
+        }
+
         if (transcriptWriter) {
             transcriptWriter.startStage(packageRelPath ?? "", i, stage.name, isWorkspaceValidation);
         }
