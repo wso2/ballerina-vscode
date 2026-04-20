@@ -866,7 +866,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
             }
             return true;
         } catch (error) {
-            console.error("[notifyAndRunServices] Failed to start required services:", error);
+            console.error("[runService] Failed to start required services:", error);
             window.showErrorMessage(`Failed to start service${packagePath ? ` in package ${packagePath}` : ''}.`);
             return false;
         }
