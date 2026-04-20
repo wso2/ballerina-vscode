@@ -20,7 +20,9 @@ import { expect, test } from '@playwright/test';
 import { BI_INTEGRATOR_LABEL, BI_WEBVIEW_NOT_FOUND_ERROR, initTest, page } from '../utils/helpers';
 import { switchToIFrame } from '@wso2/playwright-vscode-tester';
 import { TestScenarios, FileUtils } from './DataMapperUtils';
+import { FileUtils as FileSystemUtils } from '../utils/helpers/fileSystem';
 import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
+import { ProjectExplorer } from '../utils/pages';
 
 export default function createTests() {
     test.describe('Reusable Data Mapper Tests', {
@@ -32,10 +34,16 @@ export default function createTests() {
 
             console.log('Reusable Data Mapper - Create: START TEST ATTEMPT', testAttempt);
 
-            FileUtils.updateProjectFileSync('basic/types.bal.txt', 'types.bal');
-            FileUtils.updateProjectFileSync('empty.txt', 'data_mappings.bal');
+            await FileUtils.updateProjectFileSync('basic/types.bal.txt', 'types.bal');
+            await FileSystemUtils.openProjectFileInEditor('types.bal');
+            await FileUtils.updateProjectFileSync('empty.txt', 'data_mappings.bal');
+            await FileSystemUtils.openProjectFileInEditor('data_mappings.bal');
 
             console.log(' - Create reusable Data Mapper');
+
+            // Refresh the project explorer
+            const projectExplorer = new ProjectExplorer(page.page);
+            await projectExplorer.refresh(DEFAULT_PROJECT_NAME);
 
             const webView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page);
             if (!webView) {
@@ -47,13 +55,9 @@ export default function createTests() {
 
             await webView.getByRole('textbox', { name: 'Data Mapper Name*Name of the' }).fill('output');
 
-            const outputType = webView.getByRole('textbox', { name: 'Output' });
-            await outputType.click({ force: true });
-            await webView.getByText('OutRoot').click({ force: true });
-            await expect(outputType).toHaveValue('OutRoot');
-
             await webView.getByText('Add Input').click();
-            const inputType = webView.getByRole('textbox', { name: 'Type' });
+            const inputType = webView.getByRole('textbox', { name: 'Type' })
+                .or(webView.locator(`vscode-text-area[arialabel="Type"] textarea`));
             await inputType.click();
             await webView.getByText('InRoot').click();
             await expect(inputType).toHaveValue('InRoot');
@@ -62,6 +66,12 @@ export default function createTests() {
             await webView.getByRole('textbox', { name: 'Name*Name of the parameter' }).fill('input');
             await webView.getByRole('button', { name: 'Add' }).click();
             await webView.getByTestId('input-item').waitFor();
+
+            const outputType = webView.getByRole('textbox', { name: 'Output' })
+                .or(webView.locator(`vscode-text-area[arialabel="Output"] textarea`));
+            await outputType.click({ force: true });
+            await webView.getByText('OutRoot').click({ force: true });
+            await expect(outputType).toHaveValue('OutRoot');
 
             await webView.getByRole('button', { name: 'Create', exact: true }).click();
 
@@ -78,8 +88,8 @@ export default function createTests() {
 
             console.log('Reusable Data Mapper - Basic: START TEST ATTEMPT', testAttempt);
 
-            FileUtils.updateProjectFileSync('basic/reusable/init.bal.txt', 'data_mappings.bal');
-            FileUtils.updateProjectFileSync('basic/types.bal.txt', 'types.bal');
+            await FileUtils.updateProjectFileSync('basic/reusable/init.bal.txt', 'data_mappings.bal');
+            await FileUtils.updateProjectFileSync('basic/types.bal.txt', 'types.bal');
 
             const webView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page);
             if (!webView) {
@@ -102,8 +112,11 @@ export default function createTests() {
 
             console.log('Reusable Data Mapper - Array Root: START TEST ATTEMPT', testAttempt);
 
-            FileUtils.updateProjectFileSync('array-root/reusable/init.bal.txt', 'data_mappings.bal');
-            FileUtils.updateProjectFileSync('array-root/types.bal.txt', 'types.bal');
+            await FileUtils.updateProjectFileSync('array-root/reusable/init.bal.txt', 'data_mappings.bal');
+            await FileUtils.updateProjectFileSync('array-root/types.bal.txt', 'types.bal');
+
+            const projectExplorer = new ProjectExplorer(page.page);
+            await projectExplorer.refresh(DEFAULT_PROJECT_NAME);
 
             const webView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page);
             if (!webView) {
@@ -126,8 +139,11 @@ export default function createTests() {
 
             console.log('Reusable Data Mapper - Array Inner: START TEST ATTEMPT', testAttempt);
 
-            FileUtils.updateProjectFileSync('array-inner/reusable/init.bal.txt', 'data_mappings.bal');
-            FileUtils.updateProjectFileSync('array-inner/types.bal.txt', 'types.bal');
+            await FileUtils.updateProjectFileSync('array-inner/reusable/init.bal.txt', 'data_mappings.bal');
+            await FileUtils.updateProjectFileSync('array-inner/types.bal.txt', 'types.bal');
+
+            const projectExplorer = new ProjectExplorer(page.page);
+            await projectExplorer.refresh(DEFAULT_PROJECT_NAME);
 
             const webView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page);
             if (!webView) {

@@ -156,10 +156,15 @@ export class DataMapper {
 
 export namespace FileUtils {
 
-    export function updateProjectFileSync(sourceFile: string, targetFile: string) {
+    export async function updateProjectFileSync(sourceFile: string, targetFile: string) {
         const sourcePath = path.join(dmDataDir, sourceFile);
         const targetPath = path.join(newProjectPath, targetFile);
-        fs.writeFileSync(targetPath, fs.readFileSync(sourcePath, 'utf8'));
+        // Keep VS Code working copies synced before external disk write to avoid save/unsavable prompts.
+        await page.executePaletteCommand('File: Save All');
+        fs.writeFileSync(targetPath, fs.readFileSync(sourcePath, 'utf8'), { flag: 'w' });
+        // Explicitly touch only the updated file so file watchers get a path-specific change signal.
+        const now = new Date();
+        fs.utimesSync(targetPath, now, now);
     }
 
     export function updateDataFileSync(sourceFile: string, targetFile: string) {
@@ -476,7 +481,7 @@ export namespace TestScenarios {
         }
 
         console.log(' - Input/Output preview');
-        
+
         await dmWebView.getByText('<inputItem>').waitFor();
         await dmWebView.getByText('<outputItem>*').waitFor();
 

@@ -57,7 +57,7 @@ export default function createTests() {
 
             await form.fill({
                 values: {
-                    'Test Function*Test function': {
+                    'Name*Name of the test function': {
                         type: 'input',
                         value: functionName,
                     }
@@ -71,20 +71,6 @@ export default function createTests() {
                 await page.page.waitForTimeout(500);
             }
 
-            // 7. Fill the Return Type field in the advanced section
-            const returnType = 'string';
-            console.log(`Filling return type: ${returnType}`);
-
-            // Try to fill return type using form fill first
-            await form.fill({
-                values: {
-                    'Return Type': {
-                        type: 'textarea',
-                        value: returnType,
-                    }
-                }
-            });
-
             // 8. Click on the "Save" button
             const saveButton = artifactWebView.getByRole('button', { name: 'Save' }).first();
             await saveButton.waitFor();
@@ -95,7 +81,7 @@ export default function createTests() {
             await diagramCanvas.waitFor({ state: 'visible', timeout: 30000 });
 
             // 10. Verify the automation name is displayed (default: "main")
-            const diagramTitle = artifactWebView.locator('h2', { hasText: 'Function' });
+            const diagramTitle = artifactWebView.locator('h2', { hasText: 'Test' });
             await diagramTitle.waitFor();
         });
     });
