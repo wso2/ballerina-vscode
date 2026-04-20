@@ -773,7 +773,10 @@ export function WorkspaceOverview() {
                 .map(p => p.projectPath)
         );
 
-        return projectScopes.filter(scope => !deployedPaths.has(scope.projectPath));
+        return projectScopes.filter(scope =>
+            !deployedPaths.has(scope.projectPath) &&
+            !libraryProjectPaths.has(scope.projectPath)
+        );
     }, [projectScopes, devantMetadata, projectCollection]);
 
     const deployableProjectPaths = useMemo(() => {
@@ -790,6 +793,13 @@ export function WorkspaceOverview() {
             return paths;
         }, new Set<string>());
     }, [projectCollection?.projects]);
+
+    const hasDeployableIntegration = useMemo(() => {
+        return projectScopes.some(scope =>
+            scope.integrationTypes.length > 0 &&
+            !libraryProjectPaths.has(scope.projectPath)
+        );
+    }, [projectScopes]);
 
     const validateTitle = useCallback((value: string): string => {
         const trimmed = value.trim();
@@ -1057,7 +1067,7 @@ export function WorkspaceOverview() {
                             handleDeploy={handleDeploy}
                             goToDevant={goToDevant}
                             devantMetadata={devantMetadata}
-                            hasDeployableIntegration={projectScopes.length > 0}
+                            hasDeployableIntegration={hasDeployableIntegration}
                             hasUndeployedIntegrations={undeployedProjectScopes.length > 0}
                             deployableProjectPaths={deployableProjectPaths}
                             libraryProjectPaths={libraryProjectPaths}
