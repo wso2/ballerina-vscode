@@ -1214,6 +1214,16 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     async deployProject(params: DeploymentRequest): Promise<DeploymentResponse> {
         const scopes = params.integrationTypes;
 
+        const componentPath = StateMachine.context().projectPath;
+        const projectInfo = StateMachine.context().projectInfo;
+
+        let componentInfo: ProjectInfo;
+        if (projectInfo?.projectPath === componentPath) {
+            componentInfo = projectInfo;
+        } else {
+            componentInfo = projectInfo?.children?.find(child => child.projectPath === componentPath);
+        }
+
         const integrationType = await this.selectIntegrationType(scopes);
 
         if (!integrationType) {
@@ -1222,7 +1232,11 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
         const deploymentParams: ICreateNewIntegrationCmdParams = {
             buildPackLang: "ballerina",
-            integrations: [{ fsPath: StateMachine.context().projectPath, supportedIntegrationTypes: [integrationType] }],
+            integrations: [{
+                fsPath: StateMachine.context().projectPath,
+                supportedIntegrationTypes: [integrationType],
+                name: componentInfo?.title || componentInfo?.name
+            }],
             workspaceDir: StateMachine.context().workspacePath || StateMachine.context().projectPath,
         };
         await commands.executeCommand(WICommandIds.CreateNewComponent, deploymentParams);
@@ -1231,6 +1245,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async deployWorkspace(params: WorkspaceDeploymentRequest): Promise<DeploymentResponse> {
+        const projectInfo = StateMachine.context().projectInfo;
         const projectScopes = params.projectScopes;
         if (!projectScopes?.length) {
             window.showWarningMessage("No deployable projects found in the workspace.");
@@ -1241,7 +1256,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         // If there is only one project in the workspace and it has multiple integration types,
         // ask the user to pick the type similar to the single project deploy flow.
         if (projectScopes.length === 1) {
-            const { projectPath, integrationTypes } = projectScopes[0];
+            const { projectPath, integrationTypes, projectTitle } = projectScopes[0];
 
             const integrationType = await this.selectIntegrationType(integrationTypes);
 
@@ -1249,16 +1264,24 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 return { isCompleted: true };
             }
 
-            integrations.push({ fsPath: projectPath, supportedIntegrationTypes: [integrationType] });
+            integrations.push({
+                fsPath: projectPath,
+                supportedIntegrationTypes: [integrationType],
+                name: projectTitle
+            });
         } else {
             for (const projectScope of projectScopes) {
-                const { projectPath, integrationTypes } = projectScope;
+                const { projectPath, integrationTypes, projectTitle } = projectScope;
                 if (!integrationTypes?.length) {
                     window.showWarningMessage(`No integration types found for ${path.basename(projectPath)}.`);
                     continue;
                 }
 
-                integrations.push({ fsPath: projectPath, supportedIntegrationTypes: integrationTypes });
+                integrations.push({
+                    fsPath: projectPath,
+                    supportedIntegrationTypes: integrationTypes,
+                    name: projectTitle
+                });
             }
         }
 
@@ -1268,7 +1291,11 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
         await commands.executeCommand(
             WICommandIds.CreateNewComponent,
-            { buildPackLang: 'ballerina', integrations, workspaceDir: StateMachine.context().workspacePath } as ICreateNewIntegrationCmdParams,
+            {
+                buildPackLang: 'ballerina',
+                integrations,
+                workspaceDir: StateMachine.context().workspacePath
+            } as ICreateNewIntegrationCmdParams,
             params.rootDirectory
         );
         return { isCompleted: true };
