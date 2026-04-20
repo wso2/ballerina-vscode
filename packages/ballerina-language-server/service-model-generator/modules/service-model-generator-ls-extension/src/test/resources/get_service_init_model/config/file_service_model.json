@@ -1,5 +1,5 @@
 {
-  "description": "Test getting tcp service init model",
+  "description": "Test getting file service init model",
   "filePath": "sample1/main.bal",
   "orgName": "ballerina",
   "pkgName": "file",
