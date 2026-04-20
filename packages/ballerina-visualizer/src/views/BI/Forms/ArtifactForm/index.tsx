@@ -388,7 +388,7 @@ export function ArtifactForm(props: ArtifactFormProps) {
                     isPublic: {
                         metadata: {
                             label: "public",
-                            description: "Make visible across the workspace"
+                            description: "Make visible across the project"
                         },
                         valueType: "FLAG",
                         value: isParamTypePublicByDefault() ? "true" : "false",

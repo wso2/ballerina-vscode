@@ -120,7 +120,11 @@ const handleComponentPushToDevant = async () => {
         const deployementParams: ICreateNewIntegrationCmdParams = {
             buildPackLang:"ballerina",
             workspaceDir: StateMachine.context().workspacePath || StateMachine.context().projectPath,
-            integrations: [{ fsPath: StateMachine.context().projectPath, supportedIntegrationTypes: [integrationType] }]
+            integrations: [{
+                fsPath: StateMachine.context().projectPath,
+                supportedIntegrationTypes: [integrationType],
+                name: projectStructure?.projectTitle || projectStructure?.projectName
+            }]
         };
         commands.executeCommand(WICommandIds.CreateNewComponent, deployementParams);
     }
