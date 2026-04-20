@@ -476,20 +476,12 @@ export class AiPanelRpcManager implements AIPanelAPI {
                 }
             }
 
-            // Mark ALL under_review generations as accepted
+            // Mark ALL under_review generations as accepted (also clears affectedPackagePaths)
             chatStateStorage.acceptAllReviews(projectRootPath, threadId);
             console.log("[Review Actions] Marked all under_review generations as accepted");
 
             // Send telemetry for generation kept
             sendGenerationKeptTelemetry(latestReview.id);
-
-            // Clear affectedPackagePaths from all completed reviews to prevent stale data
-            for (const generation of underReviewGenerations) {
-                chatStateStorage.updateReviewState(projectRootPath, threadId, generation.id, {
-                    affectedPackagePaths: []
-                });
-            }
-            console.log("[Review Actions] Cleared affected packages from accepted generations");
 
             // Notify webview to update review component status and persist
             sendChatComponentNotification("review", { status: "accepted" });
@@ -544,14 +536,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
             // Send telemetry for generation discard
             sendGenerationDiscardTelemetry(latestReview.id);
-
-            // Clear affectedPackagePaths from all completed reviews to prevent stale data
-            for (const generation of underReviewGenerations) {
-                chatStateStorage.updateReviewState(projectRootPath, threadId, generation.id, {
-                    affectedPackagePaths: []
-                });
-            }
-            console.log("[Review Actions] Cleared affected packages from declined generations");
 
             // Notify webview to update review component status and persist
             sendChatComponentNotification("review", { status: "discarded" });
