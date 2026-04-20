@@ -65,6 +65,7 @@ import {
 } from "./utils";
 import FormDescription from "./FormDescription";
 import TypeHelperText from "./TypeHelperText";
+import { getSecondaryInputType } from "../editors/MultiModeExpressionEditor/ChipExpressionEditor/utils";
 
 namespace S {
     export const Container = styled(SidePanelBody) <{ nestedForm?: boolean; compact?: boolean; footerActionButton?: boolean }>`
@@ -779,7 +780,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
     const hasAdvanceFields = formFields.some((field) => field.advanced && field.enabled && !field.hidden) || advancedChoiceFields.length > 0;
     const variableField = formFields.find((field) => field.key === "variable");
     const typeField = formFields.find((field) => getPrimaryInputType(field.types)?.fieldType === "TYPE");
-    const expressionField = formFields.find((field) => getPrimaryInputType(field.types)?.fieldType === "EXPRESSION");
+    const expressionField = formFields.find((field) => getSecondaryInputType(field.types)?.fieldType === "EXPRESSION" || getPrimaryInputType(field.types)?.fieldType === "ACTION_OR_EXPRESSION");
     const targetTypeField = formFields.find((field) => field.codedata?.kind === "PARAM_FOR_TYPE_INFER");
     const hasParameters = hasRequiredParameters(formFields, selectedNode) || hasOptionalParameters(formFields);
 
