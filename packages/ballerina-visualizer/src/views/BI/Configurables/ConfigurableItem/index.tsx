@@ -119,7 +119,35 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
     const [isUpdating, setIsUpdating] = useState<boolean>(false);
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+    const activeValueKey = props.isTestsContext ? 'testConfigValue' : 'configValue';
+
+    // Refs used to keep the typing UX glitch-free when the parent re-fetches
+    // config variables while the user is still editing:
+    // - configVariableRef: always holds the freshest local snapshot so the
+    //   debounced RPC sends the latest typed value (not a stale closure).
+    // - latestValueRef: the most recent value the user typed (already wrapped
+    //   in quotes for strings). Used to decide when dirty can be cleared.
+    // - isDirtyRef: true while there are local edits not yet acknowledged by
+    //   the server. While dirty, we ignore prop updates so external refetches
+    //   cannot overwrite in-progress keystrokes.
+    // - requestIdRef: monotonic counter to ignore out-of-order RPC responses.
+    const configVariableRef = useRef<ConfigVariable>(variable);
+    const latestValueRef = useRef<string | null>(null);
+    const isDirtyRef = useRef<boolean>(false);
+    const requestIdRef = useRef<number>(0);
+
     useEffect(() => {
+        configVariableRef.current = configVariable;
+    }, [configVariable]);
+
+    useEffect(() => {
+        // Skip syncing from props while the user has pending local edits.
+        // Otherwise an external refetch (e.g. triggered by our own RPC writing
+        // the Config.toml and firing onProjectContentUpdated) would overwrite
+        // newer keystrokes and cause the visible "revert to old value" glitch.
+        if (isDirtyRef.current) {
+            return;
+        }
         setConfigVariable(variable);
     }, [variable]);
 
@@ -135,14 +163,14 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
         setEditConfigVariableFormOpen(true);
     };
 
-    const activeValueKey = props.isTestsContext ? 'testConfigValue' : 'configValue';
-
     const handleTextAreaChange = (value: any) => {
         if (configVariable.properties?.type?.value === 'string' && !/^".*"$/.test(value)) {
             value = `"${value}"`;
         }
 
-        // Update local state immediately for responsive typing
+        latestValueRef.current = value;
+        isDirtyRef.current = true;
+
         setConfigVariable(prevState => ({
             ...prevState,
             properties: {
@@ -154,13 +182,30 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
             }
         }));
 
-        // Debounce the RPC call
         if (debounceTimerRef.current) {
             clearTimeout(debounceTimerRef.current);
         }
         debounceTimerRef.current = setTimeout(() => {
-            sendConfigUpdate(value, configVariable);
+            debounceTimerRef.current = null;
+            // Always send the latest typed value via ref, not the stale
+            // closure value, so fast/slow typing or quick edits converge
+            // to the correct final value on the backend.
+            if (latestValueRef.current !== null) {
+                sendConfigUpdate(latestValueRef.current);
+            }
         }, 1000);
+    }
+
+    const handleTextAreaBlur = () => {
+        // On blur, flush any pending debounced update immediately so the
+        // backend converges without waiting for the debounce window.
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
+            debounceTimerRef.current = null;
+            if (latestValueRef.current !== null) {
+                sendConfigUpdate(latestValueRef.current);
+            }
+        }
     }
 
     const getPlainValue = (value: string) => {
@@ -170,7 +215,9 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
         return value;
     }
 
-    const sendConfigUpdate = useCallback(async (newValue: string, prevNode: ConfigVariable) => {
+    const sendConfigUpdate = useCallback(async (newValue: string) => {
+        const requestId = ++requestIdRef.current;
+        const prevNode = configVariableRef.current;
         setIsUpdating(true);
         try {
             const newConfigVarNode: ConfigVariable = {
@@ -192,14 +239,34 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
                 moduleName: moduleName,
             });
 
+            // Ignore stale responses: if a newer request was issued while this
+            // one was in-flight, that newer one is the source of truth.
+            if (requestId !== requestIdRef.current) {
+                return;
+            }
+
             updateErrorMessage(response?.errorMsg || '');
+
+            // Only clear the dirty flag if nothing newer was typed AND no
+            // further debounced update is scheduled. Otherwise we must stay
+            // dirty so incoming prop updates don't clobber local state.
+            if (
+                debounceTimerRef.current === null &&
+                latestValueRef.current === newValue
+            ) {
+                isDirtyRef.current = false;
+                latestValueRef.current = null;
+            }
         } finally {
-            setIsUpdating(false);
+            if (requestId === requestIdRef.current) {
+                setIsUpdating(false);
+            }
         }
     }, [activeValueKey, fileName, packageName, moduleName, rpcClient, updateErrorMessage]);
 
     const handleUpdateConfigValue = async (newValue: string, prevNode: ConfigVariable) => {
-        // Update local state immediately
+        latestValueRef.current = newValue;
+        isDirtyRef.current = true;
         setConfigVariable(prevState => ({
             ...prevState,
             properties: {
@@ -211,7 +278,7 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
             }
         }));
 
-        await sendConfigUpdate(newValue, prevNode);
+        await sendConfigUpdate(newValue);
     }
 
     const handleFormClose = () => {
@@ -346,7 +413,6 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
                     configValue={sanitizeConfigValue()}
                     typeValue={configVariable?.properties?.type}
                     onChange={(newValue: string) => handleUpdateConfigValue(newValue, configVariable)}
-                    disabled={isUpdating}
                 />}
                 {!isRecordType() && <div style={{ position: 'relative', width: '100%', maxWidth: '350px' }}>
                     <VSCodeTextArea
@@ -359,7 +425,6 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
                             return Math.min(5, Math.ceil(value.length / 100));
                         })()}
                         resize="vertical"
-                        disabled={isUpdating}
                         value={configVariable?.properties?.[activeValueKey]?.value ? getPlainValue(String(configVariable?.properties?.[activeValueKey]?.value)) : ''}
                         style={{
                             width: '100%',
@@ -367,6 +432,7 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
                             opacity: isUpdating ? 0.6 : 1
                         }}
                         onInput={(e: Event) => handleTextAreaChange((e.currentTarget as HTMLTextAreaElement).value)}
+                        onBlur={handleTextAreaBlur}
                     >
                         <style>{`
                             vscode-text-area::part(control) {
