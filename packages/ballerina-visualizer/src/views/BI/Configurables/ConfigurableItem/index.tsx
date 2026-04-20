@@ -264,7 +264,7 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
         }
     }, [activeValueKey, fileName, packageName, moduleName, rpcClient, updateErrorMessage]);
 
-    const handleUpdateConfigValue = async (newValue: string, prevNode: ConfigVariable) => {
+    const handleUpdateConfigValue = async (newValue: string) => {
         latestValueRef.current = newValue;
         isDirtyRef.current = true;
         setConfigVariable(prevState => ({
