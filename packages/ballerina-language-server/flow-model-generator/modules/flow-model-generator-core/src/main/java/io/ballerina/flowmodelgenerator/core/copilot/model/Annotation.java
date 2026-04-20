@@ -18,28 +18,17 @@
 
 package io.ballerina.flowmodelgenerator.core.copilot.model;
 
-import com.google.gson.annotations.SerializedName;
-
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * Represents a client class or connector with its methods.
+ * Represents a library-level annotation (e.g., @ServiceConfig) exposed to Copilot.
  *
  * @since 1.7.0
  */
-public class Client {
+public class Annotation {
     private String name;
+    private String attachmentPoint;
+    private String displayName;
     private String description;
-    private List<LibraryFunction> functions;
-    @SerializedName("isDeprecated")
-    private Boolean deprecated;
-
-    public Client(String name, String description) {
-        this.name = name;
-        this.description = description;
-        this.functions = new ArrayList<>();
-    }
+    private Type typeConstraint;
 
     public String getName() {
         return name;
@@ -47,6 +36,22 @@ public class Client {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getAttachmentPoint() {
+        return attachmentPoint;
+    }
+
+    public void setAttachmentPoint(String attachmentPoint) {
+        this.attachmentPoint = attachmentPoint;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 
     public String getDescription() {
@@ -57,19 +62,11 @@ public class Client {
         this.description = description;
     }
 
-    public List<LibraryFunction> getFunctions() {
-        return functions;
+    public Type getTypeConstraint() {
+        return typeConstraint;
     }
 
-    public void setFunctions(List<LibraryFunction> functions) {
-        this.functions = functions;
-    }
-
-    public Boolean isDeprecated() {
-        return deprecated;
-    }
-
-    public void setDeprecated(Boolean deprecated) {
-        this.deprecated = deprecated;
+    public void setTypeConstraint(Type typeConstraint) {
+        this.typeConstraint = typeConstraint;
     }
 }

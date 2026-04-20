@@ -25,22 +25,29 @@ import io.ballerina.compiler.api.symbols.Documentation;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
 import io.ballerina.compiler.api.symbols.MethodSymbol;
 import io.ballerina.compiler.api.symbols.Qualifier;
+import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
+import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.values.ConstantValue;
 import io.ballerina.flowmodelgenerator.core.copilot.builder.TypeDefDataBuilder;
 import io.ballerina.flowmodelgenerator.core.copilot.model.Client;
+import io.ballerina.flowmodelgenerator.core.copilot.model.Field;
 import io.ballerina.flowmodelgenerator.core.copilot.model.LibraryFunction;
 import io.ballerina.flowmodelgenerator.core.copilot.model.Type;
 import io.ballerina.flowmodelgenerator.core.copilot.model.TypeDef;
+import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.TypeDefData;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static io.ballerina.flowmodelgenerator.core.copilot.util.LibraryModelConverter.functionDataToModel;
 import static io.ballerina.flowmodelgenerator.core.copilot.util.LibraryModelConverter.initMethodToModel;
@@ -154,35 +161,43 @@ public class SymbolProcessor {
                 .parentSymbol(classSymbol)
                 .buildChildNodes();
 
-        // Get method symbols for adding return documentation
         var methodSymbols = classSymbol.methods();
 
         for (FunctionData method : classMethods) {
             LibraryFunction methodFunc = functionDataToModel(method, org, packageName);
 
-            // Add return description from method documentation
             MethodSymbol methodSymbol = methodSymbols.get(method.name());
-            if (methodSymbol != null && methodSymbol.documentation().isPresent()) {
+            if (methodSymbol != null) {
                 methodSymbol.documentation().ifPresent(doc -> {
                     String returnDesc = doc.returnDescription().orElse("");
                     if (!returnDesc.isEmpty() && methodFunc.getReturnInfo() != null) {
                         methodFunc.getReturnInfo().setDescription(returnDesc);
                     }
                 });
+                if (methodSymbol.deprecated()) {
+                    methodFunc.setDeprecated(true);
+                }
             }
 
             functions.add(methodFunc);
         }
 
+        boolean classDeprecated = classSymbol.deprecated();
         if (isClient) {
             Client client = new Client(className, classData.description());
             client.setFunctions(functions);
+            if (classDeprecated) {
+                client.setDeprecated(true);
+            }
             result.getClients().add(client);
         } else {
             TypeDef typeDef = new TypeDef();
             typeDef.setName(className);
             typeDef.setDescription(classData.description());
             typeDef.setFunctions(functions);
+            if (classDeprecated) {
+                typeDef.setDeprecated(true);
+            }
             result.getTypeDefs().add(typeDef);
         }
     }
@@ -217,6 +232,10 @@ public class SymbolProcessor {
                     }
                 });
 
+        if (functionSymbol.deprecated()) {
+            function.setDeprecated(true);
+        }
+
         result.getFunctions().add(function);
     }
 
@@ -233,7 +252,45 @@ public class SymbolProcessor {
 
         TypeDefData typeDefData = TypeDefDataBuilder.buildFromTypeDefinition(typeDefSymbol);
         TypeDef typeDef = typeDefDataToModel(typeDefData, org, packageName);
+        if (typeDefSymbol.deprecated()) {
+            typeDef.setDeprecated(true);
+        }
+        markDeprecatedFields(typeDefSymbol, typeDef);
         result.getTypeDefs().add(typeDef);
+    }
+
+    /**
+     * Marks record fields on the given {@link TypeDef} as deprecated when the
+     * underlying {@link RecordFieldSymbol} carries the {@code @deprecated} annotation.
+     * The {@code TypeDef#getFields} list is only populated for record types.
+     */
+    private static void markDeprecatedFields(TypeDefinitionSymbol typeDefSymbol, TypeDef typeDef) {
+        List<Field> fields = typeDef.getFields();
+        if (fields == null || fields.isEmpty()) {
+            return;
+        }
+
+        TypeSymbol rawType = CommonUtils.getRawType(typeDefSymbol.typeDescriptor());
+        if (!(rawType instanceof RecordTypeSymbol recordType)) {
+            return;
+        }
+
+        Set<String> deprecatedNames = new HashSet<>();
+        for (Map.Entry<String, RecordFieldSymbol> entry : recordType.fieldDescriptors().entrySet()) {
+            RecordFieldSymbol fieldSymbol = entry.getValue();
+            if (fieldSymbol.deprecated()) {
+                deprecatedNames.add(fieldSymbol.getName().orElse(entry.getKey()));
+            }
+        }
+
+        if (deprecatedNames.isEmpty()) {
+            return;
+        }
+        for (Field field : fields) {
+            if (deprecatedNames.contains(field.getName())) {
+                field.setDeprecated(true);
+            }
+        }
     }
 
     /**
