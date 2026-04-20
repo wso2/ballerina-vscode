@@ -125,7 +125,11 @@ export function createChip(text: string, type: TokenType, start: number, end: nu
             return false;
         }
         eq(other: ChipWidget) {
-            return other.text === this.text && other.start === this.start && other.end === this.end;
+            return other.text === this.text
+                && other.start === this.start
+                && other.end === this.end
+                && other.type === this.type
+                && other.metadata?.fullValue === this.metadata?.fullValue;
         }
     }
     return Decoration.replace({
