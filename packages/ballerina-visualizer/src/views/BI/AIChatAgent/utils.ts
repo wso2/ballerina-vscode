@@ -513,8 +513,9 @@ export const confirmAgentCallDeletion = async (
     const DELETE_AGENT = "Delete Agent";
 
     const userChoice = await rpcClient.getCommonRpcClient().showInformationModal({
-        message:
-            "Removing this node only deletes it from the current diagram. The agent will remain in your project and can be reused elsewhere. Do you want to delete the agent itself as well?",
+        message: "Delete Agent Node?",
+        detail:
+            "Remove this node from the current diagram, or delete the agent entirely from the project.\n\nDeleting the agent will remove its initialization and make it unavailable for reuse.",
         items: [REMOVE_NODE_ONLY, DELETE_AGENT],
     });
 
