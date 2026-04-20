@@ -1803,7 +1803,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         await updateArtifactLocation(deleteNodeResponse);
 
         if (shouldDeleteAgent) {
-            await removeAgentNode(node, rpcClient);
+            const isAgentRemoved = await removeAgentNode(node, rpcClient);
+            if (!isAgentRemoved) {
+                console.error(">>> Failed to remove agent node after deleting agent call");
+            }
         }
 
         selectedNodeRef.current = undefined;
