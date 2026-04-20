@@ -18,7 +18,7 @@
 
 import { useSlidingPane, CompletionItem, Divider, HelperPaneCustom, SearchBox, Typography, ThemeColors, Button, TextField, Codicon } from "@wso2/ui-toolkit";
 import { ExpressionProperty, LineRange } from "@wso2/ballerina-core";
-import { useEffect, useMemo, useState, useCallback } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { getPropertyFromFormField, useFieldContext, InputMode } from "@wso2/ballerina-side-panel";
 import { ExpandableList } from "../Components/ExpandableList";
 import { ScrollableContainer } from "../Components/ScrollableContainer";
