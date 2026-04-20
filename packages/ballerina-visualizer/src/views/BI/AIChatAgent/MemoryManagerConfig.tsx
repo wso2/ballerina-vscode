@@ -227,11 +227,12 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
                     .getEndOfFile({ filePath: agentFilePath.current });
 
                 targetLineRange.current = {
-                    fileName: agentFilePath.current,
+                    fileName: agentNode?.codedata?.lineRange?.fileName,
                     startLine: endOfFilePosition,
                     endLine: endOfFilePosition
                 };
 
+                nodeTemplate.codedata.lineRange = targetLineRange.current;
                 setMemoryNode(undefined);
                 setMemoryNodeTemplate(nodeTemplate);
             }
@@ -262,6 +263,17 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
         await loadMemoryTemplate(memoryCodeData);
     };
 
+    const resolveFilePath = async (fileName: string | undefined, fallback: string): Promise<string> => {
+        if (!fileName) return fallback;
+        // `fileName` may be relative (e.g. "agents.bal") or already absolute
+        // (ConnectionSelector's updateNodeLineRange writes the artifact's absolute path).
+        // Skip joinProjectPath when already absolute to avoid doubling the project prefix.
+        if (fileName.startsWith("/") || /^[a-zA-Z]:[\\/]/.test(fileName)) {
+            return fileName;
+        }
+        return (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [fileName] })).filePath;
+    };
+
     const handleOnSave = async (updatedNode?: FlowNode): Promise<void> => {
         if (!agentNode) {
             console.error("Agent node not found", { agentNode, agentNodeRef });
@@ -272,9 +284,7 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
 
         try {
             const memoryFileName = updatedNode?.codedata?.lineRange?.fileName;
-            const memoryFilePath = memoryFileName
-                ? (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [memoryFileName] })).filePath
-                : agentFilePath.current;
+            const memoryFilePath = await resolveFilePath(memoryFileName, agentFilePath.current);
 
             const memoryResponse = await rpcClient.getBIDiagramRpcClient().getSourceCode({
                 filePath: memoryFilePath,
@@ -295,7 +305,10 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
                 }
             }
 
-            const agentNodeFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [updatedAgentNode?.codedata?.lineRange?.fileName] })).filePath;
+            const agentNodeFilePath = await resolveFilePath(
+                updatedAgentNode?.codedata?.lineRange?.fileName,
+                agentFilePath.current
+            );
             updatedAgentNode.properties.memory.value = updatedNode?.properties.variable.value || "";
 
             await rpcClient.getBIDiagramRpcClient().getSourceCode({
@@ -320,7 +333,9 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
             return;
         }
 
-        // Update the agent node's line range if the store creation shifted lines
+        const memoryVariableName = (memoryNode || memoryNodeTemplate)?.properties?.variable?.value;
+        const memoryArtifact = artifacts?.find(a => a.name === memoryVariableName);
+
         if (artifacts?.length > 0) {
             const agentArtifact = artifacts.find(a => a.name === agentNode?.properties?.variable?.value);
             if (agentArtifact?.position) {
@@ -331,19 +346,29 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
             }
         }
 
-        setMemoryNodeTemplate(prev => {
-            if (!prev) return prev;
-            const updated = cloneDeep(prev);
-            (updated.properties as any)['store'] = cloneDeep(storeProperty);
-            return updated;
-        });
+        if (memoryArtifact?.position) {
+            targetLineRange.current = {
+                ...targetLineRange.current,
+                startLine: { line: memoryArtifact.position.startLine, offset: memoryArtifact.position.startColumn },
+                endLine: { line: memoryArtifact.position.endLine, offset: memoryArtifact.position.endColumn }
+            };
+        }
 
-        setMemoryNode(prev => {
-            if (!prev) return prev;
-            const updated = cloneDeep(prev);
+        const applyMemoryUpdates = (node: FlowNode): FlowNode => {
+            const updated = cloneDeep(node);
             (updated.properties as any)['store'] = cloneDeep(storeProperty);
+            if (memoryArtifact?.position) {
+                updated.codedata.lineRange = {
+                    ...updated.codedata.lineRange,
+                    startLine: { line: memoryArtifact.position.startLine, offset: memoryArtifact.position.startColumn },
+                    endLine: { line: memoryArtifact.position.endLine, offset: memoryArtifact.position.endColumn }
+                };
+            }
             return updated;
-        });
+        };
+
+        setMemoryNodeTemplate(prev => (prev ? applyMemoryUpdates(prev) : prev));
+        setMemoryNode(prev => (prev ? applyMemoryUpdates(prev) : prev));
 
         setFormKey(prev => prev + 1);
         closeTopOverlay();
