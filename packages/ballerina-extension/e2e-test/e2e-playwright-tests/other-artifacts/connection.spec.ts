@@ -58,7 +58,7 @@ export default function createTests() {
                     }
                 }
             });
-            await form.submit('Create');
+            await form.submit('Save Connection');
 
             const connectionCard = artifactWebView.getByText(connectionName, { exact: true }).first();
             await connectionCard.waitFor();

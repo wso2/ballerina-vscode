@@ -216,6 +216,101 @@ function resetTestProjectFromTemplate(): void {
     fs.cpSync(emptyProjectPath, newProjectPath, { recursive: true, force: true });
 }
 
+/**
+ * Aggressively dismiss any blocking modal dialog that VS Code might have raised
+ * (save-conflict, file-changed-on-disk, dirty-editor confirmation, etc.).
+ *
+ * Context: after resetting the project folder from the template, any editor tabs
+ * from the previous test reference files whose on-disk content has just been
+ * replaced. The first save/close attempt hits VS Code's modal:
+ *   "The content of the file is newer. Do you want to overwrite... or revert?"
+ * ...which silently blocks automation. We defensively click the discard-side
+ * button so the test can proceed instead of hanging.
+ */
+async function dismissBlockingModalDialog(currentPage: ExtendedPage): Promise<void> {
+    const discardButtonLabels = [
+        "Don't Save",
+        'Discard Changes',
+        'Revert',
+        'Revert File',
+        'Use Disk Version',
+        'Overwrite',
+        'Reload',
+        'OK',
+    ];
+    for (const label of discardButtonLabels) {
+        try {
+            const btn = currentPage.page.getByRole('button', { name: label, exact: true }).first();
+            if (await btn.isVisible({ timeout: 250 })) {
+                console.log(`  ⚠️  Dismissing VS Code modal via "${label}"`);
+                await btn.click({ timeout: 1500 });
+                await currentPage.page.waitForTimeout(300);
+                return;
+            }
+        } catch { /* no-op — try next label */ }
+    }
+}
+
+/**
+ * Close every open editor tab WITHOUT triggering a save-conflict prompt.
+ *
+ * Strategy:
+ *   1. Kill all terminals (they can hold project files on Windows and also tend
+ *      to surface their own confirmation prompts).
+ *   2. Loop `workbench.action.revertAndCloseActiveEditor` until no editor tabs
+ *      remain. This command discards the in-memory buffer and closes the tab
+ *      in a single atomic step, so VS Code never compares it against disk.
+ *   3. If an editor refuses to revert (e.g. webview panels), fall back to
+ *      `workbench.action.closeActiveEditor` plus a modal-button dismiss.
+ *   4. Final safety net: `workbench.action.closeAllEditors` + modal dismiss.
+ */
+async function discardAndCloseAllEditors(currentPage: ExtendedPage): Promise<void> {
+    await currentPage.page.keyboard.press('Escape');
+    await currentPage.page.keyboard.press('Escape');
+
+    try {
+        await currentPage.executePaletteCommand('Terminal: Kill All Terminals');
+        await currentPage.page.waitForTimeout(400);
+    } catch { /* no terminals open */ }
+    await currentPage.page.keyboard.press('Escape');
+    await currentPage.page.keyboard.press('Escape');
+
+    // Editor tabs live under the editor part's tabs container. This selector
+    // avoids matching panel/terminal tabs.
+    const editorTabSelector = '.part.editor .tabs-container .tab';
+    const MAX_CLOSE_ITERATIONS = 100;
+
+    for (let i = 0; i < MAX_CLOSE_ITERATIONS; i++) {
+        const tabCount = await currentPage.page.locator(editorTabSelector).count();
+        if (tabCount === 0) {
+            break;
+        }
+
+        try {
+            await currentPage.executePaletteCommand('workbench.action.revertAndCloseActiveEditor');
+        } catch { /* command not available for current editor type */ }
+        await currentPage.page.waitForTimeout(150);
+
+        // Some editor types (webview, custom editors) can't revert — close them forcibly.
+        if (await currentPage.page.locator(editorTabSelector).count() === tabCount) {
+            try {
+                await currentPage.executePaletteCommand('workbench.action.closeActiveEditor');
+                await currentPage.page.waitForTimeout(150);
+            } catch { /* ignore */ }
+            await dismissBlockingModalDialog(currentPage);
+        }
+
+        // If a conflict dialog surfaced despite revert, clear it and try again.
+        await dismissBlockingModalDialog(currentPage);
+    }
+
+    try {
+        await currentPage.executePaletteCommand('workbench.action.closeAllEditors');
+        await currentPage.page.waitForTimeout(500);
+        await dismissBlockingModalDialog(currentPage);
+    } catch { /* nothing left to close */ }
+}
+
 export async function toggleNotifications(disable: boolean) {
     const notificationStatus = page.page.locator('#status\\.notifications');
     await notificationStatus.waitFor();
@@ -300,38 +395,36 @@ export function initTest(newProject: boolean = true, skipProjectCreation: boolea
     test.beforeAll(async ({ }, testInfo) => {
         console.log(`\n▶️  STARTING TEST: ${testInfo.title} (Attempt ${testInfo.retry + 1})`);
         fs.mkdirSync(dataFolder, { recursive: true });
-        if (newProject) {
-            console.log('Resetting test project from template');
-            resetTestProjectFromTemplate();
-        }
+
         if (!vscode || !page) {
+            if (newProject) {
+                console.log('  🧹 Resetting test project from template');
+                resetTestProjectFromTemplate();
+            }
             console.log('  📦 Starting VSCode...');
             await initVSCode();
         } else {
+            // IMPORTANT: when reusing an existing VS Code window, we MUST close
+            // editors BEFORE wiping the project folder from disk. Otherwise
+            // VS Code sees the open buffers as out-of-sync with the freshly
+            // written template files and throws a modal save-conflict dialog
+            // ("The content of the file is newer. Overwrite / Revert / Compare")
+            // which silently hangs the test. The previous ordering wiped disk
+            // first and then tried to `saveFiles`, which is exactly the path
+            // that triggers the dialog.
             console.log('  🔄 Reloading VS Code after project reset...');
-            await page.page.keyboard.press('Escape');
-            await page.page.keyboard.press('Escape');
-            // Close all terminals
             try {
-                await page.executePaletteCommand('Terminal: Kill All Terminals');
-                await page.page.waitForTimeout(500);
-            } catch { }
-            try {
-                await page.page.keyboard.press('Escape');
-                await page.page.keyboard.press('Escape');
-                // Save all unsaved files
-                await page.executePaletteCommand('workbench.action.files.saveFiles');
+                await discardAndCloseAllEditors(page);
+            } catch (err) {
+                console.warn('  ⚠️  Failed to fully close editors before reset:', err);
+                await dismissBlockingModalDialog(page);
+            }
 
-                await page.page.waitForTimeout(500);
+            if (newProject) {
+                console.log('  🧹 Resetting test project from template');
+                resetTestProjectFromTemplate();
+            }
 
-                await page.page.keyboard.press('Escape');
-                await page.page.keyboard.press('Escape');
-                // "View: Close All Editors" will prompt to save unsaved files, which can block test automation if editors are dirty.
-                // Force-close all tabs without prompt using the 'workbench.action.closeAllEditors' command via `executePaletteCommand`, although its effect may still prompt VSCode in some unsaved file cases.
-                // To ensure all editors close without prompt, consider discarding changes explicitly before running this.
-                await page.executePaletteCommand('workbench.action.closeAllEditors');
-                await page.page.waitForTimeout(1000);
-            } catch { }
             await page.executePaletteCommand('Reload Window');
             await page.page.waitForTimeout(3000);
             page = new ExtendedPage(await vscode!.firstWindow({ timeout: 60000 }));

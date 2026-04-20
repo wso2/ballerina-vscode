@@ -199,13 +199,6 @@ export default function createTests() {
             await deleteButton.waitFor({ timeout: 5000 });
             await deleteButton.click();
 
-            // 4. Confirm the deletion in the dialog (if any)
-            await page.page.waitForTimeout(500);
-            const confirmButton = page.page.getByRole('button', { name: /Confirm|Delete|Yes|OK/i }).first();
-            if (await confirmButton.isVisible({ timeout: 3000 }).catch(() => false)) {
-                await confirmButton.click();
-            }
-
             // 5. Verify the Automation is removed from the project tree
             await page.page.waitForTimeout(1000);
             const automationInTree = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'Automation'], false).catch(() => null);
