@@ -395,9 +395,7 @@ export async function updateAndRefreshDataMapper(
     subMappingName?: string
 ): Promise<void> {
     try {
-        const newCodeData = subMappingName
-            ? await updateSubMappingSource(textEdits, filePath, codedata, subMappingName)
-            : await updateSource(textEdits, filePath, codedata, varName);
+        const newCodeData = await updateSource(textEdits, filePath, codedata, varName);
         updateView(newCodeData, varName);
     } catch (error) {
         console.error(`Failed to update and refresh data mapper for variable "${varName}":`, error);
