@@ -504,6 +504,27 @@ export const removeMcpServerFromAgentNode = (
     return updatedAgentNode;
 };
 
+// Prompts the user to choose between deleting only the agent call node or also the agent itself.
+// Returns null if the user cancels the modal.
+export const confirmAgentCallDeletion = async (
+    rpcClient: BallerinaRpcClient
+): Promise<{ shouldDeleteAgent: boolean } | null> => {
+    const REMOVE_NODE_ONLY = "Remove This Node Only";
+    const DELETE_AGENT = "Delete Agent";
+
+    const userChoice = await rpcClient.getCommonRpcClient().showInformationModal({
+        message:
+            "Removing this node only deletes it from the current diagram. The agent will remain in your project and can be reused elsewhere. Do you want to delete the agent itself as well?",
+        items: [REMOVE_NODE_ONLY, DELETE_AGENT],
+    });
+
+    if (!userChoice) {
+        return null;
+    }
+
+    return { shouldDeleteAgent: userChoice === DELETE_AGENT };
+};
+
 // remove agent node, model node when removing ag
 export const removeAgentNode = async (agentCallNode: FlowNode, rpcClient: BallerinaRpcClient): Promise<boolean> => {
     if (!agentCallNode || agentCallNode.codedata?.node !== "AGENT_CALL") return false;
