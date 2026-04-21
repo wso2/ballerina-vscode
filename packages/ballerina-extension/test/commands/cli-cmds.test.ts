@@ -24,8 +24,8 @@ import { expect } from "chai";
 import { BallerinaProject } from "@wso2/ballerina-core";
 import { runCommand, BALLERINA_COMMANDS } from '../../src/features/project/cmds/cmd-runner';
 import { getBallerinaHome, killPort } from '../test-util';
-import { wait } from "../../ui-test (archived)/util";
-import { PROJECT_RUN_TIME } from "../../ui-test (archived)/constants";
+import { wait } from "../../ui-test/util";
+import { PROJECT_RUN_TIME } from "../../ui-test/constants";
 
 const PROJECT_ROOT = path.join(__dirname, '..', '..', '..', 'test', 'data');
 const HELLO_PACKAGE_TARGET_PATH = path.join(PROJECT_ROOT, 'helloPackage', 'target');
