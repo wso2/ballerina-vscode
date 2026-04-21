@@ -52,6 +52,7 @@ import {
     MACHINE_VIEW,
     EditorDisplayMode,
     Imports,
+    getSecondaryInputType,
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { FormContext, Provider } from "../../context";
@@ -65,7 +66,6 @@ import {
 } from "./utils";
 import FormDescription from "./FormDescription";
 import TypeHelperText from "./TypeHelperText";
-import { getSecondaryInputType } from "../editors/MultiModeExpressionEditor/ChipExpressionEditor/utils";
 
 namespace S {
     export const Container = styled(SidePanelBody) <{ nestedForm?: boolean; compact?: boolean; footerActionButton?: boolean }>`

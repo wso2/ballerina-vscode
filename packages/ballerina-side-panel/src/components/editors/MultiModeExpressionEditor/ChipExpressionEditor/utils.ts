@@ -18,7 +18,7 @@
 
 import { CompletionItem } from "@wso2/ui-toolkit";
 import { INPUT_MODE_MAP, InputMode, TokenType, CompoundTokenSequence, TokenMetadata, DocumentType, TokenPattern } from "./types";
-import { getPrimaryInputType, InputType } from "@wso2/ballerina-core";
+import { getPrimaryInputType, getSecondaryInputType, InputType } from "@wso2/ballerina-core";
 import { FnSignatureDocumentation } from "@wso2/ui-toolkit";
 
 export const TOKEN_LINE_OFFSET_INDEX = 0;
@@ -98,12 +98,8 @@ export const getDefaultExpressionMode = (inputTypes: InputType[]): InputMode => 
     return getInputModeFromTypes(primaryInputType);
 }
 export const getSecondaryMode = (inputTypes: InputType[]): InputMode => {
-    const secondaryInputType = inputTypes?.length ? inputTypes[inputTypes.length - 1] : undefined;
+    const secondaryInputType = getSecondaryInputType(inputTypes);
     return getInputModeFromTypes(secondaryInputType);
-}
-
-export const getSecondaryInputType = (inputTypes: InputType[]) => {
-    return inputTypes?.length ? inputTypes[inputTypes.length - 1] : undefined;
 }
 
 export const getAbsoluteColumnOffset = (value: string, line: number, column: number) => {
