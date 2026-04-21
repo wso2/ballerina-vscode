@@ -968,21 +968,23 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             // Find the matching type symbol that is a subtype of the parameter type.
             // When the inferred type is unavailable or a compilation error, skip the subtype check
             // and use the declared type directly.
+            TypeSymbol matchedMapType = null;
             if (paramType.isPresent()
                     && paramType.get().typeKind() != TypeDescKind.COMPILATION_ERROR) {
                 TypeSymbol actualParamType = paramType.get();
-                TypeSymbol matchingType = candidateMapTypes.stream()
+                matchedMapType = candidateMapTypes.stream()
                         .filter(candidate -> candidate.subtypeOf(actualParamType))
                         .findFirst()
                         .orElse(null);
-                if (matchingType == null) {
+                if (matchedMapType == null) {
                     return;
                 }
             } else if (candidateMapTypes.isEmpty()) {
                 return;
             }
 
-            String ballerinaType = CommonUtils.getTypeSignature(typeSymbol, moduleInfo);
+            String ballerinaType = CommonUtils.getTypeSignature(matchedMapType != null ? matchedMapType : typeSymbol
+                    , moduleInfo);
 
             // Find and update the matching property type
             builder.types.stream()

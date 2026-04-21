@@ -23,11 +23,16 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.reflect.TypeToken;
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.flowmodelgenerator.core.InstructionLoader;
 import io.ballerina.flowmodelgenerator.core.copilot.database.LibraryDatabaseAccessor;
+import io.ballerina.flowmodelgenerator.core.copilot.model.Annotation;
 import io.ballerina.flowmodelgenerator.core.copilot.model.Client;
 import io.ballerina.flowmodelgenerator.core.copilot.model.Library;
 import io.ballerina.flowmodelgenerator.core.copilot.model.Service;
+import io.ballerina.flowmodelgenerator.core.copilot.service.AnnotationLoader;
+import io.ballerina.flowmodelgenerator.core.copilot.service.CopilotDeprecationEnricher;
+import io.ballerina.flowmodelgenerator.core.copilot.service.CopilotListenerNameEnricher;
 import io.ballerina.flowmodelgenerator.core.copilot.service.ServiceLoader;
 import io.ballerina.flowmodelgenerator.core.copilot.util.SymbolProcessor;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
@@ -65,7 +70,12 @@ public class CopilotLibraryManager {
     // Libraries for which README content should be included in the filtered response.
     private static final Set<String> README_WHITELIST = Set.of(
             "ballerinax/salesforce",
-            "ballerina/ai"
+            "ballerina/ai",
+            "ballerinax/cdc",
+            "ballerinax/mysql",
+            "ballerinax/postgresql",
+            "ballerina/ftp",
+            "ballerina/file"
     );
 
     /**
@@ -146,14 +156,23 @@ public class CopilotLibraryManager {
             library.setFunctions(symbolResult.getFunctions());
             library.setTypeDefs(symbolResult.getTypeDefs());
 
-            // Load services from both inbuilt triggers and generic services
             JsonArray servicesJson = ServiceLoader.loadAllServices(libraryName);
+            List<Symbol> moduleSymbols = semanticModel.moduleSymbols();
+            CopilotDeprecationEnricher.enrich(servicesJson, moduleSymbols);
+            CopilotListenerNameEnricher.enrich(servicesJson, moduleSymbols);
             List<Service> services = new ArrayList<>();
             for (JsonElement serviceElement : servicesJson) {
                 Service service = GSON.fromJson(serviceElement, Service.class);
                 services.add(service);
             }
             library.setServices(services);
+
+            JsonArray annotationsJson = AnnotationLoader.loadFromServiceIndex(libraryName);
+            List<Annotation> annotations = new ArrayList<>();
+            for (JsonElement annotationElement : annotationsJson) {
+                annotations.add(GSON.fromJson(annotationElement, Annotation.class));
+            }
+            library.setAnnotations(annotations);
 
             if (README_WHITELIST.contains(libraryName)) {
                 readPackageReadme(pkg).ifPresent(library::setReadme);

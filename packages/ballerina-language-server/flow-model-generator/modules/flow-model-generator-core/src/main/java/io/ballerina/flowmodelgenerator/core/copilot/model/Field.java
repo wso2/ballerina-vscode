@@ -32,6 +32,8 @@ public class Field {
     @SerializedName("default")
     private String defaultValue;
     private Boolean optional;
+    @SerializedName("isDeprecated")
+    private Boolean deprecated;
 
     public Field() {
     }
@@ -74,5 +76,13 @@ public class Field {
 
     public void setOptional(Boolean optional) {
         this.optional = optional;
+    }
+
+    public Boolean isDeprecated() {
+        return deprecated;
+    }
+
+    public void setDeprecated(Boolean deprecated) {
+        this.deprecated = deprecated;
     }
 }
