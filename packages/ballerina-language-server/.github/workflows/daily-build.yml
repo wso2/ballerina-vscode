@@ -143,10 +143,10 @@ jobs:
         run: ./gradlew pack -x check
 
       - name: Upload daily build jar
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
-          name: daily-build-${{ matrix.branch }}-${{ matrix.version }}
           path: build/ballerina-language-server-${{ matrix.version }}.jar
+          archive: false
           if-no-files-found: error
 
   windows-build:
