@@ -1137,7 +1137,7 @@ public class FunctionDataBuilder {
 
     private String getTypeSignature(String type) {
         if (userModuleInfo == null) {
-            return moduleInfo.moduleName() + ":" + type;
+            return CommonUtils.getClassType(moduleInfo.moduleName(), type);
         }
         return type;
     }
