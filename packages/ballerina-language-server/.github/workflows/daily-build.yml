@@ -89,10 +89,9 @@ jobs:
 
       - name: Build with Gradle
         env:
-          ORG_GRADLE_PROJECT_version: ${{ matrix.version }}
           packageUser: ${{ github.actor }}
           packagePAT: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew build -x check
+        run: ./gradlew -Pversion=${{ matrix.version }} build -x check
 
   ubuntu-pack:
     name: Ubuntu pack (${{ matrix.branch }})
@@ -137,10 +136,9 @@ jobs:
 
       - name: Pack with Gradle
         env:
-          ORG_GRADLE_PROJECT_version: ${{ matrix.version }}
           packageUser: ${{ github.actor }}
           packagePAT: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew pack -x check
+        run: ./gradlew -Pversion=${{ matrix.version }} pack -x check
 
       - name: Upload daily build jar
         uses: actions/upload-artifact@v7
@@ -193,7 +191,6 @@ jobs:
       - name: Build with Gradle
         shell: cmd
         env:
-          ORG_GRADLE_PROJECT_version: ${{ matrix.version }}
           packageUser: ${{ github.actor }}
           packagePAT: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew.bat build -x check
