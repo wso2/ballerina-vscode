@@ -57,6 +57,7 @@ import {
     ClarifyCancelRequest,
     RunningServiceInfo,
     StopRunningServiceRequest,
+    RunServiceRequest,
 } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
@@ -118,4 +119,5 @@ export const submitClarifyAnswer: RequestType<ClarifyAnswerRequest, void> = { me
 export const cancelClarify: RequestType<ClarifyCancelRequest, void> = { method: `${_preFix}/cancelClarify` };
 export const getRunningServices: RequestType<void, RunningServiceInfo[]> = { method: `${_preFix}/getRunningServices` };
 export const stopRunningService: RequestType<StopRunningServiceRequest, boolean> = { method: `${_preFix}/stopRunningService` };
+export const runService: RequestType<RunServiceRequest, boolean> = { method: `${_preFix}/runService` };
 export const runningServicesChanged: NotificationType<RunningServiceInfo[]> = { method: `${_preFix}/runningServicesChanged` };

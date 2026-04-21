@@ -18,6 +18,8 @@ import { tool } from 'ai';
 import { z } from 'zod';
 import * as vscode from 'vscode';
 import { CopilotEventHandler } from '../../utils/events';
+import { runningServicesManager } from './running-service-manager';
+import { solveRelativeTempPath } from '../utils';
 
 export const HURL_TOOL_NAME = "hurlRunnerTool";
 const HURL_LM_TOOL_NAME = "run-hurl-test";
@@ -135,11 +137,16 @@ export const executeHurlRequest = async (input: HURLInput, eventHandler: Copilot
             toolInput: { hurlScript, scenario: input.tryItScenario },
             toolCallId
         });
+        const runningServices = runningServicesManager.getAll().filter(service => !service.exited);
+        const runningServiceTargets = runningServices.flatMap(service => {
+            const target = solveRelativeTempPath(service.packagePath);
+            return target ? [{...target, fullPackagePath: service.packagePath}] : [];
+        });
 		const lmToolResult = await vscode.lm.invokeTool(HURL_LM_TOOL_NAME, { input: { hurlScript }, toolInvocationToken: undefined });
         const resultTextPart = (lmToolResult.content[0] as vscode.LanguageModelTextPart);
         const rawResponse: RawHurlToolOutput = JSON.parse(resultTextPart.value);
         const response = removeSummaryFromHurlOutput(rawResponse);
-		const toolOutput = { hurlScript: input.hurlScript, scenario: input.tryItScenario, runResult: response };
+		const toolOutput = { hurlScript: input.hurlScript, scenario: input.tryItScenario, runResult: response, runningServiceTargets};
 		eventHandler({
             type: "tool_result",
             toolName: HURL_TOOL_NAME,
