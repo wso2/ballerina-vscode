@@ -23,6 +23,7 @@ import { IDataMapperContext } from '../../../../utils/DataMapperContext/DataMapp
 import { MappingMetadata } from '../../Mappings/MappingMetadata';
 import { InputOutputPortModel } from "../../Port";
 import { findMappingByOutput, hasChildMappingsForInput, hasChildMappingsForOutput } from '../../utils/common-utils';
+import { useDMSearchStore } from '../../../../store/store';
 
 export interface DataMapperNodeModelGenerics {
 	PORT: InputOutputPortModel;
@@ -300,11 +301,16 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		expandedFields: string[],
 		isFocused: boolean
 	): boolean {
+		const { inputSearch, outputSearch } = useDMSearchStore.getState();
 		// In Inline Data Mapper, the inputs are always collapsed by default except focused view.
 		// Hence we explicitly check expandedFields for input header ports. 
 		if (portType === "IN" || isFocused) {
+			// Auto-expand output node headers when output search is active
+			if (outputSearch) return false;
 			return collapsedFields?.includes(portName);
 		} else {
+			// Auto-expand input node headers when input search is active
+			if (inputSearch) return false;
 			return !expandedFields?.includes(portName);
 		}
 	}
@@ -318,6 +324,8 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		isFocused: boolean,
 		collapseByDefault: boolean
 	) {
+		// Auto-expand all input fields when input search is active
+		if (useDMSearchStore.getState().inputSearch) return false;
 		if ((isArray && !isFocused) || collapseByDefault ){
 			return expandedFields && !expandedFields.includes(portName);
 		}
@@ -335,6 +343,8 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		mappings: Mapping[],
 		outputId: string
 	): boolean {
+		// Auto-expand all output fields when output search is active
+		if (useDMSearchStore.getState().outputSearch) return false;
 		if ((isArray && !mapping?.elements?.length) ||
 			(isDeepNested && !hasChildMappingsForOutput(mappings, outputId))) {
 			return expandedFields && !expandedFields.includes(portName);
