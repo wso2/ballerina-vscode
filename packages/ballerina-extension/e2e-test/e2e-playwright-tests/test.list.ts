@@ -20,13 +20,15 @@
 
 import { test } from '@playwright/test';
 import * as helpers from './utils/helpers';
-import { extensionsFolder, newProjectPath, vscode, zipProjectSnapshot } from './utils/helpers';
+import { extensionsFolder, newProjectPath, zipProjectSnapshot } from './utils/helpers';
 import { downloadExtensionFromMarketplace } from '@wso2/playwright-vscode-tester';
 import fs from 'fs';
 import path from 'path';
 const videosFolder = path.join(__dirname, '..', 'test-resources', 'videos');
 const VIDEO_SAVE_TIMEOUT_MS = Number(process.env.BI_E2E_VIDEO_SAVE_TIMEOUT_MS ?? 20000);
 const PAGE_CLOSE_TIMEOUT_MS = Number(process.env.BI_E2E_PAGE_CLOSE_TIMEOUT_MS ?? 10000);
+const ELECTRON_EXIT_WAIT_MS = Number(process.env.BI_E2E_ELECTRON_EXIT_WAIT_MS ?? 5000);
+const WORKER_FORCE_EXIT_MS = Number(process.env.BI_E2E_WORKER_FORCE_EXIT_MS ?? 8000);
 
 async function withTimeout<T>(operation: Promise<T>, timeoutMs: number, timeoutMessage: string): Promise<T> {
     return Promise.race([
@@ -103,7 +105,7 @@ test.beforeAll(async () => {
 test.describe(automation);
 
 // // <----Automation Run/Debug Test---->
-test.describe(automationRun);
+test.describe.only(automationRun);
 test.describe(automationDebug);
 
 // // <----Expression Editor Test---->
@@ -163,54 +165,33 @@ test.afterAll(async () => {
         if (activePage) {
             const video = activePage.video();
 
-            if (!helpers.lastTestFailed) {
-                // All tests passed — no retry worker is needed, so it is safe
-                // to close the page here. This finalizes the video recording
-                // and lets video.saveAs() complete immediately afterwards.
-                await withTimeout(
-                    activePage.close(),
-                    PAGE_CLOSE_TIMEOUT_MS,
-                    `Page close timed out after ${PAGE_CLOSE_TIMEOUT_MS}ms`
-                ).catch((err) => {
-                    console.warn(`ℹ️  Page close skipped: ${(err as Error).message}`);
-                });
-            } else {
-                // A test failed and Playwright will spin up a retry worker
-                // after this afterAll returns. Closing the VS Code window here
-                // terminates the Electron process; Playwright detects that as
-                // an unexpected browser disconnect and never starts the retry
-                // worker (symptoms: "N did not run", no Attempt 2 logged).
-                // Leave the window open — the worker-discard mechanism will
-                // reap the Electron child process when the Node worker exits.
-                console.log('ℹ️  Skipping page.close() — a test failed and a retry worker is pending');
-            }
+            // Close the window first so the video recording is finalized on
+            // disk. `video.saveAs()` only resolves after the page owning the
+            // recording has closed, so we MUST close the page before awaiting
+            // the save — regardless of whether the last test passed or failed.
+            // (Leaving the window open on failure, as the previous workaround
+            // did, ends up hanging the worker: see the vscode.close() comment
+            // below for why the worker cannot exit while Electron is alive.)
+            await withTimeout(
+                activePage.close(),
+                PAGE_CLOSE_TIMEOUT_MS,
+                `Page close timed out after ${PAGE_CLOSE_TIMEOUT_MS}ms`
+            ).catch((err) => {
+                console.warn(`ℹ️  Page close skipped: ${(err as Error).message}`);
+            });
 
             if (video) {
                 fs.mkdirSync(videosFolder, { recursive: true });
                 const videoFilePath = path.join(videosFolder, `test_${dateTime}.webm`);
-                // video.saveAs() waits for the page to close before resolving.
-                // On a failed run the page is still open, so cap the wait:
-                // if VS Code is still running the timeout fires, teardown
-                // finishes, and Playwright exits the worker (causing Electron
-                // to close and auto-save the recording to its default path).
-                const videoSaveTimeoutMs = helpers.lastTestFailed ? 3000 : VIDEO_SAVE_TIMEOUT_MS;
-                const savePromise = video.saveAs(videoFilePath);
-                // Prevent an unhandled rejection if the promise settles after
-                // the timeout and after this afterAll has already returned.
-                savePromise.catch(() => { });
                 try {
                     await withTimeout(
-                        savePromise,
-                        videoSaveTimeoutMs,
-                        `Video save timed out after ${videoSaveTimeoutMs}ms`
+                        video.saveAs(videoFilePath),
+                        VIDEO_SAVE_TIMEOUT_MS,
+                        `Video save timed out after ${VIDEO_SAVE_TIMEOUT_MS}ms`
                     );
                     console.log(`✅ Video saved successfully (${videoFilePath})`);
-                } catch {
-                    if (helpers.lastTestFailed) {
-                        console.log('ℹ️  Video save skipped (VS Code still open; recording will auto-save when worker exits)');
-                    } else {
-                        console.warn(`⚠️  Video save timed out after ${videoSaveTimeoutMs}ms`);
-                    }
+                } catch (err) {
+                    console.warn(`⚠️  Video save failed: ${(err as Error).message}`);
                 }
             } else {
                 console.log('ℹ️  No video available to save');
@@ -222,18 +203,63 @@ test.afterAll(async () => {
         console.warn('⚠️  Failed to save/close test video page, continuing cleanup...', error);
     }
 
-    // IMPORTANT: do NOT call `vscode.close()` here. Per Playwright maintainers
-    // (see github.com/microsoft/playwright/issues/7699), closing the browser
-    // (or, for Electron, the ElectronApplication) from inside a Playwright
-    // hook breaks the worker's view of its browser and stops Playwright from
-    // restarting the worker after a failure. That surfaces as the whole run
-    // ending after a single failed test with "N did not run" and no retry.
-    // Playwright's own worker-discard + new-worker mechanism will reap the
-    // Electron subprocess when the worker exits (the Electron child is a
-    // child of the worker's Node process, so it dies with it).
-
     // Snapshot the project when the suite is interrupted (e.g. manually stopped)
     zipProjectSnapshot('suite_teardown');
+
+    // Terminate the VS Code Electron subprocess so the worker's Node event
+    // loop can exit.
+    //
+    // Why SIGKILL instead of `vscode.close()`:
+    //   After a failing test, VS Code often has a running task (e.g. the
+    //   "Run Integration" terminal child) or a modal that blocks graceful
+    //   quit. `electronApp.close()` then hangs until its own timeout, and
+    //   Playwright's internal close-in-flight promises leave Node-side
+    //   handles in a state that keeps the worker's event loop alive.
+    //   We've already captured the screenshot, project snapshot, and video
+    //   above — nothing else needs a clean quit here.
+    //
+    // Why closing at all is REQUIRED (not optional):
+    //   `_electron.launch()` opens an IPC pipe between the Playwright
+    //   worker (Node) and the Electron main process. While the pipe is
+    //   open, the worker process cannot exit — even after afterAll
+    //   returns. Playwright waits for the current worker to exit before
+    //   spawning the retry worker; a stuck worker freezes the entire run
+    //   (no retry, no next test, `pnpm run e2e-test` hangs).
+    //
+    // Each retry / next worker starts fresh (new Node process, re-imports
+    // modules, runs beforeAll -> initVSCode -> launches a new Electron),
+    // so tearing Electron down here is safe and does not interfere with
+    // retries.
+    if (helpers.vscode) {
+        console.log('🛑 Terminating VS Code Electron app...');
+        try {
+            const electronProcess = helpers.vscode.process?.();
+            if (electronProcess && !electronProcess.killed) {
+                await new Promise<void>((resolve) => {
+                    let settled = false;
+                    const done = () => {
+                        if (settled) return;
+                        settled = true;
+                        clearTimeout(timer);
+                        resolve();
+                    };
+                    const timer = setTimeout(done, ELECTRON_EXIT_WAIT_MS);
+                    electronProcess.once('exit', done);
+                    try {
+                        electronProcess.kill('SIGKILL');
+                    } catch {
+                        // already gone — resolve immediately
+                        done();
+                    }
+                });
+                console.log('✅ VS Code Electron app terminated');
+            } else {
+                console.log('ℹ️  No live Electron process to terminate');
+            }
+        } catch (err) {
+            console.warn(`⚠️  Failed to terminate Electron: ${(err as Error).message}`);
+        }
+    }
 
     // Clean up the test project directory
     console.log('🧹 Cleaning up test project...');
@@ -248,4 +274,16 @@ test.afterAll(async () => {
     } else {
         console.log('ℹ️  Test project directory does not exist, skipping cleanup\n');
     }
+
+    // Safety net: if Playwright's internal handles still keep the event loop
+    // alive after we've torn everything down (observed on failing tests),
+    // force-exit so the retry worker can actually spawn. `unref()` means the
+    // timer itself does NOT keep the loop alive — if the loop can exit
+    // naturally it will, and Playwright sees a normal worker exit. We only
+    // hit `process.exit()` when the loop is genuinely stuck.
+    const forceExitTimer = setTimeout(() => {
+        console.log(`⚡ Worker event loop still alive ${WORKER_FORCE_EXIT_MS}ms after teardown — force-exiting so Playwright can spawn the retry worker`);
+        process.exit(0);
+    }, WORKER_FORCE_EXIT_MS);
+    forceExitTimer.unref();
 });

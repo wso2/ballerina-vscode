@@ -21,7 +21,7 @@ import { BI_INTEGRATOR_LABEL, BI_WEBVIEW_NOT_FOUND_ERROR, initTest, page } from 
 import { Form, switchToIFrame } from '@wso2/playwright-vscode-tester';
 
 export default function createTests() {
-    test.describe('Test Function Tests', {
+    test.describe.serial('Test Function Tests', {
         tag: '@group1',
     }, async () => {
         initTest();

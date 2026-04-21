@@ -24,7 +24,7 @@ import { FileUtils } from '../utils/helpers/fileSystem';
 
 export default function createTests() {
     // Run Integration Tests
-    test.describe('Run Integration Tests', {
+    test.describe.serial('Run Integration Tests', {
         tag: '@group1',
     }, async () => {
         initTest();
@@ -96,7 +96,14 @@ export default function createTests() {
         test('Click Run button from toolbar', async () => {
             // 1. Navigate to the BI integration view
             const projectExplorer = new ProjectExplorer(page.page);
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main'], true);
+            const mainEntryPoint = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main'], true);
+
+            // Open main.bal in the text editor so that VS Code's ${file} launch
+            // variable can be resolved when the debug/run session starts. Without
+            // an active text editor, `debug.startDebugging` fails with
+            // "Variable ${file} can not be resolved. Please open an editor."
+            await FileUtils.openProjectFileInEditor('automation.bal');
+            await mainEntryPoint.click();
 
             // 2. Verify the "Run Integration" button is visible in the editor toolbar
             // Find the "Run Integration" button by aria-label in the editor toolbar actions

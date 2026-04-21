@@ -22,7 +22,7 @@ import { ProjectExplorer } from '../utils/pages';
 import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 
 export default function createTests() {
-    test.describe('HTTP Service Tests', {
+    test.describe.serial('HTTP Service Tests', {
         tag: '@group1',
     }, async () => {
         initTest();

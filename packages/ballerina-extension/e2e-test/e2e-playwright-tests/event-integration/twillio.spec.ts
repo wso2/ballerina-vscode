@@ -23,7 +23,7 @@ import { ProjectExplorer } from '../utils/pages';
 import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 
 export default function createTests() {
-    test.describe('Twillio Integration Tests', {
+    test.describe.serial('Twillio Integration Tests', {
         tag: '@group1',
     }, async () => {
         let listenerName: string;

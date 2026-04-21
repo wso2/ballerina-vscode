@@ -21,7 +21,7 @@ import { Form } from '@wso2/playwright-vscode-tester';
 import { ConfigEditor } from '../utils/pages';
 
 export default function createTests() {
-    test.describe('Configuration Tests', {
+    test.describe.serial('Configuration Tests', {
         tag: '@group1',
     }, async () => {
         initTest();

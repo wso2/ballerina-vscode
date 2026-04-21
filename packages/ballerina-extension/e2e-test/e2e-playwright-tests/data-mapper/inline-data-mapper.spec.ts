@@ -25,7 +25,7 @@ import { FileUtils as FileSystemUtils } from '../utils/helpers/fileSystem';
 import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 
 export default function createTests() {
-    test.describe('Inline Data Mapper Tests', {
+    test.describe.serial('Inline Data Mapper Tests', {
         tag: '@group1',
     }, async () => {
         initTest();

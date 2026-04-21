@@ -39,6 +39,6 @@
     "include": [
         "src",
         "test",
-        "ui-test"
+        "ui-test (archived)"
     ]
 }

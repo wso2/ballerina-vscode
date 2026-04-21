@@ -22,7 +22,7 @@ import path from 'path';
 import { BI_INTEGRATOR_LABEL, BI_WEBVIEW_NOT_FOUND_ERROR, getWebview, initMigrationTest, page } from '../utils/helpers';
 
 export default function createTests() {
-    test.describe('Import Integration Tests', {
+    test.describe.serial('Import Integration Tests', {
         tag: '@group1',
     }, async () => {
         const migrationOutputPath = path.join(__dirname, 'data', 'migration-output');

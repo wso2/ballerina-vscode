@@ -23,7 +23,7 @@ import { TypeEditorUtils } from './TypeEditorUtils';
 import path from 'path';
 
 export default function createTests() {
-    test.describe('Type Editor Tests', {
+    test.describe.serial('Type Editor Tests', {
         tag: '@group1',
     }, async () => {
         initTest();

@@ -25,7 +25,7 @@ import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 import { ProjectExplorer } from '../utils/pages';
 
 export default function createTests() {
-    test.describe('Reusable Data Mapper Tests', {
+    test.describe.serial('Reusable Data Mapper Tests', {
         tag: '@group1',
     }, async () => {
         initTest();

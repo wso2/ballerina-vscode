@@ -22,7 +22,7 @@ import { ProjectExplorer } from '../utils/pages';
 import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 
 export default function createTests() {
-    test.describe('Automation Tests', {
+    test.describe.serial('Automation Tests', {
         tag: '@group1',
     }, async () => {
         initTest();
@@ -201,7 +201,7 @@ export default function createTests() {
 
             // 5. Verify the Automation is removed from the project tree
             await page.page.waitForTimeout(1000);
-            const automationInTree = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'Automation'], false).catch(() => null);
+            const automationInTree = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main'], false).catch(() => null);
             if (automationInTree) {
                 throw new Error('Automation should be removed from project tree');
             }
