@@ -52,6 +52,7 @@ import {
     MACHINE_VIEW,
     EditorDisplayMode,
     Imports,
+    DIRECTORY_MAP,
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { FormContext, Provider } from "../../context";
@@ -985,6 +986,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                 editorConfig: {
                     view: MACHINE_VIEW.BIDiagram,
                     displayMode: EditorDisplayMode.VIEW,
+                    artifactType: DIRECTORY_MAP.FUNCTION,
                 },
             });
         })();

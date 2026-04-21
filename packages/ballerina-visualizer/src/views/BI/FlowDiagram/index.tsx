@@ -1771,13 +1771,17 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     return { artifactType: DIRECTORY_MAP.SERVICE };
                 }
             }
-            return undefined;
+        } else {
+            if (editorConfig.artifactType) {
+                return { artifactType: editorConfig.artifactType };
+            }
+            if (
+                editorConfig.displayMode !== EditorDisplayMode.NONE &&
+                editorConfig.view === MACHINE_VIEW.DataMapper
+            ) {
+                return { artifactType: DIRECTORY_MAP.DATA_MAPPER };
+            }
         }
-
-        return editorConfig &&
-            editorConfig.displayMode !== EditorDisplayMode.NONE &&
-            editorConfig.view === MACHINE_VIEW.DataMapper ?
-            { artifactType: DIRECTORY_MAP.DATA_MAPPER } : undefined;
     }
 
     const handleOnDeleteNode = async (node: FlowNode) => {
