@@ -22,7 +22,7 @@ import { ProjectExplorer, Diagram, SidePanel } from '../utils/pages';
 import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 
 export default function createTests() {
-    test.describe('Automation Tests', {
+    test.describe.serial('Automation Tests', {
         tag: '@group1',
     }, async () => {
         initTest();

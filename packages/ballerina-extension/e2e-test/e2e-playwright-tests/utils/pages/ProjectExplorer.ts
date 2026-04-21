@@ -41,6 +41,11 @@ export class ProjectExplorer {
             currentItem = this.explorer.locator(`div[role="treeitem"][aria-label='${path[i]}']`);
             await currentItem.waitFor({ timeout: 5000 });
         }
+        if (click && currentItem) {
+            await currentItem.first().click();
+            // Allow the corresponding editor/webview to become active before callers proceed
+            await this.page.waitForTimeout(500);
+        }
         return currentItem;
     }
 

@@ -51,7 +51,7 @@ const TEST_DATA = {
 
 
 export default function createTests() {
-    test.describe('GraphQL Service Tests', {
+    test.describe.serial('GraphQL Service Tests', {
         tag: '@group1',
     }, async () => {
         initTest();

@@ -45,11 +45,10 @@ export let vscode: any;
 export let page: ExtendedPage;
 
 /**
- * Set to true by afterEach whenever a test fails. The global afterAll in
- * test.list.ts reads this to decide whether it is safe to call page.close().
- * Closing the VS Code window from inside an afterAll while a retry is pending
- * terminates the Electron process, which Playwright detects as an unexpected
- * browser disconnect and therefore never spawns the retry worker.
+ * Set to true by afterEach whenever a test fails. Currently informational —
+ * the global afterAll in test.list.ts always tears down the Electron app so
+ * the worker can exit (see comment there for why that is mandatory). Kept
+ * exported because other modules may want to branch on last-test status.
  */
 export let lastTestFailed = false;
 
@@ -487,10 +486,8 @@ export function initTest(newProject: boolean = true, skipProjectCreation: boolea
             // (palette command, window re-acquisition, sidebar wait) stalls,
             // throw — Playwright will discard this worker and start a fresh
             // one, which will re-launch VS Code cleanly via the `!vscode`
-            // branch above. Calling `vscode.close()` from inside a hook
-            // breaks the worker's browser-state tracking and prevents
-            // Playwright from retrying (see microsoft/playwright#7699), so
-            // we deliberately avoid that.
+            // branch above. The global afterAll in test.list.ts will close
+            // Electron during worker teardown so the worker can exit.
             await withTimeout((async () => {
                 await page.executePaletteCommand('Reload Window');
                 await page.page.waitForTimeout(3000);
@@ -525,17 +522,11 @@ export function initTest(newProject: boolean = true, skipProjectCreation: boolea
         const statusEmoji = status === 'passed' ? '✅' : status === 'failed' ? '❌' : '⏭️';
         console.log(`${statusEmoji} FINISHED TEST: ${testInfo.title} (${status.toUpperCase()}, Attempt ${testInfo.retry + 1})\n`);
         if (status === 'failed' || status === 'timedOut' || status === 'interrupted') {
-            // Signal the global afterAll that it must NOT close the VS Code
-            // window — doing so would terminate the Electron process and
-            // prevent Playwright from spinning up the retry worker.
             lastTestFailed = true;
-            // IMPORTANT: do NOT close the Electron app here. Playwright itself
-            // discards the worker process (and reaps its Electron child) after
-            // a failed test and spawns a fresh worker for the retry / next
-            // test. Closing our Electron handle mid-hook breaks Playwright's
-            // view of the browser and stops it from restarting the worker.
-            // See microsoft/playwright#7699. Symptom: suite ends after the
-            // first failure with "N did not run" and no retry.
+            // Do NOT close the Electron app here (per-test afterEach). The
+            // global afterAll in test.list.ts handles Electron teardown once
+            // the worker is being discarded; closing it per-test would kill
+            // VS Code between tests that are supposed to share state.
             const pageAlive = !!page?.page && !page.page.isClosed?.();
             if (pageAlive) {
                 await captureFailureScreenshot(testInfo.title);

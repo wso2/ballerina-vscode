@@ -22,7 +22,7 @@ import { FileUtils } from '../utils/helpers/fileSystem';
 import { ProjectExplorer } from '../utils/pages';
 
 export default function createTests() {
-    test.describe('Service Class Tests', {
+    test.describe.serial('Service Class Tests', {
         tag: '@group1',
     }, async () => {
         initTest();

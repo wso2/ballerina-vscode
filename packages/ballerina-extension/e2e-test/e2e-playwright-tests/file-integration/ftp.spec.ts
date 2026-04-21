@@ -23,7 +23,7 @@ import { ProjectExplorer } from '../utils/pages';
 import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 
 export default function createTests() {
-    test.describe('FTP Integration Tests', {
+    test.describe.serial('FTP Integration Tests', {
         tag: '@group1',
     }, async () => {
         let listenerName: string;
