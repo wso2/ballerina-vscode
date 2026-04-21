@@ -302,7 +302,7 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		isFocused: boolean
 	): boolean {
 		const { inputSearch, outputSearch } = useDMSearchStore.getState();
-		// In Data Mapper, the inputs are always collapsed by default except focused view.
+		// In Data Mapper, the inputs are always collapsed by default except focused view or when only one input is present.
 		// Hence we explicitly check expandedFields for input header ports. 
 		if (portType === "IN" || isFocused) {
 			if (isFocused) {
