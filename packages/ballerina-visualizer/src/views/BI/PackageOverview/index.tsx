@@ -552,8 +552,10 @@ function IntegrationControlPlane({ enabled, handleICP }: IntegrationControlPlane
 
 const LocalICPBody = styled.div<DeploymentBodyProps>`
     max-height: ${(props: DeploymentBodyProps) => props.isExpanded ? '400px' : '0'};
+    visibility: ${(props: DeploymentBodyProps) => props.isExpanded ? 'visible' : 'hidden'};
     overflow: hidden;
-    transition: max-height 0.3s ease-in-out;
+    transition: max-height 0.3s ease-in-out,
+        visibility 0s linear ${(props: DeploymentBodyProps) => props.isExpanded ? '0s' : '0.3s'};
     margin-top: ${(props: DeploymentBodyProps) => props.isExpanded ? '8px' : '0'};
 `;
 
@@ -600,10 +602,23 @@ function LocalICPDeployment() {
         });
     };
 
+    const toggleExpanded = () => setIsExpanded(prev => !prev);
+
+    const handleHeaderKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggleExpanded();
+        }
+    };
+
     return (
         <DeploymentOptionContainer
             isExpanded={isExpanded}
-            onClick={() => setIsExpanded(prev => !prev)}
+            onClick={toggleExpanded}
+            onKeyDown={handleHeaderKeyDown}
+            role="button"
+            tabIndex={0}
+            aria-expanded={isExpanded}
         >
             <DeploymentHeader>
                 {isExpanded ? (
