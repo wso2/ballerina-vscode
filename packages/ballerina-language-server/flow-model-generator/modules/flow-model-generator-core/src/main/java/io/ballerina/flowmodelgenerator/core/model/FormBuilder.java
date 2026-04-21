@@ -1444,6 +1444,18 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
     }
 
     /**
+     * Removes a previously reserved slot when the caller decides not to emit a real Property under
+     * this key — prevents an empty placeholder from leaking into the serialized node properties.
+     *
+     * @param key the property key to drop
+     * @return this builder for fluent chaining
+     */
+    public final FormBuilder<T> removeProperty(String key) {
+        this.nodeProperties.remove(key);
+        return this;
+    }
+
+    /**
      * Bulk-adds all entries from the given map into the node properties, skipping the operation silently
      * if the map is {@code null}. Existing properties with the same key will be overwritten.
      *
