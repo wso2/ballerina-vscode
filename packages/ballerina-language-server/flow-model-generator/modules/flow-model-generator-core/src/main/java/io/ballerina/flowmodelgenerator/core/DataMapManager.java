@@ -2776,6 +2776,8 @@ public class DataMapManager {
             return new DataMapCapability(false, "false");
         } else if (kind == TypeDescKind.STRING) {
             return new DataMapCapability(false, "\"\"");
+        } else if (kind == TypeDescKind.ARRAY) {
+            return new DataMapCapability(false, "[]");
         }
         return null;
     }
