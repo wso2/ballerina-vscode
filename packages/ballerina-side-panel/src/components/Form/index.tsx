@@ -814,9 +814,9 @@ export const Form = forwardRef((props: FormProps, _ref) => {
         }
     };
 
-    // Find the first editable field
+    // Find the first editable identifier field
     const firstEditableFieldIndex = formFields.findIndex(
-        (field) => field.editable !== false
+        (field) => field.editable !== false && getPrimaryInputType(field.types)?.fieldType === "IDENTIFIER"
     );
 
     const isValid = useMemo(() => {

@@ -24,9 +24,10 @@ import {
     MinifiedClient,
     MinifiedRemoteFunction,
     MinifiedResourceFunction,
+    MinifiedService,
     PathParameter,
 } from "./function-types";
-import { Client, GetTypeResponse, GetTypesRequest, GetTypesResponse, getTypesResponseSchema, Library, MiniType, RemoteFunction, ResourceFunction, Service, FixedService } from "./library-types";
+import { Client, GetTypeResponse, GetTypesRequest, GetTypesResponse, getTypesResponseSchema, Library, MiniType, RemoteFunction, ResourceFunction, Service, FixedService, Annotation } from "./library-types";
 import { TypeDefinition, AbstractFunction, Type, RecordTypeDefinition, UnionTypeDefinition } from "./library-types";
 import { getAnthropicClient, ANTHROPIC_HAIKU } from "../ai-client";
 import { GenerationType } from "./libraries";
@@ -96,6 +97,7 @@ function toTypesToLibraries(types: GetTypeResponse[], fullLibs: Library[]): Libr
                 description: fullDefOfSelectedLib.description,
                 typeDefs: filteredTypes,
                 services: fullDefOfSelectedLib.services,
+                annotations: fullDefOfSelectedLib.annotations,
                 clients: [],
             });
         } catch (error) {
@@ -154,6 +156,7 @@ async function getRequiredFunctions(
             description: lib.description,
             clients: filteredClients(lib.clients),
             functions: filteredNormalFunctions(lib.functions, generationType),
+            services: filteredServicesForRequest(lib.services),
         }));
 
     const largeLibs = libraryList.filter((lib) => getClientFunctionCount(lib.clients) >= 100);
@@ -224,13 +227,14 @@ async function getSuggestedFunctions(
 
     console.log(`[AI Request Start] Libraries: [${libraryNames}], Function Count: ${functionCount}`);
 
-    const getLibSystemPrompt = `You are an AI assistant tasked with filtering and removing unwanted functions and clients from a provided set of libraries and clients based on a user query. The provided libraries are a subset of the full requirements for the query. Your goal is to return ONLY the relevant libraries, clients, and functions from the provided context that match the user's needs.
+    const getLibSystemPrompt = `You are an AI assistant tasked with filtering and removing unwanted functions, clients, and services from a provided set of libraries based on a user query. The provided libraries are a subset of the full requirements for the query. Your goal is to return ONLY the relevant libraries, clients, functions, and services from the provided context that match the user's needs.
 
 CRITICAL RULES:
 1. Use ONLY items from Library_Context_JSON - do not create or infer new ones.
 2. Your ONLY task is selection - include or exclude items, NEVER modify field values.
 3. Copy all field values EXACTLY as provided - preserve every character including backslashes and special characters.
-4. For resource functions: "accessor" and "paths" are SEPARATE fields - NEVER combine them.`;
+4. For resource functions: "accessor" and "paths" are SEPARATE fields - NEVER combine them.
+5. A library is relevant if ANY of its clients, functions, or services match the query. Echo matching services under the library's "services" field (copy listener, name, and methods verbatim). If a library matches ONLY via its services, still include the library in the output with empty/omitted clients and functions.`;
 
     const getLibUserPrompt = `You will be provided with a list of libraries, clients, and their functions, and a user query.
 
@@ -242,13 +246,13 @@ ${prompt}
 ${JSON.stringify(libraryList)}
 </Library_Context_JSON>
 
-To process the user query and filter the libraries, clients, and functions, follow these steps:
+To process the user query and filter the libraries, clients, services and functions, follow these steps:
 
 1. Analyze the user query to understand the specific requirements or needs.
-2. Review the provided libraries, clients, and functions in Library_Context_JSON.
-3. Select only the libraries, clients, and functions that directly match the query's needs.
-4. Exclude any irrelevant libraries, clients, or functions.
-5. If no relevant functions are found, return an empty array for libraries.
+2. Review the provided libraries, clients, services and functions in Library_Context_JSON.
+3. Select only the libraries, clients, services and functions that directly match the query's needs.
+4. Exclude any irrelevant libraries, clients, services or functions.
+5. If no relevant functions and services are found, return an empty array for libraries.
 6. Organize the remaining relevant information.
 
 CRITICAL - Field Preservation:
@@ -258,7 +262,7 @@ CRITICAL - Field Preservation:
 
 Return the filtered subset with IDENTICAL field values.
 
-Now, based on the provided libraries, clients, and functions, and the user query, please filter and return the relevant information.
+Now, based on the provided libraries and the user query, please filter and return the relevant information.
 `;
 
     const messages: ModelMessage[] = [
@@ -351,6 +355,27 @@ function filteredFunctions(
     return output;
 }
 
+function filteredServicesForRequest(services?: Service[]): MinifiedService[] | undefined {
+    if (!services || services.length === 0) {
+        return undefined;
+    }
+    return services.map((svc) => {
+        const result: MinifiedService = {
+            listener: svc.listener.name,
+        };
+        if (svc.name) {
+            result.name = svc.name;
+        }
+        if (svc.type === "fixed") {
+            const methodNames = (svc as FixedService).methods.map((m) => m.name);
+            if (methodNames.length > 0) {
+                result.methods = methodNames;
+            }
+        }
+        return result;
+    });
+}
+
 function filteredNormalFunctions(functions?: RemoteFunction[], generationType?: GenerationType): MinifiedRemoteFunction[] | undefined {
     if (!functions) {
         return undefined;
@@ -376,6 +401,7 @@ export async function getMaximizedSelectedLibs(libNames: string[]): Promise<Libr
                 functions: lib.functions ? lib.functions : [],
                 typeDefs: lib.typeDefs ? lib.typeDefs : [],
                 services: lib.services ? lib.services : [],
+                annotations: lib.annotations ? lib.annotations : [],
                 instructions: lib.instructions ? lib.instructions : null,
                 readme: lib.readme ? lib.readme : null,
             };
@@ -406,9 +432,10 @@ export async function toMaximizedLibrariesFromLibJson(
             description: originalLib.description,
             clients: filteredClients,
             functions: filteredFunctions ? filteredFunctions : null,
-            // Get only the type definitions that are actually used by the selected functions, clients, and services
-            typeDefs: getOwnTypeDefsForLib(filteredClients, filteredFunctions, originalLib.typeDefs, originalLib.services),
+            // Get only the type definitions that are actually used by the selected functions, clients, services, and annotations
+            typeDefs: getOwnTypeDefsForLib(filteredClients, filteredFunctions, originalLib.typeDefs, originalLib.services, originalLib.annotations),
             services: originalLib.services ? originalLib.services : null,
+            annotations: originalLib.annotations ? originalLib.annotations : null,
             instructions: originalLib.instructions ? originalLib.instructions : null,
             readme: originalLib.readme ? originalLib.readme : null,
         };
@@ -548,7 +575,8 @@ function getOwnTypeDefsForLib(
     clients: Client[],
     functions: RemoteFunction[] | undefined,
     allTypeDefs: TypeDefinition[],
-    services?: Service[]
+    services?: Service[],
+    annotations?: Annotation[]
 ): TypeDefinition[] {
     const allFunctions: AbstractFunction[] = [];
 
@@ -562,10 +590,10 @@ function getOwnTypeDefsForLib(
         allFunctions.push(...functions);
     }
 
-    return getOwnRecordRefs(allFunctions, allTypeDefs, services);
+    return getOwnRecordRefs(allFunctions, allTypeDefs, services, annotations);
 }
 
-function getOwnRecordRefs(functions: AbstractFunction[], allTypeDefs: TypeDefinition[], services?: Service[]): TypeDefinition[] {
+function getOwnRecordRefs(functions: AbstractFunction[], allTypeDefs: TypeDefinition[], services?: Service[], annotations?: Annotation[]): TypeDefinition[] {
     const ownRecords = new Map<string, TypeDefinition>();
 
     // Process all functions to find type references
@@ -595,6 +623,15 @@ function getOwnRecordRefs(functions: AbstractFunction[], allTypeDefs: TypeDefini
                         addInternalRecord(method.return.type, ownRecords, allTypeDefs);
                     }
                 }
+            }
+        }
+    }
+
+    // Process annotation type constraints
+    if (annotations) {
+        for (const annotation of annotations) {
+            if (annotation.typeConstraint) {
+                addInternalRecord(annotation.typeConstraint, ownRecords, allTypeDefs);
             }
         }
     }
@@ -714,7 +751,7 @@ function getExternalTypeDefsRefs(libraries: Library[]): Map<string, string[]> {
             allFunctions.push(...lib.functions);
         }
 
-        getExternalTypeDefRefs(externalRecords, allFunctions, lib.typeDefs, lib.services);
+        getExternalTypeDefRefs(externalRecords, allFunctions, lib.typeDefs, lib.services, lib.annotations);
     }
 
     return externalRecords;
@@ -724,7 +761,8 @@ function getExternalTypeDefRefs(
     externalRecords: Map<string, string[]>,
     functions: AbstractFunction[],
     allTypeDefs: TypeDefinition[],
-    services?: Service[]
+    services?: Service[],
+    annotations?: Annotation[]
 ): void {
     // Check function parameters and return types
     for (const func of functions) {
@@ -750,6 +788,15 @@ function getExternalTypeDefRefs(
                         addExternalRecord(method.return.type, externalRecords);
                     }
                 }
+            }
+        }
+    }
+
+    // Check annotation type constraints
+    if (annotations) {
+        for (const annotation of annotations) {
+            if (annotation.typeConstraint) {
+                addExternalRecord(annotation.typeConstraint, externalRecords);
             }
         }
     }
@@ -834,6 +881,7 @@ async function getExternalRecords(
                     functions: null,
                     typeDefs: [typeDef],
                     services: library.services ? library.services : null,
+                    annotations: library.annotations ? library.annotations : null,
                 };
                 newLibraries.push(newLibrary);
             } else {
