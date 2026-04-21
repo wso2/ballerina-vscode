@@ -123,8 +123,7 @@ export namespace S {
     `;
 
     export const LabelContainer = styled.div({
-        display: 'flex',
-        alignItems: 'center'
+        display: 'block'
     });
 
     export const HeaderContainer = styled.div({
