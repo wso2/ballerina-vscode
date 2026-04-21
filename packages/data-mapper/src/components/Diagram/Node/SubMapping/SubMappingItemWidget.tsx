@@ -29,7 +29,7 @@ import { OutputSearchHighlight } from "../commons/Search";
 import { TreeBody } from '../commons/Tree/Tree';
 import { useIONodesStyles } from "../../../styles";
 import { InputNodeTreeItemWidget } from "../Input/InputNodeTreeItemWidget";
-import { useDMExpandedFieldsStore, useDMSubMappingConfigPanelStore } from "../../../../store/store";
+import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore, useDMSubMappingConfigPanelStore } from "../../../../store/store";
 import { DMSubMapping } from "./SubMappingNode";
 import { SubMappingSeparator } from "./SubMappingSeparator";
 import { IOType, TypeKind } from "@wso2/ballerina-core";
@@ -54,6 +54,7 @@ export function SubMappingItemWidget(props: SubMappingItemProps) {
 
     const classes = useIONodesStyles();
     const expandedFieldsStore = useDMExpandedFieldsStore();
+    const collapsedFieldsStore = useDMCollapsedFieldsStore();
     const setSubMappingConfig = useDMSubMappingConfigPanelStore(state => state.setSubMappingConfig);
 
     const [ portState, setPortState ] = useState<PortState>(PortState.Unselected);
@@ -100,12 +101,19 @@ export function SubMappingItemWidget(props: SubMappingItemProps) {
     };
 
     const handleExpand = () => {
+
         const expandedFields = expandedFieldsStore.fields;
+        const collapsedFields = collapsedFieldsStore.fields;
+
         if (expanded) {
             expandedFieldsStore.setFields(expandedFields.filter((element) => element !== id));
+            collapsedFieldsStore.setFields([...collapsedFields, id]);
+
         } else {
             expandedFieldsStore.setFields([...expandedFields, id]);
+            collapsedFieldsStore.setFields(collapsedFields.filter((element) => element !== id));
         }
+
     }
 
     const onMouseEnter = () => {
