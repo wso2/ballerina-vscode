@@ -293,7 +293,7 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
 
             const updatedAgentNode = cloneDeep(agentNode);
 
-            if (updatedNode?.codedata?.lineRange?.fileName === agentNode?.codedata?.lineRange?.fileName && memoryResponse?.artifacts?.length > 0) {
+            if (memoryFilePath === agentFilePath.current && memoryResponse?.artifacts?.length > 0) {
                 const updatedAgentArtifact = memoryResponse.artifacts.find(
                     artifact => artifact?.name === agentNode?.properties?.variable?.value
                 );
