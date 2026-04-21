@@ -203,12 +203,9 @@ async function getRelease(tag) {
                 const releases = JSON.parse(releasesResponse.data);
                 const stable = releases.find(r => !r.prerelease && !r.draft);
                 if (stable) return stable;
-                // No stable release exists; use the most recent release (may be a prerelease)
-                if (releases.length) {
-                    console.log('No stable release found; using most recent release as fallback.');
-                    return releases[0];
-                }
-                throw new Error('No releases found in the repository');
+                throw new Error(
+                    'No stable release found. Use --tag (or BALLERINA_LS_TAG) to specify a version explicitly (e.g. --tag prerelease or --tag v1.5.0).'
+                );
             }
             throw error;
         }
