@@ -318,6 +318,10 @@ export class ICPServiceRpcManager implements ICPServiceAPI {
     }
 
 
+    async isICPServerRunning(params: ICPEnabledRequest): Promise<ICPEnabledResponse> {
+        return { enabled: isICPServerRunning() };
+    }
+
     async viewInICP(params: ICPEnabledRequest): Promise<ICPEnabledResponse> {
         try {
             const icpUrl = getICPUrl();

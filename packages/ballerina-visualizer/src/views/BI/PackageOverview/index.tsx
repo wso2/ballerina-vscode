@@ -130,7 +130,7 @@ const LeftContent = styled.div`
 `;
 
 const SidePanel = styled.div`
-    padding: 0px 10px 10px 10px;
+    margin-left: 16px;
 `;
 
 const FooterPanel = styled.div`
@@ -539,23 +539,100 @@ function IntegrationControlPlane({ enabled, handleICP }: IntegrationControlPlane
                 {"Monitor and manage your integration deployments using a single enhanced interface, and streamline operations and increase efficiency."}
                 <VSCodeLink onClick={openLearnMoreURL} style={{ marginLeft: '4px' }}> Learn More </VSCodeLink>
             </p>
-            <CheckBox
-                checked={enabled}
-                onChange={handleICP}
-                label="Enable ICP monitoring"
-            />
-            {enabled && (
-                <Button
-                    appearance="secondary"
-                    onClick={() => rpcClient.getICPRpcClient().viewInICP({
-                        projectPath: ''
-                    })}
-                    sx={{ marginTop: "10px", display: "flex", alignItems: "center", justifyContent: "center", mx: "auto" }}
-                >
-                    <Codicon name="link-external" sx={{ marginRight: 8 }} /> View in ICP
-                </Button>
-            )}
+            <div style={{ paddingLeft: 10 }}>
+                <CheckBox
+                    checked={enabled}
+                    onChange={handleICP}
+                    label="Enable ICP monitoring"
+                />
+            </div>
         </div>
+    );
+}
+
+const LocalICPBody = styled.div<DeploymentBodyProps>`
+    max-height: ${(props: DeploymentBodyProps) => props.isExpanded ? '400px' : '0'};
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out;
+    margin-top: ${(props: DeploymentBodyProps) => props.isExpanded ? '8px' : '0'};
+`;
+
+function LocalICPDeployment() {
+    const { rpcClient } = useRpcContext();
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [serverRunning, setServerRunning] = useState(false);
+    const [serverBusy, setServerBusy] = useState(false);
+
+    const refreshStatus = async () => {
+        const res = await rpcClient.getICPRpcClient().isICPServerRunning({ projectPath: '' });
+        setServerRunning(!!res.enabled);
+    };
+
+    useEffect(() => {
+        refreshStatus();
+        const interval = setInterval(refreshStatus, 3000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const handleServerToggle = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setServerBusy(true);
+        try {
+            await rpcClient.getCommonRpcClient().executeCommand({
+                commands: [serverRunning ? 'ballerina.icp.stop' : 'ballerina.icp.start']
+            });
+            await refreshStatus();
+        } finally {
+            setServerBusy(false);
+        }
+    };
+
+    const handleViewInICP = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        rpcClient.getICPRpcClient().viewInICP({ projectPath: '' });
+    };
+
+    return (
+        <DeploymentOptionContainer
+            isExpanded={isExpanded}
+            onClick={() => setIsExpanded(prev => !prev)}
+        >
+            <DeploymentHeader>
+                {isExpanded ? (
+                    <Codicon name={'triangle-down'} sx={{ color: 'var(--vscode-textLink-foreground)' }} />
+                ) : (
+                    <Codicon name={'triangle-right'} sx={{ color: 'inherit' }} />
+                )}
+                <h3>Publish to local ICP</h3>
+            </DeploymentHeader>
+            <LocalICPBody isExpanded={isExpanded}>
+                <p style={{ marginTop: 8 }}>Publish to a local ICP server to try it out.</p>
+                <ol style={{ marginTop: 0, paddingLeft: 20 }}>
+                    <li>Start the ICP server</li>
+                    <li>Enable ICP for the integration</li>
+                    <li>Run the integration — traces will be published to the local ICP server</li>
+                </ol>
+                <ButtonContainer>
+                    <Button
+                        appearance="secondary"
+                        onClick={handleServerToggle}
+                        disabled={serverBusy}
+                    >
+                        <Codicon
+                            name={serverRunning ? "debug-stop" : "play"}
+                            sx={{ marginRight: 8 }}
+                        />
+                        {serverRunning ? "Stop ICP Server" : "Start ICP Server"}
+                    </Button>
+                    {serverRunning && (
+                        <Button appearance="secondary" onClick={handleViewInICP}>
+                            <Codicon name="link-external" sx={{ marginRight: 8 }} />
+                            View in ICP
+                        </Button>
+                    )}
+                </ButtonContainer>
+            </LocalICPBody>
+        </DeploymentOptionContainer>
     );
 }
 
@@ -1013,6 +1090,9 @@ export function PackageOverview(props: PackageOverviewProps) {
                                     />
                                     <Divider sx={{ margin: "16px 0" }} />
                                     <IntegrationControlPlane enabled={enabled} handleICP={handleICP} />
+                                    <div style={{ marginTop: 8 }}>
+                                        <LocalICPDeployment />
+                                    </div>
                                 </>
                             }
                             {isInDevant &&
