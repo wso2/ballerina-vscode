@@ -12,7 +12,11 @@ const args = process.argv.slice(2);
 
 function getTag() {
     const tagIdx = args.indexOf('--tag');
-    if (tagIdx !== -1 && args[tagIdx + 1]) return args[tagIdx + 1];
+    if (tagIdx !== -1) {
+        const value = args[tagIdx + 1];
+        if (!value || value.startsWith('-')) throw new Error('Missing or invalid value for --tag');
+        return value;
+    }
     if (process.env.BALLERINA_LS_TAG) return process.env.BALLERINA_LS_TAG;
     return 'latest';
 }
@@ -196,7 +200,7 @@ async function getRelease(tag) {
         }
     } else {
         // Specific version tag e.g. v1.5.0
-        const releaseResponse = await httpsRequest(`${GITHUB_REPO_URL}/releases/tags/${tag}`);
+        const releaseResponse = await httpsRequest(`${GITHUB_REPO_URL}/releases/tags/${encodeURIComponent(tag)}`);
         try {
             return JSON.parse(releaseResponse.data);
         } catch (error) {
@@ -208,6 +212,9 @@ async function getRelease(tag) {
 async function resolveAndOutputVersion(tag) {
     console.log(`Resolving Ballerina language server version for tag: ${tag}...`);
     const releaseData = await getRelease(tag);
+    if (!releaseData?.tag_name) {
+        throw new Error('Invalid release data: missing tag_name');
+    }
     const version = releaseData.tag_name;
     console.log(`Resolved version: ${version}`);
     if (process.env.GITHUB_OUTPUT) {
