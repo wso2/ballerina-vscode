@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { STNode } from "@wso2/syntax-tree";
-import { FlowNode, RecordTypeField } from "./bi";
+import { DIRECTORY_MAP, FlowNode, RecordTypeField } from "./bi";
 import { MACHINE_VIEW } from "..";
 
 /**
@@ -45,6 +45,7 @@ export enum EditorDisplayMode {
 export interface EditorConfig {
     view: MACHINE_VIEW;
     displayMode: EditorDisplayMode;
+    artifactType?: DIRECTORY_MAP;
 }
 
 export interface DocumentIdentifier {
