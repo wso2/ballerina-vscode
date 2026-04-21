@@ -412,7 +412,7 @@
                                   "valueTypeConstraint": "string",
                                   "isType": false,
                                   "placeholder": "default",
-                                  "optional": false,
+                                  "optional": true,
                                   "advanced": false
                                 },
                                 "password": {
