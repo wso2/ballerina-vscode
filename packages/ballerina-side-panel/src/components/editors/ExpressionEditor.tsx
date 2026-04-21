@@ -166,7 +166,8 @@ export namespace S {
 
     export const Label = styled.label({
         color: 'var(--vscode-editor-foreground)',
-        textTransform: 'capitalize'
+        textTransform: 'capitalize',
+        overflowWrap: 'anywhere'
     });
 
     export const Description = styled.div({
@@ -195,6 +196,7 @@ export namespace S {
         color: var(--vscode-input-placeholderForeground);
         font-family: var(--vscode-editor-font-family);
         font-size: 12px;
+        overflow-wrap: anywhere;
     `;
 
     export const FieldInfoSection = styled.div({
@@ -213,6 +215,7 @@ export namespace S {
         color: var(--vscode-list-deemphasizedForeground);
         border-radius: 4px;
         margin-bottom: 0;
+        overflow-wrap: anywhere;
 
         h1,
         h2,
