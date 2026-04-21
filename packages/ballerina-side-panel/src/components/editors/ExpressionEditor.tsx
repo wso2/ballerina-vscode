@@ -139,6 +139,18 @@ export namespace S {
         gap: '4px'
     });
 
+    export const HeaderRow = styled.div({
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        gap: '8px'
+    });
+
+    export const HeaderMain = styled.div({
+        flex: 1,
+        minWidth: 0
+    });
+
     export const Type = styled.div<{ isVisible: boolean }>(({ isVisible }) => ({
         color: ThemeColors.PRIMARY,
         fontFamily: 'monospace',
@@ -147,6 +159,7 @@ export namespace S {
         borderRadius: '999px',
         padding: '1px 6px',
         display: 'inline-block',
+        verticalAlign: 'middle',
         userSelect: 'none',
         maxWidth: '120px',
         overflow: 'hidden',
@@ -204,8 +217,7 @@ export namespace S {
         flexDirection: 'column',
         alignItems: 'flex-end',
         gap: '5px',
-        flexShrink: 0,
-        width: '112px'
+        flexShrink: 0
     });
 
     export const EditorMdContainer = styled.div`
@@ -600,12 +612,12 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 </S.LabelContainer>
                             </S.HeaderContainer>
                         )}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
-                            <div style={{ flex: 1, minWidth: 0 }}>
+                        <S.HeaderRow>
+                            <S.HeaderMain>
                                 <S.EditorMdContainer>
                                     {documentation && <ReactMarkdown>{documentation}</ReactMarkdown>}
                                 </S.EditorMdContainer>
-                            </div>
+                            </S.HeaderMain>
                             {modeSwitcherContext?.isModeSwitcherEnabled && (
                                 <S.FieldInfoSection>
                                     <ModeSwitcher
@@ -617,7 +629,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     />
                                 </S.FieldInfoSection>
                             )}
-                        </div>
+                        </S.HeaderRow>
                     </S.Header>
                 )}
                 <Controller
