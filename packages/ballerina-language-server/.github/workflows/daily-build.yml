@@ -89,9 +89,10 @@ jobs:
 
       - name: Build with Gradle
         env:
+          ORG_GRADLE_PROJECT_version: ${{ matrix.version }}
           packageUser: ${{ github.actor }}
           packagePAT: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew -Pversion=${{ matrix.version }} build pack -x check
+        run: ./gradlew build pack -x check
 
       - name: Upload daily build jar
         uses: actions/upload-artifact@v4
@@ -142,7 +143,9 @@ jobs:
             ${{ runner.os }}-ballerina-${{ matrix.branch }}-
 
       - name: Build with Gradle
+        shell: cmd
         env:
+          ORG_GRADLE_PROJECT_version: ${{ matrix.version }}
           packageUser: ${{ github.actor }}
           packagePAT: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew.bat -Pversion=${{ matrix.version }} build -x check
+        run: ./gradlew.bat build -x check
