@@ -2187,6 +2187,10 @@ public class CodeAnalyzer extends NodeVisitor {
 
             if (paramResult.kind() == ParameterData.Kind.PARAM_FOR_TYPE_INFER) {
                 typeInferParamMap.put(key, paramResult);
+                // Reserve the slot at its signature position so the later emission (which happens
+                // after regular args and checkError) lands here instead of being appended.
+                nodeBuilder.properties()
+                        .reserveProperty(ParamUtils.removeLeadingSingleQuote(paramResult.name()));
                 return;
             }
 
