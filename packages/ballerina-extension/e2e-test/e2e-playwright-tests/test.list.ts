@@ -19,7 +19,8 @@
 /// <reference types="node" />
 
 import { test } from '@playwright/test';
-import { page, extensionsFolder, newProjectPath, zipProjectSnapshot } from './utils/helpers';
+import * as helpers from './utils/helpers';
+import { extensionsFolder, newProjectPath, vscode, zipProjectSnapshot } from './utils/helpers';
 import { downloadExtensionFromMarketplace } from '@wso2/playwright-vscode-tester';
 import fs from 'fs';
 import path from 'path';
@@ -158,23 +159,59 @@ test.afterAll(async () => {
     const dateTime = new Date().toISOString().replace(/:/g, '-');
     console.log('💾 Saving test video...');
     try {
-        const activePage = page?.page;
+        const activePage = helpers.page?.page;
         if (activePage) {
             const video = activePage.video();
-            await withTimeout(
-                activePage.close(),
-                PAGE_CLOSE_TIMEOUT_MS,
-                `Page close timed out after ${PAGE_CLOSE_TIMEOUT_MS}ms`
-            );
+
+            if (!helpers.lastTestFailed) {
+                // All tests passed — no retry worker is needed, so it is safe
+                // to close the page here. This finalizes the video recording
+                // and lets video.saveAs() complete immediately afterwards.
+                await withTimeout(
+                    activePage.close(),
+                    PAGE_CLOSE_TIMEOUT_MS,
+                    `Page close timed out after ${PAGE_CLOSE_TIMEOUT_MS}ms`
+                ).catch((err) => {
+                    console.warn(`ℹ️  Page close skipped: ${(err as Error).message}`);
+                });
+            } else {
+                // A test failed and Playwright will spin up a retry worker
+                // after this afterAll returns. Closing the VS Code window here
+                // terminates the Electron process; Playwright detects that as
+                // an unexpected browser disconnect and never starts the retry
+                // worker (symptoms: "N did not run", no Attempt 2 logged).
+                // Leave the window open — the worker-discard mechanism will
+                // reap the Electron child process when the Node worker exits.
+                console.log('ℹ️  Skipping page.close() — a test failed and a retry worker is pending');
+            }
+
             if (video) {
                 fs.mkdirSync(videosFolder, { recursive: true });
                 const videoFilePath = path.join(videosFolder, `test_${dateTime}.webm`);
-                await withTimeout(
-                    video.saveAs(videoFilePath),
-                    VIDEO_SAVE_TIMEOUT_MS,
-                    `Video save timed out after ${VIDEO_SAVE_TIMEOUT_MS}ms`
-                );
-                console.log(`✅ Video saved successfully (${videoFilePath})`);
+                // video.saveAs() waits for the page to close before resolving.
+                // On a failed run the page is still open, so cap the wait:
+                // if VS Code is still running the timeout fires, teardown
+                // finishes, and Playwright exits the worker (causing Electron
+                // to close and auto-save the recording to its default path).
+                const videoSaveTimeoutMs = helpers.lastTestFailed ? 3000 : VIDEO_SAVE_TIMEOUT_MS;
+                const savePromise = video.saveAs(videoFilePath);
+                // Prevent an unhandled rejection if the promise settles after
+                // the timeout and after this afterAll has already returned.
+                savePromise.catch(() => { });
+                try {
+                    await withTimeout(
+                        savePromise,
+                        videoSaveTimeoutMs,
+                        `Video save timed out after ${videoSaveTimeoutMs}ms`
+                    );
+                    console.log(`✅ Video saved successfully (${videoFilePath})`);
+                } catch {
+                    if (helpers.lastTestFailed) {
+                        console.log('ℹ️  Video save skipped (VS Code still open; recording will auto-save when worker exits)');
+                    } else {
+                        console.warn(`⚠️  Video save timed out after ${videoSaveTimeoutMs}ms`);
+                    }
+                }
             } else {
                 console.log('ℹ️  No video available to save');
             }
@@ -184,6 +221,16 @@ test.afterAll(async () => {
     } catch (error) {
         console.warn('⚠️  Failed to save/close test video page, continuing cleanup...', error);
     }
+
+    // IMPORTANT: do NOT call `vscode.close()` here. Per Playwright maintainers
+    // (see github.com/microsoft/playwright/issues/7699), closing the browser
+    // (or, for Electron, the ElectronApplication) from inside a Playwright
+    // hook breaks the worker's view of its browser and stops Playwright from
+    // restarting the worker after a failure. That surfaces as the whole run
+    // ending after a single failed test with "N did not run" and no retry.
+    // Playwright's own worker-discard + new-worker mechanism will reap the
+    // Electron subprocess when the worker exits (the Electron child is a
+    // child of the worker's Node process, so it dies with it).
 
     // Snapshot the project when the suite is interrupted (e.g. manually stopped)
     zipProjectSnapshot('suite_teardown');
