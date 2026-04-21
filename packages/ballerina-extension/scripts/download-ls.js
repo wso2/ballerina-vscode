@@ -9,8 +9,17 @@ const LS_DIR = path.join(PROJECT_ROOT, 'ls');
 const GITHUB_REPO_URL = 'https://api.github.com/repos/ballerina-platform/ballerina-language-server';
 
 const args = process.argv.slice(2);
-const usePrerelease = args.includes('--prerelease') || process.env.isPreRelease === 'true';
+
+function getTag() {
+    const tagIdx = args.indexOf('--tag');
+    if (tagIdx !== -1 && args[tagIdx + 1]) return args[tagIdx + 1];
+    if (process.env.BALLERINA_LS_TAG) return process.env.BALLERINA_LS_TAG;
+    return 'latest';
+}
+
+const tag = getTag();
 const forceReplace = args.includes('--replace');
+const resolveVersionOnly = args.includes('--resolve-version');
 
 function checkExistingJar() {
     try {
@@ -146,9 +155,8 @@ function getFileSize(filePath) {
     }
 }
 
-async function getLatestRelease(usePrerelease) {
-    if (usePrerelease) {
-        // Get all releases and find the latest prerelease
+async function getRelease(tag) {
+    if (tag === 'prerelease') {
         const releasesResponse = await httpsRequest(`${GITHUB_REPO_URL}/releases`);
         let releases;
         try {
@@ -156,7 +164,6 @@ async function getLatestRelease(usePrerelease) {
         } catch (error) {
             throw new Error('Failed to parse releases information JSON');
         }
-        // Sort releases by published_at date in descending order and find the latest prerelease
         const prerelease = releases
             .filter(release => release.prerelease)
             .sort((a, b) => new Date(b.published_at) - new Date(a.published_at))[0];
@@ -165,24 +172,48 @@ async function getLatestRelease(usePrerelease) {
             throw new Error('No prerelease found');
         }
         return prerelease;
-    } else {
-        // Get the latest stable release
+    } else if (tag === 'latest') {
         const releaseResponse = await httpsRequest(`${GITHUB_REPO_URL}/releases/latest`);
         try {
             return JSON.parse(releaseResponse.data);
         } catch (error) {
             throw new Error('Failed to parse release information JSON');
         }
+    } else {
+        // Specific version tag e.g. v1.5.0
+        const releaseResponse = await httpsRequest(`${GITHUB_REPO_URL}/releases/tags/${tag}`);
+        try {
+            return JSON.parse(releaseResponse.data);
+        } catch (error) {
+            throw new Error(`Failed to parse release information JSON for tag ${tag}`);
+        }
+    }
+}
+
+async function resolveAndOutputVersion(tag) {
+    console.log(`Resolving Ballerina language server version for tag: ${tag}...`);
+    const releaseData = await getRelease(tag);
+    const version = releaseData.tag_name;
+    console.log(`Resolved version: ${version}`);
+    if (process.env.GITHUB_OUTPUT) {
+        fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${version}\n`);
+    } else {
+        console.log(`::set-output name=version::${version}`);
     }
 }
 
 async function main() {
     try {
+        if (resolveVersionOnly) {
+            await resolveAndOutputVersion(tag);
+            process.exit(0);
+        }
+
         if (!forceReplace && checkExistingJar()) {
             process.exit(0);
         }
 
-        console.log(`Downloading Ballerina language server${usePrerelease ? ' (prerelease)' : ''}${forceReplace ? ' (force replace)' : ''}...`);
+        console.log(`Downloading Ballerina language server (tag: ${tag})${forceReplace ? ' (force replace)' : ''}...`);
 
         if (forceReplace && fs.existsSync(LS_DIR)) {
             console.log('Force replace enabled: clearing existing language server directory...');
@@ -194,7 +225,7 @@ async function main() {
         }
 
         console.log('Fetching release information...');
-        const releaseData = await getLatestRelease(usePrerelease);
+        const releaseData = await getRelease(tag);
 
         const jarAsset = releaseData.assets?.find(asset =>
             asset.name.includes('ballerina-language-server-') &&
@@ -241,4 +272,5 @@ if (require.main === module) {
     main();
 }
 
-module.exports = { main, checkExistingJar }; 
+module.exports = { main, checkExistingJar, getRelease };
+
