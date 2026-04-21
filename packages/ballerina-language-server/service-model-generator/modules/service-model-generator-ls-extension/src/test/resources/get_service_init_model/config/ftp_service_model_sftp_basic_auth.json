@@ -1,6 +1,6 @@
 {
-  "description": "Test getting tcp service init model",
-  "filePath": "sample1/main.bal",
+  "description": "Test getting FTP service init model with an existing SFTP listener using Basic Authentication",
+  "filePath": "sample3/main.bal",
   "orgName": "ballerina",
   "pkgName": "ftp",
   "moduleName": "ftp",
@@ -21,7 +21,7 @@
             "label": "Configure FTP Listener",
             "description": "Select an existing FTP listener or create a new one"
           },
-          "value": "0",
+          "value": "1",
           "choices": [
             {
               "metadata": {
@@ -688,14 +688,14 @@
                   "advanced": false
                 }
               },
-              "enabled": true,
+              "enabled": false,
               "editable": true,
               "optional": false,
               "advanced": false
             },
             {
               "metadata": {
-                "label": "Use existing (none available)",
+                "label": "Use existing",
                 "description": "Select an existing FTP listener"
               },
               "value": "true",
@@ -705,7 +705,308 @@
                     "label": "Listener Configuration",
                     "description": "Existing listener configuration"
                   },
-                  "properties": {},
+                  "properties": {
+                    "existingListener": {
+                      "metadata": {
+                        "label": "Listener Name",
+                        "description": "Select an existing FTP listener"
+                      },
+                      "value": "sftpListener",
+                      "items": [
+                        "sftpListener"
+                      ],
+                      "properties": {
+                        "sftpListener": {
+                          "metadata": {
+                            "label": "sftpListener",
+                            "description": "FTP listener: sftpListener"
+                          },
+                          "value": "sftpListener",
+                          "properties": {
+                            "protocol": {
+                              "metadata": {
+                                "label": "Protocol",
+                                "description": "Select the protocol for the remote server connection"
+                              },
+                              "value": "SFTP",
+                              "choices": [
+                                {
+                                  "metadata": {
+                                    "label": "ftp",
+                                    "description": ""
+                                  },
+                                  "value": "FTP",
+                                  "types": [
+                                    {
+                                      "fieldType": "FORM",
+                                      "selected": true
+                                    }
+                                  ],
+                                  "enabled": false,
+                                  "editable": false,
+                                  "optional": false,
+                                  "advanced": false
+                                },
+                                {
+                                  "metadata": {
+                                    "label": "sftp",
+                                    "description": ""
+                                  },
+                                  "value": "SFTP",
+                                  "types": [
+                                    {
+                                      "fieldType": "FORM",
+                                      "selected": true
+                                    }
+                                  ],
+                                  "enabled": true,
+                                  "editable": false,
+                                  "optional": false,
+                                  "advanced": false
+                                },
+                                {
+                                  "metadata": {
+                                    "label": "ftps",
+                                    "description": ""
+                                  },
+                                  "value": "FTPS",
+                                  "types": [
+                                    {
+                                      "fieldType": "FORM",
+                                      "selected": true
+                                    }
+                                  ],
+                                  "enabled": false,
+                                  "editable": false,
+                                  "optional": false,
+                                  "advanced": false
+                                }
+                              ],
+                              "types": [
+                                {
+                                  "fieldType": "CHOICE",
+                                  "selected": true
+                                }
+                              ],
+                              "enabled": true,
+                              "editable": false,
+                              "optional": false,
+                              "advanced": false
+                            },
+                            "host": {
+                              "metadata": {
+                                "label": "Host",
+                                "description": "Hostname or IP address of the remote server (e.g., ftp.example.com)"
+                              },
+                              "value": "\"127.0.0.1\"",
+                              "types": [
+                                {
+                                  "fieldType": "TEXT",
+                                  "ballerinaType": "string",
+                                  "selected": true
+                                },
+                                {
+                                  "fieldType": "EXPRESSION",
+                                  "ballerinaType": "string",
+                                  "selected": false
+                                }
+                              ],
+                              "enabled": true,
+                              "editable": false,
+                              "optional": false,
+                              "advanced": false
+                            },
+                            "portNumber": {
+                              "metadata": {
+                                "label": "Port Number",
+                                "description": "Port to connect on"
+                              },
+                              "value": "22",
+                              "types": [
+                                {
+                                  "fieldType": "NUMBER",
+                                  "ballerinaType": "int",
+                                  "selected": true
+                                },
+                                {
+                                  "fieldType": "EXPRESSION",
+                                  "ballerinaType": "int",
+                                  "selected": false
+                                }
+                              ],
+                              "enabled": true,
+                              "editable": false,
+                              "optional": false,
+                              "advanced": false
+                            },
+                            "authentication": {
+                              "metadata": {
+                                "label": "Authentication",
+                                "description": "Select the authentication method"
+                              },
+                              "value": "",
+                              "choices": [
+                                {
+                                  "metadata": {
+                                    "label": "No Authentication",
+                                    "description": ""
+                                  },
+                                  "value": "true",
+                                  "types": [
+                                    {
+                                      "fieldType": "FORM",
+                                      "selected": true
+                                    }
+                                  ],
+                                  "enabled": false,
+                                  "editable": false,
+                                  "optional": false,
+                                  "advanced": false
+                                },
+                                {
+                                  "metadata": {
+                                    "label": "Basic Authentication",
+                                    "description": ""
+                                  },
+                                  "value": "true",
+                                  "properties": {
+                                    "userName": {
+                                      "metadata": {
+                                        "label": "Username",
+                                        "description": "Remote server username for authentication"
+                                      },
+                                      "value": "\"defaultUser\"",
+                                      "types": [
+                                        {
+                                          "fieldType": "TEXT",
+                                          "ballerinaType": "string",
+                                          "selected": true
+                                        },
+                                        {
+                                          "fieldType": "EXPRESSION",
+                                          "ballerinaType": "string",
+                                          "selected": false
+                                        }
+                                      ],
+                                      "enabled": true,
+                                      "editable": false,
+                                      "optional": false,
+                                      "advanced": false
+                                    },
+                                    "password": {
+                                      "metadata": {
+                                        "label": "Password",
+                                        "description": "Remote server password for authentication"
+                                      },
+                                      "value": "\"defaultPassword\"",
+                                      "types": [
+                                        {
+                                          "fieldType": "TEXT",
+                                          "ballerinaType": "string",
+                                          "selected": true
+                                        },
+                                        {
+                                          "fieldType": "EXPRESSION",
+                                          "ballerinaType": "string",
+                                          "selected": false
+                                        }
+                                      ],
+                                      "enabled": true,
+                                      "editable": false,
+                                      "optional": false,
+                                      "advanced": false
+                                    }
+                                  },
+                                  "types": [
+                                    {
+                                      "fieldType": "FORM",
+                                      "selected": true
+                                    }
+                                  ],
+                                  "enabled": true,
+                                  "editable": false,
+                                  "optional": false,
+                                  "advanced": false
+                                },
+                                {
+                                  "metadata": {
+                                    "label": "Certificate Based Authentication",
+                                    "description": ""
+                                  },
+                                  "value": "true",
+                                  "properties": {
+                                    "userName": {
+                                      "metadata": {
+                                        "label": "Username",
+                                        "description": "Remote server username for key-based authentication"
+                                      },
+                                      "value": "\"defaultUser\"",
+                                      "types": [
+                                        {
+                                          "fieldType": "TEXT",
+                                          "ballerinaType": "string",
+                                          "selected": true
+                                        },
+                                        {
+                                          "fieldType": "EXPRESSION",
+                                          "ballerinaType": "string",
+                                          "selected": false
+                                        }
+                                      ],
+                                      "enabled": true,
+                                      "editable": false,
+                                      "optional": false,
+                                      "advanced": false
+                                    }
+                                  },
+                                  "types": [
+                                    {
+                                      "fieldType": "FORM",
+                                      "selected": true
+                                    }
+                                  ],
+                                  "enabled": false,
+                                  "editable": false,
+                                  "optional": false,
+                                  "advanced": false
+                                }
+                              ],
+                              "types": [
+                                {
+                                  "fieldType": "CHOICE",
+                                  "selected": true
+                                }
+                              ],
+                              "enabled": true,
+                              "editable": false,
+                              "optional": false,
+                              "advanced": false
+                            }
+                          },
+                          "types": [
+                            {
+                              "fieldType": "FORM",
+                              "selected": true
+                            }
+                          ],
+                          "enabled": true,
+                          "editable": false,
+                          "optional": false,
+                          "advanced": false
+                        }
+                      },
+                      "types": [
+                        {
+                          "fieldType": "SINGLE_SELECT",
+                          "selected": true
+                        }
+                      ],
+                      "enabled": true,
+                      "editable": true,
+                      "optional": false,
+                      "advanced": false
+                    }
+                  },
                   "types": [
                     {
                       "fieldType": "GROUP_SECTION",
@@ -718,8 +1019,8 @@
                   "advanced": false
                 }
               },
-              "enabled": false,
-              "editable": false,
+              "enabled": true,
+              "editable": true,
               "optional": false,
               "advanced": false
             }
