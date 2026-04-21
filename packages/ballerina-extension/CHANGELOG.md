@@ -4,6 +4,12 @@ All notable changes to the **Ballerina** extension will be documented in this fi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [5.8.3](https://github.com/wso2/vscode-extensions/compare/ballerina-5.8.2...ballerina-5.8.3) - 2026-04-21
+
+### Fixed
+
+- **Test Explorer** - Render Ballerina test explorer icons only when a Ballerina project is opened.
+
 ## [5.8.2](https://github.com/wso2/vscode-extensions/compare/ballerina-5.8.1...ballerina-5.8.2) - 2026-03-11
 
 ### Fixed
