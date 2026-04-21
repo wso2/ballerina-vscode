@@ -92,7 +92,55 @@ jobs:
           ORG_GRADLE_PROJECT_version: ${{ matrix.version }}
           packageUser: ${{ github.actor }}
           packagePAT: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew build pack -x check
+        run: ./gradlew build -x check
+
+  ubuntu-pack:
+    name: Ubuntu pack (${{ matrix.branch }})
+    needs:
+      - prepare-matrix
+      - ubuntu-build
+    if: ${{ always() && needs.prepare-matrix.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.prepare-matrix.outputs.targets) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.branch }}
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: 21.0.3
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Set Up Ballerina
+        uses: ballerina-platform/setup-ballerina@v1.1.1
+        with:
+          version: 2201.13.1
+
+      - name: Cache Ballerina dependencies (Ubuntu)
+        uses: actions/cache@v4
+        id: cache-ballerina
+        with:
+          path: /home/runner/.ballerina/repositories/
+          key: ${{ runner.os }}-ballerina-${{ matrix.branch }}-${{ hashFiles('**/gradle.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-ballerina-${{ matrix.branch }}-
+
+      - name: Pack with Gradle
+        env:
+          ORG_GRADLE_PROJECT_version: ${{ matrix.version }}
+          packageUser: ${{ github.actor }}
+          packagePAT: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew pack -x check
 
       - name: Upload daily build jar
         uses: actions/upload-artifact@v4
