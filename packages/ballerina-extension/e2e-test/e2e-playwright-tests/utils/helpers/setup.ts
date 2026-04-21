@@ -44,7 +44,61 @@ const screenshotsFolder = path.join(resourcesFolder, 'screenshots');
 export let vscode: any;
 export let page: ExtendedPage;
 
+/**
+ * Set to true by afterEach whenever a test fails. The global afterAll in
+ * test.list.ts reads this to decide whether it is safe to call page.close().
+ * Closing the VS Code window from inside an afterAll while a retry is pending
+ * terminates the Electron process, which Playwright detects as an unexpected
+ * browser disconnect and therefore never spawns the retry worker.
+ */
+export let lastTestFailed = false;
+
+/** Timeouts (ms) for defensive cleanup/recovery paths. Overridable via env. */
+const SCREENSHOT_TIMEOUT_MS = Number(process.env.BI_E2E_SCREENSHOT_TIMEOUT_MS ?? 15000);
+const RELOAD_TIMEOUT_MS = Number(process.env.BI_E2E_RELOAD_TIMEOUT_MS ?? 60000);
+const POST_FAILURE_CLEANUP_TIMEOUT_MS = Number(process.env.BI_E2E_POST_FAILURE_CLEANUP_TIMEOUT_MS ?? 10000);
+
 const execAsync = promisify(exec);
+
+/**
+ * Race `operation` against a timer. If the timer wins, throw with the provided
+ * message so the caller can fall back to a recovery path instead of hanging.
+ */
+async function withTimeout<T>(operation: Promise<T>, timeoutMs: number, timeoutMessage: string): Promise<T> {
+    let timeoutHandle: NodeJS.Timeout | undefined;
+    try {
+        return await Promise.race([
+            operation,
+            new Promise<never>((_, reject) => {
+                timeoutHandle = setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs);
+            }),
+        ]);
+    } finally {
+        if (timeoutHandle) clearTimeout(timeoutHandle);
+    }
+}
+
+/**
+ * Best-effort cleanup after a failed test: dismiss any open context menus /
+ * modal dialogs and stop any active debug session so the next test starts
+ * from a recoverable state. Bounded by a short timeout so a frozen page can
+ * never stall the suite here.
+ */
+async function postFailureCleanup(currentPage?: ExtendedPage): Promise<void> {
+    if (!currentPage?.page) return;
+    try {
+        await withTimeout((async () => {
+            // Close any open context menu / palette / hover tooltip.
+            for (let i = 0; i < 4; i++) {
+                try { await currentPage.page.keyboard.press('Escape'); } catch { /* ignore */ }
+            }
+            // Stop any active debug session so it doesn't leak into the next test.
+            try { await currentPage.page.keyboard.press('Shift+F5'); } catch { /* ignore */ }
+        })(), POST_FAILURE_CLEANUP_TIMEOUT_MS, 'Post-failure cleanup timed out');
+    } catch (err) {
+        console.warn('  ⚠️  Post-failure cleanup did not complete cleanly:', (err as Error).message);
+    }
+}
 
 /**
  * Zips the current test project directory so the source state can be inspected
@@ -60,10 +114,14 @@ export async function captureFailureScreenshot(testTitle: string): Promise<void>
         const safeName = testTitle.replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 120);
         const timestamp = new Date().toISOString().replace(/:/g, '-');
         const screenshotPath = path.join(screenshotsFolder, `${safeName}_${timestamp}.png`);
-        await page.page.screenshot({ path: screenshotPath, fullPage: true });
+        await withTimeout(
+            page.page.screenshot({ path: screenshotPath, fullPage: true, timeout: SCREENSHOT_TIMEOUT_MS }),
+            SCREENSHOT_TIMEOUT_MS + 2000,
+            `Screenshot capture timed out after ${SCREENSHOT_TIMEOUT_MS}ms`
+        );
         console.log(`📸 Failure screenshot saved: ${screenshotPath}`);
     } catch (error) {
-        console.warn('⚠️  Failed to capture screenshot:', error);
+        console.warn('⚠️  Failed to capture screenshot:', (error as Error).message);
     }
 }
 
@@ -425,13 +483,23 @@ export function initTest(newProject: boolean = true, skipProjectCreation: boolea
                 resetTestProjectFromTemplate();
             }
 
-            await page.executePaletteCommand('Reload Window');
-            await page.page.waitForTimeout(3000);
-            page = new ExtendedPage(await vscode!.firstWindow({ timeout: 60000 }));
-            await page.page.waitForLoadState();
-            await page.page.waitForTimeout(5000);
-            console.log('  ⏳ Waiting for BI extension to initialize after reload...');
-            await waitForBISidebarTreeView(page);
+            // Wrap the soft-reload path in a timeout. If anything in the chain
+            // (palette command, window re-acquisition, sidebar wait) stalls,
+            // throw — Playwright will discard this worker and start a fresh
+            // one, which will re-launch VS Code cleanly via the `!vscode`
+            // branch above. Calling `vscode.close()` from inside a hook
+            // breaks the worker's browser-state tracking and prevents
+            // Playwright from retrying (see microsoft/playwright#7699), so
+            // we deliberately avoid that.
+            await withTimeout((async () => {
+                await page.executePaletteCommand('Reload Window');
+                await page.page.waitForTimeout(3000);
+                page = new ExtendedPage(await vscode!.firstWindow({ timeout: 60000 }));
+                await page.page.waitForLoadState();
+                await page.page.waitForTimeout(5000);
+                console.log('  ⏳ Waiting for BI extension to initialize after reload...');
+                await waitForBISidebarTreeView(page);
+            })(), RELOAD_TIMEOUT_MS, `Reload Window did not complete within ${RELOAD_TIMEOUT_MS}ms`);
             console.log('  ✅ BI extension ready after reload');
         }
         await toggleNotifications(true);
@@ -457,7 +525,26 @@ export function initTest(newProject: boolean = true, skipProjectCreation: boolea
         const statusEmoji = status === 'passed' ? '✅' : status === 'failed' ? '❌' : '⏭️';
         console.log(`${statusEmoji} FINISHED TEST: ${testInfo.title} (${status.toUpperCase()}, Attempt ${testInfo.retry + 1})\n`);
         if (status === 'failed' || status === 'timedOut' || status === 'interrupted') {
-            await captureFailureScreenshot(testInfo.title);
+            // Signal the global afterAll that it must NOT close the VS Code
+            // window — doing so would terminate the Electron process and
+            // prevent Playwright from spinning up the retry worker.
+            lastTestFailed = true;
+            // IMPORTANT: do NOT close the Electron app here. Playwright itself
+            // discards the worker process (and reaps its Electron child) after
+            // a failed test and spawns a fresh worker for the retry / next
+            // test. Closing our Electron handle mid-hook breaks Playwright's
+            // view of the browser and stops it from restarting the worker.
+            // See microsoft/playwright#7699. Symptom: suite ends after the
+            // first failure with "N did not run" and no retry.
+            const pageAlive = !!page?.page && !page.page.isClosed?.();
+            if (pageAlive) {
+                await captureFailureScreenshot(testInfo.title);
+                // Best-effort: dismiss menus / stop debug session. Bounded by
+                // a short timeout so a frozen page can't stall teardown.
+                await postFailureCleanup(page);
+            } else {
+                console.log('  ℹ️  Page already closed, skipping screenshot/cleanup');
+            }
             zipProjectSnapshot(testInfo.title);
         }
     });
@@ -500,7 +587,12 @@ export function initMigrationTest() {
         const statusEmoji = status === 'passed' ? '✅' : status === 'failed' ? '❌' : '⏭️';
         console.log(`${statusEmoji} FINISHED MIGRATION TEST: ${testInfo.title} (${status.toUpperCase()}, Attempt ${testInfo.retry + 1})\n`);
         if (status === 'failed' || status === 'timedOut' || status === 'interrupted') {
-            await captureFailureScreenshot(testInfo.title);
+            lastTestFailed = true;
+            const pageAlive = !!page?.page && !page.page.isClosed?.();
+            if (pageAlive) {
+                await captureFailureScreenshot(testInfo.title);
+                await postFailureCleanup(page);
+            }
             zipProjectSnapshot(testInfo.title);
         }
     });

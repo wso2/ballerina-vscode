@@ -20,6 +20,7 @@
 export { 
     page, 
     vscode, 
+    lastTestFailed,
     resourcesFolder, 
     newProjectPath,
     extensionsFolder,
