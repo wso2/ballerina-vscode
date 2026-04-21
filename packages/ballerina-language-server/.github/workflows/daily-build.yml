@@ -91,7 +91,7 @@ jobs:
         env:
           packageUser: ${{ github.actor }}
           packagePAT: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew -Pversion=${{ matrix.version }} build -x check
+        run: ./gradlew -Pversion=${{ matrix.version }} build
 
   ubuntu-pack:
     name: Ubuntu pack (${{ matrix.branch }})
@@ -193,4 +193,4 @@ jobs:
         env:
           packageUser: ${{ github.actor }}
           packagePAT: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew.bat build -x check
+        run: ./gradlew.bat build
