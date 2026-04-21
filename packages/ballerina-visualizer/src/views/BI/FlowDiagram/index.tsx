@@ -1772,10 +1772,13 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 }
             }
         } else {
-            if (editorConfig.artifactType){
+            if (editorConfig.artifactType) {
                 return { artifactType: editorConfig.artifactType };
             }
-            if (editorConfig.view === MACHINE_VIEW.DataMapper || editorConfig.view === MACHINE_VIEW.InlineDataMapper) {
+            if (
+                editorConfig.displayMode !== EditorDisplayMode.NONE &&
+                (editorConfig.view === MACHINE_VIEW.DataMapper || editorConfig.view === MACHINE_VIEW.InlineDataMapper)
+            ) {
                 return { artifactType: DIRECTORY_MAP.DATA_MAPPER };
             }
         }
