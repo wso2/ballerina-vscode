@@ -330,7 +330,8 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		collapseByDefault: boolean
 	) {
 		// Auto-expand all input fields when input search is active
-		if (useDMSearchStore.getState().inputSearch) return false;
+		if (useDMSearchStore.getState().inputSearch) {return false;}
+
 		if ((isArray && !isFocused) || collapseByDefault ){
 			return expandedFields && !expandedFields.includes(portName);
 		}
@@ -349,7 +350,8 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		outputId: string
 	): boolean {
 		// Auto-expand all output fields when output search is active
-		if (useDMSearchStore.getState().outputSearch) return false;
+		if (useDMSearchStore.getState().outputSearch) {return false;}
+		
 		if ((isArray && !mapping?.elements?.length) ||
 			(isDeepNested && !hasChildMappingsForOutput(mappings, outputId))) {
 			return expandedFields && !expandedFields.includes(portName);
