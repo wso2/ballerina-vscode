@@ -15,15 +15,25 @@ function getTag() {
     if (tagIdx !== -1) {
         const value = args[tagIdx + 1];
         if (!value || value.startsWith('-')) throw new Error('Missing or invalid value for --tag');
-        return value;
+        return { tag: value, explicit: true };
     }
-    if (process.env.BALLERINA_LS_TAG) return process.env.BALLERINA_LS_TAG;
-    return 'latest';
+    if (process.env.BALLERINA_LS_TAG) return { tag: process.env.BALLERINA_LS_TAG, explicit: true };
+    return { tag: 'latest', explicit: false };
 }
 
-const tag = getTag();
+const { tag, explicit: tagExplicit } = getTag();
 const forceReplace = args.includes('--replace');
 const resolveVersionOnly = args.includes('--resolve-version');
+
+function hasAnyJar() {
+    try {
+        if (!fs.existsSync(LS_DIR)) return false;
+        const files = fs.readdirSync(LS_DIR);
+        return files.some(file => file.includes('ballerina-language-server-') && file.endsWith('.jar'));
+    } catch (error) {
+        return false;
+    }
+}
 
 function checkExistingJar(expectedVersion) {
     try {
@@ -228,6 +238,12 @@ async function main() {
     try {
         if (resolveVersionOnly) {
             await resolveAndOutputVersion(tag);
+            process.exit(0);
+        }
+
+        // No explicit tag: any existing JAR is sufficient — skip network call
+        if (!forceReplace && !tagExplicit && hasAnyJar()) {
+            console.log(`Ballerina language server JAR already exists; skipping download (no version specified).`);
             process.exit(0);
         }
 
