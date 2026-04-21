@@ -40,7 +40,6 @@ import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -183,12 +182,6 @@ public class ResourceActionCallBuilder extends CallBuilder {
         Set<String> ignoredKeysOtherThanTargetType = new HashSet<>(ignoredKeys);
         ignoredKeysOtherThanTargetType.remove(TARGET_TYPE_KEY);
 
-        // Persist-generated resource functions place the inferred-typedesc `targetType` parameter at signature
-        // position 0, but the property map has it near the end. Move it to the front so that SourceBuilder's
-        // missedDefaultValue bookkeeping fires before later defaultable args (e.g. whereClause) and they are
-        // emitted as named arguments, otherwise they would slide into the skipped typedesc slot.
-        FlowNode reorderedFlowNode = withTargetTypeFirst(flowNode);
-
         return sourceBuilder.token()
                 .name(connection.get().toSourceCode())
                 .keyword(SyntaxKind.RIGHT_ARROW_TOKEN)
@@ -196,26 +189,10 @@ public class ResourceActionCallBuilder extends CallBuilder {
                 .keyword(SyntaxKind.DOT_TOKEN)
                 .name(sourceBuilder.flowNode.codedata().symbol())
                 .stepOut()
-                .functionParameters(reorderedFlowNode, ignoredKeysOtherThanTargetType)
+                .functionParameters(flowNode, ignoredKeysOtherThanTargetType)
                 .textEdit()
                 .acceptImportWithVariableType()
                 .build();
-    }
-
-    private static FlowNode withTargetTypeFirst(FlowNode flowNode) {
-        Map<String, Property> properties = flowNode.properties();
-        if (properties == null || !properties.containsKey(TARGET_TYPE_KEY)) {
-            return flowNode;
-        }
-        Map<String, Property> reordered = new LinkedHashMap<>();
-        reordered.put(TARGET_TYPE_KEY, properties.get(TARGET_TYPE_KEY));
-        properties.forEach((k, v) -> {
-            if (!TARGET_TYPE_KEY.equals(k)) {
-                reordered.put(k, v);
-            }
-        });
-        return new FlowNode(flowNode.id(), flowNode.metadata(), flowNode.codedata(), flowNode.returning(),
-                flowNode.branches(), reordered, flowNode.diagnostics(), flowNode.flags());
     }
 
     @Override
