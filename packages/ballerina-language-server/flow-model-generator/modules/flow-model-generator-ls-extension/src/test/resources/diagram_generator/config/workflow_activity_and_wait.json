@@ -640,6 +640,74 @@
             "editable": false,
             "advanced": false,
             "hidden": false
+          },
+          "minCount": {
+            "metadata": {
+              "label": "Min Count",
+              "description": "Minimum completions required (default: all)"
+            },
+            "types": [
+              {
+                "fieldType": "NUMBER",
+                "ballerinaType": "int:Unsigned32",
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "int:Unsigned32",
+                "selected": false
+              }
+            ],
+            "placeholder": "0",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "DEFAULTABLE",
+              "originalName": "minCount"
+            },
+            "defaultValue": "<int:Unsigned32>futures.length()"
+          },
+          "timeout": {
+            "metadata": {
+              "label": "Timeout",
+              "description": "Maximum wait duration; returns error on timeout"
+            },
+            "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "time:Duration",
+                "typeMembers": [
+                  {
+                    "type": "Duration",
+                    "packageInfo": "ballerina:time:2.8.0",
+                    "packageName": "time",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "time:Duration?",
+                "selected": false
+              }
+            ],
+            "placeholder": "()",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "DEFAULTABLE",
+              "originalName": "timeout"
+            },
+            "imports": {
+              "time": "ballerina/time"
+            },
+            "defaultValue": "()"
           }
         },
         "flags": 1

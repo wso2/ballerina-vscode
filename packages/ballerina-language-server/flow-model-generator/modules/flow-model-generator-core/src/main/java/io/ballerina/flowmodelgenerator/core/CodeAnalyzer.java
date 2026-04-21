@@ -921,6 +921,8 @@ public class CodeAnalyzer extends NodeVisitor {
         }
 
         buildDataWaitsProperty(List.of(new DataWaitEntry(variableName, dataType, dataName)));
+        ((WaitDataBuilder) nodeBuilder).addAdvancedProperties(workspaceManager.module(filePath)
+                .orElse(project.currentPackage().getDefaultModule()), workspaceManager, filePath);
     }
 
     /**
