@@ -73,6 +73,11 @@ export function ChoiceForm(props: ChoiceFormProps) {
             if (newSelectedOption !== selectedOption) {
                 setSelectedOption(newSelectedOption);
             }
+        } else if (selectedOption > field.choices.length) {
+            // Choices shrank (e.g. protocol switched to one with fewer auth options) and none are enabled;
+            // clamp back to the first option so we don't index out of range.
+            setSelectedOption(1);
+            setValue(field.key, 0);
         }
     }, [field.choices]);
 
@@ -80,6 +85,11 @@ export function ChoiceForm(props: ChoiceFormProps) {
     useEffect(() => {
         const realValue = selectedOption - 1;
         const property = field.choices[realValue];
+        if (!property) {
+            // Stale selectedOption from a previous, larger choices array. The sibling effect
+            // above will resync selectedOption on the next render; bail out to avoid crashing.
+            return;
+        }
         const choiceProperty = convertConfig(property);
         setDynamicFields(choiceProperty);
         if (choiceProperty.length > 0) {
