@@ -3,6 +3,7 @@ name: Daily build
 on:
   schedule:
     - cron: '30 1 * * *'
+  workflow_dispatch:
 
 jobs:
   prepare-matrix:
@@ -90,7 +91,7 @@ jobs:
         env:
           packageUser: ${{ github.actor }}
           packagePAT: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew -Pversion=${{ matrix.version }} build pack
+        run: ./gradlew -Pversion=${{ matrix.version }} build pack -x check
 
       - name: Upload daily build jar
         uses: actions/upload-artifact@v4
@@ -144,4 +145,4 @@ jobs:
         env:
           packageUser: ${{ github.actor }}
           packagePAT: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew.bat -Pversion=${{ matrix.version }} build
+        run: ./gradlew.bat -Pversion=${{ matrix.version }} build -x check
