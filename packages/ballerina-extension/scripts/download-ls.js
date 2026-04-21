@@ -198,13 +198,17 @@ async function getRelease(tag) {
             return JSON.parse(releaseResponse.data);
         } catch (error) {
             if (error.message.includes('404')) {
-                console.log('No stable release found, fetching the most recent release...');
-                const releasesResponse = await httpsRequest(`${GITHUB_REPO_URL}/releases?per_page=1`);
+                console.log('No stable release found via /releases/latest, searching for most recent stable release...');
+                const releasesResponse = await httpsRequest(`${GITHUB_REPO_URL}/releases?per_page=30`);
                 const releases = JSON.parse(releasesResponse.data);
-                if (!releases.length) {
-                    throw new Error('No releases found in the repository');
+                const stable = releases.find(r => !r.prerelease && !r.draft);
+                if (stable) return stable;
+                // No stable release exists; use the most recent release (may be a prerelease)
+                if (releases.length) {
+                    console.log('No stable release found; using most recent release as fallback.');
+                    return releases[0];
                 }
-                return releases[0];
+                throw new Error('No releases found in the repository');
             }
             throw error;
         }
@@ -247,7 +251,9 @@ async function main() {
             process.exit(0);
         }
 
-        // For concrete tags: check cache before making any network request
+        // For concrete tags: check cache before making any network request.
+        // Assumes asset filename convention: ballerina-language-server-${version}.jar
+        // where version = tag with leading 'v' stripped (e.g. v1.5.0 → 1.5.0).
         if (!forceReplace && tag !== 'latest' && tag !== 'prerelease') {
             const version = tag.startsWith('v') ? tag.slice(1) : tag;
             if (checkExistingJar(version)) {
