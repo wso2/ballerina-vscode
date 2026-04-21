@@ -202,7 +202,9 @@ export namespace S {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'flex-end',
-        gap: '5px'
+        gap: '5px',
+        flexShrink: 0,
+        width: '112px'
     });
 
     export const EditorMdContainer = styled.div`
@@ -582,22 +584,22 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             >
                 {showHeader && (
                     <S.Header>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '8px' }}>
-                            <div>
-                                {field.label && (
-                                    <S.HeaderContainer>
-                                        <S.LabelContainer>
-                                            <S.Label>{field.label}</S.Label>
-                                            {(field.defaultValue && field.defaultValue?.trim() !== "()") && <S.DefaultValue style={{ marginLeft: '8px' }}>{`(Default: ${field.defaultValue}) `}</S.DefaultValue>}
-                                            {(required ?? !field.optional) && <RequiredFormInput />}
-                                            {getPrimaryInputType(field.types)?.ballerinaType && (
-                                                <S.Type style={{ marginLeft: '5px' }} isVisible={focused} title={getPrimaryInputType(field.types)?.ballerinaType}>
-                                                    {sanitizeType(getPrimaryInputType(field.types)?.ballerinaType)}
-                                                </S.Type>
-                                            )}
-                                        </S.LabelContainer>
-                                    </S.HeaderContainer>
-                                )}
+                        {field.label && (
+                            <S.HeaderContainer>
+                                <S.LabelContainer>
+                                    <S.Label>{field.label}</S.Label>
+                                    {(field.defaultValue && field.defaultValue?.trim() !== "()") && <S.DefaultValue style={{ marginLeft: '8px' }}>{`(Default: ${field.defaultValue}) `}</S.DefaultValue>}
+                                    {(required ?? !field.optional) && <RequiredFormInput />}
+                                    {getPrimaryInputType(field.types)?.ballerinaType && (
+                                        <S.Type style={{ marginLeft: '5px' }} isVisible={focused} title={getPrimaryInputType(field.types)?.ballerinaType}>
+                                            {sanitizeType(getPrimaryInputType(field.types)?.ballerinaType)}
+                                        </S.Type>
+                                    )}
+                                </S.LabelContainer>
+                            </S.HeaderContainer>
+                        )}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                            <div style={{ flex: 1, minWidth: 0 }}>
                                 <S.EditorMdContainer>
                                     {documentation && <ReactMarkdown>{documentation}</ReactMarkdown>}
                                 </S.EditorMdContainer>
