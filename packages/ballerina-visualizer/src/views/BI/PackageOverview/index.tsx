@@ -564,8 +564,12 @@ function LocalICPDeployment() {
     const [serverBusy, setServerBusy] = useState(false);
 
     const refreshStatus = async () => {
-        const res = await rpcClient.getICPRpcClient().isICPServerRunning({ projectPath: '' });
-        setServerRunning(!!res.enabled);
+        try {
+            const res = await rpcClient.getICPRpcClient().isICPServerRunning({ projectPath: '' });
+            setServerRunning(!!res.enabled);
+        } catch (err) {
+            console.error('[ICP] Failed to refresh ICP server status:', err);
+        }
     };
 
     useEffect(() => {
@@ -582,6 +586,8 @@ function LocalICPDeployment() {
                 commands: [serverRunning ? 'ballerina.icp.stop' : 'ballerina.icp.start']
             });
             await refreshStatus();
+        } catch (err) {
+            console.error('[ICP] Failed to toggle ICP server:', err);
         } finally {
             setServerBusy(false);
         }
@@ -589,7 +595,9 @@ function LocalICPDeployment() {
 
     const handleViewInICP = (e: React.MouseEvent) => {
         e.stopPropagation();
-        rpcClient.getICPRpcClient().viewInICP({ projectPath: '' });
+        rpcClient.getICPRpcClient().viewInICP({ projectPath: '' }).catch((err) => {
+            console.error('[ICP] Failed to open ICP dashboard:', err);
+        });
     };
 
     return (
