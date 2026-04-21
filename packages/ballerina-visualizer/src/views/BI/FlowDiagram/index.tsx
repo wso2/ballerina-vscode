@@ -1777,7 +1777,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             }
             if (
                 editorConfig.displayMode !== EditorDisplayMode.NONE &&
-                (editorConfig.view === MACHINE_VIEW.DataMapper || editorConfig.view === MACHINE_VIEW.InlineDataMapper)
+                editorConfig.view === MACHINE_VIEW.DataMapper
             ) {
                 return { artifactType: DIRECTORY_MAP.DATA_MAPPER };
             }
