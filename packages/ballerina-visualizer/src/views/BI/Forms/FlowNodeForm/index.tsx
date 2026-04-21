@@ -179,36 +179,6 @@ interface FlowNodeFormProps {
     defaultExpandAdvanced?: boolean;
 }
 
-type RepeatableMapEntry = {
-    key: string;
-    value: string;
-};
-
-const getRepeatableMapEntriesFromValue = (value: unknown): RepeatableMapEntry[] => {
-    if (typeof value === "string") {
-        return stringToRawObjectEntries(value);
-    }
-
-    if (value && typeof value === "object" && !Array.isArray(value)) {
-        return Object.entries(value as Record<string, any>).map(([entryKey, entryValue]) => ({
-            key: entryKey,
-            value: typeof entryValue === "object" && entryValue !== null
-                ? String((entryValue as any).value ?? "")
-                : String(entryValue ?? "")
-        }));
-    }
-
-    return [];
-};
-
-const getRepeatableMapDiagnosticsByKey = (value: unknown): Record<string, any> | undefined => {
-    if (value && typeof value === "object" && !Array.isArray(value)) {
-        return value as Record<string, any>;
-    }
-
-    return undefined;
-};
-
 // Styled component for the action button description
 const ActionButtonDescription = styled.div`
     font-size: var(--vscode-font-size);
@@ -570,6 +540,7 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
             const updatedField = { ...field };
 
             const isRepeatableList = field.types?.length === 1 && getPrimaryInputType(field.types)?.fieldType === "REPEATABLE_LIST";
+            const isRepeatableMap = field.types?.length === 1 && getPrimaryInputType(field.types)?.fieldType === "REPEATABLE_MAP";
             const selectedInputType = isRepeatableList ? getPrimaryInputType(field.types) : field.types?.find(t => t.selected);
             const isContainingRepeatableList = field.types?.some(t => t.fieldType === "REPEATABLE_LIST");
             const isContainingRepeatableMap = field.types?.some(t => t.fieldType === "REPEATABLE_MAP");
@@ -608,27 +579,37 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                 }
 
                 else if (isContainingRepeatableMap) {
-                    // Diagnostics responses do not preserve a single map shape consistently.
-                    // Optional maps may omit `value`, while populated maps can come back either
-                    // as editor-friendly objects or as serialized source strings.
-                    const repeatableMapDiagnostics = getRepeatableMapDiagnosticsByKey(nodeProperties?.[field.key]?.value);
+                    if (!(typeof nodeProperties?.[field.key]?.value === "object")) {
+                        throw new Error(`Expected value for repeatable map field "${field.key}" to be an object, but got ${typeof nodeProperties?.[field.key]?.value}.`);
+                    }
                     if (selectedInputType?.fieldType === "REPEATABLE_MAP") {
-                        const initialValues = getRepeatableMapEntriesFromValue(data[field.key]);
+                        let initialValues: { key: string; value: string }[];
+                        if (typeof data[field.key] === 'string') {
+                            initialValues = stringToRawObjectEntries(data[field.key]);
+                        } else {
+                            // When the value is an object (from FormMapEditorNew), extract entries directly
+                            initialValues = Object.entries(data[field.key] as Record<string, any>).map(([entryKey, entryVal]) => ({
+                                key: entryKey,
+                                value: typeof entryVal === 'object' && entryVal !== null ? String((entryVal as any).value ?? '') : String(entryVal)
+                            }));
+                        }
                         // Keep value as a Record to match processToOutputFormat shape expected by FormMapEditorNew
                         const outputRecord: Record<string, unknown> = {};
                         initialValues.forEach((val) => {
                             const key = crypto.randomUUID();
+                            propertyDiagnostics = nodeProperties?.[field.key]?.value?.[val.key]?.diagnostics?.diagnostics ?? [];
                             outputRecord[val.key] = {
                                 ...getArraySubFormFieldFromTypes(key, (field.types[0] as any).template.types as InputType[]),
                                 key: `mp-val-${key}`,
                                 value: val.value,
-                                diagnostics: repeatableMapDiagnostics?.[val.key]?.diagnostics?.diagnostics ?? []
+                                diagnostics: nodeProperties?.[field.key]?.value?.[val.key]?.diagnostics?.diagnostics ?? []
                             };
                         });
                         updatedField.value = outputRecord;
                     }
                     else {
                         updatedField.value = data[field.key];
+                        propertyDiagnostics = nodeProperties?.[field.key]?.value?.map((val: any) => val?.diagnostics?.diagnostics ?? []).flat() ?? [];
                     }
                 }
                 else {
@@ -644,19 +625,6 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                 const collectedDiagnostics = (
                     nodeProperties?.[field.key]?.value?.map((val: any) => val?.diagnostics?.diagnostics) ?? []
                 ).flat().filter(Boolean) as Array<{ message?: string; severity?: string }>;
-
-                propertyDiagnostics = collectedDiagnostics.filter((d, i, arr) =>
-                    arr.findIndex(x => x.message === d.message) === i
-                );
-            }
-
-            if (isContainingRepeatableMap && !(Array.isArray(propertyDiagnostics) && propertyDiagnostics.length > 0)) {
-                const collectedDiagnostics = Object.values(
-                    getRepeatableMapDiagnosticsByKey(nodeProperties?.[field.key]?.value) ?? {}
-                )
-                    .map((value: any) => value?.diagnostics?.diagnostics)
-                    .flat()
-                    .filter(Boolean) as Array<{ message?: string; severity?: string }>;
 
                 propertyDiagnostics = collectedDiagnostics.filter((d, i, arr) =>
                     arr.findIndex(x => x.message === d.message) === i
