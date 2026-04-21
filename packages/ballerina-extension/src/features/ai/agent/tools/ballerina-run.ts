@@ -86,7 +86,7 @@ export function createBallerinaRunTool(
     });
 }
 
-async function executeRun(
+export async function executeRun(
     input: z.infer<typeof BallerinaRunInputSchema>,
     tempProjectPath: string,
     runningServices: RunningServicesManager

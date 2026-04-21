@@ -55,6 +55,7 @@ import {
     ClarifyCancelRequest,
     RunningServiceInfo,
     StopRunningServiceRequest,
+    RunServiceRequest,
 } from "./interfaces";
 
 export interface AIPanelAPI {
@@ -135,4 +136,5 @@ export interface AIPanelAPI {
     // ==================================
     getRunningServices: () => Promise<RunningServiceInfo[]>;
     stopRunningService: (params: StopRunningServiceRequest) => Promise<boolean>;
+    runService: (params: RunServiceRequest) => Promise<boolean>;
 }
