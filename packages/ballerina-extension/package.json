@@ -264,13 +264,22 @@
                 "ballerina.copilot.checkpoints.ignorePatterns": {
                     "type": "array",
                     "default": [
-                        ".git/**",
-                        "target/**",
-                        "build/**",
-                        "dist/**",
-                        ".vscode/**",
-                        "*.log",
-                        ".DS_Store"
+                        "**/node_modules/**",
+                        "**/.git/**",
+                        "**/target/**",
+                        "**/build/**",
+                        "**/dist/**",
+                        "**/.vscode/**",
+                        "**/*.log",
+                        "**/.DS_Store",
+                        "**/*.jar",
+                        "**/*.class",
+                        "**/*.bala",
+                        "**/*.zip",
+                        "**/*.rar",
+                        "**/*.war",
+                        "**/*.tar",
+                        "**/*.gz"
                     ],
                     "description": "File patterns to ignore when creating checkpoints."
                 },
