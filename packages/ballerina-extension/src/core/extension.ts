@@ -2548,7 +2548,7 @@ export class BallerinaExtension {
      * Sends a download-progress notification to the webview via RPC and also fires
      * the VSCode-style event so that other extensions (e.g. WI) can subscribe.
      */
-    private notifyDownloadProgress(res: DownloadProgress): void {
+    public notifyDownloadProgress(res: DownloadProgress): void {
         RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
         this._downloadProgressEmitter.fire(res);
     }
