@@ -685,6 +685,31 @@ export class ChatStateStorage {
         for (const generation of thread.generations) {
             if (generation.modelMessages && generation.modelMessages.length > 0) {
                 messages.push(...generation.modelMessages);
+                continue;
+            }
+            // Aborted before modelMessages were persisted — synthesize from userPrompt/uiResponse.
+            if (!generation.userPrompt) {
+                continue;
+            }
+            if (generation.uiResponse) {
+                messages.push({ role: "user", content: generation.userPrompt });
+                messages.push({ role: "assistant", content: generation.uiResponse });
+                messages.push({
+                    role: "user",
+                    content:
+                        `<system-reminder>\n` +
+                        `The previous assistant response was rendered to the user but the request was interrupted before any tool calls, file edits, or tasks were executed. Any actions described were NOT performed — redo them if still required.\n` +
+                        `</system-reminder>`,
+                });
+            } else {
+                messages.push({
+                    role: "user",
+                    content:
+                        `${generation.userPrompt}\n\n` +
+                        `<system-reminder>\n` +
+                        `The previous user message was interrupted before the assistant could respond. No tool calls or file edits were performed.\n` +
+                        `</system-reminder>`,
+                });
             }
         }
 
