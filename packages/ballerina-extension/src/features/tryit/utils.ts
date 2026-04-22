@@ -19,6 +19,7 @@
 import { exec, execSync } from 'child_process';
 import { debug } from '../../utils';
 import * as os from 'os';
+import * as fs from 'fs';
 import * as vscode from 'vscode';
 
 export const TRYIT_TEMPLATE = `/*
@@ -144,9 +145,19 @@ export interface Process {
 }
 
 export function findRunningBallerinaProcesses(projectPath: string): Promise<Process[]> {
+    // Resolve to the canonical path so the search matches the path the JVM
+    // recorded for -XX:HeapDumpPath, which can differ in case on case-insensitive
+    // filesystems (macOS APFS, Windows NTFS).
+    let resolvedPath = projectPath;
+    try {
+        resolvedPath = fs.realpathSync.native(projectPath);
+    } catch {
+        // Fall back to the original path if it can't be resolved
+    }
+
     // Execute the 'ps' command to retrieve running processes with command
     return new Promise((resolve, reject) => {
-        exec(getPSCommand(platform, `-XX:HeapDumpPath=${projectPath}`), (error, stdout) => {
+        exec(getPSCommand(platform, `-XX:HeapDumpPath=${resolvedPath}`), (error, stdout) => {
             if (error) {
                 debug(`Failed to detect running Ballerina processes: ${error.message}`);
                 return reject(error);
