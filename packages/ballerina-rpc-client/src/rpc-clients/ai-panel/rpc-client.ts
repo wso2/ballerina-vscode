@@ -115,6 +115,8 @@ import {
     stopRunningService,
     RunningServiceInfo,
     StopRunningServiceRequest,
+    RunServiceRequest,
+    runService,
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -354,5 +356,9 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     stopRunningService(params: StopRunningServiceRequest): Promise<boolean> {
         return this._messenger.sendRequest(stopRunningService, HOST_EXTENSION, params);
+    }
+
+    runService(params: RunServiceRequest): Promise<boolean> {
+        return this._messenger.sendRequest(runService, HOST_EXTENSION, params);
     }
 }

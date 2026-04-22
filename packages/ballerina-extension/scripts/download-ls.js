@@ -9,10 +9,33 @@ const LS_DIR = path.join(PROJECT_ROOT, 'ls');
 const GITHUB_REPO_URL = 'https://api.github.com/repos/ballerina-platform/ballerina-language-server';
 
 const args = process.argv.slice(2);
-const usePrerelease = args.includes('--prerelease') || process.env.isPreRelease === 'true';
-const forceReplace = args.includes('--replace');
 
-function checkExistingJar() {
+function getTag() {
+    const tagIdx = args.indexOf('--tag');
+    if (tagIdx !== -1) {
+        const value = args[tagIdx + 1];
+        if (!value || value.startsWith('-')) throw new Error('Missing or invalid value for --tag');
+        return { tag: value, explicit: true };
+    }
+    if (process.env.BALLERINA_LS_TAG) return { tag: process.env.BALLERINA_LS_TAG, explicit: true };
+    return { tag: 'latest', explicit: false };
+}
+
+const { tag, explicit: tagExplicit } = getTag();
+const forceReplace = args.includes('--replace');
+const resolveVersionOnly = args.includes('--resolve-version');
+
+function hasAnyJar() {
+    try {
+        if (!fs.existsSync(LS_DIR)) return false;
+        const files = fs.readdirSync(LS_DIR);
+        return files.some(file => file.includes('ballerina-language-server-') && file.endsWith('.jar'));
+    } catch (error) {
+        return false;
+    }
+}
+
+function checkExistingJar(expectedVersion) {
     try {
         if (!fs.existsSync(LS_DIR)) {
             return false;
@@ -21,11 +44,17 @@ function checkExistingJar() {
         const files = fs.readdirSync(LS_DIR);
         const jarFiles = files.filter(file => file.includes('ballerina-language-server-') && file.endsWith('.jar'));
 
-        if (jarFiles.length > 0) {
-            console.log(`Ballerina language server JAR already exists in ${path.relative(PROJECT_ROOT, LS_DIR)}`);
+        if (jarFiles.length === 0) {
+            return false;
+        }
+
+        const expectedJar = jarFiles.find(file => file === `ballerina-language-server-${expectedVersion}.jar`);
+        if (expectedJar) {
+            console.log(`Ballerina language server JAR for version ${expectedVersion} already exists in ${path.relative(PROJECT_ROOT, LS_DIR)}`);
             return true;
         }
 
+        console.log(`Existing JAR does not match requested version ${expectedVersion}; downloading.`);
         return false;
     } catch (error) {
         console.error('Error checking existing JAR files:', error.message);
@@ -146,9 +175,8 @@ function getFileSize(filePath) {
     }
 }
 
-async function getLatestRelease(usePrerelease) {
-    if (usePrerelease) {
-        // Get all releases and find the latest prerelease
+async function getRelease(tag) {
+    if (tag === 'prerelease') {
         const releasesResponse = await httpsRequest(`${GITHUB_REPO_URL}/releases`);
         let releases;
         try {
@@ -156,7 +184,6 @@ async function getLatestRelease(usePrerelease) {
         } catch (error) {
             throw new Error('Failed to parse releases information JSON');
         }
-        // Sort releases by published_at date in descending order and find the latest prerelease
         const prerelease = releases
             .filter(release => release.prerelease)
             .sort((a, b) => new Date(b.published_at) - new Date(a.published_at))[0];
@@ -165,24 +192,73 @@ async function getLatestRelease(usePrerelease) {
             throw new Error('No prerelease found');
         }
         return prerelease;
+    } else if (tag === 'latest') {
+        try {
+            const releaseResponse = await httpsRequest(`${GITHUB_REPO_URL}/releases/latest`);
+            return JSON.parse(releaseResponse.data);
+        } catch (error) {
+            if (error.message.includes('404')) {
+                console.log('No stable release found via /releases/latest, searching for most recent stable release...');
+                const releasesResponse = await httpsRequest(`${GITHUB_REPO_URL}/releases?per_page=30`);
+                const releases = JSON.parse(releasesResponse.data);
+                const stable = releases.find(r => !r.prerelease && !r.draft);
+                if (stable) return stable;
+                throw new Error(
+                    'No stable release found. Use --tag (or BALLERINA_LS_TAG) to specify a version explicitly (e.g. --tag prerelease or --tag v1.5.0).'
+                );
+            }
+            throw error;
+        }
     } else {
-        // Get the latest stable release
-        const releaseResponse = await httpsRequest(`${GITHUB_REPO_URL}/releases/latest`);
+        // Specific version tag e.g. v1.5.0
+        const releaseResponse = await httpsRequest(`${GITHUB_REPO_URL}/releases/tags/${encodeURIComponent(tag)}`);
         try {
             return JSON.parse(releaseResponse.data);
         } catch (error) {
-            throw new Error('Failed to parse release information JSON');
+            throw new Error(`Failed to parse release information JSON for tag ${tag}`);
         }
+    }
+}
+
+async function resolveAndOutputVersion(tag) {
+    console.log(`Resolving Ballerina language server version for tag: ${tag}...`);
+    const releaseData = await getRelease(tag);
+    if (!releaseData?.tag_name) {
+        throw new Error('Invalid release data: missing tag_name');
+    }
+    const version = releaseData.tag_name;
+    console.log(`Resolved version: ${version}`);
+    if (process.env.GITHUB_OUTPUT) {
+        fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${version}\n`);
+    } else {
+        console.log(`::set-output name=version::${version}`);
     }
 }
 
 async function main() {
     try {
-        if (!forceReplace && checkExistingJar()) {
+        if (resolveVersionOnly) {
+            await resolveAndOutputVersion(tag);
             process.exit(0);
         }
 
-        console.log(`Downloading Ballerina language server${usePrerelease ? ' (prerelease)' : ''}${forceReplace ? ' (force replace)' : ''}...`);
+        // No explicit tag: any existing JAR is sufficient — skip network call
+        if (!forceReplace && !tagExplicit && hasAnyJar()) {
+            console.log(`Ballerina language server JAR already exists; skipping download (no version specified).`);
+            process.exit(0);
+        }
+
+        // For concrete tags: check cache before making any network request.
+        // Assumes asset filename convention: ballerina-language-server-${version}.jar
+        // where version = tag with leading 'v' stripped (e.g. v1.5.0 → 1.5.0).
+        if (!forceReplace && tag !== 'latest' && tag !== 'prerelease') {
+            const version = tag.startsWith('v') ? tag.slice(1) : tag;
+            if (checkExistingJar(version)) {
+                process.exit(0);
+            }
+        }
+
+        console.log(`Downloading Ballerina language server (tag: ${tag})${forceReplace ? ' (force replace)' : ''}...`);
 
         if (forceReplace && fs.existsSync(LS_DIR)) {
             console.log('Force replace enabled: clearing existing language server directory...');
@@ -194,7 +270,21 @@ async function main() {
         }
 
         console.log('Fetching release information...');
-        const releaseData = await getLatestRelease(usePrerelease);
+        const releaseData = await getRelease(tag);
+
+        if (!releaseData?.tag_name) {
+            throw new Error('Invalid release data: missing tag_name');
+        }
+
+        // For floating tags: resolve concrete version, then check cache
+        if (!forceReplace && (tag === 'latest' || tag === 'prerelease')) {
+            const concreteVersion = releaseData.tag_name.startsWith('v')
+                ? releaseData.tag_name.slice(1)
+                : releaseData.tag_name;
+            if (checkExistingJar(concreteVersion)) {
+                process.exit(0);
+            }
+        }
 
         const jarAsset = releaseData.assets?.find(asset =>
             asset.name.includes('ballerina-language-server-') &&
@@ -224,6 +314,15 @@ async function main() {
                 const relativePath = path.relative(PROJECT_ROOT, lsJarPath);
                 console.log(`Successfully downloaded Ballerina language server to ${relativePath}`);
                 console.log(`File size: ${fileSize} bytes`);
+
+                // Remove stale JARs (keep only the one just downloaded)
+                const staleJars = fs.readdirSync(LS_DIR).filter(f =>
+                    f.includes('ballerina-language-server-') && f.endsWith('.jar') && f !== jarAsset.name
+                );
+                staleJars.forEach(f => {
+                    fs.unlinkSync(path.join(LS_DIR, f));
+                    console.log(`Removed stale JAR: ${f}`);
+                });
             } else {
                 throw new Error('Downloaded file is empty');
             }
@@ -241,4 +340,5 @@ if (require.main === module) {
     main();
 }
 
-module.exports = { main, checkExistingJar }; 
+module.exports = { main, checkExistingJar, getRelease };
+

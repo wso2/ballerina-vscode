@@ -28,6 +28,7 @@ const fs = require('fs');
 import path from 'path';
 import { EvaluationReportWebview } from '../../views/evaluation-report/webview';
 import { captureGitState, createSnapshot, pinSnapshot, ensureEvalReportsGitignored } from '../../utils/git-utils';
+import { quoteShellPath } from '../../utils/config';
 
 /**
  * Extract project path from a test item
@@ -118,14 +119,14 @@ function buildTestCommand(test: TestItem, executor: string, projectName: string 
         const projectPath = getProjectPathFromTestItem(test);
         if (projectPath) { ensureEvalReportsGitignored(projectPath); }
         const testsPart = testCaseNames && testCaseNames.length > 0 ? ` --tests ${testCaseNames.join(',')}` : '';
-        const projectPart = projectName ? ` ${projectName}` : '';
+        const projectPart = projectName ? ` ${quoteShellPath(projectName)}` : '';
         const reportDir = projectName ? `${projectName}/tests/evaluation-reports` : 'tests/evaluation-reports';
-        return `${executor} test --groups ${EVALUATION_GROUP} --test-report --test-report-dir=${reportDir}${testsPart}${projectPart}`;
+        return `${quoteShellPath(executor)} test --groups ${EVALUATION_GROUP} --test-report --test-report-dir=${quoteShellPath(reportDir)}${testsPart}${projectPart}`;
     } else {
         // Standard tests use code coverage and optional test filtering
         const testsPart = testCaseNames && testCaseNames.length > 0 ? ` --tests ${testCaseNames.join(',')}` : '';
-        const projectPart = projectName ? ` ${projectName}` : '';
-        return `${executor} test --code-coverage${testsPart}${projectPart}`;
+        const projectPart = projectName ? ` ${quoteShellPath(projectName)}` : '';
+        return `${quoteShellPath(executor)} test --code-coverage${testsPart}${projectPart}`;
     }
 }
 

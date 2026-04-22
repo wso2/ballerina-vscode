@@ -543,6 +543,13 @@ export interface RunningServiceInfo {
 export interface StopRunningServiceRequest {
     taskId: string;
 }
+
+export interface RunServiceRequest {
+    /** Relative path from workspace root to the package to run (undefined if running from workspace root). */
+    packagePath?: string;
+    /** Absolute path to the temp directory containing the package. */
+    tempProjectPath: string;
+}
 // ==================================
 // Compaction Related Interfaces
 // ==================================
