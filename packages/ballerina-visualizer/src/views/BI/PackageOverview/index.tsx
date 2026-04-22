@@ -477,7 +477,7 @@ function DeploymentOptions({
                         isExpanded={expandedOptions.has("devant")}
                         onToggle={() => toggleOption("devant")}
                         onDeploy={isDeployed ? () => goToDevant() : handleDeploy}
-                        learnMoreLink={"https://wso2.com/devant/docs"}
+                        learnMoreLink={"https://wso2.com/devant/docs/"}
                         hasDeployableIntegration={hasDeployableIntegration}
                         secondaryAction={
                             isDeployed && platformExtState?.hasLocalChanges

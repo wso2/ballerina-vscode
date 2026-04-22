@@ -494,7 +494,7 @@ function DeploymentOptions({
                         isExpanded={expandedOptions.has("cloud")}
                         onToggle={() => toggleOption("cloud")}
                         onDeploy={primaryAction}
-                        learnMoreLink={"https://wso2.com/devant/docs"}
+                        learnMoreLink={"https://wso2.com/devant/docs/"}
                         hasDeployableIntegration={!isDeploymentDisabled}
                         disabledTooltip={disabledTooltip}
                         secondaryAction={secondaryAction}
