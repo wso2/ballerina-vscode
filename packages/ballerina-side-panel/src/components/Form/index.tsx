@@ -524,7 +524,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
 
             // First, preserve ALL existing form values
             Object.keys(formValues).forEach(key => {
-                if (formValues[key] !== undefined && formValues[key] !== "") {
+                if (formValues[key] !== undefined && formValues[key] !== "" && (Array.isArray(formValues[key]) ? formValues[key].length > 0 : true)) {
                     defaultValues[key] = formValues[key];
                 }
             });
@@ -537,7 +537,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                     } else if (isDropdownField(field)) {
                         defaultValues[field.key] = getValueForDropdown(field) ?? "";
                     } else if (field.type === "FLAG") {
-                         defaultValues[field.key] = field.value;
+                        defaultValues[field.key] = field.value;
                     } else if (typeof field.value === "string") {
                         defaultValues[field.key] = formatJSONLikeString(field.value) ?? "";
                     } else {
@@ -554,16 +554,19 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                         // Handle the case where the type is changed via 'Add Type'
                         const existingType = formValues[field.key];
                         const newType = field.value;
-
-                        if (existingType === "") {
-                            // User has explicitly cleared the type field; preserve the empty value
-                            defaultValues[field.key] = "";
-                        } else if (existingType !== newType) {
-                            setValue(field.key, newType);
+                        const isValueChanged = existingType !== newType;
+                        const isFieldDirty = dirtyFields?.[field.key];
+                        if (isValueChanged) {
+                            const newValue = isFieldDirty? existingType : newType;
+                            setValue(field.key, newValue);
+                            defaultValues[field.key] = newValue;
                             getVisualiableFields();
                         }
                         else if (newType === undefined) {
-                             defaultValues[field.key] = "";
+                            defaultValues[field.key] = "";
+                        }
+                        else {
+                            defaultValues[field.key] = newType;
                         }
                     }
 
