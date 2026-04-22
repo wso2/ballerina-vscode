@@ -23,4 +23,5 @@ export interface ICPServiceAPI {
     isIcpEnabled: (params: ICPEnabledRequest) => Promise<ICPEnabledResponse>;
     disableICP: (params: ICPEnabledRequest) => Promise<ICPEnabledResponse>;
     viewInICP: (params: ICPEnabledRequest) => Promise<ICPEnabledResponse>;
+    isICPServerRunning: (params: ICPEnabledRequest) => Promise<ICPEnabledResponse>;
 }
