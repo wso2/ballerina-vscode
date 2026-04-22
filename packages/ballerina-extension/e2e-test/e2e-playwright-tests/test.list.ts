@@ -105,7 +105,7 @@ test.beforeAll(async () => {
 test.describe(automation);
 
 // // <----Automation Run/Debug Test---->
-test.describe.only(automationRun);
+test.describe(automationRun);
 test.describe(automationDebug);
 
 // // <----Expression Editor Test---->
