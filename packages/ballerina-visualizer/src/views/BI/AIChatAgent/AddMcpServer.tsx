@@ -132,7 +132,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
         mcpToolKitNodeTemplateRef.current = template;
 
         if (editMode) {
-            setupEditMode(moduleNodes.flowModel.variables);
+            await setupEditMode(moduleNodes.flowModel.variables);
         } else {
             mcpToolKitNodeRef.current = template;
         }
