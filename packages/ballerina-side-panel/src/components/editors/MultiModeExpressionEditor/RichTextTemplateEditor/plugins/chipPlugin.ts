@@ -163,6 +163,10 @@ function createChipElement(
     const span = document.createElement('span');
     span.className = 'pm-chip';
 
+    if (metadata?.fullValue) {
+        span.title = metadata.fullValue;
+    }
+
     // Determine display text
     let displayText = getChipDisplayContent(type, text);
     if (type === TokenType.DOCUMENT) {
