@@ -19,10 +19,12 @@
 package io.ballerina.flowmodelgenerator.core;
 
 import com.google.gson.Gson;
+import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -77,12 +79,18 @@ class AiComponentDiskCache {
             if (!Files.exists(file)) {
                 return Optional.empty();
             }
-            try (Reader reader = Files.newBufferedReader(file)) {
+            try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
                 ModuleCache moduleCache = gson.fromJson(reader, ModuleCache.class);
-                if (moduleCache == null || moduleCache.schemaVersion != SCHEMA_VERSION) {
+                if (moduleCache == null || moduleCache.schemaVersion != SCHEMA_VERSION
+                        || moduleCache.components == null) {
                     return Optional.empty();
                 }
-                return Optional.of(moduleCache.components != null ? moduleCache.components : List.of());
+                for (CachedComponent c : moduleCache.components) {
+                    if (!isValid(c)) {
+                        return Optional.empty();
+                    }
+                }
+                return Optional.of(moduleCache.components);
             }
         } catch (IOException | RuntimeException e) {
             LOGGER.log(Level.FINE, "Failed to read AI component cache for " + org + ":" + name + ":" + version, e);
@@ -107,7 +115,7 @@ class AiComponentDiskCache {
             Files.createDirectories(cacheDirectory);
             Path target = cacheDirectory.resolve(toFileName(org, name, version));
             Path temp = Files.createTempFile(cacheDirectory, "tmp_", ".json");
-            try (Writer writer = Files.newBufferedWriter(temp)) {
+            try (Writer writer = Files.newBufferedWriter(temp, StandardCharsets.UTF_8)) {
                 gson.toJson(new ModuleCache(SCHEMA_VERSION, components), writer);
             }
             try {
@@ -124,6 +132,19 @@ class AiComponentDiskCache {
 
     private static String toFileName(String org, String name, String version) {
         return (org + "_" + name + "_" + version).replace(".", "-") + ".json";
+    }
+
+    private static boolean isValid(CachedComponent c) {
+        if (c == null || c.className() == null || c.label() == null
+                || c.description() == null || c.category() == null || c.symbol() == null) {
+            return false;
+        }
+        try {
+            NodeKind.valueOf(c.category());
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 
     record CachedComponent(String className, String label, String description,
