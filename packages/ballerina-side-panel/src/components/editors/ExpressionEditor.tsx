@@ -142,7 +142,7 @@ export namespace S {
     export const HeaderRow = styled.div({
         display: 'flex',
         justifyContent: 'space-between',
-        alignItems: 'flex-start',
+        alignItems: 'flex-end',
         gap: '8px'
     });
 
