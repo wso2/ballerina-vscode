@@ -144,15 +144,15 @@ export interface Process {
     ports: number[];
 }
 
+const canonicalPathCache = new Map<string, string>();
+
 export function findRunningBallerinaProcesses(projectPath: string): Promise<Process[]> {
-    // Resolve to the canonical path so the search matches the path the JVM
-    // recorded for -XX:HeapDumpPath, which can differ in case on case-insensitive
-    // filesystems (macOS APFS, Windows NTFS).
-    let resolvedPath = projectPath;
-    try {
-        resolvedPath = fs.realpathSync.native(projectPath);
-    } catch {
-        // Fall back to the original path if it can't be resolved
+    // Match the canonical path the JVM records for -XX:HeapDumpPath
+    // (case-insensitive filesystems can hand us a differently-cased path).
+    let resolvedPath = canonicalPathCache.get(projectPath);
+    if (!resolvedPath) {
+        try { resolvedPath = fs.realpathSync.native(projectPath); } catch { resolvedPath = projectPath; }
+        canonicalPathCache.set(projectPath, resolvedPath);
     }
 
     // Execute the 'ps' command to retrieve running processes with command
