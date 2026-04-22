@@ -21,6 +21,7 @@ import { Control, Controller, FieldValues, UseFormWatch, UseFormSetValue } from 
 import styled from '@emotion/styled';
 import {
     Button,
+    Codicon,
     CompletionItem,
     ErrorBanner,
     FormExpressionEditorRef,
@@ -698,6 +699,8 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                     render={({ field: { name, value, onChange }, fieldState: { error } }) => {
                         return (
                             <div>
+                                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
                                 <ExpressionField
                                     field={field}
                                     inputMode={inputMode}
@@ -759,7 +762,6 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     onBlur={handleBlur}
                                     onSave={handleSave}
                                     onCancel={onCancel}
-                                    onRemove={onRemove}
                                     isHelperPaneOpen={isHelperPaneOpen}
                                     changeHelperPaneState={handleChangeHelperPaneState}
                                     getHelperPane={handleGetHelperPane}
@@ -773,6 +775,18 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     onOpenExpandedMode={onOpenExpandedMode}
                                     isInExpandedMode={isExpandedModalOpen}
                                 />
+                                    </div>
+                                    {onRemove && (
+                                        <Button
+                                            appearance="icon"
+                                            onClick={onRemove}
+                                            tooltip="Remove"
+                                            sx={{ marginTop: '2px', flexShrink: 0 }}
+                                        >
+                                            <Codicon name="trash" sx={{ color: ThemeColors.ERROR }} />
+                                        </Button>
+                                    )}
+                                </div>
                                 {error ?
                                     <ErrorBanner errorMsg={error.message.toString()} /> :
                                     formDiagnostics && formDiagnostics.length > 0 &&
