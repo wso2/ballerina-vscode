@@ -840,8 +840,8 @@ export function ArtifactForm(props: ArtifactFormProps) {
             const updatedFields = fieldsValues.map(field => {
                 if (field.key === typeEditorState.field.key) {
                     // Only handle parameter type if editingField is a parameter
-                    if (typeEditorState.field.type === 'PARAM_MANAGER'
-                        && field.type === 'PARAM_MANAGER'
+                    if (typeEditorState.field.type === 'REPEATABLE_PROPERTY'
+                        && field.type === 'REPEATABLE_PROPERTY'
                         && field.paramManagerProps.formFields
                         && stack.length === 1
                     ) {
