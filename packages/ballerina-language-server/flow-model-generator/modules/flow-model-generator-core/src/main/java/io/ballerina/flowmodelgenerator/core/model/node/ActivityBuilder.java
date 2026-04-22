@@ -45,8 +45,12 @@ public class ActivityBuilder extends FunctionDefinitionBuilder {
     public static final String ACTIVITY_ANNOTATION = "@workflow:Activity";
     public static final String ACTIVITY_NAME = "activity";
 
+    public static Property getActivityParamSchema() {
+        return ParameterSchemaHolder.PARAMETER_SCHEMA;
+    }
+
     public Property getParamSchema() {
-        return ActivityBuilder.ParameterSchemaHolder.PARAMETER_SCHEMA;
+        return getActivityParamSchema();
     }
 
     @Override

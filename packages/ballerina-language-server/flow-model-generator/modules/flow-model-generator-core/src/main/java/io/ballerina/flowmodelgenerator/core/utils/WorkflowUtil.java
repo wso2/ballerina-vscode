@@ -23,19 +23,26 @@ import io.ballerina.compiler.api.symbols.AnnotationAttachmentSymbol;
 import io.ballerina.compiler.api.symbols.AnnotationSymbol;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
 import io.ballerina.compiler.api.symbols.ModuleSymbol;
+import io.ballerina.compiler.api.symbols.ParameterSymbol;
+import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
+import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
+import io.ballerina.compiler.api.symbols.TypeDescKind;
+import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
+import io.ballerina.flowmodelgenerator.core.Constants;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.projects.Document;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextRange;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.ACTIVITY;
@@ -152,5 +159,37 @@ public class WorkflowUtil {
             }
         }
         return null;
+    }
+
+    public static boolean isValidDataType(TypeSymbol typeSymbol) {
+        typeSymbol = TypeUtils.resolveTypeReference(typeSymbol);
+        TypeDescKind kind = typeSymbol.typeKind();
+
+        // Must be a record type
+        if (kind != TypeDescKind.RECORD) {
+            return false;
+        }
+
+        // Check that it's a RecordTypeSymbol and all fields are future types
+        Map<String, RecordFieldSymbol> fields = ((RecordTypeSymbol) typeSymbol).fieldDescriptors();
+        if (fields.isEmpty()) {
+            // Empty record is not a valid data record
+            return false;
+        }
+
+        for (RecordFieldSymbol field : fields.values()) {
+            TypeSymbol fieldType = TypeUtils.resolveTypeReference(field.typeDescriptor());
+            if (fieldType.typeKind() != TypeDescKind.FUTURE) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public static boolean isWorkflowContextParameter(ParameterSymbol paramSymbol) {
+        TypeSymbol typeDesc = paramSymbol.typeDescriptor();
+        return WorkflowUtil.isWorkflowModule(typeDesc.getModule())
+                && typeDesc.getName().map(Constants.Workflow.CONTEXT_CLASS_NAME::equals).orElse(false);
     }
 }

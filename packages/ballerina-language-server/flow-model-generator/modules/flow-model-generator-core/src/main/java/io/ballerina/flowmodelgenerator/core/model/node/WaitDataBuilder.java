@@ -415,7 +415,7 @@ public class WaitDataBuilder extends CallBuilder {
         Optional<Symbol> symbol = semanticModel.symbol(parameters.get(parameters.size() - 1));
         if (symbol.isPresent() && symbol.get().kind() == SymbolKind.PARAMETER) {
             ParameterSymbol paramSymbol = (ParameterSymbol) symbol.get();
-            if (isValidDataType(TypeUtils.resolveTypeReference(paramSymbol.typeDescriptor()))) {
+            if (WorkflowUtil.isValidDataType(TypeUtils.resolveTypeReference(paramSymbol.typeDescriptor()))) {
                 return Optional.of(paramSymbol);
             }
         }
@@ -691,31 +691,5 @@ public class WaitDataBuilder extends CallBuilder {
             Map<String, Property> nodeProperties = formBuilder.build();
             return nodeProperties.get("");
         }
-    }
-
-    private boolean isValidDataType(TypeSymbol typeSymbol) {
-        typeSymbol = TypeUtils.resolveTypeReference(typeSymbol);
-        TypeDescKind kind = typeSymbol.typeKind();
-
-        // Must be a record type
-        if (kind != TypeDescKind.RECORD) {
-            return false;
-        }
-
-        // Check that it's a RecordTypeSymbol and all fields are future types
-        Map<String, RecordFieldSymbol> fields = ((RecordTypeSymbol) typeSymbol).fieldDescriptors();
-        if (fields.isEmpty()) {
-            // Empty record is not a valid data record
-            return false;
-        }
-
-        for (RecordFieldSymbol field : fields.values()) {
-            TypeSymbol fieldType = TypeUtils.resolveTypeReference(field.typeDescriptor());
-            if (fieldType.typeKind() != TypeDescKind.FUTURE) {
-                return false;
-            }
-        }
-
-        return true;
     }
 }
