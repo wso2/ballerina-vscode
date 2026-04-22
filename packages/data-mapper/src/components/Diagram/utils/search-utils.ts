@@ -57,7 +57,7 @@ export const getSearchFilteredOutput = (outputType: IOType) => {
 
 		return {
 			...searchType,
-			memberType: {
+			member: {
 				...searchType.member,
 				fields: subFields || []
 			}
@@ -132,8 +132,7 @@ export function hasNoOutputMatchFound(outputType: IOType, filteredOutputType: IO
 	} else if (outputType.kind === TypeKind.Record && filteredOutputType.kind === TypeKind.Record) {
 		return filteredOutputType?.fields.length === 0;
 	} else if (outputType.kind === TypeKind.Array && filteredOutputType.kind === TypeKind.Array) {
-		const memberFields = (filteredOutputType as any).memberType?.fields ?? filteredOutputType.member?.fields;
-		return (memberFields?.length ?? 0) === 0;
+		return (filteredOutputType.member?.fields?.length ?? 0) === 0;
 	} else if ((outputType.kind === TypeKind.Json || outputType.kind === TypeKind.Xml) && outputType.convertedField) {
 		const convertedField = filteredOutputType.convertedField;
 		if (convertedField?.kind === TypeKind.Record) {
