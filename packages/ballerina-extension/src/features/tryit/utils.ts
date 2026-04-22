@@ -215,9 +215,9 @@ function getServicePorts(pid: string): number[] {
 function getPSCommand(platform: string, searchStr: string): string {
     switch (platform) {
         case 'darwin':
-            return `ps -A -o comm,pid,command | grep -ie "${searchStr}"`;
+            return `ps -A -o comm,pid,command | grep -iF -e "${searchStr}"`;
         case 'linux':
-            return `ps -A -o comm,pid,cmd | grep -ie "${searchStr}"`;
+            return `ps -A -o comm,pid,cmd | grep -iF -e "${searchStr}"`;
         case 'win32':
             return `powershell -command "Get-CimInstance -query \\"select * from win32_process WHERE commandLine LIKE '%${searchStr.replaceAll("\\", "\\\\")}%'\\" | Format-Table Name,ProcessId,commandLine | Out-String -Width 512"`;
         default:
