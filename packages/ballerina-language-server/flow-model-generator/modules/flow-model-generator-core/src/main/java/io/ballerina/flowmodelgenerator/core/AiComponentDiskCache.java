@@ -57,7 +57,11 @@ class AiComponentDiskCache {
     private final AtomicBoolean diskAvailable;
 
     AiComponentDiskCache() {
-        this.cacheDirectory = Path.of(System.getProperty("java.io.tmpdir"), CACHE_DIR_NAME);
+        this(Path.of(System.getProperty("java.io.tmpdir"), CACHE_DIR_NAME));
+    }
+
+    AiComponentDiskCache(Path cacheDirectory) {
+        this.cacheDirectory = cacheDirectory;
         this.gson = new Gson();
         this.diskAvailable = new AtomicBoolean(true);
     }
