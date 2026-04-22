@@ -693,12 +693,12 @@ export function ArtifactForm(props: ArtifactFormProps) {
                     const field = fieldsRef.current.find(f => f.key === key);
                     if (field) {
                         const propertyPrimaryFieldType = getPrimaryInputType(property.types);
-                        if (property.types.length>1 && propertyPrimaryFieldType.fieldType !== "REPEATABLE_LIST" && propertyPrimaryFieldType.fieldType !== "REPEATABLE_MAP") {
+                        if (property.types.length > 1 && propertyPrimaryFieldType.fieldType !== "REPEATABLE_LIST" && propertyPrimaryFieldType.fieldType !== "REPEATABLE_MAP") {
                             property.types.forEach(t => {
                                 if (t.fieldType === "EXPRESSION") {
                                     t.selected = true;
                                 }
-                                else{
+                                else {
                                     t.selected = false;
                                 }
                             });
@@ -840,9 +840,9 @@ export function ArtifactForm(props: ArtifactFormProps) {
             const updatedFields = fieldsValues.map(field => {
                 if (field.key === typeEditorState.field.key) {
                     // Only handle parameter type if editingField is a parameter
-                    if (typeEditorState.field.type === 'REPEATABLE_PROPERTY'
-                        && field.type === 'REPEATABLE_PROPERTY'
-                        && field.paramManagerProps.formFields
+                    if ((typeEditorState.field.type === 'REPEATABLE_PROPERTY' || typeEditorState.field.type === 'PARAM_MANAGER')
+                        && (field.type === 'REPEATABLE_PROPERTY' || field.type === 'PARAM_MANAGER')
+                        && field.paramManagerProps?.formFields
                         && stack.length === 1
                     ) {
                         return {
