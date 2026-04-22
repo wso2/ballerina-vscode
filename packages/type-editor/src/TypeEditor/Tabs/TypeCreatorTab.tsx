@@ -356,7 +356,7 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
         });
 
         const response = await rpcClient.getBIDiagramRpcClient().getExpressionDiagnostics({
-            filePath: type?.codedata?.lineRange?.fileName || filePath,
+            filePath: projectPath + type?.codedata?.lineRange?.fileName || filePath,
             context: {
                 expression: value,
                 startLine: {
