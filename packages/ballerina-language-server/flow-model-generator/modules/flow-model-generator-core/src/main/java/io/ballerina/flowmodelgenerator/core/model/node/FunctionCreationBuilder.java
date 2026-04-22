@@ -101,4 +101,9 @@ public class FunctionCreationBuilder extends DataMapperCreationBuilder {
     protected boolean isOutputOptional() {
         return true;
     }
+
+    @Override
+    protected boolean isInputsOptional() {
+        return true;
+    }
 }
