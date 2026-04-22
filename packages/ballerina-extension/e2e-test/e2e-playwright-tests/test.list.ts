@@ -101,57 +101,85 @@ test.beforeAll(async () => {
     }
 });
 
-// <----Automation Test---->
-test.describe(automation);
+test.describe('Ballerina E2E Group 1', { tag: '@group1' }, async () => {
+    // <----Automation Test---->
+    test.describe(automation);
 
-// // <----Automation Run/Debug Test---->
-test.describe(automationRun);
-test.describe(automationDebug);
+    // <----Automation Run Test---->
+    test.describe(automationRun);
 
-// // <----Expression Editor Test---->
-test.describe(expressionEditor);
+    // <----Expression Editor Test---->
+    test.describe(expressionEditor);
 
-// // <----AI Chat Service Test---->
-test.describe(aiChatService);
+    // <----Integration as API Test---->
+    test.describe(httpService);
 
-// // <----Integration as API Test---->
-test.describe(httpService);
-test.describe(graphqlService);
-test.describe(tcpService);
+    // <----Event Integration Test---->
+    test.describe(kafkaIntegration);
+    test.describe(azureIntegration);
 
-// <----Event Integration Test---->
-test.describe(kafkaIntegration);
-test.describe(rabbitmqIntegration);
-test.describe(mqttIntegration);
-test.describe(azureIntegration);
-test.describe(salesforceIntegration);
-test.describe(twillioIntegration);
-test.describe(githubIntegration);
+    // <----File Integration Test---->
+    test.describe(ftpIntegration);
+});
 
-// <----File Integration Test---->
-test.describe(ftpIntegration);
-test.describe(directoryIntegration);
+test.describe('Ballerina E2E Group 2', { tag: '@group2' }, async () => {
+    // <----Automation Debug Test---->
+    test.describe(automationDebug);
 
-// <----Other Artifacts Test---->
-test.describe(functionArtifact);
-test.describe.skip(naturalFunctionArtifact); // TODO: Enable this once the ballerina version is switchable
-test.describe(connectionArtifact);
-test.describe(configuration);
-test.describe(typeTest);
-test.describe(serviceTest);
+    // <----AI Chat Service Test---->
+    test.describe(aiChatService);
 
-// <----Import Integration Test---->
-test.describe.skip(importIntegration);
+    // <----Integration as API Test---->
+    test.describe(graphqlService);
 
-// <----Data Mapper Test---->
-test.describe(reusableDataMapper);
-test.describe.skip(inlineDataMapper); // Failing due to a issue
+    // <----Event Integration Test---->
+    test.describe(rabbitmqIntegration);
+    test.describe(salesforceIntegration);
 
-// <----Diagram Test---->
-test.describe(diagram);
+    // <----File Integration Test---->
+    test.describe(directoryIntegration);
 
-// <----Test Function Test---->
-test.describe(testFunction);
+    // <----Other Artifacts Test---->
+    test.describe(functionArtifact);
+});
+
+test.describe('Ballerina E2E Group 3', { tag: '@group3' }, async () => {
+    // <----Integration as API Test---->
+    test.describe(tcpService);
+
+    // <----Event Integration Test---->
+    test.describe(mqttIntegration);
+    test.describe(twillioIntegration);
+
+    // <----Other Artifacts Test---->
+    test.describe.skip(naturalFunctionArtifact); // TODO: Enable this once the ballerina version is switchable
+    test.describe(connectionArtifact);
+    test.describe(configuration);
+
+    // <----Import Integration Test---->
+    test.describe.skip(importIntegration);
+
+    // <----Data Mapper Test---->
+    test.describe(reusableDataMapper);
+});
+
+test.describe('Ballerina E2E Group 4', { tag: '@group4' }, async () => {
+    // <----Event Integration Test---->
+    test.describe(githubIntegration);
+
+    // <----Other Artifacts Test---->
+    test.describe(typeTest);
+    test.describe(serviceTest);
+
+    // <----Data Mapper Test---->
+    test.describe.skip(inlineDataMapper); // Failing due to a issue
+
+    // <----Diagram Test---->
+    test.describe(diagram);
+
+    // <----Test Function Test---->
+    test.describe(testFunction);
+});
 
 test.afterAll(async () => {
     console.log('\n' + '='.repeat(80));
