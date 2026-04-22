@@ -31,6 +31,11 @@ export const getSearchFilteredInput = (dmType: IOType, varName?: string) => {
 		if (filteredType) {
 			return filteredType
 		}
+	} else if ((dmType.kind === TypeKind.Json || dmType.kind === TypeKind.Xml) && dmType.convertedField) {
+		const filteredConvertedField = getFilteredSubFields(dmType.convertedField, searchValue);
+		if (filteredConvertedField) {
+			return { ...dmType, convertedField: filteredConvertedField };
+		}
 	}
 }
 
@@ -66,6 +71,12 @@ export const getSearchFilteredOutput = (outputType: IOType) => {
 			...searchType,
 			fields: subFields || []
 		}
+	} else if ((searchType.kind === TypeKind.Json || searchType.kind === TypeKind.Xml) && searchType.convertedField) {
+		const filteredConvertedField = getFilteredSubFields(searchType.convertedField, searchValue);
+		if (filteredConvertedField) {
+			return { ...searchType, convertedField: filteredConvertedField };
+		}
+		return { ...searchType, convertedField: { ...searchType.convertedField, fields: [] } };
 	}
 	return  null;
 }
@@ -121,7 +132,15 @@ export function hasNoOutputMatchFound(outputType: IOType, filteredOutputType: IO
 	} else if (outputType.kind === TypeKind.Record && filteredOutputType.kind === TypeKind.Record) {
 		return filteredOutputType?.fields.length === 0;
 	} else if (outputType.kind === TypeKind.Array && filteredOutputType.kind === TypeKind.Array) {
-		// Handle array output
+		const memberFields = (filteredOutputType as any).memberType?.fields ?? filteredOutputType.member?.fields;
+		return (memberFields?.length ?? 0) === 0;
+	} else if ((outputType.kind === TypeKind.Json || outputType.kind === TypeKind.Xml) && outputType.convertedField) {
+		const convertedField = filteredOutputType.convertedField;
+		if (convertedField?.kind === TypeKind.Record) {
+			return (convertedField.fields?.length ?? 0) === 0;
+		} else if (convertedField?.kind === TypeKind.Array) {
+			return (convertedField.member?.fields?.length ?? 0) === 0;
+		}
 	}
 	return false;
 }
