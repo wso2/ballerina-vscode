@@ -67,7 +67,7 @@ public class AiComponentDiskCacheTest {
         Assert.assertEquals(loaded.get(), components);
     }
 
-    @Test(description = "Verifies an empty component list persists and loads back as an empty list, not empty Optional.")
+    @Test(description = "Verifies an empty component list persists and loads back as an empty list, not as empty.")
     public void testEmptyListPersistsAndLoadsAsEmpty() {
         cache.save("ballerinax", "ai.empty", "1.0.0", List.of());
         Optional<List<CachedComponent>> loaded = cache.load("ballerinax", "ai.empty", "1.0.0");
@@ -85,7 +85,8 @@ public class AiComponentDiskCacheTest {
     @Test(description = "Verifies a cache file with corrupt JSON is treated as a miss rather than throwing.")
     public void testCorruptJsonReturnsEmpty() throws IOException {
         cache.save("ballerinax", "ai.corrupt", "1.0.0", List.of(
-                new CachedComponent("X", "label", "desc", NodeKind.MODEL_PROVIDER.name(), "init")));
+                new CachedComponent("X", "label", "desc", NodeKind.MODEL_PROVIDER.name(),
+                        "init")));
         Files.writeString(findCacheFile(), "{ not valid json");
 
         Optional<List<CachedComponent>> loaded = cache.load("ballerinax", "ai.corrupt", "1.0.0");
@@ -106,7 +107,8 @@ public class AiComponentDiskCacheTest {
     @Test(description = "Verifies load rejects the whole file when any cached component has a null required field.")
     public void testNullFieldInComponentRejectsFile() {
         List<CachedComponent> bad = List.of(
-                new CachedComponent(null, "label", "desc", NodeKind.MODEL_PROVIDER.name(), "init"));
+                new CachedComponent(null, "label", "desc", NodeKind.MODEL_PROVIDER.name(),
+                        "init"));
         cache.save("ballerinax", "ai.nulls", "1.0.0", bad);
 
         Optional<List<CachedComponent>> loaded = cache.load("ballerinax", "ai.nulls", "1.0.0");
@@ -117,7 +119,8 @@ public class AiComponentDiskCacheTest {
     @Test(description = "Verifies load rejects the whole file when any category is not a valid NodeKind name.")
     public void testUnknownCategoryRejectsFile() {
         List<CachedComponent> bad = List.of(
-                new CachedComponent("X", "label", "desc", "NOT_A_REAL_CATEGORY", "init"));
+                new CachedComponent("X", "label", "desc", "NOT_A_REAL_CATEGORY",
+                        "init"));
         cache.save("ballerinax", "ai.bogus", "1.0.0", bad);
 
         Optional<List<CachedComponent>> loaded = cache.load("ballerinax", "ai.bogus", "1.0.0");
@@ -134,10 +137,12 @@ public class AiComponentDiskCacheTest {
     @Test(description = "Verifies a save with a null version is a no-op and writes no files.")
     public void testNullVersionBypassesSave() throws IOException {
         cache.save("ballerinax", "ai.openai", null, List.of(
-                new CachedComponent("X", "l", "d", NodeKind.MODEL_PROVIDER.name(), "init")));
+                new CachedComponent("X", "l", "d", NodeKind.MODEL_PROVIDER.name(),
+                        "init")));
 
         try (var stream = Files.list(tempDir)) {
-            Assert.assertEquals(stream.count(), 0L, "save() with null version must not write any files");
+            Assert.assertEquals(stream.count(), 0L,
+                    "save() with null version must not write any files");
         }
     }
 
@@ -148,7 +153,8 @@ public class AiComponentDiskCacheTest {
         AiComponentDiskCache blockedCache = new AiComponentDiskCache(blockedCachePath);
         try {
             List<CachedComponent> components = List.of(
-                    new CachedComponent("X", "l", "d", NodeKind.MODEL_PROVIDER.name(), "init"));
+                    new CachedComponent("X", "l", "d", NodeKind.MODEL_PROVIDER.name(),
+                            "init"));
 
             // First save fails because the cache path is a regular file — disables the cache
             blockedCache.save("ballerinax", "ai.blocked", "1.0.0", components);
