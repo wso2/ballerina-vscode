@@ -1,0 +1,8 @@
+{
+  "description": "Test getting mqtt service init model when there are no existing listeners",
+  "filePath": "sample1/main.bal",
+  "orgName": "ballerina",
+  "pkgName": "mqtt",
+  "moduleName": "mqtt",
+  "response": {}
+}
