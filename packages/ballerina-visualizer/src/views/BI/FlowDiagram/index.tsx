@@ -20,7 +20,7 @@ import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { TraceAnimationEvent } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import styled from "@emotion/styled";
-import { removeMcpServerFromAgentNode, findAgentNodeFromAgentCallNode, findFlowNode } from "../AIChatAgent/utils";
+import { removeMcpServerFromAgentNode, findAgentNodeFromAgentCallNode, findFlowNode, removeAgentNode, confirmAgentCallDeletion } from "../AIChatAgent/utils";
 import { MemoizedDiagram, setTraceAnimationActive, setTraceAnimationInactive } from "@wso2/bi-diagram";
 import {
     BIAvailableNodesRequest,
@@ -1785,6 +1785,15 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     }
 
     const handleOnDeleteNode = async (node: FlowNode) => {
+        let shouldDeleteAgent = false;
+        if (node.codedata?.node === "AGENT_CALL") {
+            const result = await confirmAgentCallDeletion(rpcClient);
+            if (!result) {
+                return;
+            }
+            shouldDeleteAgent = result.shouldDeleteAgent;
+        }
+
         setShowProgressIndicator(true);
 
         const deleteNodeResponse = await rpcClient.getBIDiagramRpcClient().deleteFlowNode({
@@ -1796,6 +1805,13 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         }
 
         await updateArtifactLocation(deleteNodeResponse);
+
+        if (shouldDeleteAgent) {
+            const isAgentRemoved = await removeAgentNode(node, rpcClient);
+            if (!isAgentRemoved) {
+                console.error(">>> Failed to remove agent node after deleting agent call");
+            }
+        }
 
         selectedNodeRef.current = undefined;
         closeSidePanelAndFetchUpdatedFlowModel();
