@@ -26,7 +26,8 @@ import {
     InlineCardTitle,
     InlineCardSubtitle
 } from "./styles";
-import { Button } from "@wso2/ui-toolkit";
+import { Button, Confirm } from "@wso2/ui-toolkit";
+import { RunningServiceInfo } from "@wso2/ballerina-core";
 
 const HURL_IMPORT_VSCODE_COMMAND = "HTTPClient.importHurlString";
 // ── Styled components ─────────────────────────────────────────────────────────
@@ -248,6 +249,13 @@ const EditLoadingIcon = styled.span`
     line-height: 1;
 `;
 
+const ConfirmBackdrop = styled.div`
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.28);
+    z-index: 199;
+`;
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const formatJson = (value: unknown): string => {
@@ -428,18 +436,29 @@ const HTTPTestScenarioDetail: React.FC<HTTPTestScenarioDetailProps> = ({ loading
 
 // ── TryItCard ─────────────────────────────────────────────────────────────────
 
+interface RunningServiceTarget {
+    fullPackagePath: string;
+    tempProjectPath: string;
+    packagePath?: string;
+}
 interface TryItCardProps {
     input?: any;
-    output?: {hurlScript: string; scenario?: string; runResult: HurlToolOutput};
+    output?: {hurlScript: string; scenario?: string; runResult: HurlToolOutput; runningServiceTargets?: RunningServiceTarget[]};
     rpcClient?: any;
 }
 
 const TryItCard: React.FC<TryItCardProps> = ({ input, output, rpcClient }) => {
     const [isEditing, setIsEditing] = useState(false);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [confirmMessage, setConfirmMessage] = useState("");
+    const [confirmText, setConfirmText] = useState("Start");
+    const [servicesToStart, setServicesToStart] = useState<RunningServiceTarget[]>([]);
+    const confirmAnchorRef = React.useRef<HTMLDivElement>(null);
 
     if (!input?.hurlScript && !output?.hurlScript) return null;
     const hurlScript = input?.hurlScript ?? output?.hurlScript;
     const scenario = input?.scenario ?? output?.scenario;
+    const services = output?.runningServiceTargets ?? [];
     const handleEdit = async () => {
         if (!hurlScript || !rpcClient) {
             return;
@@ -448,9 +467,42 @@ const TryItCard: React.FC<TryItCardProps> = ({ input, output, rpcClient }) => {
         setIsEditing(true);
 
         try {
-            const commonRpcClient = rpcClient.getCommonRpcClient();
-
-            await commonRpcClient?.executeCommand?.({
+            if (services.length > 0) {
+                const currentServices:RunningServiceInfo[] = await rpcClient.getAiPanelRpcClient().getRunningServices();
+                const activeServices = currentServices.filter((s) => !s.exited);
+                const initialPackagePaths = Array.from(new Set(services.map(s => s.packagePath)));
+                const stoppedServices: RunningServiceTarget[] = [];
+                for (const initialPath of initialPackagePaths) {
+                    // packagePath is the service identity within a temp workspace, so duplicate
+                    // values are intentionally treated as the same restart target.
+                    const matchingTargets = services.filter(s => s.packagePath === initialPath);
+                    // If none of those targets are active, restart the last matching target.
+                    const isAnyTargetActive = matchingTargets.some(target => activeServices.some(service => service.packagePath === target.fullPackagePath));
+                    if (!isAnyTargetActive) {
+                        stoppedServices.push(matchingTargets[matchingTargets.length - 1]);
+                    }
+                }
+                if (stoppedServices.length > 0) {
+                    const notifyMessage = `${stoppedServices.length>1 ? 'Services have' : 'Service has'} stopped since this request was sent. Start ${stoppedServices.length>1 ? 'them' : 'it'} now?`;
+                    const startAllTitle = `Start ${stoppedServices.length>1 ? 'Services' : 'Service'}`;
+                    setConfirmMessage(notifyMessage);
+                    setConfirmText(startAllTitle);
+                    setServicesToStart(stoppedServices);
+                    setConfirmOpen(true);
+                    return;
+                }
+            }
+            await openEditor();
+        } catch (e) {
+            // eslint-disable-next-line no-console
+            console.error("Failed to invoke edit command", e);
+        } finally {
+            setIsEditing(false);
+        }
+    };
+    const openEditor = async () => {
+        const commonRpcClient = rpcClient.getCommonRpcClient();
+        await commonRpcClient?.executeCommand?.({
                 commands: ["workbench.action.focusFirstEditorGroup"]
             });
 
@@ -463,6 +515,22 @@ const TryItCard: React.FC<TryItCardProps> = ({ input, output, rpcClient }) => {
                      }
                 ]
             });
+    };
+
+    const handleRunAndEdit = async () => {
+        setConfirmOpen(false);
+        setIsEditing(true);
+        try {
+            for (const service of servicesToStart) {
+                const result = await rpcClient.getAiPanelRpcClient().runService({
+                    packagePath: service.packagePath,
+                    tempProjectPath: service.tempProjectPath,
+                });
+                if (!result) {
+                    return;
+                }
+            }
+            await openEditor();
         } catch (e) {
             // eslint-disable-next-line no-console
             console.error("Failed to invoke edit command", e);
@@ -491,6 +559,7 @@ const TryItCard: React.FC<TryItCardProps> = ({ input, output, rpcClient }) => {
                 <HeaderRightStack>
                     <HeaderActions>
                         <Button
+                            ref={confirmAnchorRef}
                             appearance="icon"
                             tooltip={isEditing ? "Opening in HTTP Client..." : "Edit in HTTP Client"}
                             onClick={handleEdit}
@@ -502,6 +571,27 @@ const TryItCard: React.FC<TryItCardProps> = ({ input, output, rpcClient }) => {
                                 <span className="codicon codicon-edit" />
                             )}
                         </Button>
+                        {confirmOpen && (
+                            <ConfirmBackdrop
+                                onClick={() => setConfirmOpen(false)}
+                            />
+                        )}
+                        <Confirm
+                            isOpen={confirmOpen}
+                            message={confirmMessage}
+                            confirmText={confirmText}
+                            anchorEl={confirmAnchorRef.current}
+                            onConfirm={(status) => {
+                                if (status) {
+                                    void handleRunAndEdit();
+                                    return;
+                                }
+                                setConfirmOpen(false);
+                            }}
+                            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                            transformOrigin={{ vertical: "top", horizontal: "right" }}
+                            sx={{ borderRadius: 6, zIndex: 200 }}
+                        />
                     </HeaderActions>
                 </HeaderRightStack>
             </InlineCardHeader>

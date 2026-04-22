@@ -52,6 +52,7 @@ import {
     MACHINE_VIEW,
     EditorDisplayMode,
     Imports,
+    getSecondaryInputType,
     DIRECTORY_MAP,
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -780,7 +781,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
     const hasAdvanceFields = formFields.some((field) => field.advanced && field.enabled && !field.hidden) || advancedChoiceFields.length > 0;
     const variableField = formFields.find((field) => field.key === "variable");
     const typeField = formFields.find((field) => getPrimaryInputType(field.types)?.fieldType === "TYPE");
-    const expressionField = formFields.find((field) => getPrimaryInputType(field.types)?.fieldType === "EXPRESSION");
+    const expressionField = formFields.find((field) => getSecondaryInputType(field.types)?.fieldType === "EXPRESSION" || getPrimaryInputType(field.types)?.fieldType === "ACTION_OR_EXPRESSION");
     const targetTypeField = formFields.find((field) => field.codedata?.kind === "PARAM_FOR_TYPE_INFER");
     const hasParameters = hasRequiredParameters(formFields, selectedNode) || hasOptionalParameters(formFields);
 
@@ -1205,6 +1206,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                                     <S.Row key={updatedField.key}>
                                         <FieldFactory
                                             field={updatedField}
+                                            handleFormValidation={handleFormValidation}
                                             openRecordEditor={
                                                 openRecordEditor &&
                                                 ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))

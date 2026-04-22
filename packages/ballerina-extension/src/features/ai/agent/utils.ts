@@ -21,6 +21,7 @@ import * as path from "path";
 import type { TextEdit } from "vscode-languageserver-protocol";
 import { StateMachine } from "../../../stateMachine";
 import { normalizeToLf, readAndNormalize, restoreEol } from "../utils/eol-utils";
+import { isWorkspaceTempProject } from "./tools/path-utils";
 
 /**
  * Files that require path sanitization (temp paths replaced with workspace paths)
@@ -414,4 +415,36 @@ function getCodeContextInstruction(type: "addition" | "selection"): string {
     } else {
         return "The user has selected a block of code that is relevant to the current task. The selected code is enclosed between >>> SELECTION START <<< and >>> SELECTION END <<< markers in the code context below.";
     }
+}
+
+
+export function solveRelativeTempPath(servicePath: string): { tempProjectPath: string; packagePath?: string } | undefined {
+    if (!servicePath || !path.isAbsolute(servicePath)) {
+        return undefined;
+    }
+
+    const normalizedServicePath = path.normalize(servicePath);
+    const parsedPath = path.parse(normalizedServicePath);
+    const relativeFromRoot = normalizedServicePath.slice(parsedPath.root.length);
+    const segments = relativeFromRoot.split(path.sep).filter(Boolean);
+    const tempRootIdx = segments.findIndex((segment) => segment.startsWith("bal-proj-"));
+
+    if (tempRootIdx === -1) {
+        return undefined;
+    }
+
+    const tempProjectPath = path.join(parsedPath.root, ...segments.slice(0, tempRootIdx + 1));
+    if (!fs.existsSync(tempProjectPath)) {
+        return undefined;
+    }
+
+    const packagePath = isWorkspaceTempProject(tempProjectPath)
+        ? path.relative(tempProjectPath, normalizedServicePath)
+        : undefined;
+
+    if (packagePath && (packagePath === ".." || packagePath.startsWith(`..${path.sep}`) || path.isAbsolute(packagePath))) {
+        return undefined;
+    }
+
+    return { tempProjectPath, packagePath };
 }
