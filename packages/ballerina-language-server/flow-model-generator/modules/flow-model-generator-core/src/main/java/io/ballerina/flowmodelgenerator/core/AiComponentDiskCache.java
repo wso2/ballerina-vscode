@@ -111,10 +111,11 @@ class AiComponentDiskCache {
         if (!diskAvailable.get() || version == null) {
             return;
         }
+        Path temp = null;
         try {
             Files.createDirectories(cacheDirectory);
             Path target = cacheDirectory.resolve(toFileName(org, name, version));
-            Path temp = Files.createTempFile(cacheDirectory, "tmp_", ".json");
+            temp = Files.createTempFile(cacheDirectory, "tmp_", ".json");
             try (Writer writer = Files.newBufferedWriter(temp, StandardCharsets.UTF_8)) {
                 gson.toJson(new ModuleCache(SCHEMA_VERSION, components), writer);
             }
@@ -127,6 +128,13 @@ class AiComponentDiskCache {
         } catch (IOException | RuntimeException e) {
             LOGGER.log(Level.WARNING, "Failed to write AI component cache, disabling disk cache", e);
             diskAvailable.set(false);
+            if (temp != null) {
+                try {
+                    Files.deleteIfExists(temp);
+                } catch (IOException ignored) {
+                    // best-effort cleanup
+                }
+            }
         }
     }
 
