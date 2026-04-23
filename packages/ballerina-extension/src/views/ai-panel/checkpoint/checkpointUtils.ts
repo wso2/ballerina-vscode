@@ -135,10 +135,24 @@ export async function restoreWorkspaceSnapshot(checkpoint: Checkpoint, skipArtif
             // Queue all file creations/updates with content
             for (const [filePath, content] of Object.entries(checkpoint.workspaceSnapshot)) {
                 const fileUri = vscode.Uri.file(path.join(workspaceRoot.fsPath, filePath));
-                
+
+                // Skip writes when content already matches on disk.
+                // TODO: Proper fix for Ballerina.toml — rewriting it triggers
+                // an unwanted PackageOverview → WorkspaceOverview redirect.
+                let alreadyMatches = false;
+                try {
+                    const existing = await vscode.workspace.fs.readFile(fileUri);
+                    alreadyMatches = Buffer.from(existing).toString('utf8') === content;
+                } catch {
+                    // File does not exist on disk.
+                }
+                if (alreadyMatches) {
+                    continue;
+                }
+
                 // Create file first (empty or existing)
                 workspaceEdit.createFile(fileUri, { ignoreIfExists: true, overwrite: true });
-                
+
                 // Then replace content to trigger proper LS notifications
                 workspaceEdit.replace(
                     fileUri,
