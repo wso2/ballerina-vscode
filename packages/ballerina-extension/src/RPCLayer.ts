@@ -190,7 +190,14 @@ function isMigrationPanel(webview: WebviewPanel | WebviewView): boolean {
     return 'reveal' in webview && webview.title === "Migration Assistant";
 }
 
+let _suppressWebviewNotify = false;
+
+export function suppressWebviewNotifications(suppress: boolean) {
+    _suppressWebviewNotify = suppress;
+}
+
 export function notifyCurrentWebview() {
+    if (_suppressWebviewNotify) { return; }
     RPCLayer._messenger.sendNotification(projectContentUpdated, { type: 'webview', webviewType: VisualizerWebview.viewType }, true);
 }
 
