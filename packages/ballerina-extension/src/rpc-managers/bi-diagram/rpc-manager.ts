@@ -158,7 +158,8 @@ import {
     UpdatePackageTitleRequest,
     SuggestedProjectDefaultsResponse,
     ProjectInfo,
-    PROJECT_KIND
+    PROJECT_KIND,
+    MACHINE_VIEW
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
@@ -206,7 +207,7 @@ import { getView } from "../../utils/state-machine-utils";
 import { isLibraryProject } from "../../utils/config";
 import { PlatformExtRpcManager } from "../platform-ext/rpc-manager";
 import { openAIPanelWithPrompt } from "../../views/ai-panel/aiMachine";
-import { getCurrentBallerinaProject } from "../../utils/project-utils";
+import { getCurrentBallerinaProject, getCurrentProjectRoot } from "../../utils/project-utils";
 import { CommonRpcManager } from "../common/rpc-manager";
 import * as toml from "@iarna/toml";
 import { readOrWriteReadmeContent } from "./utils";
@@ -1496,8 +1497,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             task: 'run'
         };
 
-        let buildCommand = docker ? 'bal build --cloud="docker"' : 'bal build';
-
         // If docker is true check if docker command is available
         if (docker) {
             const dockerAvailable = await this.checkDockerAvailability();
@@ -1507,20 +1506,54 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             }
         }
 
+        const context = StateMachine.context();
+        const { workspacePath, view: webviewType, projectPath } = context;
+
+        let targetPath = projectPath ?? "";
+        if (workspacePath && webviewType === MACHINE_VIEW.WorkspaceOverview) {
+            // The workspace overview is active — build the whole workspace.
+            targetPath = workspacePath;
+        } else if (workspacePath && !projectPath) {
+            // A workspace is open but no specific project is selected; fall back
+            // to whichever project the active editor belongs to, or the workspace
+            // root if there is no active editor.
+            try {
+                targetPath = await getCurrentProjectRoot();
+            } catch (error) {
+                targetPath = workspacePath;
+            }
+        } else {
+            // A specific project is already selected in the state machine; use it.
+            // Wrap getCurrentProjectRoot in try/catch because there may not be an
+            // active text editor when this is invoked from the RPC manager.
+            try {
+                targetPath = await getCurrentProjectRoot();
+            } catch (error) {
+                targetPath = projectPath ?? workspacePath ?? "";
+            }
+        }
+
+        if (!targetPath) {
+            window.showErrorMessage('No Ballerina project found.');
+            return;
+        }
+
         // Get Ballerina home path from settings
         const config = workspace.getConfiguration('ballerina');
         const ballerinaHome = config.get<string>('home');
-        if (ballerinaHome) {
-            // Add ballerina home to build path only if it's configured
-            buildCommand = path.join(ballerinaHome, 'bin', buildCommand);
-        }
+        const balCmd = ballerinaHome ? path.join(ballerinaHome, 'bin', 'bal') : 'bal';
+        const buildCommand = docker ? `${balCmd} build --cloud="docker"` : `${balCmd} build`;
 
-        // Use the current process environment which should have the updated PATH
-        const execution = new ShellExecution(buildCommand, { env: process.env as { [key: string]: string } });
+        // Run the build command scoped to the resolved project directory so that
+        // only that project is compiled (not every project in the workspace).
+        const execution = new ShellExecution(buildCommand, {
+            cwd: targetPath,
+            env: process.env as { [key: string]: string }
+        });
 
         const task = new Task(
             taskDefinition,
-            workspace.workspaceFolders![0], // Assumes at least one workspace folder is open
+            workspace.workspaceFolders![0],
             'Ballerina Build',
             'ballerina',
             execution
