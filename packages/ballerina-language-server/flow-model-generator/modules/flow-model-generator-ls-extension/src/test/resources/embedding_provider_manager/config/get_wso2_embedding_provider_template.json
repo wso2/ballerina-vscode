@@ -14,7 +14,7 @@
       "id": "31",
       "metadata": {
         "label": "Embedding Provider",
-        "description": "Initializes a new `Wso2EmbeddingProvider` instance.\n",
+        "description": "Initializes a new `Wso2EmbeddingProvider` instance.\n The embedding vector dimension is 1536.",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.1.0.png"
       },
       "codedata": {
