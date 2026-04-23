@@ -23,7 +23,6 @@ import { Diagram, SidePanel } from '../utils/pages';
 
 export default function createTests() {
     test.describe.serial('Expression Editor Tests', {
-        tag: '@group1',
     }, async () => {
         initTest();
         test('Retrieving suggestions', async ({ }, testInfo) => {

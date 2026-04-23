@@ -24,7 +24,6 @@ import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 
 export default function createTests() {
     test.describe.serial('Natural Function Artifact Tests', {
-        tag: '@group1',
     }, async () => {
         let functionName = '';
         initTest();

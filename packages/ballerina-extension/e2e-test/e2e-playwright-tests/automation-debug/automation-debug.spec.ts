@@ -25,7 +25,6 @@ import { FileUtils } from '../utils/helpers/fileSystem';
 export default function createTests() {
     // Debug Integration Tests
     test.describe.serial('Debug Integration Tests', {
-        tag: '@group1',
     }, async () => {
         initTest();
         test('Add breakpoint from diagram', async () => {

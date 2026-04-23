@@ -25,7 +25,6 @@ import { FileUtils } from '../utils/helpers/fileSystem';
 export default function createTests() {
     // Run Integration Tests
     test.describe.serial('Run Integration Tests', {
-        tag: '@group1',
     }, async () => {
         initTest();
         test('Create automation to run', async () => {

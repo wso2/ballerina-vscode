@@ -24,7 +24,6 @@ import path from 'path';
 
 export default function createTests() {
     test.describe.serial('Type Editor Tests', {
-        tag: '@group1',
     }, async () => {
         initTest();
 

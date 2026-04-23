@@ -26,7 +26,6 @@ import { ProjectExplorer } from '../utils/pages';
 
 export default function createTests() {
     test.describe.serial('Reusable Data Mapper Tests', {
-        tag: '@group1',
     }, async () => {
         initTest();
         test('Create', async ({ }, testInfo) => {

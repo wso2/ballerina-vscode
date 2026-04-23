@@ -24,7 +24,6 @@ import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 
 export default function createTests() {
     test.describe.serial('Salesforce Integration Tests', {
-        tag: '@group1',
     }, async () => {
         let listenerName: string;
         initTest();
@@ -64,7 +63,7 @@ export default function createTests() {
             await onRestore.waitFor();
 
             const projectExplorer = new ProjectExplorer(page.page);
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `Salesforce Event Integration`]);
+            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `Salesforce Event Integration - /data/ChangeEvents`]);
 
             listenerName = `salesforceListener`;
             const context = artifactWebView.locator(`text=${listenerName}`);
@@ -122,7 +121,7 @@ export default function createTests() {
                 throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
             }
             const projectExplorer = new ProjectExplorer(page.page);
-            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `Salesforce Event Integration`]);
+            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `Salesforce Event Integration - /data/ChangeEvents`]);
             await serviceTreeItem.click({ button: 'right' });
             const deleteButton = page.page.getByRole('button', { name: 'Delete' }).first();
             await deleteButton.waitFor({ timeout: 5000 });

@@ -23,7 +23,6 @@ import { BI_INTEGRATOR_LABEL, BI_WEBVIEW_NOT_FOUND_ERROR, getWebview, initMigrat
 
 export default function createTests() {
     test.describe.serial('Import Integration Tests', {
-        tag: '@group1',
     }, async () => {
         const migrationOutputPath = path.join(__dirname, 'data', 'migration-output');
         let webview: any;
