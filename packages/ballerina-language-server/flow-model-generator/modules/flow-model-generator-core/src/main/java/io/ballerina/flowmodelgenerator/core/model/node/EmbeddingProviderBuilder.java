@@ -19,6 +19,7 @@
 package io.ballerina.flowmodelgenerator.core.model.node;
 
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
+import io.ballerina.flowmodelgenerator.core.Constants;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
@@ -44,6 +45,7 @@ import static io.ballerina.modelgenerator.commons.FunctionDataBuilder.GET_DEFAUL
  * @since 1.1.0
  */
 public class EmbeddingProviderBuilder extends CallBuilder {
+
     public static final String LABEL = "Embedding Provider";
     public static final String DESCRIPTION = "Embedding providers available in the integration for connecting" +
             " to an embedding model";
@@ -51,6 +53,10 @@ public class EmbeddingProviderBuilder extends CallBuilder {
     private static final String EMBEDDING_PROVIDER_NAME_LABEL = "Embedding Provider Name";
     private static final String EMBEDDING_PROVIDER_NAME_LABEL_DOC = "Name of the embedding-provider connection";
     private static final String CHECK_ERROR_DOC = "Terminate on error";
+    private static final String WSO2_EMBEDDING_PROVIDER_RETURN_TYPE =
+            Constants.Ai.AI_PACKAGE + ":" + Constants.Ai.WSO2_EMBEDDING_PROVIDER_NAME;
+    private static final String WSO2_EMBEDDING_PROVIDER_VECTOR_DIMENSION_DOC =
+            "The embedding vector dimension is 1536.";
 
     @Override
     public void setConcreteConstData() {
@@ -103,7 +109,16 @@ public class EmbeddingProviderBuilder extends CallBuilder {
                 .filePath(context.filePath())
                 .build();
 
-        metadata().label(functionData.packageName()).description(functionData.description())
+        String description = functionData.description();
+
+        // Append documentation about the default embedding provider’s vector dimensions.
+        // This helps surface the vector size in the low-code UI so users are aware of it.
+        if (WSO2_EMBEDDING_PROVIDER_RETURN_TYPE.equals(functionData.returnType())) {
+            description = (description == null || description.isBlank())
+                    ? WSO2_EMBEDDING_PROVIDER_VECTOR_DIMENSION_DOC
+                    : description + " " + WSO2_EMBEDDING_PROVIDER_VECTOR_DIMENSION_DOC;
+        }
+        metadata().label(functionData.packageName()).description(description)
                 .icon(CommonUtils.generateIcon(functionData.org(), functionData.packageName(), functionData.version()));
 
         codedata().node(NodeKind.EMBEDDING_PROVIDER)
