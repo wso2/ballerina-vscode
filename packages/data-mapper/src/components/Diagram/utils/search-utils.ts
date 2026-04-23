@@ -24,7 +24,7 @@ export const getSearchFilteredInput = (dmType: IOType, varName: string) => {
 		return dmType;
 	}
 
-	if (varName.toLowerCase().includes(searchValue.toLowerCase())) {
+	if (varName.toLowerCase().includes(searchValue)) {
 		return dmType
 	} else if (dmType.kind === TypeKind.Record || dmType.kind === TypeKind.Array) {
 		const filteredType = getFilteredSubFields(dmType, searchValue);
@@ -50,7 +50,7 @@ export const getSearchFilteredOutput = (outputType: IOType) => {
 
 	let searchType: IOType = outputType;
 
-	if (searchType.name.toLowerCase().includes(searchValue.toLowerCase())) {
+	if (searchType.name.toLowerCase().includes(searchValue)) {
 		return searchType;
 	} else if (searchType.kind === TypeKind.Array) {
 		const subFields = searchType.member?.fields
@@ -97,7 +97,7 @@ export const getFilteredSubFields = (field: IOType, searchValue: string) => {
 			?.map((fieldItem) => getFilteredSubFields(fieldItem, searchValue))
 			.filter((fieldItem): fieldItem is IOType => fieldItem !== null);
 
-		const matchingName = field?.name?.toLowerCase().includes(searchValue.toLowerCase());
+		const matchingName = field?.name?.toLowerCase().includes(searchValue);
 		if (matchingName || matchedSubFields?.length > 0) {
 			return {
 				...field,
@@ -109,7 +109,7 @@ export const getFilteredSubFields = (field: IOType, searchValue: string) => {
 			?.map((fieldItem) => getFilteredSubFields(fieldItem, searchValue))
 			.filter((fieldItem): fieldItem is IOType => fieldItem !== null);
 
-		const matchingName = field?.name?.toLowerCase().includes(searchValue.toLowerCase());
+		const matchingName = field?.name?.toLowerCase().includes(searchValue);
 		if (matchingName || matchedSubFields?.length > 0) {
 			return {
 				...field,
@@ -120,7 +120,7 @@ export const getFilteredSubFields = (field: IOType, searchValue: string) => {
 			}
 		}
 	} else {
-		return field?.name?.toLowerCase()?.includes(searchValue.toLowerCase()) ? field : null
+		return field?.name?.toLowerCase()?.includes(searchValue) ? field : null
 	}
 
 	return null;
@@ -155,15 +155,12 @@ export function getFilteredMappings(
     return mappings.flatMap(mapping => {
 
 		const filteredInputs = mapping.inputs.filter(input => {
-			const inputField = input.toLowerCase();
-			return inputSearch === "" || 
-				inputField.includes(inputSearch.toLowerCase());
+			return inputSearch === "" || input.toLowerCase().includes(inputSearch);
 		});
 
-        const outputField = mapping.output.toLowerCase();
         const matchedWithOutputSearch = outputSearch === "" ||
 			isElement ||
-            outputField.includes(outputSearch.toLowerCase());
+            mapping.output.toLowerCase().includes(outputSearch);
 
         // Get nested mappings from elements
         const nestedMappings = mapping.elements?.flatMap(element => 
