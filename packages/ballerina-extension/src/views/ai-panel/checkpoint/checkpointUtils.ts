@@ -28,6 +28,10 @@ import { notifyCurrentWebview, suppressWebviewNotifications } from '../../../../
 
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
+const SKIP_REWRITE_WHEN_UNCHANGED_FILENAMES: ReadonlySet<string> = new Set([
+    'Ballerina.toml'
+]);
+
 export async function captureWorkspaceSnapshot(messageId: string): Promise<Checkpoint | null> {
     const config = getCheckpointConfig();
 
@@ -136,18 +140,18 @@ export async function restoreWorkspaceSnapshot(checkpoint: Checkpoint, skipArtif
             for (const [filePath, content] of Object.entries(checkpoint.workspaceSnapshot)) {
                 const fileUri = vscode.Uri.file(path.join(workspaceRoot.fsPath, filePath));
 
-                // Skip writes when content already matches on disk.
-                // TODO: Proper fix for Ballerina.toml — rewriting it triggers
-                // an unwanted PackageOverview → WorkspaceOverview redirect.
-                let alreadyMatches = false;
-                try {
-                    const existing = await vscode.workspace.fs.readFile(fileUri);
-                    alreadyMatches = Buffer.from(existing).toString('utf8') === content;
-                } catch {
-                    // File does not exist on disk.
-                }
-                if (alreadyMatches) {
-                    continue;
+                // TODO: workaround — rewriting Ballerina.toml triggers an unwanted PackageOverview → WorkspaceOverview redirect.
+                if (SKIP_REWRITE_WHEN_UNCHANGED_FILENAMES.has(path.basename(filePath))) {
+                    let alreadyMatches = false;
+                    try {
+                        const existing = await vscode.workspace.fs.readFile(fileUri);
+                        alreadyMatches = Buffer.from(existing).toString('utf8') === content;
+                    } catch {
+                        // File does not exist on disk.
+                    }
+                    if (alreadyMatches) {
+                        continue;
+                    }
                 }
 
                 // Create file first (empty or existing)
