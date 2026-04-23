@@ -67,7 +67,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
     const [resolutionError, setResolutionError] = useState<string>("");
     const [toolSource, setToolSource] = useState<'auto-fetched' | 'manual-discovery' | 'saved-mock' | null>(null);
     const isInitializingEditModeRef = useRef<boolean>(false);
-    const savedFormValuesRef = useRef<{ serverUrl: string; auth: string } | null>(null);
+    const lastProcessedValuesRef = useRef<{ serverUrl: string; auth: string } | null>(null);
 
     const mcpToolKitNodeTemplateRef = useRef<FlowNode>(null);
     const mcpToolKitNodeRef = useRef<FlowNode>(null);
@@ -293,7 +293,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
 
             const { serverUrl: savedUrl, auth: savedAuth, permittedTools, requiresAuth: savedRequiresAuth, toolScopes: savedToolScopes } = extractOriginalValues(node);
 
-            savedFormValuesRef.current = { serverUrl: savedUrl, auth: savedAuth };
+            lastProcessedValuesRef.current = { serverUrl: savedUrl, auth: savedAuth };
 
             // Update form state so FlowNodeForm displays values
             setRequiresAuth(savedRequiresAuth);
@@ -420,9 +420,12 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                 updatedNode: node,
                 toolScopes: showScopes && Object.keys(toolScopes).length > 0 ? toolScopes : undefined,
             });
-
-            // Safety net: fix any missing imports after all edits are applied
-            await rpcClient.getAIAgentRpcClient().fixMissingImports();
+            
+            try {
+                await rpcClient.getAIAgentRpcClient().fixMissingImports();
+            } catch (importFixError) {
+                console.warn("fixMissingImports failed after MCP save", importFixError);
+            }
 
             onSave?.();
         } catch (error) {
@@ -508,23 +511,21 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                     node={mcpToolKitNodeRef.current}
                     onSubmit={handleSave}
                     onChange={(fieldKey, value) => {
+                        const processed = lastProcessedValuesRef.current;
                         if (fieldKey === SERVER_URL_FIELD_KEY) {
-                            const savedServerUrl = savedFormValuesRef.current?.serverUrl;
-                            // Skip form replays of the saved value (normalized to ignore syntactic re-wrapping).
-                            const isReplayOfSavedValue =
-                                savedServerUrl !== undefined &&
-                                normalizeExpressionValue(value) === normalizeExpressionValue(savedServerUrl);
+                            const isReplay = processed !== null &&
+                                normalizeExpressionValue(value) === normalizeExpressionValue(processed.serverUrl);
                             setServerUrl(value);
-                            if (editMode && !isInitializingEditModeRef.current && toolSource !== null && !isReplayOfSavedValue) {
+                            if (processed) processed.serverUrl = value;
+                            if (editMode && !isInitializingEditModeRef.current && toolSource !== null && !isReplay) {
                                 setToolSource(null);
                             }
                         } else if (fieldKey === AUTH_FIELD_KEY) {
-                            const savedAuth = savedFormValuesRef.current?.auth;
-                            const isReplayOfSavedValue =
-                                savedAuth !== undefined &&
-                                normalizeExpressionValue(value) === normalizeExpressionValue(savedAuth);
+                            const isReplay = processed !== null &&
+                                normalizeExpressionValue(value) === normalizeExpressionValue(processed.auth);
                             setAuth(value);
-                            if (editMode && !isInitializingEditModeRef.current && toolSource !== null && !isReplayOfSavedValue) {
+                            if (processed) processed.auth = value;
+                            if (editMode && !isInitializingEditModeRef.current && toolSource !== null && !isReplay) {
                                 setToolSource(null);
                             }
                         }
