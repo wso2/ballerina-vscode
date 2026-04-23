@@ -2465,6 +2465,441 @@
           "kind": "ANNOTATION"
         }
       ]
+    },
+    {
+      "name": "trigger.shopify",
+      "version": "1.6.0",
+      "serviceTypeSkipList": [],
+      "serviceDeclaration": {
+        "displayName": "Shopify Event Integration",
+        "description": "Create a service to handle events from a Shopify store",
+        "optionalTypeDescriptor": 0,
+        "typeDescriptorLabel": "Event Channel",
+        "typeDescriptorDescription": "The event channel name",
+        "typeDescriptorDefaultValue": "",
+        "addDefaultTypeDescriptor": 0,
+        "optionalAbsoluteResourcePath": 1,
+        "absoluteResourcePathLabel": "Service Base Path",
+        "absoluteResourcePathDescription": "",
+        "absoluteResourcePathDefaultValue": "",
+        "optionalStringLiteral": 1,
+        "stringLiteralLabel": "Service Base Path",
+        "stringLiteralDescription": "",
+        "stringLiteralDefaultValue": "",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
+        "kind": "event"
+      },
+      "serviceTypes": {
+        "OrdersService": {
+          "name": "OrdersService",
+          "description": "Triggers when a new event related to Shopify orders is received",
+          "functions": [
+            {
+              "name": "onOrdersCreate",
+              "description": "Triggers when a new order is created",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The Shopify order event",
+                  "kind": "REQUIRED",
+                  "type": "shopify:OrderEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onOrdersCancelled",
+              "description": "Triggers when an order is cancelled",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The Shopify order event",
+                  "kind": "REQUIRED",
+                  "type": "shopify:OrderEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onOrdersFulfilled",
+              "description": "Triggers when an order is fulfilled",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The Shopify order event",
+                  "kind": "REQUIRED",
+                  "type": "shopify:OrderEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onOrdersPaid",
+              "description": "Triggers when an order is paid",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The Shopify order event",
+                  "kind": "REQUIRED",
+                  "type": "shopify:OrderEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onOrdersPartiallyFulfilled",
+              "description": "Triggers when an order is partially fulfilled",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The Shopify order event",
+                  "kind": "REQUIRED",
+                  "type": "shopify:OrderEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onOrdersUpdated",
+              "description": "Triggers when an order is updated",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The Shopify order event",
+                  "kind": "REQUIRED",
+                  "type": "shopify:OrderEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            }
+          ]
+        },
+        "CustomersService": {
+          "name": "CustomersService",
+          "description": "Triggers when a new event related to Shopify customers is received",
+          "functions": [
+            {
+              "name": "onCustomersCreate",
+              "description": "Triggers when a new customer is created",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The Shopify customer event",
+                  "kind": "REQUIRED",
+                  "type": "shopify:CustomerEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onCustomersDisable",
+              "description": "Triggers when a customer is disabled",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The Shopify customer event",
+                  "kind": "REQUIRED",
+                  "type": "shopify:CustomerEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onCustomersEnable",
+              "description": "Triggers when a customer is enabled",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The Shopify customer event",
+                  "kind": "REQUIRED",
+                  "type": "shopify:CustomerEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onCustomersUpdate",
+              "description": "Triggers when a customer is updated",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The Shopify customer event",
+                  "kind": "REQUIRED",
+                  "type": "shopify:CustomerEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onCustomersMarketingConsentUpdate",
+              "description": "Triggers when a customer's marketing consent is updated",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The Shopify customer event",
+                  "kind": "REQUIRED",
+                  "type": "shopify:CustomerEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            }
+          ]
+        },
+        "ProductsService": {
+          "name": "ProductsService",
+          "description": "Triggers when a new event related to Shopify products is received",
+          "functions": [
+            {
+              "name": "onProductsCreate",
+              "description": "Triggers when a new product is created",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The Shopify product event",
+                  "kind": "REQUIRED",
+                  "type": "shopify:ProductEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onProductsUpdate",
+              "description": "Triggers when a product is updated",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The Shopify product event",
+                  "kind": "REQUIRED",
+                  "type": "shopify:ProductEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            }
+          ]
+        },
+        "FulfillmentsService": {
+          "name": "FulfillmentsService",
+          "description": "Triggers when a new event related to Shopify fulfillments is received",
+          "functions": [
+            {
+              "name": "onFulfillmentsCreate",
+              "description": "Triggers when a new fulfillment is created",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The Shopify fulfillment event",
+                  "kind": "REQUIRED",
+                  "type": "shopify:FulfillmentEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onFulfillmentsUpdate",
+              "description": "Triggers when a fulfillment is updated",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The Shopify fulfillment event",
+                  "kind": "REQUIRED",
+                  "type": "shopify:FulfillmentEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "initForm": {
+        "basePath": {
+          "label": "Event Channel",
+          "description": "The event channel name",
+          "defaultValue": "OrdersService",
+          "placeholder": "OrdersService",
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "ballerinaType": "shopify:GenericServiceType",
+              "options": [
+                {
+                  "label": "OrdersService",
+                  "value": "OrdersService"
+                },
+                {
+                  "label": "CustomersService",
+                  "value": "CustomersService"
+                },
+                {
+                  "label": "ProductsService",
+                  "value": "ProductsService"
+                },
+                {
+                  "label": "FulfillmentsService",
+                  "value": "FulfillmentsService"
+                }
+              ]
+            }
+          ],
+          "sourceKind": "SERVICE_TYPE_DESCRIPTOR"
+        }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "serviceType",
+          "displayName": "Event Channel",
+          "kind": "SERVICE_DESCRIPTION"
+        }
+      ]
     }
   ]
 }

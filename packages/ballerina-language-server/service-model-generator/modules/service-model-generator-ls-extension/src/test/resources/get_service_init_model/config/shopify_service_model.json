@@ -1,0 +1,283 @@
+{
+  "description": "Test getting shopify trigger service init model",
+  "filePath": "sample1/main.bal",
+  "orgName": "ballerinax",
+  "pkgName": "trigger.shopify",
+  "moduleName": "trigger.shopify",
+  "response": {
+    "serviceInitModel": {
+      "id": "14",
+      "displayName": "Shopify Event Integration",
+      "description": "Create a service to handle events from a Shopify store",
+      "orgName": "ballerinax",
+      "packageName": "trigger.shopify",
+      "moduleName": "trigger.shopify",
+      "version": "1.6.0",
+      "type": "event",
+      "properties": {
+        "configureListener": {
+          "metadata": {
+            "label": "Configure Shopify Listener",
+            "description": "Select an existing Shopify listener or create a new one"
+          },
+          "placeholder": "",
+          "value": "0",
+          "choices": [
+            {
+              "metadata": {
+                "label": "Create new",
+                "description": "Create a new Shopify listener"
+              },
+              "placeholder": "true",
+              "value": "true",
+              "properties": {
+                "listenerConfig": {
+                  "metadata": {
+                    "label": "Listener Configurations",
+                    "description": "Configure the Shopify listener"
+                  },
+                  "properties": {
+                    "listenerVarName": {
+                      "metadata": {
+                        "label": "Listener Name",
+                        "description": "Provide a name for the listener being created"
+                      },
+                      "codedata": {
+                        "argType": "LISTENER_VAR_NAME"
+                      },
+                      "value": "shopifyListener",
+                      "placeholder": "shopifyListener",
+                      "types": [
+                        {
+                          "fieldType": "IDENTIFIER",
+                          "ballerinaType": "Listener",
+                          "selected": false
+                        }
+                      ],
+                      "enabled": true,
+                      "editable": true,
+                      "optional": false,
+                      "advanced": false
+                    },
+                    "listenOn": {
+                      "metadata": {
+                        "label": "Port",
+                        "description": "The port on which the webhook listener accepts incoming HTTP requests"
+                      },
+                      "codedata": {
+                        "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
+                      },
+                      "placeholder": "8090",
+                      "value": "8090",
+                      "types": [
+                        {
+                          "fieldType": "NUMBER",
+                          "ballerinaType": "int",
+                          "selected": true
+                        },
+                        {
+                          "fieldType": "EXPRESSION",
+                          "ballerinaType": "int",
+                          "selected": false
+                        }
+                      ],
+                      "enabled": true,
+                      "editable": true,
+                      "optional": true,
+                      "advanced": false
+                    },
+                    "apiSecretKey": {
+                      "metadata": {
+                        "label": "API Secret Key",
+                        "description": "The Shopify API secret key used to validate incoming webhook requests"
+                      },
+                      "codedata": {
+                        "argType": "LISTENER_PARAM_CONFIG_FIELD"
+                      },
+                      "placeholder": "",
+                      "value": "",
+                      "types": [
+                        {
+                          "fieldType": "TEXT",
+                          "ballerinaType": "string",
+                          "selected": true
+                        },
+                        {
+                          "fieldType": "EXPRESSION",
+                          "ballerinaType": "string",
+                          "selected": false
+                        }
+                      ],
+                      "enabled": true,
+                      "editable": true,
+                      "optional": false,
+                      "advanced": false
+                    }
+                  },
+                  "types": [
+                    {
+                      "fieldType": "GROUP_SECTION",
+                      "selected": true
+                    }
+                  ],
+                  "enabled": true,
+                  "editable": true,
+                  "optional": false,
+                  "advanced": false
+                }
+              },
+              "types": [
+                {
+                  "fieldType": "FORM",
+                  "selected": false
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            {
+              "metadata": {
+                "label": "Use existing (none available)",
+                "description": "Select an existing Shopify listener"
+              },
+              "placeholder": "true",
+              "value": "true",
+              "properties": {
+                "listenerConfig": {
+                  "metadata": {
+                    "label": "Listener Configurations",
+                    "description": "Configure the Shopify listener"
+                  },
+                  "properties": {},
+                  "types": [
+                    {
+                      "fieldType": "GROUP_SECTION",
+                      "selected": true
+                    }
+                  ],
+                  "enabled": true,
+                  "editable": false,
+                  "optional": false,
+                  "advanced": false
+                }
+              },
+              "types": [
+                {
+                  "fieldType": "FORM",
+                  "selected": false
+                }
+              ],
+              "enabled": false,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            }
+          ],
+          "types": [
+            {
+              "fieldType": "CHOICE",
+              "selected": false
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "serviceType": {
+          "metadata": {
+            "label": "Event Type",
+            "description": "Select the type of Shopify events to handle"
+          },
+          "value": "0",
+          "choices": [
+            {
+              "metadata": {
+                "label": "Orders",
+                "description": "Handle Shopify order events (onOrdersCreate, onOrdersCancelled, onOrdersFulfilled, onOrdersPaid, onOrdersPartiallyFulfilled, onOrdersUpdated)"
+              },
+              "value": "OrdersService",
+              "properties": {},
+              "types": [
+                {
+                  "fieldType": "FORM",
+                  "selected": false
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            {
+              "metadata": {
+                "label": "Customers",
+                "description": "Handle Shopify customer events (onCustomersCreate, onCustomersDisable, onCustomersEnable, onCustomersUpdate, onCustomersMarketingConsentUpdate)"
+              },
+              "value": "CustomersService",
+              "properties": {},
+              "types": [
+                {
+                  "fieldType": "FORM",
+                  "selected": false
+                }
+              ],
+              "enabled": false,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            {
+              "metadata": {
+                "label": "Products",
+                "description": "Handle Shopify product events (onProductsCreate, onProductsUpdate)"
+              },
+              "value": "ProductsService",
+              "properties": {},
+              "types": [
+                {
+                  "fieldType": "FORM",
+                  "selected": false
+                }
+              ],
+              "enabled": false,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            {
+              "metadata": {
+                "label": "Fulfillments",
+                "description": "Handle Shopify fulfillment events (onFulfillmentsCreate, onFulfillmentsUpdate)"
+              },
+              "value": "FulfillmentsService",
+              "properties": {},
+              "types": [
+                {
+                  "fieldType": "FORM",
+                  "selected": false
+                }
+              ],
+              "enabled": false,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            }
+          ],
+          "types": [
+            {
+              "fieldType": "CHOICE",
+              "selected": false
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        }
+      }
+    }
+  }
+}

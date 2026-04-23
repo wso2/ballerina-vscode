@@ -138,5 +138,15 @@
       "cdc",
       "event"
     ]
+  },
+  "14": {
+    "name": "trigger.shopify",
+    "orgName": "ballerinax",
+    "packageName": "trigger.shopify",
+    "keywords": [
+      "shopify",
+      "event"
+    ],
+    "triggerName": "Shopify"
   }
 }
