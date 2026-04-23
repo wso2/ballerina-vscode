@@ -163,7 +163,7 @@ export default function createTests() {
             await page.page.waitForTimeout(1000);
 
             // 19. Add log statement in the else block (false case - Not Equal)
-            await page.page.waitForTimeout(2000);
+            await page.page.waitForTimeout(4000);
 
 
             await diagram.clickAddButtonByIndex(2);
