@@ -16,11 +16,9 @@
  * under the License.
  */
 
-import { DownloadProgress, onDownloadProgress } from "@wso2/ballerina-core";
+import { DownloadProgress } from "@wso2/ballerina-core";
 import { exec } from "child_process";
 import { extension } from "../BalExtensionContext";
-import { RPCLayer } from "../RPCLayer";
-import { VisualizerWebview } from "../views/visualizer/webview";
 import { debug } from "./logger";
 import { quoteShellPath } from "./config";
 
@@ -59,13 +57,9 @@ export async function pullMigrationTool(migrationToolName: string, version: stri
 
     // 2. This function now returns a promise that wraps the exec lifecycle
     return new Promise<void>((resolve, reject) => {
-        // Helper to send notifications to the webview
+        // Helper to send notifications to the webview and fire the VSCode-style event
         const sendProgress = (progress: DownloadProgress) => {
-            RPCLayer._messenger.sendNotification(
-                onDownloadProgress,
-                { type: "webview", webviewType: VisualizerWebview.viewType },
-                progress
-            );
+            extension.ballerinaExtInstance.notifyDownloadProgress(progress);
         };
 
         // Send initial progress update
