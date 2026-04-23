@@ -116,7 +116,6 @@ test.describe('Ballerina E2E Group 1', { tag: '@group1' }, async () => {
 
     // <----Event Integration Test---->
     test.describe(kafkaIntegration);
-    test.describe(azureIntegration);
 
     // <----File Integration Test---->
     test.describe(ftpIntegration);
@@ -166,6 +165,7 @@ test.describe('Ballerina E2E Group 3', { tag: '@group3' }, async () => {
 test.describe('Ballerina E2E Group 4', { tag: '@group4' }, async () => {
     // <----Event Integration Test---->
     test.describe(githubIntegration);
+    test.describe(azureIntegration);
 
     // <----Other Artifacts Test---->
     test.describe(typeTest);
