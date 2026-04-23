@@ -28,8 +28,8 @@ export interface Tool {
 
 export interface ResolutionResult {
     canResolve: boolean;
-    resolvedUrl: string;
-    resolvedAuth: string;
+    resolvedUrl: string | null;
+    resolvedAuth: string | null;
     error: string;
 }
 
