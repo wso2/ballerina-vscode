@@ -24,6 +24,7 @@ import { ArtifactNotificationHandler, ArtifactsUpdated } from '../../../utils/pr
 import { VisualizerRpcManager } from '../../../rpc-managers/visualizer/rpc-manager';
 import { StateMachine, updateView } from '../../../../src/stateMachine';
 import { refreshDataMapper } from '../../../../src/rpc-managers/data-mapper/utils';
+import { notifyCurrentWebview, suppressWebviewNotifications } from '../../../../src/RPCLayer';
 
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -152,14 +153,22 @@ export async function restoreWorkspaceSnapshot(checkpoint: Checkpoint, skipArtif
             progress.report({ message: 'Applying workspace changes...' });
 
             // Apply all changes atomically
-            const success = await vscode.workspace.applyEdit(workspaceEdit);
-            await vscode.workspace.saveAll();
+            suppressWebviewNotifications(true);
+            let success = false;
+            try {
+                success = await vscode.workspace.applyEdit(workspaceEdit);
+                await vscode.workspace.saveAll();
+            } finally {
+                suppressWebviewNotifications(false);
+            }
+
             if (!success) {
                 throw new Error('Failed to apply workspace edit');
             }
 
             progress.report({ message: 'Checkpoint restored successfully!' });
             await renderDatamapper();
+            notifyCurrentWebview();
         });
 
         // Wait for artifact update notification if any .bal files were restored
