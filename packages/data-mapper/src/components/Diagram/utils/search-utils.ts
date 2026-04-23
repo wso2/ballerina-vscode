@@ -50,7 +50,9 @@ export const getSearchFilteredOutput = (outputType: IOType) => {
 
 	let searchType: IOType = outputType;
 
-	if (searchType.kind === TypeKind.Array) {
+	if (searchType.name.toLowerCase().includes(searchValue.toLowerCase())) {
+		return searchType;
+	} else if (searchType.kind === TypeKind.Array) {
 		const subFields = searchType.member?.fields
 			?.map(item => getFilteredSubFields(item, searchValue))
 			.filter(item => item);
