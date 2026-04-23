@@ -48,7 +48,7 @@ export const getSearchFilteredOutput = (dmType: IOType) => {
 		return dmType;
 	}
 
-	if (dmType.name.toLowerCase().includes(searchValue)) {
+	if (dmType.name?.toLowerCase().includes(searchValue)) {
 		return dmType;
 	} else if (dmType.kind === TypeKind.Array) {
 		const subFields = dmType.member?.fields
@@ -76,6 +76,12 @@ export const getSearchFilteredOutput = (dmType: IOType) => {
 		if (filteredConvertedField) {
 			return { ...dmType, convertedField: filteredConvertedField };
 		}
+
+		const convertedField = dmType.convertedField;
+		if(convertedField.kind === TypeKind.Array){
+			return { ...dmType, convertedField: { ...convertedField, member: { ...convertedField.member, fields: [] } } };
+		}
+		
 		return { ...dmType, convertedField: { ...dmType.convertedField, fields: [] } };
 	}
 	return  null;
