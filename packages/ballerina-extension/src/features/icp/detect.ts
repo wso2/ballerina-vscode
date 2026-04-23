@@ -176,7 +176,7 @@ export async function resolveICPPath(): Promise<string | undefined> {
         'Set Path'
     ).then((action) => {
         if (action === 'Download ICP') {
-            env.openExternal(Uri.parse('https://wso2.com/integrator/downloads/')); // TODO: confirm download URL
+            env.openExternal(Uri.parse('https://wso2.com/products/downloads/?product=wso2integrator&package=icp'));
         } else if (action === 'Set Path') {
             openICPSettings();
         }
