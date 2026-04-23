@@ -52,7 +52,7 @@ export default function createTests() {
             const context = artifactWebView.locator(`text=${functionName}`);
             await context.waitFor();
             const projectExplorer = new ProjectExplorer(page.page);
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `${functionName}`], true);
+            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `${functionName}`]);
             const updateArtifactWebView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page);
             if (!updateArtifactWebView) {
                 throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);

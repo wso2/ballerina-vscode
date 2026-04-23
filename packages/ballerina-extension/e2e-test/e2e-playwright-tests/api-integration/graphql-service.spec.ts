@@ -86,7 +86,7 @@ export default function createTests() {
 
             // Check if the AI Chat Agent is created in the project explorer
             const projectExplorer = new ProjectExplorer(page.page);
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `GraphQL Service - /graphql`], true);
+            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `GraphQL Service - /graphql`]);
 
             const updateArtifactWebView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page);
             if (!updateArtifactWebView) {
@@ -198,7 +198,7 @@ export default function createTests() {
             console.log('Deleting a service in test attempt: ', testAttempt);
             const projectExplorer = new ProjectExplorer(page.page);
             const sampleName = TEST_DATA.editedBasePath(testAttempt);
-            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `GraphQL Service - ${sampleName}`], true);
+            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `GraphQL Service - ${sampleName}`]);
             await serviceTreeItem.click({ button: 'right' });
             const deleteButton = page.page.getByRole('button', { name: 'Delete' }).first();
             await deleteButton.waitFor({ timeout: 5000 });

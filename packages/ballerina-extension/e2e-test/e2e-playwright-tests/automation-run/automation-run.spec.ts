@@ -90,13 +90,13 @@ export default function createTests() {
 
             // 14. Verify the tree view shows the automation name under "Entry Points" section
             const projectExplorer = new ProjectExplorer(page.page);
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main'], false);
+            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main']);
         });
 
         test('Click Run button from toolbar', async () => {
             // 1. Navigate to the BI integration view
             const projectExplorer = new ProjectExplorer(page.page);
-            const mainEntryPoint = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main'], true);
+            const mainEntryPoint = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main']);
 
             // Open main.bal in the text editor so that VS Code's ${file} launch
             // variable can be resolved when the debug/run session starts. Without
