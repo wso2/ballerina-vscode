@@ -18,13 +18,13 @@
 import { IOType, Mapping, TypeKind } from "@wso2/ballerina-core";
 import { useDMSearchStore } from "../../../store/store";
 
-export const getSearchFilteredInput = (dmType: IOType, varName?: string) => {
+export const getSearchFilteredInput = (dmType: IOType, varName: string) => {
 	const searchValue = useDMSearchStore.getState().inputSearch;
 	if (!searchValue) {
 		return dmType;
 	}
 
-	if (varName?.toLowerCase()?.includes(searchValue.toLowerCase())) {
+	if (varName.toLowerCase().includes(searchValue.toLowerCase())) {
 		return dmType
 	} else if (dmType.kind === TypeKind.Record || dmType.kind === TypeKind.Array) {
 		const filteredType = getFilteredSubFields(dmType, searchValue);
