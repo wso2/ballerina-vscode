@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { EditableTitle } from "../../../components/EditableTitle";
 import {
     ProjectStructureResponse,
@@ -699,11 +699,20 @@ export function WorkspaceOverview() {
             });
     };
 
-    rpcClient?.onProjectContentUpdated((state: boolean) => {
-        if (state) {
-            fetchContext();
-        }
-    });
+    // Stable ref so the subscription callback always calls the latest
+    // fetchContext without re-registering on every render.
+    const fetchContextRef = useRef(fetchContext);
+    fetchContextRef.current = fetchContext;
+
+    useEffect(() => {
+        if (!rpcClient) return;
+        const unsubscribe = rpcClient.onProjectContentUpdated((state: boolean) => {
+            if (state) {
+                fetchContextRef.current();
+            }
+        });
+        return unsubscribe;
+    }, [rpcClient]);
 
     useEffect(() => {
         fetchContext();
