@@ -109,6 +109,7 @@ export class BallerinaRpcClient {
     private _platformExt: PlatformExtRpcClient;
     private _identifierUpdatedCallbacks = new Set<(response: ProjectStructureArtifactResponse[]) => void>();
     private _runningServicesChangedCallbacks = new Set<(services: RunningServiceInfo[]) => void>();
+    private _projectContentUpdatedCallbacks = new Set<(state: boolean) => void>();
 
     constructor() {
         this.messenger = new Messenger(vscode);
@@ -137,6 +138,9 @@ export class BallerinaRpcClient {
         });
         this.messenger.onNotification(runningServicesChanged, (services: RunningServiceInfo[]) => {
             this._runningServicesChangedCallbacks.forEach((callback) => callback(services));
+        });
+        this.messenger.onNotification(projectContentUpdated, (state: boolean) => {
+            this._projectContentUpdatedCallbacks.forEach((callback) => callback(state));
         });
     }
 
@@ -236,8 +240,11 @@ export class BallerinaRpcClient {
         this.messenger.onNotification(promptUpdated, callback);
     }
 
-    onProjectContentUpdated(callback: (state: boolean) => void) {
-        this.messenger.onNotification(projectContentUpdated, callback);
+    onProjectContentUpdated(callback: (state: boolean) => void): () => void {
+        this._projectContentUpdatedCallbacks.add(callback);
+        return () => {
+            this._projectContentUpdatedCallbacks.delete(callback);
+        };
     }
 
     onIdentifierUpdated(callback: (response: ProjectStructureArtifactResponse[]) => void) {
