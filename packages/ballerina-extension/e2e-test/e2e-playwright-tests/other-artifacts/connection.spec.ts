@@ -45,6 +45,10 @@ export default function createTests() {
             const loadingConnectorPackage = artifactWebView.locator('text=Loading connector package...');
             await loadingConnectorPackage.waitFor({ state: 'hidden' });
 
+            // Wait for Save Connection button to be visible
+            const saveConnectionButton = artifactWebView.locator('text=Save Connection');
+            await saveConnectionButton.waitFor({ state: 'visible' });
+
             const form = new Form(page.page, BI_INTEGRATOR_LABEL, artifactWebView);
             const connectionName = `httpClient`;
             await form.switchToFormView(false, artifactWebView);
