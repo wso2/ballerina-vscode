@@ -535,7 +535,6 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                         console.warn("[AgentExecutor] Could not retrieve partial response messages:", e);
                     }
 
-                    // Only save if LLM actually responded — user message without LLM response is meaningless
                     const projectRootPath = this.config.executionContext.workspacePath || this.config.executionContext.projectPath || '';
                     const threadId = 'default';
                     if (partialLLMMessages.length > 0) {
@@ -551,8 +550,9 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                                 },
                             ],
                         });
-                        updateAndSaveChat(this.config.generationId, Command.Agent, this.config.eventHandler);
                     }
+                    // Emit save_chat so any pre-step-boundary streamed text is persisted into uiResponse.
+                    updateAndSaveChat(this.config.generationId, Command.Agent, this.config.eventHandler);
                     // Clear review state
                     const pendingReview = chatStateStorage.getPendingReviewGeneration(projectRootPath, threadId);
                     if (pendingReview && pendingReview.id === this.config.generationId) {

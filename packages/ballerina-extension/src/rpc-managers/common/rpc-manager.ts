@@ -301,7 +301,7 @@ export class CommonRpcManager implements CommonRPCAPI {
     }
 
     async showInformationModal(params: ShowInfoModalRequest): Promise<string> {
-        return window.showInformationMessage(params?.message, {modal: true}, ...(params?.items || []));
+        return window.showInformationMessage(params?.message, {modal: true, detail: params?.detail}, ...(params?.items || []));
     }
 
     async showQuickPick(params: ShowQuickPickRequest): Promise<QuickPickItem> {

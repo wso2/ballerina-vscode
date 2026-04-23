@@ -19,6 +19,7 @@
 import { exec, execSync } from 'child_process';
 import { debug } from '../../utils';
 import * as os from 'os';
+import * as fs from 'fs';
 import * as vscode from 'vscode';
 
 export const TRYIT_TEMPLATE = `/*
@@ -143,10 +144,20 @@ export interface Process {
     ports: number[];
 }
 
+const canonicalPathCache = new Map<string, string>();
+
 export function findRunningBallerinaProcesses(projectPath: string): Promise<Process[]> {
+    // Match the canonical path the JVM records for -XX:HeapDumpPath
+    // (case-insensitive filesystems can hand us a differently-cased path).
+    let resolvedPath = canonicalPathCache.get(projectPath);
+    if (!resolvedPath) {
+        try { resolvedPath = fs.realpathSync.native(projectPath); } catch { resolvedPath = projectPath; }
+        canonicalPathCache.set(projectPath, resolvedPath);
+    }
+
     // Execute the 'ps' command to retrieve running processes with command
     return new Promise((resolve, reject) => {
-        exec(getPSCommand(platform, `-XX:HeapDumpPath=${projectPath}`), (error, stdout) => {
+        exec(getPSCommand(platform, `-XX:HeapDumpPath=${resolvedPath}`), (error, stdout) => {
             if (error) {
                 debug(`Failed to detect running Ballerina processes: ${error.message}`);
                 return reject(error);
@@ -215,9 +226,9 @@ function getServicePorts(pid: string): number[] {
 function getPSCommand(platform: string, searchStr: string): string {
     switch (platform) {
         case 'darwin':
-            return `ps -A -o comm,pid,command | grep -e "${searchStr}"`;
+            return `ps -A -o comm,pid,command | grep -iF -e "${searchStr}"`;
         case 'linux':
-            return `ps -A -o comm,pid,cmd | grep -e "${searchStr}"`;
+            return `ps -A -o comm,pid,cmd | grep -iF -e "${searchStr}"`;
         case 'win32':
             return `powershell -command "Get-CimInstance -query \\"select * from win32_process WHERE commandLine LIKE '%${searchStr.replaceAll("\\", "\\\\")}%'\\" | Format-Table Name,ProcessId,commandLine | Out-String -Width 512"`;
         default:

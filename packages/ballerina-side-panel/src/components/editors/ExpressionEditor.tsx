@@ -124,8 +124,7 @@ export namespace S {
     `;
 
     export const LabelContainer = styled.div({
-        display: 'flex',
-        alignItems: 'center'
+        display: 'block'
     });
 
     export const HeaderContainer = styled.div({
@@ -141,6 +140,18 @@ export namespace S {
         gap: '4px'
     });
 
+    export const HeaderRow = styled.div({
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-end',
+        gap: '8px'
+    });
+
+    export const HeaderMain = styled.div({
+        flex: 1,
+        minWidth: 0
+    });
+
     export const Type = styled.div<{ isVisible: boolean }>(({ isVisible }) => ({
         color: ThemeColors.PRIMARY,
         fontFamily: 'monospace',
@@ -149,6 +160,7 @@ export namespace S {
         borderRadius: '999px',
         padding: '1px 6px',
         display: 'inline-block',
+        verticalAlign: 'middle',
         userSelect: 'none',
         maxWidth: '120px',
         overflow: 'hidden',
@@ -168,7 +180,8 @@ export namespace S {
 
     export const Label = styled.label({
         color: 'var(--vscode-editor-foreground)',
-        textTransform: 'capitalize'
+        textTransform: 'capitalize',
+        overflowWrap: 'anywhere'
     });
 
     export const Description = styled.div({
@@ -197,13 +210,15 @@ export namespace S {
         color: var(--vscode-input-placeholderForeground);
         font-family: var(--vscode-editor-font-family);
         font-size: 12px;
+        overflow-wrap: anywhere;
     `;
 
     export const FieldInfoSection = styled.div({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'flex-end',
-        gap: '5px'
+        gap: '5px',
+        flexShrink: 0
     });
 
     export const EditorMdContainer = styled.div`
@@ -213,6 +228,7 @@ export namespace S {
         color: var(--vscode-list-deemphasizedForeground);
         border-radius: 4px;
         margin-bottom: 0;
+        overflow-wrap: anywhere;
 
         h1,
         h2,
@@ -583,26 +599,26 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             >
                 {showHeader && (
                     <S.Header>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '8px' }}>
-                            <div>
-                                {field.label && (
-                                    <S.HeaderContainer>
-                                        <S.LabelContainer>
-                                            <S.Label>{field.label}</S.Label>
-                                            {(field.defaultValue && field.defaultValue?.trim() !== "()") && <S.DefaultValue style={{ marginLeft: '8px' }}>{`(Default: ${field.defaultValue}) `}</S.DefaultValue>}
-                                            {(required ?? !field.optional) && <RequiredFormInput />}
-                                            {getPrimaryInputType(field.types)?.ballerinaType && (
-                                                <S.Type style={{ marginLeft: '5px' }} isVisible={focused} title={getPrimaryInputType(field.types)?.ballerinaType}>
-                                                    {sanitizeType(getPrimaryInputType(field.types)?.ballerinaType)}
-                                                </S.Type>
-                                            )}
-                                        </S.LabelContainer>
-                                    </S.HeaderContainer>
-                                )}
+                        {field.label && (
+                            <S.HeaderContainer>
+                                <S.LabelContainer>
+                                    <S.Label>{field.label}</S.Label>
+                                    {(field.defaultValue && field.defaultValue?.trim() !== "()") && <S.DefaultValue style={{ marginLeft: '8px' }}>{`(Default: ${field.defaultValue}) `}</S.DefaultValue>}
+                                    {(required ?? !field.optional) && <RequiredFormInput />}
+                                    {getPrimaryInputType(field.types)?.ballerinaType && (
+                                        <S.Type style={{ marginLeft: '5px' }} isVisible={focused} title={getPrimaryInputType(field.types)?.ballerinaType}>
+                                            {sanitizeType(getPrimaryInputType(field.types)?.ballerinaType)}
+                                        </S.Type>
+                                    )}
+                                </S.LabelContainer>
+                            </S.HeaderContainer>
+                        )}
+                        <S.HeaderRow>
+                            <S.HeaderMain>
                                 <S.EditorMdContainer>
                                     {documentation && <ReactMarkdown>{documentation}</ReactMarkdown>}
                                 </S.EditorMdContainer>
-                            </div>
+                            </S.HeaderMain>
                             {modeSwitcherContext?.isModeSwitcherEnabled && (
                                 <S.FieldInfoSection>
                                     <ModeSwitcher
@@ -614,7 +630,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     />
                                 </S.FieldInfoSection>
                             )}
-                        </div>
+                        </S.HeaderRow>
                     </S.Header>
                 )}
                 <Controller
