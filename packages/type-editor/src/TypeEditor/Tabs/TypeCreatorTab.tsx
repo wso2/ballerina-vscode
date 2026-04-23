@@ -354,9 +354,9 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
         const endPosition = await rpcClient.getBIDiagramRpcClient().getEndOfFile({
             filePath: Utils.joinPath(URI.file(projectPath), 'types.bal').fsPath
         });
-
+        const resolvedFilePath = Utils.joinPath(URI.file(projectPath), 'types.bal').fsPath;
         const response = await rpcClient.getBIDiagramRpcClient().getExpressionDiagnostics({
-            filePath: projectPath + type?.codedata?.lineRange?.fileName || filePath,
+            filePath: resolvedFilePath || filePath,
             context: {
                 expression: value,
                 startLine: {
