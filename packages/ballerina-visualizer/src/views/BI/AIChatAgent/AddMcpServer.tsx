@@ -39,6 +39,22 @@ const AUTH_FIELD_KEY = "auth";
 const RESULT_FIELD_KEY = "variable";
 const TOOLKIT_NAME_FIELD_KEY = "toolKitName";
 
+// Strip Ballerina wrappers so `"url"` and string `url` compare equal.
+const normalizeExpressionValue = (value: string | undefined | null): string => {
+    if (value === undefined || value === null) return "";
+    let normalized = String(value).trim();
+    if (normalized.startsWith("string ")) {
+        normalized = normalized.slice("string ".length).trim();
+    }
+    if (normalized.length >= 2 && normalized.startsWith("`") && normalized.endsWith("`")) {
+        normalized = normalized.slice(1, -1);
+    }
+    if (normalized.length >= 2 && normalized.startsWith('"') && normalized.endsWith('"')) {
+        normalized = normalized.slice(1, -1);
+    }
+    return normalized;
+};
+
 export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
     const { agentCallNode, onSave, editMode = false } = props;
     const { rpcClient } = useRpcContext();
@@ -63,6 +79,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
     const [resolutionError, setResolutionError] = useState<string>("");
     const [toolSource, setToolSource] = useState<'auto-fetched' | 'manual-discovery' | 'saved-mock' | null>(null);
     const isInitializingEditModeRef = useRef<boolean>(false);
+    const savedFormValuesRef = useRef<{ serverUrl: string; auth: string } | null>(null);
 
     const mcpToolKitNodeTemplateRef = useRef<FlowNode>(null);
     const mcpToolKitNodeRef = useRef<FlowNode>(null);
@@ -288,6 +305,8 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
 
             const { serverUrl: savedUrl, auth: savedAuth, permittedTools, requiresAuth: savedRequiresAuth, toolScopes: savedToolScopes } = extractOriginalValues(node);
 
+            savedFormValuesRef.current = { serverUrl: savedUrl, auth: savedAuth };
+
             // Update form state so FlowNodeForm displays values
             setRequiresAuth(savedRequiresAuth);
 
@@ -498,13 +517,22 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                     onSubmit={handleSave}
                     onChange={(fieldKey, value) => {
                         if (fieldKey === SERVER_URL_FIELD_KEY) {
+                            const savedServerUrl = savedFormValuesRef.current?.serverUrl;
+                            // Skip form replays of the saved value (normalized to ignore syntactic re-wrapping).
+                            const isReplayOfSavedValue =
+                                savedServerUrl !== undefined &&
+                                normalizeExpressionValue(value) === normalizeExpressionValue(savedServerUrl);
                             setServerUrl(value);
-                            if (editMode && !isInitializingEditModeRef.current && toolSource !== null) {
+                            if (editMode && !isInitializingEditModeRef.current && toolSource !== null && !isReplayOfSavedValue) {
                                 setToolSource(null);
                             }
                         } else if (fieldKey === AUTH_FIELD_KEY) {
+                            const savedAuth = savedFormValuesRef.current?.auth;
+                            const isReplayOfSavedValue =
+                                savedAuth !== undefined &&
+                                normalizeExpressionValue(value) === normalizeExpressionValue(savedAuth);
                             setAuth(value);
-                            if (editMode && !isInitializingEditModeRef.current && toolSource !== null) {
+                            if (editMode && !isInitializingEditModeRef.current && toolSource !== null && !isReplayOfSavedValue) {
                                 setToolSource(null);
                             }
                         }
