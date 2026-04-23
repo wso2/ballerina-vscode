@@ -24,10 +24,6 @@ export default function createTests() {
     test.describe.serial('Configuration Tests', {
     }, async () => {
         initTest();
-        test.beforeAll(async () => {
-            // await enableICP();
-        });
-
         test('Create Configuration', async () => {
             await addArtifact('Configuration', 'configurable');
             const configEditor = new ConfigEditor(page.page, BI_INTEGRATOR_LABEL);
