@@ -171,13 +171,13 @@ export async function restoreWorkspaceSnapshot(checkpoint: Checkpoint, skipArtif
             progress.report({ message: 'Applying workspace changes...' });
 
             // Apply all changes atomically
-            suppressWebviewNotifications(true);
+            const resumeNotifications = suppressWebviewNotifications();
             let success = false;
             try {
                 success = await vscode.workspace.applyEdit(workspaceEdit);
                 await vscode.workspace.saveAll();
             } finally {
-                suppressWebviewNotifications(false);
+                resumeNotifications();
             }
 
             if (!success) {
