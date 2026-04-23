@@ -39,46 +39,44 @@ export const getSearchFilteredInput = (dmType: IOType, varName: string) => {
 	}
 }
 
-export const getSearchFilteredOutput = (outputType: IOType) => {
+export const getSearchFilteredOutput = (dmType: IOType) => {
 	const searchValue = useDMSearchStore.getState().outputSearch;
-	if (!outputType) {
+	if (!dmType) {
 		return null
 	}
 	if (!searchValue) {
-		return outputType;
+		return dmType;
 	}
 
-	let searchType: IOType = outputType;
-
-	if (searchType.name.toLowerCase().includes(searchValue)) {
-		return searchType;
-	} else if (searchType.kind === TypeKind.Array) {
-		const subFields = searchType.member?.fields
+	if (dmType.name.toLowerCase().includes(searchValue)) {
+		return dmType;
+	} else if (dmType.kind === TypeKind.Array) {
+		const subFields = dmType.member?.fields
 			?.map(item => getFilteredSubFields(item, searchValue))
 			.filter(item => item);
 
 		return {
-			...searchType,
+			...dmType,
 			member: {
-				...searchType.member,
+				...dmType.member,
 				fields: subFields || []
 			}
 		}
-	} else if (searchType.kind === TypeKind.Record) {
-		const subFields = searchType.fields
+	} else if (dmType.kind === TypeKind.Record) {
+		const subFields = dmType.fields
 			?.map(item => getFilteredSubFields(item, searchValue))
 			.filter(item => item);
 
 		return {
-			...searchType,
+			...dmType,
 			fields: subFields || []
 		}
-	} else if ((searchType.kind === TypeKind.Json || searchType.kind === TypeKind.Xml) && searchType.convertedField) {
-		const filteredConvertedField = getFilteredSubFields(searchType.convertedField, searchValue);
+	} else if ((dmType.kind === TypeKind.Json || dmType.kind === TypeKind.Xml) && dmType.convertedField) {
+		const filteredConvertedField = getFilteredSubFields(dmType.convertedField, searchValue);
 		if (filteredConvertedField) {
-			return { ...searchType, convertedField: filteredConvertedField };
+			return { ...dmType, convertedField: filteredConvertedField };
 		}
-		return { ...searchType, convertedField: { ...searchType.convertedField, fields: [] } };
+		return { ...dmType, convertedField: { ...dmType.convertedField, fields: [] } };
 	}
 	return  null;
 }
