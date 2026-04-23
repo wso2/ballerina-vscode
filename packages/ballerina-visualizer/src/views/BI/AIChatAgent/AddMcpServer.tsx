@@ -420,6 +420,10 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                 updatedNode: node,
                 toolScopes: showScopes && Object.keys(toolScopes).length > 0 ? toolScopes : undefined,
             });
+
+            // Safety net: fix any missing imports after all edits are applied
+            await rpcClient.getAIAgentRpcClient().fixMissingImports();
+
             onSave?.();
         } catch (error) {
             console.error("Error saving MCP server:", error);
