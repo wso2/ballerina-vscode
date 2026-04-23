@@ -25,6 +25,7 @@ import io.ballerina.compiler.api.symbols.Qualifier;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
 import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
+import io.ballerina.compiler.syntax.tree.ListenerDeclarationNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
@@ -172,6 +173,7 @@ public class ShopifyTriggerServiceBuilder extends AbstractServiceBuilder {
 
             return serviceInitModel;
         } catch (IOException e) {
+            LOGGER.warning("Failed to load Shopify trigger service init model: " + e.getMessage());
             return null;
         }
     }
@@ -181,25 +183,24 @@ public class ShopifyTriggerServiceBuilder extends AbstractServiceBuilder {
             throws WorkspaceDocumentException, FormatterException, IOException, BallerinaOpenApiException,
             EventSyncException {
         ServiceInitModel serviceInitModel = context.serviceInitModel();
-        Map<String, Value> properties = serviceInitModel.getProperties();
 
         // 1. Collapse the configureListener CHOICE into flat properties
         applyEnabledChoiceProperty(serviceInitModel, KEY_CONFIGURE_LISTENER);
-        properties = serviceInitModel.getProperties();
+        Map<String, Value> properties = serviceInitModel.getProperties();
 
         // 2. Unwrap GROUP_SECTION children into the flat properties map
         unwrapGroupSections(properties);
 
         // 3. Determine if "Use existing" was selected
         boolean useExistingListener = ListenerUtil.shouldUseExistingListener(properties);
-        String existingListenerName = ListenerUtil.getExistingListenerName(properties).orElse("");
+        Optional<String> existingListenerName = ListenerUtil.getExistingListenerName(properties);
         properties.remove(KEY_EXISTING_LISTENER);
 
         ListenerDTO listenerDTO;
-        if (useExistingListener) {
+        if (useExistingListener && existingListenerName.isPresent()) {
             // Listener already exists — no declaration to emit
             String listenerProtocol = getProtocol(serviceInitModel.getModuleName());
-            listenerDTO = new ListenerDTO(listenerProtocol, existingListenerName, "");
+            listenerDTO = new ListenerDTO(listenerProtocol, existingListenerName.get(), "");
         } else {
             // Build new listener declaration from properties using argType dispatch
             listenerDTO = buildListenerDTO(context);
@@ -245,12 +246,13 @@ public class ShopifyTriggerServiceBuilder extends AbstractServiceBuilder {
                     location.textRange().startOffset(), location.textRange().length());
             NonTerminalNode foundNode = modulePartNode.findNode(range);
             while (foundNode != null
-                    && !(foundNode instanceof io.ballerina.compiler.syntax.tree.ListenerDeclarationNode)) {
+                    && !(foundNode instanceof ListenerDeclarationNode)) {
                 foundNode = foundNode.parent();
             }
-            if (!(foundNode instanceof io.ballerina.compiler.syntax.tree.ListenerDeclarationNode listenerNode)) {
+            if (foundNode == null) {
                 return config;
             }
+            ListenerDeclarationNode listenerNode = (ListenerDeclarationNode) foundNode;
 
             // Parse the new (...) expression arguments
             io.ballerina.compiler.syntax.tree.NewExpressionNode newExpressionNode = null;
@@ -307,5 +309,4 @@ public class ShopifyTriggerServiceBuilder extends AbstractServiceBuilder {
 
         return config;
     }
-
 }

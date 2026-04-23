@@ -6,7 +6,7 @@
   "moduleName": "trigger.shopify",
   "response": {
     "serviceInitModel": {
-      "id": "14",
+      "id": "19",
       "displayName": "Shopify Event Integration",
       "description": "Create a service to handle events from a Shopify store",
       "orgName": "ballerinax",
