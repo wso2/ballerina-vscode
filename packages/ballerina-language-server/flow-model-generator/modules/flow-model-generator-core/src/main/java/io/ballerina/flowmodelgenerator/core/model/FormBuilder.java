@@ -1430,6 +1430,32 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
     }
 
     /**
+     * Reserves a slot in the node properties map for the given key so that a subsequent
+     * {@code addProperty(key, ...)} call preserves the originally reserved position (LinkedHashMap
+     * retains insertion order across put-overwrites of an existing key). No-op if the key is already
+     * present.
+     *
+     * @param key the property key whose source-code position should be locked in
+     * @return this builder for fluent chaining
+     */
+    public final FormBuilder<T> reserveProperty(String key) {
+        this.nodeProperties.putIfAbsent(key, new Property.Builder<>(null).build());
+        return this;
+    }
+
+    /**
+     * Removes a previously reserved slot when the caller decides not to emit a real Property under
+     * this key — prevents an empty placeholder from leaking into the serialized node properties.
+     *
+     * @param key the property key to drop
+     * @return this builder for fluent chaining
+     */
+    public final FormBuilder<T> removeProperty(String key) {
+        this.nodeProperties.remove(key);
+        return this;
+    }
+
+    /**
      * Bulk-adds all entries from the given map into the node properties, skipping the operation silently
      * if the map is {@code null}. Existing properties with the same key will be overwritten.
      *
