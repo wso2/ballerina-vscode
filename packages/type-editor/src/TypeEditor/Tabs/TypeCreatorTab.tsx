@@ -354,9 +354,9 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
         const endPosition = await rpcClient.getBIDiagramRpcClient().getEndOfFile({
             filePath: Utils.joinPath(URI.file(projectPath), 'types.bal').fsPath
         });
-        const resolvedFilePath = Utils.joinPath(URI.file(projectPath), 'types.bal').fsPath;
+        const resolvedFilePath = type?.codedata?.lineRange?.fileName ? Utils.joinPath(URI.file(projectPath), type?.codedata?.lineRange?.fileName).fsPath : filePath;
         const response = await rpcClient.getBIDiagramRpcClient().getExpressionDiagnostics({
-            filePath: resolvedFilePath || filePath,
+            filePath: resolvedFilePath,
             context: {
                 expression: value,
                 startLine: {
@@ -382,7 +382,7 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
                 property: type?.properties["name"] ?
                     {
                         ...type.properties["name"],
-                        types: [{ fieldType:  type.properties["name"].valueType, scope: "Global", selected: false}]
+                        types: [{ fieldType: type.properties["name"].valueType, scope: "Global", selected: false }]
                     } :
                     {
                         metadata: {
@@ -390,7 +390,7 @@ export function TypeCreatorTab(props: TypeCreatorTabProps) {
                             description: "",
                         },
                         value: "",
-                        types: [{ fieldType: "IDENTIFIER", scope: "Global" , selected: false}],
+                        types: [{ fieldType: "IDENTIFIER", scope: "Global", selected: false }],
                         optional: false,
                         editable: true
                     }
