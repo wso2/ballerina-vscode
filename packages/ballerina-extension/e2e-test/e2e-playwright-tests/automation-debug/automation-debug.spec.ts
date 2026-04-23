@@ -53,7 +53,7 @@ export default function createTests() {
             const projectExplorer = new ProjectExplorer(page.page);
             await projectExplorer.refresh(DEFAULT_PROJECT_NAME);
 
-            // 1. Navigate to the bar entry point
+            // 1. Navigate to the main entry point
             const mainEntryPoint = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main']);
             await mainEntryPoint.click();
 
@@ -76,30 +76,30 @@ export default function createTests() {
             await addBreakpointMenuItem.click();
 
             // 6. Verify the red breakpoint dot indicator appears on the node
-            const breakpointDot = logNode.locator('div[data-testid="breakpoint-indicator-diagram"]').first();
+            const breakpointDot = logNode.locator('div[data-testid="breakpoint-indicator-diagram"]');
             await breakpointDot.waitFor({ state: 'visible', timeout: 5000 });
 
 
-            // 2. Verify the "Debug Integration" button is visible in the editor toolbar
+            // 7. Verify the "Debug Integration" button is visible in the editor toolbar
             // Look for the button with aria-label="Debug Integration" and class "action-label icon"
             const debugButton = page.page.locator('a.action-label.icon[aria-label="Debug Integration"]').first();
             await debugButton.waitFor({ timeout: 10000 });
 
-            // 3. Click on the "Debug Integration" button
+            // 8. Click on the "Debug Integration" button
             await debugButton.click();
 
-            // 4. Verify the button is clicked successfully
+            // 9. Verify the button is clicked successfully
             await page.page.waitForTimeout(1000);
 
-            // 5. Verify the debug session starts
-            // 6. Verify the debug toolbar appears
+            // 10. Verify the debug session starts
+            // 11. Verify the debug toolbar appears
             const debugToolbar = page.page.locator('[data-testid="debug-toolbar"], .debug-toolbar').first();
             await debugToolbar.waitFor({ timeout: 10000 }).catch(() => {
                 // Debug toolbar might not have test ID, try alternative selectors
                 return page.page.locator('.monaco-toolbar, .debug-actions').first().waitFor({ timeout: 5000 });
             });
 
-            // 7. Re-acquire the iframe reference since the webview re-renders after debug starts
+            // 12. Re-acquire the iframe reference since the webview re-renders after debug starts
             const freshWebView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page, 30000);
             if (!freshWebView) {
                 throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
@@ -107,7 +107,7 @@ export default function createTests() {
             const freshDiagramCanvas = freshWebView.locator('#bi-diagram-canvas');
             await freshDiagramCanvas.waitFor({ state: 'visible', timeout: 30000 });
 
-            // 8. Verify the breakpoint hit by checking for active breakpoint indicator in diagram
+            // 13. Verify the breakpoint hit by checking for active breakpoint indicator in diagram
             const breakpointDotDiagram = freshDiagramCanvas.locator('div[data-testid="breakpoint-indicator-diagram-active"]').first();
             await breakpointDotDiagram.waitFor({ state: 'visible', timeout: 30000 });
         });
