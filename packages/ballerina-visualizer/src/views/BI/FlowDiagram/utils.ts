@@ -104,7 +104,10 @@ export const getNodeTemplateForConnection = async (
         });
 
     const flowNode = response.flowNode;
-    flowNode.metadata = node.metadata;
+    flowNode.metadata = {
+        ...node.metadata,
+        description: flowNode?.metadata?.description || node?.metadata?.description,
+    };
 
     let connectionKind: string;
     switch (nodeId) {
