@@ -19,7 +19,7 @@ import { RequiresAuthCheckbox } from "./Mcp/RequiresAuthCheckbox";
 import { attemptValueResolution, createMockTools, extractOriginalValues, generateToolKitName } from "./Mcp/utils";
 import { cleanServerUrl } from "./formUtils";
 import { Container, LoaderContainer } from "./styles";
-import { extractAccessToken, findAgentNodeFromAgentCallNode, getEndOfFileLineRange, resolveVariableValue, resolveAuthConfig, checkAiPackageVersionSupport } from "./utils";
+import { extractAccessToken, findAgentNodeFromAgentCallNode, getEndOfFileLineRange, removeQuotes, resolveVariableValue, resolveAuthConfig, checkAiPackageVersionSupport } from "./utils";
 
 interface Tool {
     name: string;
@@ -39,21 +39,9 @@ const AUTH_FIELD_KEY = "auth";
 const RESULT_FIELD_KEY = "variable";
 const TOOLKIT_NAME_FIELD_KEY = "toolKitName";
 
-// Strip Ballerina wrappers so `"url"` and string `url` compare equal.
-const normalizeExpressionValue = (value: string | undefined | null): string => {
-    if (value === undefined || value === null) return "";
-    let normalized = String(value).trim();
-    if (normalized.startsWith("string ")) {
-        normalized = normalized.slice("string ".length).trim();
-    }
-    if (normalized.length >= 2 && normalized.startsWith("`") && normalized.endsWith("`")) {
-        normalized = normalized.slice(1, -1);
-    }
-    if (normalized.length >= 2 && normalized.startsWith('"') && normalized.endsWith('"')) {
-        normalized = normalized.slice(1, -1);
-    }
-    return normalized;
-};
+// Delegates to the shared removeQuotes so `"url"` and string `url` compare equal.
+const normalizeExpressionValue = (value: unknown): string =>
+    typeof value === "string" ? removeQuotes(value) : "";
 
 export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
     const { agentCallNode, onSave, editMode = false } = props;
