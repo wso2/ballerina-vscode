@@ -96,6 +96,7 @@ export interface ShowErrorMessageRequest {
 
 export interface ShowInfoModalRequest {
     message: string;
+    detail?: string;
     items?: string[];
 }
 

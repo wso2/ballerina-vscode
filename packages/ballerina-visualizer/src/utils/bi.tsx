@@ -263,8 +263,11 @@ export function convertEmbeddingProviderCategoriesToSidePanelCategories(categori
 
 export function convertKnowledgeBaseCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
     return convertCategoriesToSidePanelCategoriesWithIcon(categories, (codedata, iconUrl) => {
-        if ((codedata?.module as string).includes("azure")) {
+        if ((codedata?.module as string)?.includes("azure")) {
             return <AIModelIcon type="ai.azure" iconUrl={iconUrl} />;
+        }
+        if (codedata?.module === "ai") {
+            return <NodeIcon type="KNOWLEDGE_BASE" size={18} />;
         }
         return <AIModelIcon type={codedata?.module} codedata={codedata} iconUrl={iconUrl} />;
     });
