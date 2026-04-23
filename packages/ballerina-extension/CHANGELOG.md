@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 ### Fixed
 
 - **Test Explorer** - Render Ballerina test explorer icons only when a Ballerina project is opened.
+- **Agent Default Model Provider Configuration** - Fixed default model provider configuration not added automatically when creating inline agents.
 
 ## [5.8.2](https://github.com/wso2/vscode-extensions/compare/ballerina-5.8.1...ballerina-5.8.2) - 2026-03-11
 
