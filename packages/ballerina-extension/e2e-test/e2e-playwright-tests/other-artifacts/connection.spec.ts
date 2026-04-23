@@ -25,7 +25,6 @@ import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 
 export default function createTests() {
     test.describe.serial('Connection Artifact Tests', {
-        tag: '@group1',
     }, async () => {
         initTest();
         test('Create Connection Artifact', async ({ }, testInfo) => {

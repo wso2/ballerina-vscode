@@ -23,7 +23,6 @@ import { ProjectExplorer } from '../utils/pages';
 
 export default function createTests() {
     test.describe.serial('Service Class Tests', {
-        tag: '@group1',
     }, async () => {
         initTest();
         test('Create Service Class', async ({ }, testInfo) => {

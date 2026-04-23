@@ -22,7 +22,6 @@ import { ConfigEditor } from '../utils/pages';
 
 export default function createTests() {
     test.describe.serial('Configuration Tests', {
-        tag: '@group1',
     }, async () => {
         initTest();
         test.beforeAll(async () => {

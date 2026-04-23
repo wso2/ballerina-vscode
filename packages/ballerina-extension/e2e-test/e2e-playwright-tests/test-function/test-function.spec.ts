@@ -22,7 +22,6 @@ import { Form, switchToIFrame } from '@wso2/playwright-vscode-tester';
 
 export default function createTests() {
     test.describe.serial('Test Function Tests', {
-        tag: '@group1',
     }, async () => {
         initTest();
 
