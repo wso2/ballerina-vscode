@@ -183,15 +183,6 @@ export abstract class AICommandExecutor<TParams = any> {
         } finally {
             // Stage 6: Always clear active execution on completion (success or error)
             chatStateStorage.clearActiveExecution(projectRootPath, threadId);
-
-            // Remove generation if LLM never responded — no model messages means nothing useful to persist.
-            // Exception: DataMap/TypeCreator commands save via save_chat (webview), not modelMessages.
-            const gen = chatStateStorage.getGeneration(projectRootPath, threadId, this.config.generationId);
-            const command = this.getCommandType();
-            const savesViaWebview = command === Command.DataMap || command === Command.TypeCreator;
-            if (gen && gen.modelMessages.length === 0 && !savesViaWebview) {
-                chatStateStorage.removeGeneration(projectRootPath, threadId, this.config.generationId);
-            }
         }
     }
 

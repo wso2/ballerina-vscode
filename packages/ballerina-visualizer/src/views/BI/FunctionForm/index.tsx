@@ -290,10 +290,13 @@ export function FunctionForm(props: FunctionFormProps) {
             let oauthSupported = false;
             if (isAgentTool || isExistingAgentTool) {
                 let oauthProperties: Awaited<ReturnType<typeof fetchOAuthConfigProperties>> = [];
+                setIsLoading(true);
                 try {
                     oauthProperties = await fetchOAuthConfigProperties(rpcClient, filePath);
                 } catch (error) {
                     console.error("Failed to fetch OAuth config properties:", error);
+                } finally {
+                    if (!cancelled) setIsLoading(false);
                 }
                 if (cancelled) return;
                 oauthConfigPropertiesRef.current = oauthProperties;
@@ -323,6 +326,8 @@ export function FunctionForm(props: FunctionFormProps) {
                 });
                 fields.push(...oauthFields);
                 oauthSupported = oauthFields.length > 0;
+            } else if (!cancelled) {
+                setIsLoading(false);
             }
 
             if (!cancelled) {

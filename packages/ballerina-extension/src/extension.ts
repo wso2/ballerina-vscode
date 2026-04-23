@@ -148,6 +148,7 @@ export async function activate(context: ExtensionContext) {
             isAIAuthenticated,
             signInForAI,
         },
+        onDownloadProgress: extension.ballerinaExtInstance.onDownloadProgress,
     };
 }
 
