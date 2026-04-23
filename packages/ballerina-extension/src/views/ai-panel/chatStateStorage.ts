@@ -681,10 +681,15 @@ export class ChatStateStorage {
     getChatHistoryForLLM(projectRootPath: string, threadId: string): any[] {
         const thread = this.getOrCreateThread(projectRootPath, threadId);
         const messages: any[] = [];
+        const activeGenerationId = this.getActiveExecution(projectRootPath, threadId)?.generationId;
 
         for (const generation of thread.generations) {
             if (generation.modelMessages && generation.modelMessages.length > 0) {
                 messages.push(...generation.modelMessages);
+                continue;
+            }
+            // Skip the live generation — its prompt is appended separately by the caller.
+            if (generation.id === activeGenerationId) {
                 continue;
             }
             // Aborted before modelMessages were persisted — synthesize from userPrompt/uiResponse.
