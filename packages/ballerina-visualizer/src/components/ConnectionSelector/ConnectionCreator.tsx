@@ -135,6 +135,7 @@ export function ConnectionCreator(props: ConnectionCreatorProps): JSX.Element {
                     <ArtifactForm
                         fileName={connectionsFilePath.current || projectPath.current}
                         fields={connectionFields}
+                        description={nodeFormTemplate?.metadata?.description}
                         onSubmit={handleOnSave}
                         submitText={savingForm ? "Saving..." : "Save"}
                         disableSaveButton={savingForm}
