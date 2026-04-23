@@ -787,7 +787,7 @@ export function WorkspaceOverview() {
             !deployedPaths.has(scope.projectPath) &&
             !libraryProjectPaths.has(scope.projectPath)
         );
-    }, [projectScopes, devantMetadata, projectCollection]);
+    }, [projectScopes, devantMetadata, projectCollection, libraryProjectPaths]);
 
     const deployableProjectPaths = useMemo(() => {
         return new Set(projectScopes.map(scope => scope.projectPath));
