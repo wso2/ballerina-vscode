@@ -88,12 +88,12 @@ export default function createTests() {
 
             // 14. Verify the tree view shows the automation name under "Entry Points" section
             const projectExplorer = new ProjectExplorer(page.page);
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main'], false);
+            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main']);
         });
         test('Edit Automation', async () => {
             // Navigate to an existing Automation in the automation designer view
             const projectExplorer = new ProjectExplorer(page.page);
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main'], true);
+            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main']);
             const artifactWebView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page, 30000);
             if (!artifactWebView) {
                 throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
@@ -185,7 +185,7 @@ export default function createTests() {
 
         test('Delete Automation', async () => {
             const projectExplorer = new ProjectExplorer(page.page);
-            const automationTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main'], true);
+            const automationTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main']);
             const artifactWebView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page, 30000);
             if (!artifactWebView) {
                 throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
@@ -201,7 +201,7 @@ export default function createTests() {
 
             // 5. Verify the Automation is removed from the project tree
             await page.page.waitForTimeout(1000);
-            const automationInTree = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main'], false).catch(() => null);
+            const automationInTree = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main']).catch(() => null);
             if (automationInTree) {
                 throw new Error('Automation should be removed from project tree');
             }

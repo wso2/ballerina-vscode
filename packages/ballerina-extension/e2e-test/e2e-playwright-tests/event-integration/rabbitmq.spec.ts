@@ -60,7 +60,7 @@ export default function createTests() {
 
             // Verify integration appears in project tree
             const projectExplorer = new ProjectExplorer(page.page);
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `RabbitMQ Event Integration - "${queueName}"`], true);
+            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `RabbitMQ Event Integration - "${queueName}"`]);
         });
 
         test('Add onMessage Handler', async ({ }, testInfo) => {
@@ -155,7 +155,7 @@ export default function createTests() {
             console.log('Editing a service in test attempt: ', testAttempt);
 
             const projectExplorer = new ProjectExplorer(page.page);
-            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `RabbitMQ Event Integration - "${queueName}"`], true);
+            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `RabbitMQ Event Integration - "${queueName}"`]);
             await serviceTreeItem.click({ force: true });
 
             const artifactWebView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page);
@@ -192,7 +192,7 @@ export default function createTests() {
             await backBtn.waitFor();
             await backBtn.click();
 
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `RabbitMQ Event Integration - "${queueName}"`], true);
+            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `RabbitMQ Event Integration - "${queueName}"`]);
 
             const updatedQueueNameElement = artifactWebView.locator(`text=${queueName}`);
             await updatedQueueNameElement.waitFor({ state: 'visible' });
@@ -208,7 +208,7 @@ export default function createTests() {
             }
 
             const projectExplorer = new ProjectExplorer(page.page);
-            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `RabbitMQ Event Integration - "${queueName}"`], true);
+            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `RabbitMQ Event Integration - "${queueName}"`]);
             await serviceTreeItem.click({ button: 'right' });
             const deleteButton = page.page.getByRole('button', { name: 'Delete' }).first();
             await deleteButton.waitFor({ timeout: 5000 });

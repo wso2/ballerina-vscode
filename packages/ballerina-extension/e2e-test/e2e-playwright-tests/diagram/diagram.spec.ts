@@ -50,7 +50,7 @@ export default function createTests() {
 
             // 14. Verify the tree view shows the automation name under "Entry Points" section
             const projectExplorer = new ProjectExplorer(page.page);
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main'], false);
+            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main']);
 
             // 15. Add first variable with value "foo"
             const diagram = new Diagram(page.page);
