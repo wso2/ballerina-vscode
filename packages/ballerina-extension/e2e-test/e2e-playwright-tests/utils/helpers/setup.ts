@@ -45,7 +45,8 @@ export let vscode: any;
 export let page: ExtendedPage;
 
 /**
- * Set to true by afterEach whenever a test fails. Currently informational —
+ * Updated by afterEach to indicate whether the most recently finished test in
+ * this worker failed/timed out/was interrupted. Currently informational —
  * the global afterAll in test.list.ts always tears down the Electron app so
  * the worker can exit (see comment there for why that is mandatory). Kept
  * exported because other modules may want to branch on last-test status.
@@ -519,10 +520,10 @@ export function initTest(newProject: boolean = true, skipProjectCreation: boolea
 
     test.afterEach(async ({ }, testInfo) => {
         const status = testInfo.status ?? 'skipped';
+        lastTestFailed = status === 'failed' || status === 'timedOut' || status === 'interrupted';
         const statusEmoji = status === 'passed' ? '✅' : status === 'failed' ? '❌' : '⏭️';
         console.log(`${statusEmoji} FINISHED TEST: ${testInfo.title} (${status.toUpperCase()}, Attempt ${testInfo.retry + 1})\n`);
-        if (status === 'failed' || status === 'timedOut' || status === 'interrupted') {
-            lastTestFailed = true;
+        if (lastTestFailed) {
             // Do NOT close the Electron app here (per-test afterEach). The
             // global afterAll in test.list.ts handles Electron teardown once
             // the worker is being discarded; closing it per-test would kill
@@ -575,10 +576,10 @@ export function initMigrationTest() {
 
     test.afterEach(async ({ }, testInfo) => {
         const status = testInfo.status ?? 'skipped';
+        lastTestFailed = status === 'failed' || status === 'timedOut' || status === 'interrupted';
         const statusEmoji = status === 'passed' ? '✅' : status === 'failed' ? '❌' : '⏭️';
         console.log(`${statusEmoji} FINISHED MIGRATION TEST: ${testInfo.title} (${status.toUpperCase()}, Attempt ${testInfo.retry + 1})\n`);
-        if (status === 'failed' || status === 'timedOut' || status === 'interrupted') {
-            lastTestFailed = true;
+        if (lastTestFailed) {
             const pageAlive = !!page?.page && !page.page.isClosed?.();
             if (pageAlive) {
                 await captureFailureScreenshot(testInfo.title);
