@@ -61,6 +61,7 @@ import { ConnectionKind } from "../../../components/ConnectionSelector";
 import { SidePanelView } from "../FlowDiagram/PanelManager";
 import { createPromptHelperPane } from "./utils";
 
+
 const Container = styled.div`
     width: 100%;
     height: calc(100vh - 50px);
@@ -158,11 +159,25 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
 
                             if (node?.functionDefinition) {
                                 const flowNode = getFlowNodeForNaturalFunction(node.functionDefinition);
+                                // Enrich model provider metadata with icon URL from connections
+                                const modelProviderValue = flowNode.properties?.modelProvider?.value as string;
+                                if (modelProviderValue && Array.isArray(model.flowModel.connections)) {
+                                    const matchingConnection = model.flowModel.connections.find(
+                                        (c: any) => c?.properties?.variable?.value === modelProviderValue
+                                    );
+                                    if (matchingConnection?.metadata?.icon && flowNode.properties?.modelProvider?.metadata?.data) {
+                                        (flowNode.properties.modelProvider.metadata.data as any).iconUrl = matchingConnection.metadata.icon;
+                                    }
+                                }
                                 model.flowModel.nodes.push(flowNode);
                                 setModel(model.flowModel);
-                                const parentMetadata = model.flowModel.nodes.find(
+                                const eventStartNode = model.flowModel.nodes.find(
                                     (node) => node.codedata.node === "EVENT_START"
-                                )?.metadata.data as ParentMetadata | undefined;
+                                );
+                                const eventStartMetadata = eventStartNode?.metadata.data as ParentMetadata | undefined;
+                                const parentMetadata = eventStartMetadata
+                                    ? { ...eventStartMetadata, sourceCode: eventStartNode?.codedata?.sourceCode }
+                                    : undefined;
                                 // Get visualizer location and pass position to onReady
                                 rpcClient.getVisualizerLocation().then((location: VisualizerLocation) => {
                                     onReady(model.flowModel.fileName, parentMetadata, location?.position);
@@ -331,7 +346,7 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
             });
     };
 
-    const handleOnEditNode = (node: FlowNode) => {
+    const handleOnEditNode = async (node: FlowNode) => {
         console.log(">>> on edit node", node);
         selectedNodeRef.current = node;
         if (suggestedText.current) {
@@ -343,16 +358,12 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
         if (!targetRef.current) {
             return;
         }
-
         setShowProgressIndicator(true);
-        rpcClient
-            .getBIDiagramRpcClient()
-            .getNodeTemplate({
-                position: targetRef.current.startLine,
-                filePath: model.fileName,
-                id: node.codedata,
-            })
-            .then((response) => {
+        rpcClient.getBIDiagramRpcClient().getNodeTemplate({
+            position: targetRef.current.startLine,
+            filePath: model.fileName,
+            id: node.codedata,
+        }).then((response) => {
                 const nodesWithCustomForms = ["IF", "FORK"];
                 // if node doesn't have properties. don't show edit form
                 if (!response.flowNode.properties && !nodesWithCustomForms.includes(response.flowNode.codedata.node)) {

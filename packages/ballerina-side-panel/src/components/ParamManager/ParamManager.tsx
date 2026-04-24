@@ -25,9 +25,9 @@ import { Codicon, ErrorBanner, LinkButton, RequiredFormInput, ThemeColors } from
 import { FormField, FormValues } from '../Form/types';
 import { Controller } from 'react-hook-form';
 import { useFormContext } from '../../context';
-import { Imports, NodeKind } from '@wso2/ballerina-core';
+import { Imports, NodeKind, getPrimaryInputType } from '@wso2/ballerina-core';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
-import { EditorFactory } from '../editors/EditorFactory';
+import { FieldFactory } from '../editors/FieldFactory';
 import { buildRequiredRule, getFieldKeyForAdvanceProp } from '../editors/utils';
 
 export interface Parameter {
@@ -186,7 +186,7 @@ export function ParamManagerEditor(props: ParamManagerEditorProps) {
                                 sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
                             >
                                 <Codicon name={"chevron-up"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
-                                Collapsed
+                                Collapse
                             </LinkButton>
                         )}
                     </ButtonContainer>
@@ -199,7 +199,7 @@ export function ParamManagerEditor(props: ParamManagerEditorProps) {
                         if (getValues(advanceProp.key) === undefined) {
                             setValue(advanceProp.key, advanceProp.value);
                         }
-                        return <EditorFactory field={advanceProp} />
+                        return <FieldFactory field={advanceProp} />
                     })}
                 </EditorContainer>
             )}
@@ -217,6 +217,14 @@ export function ParamManager(props: ParamManagerProps) {
     const [parameters, setParameters] = useState<Parameter[]>(paramConfigs.paramValues);
     const [paramComponents, setParamComponents] = useState<React.ReactElement[]>([]);
     const [isGraphql, setIsGraphql] = useState<boolean>(false);
+    const [autoOpenedWaitDataEditor, setAutoOpenedWaitDataEditor] = useState<boolean>(false);
+    const addButtonLabel = selectedNode === "DATA_MAPPER_DEFINITION"
+        ? "Input"
+        : selectedNode === "WAIT_DATA"
+            ? "Data Waits"
+            : isGraphql
+                ? "Argument"
+                : "Parameter";
 
     const onEdit = (param: Parameter) => {
         setEditingSegmentId(param.id);
@@ -298,6 +306,19 @@ export function ParamManager(props: ParamManagerProps) {
         renderParams();
     }, [parameters, editingSegmentId, paramConfigs]);
 
+    useEffect(() => {
+        if (
+            selectedNode === "WAIT_DATA" &&
+            !readonly &&
+            !autoOpenedWaitDataEditor &&
+            parameters.length === 0 &&
+            editingSegmentId === -1
+        ) {
+            onAddClick();
+            setAutoOpenedWaitDataEditor(true);
+        }
+    }, [selectedNode, readonly, autoOpenedWaitDataEditor, parameters.length, editingSegmentId]);
+
     const renderParams = () => {
         const render: React.ReactElement[] = [];
         parameters
@@ -314,7 +335,7 @@ export function ParamManager(props: ParamManagerProps) {
                                 field.editable = param.identifierEditable;
                                 field.lineRange = param.identifierRange;
                             }
-                            if (field.key === "type" && field.type === "ACTION_TYPE" && param.formValues['isGraphqlId'] !== undefined) {
+                            if (getPrimaryInputType(field.types)?.fieldType === "TYPE" && field.type === "ACTION_TYPE" && param.formValues['isGraphqlId'] !== undefined) {
                                 field.isGraphqlId = param.formValues['isGraphqlId'];
                             }
                         }
@@ -352,7 +373,7 @@ export function ParamManager(props: ParamManagerProps) {
                 <AddButtonWrapper>
                     <LinkButton sx={readonly && { color: "var(--vscode-badge-background)" }} onClick={!readonly && onAddClick} >
                         <Codicon name="add" />
-                        <>{`Add ${selectedNode === "DATA_MAPPER_DEFINITION" ? "Input" : isGraphql ? "Argument" : "Parameter"}`}</>
+                        <>{`Add ${addButtonLabel}`}</>
                     </LinkButton>
                 </AddButtonWrapper>
             )}

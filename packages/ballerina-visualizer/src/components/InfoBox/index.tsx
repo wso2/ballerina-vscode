@@ -75,12 +75,14 @@ export function InfoBox({ text, description, codeCommand }: InfoBoxProps): JSX.E
                 <div className="command-wrapper">
                     <span>{text}</span>
                 </div>
-                {description && codeCommand && (
+                {(description || codeCommand) && (
                     <div className="description">
-                        {description} <br />
-                        <CodeBlock>
-                            {codeCommand}
-                        </CodeBlock>
+                        {description && <>{description} <br /></>}
+                        {codeCommand && (
+                            <CodeBlock>
+                                {codeCommand}
+                            </CodeBlock>
+                        )}
                     </div>
                 )}
             </InfoBoxContainer>

@@ -17,15 +17,8 @@
  */
 
 import React, { CSSProperties } from "react";
-import { Icon } from "@wso2/ui-toolkit";
+import { Icon, getAIModuleIcon, AI_MODULE_TYPES } from "@wso2/ui-toolkit";
 import { ApiIcon } from "../../resources";
-import OpenAiIcon from "../../resources/icons/OpenAiIcon";
-import AzureOpenAiIcon from "../../resources/icons/AzureOpenAiIcon";
-import AnthropicIcon from "../../resources/icons/AnthropicIcon";
-import OllamaIcon from "../../resources/icons/OllamaIcon";
-import MistralAIIcon from "../../resources/icons/MistralAIIcon";
-import DeepseekIcon from "../../resources/icons/DeepseekIcon";
-import DefaultLlmIcon from "../../resources/icons/DefaultLlmIcon";
 import { CodeData } from "@wso2/ballerina-core";
 import { isWso2Module } from "../AIModelIcon";
 
@@ -42,26 +35,17 @@ export function ConnectorIcon(props: ConnectorIconProps): React.ReactElement {
     const { url, fallbackIcon, className, style, codedata, connectorType } = props;
     const [imageError, setImageError] = React.useState(false);
 
-    // use custom icon for persist connections (database)
-    if (connectorType === "persist") {
-        return <Icon name="bi-db" className={className} sx={{ width: 24, height: 24, fontSize: 24, ...style }} />;
-    }
-
     // use custom icon for http
     if (url?.includes("ballerina_http_")) {
         return <Icon name="bi-globe" className={className} sx={{ width: 24, height: 24, fontSize: 24, ...style }} />;
     }
 
-    // use custom icon for ai model providers
-    const aiModules = ["ai.openai", "ai.azure", "ai.anthropic", "ai.ollama", "ai.mistral", "ai.deepseek"];
-    if (aiModules.some((module) => url?.includes(module))) {
-        const selectedModule = aiModules.find((module) => url?.includes(module));
-        return getLlmModelIcons(selectedModule);
-    }
-
-    // use custom icon for wso2 module
-    if (codedata && isWso2Module(codedata) || url?.includes("wso2_icon")) {
-        return <Icon name="bi-wso2" className={className} sx={{ width: 24, height: 24, fontSize: 24, ...style }} />;
+    // use custom SVG icon for known ai model providers (supports light/dark mode)
+    if (AI_MODULE_TYPES.some((module) => url?.includes(module))) {
+        const selectedModule = AI_MODULE_TYPES.find((module) => url?.includes(module));
+        const icon = selectedModule ? getAIModuleIcon(selectedModule) : null;
+        if (icon) return icon;
+        // if no hardcoded icon, fall through to URL-based icon below
     }
 
     // use custom icon for mcp
@@ -69,13 +53,22 @@ export function ConnectorIcon(props: ConnectorIconProps): React.ReactElement {
         return <Icon name="bi-mcp" className={className} sx={{ width: 24, height: 24, fontSize: 24, ...style }} />;
     }
 
-    // use custom icon for ai module
-    if (url?.includes("ballerinax_ai_") || url?.includes("ballerina_ai")) {
-        return <Icon name="bi-ai-model" className={className} sx={{ width: 24, height: 24, fontSize: 24, ...style }} />;
+    // use custom icon for wso2 module
+    if (codedata && isWso2Module(codedata) || url?.includes("wso2_icon")) {
+        return <Icon name="bi-wso2" className={className} sx={{ width: 24, height: 24, fontSize: 24, ...style }} />;
+    }
+
+    // use custom icon for ai agent calls
+    if ((url?.includes("ballerinax_ai_") || url?.includes("ballerina_ai")) && codedata && (codedata.node === "AGENT_CALL" || codedata.node === "AGENT_RUN")) {
+        return <Icon name="bi-ai-agent" className={className} sx={{ width: 24, height: 24, fontSize: 24, ...style }} />;
     }
 
     if (url && isValidUrl(url) && !imageError) {
         return <img src={url} className={className} onError={() => setImageError(true)} style={{ ...style }} />;
+    }
+
+    if (url && (!isValidUrl(url) || imageError) && connectorType === "persist") {
+        return <Icon name="bi-db" className={className} sx={{ width: 24, height: 24, fontSize: 24, ...style }} />;
     }
 
     if (fallbackIcon) {
@@ -98,34 +91,5 @@ function isValidUrl(url: string): boolean {
     }
 }
 
-// get llm model icons
-// this should replace with CDN icons
-export function getLlmModelIcons(modelType: string) {
-    switch (modelType) {
-        case "OpenAiProvider":
-        case "ai.openai":
-            return <OpenAiIcon />;
-        case "AzureOpenAiProvider":
-        case "OpenAiModelProvider":
-        case "ai.azure":
-            return <AzureOpenAiIcon />;
-        case "AnthropicProvider":
-        case "ai.anthropic":
-            return <AnthropicIcon />;
-        case "OllamaProvider":
-        case "ai.ollama":
-            return <OllamaIcon />;
-        case "MistralAiProvider":
-        case "ai.mistral":
-            return <MistralAIIcon />;
-        case "DeepseekProvider":
-        case "ai.deepseek":
-            return <DeepseekIcon />;
-        case "Wso2ModelProvider":
-            return <Icon name="bi-wso2" sx={{ width: 24, height: 24, fontSize: 24 }} />;
-        default:
-            return <DefaultLlmIcon />;
-    }
-}
 
 export default ConnectorIcon;

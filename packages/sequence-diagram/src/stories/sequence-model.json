@@ -1,0 +1,170 @@
+{
+    "sequenceDiagram": {
+        "participants": [
+            {
+                "id": "55615",
+                "name": "getUser",
+                "kind": "FUNCTION",
+                "moduleName": "test_project_3",
+                "nodes": [
+                    {
+                        "kind": "RETURN",
+                        "branches": [],
+                        "properties": {
+                            "value": {
+                                "type": "test_project_3:UserRecord|()"
+                            }
+                        },
+                        "location": {
+                            "fileName": "data_mappings.bal",
+                            "startLine": {
+                                "line": 25,
+                                "offset": 4
+                            },
+                            "endLine": {
+                                "line": 25,
+                                "offset": 26
+                            }
+                        }
+                    }
+                ],
+                "location": {
+                    "fileName": "data_mappings.bal",
+                    "startLine": {
+                        "line": 24,
+                        "offset": 0
+                    },
+                    "endLine": {
+                        "line": 26,
+                        "offset": 1
+                    }
+                }
+            },
+            {
+                "id": "42971",
+                "name": "get",
+                "kind": "FUNCTION",
+                "moduleName": "test_project_3",
+                "nodes": [
+                    {
+                        "interactionType": "FUNCTION_CALL",
+                        "targetId": "55615",
+                        "kind": "INTERACTION",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "value": "getUser"
+                            },
+                            "params": [
+                                {
+                                    "type": "string",
+                                    "value": "id"
+                                }
+                            ],
+                            "value": {
+                                "type": "test_project_3:UserRecord|()",
+                                "value": "userRecord"
+                            }
+                        },
+                        "location": {
+                            "fileName": "main.bal",
+                            "startLine": {
+                                "line": 12,
+                                "offset": 33
+                            },
+                            "endLine": {
+                                "line": 12,
+                                "offset": 44
+                            }
+                        }
+                    },
+                    {
+                        "kind": "IF",
+                        "branches": [
+                            {
+                                "label": "Then",
+                                "children": [
+                                    {
+                                        "kind": "RETURN",
+                                        "branches": [],
+                                        "properties": {
+                                            "value": {
+                                                "type": "test_project_3:User"
+                                            }
+                                        },
+                                        "location": {
+                                            "fileName": "main.bal",
+                                            "startLine": {
+                                                "line": 14,
+                                                "offset": 12
+                                            },
+                                            "endLine": {
+                                                "line": 14,
+                                                "offset": 78
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        ],
+                        "properties": {
+                            "condition": {
+                                "type": "boolean",
+                                "value": "userRecord is UserRecord"
+                            }
+                        },
+                        "location": {
+                            "fileName": "main.bal",
+                            "startLine": {
+                                "line": 13,
+                                "offset": 8
+                            },
+                            "endLine": {
+                                "line": 15,
+                                "offset": 9
+                            }
+                        }
+                    },
+                    {
+                        "kind": "RETURN",
+                        "branches": [],
+                        "properties": {},
+                        "location": {
+                            "fileName": "main.bal",
+                            "startLine": {
+                                "line": 16,
+                                "offset": 8
+                            },
+                            "endLine": {
+                                "line": 16,
+                                "offset": 18
+                            }
+                        }
+                    }
+                ],
+                "location": {
+                    "fileName": "main.bal",
+                    "startLine": {
+                        "line": 11,
+                        "offset": 4
+                    },
+                    "endLine": {
+                        "line": 17,
+                        "offset": 5
+                    }
+                }
+            }
+        ],
+        "location": {
+            "fileName": "/Users/gayanka/dev/wso2/test/test_project_3/main.bal",
+            "startLine": {
+                "line": 11,
+                "offset": 4
+            },
+            "endLine": {
+                "line": 17,
+                "offset": 5
+            }
+        }
+    }
+}

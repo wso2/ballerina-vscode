@@ -14,5 +14,8 @@ module.exports = {
       'warn',
       { allowConstantExport: true },
     ],
+    // Disable runtime-problematic react rules until plugin/runtime versions are aligned
+    'react/jsx-uses-vars': 'off',
+    'react/jsx-uses-react': 'off',
   },
 }

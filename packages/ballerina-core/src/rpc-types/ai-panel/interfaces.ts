@@ -27,8 +27,8 @@ import { ComponentInfo, DataMapperMetadata, Diagnostics, DMModel, ImportStatemen
 // General Interfaces
 // ==================================
 export type AIPanelPrompt =
-    | { type: 'command-template'; command: Command; templateId: TemplateId; text?: string; params?: Record<string, string>; metadata?: Record<string, any> }
-    | { type: 'text'; text: string; planMode: boolean; codeContext?: CodeContext }
+    | { type: 'command-template'; command: Command; templateId: TemplateId; text?: string; params?: Record<string, string>; metadata?: Record<string, any>; hiddenContext?: string }
+    | { type: 'text'; text: string; planMode: boolean; codeContext?: CodeContext; autoSubmit?: boolean; hiddenContext?: string; suggestedCommandTemplates?: AIPanelPrompt[];    inputPlaceholder?:string; }
     | undefined;
 
 export interface AIMachineSnapshot {
@@ -243,9 +243,10 @@ export interface ExistingFunction {
 // ==================================
 export interface Attachment {
     name: string;
-    path?: string
+    path?: string;
     content?: string;
     status: AttachmentStatus;
+    mimeType?: string;
 }
 
 export enum AttachmentStatus {
@@ -291,6 +292,7 @@ export interface ChatEntry {
 export interface FileAttatchment {
     fileName: string;
     content: string;
+    mimeType?: string;
 }
 
 export type CodeContext =
@@ -299,14 +301,16 @@ export type CodeContext =
 
 export interface GenerateAgentCodeRequest {
     usecase: string;
+    hiddenContext?: string;
     operationType?: OperationType;
     fileAttachmentContents: FileAttatchment[];
     threadId?: string; //TODO: Make this required once we support threads in UI
     isPlanMode: boolean;
     codeContext?: CodeContext;
+    webSearchEnabled?: boolean;
 }
 
-export type LibraryMode = "CORE" | "HEALTHCARE";
+export type LibraryMode = "CORE" | "HEALTHCARE" | "ALL";
 
 export interface CopilotAllLibrariesRequest {
     mode: LibraryMode;
@@ -321,11 +325,18 @@ export interface CopilotCompactLibrariesResponse {
 
 export interface CopilotFilterLibrariesRequest {
     libNames: string[];
-    mode: LibraryMode;
 }
 
 export interface CopilotFilterLibrariesResponse {
     libraries: any[];
+}
+
+export interface CopilotSearchLibrariesBySearchRequest {
+    keywords: string[];
+}
+
+export interface CopilotSearchLibrariesBySearchResponse {
+    libraries: MinifiedLibrary[];
 }
 
 // ==================================
@@ -377,17 +388,29 @@ export interface SemanticDiffRequest {
 // Numeric enum values from the API
 export enum ChangeTypeEnum {
     ADDITION = 0,
-    MODIFICATION = 1,
-    DELETION = 2
+    DELETION = 1,
+    MODIFICATION = 2,
+
 }
 
 export type ChangeType = "ADDITION" | "MODIFICATION" | "DELETION";
+
+export interface IdentifierMetadata {
+    name: string;
+}
+
+export interface ResourceMetadata {
+    accessor: string;
+    servicePath: string;
+    resourcePath: string;
+}
 
 export interface SemanticDiff {
     changeType: number; // API returns numeric value
     nodeKind: number;   // API returns numeric value
     uri: string;
     lineRange: LineRange;
+    metadata?: ResourceMetadata | IdentifierMetadata;
 }
 
 export interface SemanticDiffResponse {
@@ -429,6 +452,29 @@ export interface ConnectorSpecCancelRequest {
     comment?: string;
 }
 
+export interface ConfigurationProvideRequest {
+    requestId: string;
+    configValues: Record<string, string>;
+}
+
+export interface ConfigurationCancelRequest {
+    requestId: string;
+    comment?: string;
+}
+
+export interface WebToolApprovalRequest {
+    requestId: string;
+}
+
+export interface ClarifyAnswerRequest {
+    requestId: string;
+    answers: Array<{ question: string; answers: string[] }>;
+}
+
+export interface ClarifyCancelRequest {
+    requestId: string;
+}
+
 export type ErrorCode = {
     code: number;
     message: string;
@@ -463,8 +509,83 @@ export interface CheckpointInfo {
  * Optional params default to current workspace and 'default' thread
  */
 export interface AbortAIGenerationRequest {
-    /** Workspace identifier (defaults to current workspace) */
-    workspaceId?: string;
+    /** Project root path (defaults to current workspace/project root) */
+    projectRootPath?: string;
     /** Thread identifier (defaults to 'default') */
     threadId?: string;
+}
+
+export interface UsageResponse {
+    remainingUsagePercentage: number;
+    resetsIn: number; // in seconds
+}
+
+export interface OpenFileDiffRequest {
+    relativePath: string;
+}
+
+// ==================================
+// Running Services (long-lived processes started by the AI agent)
+// ==================================
+
+/** Serializable view of a running service tracked by the agent's RunningServicesManager. */
+export interface RunningServiceInfo {
+    /** Unique identifier returned by the runBallerinaPackage tool. */
+    taskId: string;
+    /** Filesystem path of the package being run. */
+    packagePath: string;
+    /** Epoch ms when the process started. */
+    startedAt: number;
+    /** True once the process has exited (naturally or via stop). */
+    exited: boolean;
+    /** Exit code of the process. 0 while still running. */
+    exitCode: number;
+}
+
+export interface StopRunningServiceRequest {
+    taskId: string;
+}
+// ==================================
+// Compaction Related Interfaces
+// ==================================
+
+export interface CompactConversationRequest {
+    /** Optional user instructions for guiding the summarization (e.g., "focus on test changes") */
+    customInstructions?: string;
+}
+
+export interface CompactConversationResponse {
+    success: boolean;
+    /** Token count before compaction */
+    originalTokens?: number;
+    /** Token count after compaction */
+    compactedTokens?: number;
+    /** Percentage of tokens reduced */
+    reductionPercentage?: number;
+    /** The LLM-generated summary text shown to the user after compaction */
+    summary?: string;
+    /** Error message if compaction failed */
+    error?: string;
+}
+
+// ==================================
+// Prompt Enhancement Related Interfaces
+// ==================================
+
+export enum PromptMode {
+    ROLE = "role",
+    INSTRUCTIONS = "instructions",
+    QUERY = "query",
+    DEFAULT = "default"
+}
+
+export interface PromptEnhancementRequest {
+    originalPrompt: string;
+    additionalInstructions?: string;
+    mode: PromptMode;
+    isGeneration?: boolean;
+}
+
+export interface PromptEnhancementResponse {
+    enhancedPrompt: string;
 }

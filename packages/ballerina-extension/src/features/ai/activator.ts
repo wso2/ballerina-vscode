@@ -29,7 +29,8 @@ import {
     SIGN_IN_BI_COPILOT
 } from './constants';
 import {
-    REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE,
+    TOKEN_NOT_AVAILABLE_ERROR_MESSAGE,
+    NO_AUTH_CREDENTIALS_FOUND,
     TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL
 } from '../..//utils/ai/auth';
 import { AIStateMachine } from '../../views/ai-panel/aiMachine';
@@ -59,6 +60,12 @@ export interface GenerateAgentForTestResult {
 }
 
 export let langClient: ExtendedLangClient;
+
+/** Tracks the active post-login auth subscription so it can be cleaned up before creating a new one. */
+let lastAuthSubscription: { unsubscribe: () => void } | null = null;
+
+/** How long (ms) to wait for the user to complete login before auto-cancelling the subscription. */
+const AUTH_SUBSCRIPTION_TIMEOUT_MS = 5 * 60 * 1000;
 
 export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension) {
 
@@ -116,12 +123,12 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
             getSelectedLibraries,
             getRelevantLibrariesAndFunctions,
             GenerationType
-        } = require('./utils/libraries');
+        } = require('./utils/libs/libraries');
         const {
             selectRequiredFunctions,
             getMaximizedSelectedLibs,
             toMaximizedLibrariesFromLibJson
-        } = require('./utils/function-registry');
+        } = require('./utils/libs/function-registry');
 
         commands.registerCommand('ballerina.test.ai.getAllLibraries', async (generationType: typeof GenerationType) => {
             return await getAllLibraries(generationType);
@@ -163,9 +170,55 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
                     window.showInformationMessage(DEFAULT_PROVIDER_ADDED);
                 }
             } catch (error) {
-                if ((error as Error).message === REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE || (error as Error).message === TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL) {
+                if ((error as Error).message === TOKEN_NOT_AVAILABLE_ERROR_MESSAGE || (error as Error).message === TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL || (error as Error).message === NO_AUTH_CREDENTIALS_FOUND) {
                     window.showWarningMessage(LOGIN_REQUIRED_WARNING_FOR_DEFAULT_MODEL, SIGN_IN_BI_COPILOT).then(selection => {
                         if (selection === SIGN_IN_BI_COPILOT) {
+                            // Dispose any previous subscription before creating a new one
+                            if (lastAuthSubscription) {
+                                lastAuthSubscription.unsubscribe();
+                                lastAuthSubscription = null;
+                            }
+
+                            let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
+
+                            // Subscribe to state changes to auto-retry after successful login
+                            const subscription = AIStateMachine.service().subscribe((state) => {
+                                if (state.value === 'Authenticated') {
+                                    // Clear timeout and module-scoped reference, then unsubscribe
+                                    if (timeoutHandle !== null) {
+                                        clearTimeout(timeoutHandle);
+                                        timeoutHandle = null;
+                                    }
+                                    lastAuthSubscription = null;
+                                    subscription.unsubscribe();
+                                    // Retry the configuration automatically
+                                    addConfigFile(configPath).then(result => {
+                                        if (result) {
+                                            window.showInformationMessage(DEFAULT_PROVIDER_ADDED);
+                                        }
+                                    }).catch(retryError => {
+                                        window.showErrorMessage(`Failed to configure default model: ${(retryError as Error).message}`);
+                                    });
+                                }
+                            });
+
+                            lastAuthSubscription = subscription;
+
+                            // Guard against the user never completing login
+                            timeoutHandle = setTimeout(() => {
+                                if (lastAuthSubscription === subscription) {
+                                    lastAuthSubscription = null;
+                                }
+                                subscription.unsubscribe();
+                            }, AUTH_SUBSCRIPTION_TIMEOUT_MS);
+
+                            // If stuck in Authenticating from a previous cancelled login, reset it to allow a new login attempt
+                            const currentState = AIStateMachine.state();
+                            if (typeof currentState === 'object' && 'Authenticating' in currentState) {
+                                AIStateMachine.service().send(AIMachineEventType.CANCEL_LOGIN);
+                            }
+
+                            // Trigger the login flow
                             AIStateMachine.service().send(AIMachineEventType.LOGIN);
                         }
                     });

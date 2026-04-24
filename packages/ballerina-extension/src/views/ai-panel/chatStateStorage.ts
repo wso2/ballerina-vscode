@@ -26,6 +26,7 @@ import {
 } from '@wso2/ballerina-core/lib/state-machine-types';
 import { Command } from '@wso2/ballerina-core';
 import * as crypto from 'crypto';
+import { approvalManager } from '../../features/ai/state/ApprovalManager';
 
 /**
  * Active execution handle
@@ -44,7 +45,7 @@ export interface ActiveExecution {
  * Session-only storage (cleared when VSCode closes).
  */
 export class ChatStateStorage {
-    // In-memory storage: workspaceId -> WorkspaceChatState
+    // In-memory storage: projectRootPath -> WorkspaceChatState
     private storage: Map<string, WorkspaceChatState> = new Map();
 
     // Track active executions per workspace/thread for abort functionality
@@ -56,11 +57,11 @@ export class ChatStateStorage {
 
     /**
      * Initialize workspace state (creates default thread if needed)
-     * @param workspaceId Workspace identifier
+     * @param projectRootPath Workspace identifier
      * @returns Workspace state
      */
-    initializeWorkspace(workspaceId: string): WorkspaceChatState {
-        let workspaceState = this.storage.get(workspaceId);
+    initializeWorkspace(projectRootPath: string): WorkspaceChatState {
+        let workspaceState = this.storage.get(projectRootPath);
 
         if (!workspaceState) {
             // Create default thread
@@ -73,13 +74,13 @@ export class ChatStateStorage {
             };
 
             workspaceState = {
-                workspaceId,
+                projectRootPath,
                 threads: new Map([[defaultThread.id, defaultThread]]),
                 activeThreadId: defaultThread.id,
             };
 
-            this.storage.set(workspaceId, workspaceState);
-            console.log(`[ChatStateStorage] Initialized workspace: ${workspaceId} with default thread`);
+            this.storage.set(projectRootPath, workspaceState);
+            console.log(`[ChatStateStorage] Initialized workspace: ${projectRootPath} with default thread`);
         }
 
         return workspaceState;
@@ -87,24 +88,24 @@ export class ChatStateStorage {
 
     /**
      * Get workspace state
-     * @param workspaceId Workspace identifier
+     * @param projectRootPath Workspace identifier
      * @returns Workspace state or undefined
      */
-    getWorkspaceState(workspaceId: string): WorkspaceChatState | undefined {
-        return this.storage.get(workspaceId);
+    getWorkspaceState(projectRootPath: string): WorkspaceChatState | undefined {
+        return this.storage.get(projectRootPath);
     }
 
     /**
      * Clear workspace state
      * Cleans up any pending review temp projects before clearing.
-     * @param workspaceId Workspace identifier
+     * @param projectRootPath Workspace identifier
      */
-    async clearWorkspace(workspaceId: string): Promise<void> {
+    async clearWorkspace(projectRootPath: string): Promise<void> {
         // Cleanup pending review temp projects before clearing
-        const workspace = this.storage.get(workspaceId);
+        const workspace = this.storage.get(projectRootPath);
         if (workspace) {
             for (const [threadId, thread] of workspace.threads) {
-                const pendingReview = this.getPendingReviewGeneration(workspaceId, threadId);
+                const pendingReview = this.getPendingReviewGeneration(projectRootPath, threadId);
                 if (pendingReview?.reviewState.tempProjectPath) {
                     console.log(`[ChatStateStorage] Cleaning up pending review temp project: ${pendingReview.reviewState.tempProjectPath}`);
 
@@ -121,8 +122,8 @@ export class ChatStateStorage {
             }
         }
 
-        this.storage.delete(workspaceId);
-        console.log(`[ChatStateStorage] Cleared workspace: ${workspaceId}`);
+        this.storage.delete(projectRootPath);
+        console.log(`[ChatStateStorage] Cleared workspace: ${projectRootPath}`);
     }
 
     /**
@@ -131,8 +132,8 @@ export class ChatStateStorage {
      */
     async clearAll(): Promise<void> {
         // Clear each workspace individually to trigger cleanup logic
-        const workspaceIds = Array.from(this.storage.keys());
-        await Promise.all(workspaceIds.map(workspaceId => this.clearWorkspace(workspaceId)));
+        const projectRootPaths = Array.from(this.storage.keys());
+        await Promise.all(projectRootPaths.map(projectRootPath => this.clearWorkspace(projectRootPath)));
         console.log('[ChatStateStorage] Cleared all workspaces');
     }
 
@@ -142,12 +143,12 @@ export class ChatStateStorage {
 
     /**
      * Get or create a thread by ID
-     * @param workspaceId Workspace identifier
+     * @param projectRootPath Workspace identifier
      * @param threadId Thread identifier
      * @returns Thread
      */
-    getOrCreateThread(workspaceId: string, threadId: string): ChatThread {
-        const workspace = this.initializeWorkspace(workspaceId);
+    getOrCreateThread(projectRootPath: string, threadId: string): ChatThread {
+        const workspace = this.initializeWorkspace(projectRootPath);
         let thread = workspace.threads.get(threadId);
 
         if (!thread) {
@@ -160,7 +161,7 @@ export class ChatStateStorage {
             };
             workspace.threads.set(threadId, thread);
             workspace.activeThreadId = threadId;
-            console.log(`[ChatStateStorage] Created thread: ${threadId} in workspace: ${workspaceId}`);
+            console.log(`[ChatStateStorage] Created thread: ${threadId} in workspace: ${projectRootPath}`);
         }
 
         return thread;
@@ -168,11 +169,11 @@ export class ChatStateStorage {
 
     /**
      * Get active thread
-     * @param workspaceId Workspace identifier
+     * @param projectRootPath Workspace identifier
      * @returns Active thread or undefined
      */
-    getActiveThread(workspaceId: string): ChatThread | undefined {
-        const workspace = this.storage.get(workspaceId);
+    getActiveThread(projectRootPath: string): ChatThread | undefined {
+        const workspace = this.storage.get(projectRootPath);
         if (!workspace) {
             return undefined;
         }
@@ -185,7 +186,7 @@ export class ChatStateStorage {
 
     /**
      * Add a new generation to a thread
-     * @param workspaceId Workspace identifier
+     * @param projectRootPath Workspace identifier
      * @param threadId Thread identifier
      * @param userPrompt User's prompt
      * @param metadata Generation metadata
@@ -193,13 +194,14 @@ export class ChatStateStorage {
      * @returns Created generation
      */
     addGeneration(
-        workspaceId: string,
+        projectRootPath: string,
         threadId: string,
         userPrompt: string,
         metadata: Partial<GenerationMetadata>,
-        id?: string
+        id?: string,
+        skipCheckpoint?: boolean
     ): Generation {
-        const thread = this.getOrCreateThread(workspaceId, threadId);
+        const thread = this.getOrCreateThread(projectRootPath, threadId);
 
         const generation: Generation = {
             id: id || this.generateId(),
@@ -225,22 +227,23 @@ export class ChatStateStorage {
 
         console.log(`[ChatStateStorage] Added generation: ${generation.id} to thread: ${threadId}`);
 
-        // Capture checkpoint for this generation asynchronously
-        this.captureCheckpointForGeneration(workspaceId, threadId, generation.id).catch(error => {
-            console.error('[ChatStateStorage] Failed to capture checkpoint:', error);
-        });
-
+        // Capture checkpoint for this generation asynchronously (skip for synthetic compacted generations)
+        if (!skipCheckpoint) {
+            this.captureCheckpointForGeneration(projectRootPath, threadId, generation.id).catch(error => {
+                console.error('[ChatStateStorage] Failed to capture checkpoint:', error);
+            });
+        }
         return generation;
     }
 
     /**
      * Capture checkpoint for a generation asynchronously
-     * @param workspaceId Workspace identifier
+     * @param projectRootPath Workspace identifier
      * @param threadId Thread identifier
      * @param generationId Generation identifier
      */
     private async captureCheckpointForGeneration(
-        workspaceId: string,
+        projectRootPath: string,
         threadId: string,
         generationId: string
     ): Promise<void> {
@@ -252,7 +255,7 @@ export class ChatStateStorage {
             const checkpoint = await captureWorkspaceSnapshot(generationId);
 
             if (checkpoint) {
-                await this.addCheckpointToGeneration(workspaceId, threadId, generationId, checkpoint);
+                await this.addCheckpointToGeneration(projectRootPath, threadId, generationId, checkpoint);
 
                 notifyCheckpointCaptured({
                     messageId: generationId,
@@ -266,18 +269,18 @@ export class ChatStateStorage {
 
     /**
      * Update a generation
-     * @param workspaceId Workspace identifier
+     * @param projectRootPath Workspace identifier
      * @param threadId Thread identifier
      * @param generationId Generation identifier
      * @param updates Partial updates to generation
      */
     updateGeneration(
-        workspaceId: string,
+        projectRootPath: string,
         threadId: string,
         generationId: string,
         updates: Partial<Generation>
     ): void {
-        const thread = this.getOrCreateThread(workspaceId, threadId);
+        const thread = this.getOrCreateThread(projectRootPath, threadId);
         const generation = thread.generations.find(g => g.id === generationId);
 
         if (!generation) {
@@ -293,29 +296,45 @@ export class ChatStateStorage {
     }
 
     /**
+     * Remove a generation from a thread
+     * @param projectRootPath Workspace identifier
+     * @param threadId Thread identifier
+     * @param generationId Generation identifier
+     */
+    removeGeneration(projectRootPath: string, threadId: string, generationId: string): void {
+        const thread = this.getOrCreateThread(projectRootPath, threadId);
+        const index = thread.generations.findIndex(g => g.id === generationId);
+        if (index !== -1) {
+            thread.generations.splice(index, 1);
+            thread.updatedAt = Date.now();
+            console.log(`[ChatStateStorage] Removed generation: ${generationId}`);
+        }
+    }
+
+    /**
      * Get a specific generation
-     * @param workspaceId Workspace identifier
+     * @param projectRootPath Workspace identifier
      * @param threadId Thread identifier
      * @param generationId Generation identifier
      * @returns Generation or undefined
      */
     getGeneration(
-        workspaceId: string,
+        projectRootPath: string,
         threadId: string,
         generationId: string
     ): Generation | undefined {
-        const thread = this.getOrCreateThread(workspaceId, threadId);
+        const thread = this.getOrCreateThread(projectRootPath, threadId);
         return thread.generations.find(g => g.id === generationId);
     }
 
     /**
      * Get all generations for a thread
-     * @param workspaceId Workspace identifier
+     * @param projectRootPath Workspace identifier
      * @param threadId Thread identifier
      * @returns Array of generations
      */
-    getGenerations(workspaceId: string, threadId: string): Generation[] {
-        const thread = this.getOrCreateThread(workspaceId, threadId);
+    getGenerations(projectRootPath: string, threadId: string): Generation[] {
+        const thread = this.getOrCreateThread(projectRootPath, threadId);
         return thread.generations;
     }
 
@@ -326,12 +345,12 @@ export class ChatStateStorage {
     /**
      * Get chat history for LLM (model messages only)
      * Includes ALL generations (pending, under_review, accepted)
-     * @param workspaceId Workspace identifier
+     * @param projectRootPath Workspace identifier
      * @param threadId Thread identifier
      * @returns Array of model messages for LLM context
      */
-    getChatHistoryForLLM(workspaceId: string, threadId: string): any[] {
-        const thread = this.getOrCreateThread(workspaceId, threadId);
+    getChatHistoryForLLM(projectRootPath: string, threadId: string): any[] {
+        const thread = this.getOrCreateThread(projectRootPath, threadId);
         const messages: any[] = [];
 
         for (const generation of thread.generations) {
@@ -350,15 +369,15 @@ export class ChatStateStorage {
 
     /**
      * Get pending review generation (latest with 'under_review' status)
-     * @param workspaceId Workspace identifier
+     * @param projectRootPath Workspace identifier
      * @param threadId Thread identifier
      * @returns Generation or undefined
      */
     getPendingReviewGeneration(
-        workspaceId: string,
+        projectRootPath: string,
         threadId: string
     ): Generation | undefined {
-        const thread = this.getOrCreateThread(workspaceId, threadId);
+        const thread = this.getOrCreateThread(projectRootPath, threadId);
 
         // Find the LATEST generation with 'under_review' status
         // Iterate in reverse to get the most recent one
@@ -376,18 +395,18 @@ export class ChatStateStorage {
 
     /**
      * Update review state for a generation
-     * @param workspaceId Workspace identifier
+     * @param projectRootPath Workspace identifier
      * @param threadId Thread identifier
      * @param generationId Generation identifier
      * @param state Review state updates
      */
     updateReviewState(
-        workspaceId: string,
+        projectRootPath: string,
         threadId: string,
         generationId: string,
         state: Partial<GenerationReviewState>
     ): void {
-        const thread = this.getOrCreateThread(workspaceId, threadId);
+        const thread = this.getOrCreateThread(projectRootPath, threadId);
         const generation = thread.generations.find(g => g.id === generationId);
 
         if (!generation) {
@@ -404,11 +423,11 @@ export class ChatStateStorage {
     /**
      * Accept all reviews in a thread
      * Marks ALL 'under_review' generations as 'accepted'
-     * @param workspaceId Workspace identifier
+     * @param projectRootPath Workspace identifier
      * @param threadId Thread identifier
      */
-    acceptAllReviews(workspaceId: string, threadId: string): void {
-        const thread = this.getOrCreateThread(workspaceId, threadId);
+    acceptAllReviews(projectRootPath: string, threadId: string): void {
+        const thread = this.getOrCreateThread(projectRootPath, threadId);
         let count = 0;
 
         for (const generation of thread.generations) {
@@ -425,11 +444,11 @@ export class ChatStateStorage {
     /**
      * Decline all reviews in a thread
      * Marks ALL 'under_review' generations as 'error'
-     * @param workspaceId Workspace identifier
+     * @param projectRootPath Workspace identifier
      * @param threadId Thread identifier
      */
-    declineAllReviews(workspaceId: string, threadId: string): void {
-        const thread = this.getOrCreateThread(workspaceId, threadId);
+    declineAllReviews(projectRootPath: string, threadId: string): void {
+        const thread = this.getOrCreateThread(projectRootPath, threadId);
         let count = 0;
 
         for (const generation of thread.generations) {
@@ -450,36 +469,43 @@ export class ChatStateStorage {
 
     /**
      * Get all checkpoints for a thread (across all generations)
-     * @param workspaceId Workspace identifier
+     * @param projectRootPath Workspace identifier
      * @param threadId Thread identifier
      * @returns Array of checkpoints in chronological order
      */
-    getCheckpoints(workspaceId: string, threadId: string): Checkpoint[] {
+    getCheckpoints(projectRootPath: string, threadId: string): Checkpoint[] {
+        const thread = this.getOrCreateThread(projectRootPath, threadId);
+        return thread.generations
+            .filter(g => g.checkpoint && !g.metadata?.compactionMetadata?.isCompactedGeneration)
+            .map(g => g.checkpoint!);
+    }
+
+    /**
+     * Check if the thread contains compacted history
+     * @param workspaceId Workspace identifier
+     * @param threadId Thread identifier
+     * @returns boolean
+     */
+    hasCompactedHistory(workspaceId: string, threadId: string): boolean {
         const thread = this.getOrCreateThread(workspaceId, threadId);
-        const checkpoints: Checkpoint[] = [];
-
-        for (const generation of thread.generations) {
-            if (generation.checkpoint) {
-                checkpoints.push(generation.checkpoint);
-            }
-        }
-
-        return checkpoints;
+        return thread.generations.some(
+            gen => gen.metadata?.compactionMetadata?.isCompactedGeneration === true
+        );
     }
 
     /**
      * Find checkpoint by ID
-     * @param workspaceId Workspace identifier
+     * @param projectRootPath Workspace identifier
      * @param threadId Thread identifier
      * @param checkpointId Checkpoint identifier
      * @returns Checkpoint and its generation, or undefined
      */
     findCheckpoint(
-        workspaceId: string,
+        projectRootPath: string,
         threadId: string,
         checkpointId: string
     ): { checkpoint: Checkpoint; generation: Generation } | undefined {
-        const thread = this.getOrCreateThread(workspaceId, threadId);
+        const thread = this.getOrCreateThread(projectRootPath, threadId);
 
         for (const generation of thread.generations) {
             if (generation.checkpoint?.id === checkpointId) {
@@ -492,18 +518,18 @@ export class ChatStateStorage {
 
     /**
      * Add checkpoint to a generation
-     * @param workspaceId Workspace identifier
+     * @param projectRootPath Workspace identifier
      * @param threadId Thread identifier
      * @param generationId Generation identifier
      * @param checkpoint Checkpoint to add
      */
     async addCheckpointToGeneration(
-        workspaceId: string,
+        projectRootPath: string,
         threadId: string,
         generationId: string,
         checkpoint: Checkpoint
     ): Promise<void> {
-        const thread = this.getOrCreateThread(workspaceId, threadId);
+        const thread = this.getOrCreateThread(projectRootPath, threadId);
         const generation = thread.generations.find(g => g.id === generationId);
 
         if (!generation) {
@@ -517,15 +543,15 @@ export class ChatStateStorage {
         console.log(`[ChatStateStorage] Added checkpoint ${checkpoint.id} to generation ${generationId}`);
 
         // Enforce maxCount limit by removing oldest checkpoints
-        await this.enforceCheckpointLimit(workspaceId, threadId);
+        await this.enforceCheckpointLimit(projectRootPath, threadId);
     }
 
     /**
      * Enforce checkpoint limit by removing oldest checkpoints beyond maxCount
-     * @param workspaceId Workspace identifier
+     * @param projectRootPath Workspace identifier
      * @param threadId Thread identifier
      */
-    private async enforceCheckpointLimit(workspaceId: string, threadId: string): Promise<void> {
+    private async enforceCheckpointLimit(projectRootPath: string, threadId: string): Promise<void> {
         // Dynamic import to avoid circular dependencies
         const { getCheckpointConfig } = await import('../../views/ai-panel/checkpoint/checkpointConfig');
         const config = getCheckpointConfig();
@@ -534,7 +560,7 @@ export class ChatStateStorage {
             return;
         }
 
-        const thread = this.getOrCreateThread(workspaceId, threadId);
+        const thread = this.getOrCreateThread(projectRootPath, threadId);
 
         // Collect all generations with checkpoints
         const generationsWithCheckpoints = thread.generations
@@ -563,17 +589,17 @@ export class ChatStateStorage {
 
     /**
      * Restore thread to a checkpoint (truncate generations after checkpoint)
-     * @param workspaceId Workspace identifier
+     * @param projectRootPath Workspace identifier
      * @param threadId Thread identifier
      * @param checkpointId Checkpoint identifier
      * @returns true if restored, false if checkpoint not found
      */
     restoreThreadToCheckpoint(
-        workspaceId: string,
+        projectRootPath: string,
         threadId: string,
         checkpointId: string
     ): boolean {
-        const thread = this.getOrCreateThread(workspaceId, threadId);
+        const thread = this.getOrCreateThread(projectRootPath, threadId);
 
         // Find the generation containing this checkpoint
         let checkpointGenerationIndex = -1;
@@ -632,7 +658,7 @@ export class ChatStateStorage {
 
             // Rough estimate of size (serialize to JSON)
             estimatedSize += JSON.stringify({
-                workspaceId: workspace.workspaceId,
+                projectRootPath: workspace.projectRootPath,
                 threads: Array.from(workspace.threads.values()),
             }).length;
         }
@@ -653,22 +679,22 @@ export class ChatStateStorage {
      * Register active execution for a thread
      * Auto-aborts existing execution if present
      *
-     * @param workspaceId Workspace identifier
+     * @param projectRootPath Workspace identifier
      * @param threadId Thread identifier
      * @param execution Active execution handle
      */
     setActiveExecution(
-        workspaceId: string,
+        projectRootPath: string,
         threadId: string,
         execution: ActiveExecution
     ): void {
         // Abort any existing execution for this thread first
-        this.abortActiveExecution(workspaceId, threadId);
+        this.abortActiveExecution(projectRootPath, threadId);
 
-        let threadMap = this.activeExecutions.get(workspaceId);
+        let threadMap = this.activeExecutions.get(projectRootPath);
         if (!threadMap) {
             threadMap = new Map();
-            this.activeExecutions.set(workspaceId, threadMap);
+            this.activeExecutions.set(projectRootPath, threadMap);
         }
 
         threadMap.set(threadId, execution);
@@ -679,12 +705,12 @@ export class ChatStateStorage {
      * Abort active execution for a thread
      * Called by RPC abort handler
      *
-     * @param workspaceId Workspace identifier
+     * @param projectRootPath Workspace identifier
      * @param threadId Thread identifier
      * @returns true if execution was aborted, false if no active execution found
      */
-    abortActiveExecution(workspaceId: string, threadId: string): boolean {
-        const threadMap = this.activeExecutions.get(workspaceId);
+    abortActiveExecution(projectRootPath: string, threadId: string): boolean {
+        const threadMap = this.activeExecutions.get(projectRootPath);
         if (!threadMap) {
             return false;
         }
@@ -695,12 +721,13 @@ export class ChatStateStorage {
         }
 
         console.log(`[ChatStateStorage] Aborting execution: ${execution.generationId} for thread: ${threadId}`);
+        approvalManager.cancelAllPending("Agent execution aborted by user");
         execution.abortController.abort();
 
         // Cleanup
         threadMap.delete(threadId);
         if (threadMap.size === 0) {
-            this.activeExecutions.delete(workspaceId);
+            this.activeExecutions.delete(projectRootPath);
         }
 
         return true;
@@ -710,18 +737,18 @@ export class ChatStateStorage {
      * Clear active execution when completed normally
      * Called in finally block of AICommandExecutor.run()
      *
-     * @param workspaceId Workspace identifier
+     * @param projectRootPath Workspace identifier
      * @param threadId Thread identifier
      */
-    clearActiveExecution(workspaceId: string, threadId: string): void {
-        const threadMap = this.activeExecutions.get(workspaceId);
+    clearActiveExecution(projectRootPath: string, threadId: string): void {
+        const threadMap = this.activeExecutions.get(projectRootPath);
         if (!threadMap) {
             return;
         }
 
         threadMap.delete(threadId);
         if (threadMap.size === 0) {
-            this.activeExecutions.delete(workspaceId);
+            this.activeExecutions.delete(projectRootPath);
         }
 
         console.log(`[ChatStateStorage] Cleared active execution for thread: ${threadId}`);
@@ -730,12 +757,12 @@ export class ChatStateStorage {
     /**
      * Get active execution (for debugging/inspection)
      *
-     * @param workspaceId Workspace identifier
+     * @param projectRootPath Workspace identifier
      * @param threadId Thread identifier
      * @returns Active execution or undefined
      */
-    getActiveExecution(workspaceId: string, threadId: string): ActiveExecution | undefined {
-        return this.activeExecutions.get(workspaceId)?.get(threadId);
+    getActiveExecution(projectRootPath: string, threadId: string): ActiveExecution | undefined {
+        return this.activeExecutions.get(projectRootPath)?.get(threadId);
     }
 }
 

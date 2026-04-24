@@ -17,19 +17,98 @@
  * under the License.
  */
 
-import { tests, workspace, TestRunProfileKind, TestController, Uri } from "vscode";
+import { tests, workspace, TestRunProfileKind, TestController, Uri, window, commands } from "vscode";
 import { BallerinaExtension } from "../../core";
 import { runHandler } from "./runner";
 import { activateEditBiTest } from "./commands";
+import { createNewEvalset, createNewThread, deleteEvalset, deleteThread } from "./evalset-commands";
 import { discoverTestFunctionsInProject, handleFileChange as handleTestFileUpdate, handleFileDelete as handleTestFileDelete } from "./discover";
 import { getCurrentBallerinaProject, getWorkspaceRoot } from "../../utils/project-utils";
 import { checkIsBallerinaPackage, checkIsBallerinaWorkspace } from "../../utils";
+import { hasMultipleBallerinaPackages } from "../../utils/config";
 import { PROJECT_TYPE } from "../project";
+import { EvalsetTreeDataProvider } from "./evalset-tree-view";
+import { openView } from "../../stateMachine";
+import { EvalSet, EVENT_TYPE, MACHINE_VIEW } from "@wso2/ballerina-core";
+import * as fs from 'fs';
+import { EvaluationHistoryWebview } from '../../views/evaluation-history/webview';
 
 export let testController: TestController;
 
+export const EVALUATION_GROUP = 'evaluations';
+
 export async function activate(ballerinaExtInstance: BallerinaExtension) {
-    testController = tests.createTestController('ballerina-integrator-tests', 'WSO2 Integrator: BI Tests');
+    // Register command to open evalset viewer
+    const openEvalsetCommand = commands.registerCommand('ballerina.openEvalsetViewer', async (uri: Uri, threadId?: string) => {
+        try {
+            const content = await fs.promises.readFile(uri.fsPath, 'utf-8');
+            const evalsetData = JSON.parse(content) as EvalSet;
+
+            openView(EVENT_TYPE.OPEN_VIEW, {
+                view: MACHINE_VIEW.EvalsetViewer,
+                evalsetData: {
+                    filePath: uri.fsPath,
+                    content: evalsetData,
+                    threadId: threadId
+                }
+            });
+        } catch (error) {
+            console.error('Error opening evalset:', error);
+            window.showErrorMessage(`Failed to open evalset: ${error}`);
+        }
+    });
+
+    // Register command to save evalset changes
+    const saveEvalThreadCommand = commands.registerCommand('ballerina.saveEvalThread', async (data: { filePath: string, updatedEvalSet: EvalSet }) => {
+        try {
+            const { filePath, updatedEvalSet } = data;
+
+            // Write the updated evalset back to the file
+            await fs.promises.writeFile(
+                filePath,
+                JSON.stringify(updatedEvalSet, null, 2),
+                'utf-8'
+            );
+
+            window.showInformationMessage('Evalset saved successfully');
+            return { success: true };
+        } catch (error) {
+            console.error('Error saving evalset:', error);
+            window.showErrorMessage(`Failed to save evalset: ${error}`);
+            return { success: false, error: String(error) };
+        }
+    });
+
+    // Register command to open evaluation history summary webview
+    // When invoked from the test explorer inline button, the TestItem is passed as the first arg.
+    const openEvalHistoryCommand = commands.registerCommand('ballerina.openEvaluationHistory', async (testItem?: any) => {
+        // Try to resolve the project path from the argument
+        let projectPath: string | undefined;
+        if (typeof testItem === 'string') {
+            projectPath = testItem;
+        } else if (testItem?.uri?.fsPath) {
+            projectPath = testItem.uri.fsPath;
+        } else if (testItem?.parent?.uri?.fsPath) {
+            projectPath = testItem.parent.uri.fsPath;
+        }
+
+        if (!projectPath) {
+            projectPath = getWorkspaceRoot();
+        }
+        if (!projectPath) {
+            window.showErrorMessage('No workspace found');
+            return;
+        }
+        await EvaluationHistoryWebview.createOrShow(projectPath);
+    });
+
+    // Register commands for creating evalsets and threads
+    const createEvalsetCommand = commands.registerCommand('ballerina.createNewEvalset', createNewEvalset);
+    const createThreadCommand = commands.registerCommand('ballerina.createNewThread', createNewThread);
+    const deleteEvalsetCommand = commands.registerCommand('ballerina.deleteEvalset', deleteEvalset);
+    const deleteThreadCommand = commands.registerCommand('ballerina.deleteThread', deleteThread);
+
+    testController = tests.createTestController('ballerina-integrator-tests', 'WSO2 Integrator Tests');
 
     const workspaceRoot = getWorkspaceRoot();
 
@@ -39,12 +118,23 @@ export async function activate(ballerinaExtInstance: BallerinaExtension) {
 
     const isBallerinaWorkspace = await checkIsBallerinaWorkspace(Uri.file(workspaceRoot));
     const isBallerinaProject = !isBallerinaWorkspace && await checkIsBallerinaPackage(Uri.file(workspaceRoot));
-    const currentProject = !isBallerinaWorkspace && !isBallerinaProject && await getCurrentBallerinaProject();
+    const isMultiProjectWorkspace = !isBallerinaWorkspace && !isBallerinaProject && await hasMultipleBallerinaPackages(Uri.file(workspaceRoot));
+    const currentProject = !isBallerinaWorkspace && !isBallerinaProject && !isMultiProjectWorkspace && await getCurrentBallerinaProject();
     const isSingleFile = currentProject && currentProject.kind === PROJECT_TYPE.SINGLE_FILE;
 
-    if (!isBallerinaWorkspace && !isBallerinaProject && !isSingleFile) {
+    if (!isBallerinaWorkspace && !isBallerinaProject && !isMultiProjectWorkspace && !isSingleFile) {
         return;
     }
+
+    // Make evalset view visible — this runs only after we've confirmed a valid Ballerina project context
+    commands.executeCommand('setContext', 'hasEvalsetSupport', true);
+
+    // Create and register Evalset TreeView
+    const evalsetTreeDataProvider = new EvalsetTreeDataProvider();
+    const evalsetTreeView = window.createTreeView('ballerina-evalsets', {
+        treeDataProvider: evalsetTreeDataProvider,
+        showCollapseAll: true
+    });
 
     // Create test profiles to display.
     testController.createRunProfile('Run Tests', TestRunProfileKind.Run, runHandler, true);
@@ -62,9 +152,9 @@ export async function activate(ballerinaExtInstance: BallerinaExtension) {
     discoverTestFunctionsInProject(ballerinaExtInstance, testController);
 
     // Register the test controller and file watcher with the extension context
-    ballerinaExtInstance.context?.subscriptions.push(testController, fileWatcher);
+    ballerinaExtInstance.context?.subscriptions.push(testController, fileWatcher, evalsetTreeView, evalsetTreeDataProvider, openEvalsetCommand, saveEvalThreadCommand, createEvalsetCommand, createThreadCommand, deleteEvalsetCommand, deleteThreadCommand, openEvalHistoryCommand);
 
-    activateEditBiTest();
+    activateEditBiTest(ballerinaExtInstance);
 }
 
 

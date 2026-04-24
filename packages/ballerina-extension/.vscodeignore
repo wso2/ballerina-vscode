@@ -55,6 +55,11 @@ resources/jslibs/themes/ballerina-default.css
 resources/jslibs/themes/ballerina-default.css.map
 workspaces/
 test-resources
+e2e-test/**
+vsix/**
+playwright-report/**
+test-results/**
+blob-report/**
 ui-test
 .azure
 code-server-tests

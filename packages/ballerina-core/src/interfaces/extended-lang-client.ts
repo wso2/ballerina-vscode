@@ -23,13 +23,13 @@ import { DocumentIdentifier, LinePosition, LineRange, NOT_SUPPORTED_TYPE, Positi
 import { BallerinaConnectorInfo, BallerinaExampleCategory, BallerinaModuleResponse, BallerinaModulesRequest, BallerinaTrigger, BallerinaTriggerInfo, BallerinaConnector, ExecutorPosition, ExpressionRange, JsonToRecordMapperDiagnostic, MainTriggerModifyRequest, NoteBookCellOutputValue, NotebookCellMetaInfo, OASpec, PackageSummary, PartialSTModification, ResolvedTypeForExpression, ResolvedTypeForSymbol, STModification, SequenceModel, SequenceModelDiagnostic, ServiceTriggerModifyRequest, SymbolDocumentation, XMLToRecordConverterDiagnostic, TypeField, ComponentInfo } from "./ballerina";
 import { ModulePart, STNode } from "@wso2/syntax-tree";
 import { CodeActionParams, DefinitionParams, DocumentSymbolParams, ExecuteCommandParams, InitializeParams, InitializeResult, LocationLink, RenameParams } from "vscode-languageserver-protocol";
-import { Category, Flow, FlowNode, CodeData, ConfigVariable, FunctionNode, Property, PropertyTypeMemberInfo, DIRECTORY_MAP, Imports, NodeKind, InputType, FormFieldInputType } from "./bi";
+import { Category, Flow, FlowNode, CodeData, ConfigVariable, FunctionNode, Property, PropertyTypeMemberInfo, DIRECTORY_MAP, Imports, NodeKind, InputType, FormFieldInputType, ProjectStructureArtifactResponse, VISIBILITY } from "./bi";
 import { ConnectorRequest, ConnectorResponse } from "../rpc-types/connector-wizard/interfaces";
 import { SqFlow } from "../rpc-types/sequence-diagram/interfaces";
 import { FieldType, FunctionModel, ListenerModel, ServiceClassModel, ServiceInitModel, ServiceModel } from "./service";
 import { CDModel } from "./component-diagram";
 import { DMModel, ExpandedDMModel, IntermediateClause, Mapping, VisualizableField, FnMetadata, ResultClauseType, IOType } from "./data-mapper";
-import { DataMapperMetadata, SCOPE } from "../state-machine-types";
+import { ArtifactData, DataMapperMetadata, SCOPE } from "../state-machine-types";
 import { ToolParameters } from "../rpc-types/ai-agent/interfaces";
 
 export interface DidOpenParams {
@@ -451,6 +451,14 @@ export interface MapWithFnRequest {
     subMappingName?: string;
 }
 
+export interface ResolveOutputRequest {
+    filePath: string;
+    codedata: CodeData;
+    varName: string;
+    targetField: string;
+    subMappingName?: string;
+}
+
 export interface ClearTypeCacheResponse {
     success: boolean;
 }
@@ -497,13 +505,29 @@ export interface ClausePositionResponse {
 }
 
 export interface ConvertExpressionRequest {
-     outputType: string;
-     expression: string;
-     expressionType: string;
+    outputType: string;
+    expression: string;
+    expressionType: string;
 }
 
 export interface ConvertExpressionResponse {
     convertedExpression: string;
+}
+
+export interface CreateConvertedVariableRequest {
+    // Data Mapper related
+    filePath: string;
+    codedata: CodeData;
+    varName: string;
+    targetField: string;
+    subMappingName?: string;
+
+    // Converting variable related
+    variableName: string;
+    isInput: boolean;
+    typeName: string;
+    parentTypeName?: string;
+    imports?: Imports;
 }
 
 export interface GraphqlDesignServiceParams {
@@ -836,6 +860,7 @@ export interface BIFlowModelRequest {
     startLine?: LinePosition;
     endLine?: LinePosition;
     forceAssign?: boolean;
+    useFileSchema?: boolean;
 }
 
 export interface BISuggestedFlowModelRequest extends BIFlowModelRequest {
@@ -855,17 +880,21 @@ export interface BISourceCodeRequest {
     isConnector?: boolean;
     isFunctionNodeUpdate?: boolean;
     isHelperPaneChange?: boolean;
+    artifactData?: ArtifactData;
 }
 
 export type BISourceCodeResponse = {
-    textEdits: {
+    textEdits?: {
         [key: string]: TextEdit[];
     };
+    errorMsg?: string;
+    stacktrace?: string;
 };
 
 export type BIDeleteByComponentInfoRequest = {
     filePath: string;
     component: ComponentInfo;
+    nodeType?: string;
 }
 
 export type BIDeleteByComponentInfoResponse = {
@@ -877,6 +906,9 @@ export type BIDeleteByComponentInfoResponse = {
 export interface BIAvailableNodesRequest {
     position: LinePosition;
     filePath: string;
+    queryMap?: {
+        [key: string]: string;
+    }
 }
 
 export type BIAvailableNodesResponse = {
@@ -897,6 +929,7 @@ export interface BINodeTemplateRequest {
     filePath: string;
     id: CodeData;
     forceAssign?: boolean;
+    isLibrary?: boolean;
 }
 
 export type BINodeTemplateResponse = {
@@ -924,6 +957,8 @@ export type SearchKind =
     | "FUNCTION"
     | "CONNECTOR"
     | "TYPE"
+    | "WORKFLOW_RUN"
+    | "ACTIVITY_CALL"
     | "NP_FUNCTION"
     | "MODEL_PROVIDER"
     | "VECTOR_STORE"
@@ -933,9 +968,10 @@ export type SearchKind =
     | "CHUNKER"
     | "AGENT"
     | "MEMORY"
-    | "MEMORY_STORE"
+    | "SHORT_TERM_MEMORY_STORE"
     | "AGENT_TOOL"
-    | "CLASS_INIT";
+    | "CLASS_INIT"
+    | "ALL";
 
 export type BISearchRequest = {
     position?: LineRange;
@@ -946,6 +982,27 @@ export type BISearchRequest = {
 
 export type BISearchResponse = {
     categories: Category[];
+}
+
+export interface WorkflowDataRequest {
+    workflowName: string;
+    filePath: string;
+}
+
+export interface WorkflowData {
+    name: string;
+    type: string;
+}
+
+export interface WorkflowDataResponse {
+    data?: WorkflowData[];
+    output?: {
+        data?: WorkflowData[];
+        events?: WorkflowData[];
+    };
+    events?: WorkflowData[];
+    errorMsg?: string;
+    stacktrace?: string;
 }
 
 export type BISearchNodesRequest = {
@@ -968,6 +1025,7 @@ export type BIGetEnclosedFunctionRequest = {
     filePath: string;
     position: LinePosition;
     findClass?: boolean;
+    useFileSchema?: boolean;
 }
 
 export type BIGetEnclosedFunctionResponse = {
@@ -1058,6 +1116,7 @@ export interface BICopilotContextResponse {
 
 export interface BIDesignModelRequest {
     projectPath?: string;
+    useFileSchema?: boolean;
 }
 
 export type BIDesignModelResponse = {
@@ -1297,6 +1356,7 @@ export interface ListenersRequest {
     orgName?: string;
     pkgName?: string;
     listenerTypeName?: string;
+    removeDeprecated?: boolean;
 }
 export interface ListenersResponse {
     hasListeners: boolean;
@@ -1311,6 +1371,7 @@ export interface ListenerModelRequest {
         type?: string;
     };
     filePath: string;
+    removeDeprecated?: boolean;
 }
 export interface ListenerModelResponse {
     listener: ListenerModel;
@@ -1445,6 +1506,11 @@ export interface Type {
     allowAdditionalFields?: boolean;
 }
 
+export interface SimpleType {
+    name: string;
+    imports?: Imports;
+}
+
 type ServiceFunctionKind = "RESOURCE" | "REMOTE" | "FUNCTION";
 
 export interface TypeFunctionModel {
@@ -1494,6 +1560,8 @@ export interface Member {
     optional?: boolean;
     imports?: Imports;
     readonly?: boolean;
+    selected?: boolean;
+    typeName?: string;
     isGraphqlId?: boolean;
 }
 
@@ -1509,6 +1577,7 @@ export interface GetGraphqlTypeResponse {
 
 export interface GetTypesRequest {
     filePath: string;
+    useFileSchema?: boolean;
 }
 
 export interface GetTypeRequest {
@@ -1565,6 +1634,16 @@ export interface GetTypesResponse {
 
 export interface GetTypeResponse {
     type: Type;
+}
+
+export interface GetSimpleTypeOfExpressionRequest {
+    filePath: string;
+    position: LinePosition;
+    expression: string;
+}
+
+export interface GetSimpleTypeOfExpressionResponse {
+    type: SimpleType;
 }
 
 export interface JsonToTypeRequest {
@@ -1790,9 +1869,21 @@ export interface AIToolResponse {
     };
 }
 
+export interface CertConfig {
+    path?: string;
+    password?: string;
+}
+
+export interface SecureSocketConfig {
+    cert?: CertConfig;
+    key?: CertConfig;
+    insecure?: boolean;
+}
+
 export interface McpToolsRequest {
     serviceUrl?: string;
     accessToken?: string;
+    secureSocket?: SecureSocketConfig;
 }
 
 export interface McpToolsResponse {
@@ -1813,9 +1904,20 @@ export interface AIGentToolsRequest {
 }
 
 export interface AIGentToolsResponse {
+    artifacts?: ProjectStructureArtifactResponse[];
     textEdits: {
         [key: string]: TextEdit[];
     };
+}
+
+export interface AIGetPackageVersionRequest {
+    projectPath: string;
+    org: string;
+    packageName: string;
+}
+
+export interface AIGetPackageVersionResponse {
+    version: string;
 }
 
 export type OpenAPIClientGenerationRequest = {
@@ -1861,6 +1963,12 @@ export type OpenAPIClientDeleteResponse = {
 
 // <-------- Deployment Related ------->
 
+export interface ProjectScopeMapping {
+    projectPath: string;
+    projectTitle: string;
+    integrationTypes?: SCOPE[];
+}
+
 export interface DeploymentRequest {
     integrationTypes: SCOPE[];
 }
@@ -1869,6 +1977,10 @@ export interface DeploymentResponse {
     isCompleted: boolean;
 }
 
+export interface WorkspaceDeploymentRequest {
+    projectScopes: ProjectScopeMapping[];
+    rootDirectory: string;
+}
 
 // 2201.12.3 -> New Project Component Artifacts Tree
 
@@ -1889,6 +2001,7 @@ export interface BaseArtifact<T = any> {
     name: string;
     module?: string;
     scope: string;
+    visibility?: VISIBILITY;
     icon?: string; // Optional for those that have an icon
     children?: Record<string, BaseArtifact>; // To allow nested structures
     accessor?: string; // Specific to Entry Points
@@ -1898,6 +2011,7 @@ export interface BaseArtifact<T = any> {
 // Artifact Types
 export enum ARTIFACT_TYPE {
     Functions = "Functions",
+    Workflows = "Workflows",
     Connections = "Connections",
     Listeners = "Listeners",
     EntryPoints = "Entry Points",
@@ -1915,6 +2029,7 @@ export enum PROJECT_KIND {
 
 export interface Artifacts {
     [ARTIFACT_TYPE.Functions]: Record<string, BaseArtifact>;
+    [ARTIFACT_TYPE.Workflows]?: Record<string, BaseArtifact>;
     [ARTIFACT_TYPE.Connections]: Record<string, BaseArtifact>;
     [ARTIFACT_TYPE.Listeners]: Record<string, BaseArtifact>;
     [ARTIFACT_TYPE.EntryPoints]: Record<string, BaseArtifact>;
@@ -2008,7 +2123,9 @@ export interface BIInterface extends BaseLangClientInterface {
     getDesignModel: (params: BIDesignModelRequest) => Promise<BIDesignModelResponse>;
     getType: (params: GetTypeRequest) => Promise<GetTypeResponse>;
     getTypes: (params: GetTypesRequest) => Promise<GetTypesResponse>;
+    getSimpleTypeOfExpression: (params: GetSimpleTypeOfExpressionRequest) => Promise<GetSimpleTypeOfExpressionResponse>;
     updateType: (params: UpdateTypeRequest) => Promise<UpdateTypeResponse>;
+    getAllData: (params: WorkflowDataRequest) => Promise<WorkflowDataResponse>;
     updateImports: (params: UpdateImportsRequest) => Promise<ImportsInfoResponse>;
     addFunction: (params: AddFunctionRequest) => Promise<AddImportItemResponse>;
     convertJsonToRecordType: (params: JsonToRecordParams) => Promise<TypeDataWithReferences>;
@@ -2021,6 +2138,7 @@ export interface BIInterface extends BaseLangClientInterface {
     getTools: (params: AIToolsRequest) => Promise<AIToolsResponse>;
     getMcpTools: (params: McpToolsRequest) => Promise<McpToolsResponse>;
     genTool: (params: AIGentToolsRequest) => Promise<AIGentToolsResponse>;
+    getPackageVersion: (params: AIGetPackageVersionRequest) => Promise<AIGetPackageVersionResponse>;
 }
 
 export interface ExtendedLangClientInterface extends BIInterface {
@@ -2050,5 +2168,6 @@ export interface ExtendedLangClientInterface extends BIInterface {
     getDidOpenParams(): DidOpenParams;
     getProjectArtifacts(params: ProjectArtifactsRequest): Promise<ProjectArtifacts>;
     getProjectInfo(params: ProjectInfoRequest): Promise<ProjectInfo>;
+    getSimpleTypeOfExpression(params: GetSimpleTypeOfExpressionRequest): Promise<GetSimpleTypeOfExpressionResponse>;
     openConfigToml(params: OpenConfigTomlRequest): Promise<void>;
 }

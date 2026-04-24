@@ -46,35 +46,52 @@ interface ReadonlyFlowDiagramProps {
     filePath: string;
     position: NodePosition;
     onModelLoaded?: (metadata: ItemMetadata) => void;
+    useFileSchema?: boolean;
 }
 
 export function ReadonlyFlowDiagram(props: ReadonlyFlowDiagramProps): JSX.Element {
-    const { filePath, position, onModelLoaded } = props;
+    const { filePath, position, onModelLoaded, useFileSchema } = props;
     const { rpcClient } = useRpcContext();
     const [flowModel, setFlowModel] = useState<Flow | null>(null);
 
     useEffect(() => {
+        setFlowModel(null);
         fetchFlowModel();
-    }, [filePath, position]);
+    }, [filePath, position, useFileSchema]);
 
     const fetchFlowModel = () => {
+        // First resolve the full function range using getEnclosedFunction,
+        // since the position from semantic diff may only cover the changed statement
         rpcClient
             .getBIDiagramRpcClient()
-            .getFlowModel({
+            .getEnclosedFunction({
                 filePath: filePath,
-                startLine: { line: position.startLine, offset: position.startColumn },
-                endLine: { line: position.endLine, offset: position.endColumn },
+                position: { line: position.startLine, offset: position.startColumn },
+                useFileSchema,
+            })
+            .then((enclosedFn) => {
+                const startLine = enclosedFn?.startLine ?? { line: position.startLine, offset: position.startColumn };
+                const endLine = enclosedFn?.endLine ?? { line: position.endLine, offset: position.endColumn };
+
+                return rpcClient
+                    .getBIDiagramRpcClient()
+                    .getFlowModel({
+                        filePath: filePath,
+                        startLine,
+                        endLine,
+                        useFileSchema,
+                    });
             })
             .then((response) => {
                 if (response?.flowModel) {
                     setFlowModel(response.flowModel);
-                    
+
                     // Extract metadata from EVENT_START node
                     if (onModelLoaded && response.flowModel.nodes) {
                         const eventStartNode = response.flowModel.nodes.find(
                             (node: any) => node.codedata?.node === 'EVENT_START'
                         );
-                        
+
                         if (eventStartNode?.metadata?.data) {
                             const data = eventStartNode.metadata.data as any;
                             onModelLoaded({

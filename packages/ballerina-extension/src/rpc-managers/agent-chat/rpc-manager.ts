@@ -20,12 +20,18 @@ import {
     AgentChatAPI,
     ChatReqMessage,
     ChatRespMessage,
+    ExecutionStep,
     TraceInput,
     TraceStatus,
     ChatHistoryMessage,
     ChatHistoryResponse,
     AgentStatusResponse,
-    ClearChatResponse
+    ClearChatResponse,
+    SessionInput,
+    SessionInfoResponse,
+    AvailableAgentsResponse,
+    SwitchAgentRequest,
+    SwitchAgentResponse
 } from "@wso2/ballerina-core";
 import * as vscode from 'vscode';
 import { extension } from '../../BalExtensionContext';
@@ -66,7 +72,6 @@ export class AgentChatRpcManager implements AgentChatAPI {
                 this.currentAbortController = new AbortController();
 
                 const payload = { sessionId: extension.agentChatContext.chatSessionId, ...params };
-                console.log('[Agent Chat] Sending message with session ID:', payload.sessionId);
 
                 const response = await this.fetchTestData(
                     extension.agentChatContext.chatEp,
@@ -75,21 +80,23 @@ export class AgentChatRpcManager implements AgentChatAPI {
                 );
                 if (response && response.message) {
                     // Find trace and extract tool calls and execution steps
-                    const trace = this.findTraceForMessage(params.message);
-
-                    const chatResponse: ChatRespMessage = {
-                        message: response.message
-                    };
+                    const trace = this.findTraceForMessage(extension.agentChatContext.chatSessionId, params.message, response.message);
+                    const executionSteps = trace ? this.extractExecutionSteps(trace) : undefined;
 
                     // Store agent response in history
                     this.addMessageToHistory(sessionId, {
                         type: 'message',
                         text: response.message,
                         isUser: false,
-                        traceId: trace?.traceId
+                        traceId: trace?.traceId,
+                        executionSteps
                     });
 
-                    resolve(chatResponse);
+                    resolve({
+                        message: response.message,
+                        traceId: trace?.traceId,
+                        executionSteps
+                    } as ChatRespMessage);
                 } else {
                     reject(new Error("Invalid response format:", response));
                 }
@@ -101,15 +108,31 @@ export class AgentChatRpcManager implements AgentChatAPI {
                         : "An unknown error occurred";
 
                 const sessionId = extension.agentChatContext?.chatSessionId;
+                let traceId: string | undefined;
+                let executionSteps: ExecutionStep[] | undefined;
+
                 if (sessionId) {
+                    const trace = this.findTraceForMessage(extension.agentChatContext.chatSessionId, params.message);
+                    traceId = trace?.traceId;
+                    executionSteps = trace ? this.extractExecutionSteps(trace) : undefined;
+
                     this.addMessageToHistory(sessionId, {
                         type: 'error',
                         text: errorMessage,
-                        isUser: false
+                        isUser: false,
+                        traceId,
+                        executionSteps
                     });
                 }
 
-                reject(error);
+                // Embed trace information in the error for RPC transmission
+                const traceInfo = { traceId, executionSteps };
+                const errorWithTrace = new Error(JSON.stringify({
+                    message: errorMessage,
+                    traceInfo: traceInfo
+                }));
+
+                reject(errorWithTrace);
             } finally {
                 this.currentAbortController = null;
             }
@@ -152,6 +175,7 @@ export class AgentChatRpcManager implements AgentChatAPI {
             });
 
             if (!response.ok) {
+                const errorData = await response.json();
                 switch (response.status) {
                     case 400:
                         throw new Error("Bad Request: The server could not understand the request.");
@@ -203,12 +227,88 @@ export class AgentChatRpcManager implements AgentChatAPI {
 
     /**
      * Find the trace that corresponds to a chat message by matching span attributes
+     * @param sessionId The chat session ID
      * @param userMessage The user's input message
      * @returns The matching trace or undefined if not found
      */
-    findTraceForMessage(userMessage: string): Trace | undefined {
-        // Get all traces from the TraceServer
+    findTraceForMessage(sessionId: string, userMessage: string, agentResponse?: string): Trace | undefined {
         const traces = TraceServer.getTraces();
+
+        // Sort traces from most recent to least recent based on lastSeen timestamp
+        traces.sort((a, b) => b.lastSeen.getTime() - a.lastSeen.getTime());
+
+        const extractValue = (value: any): string => {
+            if (typeof value === 'string') { return value; }
+            if (value && typeof value === 'object' && 'stringValue' in value) {
+                return String(value.stringValue);
+            }
+            return '';
+        };
+
+        for (const trace of traces) {
+            for (const span of trace.spans || []) {
+                const attributes = span.attributes || [];
+
+                let spanType: string | undefined;
+                let operationName: string | undefined;
+                let inputMessages: string | undefined;
+                let outputMessages: string | undefined;
+                let conversationId: string | undefined;
+
+                for (const attr of attributes) {
+                    const attrValue = extractValue(attr.value);
+
+                    if (attr.key === 'span.type') {
+                        spanType = attrValue;
+                    } else if (attr.key === 'gen_ai.operation.name') {
+                        operationName = attrValue;
+                    } else if (attr.key === 'gen_ai.input.messages') {
+                        inputMessages = attrValue;
+                    } else if (attr.key === 'gen_ai.output.messages') {
+                        outputMessages = attrValue;
+                    } else if (attr.key === 'gen_ai.conversation.id') {
+                        conversationId = attrValue;
+                    }
+                }
+
+                if (spanType !== 'ai' || operationName !== 'invoke_agent' || conversationId != sessionId) {
+                    continue;
+                }
+
+                const inputMatches = inputMessages && inputMessages.includes(userMessage);
+                const outputMatches = agentResponse && outputMessages && outputMessages.includes(agentResponse);
+
+                if (inputMatches || outputMatches) {
+                    return trace;
+                }
+            }
+        }
+
+        return undefined;
+    }
+
+    /**
+     * Remove operation prefixes from span names
+     * @param name The span name to clean
+     * @returns The cleaned span name
+     */
+    private stripSpanPrefix(name: string): string {
+        const prefixes = ['invoke_agent ', 'execute_tool ', 'chat '];
+        for (const prefix of prefixes) {
+            if (name.startsWith(prefix)) {
+                return name.substring(prefix.length);
+            }
+        }
+        return name;
+    }
+
+    /**
+     * Extract execution steps from a trace
+     * @param trace The trace to extract execution steps from
+     * @returns Array of execution steps sorted chronologically
+     */
+    private extractExecutionSteps(trace: Trace): ExecutionStep[] {
+        const steps: ExecutionStep[] = [];
 
         // Helper function to extract string value from attribute value
         const extractValue = (value: any): string => {
@@ -221,69 +321,95 @@ export class AgentChatRpcManager implements AgentChatAPI {
             return '';
         };
 
-        // Iterate through each trace to find matching spans
-        for (const trace of traces) {
-            // Check each span in the trace
-            for (const span of trace.spans || []) {
-                // Check if this span matches our criteria:
-                // 1. span.type === "ai"
-                // 2. gen_ai.operation.name === "invoke_agent"
-                // 3. gen_ai.input.messages matches the user message
+        // Iterate through all spans in the trace
+        for (const span of trace.spans || []) {
+            const attributes = span.attributes || [];
 
-                const attributes = span.attributes || [];
+            let operationName = '';
+            let toolName = '';
+            let hasError = false;
 
-                // Find relevant attributes
-                let spanType: string | undefined;
-                let operationName: string | undefined;
-                let inputMessages: string | undefined;
+            // Extract relevant attributes
+            for (const attr of attributes) {
+                const value = extractValue(attr.value);
 
-                for (const attr of attributes) {
-                    const attrValue = extractValue(attr.value);
-
-                    if (attr.key === 'span.type') {
-                        spanType = attrValue;
-                    } else if (attr.key === 'gen_ai.operation.name') {
-                        operationName = attrValue;
-                    } else if (attr.key === 'gen_ai.input.messages') {
-                        inputMessages = attrValue;
-                    }
-                }
-
-                // Check if all criteria match
-                if (spanType === 'ai' &&
-                    operationName === 'invoke_agent' &&
-                    inputMessages) {
-                    // Check if the input message matches
-                    // inputMessages might be JSON or contain the message
-                    if (inputMessages.includes(userMessage)) {
-                        return trace;
-                    }
+                if (attr.key === 'gen_ai.operation.name') {
+                    operationName = value;
+                } else if (attr.key === 'gen_ai.tool.name') {
+                    toolName = value;
+                } else if (attr.key === 'error.message') {
+                    hasError = true;
                 }
             }
+
+            // Determine operation type based on operation name
+            let operationType: 'invoke' | 'chat' | 'tool' | 'other' = 'other';
+            let displayName = operationName;
+
+            if (operationName.startsWith('invoke_agent')) {
+                operationType = 'invoke';
+                displayName = this.stripSpanPrefix(span.name);
+            } else if (operationName.startsWith('chat')) {
+                operationType = 'chat';
+                displayName = this.stripSpanPrefix(span.name);
+            } else if (operationName.startsWith('execute_tool')) {
+                operationType = 'tool';
+                displayName = toolName || this.stripSpanPrefix(span.name);
+            } else {
+                // Skip spans that don't match our criteria
+                continue;
+            }
+
+            // Calculate duration from ISO timestamps
+            const startTimeISO = span.startTime;
+            const endTimeISO = span.endTime;
+            let duration = 0;
+
+            if (startTimeISO && endTimeISO) {
+                const startMs = new Date(startTimeISO).getTime();
+                const endMs = new Date(endTimeISO).getTime();
+                duration = endMs - startMs;
+            }
+
+            steps.push({
+                spanId: span.spanId,
+                operationType,
+                name: displayName,
+                fullName: operationName,
+                duration,
+                startTime: startTimeISO,
+                endTime: endTimeISO,
+                hasError
+            });
         }
 
-        return undefined;
+        // Sort by start time chronologically
+        steps.sort((a, b) => {
+            if (!a.startTime || !b.startTime) { return 0; }
+            return a.startTime.localeCompare(b.startTime);
+        });
+
+        return steps;
     }
 
-    /**
-     * Show trace details webview for a given chat message
-     * Finds the trace matching the message and opens it in the trace details webview
-     * @param userMessage The user's input message
-     * @throws Error if no trace is found for the message
-     */
-    async showTraceDetailsForMessage(userMessage: string): Promise<void> {
+    async showTraceView(params: TraceInput): Promise<void> {
         try {
-            // Find the trace that matches the user message
-            const trace = this.findTraceForMessage(userMessage);
+            let trace: Trace | undefined;
+
+            // Support direct trace lookup by traceId
+            if (params.traceId) {
+                const traces = TraceServer.getTraces();
+                trace = traces.find(t => t.traceId === params.traceId);
+            }
 
             if (!trace) {
-                const errorMessage = 'No trace found for the given message. Make sure tracing is enabled and the agent has processed this message.';
+                const errorMessage = 'No trace found. Make sure tracing is enabled and the agent has processed this message.';
                 vscode.window.showErrorMessage(errorMessage);
                 throw new Error(errorMessage);
             }
 
-            // Open the trace details webview with isAgentChat=true
-            TraceDetailsWebview.show(trace, true);
+            // Open the trace details webview with isAgentChat=true and optional focusSpanId
+            TraceDetailsWebview.show(trace, true, params.focusSpanId, extension.agentChatContext?.chatSessionId);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Failed to show trace details';
             vscode.window.showErrorMessage(`Error: ${errorMessage}`);
@@ -291,8 +417,23 @@ export class AgentChatRpcManager implements AgentChatAPI {
         }
     }
 
-    async showTraceView(params: TraceInput): Promise<void> {
-        await this.showTraceDetailsForMessage(params.message);
+    async showSessionOverview(params: SessionInput): Promise<void> {
+        try {
+            // Use provided sessionId or fall back to current session
+            const sessionId = params.sessionId || extension.agentChatContext?.chatSessionId;
+
+            if (!sessionId) {
+                const errorMessage = 'No active session found';
+                vscode.window.showErrorMessage(errorMessage);
+                throw new Error(errorMessage);
+            }
+
+            await TraceDetailsWebview.showSessionOverview(sessionId);
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to show session overview';
+            vscode.window.showErrorMessage(`Error: ${errorMessage}`);
+            throw error;
+        }
     }
 
     async getChatHistory(): Promise<ChatHistoryResponse> {
@@ -334,6 +475,13 @@ export class AgentChatRpcManager implements AgentChatAPI {
             if (extension.agentChatContext) {
                 extension.agentChatContext.chatSessionId = newSessionId;
 
+                // Sync the new session ID to the active agent in the agents array
+                const activeAgentName = extension.agentChatContext.activeAgentName;
+                const activeAgent = extension.agentChatContext.agents?.find(a => a.name === activeAgentName);
+                if (activeAgent) {
+                    activeAgent.chatSessionId = newSessionId;
+                }
+
                 // Mark the new session as active
                 AgentChatRpcManager.activeSessions.add(newSessionId);
 
@@ -358,5 +506,70 @@ export class AgentChatRpcManager implements AgentChatAPI {
                 isRunning
             });
         });
+    }
+
+    async getSessionInfo(): Promise<SessionInfoResponse> {
+        return {
+            sessionId: extension.agentChatContext?.chatSessionId || '',
+            chatEndpoint: extension.agentChatContext?.chatEp || '',
+        };
+    }
+
+    async getAvailableChatAgents(): Promise<AvailableAgentsResponse> {
+        const ctx = extension.agentChatContext;
+        if (!ctx || !ctx.agents || ctx.agents.length === 0) {
+            return {
+                agents: ctx ? [{
+                    name: 'default',
+                    basePath: '/',
+                    chatEp: ctx.chatEp,
+                    chatSessionId: ctx.chatSessionId,
+                }] : [],
+                activeAgentName: ctx?.activeAgentName || 'default',
+            };
+        }
+
+        return {
+            agents: ctx.agents.map(a => ({
+                name: a.name,
+                basePath: a.basePath,
+                chatEp: a.chatEp,
+                chatSessionId: a.chatSessionId,
+            })),
+            activeAgentName: ctx.activeAgentName,
+        };
+    }
+
+    async switchChatAgent(params: SwitchAgentRequest): Promise<SwitchAgentResponse> {
+        const ctx = extension.agentChatContext;
+        if (!ctx || !ctx.agents) {
+            throw new Error('No agents available to switch to');
+        }
+
+        const targetAgent = ctx.agents.find(a => a.name === params.agentName);
+        if (!targetAgent) {
+            throw new Error(`Agent "${params.agentName}" not found`);
+        }
+
+        // Update the active agent
+        ctx.activeAgentName = targetAgent.name;
+        ctx.chatEp = targetAgent.chatEp;
+        ctx.chatSessionId = targetAgent.chatSessionId;
+
+        // Update the activator's session map
+        updateChatSessionId(targetAgent.chatEp, targetAgent.chatSessionId);
+
+        // Return the agent info and its chat history
+        const chatHistory = AgentChatRpcManager.chatHistoryMap.get(targetAgent.chatSessionId) || [];
+
+        return {
+            agent: {
+                name: targetAgent.name,
+                basePath: targetAgent.basePath,
+                chatEp: targetAgent.chatEp,
+                chatSessionId: targetAgent.chatSessionId,
+            },
+            chatHistory,
+        };
     }
 }

@@ -19,7 +19,7 @@
 
 import path from "path";
 import { StateMachine } from "../../stateMachine";
-import { TestsDiscoveryRequest, TestsDiscoveryResponse, FunctionTreeNode, ProjectInfo } from "@wso2/ballerina-core";
+import { TestsDiscoveryRequest, TestsDiscoveryResponse, FunctionTreeNode, ProjectInfo, PROJECT_KIND } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "../../core";
 import { Position, Range, TestController, Uri, TestItem, commands } from "vscode";
 import { getWorkspaceRoot, getCurrentProjectRoot } from "../../utils/project-utils";
@@ -33,8 +33,14 @@ export async function discoverTestFunctionsInProject(ballerinaExtInstance: Balle
     
     const workspaceRoot = getWorkspaceRoot();
     const projectInfo = await ballerinaExtInstance.langClient?.getProjectInfo({ projectPath: workspaceRoot });
+    const isEmptyProject = projectInfo?.projectKind === PROJECT_KIND.WORKSPACE_PROJECT &&
+        projectInfo.children?.length === 0;
 
-    // Handle workspace with multiple child projects
+    if (isEmptyProject) {
+        return;
+    }
+
+    // Handle project with multiple integrations/libraries
     if (projectInfo?.children?.length > 0) {
         await discoverTestsInWorkspace(projectInfo.children, ballerinaExtInstance, testController);
         return;
@@ -119,6 +125,8 @@ function createTests(response: TestsDiscoveryResponse, testController: TestContr
     // Iterate over the result map (test groups)
     for (const [group, testFunctions] of entries) {
         let groupItem: TestItem | undefined;
+        // Remove leading/trailing quotes from group name for display
+        const cleanedGroupName = group.replace(/^["']|["']$/g, '');
 
         // For workspace context with DEFAULT_GROUP, skip the group level and add tests directly to project
         if (isWorkspaceContext && group === 'DEFAULT_GROUP' && projectGroupItem) {
@@ -128,7 +136,7 @@ function createTests(response: TestsDiscoveryResponse, testController: TestContr
             const groupId = `group:${path.basename(projectPath)}:${group}`;
             groupItem = projectGroupItem.children.get(groupId);
             if (!groupItem) {
-                groupItem = testController.createTestItem(groupId, group);
+                groupItem = testController.createTestItem(groupId, cleanedGroupName);
                 projectGroupItem.children.add(groupItem);
                 groups.push(groupId);
             }
@@ -137,7 +145,7 @@ function createTests(response: TestsDiscoveryResponse, testController: TestContr
             const groupId = `group:${group}`;
             groupItem = testController.items.get(groupId);
             if (!groupItem) {
-                groupItem = testController.createTestItem(groupId, group);
+                groupItem = testController.createTestItem(groupId, cleanedGroupName);
                 testController.items.add(groupItem);
                 groups.push(groupId);
             }

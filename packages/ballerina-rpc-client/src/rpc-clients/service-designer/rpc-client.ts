@@ -68,7 +68,10 @@ import {
     getTriggerModels,
     updateListenerSourceCode,
     updateResourceSourceCode,
-    updateServiceSourceCode
+    updateServiceSourceCode,
+    GetOASSpecRequest,
+    GetOASSpecResponse,
+    getOASSpec
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -162,5 +165,9 @@ export class ServiceDesignerRpcClient implements ServiceDesignerAPI {
 
     generateExamplePayloadJson(params: PayloadContext): Promise<object> {
         return this._messenger.sendRequest(generateExamplePayloadJson, HOST_EXTENSION, params);
+    }
+
+    getOASSpec(params: GetOASSpecRequest): Promise<GetOASSpecResponse> {
+        return this._messenger.sendRequest(getOASSpec, HOST_EXTENSION, params);
     }
 }

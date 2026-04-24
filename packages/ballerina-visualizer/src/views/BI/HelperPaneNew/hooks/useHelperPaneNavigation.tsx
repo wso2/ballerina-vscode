@@ -21,6 +21,10 @@ import { useState } from "react";
 export type BreadCrumbStep = {
     label: string;
     replaceText: string;
+    isArrayAccess?: boolean;
+    arrayIndex?: number;
+    fieldName?: string;
+    stepType?: string;
 }
 
 export const useHelperPaneNavigation = (initialLabel: string) => {
@@ -29,13 +33,47 @@ export const useHelperPaneNavigation = (initialLabel: string) => {
         replaceText: ""
     }]);
 
-    const navigateToNext = (value: string, currentValue: string) => {
+    const navigateToNext = (value: string, currentValue: string, stepType?: string) => {
         const separator = currentValue ? '.' : '';
         const newBreadCrumSteps = [...breadCrumbSteps, {
             label: value,
-            replaceText: currentValue + separator + value
+            replaceText: currentValue + separator + value,
+            stepType
         }];
         setBreadCrumbSteps(newBreadCrumSteps);
+    };
+
+    const navigateToNextArray = (value: string, currentValue: string, index: number) => {
+        const separator = currentValue ? '.' : '';
+        const indexedValue = `${value}[${index}]`;
+        const newBreadCrumSteps = [...breadCrumbSteps, {
+            label: indexedValue,
+            replaceText: currentValue + separator + indexedValue,
+            isArrayAccess: true,
+            arrayIndex: index,
+            fieldName: value
+        }];
+        setBreadCrumbSteps(newBreadCrumSteps);
+    };
+
+    const updateLastStepArrayIndex = (index: number) => {
+        if (breadCrumbSteps.length <= 1) return;
+        const steps = [...breadCrumbSteps];
+        const lastStep = steps[steps.length - 1];
+        if (!lastStep.isArrayAccess || !lastStep.fieldName) return;
+
+        const parentStep = steps[steps.length - 2];
+        const parentPath = parentStep.replaceText;
+        const separator = parentPath ? '.' : '';
+        const newReplaceText = parentPath + separator + lastStep.fieldName + '[' + index + ']';
+
+        steps[steps.length - 1] = {
+            ...lastStep,
+            arrayIndex: index,
+            label: lastStep.fieldName + '[' + index + ']',
+            replaceText: newReplaceText
+        };
+        setBreadCrumbSteps(steps);
     };
 
     const navigateToBreadcrumb = (step: BreadCrumbStep) => {
@@ -56,6 +94,8 @@ export const useHelperPaneNavigation = (initialLabel: string) => {
     return {
         breadCrumbSteps,
         navigateToNext,
+        navigateToNextArray,
+        updateLastStepArrayIndex,
         navigateToBreadcrumb,
         isAtRoot,
         getCurrentPath,

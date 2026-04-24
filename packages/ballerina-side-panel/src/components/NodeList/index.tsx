@@ -17,10 +17,10 @@
  */
 
 import React, { useEffect, useState } from "react";
+import ReactMarkdown from "react-markdown";
 import {
     Button,
     Codicon,
-    ProgressRing,
     SearchBox,
     SidePanelBody,
     Switch,
@@ -32,11 +32,20 @@ import styled from "@emotion/styled";
 import { BackIcon, CloseIcon, LogIcon } from "../../resources";
 import { Category, Item, Node } from "./types";
 import { cloneDeep, debounce } from "lodash";
-import { GroupListSkeleton } from "../Skeletons";
+import { GroupListSkeleton, NodeListSkeleton } from "../Skeletons";
 import GroupList from "../GroupList";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { getExpandedCategories, setExpandedCategories, getDefaultExpandedState } from "../../utils/localStorage";
-import { shouldShowEmptyCategory, shouldUseConnectionContainer, getCategoryActions, isCategoryFixed } from "./categoryConfig";
+import { ConnectionListItem } from "@wso2/wso2-platform-core";
+import {
+    CURRENT_INTEGRATION_CATEGORY_TITLE,
+    getCategoryActions,
+    isCategoryFixed,
+    normalizeCategoryTitle,
+    shouldShowEmptyCategory,
+    shouldUseConnectionContainer
+} from "./categoryConfig";
+import { stripHtmlTags } from "../Form/utils";
 
 namespace S {
     export const Container = styled.div<{}>`
@@ -114,6 +123,38 @@ namespace S {
     export const BodyText = styled.div<{}>`
         font-size: 11px;
         opacity: 0.5;
+    `;
+
+    export const TooltipMarkdown = styled.div`
+        font-size: 12px;
+        line-height: 1.4;
+        font-family: var(--vscode-font-family);
+
+        p {
+            margin: 0 0 6px 0;
+        }
+
+        p:last-of-type {
+            margin-bottom: 0;
+        }
+
+        pre {
+            display: none;
+        }
+
+        code {
+            display: inline;
+        }
+
+        ul,
+        ol {
+            margin: 6px 0;
+            padding-left: 18px;
+        }
+
+        li {
+            margin: 2px 0;
+        }
     `;
 
     export const Component = styled.div<{ enabled?: boolean }>`
@@ -311,6 +352,7 @@ interface NodeListProps {
     showAiPanel?: boolean;
     title?: string;
     onSelect: (id: string, metadata?: any) => void;
+    onSelectConnector?: (id: string, metadata?: any) => void; // For connector routing
     onSearchTextChange?: (text: string) => void;
     onAddConnection?: () => void;
     onAddFunction?: () => void;
@@ -319,6 +361,12 @@ interface NodeListProps {
     onBack?: () => void;
     onClose?: () => void;
     searchPlaceholder?: string;
+    onImportDevantConn?: (devantConn: ConnectionListItem) => void;
+    onLinkDevantProject?: () => void;
+    onRefreshDevantConnections?: () => void;
+    searchText?: string;
+    panelBodySx?: React.CSSProperties;
+    alwaysCollapsedCategories?: string[];
 }
 
 export function NodeList(props: NodeListProps) {
@@ -327,6 +375,7 @@ export function NodeList(props: NodeListProps) {
         showAiPanel,
         title,
         onSelect,
+        onSelectConnector,
         onSearchTextChange,
         onAddConnection,
         onAddFunction,
@@ -335,10 +384,21 @@ export function NodeList(props: NodeListProps) {
         onBack,
         onClose,
         searchPlaceholder,
+        onImportDevantConn,
+        onLinkDevantProject,
+        onRefreshDevantConnections,
+        panelBodySx,
+        alwaysCollapsedCategories
     } = props;
 
     const [searchText, setSearchText] = useState<string>("");
     const [showGeneratePanel, setShowGeneratePanel] = useState(false);
+
+    useEffect(() => {
+        if (props.searchText !== undefined) {
+            setSearchText(props.searchText);
+        }
+    }, [props.searchText]);
     const [isSearching, setIsSearching] = useState(false);
     const [expandedMoreSections, setExpandedMoreSections] = useState<Record<string, boolean>>({});
     const [expandedCategories, setExpandedCategoriesState] = useState<Record<string, boolean>>({});
@@ -363,12 +423,26 @@ export function NodeList(props: NodeListProps) {
             
             // Merge stored state with defaults, prioritizing stored state
             const mergedState = { ...defaultState, ...storedState };
+
+            // Force specified categories to always start collapsed
+            if (alwaysCollapsedCategories) {
+                alwaysCollapsedCategories.forEach((cat) => {
+                    mergedState[cat] = false;
+                });
+            }
+
             setExpandedCategoriesState(mergedState);
         }
     }, [categories]);
 
     useEffect(() => {
         if (onSearchTextChange) {
+            if (!searchText.trim()) {
+                setIsSearching(false);
+                debouncedSearch.cancel();
+                onSearchTextChange("");
+                return;
+            }
             setIsSearching(true);
             debouncedSearch(searchText);
             return () => debouncedSearch.cancel();
@@ -407,12 +481,22 @@ export function NodeList(props: NodeListProps) {
             [categoryTitle]: !expandedCategories[categoryTitle],
         };
         setExpandedCategoriesState(newExpandedState);
+
+        // Don't persist expanded state for always-collapsed categories
+        if (alwaysCollapsedCategories?.includes(categoryTitle)) {
+            return;
+        }
         setExpandedCategories(newExpandedState);
     };
 
     const handleAddNode = (node: Node, category?: string) => {
         if (node.enabled) {
-            onSelect(node.id, { node: node.metadata, category });
+            // Check if this item is from a "Connectors" category and should use connector routing
+            if (category === "Connectors" && onSelectConnector) {
+                onSelectConnector(node.id, { node: node.metadata, category });
+            } else {
+                onSelect(node.id, { node: node.metadata, category });
+            }
         }
     };
 
@@ -434,6 +518,31 @@ export function NodeList(props: NodeListProps) {
         }
     };
 
+    const handleOnLinkDevantProject = () => {
+        if (onLinkDevantProject){
+            onLinkDevantProject();
+        }
+    }
+
+    const handleOnRefreshDevantConnections = () => {
+        if (onRefreshDevantConnections){
+            onRefreshDevantConnections();
+        }
+    }
+    
+    const renderTooltipContent = (description?: string): React.ReactNode | undefined => {
+        const cleaned = stripHtmlTags(description || "").trim();
+        if (!cleaned) {
+            return undefined;
+        }
+
+        return (
+            <S.TooltipMarkdown>
+                <ReactMarkdown>{cleaned}</ReactMarkdown>
+            </S.TooltipMarkdown>
+        );
+    };
+
     const getNodesContainer = (items: (Node | Category)[], parentCategoryTitle?: string) => {
         const safeItems = items.filter((item) => item != null);
         const nodes = safeItems.filter((item): item is Node => "id" in item && !("title" in item));
@@ -448,10 +557,10 @@ export function NodeList(props: NodeListProps) {
                         }
 
                         return (
-                            <Tooltip 
+                            <Tooltip
                                 key={node.id + index}
-                                content={node.description} 
-                                sx={{ 
+                                content={renderTooltipContent(node.description)}
+                                sx={{
                                     maxWidth: "280px",
                                     whiteSpace: "normal",
                                     wordWrap: "break-word",
@@ -460,7 +569,7 @@ export function NodeList(props: NodeListProps) {
                             >
                                 <S.Component
                                     enabled={node.enabled}
-                                    onClick={() => handleAddNode(node)}
+                                    onClick={() => handleAddNode(node, parentCategoryTitle)}
                                 >
                                     <S.IconContainer>{node.icon || <LogIcon />}</S.IconContainer>
                                     <S.ComponentTitle
@@ -524,7 +633,7 @@ export function NodeList(props: NodeListProps) {
         );
     };
 
-    const getConnectionContainer = (categories: Category[]) => (
+    const getConnectionContainer = (categories: Category[], enableSingleNodeDirectNav?: boolean) => (
         <S.Grid columns={1}>
             {categories.map((category, index) =>
                 category.isLoading ? (
@@ -535,6 +644,8 @@ export function NodeList(props: NodeListProps) {
                         category={category}
                         expand={searchText?.length > 0}
                         onSelect={handleAddNode}
+                        onImportDevantConn={onImportDevantConn}
+                        enableSingleNodeDirectNav={enableSingleNodeDirectNav}
                     />
                 ))
             }
@@ -544,7 +655,8 @@ export function NodeList(props: NodeListProps) {
     const getCategoryContainer = (groups: Category[], isSubCategory = false, parentCategoryTitle?: string) => {
         // Configuration for special categories
         const categoryConfig = {
-            "Connections": { hasBackground: false },
+            "Connections": { hasBackground: false }, // Existing connections (already configured)
+            "Connectors": { hasBackground: true }, // Available connectors to be added
             "Statement": { hasBackground: true, showSeparatorBefore: true }, // Show separator before Statement
             "AI": { hasBackground: true, targetPosition: 3 }, // 4th position (0-indexed)
             "Control": { hasBackground: true },
@@ -570,14 +682,23 @@ export function NodeList(props: NodeListProps) {
         const content = (
             <>
                 {reorderedGroups.map((group, index) => {
-                    const categoryActions = getCategoryActions(group.title, title);
-                    const config = categoryConfig[group.title] || { hasBackground: true };
+                    const normalizedGroupTitle = normalizeCategoryTitle(group.title);
+                    const normalizedParentCategoryTitle = parentCategoryTitle
+                        ? normalizeCategoryTitle(parentCategoryTitle)
+                        : undefined;
+                    // If subcategory is inside "Current Project" (or legacy "Current Workspace"),
+                    // show "Current Integration" actions when the subcategory refers to the current integration.
+                    const categoryActions = (normalizedParentCategoryTitle === CURRENT_INTEGRATION_CATEGORY_TITLE) ?
+                       ( group.title?.includes("(current)") ? getCategoryActions(CURRENT_INTEGRATION_CATEGORY_TITLE, title) : getCategoryActions(normalizedGroupTitle, title)) 
+                    : 
+                    getCategoryActions(normalizedGroupTitle, title);
+                    const config = categoryConfig[normalizedGroupTitle] || { hasBackground: true };
                     const shouldShowSeparator = config.showSeparatorBefore;
 
                     // Hide categories that don't have items, except for special categories that can add items
                     if (!group || !group.items || group.items.length === 0) {
                         // Only show empty categories if they have add functionality
-                        if (!shouldShowEmptyCategory(group.title)) {
+                        if (!shouldShowEmptyCategory(normalizedGroupTitle, isSubCategory) && categoryActions.length === 0) {
                             return null;
                         }
                     }
@@ -585,7 +706,7 @@ export function NodeList(props: NodeListProps) {
                         return null;
                     }
                     // skip current integration category if onAddFunction is not provided and items are empty
-                    if (!onAddFunction && group.title === "Current Integration" && (!group.items || group.items.length === 0)) {
+                    if (!onAddFunction && normalizedGroupTitle === CURRENT_INTEGRATION_CATEGORY_TITLE && (!group.items || group.items.length === 0)) {
                         return null;
                     }
 
@@ -598,7 +719,7 @@ export function NodeList(props: NodeListProps) {
                                 <S.CategoryRow showBorder={false}>
                                     {!isSubCategory ? (
                                         (() => {
-                                            const isFixed = isCategoryFixed(group.title);
+                                            const isFixed = isCategoryFixed(normalizedGroupTitle);
                                             const HeaderComponent = isFixed ? S.CategoryHeaderFixed : S.CategoryHeader;
                                             const headerProps = isFixed ? 
                                                 { fullWidth: config.hasBackground && !isSubCategory } : 
@@ -613,7 +734,9 @@ export function NodeList(props: NodeListProps) {
                                                         const handlers = {
                                                             onAddConnection: handleAddConnection,
                                                             onAddFunction: handleAddFunction,
-                                                            onAdd: handleAdd
+                                                            onAdd: handleAdd,
+                                                            onLinkDevantProject: handleOnLinkDevantProject,
+                                                            onRefreshDevantConnections: handleOnRefreshDevantConnections
                                                         };
                                                         
                                                         const handler = handlers[action.handlerKey];
@@ -633,7 +756,7 @@ export function NodeList(props: NodeListProps) {
                                                                         handler();
                                                                     }}
                                                                 >
-                                                                    <Codicon name="add" />
+                                                                    <Codicon name={action?.codeIcon || "add"} />
                                                                 </Button>
                                                             </Tooltip>
                                                         );
@@ -657,32 +780,35 @@ export function NodeList(props: NodeListProps) {
                                             </Tooltip>
                                         </S.Row>
                                     )}
-                                    {(isCategoryExpanded || isCategoryFixed(group.title)) && (
+                                    {(isSubCategory || isCategoryExpanded || isCategoryFixed(group.title)) && (
                                         <>
-                                            {(!group.items || group.items.length === 0) &&
+                                            {(isSubCategory || (!group.items || group.items.length === 0)) &&
                                                 !searchText &&
                                                 !isSearching &&
                                                 categoryActions.map((action, actionIndex) => {
                                                     const handlers = {
                                                         onAddConnection: handleAddConnection,
                                                         onAddFunction: handleAddFunction,
-                                                        onAdd: handleAdd
+                                                        onAdd: handleAdd,
+                                                        onLinkDevantProject: handleOnLinkDevantProject,
+                                                        onRefreshDevantConnections: handleOnRefreshDevantConnections
                                                     };
                                                     
                                                     const handler = handlers[action.handlerKey];
                                                     const propsHandler = props[action.handlerKey];
                                                     
                                                     // Only render if the handler exists in props
-                                                    if (!propsHandler || !handler) return null;
+                                                    if (!propsHandler || !handler || action.hideOnEmptyState) return null;
                                                     
                                                     const buttonLabel = action.emptyStateLabel || addButtonLabel || "Add";
                                                     
                                                     return (
                                                         <S.HighlightedButton 
                                                             key={`empty-${group.title}-${actionIndex}`}
+                                                            style={{padding: '5px 10px', width: isSubCategory ? '160px' : '100%'}}
                                                             onClick={handler}
                                                         >
-                                                            <Codicon name="add" iconSx={{ fontSize: 12 }} />
+                                                            <Codicon name={action?.codeIcon || "add"} iconSx={{ fontSize: 12 }} />
                                                             {buttonLabel}
                                                         </S.HighlightedButton>
                                                     );
@@ -690,9 +816,9 @@ export function NodeList(props: NodeListProps) {
                                             {group.items &&
                                             group.items.length > 0 &&
                                             // 1. If parent group uses connection container and ALL items don't have id, use getConnectionContainer
-                                            shouldUseConnectionContainer(group.title) &&
+                                            shouldUseConnectionContainer(normalizedGroupTitle) &&
                                             group.items.filter((item) => item != null).every((item) => !("id" in item))
-                                                ? getConnectionContainer(group.items as Category[])
+                                                ? getConnectionContainer(group.items as Category[], normalizedGroupTitle === "Agent")
                                                 : // 2. If ALL items don't have id (all are categories), use getCategoryContainer
                                                 group.items.filter((item) => item != null).every((item) => !("id" in item))
                                                 ? getCategoryContainer(
@@ -826,13 +952,11 @@ export function NodeList(props: NodeListProps) {
             </S.HeaderContainer>
             {isSearching && (
                 <S.PanelBody>
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%" }}>
-                        <ProgressRing />
-                    </div>
+                    <NodeListSkeleton />
                 </S.PanelBody>
             )}
             {!showGeneratePanel && !isSearching && (
-                <S.PanelBody>
+                <S.PanelBody style={{ ...props.panelBodySx }}>
                     {getCategoryContainer(filteredCategories)}
                     {/* Show More Functions button - moved outside Logging category */}
                     {callFunctionNode && !searchText && (
@@ -856,7 +980,7 @@ export function NodeList(props: NodeListProps) {
                 </S.PanelBody>
             )}
             {showAiPanel && showGeneratePanel && (
-                <S.PanelBody>
+                <S.PanelBody style={{ ...props.panelBodySx }}>
                     <S.AiContainer>
                         <S.Title>Describe what you want you want to do</S.Title>
                         <TextArea

@@ -74,6 +74,7 @@ import {
     UpdateTypesRequest,
     UpdateTypesResponse,
     DeploymentRequest,
+    WorkspaceDeploymentRequest,
     DeploymentResponse,
     OpenAPIClientGenerationRequest,
     OpenAPIGeneratedModulesRequest,
@@ -99,7 +100,11 @@ import {
     BISearchNodesResponse,
     BIDesignModelRequest,
     BIFlowModelRequest,
-    ExpressionTokensRequest
+    ExpressionTokensRequest,
+    GetSimpleTypeOfExpressionRequest,
+    GetSimpleTypeOfExpressionResponse,
+    WorkflowDataRequest,
+    WorkflowDataResponse
 } from "../../interfaces/extended-lang-client";
 import {
     ProjectRequest,
@@ -112,20 +117,26 @@ import {
     BIAiSuggestionsRequest,
     BIAiSuggestionsResponse,
     AIChatRequest,
+    InlineAgentChatRequest,
     BreakpointRequest,
     CurrentBreakpointsResponse,
     FormDidOpenParams,
     FormDidCloseParams,
+    FormDirtyDidChangeParams,
     EndOfFileRequest,
     RecordsInWorkspaceMentions,
     BuildMode,
     DevantMetadata,
+    WorkspaceDevantMetadata,
     GeneratedClientSaveResponse,
     AddProjectToWorkspaceRequest,
     DeleteProjectRequest,
     OpenReadmeRequest,
     ValidateProjectFormRequest,
-    ValidateProjectFormResponse
+    ValidateProjectFormResponse,
+    SuggestedProjectDefaultsResponse,
+    UpdateProjectTitleRequest,
+    UpdatePackageTitleRequest
 } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
@@ -135,6 +146,7 @@ export const getSourceCode: RequestType<BISourceCodeRequest, UpdatedArtifactsRes
 export const deleteFlowNode: RequestType<BISourceCodeRequest, UpdatedArtifactsResponse> = { method: `${_preFix}/deleteFlowNode` };
 export const deleteByComponentInfo: RequestType<BIDeleteByComponentInfoRequest, BIDeleteByComponentInfoResponse> = { method: `${_preFix}/deleteByComponentInfo` };
 export const getAvailableNodes: RequestType<BIAvailableNodesRequest, BIAvailableNodesResponse> = { method: `${_preFix}/getAvailableNodes` };
+export const getAvailableAgents: RequestType<BIAvailableNodesRequest, BIAvailableNodesResponse> = { method: `${_preFix}/getAvailableAgents` };
 export const getAvailableModelProviders: RequestType<BIAvailableNodesRequest, BIAvailableNodesResponse> = { method: `${_preFix}/getAvailableModelProviders` };
 export const getAvailableVectorStores: RequestType<BIAvailableNodesRequest, BIAvailableNodesResponse> = { method: `${_preFix}/getAvailableVectorStores` };
 export const getAvailableEmbeddingProviders: RequestType<BIAvailableNodesRequest, BIAvailableNodesResponse> = { method: `${_preFix}/getAvailableEmbeddingProviders` };
@@ -146,6 +158,7 @@ export const getNodeTemplate: RequestType<BINodeTemplateRequest, BINodeTemplateR
 export const getAiSuggestions: RequestType<BIAiSuggestionsRequest, BIAiSuggestionsResponse> = { method: `${_preFix}/getAiSuggestions` };
 export const createProject: NotificationType<ProjectRequest> = { method: `${_preFix}/createProject` };
 export const validateProjectPath: RequestType<ValidateProjectFormRequest, ValidateProjectFormResponse> = { method: `${_preFix}/validateProjectPath` };
+export const getSuggestedProjectDefaults: RequestType<{ isInProject: boolean }, SuggestedProjectDefaultsResponse> = { method: `${_preFix}/getSuggestedProjectDefaults` };
 export const deleteProject: NotificationType<DeleteProjectRequest> = { method: `${_preFix}/deleteProject` };
 export const addProjectToWorkspace: NotificationType<AddProjectToWorkspaceRequest> = { method: `${_preFix}/addProjectToWorkspace` };
 export const getWorkspaces: RequestType<void, WorkspacesResponse> = { method: `${_preFix}/getWorkspaces` };
@@ -165,7 +178,10 @@ export const getReadmeContent: RequestType<ReadmeContentRequest, ReadmeContentRe
 export const openReadme: NotificationType<OpenReadmeRequest> = { method: `${_preFix}/openReadme` };
 export const renameIdentifier: NotificationType<RenameIdentifierRequest> = { method: `${_preFix}/renameIdentifier` };
 export const deployProject: RequestType<DeploymentRequest, DeploymentResponse> = { method: `${_preFix}/deployProject` };
+export const deployWorkspace: RequestType<WorkspaceDeploymentRequest, DeploymentResponse> = { method: `${_preFix}/deployWorkspace` };
 export const openAIChat: NotificationType<AIChatRequest> = { method: `${_preFix}/openAIChat` };
+export const startInlineAgentChat: NotificationType<InlineAgentChatRequest> = { method: `${_preFix}/startInlineAgentChat` };
+export const cleanupAgentChatServices: RequestType<void, boolean> = { method: `${_preFix}/cleanupAgentChatServices` };
 export const getSignatureHelp: RequestType<SignatureHelpRequest, SignatureHelpResponse> = { method: `${_preFix}/getSignatureHelp` };
 export const buildProject: NotificationType<BuildMode> = { method: `${_preFix}/buildProject` };
 export const runProject: NotificationType<void> = { method: `${_preFix}/runProject` };
@@ -177,9 +193,11 @@ export const getFormDiagnostics: RequestType<FormDiagnosticsRequest, FormDiagnos
 export const getExpressionDiagnostics: RequestType<ExpressionDiagnosticsRequest, ExpressionDiagnosticsResponse> = { method: `${_preFix}/getExpressionDiagnostics` };
 export const formDidOpen: RequestType<FormDidOpenParams, void> = { method: `${_preFix}/formDidOpen` };
 export const formDidClose: RequestType<FormDidCloseParams, void> = { method: `${_preFix}/formDidClose` };
+export const formDirtyDidChange: NotificationType<FormDirtyDidChangeParams> = { method: `${_preFix}/formDirtyDidChange` };
 export const getDesignModel: RequestType<BIDesignModelRequest, BIDesignModelResponse> = { method: `${_preFix}/getDesignModel` };
 export const getTypes: RequestType<GetTypesRequest, GetTypesResponse> = { method: `${_preFix}/getTypes` };
 export const getType: RequestType<GetTypeRequest, GetTypeResponse> = { method: `${_preFix}/getType` };
+export const getSimpleTypeOfExpression: RequestType<GetSimpleTypeOfExpressionRequest, GetSimpleTypeOfExpressionResponse> = { method: `${_preFix}/getSimpleTypeOfExpression` };
 export const updateType: RequestType<UpdateTypeRequest, UpdateTypeResponse> = { method: `${_preFix}/updateType` };
 export const updateTypes: RequestType<UpdateTypesRequest, UpdateTypesResponse> = { method: `${_preFix}/updateTypes` };
 export const deleteType: RequestType<DeleteTypeRequest, DeleteTypeResponse> = { method: `${_preFix}/deleteType` };
@@ -199,12 +217,16 @@ export const addFunction: RequestType<AddFunctionRequest, AddImportItemResponse>
 export const getFunctionNode: RequestType<FunctionNodeRequest, FunctionNodeResponse> = { method: `${_preFix}/getFunctionNode` };
 export const getEndOfFile: RequestType<EndOfFileRequest, LinePosition> = { method: `${_preFix}/getEndOfFile` };
 export const search: RequestType<BISearchRequest, BISearchResponse> = { method: `${_preFix}/search` };
+export const getAllData: RequestType<WorkflowDataRequest, WorkflowDataResponse> = { method: `${_preFix}/getAllData` };
 export const searchNodes: RequestType<BISearchNodesRequest, BISearchNodesResponse> = { method: `${_preFix}/searchNodes` };
 export const getRecordNames: RequestType<void, RecordsInWorkspaceMentions> = { method: `${_preFix}/getRecordNames` };
 export const getFunctionNames: RequestType<void, RecordsInWorkspaceMentions> = { method: `${_preFix}/getFunctionNames` };
 export const getDevantMetadata: RequestType<void, DevantMetadata> = { method: `${_preFix}/getDevantMetadata` };
+export const getWorkspaceDevantMetadata: RequestType<void, WorkspaceDevantMetadata> = { method: `${_preFix}/getWorkspaceDevantMetadata` };
 export const generateOpenApiClient: RequestType<OpenAPIClientGenerationRequest, GeneratedClientSaveResponse> = { method: `${_preFix}/generateOpenApiClient` };
 export const getOpenApiGeneratedModules: RequestType<OpenAPIGeneratedModulesRequest, OpenAPIGeneratedModulesResponse> = { method: `${_preFix}/getOpenApiGeneratedModules` };
 export const deleteOpenApiGeneratedModules: RequestType<OpenAPIClientDeleteRequest, OpenAPIClientDeleteResponse> = { method: `${_preFix}/deleteOpenApiGeneratedModules` };
 export const openConfigToml: RequestType<OpenConfigTomlRequest, void> = { method: `${_preFix}/openConfigToml` };
 export const getExpressionTokens: RequestType<ExpressionTokensRequest, number[]> = { method: `${_preFix}/getExpressionTokens` };
+export const updateProjectTitle: RequestType<UpdateProjectTitleRequest, void> = { method: `${_preFix}/updateProjectTitle` };
+export const updatePackageTitle: RequestType<UpdatePackageTitleRequest, void> = { method: `${_preFix}/updatePackageTitle` };

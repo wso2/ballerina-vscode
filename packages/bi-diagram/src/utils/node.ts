@@ -18,6 +18,8 @@
 
 import { Branch, FlowNode } from "./types";
 
+const WORKFLOW_NODE_KINDS = new Set(["WORKFLOW_RUN", "ACTIVITY_CALL", "SEND_DATA", "WAIT_DATA"]);
+
 export function getNodeIdFromModel(node: FlowNode, prefix?: string) {
     if (!node) {
         return null;
@@ -49,14 +51,33 @@ export function getBranchInLinkId(nodeId: string, branchLabel: string, branchInd
     return `${nodeId}-${branchLabel}-branch-${branchIndex}-in-link`;
 }
 
+const nodeContainsNonEmptyDiagnostics = (node: FlowNode) => {
+    if (!node?.properties) {
+        return false;
+    }
+    return Object.keys(node.properties).some((key) => {
+        const property = node.properties[key];
+        if (property?.types?.length === 1 && property.types[0].fieldType === "REPEATABLE_LIST") {
+            const diagnostics = property.value?.map((item: any) => item?.diagnostics?.diagnostics).flat().filter(dg => dg?.severity === "ERROR");
+            return diagnostics?.length > 0;
+        }
+        return (property?.diagnostics?.diagnostics?.length > 0);
+    });
+}
+
 export function nodeHasError(node: FlowNode) {
     if (!node) {
         return false;
     }
 
     // Check node
-    if (node.diagnostics && node.diagnostics.hasDiagnostics && node.diagnostics.diagnostics) {
-        return node.diagnostics.diagnostics?.some((diagnostic) => diagnostic.severity === "ERROR");
+    if (node.diagnostics && node.diagnostics.hasDiagnostics) {
+        if (node.diagnostics.diagnostics) {
+            return node.diagnostics.diagnostics?.some((diagnostic) => diagnostic.severity === "ERROR");
+        }
+        else if (nodeContainsNonEmptyDiagnostics(node)) {
+            return true;
+        }
     }
 
     // Check branch properties
@@ -84,11 +105,72 @@ export function nodeHasError(node: FlowNode) {
     return false;
 }
 
+export function isWorkflowNode(nodeOrKind?: FlowNode | string) {
+    if (!nodeOrKind) {
+        return false;
+    }
+
+    const nodeKind = typeof nodeOrKind === "string" ? nodeOrKind : nodeOrKind.codedata?.node;
+    return typeof nodeKind === "string" && WORKFLOW_NODE_KINDS.has(nodeKind);
+}
+
 export function getNodeTitle(node: FlowNode) {
+    const getPropertyString = (key: string): string | undefined => {
+        const value = (node.properties as any)?.[key]?.value;
+        return typeof value === "string" ? value.trim() : undefined;
+    };
+    const getFunctionName = (value?: string): string | undefined => {
+        if (!value) {
+            return undefined;
+        }
+
+        return value
+            .trim()
+            .replace(/^["']|["']$/g, "")
+            .split(":")
+            .pop()
+            ?.split("(")[0]
+            ?.trim();
+    };
+
+    if (node.codedata?.node === "WAIT") {
+        const directExpression = getPropertyString("expression");
+        if (directExpression) {
+            return `wait : ${directExpression}`;
+        }
+
+        const futuresValue = (node.properties as any)?.["futures"]?.value;
+        if (futuresValue && typeof futuresValue === "object") {
+            for (const future of Object.values(futuresValue as Record<string, any>)) {
+                const expression = future?.value?.expression?.value;
+                if (typeof expression === "string" && expression.trim()) {
+                    return `wait : ${expression.trim()}`;
+                }
+            }
+        }
+        return "wait";
+    }
+
+    if (node.codedata?.node === "ACTIVITY_CALL") {
+        const activityFunction =
+            getFunctionName(getPropertyString("activityFunction")) ||
+            getFunctionName(typeof node.codedata?.symbol === "string" ? node.codedata.symbol : undefined);
+        if (activityFunction) {
+            return activityFunction;
+        }
+    }
+
+    if (node.codedata?.node === "WORKFLOW_RUN") {
+        const processFunction = getFunctionName(getPropertyString("processFunction"));
+        if (processFunction) {
+            return `Run ${processFunction}`;
+        }
+    }
+
     const label = node.metadata.label.includes(".") ? node.metadata.label.split(".").pop() : node.metadata.label;
 
     if (node.codedata?.org === "ballerina" || node.codedata?.org === "ballerinax") {
-        const module = node.codedata.module.includes(".")
+        const module = node.codedata.module?.includes(".")
             ? node.codedata.module.split(".").pop()
             : node.codedata.module;
         return `${module} : ${label}`;

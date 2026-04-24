@@ -113,8 +113,9 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 
 		const fieldName = field?.name;
 		const isArray = this.isArrayTypedField(field);
-		const fieldFQN = this.getInputFieldFQN(field?.isFocused ? "" : parentId, fieldName, isOptional);
-		const unsafeFieldFQN = this.getUnsafeFieldFQN(field?.isFocused ? "" : unsafeParentId, fieldName);
+		const skipParentId = field?.isFocused || field?.category;
+		const fieldFQN = this.getInputFieldFQN(skipParentId ? "" : parentId, fieldName, isOptional);
+		const unsafeFieldFQN = this.getUnsafeFieldFQN(skipParentId ? "" : unsafeParentId, fieldName);
 		const portName = this.getPortName(portPrefix, unsafeFieldFQN);
 		const isFocused = this.isFocusedField(focusedFieldFQNs, portName);
 		const isPreview = parent.attributes.isPreview || this.isPreviewPort(focusedFieldFQNs, parent.attributes.field);

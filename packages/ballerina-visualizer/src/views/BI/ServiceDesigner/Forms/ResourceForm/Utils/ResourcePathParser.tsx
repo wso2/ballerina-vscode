@@ -26,6 +26,12 @@ export function parseResourcePath(input: string): ParseResult {
         segments: []
     };
 
+    // Path cannot start with a / character
+    if (input.startsWith('/')) {
+        result.errors.push({ position: 0, message: 'path cannot start with a slash (/)' });
+        return result;
+    }
+
     if (!input || input === '') {
         result.valid = false;
         result.errors.push({ position: 0, message: 'path cannot be empty' });
@@ -36,7 +42,7 @@ export function parseResourcePath(input: string): ParseResult {
         result.segments.push({ type: 'dot', start: 0, end: 0 });
         result.valid = result.errors.length === 0;
         if (!result.valid) {
-            result.errors.push({ position: 0, message: 'cannot have charcaters after dot (.)' });
+            result.errors.push({ position: 0, message: 'cannot have characters after dot (.)' });
         }
         return result;
     }

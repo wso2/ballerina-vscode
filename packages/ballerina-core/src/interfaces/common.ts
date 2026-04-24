@@ -2,6 +2,7 @@
 
 import { STNode } from "@wso2/syntax-tree";
 import { FlowNode, RecordTypeField } from "./bi";
+import { MACHINE_VIEW } from "..";
 
 /**
  * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
@@ -35,10 +36,15 @@ export enum SubPanelView {
     UNDEFINED = undefined,
 }
 
-export enum DataMapperDisplayMode {
+export enum EditorDisplayMode {
     NONE = "none",
     POPUP = "popup",
     VIEW = "view",
+}
+
+export interface EditorConfig {
+    view: MACHINE_VIEW;
+    displayMode: EditorDisplayMode;
 }
 
 export interface DocumentIdentifier {

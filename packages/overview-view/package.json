@@ -13,24 +13,24 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {
-    "@emotion/react": "^11.9.3",
-    "@emotion/styled": "^11.10.5",
-    "@vscode/webview-ui-toolkit": "^1.2.0",
+    "@emotion/react": "11.14.0",
+    "@emotion/styled": "11.14.0",
+    "@vscode/webview-ui-toolkit": "1.2.0",
     "@wso2/ballerina-core": "workspace:*",
     "@wso2/ballerina-rpc-client": "workspace:*",
     "@wso2/ui-toolkit": "workspace:*",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "vscode-uri": "^3.0.8"
+    "vscode-uri": "3.0.8"
   },
   "devDependencies": {
     "@types/react": "18.2.0",
     "@typescript-eslint/eslint-plugin": "8.32.1",
     "@typescript-eslint/parser": "8.32.1",
-    "copyfiles": "^2.4.1",
+    "copyfiles": "2.4.1",
     "eslint": "9.27.0",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "eslint-plugin-react-refresh": "^0.4.20",
+    "eslint-plugin-react-hooks": "5.2.0",
+    "eslint-plugin-react-refresh": "0.4.20",
     "typescript": "5.8.3"
   },
   "author": "wso2",

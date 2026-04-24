@@ -46,7 +46,7 @@ export function ParamItem(props: ParamItemProps) {
     const { param, readonly, onDelete, onEditClick } = props;
     const { formValues, key } = param;
 
-    const type = formValues["type"] || "";
+    const type = formValues["type"] || formValues["dataType"] || "";
     const identifier = formValues["variable"] || key;
 
     let label = key;
