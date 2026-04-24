@@ -76,6 +76,7 @@ export interface DataMapperEditorProps {
     deleteSubMapping: (index: number, viewId: string) => Promise<void>;
     mapWithCustomFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>;
     mapWithTransformFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>;
+    resolveOutput: () => Promise<void>;
     goToFunction: (functionRange: LineRange) => Promise<void>;
     enrichChildFields: (parentField: IOType) => Promise<void>;
     onRefresh: () => Promise<void>;
@@ -85,6 +86,7 @@ export interface DataMapperEditorProps {
     generateForm: (formProps: DMFormProps) => JSX.Element;
     genUniqueName: (name: string, viewId: string) => Promise<string>;
     getConvertedExpression: (expression: string, expressionType: TypeKind, outputType: TypeKind) => Promise<string>;
+    createConvertedVariable: (variableName: string, isInput: boolean, typeName?: string, parentTypeName?: string) => Promise<void>;
     undoRedoGroup: () => JSX.Element;
 }
 

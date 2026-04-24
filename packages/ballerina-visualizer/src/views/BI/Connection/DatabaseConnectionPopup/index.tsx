@@ -16,13 +16,50 @@
  * under the License.
  */
 
-import React, { useMemo, useState } from "react";
+import React, { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import styled from "@emotion/styled";
-import { Button, Codicon, ThemeColors, Typography, TextField, Dropdown, OptionProps, Icon, SearchBox } from "@wso2/ui-toolkit";
+import { debounce } from "lodash";
+import { Button, Codicon, ThemeColors, Typography, TextField, Dropdown, OptionProps, Icon, SearchBox, ProgressRing, ProgressIndicator } from "@wso2/ui-toolkit";
 import { Stepper } from "@wso2/ui-toolkit";
-import { DIRECTORY_MAP, LinePosition, ParentPopupData } from "@wso2/ballerina-core";
+import {
+    ConnectorWizardAPI,
+    DIRECTORY_MAP,
+    IntrospectDatabaseResponse,
+    TableInfo,
+    LinePosition,
+    ParentPopupData,
+    IntrospectCredentialsResponse,
+} from "@wso2/ballerina-core";
+import { PropertyModel } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { PopupOverlay, PopupContainer, PopupHeader, BackButton, HeaderTitleContainer, PopupTitle, PopupSubtitle, CloseButton } from "../styles";
+import {
+    PopupOverlay,
+    PopupContainer,
+    PopupHeader,
+    BackButton,
+    HeaderTitleContainer,
+    PopupTitle,
+    PopupSubtitle,
+    CloseButton,
+    FormSection,
+    FormField,
+    TablesGrid as BaseTablesGrid,
+    TableCard,
+    TableCheckbox,
+    TableName,
+    ErrorContainer as BaseErrorContainer,
+    ErrorHeader,
+    ErrorTitle,
+    ErrorDetailsSection,
+    ErrorDetailsHeader,
+    ErrorDetailsChevronIcon,
+    ErrorDetailsContent,
+    ErrorDetailsText,
+} from "../styles";
+import { URI, Utils } from "vscode-uri";
+import { CONNECTIONS_FILE } from "../../../../constants";
+import { isDatabaseSystemProperty, isPasswordProperty, formatDatabaseTypeDisplay } from "../utils";
+import { removeDuplicateDiagnostics } from "../../../../utils/bi";
 
 const StepperContainer = styled.div`
     padding: 24px 32px;
@@ -73,18 +110,6 @@ const SectionSubtitle = styled(Typography)`
     margin: 0;
 `;
 
-const FormSection = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-`;
-
-const FormField = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-`;
-
 const ReadonlyValue = styled.div`
     padding: 5px;
     border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
@@ -112,41 +137,9 @@ const ActionButton = styled(Button)`
     }
 `;
 
-const TablesGrid = styled.div`
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+const TablesGrid = styled(BaseTablesGrid)`
     margin-top: 16px;
-`;
-
-const TableCard = styled.div<{ selected?: boolean }>`
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    border: 1px solid ${(props: { selected?: boolean }) => (props.selected ? ThemeColors.PRIMARY : ThemeColors.OUTLINE_VARIANT)};
-    border-radius: 8px;
-    background-color: ${(props: { selected?: boolean }) => (props.selected ? ThemeColors.PRIMARY_CONTAINER : ThemeColors.SURFACE_DIM)};
-    cursor: pointer;
-    transition: all 0.2s ease;
-
-    &:hover {
-        border-color: ${ThemeColors.PRIMARY};
-        background-color: ${ThemeColors.PRIMARY_CONTAINER};
-    }
-`;
-
-const TableCheckbox = styled.input`
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-`;
-
-const TableName = styled(Typography)`
-    font-size: 14px;
-    font-weight: 500;
-    color: ${ThemeColors.ON_SURFACE};
-    margin: 0;
+    position: relative;
 `;
 
 const SelectAllButton = styled(Button)`
@@ -186,28 +179,8 @@ const ConfigurablesDescription = styled(Typography)`
     line-height: 1.5;
 `;
 
-const ErrorContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding: 16px;
-    border-radius: 8px;
-    background-color: ${ThemeColors.SURFACE_DIM};
-    border: 1px solid ${ThemeColors.ERROR};
+const ErrorContainer = styled(BaseErrorContainer)`
     margin-top: 16px;
-`;
-
-const ErrorHeader = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 8px;
-`;
-
-const ErrorTitle = styled(Typography)`
-    font-size: 16px;
-    font-weight: 600;
-    color: ${ThemeColors.ERROR};
-    margin: 0;
 `;
 
 const SeparatorLine = styled.div`
@@ -217,48 +190,6 @@ const SeparatorLine = styled.div`
     opacity: 0.5;
 `;
 
-const ErrorDetailsSection = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-`;
-
-const ErrorDetailsHeader = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    user-select: none;
-    
-    &:hover {
-        opacity: 0.8;
-    }
-`;
-
-const ChevronIcon = styled(Codicon)`
-    font-size: 12px;
-    color: ${ThemeColors.ON_SURFACE_VARIANT};
-`;
-
-const ErrorDetailsContent = styled.div<{ expanded: boolean }>`
-    max-height: ${(props: { expanded: boolean }) => (props.expanded ? "500px" : "0")};
-    overflow: hidden;
-    transition: max-height 0.3s ease;
-    padding-left: 20px;
-`;
-
-const ErrorDetailsText = styled(Typography)`
-    font-size: 12px;
-    color: ${ThemeColors.ON_SURFACE_VARIANT};
-    font-family: monospace;
-    white-space: pre-wrap;
-    word-break: break-word;
-    margin: 0;
-    padding: 8px;
-    background-color: ${ThemeColors.SURFACE_CONTAINER};
-    border-radius: 4px;
-    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
-`;
 
 const BrowseMoreButton = styled(Button)`
     margin-top: 0;
@@ -269,11 +200,11 @@ const BrowseMoreButton = styled(Button)`
     background-color: var(--vscode-button-secondaryBackground, #3c3c3c) !important;
     color: var(--vscode-button-secondaryForeground, #ffffff) !important;
     border-radius: 4px;
-    
+
     &:hover {
         background-color: var(--vscode-button-secondaryHoverBackground, #4a4a4a) !important;
     }
-    
+
     & > span {
         color: var(--vscode-button-secondaryForeground, #ffffff) !important;
     }
@@ -287,162 +218,756 @@ interface DatabaseConnectionPopupProps {
     onBrowseConnectors?: () => void;
 }
 
-type DatabaseType = "PostgreSQL" | "MySQL" | "MSSQL";
-
-interface DatabaseCredentials {
-    databaseType: DatabaseType;
-    host: string;
-    port: number;
-    databaseName: string;
-    username: string;
-    password: string;
-}
-
-interface DatabaseTable {
-    name: string;
-    selected: boolean;
-}
-
-interface LSErrorDetails {
+export interface LSErrorDetails {
     errorMessage: string | null;
-    isExpanded: boolean;
 }
 
-const DATABASE_TYPES: OptionProps[] = [
+export interface ConnectionErrorDisplayProps {
+    connectionError: string;
+    lsErrorDetails: LSErrorDetails;
+    onBrowseMoreConnectors?: () => void;
+}
+
+/**
+ * Reusable connection error display with expandable details and optional "Browse Pre-built Connectors" CTA.
+ * Use when connection/introspection fails and you want to show a consistent error UI.
+ */
+export function ConnectionErrorDisplay(props: ConnectionErrorDisplayProps) {
+    const { connectionError, lsErrorDetails, onBrowseMoreConnectors } = props;
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    return (
+        <ErrorContainer>
+            <ErrorHeader>
+                <Icon name="bi-error" sx={{ color: ThemeColors.ERROR, fontSize: "20px", width: "20px", height: "20px" }} />
+                <ErrorTitle variant="h4">Connection Failed</ErrorTitle>
+            </ErrorHeader>
+            <Typography variant="body2">{connectionError}</Typography>
+            {lsErrorDetails.errorMessage && (
+                <ErrorDetailsSection>
+                    <ErrorDetailsHeader onClick={() => setIsExpanded((prev) => !prev)}>
+                        <ErrorDetailsChevronIcon name={isExpanded ? "chevron-down" : "chevron-right"} />
+                        <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT, fontSize: "12px", margin: 0 }}>
+                            Error Details
+                        </Typography>
+                    </ErrorDetailsHeader>
+                    <ErrorDetailsContent expanded={isExpanded}>
+                        <ErrorDetailsText>{lsErrorDetails.errorMessage}</ErrorDetailsText>
+                    </ErrorDetailsContent>
+                </ErrorDetailsSection>
+            )}
+            {onBrowseMoreConnectors && (
+                <>
+                    <SeparatorLine />
+                    <Typography variant="body2">Need an alternative solution?</Typography>
+                    <Typography variant="body2" sx={{ fontSize: "12px", color: ThemeColors.ON_SURFACE_VARIANT }}>
+                        You can use a pre-built connector from the connector catalog instead.
+                    </Typography>
+                    <BrowseMoreButton appearance="secondary" onClick={onBrowseMoreConnectors} buttonSx={{ width: "100%" }}>
+                        Browse Pre-built Connectors
+                    </BrowseMoreButton>
+                </>
+            )}
+        </ErrorContainer>
+    );
+}
+
+export interface FetchConnectorCredentialsParams {
+    connectorWizardRpcClient: ConnectorWizardAPI;
+    projectPath: string;
+}
+
+export interface FetchConnectorCredentialsResult {
+    success: boolean;
+    connectorCredentials?: NonNullable<IntrospectCredentialsResponse["data"]>;
+    initialFieldValues?: Record<string, string>;
+    error?: string;
+}
+
+/**
+ * Fetches connector credentials template from the connector wizard RPC. Can be used from any component
+ * that needs to load database connection form fields.
+ */
+export async function fetchConnectorCredentials(
+    params: FetchConnectorCredentialsParams
+): Promise<FetchConnectorCredentialsResult> {
+    const { connectorWizardRpcClient, projectPath } = params;
+
+    try {
+        const response = await connectorWizardRpcClient.introspectCredentials({
+            projectPath,
+        });
+
+        if (!response?.data?.properties || Object.keys(response.data.properties).length === 0) {
+            return { success: false };
+        }
+
+        const initial: Record<string, string> = {};
+        let dbSystemLabel: string | undefined;
+
+        Object.values(response.data.properties).forEach((prop) => {
+            const label = prop.metadata?.label || "";
+            if (label) {
+                if (isPasswordProperty(prop)) {
+                    initial[label] = "";
+                } else if (isDatabaseSystemProperty(prop)) {
+                    dbSystemLabel = label;
+                    initial[label] = (prop.value as string)?.trim() || "mysql";
+                } else if (label.toLowerCase() === "port") {
+                    initial[label] = (prop.value as string) ?? "3306";
+                } else {
+                    initial[label] = (prop.value as string) ?? "";
+                }
+            }
+        });
+
+        if (dbSystemLabel && !initial[dbSystemLabel]?.trim()) {
+            initial[dbSystemLabel] = "mysql";
+        }
+
+        return {
+            success: true,
+            connectorCredentials: response.data,
+            initialFieldValues: initial,
+        };
+    } catch (err) {
+        console.error(">>> Error fetching connector credentials template", err);
+        return {
+            success: false,
+            error: err instanceof Error ? err.message : String(err),
+        };
+    }
+}
+
+export interface IntrospectDatabaseParams {
+    connectorWizardRpcClient: ConnectorWizardAPI;
+    projectPath: string;
+    connectorCredentials: NonNullable<IntrospectCredentialsResponse["data"]>;
+    properties: { [key: string]: PropertyModel };
+}
+
+export interface IntrospectDatabaseResult {
+    success: boolean;
+    introspectResponse?: IntrospectDatabaseResponse;
+    connectionError?: string;
+    lsErrorDetails?: LSErrorDetails;
+    clearPasswordLabel?: string;
+}
+
+/**
+ * Introspects a database using the connector wizard RPC. Can be used from any component
+ * that has access to the RPC client and connector credentials.
+ */
+export async function introspectDatabase(params: IntrospectDatabaseParams): Promise<IntrospectDatabaseResult> {
+    const { connectorWizardRpcClient, projectPath, connectorCredentials, properties } = params;
+
+    try {
+        const response = await connectorWizardRpcClient.introspectDatabase({
+            projectPath,
+            metadata: {
+                label: connectorCredentials.metadata?.label,
+                description: connectorCredentials.metadata?.description,
+            },
+            properties,
+        });
+
+        if (response?.errorMsg) {
+            console.error(">>> Error introspecting database", response.errorMsg);
+            const errorMsg = response.errorMsg.toLowerCase();
+            const connectionError = errorMsg.includes("no tables found")
+                ? "No tables were found in the database. Currently, connection creation requires at least one table."
+                : "Unable to connect to the database. Please verify your credentials and ensure the database server is accessible.";
+            const pwdLabel = Object.values(connectorCredentials.properties).find((p) => isPasswordProperty(p))?.metadata?.label;
+            return {
+                success: false,
+                connectionError,
+                lsErrorDetails: { errorMessage: response.errorMsg },
+                clearPasswordLabel: pwdLabel ?? undefined,
+            };
+        }
+
+        if (response.tables && response.tables.length > 0) {
+            const normalizedTables: TableInfo[] = response.tables.map((tableInfo) =>
+                typeof tableInfo === "string"
+                    ? { table: tableInfo, selected: false, existing: false }
+                    : tableInfo
+            );
+            return {
+                success: true,
+                introspectResponse: { ...response, tables: normalizedTables },
+            };
+        }
+
+        console.warn(">>> No tables found in database");
+        const pwdLabel = Object.values(connectorCredentials.properties).find((p) => isPasswordProperty(p))?.metadata?.label;
+        return {
+            success: false,
+            connectionError:
+                "No tables found in the database. We cannot continue with connection creation. Please use a pre-built connector.",
+            lsErrorDetails: { errorMessage: null },
+            clearPasswordLabel: pwdLabel ?? undefined,
+        };
+    } catch (error) {
+        console.error(">>> Error introspecting database", error);
+        const pwdLabel = Object.values(connectorCredentials.properties).find((p) => isPasswordProperty(p))?.metadata?.label;
+        return {
+            success: false,
+            connectionError:
+                "Unable to connect to the database. Please verify your credentials and ensure the database server is accessible.",
+            lsErrorDetails: { errorMessage: null },
+            clearPasswordLabel: pwdLabel ?? undefined,
+        };
+    }
+}
+
+export interface PersistConnectionParams {
+    connectorWizardRpcClient: ConnectorWizardAPI;
+    projectPath: string;
+    connectionName: string;
+    properties: { [key: string]: PropertyModel };
+    tables: TableInfo[];
+}
+
+export interface PersistConnectionResult {
+    success: boolean;
+    connectionError?: string;
+    lsErrorDetails?: LSErrorDetails;
+    recentIdentifier?: string;
+}
+
+/**
+ * Persists a database connection using the connector wizard RPC. Can be used from any component
+ * that has access to the RPC client and connection details.
+ */
+export async function persistConnection(params: PersistConnectionParams): Promise<PersistConnectionResult> {
+    const { connectorWizardRpcClient, projectPath, connectionName, properties, tables } = params;
+
+    try {
+        const response = await connectorWizardRpcClient.persistClientGenerate({
+            projectPath,
+            connection: connectionName || undefined,
+            properties,
+            tables,
+        });
+
+        if (response.errorMsg) {
+            console.error(">>> Error creating connection", response.errorMsg);
+            return {
+                success: false,
+                connectionError: "Unable to create the connection. Please check the error details below.",
+                lsErrorDetails: { errorMessage: response.errorMsg },
+            };
+        }
+
+        if (response.source?.textEditsMap) {
+            console.log(">>> Connection created successfully with text edits", Object.keys(response.source.textEditsMap));
+        }
+        if (response.source?.isModuleExists !== undefined) {
+            console.log(">>> Module exists:", response.source.isModuleExists);
+        }
+
+        return {
+            success: true,
+            recentIdentifier: connectionName,
+        };
+    } catch (error) {
+        console.error(">>> Error creating connection", error);
+        return {
+            success: false,
+            connectionError:
+                "An unexpected error occurred while creating the connection. Please check the error details below.",
+            lsErrorDetails: {
+                errorMessage: error instanceof Error ? error.message : String(error),
+            },
+        };
+    }
+}
+
+export const DATABASE_TYPES: OptionProps[] = [
     { id: "postgresql", value: "PostgreSQL", content: "PostgreSQL" },
     { id: "mysql", value: "MySQL", content: "MySQL" },
     { id: "mssql", value: "MSSQL", content: "MSSQL" },
 ];
 
-const DEFAULT_PORTS: Record<DatabaseType, number> = {
-    PostgreSQL: 5432,
-    MySQL: 3306,
-    MSSQL: 1433,
+export const DB_SYSTEM_TO_VALUE: Record<string, string> = {
+    PostgreSQL: "postgresql",
+    MySQL: "mysql",
+    MSSQL: "mssql",
 };
+
+export const DEFAULT_PORTS: Record<string, number> = {
+    postgresql: 5432,
+    mysql: 3306,
+    mssql: 1433,
+};
+
+export interface IntrospectDatabaseStepFormProps {
+    connectorCredentials: IntrospectCredentialsResponse["data"] | null;
+    fieldValues: Record<string, string>;
+    onFieldValueChange: (propKey: string, value: string) => void;
+    onDbTypeChange: (label: string, value: string) => void;
+    isIntrospecting: boolean;
+}
+
+export function IntrospectDatabaseStepForm(props: IntrospectDatabaseStepFormProps) {
+    const { connectorCredentials, fieldValues, onFieldValueChange, onDbTypeChange, isIntrospecting } = props;
+    const properties = connectorCredentials?.properties || {};
+    const propertyList = Object.values(properties).filter((p) => !p.hidden);
+
+    return (
+        <FormSection>
+            {propertyList.map((prop) => {
+                if (isDatabaseSystemProperty(prop)) {
+                    const label = prop.metadata?.label;
+                    const dbVal = fieldValues[label] ?? (prop.value as string) ?? "mysql";
+                    const displayValue = formatDatabaseTypeDisplay(dbVal);
+                    return (
+                        <FormField key={label}>
+                            <Dropdown
+                                id="database-system"
+                                label={label}
+                                items={DATABASE_TYPES}
+                                value={displayValue}
+                                onValueChange={(value) => onDbTypeChange(label, value)}
+                                disabled={isIntrospecting}
+                            />
+                        </FormField>
+                    );
+                }
+                if (prop.editable === false) return null;
+
+                const label = prop.metadata?.label;
+                const placeholder = prop.placeholder || prop.metadata?.description || "";
+                const isPassword = isPasswordProperty(prop);
+                const value = fieldValues[label] ?? (isPassword ? "" : (prop.value as string) ?? "");
+
+                return (
+                    <FormField key={label}>
+                        <TextField
+                            id={label.replace(/\s+/g, "-").toLowerCase()}
+                            label={label}
+                            placeholder={placeholder}
+                            type={isPassword ? "password" : "text"}
+                            value={value}
+                            onTextChange={(v) => onFieldValueChange(label, v)}
+                            {...(isIntrospecting ? { readonly: true } : {})}
+                        />
+                    </FormField>
+                );
+            })}
+        </FormSection>
+    )
+}
+
+export interface IntrospectDatabaseStepProps {
+    isLoadingCredentials: boolean;
+    connectorCredentials: IntrospectCredentialsResponse["data"] | null;
+    fieldValues: Record<string, string>;
+    connectionError: string | null;
+    lsErrorDetails: LSErrorDetails;
+    onBrowseMoreConnectors?: () => void;
+    onIntrospect: () => void;
+    isIntrospecting: boolean;
+    showTitle?: boolean;
+    form?: ReactNode;
+}
+
+export function IntrospectDatabaseStep(props: IntrospectDatabaseStepProps) {
+    const {
+        isLoadingCredentials,
+        connectorCredentials,
+        fieldValues,
+        connectionError,
+        lsErrorDetails,
+        onBrowseMoreConnectors,
+        onIntrospect,
+        isIntrospecting,
+        showTitle = true,
+        form,
+    } = props;
+
+    if (isLoadingCredentials) {
+        return (
+            <>
+                <ContentContainer hasFooterButton={true}>
+                    <StepContent fillHeight={true}>
+                        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flex: 1 }}>
+                            <ProgressRing />
+                        </div>
+                    </StepContent>
+                </ContentContainer>
+            </>
+        );
+    }
+
+    const canIntrospect =
+        connectorCredentials &&
+        (fieldValues["Host"]?.trim()) &&
+        (fieldValues["Database"]?.trim() || fieldValues["Database Name"]?.trim()) &&
+        (fieldValues["User"]?.trim() || fieldValues["Username"]?.trim()) &&
+        !isIntrospecting &&
+        !connectionError;
+
+    return (
+        <>
+            <ContentContainer hasFooterButton={true}>
+                <StepContent fillHeight={true}>
+                    {showTitle && (
+                        <div>
+                            <SectionTitle variant="h3">Database Credentials</SectionTitle>
+                            <SectionSubtitle variant="body2">
+                                Enter credentials to connect and introspect the database
+                            </SectionSubtitle>
+                        </div>
+                    )}
+                    {connectionError && (
+                        <ConnectionErrorDisplay
+                            connectionError={connectionError}
+                            lsErrorDetails={lsErrorDetails}
+                            onBrowseMoreConnectors={onBrowseMoreConnectors}
+                        />
+                    )}
+                    {form}
+                </StepContent>
+            </ContentContainer>
+            <FooterContainer>
+                <ActionButton
+                    appearance="primary"
+                    onClick={onIntrospect}
+                    disabled={!canIntrospect}
+                    buttonSx={{ width: "100%", height: "35px" }}
+                >
+                    {isIntrospecting ? "Connecting..." : "Connect & Introspect Database"}
+                </ActionButton>
+            </FooterContainer>
+        </>
+    );
+}
+
+export interface SelectPersistTablesStepProps {
+    tableSearch: string;
+    onTableSearchChange: (value: string) => void;
+    selectedTablesCount: number;
+    totalTablesCount: number;
+    filteredTables: TableInfo[];
+    onTableToggle: (name: string) => void;
+    onSelectAll: () => void;
+    onContinue: () => void;
+    connectionError: string | null;
+    isIntrospecting?: boolean;
+}
+
+export function SelectPersistTablesStep(props: SelectPersistTablesStepProps) {
+    const {
+        tableSearch,
+        onTableSearchChange,
+        selectedTablesCount,
+        totalTablesCount,
+        filteredTables,
+        onTableToggle,
+        onSelectAll,
+        onContinue,
+        connectionError,
+        isIntrospecting,
+    } = props;
+
+    return (
+        <>
+            <ContentContainer hasFooterButton={true}>
+                <StepContent fillHeight={true} style={{ gap: "16px" }}>
+                    <SelectionInfo>
+                        <div>
+                            <SectionTitle variant="h3">Select Tables</SectionTitle>
+                            <SectionSubtitle variant="body2">
+                                Choose which tables to include in this connector
+                            </SectionSubtitle>
+                        </div>
+                        <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
+                            {selectedTablesCount} of {totalTablesCount} selected
+                        </Typography>
+                    </SelectionInfo>
+                    <SearchRow>
+                        <SearchBox
+                            value={tableSearch}
+                            placeholder="Search tables..."
+                            onChange={onTableSearchChange}
+                            sx={{ flex: 1 }}
+                        />
+                        <SelectAllButton appearance="secondary" onClick={onSelectAll}>
+                            {selectedTablesCount === totalTablesCount && totalTablesCount > 0 ? "Deselect All" : "Select All"}
+                        </SelectAllButton>
+                    </SearchRow>
+                    <TablesGrid>
+                        {isIntrospecting && <ProgressIndicator />}
+                        {filteredTables.map((t) => (
+                            <TableCard key={t.table} selected={t.selected} onClick={() => onTableToggle(t.table)}>
+                                <TableCheckbox
+                                    type="checkbox"
+                                    checked={t.selected}
+                                    onChange={(e) => {
+                                        e.stopPropagation();
+                                        onTableToggle(t.table);
+                                    }}
+                                    onClick={(e) => e.stopPropagation()}
+                                />
+                                <TableName variant="body1">{t.table}</TableName>
+                            </TableCard>
+                        ))}
+                    </TablesGrid>
+                </StepContent>
+            </ContentContainer>
+            <FooterContainer>
+                <ActionButton
+                    appearance="primary"
+                    onClick={onContinue}
+                    disabled={selectedTablesCount === 0 || !!connectionError}
+                    buttonSx={{ width: "100%", height: "35px" }}
+                >
+                    Continue to Connection Details
+                </ActionButton>
+            </FooterContainer>
+        </>
+    );
+}
+
+export interface CreatePersistConnectionStepProps {
+    connectionName: string;
+    onConnectionNameChange: (value: string) => void;
+    connectionNameError?: string | null;
+    connectorCredentials: IntrospectCredentialsResponse["data"] | null;
+    fieldValues: Record<string, string>;
+    connectionError: string | null;
+    lsErrorDetails: LSErrorDetails;
+    onBrowseMoreConnectors?: () => void;
+    onSave: () => void;
+    isSaving: boolean;
+    additionalFields?: ReactNode;
+    showConfigurablesPanel?: boolean;
+    readOnlyConnectionName?: boolean;
+}
+
+export function CreatePersistConnectionStep(props: CreatePersistConnectionStepProps) {
+    const {
+        connectionName,
+        onConnectionNameChange,
+        connectionNameError,
+        connectorCredentials,
+        fieldValues,
+        connectionError,
+        lsErrorDetails,
+        onBrowseMoreConnectors,
+        onSave,
+        isSaving,
+        additionalFields,
+        showConfigurablesPanel = true,
+        readOnlyConnectionName = false,
+    } = props;
+
+    return (
+        <>
+            <ContentContainer hasFooterButton={true}>
+                <StepContent fillHeight={true} style={{ gap: "16px" }}>
+                    <div>
+                        <SectionTitle variant="h3">Connection Details</SectionTitle>
+                        <SectionSubtitle variant="body2">
+                            Name your connection and configure default values for configurables
+                        </SectionSubtitle>
+                    </div>
+                    {connectionError && (
+                        <ConnectionErrorDisplay
+                            connectionError={connectionError}
+                            lsErrorDetails={lsErrorDetails}
+                            onBrowseMoreConnectors={onBrowseMoreConnectors}
+                        />
+                    )}
+                    <FormSection>
+                        <FormField>
+                            <TextField
+                                id="connection-name"
+                                label="Connection Name"
+                                placeholder="Database connection name"
+                                value={connectionName}
+                                onTextChange={onConnectionNameChange}
+                                errorMsg={connectionNameError ?? undefined}
+                                {...(isSaving || readOnlyConnectionName ? { readonly: true } : {})}
+                            />
+                        </FormField>
+                    </FormSection>
+                    {additionalFields}
+                    {showConfigurablesPanel && (
+                        <ConfigurablesPanel>
+                            <div style={{ gap: "4px" }}>
+                                <SectionTitle variant="h4">Connection Configurables</SectionTitle>
+                                <ConfigurablesDescription>
+                                    Configurables will be generated for the connection host, port, username, password, and
+                                    database name, with default values specified below.
+                                </ConfigurablesDescription>
+                            </div>
+                            <FormSection>
+                                {Object.values(connectorCredentials?.properties || {})
+                                    .filter((p) => !p.hidden && !isDatabaseSystemProperty(p) && !isPasswordProperty(p))
+                                    .map((prop) => {
+                                        const label = prop.metadata?.label || "";
+                                        const value = fieldValues[label] ?? (prop.value as string) ?? "";
+                                        return (
+                                            <FormField key={label}>
+                                                <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
+                                                    {connectionName ? `${connectionName}${label.replace(/\s+/g, "")}` : label}
+                                                </Typography>
+                                                <ReadonlyValue>{value}</ReadonlyValue>
+                                            </FormField>
+                                        );
+                                    })}
+                            </FormSection>
+                        </ConfigurablesPanel>
+                    )}
+                </StepContent>
+            </ContentContainer>
+            <FooterContainer>
+                <ActionButton
+                    appearance="primary"
+                    onClick={onSave}
+                    disabled={!connectionName || !!connectionNameError || isSaving}
+                    buttonSx={{ width: "100%", height: "35px" }}
+                >
+                    {isSaving ? "Saving..." : "Save Connection"}
+                </ActionButton>
+            </FooterContainer>
+        </>
+    );
+}
 
 export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
     const { fileName, target, onClose, onBack, onBrowseConnectors } = props;
     const { rpcClient } = useRpcContext();
 
     const [currentStep, setCurrentStep] = useState(0);
-    const [credentials, setCredentials] = useState<DatabaseCredentials>({
-        databaseType: "MySQL",
-        host: "",
-        port: 3306,
-        databaseName: "",
-        username: "",
-        password: "",
-    });
-    const [tables, setTables] = useState<DatabaseTable[]>([]);
+    const [connectorCredentials, setConnectorCredentials] = useState<IntrospectCredentialsResponse["data"] | null>(null);
+    const [isLoadingCredentials, setIsLoadingCredentials] = useState(true);
+    const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
+    const [introspectDatabaseResponse, setIntrospectDatabaseResponse] = useState<IntrospectDatabaseResponse | null>(null);
     const [isIntrospecting, setIsIntrospecting] = useState(false);
     const [connectionName, setConnectionName] = useState("");
+    const [connectionNameError, setConnectionNameError] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [connectionError, setConnectionError] = useState<string | null>(null);
     const [lsErrorDetails, setLsErrorDetails] = useState<LSErrorDetails>({
         errorMessage: null,
-        isExpanded: false,
     });
     const [tableSearch, setTableSearch] = useState("");
 
     const steps = ["Introspect Database", "Select Tables", "Create Connection"];
 
-    const handleDatabaseTypeChange = (value: string) => {
-        const dbType = value as DatabaseType;
-        setCredentials({
-            ...credentials,
-            databaseType: dbType,
-            port: DEFAULT_PORTS[dbType],
-        });
-    };
+    const updateFieldValue = useCallback((propKey: string, value: string) => {
+        setFieldValues((prev) => ({ ...prev, [propKey]: value }));
+        setConnectionError(null);
+        setLsErrorDetails({ errorMessage: null });
+    }, []);
 
-    const handleCredentialsChange = (field: keyof DatabaseCredentials, value: string) => {
-        setCredentials({
-            ...credentials,
-            [field]: field === "port" ? Number(value) : value,
-        });
-        // Clear error when user modifies credentials
-        if (connectionError) {
+    const handleDbTypeChange = useCallback(
+        (label: string, value: string) => {
+            const backendValue = DB_SYSTEM_TO_VALUE[value] ?? value.toLowerCase();
+            const properties = connectorCredentials?.properties ?? {};
+            const portProp = Object.values(properties).find((p) => {
+                const l = (p.metadata?.label || "").toLowerCase();
+                return l === "port";
+            });
+            setFieldValues((prev) => {
+                const next = { ...prev, [label]: backendValue };
+                if (portProp?.metadata?.label) {
+                    next[portProp.metadata.label] = String(DEFAULT_PORTS[backendValue] ?? 3306);
+                }
+                return next;
+            });
             setConnectionError(null);
-            setLsErrorDetails({ errorMessage: null, isExpanded: false });
+            setLsErrorDetails({ errorMessage: null });
+        },
+        [connectorCredentials?.properties]
+    );
+
+    useEffect(() => {
+        const loadCredentials = async () => {
+            setIsLoadingCredentials(true);
+            try {
+                const visualizerLocation = await rpcClient.getVisualizerLocation();
+                const projectPath = visualizerLocation.projectPath;
+                const result = await fetchConnectorCredentials({
+                    connectorWizardRpcClient: rpcClient.getConnectorWizardRpcClient(),
+                    projectPath,
+                });
+                if (result.success && result.connectorCredentials && result.initialFieldValues) {
+                    setConnectorCredentials(result.connectorCredentials);
+                    setFieldValues(result.initialFieldValues);
+                    setConnectionError(null);
+                } else {
+                    setConnectionError(result.error ?? "Failed to load connector credentials");
+                }
+            } finally {
+                setIsLoadingCredentials(false);
+            }
+        };
+        loadCredentials();
+    }, [rpcClient]);
+
+    const buildPropertiesFromFieldValues = useCallback((): { [key: string]: PropertyModel } => {
+        const props = connectorCredentials?.properties ?? {};
+        const result: { [key: string]: PropertyModel } = {};
+        for (const [key, prop] of Object.entries(props)) {
+            const label = prop.metadata?.label || "";
+            const value = label in fieldValues ? fieldValues[label] : (prop.value as string) ?? "";
+            result[key] = { ...prop, value };
         }
-    };
+        return result;
+    }, [connectorCredentials?.properties, fieldValues]);
 
     const handleIntrospect = async () => {
+        if (!connectorCredentials) return;
         setIsIntrospecting(true);
         setConnectionError(null);
         try {
-            // Map database type to dbSystem format expected by RPC
-            const dbSystemMap: Record<DatabaseType, string> = {
-                PostgreSQL: "postgresql",
-                MySQL: "mysql",
-                MSSQL: "mssql",
-            };
-
             const visualizerLocation = await rpcClient.getVisualizerLocation();
             const projectPath = visualizerLocation.projectPath;
+            const propertiesMap = buildPropertiesFromFieldValues();
 
-            const response = await rpcClient.getConnectorWizardRpcClient().introspectDatabase({
-                projectPath: projectPath,
-                dbSystem: dbSystemMap[credentials.databaseType],
-                host: credentials.host,
-                port: credentials.port,
-                database: credentials.databaseName,
-                user: credentials.username,
-                password: credentials.password,
+            const result = await introspectDatabase({
+                connectorWizardRpcClient: rpcClient.getConnectorWizardRpcClient(),
+                projectPath,
+                connectorCredentials,
+                properties: propertiesMap,
             });
 
-            if (response.errorMsg) {
-                console.error(">>> Error introspecting database", response.errorMsg);
-                const errorMsg = response.errorMsg.toLowerCase();
-                if (errorMsg.includes("no tables found")) {
-                    setConnectionError("No tables were found in the database. Currently, connection creation requires at least one table.");
-                } else {
-                    setConnectionError("Unable to connect to the database. Please verify your credentials and ensure the database server is accessible.");
-                }
-                setLsErrorDetails({ errorMessage: response.errorMsg, isExpanded: false });
-                // Clear password field on error
-                setCredentials(prev => ({ ...prev, password: "" }));
-                return;
-            }
-
-            if (response.tables && response.tables.length > 0) {
-                const databaseTables: DatabaseTable[] = response.tables.map((tableName) => ({
-                    name: tableName,
-                    selected: false,
-                }));
-                setTables(databaseTables);
-                setCurrentStep(1);
+            if (result.success && result.introspectResponse) {
+                setIntrospectDatabaseResponse(result.introspectResponse);
                 setConnectionError(null);
-                setLsErrorDetails({ errorMessage: null, isExpanded: false });
+                setLsErrorDetails({ errorMessage: null });
+                setCurrentStep(1);
             } else {
-                console.warn(">>> No tables found in database");
-                setConnectionError("No tables found in the database. We cannot continue with connection creation. Please use a pre-built connector.");
-                setLsErrorDetails({ errorMessage: null, isExpanded: false });
-                // Clear password field on error
-                setCredentials(prev => ({ ...prev, password: "" }));
+                if (result.connectionError) setConnectionError(result.connectionError);
+                if (result.lsErrorDetails) setLsErrorDetails(result.lsErrorDetails);
+                if (result.clearPasswordLabel) {
+                    const pwdLabel = result.clearPasswordLabel;
+                    setFieldValues((prev) => ({ ...prev, [pwdLabel]: "" }));
+                }
             }
-        } catch (error) {
-            console.error(">>> Error introspecting database", error);
-            setConnectionError("Unable to connect to the database. Please verify your credentials and ensure the database server is accessible.");
-            setLsErrorDetails({ errorMessage: null, isExpanded: false });
-            // Clear password field on error
-            setCredentials(prev => ({ ...prev, password: "" }));
         } finally {
             setIsIntrospecting(false);
         }
     };
 
     const handleTableToggleByName = (name: string) => {
-        setTables((prev) =>
-            prev.map((t) =>
-                t.name === name ? { ...t, selected: !t.selected } : t
-            )
+        setIntrospectDatabaseResponse((prev) =>
+            prev?.tables
+                ? { ...prev, tables: prev.tables.map((t) => (t.table === name ? { ...t, selected: !t.selected } : t)) }
+                : prev
         );
     };
 
     const handleSelectAll = () => {
-        const allSelected = tables.every((table) => table.selected);
-        setTables(tables.map((table) => ({ ...table, selected: !allSelected })));
+        setIntrospectDatabaseResponse((prev) => {
+            if (!prev?.tables?.length) return prev;
+            const allSelected = prev.tables.every((t) => t.selected);
+            return { ...prev, tables: prev.tables.map((t) => ({ ...t, selected: !allSelected })) };
+        });
     };
 
     const handleContinueToConnectionDetails = () => {
@@ -450,55 +975,31 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
     };
 
     const handleSaveConnection = async () => {
+        const tables = introspectDatabaseResponse?.tables ?? [];
+        if (tables.length === 0) return;
+
         setIsSaving(true);
+        setConnectionError(null);
+        setLsErrorDetails({ errorMessage: null });
         try {
-            // Get project path
             const visualizerLocation = await rpcClient.getVisualizerLocation();
             const projectPath = visualizerLocation.projectPath;
+            const properties = buildPropertiesFromFieldValues();
 
-            // Map database type to dbSystem format expected by RPC
-            const dbSystemMap: Record<DatabaseType, string> = {
-                PostgreSQL: "postgresql",
-                MySQL: "mysql",
-                MSSQL: "mssql",
-            };
-
-            // Get selected tables - if all tables are selected, use ["*"]
-            const selectedTableNames = tables.filter((t) => t.selected).map((t) => t.name);
-            const allTablesSelected = tables.length > 0 && selectedTableNames.length === tables.length;
-            const selectedTables = allTablesSelected ? ["*"] : selectedTableNames;
-
-            const response = await rpcClient.getConnectorWizardRpcClient().persistClientGenerate({
-                projectPath: projectPath,
-                name: connectionName,
-                dbSystem: dbSystemMap[credentials.databaseType],
-                host: credentials.host,
-                port: credentials.port,
-                user: credentials.username,
-                password: credentials.password,
-                database: credentials.databaseName,
-                selectedTables: selectedTables,
+            const result = await persistConnection({
+                connectorWizardRpcClient: rpcClient.getConnectorWizardRpcClient(),
+                projectPath,
+                connectionName,
+                properties,
+                tables,
             });
 
-            if (response.errorMsg) {
-                console.error(">>> Error saving connection", response.errorMsg);
-                setConnectionError("Failed to save the connection. Please try again.");
-                return;
+            if (result.success) {
+                onClose?.({ recentIdentifier: result.recentIdentifier, artifactType: DIRECTORY_MAP.CONNECTION });
+            } else {
+                if (result.connectionError) setConnectionError(result.connectionError);
+                if (result.lsErrorDetails) setLsErrorDetails(result.lsErrorDetails);
             }
-
-            // Log success and text edits info if available
-            if (response.source?.textEditsMap) {
-                console.log(">>> Connection created successfully with text edits", Object.keys(response.source.textEditsMap));
-            }
-            if (response.source?.isModuleExists !== undefined) {
-                console.log(">>> Module exists:", response.source.isModuleExists);
-            }
-
-
-            onClose?.({ recentIdentifier: connectionName, artifactType: DIRECTORY_MAP.CONNECTION });
-        } catch (error) {
-            console.error(">>> Error saving connection", error);
-            setConnectionError("Failed to save the connection. Please try again.");
         } finally {
             setIsSaving(false);
         }
@@ -513,231 +1014,130 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
         }
     };
 
+    const tables = introspectDatabaseResponse?.tables ?? [];
     const selectedTablesCount = tables.filter((t) => t.selected).length;
     const totalTablesCount = tables.length;
     const filteredTables = useMemo(
         () =>
             tables.filter((t) =>
-                t.name.toLowerCase().includes(tableSearch.trim().toLowerCase())
+                t.table.toLowerCase().includes(tableSearch.trim().toLowerCase())
             ),
         [tables, tableSearch]
     );
 
-    const renderErrorDisplay = () => {
-        if (!connectionError) return null;
+    const validateConnectionName = useCallback(
+        debounce(async (value: string) => {
+            if (!value) {
+                setConnectionNameError(null);
+                return;
+            }
+            try {
+                const { projectPath } = await rpcClient.getVisualizerLocation();
+                const connectionsFilePath = Utils.joinPath(URI.file(projectPath), CONNECTIONS_FILE).fsPath;
+                const endPosition = await rpcClient.getBIDiagramRpcClient().getEndOfFile({
+                    filePath: connectionsFilePath,
+                });
+                const response = await rpcClient.getBIDiagramRpcClient().getExpressionDiagnostics({
+                    filePath: connectionsFilePath,
+                    context: {
+                        expression: value,
+                        startLine: {
+                            line: endPosition.line,
+                            offset: endPosition.offset,
+                        },
+                        offset: 0,
+                        lineOffset: 0,
+                        codedata: {
+                            node: "VARIABLE",
+                            lineRange: {
+                                startLine: { line: endPosition.line, offset: endPosition.offset },
+                                endLine: { line: endPosition.line, offset: endPosition.offset },
+                                fileName: CONNECTIONS_FILE,
+                            },
+                        },
+                        property: {
+                            metadata: { label: "", description: "" },
+                            value: "",
+                            types: [{ fieldType: "IDENTIFIER", scope: "Object", selected: false }],
+                            optional: false,
+                            editable: true,
+                        },
+                    },
+                });
+                const uniqueDiagnostics = removeDuplicateDiagnostics(response.diagnostics || []);
+                const errorDiagnostic = uniqueDiagnostics.find((d) => d.severity === 1);
+                setConnectionNameError(errorDiagnostic ? errorDiagnostic.message : null);
+            } catch (e) {
+                setConnectionNameError(null);
+            }
+        }, 250),
+        [rpcClient]
+    );
 
-        return (
-            <ErrorContainer>
-                <ErrorHeader>
-                    <Icon name="bi-error" sx={{ color: ThemeColors.ERROR, fontSize: '20px', width: '20px', height: '20px' }} />
-                    <ErrorTitle variant="h4">Connection Failed</ErrorTitle>
-                </ErrorHeader>
-                <Typography variant="body2">
-                    {connectionError}
-                </Typography>
-                {lsErrorDetails.errorMessage && (
-                    <ErrorDetailsSection>
-                        <ErrorDetailsHeader onClick={() => setLsErrorDetails(prev => ({ ...prev, isExpanded: !prev.isExpanded }))}>
-                            <ChevronIcon name={lsErrorDetails.isExpanded ? "chevron-down" : "chevron-right"} />
-                            <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT, fontSize: '12px', margin: 0 }}>
-                                Error Details
-                            </Typography>
-                        </ErrorDetailsHeader>
-                        <ErrorDetailsContent expanded={lsErrorDetails.isExpanded}>
-                            <ErrorDetailsText>
-                                {lsErrorDetails.errorMessage}
-                            </ErrorDetailsText>
-                        </ErrorDetailsContent>
-                    </ErrorDetailsSection>
-                )}
-                <SeparatorLine />
-                <Typography variant="body2">
-                    Or try using a pre-built connector:
-                </Typography>
-                <BrowseMoreButton appearance="secondary" onClick={handleBrowseMoreConnectors} buttonSx={{ width: "100%" }}>
-                    Browse Pre-built Connectors
-                </BrowseMoreButton>
-            </ErrorContainer>
-        );
-    };
+    const handleConnectionNameChange = useCallback(
+        (value: string) => {
+            setConnectionName(value);
+            setConnectionNameError(null);
+            validateConnectionName(value);
+            if (connectionError) {
+                setConnectionError(null);
+                setLsErrorDetails({ errorMessage: null });
+            }
+        },
+        [connectionError, validateConnectionName]
+    );
 
-    const renderStepContent = () => {
+    const renderStep = () => {
         switch (currentStep) {
             case 0:
                 return (
-                    <StepContent fillHeight={true}>
-                        <div>
-                            <SectionTitle variant="h3">Database Credentials</SectionTitle>
-                            <SectionSubtitle variant="body2">
-                                Enter credentials to connect and introspect the database
-                            </SectionSubtitle>
-                        </div>
-                        {renderErrorDisplay()}
-                        <FormSection>
-                            <FormField>
-                                <Dropdown
-                                    id="database-type"
-                                    label="Database Type"
-                                    items={DATABASE_TYPES}
-                                    value={credentials.databaseType}
-                                    onValueChange={handleDatabaseTypeChange}
-                                />
-                            </FormField>
-                            <FormField>
-                                <TextField
-                                    id="host"
-                                    label="Host"
-                                    placeholder="Database host"
-                                    value={credentials.host}
-                                    onTextChange={(value) => handleCredentialsChange("host", value)}
-                                />
-                            </FormField>
-                            <FormField>
-                                <TextField
-                                    id="port"
-                                    label="Port"
-                                    placeholder="Database port"
-                                    value={String(credentials.port)}
-                                    onTextChange={(value) => handleCredentialsChange("port", value)}
-                                />
-                            </FormField>
-                            <FormField>
-                                <TextField
-                                    id="database-name"
-                                    label="Database Name"
-                                    placeholder="Database name"
-                                    value={credentials.databaseName}
-                                    onTextChange={(value) => handleCredentialsChange("databaseName", value)}
-                                />
-                            </FormField>
-                            <FormField>
-                                <TextField
-                                    id="username"
-                                    label="Username"
-                                    placeholder="Database username"
-                                    value={credentials.username}
-                                    onTextChange={(value) => handleCredentialsChange("username", value)}
-                                />
-                            </FormField>
-                            <FormField>
-                                <TextField
-                                    id="password"
-                                    label="Password"
-                                    type="password"
-                                    placeholder="Database password"
-                                    value={credentials.password}
-                                    onTextChange={(value) => handleCredentialsChange("password", value)}
-                                />
-                            </FormField>
-                        </FormSection>
-                    </StepContent>
+                    <IntrospectDatabaseStep
+                        isLoadingCredentials={isLoadingCredentials}
+                        connectorCredentials={connectorCredentials}
+                        fieldValues={fieldValues}
+                        connectionError={connectionError}
+                        lsErrorDetails={lsErrorDetails}
+                        onBrowseMoreConnectors={handleBrowseMoreConnectors}
+                        onIntrospect={handleIntrospect}
+                        isIntrospecting={isIntrospecting}
+                        form={<IntrospectDatabaseStepForm
+                            connectorCredentials={connectorCredentials}
+                            fieldValues={fieldValues}
+                            onFieldValueChange={updateFieldValue}
+                            onDbTypeChange={handleDbTypeChange}
+                            isIntrospecting={isIntrospecting}
+                        />}
+                    />
                 );
-
             case 1:
                 return (
-                    <StepContent fillHeight={true} style={{ gap: "16px" }}>
-                        <SelectionInfo>
-                            <div>
-                                <SectionTitle variant="h3">Select Tables</SectionTitle>
-                                <SectionSubtitle variant="body2">
-                                    Choose which tables to include in this connector
-                                </SectionSubtitle>
-                            </div>
-                            <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
-                                {selectedTablesCount} of {totalTablesCount} selected
-                            </Typography>
-                        </SelectionInfo>
-                        <SearchRow>
-                            <SearchBox
-                                value={tableSearch}
-                                placeholder="Search tables..."
-                                onChange={setTableSearch}
-                                sx={{ flex: 1 }}
-                            />
-                            <SelectAllButton appearance="secondary" onClick={handleSelectAll}>
-                                {selectedTablesCount === totalTablesCount && totalTablesCount > 0 ? "Deselect All" : "Select All"}
-                            </SelectAllButton>
-                        </SearchRow>
-                        <TablesGrid>
-                            {filteredTables.map((table) => (
-                                <TableCard
-                                    key={table.name}
-                                    selected={table.selected}
-                                    onClick={() => handleTableToggleByName(table.name)}
-                                >
-                                    <TableCheckbox
-                                        type="checkbox"
-                                        checked={table.selected}
-                                        onChange={(e) => {
-                                            e.stopPropagation();
-                                            handleTableToggleByName(table.name);
-                                        }}
-                                        onClick={(e) => e.stopPropagation()}
-                                    />
-                                    <TableName variant="body1">{table.name}</TableName>
-                                </TableCard>
-                            ))}
-                        </TablesGrid>
-                    </StepContent>
+                    <SelectPersistTablesStep
+                        tableSearch={tableSearch}
+                        onTableSearchChange={setTableSearch}
+                        selectedTablesCount={selectedTablesCount}
+                        totalTablesCount={totalTablesCount}
+                        filteredTables={filteredTables}
+                        onTableToggle={handleTableToggleByName}
+                        onSelectAll={handleSelectAll}
+                        onContinue={handleContinueToConnectionDetails}
+                        connectionError={connectionError}
+                    />
                 );
-
             case 2:
                 return (
-                    <StepContent fillHeight={true} style={{ gap: "16px" }}>
-                        <div>
-                            <SectionTitle variant="h3">Connection Details</SectionTitle>
-                            <SectionSubtitle variant="body2">
-                                Name your connection and configure default values for configurables
-                            </SectionSubtitle>
-                        </div>
-                        <FormSection>
-                            <FormField>
-                                <TextField
-                                    id="connection-name"
-                                    label="Connection Name"
-                                    placeholder="Database connection name"
-                                    value={connectionName}
-                                    onTextChange={setConnectionName}
-                                />
-                            </FormField>
-                        </FormSection>
-                        <ConfigurablesPanel>
-                            <div style={{ gap: "4px" }}>
-                                <SectionTitle variant="h4">Connection Configurables</SectionTitle>
-                                <ConfigurablesDescription>
-                                    Configurables will be generated for the connection host, port, username, password, and database name, with default values specified below.
-                                </ConfigurablesDescription>
-                            </div>
-                            <FormSection>
-                                <FormField>
-                                    <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
-                                        {connectionName ? `${connectionName}Host` : "Host"}
-                                    </Typography>
-                                    <ReadonlyValue>{credentials.host}</ReadonlyValue>
-                                </FormField>
-                                <FormField>
-                                    <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
-                                        {connectionName ? `${connectionName}Port` : "Port"}
-                                    </Typography>
-                                    <ReadonlyValue>{credentials.port}</ReadonlyValue>
-                                </FormField>
-                                <FormField>
-                                    <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
-                                        {connectionName ? `${connectionName}User` : "Username"}
-                                    </Typography>
-                                    <ReadonlyValue>{credentials.username}</ReadonlyValue>
-                                </FormField>
-                                <FormField>
-                                    <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
-                                        {connectionName ? `${connectionName}Database` : "Database Name"}
-                                    </Typography>
-                                    <ReadonlyValue>{credentials.databaseName}</ReadonlyValue>
-                                </FormField>
-                            </FormSection>
-                        </ConfigurablesPanel>
-                    </StepContent>
+                    <CreatePersistConnectionStep
+                        connectionName={connectionName}
+                        onConnectionNameChange={handleConnectionNameChange}
+                        connectionNameError={connectionNameError}
+                        connectorCredentials={connectorCredentials}
+                        fieldValues={fieldValues}
+                        connectionError={connectionError}
+                        lsErrorDetails={lsErrorDetails}
+                        onBrowseMoreConnectors={handleBrowseMoreConnectors}
+                        onSave={handleSaveConnection}
+                        isSaving={isSaving}
+                    />
                 );
-
             default:
                 return null;
         }
@@ -764,47 +1164,10 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                 <StepperContainer>
                     <Stepper steps={steps} currentStep={currentStep} alignment="flex-start" />
                 </StepperContainer>
-                <ContentContainer hasFooterButton={true}>{renderStepContent()}</ContentContainer>
-                {currentStep === 0 && (
-                    <FooterContainer>
-                        <ActionButton
-                            appearance="primary"
-                            onClick={handleIntrospect}
-                            disabled={!credentials.host || !credentials.databaseName || !credentials.username || isIntrospecting || !!connectionError}
-                            buttonSx={{ width: "100%", height: "35px" }}
-                        >
-                            {isIntrospecting ? "Connecting..." : "Connect & Introspect Database"}
-                        </ActionButton>
-                    </FooterContainer>
-                )}
-                {currentStep === 1 && (
-                    <FooterContainer>
-                        <ActionButton
-                            appearance="primary"
-                            onClick={handleContinueToConnectionDetails}
-                            disabled={selectedTablesCount === 0 || !!connectionError}
-                            buttonSx={{ width: "100%", height: "35px" }}
-                        >
-                            Continue to Connection Details
-                        </ActionButton>
-                    </FooterContainer>
-                )}
-                {currentStep === 2 && (
-                    <FooterContainer>
-                        <ActionButton
-                            appearance="primary"
-                            onClick={handleSaveConnection}
-                            disabled={!connectionName || isSaving}
-                            buttonSx={{ width: "100%", height: "35px" }}
-                        >
-                            {isSaving ? "Saving..." : "Save Connection"}
-                        </ActionButton>
-                    </FooterContainer>
-                )}
+                {renderStep()}
             </PopupContainer>
         </>
     );
 }
 
 export default DatabaseConnectionPopup;
-

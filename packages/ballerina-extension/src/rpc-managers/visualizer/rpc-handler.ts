@@ -26,18 +26,26 @@ import {
     goBack,
     goHome,
     goSelected,
+    handleApprovalPopupClose,
+    HandleApprovalPopupCloseRequest,
     HistoryEntry,
     joinProjectPath,
     JoinProjectPathRequest,
     openView,
     OpenViewRequest,
     redo,
+    reopenApprovalView,
+    ReopenApprovalViewRequest,
     resetUndoRedoStack,
+    saveEvalThread,
+    SaveEvalThreadRequest,
     undo,
     undoRedoState,
     updateCurrentArtifactLocation,
     UpdatedArtifactsResponse,
-    reviewAccepted
+    reviewAccepted,
+    navigateReviewMode,
+    GoBackRequest
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { VisualizerRpcManager } from "./rpc-manager";
@@ -47,7 +55,7 @@ export function registerVisualizerRpcHandlers(messenger: Messenger) {
     messenger.onNotification(openView, (args: OpenViewRequest) => rpcManger.openView(args));
     messenger.onRequest(getHistory, () => rpcManger.getHistory());
     messenger.onNotification(addToHistory, (args: HistoryEntry) => rpcManger.addToHistory(args));
-    messenger.onNotification(goBack, () => rpcManger.goBack());
+    messenger.onNotification(goBack, (args: GoBackRequest) => rpcManger.goBack(args));
     messenger.onNotification(goHome, () => rpcManger.goHome());
     messenger.onNotification(goSelected, (args: number) => rpcManger.goSelected(args));
     messenger.onRequest(undo, (count: number) => rpcManger.undo(count));
@@ -59,4 +67,8 @@ export function registerVisualizerRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getThemeKind, () => rpcManger.getThemeKind());
     messenger.onRequest(updateCurrentArtifactLocation, (args: UpdatedArtifactsResponse) => rpcManger.updateCurrentArtifactLocation(args));
     messenger.onNotification(reviewAccepted, () => rpcManger.reviewAccepted());
+    messenger.onNotification(handleApprovalPopupClose, (args: HandleApprovalPopupCloseRequest) => rpcManger.handleApprovalPopupClose(args));
+    messenger.onNotification(reopenApprovalView, (args: ReopenApprovalViewRequest) => rpcManger.reopenApprovalView(args));
+    messenger.onRequest(saveEvalThread, (args: SaveEvalThreadRequest) => rpcManger.saveEvalThread(args));
+    messenger.onNotification(navigateReviewMode, (index: number) => rpcManger.navigateReviewMode(index));
 }

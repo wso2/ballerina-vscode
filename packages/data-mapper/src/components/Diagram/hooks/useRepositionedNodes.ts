@@ -28,6 +28,7 @@ import {
 } from "../utils/diagram-utils";
 import {
     ArrayOutputNode,
+    ConvertibleOutputNode,
     EmptyInputsNode,
     InputNode,
     ObjectOutputNode,
@@ -74,6 +75,7 @@ export const useRepositionedNodes = (
             || node instanceof ArrayOutputNode
             || node instanceof PrimitiveOutputNode
             || node instanceof QueryOutputNode
+            || node instanceof ConvertibleOutputNode
             || node instanceof OutputDataImportNodeModel
         ) {
             const x = (window.innerWidth) * (100 / zoomLevel) - IO_NODE_DEFAULT_WIDTH;

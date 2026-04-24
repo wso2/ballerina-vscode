@@ -1,0 +1,3 @@
+function output(InRoot input) returns OutRoot => {
+    oArr1D: [{p2: ""}]
+};

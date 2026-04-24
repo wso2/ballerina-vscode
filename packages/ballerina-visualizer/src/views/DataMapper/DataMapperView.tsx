@@ -46,20 +46,23 @@ import {
     IORoot,
     IntermediateClauseType,
     TriggerKind,
-    TypeKind
+    TypeKind,
+    Type,
+    Imports
 } from "@wso2/ballerina-core";
 import { CompletionItem, ProgressIndicator } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { DataMapper } from "@wso2/ballerina-data-mapper";
 
 import { useDataMapperModel } from "../../Hooks";
-import FormGeneratorNew from "../BI/Forms/FormGeneratorNew";
+import ArtifactForm from "../BI/Forms/ArtifactForm";
 import { DataMapperProps } from ".";
 import { EXPRESSION_EXTRACTION_REGEX } from "../../constants";
 import { calculateExpressionOffsets, convertBalCompletion, updateLineRange } from "../../utils/bi";
 import { createAddSubMappingRequest } from "./utils";
 import { FunctionForm } from "../BI/FunctionForm";
 import { UndoRedoGroup } from "../../components/UndoRedoGroup";
+import { EntryPointTypeCreator } from "../../components/EntryPointTypeCreator";
 
 // Types for model comparison
 interface ModelSignature {
@@ -85,17 +88,17 @@ export function DataMapperView(props: DataMapperViewProps) {
         codedata: codedata
     });
 
-    const viewStateRef = useRef<DMViewState>(viewState);
-    useEffect(() => {
-        viewStateRef.current = viewState;
-    }, [viewState]);
-
     /* Completions related */
     const [completions, setCompletions] = useState<CompletionItem[]>([]);
     const prevCompletionFetchText = useRef<string>("");
     const [filteredCompletions, setFilteredCompletions] = useState<CompletionItem[]>([]);
     const expressionOffsetRef = useRef<number>(0); // To track the expression offset on adding import statements
     const [isUpdatingSource, setIsUpdatingSource] = useState<boolean>(false);
+
+    /* Type Editor related */
+    const [isTypeEditorOpen, setIsTypeEditorOpen] = useState<boolean>(false);
+    const onTypeCreateRef = useRef<(type: Type | string, imports?: Imports) => void>(() => {});
+    const initialTypeNameRef = useRef<string>("");
 
     // Keep track of previous inputs/outputs and sub mappings for comparison
     const prevSignatureRef = useRef<string>(null);
@@ -105,7 +108,8 @@ export function DataMapperView(props: DataMapperViewProps) {
         model,
         isFetching,
         isError,
-        refreshDMModel
+        refreshDMModel,
+        requestRefreshDMModel
     } = useDataMapperModel(filePath, viewState, position);
 
     const prevPositionRef = useRef(position);
@@ -115,23 +119,18 @@ export function DataMapperView(props: DataMapperViewProps) {
             prevPositionRef.current?.line !== position?.line ||
             prevPositionRef.current?.offset !== position?.offset;
         
-        if (viewStateRef.current.subMappingName && positionChanged) {
-            const viewId = viewStateRef.current.viewId;
+        const subMappingName = viewState.subMappingName;
+        if (subMappingName) {
+            const viewId = viewState.viewId;
             rpcClient.getDataMapperRpcClient()
                 .getSubMappingCodedata({
                     filePath,
                     codedata: codedata,
-                    view: viewId
+                    view: subMappingName
                 }).then((resp) => {
                     console.log(">>> [Data Mapper] getSubMappingCodedata response:", resp);
-                    setViewState({ viewId: viewId, codedata: resp.codedata, subMappingName: viewId });
+                    setViewState({ viewId: viewId, codedata: resp.codedata, subMappingName });
                 });
-        } else if (viewStateRef.current.subMappingName && !positionChanged) {
-            setViewState(prevState => ({
-                viewId: prevState.viewId || viewStateRef.current.subMappingName,
-                codedata: codedata,
-                subMappingName: prevState.subMappingName
-            }));
         } else {
             setViewState(prevState => ({
                 viewId: positionChanged ? name : prevState.viewId || name,
@@ -202,7 +201,8 @@ export function DataMapperView(props: DataMapperViewProps) {
                 model: {
                     ...prev.model!,
                     mappings: model.mappings,
-                    query: model.query
+                    query: model.query,
+                    hasInvalidOutput: model.hasInvalidOutput
                 }
             }));
         }
@@ -272,31 +272,33 @@ export function DataMapperView(props: DataMapperViewProps) {
 
     const handleView = async (viewId: string, isSubMapping?: boolean) => {
         if (isSubMapping) {
-            const resp = await rpcClient
-                .getDataMapperRpcClient()
-                .getSubMappingCodedata({
-                    filePath,
-                    codedata: viewState.codedata,
-                    view: viewId
-                });
-            console.log(">>> [Data Mapper] getSubMappingCodedata response:", resp);
-            setViewState({ viewId, codedata: resp.codedata, subMappingName: viewId });
+            const subMappingName = viewId.split(".")[0];
+            if (subMappingName !== viewState.subMappingName) {
+                const resp = await rpcClient
+                    .getDataMapperRpcClient()
+                    .getSubMappingCodedata({
+                        filePath,
+                        codedata: codedata,
+                        view: subMappingName
+                    });
+                console.log(">>> [Data Mapper] getSubMappingCodedata response:", resp);
+                setViewState({ viewId, codedata: resp.codedata, subMappingName });
+            } else {
+                setViewState(prev => ({
+                    viewId,
+                    codedata: prev.codedata,
+                    subMappingName: subMappingName
+                }));
+            }
         } else {
-            const res = await rpcClient
-                .getDataMapperRpcClient()
-                .getDataMapperCodedata({
-                    filePath,
-                    codedata: viewState.codedata,
-                    name: viewId.split(".")[0] // Get the root name
-                });
-            setViewState({ viewId, codedata: res.codedata, subMappingName: undefined });
+            setViewState({ viewId, codedata: codedata, subMappingName: undefined });
         }
         rpcClient.getVisualizerRpcClient().resetUndoRedoStack();
     };
 
     const generateForm = (formProps: DMFormProps) => {
         return (
-            <FormGeneratorNew
+            <ArtifactForm
                 fileName={filePath}
                 preserveFieldOrder={true}
                 helperPaneSide="left"
@@ -518,6 +520,24 @@ export function DataMapperView(props: DataMapperViewProps) {
         }
     };
 
+    const resolveOutput = async () => {
+        try {
+            const resp = await rpcClient
+                .getDataMapperRpcClient()
+                .resolveOutput({
+                    filePath,
+                    codedata: viewState.codedata,
+                    varName: name,
+                    targetField: viewState.viewId,
+                    subMappingName: viewState.subMappingName
+                });
+            console.log(">>> [Data Mapper] resolveOutput response:", resp);
+        } catch (error) {
+            console.error(error);
+            setIsFileUpdateError(true);
+        }
+    };
+
     const goToFunction = async (functionRange: LineRange) => {
         const documentUri: string = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [functionRange.fileName] })).filePath;
         const position: NodePosition = {
@@ -593,10 +613,11 @@ export function DataMapperView(props: DataMapperViewProps) {
             }
         });
 
-        let i = 2;
+        let i = 1;
         let uniqueName = name;
+        const separator = /\d$/.test(name) ? "_" : "";
         while (completions.some(c => c.insertText === uniqueName)) {
-            uniqueName = name + (i++);
+            uniqueName = name + separator + (i++);
         }
 
         return uniqueName;
@@ -614,6 +635,40 @@ export function DataMapperView(props: DataMapperViewProps) {
             console.error(error);
             return expression;
         }
+    };
+
+    const createConvertedVariable = async (variableName: string, isInput: boolean, typeName?: string, parentTypeName?: string) => {
+        const initialTypeName = typeName || variableName.charAt(0).toUpperCase() + variableName.slice(1);
+        initialTypeNameRef.current = await genUniqueName(initialTypeName, viewState.viewId);
+
+        onTypeCreateRef.current = (type: Type | string, imports?: Imports) => {
+            const newTypeName = typeof type === 'string' ? type : (type as Type).name;
+            requestRefreshDMModel();
+            rpcClient
+                .getDataMapperRpcClient()
+                .createConvertedVariable({
+                    filePath,
+                    codedata: {
+                        ...viewState.codedata,
+                        isNew: !typeName
+                    },
+                    varName: name,
+                    targetField: viewState.viewId,
+                    subMappingName: viewState.subMappingName,
+                    typeName: newTypeName,
+                    isInput,
+                    variableName,
+                    parentTypeName,
+                    imports
+                }).then(res => {
+                    console.log(">>> [Data Mapper] createConvertedVariable response:", res);
+                }).catch(error => {
+                    console.error(error);
+                    setIsFileUpdateError(true);
+                });
+        };
+        
+        setIsTypeEditorOpen(true);
     };
 
     const onDMClose = () => {
@@ -635,7 +690,7 @@ export function DataMapperView(props: DataMapperViewProps) {
     const onEdit = () => {
         const context: VisualizerLocation = {
             view: MACHINE_VIEW.BIDataMapperForm,
-            identifier: modelState.model.output.name,
+            identifier: name,
             documentUri: filePath,
         };
 
@@ -768,11 +823,13 @@ export function DataMapperView(props: DataMapperViewProps) {
                             deleteClause={deleteClause}
                             getClausePosition={getClausePosition}
                             getConvertedExpression={getConvertedExpression}
+                            createConvertedVariable={createConvertedVariable}
                             addSubMapping={addSubMapping}
                             deleteMapping={deleteMapping}
                             deleteSubMapping={deleteSubMapping}
                             mapWithCustomFn={mapWithCustomFn}
                             mapWithTransformFn={mapWithTransformFn}
+                            resolveOutput={resolveOutput}
                             goToFunction={goToFunction}
                             enrichChildFields={enrichChildFields}
                             genUniqueName={genUniqueName}
@@ -789,6 +846,18 @@ export function DataMapperView(props: DataMapperViewProps) {
                             }}
                         />
                     )}
+                    {isTypeEditorOpen &&
+                        <EntryPointTypeCreator
+                            isOpen={true}
+                            onClose={() => setIsTypeEditorOpen(false)}
+                            onTypeCreate={onTypeCreateRef.current}
+                            initialTypeName={initialTypeNameRef.current}
+                            modalTitle={"Define Type"}
+
+                            modalWidth={650}
+                            modalHeight={600}
+                        />
+                    }
                 </>
             )}
         </>

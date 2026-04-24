@@ -35,13 +35,16 @@ export const Header = styled.header({
     display: "flex",
     flexDirection: "row",
     justifyContent: "space-between",
-    padding: "10px",
+    alignItems: "center",
+    padding: "8px 10px",
     gap: "10px",
+    borderBottom: "1px solid var(--vscode-panel-border)",
 });
 
 export const HeaderButtons = styled.div({
     display: "flex",
     justifyContent: "flex-end",
+    gap: "4px",
     marginRight: "10px",
 });
 
@@ -61,17 +64,54 @@ export const Main = styled.main({
 });
 
 export const ChatMessage = styled.div({
-    padding: "20px",
-    borderTop: "1px solid var(--vscode-editorWidget-border)",
+    padding: "8px 20px",
 });
 
-export const Badge = styled.div`
-    // padding: 5px;
-    // margin-left: 10px;
-    display: inline-block;
-    text-align: left;
+export const TurnGroup = styled.div``;
+
+export const AuthProviderChip = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+    font-family: var(--vscode-font-family);
 `;
 
-export const ResetsInBadge = styled.div`
-    font-size: 10px;
+export const UsageBadge = styled.span`
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--vscode-foreground);
+    background: var(--vscode-editor-background);
+    font-family: var(--vscode-font-family);
+    white-space: nowrap;
+`;
+
+export const ApprovalOverlay = styled.div`
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    pointer-events: all;
+`;
+
+export const OverlayMessage = styled.div`
+    color: var(--vscode-foreground);
+    font-size: 14px;
+    padding: 16px 24px;
+    background: var(--vscode-editor-background);
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 4px;
 `;

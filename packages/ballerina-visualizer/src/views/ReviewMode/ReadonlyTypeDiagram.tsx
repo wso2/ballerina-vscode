@@ -45,21 +45,23 @@ interface ReadonlyTypeDiagramProps {
     projectPath: string;
     filePath: string;
     onModelLoaded?: (metadata: ItemMetadata) => void;
+    useFileSchema?: boolean;
 }
 
 export function ReadonlyTypeDiagram(props: ReadonlyTypeDiagramProps): JSX.Element {
-    const { filePath, onModelLoaded } = props;
+    const { filePath, onModelLoaded, useFileSchema } = props;
     const { rpcClient } = useRpcContext();
     const [typesModel, setTypesModel] = useState<Type[] | null>(null);
 
     useEffect(() => {
+        setTypesModel(null);
         fetchTypesModel();
-    }, [filePath]);
+    }, [filePath, useFileSchema]);
 
     const fetchTypesModel = () => {
         rpcClient
             .getBIDiagramRpcClient()
-            .getTypes({ filePath: filePath })
+            .getTypes({ filePath: filePath, useFileSchema })
             .then((response) => {
                 if (response?.types) {
                     setTypesModel(response.types);

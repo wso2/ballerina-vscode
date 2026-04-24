@@ -18,18 +18,24 @@
 
 import * as os from 'os';
 import { NodePosition } from "@wso2/syntax-tree";
-import { Position, Progress, Range, Uri, window, workspace, WorkspaceEdit } from "vscode";
+import { StateMachine } from "../../stateMachine";
+import { Position, Progress, Range, Uri, ViewColumn, window, workspace, WorkspaceEdit } from "vscode";
 import { PROJECT_KIND, ProjectInfo, TextEdit, WorkspaceTypeResponse } from "@wso2/ballerina-core";
 import axios from 'axios';
 import fs from 'fs';
+import * as path from 'path';
+
 import {
     checkIsBallerinaPackage,
     checkIsBallerinaWorkspace,
     getBallerinaPackages,
     hasMultipleBallerinaPackages
 } from '../../utils';
+import { readOrWriteReadmeContent, resolveReadmePath } from '../bi-diagram/utils';
+import { README_FILE } from '../../utils/bi';
 
 export const BALLERINA_INTEGRATOR_ISSUES_URL = "https://github.com/wso2/product-ballerina-integrator/issues";
+const PACKAGE_FILE = "PACKAGE.md";
 
 interface ProgressMessage {
     message: string;
@@ -85,13 +91,13 @@ export async function askProjectPath() {
     });
 }
 
-export async function askFilePath() {
+export async function askFilePath(filters?: Record<string, string[]>) {
     return await window.showOpenDialog({
         canSelectFiles: true,
         canSelectFolders: false,
         canSelectMany: false,
-        defaultUri: Uri.file(os.homedir()),
-        filters: {
+        defaultUri: Uri.file(StateMachine.context().projectPath  ?? os.homedir()),
+        filters: filters ?? {
             'Files': ['yaml', 'json', 'yml', 'graphql', 'wsdl']
         },
         title: "Select a file",
@@ -249,4 +255,168 @@ export async function findWorkspaceTypeFromWorkspaceFolders(): Promise<Workspace
     }
 
     return { type: "UNKNOWN" };
+}
+
+export function getTargetProjectForPublish(): {
+    projectPath: string;
+    projectName: string;
+    artifactType: string;
+} | null {
+    const { projectPath, projectStructure } = StateMachine.context();
+    const target = projectStructure?.projects.find((p) => p.projectPath === projectPath);
+    if (!target) {
+        return null;
+    }
+    const projectName = target.projectTitle || target.projectName;
+    const artifactType = target.isLibrary ? 'library' : 'integration';
+    return { projectPath, projectName, artifactType };
+}
+
+export type PublishDescriptionStatus = 'missing' | 'empty' | 'ready';
+
+export interface PublishDescriptionInfo {
+    status: PublishDescriptionStatus;
+    activeDocPath: string;
+    activeDocName: string;
+}
+
+export interface PublishPackageInfo {
+    orgName: string;
+    packageName: string;
+    version: string;
+}
+
+export async function getPublishDescriptionInfo(projectPath: string): Promise<PublishDescriptionInfo> {
+    const readmePath = resolveReadmePath(projectPath);
+    const packagePath = resolveDocPath(projectPath, PACKAGE_FILE);
+
+    const readmeContent = readmePath ? readFileContent(readmePath) : undefined;
+    const packageContent = packagePath ? readFileContent(packagePath) : undefined;
+
+    const hasReadyDescription = [readmeContent, packageContent].some((content) => hasNonEmptyContent(content));
+    if (hasReadyDescription) {
+        const activeDocPath = hasNonEmptyContent(readmeContent) && readmePath
+            ? readmePath
+            : hasNonEmptyContent(packageContent) && packagePath
+                ? packagePath
+                : path.join(projectPath, README_FILE);
+        return {
+            status: 'ready',
+            activeDocPath,
+            activeDocName: path.basename(activeDocPath)
+        };
+    }
+
+    const hasAnyDescriptionFile = readmePath !== undefined || packagePath !== undefined;
+    if (hasAnyDescriptionFile) {
+        const activeDocPath = readmePath ?? packagePath ?? path.join(projectPath, README_FILE);
+        return {
+            status: 'empty',
+            activeDocPath,
+            activeDocName: path.basename(activeDocPath)
+        };
+    }
+
+    return {
+        status: 'missing',
+        activeDocPath: path.join(projectPath, README_FILE),
+        activeDocName: README_FILE
+    };
+}
+
+export function getPublishConfirmation(
+    projectName: string,
+    artifactType: string,
+    descriptionInfo: PublishDescriptionInfo,
+    packageInfo: PublishPackageInfo
+): { message: string; primaryButton: string } {
+    const packageDetails = [
+        `Organization: ${packageInfo.orgName || '<required>'}`,
+        `Package: ${packageInfo.packageName || '<required>'}`,
+        `Version: ${packageInfo.version || '<required>'}`,
+        `Description file: ${descriptionInfo.activeDocName}`
+    ].join('\n');
+
+    if (descriptionInfo.status === 'missing') {
+        return {
+            message: `Publish "${projectName}" to Ballerina Central\n\n${packageDetails}\n\nA non-empty README.md file is required before publishing.`,
+            primaryButton: 'Create Description File'
+        };
+    }
+    if (descriptionInfo.status === 'empty') {
+        return {
+            message: `Publish "${projectName}" to Ballerina Central\n\n${packageDetails}\n\nThe detected description file is empty. Please add a description for your ${artifactType}.`,
+            primaryButton: 'Edit Description File'
+        };
+    }
+    return {
+        message: `Publish "${projectName}" to Ballerina Central\n\n${packageDetails}\n\nYour ${artifactType} will be made available to the Ballerina community.`,
+        primaryButton: 'Publish to Central'
+    };
+}
+
+
+export async function handlePublishDescriptionSetup(
+    descriptionInfo: PublishDescriptionInfo,
+    projectPath: string,
+    projectName: string,
+    artifactType: string
+): Promise<boolean> {
+    if (descriptionInfo.status === 'missing') {
+        const content = `# ${projectName} ${artifactType}\n\nAdd your ${artifactType} description here.`;
+        await readOrWriteReadmeContent({ projectPath, content, read: false });
+        await openDescriptionInEditor(path.join(projectPath, README_FILE));
+        return true;
+    }
+    if (descriptionInfo.status === 'empty') {
+        await openDescriptionInEditor(descriptionInfo.activeDocPath);
+        return true;
+    }
+    return false;
+}
+
+export async function openPublishDescriptionInEditor(descriptionInfo: PublishDescriptionInfo): Promise<void> {
+    await openDescriptionInEditor(descriptionInfo.activeDocPath);
+}
+
+async function openDescriptionInEditor(docPath: string): Promise<void> {
+    try {
+        const doc = await workspace.openTextDocument(docPath);
+        await window.showTextDocument(doc, ViewColumn.Beside);
+    } catch (error) {
+        window.showErrorMessage(`Failed to open description file "${docPath}": ${error}`);
+    }
+}
+
+export function getFirstBalaPath(projectPath: string): string | null {
+    const balaDirPath = path.join(projectPath, 'target', 'bala');
+    if (!fs.existsSync(balaDirPath)) {
+        return null;
+    }
+    const files = fs.readdirSync(balaDirPath);
+    return files.length > 0 ? path.join(balaDirPath, files[0]) : null;
+}
+
+function resolveDocPath(projectPath: string, fileName: string): string | undefined {
+    try {
+        const entries = fs.readdirSync(projectPath, { withFileTypes: true });
+        const match = entries.find(
+            (entry) => entry.isFile() && entry.name.toLowerCase() === fileName.toLowerCase()
+        );
+        return match ? path.join(projectPath, match.name) : undefined;
+    } catch {
+        return undefined;
+    }
+}
+
+function readFileContent(filePath: string): string {
+    try {
+        return fs.readFileSync(filePath, 'utf8');
+    } catch {
+        return '';
+    }
+}
+
+function hasNonEmptyContent(content: string | undefined): boolean {
+    return content !== undefined && content.trim() !== '';
 }

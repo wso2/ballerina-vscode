@@ -15,24 +15,16 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { SCOPE, DIRECTORY_MAP, ProjectStructure } from "@wso2/ballerina-core";
-
-const INTEGRATION_API_MODULES = ["http", "graphql", "tcp"];
-const EVENT_INTEGRATION_MODULES = ["kafka", "rabbitmq", "salesforce", "trigger.github", "mqtt", "asb"];
-const FILE_INTEGRATION_MODULES = ["ftp", "file"];
-const AI_AGENT_MODULE = "ai";
-
-export function findScopeByModule(moduleName: string): SCOPE {
-    if (AI_AGENT_MODULE === moduleName) {
-        return SCOPE.AI_AGENT;
-    } else if (INTEGRATION_API_MODULES.includes(moduleName)) {
-        return SCOPE.INTEGRATION_AS_API;
-    } else if (EVENT_INTEGRATION_MODULES.includes(moduleName)) {
-        return SCOPE.EVENT_INTEGRATION;
-    } else if (FILE_INTEGRATION_MODULES.includes(moduleName)) {
-        return SCOPE.FILE_INTEGRATION;
-    }
-}
+import {
+    SCOPE,
+    DIRECTORY_MAP,
+    ProjectStructure,
+    ProjectStructureResponse,
+    ProjectScopeMapping,
+    findScopeByModule
+} from "@wso2/ballerina-core";
+export { validateComponentName } from "../ProjectForm/utils";
+export { findScopeByModule };
 
 /**
  * Extracts deployable integration types (scopes) from project structure.
@@ -64,5 +56,40 @@ export function getIntegrationTypes(projectStructure: ProjectStructure | undefin
         scopes.push(SCOPE.AUTOMATION);
     }
 
+    // Add library scope if the project is a library
+    if (projectStructure.isLibrary) {
+        scopes.push(SCOPE.LIBRARY);
+    }
+
     return scopes;
+}
+
+/**
+ * Builds a list of deployable integration scopes per integration for a project.
+ *
+ * @param projectCollection - Project collection containing the integrations list.
+ * @returns A list of integration-to-scope mappings used for project-level deployment.
+ */
+export function getWorkspaceProjectScopes(
+    projectCollection: ProjectStructureResponse | undefined
+): ProjectScopeMapping[] {
+    if (!projectCollection || !projectCollection.projects) {
+        return [];
+    }
+
+    const mapProjectToScope = (project: ProjectStructure): ProjectScopeMapping | undefined => {
+        const integrationTypes = getIntegrationTypes(project);
+        if (integrationTypes.length > 0) {
+            return {
+                projectPath: project.projectPath!,
+                projectTitle: project.projectTitle || project.projectName,
+                integrationTypes
+            };
+        }
+        return undefined;
+    };
+
+    return projectCollection.projects
+        .map(mapProjectToScope)
+        .filter((scopeMapping): scopeMapping is ProjectScopeMapping => scopeMapping !== undefined);
 }

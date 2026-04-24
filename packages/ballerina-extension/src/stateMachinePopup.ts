@@ -66,6 +66,7 @@ const stateMachinePopup = createMachine<PopupMachineContext>({
                         identifier: (context, event) => event.viewLocation.identifier,
                         documentUri: (context, event) => event.viewLocation.documentUri,
                         metadata: (context, event) => event.viewLocation.metadata,
+                        agentMetadata: (context, event) => event.viewLocation?.agentMetadata,
                         dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata
                     })
                 },
@@ -85,6 +86,7 @@ const stateMachinePopup = createMachine<PopupMachineContext>({
                                 identifier: (context, event) => event.viewLocation.identifier,
                                 documentUri: (context, event) => event.viewLocation.documentUri,
                                 metadata: (context, event) => event.viewLocation.metadata,
+                                agentMetadata: (context, event) => event.viewLocation?.agentMetadata,
                                 dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata
                             })
                         },
@@ -96,6 +98,7 @@ const stateMachinePopup = createMachine<PopupMachineContext>({
                                 identifier: (context, event) => event.viewLocation.identifier,
                                 documentUri: (context, event) => event.viewLocation.documentUri,
                                 metadata: (context, event) => event.viewLocation.metadata,
+                                agentMetadata: (context, event) => event.viewLocation?.agentMetadata,
                                 dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata
                             })
                         },

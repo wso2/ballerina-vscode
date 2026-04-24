@@ -17,7 +17,7 @@
  */
 
 import styled from "@emotion/styled";
-import { ConfigProperties, FunctionModel, ParameterModel, MessageQueuePayloadContext, Type } from "@wso2/ballerina-core";
+import { ConfigProperties, FunctionModel, ParameterModel, MessageQueuePayloadContext, Type, Imports } from "@wso2/ballerina-core";
 import {
     ActionButtons,
     CheckBox,
@@ -314,7 +314,7 @@ export function DatabindForm(props: DatabindFormProps) {
         return rawParameterName.charAt(0).toUpperCase() + rawParameterName.slice(1);
     };
 
-    const handleTypeCreated = (type: Type | string) => {
+    const handleTypeCreated = (type: Type | string, imports?: Imports) => {
         if (!useInlineDataBinding) {
             // LEGACY MODE: Keep existing logic
             const payloadParam = functionModel.parameters?.find(param => param.kind === "DATA_BINDING");
@@ -323,6 +323,9 @@ export function DatabindForm(props: DatabindFormProps) {
                 updatedPayloadModel.name.value = "payload";
                 updatedPayloadModel.type.value = typeof type === 'string' ? type : (type as Type).name;
                 updatedPayloadModel.enabled = true;
+                if (imports) {
+                    updatedPayloadModel.type.imports = imports;
+                }
 
                 const index = functionModel.parameters.findIndex(param => param.kind === "DATA_BINDING");
                 if (index >= 0) {
@@ -345,6 +348,9 @@ export function DatabindForm(props: DatabindFormProps) {
                 value: typeValue
                 // placeholder remains unchanged
             };
+            if (imports) {
+                updatedParam.type.imports = imports;
+            }
 
             const index = functionModel.parameters.findIndex(
                 (param) => param.kind === "DATA_BINDING" &&

@@ -14,6 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
+import { CONFIG_COLLECTOR_TOOL } from "../tools/config-collector";
+
 export const REQUIREMENTS_DOCUMENT_KEY: string = "user_requirements_file";
 
 export function getRequirementAnalysisCodeGenPrefix(requirementAnalysisDocument: string) {
@@ -93,6 +95,12 @@ You are an expert test automation engineer specializing in generating test artif
 
 2. Create Ballerina test module with:
    - Network client configurations (if required, e.g., HTTP, GraphQL, WebSocket, etc.)
+   - Setup test configuration (if main code uses it):
+     * If main code uses configuration values (API keys, tokens, passwords), use ${CONFIG_COLLECTOR_TOOL}
+     * Set mode: "collect", isTestConfig: true
+     * Tell user: "Setting up test configuration based on main configuration"
+     * The tool will automatically handle reading from main config and saving to tests/Config.toml
+     * Example: { mode: "collect", variables: [{ name: "API_KEY", description: "Stripe API key", type: "string" }], isTestConfig: true }
    - Test data factories
    - Reusable validation functions
 

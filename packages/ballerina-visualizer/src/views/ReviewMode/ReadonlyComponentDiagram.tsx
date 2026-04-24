@@ -39,28 +39,50 @@ interface ReadonlyComponentDiagramProps {
     projectPath: string;
     filePath: string;
     position: NodePosition;
+    useFileSchema?: boolean;
+}
+
+const EmptyMessage = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: var(--vscode-descriptionForeground);
+    font-size: 14px;
+`;
+
+function isDesignModelEmpty(model: CDModel): boolean {
+    return model.connections.length === 0
+        && model.listeners.length === 0
+        && model.services.length === 0
+        && !model.automation;
 }
 
 export function ReadonlyComponentDiagram(props: ReadonlyComponentDiagramProps): JSX.Element {
-    const { projectPath } = props;
+    const { projectPath, useFileSchema } = props;
     const { rpcClient } = useRpcContext();
     const [project, setProject] = useState<CDModel | null>(null);
+    const [isLoaded, setIsLoaded] = useState(false);
 
     useEffect(() => {
+        setProject(null);
+        setIsLoaded(false);
         fetchProject();
-    }, [projectPath]);
+    }, [projectPath, useFileSchema]);
 
     const fetchProject = () => {
         rpcClient
             .getBIDiagramRpcClient()
-            .getDesignModel({ projectPath })
+            .getDesignModel({ projectPath, useFileSchema })
             .then((response) => {
                 if (response?.designModel) {
                     setProject(response.designModel);
                 }
+                setIsLoaded(true);
             })
             .catch((error) => {
                 console.error("Error getting design model", error);
+                setIsLoaded(true);
             });
     };
 
@@ -69,11 +91,19 @@ export function ReadonlyComponentDiagram(props: ReadonlyComponentDiagramProps): 
         console.log("Diagram is in readonly mode");
     };
 
-    if (!project) {
+    if (!isLoaded) {
         return (
             <SpinnerContainer>
                 <ProgressRing color={ThemeColors.PRIMARY} />
             </SpinnerContainer>
+        );
+    }
+
+    if (!project || isDesignModelEmpty(project)) {
+        return (
+            <EmptyMessage>
+                No top-level constructs found in the previous version
+            </EmptyMessage>
         );
     }
 

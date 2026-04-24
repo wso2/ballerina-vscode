@@ -12,14 +12,14 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { debounce } from "lodash";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RelativeLoader } from "../../../components/RelativeLoader";
-import FormGenerator from "../Forms/FormGenerator";
-import { McpToolsSelection } from "./Mcp/McpToolsSelection";
+import FlowNodeForm from "../Forms/FlowNodeForm";
+import { McpToolsSelection, ToolScopes } from "./Mcp/McpToolsSelection";
 import { DiscoverToolsModal } from "./Mcp/DiscoverToolsModal";
 import { RequiresAuthCheckbox } from "./Mcp/RequiresAuthCheckbox";
 import { attemptValueResolution, createMockTools, extractOriginalValues, generateToolKitName } from "./Mcp/utils";
 import { cleanServerUrl } from "./formUtils";
 import { Container, LoaderContainer } from "./styles";
-import { extractAccessToken, findAgentNodeFromAgentCallNode, getAgentFilePath, getEndOfFileLineRange, resolveVariableValue, resolveAuthConfig } from "./utils";
+import { extractAccessToken, findAgentNodeFromAgentCallNode, getEndOfFileLineRange, resolveVariableValue, resolveAuthConfig, checkAiPackageVersionSupport } from "./utils";
 
 interface Tool {
     name: string;
@@ -52,10 +52,12 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
     const [selectedMcpTools, setSelectedMcpTools] = useState<Set<string>>(new Set());
     const [loadingMcpTools, setLoadingMcpTools] = useState<boolean>(false);
     const [mcpToolsError, setMcpToolsError] = useState<string>("");
+    const [toolScopes, setToolScopes] = useState<ToolScopes>({});
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [showDiscoverModal, setShowDiscoverModal] = useState<boolean>(false);
+    const [showScopes, setShowScopes] = useState<boolean>(false);
 
     // Edit mode tracking
     const [resolutionError, setResolutionError] = useState<string>("");
@@ -76,15 +78,13 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
     };
 
     const fetchMcpToolKitTemplate = async () => {
-        const response = await rpcClient
-            .getBIDiagramRpcClient()
-            .getNodeTemplate({
-                position: { line: agentFileEndLineRangeRef.current.endLine.line, offset: agentFileEndLineRangeRef.current.endLine.offset },
-                filePath: agentFilePathRef.current,
-                id: {
-                    node: "MCP_TOOL_KIT",
-                }
-            });
+        const response = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
+            position: { line: agentFileEndLineRangeRef.current.endLine.line, offset: agentFileEndLineRangeRef.current.endLine.offset },
+            filePath: agentFilePathRef.current,
+            id: {
+                node: "MCP_TOOL_KIT",
+            },
+        });
         return response.flowNode;
     };
 
@@ -93,21 +93,26 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
         return moduleNodes;
     };
 
-    const setupEditMode = (variables: FlowNode[]) => {
+    const setupEditMode = async (variables: FlowNode[]) => {
         const mcpToolKitVariable = variables?.find(
             (v) => v.codedata?.node === "MCP_TOOL_KIT" && v.properties.variable?.value === props.name
         );
         if (!mcpToolKitVariable) return;
+
+        // Resolve relative fileName to absolute path so formDidOpen gets a valid file URI
+        if (mcpToolKitVariable.codedata?.lineRange?.fileName) {
+            const resolvedPath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({
+                segments: [mcpToolKitVariable.codedata.lineRange.fileName]
+            })).filePath;
+            mcpToolKitVariable.codedata.lineRange.fileName = resolvedPath;
+        }
+
         mcpToolKitNodeRef.current = mcpToolKitVariable;
         initializeEditMode();
     };
 
     const initPanel = useCallback(async () => {
         setIsLoading(true);
-
-        agentFilePathRef.current = await getAgentFilePath(rpcClient);
-        const endLineRange = await getEndOfFileLineRange("agents.bal", rpcClient);
-        agentFileEndLineRangeRef.current = endLineRange;
 
         // Get project path URI
         const visualizerLocation = await rpcClient.getVisualizerLocation();
@@ -116,12 +121,18 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
         const moduleNodes = await fetchModuleNodes();
 
         await fetchAgentNode();
+        agentFilePathRef.current = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [agentNodeRef.current?.codedata?.lineRange?.fileName] })).filePath;
+        const endLineRange = await getEndOfFileLineRange(agentNodeRef.current?.codedata?.lineRange?.fileName, rpcClient);
+        agentFileEndLineRangeRef.current = endLineRange;
+
         const template = await fetchMcpToolKitTemplate();
+        const scopesSupported = await checkAiPackageVersionSupport(rpcClient, visualizerLocation.projectPath, "1.11.0");
+        setShowScopes(scopesSupported);
 
         mcpToolKitNodeTemplateRef.current = template;
 
         if (editMode) {
-            setupEditMode(moduleNodes.flowModel.variables);
+            await setupEditMode(moduleNodes.flowModel.variables);
         } else {
             mcpToolKitNodeRef.current = template;
         }
@@ -275,10 +286,15 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
             const node = mcpToolKitNodeRef.current;
             if (!node) return;
 
-            const { serverUrl: savedUrl, auth: savedAuth, permittedTools, requiresAuth: savedRequiresAuth } = extractOriginalValues(node);
+            const { serverUrl: savedUrl, auth: savedAuth, permittedTools, requiresAuth: savedRequiresAuth, toolScopes: savedToolScopes } = extractOriginalValues(node);
 
-            // Update form state so FormGenerator displays values
+            // Update form state so FlowNodeForm displays values
             setRequiresAuth(savedRequiresAuth);
+
+            // Restore saved tool scopes
+            if (Object.keys(savedToolScopes).length > 0) {
+                setToolScopes(savedToolScopes);
+            }
 
             // If no tools saved, exit early
             if (permittedTools.length === 0) {
@@ -293,7 +309,6 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                 projectPathUriRef.current,
                 agentFilePathRef.current
             );
-
             // Set toolSource BEFORE setToolsInclude to prevent the useEffect from triggering a duplicate fetch
             setToolSource(resolution.canResolve ? 'auto-fetched' : 'saved-mock');
             setToolsInclude("selected");
@@ -320,7 +335,11 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                 displayMockTools(permittedTools);
             }
         } finally {
-            isInitializingEditModeRef.current = false;
+            // Delay clearing the flag so the FlowNodeForm's initial onChange burst
+            // (which fires for every field after the form mounts) doesn't reset toolSource.
+            setTimeout(() => {
+                isInitializingEditModeRef.current = false;
+            }, 0);
         }
     };
 
@@ -359,6 +378,13 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
         }
     }, [selectedMcpTools.size, availableMcpTools]);
 
+    const handleToolScopesChange = useCallback((toolName: string, scopes: string[]) => {
+        setToolScopes(prev => ({
+            ...prev,
+            [toolName]: scopes
+        }));
+    }, []);
+
     const handleDiscoveredTools = useCallback((tools: Tool[], selectedNames: Set<string>) => {
         setAvailableMcpTools(tools);
         setSelectedMcpTools(selectedNames);
@@ -385,6 +411,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                 agentFlowNode: agentNodeRef.current,
                 selectedTools: Array.from(selectedMcpTools),
                 updatedNode: node,
+                toolScopes: showScopes && Object.keys(toolScopes).length > 0 ? toolScopes : undefined,
             });
             onSave?.();
         } catch (error) {
@@ -434,11 +461,13 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                         resolutionError={resolutionError}
                         toolSource={toolSource}
                         onRetryFetch={handleRetryFetch}
+                        toolScopes={showScopes ? toolScopes : undefined}
+                        onToolScopesChange={showScopes ? handleToolScopesChange : undefined}
                     />
                 ),
                 index: 2
             }];
-    }, [availableMcpTools, selectedMcpTools, loadingMcpTools, mcpToolsError, serverUrl, handleToolSelectionChange, handleSelectAllTools, isSaveDisabled, requiresAuth, toolsInclude, editMode, toolSource, resolutionError, handleRetryFetch]);
+    }, [availableMcpTools, selectedMcpTools, loadingMcpTools, mcpToolsError, serverUrl, handleToolSelectionChange, handleSelectAllTools, isSaveDisabled, requiresAuth, toolsInclude, editMode, toolSource, resolutionError, handleRetryFetch, toolScopes, handleToolScopesChange, showScopes]);
 
     const fieldOverrides = useMemo(() => ({
         auth: {
@@ -459,7 +488,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
             )}
 
             {mcpToolKitNodeTemplateRef && (
-                <FormGenerator
+                <FlowNodeForm
                     ref={formRef}
                     fileName={mcpToolKitNodeRef.current?.codedata?.lineRange?.fileName ? mcpToolKitNodeRef.current.codedata.lineRange?.fileName : agentFileEndLineRangeRef.current?.fileName}
                     targetLineRange={mcpToolKitNodeRef.current?.codedata?.lineRange ? mcpToolKitNodeRef.current.codedata.lineRange : agentFileEndLineRangeRef.current}

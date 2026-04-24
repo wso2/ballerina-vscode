@@ -227,7 +227,6 @@ import {
     DeleteConfigVariableRequestV2,
     DeleteConfigVariableResponseV2,
     ResourceReturnTypesRequest,
-    ResourceReturnTypesResponse,
     JsonToTypeRequest,
     JsonToTypeResponse,
     McpToolsRequest,
@@ -283,7 +282,17 @@ import {
     PersistClientGenerateRequest,
     PersistClientGenerateResponse,
     WSDLApiClientGenerationRequest,
-    WSDLApiClientGenerationResponse
+    WSDLApiClientGenerationResponse,
+    CopilotSearchLibrariesBySearchRequest,
+    CopilotSearchLibrariesBySearchResponse,
+    ResolveOutputRequest,
+    CreateConvertedVariableRequest,
+    IntrospectCredentialsRequest,
+    IntrospectCredentialsResponse,
+    GetSimpleTypeOfExpressionResponse,
+    GetSimpleTypeOfExpressionRequest,
+    AIGetPackageVersionRequest,
+    AIGetPackageVersionResponse
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -353,6 +362,7 @@ enum EXTENDED_APIS {
     BI_VERIFY_TYPE_DELETE = 'typesManager/verifyTypeDelete',
     BI_DELETE_TYPE = 'typesManager/deleteType',
     BI_AVAILABLE_NODES = 'flowDesignService/getAvailableNodes',
+    BI_AVAILABLE_AGENTS = 'flowDesignService/getAvailableAgents',
     BI_AVAILABLE_MODEL_PROVIDERS = 'flowDesignService/getAvailableModelProviders',
     BI_AVAILABLE_VECTOR_STORES = 'flowDesignService/getAvailableVectorStores',
     BI_AVAILABLE_EMBEDDING_PROVIDERS = 'flowDesignService/getAvailableEmbeddingProviders',
@@ -379,6 +389,7 @@ enum EXTENDED_APIS {
     DATA_MAPPER_DELETE_SUB_MAPPING = 'dataMapper/deleteSubMapping',
     DATA_MAPPER_MAP_WITH_CUSTOM_FN = 'dataMapper/customFunction',
     DATA_MAPPER_MAP_WITH_TRANSFORM_FN = 'dataMapper/transformationFunction',
+    DATA_MAPPER_RESOLVE_OUTPUT = 'dataMapper/resolveOutput',
     DATA_MAPPER_CODEDATA = 'dataMapper/nodePosition',
     DATA_MAPPER_SUB_MAPPING_CODEDATA = 'dataMapper/subMapping',
     DATA_MAPPER_PROPERTY = 'dataMapper/targetFieldPosition',
@@ -386,6 +397,7 @@ enum EXTENDED_APIS {
     DATA_MAPPER_CLAUSE_POSITION = 'dataMapper/clausePosition',
     DATA_MAPPER_CLEAR_TYPE_CACHE = 'dataMapper/clearTypeCache',
     DATA_MAPPER_CONVERT_EXPRESSION = 'dataMapper/convertExpression',
+    DATA_MAPPER_CREATE_CONVERTED_VARIABLE = 'dataMapper/convertType',
     VIEW_CONFIG_VARIABLES_V2 = 'configEditorV2/getConfigVariables',
     UPDATE_CONFIG_VARIABLES_V2 = 'configEditorV2/updateConfigVariable',
     DELETE_CONFIG_VARIABLE_V2 = 'configEditorV2/deleteConfigVariable',
@@ -408,6 +420,7 @@ enum EXTENDED_APIS {
     BI_TRIGGER_UPDATE_FUNCTION = 'triggerDesignService/updateTriggerFunction',
     BI_GET_TYPES = 'typesManager/getTypes',
     BI_GET_TYPE = 'typesManager/getType',
+    BI_GET_SIMPLE_TYPE_OF_EXPRESSION = 'typesManager/getTypeOfExpression',
     BI_UPDATE_TYPE = 'typesManager/updateType',
     BI_UPDATE_TYPES = 'typesManager/updateTypes',
     BI_GET_GRAPHQL_TYPE = 'typesManager/getGraphqlType',
@@ -458,6 +471,7 @@ enum EXTENDED_APIS {
     BI_AI_GET_TOOL = 'agentManager/getTool',
     BI_AI_GET_MCP_TOOLS = 'agentManager/getMcpTools',
     BI_AI_GEN_TOOLS = 'agentManager/genTool',
+    BI_AI_GET_PACKAGE_VERSION = 'agentManager/getPackageVersion',
     BI_GET_SEMANTIC_DIFF = 'copilotAgentService/getSemanticDiff',
     BI_IS_ICP_ENABLED = 'icpService/isIcpEnabled',
     BI_ADD_ICP = 'icpService/addICP',
@@ -468,6 +482,7 @@ enum EXTENDED_APIS {
     OPEN_API_GENERATED_MODULES = 'openAPIService/getModules',
     OPEN_API_CLIENT_DELETE = 'openAPIService/deleteModule',
     PERSIST_DATABASE_INTROSPECTION = 'persistService/introspectDatabase',
+    PERSIST_CREDENTIALS_INTROSPECTION = 'persistService/introspectCredentials',
     PERSIST_CLIENT_GENERATE = 'persistService/generatePersistClient',
     WSDL_API_CLIENT_GENERATE = 'wsdlService/genClient',
     GET_PROJECT_INFO = 'designModelService/projectInfo',
@@ -475,6 +490,7 @@ enum EXTENDED_APIS {
     PUBLISH_ARTIFACTS = 'designModelService/publishArtifacts',
     COPILOT_ALL_LIBRARIES = 'copilotLibraryManager/getLibrariesList',
     COPILOT_FILTER_LIBRARIES = 'copilotLibraryManager/getFilteredLibraries',
+    COPILOT_SEARCH_LIBRARIES = 'copilotLibraryManager/getLibrariesBySearch',
     GET_MIGRATION_TOOLS = 'projectService/getMigrationTools',
     TIBCO_TO_BI = 'projectService/importTibco',
     MULE_TO_BI = 'projectService/importMule',
@@ -717,6 +733,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         return this.sendRequest<PersistClientGenerateResponse>(EXTENDED_APIS.PERSIST_CLIENT_GENERATE, params);
     }
 
+    async introspectCredentials(params: IntrospectCredentialsRequest): Promise<IntrospectCredentialsResponse> {
+        return this.sendRequest<IntrospectCredentialsResponse>(EXTENDED_APIS.PERSIST_CREDENTIALS_INTROSPECTION, params);
+    }
+
     async generateWSDLApiClient(params: WSDLApiClientGenerationRequest): Promise<WSDLApiClientGenerationResponse> {
         return this.sendRequest<WSDLApiClientGenerationResponse>(EXTENDED_APIS.WSDL_API_CLIENT_GENERATE, params);
     }
@@ -861,6 +881,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         return this.sendRequest<DataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_MAP_WITH_TRANSFORM_FN, params);
     }
 
+    async resolveOutput(params: ResolveOutputRequest): Promise<DataMapperSourceResponse> {
+        return this.sendRequest<DataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_RESOLVE_OUTPUT, params);
+    }
+
     async getDataMapperCodedata(params: GetDataMapperCodedataRequest): Promise<GetDataMapperCodedataResponse> {
         return this.sendRequest<GetDataMapperCodedataResponse>(EXTENDED_APIS.DATA_MAPPER_CODEDATA, params);
     }
@@ -883,6 +907,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async getConvertedExpression(params: ConvertExpressionRequest): Promise<ConvertExpressionResponse> {
         return this.sendRequest<ConvertExpressionResponse>(EXTENDED_APIS.DATA_MAPPER_CONVERT_EXPRESSION, params);
+    }
+
+    async createConvertedVariable(params: CreateConvertedVariableRequest): Promise<DataMapperSourceResponse> {
+        return this.sendRequest<DataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_CREATE_CONVERTED_VARIABLE, params);
     }
 
     async clearTypeCache(): Promise<ClearTypeCacheResponse> {
@@ -972,7 +1000,17 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
     }
 
     async isIcpEnabled(params: ICPEnabledRequest): Promise<ICPEnabledResponse | NOT_SUPPORTED_TYPE> {
-        return this.sendRequest(EXTENDED_APIS.BI_IS_ICP_ENABLED, params);
+        // Check if ICP import exists in main.bal instead of querying the language server
+        const mainBalPath = require('path').join(params.projectPath, 'main.bal');
+        try {
+            const content = require('fs').readFileSync(mainBalPath, 'utf-8');
+            const enabled = content.includes('import wso2/icp.runtime.bridge as _;');
+            return { enabled };
+        } catch {
+            return { enabled: false };
+        }
+        // Original LS-based implementation:
+        // return this.sendRequest(EXTENDED_APIS.BI_IS_ICP_ENABLED, params);
     }
 
     async addICP(params: ICPEnabledRequest): Promise<TestSourceEditResponse | NOT_SUPPORTED_TYPE> {
@@ -1087,6 +1125,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async getAvailableNodes(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
         return this.sendRequest<BIAvailableNodesResponse>(EXTENDED_APIS.BI_AVAILABLE_NODES, params);
+    }
+
+    async getAvailableAgents(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        return this.sendRequest<BIAvailableNodesResponse>(EXTENDED_APIS.BI_AVAILABLE_AGENTS, params);
     }
 
     async getAvailableModelProviders(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
@@ -1326,6 +1368,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         return this.sendRequest<GetTypeResponse>(EXTENDED_APIS.BI_GET_TYPE, params);
     }
 
+    async getSimpleTypeOfExpression(params: GetSimpleTypeOfExpressionRequest): Promise<GetSimpleTypeOfExpressionResponse> {
+        return this.sendRequest<GetSimpleTypeOfExpressionResponse>(EXTENDED_APIS.BI_GET_SIMPLE_TYPE_OF_EXPRESSION, params);
+    }
+
     async updateType(params: UpdateTypeRequest): Promise<UpdateTypeResponse> {
         return this.sendRequest<UpdateTypeResponse>(EXTENDED_APIS.BI_UPDATE_TYPE, params);
     }
@@ -1402,6 +1448,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         return this.sendRequest<AIGentToolsResponse>(EXTENDED_APIS.BI_AI_GEN_TOOLS, params);
     }
 
+    async getPackageVersion(params: AIGetPackageVersionRequest): Promise<AIGetPackageVersionResponse> {
+        return this.sendRequest<AIGetPackageVersionResponse>(EXTENDED_APIS.BI_AI_GET_PACKAGE_VERSION, params);
+    }
+
     async search(params: BISearchRequest): Promise<BISearchResponse> {
         return this.sendRequest<BISearchResponse>(EXTENDED_APIS.BI_SEARCH, params);
     }
@@ -1430,6 +1480,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         return this.sendRequest<CopilotFilterLibrariesResponse>(EXTENDED_APIS.COPILOT_FILTER_LIBRARIES, params);
     }
 
+    async getCopilotLibrariesBySearch(params: CopilotSearchLibrariesBySearchRequest): Promise<CopilotSearchLibrariesBySearchResponse> {
+        return this.sendRequest<CopilotSearchLibrariesBySearchResponse>(EXTENDED_APIS.COPILOT_SEARCH_LIBRARIES, params);
+    }
+
     async getMigrationTools(): Promise<GetMigrationToolsResponse> {
         return this.sendRequest<GetMigrationToolsResponse>(EXTENDED_APIS.GET_MIGRATION_TOOLS);
     }
@@ -1446,7 +1500,7 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async getSemanticDiff(params: SemanticDiffRequest): Promise<SemanticDiffResponse> {
         return this.sendRequest<SemanticDiffResponse>(EXTENDED_APIS.BI_GET_SEMANTIC_DIFF, params);
-    }   
+    }
 
     // <------------ BI APIS END --------------->
 

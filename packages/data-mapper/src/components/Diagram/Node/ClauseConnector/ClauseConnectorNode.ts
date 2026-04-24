@@ -95,7 +95,7 @@ export class ClauseConnectorNode extends DataMapperNodeModel {
                 if (node instanceof QueryOutputNode) {
                     const targetPortPrefix = getTargetPortPrefix(node);
 
-                    this.targetMappedPort = node.getPort(`${targetPortPrefix}.${this.query.output}.#.IN`) as InputOutputPortModel;
+                    this.targetMappedPort = node.getPort(`${targetPortPrefix}.${this.query.output}.Q#.IN`) as InputOutputPortModel;
 
                     if (prevSourcePorts.length !== this.sourcePorts.length ||
                         !prevSourcePorts.every((port, idx) => port.getID() === this.sourcePorts[idx]?.getID())) {

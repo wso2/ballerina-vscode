@@ -19,6 +19,7 @@
 import { Plugin, PluginKey } from 'prosemirror-state';
 import { Schema, NodeSpec, DOMOutputSpec } from 'prosemirror-model';
 import { schema as markdownSchema } from 'prosemirror-markdown';
+import { tableNodes } from 'prosemirror-tables';
 import {
     getParsedExpressionTokens,
     detectTokenPatterns,
@@ -110,7 +111,29 @@ const chipNodeSpec: NodeSpec = {
 };
 
 export function createChipSchema(): Schema {
-    const nodes = markdownSchema.spec.nodes.addToEnd('chip', chipNodeSpec);
+    const tNodes = tableNodes({
+        tableGroup: "block",
+        cellContent: "block+",
+        cellAttributes: {
+            alignment: {
+                default: null,
+                getFromDOM(dom: HTMLElement) {
+                    return dom.style.textAlign || null;
+                },
+                setDOMAttr(value, attrs) {
+                    if (value) {
+                        attrs.style = ((attrs.style as string) || "") + `text-align: ${value};`;
+                    }
+                }
+            }
+        }
+    });
+
+    let nodes = markdownSchema.spec.nodes;
+    for (const [name, spec] of Object.entries(tNodes)) {
+        nodes = nodes.addToEnd(name, spec);
+    }
+    nodes = nodes.addToEnd('chip', chipNodeSpec);
 
     return new Schema({
         nodes,
@@ -139,6 +162,10 @@ function createChipElement(
 ): HTMLElement {
     const span = document.createElement('span');
     span.className = 'pm-chip';
+
+    if (metadata?.fullValue) {
+        span.title = metadata.fullValue;
+    }
 
     // Determine display text
     let displayText = getChipDisplayContent(type, text);
@@ -181,10 +208,10 @@ function createChipElement(
     return span;
 }
 
-function findDocPosition(doc: any, textOffset: number): number {
+function findDocPosition(doc: any, textOffset: number, bias: 'start' | 'end' = 'end'): number {
     // Clamp offset to valid range
     if (textOffset <= 0) return 0;
-    if (textOffset >= doc.textContent.length) return doc.content.size;
+    if (textOffset > doc.textContent.length) return doc.content.size;
 
     let charCount = 0;
     let docPos = 0;
@@ -196,7 +223,13 @@ function findDocPosition(doc: any, textOffset: number): number {
         if (node.isText) {
             const textLength = node.text.length;
 
-            if (charCount + textLength >= textOffset) {
+            // 'start' bias: prefer next text node at paragraph boundaries
+            // 'end' bias: stay in current text node
+            const found = bias === 'start'
+                ? charCount + textLength > textOffset
+                : charCount + textLength >= textOffset;
+
+            if (found) {
                 // This text node contains our target offset
                 docPos = pos + (textOffset - charCount);
                 return false;
@@ -262,8 +295,8 @@ function replaceTextWithChips(
                     diagnostic: null
                 });
 
-                const startDocPos = findDocPosition(tr.doc, compound.start);
-                const endDocPos = findDocPosition(tr.doc, compound.end);
+                const startDocPos = findDocPosition(tr.doc, compound.start, 'start');
+                const endDocPos = findDocPosition(tr.doc, compound.end, 'end');
 
                 replacements.push({ from: startDocPos, to: endDocPos, node: chipNode });
             }
@@ -300,8 +333,8 @@ function replaceTextWithChips(
             diagnostic: null
         });
 
-        const startDocPos = findDocPosition(tr.doc, token.start);
-        const endDocPos = findDocPosition(tr.doc, token.end);
+        const startDocPos = findDocPosition(tr.doc, token.start, 'start');
+        const endDocPos = findDocPosition(tr.doc, token.end, 'end');
 
         replacements.push({ from: startDocPos, to: endDocPos, node: chipNode });
     }
@@ -347,6 +380,11 @@ export function createChipPlugin(
                             lastProcessedTokens: tokensKey
                         };
                     }
+                }
+
+                // Clear stale chip data on user edits so chips get re-created at correct positions
+                if ((tr as any).docChanged && tr.getMeta('addToHistory') !== false) {
+                    return { tokenUpdate: null, lastProcessedTokens: null };
                 }
 
                 return value;

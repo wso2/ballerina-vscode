@@ -25,6 +25,8 @@ import {
     AddFilesToProjectRequest,
     ApproveTaskRequest,
     CheckpointInfo,
+    ConfigurationCancelRequest,
+    ConfigurationProvideRequest,
     ConnectorSpecCancelRequest,
     ConnectorSpecRequest,
     DocGenerationRequest,
@@ -33,9 +35,12 @@ import {
     LLMDiagnostics,
     LoginMethod,
     MetadataWithAttachments,
+    OpenFileDiffRequest,
     PlanApprovalRequest,
     ProcessContextTypeCreationRequest,
     ProcessMappingParametersRequest,
+    PromptEnhancementRequest,
+    PromptEnhancementResponse,
     RequirementSpecification,
     RestoreCheckpointRequest,
     SemanticDiffRequest,
@@ -45,11 +50,20 @@ import {
     TestGenerationMentions,
     UIChatMessage,
     UpdateChatMessageRequest,
+    UsageResponse,
+    WebToolApprovalRequest,
+    ClarifyAnswerRequest,
+    ClarifyCancelRequest,
+    approveWebTool,
+    declineWebTool,
+    submitClarifyAnswer,
+    cancelClarify,
     abortAIGeneration,
     acceptChanges,
     addFilesToProject,
     approvePlan,
     approveTask,
+    cancelConfiguration,
     cancelConnectorSpec,
     clearChat,
     clearInitialPrompt,
@@ -57,6 +71,7 @@ import {
     declineChanges,
     declinePlan,
     declineTask,
+    enhancePrompt,
     generateAgent,
     generateContextTypes,
     generateInlineMappingCode,
@@ -64,6 +79,7 @@ import {
     generateOpenAPI,
     getAIMachineSnapshot,
     getActiveTempDir,
+    getAffectedPackages,
     getChatMessages,
     getCheckpoints,
     getDefaultPrompt,
@@ -72,22 +88,35 @@ import {
     getGeneratedDocumentation,
     getLoginMethod,
     getSemanticDiff,
-    getAffectedPackages,
-    isWorkspaceProject,
     getServiceNames,
     isCopilotSignedIn,
-    isPlanModeFeatureEnabled,
+    isPlatformExtensionAvailable,
     isUserAuthenticated,
+    isWorkspaceProject,
     markAlertShown,
     openAIPanel,
     openChatWindowWithCommand,
+    openFileDiff,
+    promptForLogin,
     promptGithubAuthorize,
+    provideConfiguration,
     provideConnectorSpec,
     restoreCheckpoint,
     showSignInAlert,
     submitFeedback,
     updateChatMessage,
-    updateRequirementSpecification
+    updateRequirementSpecification,
+    getUsage,
+    compactConversation,
+    CompactConversationRequest,
+    CompactConversationResponse,
+    getShowContextUsage,
+    getRunningServices,
+    stopRunningService,
+    RunningServiceInfo,
+    StopRunningServiceRequest,
+    RunServiceRequest,
+    runService,
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -101,6 +130,10 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     getLoginMethod(): Promise<LoginMethod> {
         return this._messenger.sendRequest(getLoginMethod, HOST_EXTENSION);
+    }
+
+    isPlatformExtensionAvailable(): Promise<boolean> {
+        return this._messenger.sendRequest(isPlatformExtensionAvailable, HOST_EXTENSION);
     }
 
     getDefaultPrompt(): Promise<AIPanelPrompt> {
@@ -199,9 +232,6 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendRequest(openAIPanel, HOST_EXTENSION, params);
     }
 
-    isPlanModeFeatureEnabled(): Promise<boolean> {
-        return this._messenger.sendRequest(isPlanModeFeatureEnabled, HOST_EXTENSION);
-    }
 
     getSemanticDiff(params: SemanticDiffRequest): Promise<SemanticDiffResponse> {
         return this._messenger.sendRequest(getSemanticDiff, HOST_EXTENSION, params);
@@ -247,6 +277,14 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendRequest(cancelConnectorSpec, HOST_EXTENSION, params);
     }
 
+    provideConfiguration(params: ConfigurationProvideRequest): Promise<void> {
+        return this._messenger.sendRequest(provideConfiguration, HOST_EXTENSION, params);
+    }
+
+    cancelConfiguration(params: ConfigurationCancelRequest): Promise<void> {
+        return this._messenger.sendRequest(cancelConfiguration, HOST_EXTENSION, params);
+    }
+
     getChatMessages(): Promise<UIChatMessage[]> {
         return this._messenger.sendRequest(getChatMessages, HOST_EXTENSION);
     }
@@ -269,5 +307,58 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     getActiveTempDir(): Promise<string> {
         return this._messenger.sendRequest(getActiveTempDir, HOST_EXTENSION);
+    }
+
+    getUsage(): Promise<UsageResponse | undefined> {
+        return this._messenger.sendRequest(getUsage, HOST_EXTENSION);
+    }
+
+    openFileDiff(params: OpenFileDiffRequest): void {
+        return this._messenger.sendNotification(openFileDiff, HOST_EXTENSION, params);
+    }
+
+    approveWebTool(params: WebToolApprovalRequest): Promise<void> {
+        return this._messenger.sendRequest(approveWebTool, HOST_EXTENSION, params);
+    }
+
+    declineWebTool(params: WebToolApprovalRequest): Promise<void> {
+        return this._messenger.sendRequest(declineWebTool, HOST_EXTENSION, params);
+    }
+
+    compactConversation(params: CompactConversationRequest): Promise<CompactConversationResponse> {
+        return this._messenger.sendRequest(compactConversation, HOST_EXTENSION, params);
+    }
+
+    getShowContextUsage(): Promise<boolean> {
+        return this._messenger.sendRequest(getShowContextUsage, HOST_EXTENSION);
+    }
+
+    
+    enhancePrompt(params: PromptEnhancementRequest): Promise<PromptEnhancementResponse> {
+        return this._messenger.sendRequest(enhancePrompt, HOST_EXTENSION, params);
+    }
+
+    promptForLogin(): void {
+        return this._messenger.sendNotification(promptForLogin, HOST_EXTENSION);
+    }
+
+    submitClarifyAnswer(params: ClarifyAnswerRequest): Promise<void> {
+        return this._messenger.sendRequest(submitClarifyAnswer, HOST_EXTENSION, params);
+    }
+
+    cancelClarify(params: ClarifyCancelRequest): Promise<void> {
+        return this._messenger.sendRequest(cancelClarify, HOST_EXTENSION, params);
+    }
+
+    getRunningServices(): Promise<RunningServiceInfo[]> {
+        return this._messenger.sendRequest(getRunningServices, HOST_EXTENSION);
+    }
+
+    stopRunningService(params: StopRunningServiceRequest): Promise<boolean> {
+        return this._messenger.sendRequest(stopRunningService, HOST_EXTENSION, params);
+    }
+
+    runService(params: RunServiceRequest): Promise<boolean> {
+        return this._messenger.sendRequest(runService, HOST_EXTENSION, params);
     }
 }

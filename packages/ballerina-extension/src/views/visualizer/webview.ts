@@ -25,17 +25,22 @@ import { WebViewOptions, getComposerWebViewOptions, getLibraryWebViewContent } f
 import { extension } from "../../BalExtensionContext";
 import { StateMachine, undoRedoManager, updateView } from "../../stateMachine";
 import { LANGUAGE } from "../../core";
-import { CodeData, MACHINE_VIEW } from "@wso2/ballerina-core";
+import { MACHINE_VIEW } from "@wso2/ballerina-core";
 import { refreshDataMapper } from "../../rpc-managers/data-mapper/utils";
 import { AiPanelWebview } from "../ai-panel/webview";
+import { approvalViewManager } from "../../features/ai/state/ApprovalViewManager";
+import { StateMachinePopup } from "../../stateMachinePopup";
+import { clearFormState } from "../../rpc-managers/bi-diagram/form-state";
+import { isInWI } from "../../utils/config";
 
 export class VisualizerWebview {
     public static currentPanel: VisualizerWebview | undefined;
     public static readonly viewType = "ballerina.visualizer";
     public static readonly ballerinaTitle = "Ballerina Visualizer";
-    public static readonly biTitle = "WSO2 Integrator: BI";
+    public static readonly biTitle = "WSO2 Integrator";
     private _panel: vscode.WebviewPanel | undefined;
     private _disposables: vscode.Disposable[] = [];
+    private _pendingProjectInfoRefresh = false;
 
     constructor() {
         this._panel = VisualizerWebview.createWebview();
@@ -48,6 +53,10 @@ export class VisualizerWebview {
             if (this._panel) {
                 updateView(refreshTreeView);
             }
+        }, 500);
+
+        const debouncedRefreshWorkspaceProjectInfo = debounce(() => {
+            StateMachine.refreshProjectInfo();
         }, 500);
 
         const debouncedRefreshDataMapper = debounce(async () => {
@@ -77,11 +86,18 @@ export class VisualizerWebview {
             if (document?.contentChanges.length === 0 || !machineReady) { return; }
 
             const balFileModified = document?.document.languageId === LANGUAGE.BALLERINA;
+
             const configTomlModified = document.document.languageId === LANGUAGE.TOML &&
                 document.document.fileName.endsWith("Config.toml") &&
                 vscode.window.visibleTextEditors.some(editor =>
                     editor.document.fileName === document.document.fileName
                 );
+
+            const workspacePath = StateMachine.context().workspacePath;
+            const workspaceBallerinaTomlModified = !!workspacePath &&
+                document.document.languageId === LANGUAGE.TOML &&
+                document.document.fileName === path.join(workspacePath, "Ballerina.toml");
+
             const dataMapperModified = balFileModified &&
                 (
                     StateMachine.context().view === MACHINE_VIEW.InlineDataMapper ||
@@ -91,9 +107,22 @@ export class VisualizerWebview {
 
             if (dataMapperModified) {
                 debouncedRefreshDataMapper();
+            } else if (workspaceBallerinaTomlModified) {
+                // Defer the project info refresh until the webview is active
+                this._pendingProjectInfoRefresh = true;
             } else if ((this._panel?.active || AiPanelWebview.currentPanel?.getWebview()?.active) && balFileModified) {
                 sendUpdateNotificationToWebview();
             } else if (configTomlModified) {
+                sendUpdateNotificationToWebview(true);
+            }
+        }, extension.context);
+
+        vscode.workspace.onDidSaveTextDocument((document) => {
+            const configTomlSaved = document.languageId === LANGUAGE.TOML &&
+                document.fileName.endsWith("Config.toml");
+            const state = StateMachine.state();
+            const machineReady = typeof state === 'object' && 'viewActive' in state && state.viewActive === "viewReady";
+            if (configTomlSaved && machineReady) {
                 sendUpdateNotificationToWebview(true);
             }
         }, extension.context);
@@ -106,9 +135,16 @@ export class VisualizerWebview {
             vscode.commands.executeCommand('setContext', 'isBalVisualizerActive', this._panel?.active);
             // Refresh the webview when becomes active
             const state = StateMachine.state();
+            const popupState = StateMachinePopup.state();
             const machineReady = typeof state === 'object' && 'viewActive' in state && state.viewActive === "viewReady";
-            if (this._panel?.active && machineReady) {
-                sendUpdateNotificationToWebview(true);
+            const popupActive = typeof popupState === 'object' && 'open' in popupState && popupState.open === "active";
+            if (this._panel?.active && machineReady && !popupActive) {
+                if (this._pendingProjectInfoRefresh) {
+                    this._pendingProjectInfoRefresh = false;
+                    debouncedRefreshWorkspaceProjectInfo();
+                } else {
+                    sendUpdateNotificationToWebview(true);
+                }
             }
         });
 
@@ -118,25 +154,29 @@ export class VisualizerWebview {
     }
 
     public static get webviewTitle(): string {
-        const biExtension = vscode.extensions.getExtension('wso2.ballerina-integrator');
+        const biExtension = isInWI() || vscode.extensions.getExtension('wso2.ballerina-integrator');
         return biExtension ? VisualizerWebview.biTitle : VisualizerWebview.ballerinaTitle;
     }
 
     private static createWebview(): vscode.WebviewPanel {
+        // If the AI panel is open, open the visualizer in column One so they don't stack in the same column.
+        // ViewColumn.Active resolves to the AI panel's column when it is the active webview.
+        const aiPanelOpen = AiPanelWebview.currentPanel !== undefined;
+        const targetColumn = aiPanelOpen ? ViewColumn.One : ViewColumn.Active;
         const panel = vscode.window.createWebviewPanel(
             VisualizerWebview.viewType,
             VisualizerWebview.webviewTitle,
-            { viewColumn: ViewColumn.Active, preserveFocus: true },
+            { viewColumn: targetColumn, preserveFocus: true },
             {
                 enableScripts: true,
                 localResourceRoots: [Uri.file(path.join(extension.context.extensionPath, "resources"))],
                 retainContextWhenHidden: true,
             }
         );
-        const biExtension = vscode.extensions.getExtension('wso2.ballerina-integrator');
+        const biExtension = isInWI() || vscode.extensions.getExtension('wso2.ballerina-integrator');
         panel.iconPath = {
-            light: vscode.Uri.file(path.join(extension.context.extensionPath, 'resources', 'icons', biExtension ? 'light-icon.svg' : 'ballerina.svg')),
-            dark: vscode.Uri.file(path.join(extension.context.extensionPath, 'resources', 'icons', biExtension ? 'dark-icon.svg' : 'ballerina-inverse.svg'))
+            light: vscode.Uri.file(path.join(extension.context.extensionPath, 'resources', 'icons', biExtension ? 'wso2-dark.svg' : 'ballerina.svg')),
+            dark: vscode.Uri.file(path.join(extension.context.extensionPath, 'resources', 'icons', biExtension ? 'wso2-light.svg' : 'ballerina-inverse.svg'))
         };
         return panel;
     }
@@ -153,14 +193,14 @@ export class VisualizerWebview {
         // Check if devant.editor extension is active
         const isDevantEditor = vscode.commands.executeCommand('getContext', 'devant.editor') !== undefined;
         
-        const biExtension = vscode.extensions.getExtension('wso2.ballerina-integrator');
+        const biExtension = isInWI() || vscode.extensions.getExtension('wso2.ballerina-integrator');
         const body = `<div class="container" id="webview-container">
                 <div class="loader-wrapper">
                     <div class="welcome-content">
                         <div class="logo-container">
                             <div class="loader"></div>
                         </div>
-                        <h1 class="welcome-title">${biExtension ? 'WSO2 Integrator: BI' : 'Ballerina Visualizer'}</h1>
+                        <h1 class="welcome-title">${biExtension ? VisualizerWebview.biTitle : VisualizerWebview.ballerinaTitle}</h1>
                         <p class="welcome-subtitle">Setting up your workspace and tools</p>
                         <div class="loading-text">
                             <span class="loading-dots">Loading</span>
@@ -281,6 +321,9 @@ export class VisualizerWebview {
     }
 
     public dispose() {
+        approvalViewManager.onVisualizerClosed();
+        clearFormState();
+
         VisualizerWebview.currentPanel = undefined;
         this._panel?.dispose();
 

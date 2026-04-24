@@ -20,6 +20,7 @@
 import { Diagnostic } from "vscode-languageserver-types";
 import { Completion } from "../../interfaces/extended-lang-client";
 import { NodePosition } from "@wso2/syntax-tree";
+import { QuickPickItem, QuickPickOptions } from "vscode";
 
 export interface TypeResponse {
     data: Completion[];
@@ -85,10 +86,23 @@ export interface FileOrDirResponse {
 }
 export interface FileOrDirRequest {
     isFile?: boolean;
+    filters?: Record<string, string[]>;
+    allowOutsideProject?: boolean;
 }
 
 export interface ShowErrorMessageRequest {
     message: string;
+}
+
+export interface ShowInfoModalRequest {
+    message: string;
+    detail?: string;
+    items?: string[];
+}
+
+export interface ShowQuickPickRequest {
+    items: QuickPickItem[];
+    options?: QuickPickOptions;
 }
 
 export interface TomlWorkspace {
@@ -100,6 +114,7 @@ export interface TomlPackage {
     name: string;
     version: string;
     title: string;
+    library?: boolean;
 }
 
 export interface WorkspaceTomlValues {
@@ -108,12 +123,38 @@ export interface WorkspaceTomlValues {
 
 export interface PackageTomlValues {
     package: TomlPackage;
+    tool?: {
+        openapi?: {
+            id: string;
+            targetModule: string;
+            filePath: string;
+        }[];
+    }
+}
+
+export interface SettingsTomlValues {
+    central: {
+        accesstoken: string;
+    };
 }
 
 export interface WorkspaceTypeResponse {
     type: "SINGLE_PROJECT" | "MULTIPLE_PROJECTS" | "BALLERINA_WORKSPACE" | "VSCODE_WORKSPACE" | "UNKNOWN"
 }
 
+export interface SetWebviewCacheRequestParam {
+	cacheKey: IDBValidKey;
+	data: unknown;
+}
 export interface SampleDownloadRequest {
     zipFileName: string;
+}
+
+export interface DefaultOrgNameResponse {
+    orgName: string;
+}
+
+export interface PublishToCentralResponse {
+    success: boolean;
+    message?: string;
 }
