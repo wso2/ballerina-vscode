@@ -17,7 +17,7 @@
  */
 
 import { ErrorBanner, TextField } from "@wso2/ui-toolkit";
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { debounce } from "lodash";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { useFormContext } from "../../context";
@@ -35,12 +35,34 @@ export function IdentifierField(props: IdentifierFieldProps) {
     const { rpcClient } = useRpcContext();
     const { form, targetLineRange, fileName } = useFormContext();
     const [formDiagnostics, setFormDiagnostics] = useState(field.diagnostics);
-    const { watch, formState, register, setValue } = form;
+    const { watch, formState, register, setValue, setError, clearErrors } = form;
     const { errors } = formState;
+    const hasSetIdentifierErrorRef = useRef(false);
+
+    const setIdentifierErrorState = useCallback((errorMessage: string | null) => {
+        if (errorMessage) {
+            setError(field.key, { type: "identifier_diagnostic", message: errorMessage });
+            hasSetIdentifierErrorRef.current = true;
+        } else if (hasSetIdentifierErrorRef.current) {
+            clearErrors(field.key);
+            hasSetIdentifierErrorRef.current = false;
+        }
+    }, [field.key, setError, clearErrors]);
 
     useEffect(() => {
         setFormDiagnostics(field.diagnostics);
     }, [field.diagnostics]);
+
+    // Clear our identifier diagnostic error on unmount so it doesn't persist and block save after the field is gone
+    useEffect(() => {
+        const key = field.key;
+        return () => {
+            if (hasSetIdentifierErrorRef.current) {
+                clearErrors(key);
+                hasSetIdentifierErrorRef.current = false;
+            }
+        };
+    }, [field.key, clearErrors]);
 
     // Sync external field value changes to the form (e.g., when a sibling field's onValueChange updates the value)
     useEffect(() => {
@@ -61,16 +83,21 @@ export function IdentifierField(props: IdentifierFieldProps) {
                 }
             });
             if (response.diagnostics.length > 0) {
-                setFormDiagnostics([{message: response.diagnostics[0].message, severity: mapDiagnosticsServerityToFormSeverity(response.diagnostics[0].severity)}]);
+                const rawDiagnostic = response.diagnostics[0];
+                setFormDiagnostics([{ message: rawDiagnostic.message, severity: mapDiagnosticsServerityToFormSeverity(rawDiagnostic.severity) }]);
+                const errorDiagnostic = response.diagnostics.find((d) => d.severity === 1);
+                setIdentifierErrorState(errorDiagnostic?.message ?? null);
             } else {
                 setFormDiagnostics([]);
+                setIdentifierErrorState(null);
             }
         } catch (error) {
             console.error('Failed to fetch expression diagnostics:', error);
             // Optionally clear diagnostics or show error state
             setFormDiagnostics([]);
+            setIdentifierErrorState(null);
         }
-    }, 250), [rpcClient, field, targetLineRange, fileName]);
+    }, 250), [rpcClient, field, targetLineRange, fileName, setIdentifierErrorState]);
 
     const handleOnBlur = (e: React.ChangeEvent<HTMLInputElement>) => {
         validateIdentifierName(e.target.value);
