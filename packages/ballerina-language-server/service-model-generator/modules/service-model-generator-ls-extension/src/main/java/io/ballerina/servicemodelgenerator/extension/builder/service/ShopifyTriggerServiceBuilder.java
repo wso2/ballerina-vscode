@@ -79,7 +79,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.applyEnabl
  * Supports "Create new" and "Use existing" listener selection with 4 service types:
  * OrdersService, CustomersService, ProductsService, FulfillmentsService.
  *
- * @since 1.9.0
+ * @since 1.7.0
  */
 public class ShopifyTriggerServiceBuilder extends AbstractServiceBuilder {
 
