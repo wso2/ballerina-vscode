@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-const BetaModules = ["graphql", "tcp", "trigger.github"];
+const BetaModules = ["graphql", "tcp", "trigger.github", "trigger.shopify"];
 
 export const OutOfScopeComponentTooltip = "This feature is not available in the current scope.";
 export const AutomationAlreadyExistsTooltip = "An integration can only have one automation. You have already created an automation.";
