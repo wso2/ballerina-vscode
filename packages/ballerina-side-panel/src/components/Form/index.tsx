@@ -537,7 +537,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                     } else if (isDropdownField(field)) {
                         defaultValues[field.key] = getValueForDropdown(field) ?? "";
                     } else if (field.type === "FLAG") {
-                         defaultValues[field.key] = field.value;
+                        defaultValues[field.key] = field.value;
                     } else if (typeof field.value === "string") {
                         defaultValues[field.key] = formatJSONLikeString(field.value) ?? "";
                     } else {
@@ -548,23 +548,6 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                     }
                     if (field.key === "parameters" && field.value?.length && field.value.length === 0) {
                         defaultValues[field.key] = formValues[field.key] ?? [];
-                    }
-
-                    if (getPrimaryInputType(field.types)?.fieldType === "TYPE") {
-                        // Handle the case where the type is changed via 'Add Type'
-                        const existingType = formValues[field.key];
-                        const newType = field.value;
-
-                        if (existingType === "") {
-                            // User has explicitly cleared the type field; preserve the empty value
-                            defaultValues[field.key] = "";
-                        } else if (existingType !== newType) {
-                            setValue(field.key, newType);
-                            getVisualiableFields();
-                        }
-                        else if (newType === undefined) {
-                             defaultValues[field.key] = "";
-                        }
                     }
 
                     // Handle choice fields and their properties
@@ -591,6 +574,23 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                     const rawDiag = (field.diagnostics as any);
                     const diagArray = Array.isArray(rawDiag) ? rawDiag : (rawDiag?.diagnostics ?? []);
                     diagnosticsMap.push({ key: field.key, diagnostics: diagArray });
+                }
+
+                if (getPrimaryInputType(field.types)?.fieldType === "TYPE") {
+                    const existingType = formValues[field.key];
+                    const newType = field.value;
+                    const isValueChanged = existingType !== newType;
+                    const isFieldDirty = dirtyFields?.[field.key];
+                    if (isValueChanged) {
+                        const newValue = isFieldDirty ? existingType : newType;
+                        setValue(field.key, newValue);
+                        defaultValues[field.key] = newValue;
+                        getVisualiableFields();
+                    } else if (newType === undefined) {
+                        defaultValues[field.key] = "";
+                    } else {
+                        defaultValues[field.key] = newType;
+                    }
                 }
 
                 // Handle the case where the name is updated dynamically (e.g., from a sibling field's onValueChange like headerName)
