@@ -16,14 +16,14 @@
  * under the License.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActionButtons, Divider, SidePanelBody, ProgressIndicator, Tooltip, CheckBoxGroup, CheckBox, Codicon, LinkButton, Dropdown, Typography, RadioButtonGroup } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
 import { Diagnostic, FunctionModel, ParameterModel, GeneralPayloadContext, Type, ServiceModel, Protocol, Imports, PropertyModel } from '@wso2/ballerina-core';
 import { cloneDeep } from 'lodash';
 import { EntryPointTypeCreator } from '../../../../../components/EntryPointTypeCreator';
 import { Parameters } from './Parameters/Parameters';
-import { TextExpressionField } from './TextExpressionField';
+import { TextExpressionField, TextExpressionFieldHandle } from './TextExpressionField';
 
 const FileConfigContainer = styled.div`
     margin-bottom: 0;
@@ -231,10 +231,25 @@ export function FileIntegrationForm(props: FileIntegrationFormProps) {
         }
     };
 
-    const handleSave = () => {
-        if (functionModel) {
-            onSave(functionModel, isNew);
+    const moveToFieldRefs = useRef<Record<string, TextExpressionFieldHandle | null>>({});
+
+    const handleSave = async () => {
+        if (!functionModel) return;
+
+        // Save-time revalidation: matches the DeclareVariable / FlowNodeForm pattern of running a
+        // final LS check before save. Typing-time diagnostics are debounced and swallow LS errors
+        // silently, so this is the authoritative gate. Severity-1 diagnostics block save; LS
+        // failures here fall through silently and the save proceeds (same contract as typing-time).
+        const liveRefs = Object.values(moveToFieldRefs.current).filter(
+            (handle): handle is TextExpressionFieldHandle => handle !== null && handle !== undefined
+        );
+        if (liveRefs.length > 0) {
+            const allDiagnostics = await Promise.all(liveRefs.map(h => h.revalidate()));
+            const hasErrorDiagnostics = allDiagnostics.some(diags => diags.some(d => d.severity === 1));
+            if (hasErrorDiagnostics) return;
         }
+
+        onSave(functionModel, isNew);
     };
 
     const handleCancel = () => {
@@ -660,6 +675,13 @@ export function FileIntegrationForm(props: FileIntegrationFormProps) {
                                 return (
                                     <TextExpressionField
                                         key={stateKey}
+                                        ref={(handle) => {
+                                            if (handle) {
+                                                moveToFieldRefs.current[stateKey] = handle;
+                                            } else {
+                                                delete moveToFieldRefs.current[stateKey];
+                                            }
+                                        }}
                                         id={`ftp-${functionModel?.name?.value ?? 'handler'}-${stateKey}`}
                                         value={prop.value || ''}
                                         property={prop}
