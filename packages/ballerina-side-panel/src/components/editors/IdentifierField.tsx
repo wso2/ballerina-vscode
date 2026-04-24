@@ -38,16 +38,25 @@ export function IdentifierField(props: IdentifierFieldProps) {
     const { watch, formState, register, setValue, setError, clearErrors } = form;
     const { errors } = formState;
     const hasSetIdentifierErrorRef = useRef(false);
+    const isMountedRef = useRef(true);
+
+    useEffect(() => {
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
 
     const setIdentifierErrorState = useCallback((errorMessage: string | null) => {
         if (errorMessage) {
             setError(field.key, { type: "identifier_diagnostic", message: errorMessage });
             hasSetIdentifierErrorRef.current = true;
         } else if (hasSetIdentifierErrorRef.current) {
-            clearErrors(field.key);
+            if (form.formState.errors[field.key]?.type === "identifier_diagnostic") {
+                clearErrors(field.key);
+            }
             hasSetIdentifierErrorRef.current = false;
         }
-    }, [field.key, setError, clearErrors]);
+    }, [field.key, setError, clearErrors, form]);
 
     useEffect(() => {
         setFormDiagnostics(field.diagnostics);
@@ -58,11 +67,13 @@ export function IdentifierField(props: IdentifierFieldProps) {
         const key = field.key;
         return () => {
             if (hasSetIdentifierErrorRef.current) {
-                clearErrors(key);
+                if (form.formState.errors[key]?.type === "identifier_diagnostic") {
+                    clearErrors(key);
+                }
                 hasSetIdentifierErrorRef.current = false;
             }
         };
-    }, [field.key, clearErrors]);
+    }, [field.key, clearErrors, form]);
 
     // Sync external field value changes to the form (e.g., when a sibling field's onValueChange updates the value)
     useEffect(() => {
@@ -82,6 +93,7 @@ export function IdentifierField(props: IdentifierFieldProps) {
                     property: getPropertyFromFormField(field)
                 }
             });
+            if (!isMountedRef.current) return;
             if (response.diagnostics.length > 0) {
                 const rawDiagnostic = response.diagnostics[0];
                 setFormDiagnostics([{ message: rawDiagnostic.message, severity: mapDiagnosticsServerityToFormSeverity(rawDiagnostic.severity) }]);
@@ -93,11 +105,18 @@ export function IdentifierField(props: IdentifierFieldProps) {
             }
         } catch (error) {
             console.error('Failed to fetch expression diagnostics:', error);
+            if (!isMountedRef.current) return;
             // Optionally clear diagnostics or show error state
             setFormDiagnostics([]);
             setIdentifierErrorState(null);
         }
     }, 250), [rpcClient, field, targetLineRange, fileName, setIdentifierErrorState]);
+
+    useEffect(() => {
+        return () => {
+            validateIdentifierName.cancel();
+        };
+    }, [validateIdentifierName]);
 
     const handleOnBlur = (e: React.ChangeEvent<HTMLInputElement>) => {
         validateIdentifierName(e.target.value);
