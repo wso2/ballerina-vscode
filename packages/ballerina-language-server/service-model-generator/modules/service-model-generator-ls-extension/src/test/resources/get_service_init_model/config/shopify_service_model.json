@@ -51,7 +51,7 @@
                         {
                           "fieldType": "IDENTIFIER",
                           "ballerinaType": "Listener",
-                          "selected": false
+                          "selected": true
                         }
                       ],
                       "enabled": true,
@@ -186,90 +186,27 @@
           "optional": false,
           "advanced": false
         },
-        "serviceType": {
+        "basePath": {
           "metadata": {
             "label": "Event Type",
             "description": "Select the type of Shopify events to handle"
           },
-          "value": "0",
-          "choices": [
-            {
-              "metadata": {
-                "label": "Orders",
-                "description": "Handle Shopify order events (onOrdersCreate, onOrdersCancelled, onOrdersFulfilled, onOrdersPaid, onOrdersPartiallyFulfilled, onOrdersUpdated)"
-              },
-              "value": "OrdersService",
-              "properties": {},
-              "types": [
-                {
-                  "fieldType": "FORM",
-                  "selected": false
-                }
-              ],
-              "enabled": true,
-              "editable": true,
-              "optional": false,
-              "advanced": false
-            },
-            {
-              "metadata": {
-                "label": "Customers",
-                "description": "Handle Shopify customer events (onCustomersCreate, onCustomersDisable, onCustomersEnable, onCustomersUpdate, onCustomersMarketingConsentUpdate)"
-              },
-              "value": "CustomersService",
-              "properties": {},
-              "types": [
-                {
-                  "fieldType": "FORM",
-                  "selected": false
-                }
-              ],
-              "enabled": false,
-              "editable": true,
-              "optional": false,
-              "advanced": false
-            },
-            {
-              "metadata": {
-                "label": "Products",
-                "description": "Handle Shopify product events (onProductsCreate, onProductsUpdate)"
-              },
-              "value": "ProductsService",
-              "properties": {},
-              "types": [
-                {
-                  "fieldType": "FORM",
-                  "selected": false
-                }
-              ],
-              "enabled": false,
-              "editable": true,
-              "optional": false,
-              "advanced": false
-            },
-            {
-              "metadata": {
-                "label": "Fulfillments",
-                "description": "Handle Shopify fulfillment events (onFulfillmentsCreate, onFulfillmentsUpdate)"
-              },
-              "value": "FulfillmentsService",
-              "properties": {},
-              "types": [
-                {
-                  "fieldType": "FORM",
-                  "selected": false
-                }
-              ],
-              "enabled": false,
-              "editable": true,
-              "optional": false,
-              "advanced": false
-            }
-          ],
+          "codedata": {
+            "argType": "SERVICE_TYPE_DESCRIPTOR"
+          },
+          "placeholder": "OrdersService",
+          "value": "OrdersService",
           "types": [
             {
-              "fieldType": "CHOICE",
-              "selected": false
+              "fieldType": "SINGLE_SELECT",
+              "ballerinaType": "shopify:GenericServiceType",
+              "options": [
+                {"label": "Orders", "value": "OrdersService"},
+                {"label": "Customers", "value": "CustomersService"},
+                {"label": "Products", "value": "ProductsService"},
+                {"label": "Fulfillments", "value": "FulfillmentsService"}
+              ],
+              "selected": true
             }
           ],
           "enabled": true,
