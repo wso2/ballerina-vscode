@@ -348,6 +348,7 @@ task pullBallerinaModules {
     dependsOn pullBallerinaModule('mssql', ballerinaxMSSQLVersion)
     dependsOn pullBallerinaModule('mssql.cdc.driver', ballerinaxMSSQLCDCDriverVersion)
     dependsOn pullBallerinaModule('trigger.github', ballerinaxGithubTriggerVersion)
+    dependsOn pullBallerinaModule('trigger.shopify', ballerinaxShopifyTriggerVersion)
     dependsOn pullBallerinaModule('np', ballerinaxNp)
 }
 

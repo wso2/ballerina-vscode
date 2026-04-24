@@ -66,6 +66,7 @@ public class Constants {
     public static final String ASB = "asb";
     public static final String SF = "salesforce";
     public static final String TRIGGER_GITHUB = "trigger.github";
+    public static final String TRIGGER_SHOPIFY = "trigger.shopify";
     public static final String MSSQL = "mssql";
     public static final String POSTGRESQL = "postgresql";
 
