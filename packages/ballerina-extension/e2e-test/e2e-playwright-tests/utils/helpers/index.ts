@@ -20,6 +20,7 @@
 export { 
     page, 
     vscode, 
+    lastTestFailed,
     resourcesFolder, 
     newProjectPath,
     extensionsFolder,
@@ -27,7 +28,9 @@ export {
     initMigrationTest, 
     createProject, 
     setupBallerinaIntegrator, 
-    toggleNotifications 
+    toggleNotifications,
+    zipProjectSnapshot,
+    captureFailureScreenshot
 } from './setup';
 
 // Re-export from webview

@@ -191,7 +191,7 @@ export function OperationForm(props: OperationFormProps) {
                 editable: model.returnType.editable,
                 advanced: model.returnType.advanced,
                 documentation: model.returnType.metadata?.description || '',
-                value: model.returnType.value,
+                value: model.returnType?.value || '',
                 properties: model.returnType.properties,
                 types: model.returnType?.types,
                 isGraphqlId: isGraphqlView ? (model.returnType as any).isGraphqlId : undefined

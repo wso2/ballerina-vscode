@@ -23,8 +23,7 @@ import { ProjectExplorer } from '../utils/pages';
 import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 
 export default function createTests() {
-    test.describe('Function Artifact Tests', {
-        tag: '@group1',
+    test.describe.serial('Function Artifact Tests', {
     }, async () => {
         let functionName = '';
         initTest();
@@ -52,7 +51,7 @@ export default function createTests() {
             const context = artifactWebView.locator(`text=${functionName}`);
             await context.waitFor();
             const projectExplorer = new ProjectExplorer(page.page);
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `${functionName}`], true);
+            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `${functionName}`]);
             const updateArtifactWebView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page);
             if (!updateArtifactWebView) {
                 throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
@@ -95,7 +94,7 @@ export default function createTests() {
             }
 
             const projectExplorer = new ProjectExplorer(page.page);
-            const functionTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `Functions`, `${functionName}`], true);
+            const functionTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `Functions`, `${functionName}`]);
             await functionTreeItem.click({ button: 'right' });
             const deleteButton = page.page.getByRole('button', { name: 'Delete' }).first();
             await deleteButton.waitFor({ timeout: 5000 });
