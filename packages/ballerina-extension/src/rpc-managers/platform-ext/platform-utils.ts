@@ -391,7 +391,7 @@ export const hasContextYaml = (projectPath: string): boolean => {
         const repoRoot = getRepoRoot(projectPath);
         if (repoRoot) {
             const contextYamlPath = path.join(repoRoot, ".wso2", "context.yaml");
-            // todo: leaving .choreo/context.yaml check for backward compatibility, can remove after some time
+            // leaving .choreo/context.yaml check for backward compatibility, can remove after some time
             const choreoContextYamlPath = path.join(repoRoot, ".choreo", "context.yaml");
             if (fs.existsSync(contextYamlPath) || fs.existsSync(choreoContextYamlPath)) {
                 return true;
