@@ -31,11 +31,19 @@ export const getSearchFilteredInput = (dmType: IOType, varName: string) => {
 		if (filteredType) {
 			return filteredType
 		}
-	} else if ((dmType.kind === TypeKind.Json || dmType.kind === TypeKind.Xml) && dmType.convertedField) {
-		const filteredConvertedField = getFilteredSubFields(dmType.convertedField, searchValue);
-		if (filteredConvertedField) {
-			return { ...dmType, convertedField: filteredConvertedField };
+	} else if (dmType.kind === TypeKind.Json || dmType.kind === TypeKind.Xml) {
+		if (dmType.convertedField) {
+			const filteredConvertedField = getFilteredSubFields(dmType.convertedField, searchValue);
+			if (filteredConvertedField) {
+				return { ...dmType, convertedField: filteredConvertedField };
+			}
+		} else {
+			const filteredType = getFilteredSubFields(dmType, searchValue);
+			if (filteredType) {
+				return filteredType
+			}
 		}
+
 	}
 }
 
@@ -71,18 +79,30 @@ export const getSearchFilteredOutput = (dmType: IOType) => {
 			...dmType,
 			fields: subFields || []
 		}
-	} else if ((dmType.kind === TypeKind.Json || dmType.kind === TypeKind.Xml) && dmType.convertedField) {
-		const filteredConvertedField = getFilteredSubFields(dmType.convertedField, searchValue);
-		if (filteredConvertedField) {
-			return { ...dmType, convertedField: filteredConvertedField };
-		}
+	} else if (dmType.kind === TypeKind.Json || dmType.kind === TypeKind.Xml) {
+		if (dmType.convertedField) {
+			const filteredConvertedField = getFilteredSubFields(dmType.convertedField, searchValue);
+			if (filteredConvertedField) {
+				return { ...dmType, convertedField: filteredConvertedField };
+			}
 
-		const convertedField = dmType.convertedField;
-		if(convertedField.kind === TypeKind.Array){
-			return { ...dmType, convertedField: { ...convertedField, member: { ...convertedField.member, fields: [] } } };
+			const convertedField = dmType.convertedField;
+			if (convertedField.kind === TypeKind.Array) {
+				return { ...dmType, convertedField: { ...convertedField, member: { ...convertedField.member, fields: [] } } };
+			}
+
+			return { ...dmType, convertedField: { ...dmType.convertedField, fields: [] } };
+
+		} else {
+			const subFields = dmType.fields
+				?.map(item => getFilteredSubFields(item, searchValue))
+				.filter(item => item);
+
+			return {
+				...dmType,
+				fields: subFields || []
+			}
 		}
-		
-		return { ...dmType, convertedField: { ...dmType.convertedField, fields: [] } };
 	}
 	return  null;
 }
@@ -96,7 +116,7 @@ export const getFilteredSubFields = (field: IOType, searchValue: string) => {
 		return field;
 	}
 
-	if (field?.kind === TypeKind.Record) {
+	if (field?.kind === TypeKind.Record || field?.kind === TypeKind.Json || field?.kind === TypeKind.Xml) {
 		const matchedSubFields: IOType[] = field?.fields
 			?.map((fieldItem) => getFilteredSubFields(fieldItem, searchValue))
 			.filter((fieldItem): fieldItem is IOType => fieldItem !== null);
@@ -139,12 +159,16 @@ export function hasNoOutputMatchFound(outputType: IOType, filteredOutputType: IO
 		return filteredOutputType?.fields.length === 0;
 	} else if (outputType.kind === TypeKind.Array && filteredOutputType.kind === TypeKind.Array) {
 		return (filteredOutputType.member?.fields?.length ?? 0) === 0;
-	} else if ((outputType.kind === TypeKind.Json || outputType.kind === TypeKind.Xml) && outputType.convertedField) {
+	} else if (filteredOutputType.kind === TypeKind.Json || filteredOutputType.kind === TypeKind.Xml) {
 		const convertedField = filteredOutputType.convertedField;
-		if (convertedField?.kind === TypeKind.Record) {
-			return (convertedField.fields?.length ?? 0) === 0;
-		} else if (convertedField?.kind === TypeKind.Array) {
-			return (convertedField.member?.fields?.length ?? 0) === 0;
+		if (convertedField) {
+			if (convertedField?.kind === TypeKind.Record) {
+				return (convertedField.fields?.length ?? 0) === 0;
+			} else if (convertedField?.kind === TypeKind.Array) {
+				return (convertedField.member?.fields?.length ?? 0) === 0;
+			}
+		} else {
+			return filteredOutputType?.fields?.length === 0;
 		}
 	}
 	return false;
