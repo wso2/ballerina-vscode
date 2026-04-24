@@ -2187,6 +2187,10 @@ public class CodeAnalyzer extends NodeVisitor {
 
             if (paramResult.kind() == ParameterData.Kind.PARAM_FOR_TYPE_INFER) {
                 typeInferParamMap.put(key, paramResult);
+                // Reserve the slot at its signature position so the later emission (which happens
+                // after regular args and checkError) lands here instead of being appended.
+                nodeBuilder.properties()
+                        .reserveProperty(ParamUtils.removeLeadingSingleQuote(paramResult.name()));
                 return;
             }
 
@@ -2214,6 +2218,9 @@ public class CodeAnalyzer extends NodeVisitor {
                 // Derive the inferred type from the variable type
                 Optional<Symbol> symbol = semanticModel.symbol(typedBindingPatternNode);
                 if (symbol.isEmpty() || symbol.get().kind() != SymbolKind.VARIABLE) {
+                    // Drop the reserved slot so the placeholder doesn't leak into the output.
+                    nodeBuilder.properties()
+                            .removeProperty(ParamUtils.removeLeadingSingleQuote(paramResult.name()));
                     return;
                 }
                 targetVarType = ((VariableSymbol) symbol.get()).typeDescriptor();

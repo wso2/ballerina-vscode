@@ -887,8 +887,8 @@
         "serviceUri": {
           "label": "Service URI",
           "description": "The URI of the MQTT broker",
-          "defaultValue": "\"mqtt://localhost:1883\"",
-          "placeholder": "mqtt://localhost:1883",
+          "defaultValue": "\"tcp://localhost:1883\"",
+          "placeholder": "tcp://localhost:1883",
           "types": [
             {
               "fieldType": "TEXT",

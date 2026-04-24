@@ -94,6 +94,10 @@ public class DataMapperCreationBuilder extends NodeBuilder {
         return false;
     }
 
+    protected boolean isInputsOptional() {
+        return false;
+    }
+
     @Override
     public void setConcreteConstData() {
         metadata().label(LABEL).description(DESCRIPTION);
@@ -135,7 +139,7 @@ public class DataMapperCreationBuilder extends NodeBuilder {
     public void setOptionalProperties(NodeBuilder nodeBuilder) {
         nodeBuilder.properties()
                 .endNestedProperty(Property.ValueType.REPEATABLE_PROPERTY, Property.PARAMETERS_KEY, PARAMETERS_LABEL,
-                        getParametersDoc(), getParameterSchema(), true, false);
+                        getParametersDoc(), getParameterSchema(), isInputsOptional(), false);
     }
 
     @Override

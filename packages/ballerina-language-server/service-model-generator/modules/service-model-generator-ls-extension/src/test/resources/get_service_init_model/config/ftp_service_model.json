@@ -159,8 +159,8 @@
                                         "label": "Username",
                                         "description": "Remote server username for authentication"
                                       },
-                                      "placeholder": "default",
-                                      "value": "\"default\"",
+                                      "placeholder": "",
+                                      "value": "",
                                       "types": [
                                         {
                                           "fieldType": "TEXT",
@@ -175,7 +175,7 @@
                                       ],
                                       "enabled": true,
                                       "editable": true,
-                                      "optional": true,
+                                      "optional": false,
                                       "advanced": false
                                     },
                                     "password": {
@@ -183,8 +183,8 @@
                                         "label": "Password",
                                         "description": "Remote server password for authentication"
                                       },
-                                      "placeholder": "default",
-                                      "value": "\"default\"",
+                                      "placeholder": "",
+                                      "value": "",
                                       "types": [
                                         {
                                           "fieldType": "TEXT",
@@ -321,8 +321,8 @@
                                         "label": "Username",
                                         "description": "Remote server username for authentication"
                                       },
-                                      "placeholder": "default",
-                                      "value": "\"default\"",
+                                      "placeholder": "",
+                                      "value": "",
                                       "types": [
                                         {
                                           "fieldType": "TEXT",
@@ -337,7 +337,7 @@
                                       ],
                                       "enabled": true,
                                       "editable": true,
-                                      "optional": true,
+                                      "optional": false,
                                       "advanced": false
                                     },
                                     "password": {
@@ -345,8 +345,8 @@
                                         "label": "Password",
                                         "description": "Remote server password for authentication"
                                       },
-                                      "placeholder": "default",
-                                      "value": "\"default\"",
+                                      "placeholder": "",
+                                      "value": "",
                                       "types": [
                                         {
                                           "fieldType": "TEXT",
@@ -557,8 +557,8 @@
                                         "label": "Username",
                                         "description": "Remote server username for authentication"
                                       },
-                                      "placeholder": "default",
-                                      "value": "\"default\"",
+                                      "placeholder": "",
+                                      "value": "",
                                       "types": [
                                         {
                                           "fieldType": "TEXT",
@@ -573,7 +573,7 @@
                                       ],
                                       "enabled": true,
                                       "editable": true,
-                                      "optional": true,
+                                      "optional": false,
                                       "advanced": false
                                     },
                                     "password": {
@@ -585,7 +585,7 @@
                                         "type": "IDENTIFIER"
                                       },
                                       "placeholder": "",
-                                      "value": "\"default\"",
+                                      "value": "",
                                       "types": [
                                         {
                                           "fieldType": "TEXT",
