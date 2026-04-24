@@ -56,7 +56,7 @@ public class EmbeddingProviderBuilder extends CallBuilder {
     private static final String WSO2_EMBEDDING_PROVIDER_RETURN_TYPE =
             Constants.Ai.AI_PACKAGE + ":" + Constants.Ai.WSO2_EMBEDDING_PROVIDER_NAME;
     private static final String WSO2_EMBEDDING_PROVIDER_VECTOR_DIMENSION_DOC =
-            "The embedding vector dimension is 1536.";
+            "The embedding vectors have a dimension of 1536.";
 
     @Override
     public void setConcreteConstData() {
