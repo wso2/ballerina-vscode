@@ -36,7 +36,7 @@ export class ConvertibleOutputNodeFactory extends AbstractReactFactory<Convertib
     generateReactWidget(event: { model: ConvertibleOutputNode; }): JSX.Element {
         return (
             <>
-                {event.model.hasNoMatchingFields ? (
+                {(event.model.hasNoMatchingFields || !event.model.filteredOutputType) ? (
                     <OutputSearchNoResultFound kind={SearchNoResultFoundKind.OutputField} />
                 ) : (
                     <ConvertibleOutputWidget
