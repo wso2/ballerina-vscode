@@ -116,35 +116,35 @@ export const getFilteredSubFields = (field: IOType, searchValue: string) => {
 		return field;
 	}
 
-	if (field?.kind === TypeKind.Record || field?.kind === TypeKind.Json || field?.kind === TypeKind.Xml) {
-		const matchedSubFields: IOType[] = field?.fields
+	if (field.kind === TypeKind.Record || field.kind === TypeKind.Json || field.kind === TypeKind.Xml) {
+		const matchedSubFields: IOType[] = field.fields
 			?.map((fieldItem) => getFilteredSubFields(fieldItem, searchValue))
 			.filter((fieldItem): fieldItem is IOType => fieldItem !== null);
 
-		const matchingName = field?.name?.toLowerCase().includes(searchValue);
+		const matchingName = field.name?.toLowerCase().includes(searchValue);
 		if (matchingName || matchedSubFields?.length > 0) {
 			return {
 				...field,
-				fields: matchingName ? field?.fields : matchedSubFields
+				fields: matchingName ? field.fields : matchedSubFields
 			}
 		}
-	} else if (field?.kind === TypeKind.Array) {
-		const matchedSubFields: IOType[] = field?.member?.fields
+	} else if (field.kind === TypeKind.Array) {
+		const matchedSubFields: IOType[] = field.member?.fields
 			?.map((fieldItem) => getFilteredSubFields(fieldItem, searchValue))
 			.filter((fieldItem): fieldItem is IOType => fieldItem !== null);
 
-		const matchingName = field?.name?.toLowerCase().includes(searchValue);
+		const matchingName = field.name?.toLowerCase().includes(searchValue);
 		if (matchingName || matchedSubFields?.length > 0) {
 			return {
 				...field,
 				memberType: {
-					...field?.member,
-					fields: matchingName ? field?.member?.fields : matchedSubFields
+					...field.member,
+					fields: matchingName ? field.member?.fields : matchedSubFields
 				}
 			}
 		}
 	} else {
-		return field?.name?.toLowerCase()?.includes(searchValue) ? field : null
+		return field.name?.toLowerCase().includes(searchValue) ? field : null
 	}
 
 	return null;
