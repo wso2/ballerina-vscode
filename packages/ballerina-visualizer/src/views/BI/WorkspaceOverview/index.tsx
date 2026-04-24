@@ -761,6 +761,16 @@ export function WorkspaceOverview() {
         return getWorkspaceProjectScopes(projectCollection);
     }, [projectCollection]);
 
+    // Libraries can never be deployed to cloud; exclude them from deployment state calculations.
+    const libraryProjectPaths = useMemo(() => {
+        return (projectCollection?.projects ?? []).reduce<Set<string>>((paths, project) => {
+            if (project.isLibrary && project.projectPath) {
+                paths.add(project.projectPath);
+            }
+            return paths;
+        }, new Set<string>());
+    }, [projectCollection?.projects]);
+
     // Calculate which projects need deployment
     const undeployedProjectScopes = useMemo(() => {
         if (!devantMetadata?.projectsMetadata || !projectCollection) {
@@ -777,29 +787,18 @@ export function WorkspaceOverview() {
             !deployedPaths.has(scope.projectPath) &&
             !libraryProjectPaths.has(scope.projectPath)
         );
-    }, [projectScopes, devantMetadata, projectCollection]);
+    }, [projectScopes, devantMetadata, projectCollection, libraryProjectPaths]);
 
     const deployableProjectPaths = useMemo(() => {
         return new Set(projectScopes.map(scope => scope.projectPath));
     }, [projectScopes]);
-
-    // Collect paths of library projects so DeploymentOptions can exclude them from
-    // deployment state calculations — libraries can never be deployed to cloud.
-    const libraryProjectPaths = useMemo(() => {
-        return (projectCollection?.projects ?? []).reduce<Set<string>>((paths, project) => {
-            if (project.isLibrary && project.projectPath) {
-                paths.add(project.projectPath);
-            }
-            return paths;
-        }, new Set<string>());
-    }, [projectCollection?.projects]);
 
     const hasDeployableIntegration = useMemo(() => {
         return projectScopes.some(scope =>
             scope.integrationTypes.length > 0 &&
             !libraryProjectPaths.has(scope.projectPath)
         );
-    }, [projectScopes]);
+    }, [projectScopes, libraryProjectPaths]);
 
     const validateTitle = useCallback((value: string): string => {
         const trimmed = value.trim();
