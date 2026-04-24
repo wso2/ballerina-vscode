@@ -168,7 +168,6 @@ export interface FileIntegrationFormProps {
 
 type MoveToValidationState = {
     isValidating: boolean;
-    hasValidationFailure: boolean;
 };
 
 export function FileIntegrationForm(props: FileIntegrationFormProps) {
@@ -447,10 +446,6 @@ export function FileIntegrationForm(props: FileIntegrationFormProps) {
         return Object.values(moveToValidationStateByAction).some(s => s?.isValidating);
     }, [moveToValidationStateByAction]);
 
-    const hasMoveToValidationFailure = useMemo(() => {
-        return Object.values(moveToValidationStateByAction).some(s => s?.hasValidationFailure);
-    }, [moveToValidationStateByAction]);
-
     // ----- Choice helpers — model-driven, no 'MOVE' string hardcoding -----
 
     const getSelectedActionValue = (action: PropertyModel | undefined): string => {
@@ -486,7 +481,7 @@ export function FileIntegrationForm(props: FileIntegrationFormProps) {
         return postProcessSubActions.some(([, action]) => isRequiredNestedPropertyEmpty(action));
     }, [postProcessSubActions]);
 
-    const isSaveDisabled = hasInvalidMoveTo || hasMoveToErrorDiagnostics || hasPendingMoveToValidation || hasMoveToValidationFailure;
+    const isSaveDisabled = hasInvalidMoveTo || hasMoveToErrorDiagnostics || hasPendingMoveToValidation;
 
     const saveTooltip = useMemo(() => {
         if (isSaving) return "Saving...";
