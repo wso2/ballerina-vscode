@@ -39,6 +39,9 @@ export function IdentifierField(props: IdentifierFieldProps) {
     const { errors } = formState;
     const hasSetIdentifierErrorRef = useRef(false);
     const isMountedRef = useRef(true);
+    // form is unstable across parent renders; ref keeps deps clean
+    const formRef = useRef(form);
+    formRef.current = form;
 
     useEffect(() => {
         return () => {
@@ -51,12 +54,12 @@ export function IdentifierField(props: IdentifierFieldProps) {
             setError(field.key, { type: "identifier_diagnostic", message: errorMessage });
             hasSetIdentifierErrorRef.current = true;
         } else if (hasSetIdentifierErrorRef.current) {
-            if (form.formState.errors[field.key]?.type === "identifier_diagnostic") {
+            if (formRef.current.formState.errors[field.key]?.type === "identifier_diagnostic") {
                 clearErrors(field.key);
             }
             hasSetIdentifierErrorRef.current = false;
         }
-    }, [field.key, setError, clearErrors, form]);
+    }, [field.key, setError, clearErrors]);
 
     useEffect(() => {
         setFormDiagnostics(field.diagnostics);
@@ -67,13 +70,13 @@ export function IdentifierField(props: IdentifierFieldProps) {
         const key = field.key;
         return () => {
             if (hasSetIdentifierErrorRef.current) {
-                if (form.formState.errors[key]?.type === "identifier_diagnostic") {
+                if (formRef.current.formState.errors[key]?.type === "identifier_diagnostic") {
                     clearErrors(key);
                 }
                 hasSetIdentifierErrorRef.current = false;
             }
         };
-    }, [field.key, clearErrors, form]);
+    }, [field.key, clearErrors]);
 
     // Sync external field value changes to the form (e.g., when a sibling field's onValueChange updates the value)
     useEffect(() => {
