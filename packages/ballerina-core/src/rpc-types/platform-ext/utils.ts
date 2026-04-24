@@ -18,9 +18,11 @@
 
 import { DevantScopes } from "@wso2/wso2-platform-core";
 
-const INTEGRATION_API_MODULES = ["http", "graphql", "tcp"];
-const EVENT_INTEGRATION_MODULES = ["kafka", "rabbitmq", "salesforce", "trigger.github", "mqtt", "asb"];
-const FILE_INTEGRATION_MODULES = ["ftp", "file"];
+const INTEGRATION_API_MODULES: ReadonlySet<string> = new Set(["http", "graphql", "tcp"]);
+const EVENT_INTEGRATION_MODULES: ReadonlySet<string> = new Set([
+    "kafka", "rabbitmq", "salesforce", "trigger.github", "mqtt", "asb", "mssql", "mysql", "postgresql",
+]);
+const FILE_INTEGRATION_MODULES: ReadonlySet<string> = new Set(["ftp", "file"]);
 const AI_AGENT_MODULE = "ai";
 const MCP_MODULE = "mcp";
 
@@ -29,11 +31,11 @@ export function findDevantScopeByModule(moduleName: string): DevantScopes | unde
         return DevantScopes.AI_AGENT;
     } else if (MCP_MODULE === moduleName) {
         return DevantScopes.MCP;
-    } else if (INTEGRATION_API_MODULES.includes(moduleName)) {
+    } else if (INTEGRATION_API_MODULES.has(moduleName)) {
         return DevantScopes.INTEGRATION_AS_API;
-    } else if (EVENT_INTEGRATION_MODULES.includes(moduleName)) {
+    } else if (EVENT_INTEGRATION_MODULES.has(moduleName)) {
         return DevantScopes.EVENT_INTEGRATION;
-    } else if (FILE_INTEGRATION_MODULES.includes(moduleName)) {
+    } else if (FILE_INTEGRATION_MODULES.has(moduleName)) {
         return DevantScopes.FILE_INTEGRATION;
     }
 }
