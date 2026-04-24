@@ -193,7 +193,7 @@ export async function getStoredICPSecret(projectPath: string): Promise<string | 
 function getProjectHandle(projectPath: string): string {
     // projectPath is the package dir; project root is its parent
     const projectRoot = path.dirname(projectPath);
-    const contextYaml = path.join(projectRoot, '.choreo', 'context.yaml');
+    const contextYaml = path.join(projectRoot, '.wso2', 'context.yaml');
     try {
         const content = fs.readFileSync(contextYaml, 'utf-8');
         const data = yaml.load(content) as Array<Record<string, any>>;
