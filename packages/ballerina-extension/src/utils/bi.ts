@@ -315,7 +315,7 @@ function setupProjectInfo(projectRequest: ProjectRequest): ProcessedProjectInfo 
 
 /**
  * Writes a local context file for the given project.
- * Creates (if missing) `{projectRoot}/.choreo/context.yaml` and stores the org/project handles with `local: true`.
+ * Creates (if missing) `{projectRoot}/.wso2/context.yaml` and stores the org/project handles with `local: true`.
  * @param projectRoot - Absolute path to the project root directory
  * @param orgHandle - Choreo organization handle
  * @param projectHandle - Choreo project handle
@@ -326,7 +326,7 @@ export async function writeLocalContextYaml(
     projectHandle: string
 ): Promise<void> {
     try {
-        const choreoDir = path.join(projectRoot, '.choreo');
+        const choreoDir = path.join(projectRoot, '.wso2');
         const localProjectFile = path.join(choreoDir, 'context.yaml');
         const content = stringifyYaml([{ org: orgHandle, project: projectHandle, local: true }]);
         await fs.promises.mkdir(choreoDir, { recursive: true });
