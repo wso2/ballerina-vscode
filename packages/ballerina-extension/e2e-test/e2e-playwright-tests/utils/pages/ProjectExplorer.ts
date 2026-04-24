@@ -17,6 +17,7 @@
  */
 
 import { Locator, Page } from "@playwright/test";
+import { BI_INTEGRATOR_LABEL } from "../helpers/constants";
 
 export class ProjectExplorer {
     private explorer!: Locator;
@@ -25,25 +26,20 @@ export class ProjectExplorer {
         this.explorer = this.page.getByRole('tree').locator('div').first();
     }
 
-    public async findItem(path: string[], click: boolean = false) {
+    public async init() {
+        const wso2IntegratorActivityTab = this.page.locator(`[role="tab"][aria-label="${BI_INTEGRATOR_LABEL}"]`).first();
+        const isChecked = await wso2IntegratorActivityTab.evaluate((el) => el.classList.contains('checked'));
+        if (!isChecked) {
+            await wso2IntegratorActivityTab.click();
+        }
+    }
+
+    public async findItem(path: string[]) {
         let currentItem;
         for (let i = 0; i < path.length; i++) {
 
             currentItem = this.explorer.locator(`div[role="treeitem"][aria-label='${path[i]}']`);
-            await currentItem.waitFor();
-
-            if (i < path.length - 1) {
-                const isExpanded = await currentItem.getAttribute('aria-expanded');
-                if (isExpanded === 'false') {
-                    await currentItem.click();
-                }
-            } else {
-                if (click) {
-                    await currentItem.click();
-                } else {
-                    await currentItem.hover();
-                }
-            }
+            await currentItem.waitFor({ timeout: 5000 });
         }
         return currentItem;
     }
@@ -63,5 +59,8 @@ export class ProjectExplorer {
         await this.page.getByRole('treeitem', { name: projectName }).hover();
         const refreshBtn = this.page.getByRole('button', { name: 'Refresh' });
         await refreshBtn.click();
+        // Open overview
+        const openOverviewBtn = this.page.getByRole('button', { name: 'Open Overview' });
+        await openOverviewBtn.click();
     }
 }

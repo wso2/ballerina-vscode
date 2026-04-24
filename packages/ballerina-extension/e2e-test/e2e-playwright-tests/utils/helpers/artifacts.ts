@@ -46,7 +46,7 @@ export async function enableICP() {
     if (!webview) {
         throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
     }
-    const icpToggle = webview.getByRole('checkbox', { name: 'Enable WSO2 Integrator: ICP' });
+    const icpToggle = webview.getByRole('checkbox', { name: 'Enable ICP monitoring' });
     await icpToggle.waitFor();
     if (!(await icpToggle.isChecked())) {
         await icpToggle.click();

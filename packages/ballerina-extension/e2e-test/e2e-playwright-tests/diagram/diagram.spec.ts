@@ -22,8 +22,7 @@ import { ProjectExplorer, Diagram, SidePanel } from '../utils/pages';
 import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 
 export default function createTests() {
-    test.describe('Automation Tests', {
-        tag: '@group1',
+    test.describe.serial('Automation Tests', {
     }, async () => {
         initTest();
         test('Create Automation for Diagram', async () => {
@@ -50,7 +49,7 @@ export default function createTests() {
 
             // 14. Verify the tree view shows the automation name under "Entry Points" section
             const projectExplorer = new ProjectExplorer(page.page);
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main'], false);
+            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main']);
 
             // 15. Add first variable with value "foo"
             const diagram = new Diagram(page.page);
@@ -144,7 +143,10 @@ export default function createTests() {
             const ifTrueAddButtons = diagramContainer.locator('[data-testid*="if-true"], [data-testid*="if-block-true"], [data-testid*="empty-node-add-button"]').filter({ hasText: /^$/ }).first();
 
             await diagram.clickAddButtonByIndex(2);
+            // Wait for the side panel to be visible before expanding logging section.
+            await artifactWebView.getByTestId('side-panel').waitFor({ state: 'visible', timeout: 5000 });
             await sidePanel.expandSection('Logging');
+
             await sidePanel.clickNode('Log Info');
 
             await form.switchToFormView(false, artifactWebView);
@@ -161,10 +163,13 @@ export default function createTests() {
             await page.page.waitForTimeout(1000);
 
             // 19. Add log statement in the else block (false case - Not Equal)
-            await page.page.waitForTimeout(1000);
+            await page.page.waitForTimeout(4000);
 
 
             await diagram.clickAddButtonByIndex(2);
+
+            // Wait for the side panel to be visible before expanding logging section.
+            await artifactWebView.getByTestId('side-panel').waitFor({ state: 'visible', timeout: 5000 });
             await sidePanel.clickNode('Log Info');
 
             await form.switchToFormView(false, artifactWebView);

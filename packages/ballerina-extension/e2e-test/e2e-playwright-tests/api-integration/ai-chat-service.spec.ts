@@ -23,8 +23,7 @@ import { ProjectExplorer } from '../utils/pages';
 import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 
 export default function createTests() {
-    test.describe('AI Chat Agent Tests', {
-        tag: '@group1',
+    test.describe.serial('AI Chat Agent Tests', {
     }, async () => {
         initTest();
         let sampleName: string;
@@ -42,7 +41,7 @@ export default function createTests() {
             await form.switchToFormView(false, artifactWebView);
             await form.fill({
                 values: {
-                    'NameName of the agent': {
+                    "NameName of the agent (e.g. 'Customer Support Assistant', 'Sales Advisor', 'Data Analyst')": {
                         type: 'input',
                         value: sampleName,
                     }
@@ -50,9 +49,6 @@ export default function createTests() {
             });
             await form.submit('Create');
             console.log('AI Chat Agent creation form submitted');
-            // Wait until the create button is detached
-            await artifactWebView.getByRole('button', { name: 'Creating' }).waitFor({ state: 'detached' });
-            await artifactWebView.getByRole('button', { name: 'Creating...' }).waitFor({ state: 'detached', timeout: 240000 });
 
             // Check if the diagram canvas is visible
             const diagramCanvas = artifactWebView.locator('#bi-diagram-canvas');
@@ -67,7 +63,7 @@ export default function createTests() {
 
             // Check if the AI Chat Agent is created in the project explorer
             const projectExplorer = new ProjectExplorer(page.page);
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `AI Agent Services - /${sampleName}`], true);
+            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `AI Agent Services - /${sampleName}`]);
 
             const updateArtifactWebView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page);
             if (!updateArtifactWebView) {
@@ -83,7 +79,7 @@ export default function createTests() {
                 throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
             }
             const projectExplorer = new ProjectExplorer(page.page);
-            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `AI Agent Services - /${sampleName}`], true);
+            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `AI Agent Services - /${sampleName}`]);
             await serviceTreeItem.click({ button: 'right' });
             const deleteButton = page.page.getByRole('button', { name: 'Delete' }).first();
             await deleteButton.waitFor({ timeout: 5000 });

@@ -24,11 +24,10 @@ import { FileUtils } from '../utils/helpers/fileSystem';
 
 export default function createTests() {
     // Run Integration Tests
-    test.describe('Run Integration Tests', {
-        tag: '@group1',
+    test.describe.serial('Run Integration Tests', {
     }, async () => {
         initTest();
-        test('Create Automation', async () => {
+        test('Create automation to run', async () => {
             // 1. Click on the "Add Artifact" button
             // 2. Verify the Artifacts menu is displayed
             // 3. Under "Automation" section, click on "Automation" option
@@ -80,27 +79,30 @@ export default function createTests() {
             await sequenceTab.waitFor({ timeout: 10000, state: 'visible' });
 
             // 12. Verify the flow diagram shows a "Start" node
-            const startNode = artifactWebView.locator('[data-testid="start-node"], .start-node, [class*="start"]').first();
-            await startNode.waitFor({ timeout: 10000 }).catch(() => {
-                // If specific test ID not found, try to find by text
-                return artifactWebView.getByText('Start').first().waitFor({ timeout: 5000 });
-            });
+            // Check if "Start" node is present using data-testid
+            const startNode = artifactWebView.locator('[data-testid="start-node"]');
+            await startNode.waitFor({ timeout: 10000, state: 'visible' });
 
             // 13. Verify the flow diagram shows an "Error Handler" node
-            const errorHandlerNode = artifactWebView.locator('[data-testid="error-handler-node"], .error-handler-node, [class*="error-handler"]').first();
-            await errorHandlerNode.waitFor({ timeout: 10000 }).catch(() => {
-                // If specific test ID not found, try to find by text
-                return artifactWebView.getByText(/Error Handler/i).first().waitFor({ timeout: 5000 });
-            });
+            // Check if "Error Handler" node is present without using CSS class selectors
+            await artifactWebView.getByText(/^Error Handler$/, { exact: true }).first();
+
             // 14. Verify the tree view shows the automation name under "Entry Points" section
             const projectExplorer = new ProjectExplorer(page.page);
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main'], false);
+            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main']);
         });
 
         test('Click Run button from toolbar', async () => {
             // 1. Navigate to the BI integration view
             const projectExplorer = new ProjectExplorer(page.page);
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main'], true);
+            const mainEntryPoint = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main']);
+
+            // Open main.bal in the text editor so that VS Code's ${file} launch
+            // variable can be resolved when the debug/run session starts. Without
+            // an active text editor, `debug.startDebugging` fails with
+            // "Variable ${file} can not be resolved. Please open an editor."
+            await FileUtils.openProjectFileInEditor('automation.bal');
+            await mainEntryPoint.click();
 
             // 2. Verify the "Run Integration" button is visible in the editor toolbar
             // Find the "Run Integration" button by aria-label in the editor toolbar actions

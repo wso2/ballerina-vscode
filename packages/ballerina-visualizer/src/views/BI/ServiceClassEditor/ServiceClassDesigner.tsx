@@ -366,7 +366,7 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
                 isType: false,
                 optional: false,
                 advanced: false,
-                types: [{fieldType: "EXPRESSION", selected: true}],
+                types: [{ fieldType: "EXPRESSION", selected: true }],
                 addNewButton: false
             },
             enabled: true,
