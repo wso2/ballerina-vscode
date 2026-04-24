@@ -49,11 +49,11 @@ export const getSearchFilteredInput = (dmType: IOType, varName: string) => {
 
 export const getSearchFilteredOutput = (dmType: IOType) => {
 	const searchValue = useDMSearchStore.getState().outputSearch;
-	if (!dmType) {
-		return null
-	}
 	if (!searchValue) {
 		return dmType;
+	}
+	if (!dmType) {
+		return null;
 	}
 
 	if (dmType.name?.toLowerCase().includes(searchValue)) {
