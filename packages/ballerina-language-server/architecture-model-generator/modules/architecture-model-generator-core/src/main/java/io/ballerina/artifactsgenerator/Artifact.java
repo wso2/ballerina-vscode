@@ -95,7 +95,8 @@ public record Artifact(String id, LineRange location, String type, String name, 
             Map.entry("twilio", "Twilio Event Integration"),
             Map.entry("ai", "AI Agent Services"),
             Map.entry("solace", "Solace Event Integration"),
-            Map.entry("mssql", "CDC MSSQL Service")
+            Map.entry("mssql", "CDC MSSQL Service"),
+            Map.entry("shopify", "Shopify Event Integration")
     );
 
     /**
