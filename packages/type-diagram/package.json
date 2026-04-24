@@ -39,7 +39,7 @@
 		"react-dom": "18.2.0",
 		"resize-observer-polyfill": "1.5.1",
 		"typescript": "5.8.3",
-		"uuid": "11.1.0",
+		"uuid": "14.0.0",
 		"@emotion/css": "11.13.5"
 	},
 	"devDependencies": {
