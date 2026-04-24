@@ -2126,7 +2126,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             const repoRoot = getRepoRoot(projectPath);
             if (repoRoot) {
                 const contextYamlPath = path.join(repoRoot, ".wso2", "context.yaml");
-                // todo: leaving .choreo/context.yaml check for backward compatibility, can remove after some time
+                // leaving .choreo/context.yaml check for backward compatibility, can remove after some time
                 const choreoContextYamlPath = path.join(repoRoot, ".choreo", "context.yaml");
                 if (fs.existsSync(contextYamlPath) || fs.existsSync(choreoContextYamlPath)) {
                     hasContextYaml = true;
@@ -2177,7 +2177,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             if (!platformExt) {
                 // Check for context.yaml as fallback
                 const contextYamlPath = path.join(repoRoot, ".wso2", "context.yaml");
-                // todo: leaving .choreo/context.yaml check for backward compatibility, can remove after some time
+                // leaving .choreo/context.yaml check for backward compatibility, can remove after some time
                 const choreoContextYamlPath = path.join(repoRoot, ".choreo", "context.yaml");
                 const hasContextYaml = fs.existsSync(contextYamlPath) || fs.existsSync(choreoContextYamlPath);
                 return {
@@ -2223,7 +2223,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             // If not logged in, check for context.yaml as fallback
             if (!isLoggedIn) {
                 const contextYamlPath = path.join(repoRoot, ".wso2", "context.yaml");
-                // todo: leaving .choreo/context.yaml check for backward compatibility, can remove after some time
+                // leaving .choreo/context.yaml check for backward compatibility, can remove after some time
                 const choreoContextYamlPath = path.join(repoRoot, ".choreo", "context.yaml");
                 if (fs.existsSync(contextYamlPath) || fs.existsSync(choreoContextYamlPath)) {
                     hasAnyComponent = true;
