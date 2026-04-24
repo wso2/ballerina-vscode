@@ -58,7 +58,7 @@ export class TypeEditorUtils {
             if (!iframe) {
                 throw new Error(`${BI_INTEGRATOR_LABEL} iframe not found`);
             }
-            const dropdownOptions = iframe.getByText(value, { exact: true });
+            const dropdownOptions = iframe.locator('.unq-modal-overlay').getByText(value, { exact: true });
             const optionCount = await dropdownOptions.count();
 
             if (optionCount === 1) {
@@ -319,7 +319,7 @@ export class TypeEditorUtils {
         const dropdownToggle = this.webView.locator(`text=${dropdownText}`);
         await this.waitForElement(dropdownToggle);
         await dropdownToggle.click();
-        
+
         // Wait for animation to complete
         await this.page.waitForTimeout(waitTime);
     }
@@ -331,10 +331,10 @@ export class TypeEditorUtils {
         const checkbox = this.webView.getByRole('checkbox', { name: checkboxName });
         console.log(`Setting checkbox "${checkboxName}" to ${checked}`);
         await this.waitForElement(checkbox);
-        
+
         const ariaChecked = await checkbox.getAttribute('aria-checked');
         const isCurrentlyChecked = ariaChecked === 'true';
-        
+
         if (isCurrentlyChecked !== checked) {
             await checkbox.click();
         }

@@ -22,8 +22,7 @@ import { ProjectExplorer } from '../utils/pages';
 import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 
 export default function createTests() {
-    test.describe('HTTP Service Tests', {
-        tag: '@group1',
+    test.describe.serial('HTTP Service Tests', {
     }, async () => {
         initTest();
         let serviceBasePath = '/';
@@ -49,10 +48,15 @@ export default function createTests() {
                 }
             });
             await form.submit('Create');
-            const context = artifactWebView.locator(`text=${sampleName}`);
-            await context.waitFor();
+            // Check for both possible text matches to avoid strict mode violation
+            const httpServiceLabel = artifactWebView.locator(`text=HTTP Service - ${sampleName}`);
+            const servicePathLabel = artifactWebView.locator(`text=${sampleName}`).first();
+            await Promise.race([
+                httpServiceLabel.waitFor(),
+                servicePathLabel.waitFor()
+            ]);
             const projectExplorer = new ProjectExplorer(page.page);
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `HTTP Service - ${sampleName}`], true);
+            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `HTTP Service - ${sampleName}`]);
             const updateArtifactWebView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page);
             if (!updateArtifactWebView) {
                 throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
@@ -89,11 +93,16 @@ export default function createTests() {
             await expect(saveChangesBtn).toHaveText('Save Changes');
             // Click project tree button
             const projectExplorer = new ProjectExplorer(page.page);
-            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', `HTTP Service - ${serviceBasePath}`], true);
+            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', `HTTP Service - ${serviceBasePath}`]);
             await serviceTreeItem.click({ force: true });
 
-            const context = artifactWebView.locator(`text=${serviceBasePath}`);
-            await context.waitFor();
+            // Check for both possible text matches to avoid strict mode violation
+            const httpServiceLabel = artifactWebView.locator(`text=HTTP Service - ${serviceBasePath}`);
+            const servicePathLabel = artifactWebView.locator(`text=${serviceBasePath}`).first();
+            await Promise.race([
+                httpServiceLabel.waitFor(),
+                servicePathLabel.waitFor()
+            ]);
         });
 
         test('Add GET Resource to HTTP Service', async ({ }, testInfo) => {
@@ -179,7 +188,7 @@ export default function createTests() {
             console.log('Adding POST resource in test attempt: ', testAttempt);
 
             const projectExplorer = new ProjectExplorer(page.page);
-            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', `HTTP Service - ${serviceBasePath}`], true);
+            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', `HTTP Service - ${serviceBasePath}`]);
             await serviceTreeItem.click({ force: true });
 
             const artifactWebView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page);
@@ -286,7 +295,7 @@ export default function createTests() {
             const testAttempt = testInfo.retry + 1;
             console.log('Deleting resource in test attempt: ', testAttempt);
             const projectExplorer = new ProjectExplorer(page.page);
-            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', `HTTP Service - ${serviceBasePath}`], true);
+            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', `HTTP Service - ${serviceBasePath}`]);
             await serviceTreeItem.click({ force: true });
 
             const artifactWebView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page);
@@ -342,7 +351,7 @@ export default function createTests() {
 
             // Verify service exists in project explorer
             const projectExplorer = new ProjectExplorer(page.page);
-            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', `HTTP Service - ${serviceBasePath}`], true);
+            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', `HTTP Service - ${serviceBasePath}`]);
             await expect(serviceTreeItem).toBeVisible();
 
             // Find delete button in toolbar or context menu
@@ -408,9 +417,14 @@ export default function createTests() {
             await form.submit('Create');
 
             // Verify service is created
-            await artifactWebView.locator(`text=${serviceBasePath}`).waitFor();
+            const httpServiceLabel = artifactWebView.locator(`text=HTTP Service - ${serviceBasePath}`);
+            const servicePathLabel = artifactWebView.locator(`text=${serviceBasePath}`).first();
+            await Promise.race([
+                httpServiceLabel.waitFor(),
+                servicePathLabel.waitFor()
+            ]);
             const projectExplorer = new ProjectExplorer(page.page);
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `HTTP Service - ${serviceBasePath}`], true);
+            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `HTTP Service - ${serviceBasePath}`]);
         });
 
     });

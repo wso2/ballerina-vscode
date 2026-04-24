@@ -1077,6 +1077,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
             >
               <div
                 class="css-27"
+                data-testid="start-node"
               >
                 Start
               </div>
@@ -6721,6 +6722,7 @@ exports[`BI Diagram - Snapshot Tests renders all nodes flow correctly: all-nodes
             >
               <div
                 class="css-36"
+                data-testid="start-node"
               >
                 Start
               </div>
@@ -9883,6 +9885,7 @@ exports[`BI Diagram - Snapshot Tests renders all nodes flow correctly: all-nodes
             >
               <div
                 class="css-36"
+                data-testid="start-node"
               >
                 worker1
               </div>
@@ -10044,6 +10047,7 @@ exports[`BI Diagram - Snapshot Tests renders all nodes flow correctly: all-nodes
             >
               <div
                 class="css-36"
+                data-testid="start-node"
               >
                 worker2
               </div>
@@ -12159,6 +12163,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
             >
               <div
                 class="css-27"
+                data-testid="start-node"
               >
                 Start
               </div>
@@ -14063,6 +14068,7 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
             >
               <div
                 class="css-33"
+                data-testid="start-node"
               >
                 Start
               </div>
@@ -14541,6 +14547,7 @@ exports[`BI Diagram - Snapshot Tests renders flow with error handler correctly: 
             >
               <div
                 class="css-26"
+                data-testid="start-node"
               >
                 Start
               </div>
@@ -15179,6 +15186,7 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
             >
               <div
                 class="css-26"
+                data-testid="start-node"
               >
                 Start
               </div>
@@ -15582,6 +15590,7 @@ exports[`BI Diagram - Snapshot Tests renders start flow correctly: start-flow 1`
             >
               <div
                 class="css-15"
+                data-testid="start-node"
               >
                 Start
               </div>

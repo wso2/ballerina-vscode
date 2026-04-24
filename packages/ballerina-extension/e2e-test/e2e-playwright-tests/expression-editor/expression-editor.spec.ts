@@ -22,8 +22,7 @@ import { switchToIFrame } from '@wso2/playwright-vscode-tester';
 import { Diagram, SidePanel } from '../utils/pages';
 
 export default function createTests() {
-    test.describe('Expression Editor Tests', {
-        tag: '@group1',
+    test.describe.serial('Expression Editor Tests', {
     }, async () => {
         initTest();
         test('Retrieving suggestions', async ({ }, testInfo) => {
