@@ -30,6 +30,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 - **Copilot & Agent Flow** — Fixed multi-turn chat state persistence, chat agent creation with listener support, config-collector placeholder handling, trigger/context issues, and login notification issues for default model provider configuration.
 - **Cross-Platform & Security** — Improved Windows build and path handling, CLI/test-environment reliability, and applied vulnerability and dependency security fixes across BI extension components.
 
+## [5.8.3](https://github.com/wso2/vscode-extensions/compare/ballerina-5.8.2...ballerina-5.8.3) - 2026-04-21
+
+### Fixed
+
+- **Test Explorer** - Render Ballerina test explorer icons only when a Ballerina project is opened.
+- **Agent Default Model Provider Configuration** - Fixed default model provider configuration not added automatically when creating inline agents.
+
 ## [5.8.2](https://github.com/wso2/vscode-extensions/compare/ballerina-5.8.1...ballerina-5.8.2) - 2026-03-11
 
 ### Fixed
