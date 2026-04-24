@@ -23,8 +23,7 @@ import { ProjectExplorer } from '../utils/pages';
 import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 
 export default function createTests() {
-    test.describe('Github Integration Tests', {
-        tag: '@group1',
+    test.describe.serial('Github Integration Tests', {
     }, async () => {
         let listenerName: string;
         initTest();
@@ -56,7 +55,7 @@ export default function createTests() {
             await onOpened.waitFor();
 
             const projectExplorer = new ProjectExplorer(page.page);
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `github:IssuesService`], true);
+            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `github:IssuesService`]);
 
             listenerName = `githubListener`;
             const context = artifactWebView.locator(`text=${listenerName}`);
@@ -116,7 +115,7 @@ export default function createTests() {
                 throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
             }
             const projectExplorer = new ProjectExplorer(page.page);
-            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `github:IssuesService`], true);
+            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `github:IssuesService`]);
             await serviceTreeItem.click({ button: 'right' });
             const deleteButton = page.page.getByRole('button', { name: 'Delete' }).first();
             await deleteButton.waitFor({ timeout: 5000 });

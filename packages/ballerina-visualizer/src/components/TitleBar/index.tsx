@@ -146,7 +146,7 @@ export function TitleBar(props: TitleBarProps) {
     };
 
     return (
-        <TitleBarContainer>
+        <TitleBarContainer data-testid="title-bar-container">
             <LeftContainer>
                 {!hideBack && (
                     <IconButton data-testid="back-button" onClick={handleBackButtonClick}>

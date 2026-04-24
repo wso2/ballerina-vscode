@@ -24,8 +24,7 @@ import { ProjectExplorer } from '../utils/pages';
 import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 
 export default function createTests() {
-    test.describe('Connection Artifact Tests', {
-        tag: '@group1',
+    test.describe.serial('Connection Artifact Tests', {
     }, async () => {
         initTest();
         test('Create Connection Artifact', async ({ }, testInfo) => {
@@ -46,6 +45,10 @@ export default function createTests() {
             const loadingConnectorPackage = artifactWebView.locator('text=Loading connector package...');
             await loadingConnectorPackage.waitFor({ state: 'hidden' });
 
+            // Wait for Save Connection button to be visible
+            const saveConnectionButton = artifactWebView.locator('text=Save Connection');
+            await saveConnectionButton.waitFor({ state: 'visible' });
+
             const form = new Form(page.page, BI_INTEGRATOR_LABEL, artifactWebView);
             const connectionName = `httpClient`;
             await form.switchToFormView(false, artifactWebView);
@@ -58,13 +61,13 @@ export default function createTests() {
                     }
                 }
             });
-            await form.submit('Create');
+            await form.submit('Save Connection');
 
             const connectionCard = artifactWebView.getByText(connectionName, { exact: true }).first();
             await connectionCard.waitFor();
 
             const projectExplorer = new ProjectExplorer(page.page);
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `${connectionName}`], true);
+            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `${connectionName}`]);
             const updateArtifactWebView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page);
             if (!updateArtifactWebView) {
                 throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);

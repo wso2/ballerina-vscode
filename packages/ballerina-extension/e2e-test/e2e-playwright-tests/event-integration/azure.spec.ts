@@ -23,8 +23,7 @@ import { ProjectExplorer } from '../utils/pages';
 import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 
 export default function createTests() {
-    test.describe('Azure Integration Tests', {
-        tag: '@group1',
+    test.describe.serial('Azure Integration Tests', {
     }, async () => {
         let listenerName: string;
         initTest();
@@ -58,7 +57,7 @@ export default function createTests() {
             await form.submit('Create');
 
             const projectExplorer = new ProjectExplorer(page.page);
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `Azure Service Bus Event Integration`], true);
+            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `Azure Service Bus Event Integration`]);
 
             const asbListener = `asbListener`;
             const context = artifactWebView.locator(`text=${asbListener}`);
@@ -108,7 +107,7 @@ export default function createTests() {
             await editBtn.waitFor();
 
             const projectExplorer = new ProjectExplorer(page.page);
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `Azure Service Bus Event Integration`], true);
+            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `Azure Service Bus Event Integration`]);
 
             const asbListener = `asbListener`;
             const context = artifactWebView.locator(`text=${asbListener}`);
@@ -125,7 +124,7 @@ export default function createTests() {
             }
 
             const projectExplorer = new ProjectExplorer(page.page);
-            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `Azure Service Bus Event Integration`], true);
+            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `Azure Service Bus Event Integration`]);
             await serviceTreeItem.click({ button: 'right' });
             const deleteButton = page.page.getByRole('button', { name: 'Delete' }).first();
             await deleteButton.waitFor({ timeout: 5000 });

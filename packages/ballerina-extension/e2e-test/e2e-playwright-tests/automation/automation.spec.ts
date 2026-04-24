@@ -22,8 +22,7 @@ import { ProjectExplorer } from '../utils/pages';
 import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 
 export default function createTests() {
-    test.describe('Automation Tests', {
-        tag: '@group1',
+    test.describe.serial('Automation Tests', {
     }, async () => {
         initTest();
         test('Create Automation', async () => {
@@ -78,11 +77,9 @@ export default function createTests() {
             await sequenceTab.waitFor({ timeout: 10000, state: 'visible' });
 
             // 12. Verify the flow diagram shows a "Start" node
-            const startNode = artifactWebView.locator('[data-testid="start-node"], .start-node, [class*="start"]').first();
-            await startNode.waitFor({ timeout: 10000 }).catch(() => {
-                // If specific test ID not found, try to find by text
-                return artifactWebView.getByText('Start').first().waitFor({ timeout: 5000 });
-            });
+            // Check if "Start" node is present using data-testid
+            const startNode = artifactWebView.locator('[data-testid="start-node"]');
+            await startNode.waitFor({ timeout: 10000, state: 'visible' });
 
             // 13. Verify the flow diagram shows an "Error Handler" node
             // Check if "Error Handler" node is present without using CSS class selectors
@@ -90,12 +87,12 @@ export default function createTests() {
 
             // 14. Verify the tree view shows the automation name under "Entry Points" section
             const projectExplorer = new ProjectExplorer(page.page);
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main'], false);
+            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main']);
         });
         test('Edit Automation', async () => {
             // Navigate to an existing Automation in the automation designer view
             const projectExplorer = new ProjectExplorer(page.page);
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main'], true);
+            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main']);
             const artifactWebView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page, 30000);
             if (!artifactWebView) {
                 throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
@@ -187,7 +184,7 @@ export default function createTests() {
 
         test('Delete Automation', async () => {
             const projectExplorer = new ProjectExplorer(page.page);
-            const automationTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main'], true);
+            const automationTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main']);
             const artifactWebView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page, 30000);
             if (!artifactWebView) {
                 throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
@@ -201,16 +198,9 @@ export default function createTests() {
             await deleteButton.waitFor({ timeout: 5000 });
             await deleteButton.click();
 
-            // 4. Confirm the deletion in the dialog (if any)
-            await page.page.waitForTimeout(500);
-            const confirmButton = page.page.getByRole('button', { name: /Confirm|Delete|Yes|OK/i }).first();
-            if (await confirmButton.isVisible({ timeout: 3000 }).catch(() => false)) {
-                await confirmButton.click();
-            }
-
             // 5. Verify the Automation is removed from the project tree
             await page.page.waitForTimeout(1000);
-            const automationInTree = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'Automation'], false).catch(() => null);
+            const automationInTree = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Entry Points', 'main']).catch(() => null);
             if (automationInTree) {
                 throw new Error('Automation should be removed from project tree');
             }

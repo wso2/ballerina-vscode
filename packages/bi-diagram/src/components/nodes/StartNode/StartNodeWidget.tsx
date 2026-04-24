@@ -57,7 +57,7 @@ export namespace NodeStyles {
     `;
 
     export const Title = styled(StyledText)`
-        max-width: ${(NODE_WIDTH/3) - 12}px;
+        max-width: ${(NODE_WIDTH / 3) - 12}px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -71,7 +71,7 @@ interface StartNodeWidgetProps {
     onClick?: (node: FlowNode) => void;
 }
 
-export interface NodeWidgetProps extends Omit<StartNodeWidgetProps, "children"> {}
+export interface NodeWidgetProps extends Omit<StartNodeWidgetProps, "children"> { }
 
 export function StartNodeWidget(props: StartNodeWidgetProps) {
     const { model, engine, onClick } = props;
@@ -81,12 +81,12 @@ export function StartNodeWidget(props: StartNodeWidgetProps) {
         <NodeStyles.Node
             selected={model.isSelected()}
             hovered={isHovered}
-            // onMouseEnter={() => setIsHovered(true)}
-            // onMouseLeave={() => setIsHovered(false)}
+        // onMouseEnter={() => setIsHovered(true)}
+        // onMouseLeave={() => setIsHovered(false)}
         >
             <NodeStyles.TopPortWidget port={model.getPort("in")!} engine={engine} />
             <Tooltip content={model.node.metadata.label || "Start"} containerSx={{ cursor: "default" }}>
-                <NodeStyles.Title>{model.node.metadata.label || "Start"}</NodeStyles.Title>
+                <NodeStyles.Title data-testid="start-node">{model.node.metadata.label || "Start"}</NodeStyles.Title>
             </Tooltip>
             <NodeStyles.BottomPortWidget port={model.getPort("out")!} engine={engine} />
         </NodeStyles.Node>

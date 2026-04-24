@@ -16,16 +16,35 @@
  * under the License.
  */
 import { test } from '@playwright/test';
-import { addArtifact, BI_INTEGRATOR_LABEL, getWebview, initTest, page } from '../utils/helpers';
+import { addArtifact, BI_INTEGRATOR_LABEL, DEFAULT_PROJECT_NAME, getWebview, initTest, page } from '../utils/helpers';
 import { ServiceClassEditorUtils } from './serviceEditorUtils';
+import { FileUtils } from '../utils/helpers/fileSystem';
+import { ProjectExplorer } from '../utils/pages';
 
 export default function createTests() {
-    test.describe('Service Class Tests', {
-        tag: '@group1',
+    test.describe.serial('Service Class Tests', {
     }, async () => {
         initTest();
         test('Create Service Class', async ({ }, testInfo) => {
             const testAttempt = testInfo.retry + 1;
+
+            const sampleData = [
+                'type Resource record {|',
+                '    string name;',
+                '    int age;',
+                '|};',
+                '',
+                'type Remote record {|',
+                '    string action;',
+                '    boolean status;',
+                '|};',
+            ].join('\n');
+            FileUtils.updateProjectFile('types.bal', sampleData);
+            await FileUtils.openProjectFileInEditor('types.bal');
+
+            // Refresh the project explorer
+            const projectExplorer = new ProjectExplorer(page.page);
+            await projectExplorer.refresh(DEFAULT_PROJECT_NAME);
 
             console.log('Creating a new Service Class in test attempt: ', testAttempt);
 
