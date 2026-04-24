@@ -17,9 +17,9 @@
  * under the License.
  */
 
-import { commands, TestItem, window } from "vscode";
+import { commands, TestItem, window, workspace, WorkspaceEdit, Uri, Range } from "vscode";
 import { openView, StateMachine, history } from "../../stateMachine";
-import { BI_COMMANDS, EVENT_TYPE, MACHINE_VIEW } from "@wso2/ballerina-core";
+import { BI_COMMANDS, EVENT_TYPE, MACHINE_VIEW, Annotation, ValueProperty, GetTestFunctionResponse, ComponentInfo } from "@wso2/ballerina-core";
 import { isTestFunctionItem } from "./discover";
 import path from "path";
 import { promises as fs } from 'fs';
@@ -28,9 +28,19 @@ import { VisualizerWebview } from "../../views/visualizer/webview";
 import { getCurrentProjectRoot, tryGetCurrentBallerinaFile } from "../../utils/project-utils";
 import { findBallerinaPackageRoot } from "../../utils";
 import { MESSAGES } from "../project";
-import { findWorkspaceTypeFromWorkspaceFolders } from "../../rpc-managers/common/utils";
+import { BallerinaExtension } from "../../core";
+import { isSupportedSLVersion, createVersionNumber } from "../../utils/config";
+import { EVALUATION_GROUP } from "./activator";
 
-export function activateEditBiTest() {
+export function activateEditBiTest(ballerinaExtInstance: BallerinaExtension) {
+    // Check if AI Evaluation features are supported
+    const isAIEvaluationSupported = isSupportedSLVersion(
+        ballerinaExtInstance,
+        createVersionNumber(2201, 13, 2)
+    );
+
+    // Set VS Code context for UI visibility control
+    commands.executeCommand('setContext', 'ballerina.ai.evaluationSupported', isAIEvaluationSupported);
     // register run project tests handler
     commands.registerCommand(BI_COMMANDS.BI_EDIT_TEST_FUNCTION, async (entry: TestItem) => {
         const projectPath = await findProjectPath(entry.uri?.fsPath);
@@ -44,15 +54,21 @@ export function activateEditBiTest() {
             return;
         }
 
-        const fileName = entry.id.split(":")[1];
+        const fileName = entry.id.split(":")[2];
         const fileUri = path.resolve(projectPath, `tests`, fileName);
         if (fileUri) {
             const range = entry.range;
-            openView(EVENT_TYPE.OPEN_VIEW, { documentUri: fileUri, 
-                position: { startLine: range.start.line, startColumn: range.start.character, 
-                    endLine: range.end.line, endColumn: range.end.character } });
+            openView(EVENT_TYPE.OPEN_VIEW, {
+                view: MACHINE_VIEW.BIDiagram,
+                documentUri: fileUri,
+                identifier: entry.label,
+                position: {
+                    startLine: range.start.line, startColumn: range.start.character,
+                    endLine: range.end.line, endColumn: range.end.character
+                }
+            });
             history.clear();
-        }        
+        }
     });
 
     commands.registerCommand(BI_COMMANDS.BI_ADD_TEST_FUNCTION, async (entry?: TestItem) => {
@@ -65,8 +81,33 @@ export function activateEditBiTest() {
 
         const fileUri = path.resolve(projectPath, `tests`, `tests.bal`);
         ensureFileExists(fileUri);
-        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BITestFunctionForm, 
-            documentUri: fileUri, identifier: '', serviceType: 'ADD_NEW_TEST' });
+        openView(EVENT_TYPE.OPEN_VIEW, {
+            view: MACHINE_VIEW.BITestFunctionForm,
+            documentUri: fileUri, identifier: '', serviceType: 'ADD_NEW_TEST'
+        });
+    });
+
+    commands.registerCommand(BI_COMMANDS.BI_ADD_AI_EVALUATION, async (entry?: TestItem) => {
+        const projectPath = await findProjectPath(entry?.uri?.fsPath);
+
+        if (!projectPath) {
+            window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+            return;
+        }
+
+        const fileUri = path.resolve(projectPath, `tests`, `tests.bal`);
+        ensureFileExists(fileUri);
+        openView(EVENT_TYPE.OPEN_VIEW, {
+            view: MACHINE_VIEW.BIAIEvaluationForm,
+            documentUri: fileUri,
+            identifier: '',
+            serviceType: 'ADD_NEW_TEST',
+            metadata: {
+                featureSupport: {
+                    aiEvaluation: isAIEvaluationSupported
+                }
+            }
+        });
     });
 
     commands.registerCommand(BI_COMMANDS.BI_EDIT_TEST_FUNCTION_DEF, async (entry: TestItem) => {
@@ -81,21 +122,211 @@ export function activateEditBiTest() {
             return;
         }
 
-        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BITestFunctionForm, 
-                documentUri: fileUri, identifier: entry.label, serviceType: 'UPDATE_TEST' });
+        if (fileUri) {
+            const range = entry.range;
+
+            // Fetch the test function to check if it belongs to the "evaluations" group
+            let viewToOpen = MACHINE_VIEW.BITestFunctionForm; // Default to regular test form
+
+            try {
+                const response = await ballerinaExtInstance.langClient?.getTestFunction({
+                    functionName: entry.label,
+                    filePath: fileUri
+                });
+                if (response && isValidTestFunctionResponse(response) && response.function) {
+                    const isEvaluation = hasEvaluationGroup(response.function);
+                    if (isEvaluation) {
+                        viewToOpen = MACHINE_VIEW.BIAIEvaluationForm;
+                    }
+                }
+            } catch (error) {
+                console.warn('Failed to fetch test function, defaulting to regular test form:', error);
+                // Continue with default form if fetching fails
+            }
+
+            openView(EVENT_TYPE.OPEN_VIEW, {
+                view: viewToOpen,
+                documentUri: fileUri,
+                identifier: entry.label,
+                position: {
+                    startLine: range.start.line,
+                    startColumn: range.start.character,
+                    endLine: range.end.line,
+                    endColumn: range.end.character
+                },
+                serviceType: 'UPDATE_TEST',
+                metadata: {
+                    featureSupport: {
+                        aiEvaluation: isAIEvaluationSupported
+                    }
+                }
+            });
+        }
+    });
+
+    commands.registerCommand(BI_COMMANDS.BI_DELETE_TEST_FUNCTION, async (entry: TestItem) => {
+        const projectPath = await findProjectPath(entry.uri?.fsPath);
+
+        if (!projectPath) {
+            window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+            return;
+        }
+
+        if (!isTestFunctionItem(entry)) {
+            window.showErrorMessage('Invalid test item. Please select a test function to delete.');
+            return;
+        }
+
+        // Parse test ID: test:${projectPath}:${fileName}:${functionName}
+        const idParts = entry.id.split(":");
+        if (idParts.length < 4) {
+            window.showErrorMessage('Unable to parse test item ID.');
+            return;
+        }
+
+        const fileName = idParts[2];
+        const functionName = idParts[3];
+        const fileUri = path.resolve(projectPath, `tests`, fileName);
+
+        // Determine test type for confirmation message
+        let testType = "test function";
+        try {
+            const response = await ballerinaExtInstance.langClient?.getTestFunction({
+                functionName: entry.label,
+                filePath: fileUri
+            });
+
+            if (response && isValidTestFunctionResponse(response) && response.function) {
+                const isEvaluation = hasEvaluationGroup(response.function);
+                if (isEvaluation) {
+                    testType = "AI evaluation test";
+                }
+            }
+        } catch (error) {
+            console.warn('Failed to determine test type, proceeding with default:', error);
+        }
+
+        // Confirmation dialog
+        const confirmation = await window.showWarningMessage(
+            `Are you sure you want to delete ${testType} '${functionName}'?`,
+            { modal: true },
+            'Delete'
+        );
+
+        if (confirmation !== 'Delete') {
+            return;
+        }
+
+        try {
+            if (!entry.range) {
+                window.showErrorMessage('Test function range not available. Cannot delete.');
+                return;
+            }
+
+            // Create ComponentInfo from TestItem range
+            const component: ComponentInfo = {
+                name: functionName,
+                filePath: fileUri,
+                startLine: entry.range.start.line,
+                startColumn: entry.range.start.character,
+                endLine: entry.range.end.line,
+                endColumn: entry.range.end.character
+            };
+
+            // Call language server to delete the component
+            const response = await ballerinaExtInstance.langClient?.deleteByComponentInfo({
+                filePath: fileUri,
+                component: component
+            });
+
+            if (!response || !response.textEdits) {
+                window.showErrorMessage('Failed to delete test function. No response from language server.');
+                return;
+            }
+
+            // Apply the text edits returned by language server
+            const edit = new WorkspaceEdit();
+
+            for (const [filePath, edits] of Object.entries(response.textEdits)) {
+                const uri = Uri.file(filePath);
+                for (const textEdit of edits) {
+                    edit.replace(
+                        uri,
+                        new Range(
+                            textEdit.range.start.line,
+                            textEdit.range.start.character,
+                            textEdit.range.end.line,
+                            textEdit.range.end.character
+                        ),
+                        textEdit.newText
+                    );
+                }
+            }
+
+            const success = await workspace.applyEdit(edit);
+
+            if (success) {
+                window.showInformationMessage(`Test function '${functionName}' deleted successfully.`);
+                // File watcher automatically triggers test rediscovery
+            } else {
+                window.showErrorMessage(`Failed to apply deletion edits for test function '${functionName}'.`);
+            }
+        } catch (error) {
+            window.showErrorMessage(`Error deleting test function: ${error}`);
+            console.error('Delete test function error:', error);
+        }
     });
 }
 
-async function ensureFileExists(filePath: string) {
-  try {
-    await fs.access(filePath);
-  } catch {
-    // Ensure the directory exists
-    await fs.mkdir(path.dirname(filePath), { recursive: true });
+/**
+ * Type guard to check if response is a valid GetTestFunctionResponse
+ * @param response The response to check
+ * @returns true if response is GetTestFunctionResponse, false if NOT_SUPPORTED_TYPE
+ */
+function isValidTestFunctionResponse(response: any): response is GetTestFunctionResponse {
+    return 'function' in response || 'errorMsg' in response || 'stacktrace' in response;
+}
 
-    await fs.writeFile(filePath, '', 'utf8');
-    console.log('File created:', filePath);
-  }
+/**
+ * Check if a test function belongs to the "evaluations" group
+ * @param testFunction The test function to check
+ * @returns true if the function has "evaluations" in its groups, false otherwise
+ */
+function hasEvaluationGroup(testFunction: any): boolean {
+    if (!testFunction?.annotations) { return false; }
+
+    // Find the Config annotation
+    const configAnnotation = testFunction.annotations.find(
+        (annotation: Annotation) => annotation.name === 'Config'
+    );
+
+    if (!configAnnotation?.fields) { return false; }
+
+    // Find the groups field
+    const groupsField = configAnnotation.fields.find(
+        (field: ValueProperty) => field.originalName === 'groups'
+    );
+
+    if (!groupsField?.value) { return false; }
+    if (!Array.isArray(groupsField.value)) { return false; }
+
+    // Check if "evaluations" is in the groups array
+    const hasEvaluation = groupsField.value.some((group: string) => {
+        return group.replace(/^"|"$/g, '') === EVALUATION_GROUP;
+    });
+    return hasEvaluation;
+}
+
+async function ensureFileExists(filePath: string) {
+    try {
+        await fs.access(filePath);
+    } catch {
+        // Ensure the directory exists
+        await fs.mkdir(path.dirname(filePath), { recursive: true });
+
+        await fs.writeFile(filePath, '', 'utf8');
+        console.log('File created:', filePath);
+    }
 }
 
 async function findProjectPath(filePath?: string): Promise<string | undefined> {

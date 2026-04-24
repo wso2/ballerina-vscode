@@ -23,7 +23,8 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { BallerinaExtension } from "src/core";
 import Handlebars from "handlebars";
-import { clientManager, findRunningBallerinaProcesses, handleError, HTTPYAC_CONFIG_TEMPLATE, TRYIT_TEMPLATE, waitForBallerinaService } from "./utils";
+import { clientManager, findRunningBallerinaProcesses, handleError, waitForBallerinaService } from "./utils";
+import { buildHurlCellsFromOASSpec } from "./hurl-builder";
 import { BIDesignModelResponse, EVENT_TYPE, MACHINE_VIEW, OpenAPISpec, ProjectInfo } from "@wso2/ballerina-core";
 import { getProjectWorkingDirectory } from "../../utils/file-utils";
 import { startDebugging } from "../editor-support/activator";
@@ -37,9 +38,8 @@ import { TracerMachine } from "../tracing";
 
 // File constants
 const FILE_NAMES = {
-    TRYIT: 'tryit.http',
-    HTTPYAC_CONFIG: 'httpyac.config.js',
-    ERROR_LOG: 'httpyac_errors.log'
+    TRYIT: 'TryIt.hurl',
+    ERROR_LOG: 'tryit_errors.log'
 };
 
 let errorLogWatcher: FileSystemWatcher | undefined;
@@ -57,9 +57,9 @@ export function activateTryItCommand(ballerinaExtInstance: BallerinaExtension) {
         clientManager.setClient(ballerinaExtInstance.langClient);
 
         // Register try it command handler
-        const disposable = commands.registerCommand(PALETTE_COMMANDS.TRY_IT, async (withNotice: boolean = false, resourceMetadata?: ResourceMetadata, serviceMetadata?: ServiceMetadata, filePath?: string) => {
+        const disposable = commands.registerCommand(PALETTE_COMMANDS.TRY_IT, async (withNotice: boolean = false, resourceMetadata?: ResourceMetadata, serviceMetadata?: ServiceMetadata, filePath?: string, autoRun?: boolean) => {
             try {
-                await openTryItView(withNotice, resourceMetadata, serviceMetadata, filePath);
+                await openTryItView(withNotice, resourceMetadata, serviceMetadata, filePath, autoRun);
             } catch (error) {
                 handleError(error, "Opening Try It view failed");
             }
@@ -73,7 +73,7 @@ export function activateTryItCommand(ballerinaExtInstance: BallerinaExtension) {
     }
 }
 
-async function openTryItView(withNotice: boolean = false, resourceMetadata?: ResourceMetadata, serviceMetadata?: ServiceMetadata, filePath?: string): Promise<void> {
+async function openTryItView(withNotice: boolean = false, resourceMetadata?: ResourceMetadata, serviceMetadata?: ServiceMetadata, filePath?: string, autoRun?: boolean): Promise<void> {
     try {
         if (!clientManager.hasClient()) {
             throw new Error('Ballerina Language Server is not connected');
@@ -89,7 +89,7 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
 
         // Check if service is already running BEFORE we potentially start it
         // This will be used to determine if we should reuse the session ID for AI Agent service
-        const wasServiceAlreadyRunning = await isServiceAlreadyRunning(projectPath);
+        let wasServiceAlreadyRunning = await isServiceAlreadyRunning(projectPath);
 
         if (withNotice) {
             const selection = await vscode.window.showInformationMessage(
@@ -101,14 +101,18 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
             if (selection !== "Test") {
                 return;
             }
+
+            wasServiceAlreadyRunning = false;
         } else {
-            const processesRunning = await checkBallerinaProcessRunning(projectPath);
+            const processesRunning = autoRun
+                ? await autoRunIntegration(projectPath)
+                : await checkBallerinaProcessRunning(projectPath);
             if (!processesRunning) {
                 return;
             }
         }
 
-        let selectedService: ServiceInfo;
+        let selectedService: ServiceInfo | undefined;
         // If in resource try it mode, find the service containing the resource path
         if (resourceMetadata) {
             const matchingService = await findServiceForResource(services, resourceMetadata, serviceMetadata);
@@ -120,14 +124,18 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
             selectedService = matchingService;
         } else if (services.length > 1) {
             if (serviceMetadata) {
+                const normalize = (p: string) => p.replace(/\\/g, '');
                 const matchingService = services.find(service =>
-                    service.basePath === serviceMetadata.basePath && compareListeners(service.listener, serviceMetadata.listener)
+                    normalize(service.basePath) === normalize(serviceMetadata.basePath) && compareListeners(service.listener, serviceMetadata.listener)
                 );
 
                 if (matchingService) {
                     selectedService = matchingService;
                 }
-            } else {
+            }
+
+            // If no service was matched via metadata, fall back to QuickPick
+            if (!selectedService) {
                 const quickPickItems = services.map(service => ({
                     label: `'${service.basePath}' on ${service.listener.name}`,
                     description: `${service.type} Service`,
@@ -164,8 +172,12 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
             const selectedPort: number = await getServicePort(projectPath, selectedService, openapiSpec);
             selectedService.port = selectedPort;
 
-            const tryitFileUri = await generateTryItFileContent(targetDir, openapiSpec, selectedService, resourceMetadata);
-            await openInSplitView(tryitFileUri, 'http');
+            const basePath = selectedService.basePath === '/' ? '' : sanitizePath(selectedService.basePath);
+            const baseUrl = `http://localhost:${selectedPort}${basePath}`;
+            const serviceName = selectedService.name || selectedService.basePath;
+            const savePath = path.join(projectPath, 'target', 'TryIt.hurl');
+            // Service Try It is savable (Cmd+S saves in-place); Resource Try It is read-only.
+            await openHurlNotebook({ oasSpec: openapiSpec, baseUrl, serviceName, resourceMetadata }, savePath, { savable: !resourceMetadata });
         } else if (selectedService.type === ServiceType.GRAPHQL) {
             const selectedPort: number = await getServicePort(projectPath, selectedService);
             const port = selectedPort;
@@ -183,10 +195,20 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
             // AI Agent service - start the tracing server if enabled
             TracerMachine.startServer();
 
-            const selectedPort: number = await getServicePort(projectPath, selectedService);
-            selectedService.port = selectedPort;
+            // Gather all agent services for multi-agent support
+            const allAgentServices = services.filter(s => s.type === ServiceType.AGENT);
+            const agentServicesWithPorts: { service: ServiceInfo; port: number }[] = [];
+            for (const agentService of allAgentServices) {
+                const port = await getServicePort(projectPath, agentService);
+                agentService.port = port;
+                agentServicesWithPorts.push({ service: agentService, port });
+            }
 
-            await openChatView(selectedService.basePath, selectedPort.toString(), wasServiceAlreadyRunning);
+            // Use the port already resolved in the loop above if the selected service is an agent
+            const existingEntry = agentServicesWithPorts.find(e => e.service === selectedService);
+            selectedService.port = existingEntry ? existingEntry.port : await getServicePort(projectPath, selectedService);
+
+            await openChatView(selectedService, agentServicesWithPorts, wasServiceAlreadyRunning);
         }
 
         // Setup the error log watcher
@@ -194,6 +216,51 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
     } catch (error) {
         handleError(error, "Opening Try It view");
     }
+}
+
+// ---------------------------------------------------------------------------
+// Hurl notebook helpers
+// ---------------------------------------------------------------------------
+
+interface OasDescriptor {
+    oasSpec: any;
+    baseUrl: string;
+    serviceName: string;
+    resourceMetadata?: { methodValue: string; pathValue: string };
+}
+
+async function openHurlNotebook(
+    descriptor: OasDescriptor,
+    savePath: string,
+    options?: { savable?: boolean }
+): Promise<void> {
+    // If TryIt.hurl is already open as a notebook, VS Code returns the cached in-memory
+    // document and ignores the freshly-written file (e.g. switching Service → Resource Try It).
+    // Close all tabs for that file first so the new content is read from disk.
+    const saveUri = vscode.Uri.file(savePath);
+    const isAlreadyOpen = vscode.workspace.notebookDocuments.some(d => d.uri.fsPath === saveUri.fsPath);
+    if (isAlreadyOpen) {
+        await Promise.all(
+            vscode.window.tabGroups.all
+                .flatMap(g => g.tabs)
+                .filter(t => {
+                    const input = t.input as any;
+                    return input?.uri?.fsPath === saveUri.fsPath || input?.notebook?.uri?.fsPath === saveUri.fsPath;
+                })
+                .map(tab => vscode.window.tabGroups.close(tab, true))
+        );
+    }
+    const cells = buildHurlCellsFromOASSpec(descriptor.oasSpec, descriptor.baseUrl, descriptor.serviceName, descriptor.resourceMetadata);
+    await openTryItNotebook(cells, { ...options, savePath });
+}
+
+async function openTryItNotebook(
+    content: string | object[],
+    options?: { savable?: boolean; savePath?: string }
+): Promise<void> {
+    await vscode.commands.executeCommand('workbench.action.editorLayoutTwoColumns');
+    await vscode.commands.executeCommand('workbench.action.focusSecondEditorGroup');
+    await vscode.commands.executeCommand('HTTPClient.importHurlString', content, { ...options, viewColumn: 'active' });
 }
 
 // Generic utility function for opening files in split view
@@ -219,30 +286,58 @@ async function openInSplitView(fileUri: vscode.Uri, editorType: string = 'defaul
     }
 }
 
-async function openChatView(basePath: string, port: string, wasServiceAlreadyRunning: boolean) {
+function buildChatEndpoint(basePath: string, port: number): string {
+    const baseUrl = `http://localhost:${port}`;
+    const chatPath = "chat";
+    const cleanBasePath = basePath.replace(/\\/g, '');
+    const serviceEp = new URL(cleanBasePath, baseUrl);
+    const cleanedServiceEp = serviceEp.pathname.replace(/\/$/, '') + "/" + chatPath.replace(/^\//, '');
+    const chatEp = new URL(cleanedServiceEp, serviceEp.origin);
+    return chatEp.href;
+}
+
+function getAgentDisplayName(basePath: string): string {
+    const trimmed = basePath.replace(/^\/+|\/+$/g, '');
+    return trimmed || 'default';
+}
+
+async function openChatView(
+    selectedService: ServiceInfo,
+    allAgentServices: { service: ServiceInfo; port: number }[],
+    wasServiceAlreadyRunning: boolean
+) {
     try {
-        const baseUrl = `http://localhost:${port}`;
-        const chatPath = "chat";
+        // Build agent info for all agent services
+        const agents = allAgentServices.map(({ service, port }) => {
+            const chatEndpoint = buildChatEndpoint(service.basePath, port);
+            let sessionId: string;
 
-        const serviceEp = new URL(basePath, baseUrl);
-        const cleanedServiceEp = serviceEp.pathname.replace(/\/$/, '') + "/" + chatPath.replace(/^\//, '');
-        const chatEp = new URL(cleanedServiceEp, serviceEp.origin);
+            if (!wasServiceAlreadyRunning) {
+                sessionId = uuidv4();
+                chatSessionMap.set(chatEndpoint, sessionId);
+            } else {
+                sessionId = chatSessionMap.get(chatEndpoint) || uuidv4();
+                chatSessionMap.set(chatEndpoint, sessionId);
+            }
 
-        const chatEndpoint = chatEp.href;
+            return {
+                name: getAgentDisplayName(service.basePath),
+                basePath: service.basePath,
+                chatEp: chatEndpoint,
+                chatSessionId: sessionId,
+            };
+        });
 
-        let sessionId: string;
+        // Find the active agent based on the selected service
+        const activeAgentName = getAgentDisplayName(selectedService.basePath);
+        const activeAgent = agents.find(a => a.name === activeAgentName) || agents[0];
 
-        if (!wasServiceAlreadyRunning) {
-            // Service was just started - generate a new session ID for a fresh start
-            sessionId = uuidv4();
-            chatSessionMap.set(chatEndpoint, sessionId);
-        } else {
-            // Service was already running - reuse existing session ID if available, or create new
-            sessionId = chatSessionMap.get(chatEndpoint) || uuidv4();
-            chatSessionMap.set(chatEndpoint, sessionId);
-        }
-
-        commands.executeCommand("ballerina.open.agent.chat", { chatEp: chatEndpoint, chatSessionId: sessionId });
+        commands.executeCommand("ballerina.open.agent.chat", {
+            chatEp: activeAgent.chatEp,
+            chatSessionId: activeAgent.chatSessionId,
+            agents,
+            activeAgentName: activeAgent.name,
+        });
     } catch (error) {
         vscode.window.showErrorMessage(`Failed to call Chat-Agent: ${error}`);
     }
@@ -358,7 +453,10 @@ async function getAvailableServices(projectDir: string): Promise<ServiceInfo[] |
                         .filter(Boolean)
                         .join(','),
                     port: attachedListeners
-                        .map(listenerId => response.designModel.listeners.find(l => l.uuid === listenerId)?.args.find(arg => arg.key === 'port')?.value)
+                        .map(listenerId => {
+                            const listener = response.designModel.listeners.find(l => l.uuid === listenerId);
+                            return listener?.args.find(arg => arg.key === 'port' || arg.key === 'listenOn')?.value;
+                        })
                         .filter(Boolean)
                         .join(','),
                 };
@@ -375,82 +473,6 @@ async function getAvailableServices(projectDir: string): Promise<ServiceInfo[] |
         return services || [];
     } catch (error) {
         return null;
-    }
-}
-
-async function generateTryItFileContent(targetDir: string, openapiSpec: OAISpec, service: ServiceInfo, resourceMetadata?: ResourceMetadata): Promise<vscode.Uri | undefined> {
-    try {
-        // Register Handlebars helpers
-        registerHandlebarsHelpers(openapiSpec);
-
-        let isResourceMode = false;
-        let resourcePath = '';
-        // Filter paths based on resourceMetadata if provided
-        if (resourceMetadata) {
-            const originalPaths = openapiSpec.paths;
-            const filteredPaths: Record<string, Record<string, Operation>> = {};
-
-            let matchingPath = '';
-            for (const path in originalPaths) {
-                const pathMatches = comparePathPatterns(path, resourceMetadata.pathValue);
-                if (pathMatches) {
-                    matchingPath = path;
-                    break;
-                }
-            }
-
-            if (matchingPath && originalPaths[matchingPath]) {
-                isResourceMode = true;
-                resourcePath = matchingPath;
-
-                const method = resourceMetadata.methodValue.toLowerCase();
-                if (originalPaths[matchingPath][method]) {
-                    // Create entry with only the specified method
-                    filteredPaths[matchingPath] = {
-                        [method]: {
-                            ...originalPaths[matchingPath][method]
-                        }
-                    };
-                } else {
-                    // Method not found in matching path
-                    vscode.window.showWarningMessage(`Method ${resourceMetadata.methodValue} not found for path ${matchingPath}. Showing all methods for this path.`);
-                    filteredPaths[matchingPath] = originalPaths[matchingPath];
-                }
-
-                openapiSpec.paths = filteredPaths;
-            } else {
-                // Path not found in OpenAPI spec
-                vscode.window.showWarningMessage(
-                    `Path ${resourceMetadata.pathValue} not found in service ${service.name || service.basePath}. Showing all resources.`
-                );
-            }
-        }
-
-        const tryitCompiledTemplate = Handlebars.compile(TRYIT_TEMPLATE);
-        const tryitContent = tryitCompiledTemplate({
-            ...openapiSpec,
-            port: service.port.toString(),
-            basePath: service.basePath === '/' ? '' : sanitizePath(service.basePath), // to avoid double slashes in the URL
-            serviceName: service.name || '/',
-            isResourceMode: isResourceMode,
-            resourceMethod: isResourceMode ? resourceMetadata?.methodValue.toUpperCase() : '',
-            resourcePath: resourcePath,
-        });
-
-        const httpyacCompiledTemplate = Handlebars.compile(HTTPYAC_CONFIG_TEMPLATE);
-        const httpyacContent = httpyacCompiledTemplate({
-            errorLogFile: FILE_NAMES.ERROR_LOG,
-        });
-
-        const tryitFilePath = path.join(targetDir, FILE_NAMES.TRYIT);
-        const configFilePath = path.join(targetDir, FILE_NAMES.HTTPYAC_CONFIG);
-        fs.writeFileSync(tryitFilePath, tryitContent);
-        fs.writeFileSync(configFilePath, httpyacContent);
-
-        return vscode.Uri.file(tryitFilePath);
-    } catch (error) {
-        handleError(error, "Try It client initialization failed");
-        return undefined;
     }
 }
 
@@ -523,6 +545,11 @@ async function getServicePort(projectDir: string, service: ServiceInfo, openapiS
             return parseInt(service.listener.port);
         }
 
+        // If the listener uses http:getDefaultListener(), resolve to the default port (9090)
+        if (service.listener.port?.includes('getDefaultListener')) {
+            return 9090;
+        }
+
         // Try to get default port from OpenAPI spec first
         let portInSpec: number;
         const portInSpecStr = openapiSpec?.servers?.[0]?.variables?.port?.default;
@@ -571,6 +598,43 @@ async function getServicePort(projectDir: string, service: ServiceInfo, openapiS
     } catch (error) {
         handleError(error, "Getting service port", false);
         throw error;
+    }
+}
+
+/**
+ * Automatically starts the integration without prompting the user.
+ * Used when the intent to run is already clear (e.g., user clicked "Chat" on an agent).
+ */
+async function autoRunIntegration(projectDir: string): Promise<boolean> {
+    try {
+        const balProcesses = await findRunningBallerinaProcesses(projectDir)
+            .catch(error => {
+                throw new Error(`Failed to find running Ballerina processes: ${error.message}`);
+            });
+
+        if (balProcesses?.length) {
+            return true;
+        }
+
+        const { workspacePath, view: webviewType } = StateMachine.context();
+        const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
+        const needsPackageSelection = requiresPackageSelection(workspacePath, webviewType, projectDir, isWebviewOpen, false);
+
+        if (isWebviewOpen && needsPackageSelection) {
+            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview, projectPath: projectDir });
+        }
+
+        clearTerminal();
+        await startDebugging(Uri.file(projectDir), false, false, true);
+
+        const newProcesses = await waitForBallerinaService(projectDir).then(() => {
+            return findRunningBallerinaProcesses(projectDir);
+        });
+
+        return newProcesses?.length > 0;
+    } catch (error) {
+        handleError(error, "Auto-running integration", false);
+        return false;
     }
 }
 
@@ -911,10 +975,10 @@ function compareListeners(serviceInfoListener: { name: string, port?: string }, 
         return true;
     }
 
-    // anonymous listeners
-    if (serviceMetadataListener.startsWith('new http:Listener') && serviceInfoListener.port) {
-        // Extract port from 'http:Listener(9090)'
-        const portMatch = serviceMetadataListener.match(/new http:Listener\((\d+)\)/);
+    // anonymous listeners - handle any listener type (e.g., http:Listener, ai:Listener, etc.)
+    if (serviceMetadataListener.startsWith('new ') && serviceInfoListener.port) {
+        // Extract port from patterns like 'new http:Listener(9090)', 'new ai:Listener(8080)', etc.
+        const portMatch = serviceMetadataListener.match(/new \w+:\w+\((\d+)/);
         if (portMatch && portMatch[1]) {
             const port = parseInt(portMatch[1], 10);
             return port === parseInt(serviceInfoListener.port);
@@ -948,7 +1012,7 @@ function setupErrorLogWatcher(targetDir: string) {
                 ).then(selection => {
                     if (selection === 'Show Details') {
                         // Show the full error in an output channel
-                        const outputChannel = window.createOutputChannel('WSO2 Integrator: BI Tryit - Log');
+                        const outputChannel = window.createOutputChannel('WSO2 Integrator Tryit - Log');
                         outputChannel.appendLine(content.trim());
                         outputChannel.show();
                     }

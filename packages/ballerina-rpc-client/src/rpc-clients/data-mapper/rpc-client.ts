@@ -27,6 +27,7 @@ import {
     ConvertExpressionRequest,
     ConvertExpressionResponse,
     ConvertToQueryRequest,
+    CreateConvertedVariableRequest,
     DMModelRequest,
     DataMapperAPI,
     DataMapperModelRequest,
@@ -48,6 +49,7 @@ import {
     ProcessTypeReferenceResponse,
     PropertyRequest,
     PropertyResponse,
+    ResolveOutputRequest,
     VisualizableFieldsRequest,
     VisualizableFieldsResponse,
     addClauses,
@@ -55,6 +57,7 @@ import {
     addSubMapping,
     clearTypeCache,
     convertToQuery,
+    createConvertedVariable,
     deleteClause,
     deleteMapping,
     deleteSubMapping,
@@ -71,7 +74,8 @@ import {
     getSubMappingCodedata,
     getVisualizableFields,
     mapWithCustomFn,
-    mapWithTransformFn
+    mapWithTransformFn,
+    resolveOutput
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -135,6 +139,10 @@ export class DataMapperRpcClient implements DataMapperAPI {
         return this._messenger.sendRequest(mapWithTransformFn, HOST_EXTENSION, params);
     }
 
+    resolveOutput(params: ResolveOutputRequest): Promise<DataMapperSourceResponse> {
+        return this._messenger.sendRequest(resolveOutput, HOST_EXTENSION, params);
+    }
+
     getDataMapperCodedata(params: GetDataMapperCodedataRequest): Promise<GetDataMapperCodedataResponse> {
         return this._messenger.sendRequest(getDataMapperCodedata, HOST_EXTENSION, params);
     }
@@ -165,6 +173,10 @@ export class DataMapperRpcClient implements DataMapperAPI {
 
     getConvertedExpression(params: ConvertExpressionRequest): Promise<ConvertExpressionResponse> {
         return this._messenger.sendRequest(getConvertedExpression, HOST_EXTENSION, params);
+    }
+
+    createConvertedVariable(params: CreateConvertedVariableRequest): Promise<DataMapperSourceResponse> {
+        return this._messenger.sendRequest(createConvertedVariable, HOST_EXTENSION, params);
     }
 
     clearTypeCache(): Promise<ClearTypeCacheResponse> {

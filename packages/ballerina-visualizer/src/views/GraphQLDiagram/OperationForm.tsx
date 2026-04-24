@@ -18,7 +18,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { FunctionModel, LineRange, ParameterModel, ConfigProperties, PropertyModel, RecordTypeField, Property, PropertyTypeMemberInfo, getPrimaryInputType } from '@wso2/ballerina-core';
-import { FormGeneratorNew } from '../BI/Forms/FormGeneratorNew';
+import { ArtifactForm } from '../BI/Forms/ArtifactForm';
 import { FormField, FormImports, FormValues, Parameter } from '@wso2/ballerina-side-panel';
 import { getImportsForProperty } from '../../utils/bi';
 
@@ -64,7 +64,7 @@ export function OperationForm(props: OperationFormProps) {
 
         params.forEach(param => {
             // Find matching field configurations from schema
-            const typeField = paramFields.find(field => field.key === 'type');
+            const typeField = paramFields.find(field => getPrimaryInputType(field.types)?.fieldType === 'TYPE');
             const nameField = paramFields.find(field => field.key === 'variable');
             const defaultField = paramFields.find(field => field.key === 'defaultable');
             const documentationField = paramFields.find(field => field.key === 'documentation');
@@ -191,7 +191,7 @@ export function OperationForm(props: OperationFormProps) {
                 editable: model.returnType.editable,
                 advanced: model.returnType.advanced,
                 documentation: model.returnType.metadata?.description || '',
-                value: model.returnType.value,
+                value: model.returnType?.value || '',
                 properties: model.returnType.properties,
                 types: model.returnType?.types,
                 isGraphqlId: isGraphqlView ? (model.returnType as any).isGraphqlId : undefined
@@ -259,7 +259,7 @@ export function OperationForm(props: OperationFormProps) {
     return (
         <>
             {fields.length > 0 && (
-                <FormGeneratorNew
+                <ArtifactForm
                     fileName={filePath}
                     targetLineRange={lineRange}
                     fields={fields}

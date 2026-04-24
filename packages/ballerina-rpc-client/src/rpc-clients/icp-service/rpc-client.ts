@@ -17,7 +17,7 @@
  */
 import {
     ICPEnabledResponse, ICPEnabledRequest,
-    addICP, disableICP, isIcpEnabled, ICPServiceAPI
+    addICP, disableICP, isIcpEnabled, viewInICP, isICPServerRunning, ICPServiceAPI
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -38,5 +38,13 @@ export class ICPServiceRpcClient implements ICPServiceAPI {
 
     disableICP(params: ICPEnabledRequest): Promise<ICPEnabledResponse> {
         return this._messenger.sendRequest(disableICP, HOST_EXTENSION, params);
+    }
+
+    viewInICP(params: ICPEnabledRequest): Promise<ICPEnabledResponse> {
+        return this._messenger.sendRequest(viewInICP, HOST_EXTENSION, params);
+    }
+
+    isICPServerRunning(params: ICPEnabledRequest): Promise<ICPEnabledResponse> {
+        return this._messenger.sendRequest(isICPServerRunning, HOST_EXTENSION, params);
     }
 }

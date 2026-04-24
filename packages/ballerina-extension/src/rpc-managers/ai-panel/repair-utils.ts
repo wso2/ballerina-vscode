@@ -49,15 +49,20 @@ export async function checkProjectDiagnostics(langClient: ExtendedLangClient, te
     if (isAISchema) {
         projectUri = Uri.file(tempDir).with({ scheme: 'ai' }).toString();
     }
-    console.log("Getting project diagnostics for URI:", projectUri);
+    const _diagStartMs = Date.now();
+    console.log(`[DiagTiming] getProjectDiagnostics START — URI: ${projectUri}`);
     let response: ProjectDiagnosticsResponse = await langClient.getProjectDiagnostics({
         projectRootIdentifier: {
             uri: projectUri
         }
     });
+    const _diagDurationMs = Date.now() - _diagStartMs;
     if (!response.errorDiagnosticMap) {
+        console.log(`[DiagTiming] getProjectDiagnostics END — ${_diagDurationMs}ms — no errorDiagnosticMap (internal error)`);
         throw new Error("Internal error while getting diagnostics from language server");
     }
+    const _fileCount = Object.keys(response.errorDiagnosticMap).length;
+    console.log(`[DiagTiming] getProjectDiagnostics END — ${_diagDurationMs}ms, ${_fileCount} files with errors`);
     
     if (Object.keys(response.errorDiagnosticMap).length === 0) {
         return [];
@@ -91,7 +96,12 @@ export async function isModuleNotFoundDiagsExist(diagnosticsResult: Diagnostics[
 
     // Process each unique diagnostic only once
     let projectModified = false;
-    for (const [_, { uri }] of uniqueDiagnosticMap.entries()) {
+    for (const [message, { uri }] of uniqueDiagnosticMap.entries()) {
+        // Skip resolving dependencies for the invalid config import pattern
+        if (message.includes("ballerinax/.config as config")) {
+            continue;
+        }
+
         const dependenciesResponse = await langClient.resolveModuleDependencies({
             documentIdentifier: {
                 uri: uri

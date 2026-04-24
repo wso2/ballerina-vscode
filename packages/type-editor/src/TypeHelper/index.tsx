@@ -97,6 +97,7 @@ type TypeHelperProps = {
     referenceTypes: TypeHelperCategory[];
     basicTypes: TypeHelperCategory[];
     importedTypes: TypeHelperCategory[];
+    workspaceTypes: TypeHelperCategory[];
     operators: TypeHelperOperator[];
     typeBrowserTypes: TypeHelperCategory[];
     onSearchTypeHelper: (searchText: string, isType: boolean) => void;

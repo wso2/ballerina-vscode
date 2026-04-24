@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { createRef, useCallback, useEffect, useRef, useState } from "react";
 import {
     KeyboardNavigationManager,
     MachineStateValue,
@@ -35,56 +35,14 @@ import { Global, css } from "@emotion/react";
 import { debounce } from "lodash";
 import styled from "@emotion/styled";
 import { LoadingRing } from "./components/Loader";
-import { ERDiagram } from "./views/ERDiagram";
-import { GraphQLDiagram } from "./views/GraphQLDiagram";
-import { ServiceDesigner } from "./views/BI/ServiceDesigner";
-import {
-    WelcomeView,
-    ProjectForm,
-    AddProjectForm,
-    ComponentListView,
-    PopupMessage,
-    FunctionForm,
-    SetupView,
-    TestFunctionForm
-} from "./views/BI";
+import { WebviewErrorState } from "./components/WebviewErrorState";
 import { handleRedo, handleUndo } from "./utils/utils";
 import { STKindChecker } from "@wso2/syntax-tree";
-import { URI, Utils } from "vscode-uri";
-import { ThemeColors, Typography } from "@wso2/ui-toolkit";
+import { URI } from "vscode-uri";
+import { ErrorBoundary, ThemeColors, Typography } from "@wso2/ui-toolkit";
 import { PanelType, useModalStack, useVisualizerContext } from "./Context";
-import { ConstructPanel } from "./views/ConstructPanel";
-import { EditPanel } from "./views/EditPanel";
-import { RecordEditor } from "./views/RecordEditor/RecordEditor";
-import PopupPanel from "./PopupPanel";
-import { ConnectorList } from "../../ballerina-visualizer/src/views/Connectors/ConnectorWizard";
-import { EndpointList } from "./views/Connectors/EndpointList";
-import { getSymbolInfo } from "@wso2/ballerina-low-code-diagram";
-import DiagramWrapper from "./views/BI/DiagramWrapper";
-import AddConnectionWizard from "./views/BI/Connection/AddConnectionWizard";
-import { TypeDiagram } from "./views/TypeDiagram";
-import { PackageOverview } from "./views/BI/PackageOverview/index";
-import EditConnectionWizard from "./views/BI/Connection/EditConnectionWizard";
-import ViewConfigurableVariables from "./views/BI/Configurables/ViewConfigurableVariables";
-import { ServiceEditView } from "./views/BI/ServiceDesigner/ServiceEditView";
-import { ListenerEditView } from "./views/BI/ServiceDesigner/ListenerEditView";
-import { ServiceClassDesigner } from "./views/BI/ServiceClassEditor/ServiceClassDesigner";
-import { ServiceClassConfig } from "./views/BI/ServiceClassEditor/ServiceClassConfig";
-import { AIAgentDesigner } from "./views/BI/AIChatAgent";
-import { AIChatAgentWizard } from "./views/BI/AIChatAgent/AIChatAgentWizard";
-import { BallerinaUpdateView } from "./views/BI/BallerinaUpdateView";
 import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react";
-import { DataMapper } from "./views/DataMapper";
-import { ImportIntegration } from "./views/BI/ImportIntegration";
-import { ServiceCreationView } from "./views/BI/ServiceDesigner/ServiceCreationView";
 import Popup from "./components/Popup";
-import { ServiceFunctionForm } from "./views/BI/ServiceFunctionForm";
-import ServiceConfigureView from "./views/BI/ServiceDesigner/ServiceConfigureView";
-import { WorkspaceOverview } from "./views/BI/WorkspaceOverview";
-import { SamplesView } from "./views/BI/SamplesView";
-import { ReviewMode } from "./views/ReviewMode";
-import AddConnectionPopup from "./views/BI/Connection/AddConnectionPopup";
-import EditConnectionPopup from "./views/BI/Connection/EditConnectionPopup";
 
 const globalStyles = css`
     *,
@@ -195,16 +153,55 @@ const LoadingText = styled.div`
     font-weight: 500;
 `;
 
+const LazyConstructPanel = React.lazy(() =>
+    import("./views/ConstructPanel").then((module) => ({ default: module.ConstructPanel }))
+);
+const LazyEditPanel = React.lazy(() =>
+    import("./views/EditPanel").then((module) => ({ default: module.EditPanel }))
+);
+const LazyRecordEditor = React.lazy(() =>
+    import("./views/RecordEditor/RecordEditor").then((module) => ({ default: module.RecordEditor }))
+);
+const LazyPopupPanel = React.lazy(() => import("./PopupPanel"));
+const LazyConnectorList = React.lazy(() =>
+    import("./views/Connectors/ConnectorWizard").then((module) => ({ default: module.ConnectorList }))
+);
+const LazyPopupMessage = React.lazy(() =>
+    import("./views/BI/PopupMessage").then((module) => ({ default: module.PopupMessage }))
+);
+const LazyEndpointList = React.lazy(async () => {
+    const [{ EndpointList }, { getSymbolInfo }] = await Promise.all([
+        import("./views/Connectors/EndpointList"),
+        import("@wso2/ballerina-low-code-diagram"),
+    ]);
+
+    return {
+        default: ({ applyModifications }: { applyModifications: (modifications: STModification[], isRecordModification?: boolean) => Promise<void> }) => (
+            <EndpointList stSymbolInfo={getSymbolInfo()} applyModifications={applyModifications} />
+        ),
+    };
+});
+
+const ConditionalPanelFallback = (): null => null;
+
 const MainPanel = () => {
     const { rpcClient } = useRpcContext();
     const { sidePanel, setSidePanel, popupMessage, setPopupMessage, activePanel, showOverlay, setShowOverlay } = useVisualizerContext();
     const { modalStack, closeModal } = useModalStack()
+    const errorBoundaryRef = createRef<any>();
     const [viewComponent, setViewComponent] = useState<React.ReactNode>();
+    const [viewError, setViewError] = useState<string>();
     const [navActive, setNavActive] = useState<boolean>(true);
     const [showHome, setShowHome] = useState<boolean>(true);
     const [popupState, setPopupState] = useState<PopupMachineStateValue>("initialize");
     const [breakpointState, setBreakpointState] = useState<number>(0);
     const breakpointStateRef = useRef<number>(0);
+    const navKeyRef = useRef<number>(0);
+    const remountKeyRef = useRef<number>(0);
+    const previousNavTargetRef = useRef<string | undefined>(undefined);
+
+
+    const gitIssueUrl = "https://github.com/wso2/product-integrator/issues";
 
     const debounceFetchContext = useCallback(
         debounce(() => {
@@ -279,18 +276,61 @@ const MainPanel = () => {
     };
 
     const fetchContext = () => {
+        navKeyRef.current += 1;
+        const navKey = navKeyRef.current;
         setNavActive(true);
+        setViewError(undefined);
+
+        const handleViewLoadError = (error: unknown, message: string) => {
+            console.error(message, error);
+            setViewComponent(undefined);
+            setViewError(message);
+        };
+
         rpcClient.getVisualizerLocation().then(async (value) => {
-            const configFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['config.bal'] })).filePath;
-            let defaultFunctionsFile = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['functions.bal'] })).filePath;
-            if (value.documentUri) {
-                defaultFunctionsFile = value.documentUri
-            }
-            if (!value?.view) {
-                setViewComponent(<LoadingRing />);
-            } else {
-                switch (value?.view) {
-                    case MACHINE_VIEW.PackageOverview:
+            const isStaleNavigation = () => navKey !== navKeyRef.current;
+
+            try {
+                if (isStaleNavigation()) return;
+                const navTarget = `${value?.view ?? ''}-${value?.identifier ?? ''}-${value?.documentUri ?? ''}-${value?.projectPath ?? ''}`;
+                if (navTarget !== previousNavTargetRef.current) {
+                    remountKeyRef.current += 1;
+                    previousNavTargetRef.current = navTarget;
+                }
+                const remountKey = remountKeyRef.current;
+                const getDefaultFunctionsFile = async () => {
+                    if (value.documentUri) {
+                        return value.documentUri;
+                    }
+
+                    return (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['functions.bal'] })).filePath;
+                };
+
+                const getConfigFilePath = async () =>
+                    (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['config.bal'] })).filePath;
+
+                const getTestsConfigTomlPath = async () => {
+                    const testsFolderResult = await rpcClient.getVisualizerRpcClient().joinProjectPath({
+                        segments: ['tests'],
+                        checkExists: true
+                    });
+
+                    if (!testsFolderResult.exists) {
+                        return undefined;
+                    }
+
+                    return (await rpcClient.getVisualizerRpcClient().joinProjectPath({
+                        segments: ['tests', 'Config.toml']
+                    })).filePath;
+                };
+
+                if (!value?.view) {
+                    setViewComponent(<LoadingRing />);
+                } else {
+                    switch (value?.view) {
+                    case MACHINE_VIEW.PackageOverview: {
+                        const { PackageOverview } = await import("./views/BI/PackageOverview");
+                        if (isStaleNavigation()) return;
                         setViewComponent(
                             <PackageOverview
                                 projectPath={value.projectPath}
@@ -298,12 +338,16 @@ const MainPanel = () => {
                             />
                         );
                         break;
-                    case MACHINE_VIEW.WorkspaceOverview:
-                        setViewComponent(
-                            <WorkspaceOverview />
-                        );
+                    }
+                    case MACHINE_VIEW.WorkspaceOverview: {
+                        const { WorkspaceOverview } = await import("./views/BI/WorkspaceOverview");
+                        if (isStaleNavigation()) return;
+                        setViewComponent(<WorkspaceOverview />);
                         break;
-                    case MACHINE_VIEW.ServiceDesigner:
+                    }
+                    case MACHINE_VIEW.ServiceDesigner: {
+                        const { ServiceDesigner } = await import("./views/BI/ServiceDesigner");
+                        if (isStaleNavigation()) return;
                         setViewComponent(
                             <ServiceDesigner
                                 projectPath={value.projectPath}
@@ -313,7 +357,10 @@ const MainPanel = () => {
                             />
                         );
                         break;
-                    case MACHINE_VIEW.AIAgentDesigner:
+                    }
+                    case MACHINE_VIEW.AIAgentDesigner: {
+                        const { AIAgentDesigner } = await import("./views/BI/AIChatAgent");
+                        if (isStaleNavigation()) return;
                         setViewComponent(
                             <AIAgentDesigner
                                 projectPath={value?.projectPath}
@@ -322,8 +369,10 @@ const MainPanel = () => {
                             />
                         );
                         break;
+                    }
                     case MACHINE_VIEW.BIDiagram:
-
+                        const { default: DiagramWrapper } = await import("./views/BI/DiagramWrapper");
+                        if (isStaleNavigation()) return;
                         rpcClient.getLangClientRpcClient().getSTByRange({
                             documentIdentifier: {
                                 uri: URI.file(value.documentUri).toString(),
@@ -339,6 +388,7 @@ const MainPanel = () => {
                                 },
                             },
                         }).then((st) => {
+                            if (isStaleNavigation()) return;
                             setViewComponent(
                                 <DiagramWrapper
                                     key={value?.identifier}
@@ -351,6 +401,7 @@ const MainPanel = () => {
                             );
                         }).catch((error) => {
                             console.error("Error fetching ST:", error);
+                            if (isStaleNavigation()) return;
                             // Fallback to render without waiting
                             setViewComponent(
                                 <DiagramWrapper
@@ -363,31 +414,28 @@ const MainPanel = () => {
                             );
                         });
                         break;
-                    case MACHINE_VIEW.ERDiagram:
+                    case MACHINE_VIEW.ERDiagram: {
+                        const { ERDiagram } = await import("./views/ERDiagram");
+                        if (isStaleNavigation()) return;
                         setViewComponent(<ERDiagram projectPath={value.projectPath} />);
                         break;
-                    case MACHINE_VIEW.TypeDiagram:
-                        if (value?.identifier) {
-                            setViewComponent(
-                                <TypeDiagram
-                                    selectedTypeId={value?.identifier}
-                                    addType={value?.addType}
-                                    projectPath={value?.projectPath}
-                                />
-                            );
-                        } else {
-                            // To support rerendering when user click on view all btn from left side panel
-                            setViewComponent(
-                                <TypeDiagram
-                                    key={value?.rootDiagramId ? value.rootDiagramId : `default-diagram`}
-                                    selectedTypeId={value?.identifier}
-                                    addType={value?.addType}
-                                    projectPath={value?.projectPath}
-                                />
-                            );
-                        }
+                    }
+                    case MACHINE_VIEW.TypeDiagram: {
+                        const { TypeDiagram } = await import("./views/TypeDiagram");
+                        if (isStaleNavigation()) return;
+                        setViewComponent(
+                            <TypeDiagram
+                                key={remountKey}
+                                selectedTypeId={value?.identifier}
+                                addType={value?.addType}
+                                projectPath={value?.projectPath}
+                            />
+                        );
                         break;
-                    case MACHINE_VIEW.DataMapper:
+                    }
+                    case MACHINE_VIEW.DataMapper: {
+                        const { DataMapper } = await import("./views/DataMapper");
+                        if (isStaleNavigation()) return;
                         let position: LinePosition = {
                             line: value?.position?.startLine,
                             offset: value?.position?.startColumn
@@ -412,7 +460,10 @@ const MainPanel = () => {
                             />
                         );
                         break;
-                    case MACHINE_VIEW.InlineDataMapper:
+                    }
+                    case MACHINE_VIEW.InlineDataMapper: {
+                        const { DataMapper } = await import("./views/DataMapper");
+                        if (isStaleNavigation()) return;
                         setViewComponent(
                             <DataMapper
                                 projectPath={value.projectPath}
@@ -422,9 +473,14 @@ const MainPanel = () => {
                             />
                         );
                         break;
-                    case MACHINE_VIEW.BIDataMapperForm:
+                    }
+                    case MACHINE_VIEW.BIDataMapperForm: {
+                        const { FunctionForm } = await import("./views/BI/FunctionForm");
+                        const defaultFunctionsFile = await getDefaultFunctionsFile();
+                        if (isStaleNavigation()) return;
                         setViewComponent(
                             <FunctionForm
+                                key={remountKey}
                                 projectPath={value.projectPath}
                                 filePath={defaultFunctionsFile}
                                 functionName={value?.identifier}
@@ -432,7 +488,11 @@ const MainPanel = () => {
                             />
                         );
                         break;
-                    case MACHINE_VIEW.BINPFunctionForm:
+                    }
+                    case MACHINE_VIEW.BINPFunctionForm: {
+                        const { FunctionForm } = await import("./views/BI/FunctionForm");
+                        const defaultFunctionsFile = await getDefaultFunctionsFile();
+                        if (isStaleNavigation()) return;
                         setViewComponent(
                             <FunctionForm
                                 projectPath={value.projectPath}
@@ -443,12 +503,15 @@ const MainPanel = () => {
                             />
                         );
                         break;
+                    }
                     case MACHINE_VIEW.GraphQLDiagram:
+                        const { GraphQLDiagram } = await import("./views/GraphQLDiagram");
+                        if (isStaleNavigation()) return;
                         const projectStructure = await rpcClient.getBIDiagramRpcClient().getProjectStructure();
+                        if (isStaleNavigation()) return;
                         const project = projectStructure.projects.find(project => project.projectPath === value.projectPath);
-                        const entryPoint = project
-                            .directoryMap[DIRECTORY_MAP.SERVICE]
-                            .find((service: ProjectStructureArtifactResponse) => service.name === value?.identifier);
+                        const services = project?.directoryMap?.[DIRECTORY_MAP.SERVICE] as ProjectStructureArtifactResponse[] | undefined;
+                        const entryPoint = services?.find((service: ProjectStructureArtifactResponse) => service.name === value?.identifier);
                         setViewComponent(
                             <GraphQLDiagram
                                 projectPath={value.projectPath}
@@ -457,35 +520,58 @@ const MainPanel = () => {
                                 position={entryPoint?.position ?? value?.position}
                             />);
                         break;
-                    case MACHINE_VIEW.BallerinaUpdateView:
+                    case MACHINE_VIEW.BallerinaUpdateView: {
+                        const { BallerinaUpdateView } = await import("./views/BI/BallerinaUpdateView");
+                        if (isStaleNavigation()) return;
                         setNavActive(false);
                         setViewComponent(<BallerinaUpdateView />);
                         break;
-                    case MACHINE_VIEW.BIWelcome:
+                    }
+                    case MACHINE_VIEW.BIWelcome: {
+                        const { WelcomeView } = await import("./views/BI/WelcomeView");
+                        if (isStaleNavigation()) return;
                         setNavActive(false);
                         setViewComponent(<WelcomeView isBISupported={value.metadata.isBISupported} />);
                         break;
-                    case MACHINE_VIEW.BISamplesView:
+                    }
+                    case MACHINE_VIEW.BISamplesView: {
+                        const { SamplesView } = await import("./views/BI/SamplesView");
+                        if (isStaleNavigation()) return;
                         setNavActive(false);
                         setViewComponent(<SamplesView />);
                         break;
-                    case MACHINE_VIEW.SetupView:
+                    }
+                    case MACHINE_VIEW.SetupView: {
+                        const { SetupView } = await import("./views/BI/SetupView");
+                        if (isStaleNavigation()) return;
                         setNavActive(false);
                         setViewComponent(<SetupView haveLS={value.metadata.haveLS} />);
                         break;
-                    case MACHINE_VIEW.BIProjectForm:
+                    }
+                    case MACHINE_VIEW.BIProjectForm: {
+                        const { ProjectForm } = await import("./views/BI/ProjectForm");
+                        if (isStaleNavigation()) return;
                         setShowHome(false);
                         setViewComponent(<ProjectForm />);
                         break;
-                    case MACHINE_VIEW.BIImportIntegration:
+                    }
+                    case MACHINE_VIEW.BIImportIntegration: {
+                        const { ImportIntegration } = await import("./views/BI/ImportIntegration");
+                        if (isStaleNavigation()) return;
                         setShowHome(false);
                         setViewComponent(<ImportIntegration />);
                         break;
-                    case MACHINE_VIEW.BIAddProjectForm:
+                    }
+                    case MACHINE_VIEW.BIAddProjectForm: {
+                        const { AddProjectForm } = await import("./views/BI/ProjectForm/AddProjectForm");
+                        if (isStaleNavigation()) return;
                         setShowHome(false);
                         setViewComponent(<AddProjectForm />);
                         break;
-                    case MACHINE_VIEW.BIComponentView:
+                    }
+                    case MACHINE_VIEW.BIComponentView: {
+                        const { ComponentListView } = await import("./views/BI/ComponentListView");
+                        if (isStaleNavigation()) return;
                         setViewComponent(
                             <ComponentListView
                                 projectPath={value?.projectPath}
@@ -493,10 +579,16 @@ const MainPanel = () => {
                             />
                         );
                         break;
-                    case MACHINE_VIEW.AIChatAgentWizard:
+                    }
+                    case MACHINE_VIEW.AIChatAgentWizard: {
+                        const { AIChatAgentWizard } = await import("./views/BI/AIChatAgent/AIChatAgentWizard");
+                        if (isStaleNavigation()) return;
                         setViewComponent(<AIChatAgentWizard />);
                         break;
-                    case MACHINE_VIEW.BIServiceWizard:
+                    }
+                    case MACHINE_VIEW.BIServiceWizard: {
+                        const { ServiceCreationView } = await import("./views/BI/ServiceDesigner/ServiceCreationView");
+                        if (isStaleNavigation()) return;
                         setViewComponent(
                             <ServiceCreationView
                                 projectPath={value.projectPath}
@@ -507,7 +599,10 @@ const MainPanel = () => {
                             />
                         );
                         break;
-                    case MACHINE_VIEW.BIServiceClassDesigner:
+                    }
+                    case MACHINE_VIEW.BIServiceClassDesigner: {
+                        const { ServiceClassDesigner } = await import("./views/BI/ServiceClassEditor/ServiceClassDesigner");
+                        if (isStaleNavigation()) return;
                         setViewComponent(
                             <ServiceClassDesigner
                                 projectPath={value.projectPath}
@@ -518,7 +613,10 @@ const MainPanel = () => {
                             />
                         );
                         break;
-                    case MACHINE_VIEW.BIServiceConfigView:
+                    }
+                    case MACHINE_VIEW.BIServiceConfigView: {
+                        const { default: ServiceConfigureView } = await import("./views/BI/ServiceDesigner/ServiceConfigureView");
+                        if (isStaleNavigation()) return;
                         setViewComponent(
                             <ServiceConfigureView
                                 projectPath={value.projectPath}
@@ -528,7 +626,10 @@ const MainPanel = () => {
                             />
                         );
                         break;
-                    case MACHINE_VIEW.BIServiceClassConfigView:
+                    }
+                    case MACHINE_VIEW.BIServiceClassConfigView: {
+                        const { ServiceClassConfig } = await import("./views/BI/ServiceClassEditor/ServiceClassConfig");
+                        if (isStaleNavigation()) return;
                         setViewComponent(
                             <ServiceClassConfig
                                 projectPath={value.projectPath}
@@ -538,7 +639,10 @@ const MainPanel = () => {
                             />
                         );
                         break;
-                    case MACHINE_VIEW.BIListenerConfigView:
+                    }
+                    case MACHINE_VIEW.BIListenerConfigView: {
+                        const { ListenerEditView } = await import("./views/BI/ServiceDesigner/ListenerEditView");
+                        if (isStaleNavigation()) return;
                         setViewComponent(
                             <ListenerEditView
                                 projectPath={value.projectPath}
@@ -546,23 +650,34 @@ const MainPanel = () => {
                                 position={value?.position}
                             />);
                         break;
-                    case MACHINE_VIEW.AddConnectionWizard:
+                    }
+                    case MACHINE_VIEW.AddConnectionWizard: {
+                        const { default: AddConnectionPopup } = await import("./views/BI/Connection/AddConnectionPopup");
+                        if (isStaleNavigation()) return;
                         setViewComponent(
                             <AddConnectionPopup
+                                key={remountKey}
                                 projectPath={value.projectPath}
                                 fileName={value.documentUri || value.projectPath}
                                 onNavigateToOverview={handleNavigateToOverview}
                             />
                         );
                         break;
-                    case MACHINE_VIEW.EditConnectionWizard:
+                    }
+                    case MACHINE_VIEW.EditConnectionWizard: {
+                        const { default: EditConnectionPopup } = await import("./views/BI/Connection/EditConnectionPopup");
+                        if (isStaleNavigation()) return;
                         setViewComponent(
                             <EditConnectionPopup
+                                key={remountKey}
                                 connectionName={value?.identifier}
                             />
                         );
                         break;
-                    case MACHINE_VIEW.AddCustomConnector:
+                    }
+                    case MACHINE_VIEW.AddCustomConnector: {
+                        const { default: AddConnectionWizard } = await import("./views/BI/Connection/AddConnectionWizard");
+                        if (isStaleNavigation()) return;
                         setViewComponent(
                             <AddConnectionWizard
                                 projectPath={value.projectPath}
@@ -571,7 +686,11 @@ const MainPanel = () => {
                             />
                         );
                         break;
-                    case MACHINE_VIEW.BIMainFunctionForm:
+                    }
+                    case MACHINE_VIEW.BIMainFunctionForm: {
+                        const { FunctionForm } = await import("./views/BI/FunctionForm");
+                        const defaultFunctionsFile = await getDefaultFunctionsFile();
+                        if (isStaleNavigation()) return;
                         setViewComponent(
                             <FunctionForm
                                 projectPath={value.projectPath}
@@ -581,43 +700,87 @@ const MainPanel = () => {
                             />
                         );
                         break;
-                    case MACHINE_VIEW.BIFunctionForm:
+                    }
+                    case MACHINE_VIEW.BIFunctionForm: {
+                        const { FunctionForm } = await import("./views/BI/FunctionForm");
+                        const defaultFunctionsFile = await getDefaultFunctionsFile();
+                        if (isStaleNavigation()) return;
                         setViewComponent(
                             <FunctionForm
+                                key={remountKey}
                                 projectPath={value.projectPath}
                                 filePath={defaultFunctionsFile}
                                 functionName={value?.identifier}
                             />);
                         break;
-                    case MACHINE_VIEW.BITestFunctionForm:
+                    }
+                    case MACHINE_VIEW.BITestFunctionForm: {
+                        const { TestFunctionForm } = await import("./views/BI/TestFunctionForm");
+                        if (isStaleNavigation()) return;
                         setViewComponent(
                             <TestFunctionForm
+                                key={value?.identifier} // Force remount when switching between different tests
                                 projectPath={value.projectPath}
                                 functionName={value?.identifier}
                                 filePath={value?.documentUri}
                                 serviceType={value?.serviceType}
                             />);
                         break;
-                    case MACHINE_VIEW.ViewConfigVariables:
+                    }
+                    case MACHINE_VIEW.BIAIEvaluationForm: {
+                        const { AIEvaluationForm } = await import("./views/BI/AIEvaluationForm");
+                        if (isStaleNavigation()) return;
+                        setViewComponent(
+                            <AIEvaluationForm
+                                key={value?.identifier} // Force remount when switching between different tests
+                                projectPath={value.projectPath}
+                                functionName={value?.identifier}
+                                filePath={value?.documentUri}
+                                serviceType={value?.serviceType}
+                                isVersionSupported={value?.metadata?.featureSupport?.aiEvaluation}
+                            />);
+                        break;
+                    }
+                    case MACHINE_VIEW.ViewConfigVariables: {
+                        const { default: ViewConfigurableVariables } = await import("./views/BI/Configurables/ViewConfigurableVariables");
+                        const [configFilePath, testsConfigTomlPath] = await Promise.all([
+                            getConfigFilePath(),
+                            getTestsConfigTomlPath(),
+                        ]);
+                        if (isStaleNavigation()) return;
                         setViewComponent(
                             <ViewConfigurableVariables
+                                key={remountKey}
                                 projectPath={value?.projectPath}
                                 fileName={configFilePath}
+                                testsConfigTomlPath={testsConfigTomlPath}
                                 org={value?.org}
                             />
                         );
                         break;
-                    case MACHINE_VIEW.AddConfigVariables:
+                    }
+                    case MACHINE_VIEW.AddConfigVariables: {
+                        const { default: ViewConfigurableVariables } = await import("./views/BI/Configurables/ViewConfigurableVariables");
+                        const [configFilePath, testsConfigTomlPath] = await Promise.all([
+                            getConfigFilePath(),
+                            getTestsConfigTomlPath(),
+                        ]);
+                        if (isStaleNavigation()) return;
                         setViewComponent(
                             <ViewConfigurableVariables
+                                key={remountKey}
                                 projectPath={value?.projectPath}
                                 fileName={configFilePath}
+                                testsConfigTomlPath={testsConfigTomlPath}
                                 org={value?.org}
                                 addNew={true}
                             />
                         );
                         break;
-                    case MACHINE_VIEW.ServiceFunctionForm:
+                    }
+                    case MACHINE_VIEW.ServiceFunctionForm: {
+                        const { ServiceFunctionForm } = await import("./views/BI/ServiceFunctionForm");
+                        if (isStaleNavigation()) return;
                         setViewComponent(
                             <ServiceFunctionForm
                                 position={value?.position}
@@ -626,16 +789,50 @@ const MainPanel = () => {
                             />
                         );
                         break;
-                    case MACHINE_VIEW.ReviewMode:
+                    }
+                    case MACHINE_VIEW.ReviewMode: {
+                        const { ReviewMode } = await import("./views/ReviewMode");
+                        if (isStaleNavigation()) return;
+                        setViewComponent(<ReviewMode />);
+                        break;
+                    }
+                    case MACHINE_VIEW.EvalsetViewer: {
+                        const { EvalsetViewer } = await import("./views/EvalsetViewer/EvalsetViewer");
+                        if (isStaleNavigation()) return;
                         setViewComponent(
-                            <ReviewMode />
+                            <EvalsetViewer
+                                projectPath={value.projectPath}
+                                filePath={value?.evalsetData.filePath}
+                                content={value?.evalsetData.content}
+                                threadId={value?.evalsetData?.threadId}
+                            />
                         );
                         break;
-                    default:
-                        setNavActive(false);
-                        setViewComponent(<LoadingRing />);
+                    }
+                    case MACHINE_VIEW.ConfigurationCollector: {
+                        const { ConfigurationCollector } = await import("./views/AIPanel/components/ConfigurationCollector");
+                        if (isStaleNavigation()) return;
+                        setViewComponent(
+                            <ConfigurationCollector
+                                data={value.agentMetadata?.configurationCollector}
+                                onClose={() => handleApprovalClose(value.agentMetadata?.configurationCollector)}
+                            />
+                        );
+                        break;
+                    }
+
+                        default:
+                            setNavActive(false);
+                            setViewComponent(<LoadingRing />);
+                    }
                 }
+            } catch (error) {
+                if (isStaleNavigation()) return;
+                handleViewLoadError(error, "Failed to load the selected visualizer view.");
             }
+        }).catch((error) => {
+            if (navKey !== navKeyRef.current) return;
+            handleViewLoadError(error, "Failed to load visualizer context.");
         });
     };
 
@@ -668,6 +865,15 @@ const MainPanel = () => {
         rpcClient.getVisualizerRpcClient().goHome();
     };
 
+    const handleApprovalClose = (approvalData: any | undefined) => {
+        const requestId = approvalData?.requestId;
+
+        if (requestId) {
+            console.log('[MainPanel] Approval view closed, notifying backend:', requestId);
+            rpcClient.getVisualizerRpcClient().handleApprovalPopupClose({ requestId });
+        }
+    };
+
     const handlePopupClose = (id: string) => {
         closeModal(id);
     }
@@ -676,61 +882,86 @@ const MainPanel = () => {
         <>
             <Global styles={globalStyles} />
             <VisualizerContainer id="visualizer-container">
-                {/* {navActive && <NavigationBar showHome={showHome} />} */}
-                {(showOverlay || modalStack.length > 0) && <Overlay />}
-                {viewComponent && <ComponentViewWrapper>{viewComponent}</ComponentViewWrapper>}
-                {!viewComponent && (
-                    <ComponentViewWrapper>
-                        <LoadingViewContainer>
-                            <LoadingContent>
-                                <ProgressRing />
-                                <LoadingTitle>Loading Integration</LoadingTitle>
-                                <LoadingSubtitle>Setting up your integration environment</LoadingSubtitle>
-                                <LoadingText>
-                                    <span className="loading-dots">Please wait</span>
-                                </LoadingText>
-                            </LoadingContent>
-                        </LoadingViewContainer>
-                    </ComponentViewWrapper>
-                )}
-                {sidePanel !== "EMPTY" && sidePanel === "ADD_CONNECTION" && (
-                    <ConnectorList applyModifications={applyModifications} />
-                )}
+                <ErrorBoundary goHome={handleNavigateToOverview} errorMsg="An error occurred in the visualizer" issueUrl={gitIssueUrl} ref={errorBoundaryRef} resetKeys={[viewComponent]}>
+                    {/* {navActive && <NavigationBar showHome={showHome} />} */}
+                    {(showOverlay || modalStack.length > 0) && <Overlay />}
+                    {viewError && (
+                        <ComponentViewWrapper>
+                            <WebviewErrorState
+                                title="Unable to load this view"
+                                message={viewError}
+                                onRetry={fetchContext}
+                            />
+                        </ComponentViewWrapper>
+                    )}
+                    {!viewError && viewComponent && <ComponentViewWrapper>{viewComponent}</ComponentViewWrapper>}
+                    {!viewError && !viewComponent && (
+                        <ComponentViewWrapper>
+                            <LoadingViewContainer>
+                                <LoadingContent>
+                                    <ProgressRing />
+                                    <LoadingTitle>Loading Integration</LoadingTitle>
+                                    <LoadingSubtitle>Setting up your integration environment</LoadingSubtitle>
+                                    <LoadingText>
+                                        <span className="loading-dots">Please wait</span>
+                                    </LoadingText>
+                                </LoadingContent>
+                            </LoadingViewContainer>
+                        </ComponentViewWrapper>
+                    )}
+                    {sidePanel !== "EMPTY" && sidePanel === "ADD_CONNECTION" && (
+                        <React.Suspense fallback={<ConditionalPanelFallback />}>
+                            <LazyConnectorList applyModifications={applyModifications} />
+                        </React.Suspense>
+                    )}
 
-                {popupMessage && (
-                    <PopupMessage onClose={handleOnCloseMessage}>
-                        <Typography variant="h3">This feature is coming soon!</Typography>
-                    </PopupMessage>
-                )}
-                {sidePanel === "RECORD_EDITOR" && (
-                    <RecordEditor
-                        isRecordEditorOpen={sidePanel === "RECORD_EDITOR"}
-                        onClose={() => setSidePanel("EMPTY")}
-                        rpcClient={rpcClient}
-                    />
-                )}
-                {activePanel?.isActive && activePanel.name === PanelType.CONSTRUCTPANEL && (
-                    <ConstructPanel applyModifications={applyModifications} />
-                )}
-                {activePanel?.isActive && activePanel.name === PanelType.STATEMENTEDITOR && (
-                    <EditPanel applyModifications={applyModifications} />
-                )}
-                {typeof popupState === "object" && "open" in popupState && (
-                    <PopUpContainer>
-                        <PopupPanel onClose={handleOnClose} formState={popupState} handleNavigateToOverview={handleNavigateToOverview} />
-                    </PopUpContainer>
-                )}
-                {sidePanel !== "EMPTY" && sidePanel === "ADD_ACTION" && (
-                    <EndpointList stSymbolInfo={getSymbolInfo()} applyModifications={applyModifications} />
-                )}
-                {
-                    modalStack.map((modal) => (
-                        <Popup title={modal.title} onClose={() => {
-                            modal.onClose && modal.onClose();
-                            handlePopupClose(modal.id)
-                        }} key={modal.id} width={modal.width} height={modal.height}>{modal.modal}</Popup>
-                    ))
-                }
+                    {popupMessage && (
+                        <React.Suspense fallback={<ConditionalPanelFallback />}>
+                            <LazyPopupMessage onClose={handleOnCloseMessage}>
+                                <Typography variant="h3">This feature is coming soon!</Typography>
+                            </LazyPopupMessage>
+                        </React.Suspense>
+                    )}
+                    {sidePanel === "RECORD_EDITOR" && (
+                        <React.Suspense fallback={<ConditionalPanelFallback />}>
+                            <LazyRecordEditor
+                                isRecordEditorOpen={sidePanel === "RECORD_EDITOR"}
+                                onClose={() => setSidePanel("EMPTY")}
+                                rpcClient={rpcClient}
+                            />
+                        </React.Suspense>
+                    )}
+                    {activePanel?.isActive && activePanel.name === PanelType.CONSTRUCTPANEL && (
+                        <React.Suspense fallback={<ConditionalPanelFallback />}>
+                            <LazyConstructPanel applyModifications={applyModifications} />
+                        </React.Suspense>
+                    )}
+                    {activePanel?.isActive && activePanel.name === PanelType.STATEMENTEDITOR && (
+                        <React.Suspense fallback={<ConditionalPanelFallback />}>
+                            <LazyEditPanel applyModifications={applyModifications} />
+                        </React.Suspense>
+                    )}
+                    {typeof popupState === "object" && "open" in popupState && (
+                        <React.Suspense fallback={<ConditionalPanelFallback />}>
+                            <PopUpContainer>
+                                <LazyPopupPanel onClose={handleOnClose} formState={popupState} handleNavigateToOverview={handleNavigateToOverview} />
+                            </PopUpContainer>
+                        </React.Suspense>
+                    )}
+                    {sidePanel !== "EMPTY" && sidePanel === "ADD_ACTION" && (
+                        <React.Suspense fallback={<ConditionalPanelFallback />}>
+                            <LazyEndpointList applyModifications={applyModifications} />
+                        </React.Suspense>
+                    )}
+                    {
+                        modalStack.map((modal) => (
+                            <Popup title={modal.title} onClose={() => {
+                                modal.onClose && modal.onClose();
+                                handlePopupClose(modal.id)
+                            }} key={modal.id} width={modal.width} height={modal.height}>{modal.modal}</Popup>
+                        ))
+                    }
+                </ErrorBoundary>
             </VisualizerContainer>
         </>
     );

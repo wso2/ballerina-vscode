@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { TextField, Button, TextArea, Typography, Icon, Codicon, LinkButton, ProgressRing } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { BallerinaRpcClient, useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -96,6 +96,7 @@ const LoaderOverlay = styled.div`
 
 enum DetectedFormat {
     JSON = "JSON",
+    XML = "XML",
     UNKNOWN = "UNKNOWN",
     EMPTY = "EMPTY"
 }
@@ -133,6 +134,10 @@ export function GenericImportTab(props: GenericImportTabProps) {
 
     const { rpcClient } = useRpcContext();
 
+    const supportedFormats = useMemo(
+        () => payloadContext ? [DetectedFormat.JSON] : [DetectedFormat.JSON, DetectedFormat.XML],
+        [payloadContext]);
+
     // Check user authentication status on mount
     useEffect(() => {
         const checkAuthStatus = async () => {
@@ -150,14 +155,12 @@ export function GenericImportTab(props: GenericImportTabProps) {
     useEffect(() => {
         if (detectedFormat === DetectedFormat.JSON) {
             validateTypeName(importTypeName);
-        }
-        if (detectedFormat === DetectedFormat.EMPTY) {
+        } else if (detectedFormat === DetectedFormat.EMPTY) {
             setError("");
+        } else if (detectedFormat === DetectedFormat.UNKNOWN) {
+            setError(`Invalid format. Please ensure the content is valid ${supportedFormats.join(" or ")}.`);
         }
-        if (detectedFormat === DetectedFormat.UNKNOWN) {
-            setError("Invalid format. Please ensure the content is valid JSON.");
-        }
-    }, [type, detectedFormat, importTypeName]);
+    }, [type, detectedFormat, importTypeName, supportedFormats]);
 
     // Auto-detect format based on content
     const detectFormat = (value: string): DetectedFormat => {
@@ -168,18 +171,38 @@ export function GenericImportTab(props: GenericImportTabProps) {
         const trimmed = value.trim();
 
         // Try to detect JSON
-        if ((trimmed.startsWith('{') && trimmed.endsWith('}')) ||
-            (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
-            try {
-                JSON.parse(trimmed);
-                setError("");
-                return DetectedFormat.JSON;
-            } catch (e) {
-                // Not valid JSON, continue checking
-                setError("Invalid JSON format");
+        if (supportedFormats.includes(DetectedFormat.JSON)) {
+            if ((trimmed.startsWith('{') && trimmed.endsWith('}')) ||
+                (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+                try {
+                    JSON.parse(trimmed);
+                    setError("");
+                    return DetectedFormat.JSON;
+                } catch (e) {
+                    // Not valid JSON, continue checking
+                    setError("Invalid JSON format");
+                }
             }
         }
 
+        // Try to detect XML
+        if (supportedFormats.includes(DetectedFormat.XML)) {
+            if (trimmed.startsWith('<') && trimmed.endsWith('>')) {
+                try {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(trimmed, "text/xml");
+                    // Check if parsing produced an error node
+                    if (doc.getElementsByTagName("parsererror").length === 0) {
+                        setError("");
+                        return DetectedFormat.XML;
+                    }
+                } catch (e) {
+                    // Not valid XML
+                    setError("Invalid XML format");
+                }
+            }
+        }
+        
         return DetectedFormat.UNKNOWN;
     };
 
@@ -309,9 +332,50 @@ export function GenericImportTab(props: GenericImportTabProps) {
         }
     };
 
+    const importAsXml = async () => {
+        setIsSaving(true);
+        setError("");
+
+        try {
+            const resp: TypeDataWithReferences = await rpcClient.getRecordCreatorRpcClient().convertXmlToRecordType({
+                xmlValue: content,
+                prefix: ""
+            });
+
+            const lastRecord = resp.types[resp.types.length - 1];
+            const otherRecords = resp.types
+                .filter((t) => t.type.name !== lastRecord.type.name)
+                .map((t) => t.type);
+
+            if (otherRecords.length > 0) {
+                await rpcClient.getBIDiagramRpcClient().updateTypes({
+                    filePath: 'types.bal',
+                    types: otherRecords
+                });
+
+                if (!isPopupTypeForm) {
+                    await rpcClient.getVisualizerRpcClient().openView(
+                        { type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { addType: false } }
+                    );
+                }
+            }
+
+            if (lastRecord) {
+                await onTypeSave(lastRecord.type);
+            }
+        } catch (err) {
+            setError("Failed to import XML as type.");
+            console.error("Error importing XML as type:", err);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     const handleImport = async () => {
         if (detectedFormat === DetectedFormat.JSON) {
             await importAsJson();
+        } else if (detectedFormat === DetectedFormat.XML) {
+            await importAsXml();
         }
     };
 
@@ -415,7 +479,7 @@ export function GenericImportTab(props: GenericImportTabProps) {
                 <InfoBanner>
                     <Codicon name="info" />
                     <InfoText variant="body3">
-                        Supports JSON format — just paste a Sample or Upload a file
+                        Supports {supportedFormats.join(" and ")} format{supportedFormats.length > 1 ? "s" : ""} — just paste a Sample or Upload a file 
                     </InfoText>
                 </InfoBanner>
                 <HeaderRow>
@@ -425,7 +489,7 @@ export function GenericImportTab(props: GenericImportTabProps) {
                             type="file"
                             ref={fileInputRef}
                             onChange={handleFileSelect}
-                            accept=".json"
+                            accept={supportedFormats.map(format => `.${format.toLowerCase()}`).join(",")}
                             style={{ display: 'none' }}
                         />
                         <LinkButton
@@ -488,7 +552,7 @@ export function GenericImportTab(props: GenericImportTabProps) {
                                 variant="body3"
                                 sx={{ color: 'var(--vscode-input-placeholderForeground)', textAlign: 'center' }}
                             >
-                                Paste JSON here...
+                                Paste {supportedFormats.join(" or ")} here...
                             </Typography>
                             {payloadContext?.protocol !== Protocol.FTP && (<Typography
                                 variant="body3"

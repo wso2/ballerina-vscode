@@ -70,7 +70,16 @@ export const useDataMapperModel = (
         isError,
         refetch
     } = useQuery({
-        queryKey: ['getDMModel', codedata, viewId],
+        queryKey: [
+            'getDMModel',
+            filePath,
+            codedata?.sourceCode,
+            codedata?.lineRange?.startLine,
+            codedata?.lineRange?.endLine,
+            viewId,
+            viewState?.subMappingName,
+            position
+        ],
         queryFn: getDMModel,
         networkMode: 'always'
     });
@@ -80,5 +89,9 @@ export const useDataMapperModel = (
         await refetch();
     };
 
-    return { model, isFetching, isError, refreshDMModel };
+    const requestRefreshDMModel = () => {
+        triggerRefresh.current = true;
+    };
+
+    return { model, isFetching, isError, refreshDMModel, requestRefreshDMModel };
 };

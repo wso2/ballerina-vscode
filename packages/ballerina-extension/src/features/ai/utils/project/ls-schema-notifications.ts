@@ -18,7 +18,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Uri } from 'vscode';
 import { StateMachine } from "../../../../stateMachine";
-import { ProjectSource } from "@wso2/ballerina-core";
+import { ProjectSource, PROJECT_KIND } from "@wso2/ballerina-core";
 
 /**
  * Sends didOpen notifications for a file to both file:// and ai:// schemas
@@ -79,6 +79,10 @@ export function sendBothSchemaDidOpen(tempProjectPath: string, filePath: string)
  * @param filePath The relative file path
  */
 export function sendAiSchemaDidOpen(tempProjectPath: string, filePath: string): void {
+  if (!filePath.endsWith('.bal') && !filePath.endsWith('Ballerina.toml')) {
+    return;
+  }
+
   try {
     const tempFileFullPath = path.join(tempProjectPath, filePath);
     if (!fs.existsSync(tempFileFullPath)) {
@@ -88,6 +92,22 @@ export function sendAiSchemaDidOpen(tempProjectPath: string, filePath: string): 
 
     const fileContent = fs.readFileSync(tempFileFullPath, 'utf-8');
     const tempFileUri = Uri.file(tempFileFullPath).toString();
+    const languageId = filePath.endsWith('.bal') ? 'ballerina' : 'toml';
+
+    // 1. Send didOpen with 'file' schema with empty content (baseline for semantic diff)
+    try {
+      StateMachine.langClient().didOpen({
+        textDocument: {
+          uri: tempFileUri,
+          languageId,
+          version: 1,
+          text: ''
+        }
+      });
+      console.log(`[AgentNotification] Sent didOpen (file schema, empty baseline) for: ${filePath}`);
+    } catch (error) {
+      console.error(`[AgentNotification] Failed didOpen (file schema) for ${filePath}:`, error);
+    }
 
     // 2. Send didOpen with 'ai' schema (temp project path)
     const aiUri = 'ai' + tempFileUri.substring(4); // Replace 'file' prefix with 'ai'
@@ -95,7 +115,7 @@ export function sendAiSchemaDidOpen(tempProjectPath: string, filePath: string): 
       StateMachine.langClient().didOpen({
         textDocument: {
           uri: aiUri,
-          languageId: 'ballerina',
+          languageId,
           version: 1,
           text: fileContent
         }
@@ -117,6 +137,10 @@ export function sendAiSchemaDidOpen(tempProjectPath: string, filePath: string): 
  * @param filePath The relative file path that was modified
  */
 export function sendAISchemaDidChange(tempProjectPath: string, filePath: string): void {
+  if (!filePath.endsWith('.bal') && !filePath.endsWith('Ballerina.toml')) {
+    return;
+  }
+
   try {
     const tempFileFullPath = path.join(tempProjectPath, filePath);
     if (!fs.existsSync(tempFileFullPath)) {
@@ -159,7 +183,17 @@ export function sendAISchemaDidChange(tempProjectPath: string, filePath: string)
  */
 export function sendAgentDidOpenForFreshProjects(tempProjectPath: string, projects: ProjectSource[]): void {
   const allFiles: string[] = [];
-  
+
+  // For workspace projects, open the workspace root Ballerina.toml first so the LSP
+  // can resolve cross-package dependencies when checking diagnostics per-package.
+  const isWorkspace = StateMachine.context().projectInfo?.projectKind === PROJECT_KIND.WORKSPACE_PROJECT;
+  if (isWorkspace) {
+    const workspaceTomlPath = path.join(tempProjectPath, 'Ballerina.toml');
+    if (fs.existsSync(workspaceTomlPath)) {
+      allFiles.push('Ballerina.toml');
+    }
+  }
+
   projects.forEach(project => {
     const pkgPath = project.packagePath || ""; // Empty for single package, relative path for workspace
     
@@ -249,7 +283,13 @@ export function sendAgentDidCloseBatch(tempProjectPath: string, files: string[])
  */
 export function sendAgentDidCloseForProjects(tempProjectPath: string, projects: ProjectSource[]): void {
   const allFiles: string[] = [];
-  
+
+  // Close workspace root Ballerina.toml if it was opened
+  const isWorkspace = StateMachine.context().projectInfo?.projectKind === PROJECT_KIND.WORKSPACE_PROJECT;
+  if (isWorkspace) {
+    allFiles.push('Ballerina.toml');
+  }
+
   projects.forEach(project => {
     const pkgPath = project.packagePath || ""; // Empty for single package, relative path for workspace
     

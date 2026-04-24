@@ -20,21 +20,8 @@ import * as fs from "fs";
 import * as path from "path";
 import type { TextEdit } from "vscode-languageserver-protocol";
 import { StateMachine } from "../../../stateMachine";
-
-/**
- * File extensions to include in codebase structure
- */
-const CODEBASE_STRUCTURE_FILE_TYPES = [".bal"];
-
-/**
- * Directories to ignore in codebase structure
- */
-const CODEBASE_STRUCTURE_IGNORE_FOLDERS = ["target", ".ballerina", ".vscode", ".git"];
-
-/**
- * Files to ignore in codebase structure
- */
-const CODEBASE_STRUCTURE_IGNORE_FILES = ["Ballerina.toml", "Config.toml", "Dependencies.toml"];
+import { normalizeToLf, readAndNormalize, restoreEol } from "../utils/eol-utils";
+import { isWorkspaceTempProject } from "./tools/path-utils";
 
 /**
  * Files that require path sanitization (temp paths replaced with workspace paths)
@@ -129,6 +116,18 @@ export async function integrateCodeToWorkspace(
     }
 }
 
+export async function integrateAndClearModifiedFiles(
+    tempProjectPath: string,
+    modifiedFiles: string[],
+    allModifiedFiles: Set<string>,
+    ctx: ExecutionContext
+): Promise<void> {
+    const filesToIntegrate = new Set(modifiedFiles);
+    await integrateCodeToWorkspace(tempProjectPath, filesToIntegrate, ctx);
+    modifiedFiles.forEach(f => allModifiedFiles.add(f));
+    modifiedFiles.splice(0);
+}
+
 export function getCodeBlocks(updatedSourceFiles: SourceFile[], updatedFileNames: string[]): string {
     const codeBlocks = updatedFileNames
         .map((fileName) => {
@@ -197,8 +196,9 @@ function collectFilesFromProject(project: ProjectSource, includePackagePath: boo
  * @returns Formatted XML string for the file
  */
 function formatFileWithContent(file: SourceFile): string {
+    const lang = file.filePath.endsWith('.toml') ? 'toml' : 'ballerina';
     return `<file path="${file.filePath}">
-\`\`\`ballerina
+\`\`\`${lang}
 ${file.content}
 \`\`\`
 </file>`;
@@ -210,7 +210,7 @@ ${file.content}
  * @param projects Array of ProjectSource objects
  * @returns Formatted XML string with codebase structure including file contents
  */
-export function formatCodebaseStructure(projects: ProjectSource[]): string {
+export function formatCodebaseStructure(projects: ProjectSource[], tempProjectPath?: string): string {
     let text = "<codebase_structure>\n";
     text += "This is the complete structure of the codebase you are working with. ";
     text += "You do not need to acknowledge or list these files in your response. ";
@@ -218,6 +218,12 @@ export function formatCodebaseStructure(projects: ProjectSource[]): string {
 
     const context = StateMachine.context();
     const isWorkspace = context.projectInfo?.projectKind === PROJECT_KIND.WORKSPACE_PROJECT;
+
+    // Include workspace Ballerina.toml for workspace projects
+    if (isWorkspace && tempProjectPath) {
+        text += formatWorkspaceToml(tempProjectPath);
+    }
+
     for (const project of projects) {
         const files = collectFilesFromProject(project, isWorkspace);
         const activeStatus = project.isActive ? ' active="true"' : "";
@@ -239,6 +245,26 @@ When creating or modifying files, you should always prefer making edits for the 
     }
 
     return text;
+}
+
+/**
+ * Reads the workspace root Ballerina.toml and formats it as XML for the codebase structure.
+ * Only applicable for workspace projects (containing [workspace] section).
+ * @param tempProjectPath Path to the temporary project directory
+ * @returns Formatted XML string with workspace config, or empty string if not found
+ */
+function formatWorkspaceToml(tempProjectPath: string): string {
+    const tomlPath = path.join(tempProjectPath, "Ballerina.toml");
+    if (!fs.existsSync(tomlPath)) {
+        return "";
+    }
+    try {
+        const content = fs.readFileSync(tomlPath, "utf-8");
+        return `<workspace_config path="Ballerina.toml">\n${content}\n</workspace_config>\n\n`;
+    } catch (error) {
+        console.warn("[formatWorkspaceToml] Error reading workspace Ballerina.toml:", error);
+        return "";
+    }
 }
 
 /**
@@ -282,8 +308,10 @@ export async function applyTextEdits(filePath: string, textEdits: TextEdit[]): P
 
         // Read existing content or start with empty string
         let content = '';
+        let originalEol: import("../utils/eol-utils").EolSequence = '\n';
         if (fs.existsSync(filePath)) {
-            content = fs.readFileSync(filePath, 'utf-8');
+            const raw = fs.readFileSync(filePath, 'utf-8');
+            [content, originalEol] = readAndNormalize(raw);
         }
 
         // If file is new and empty, ensure at least empty content
@@ -310,8 +338,8 @@ export async function applyTextEdits(filePath: string, textEdits: TextEdit[]): P
             result = result.substring(0, edit.start) + edit.newText + result.substring(edit.end);
         }
 
-        // Write the modified content back to the file
-        fs.writeFileSync(filePath, result, 'utf-8');
+        // Write the modified content back to the file, restoring original line endings
+        fs.writeFileSync(filePath, restoreEol(result, originalEol), 'utf-8');
     } catch (error) {
         console.error(`[applyTextEdits] Error applying edits to ${filePath}:`, error);
         throw error;
@@ -327,7 +355,7 @@ export async function applyTextEdits(filePath: string, textEdits: TextEdit[]): P
 export function formatCodeContext(codeContext: CodeContext, tempProjectPath: string): string {
     const absolutePath = path.join(tempProjectPath, codeContext.filePath);
 
-    const fileContent = fs.readFileSync(absolutePath, "utf-8");
+    const fileContent = normalizeToLf(fs.readFileSync(absolutePath, "utf-8"));
     const lines = fileContent.split("\n");
     const totalLines = lines.length;
 
@@ -387,4 +415,36 @@ function getCodeContextInstruction(type: "addition" | "selection"): string {
     } else {
         return "The user has selected a block of code that is relevant to the current task. The selected code is enclosed between >>> SELECTION START <<< and >>> SELECTION END <<< markers in the code context below.";
     }
+}
+
+
+export function solveRelativeTempPath(servicePath: string): { tempProjectPath: string; packagePath?: string } | undefined {
+    if (!servicePath || !path.isAbsolute(servicePath)) {
+        return undefined;
+    }
+
+    const normalizedServicePath = path.normalize(servicePath);
+    const parsedPath = path.parse(normalizedServicePath);
+    const relativeFromRoot = normalizedServicePath.slice(parsedPath.root.length);
+    const segments = relativeFromRoot.split(path.sep).filter(Boolean);
+    const tempRootIdx = segments.findIndex((segment) => segment.startsWith("bal-proj-"));
+
+    if (tempRootIdx === -1) {
+        return undefined;
+    }
+
+    const tempProjectPath = path.join(parsedPath.root, ...segments.slice(0, tempRootIdx + 1));
+    if (!fs.existsSync(tempProjectPath)) {
+        return undefined;
+    }
+
+    const packagePath = isWorkspaceTempProject(tempProjectPath)
+        ? path.relative(tempProjectPath, normalizedServicePath)
+        : undefined;
+
+    if (packagePath && (packagePath === ".." || packagePath.startsWith(`..${path.sep}`) || path.isAbsolute(packagePath))) {
+        return undefined;
+    }
+
+    return { tempProjectPath, packagePath };
 }

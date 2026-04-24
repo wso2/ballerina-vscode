@@ -30,6 +30,20 @@ const SearchContainer = styled.div`
     margin-top: 5px;
 `;
 
+const InfoBanner = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background-color: var(--vscode-textCodeBlock-background);
+    border-radius: 4px;
+    margin-bottom: 12px;
+`;
+
+const InfoText = styled(Typography)`
+    color: var(--vscode-descriptionForeground);
+`;
+
 const CategorySection = styled.div`
     margin-top: 8px;
 `;
@@ -88,7 +102,7 @@ const TypeItem = styled.div<{ isSelected?: boolean }>`
     }
 `;
 
-const TypeName = styled(Typography)<{ isSelected?: boolean }>`
+const TypeName = styled(Typography) <{ isSelected?: boolean }>`
     font-family: var(--vscode-editor-font-family);
     color: ${({ isSelected }) =>
         isSelected
@@ -132,22 +146,26 @@ const ScrollableSection = styled.div`
 interface BrowseTypesTabProps {
     basicTypes: TypeHelperCategory[];
     importedTypes: TypeHelperCategory[];
+    workspaceTypes: TypeHelperCategory[];
     loading?: boolean;
     onSearchTypeHelper: (searchText: string, isType?: boolean) => void;
     onTypeItemClick: (item: TypeHelperItem) => Promise<any>;
     onTypeSelect: (type: Type, imports?: Imports) => void;
     simpleType?: string;
+    note?: string;
 }
 
 export function BrowseTypesTab(props: BrowseTypesTabProps) {
     const {
         basicTypes,
         importedTypes,
+        workspaceTypes,
         loading,
         onSearchTypeHelper,
         onTypeItemClick,
         onTypeSelect,
-        simpleType
+        simpleType,
+        note
     } = props;
 
     const firstRender = useRef<boolean>(true);
@@ -280,7 +298,7 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
                 {category.category && (
                     <CategoryTitle variant="h5">{category.category}</CategoryTitle>
                 )}
-                
+
                 {/* Render direct items if they exist */}
                 {category.items && category.items.length > 0 && (
                     <TypeList>
@@ -344,6 +362,12 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
     return (
         <StickyFooterContainer>
             <ContentBody>
+                {note && (
+                    <InfoBanner>
+                        <Codicon name="info" />
+                        <InfoText variant="body3">{note}</InfoText>
+                    </InfoBanner>
+                )}
                 <SearchContainer>
                     <TextField
                         value={searchText}
@@ -352,15 +376,16 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
                         autoFocus
                     />
                 </SearchContainer>
-                {(loading && (!basicTypes || basicTypes.length === 0) && (!importedTypes || importedTypes.length === 0)) ? (
+                {(loading && (!basicTypes || basicTypes.length === 0) && (!importedTypes || importedTypes.length === 0) && (!workspaceTypes || workspaceTypes.length === 0)) ? (
                     <LoadingContainer>
                         <ProgressRing />
                     </LoadingContainer>
                 ) : (
                     <ScrollableSection>
+                        {workspaceTypes && workspaceTypes.length > 0 && renderTypeItems(workspaceTypes)}
                         {basicTypes && basicTypes.length > 0 && renderTypeItems(basicTypes)}
                         {importedTypes && importedTypes.length > 0 && renderTypeItems(importedTypes)}
-                        {(!basicTypes || basicTypes.length === 0) && (!importedTypes || importedTypes.length === 0) && !loading && (
+                        {(!workspaceTypes || workspaceTypes.length === 0) && (!basicTypes || basicTypes.length === 0) && (!importedTypes || importedTypes.length === 0) && !loading && (
                             <EmptyState>
                                 <Typography variant="body3">No matching types found</Typography>
                             </EmptyState>
@@ -379,4 +404,3 @@ export function BrowseTypesTab(props: BrowseTypesTabProps) {
         </StickyFooterContainer>
     );
 }
-

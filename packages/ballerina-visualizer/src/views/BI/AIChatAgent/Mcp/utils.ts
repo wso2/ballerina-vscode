@@ -104,14 +104,30 @@ export function extractOriginalValues(node: FlowNode): {
     requiresAuth: boolean;
     result: string;
     toolKitName: string;
+    toolScopes: Record<string, string[]>;
 } {
     const serverUrl = (node.properties?.serverUrl?.value as string) || "";
     const auth = (node.properties?.auth?.value as string) || "";
-    const permittedToolsValue = (node.properties?.permittedTools?.value as string) || "";
-    const permittedTools = parseToolsString(permittedToolsValue, true);
+    const rawPermittedTools = node.properties?.permittedTools?.value;
+    const permittedTools = Array.isArray(rawPermittedTools)
+        ? rawPermittedTools.map((tool: any) => tool.value).filter(Boolean)
+        : parseToolsString((rawPermittedTools as string) || "", true);
     const requiresAuth = Boolean(auth && auth.trim());
     const result = (node.properties?.variable?.value as string) || "";
     const toolKitName = (node.properties?.toolKitName?.value as string) || "";
+
+    let toolScopes: Record<string, string[]> = {};
+    const toolScopesValue = (node.properties?.toolScopes?.value as string) || "";
+    if (toolScopesValue) {
+        try {
+            const parsed = JSON.parse(toolScopesValue);
+            if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+                toolScopes = parsed;
+            }
+        } catch {
+            // Invalid JSON, leave as empty
+        }
+    }
 
     return {
         serverUrl,
@@ -119,7 +135,8 @@ export function extractOriginalValues(node: FlowNode): {
         permittedTools,
         requiresAuth,
         result,
-        toolKitName
+        toolKitName,
+        toolScopes
     };
 }
 

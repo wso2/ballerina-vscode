@@ -1,0 +1,2526 @@
+{
+    "types": [
+        {
+            "name": "Comment",
+            "editable": true,
+            "metadata": {
+                "label": "Comment",
+                "description": ""
+            },
+            "codedata": {
+                "node": "CLASS",
+                "lineRange": {
+                    "fileName": "main.bal",
+                    "startLine": {
+                        "line": 185,
+                        "offset": 30
+                    },
+                    "endLine": {
+                        "line": 185,
+                        "offset": 37
+                    }
+                }
+            },
+            "properties": {
+                "name": {
+                    "metadata": {
+                        "label": "Type name",
+                        "description": "Unique name to identify the type"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "IDENTIFIER",
+                            "selected": true
+                        }
+                    ],
+                    "value": "Comment",
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": false
+                },
+                "qualifiers": {
+                    "metadata": {
+                        "label": "Type Qualifiers",
+                        "description": "Qualifiers of the type"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "MULTIPLE_SELECT",
+                            "selected": true
+                        }
+                    ],
+                    "value": [
+                        "public",
+                        "distinct",
+                        "service"
+                    ],
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false
+                },
+                "isArray": {
+                    "metadata": {
+                        "label": "Is array type",
+                        "description": "Is this type an array or list value"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "FLAG",
+                            "selected": true
+                        }
+                    ],
+                    "value": "false",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false
+                },
+                "arraySize": {
+                    "metadata": {
+                        "label": "Size of the array",
+                        "description": "Array dimensions"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "TEXT",
+                            "selected": true
+                        }
+                    ],
+                    "value": "",
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": false
+                },
+                "isPublic": {
+                    "metadata": {
+                        "label": "public",
+                        "description": "Is this public"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "FLAG",
+                            "selected": true
+                        }
+                    ],
+                    "value": "true",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                },
+                "isDistinct": {
+                    "metadata": {
+                        "label": "distinct",
+                        "description": "Is this distinct"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "FLAG",
+                            "selected": true
+                        }
+                    ],
+                    "value": "true",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                },
+                "isIsolated": {
+                    "metadata": {
+                        "label": "isolated",
+                        "description": "Is this isolated"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "FLAG",
+                            "selected": true
+                        }
+                    ],
+                    "value": "false",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                },
+                "isReadOnly": {
+                    "metadata": {
+                        "label": "readonly",
+                        "description": "Is this readonly"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "FLAG",
+                            "selected": true
+                        }
+                    ],
+                    "value": "false",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                },
+                "networkQualifier": {
+                    "metadata": {
+                        "label": "Network Qualifier",
+                        "description": "Network qualifier"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "SINGLE_SELECT",
+                            "options": [
+                                {
+                                    "label": "service",
+                                    "value": "service"
+                                },
+                                {
+                                    "label": "client",
+                                    "value": "client"
+                                }
+                            ],
+                            "selected": true
+                        }
+                    ],
+                    "value": "service",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                }
+            },
+            "members": [
+                {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "string",
+                    "name": "id",
+                    "optional": false,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": ""
+                },
+                {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "string",
+                    "name": "content",
+                    "optional": false,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": ""
+                },
+                {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "string",
+                    "name": "postId",
+                    "optional": false,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": ""
+                },
+                {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "string",
+                    "name": "authorId",
+                    "optional": false,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": ""
+                }
+            ],
+            "includes": [],
+            "functions": [
+                {
+                    "accessor": "get",
+                    "qualifiers": [
+                        "RESOURCE"
+                    ],
+                    "parameters": [],
+                    "kind": "RESOURCE",
+                    "name": "id",
+                    "description": "",
+                    "returnType": "string",
+                    "isGraphqlId": false,
+                    "refs": [],
+                    "properties": {
+                        "isPrivate": {
+                            "metadata": {
+                                "label": "private",
+                                "description": "Is this private"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isPublic": {
+                            "metadata": {
+                                "label": "public",
+                                "description": "Is this public"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isIsolated": {
+                            "metadata": {
+                                "label": "isolated",
+                                "description": "Is this isolated"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        }
+                    }
+                },
+                {
+                    "accessor": "get",
+                    "qualifiers": [
+                        "RESOURCE"
+                    ],
+                    "parameters": [],
+                    "kind": "RESOURCE",
+                    "name": "content",
+                    "description": "",
+                    "returnType": "string",
+                    "isGraphqlId": false,
+                    "refs": [],
+                    "properties": {
+                        "isPrivate": {
+                            "metadata": {
+                                "label": "private",
+                                "description": "Is this private"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isPublic": {
+                            "metadata": {
+                                "label": "public",
+                                "description": "Is this public"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isIsolated": {
+                            "metadata": {
+                                "label": "isolated",
+                                "description": "Is this isolated"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        }
+                    }
+                },
+                {
+                    "accessor": "get",
+                    "qualifiers": [
+                        "RESOURCE"
+                    ],
+                    "parameters": [],
+                    "kind": "RESOURCE",
+                    "name": "postId",
+                    "description": "",
+                    "returnType": "string",
+                    "isGraphqlId": false,
+                    "refs": [],
+                    "properties": {
+                        "isPrivate": {
+                            "metadata": {
+                                "label": "private",
+                                "description": "Is this private"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isPublic": {
+                            "metadata": {
+                                "label": "public",
+                                "description": "Is this public"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isIsolated": {
+                            "metadata": {
+                                "label": "isolated",
+                                "description": "Is this isolated"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        }
+                    }
+                },
+                {
+                    "accessor": "get",
+                    "qualifiers": [
+                        "RESOURCE"
+                    ],
+                    "parameters": [],
+                    "kind": "RESOURCE",
+                    "name": "authorId",
+                    "description": "",
+                    "returnType": "string",
+                    "isGraphqlId": false,
+                    "refs": [],
+                    "properties": {
+                        "isPrivate": {
+                            "metadata": {
+                                "label": "private",
+                                "description": "Is this private"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isPublic": {
+                            "metadata": {
+                                "label": "public",
+                                "description": "Is this public"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isIsolated": {
+                            "metadata": {
+                                "label": "isolated",
+                                "description": "Is this isolated"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        }
+                    }
+                },
+                {
+                    "accessor": "get",
+                    "qualifiers": [
+                        "RESOURCE"
+                    ],
+                    "parameters": [],
+                    "kind": "RESOURCE",
+                    "name": "post",
+                    "description": "",
+                    "returnType": {
+                        "editable": false,
+                        "codedata": {
+                            "node": "UNION"
+                        },
+                        "properties": {
+                            "isArray": {
+                                "metadata": {
+                                    "label": "Is array type",
+                                    "description": "Is this type an array or list value"
+                                },
+                                "types": [
+                                    {
+                                        "fieldType": "FLAG",
+                                        "selected": true
+                                    }
+                                ],
+                                "value": "false",
+                                "optional": true,
+                                "editable": true,
+                                "advanced": true,
+                                "hidden": false
+                            },
+                            "arraySize": {
+                                "metadata": {
+                                    "label": "Size of the array",
+                                    "description": "Array dimensions"
+                                },
+                                "types": [
+                                    {
+                                        "fieldType": "TEXT",
+                                        "selected": true
+                                    }
+                                ],
+                                "value": "",
+                                "optional": false,
+                                "editable": false,
+                                "advanced": false,
+                                "hidden": false
+                            }
+                        },
+                        "members": [
+                            {
+                                "kind": "TYPE",
+                                "refs": [
+                                    "Post"
+                                ],
+                                "type": "Post",
+                                "name": "Post",
+                                "optional": false,
+                                "readonly": false,
+                                "isGraphqlId": false
+                            },
+                            {
+                                "kind": "TYPE",
+                                "refs": [],
+                                "type": "()",
+                                "name": "()",
+                                "optional": false,
+                                "readonly": false,
+                                "isGraphqlId": false
+                            }
+                        ],
+                        "allowAdditionalFields": false
+                    },
+                    "isGraphqlId": false,
+                    "refs": [],
+                    "properties": {
+                        "isPrivate": {
+                            "metadata": {
+                                "label": "private",
+                                "description": "Is this private"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isPublic": {
+                            "metadata": {
+                                "label": "public",
+                                "description": "Is this public"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isIsolated": {
+                            "metadata": {
+                                "label": "isolated",
+                                "description": "Is this isolated"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        }
+                    }
+                },
+                {
+                    "accessor": "get",
+                    "qualifiers": [
+                        "RESOURCE"
+                    ],
+                    "parameters": [],
+                    "kind": "RESOURCE",
+                    "name": "author",
+                    "description": "",
+                    "returnType": {
+                        "editable": false,
+                        "codedata": {
+                            "node": "UNION"
+                        },
+                        "properties": {
+                            "isArray": {
+                                "metadata": {
+                                    "label": "Is array type",
+                                    "description": "Is this type an array or list value"
+                                },
+                                "types": [
+                                    {
+                                        "fieldType": "FLAG",
+                                        "selected": true
+                                    }
+                                ],
+                                "value": "false",
+                                "optional": true,
+                                "editable": true,
+                                "advanced": true,
+                                "hidden": false
+                            },
+                            "arraySize": {
+                                "metadata": {
+                                    "label": "Size of the array",
+                                    "description": "Array dimensions"
+                                },
+                                "types": [
+                                    {
+                                        "fieldType": "TEXT",
+                                        "selected": true
+                                    }
+                                ],
+                                "value": "",
+                                "optional": false,
+                                "editable": false,
+                                "advanced": false,
+                                "hidden": false
+                            }
+                        },
+                        "members": [
+                            {
+                                "kind": "TYPE",
+                                "refs": [
+                                    "User"
+                                ],
+                                "type": "User",
+                                "name": "User",
+                                "optional": false,
+                                "readonly": false,
+                                "isGraphqlId": false
+                            },
+                            {
+                                "kind": "TYPE",
+                                "refs": [],
+                                "type": "()",
+                                "name": "()",
+                                "optional": false,
+                                "readonly": false,
+                                "isGraphqlId": false
+                            }
+                        ],
+                        "allowAdditionalFields": false
+                    },
+                    "isGraphqlId": false,
+                    "refs": [],
+                    "properties": {
+                        "isPrivate": {
+                            "metadata": {
+                                "label": "private",
+                                "description": "Is this private"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isPublic": {
+                            "metadata": {
+                                "label": "public",
+                                "description": "Is this public"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isIsolated": {
+                            "metadata": {
+                                "label": "isolated",
+                                "description": "Is this isolated"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        }
+                    }
+                }
+            ],
+            "allowAdditionalFields": false
+        },
+        {
+            "name": "User",
+            "editable": true,
+            "metadata": {
+                "label": "User",
+                "description": ""
+            },
+            "codedata": {
+                "node": "CLASS",
+                "lineRange": {
+                    "fileName": "main.bal",
+                    "startLine": {
+                        "line": 107,
+                        "offset": 30
+                    },
+                    "endLine": {
+                        "line": 107,
+                        "offset": 34
+                    }
+                }
+            },
+            "properties": {
+                "name": {
+                    "metadata": {
+                        "label": "Type name",
+                        "description": "Unique name to identify the type"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "IDENTIFIER",
+                            "selected": true
+                        }
+                    ],
+                    "value": "User",
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": false
+                },
+                "qualifiers": {
+                    "metadata": {
+                        "label": "Type Qualifiers",
+                        "description": "Qualifiers of the type"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "MULTIPLE_SELECT",
+                            "selected": true
+                        }
+                    ],
+                    "value": [
+                        "public",
+                        "distinct",
+                        "service"
+                    ],
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false
+                },
+                "isArray": {
+                    "metadata": {
+                        "label": "Is array type",
+                        "description": "Is this type an array or list value"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "FLAG",
+                            "selected": true
+                        }
+                    ],
+                    "value": "false",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false
+                },
+                "arraySize": {
+                    "metadata": {
+                        "label": "Size of the array",
+                        "description": "Array dimensions"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "TEXT",
+                            "selected": true
+                        }
+                    ],
+                    "value": "",
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": false
+                },
+                "isPublic": {
+                    "metadata": {
+                        "label": "public",
+                        "description": "Is this public"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "FLAG",
+                            "selected": true
+                        }
+                    ],
+                    "value": "true",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                },
+                "isDistinct": {
+                    "metadata": {
+                        "label": "distinct",
+                        "description": "Is this distinct"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "FLAG",
+                            "selected": true
+                        }
+                    ],
+                    "value": "true",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                },
+                "isIsolated": {
+                    "metadata": {
+                        "label": "isolated",
+                        "description": "Is this isolated"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "FLAG",
+                            "selected": true
+                        }
+                    ],
+                    "value": "false",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                },
+                "isReadOnly": {
+                    "metadata": {
+                        "label": "readonly",
+                        "description": "Is this readonly"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "FLAG",
+                            "selected": true
+                        }
+                    ],
+                    "value": "false",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                },
+                "networkQualifier": {
+                    "metadata": {
+                        "label": "Network Qualifier",
+                        "description": "Network qualifier"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "SINGLE_SELECT",
+                            "options": [
+                                {
+                                    "label": "service",
+                                    "value": "service"
+                                },
+                                {
+                                    "label": "client",
+                                    "value": "client"
+                                }
+                            ],
+                            "selected": true
+                        }
+                    ],
+                    "value": "service",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                }
+            },
+            "members": [
+                {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "string",
+                    "name": "id",
+                    "optional": false,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": ""
+                },
+                {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "string",
+                    "name": "name",
+                    "optional": false,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": ""
+                },
+                {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "string",
+                    "name": "email",
+                    "optional": false,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": ""
+                }
+            ],
+            "includes": [],
+            "functions": [
+                {
+                    "accessor": "get",
+                    "qualifiers": [
+                        "RESOURCE"
+                    ],
+                    "parameters": [],
+                    "kind": "RESOURCE",
+                    "name": "id",
+                    "description": "",
+                    "returnType": "string",
+                    "isGraphqlId": false,
+                    "refs": [],
+                    "properties": {
+                        "isPrivate": {
+                            "metadata": {
+                                "label": "private",
+                                "description": "Is this private"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isPublic": {
+                            "metadata": {
+                                "label": "public",
+                                "description": "Is this public"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isIsolated": {
+                            "metadata": {
+                                "label": "isolated",
+                                "description": "Is this isolated"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        }
+                    }
+                },
+                {
+                    "accessor": "get",
+                    "qualifiers": [
+                        "RESOURCE"
+                    ],
+                    "parameters": [],
+                    "kind": "RESOURCE",
+                    "name": "name",
+                    "description": "",
+                    "returnType": "string",
+                    "isGraphqlId": false,
+                    "refs": [],
+                    "properties": {
+                        "isPrivate": {
+                            "metadata": {
+                                "label": "private",
+                                "description": "Is this private"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isPublic": {
+                            "metadata": {
+                                "label": "public",
+                                "description": "Is this public"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isIsolated": {
+                            "metadata": {
+                                "label": "isolated",
+                                "description": "Is this isolated"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        }
+                    }
+                },
+                {
+                    "accessor": "get",
+                    "qualifiers": [
+                        "RESOURCE"
+                    ],
+                    "parameters": [],
+                    "kind": "RESOURCE",
+                    "name": "email",
+                    "description": "",
+                    "returnType": "string",
+                    "isGraphqlId": false,
+                    "refs": [],
+                    "properties": {
+                        "isPrivate": {
+                            "metadata": {
+                                "label": "private",
+                                "description": "Is this private"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isPublic": {
+                            "metadata": {
+                                "label": "public",
+                                "description": "Is this public"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isIsolated": {
+                            "metadata": {
+                                "label": "isolated",
+                                "description": "Is this isolated"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        }
+                    }
+                },
+                {
+                    "accessor": "get",
+                    "qualifiers": [
+                        "RESOURCE"
+                    ],
+                    "parameters": [],
+                    "kind": "RESOURCE",
+                    "name": "posts",
+                    "description": "",
+                    "returnType": {
+                        "editable": false,
+                        "codedata": {
+                            "node": "ARRAY"
+                        },
+                        "properties": {
+                            "isArray": {
+                                "metadata": {
+                                    "label": "Is array type",
+                                    "description": "Is this type an array or list value"
+                                },
+                                "types": [
+                                    {
+                                        "fieldType": "FLAG",
+                                        "selected": true
+                                    }
+                                ],
+                                "value": "true",
+                                "optional": true,
+                                "editable": true,
+                                "advanced": true,
+                                "hidden": false
+                            },
+                            "arraySize": {
+                                "metadata": {
+                                    "label": "Size of the array",
+                                    "description": "Array dimensions"
+                                },
+                                "types": [
+                                    {
+                                        "fieldType": "TEXT",
+                                        "selected": true
+                                    }
+                                ],
+                                "value": "",
+                                "optional": true,
+                                "editable": true,
+                                "advanced": true,
+                                "hidden": false
+                            }
+                        },
+                        "members": [
+                            {
+                                "kind": "TYPE",
+                                "refs": [
+                                    "Post"
+                                ],
+                                "type": "Post",
+                                "name": "Post",
+                                "optional": false,
+                                "readonly": false,
+                                "isGraphqlId": false
+                            }
+                        ],
+                        "allowAdditionalFields": false
+                    },
+                    "isGraphqlId": false,
+                    "refs": [],
+                    "properties": {
+                        "isPrivate": {
+                            "metadata": {
+                                "label": "private",
+                                "description": "Is this private"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isPublic": {
+                            "metadata": {
+                                "label": "public",
+                                "description": "Is this public"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isIsolated": {
+                            "metadata": {
+                                "label": "isolated",
+                                "description": "Is this isolated"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        }
+                    }
+                }
+            ],
+            "allowAdditionalFields": false
+        },
+        {
+            "name": "UserRecord",
+            "editable": true,
+            "metadata": {
+                "label": "UserRecord",
+                "description": ""
+            },
+            "codedata": {
+                "node": "RECORD",
+                "lineRange": {
+                    "fileName": "types.bal",
+                    "startLine": {
+                        "line": 1,
+                        "offset": 12
+                    },
+                    "endLine": {
+                        "line": 1,
+                        "offset": 22
+                    }
+                }
+            },
+            "properties": {
+                "name": {
+                    "metadata": {
+                        "label": "Type name",
+                        "description": "Unique name to identify the type"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "IDENTIFIER",
+                            "selected": true
+                        }
+                    ],
+                    "value": "UserRecord",
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": false
+                },
+                "isPublic": {
+                    "metadata": {
+                        "label": "public",
+                        "description": "Is this public"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "FLAG",
+                            "selected": true
+                        }
+                    ],
+                    "value": "true",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                },
+                "description": {
+                    "metadata": {
+                        "label": "Type description",
+                        "description": "Detailed description about the type"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "TEXT",
+                            "selected": true
+                        }
+                    ],
+                    "value": "",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                },
+                "isArray": {
+                    "metadata": {
+                        "label": "Is array type",
+                        "description": "Is this type an array or list value"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "FLAG",
+                            "selected": true
+                        }
+                    ],
+                    "value": "false",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false
+                },
+                "arraySize": {
+                    "metadata": {
+                        "label": "Size of the array",
+                        "description": "Array dimensions"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "TEXT",
+                            "selected": true
+                        }
+                    ],
+                    "value": "",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false
+                }
+            },
+            "members": [
+                {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "string",
+                    "name": "id",
+                    "optional": false,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": "",
+                    "annotationAttachments": []
+                },
+                {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "string",
+                    "name": "name",
+                    "optional": false,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": "",
+                    "annotationAttachments": []
+                },
+                {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "string",
+                    "name": "email",
+                    "optional": false,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": "",
+                    "annotationAttachments": []
+                }
+            ],
+            "includes": [],
+            "annotationAttachments": [],
+            "allowAdditionalFields": false
+        },
+        {
+            "name": "PostRecord",
+            "editable": true,
+            "metadata": {
+                "label": "PostRecord",
+                "description": ""
+            },
+            "codedata": {
+                "node": "RECORD",
+                "lineRange": {
+                    "fileName": "types.bal",
+                    "startLine": {
+                        "line": 8,
+                        "offset": 12
+                    },
+                    "endLine": {
+                        "line": 8,
+                        "offset": 22
+                    }
+                }
+            },
+            "properties": {
+                "name": {
+                    "metadata": {
+                        "label": "Type name",
+                        "description": "Unique name to identify the type"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "IDENTIFIER",
+                            "selected": true
+                        }
+                    ],
+                    "value": "PostRecord",
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": false
+                },
+                "isPublic": {
+                    "metadata": {
+                        "label": "public",
+                        "description": "Is this public"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "FLAG",
+                            "selected": true
+                        }
+                    ],
+                    "value": "true",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                },
+                "description": {
+                    "metadata": {
+                        "label": "Type description",
+                        "description": "Detailed description about the type"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "TEXT",
+                            "selected": true
+                        }
+                    ],
+                    "value": "",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                },
+                "isArray": {
+                    "metadata": {
+                        "label": "Is array type",
+                        "description": "Is this type an array or list value"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "FLAG",
+                            "selected": true
+                        }
+                    ],
+                    "value": "false",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false
+                },
+                "arraySize": {
+                    "metadata": {
+                        "label": "Size of the array",
+                        "description": "Array dimensions"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "TEXT",
+                            "selected": true
+                        }
+                    ],
+                    "value": "",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false
+                }
+            },
+            "members": [
+                {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "string",
+                    "name": "id",
+                    "optional": false,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": "",
+                    "annotationAttachments": []
+                },
+                {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "string",
+                    "name": "title",
+                    "optional": false,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": "",
+                    "annotationAttachments": []
+                },
+                {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "string",
+                    "name": "content",
+                    "optional": false,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": "",
+                    "annotationAttachments": []
+                },
+                {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "string",
+                    "name": "authorId",
+                    "optional": false,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": "",
+                    "annotationAttachments": []
+                }
+            ],
+            "includes": [],
+            "annotationAttachments": [],
+            "allowAdditionalFields": false
+        },
+        {
+            "name": "CommentRecord",
+            "editable": true,
+            "metadata": {
+                "label": "CommentRecord",
+                "description": ""
+            },
+            "codedata": {
+                "node": "RECORD",
+                "lineRange": {
+                    "fileName": "types.bal",
+                    "startLine": {
+                        "line": 16,
+                        "offset": 12
+                    },
+                    "endLine": {
+                        "line": 16,
+                        "offset": 25
+                    }
+                }
+            },
+            "properties": {
+                "name": {
+                    "metadata": {
+                        "label": "Type name",
+                        "description": "Unique name to identify the type"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "IDENTIFIER",
+                            "selected": true
+                        }
+                    ],
+                    "value": "CommentRecord",
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": false
+                },
+                "isPublic": {
+                    "metadata": {
+                        "label": "public",
+                        "description": "Is this public"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "FLAG",
+                            "selected": true
+                        }
+                    ],
+                    "value": "true",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                },
+                "description": {
+                    "metadata": {
+                        "label": "Type description",
+                        "description": "Detailed description about the type"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "TEXT",
+                            "selected": true
+                        }
+                    ],
+                    "value": "",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                },
+                "isArray": {
+                    "metadata": {
+                        "label": "Is array type",
+                        "description": "Is this type an array or list value"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "FLAG",
+                            "selected": true
+                        }
+                    ],
+                    "value": "false",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false
+                },
+                "arraySize": {
+                    "metadata": {
+                        "label": "Size of the array",
+                        "description": "Array dimensions"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "TEXT",
+                            "selected": true
+                        }
+                    ],
+                    "value": "",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false
+                }
+            },
+            "members": [
+                {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "string",
+                    "name": "id",
+                    "optional": false,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": "",
+                    "annotationAttachments": []
+                },
+                {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "string",
+                    "name": "content",
+                    "optional": false,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": "",
+                    "annotationAttachments": []
+                },
+                {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "string",
+                    "name": "postId",
+                    "optional": false,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": "",
+                    "annotationAttachments": []
+                },
+                {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "string",
+                    "name": "authorId",
+                    "optional": false,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": "",
+                    "annotationAttachments": []
+                }
+            ],
+            "includes": [],
+            "annotationAttachments": [],
+            "allowAdditionalFields": false
+        },
+        {
+            "name": "Post",
+            "editable": true,
+            "metadata": {
+                "label": "Post",
+                "description": ""
+            },
+            "codedata": {
+                "node": "CLASS",
+                "lineRange": {
+                    "fileName": "main.bal",
+                    "startLine": {
+                        "line": 139,
+                        "offset": 30
+                    },
+                    "endLine": {
+                        "line": 139,
+                        "offset": 34
+                    }
+                }
+            },
+            "properties": {
+                "name": {
+                    "metadata": {
+                        "label": "Type name",
+                        "description": "Unique name to identify the type"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "IDENTIFIER",
+                            "selected": true
+                        }
+                    ],
+                    "value": "Post",
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": false
+                },
+                "qualifiers": {
+                    "metadata": {
+                        "label": "Type Qualifiers",
+                        "description": "Qualifiers of the type"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "MULTIPLE_SELECT",
+                            "selected": true
+                        }
+                    ],
+                    "value": [
+                        "public",
+                        "distinct",
+                        "service"
+                    ],
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false
+                },
+                "isArray": {
+                    "metadata": {
+                        "label": "Is array type",
+                        "description": "Is this type an array or list value"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "FLAG",
+                            "selected": true
+                        }
+                    ],
+                    "value": "false",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false
+                },
+                "arraySize": {
+                    "metadata": {
+                        "label": "Size of the array",
+                        "description": "Array dimensions"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "TEXT",
+                            "selected": true
+                        }
+                    ],
+                    "value": "",
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": false
+                },
+                "isPublic": {
+                    "metadata": {
+                        "label": "public",
+                        "description": "Is this public"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "FLAG",
+                            "selected": true
+                        }
+                    ],
+                    "value": "true",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                },
+                "isDistinct": {
+                    "metadata": {
+                        "label": "distinct",
+                        "description": "Is this distinct"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "FLAG",
+                            "selected": true
+                        }
+                    ],
+                    "value": "true",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                },
+                "isIsolated": {
+                    "metadata": {
+                        "label": "isolated",
+                        "description": "Is this isolated"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "FLAG",
+                            "selected": true
+                        }
+                    ],
+                    "value": "false",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                },
+                "isReadOnly": {
+                    "metadata": {
+                        "label": "readonly",
+                        "description": "Is this readonly"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "FLAG",
+                            "selected": true
+                        }
+                    ],
+                    "value": "false",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                },
+                "networkQualifier": {
+                    "metadata": {
+                        "label": "Network Qualifier",
+                        "description": "Network qualifier"
+                    },
+                    "types": [
+                        {
+                            "fieldType": "SINGLE_SELECT",
+                            "options": [
+                                {
+                                    "label": "service",
+                                    "value": "service"
+                                },
+                                {
+                                    "label": "client",
+                                    "value": "client"
+                                }
+                            ],
+                            "selected": true
+                        }
+                    ],
+                    "value": "service",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                }
+            },
+            "members": [
+                {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "string",
+                    "name": "id",
+                    "optional": false,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": ""
+                },
+                {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "string",
+                    "name": "title",
+                    "optional": false,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": ""
+                },
+                {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "string",
+                    "name": "content",
+                    "optional": false,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": ""
+                },
+                {
+                    "kind": "FIELD",
+                    "refs": [],
+                    "type": "string",
+                    "name": "authorId",
+                    "optional": false,
+                    "readonly": false,
+                    "isGraphqlId": false,
+                    "docs": ""
+                }
+            ],
+            "includes": [],
+            "functions": [
+                {
+                    "accessor": "get",
+                    "qualifiers": [
+                        "RESOURCE"
+                    ],
+                    "parameters": [],
+                    "kind": "RESOURCE",
+                    "name": "id",
+                    "description": "",
+                    "returnType": "string",
+                    "isGraphqlId": false,
+                    "refs": [],
+                    "properties": {
+                        "isPrivate": {
+                            "metadata": {
+                                "label": "private",
+                                "description": "Is this private"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isPublic": {
+                            "metadata": {
+                                "label": "public",
+                                "description": "Is this public"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isIsolated": {
+                            "metadata": {
+                                "label": "isolated",
+                                "description": "Is this isolated"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        }
+                    }
+                },
+                {
+                    "accessor": "get",
+                    "qualifiers": [
+                        "RESOURCE"
+                    ],
+                    "parameters": [],
+                    "kind": "RESOURCE",
+                    "name": "title",
+                    "description": "",
+                    "returnType": "string",
+                    "isGraphqlId": false,
+                    "refs": [],
+                    "properties": {
+                        "isPrivate": {
+                            "metadata": {
+                                "label": "private",
+                                "description": "Is this private"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isPublic": {
+                            "metadata": {
+                                "label": "public",
+                                "description": "Is this public"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isIsolated": {
+                            "metadata": {
+                                "label": "isolated",
+                                "description": "Is this isolated"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        }
+                    }
+                },
+                {
+                    "accessor": "get",
+                    "qualifiers": [
+                        "RESOURCE"
+                    ],
+                    "parameters": [],
+                    "kind": "RESOURCE",
+                    "name": "content",
+                    "description": "",
+                    "returnType": "string",
+                    "isGraphqlId": false,
+                    "refs": [],
+                    "properties": {
+                        "isPrivate": {
+                            "metadata": {
+                                "label": "private",
+                                "description": "Is this private"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isPublic": {
+                            "metadata": {
+                                "label": "public",
+                                "description": "Is this public"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isIsolated": {
+                            "metadata": {
+                                "label": "isolated",
+                                "description": "Is this isolated"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        }
+                    }
+                },
+                {
+                    "accessor": "get",
+                    "qualifiers": [
+                        "RESOURCE"
+                    ],
+                    "parameters": [],
+                    "kind": "RESOURCE",
+                    "name": "authorId",
+                    "description": "",
+                    "returnType": "string",
+                    "isGraphqlId": false,
+                    "refs": [],
+                    "properties": {
+                        "isPrivate": {
+                            "metadata": {
+                                "label": "private",
+                                "description": "Is this private"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isPublic": {
+                            "metadata": {
+                                "label": "public",
+                                "description": "Is this public"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isIsolated": {
+                            "metadata": {
+                                "label": "isolated",
+                                "description": "Is this isolated"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        }
+                    }
+                },
+                {
+                    "accessor": "get",
+                    "qualifiers": [
+                        "RESOURCE"
+                    ],
+                    "parameters": [],
+                    "kind": "RESOURCE",
+                    "name": "author",
+                    "description": "",
+                    "returnType": {
+                        "editable": false,
+                        "codedata": {
+                            "node": "UNION"
+                        },
+                        "properties": {
+                            "isArray": {
+                                "metadata": {
+                                    "label": "Is array type",
+                                    "description": "Is this type an array or list value"
+                                },
+                                "types": [
+                                    {
+                                        "fieldType": "FLAG",
+                                        "selected": true
+                                    }
+                                ],
+                                "value": "false",
+                                "optional": true,
+                                "editable": true,
+                                "advanced": true,
+                                "hidden": false
+                            },
+                            "arraySize": {
+                                "metadata": {
+                                    "label": "Size of the array",
+                                    "description": "Array dimensions"
+                                },
+                                "types": [
+                                    {
+                                        "fieldType": "TEXT",
+                                        "selected": true
+                                    }
+                                ],
+                                "value": "",
+                                "optional": false,
+                                "editable": false,
+                                "advanced": false,
+                                "hidden": false
+                            }
+                        },
+                        "members": [
+                            {
+                                "kind": "TYPE",
+                                "refs": [
+                                    "User"
+                                ],
+                                "type": "User",
+                                "name": "User",
+                                "optional": false,
+                                "readonly": false,
+                                "isGraphqlId": false
+                            },
+                            {
+                                "kind": "TYPE",
+                                "refs": [],
+                                "type": "()",
+                                "name": "()",
+                                "optional": false,
+                                "readonly": false,
+                                "isGraphqlId": false
+                            }
+                        ],
+                        "allowAdditionalFields": false
+                    },
+                    "isGraphqlId": false,
+                    "refs": [],
+                    "properties": {
+                        "isPrivate": {
+                            "metadata": {
+                                "label": "private",
+                                "description": "Is this private"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isPublic": {
+                            "metadata": {
+                                "label": "public",
+                                "description": "Is this public"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isIsolated": {
+                            "metadata": {
+                                "label": "isolated",
+                                "description": "Is this isolated"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        }
+                    }
+                },
+                {
+                    "accessor": "get",
+                    "qualifiers": [
+                        "RESOURCE"
+                    ],
+                    "parameters": [],
+                    "kind": "RESOURCE",
+                    "name": "comments",
+                    "description": "",
+                    "returnType": {
+                        "editable": false,
+                        "codedata": {
+                            "node": "ARRAY"
+                        },
+                        "properties": {
+                            "isArray": {
+                                "metadata": {
+                                    "label": "Is array type",
+                                    "description": "Is this type an array or list value"
+                                },
+                                "types": [
+                                    {
+                                        "fieldType": "FLAG",
+                                        "selected": true
+                                    }
+                                ],
+                                "value": "true",
+                                "optional": true,
+                                "editable": true,
+                                "advanced": true,
+                                "hidden": false
+                            },
+                            "arraySize": {
+                                "metadata": {
+                                    "label": "Size of the array",
+                                    "description": "Array dimensions"
+                                },
+                                "types": [
+                                    {
+                                        "fieldType": "TEXT",
+                                        "selected": true
+                                    }
+                                ],
+                                "value": "",
+                                "optional": true,
+                                "editable": true,
+                                "advanced": true,
+                                "hidden": false
+                            }
+                        },
+                        "members": [
+                            {
+                                "kind": "TYPE",
+                                "refs": [
+                                    "Comment"
+                                ],
+                                "type": "Comment",
+                                "name": "Comment",
+                                "optional": false,
+                                "readonly": false,
+                                "isGraphqlId": false
+                            }
+                        ],
+                        "allowAdditionalFields": false
+                    },
+                    "isGraphqlId": false,
+                    "refs": [],
+                    "properties": {
+                        "isPrivate": {
+                            "metadata": {
+                                "label": "private",
+                                "description": "Is this private"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isPublic": {
+                            "metadata": {
+                                "label": "public",
+                                "description": "Is this public"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "isIsolated": {
+                            "metadata": {
+                                "label": "isolated",
+                                "description": "Is this isolated"
+                            },
+                            "types": [
+                                {
+                                    "fieldType": "FLAG",
+                                    "selected": true
+                                }
+                            ],
+                            "value": "false",
+                            "optional": true,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        }
+                    }
+                }
+            ],
+            "allowAdditionalFields": false
+        }
+    ]
+}

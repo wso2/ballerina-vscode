@@ -20,7 +20,7 @@ import { useEffect, useRef, useState } from "react";
 import { Codicon } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 
-import { DataMapperDisplayMode, FlowNode, LineRange, SubPanel, SubPanelView } from "@wso2/ballerina-core";
+import { EditorConfig, FlowNode, LineRange, SubPanel, SubPanelView } from "@wso2/ballerina-core";
 import {
     FormValues,
     ExpressionFormField,
@@ -40,9 +40,8 @@ import {
 } from "../form-utils";
 import { SidePanelView } from "../../FlowDiagram/PanelManager";
 import { ConnectionKind } from "../../../../components/ConnectionSelector";
-import { URI, Utils } from "vscode-uri";
 
-const DEFAULT_CHUNKER_VALUE = "\"AUTO\"";
+const DEFAULT_CHUNKER_VALUE = "ai:AUTO";
 
 namespace S {
     export const Container = styled.div<{ footerActionButton?: boolean }>`
@@ -83,7 +82,7 @@ interface KnowledgeBaseFormProps {
     showProgressIndicator?: boolean;
     onSubmit: (
         node?: FlowNode,
-        dataMapperMode?: DataMapperDisplayMode,
+        editorConfig?: EditorConfig,
         formImports?: FormImports,
         rawFormValues?: FormValues
     ) => void;
@@ -157,6 +156,12 @@ export function KnowledgeBaseForm(props: KnowledgeBaseFormProps) {
         }
     };
 
+    const searchNodesKindMap: Record<string, string> = {
+        vectorStore: "VECTOR_STORE",
+        embeddingModel: "EMBEDDING_PROVIDER",
+        chunker: "CHUNKER",
+    };
+
     const initializeForm = async () => {
         const formProperties = getFormProperties(node);
         const fields = convertNodePropertiesToFormFields(formProperties);
@@ -165,17 +170,28 @@ export function KnowledgeBaseForm(props: KnowledgeBaseFormProps) {
             const originalName = field?.codedata?.originalName;
             if (actionFields.includes(originalName)) {
                 field.type = "ACTION_EXPRESSION";
+                field.types = [{ fieldType: "ACTION_EXPRESSION", selected: true }, { fieldType: "EXPRESSION", selected: false }];
                 field.advanced = false;
                 field.actionCallback = () => {
                     props.navigateToPanel?.(SidePanelView.CONNECTION_SELECT, getConnectionKind(originalName));
                 };
                 field.actionLabel = <><Codicon name="add" />{`Create New ${field?.label}`}</>;
                 field.imports = node?.properties?.type?.imports;
+                field.codedata = { ...field.codedata, searchNodesKind: searchNodesKindMap[originalName] };
             }
             if (originalName === "chunker") {
-                // hack: set default value for chunker field
                 field.defaultValue = DEFAULT_CHUNKER_VALUE;
-                field.advanced = true;
+                if (!field.value) {
+                    field.value = DEFAULT_CHUNKER_VALUE;
+                }
+                field.advanced = false;
+                field.codedata = {
+                    ...field.codedata,
+                    staticItems: [
+                        { id: "auto", label: "AUTO", value: "ai:AUTO" },
+                        { id: "disable", label: "DISABLE", value: "ai:DISABLE" },
+                    ],
+                };
             }
         });
         setKnowledgeBaseFields(fields);
@@ -200,7 +216,7 @@ export function KnowledgeBaseForm(props: KnowledgeBaseFormProps) {
         try {
             setSaving(true);
             const knowledgeBaseNode = mergeFormDataWithFlowNode(knowledgeBaseFormValues, targetLineRange);
-            onSubmit(knowledgeBaseNode, DataMapperDisplayMode.NONE, formImports);
+            onSubmit(knowledgeBaseNode, undefined, formImports);
         } catch (error) {
             console.error("Error creating vector knowledge base:", error);
         } finally {

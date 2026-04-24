@@ -18,15 +18,15 @@
 
 import styled from "@emotion/styled";
 import React, { useEffect, useState } from "react";
-import { MACHINE_VIEW, ParentPopupData, PopupMachineStateValue, PopupVisualizerLocation } from "@wso2/ballerina-core";
+import { AvailableNode, MACHINE_VIEW, NodeKind, ParentPopupData, PopupMachineStateValue, PopupVisualizerLocation } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import AddConnectionWizard from "./views/BI/Connection/AddConnectionWizard";
 import { ThemeColors, Overlay } from "@wso2/ui-toolkit";
-import EditConnectionWizard from "./views/BI/Connection/EditConnectionWizard";
 import { FunctionForm } from "./views/BI";
 import { DataMapper } from "./views/DataMapper";
 import AddConnectionPopup from "./views/BI/Connection/AddConnectionPopup";
+import { ConnectionConfigurationPopup } from "./views/BI/Connection/ConnectionConfigurationPopup";
 import EditConnectionPopup from "./views/BI/Connection/EditConnectionPopup";
+import { ConfigurationCollector } from "./views/AIPanel/components/ConfigurationCollector";
 
 const ViewContainer = styled.div<{ isFullScreen?: boolean }>`
     position: fixed;
@@ -67,6 +67,17 @@ const PopupPanel = (props: PopupPanelProps) => {
         fetchContext();
     }, []);
 
+    const handleApprovalClose = (approvalData: any | undefined) => {
+        const requestId = approvalData?.requestId;
+
+        if (requestId) {
+            console.log('[PopupPanel] Approval view closed, notifying backend:', requestId);
+            rpcClient.getVisualizerRpcClient().handleApprovalPopupClose({ requestId });
+        }
+
+        onClose();
+    };
+
     const fetchContext = () => {
         rpcClient.getPopupVisualizerState().then((machineState: PopupVisualizerLocation) => {
             switch (machineState?.view) {
@@ -80,6 +91,43 @@ const PopupPanel = (props: PopupPanelProps) => {
                                 onClose={onClose}
                                 onNavigateToOverview={handleNavigateToOverview}
                                 isPopup={true}
+                            />
+                        );
+                    });
+                    break;
+                case MACHINE_VIEW.ConnectionConfiguration:
+                    const connectorMetadata = machineState.metadata ?? {};
+
+                    // Reconstruct the connector object from metadata
+                    const selectedConnector: AvailableNode = {
+                        metadata: {
+                            label: connectorMetadata.selectedConnectorLabel || "",
+                            description: connectorMetadata.selectedConnectorDescription || "",
+                            icon: connectorMetadata.selectedConnectorIcon || ""
+                        },
+                        codedata: {
+                            id: connectorMetadata.selectedConnectorId,
+                            node: connectorMetadata.selectedConnectorNode as NodeKind,
+                            org: connectorMetadata.selectedConnectorOrg,
+                            module: connectorMetadata.selectedConnectorModule,
+                            packageName: connectorMetadata.selectedConnectorPackageName,
+                            object: connectorMetadata.selectedConnectorObject,
+                            symbol: connectorMetadata.selectedConnectorSymbol,
+                            version: connectorMetadata.selectedConnectorVersion,
+                            isGenerated: connectorMetadata.selectedConnectorIsGenerated
+                        },
+                        enabled: true
+                    };
+
+                    rpcClient.getVisualizerLocation().then((location) => {
+                        setViewComponent(
+                            <ConnectionConfigurationPopup
+                                selectedConnector={selectedConnector}
+                                fileName={location.documentUri || location.projectPath}
+                                target={connectorMetadata.target || undefined}
+                                onClose={onClose}
+                                onBack={onClose}
+                                filteredCategories={[]}
                             />
                         );
                     });
@@ -104,6 +152,19 @@ const PopupPanel = (props: PopupPanelProps) => {
                             projectPath={location.projectPath}
                             filePath={defaultFunctionsFile}
                             functionName={undefined}
+                            isPopup={true} />
+                        );
+                    });
+                    break;
+                case MACHINE_VIEW.BIAgentToolForm:
+                    setIsFullScreen(true);
+                    rpcClient.getVisualizerLocation().then(async (location) => {
+                        const agentsFile = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['agents.bal'] })).filePath;
+                        setViewComponent(<FunctionForm
+                            projectPath={location.projectPath}
+                            filePath={agentsFile}
+                            functionName={undefined}
+                            isAgentTool={true}
                             isPopup={true} />
                         );
                     });
@@ -147,6 +208,14 @@ const PopupPanel = (props: PopupPanelProps) => {
                             codedata={machineState?.dataMapperMetadata?.codeData}
                             name={machineState?.dataMapperMetadata?.name}
                             onClose={onClose}
+                        />
+                    );
+                    break;
+                case MACHINE_VIEW.ConfigurationCollector:
+                    setViewComponent(
+                        <ConfigurationCollector
+                            data={machineState.agentMetadata?.configurationCollector}
+                            onClose={() => handleApprovalClose(machineState.agentMetadata?.configurationCollector)}
                         />
                     );
                     break;

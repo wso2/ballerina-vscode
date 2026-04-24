@@ -17,60 +17,38 @@
  */
 
 import React from "react";
-import { OpenAiIcon } from "../../resources/icons/OpenAiIcon";
-import DefaultLlmIcon from "../../resources/icons/DefaultLlmIcon";
-import { AzureOpenAiIcon } from "../../resources/icons/AzureOpenAiIcon";
-import DeepseekIcon from "../../resources/icons/DeepseekIcon";
-import { AnthropicIcon } from "../../resources/icons/AnthropicIcon";
-import { MistralAIIcon } from "../../resources/icons/MistralAIIcon";
-import { OllamaIcon } from "../../resources/icons/OllamaIcon";
-import { Icon } from "@wso2/ui-toolkit";
+import { DefaultLlmIcon, Icon, getAIModuleIcon } from "@wso2/ui-toolkit";
 import { CodeData } from "@wso2/ballerina-core";
 import { NodeIcon } from "../NodeIcon";
 
 interface AIModelIconProps {
     type: string;
     codedata?: CodeData;
+    iconUrl?: string;
 }
 
 export function AIModelIcon(props: AIModelIconProps): React.ReactElement {
-    const { type, codedata } = props;
+    const { type, codedata, iconUrl } = props;
 
     if (codedata && isWso2Module(codedata)) {
         return <Icon name="bi-wso2" sx={{ width: 24, height: 24, fontSize: 24 }} />;
     }
 
-    switch (type) {
-        case "OpenAiProvider":
-        case "ai.openai":
-            return <OpenAiIcon />;
-        case "AzureOpenAiProvider":
-        case "ai.azure":
-            return <AzureOpenAiIcon />;
-        case "AnthropicProvider":
-        case "ai.anthropic":
-            return <AnthropicIcon />;
-        case "OllamaProvider":
-        case "ai.ollama":
-            return <OllamaIcon />;
-        case "MistralAiProvider":
-        case "ai.mistral":
-            return <MistralAIIcon />;
-        case "DeepseekProvider":
-        case "ai.deepseek":
-            return <DeepseekIcon />;
-        case "ai.milvus":
-            return <Icon name="bi-milvus" sx={{ width: 24, height: 24, fontSize: 24, color: "#4fc4f9" }} />;
-        case "ai.pinecone":
-            return <Icon name="bi-pinecone" sx={{ width: 24, height: 24, fontSize: 24 }} />;
-        case "ai.pgvector":
-            return <Icon name="bi-postgresql" sx={{ width: 24, height: 24, fontSize: 24 }} />;
-        default:
-            if (codedata?.node) {
-                return <NodeIcon type={codedata?.node} size={24} />;
-            }
-            return <DefaultLlmIcon />;
+    const icon = getAIModuleIcon(type, 24);
+    if (icon) {
+        return icon;
     }
+
+    // Fallback to icon URL from metadata (fetched from Central)
+    // Skip for ballerina/ai core module — its CDN icon is generic; node-type icons are better
+    if (iconUrl && (codedata?.module !== "ai" && codedata?.module !== "ai.devant")) {
+        return <img src={iconUrl} style={{ width: 24, height: 24 }} />;
+    }
+
+    if (codedata?.node) {
+        return <NodeIcon type={codedata?.node} size={24} />;
+    }
+    return <DefaultLlmIcon />;
 }
 
 export function isWso2Module(codedata: CodeData): boolean {

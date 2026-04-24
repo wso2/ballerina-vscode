@@ -27,7 +27,9 @@ import {
     PersistClientGenerateResponse,
     IntrospectDatabaseRequest,
     WSDLApiClientGenerationRequest,
-    WSDLApiClientGenerationResponse
+    WSDLApiClientGenerationResponse,
+    IntrospectCredentialsRequest,
+    IntrospectCredentialsResponse
 } from "./interfaces";
 import { RequestType } from "vscode-messenger-common";
 
@@ -37,3 +39,4 @@ export const getConnectors: RequestType<ConnectorsRequest, ConnectorsResponse> =
 export const introspectDatabase: RequestType<IntrospectDatabaseRequest, IntrospectDatabaseResponse> = { method: `${_preFix}/introspectDatabase` };
 export const persistClientGenerate: RequestType<PersistClientGenerateRequest, PersistClientGenerateResponse> = { method: `${_preFix}/persistClientGenerate` };
 export const generateWSDLApiClient: RequestType<WSDLApiClientGenerationRequest, WSDLApiClientGenerationResponse> = { method: `${_preFix}/generateWSDLApiClient` };
+export const introspectCredentials: RequestType<IntrospectCredentialsRequest, IntrospectCredentialsResponse> = { method: `${_preFix}/introspectCredentials` };

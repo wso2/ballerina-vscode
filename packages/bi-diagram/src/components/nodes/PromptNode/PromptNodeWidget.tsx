@@ -30,7 +30,7 @@ import {
     PROMPT_NODE_HEIGHT,
     PROMPT_NODE_WIDTH,
 } from "../../../resources/constants";
-import { Button, Icon, Item, ThemeColors } from "@wso2/ui-toolkit";
+import { Button, Icon, Item, ThemeColors, getAIModuleIcon, DefaultLlmIcon } from "@wso2/ui-toolkit";
 import { NPPromptEditor } from "../../editors/NPPromptEditor";
 import { InputMode } from "@wso2/ballerina-side-panel";
 import NodeIcon from "../../NodeIcon";
@@ -40,7 +40,6 @@ import { ELineRange, ExpressionProperty, NodeMetadata } from "@wso2/ballerina-co
 import { DiagnosticsPopUp } from "../../DiagnosticsPopUp";
 import { nodeHasError } from "../../../utils/node";
 import { cloneDeep } from "lodash";
-import { getLlmModelIcons } from "../../ConnectorIcon";
 
 export namespace NodeStyles {
     export type NodeStyleProp = {
@@ -256,6 +255,7 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
     const field: ExpressionProperty = useMemo(() => model.node.properties['prompt'], [model]);
     const nodeMetadata = (model.node.properties?.modelProvider?.metadata?.data as NodeMetadata);
     const nodeModelType = nodeMetadata?.type === "ModelProvider" ? nodeMetadata?.module : nodeMetadata?.type;
+    const nodeModelIconUrl = (model.node.metadata?.data as NodeMetadata)?.model?.path || (nodeMetadata as any)?.iconUrl;
 
     const handleOnClick = async (event: React.MouseEvent<HTMLDivElement>) => {
         if (event.metaKey) {
@@ -416,6 +416,7 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
             >
                 {hasBreakpoint && (
                     <div
+                        data-testid={isActiveBreakpoint ? "breakpoint-indicator-diagram-active" : "breakpoint-indicator-diagram"}
                         style={{
                             position: "absolute",
                             left: -5,
@@ -517,7 +518,7 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
                         fill={ThemeColors.ON_SURFACE}
                         style={{ pointerEvents: "none" }}
                     >
-                        {getLlmModelIcons(nodeModelType)}
+                        {getAIModuleIcon(nodeModelType) ?? (nodeModelIconUrl ? <img src={nodeModelIconUrl} style={{ width: 24, height: 24 }} /> : <DefaultLlmIcon />)}
                     </foreignObject>
                     <line
                         x1="0"

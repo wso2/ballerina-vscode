@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Icon } from '@wso2/ui-toolkit';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { DIRECTORY_MAP, EVENT_TYPE, MACHINE_VIEW } from '@wso2/ballerina-core';
@@ -27,12 +27,25 @@ import { useVisualizerContext } from '../../../Context';
 
 interface OtherArtifactsPanelProps {
     isNPSupported: boolean;
+    isLibrary?: boolean;
 }
 
 export function OtherArtifactsPanel(props: OtherArtifactsPanelProps) {
-    const { isNPSupported } = props;
+    const { isNPSupported, isLibrary = false } = props;
     const { rpcClient } = useRpcContext();
     const { setPopupMessage } = useVisualizerContext();
+    const [experimentalEnabled, setExperimentalEnabled] = useState(false);
+
+    useEffect(() => {
+        rpcClient.getCommonRpcClient().experimentalEnabled().then(setExperimentalEnabled);
+    }, [rpcClient]);
+
+    const showNaturalFunctions = isNPSupported && experimentalEnabled;
+
+    const panelTitle = isLibrary ? "Library Artifacts" : "Other Artifacts";
+    const panelDescription = isLibrary
+        ? "Create reusable artifacts for your library."
+        : "Create supportive artifacts for your integration.";
 
     const handleClick = async (key: DIRECTORY_MAP) => {
         if (key === DIRECTORY_MAP.CONNECTION) {
@@ -87,9 +100,9 @@ export function OtherArtifactsPanel(props: OtherArtifactsPanelProps) {
     return (
         <PanelViewMore>
             <TitleWrapper>
-                <Title variant="h2">Other Artifacts</Title>
+                <Title variant="h2">{panelTitle}</Title>
                 <BodyText>
-                    Create supportive artifacts for your integration.
+                    {panelDescription}
                 </BodyText>
             </TitleWrapper>
             <CardGrid>
@@ -100,7 +113,7 @@ export function OtherArtifactsPanel(props: OtherArtifactsPanelProps) {
                     title="Function"
                     onClick={() => handleClick(DIRECTORY_MAP.FUNCTION)}
                 />
-                {isNPSupported &&
+                {showNaturalFunctions &&
                     <ButtonCard
                         id="bi-ai-function"
                         icon={<Icon name="bi-ai-function" />}

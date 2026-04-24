@@ -40,7 +40,8 @@ export enum TypeKind {
     Unknown = "$CompilationError$",
     Anydata = "anydata",
     Byte = "byte",
-    Json = "json"
+    Json = "json",
+    Xml = "xml",
 }
 
 export enum InputCategory {
@@ -50,7 +51,8 @@ export enum InputCategory {
     Enum = "enum",
     Parameter = "parameter",
     Variable = "variable",
-    LocalVariable = "local-variable"
+    LocalVariable = "local-variable",
+    ConvertedVariable = "converted-variable"
 }
 
 export enum IntermediateClauseType {
@@ -91,6 +93,7 @@ export interface IOType {
     isDeepNested?: boolean;
     ref?: string;
     typeInfo?: TypeInfo;
+    convertedField?: IOType;
 }
 
 export interface Mapping {
@@ -116,6 +119,7 @@ export interface ExpandedDMModel {
     rootViewId: string;
     query?: Query;
     mapping_fields?: Record<string, any>;
+    hasInvalidOutput?: boolean;
     triggerRefresh?: boolean;
     focusInputRootMap?: Record<string, string>;
 }
@@ -130,6 +134,7 @@ export interface DMModel {
     query?: Query;
     focusInputs?: Record<string, IOTypeField>;
     mapping_fields?: Record<string, any>;
+    hasInvalidOutput?: boolean;
     triggerRefresh?: boolean;
     traversingRoot?: string;
     focusInputRootMap?: Record<string, string>;
@@ -172,6 +177,7 @@ export interface IOTypeField {
     isIterationVariable?: boolean;
     isGroupingKey?: boolean;
     typeInfo?: TypeInfo;
+    convertedVariable?: IORoot;
 }
 
 export interface EnumMember {

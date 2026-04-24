@@ -19,12 +19,12 @@
 import { ExpandableList } from "../Components/ExpandableList"
 import { TypeIndicator } from "../Components/TypeIndicator"
 import { useRpcContext } from "@wso2/ballerina-rpc-client"
-import { DataMapperDisplayMode, ExpressionProperty, FlowNode, LineRange, RecordTypeField } from "@wso2/ballerina-core"
+import { EditorConfig, EditorDisplayMode, ExpressionProperty, FlowNode, LineRange, RecordTypeField } from "@wso2/ballerina-core"
 import { Codicon, CompletionItem, Divider, HelperPaneCustom, SearchBox, ThemeColors, Tooltip, Typography } from "@wso2/ui-toolkit"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { getPropertyFromFormField, useFieldContext, InputMode } from "@wso2/ballerina-side-panel"
 import FooterButtons from "../Components/FooterButtons"
-import { FormGenerator } from "../../Forms/FormGenerator"
+import { FlowNodeForm, ResolvedType } from "../../Forms/FlowNodeForm"
 import { ScrollableContainer } from "../Components/ScrollableContainer"
 import { FormSubmitOptions } from "../../FlowDiagram"
 import { URI } from "vscode-uri"
@@ -42,8 +42,8 @@ type VariablesPageProps = {
     onChange: (value: string, isRecordConfigureChange: boolean, shouldKeepHelper?: boolean) => void;
     targetLineRange: LineRange;
     anchorRef: React.RefObject<HTMLDivElement>;
-    handleOnFormSubmit?: (updatedNode?: FlowNode, dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions, openDMInPopup?: boolean) => void;
-    selectedType?: CompletionItem;
+    handleOnFormSubmit?: (updatedNode?: FlowNode, editorConfig?: EditorConfig, options?: FormSubmitOptions, openDMInPopup?: boolean) => void;
+    selectedType?: ResolvedType;
     filteredCompletions: CompletionItem[];
     currentValue: string;
     recordTypeField?: RecordTypeField;
@@ -112,7 +112,7 @@ export const Variables = (props: VariablesPageProps) => {
         return path;
     }, [breadCrumbSteps]);
     const completionContext = useMemo(() => {
-        const context = navigationPath ? navigationPath + '.' : currentValue;
+        const context = navigationPath ? navigationPath + '.' : (currentValue ?? '');
         return context;
     }, [navigationPath, currentValue]);
 
@@ -150,7 +150,7 @@ export const Variables = (props: VariablesPageProps) => {
         setProjectPathUri(URI.file(visualizerContext.projectPath).fsPath);
     }
 
-    const handleSubmit = (updatedNode?: FlowNode, dataMapperMode?: DataMapperDisplayMode) => {
+    const handleSubmit = (updatedNode?: FlowNode, editorConfig?: EditorConfig) => {
         newNodeNameRef.current = "";
         // Safely extract the variable name as a string, fallback to empty string if not available
         const varName = typeof updatedNode?.properties?.variable?.value === "string"
@@ -159,7 +159,10 @@ export const Variables = (props: VariablesPageProps) => {
         newNodeNameRef.current = varName;
         handleOnFormSubmit?.(
             updatedNode,
-            dataMapperMode === DataMapperDisplayMode.VIEW ? DataMapperDisplayMode.POPUP : DataMapperDisplayMode.NONE,
+            {
+                view: editorConfig?.view,
+                displayMode: editorConfig?.displayMode === EditorDisplayMode.VIEW ? EditorDisplayMode.POPUP : EditorDisplayMode.NONE
+            },
             {
                 closeSidePanel: false, isChangeFromHelperPane: true, postUpdateCallBack: () => {
                     onClose()
@@ -173,7 +176,7 @@ export const Variables = (props: VariablesPageProps) => {
     const dropdownItems = useMemo(() => {
         const excludedDescriptions = ["Configurable", "Parameter", "Listener", "Client"];
 
-        return filteredCompletions.filter(
+        const fieldItems = filteredCompletions.filter(
             (completion) =>
                 (completion.kind === "field" || completion.kind === "variable") &&
                 completion.label !== "self" &&
@@ -181,6 +184,14 @@ export const Variables = (props: VariablesPageProps) => {
                     completion.labelDetails?.description?.includes(desc)
                 )
         );
+
+        // If there are no fields/variables (e.g. a primitive type), fall back to toString()
+        if (fieldItems.length === 0) {
+            const toStringItem = filteredCompletions.find(c => c.label === "toString()");
+            return toStringItem ? [toStringItem] : [];
+        }
+
+        return fieldItems;
     }, [filteredCompletions]);
 
     const filteredDropDownItems = useMemo(() => {
@@ -202,7 +213,7 @@ export const Variables = (props: VariablesPageProps) => {
 
     const handleAddNewVariable = () => {
         addModal(
-            <FormGenerator
+            <FlowNodeForm
                 fileName={fileName}
                 node={selectedNode}
                 connections={[]}
@@ -242,26 +253,6 @@ export const Variables = (props: VariablesPageProps) => {
     }
 
 
-    const getTypeDef = () => {
-        return (
-            {
-                metadata: {
-                    label: "Type",
-                    description: "Type of the variable",
-                },
-                valueType: "TYPE",
-                value: selectedType?.label,
-                placeholder: "var",
-                optional: false,
-                editable: true,
-                advanced: false,
-                hidden: false,
-            }
-        )
-
-    }
-
-
     const selectedNode: FlowNode = {
         codedata: {
             node: 'VARIABLE',
@@ -286,7 +277,19 @@ export const Variables = (props: VariablesPageProps) => {
                 advanced: false,
                 hidden: false,
             },
-            type: getTypeDef(),
+            type: {
+                metadata: {
+                    label: "Type",
+                    description: "Type of the variable",
+                },
+                types: [{ fieldType: "TYPE", selected: false }],
+                value: selectedType?.value,
+                placeholder: "var",
+                optional: false,
+                editable: true,
+                advanced: false,
+                hidden: false,
+            },
             expression: {
                 metadata: {
                     label: "Expression",

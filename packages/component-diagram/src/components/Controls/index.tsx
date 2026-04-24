@@ -79,12 +79,29 @@ const Button = styled.div<{}>`
         background-color: ${ThemeColors.SURFACE_CONTAINER};
     }
 `;
+
+const CleanupIconWrapper = styled.div`
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+`;
+
+const BeakerBadge = styled.span`
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    color: var(--vscode-editorWarning-foreground, #cca700);
+    line-height: 1;
+`;
+
 interface ControlsProps {
     engine: DiagramEngine;
+    onCleanupTestServices?: () => void;
 }
 
 export function Controls(props: ControlsProps) {
-    const { engine } = props;
+    const { engine, onCleanupTestServices } = props;
 
     const handleZoomToFit = () => {
         if (engine.getCanvas()?.getBoundingClientRect) {
@@ -101,6 +118,14 @@ export function Controls(props: ControlsProps) {
 
     return (
         <Container>
+            {onCleanupTestServices && (
+                <Button onClick={onCleanupTestServices} title="Clean up test services">
+                    <CleanupIconWrapper>
+                        <Icon name="bi-clean" isCodicon={false} sx={{ width: 16, height: 16, fontSize: 16 }} />
+                        <BeakerBadge><Icon name="beaker" isCodicon={true} iconSx={{ fontSize: 12 }} sx={{ width: 8, height: 8 }} /></BeakerBadge>
+                    </CleanupIconWrapper>
+                </Button>
+            )}
             <Button onClick={handleZoomToFit}>
                 <Icon name="bi-fit-screen" sx={{ width: 16, height: 16, fontSize: 16 }} />
             </Button>

@@ -19,7 +19,7 @@ import { z } from 'zod';
 // Schema for the generated example JSON payload
 // Uses z.any() to allow flexible JSON structure that adapts to the service context
 export const ExamplePayloadSchema = z.object({
-    payload: z.record(z.string(), z.any()).describe("The generated example JSON payload object"),
+    payload: z.object({}).catchall(z.any()).describe("The generated example JSON payload object"),
 });
 
 // Export the type for use in TypeScript

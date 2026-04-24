@@ -29,7 +29,6 @@ export enum InputMode {
   TEXT_ARRAY = "Text Array",
   PROMPT = "Prompt",
   MAP = "Map",
-  MAP_EXP = "Mapping",
   SIMPLE_TEXT = "Info"
 };
 
@@ -78,6 +77,7 @@ export type TokenMetadata = {
   content: string;
   fullValue: string;
   documentType?: DocumentType; // Present only for document tokens
+  fields?: Record<string, string>;
 };
 
 export type ExpressionModel = {
@@ -111,12 +111,25 @@ export type CompoundTokenSequence = {
 };
 
 // Token pattern configuration for detecting compound token sequences
-export type TokenPattern = {
-  name: TokenType.VARIABLE | TokenType.DOCUMENT;
-  sequence: readonly TokenType[];
-  extractor: (tokens: any[], startIndex: number, endIndex: number, docText: string) => TokenMetadata | null;
-  priority: number;
-};
+export type TokenPatternExtractor =
+  (tokens: any[], startIndex: number, endIndex: number, docText: string) => TokenMetadata | null;
+
+export type TokenPattern =
+  | {
+    kind: 'fixed';
+    name: TokenType.VARIABLE | TokenType.DOCUMENT;
+    sequence: readonly TokenType[];
+    extractor: TokenPatternExtractor;
+    priority: number;
+  }
+  | {
+    kind: 'anchored';
+    name: TokenType.VARIABLE | TokenType.DOCUMENT;
+    startSequence: readonly TokenType[];
+    endType: TokenType;
+    extractor: TokenPatternExtractor;
+    priority: number;
+  };
 
 // Helper pane state management
 export type HelperPaneState = {

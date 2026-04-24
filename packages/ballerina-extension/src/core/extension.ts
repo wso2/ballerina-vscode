@@ -19,7 +19,7 @@
 import {
     workspace, window, commands, languages, Uri, ConfigurationChangeEvent, extensions, Extension, ExtensionContext,
     IndentAction, OutputChannel, StatusBarItem, StatusBarAlignment, env, TextEditor, ThemeColor,
-    ConfigurationTarget, ProgressLocation
+    ConfigurationTarget, ProgressLocation, EventEmitter, Event
 } from "vscode";
 import {
     INVALID_HOME_MSG, INSTALL_BALLERINA, DOWNLOAD_BALLERINA, MISSING_SERVER_CAPABILITY, ERROR, COMMAND_NOT_FOUND,
@@ -40,11 +40,13 @@ import {
     outputChannel,
     isWindows,
     isWSL,
+    quoteShellPath,
     isSupportedVersion,
     VERSION,
     isSupportedSLVersion,
     createVersionNumber,
-    checkIsBallerinaWorkspace
+    checkIsBallerinaWorkspace,
+    isInWI
 } from '../utils';
 import { AssertionError } from "assert";
 import {
@@ -174,6 +176,8 @@ export class BallerinaExtension {
     private ballerinaInstallationDir: string;
     private updateToolServerUrl: string;
     private ballerinaUpdateToolUserAgent: string;
+    private readonly _downloadProgressEmitter = new EventEmitter<DownloadProgress>();
+    public readonly onDownloadProgress: Event<DownloadProgress> = this._downloadProgressEmitter.event;
 
     constructor() {
         debug("[EXTENSION] Starting constructor initialization...");
@@ -739,7 +743,7 @@ export class BallerinaExtension {
             success: false,
             step: progressStep
         };
-        RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
+        this.notifyDownloadProgress(res);
 
         return new Promise((resolve, reject) => {
             // Use exec for regular commands
@@ -763,7 +767,7 @@ export class BallerinaExtension {
                     success: false,
                     step: progressStep
                 };
-                RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
+                this.notifyDownloadProgress(res);
             });
 
             childProcess.stderr.on('data', (data) => {
@@ -776,7 +780,7 @@ export class BallerinaExtension {
                     success: false,
                     step: -1
                 };
-                RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
+                this.notifyDownloadProgress(res);
             });
 
             childProcess.on('close', (code) => {
@@ -788,7 +792,7 @@ export class BallerinaExtension {
                     success: code === 0,
                     step: code === 0 ? progressStep + 1 : -1
                 };
-                RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
+                this.notifyDownloadProgress(res);
 
                 if (code === 0) {
                     window.showInformationMessage('Command executed successfully');
@@ -818,7 +822,7 @@ export class BallerinaExtension {
             success: false,
             step: progressStep
         };
-        RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
+        this.notifyDownloadProgress(res);
 
         // Show a message to the user that they'll need to respond to the UAC prompt
         window.showInformationMessage('Please confirm the User Account Control (UAC) prompt to run this command with administrator privileges');
@@ -852,7 +856,7 @@ export class BallerinaExtension {
                                 success: true,
                                 step: -1
                             };
-                            RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
+                            this.notifyDownloadProgress(res);
                             setTimeout(() => {
                                 commands.executeCommand('workbench.action.reloadWindow');
                             }, 2000);
@@ -877,7 +881,7 @@ export class BallerinaExtension {
                 success: false,
                 step: -1
             };
-            RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
+            this.notifyDownloadProgress(res);
             window.showErrorMessage(`Error executing admin command: ${errorMessage}`);
         });
     }
@@ -973,7 +977,7 @@ export class BallerinaExtension {
                     success: true,
                     step: 5 // This is the last step
                 };
-                RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
+                this.notifyDownloadProgress(res);
                 debug(`[SETUP] Ballerina has been installed successfully`);
                 console.log('Ballerina has been installed successfully');
                 if (restartWindow) {
@@ -1016,7 +1020,7 @@ export class BallerinaExtension {
                 step: 4
             };
             try {
-                RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
+                this.notifyDownloadProgress(res);
                 const sizeMB = 1024 * 1024;
                 await window.withProgress(
                     {
@@ -1053,7 +1057,7 @@ export class BallerinaExtension {
                                     totalSize: progressEvent.total / sizeMB,
                                     step: 4
                                 };
-                                RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
+                                this.notifyDownloadProgress(res);
                             }
                         });
                         return;
@@ -1068,7 +1072,7 @@ export class BallerinaExtension {
                     step: -1 // Error step
                 };
                 debug(`[SETUP] Error downloading Ballerina dependencies: ${error}`);
-                RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
+                this.notifyDownloadProgress(res);
                 console.error('Error downloading Ballerina dependencies:', error);
             }
             console.log('response:', response.data);
@@ -1084,7 +1088,7 @@ export class BallerinaExtension {
                 success: false,
                 step: 4
             };
-            RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
+            this.notifyDownloadProgress(res);
             const zip = new AdmZip(zipFilePath);
             debug(`[SETUP] Extracting Ballerina dependencies to ${ballerinaDependenciesPath}`);
             zip.extractAllTo(ballerinaDependenciesPath, true);
@@ -1096,7 +1100,7 @@ export class BallerinaExtension {
                 success: false,
                 step: 4
             };
-            RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
+            this.notifyDownloadProgress(res);
             fs.rmSync(zipFilePath);
             debug(`[SETUP] Removed the downloaded zip file ${zipFilePath}`);
             console.log('Cleanup complete.');
@@ -1132,7 +1136,7 @@ export class BallerinaExtension {
                 step: 3
             };
             try {
-                RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
+                this.notifyDownloadProgress(res);
                 const sizeMB = 1024 * 1024;
                 await window.withProgress(
                     {
@@ -1169,7 +1173,7 @@ export class BallerinaExtension {
                                     totalSize: progressEvent.total / sizeMB,
                                     step: 3
                                 };
-                                RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
+                                this.notifyDownloadProgress(res);
                             }
                         });
                         return;
@@ -1184,7 +1188,7 @@ export class BallerinaExtension {
                     step: -1 // Error step
                 };
                 debug(`[SETUP] Error downloading Ballerina ${distributionZipName}: ${error}`);
-                RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
+                this.notifyDownloadProgress(res);
                 console.error('Error downloading Ballerina:', error);
             }
             const zipFilePath = path.join(ballerinaDistributionsPath, distributionZipName);
@@ -1199,7 +1203,7 @@ export class BallerinaExtension {
                 success: false,
                 step: 3
             };
-            RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
+            this.notifyDownloadProgress(res);
             const zip = new AdmZip(zipFilePath);
             debug(`[SETUP] Extracting Ballerina ${distributionZipName}`);
             zip.extractAllTo(ballerinaDistributionsPath, true);
@@ -1211,7 +1215,7 @@ export class BallerinaExtension {
                 success: false,
                 step: 3
             };
-            RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
+            this.notifyDownloadProgress(res);
             debug(`[SETUP] Removed the downloaded zip file ${zipFilePath}`);
             fs.rmSync(zipFilePath);
             console.log('Cleanup complete.');
@@ -1235,7 +1239,7 @@ export class BallerinaExtension {
                 totalSize: 0,
                 step: 1
             };
-            RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
+            this.notifyDownloadProgress(res);
             debug("[SETUP] Fetching Ballerina release details..");
             const latestToolVersionResponse = await this.axiosWithRetry({
                 method: 'get',
@@ -1266,7 +1270,7 @@ export class BallerinaExtension {
                 step: 2
             };
             try {
-                RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
+                this.notifyDownloadProgress(res);
                 const sizeMB = 1024 * 1024;
                 await window.withProgress(
                     {
@@ -1304,7 +1308,7 @@ export class BallerinaExtension {
                                     totalSize: progressEvent.total / sizeMB,
                                     step: 2
                                 };
-                                RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
+                                this.notifyDownloadProgress(res);
                             }
                         });
                         return;
@@ -1318,7 +1322,7 @@ export class BallerinaExtension {
                     success: false,
                     step: -1 // Error step
                 };
-                RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
+                this.notifyDownloadProgress(res);
                 console.error('Error downloading Ballerina update tool:', error);
                 debug(`[SETUP] Error downloading Ballerina update tool: ${error}`);
             }
@@ -1334,7 +1338,7 @@ export class BallerinaExtension {
                 success: false,
                 step: 2
             };
-            RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
+            this.notifyDownloadProgress(res);
             const zip = new AdmZip(zipFilePath);
             debug(`[SETUP] Extracting Ballerina update tool to ${this.getBallerinaUserHome()}`);
             zip.extractAllTo(this.getBallerinaUserHome(), true);
@@ -1349,7 +1353,7 @@ export class BallerinaExtension {
                 success: false,
                 step: 2
             };
-            RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
+            this.notifyDownloadProgress(res);
             fs.rmSync(zipFilePath);
             debug(`[SETUP] Removed the downloaded zip file ${zipFilePath}`);
             console.log('Cleanup complete.');
@@ -1371,7 +1375,7 @@ export class BallerinaExtension {
             success: false,
             step: 5
         };
-        RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
+        this.notifyDownloadProgress(res);
         const platform = os.platform();
         if (platform === 'win32') {
             const command = `Set-ItemProperty -Path 'HKCU:\\Environment' -Name 'Path' -Value ([System.Environment]::GetEnvironmentVariable('Path', 'User') + ';${binFolderPath}')`;
@@ -1501,7 +1505,7 @@ export class BallerinaExtension {
             success: false,
             step: 5
         };
-        RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
+        this.notifyDownloadProgress(res);
         if (isDev) { // Set the vscode configurable values only for dev mode
             debug(`[SETUP] Setting the Ballerina Home: ${this.ballerinaHome}`);
             workspace.getConfiguration().update(BALLERINA_HOME, this.ballerinaHome, ConfigurationTarget.Global);
@@ -1520,7 +1524,7 @@ export class BallerinaExtension {
                 success: false,
                 step: 5
             };
-            RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
+            this.notifyDownloadProgress(res);
 
             // Set permissions for the ballerina command
             await fs.promises.chmod(this.getBallerinaCmd(), 0o755);
@@ -1693,14 +1697,21 @@ export class BallerinaExtension {
         debug("[VERSION] Starting Ballerina version detection...");
         debug(`[VERSION] Input parameters - ballerinaHome: '${ballerinaHome}', overrideBallerinaHome: ${overrideBallerinaHome}`);
 
-        try {
-            // Initialize with fresh environment
-            debug("[VERSION] Syncing environment variables...");
-            await this.syncEnvironment();
-            debug("[VERSION] Environment sync completed");
-        } catch (error) {
-            debug(`[VERSION] Warning: Failed to sync environment: ${error}`);
-            // Continue anyway, don't fail the whole process
+        // Use BALLERINA_HOME in WSO2 Integrator if set, otherwise fallback to system PATH
+        if (process.env.WSO2_INTEGRATOR_RUNTIME && process.env.BALLERINA_HOME) {
+            debug(`[VERSION] Detected WSO2 Integrator environment with BALLERINA_HOME: ${process.env.BALLERINA_HOME}`);
+            ballerinaHome = process.env.BALLERINA_HOME;
+            overrideBallerinaHome = true;
+        } else {
+            try {
+                // Initialize with fresh environment
+                debug("[VERSION] Syncing environment variables...");
+                await this.syncEnvironment();
+                debug("[VERSION] Environment sync completed");
+            } catch (error) {
+                debug(`[VERSION] Warning: Failed to sync environment: ${error}`);
+                // Continue anyway, don't fail the whole process
+            }
         }
 
         // Log current environment for debugging
@@ -1824,7 +1835,8 @@ export class BallerinaExtension {
             debug("[VERSION] Non-Windows platform detected, no extension needed");
         }
 
-        let ballerinaCommand = distPath + 'bal' + exeExtension + ' version';
+        // Build the executable path separately so we can quote it for shell execution
+        let balExecutablePath = distPath + 'bal' + exeExtension;
 
         // Handle WSL environment - prefer native Linux installation over Windows .bat files
         if (isWSL()) {
@@ -1834,25 +1846,27 @@ export class BallerinaExtension {
                     // Check if 'bal' command is available in PATH
                     execSync('which bal', { encoding: 'utf8', timeout: 5000 });
                     // If we get here, 'bal' is available, use it instead of .bat
-                    ballerinaCommand = 'bal version';
+                    balExecutablePath = 'bal';
                     debug("[VERSION] WSL detected native 'bal' command, using it instead of .bat file");
                 } catch (error) {
                     debug("[VERSION] No native 'bal' command found in WSL, will try .bat file");
                     // If the path contains Windows-style paths, we need to handle them properly
-                    if (ballerinaCommand.includes('\\') || ballerinaCommand.match(/^[A-Za-z]:/)) {
+                    if (balExecutablePath.includes('\\') || balExecutablePath.match(/^[A-Za-z]:/)) {
                         debug("[VERSION] WSL detected with Windows path, attempting to convert to WSL path");
                         // Try to convert Windows path to WSL path
-                        const wslPath = ballerinaCommand.replace(/^([A-Za-z]):/, '/mnt/$1').replace(/\\/g, '/').toLowerCase();
-                        debug(`[VERSION] Converted Windows path to WSL path: ${wslPath}`);
-                        ballerinaCommand = wslPath;
+                        balExecutablePath = balExecutablePath.replace(/^([A-Za-z]):/, '/mnt/$1').replace(/\\/g, '/').toLowerCase();
+                        debug(`[VERSION] Converted Windows path to WSL path: ${balExecutablePath}`);
                     }
                 }
             } else {
                 // We have a native Linux installation, use it directly
-                ballerinaCommand = 'bal version';
+                balExecutablePath = 'bal';
                 debug("[VERSION] WSL detected with native Linux installation, using 'bal version'");
             }
         }
+
+        // Quote the executable path to handle spaces in directory names
+        let ballerinaCommand = `${quoteShellPath(balExecutablePath)} version`;
 
         debug(`[VERSION] Executing command: '${ballerinaCommand}'`);
 
@@ -2137,8 +2151,8 @@ export class BallerinaExtension {
                 debug("[AUTO_DETECT] Windows platform detected, using cmd.exe to run .bat files");
                 // On Windows, use cmd.exe to run .bat files
                 execOptions.shell = true;
-                response = spawnSync('cmd.exe', ['/c', this.ballerinaCmd, ...args], execOptions);
-                debug(`[AUTO_DETECT] Windows command executed: cmd.exe /c ${this.ballerinaCmd} ${args.join(' ')}`);
+                response = spawnSync('cmd.exe', ['/c', quoteShellPath(this.ballerinaCmd), ...args], execOptions);
+                debug(`[AUTO_DETECT] Windows command executed: cmd.exe /c ${quoteShellPath(this.ballerinaCmd)} ${args.join(' ')}`);
             } else if (isWSL()) {
                 debug("[AUTO_DETECT] WSL environment detected");
                 // In WSL, try to use native 'bal' command first
@@ -2153,8 +2167,8 @@ export class BallerinaExtension {
                     if (this.ballerinaCmd.endsWith('.bat')) {
                         // Fallback to .bat file with shell execution
                         execOptions.shell = true;
-                        response = spawnSync(this.ballerinaCmd, args, execOptions);
-                        debug(`[AUTO_DETECT] WSL command executed: ${this.ballerinaCmd} ${args.join(' ')}`);
+                        response = spawnSync(quoteShellPath(this.ballerinaCmd), args, execOptions);
+                        debug(`[AUTO_DETECT] WSL command executed: ${quoteShellPath(this.ballerinaCmd)} ${args.join(' ')}`);
                     } else {
                         // Use the configured command
                         response = spawnSync(this.ballerinaCmd, args, execOptions);
@@ -2303,6 +2317,11 @@ export class BallerinaExtension {
      */
     private checkMultipleBallerinaInstallations(): void {
         debug("[MULTI_BAL_CHECK] Checking for multiple Ballerina installations in PATH...");
+
+        if (isInWI()) {
+            debug("[MULTI_BAL_CHECK] Skipping multiple installation warning in WSO2 Integrator environment");
+            return;
+        }
 
         const MULTIPLE_INSTALLATIONS_WARNING = 'Multiple Ballerina installations detected. This may cause unpredictable behavior.';
         const RESOLUTION_ADVICE = 'Consider removing duplicate installations or adjusting your PATH to avoid version conflicts.';
@@ -2524,6 +2543,15 @@ export class BallerinaExtension {
         this.isOpenedOnce = state;
     }
 
+
+    /**
+     * Sends a download-progress notification to the webview via RPC and also fires
+     * the VSCode-style event so that other extensions (e.g. WI) can subscribe.
+     */
+    public notifyDownloadProgress(res: DownloadProgress): void {
+        RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
+        this._downloadProgressEmitter.fire(res);
+    }
 
     /**
      * Synchronize process environment with the latest shell environment

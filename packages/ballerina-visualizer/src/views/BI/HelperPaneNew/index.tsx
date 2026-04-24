@@ -16,27 +16,26 @@
  * under the License.
  */
 
-import { RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { RefObject, useEffect, useRef, useState } from 'react';
 
 import { ExpandableList } from './Components/ExpandableList';
 import { Variables } from './Views/Variables';
 import { Inputs } from './Views/Inputs';
 import { Documents } from './Views/Documents';
 import { DocumentConfig } from './Views/DocumentConfig';
-import { CompletionInsertText, DataMapperDisplayMode, ExpressionProperty, FlowNode, getPrimaryInputType, InputType, LineRange, RecordTypeField } from '@wso2/ballerina-core';
+import { CompletionInsertText, EditorConfig, ExpressionProperty, FlowNode, getPrimaryInputType, InputType, LineRange, RecordTypeField } from '@wso2/ballerina-core';
 import { CompletionItem, HelperPaneCustom, HelperPaneHeight, Typography } from '@wso2/ui-toolkit';
 import { SlidingPane, SlidingPaneHeader, SlidingPaneNavContainer, SlidingWindow } from '@wso2/ui-toolkit';
-import { CreateValue } from './Views/CreateValue';
 import { FunctionsPage } from './Views/Functions';
 import { FormSubmitOptions } from '../FlowDiagram';
 import { Configurables } from './Views/Configurables';
+import { DevantConfigurables } from './Views/DevantConfigurables';
 import styled from '@emotion/styled';
-import { useModalStack } from '../../../Context';
-import { getDefaultValue } from './utils/types';
 import { HelperPaneIconType, getHelperPaneIcon } from './utils/iconUtils';
-import { HelperpaneOnChangeOptions, InputMode } from '@wso2/ballerina-side-panel';
+import { ExpressionEditorDevantProps, HelperpaneOnChangeOptions, InputMode } from '@wso2/ballerina-side-panel';
+import { ResolvedType } from '../Forms/FlowNodeForm';
 
-const AI_PROMPT_TYPE = "ai:Prompt";
+export const AI_PROMPT_TYPE = "ai:Prompt";
 
 export type ValueCreationOption = {
     typeCheck: string | null;
@@ -59,15 +58,14 @@ export type HelperPaneNewProps = {
     isAssignIdentifier?: boolean;
     completions: CompletionItem[],
     projectPath?: string,
-    handleOnFormSubmit?: (updatedNode?: FlowNode, dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions) => void
-    selectedType?: CompletionItem;
+    handleOnFormSubmit?: (updatedNode?: FlowNode, editorConfig?: EditorConfig, options?: FormSubmitOptions) => void
+    selectedType?: ResolvedType;
     filteredCompletions?: CompletionItem[];
     isInModal?: boolean;
     types?: InputType[];
-    forcedValueTypeConstraint?: string;
     handleRetrieveCompletions: (value: string, property: ExpressionProperty, offset: number, triggerCharacter?: string) => Promise<void>;
-    handleValueTypeConstChange: (valueTypeConstraint: string) => void;
     inputMode?: InputMode;
+    devantExpressionEditor?: ExpressionEditorDevantProps;
 };
 
 const TitleContainer = styled.div`
@@ -92,25 +90,14 @@ const HelperPaneNewEl = ({
     isInModal,
     types,
     handleRetrieveCompletions,
-    forcedValueTypeConstraint,
-    handleValueTypeConstChange,
-    inputMode
+    inputMode,
+    devantExpressionEditor,
 }: HelperPaneNewProps) => {
     const [selectedItem, setSelectedItem] = useState<number>();
-    const currentMenuItemCount = types ?
-        (forcedValueTypeConstraint?.includes(AI_PROMPT_TYPE) ? 6 : 5) :
-        (forcedValueTypeConstraint?.includes(AI_PROMPT_TYPE) ? 5 : 4)
-
-    const { addModal } = useModalStack()
+    const currentMenuItemCount = getPrimaryInputType(types)?.ballerinaType === AI_PROMPT_TYPE ? 5 : 4; 
 
     // Create refs array for all menu items
     const menuItemRefs = useRef<(HTMLDivElement | null)[]>([]);
-
-    useEffect(() => {
-        if (types?.length > 0) {
-            handleValueTypeConstChange(getPrimaryInputType(types)?.ballerinaType);
-        }
-    }, [types, forcedValueTypeConstraint])
 
     const ifCTRLandUP = (e: KeyboardEvent) => {
         return (
@@ -169,13 +156,6 @@ const HelperPaneNewEl = ({
         return insertText.value;
     };
 
-    const getCursorOffset = (insertText: string | CompletionInsertText): number => {
-        if (typeof insertText === 'string') {
-            return 0;
-        }
-        return insertText.cursorOffset ?? 0;
-    };
-
     const handleChange = (insertText: string | CompletionInsertText, isRecordConfigureChange?: boolean, shouldKeepHelper?: boolean) => {
         if (typeof insertText === 'string') {
             onChange(insertText, {
@@ -202,62 +182,6 @@ const HelperPaneNewEl = ({
         }
     }, [selectedItem]);
 
-    const isSelectedTypeContainsType = (selectedType: string | string[], searchType: string) => {
-        if (Array.isArray(selectedType)) {
-            return selectedType.some(type => type.includes(searchType));
-        }
-        const unionTypes = selectedType.split("|").map(type => type.trim());
-        return unionTypes.includes(searchType);
-    };
-
-    const defaultValue = getDefaultValue(selectedType?.label);
-
-    const allValueCreationOptions = [
-        {
-            typeCheck: "string",
-            value: "\"TEXT_HERE\"",
-            label: "Create a string value"
-        },
-        {
-            typeCheck: "log:PrintableRawTemplate",
-            value: "string `TEXT_HERE`",
-            label: "Create a printable template"
-        },
-        {
-            typeCheck: "error",
-            value: "error(\"ERROR_MESSAGE_HERE\")",
-            label: "Create an error"
-        },
-        {
-            typeCheck: "json",
-            value: "{}",
-            label: "Create an empty json"
-        },
-        {
-            typeCheck: "xml",
-            value: "xml ``",
-            label: "Create an xml template"
-        },
-        {
-            typeCheck: "anydata",
-            value: "{}",
-            label: "Create an empty object"
-        }
-    ];
-
-    // Filter options based on type matching, and add default value if it exists
-    const valueCreationOptions = [
-        ...(defaultValue ? [{
-            typeCheck: null, // Special case for default value (if type is primitive)
-            value: defaultValue,
-            label: `Initialize to ${defaultValue}`
-        }] : []),
-        ...allValueCreationOptions.filter(option =>
-            forcedValueTypeConstraint &&
-            isSelectedTypeContainsType(forcedValueTypeConstraint, option.typeCheck)
-        )
-    ];
-
     return (
         <HelperPaneCustom anchorRef={anchorRef}>
             <HelperPaneCustom.Body>
@@ -265,26 +189,21 @@ const HelperPaneNewEl = ({
                     <SlidingPane name="PAGE1" paneWidth={300} paneHeight='170px'>
                         <div style={{ padding: '8px 0px' }}>
                             <ExpandableList >
-
-                                {((forcedValueTypeConstraint && forcedValueTypeConstraint.length > 0)) && (
-                                        <>
-                                            {valueCreationOptions.length > 0 && (
-                                                <SlidingPaneNavContainer
-                                                    ref={el => menuItemRefs.current[0] = el}
-                                                    to="CREATE_VALUE"
-                                                    data={recordTypeField}
-                                                >
-                                                    <ExpandableList.Item>
-                                                        {getHelperPaneIcon(HelperPaneIconType.VALUE)}
-                                                        <Typography variant="body3" sx={{ fontWeight: 600 }}>
-                                                            Create Value
-                                                        </Typography>
-                                                    </ExpandableList.Item>
-                                                </SlidingPaneNavContainer>
-                                            )}</>
+                                {devantExpressionEditor && (
+                                    <SlidingPaneNavContainer
+                                        ref={el => menuItemRefs.current[0] = el}
+                                        to="DEVANT_CONFIGS"
+                                    >
+                                        <ExpandableList.Item>
+                                            {getHelperPaneIcon(HelperPaneIconType.CONFIGURABLE)}
+                                            <Typography variant="body3" sx={{ fontWeight: 600 }}>
+                                                WSO2 Cloud Configs
+                                            </Typography>
+                                        </ExpandableList.Item>
+                                    </SlidingPaneNavContainer>
                                 )}
                                 <SlidingPaneNavContainer
-                                    ref={el => menuItemRefs.current[2] = el}
+                                    ref={el => menuItemRefs.current[3] = el}
                                     to="INPUTS"
                                 >
                                     <ExpandableList.Item>
@@ -295,7 +214,7 @@ const HelperPaneNewEl = ({
                                     </ExpandableList.Item>
                                 </SlidingPaneNavContainer>
                                 <SlidingPaneNavContainer
-                                    ref={el => menuItemRefs.current[1] = el}
+                                    ref={el => menuItemRefs.current[2] = el}
                                     to="VARIABLES"
                                 >
                                     <ExpandableList.Item>
@@ -306,7 +225,7 @@ const HelperPaneNewEl = ({
                                     </ExpandableList.Item>
                                 </SlidingPaneNavContainer>
                                 <SlidingPaneNavContainer
-                                    ref={el => menuItemRefs.current[3] = el}
+                                    ref={el => menuItemRefs.current[4] = el}
                                     to="CONFIGURABLES"
                                 >
                                     <ExpandableList.Item>
@@ -319,7 +238,7 @@ const HelperPaneNewEl = ({
                                     </ExpandableList.Item>
                                 </SlidingPaneNavContainer>
                                 <SlidingPaneNavContainer
-                                    ref={el => menuItemRefs.current[4] = el}
+                                    ref={el => menuItemRefs.current[5] = el}
                                     to="FUNCTIONS"
                                 >
                                     <ExpandableList.Item>
@@ -329,9 +248,9 @@ const HelperPaneNewEl = ({
                                         </Typography>
                                     </ExpandableList.Item>
                                 </SlidingPaneNavContainer>
-                                {forcedValueTypeConstraint?.includes(AI_PROMPT_TYPE) && (
+                                {getPrimaryInputType(types)?.ballerinaType === AI_PROMPT_TYPE && (
                                     <SlidingPaneNavContainer
-                                        ref={el => menuItemRefs.current[5] = el}
+                                        ref={el => menuItemRefs.current[6] = el}
                                         to="DOCUMENTS"
                                     >
                                         <ExpandableList.Item>
@@ -386,17 +305,21 @@ const HelperPaneNewEl = ({
                         />
                     </SlidingPane>
 
-                    <SlidingPane name="CREATE_VALUE" paneWidth={300}>
-                        <SlidingPaneHeader> Create Value</SlidingPaneHeader>
-                        <CreateValue
-                            fileName={fileName}
-                            onChange={handleChange}
-                            currentValue={currentValue}
-                            selectedType={getPrimaryInputType(types)?.ballerinaType || forcedValueTypeConstraint || ''}
-                            recordTypeField={recordTypeField}
-                            valueCreationOptions={valueCreationOptions}
-                            anchorRef={anchorRef} />
-                    </SlidingPane>
+                    {devantExpressionEditor && (
+                        <SlidingPane name="DEVANT_CONFIGS" paneWidth={300}>
+                            <SlidingPaneHeader> WSO2 Cloud Configs</SlidingPaneHeader>
+                            <DevantConfigurables
+                                anchorRef={anchorRef}
+                                fileName={fileName}
+                                onChange={handleChange}
+                                targetLineRange={targetLineRange}
+                                isInModal={isInModal}
+                                onClose={onClose}
+                                inputMode={inputMode}
+                                devantExpressionEditor={devantExpressionEditor}
+                            />
+                        </SlidingPane>
+                    )}
 
                     <SlidingPane name="FUNCTIONS" paneWidth={300}>
                         <SlidingPaneHeader>
@@ -426,6 +349,7 @@ const HelperPaneNewEl = ({
                             isInModal={isInModal}
                             onClose={onClose}
                             inputMode={inputMode}
+                            excludedConfigs={devantExpressionEditor?.devantConfigs || []}
                         />
                     </SlidingPane>
 
@@ -499,8 +423,6 @@ export const getHelperPaneNew = (props: HelperPaneNewProps) => {
         filteredCompletions,
         isInModal,
         types,
-        forcedValueTypeConstraint,
-        handleValueTypeConstChange,
     } = props;
 
     return (
@@ -525,9 +447,8 @@ export const getHelperPaneNew = (props: HelperPaneNewProps) => {
             isInModal={isInModal}
             types={types}
             handleRetrieveCompletions={props.handleRetrieveCompletions}
-            forcedValueTypeConstraint={forcedValueTypeConstraint}
-            handleValueTypeConstChange={handleValueTypeConstChange}
             inputMode={props.inputMode}
+            devantExpressionEditor={props.devantExpressionEditor}
         />
     );
 };

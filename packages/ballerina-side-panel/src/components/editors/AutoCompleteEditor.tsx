@@ -52,8 +52,13 @@ export function AutoCompleteEditor(props: AutoCompleteEditorProps) {
             required={!field.optional}
             disabled={!field.editable}
             onValueChange={(val: string) => {
-                setValue(field.key, val);
-                field.onValueChange?.(val);
+                // Preserve existing value when Combobox fires with empty on blur (e.g., click away without selecting)
+                const currentValue = value ?? getValueForDropdown(field) ?? field.value;
+                const newVal = (val === "" || val === undefined || val === null) && currentValue
+                    ? currentValue
+                    : val;
+                setValue(field.key, newVal);
+                field.onValueChange?.(newVal);
             }}
             sx={{
                 marginRight: "-4px",

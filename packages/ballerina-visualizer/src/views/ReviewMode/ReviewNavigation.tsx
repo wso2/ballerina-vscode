@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useState } from "react";
+import React from "react";
 import styled from "@emotion/styled";
 import { Button } from "@wso2/ui-toolkit";
 
@@ -80,6 +80,34 @@ const NavigationButtons = styled.div`
     gap: 8px;
 `;
 
+const VersionToggle = styled.div`
+    display: flex;
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 4px;
+    overflow: hidden;
+`;
+
+const ToggleSegment = styled.button<{ active: boolean; disabled?: boolean }>`
+    background: ${(props: { active: boolean }) =>
+        props.active ? "var(--vscode-button-background)" : "transparent"};
+    color: ${(props: { active: boolean }) =>
+        props.active ? "var(--vscode-button-foreground)" : "var(--vscode-foreground)"};
+    border: none;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-family: var(--vscode-font-family);
+    cursor: ${(props: { disabled?: boolean }) => (props.disabled ? "default" : "pointer")};
+    opacity: ${(props: { disabled?: boolean }) => (props.disabled ? 0.5 : 1)};
+    transition: background 0.15s, color 0.15s;
+
+    &:hover:not(:disabled) {
+        background: ${(props: { active: boolean }) =>
+            props.active
+                ? "var(--vscode-button-hoverBackground)"
+                : "var(--vscode-toolbar-hoverBackground)"};
+    }
+`;
+
 const ActionButtons = styled.div`
     display: flex;
     gap: 8px;
@@ -98,6 +126,9 @@ interface ReviewNavigationProps {
     onReject: () => void;
     canGoPrevious: boolean;
     canGoNext: boolean;
+    showOldVersion: boolean;
+    onToggleVersion: () => void;
+    canToggleVersion: boolean;
 }
 
 export function ReviewNavigation(props: ReviewNavigationProps): JSX.Element {
@@ -110,22 +141,11 @@ export function ReviewNavigation(props: ReviewNavigationProps): JSX.Element {
         onAccept,
         onReject,
         canGoPrevious,
-        canGoNext
+        canGoNext,
+        showOldVersion,
+        onToggleVersion,
+        canToggleVersion
     } = props;
-
-    const [isProcessing, setIsProcessing] = useState(false);
-
-    const handleAccept = async () => {
-        setIsProcessing(true);
-        await onAccept();
-        // setIsProcessing(false);
-    };
-
-    const handleReject = async () => {
-        setIsProcessing(true);
-        await onReject();
-        // setIsProcessing(false);
-    };
 
     const handlePreviousClick = () => {
         if (canGoPrevious) {
@@ -177,24 +197,25 @@ export function ReviewNavigation(props: ReviewNavigationProps): JSX.Element {
                 {currentLabel && <ViewLabel title={currentLabel}>{currentLabel}</ViewLabel>}
             </ViewInfo>
 
-            <ActionButtons>
-                <Button
-                    appearance="secondary"
-                    onClick={handleReject}
-                    tooltip="Discard All Changes"
-                    disabled={isProcessing}
+            <VersionToggle>
+                <ToggleSegment
+                    active={!showOldVersion}
+                    disabled={!canToggleVersion}
+                    onClick={() => { if (canToggleVersion && showOldVersion) { onToggleVersion(); } }}
+                    title="Show new version"
                 >
-                    Discard
-                </Button>
-                <Button
-                    appearance="primary"
-                    onClick={handleAccept}
-                    tooltip="Keep All Changes"
-                    disabled={isProcessing}
+                    New
+                </ToggleSegment>
+                <ToggleSegment
+                    active={showOldVersion}
+                    disabled={!canToggleVersion}
+                    onClick={() => { if (canToggleVersion && !showOldVersion) { onToggleVersion(); } }}
+                    title="Show old version"
                 >
-                    Keep
-                </Button>
-            </ActionButtons>
+                    Old
+                </ToggleSegment>
+            </VersionToggle>
+
         </NavigationContainer>
     );
 }

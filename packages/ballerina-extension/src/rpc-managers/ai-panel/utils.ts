@@ -22,21 +22,14 @@ import { Position, Range, Uri, workspace, WorkspaceEdit } from 'vscode';
 import path from "path";
 import * as fs from 'fs';
 import { AIChatError } from "./utils/errors";
-import { processDataMapperInput } from "../../features/ai/data-mapper/context-api";
+import { generateMappingInstructionFromFiles, processDataMapperInput } from "../../features/ai/data-mapper/context-api";
 import { DataMapperRequest, DataMapperResponse, FileData, RepairedMappings } from "../../features/ai/data-mapper/types";
 import { getAskResponse } from "../../features/ai/ask/index";
-import { MappingFileRecord} from "./types";
 import { generateAutoMappings, generateRepairCode } from "../../features/ai/data-mapper/index";
 import { ArtifactNotificationHandler, ArtifactsUpdated } from "../../utils/project-artifacts-handler";
 import { CopilotEventHandler } from "../../features/ai/utils/events";
 import { VisualizerRpcManager } from "../visualizer/rpc-manager";
 import { renderDatamapper } from "../../../src/views/ai-panel/checkpoint/checkpointUtils";
-
-// const BACKEND_BASE_URL = BACKEND_URL.replace(/\/v2\.0$/, "");
-//TODO: Temp workaround as custom domain seem to block file uploads
-const CONTEXT_UPLOAD_URL_V1 = "https://e95488c8-8511-4882-967f-ec3ae2a0f86f-prod.e1-us-east-azure.choreoapis.dev/ballerina-copilot/context-upload-api/v1.0";
-// const CONTEXT_UPLOAD_URL_V1 = BACKEND_BASE_URL + "/context-api/v1.0";
-// const ASK_API_URL_V1 = BACKEND_BASE_URL + "/ask-api/v1.0";
 
 // Common functions
 
@@ -136,13 +129,16 @@ export async function generateMappingExpressionsFromModel(
         mappingsModel: dataMapperModel as DMModel
     };
     if (mappingInstructionFiles.length > 0) {
-        eventHandler({ type: "content_block", content: "\n<progress>Processing mapping hints from attachments...</progress>" });
+        const processingHintsId = `processing-mapping-hints_${Date.now()}`;
+        eventHandler({ type: "chat_component", componentType: "progress", id: processingHintsId, data: { text: "Processing mapping hints from attachments...", status: "start" } });
         const enhancedResponse = await enrichModelWithMappingInstructions(mappingInstructionFiles, dataMapperResponse);
+        eventHandler({ type: "chat_component", componentType: "progress", id: processingHintsId, data: { text: "Processing mapping hints from attachments...", status: "end" } });
         dataMapperResponse = enhancedResponse as DataMapperModelResponse;
     }
-    eventHandler({ type: "content_block", content: "\n<progress>Generating data mappings...</progress>" });
-
+    const generatingMappingsId = `generating-data-mappings_${Date.now()}`;
+    eventHandler({ type: "chat_component", componentType: "progress", id: generatingMappingsId, data: { text: "Generating data mappings...", status: "start" } });
     const generatedMappings = await generateAutoMappings(dataMapperResponse);
+    eventHandler({ type: "chat_component", componentType: "progress", id: generatingMappingsId, data: { text: "Generating data mappings...", status: "end" } });
     return generatedMappings.map(mapping => ({
         output: mapping.output,
         expression: mapping.expression,
@@ -159,18 +155,13 @@ export async function enrichModelWithMappingInstructions(mappingInstructionFiles
         mappingInstructionFiles.map(file => convertAttachmentToFileData(file))
     );
 
-    const requestParams: DataMapperRequest = {
-        files: fileDataArray,
-        processType: "mapping_instruction"
-    };
-    const response: DataMapperResponse = await processDataMapperInput(requestParams);
-    let parsedMappingInstructions: MappingFileRecord = JSON.parse(response.fileContent) as MappingFileRecord;
+    const mappingInstructions = await generateMappingInstructionFromFiles(fileDataArray);
 
     return {
         ...currentDataMapperResponse,
         mappingsModel: {
             ...currentDataMapperResponse.mappingsModel,
-            mapping_fields: parsedMappingInstructions.mapping_fields
+            mapping_fields: mappingInstructions.mapping_fields
         }
     };
 }

@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ActionButtons, Typography } from "@wso2/ui-toolkit";
+import { ActionButtons, Codicon, Typography } from "@wso2/ui-toolkit";
 import { useState } from "react";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ValidateProjectFormErrorField } from "@wso2/ballerina-core";
@@ -24,12 +24,71 @@ import { BodyText } from "../../styles";
 import { ProjectFormData, ProjectFormFields } from "../ProjectForm/ProjectFormFields";
 import { validatePackageName } from "../ProjectForm/utils";
 import { MultiProjectFormData, MultiProjectFormFields } from "./components/MultiProjectFormFields";
-import { ButtonWrapper } from "./styles";
+import {
+    AIEnhancementSection,
+    AIEnhancementTitle,
+    ButtonWrapper,
+} from "./styles";
+import {
+    RadioGroup,
+    RadioOption,
+    RadioInput,
+    RadioContent,
+    RadioTitle,
+    RadioDescription,
+} from "../ProjectForm/styles";
 import { ConfigureProjectFormProps } from "./types";
+
+interface AIEnhancementToggleProps {
+    enabled: boolean;
+    onChange: (enabled: boolean) => void;
+}
+
+function AIEnhancementToggle({ enabled, onChange }: AIEnhancementToggleProps) {
+    return (
+        <AIEnhancementSection>
+            <AIEnhancementTitle>
+                <Codicon name="sparkle" />
+                AI Enhancement
+            </AIEnhancementTitle>
+            <RadioGroup>
+                <RadioOption isSelected={enabled} onClick={() => onChange(true)}>
+                    <RadioInput
+                        type="radio"
+                        name="ai-enhancement"
+                        checked={enabled}
+                        onChange={() => onChange(true)}
+                    />
+                    <RadioContent>
+                        <RadioTitle>Enable AI Enhancement</RadioTitle>
+                        <RadioDescription>
+                            AI will automatically resolve unmapped elements, fix build errors, and refine tests.
+                        </RadioDescription>
+                    </RadioContent>
+                </RadioOption>
+                <RadioOption isSelected={!enabled} onClick={() => onChange(false)}>
+                    <RadioInput
+                        type="radio"
+                        name="ai-enhancement"
+                        checked={!enabled}
+                        onChange={() => onChange(false)}
+                    />
+                    <RadioContent>
+                        <RadioTitle>Skip for Now – Enhance Later</RadioTitle>
+                        <RadioDescription>
+                            Open the project as-is. You can trigger AI enhancement later from the BI Copilot.
+                        </RadioDescription>
+                    </RadioContent>
+                </RadioOption>
+            </RadioGroup>
+        </AIEnhancementSection>
+    );
+}
 
 export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: ConfigureProjectFormProps) {
     const { rpcClient } = useRpcContext();
-    const [singleProjectData, setSingleProjectData] = useState<ProjectFormData>({
+    const [aiEnhancementEnabled, setAiEnhancementEnabled] = useState(true);
+    const [singleIntegrationData, setSingleIntegrationData] = useState<ProjectFormData>({
         integrationName: "",
         packageName: "",
         path: "",
@@ -38,6 +97,7 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
         workspaceName: "",
         orgName: "",
         version: "",
+        isLibrary: false,
     });
 
     const [multiProjectData, setMultiProjectData] = useState<MultiProjectFormData>({
@@ -49,21 +109,26 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
     const [isValidating, setIsValidating] = useState(false);
     const [pathError, setPathError] = useState<string | null>(null);
     const [folderNameError, setFolderNameError] = useState<string | null>(null);
-    const [singleProjectIntegrationNameError, setSingleProjectIntegrationNameError] = useState<string | null>(null);
-    const [singleProjectPathError, setSingleProjectPathError] = useState<string | null>(null);
-    const [singleProjectPackageNameError, setSingleProjectPackageNameError] = useState<string | null>(null);
+    const [singleIntegrationNameError, setSingleIntegrationNameError] = useState<string | null>(null);
+    const [singleIntegrationPathError, setSingleIntegrationPathError] = useState<string | null>(null);
+    const [projectNameError, setProjectNameError] = useState<string | null>(null);
+    const [singleIntegrationPackageNameError, setSingleIntegrationPackageNameError] = useState<string | null>(null);
+    const selectedResourceTypeLabel = singleIntegrationData.isLibrary ? "Library" : "Integration";
 
     const handleSingleProjectFormChange = (data: Partial<ProjectFormData>) => {
-        setSingleProjectData(prev => ({ ...prev, ...data }));
+        setSingleIntegrationData(prev => ({ ...prev, ...data }));
         // Clear validation errors when form data changes
-        if (singleProjectIntegrationNameError) {
-            setSingleProjectIntegrationNameError(null);
+        if (singleIntegrationNameError) {
+            setSingleIntegrationNameError(null);
         }
-        if (singleProjectPathError) {
-            setSingleProjectPathError(null);
+        if (singleIntegrationPathError) {
+            setSingleIntegrationPathError(null);
         }
-        if (singleProjectPackageNameError) {
-            setSingleProjectPackageNameError(null);
+        if (projectNameError) {
+            setProjectNameError(null);
+        }
+        if (singleIntegrationPackageNameError) {
+            setSingleIntegrationPackageNameError(null);
         }
     };
 
@@ -80,31 +145,32 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
 
     const handleCreateSingleProject = async () => {
         setIsValidating(true);
-        setSingleProjectIntegrationNameError(null);
-        setSingleProjectPathError(null);
-        setSingleProjectPackageNameError(null);
+        setSingleIntegrationNameError(null);
+        setSingleIntegrationPathError(null);
+        setProjectNameError(null);
+        setSingleIntegrationPackageNameError(null);
 
         // Validate required fields first
         let hasError = false;
 
-        if (singleProjectData.integrationName.length < 2) {
-            setSingleProjectIntegrationNameError("Integration name must be at least 2 characters");
+        if (singleIntegrationData.integrationName.trim().length < 2) {
+            setSingleIntegrationNameError(`${selectedResourceTypeLabel} name must be at least 2 characters`);
             hasError = true;
         }
 
-        if (singleProjectData.packageName.length < 2) {
-            setSingleProjectPackageNameError("Package name must be at least 2 characters");
+        if (singleIntegrationData.packageName.trim().length < 2) {
+            setSingleIntegrationPackageNameError("Package name must be at least 2 characters");
             hasError = true;
         } else {
-            const packageNameError = validatePackageName(singleProjectData.packageName, singleProjectData.integrationName);
+            const packageNameError = validatePackageName(singleIntegrationData.packageName, singleIntegrationData.integrationName);
             if (packageNameError) {
-                setSingleProjectPackageNameError(packageNameError);
+                setSingleIntegrationPackageNameError(packageNameError);
                 hasError = true;
             }
         }
 
-        if (singleProjectData.path.length < 2) {
-            setSingleProjectPathError("Please select a path for your project");
+        if (singleIntegrationData.path.trim().length < 2) {
+            setSingleIntegrationPathError(`Please select a path for your ${selectedResourceTypeLabel.toLowerCase()}`);
             hasError = true;
         }
 
@@ -115,36 +181,56 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
 
         try {
             // Validate the project path
+            const targetNameForValidation = singleIntegrationData.createAsWorkspace
+                ? singleIntegrationData.workspaceName
+                : singleIntegrationData.packageName;
             const validationResult = await rpcClient.getBIDiagramRpcClient().validateProjectPath({
-                projectPath: singleProjectData.path,
-                projectName: singleProjectData.createAsWorkspace ? singleProjectData.workspaceName : singleProjectData.packageName,
-                createDirectory: singleProjectData.createDirectory,
+                projectPath: singleIntegrationData.path,
+                projectName: targetNameForValidation,
+                createDirectory: singleIntegrationData.createDirectory,
             });
 
             if (!validationResult.isValid) {
                 // Show error on the appropriate field
                 if (validationResult.errorField === ValidateProjectFormErrorField.PATH) {
-                    setSingleProjectPathError(validationResult.errorMessage || "Invalid project path");
+                    if (singleIntegrationData.createAsWorkspace) {
+                        setSingleIntegrationPathError(validationResult.errorMessage || "Invalid project path");
+                    } else {
+                        setSingleIntegrationPathError(
+                            validationResult.errorMessage || `Invalid ${selectedResourceTypeLabel.toLowerCase()} path`
+                        );
+                    }
                 } else if (validationResult.errorField === ValidateProjectFormErrorField.NAME) {
-                    setSingleProjectPackageNameError(validationResult.errorMessage || "Invalid project name");
+                    if (singleIntegrationData.createAsWorkspace) {
+                        setProjectNameError(
+                            validationResult.errorMessage || "Invalid project name"
+                        );
+                    } else {
+                        setSingleIntegrationPackageNameError(
+                            validationResult.errorMessage || `Invalid ${selectedResourceTypeLabel.toLowerCase()} name`
+                        );
+                    }
                 }
                 setIsValidating(false);
                 return;
             }
 
             // If validation passes, proceed
-            onNext({
-                projectName: singleProjectData.integrationName,
-                packageName: singleProjectData.packageName,
-                projectPath: singleProjectData.path,
-                createDirectory: singleProjectData.createDirectory,
-                createAsWorkspace: singleProjectData.createAsWorkspace,
-                workspaceName: singleProjectData.workspaceName,
-                orgName: singleProjectData.orgName || undefined,
-                version: singleProjectData.version || undefined,
-            });
+            const payload = {
+                projectName: singleIntegrationData.integrationName,
+                packageName: singleIntegrationData.packageName,
+                projectPath: singleIntegrationData.path,
+                createDirectory: singleIntegrationData.createDirectory,
+                createAsWorkspace: singleIntegrationData.createAsWorkspace,
+                workspaceName: singleIntegrationData.workspaceName,
+                orgName: singleIntegrationData.orgName || undefined,
+                version: singleIntegrationData.version || undefined,
+                isLibrary: singleIntegrationData.isLibrary,
+            };
+            setIsValidating(false);
+            onNext(payload, aiEnhancementEnabled);
         } catch (error) {
-            setSingleProjectPathError("An error occurred during validation");
+            setSingleIntegrationPathError("An error occurred during validation");
             setIsValidating(false);
         }
     };
@@ -198,7 +284,7 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
                 projectPath: multiProjectData.path,
                 createDirectory: multiProjectData.createDirectory,
                 createAsWorkspace: false,
-            });
+            }, aiEnhancementEnabled);
         } catch (error) {
             setPathError("An error occurred during validation");
             setIsValidating(false);
@@ -210,7 +296,7 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
             {isMultiProject ? (
                 <>
                     <Typography variant="h2">Configure Multi-Project Import</Typography>
-                    <BodyText>Select the location where you want to save the migrated packages.</BodyText>
+                    <BodyText>Select the location where you want to save the migrated integrations.</BodyText>
 
                     <MultiProjectFormFields
                         formData={multiProjectData}
@@ -219,10 +305,12 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
                         folderNameError={folderNameError || undefined}
                     />
 
+                    {<AIEnhancementToggle enabled={aiEnhancementEnabled} onChange={setAiEnhancementEnabled} />}
+
                     <ButtonWrapper>
                         <ActionButtons
                             primaryButton={{
-                                text: isValidating ? "Validating..." : "Create and Open Project",
+                                text: isValidating ? "Validating..." : (aiEnhancementEnabled ? "Create and Start AI Enhancement" : "Create and Open Project"),
                                 onClick: handleCreateMultiProject,
                                 disabled: isValidating
                             }}
@@ -236,21 +324,26 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
                 </>
             ) : (
                 <>
-                    <Typography variant="h2">Configure Your Integration Project</Typography>
-                    <BodyText>Please provide the necessary details to create your integration project.</BodyText>
+                    <Typography variant="h2">Configure Your {selectedResourceTypeLabel}</Typography>
+                    <BodyText>
+                        Please provide the necessary details to create your {selectedResourceTypeLabel.toLowerCase()}.
+                    </BodyText>
 
                     <ProjectFormFields
-                        formData={singleProjectData}
+                        formData={singleIntegrationData}
                         onFormDataChange={handleSingleProjectFormChange}
-                        integrationNameError={singleProjectIntegrationNameError || undefined}
-                        pathError={singleProjectPathError || undefined}
-                        packageNameValidationError={singleProjectPackageNameError || undefined}
+                        integrationNameError={singleIntegrationNameError || undefined}
+                        pathError={singleIntegrationPathError || undefined}
+                        projectNameError={projectNameError || undefined}
+                        packageNameValidationError={singleIntegrationPackageNameError || undefined}
                     />
+
+                    {<AIEnhancementToggle enabled={aiEnhancementEnabled} onChange={setAiEnhancementEnabled} />}
 
                     <ButtonWrapper>
                         <ActionButtons
                             primaryButton={{
-                                text: isValidating ? "Validating..." : "Create and Open Project",
+                                text: isValidating ? "Validating..." : (aiEnhancementEnabled ? "Create and Start AI Enhancement" : "Create and Open Project"),
                                 onClick: handleCreateSingleProject,
                                 disabled: isValidating
                             }}

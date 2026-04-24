@@ -21,9 +21,20 @@ import { SHARED_COMMANDS } from '@wso2/ballerina-core';
 import { BallerinaExtension } from '../../core';
 import { ChatPanel } from './webview';
 
-export interface AgentChatContext {
+export interface AgentChatContextAgent {
+    name: string;
+    basePath: string;
     chatEp: string;
     chatSessionId: string;
+}
+
+export interface AgentChatContext {
+    // Active agent's endpoint and session (used by existing code)
+    chatEp: string;
+    chatSessionId: string;
+    // Multi-agent support
+    agents: AgentChatContextAgent[];
+    activeAgentName: string;
 }
 
 export function activateAgentChatPanel(ballerinaExtInstance: BallerinaExtension) {

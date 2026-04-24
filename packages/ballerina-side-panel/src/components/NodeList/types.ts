@@ -15,6 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import { ConnectionListItem } from "@wso2/wso2-platform-core";
 
 export type Item = Category | Node;
 
@@ -24,6 +25,13 @@ export type Category = {
     icon?: JSX.Element;
     items: Item[];
     isLoading?: boolean;
+    tooltip?: {
+        icon?: string;
+        color?: string;
+        text?: string;
+    }
+    devant?: ConnectionListItem;
+    unusedDevantConn?: boolean;
 };
 
 export type Node = {

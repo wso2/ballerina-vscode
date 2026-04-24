@@ -75,7 +75,9 @@ export interface MigrationProgressProps {
 
 export interface ConfigureProjectFormProps {
     isMultiProject: boolean;
-    onNext: (project: ProjectRequest) => void;
+    /** Absolute path to the original source project (e.g. Mule XML directory). */
+    importSourcePath?: string;
+    onNext: (project: ProjectRequest, aiFeatureUsed: boolean) => void;
     onBack: () => void;
 }
 
