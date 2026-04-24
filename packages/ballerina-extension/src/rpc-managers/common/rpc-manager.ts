@@ -483,7 +483,7 @@ export class CommonRpcManager implements CommonRPCAPI {
             const projectPath = StateMachine.context()?.workspacePath;
 
             if (projectPath) {
-                const contextYamlPath = path.join(projectPath, ".choreo", "context.yaml");
+                const contextYamlPath = path.join(projectPath, ".wso2", "context.yaml");
                 const content = await fs.promises.readFile(contextYamlPath, "utf-8");
                 const parsed = loadYaml(content);
                 if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0].org === "string" && parsed[0].org) {
