@@ -240,6 +240,11 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         if (!viewRef.current) return;
         const view = viewRef.current;
 
+        if (options.closeHelperPane) {
+            setIsTokenUpdateScheduled(true);
+            setHelperPaneState(prev => ({ ...prev, isOpen: false }));
+        }
+
         // Use saved selection if available, otherwise fall back to current selection
         const currentSelection = view.state.selection.main;
         const { from, to } = options?.replaceFullText ? { from: 0, to: view.state.doc.length } : currentSelection;
@@ -270,10 +275,6 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
             changes: { from, to, insert: finalValue },
             selection: { anchor: cursorPosition }
         });
-        if (options.closeHelperPane) {
-            setIsTokenUpdateScheduled(true);
-        }
-        setHelperPaneState(prev => ({ ...prev, isOpen: !options.closeHelperPane }));
     }
 
     const handleHelperPaneManualToggle = () => {

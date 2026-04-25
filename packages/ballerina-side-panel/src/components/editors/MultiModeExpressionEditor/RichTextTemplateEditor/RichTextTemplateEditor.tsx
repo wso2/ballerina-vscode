@@ -434,6 +434,14 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
         if (!viewRef.current) return;
 
         const view = viewRef.current;
+        
+        if (options?.closeHelperPane) {
+            setHelperPaneState({
+                isOpen: false,
+                top: helperPaneState.top,
+                left: helperPaneState.left
+            });
+        }
 
         // Check if selection is on a chip/token
         const isOnChip = helperPaneState.clickedChipPos !== undefined && helperPaneState.clickedChipNode;
@@ -475,11 +483,10 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
             cursorPosition = from + finalValue.length;
         }
 
-        setHelperPaneState({
-            isOpen: !options?.closeHelperPane,
-            top: helperPaneState.top,
-            left: helperPaneState.left
-        });
+        setHelperPaneState(prev => ({
+            ...prev,
+            isOpen: prev.isOpen && !options?.closeHelperPane
+        }));
 
         // Trigger onChange to update parent
         const serialized = customMarkdownSerializer.serialize(view.state.doc);
