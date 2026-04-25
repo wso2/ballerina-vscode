@@ -236,7 +236,7 @@ export function ResourceAccordion(params: ResourceAccordionProps) {
                 isOpen={isConfirmOpen}
                 onConfirm={handleConfirm}
                 confirmText="Delete"
-                message={`Are you sure want to delete this ${deletionTypeLabel || "resource"}?`}
+                message={`Are you sure you want to delete this ${deletionTypeLabel || "resource"}?`}
                 anchorEl={confirmEl}
                 anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
                 transformOrigin={{ vertical: "top", horizontal: "right" }}
