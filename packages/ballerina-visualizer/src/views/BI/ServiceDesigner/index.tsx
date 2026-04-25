@@ -72,9 +72,8 @@ const ServiceContainer = styled.div`
 
 const FunctionsContainer = styled.div`
     max-height: 550px;
-    overflow: scroll;
+    overflow: auto;
     padding: 15px;
-    padding-right: 0px;
 `;
 
 const ButtonText = styled.span`
