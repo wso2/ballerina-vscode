@@ -539,7 +539,10 @@ class BallerinaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFa
         await cleanAndValidateProject(langClient, projectRoot);
 
         // Check if config generation is required before starting the debug session
-        await prepareAndGenerateConfig(extension.ballerinaExtInstance, session.configuration.script, false, StateMachine.context().isBI, false);
+        const shouldProceed = await prepareAndGenerateConfig(extension.ballerinaExtInstance, session.configuration.script, false, StateMachine.context().isBI, false);
+        if (!shouldProceed) {
+            return new DebugAdapterInlineImplementation(new TerminatingDebugAdapter());
+        }
 
         if (session.configuration.noDebug && extension.ballerinaExtInstance.enabledRunFast()) {
             return new Promise((resolve) => {
@@ -745,6 +748,13 @@ class BIRunAdapter extends LoggingDebugSession {
             this.notificationHandler.dispose();
             this.notificationHandler = null;
         }
+    }
+}
+
+class TerminatingDebugAdapter extends LoggingDebugSession {
+    protected initializeRequest(response: DebugProtocol.InitializeResponse): void {
+        this.sendResponse(response);
+        this.sendEvent(new TerminatedEvent());
     }
 }
 
