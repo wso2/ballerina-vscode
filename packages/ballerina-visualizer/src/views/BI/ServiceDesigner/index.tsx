@@ -1395,6 +1395,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         onSave={handleResourceSubmit}
                                         onClose={handleNewFunctionClose}
                                         isNew={isNew}
+                                        existingResources={resources}
                                         payloadContext={{
                                             protocol: Protocol.HTTP,
                                             serviceName: serviceModel.name || '',
