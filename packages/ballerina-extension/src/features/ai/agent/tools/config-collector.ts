@@ -125,14 +125,14 @@ export function createConfigCollectorTool(
         description: `
 Manages configuration values in Config.toml for Ballerina integrations securely.
 
-The codebase listing includes a <config_files main="present|absent" tests="present|absent"/> tag per project.
-Use it to know whether Config.toml already exists before deciding to check or collect.
+The codebase listing includes a <config_files main="present|absent" tests="present|absent"/> tag per project showing the initial state.
+Before collecting, always call CHECK first (without variableNames) to discover any existing variable names and reuse them — Config.toml may have been added mid-session even if the listing shows absent.
 
 IMPORTANT: Only call COLLECT mode immediately before executing the project (running or testing). Do NOT call it during code writing or implementation — even if the code has sensitive configurables. Write the code first, then collect config only when you are about to run or test.
 
 Operation Modes:
 1. COLLECT: Collect configuration values from the user
-   - ALWAYS provide `variables` — never call collect without them
+   - ALWAYS provide 'variables' — never call collect without them
    - Call ONLY immediately before running or testing the project — never during code writing
    - Shows a form; nothing is written until the user confirms. If skipped, no file is created or modified
    - Pre-populates from existing Config.toml if it exists
@@ -144,10 +144,9 @@ Operation Modes:
 
 2. CHECK: Inspect which values are filled or missing — can be called at any time
    - Returns variable names and status; never actual values
-   - Omit variableNames to discover ALL existing variables in the file — use this when Config.toml is present and you want to reuse existing names in a later collect call
    - For workspace projects, pass packagePath to inspect the Config.toml of a specific package
-   - Example (discover all): { mode: "check" }
-   - Example (verify specific): { mode: "check", variableNames: ["dbPassword", "apiKey"] }
+   - Example (discover): { mode: "check" }
+   - Example (verify): { mode: "check", variableNames: ["dbPassword", "apiKey"], filePath: "Config.toml" }
    - Example (workspace): { mode: "check", packagePath: "pkg1" }
    - Returns: { status: { dbPassword: "filled", apiKey: "missing" } }
 
