@@ -1,0 +1,153 @@
+{
+  "source": "json_submapping.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "DATA_MAPPER_DEFINITION",
+    "lineRange": {
+      "fileName": "function_def3.bal",
+      "startLine": {
+        "line": 42,
+        "offset": 87
+      },
+      "endLine": {
+        "line": 42,
+        "offset": 109
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 42,
+    "offset": 87
+  },
+  "propertyKey": "expression",
+  "targetField": "subMapping",
+  "model": {
+    "inputs": [
+      {
+        "fields": [],
+        "name": "person",
+        "displayName": "person",
+        "typeName": "Person",
+        "kind": "record",
+        "category": "parameter",
+        "ref": "887620673"
+      }
+    ],
+    "output": {
+      "fields": [],
+      "name": "subMapping",
+      "displayName": "subMapping",
+      "typeName": "Person",
+      "kind": "record",
+      "ref": "887620673"
+    },
+    "mappings": [],
+    "refs": {
+      "765269297": {
+        "fields": [
+          {
+            "name": "name",
+            "displayName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "age",
+            "displayName": "age",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "name": "email",
+            "displayName": "email",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "isSubscribed",
+            "displayName": "isSubscribed",
+            "typeName": "boolean",
+            "kind": "boolean",
+            "optional": false
+          },
+          {
+            "member": {
+              "name": "skills",
+              "displayName": "<skillsItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "name": "skills",
+            "displayName": "skills",
+            "typeName": "string[]",
+            "kind": "array",
+            "optional": false
+          },
+          {
+            "fields": [],
+            "name": "address",
+            "displayName": "address",
+            "typeName": "Address_01",
+            "kind": "record",
+            "optional": false,
+            "ref": "-461574888"
+          }
+        ],
+        "typeName": "Transform1",
+        "kind": "record"
+      },
+      "887620673": {
+        "fields": [
+          {
+            "name": "age",
+            "displayName": "age",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "name": "name",
+            "displayName": "name",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Person",
+        "kind": "record"
+      },
+      "-461574888": {
+        "fields": [
+          {
+            "name": "street",
+            "displayName": "street",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "city",
+            "displayName": "city",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "zipCode",
+            "displayName": "zipCode",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Address_01",
+        "kind": "record"
+      }
+    },
+    "hasInvalidOutput": false
+  }
+}
