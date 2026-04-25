@@ -27,21 +27,14 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { StateMachine } from "../../stateMachine";
 import { updateSourceCode } from "../../utils/source-utils";
-import { getOrgAndPackageName } from "../../utils";
 import { parse, stringify } from "@iarna/toml";
-import { getStoredICPSecret } from "../../features/icp/setup";
+import { getProjectHandle, getStoredICPSecret } from "../../features/icp/setup";
 import { ensureICPServerRunning, isICPServerRunning, getICPUrl } from "../../features/icp";
 
 const ICP_IMPORTS = [
     'import wso2/icp.runtime.bridge as _;',
     'import ballerinax/metrics.logs as _;',
 ];
-
-function getProjectName(projectPath: string): string {
-    const context = StateMachine.context();
-    const { packageName } = getOrgAndPackageName(context.projectInfo, projectPath);
-    return packageName || path.basename(projectPath);
-}
 
 function getIntegrationName(projectPath: string): string {
     const context = StateMachine.context();
@@ -239,7 +232,7 @@ async function addICPConfigToml(projectPath: string): Promise<void> {
     config.wso2.icp.runtime.bridge = {
         ...existingBridge,
         environment: 'dev',
-        project: getProjectName(projectPath),
+        project: getProjectHandle(projectPath),
         integration: getIntegrationName(projectPath),
         runtime: os.hostname(),
         ...(storedSecret ? { secret: storedSecret } : {}),
