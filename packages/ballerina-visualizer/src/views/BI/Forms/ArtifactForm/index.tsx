@@ -184,6 +184,7 @@ export function ArtifactForm(props: ArtifactFormProps) {
     const fieldsRef = useRef<FormField[]>(fields);
     const fieldsValuesRef = useRef<FormField[]>(fields);
     const [formImports, setFormImports] = useState<FormImports>({});
+    const formImportsRef = useRef<FormImports>({});
     const [refetchStates, setRefetchStates] = useState<boolean[]>([false]);
     const [valueTypeConstraints, setValueTypeConstraints] = useState<string>();
 
@@ -893,10 +894,12 @@ export function ArtifactForm(props: ArtifactFormProps) {
         if (Object.keys(formImports).includes(key)) {
             if (importKey && !Object.keys(formImports[key]).includes(importKey)) {
                 const updatedImports = { ...formImports, [key]: { ...formImports[key], ...imports } };
+                formImportsRef.current = updatedImports;
                 setFormImports(updatedImports);
             }
         } else {
             const updatedImports = { ...formImports, [key]: imports };
+            formImportsRef.current = updatedImports;
             setFormImports(updatedImports);
         }
     }
@@ -953,6 +956,13 @@ export function ArtifactForm(props: ArtifactFormProps) {
 
     const extractArgsFromFunction = async (value: string, property: ExpressionProperty, cursorPosition: number) => {
         const { lineOffset, charOffset } = calculateExpressionOffsets(value, cursorPosition);
+        // Merge the latest imports from formImportsRef to avoid stale field.imports when a
+        // helper pane item is selected (formImportsRef is updated synchronously before onChange
+        // fires, but the field prop hasn't re-rendered yet with the new imports).
+        const latestImports = Object.values(formImportsRef.current).reduce<Imports>(
+            (acc, fieldImports) => ({ ...acc, ...fieldImports }),
+            {}
+        );
         const signatureHelp = await rpcClient.getBIDiagramRpcClient().getSignatureHelp({
             filePath: fileName,
             context: {
@@ -961,7 +971,7 @@ export function ArtifactForm(props: ArtifactFormProps) {
                 lineOffset: lineOffset,
                 offset: charOffset,
                 codedata: undefined,
-                property: property,
+                property: { ...property, imports: { ...(property.imports || {}), ...latestImports } },
             },
             signatureHelpContext: {
                 isRetrigger: false,
