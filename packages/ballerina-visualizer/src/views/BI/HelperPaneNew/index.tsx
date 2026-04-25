@@ -32,7 +32,7 @@ import { Configurables } from './Views/Configurables';
 import { DevantConfigurables } from './Views/DevantConfigurables';
 import styled from '@emotion/styled';
 import { HelperPaneIconType, getHelperPaneIcon } from './utils/iconUtils';
-import { ExpressionEditorDevantProps, HelperpaneOnChangeOptions, InputMode } from '@wso2/ballerina-side-panel';
+import { ExpressionEditorDevantProps, HelperpaneOnChangeOptions, InputMode, getEditorConfiguration, HelperPaneMenuItem } from '@wso2/ballerina-side-panel';
 import { ResolvedType } from '../Forms/FlowNodeForm';
 
 export const AI_PROMPT_TYPE = "ai:Prompt";
@@ -94,6 +94,7 @@ const HelperPaneNewEl = ({
     devantExpressionEditor,
 }: HelperPaneNewProps) => {
     const [selectedItem, setSelectedItem] = useState<number>();
+    const hiddenMenuItems = getEditorConfiguration(inputMode).getHelperPaneHiddenItems();
     const currentMenuItemCount = getPrimaryInputType(types)?.ballerinaType === AI_PROMPT_TYPE ? 5 : 4; 
 
     // Create refs array for all menu items
@@ -202,6 +203,7 @@ const HelperPaneNewEl = ({
                                         </ExpandableList.Item>
                                     </SlidingPaneNavContainer>
                                 )}
+                                {!hiddenMenuItems.includes(HelperPaneMenuItem.INPUTS) && (
                                 <SlidingPaneNavContainer
                                     ref={el => menuItemRefs.current[3] = el}
                                     to="INPUTS"
@@ -213,6 +215,8 @@ const HelperPaneNewEl = ({
                                         </Typography>
                                     </ExpandableList.Item>
                                 </SlidingPaneNavContainer>
+                                )}
+                                {!hiddenMenuItems.includes(HelperPaneMenuItem.VARIABLES) && (
                                 <SlidingPaneNavContainer
                                     ref={el => menuItemRefs.current[2] = el}
                                     to="VARIABLES"
@@ -224,6 +228,8 @@ const HelperPaneNewEl = ({
                                         </Typography>
                                     </ExpandableList.Item>
                                 </SlidingPaneNavContainer>
+                                )}
+                                {!hiddenMenuItems.includes(HelperPaneMenuItem.CONFIGURABLES) && (
                                 <SlidingPaneNavContainer
                                     ref={el => menuItemRefs.current[4] = el}
                                     to="CONFIGURABLES"
@@ -237,6 +243,8 @@ const HelperPaneNewEl = ({
                                         </TitleContainer>
                                     </ExpandableList.Item>
                                 </SlidingPaneNavContainer>
+                                )}
+                                {!hiddenMenuItems.includes(HelperPaneMenuItem.FUNCTIONS) && (
                                 <SlidingPaneNavContainer
                                     ref={el => menuItemRefs.current[5] = el}
                                     to="FUNCTIONS"
@@ -248,7 +256,8 @@ const HelperPaneNewEl = ({
                                         </Typography>
                                     </ExpandableList.Item>
                                 </SlidingPaneNavContainer>
-                                {getPrimaryInputType(types)?.ballerinaType === AI_PROMPT_TYPE && (
+                                )}
+                                {!hiddenMenuItems.includes(HelperPaneMenuItem.DOCUMENTS) && getPrimaryInputType(types)?.ballerinaType === AI_PROMPT_TYPE && (
                                     <SlidingPaneNavContainer
                                         ref={el => menuItemRefs.current[6] = el}
                                         to="DOCUMENTS"
