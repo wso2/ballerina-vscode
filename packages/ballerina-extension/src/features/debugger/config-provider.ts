@@ -551,7 +551,7 @@ class BallerinaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFa
 
         if (session.configuration.noDebug) {
             return new Promise((resolve) => {
-                resolve(new DebugAdapterInlineImplementation(new BIRunAdapter()));
+                resolve(new DebugAdapterInlineImplementation(new BIRunAdapter(session)));
             });
         }
 
@@ -659,24 +659,53 @@ class BIRunAdapter extends LoggingDebugSession {
     task: TaskExecution | null = null;
     taskTerminationListener: Disposable | null = null;
 
+    private session: DebugSession;
     private static activeAdapter: BIRunAdapter | null = null;
+
+    constructor(session: DebugSession) {
+        super();
+        this.session = session;
+    }
 
     protected launchRequest(response: DebugProtocol.LaunchResponse, args: DebugProtocol.LaunchRequestArguments, request?: DebugProtocol.Request): void {
         getCurrentProjectRoot().then(async (projectRoot) => {
-            if (BIRunAdapter.activeAdapter?.task) {
+            const existingAdapter = BIRunAdapter.activeAdapter;
+            const existingTask = existingAdapter?.task ?? null;
+
+            if (existingTask) {
                 const choice = await window.showInformationMessage(
                     'There is already a running integration. Do you want to stop it and start this integration?',
                     'Yes', 'No'
                 );
                 if (choice !== 'Yes') {
+                    // Prevent the debug tracker from triggering the Try It view for this cancelled session.
+                    (this.session.configuration as any).suggestTryit = false;
                     response.success = true;
                     this.sendResponse(response);
                     this.sendEvent(new TerminatedEvent());
                     return;
                 }
-                const previousAdapter = BIRunAdapter.activeAdapter;
                 BIRunAdapter.activeAdapter = null;
-                previousAdapter.task.terminate();
+                // Await full termination before starting the new task to avoid port
+                // conflicts from the still-shutting-down previous process.
+                await new Promise<void>((resolve) => {
+                    const timeout = setTimeout(resolve, 3000);
+                    const listener = tasks.onDidEndTaskProcess(e => {
+                        if (e.execution === existingTask) {
+                            clearTimeout(timeout);
+                            listener.dispose();
+                            resolve();
+                        }
+                    });
+                    // Task may have already ended while the dialog was open.
+                    if (!tasks.taskExecutions.some(e => e === existingTask)) {
+                        clearTimeout(timeout);
+                        listener.dispose();
+                        resolve();
+                        return;
+                    }
+                    existingTask.terminate();
+                });
             }
 
             const taskDefinition: TaskDefinition = {
