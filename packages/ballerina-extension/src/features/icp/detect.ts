@@ -146,41 +146,54 @@ export async function resolveICPPath(): Promise<string | undefined> {
     const config = workspace.getConfiguration('ballerina');
     const configuredPath = config.get<string>('icpPath');
 
-    // 1. Check if path is already configured
+    // 1. Use the configured path if it still exists on disk.
+    if (configuredPath && existsSync(configuredPath)) {
+        return configuredPath;
+    }
+
+    // 2. Configured path is stale — ask the user to re-detect or open settings.
     if (configuredPath) {
-        if (existsSync(configuredPath)) {
-            return configuredPath;
-        }
-        window.showErrorMessage(
-            `ICP binary not found at configured path: ${configuredPath}. Please update the "ballerina.icpPath" setting.`,
+        const action = await window.showErrorMessage(
+            `ICP binary not found at the configured path: ${configuredPath}. The product may have been moved, uninstalled, or upgraded.`,
+            'Auto Detect',
             'Open Settings'
-        ).then((action) => {
-            if (action === 'Open Settings') {
-                openICPSettings();
-            }
-        });
-        return undefined;
+        );
+
+        if (action === 'Open Settings') {
+            openICPSettings();
+            return undefined;
+        }
+
+        if (action !== 'Auto Detect') {
+            return undefined;
+        }
+
+        const detected = getDefaultPath();
+        if (detected && existsSync(detected)) {
+            await config.update('icpPath', detected, ConfigurationTarget.Global);
+            return detected;
+        }
+        // Fall through to the "not installed" prompt below.
+    } else {
+        // 3. No configured path — auto-detect silently.
+        const detected = getDefaultPath();
+        if (detected && existsSync(detected)) {
+            await config.update('icpPath', detected, ConfigurationTarget.Global);
+            return detected;
+        }
     }
 
-    // 2. Auto-detect from default OS location
-    const defaultPath = getDefaultPath();
-    if (defaultPath && existsSync(defaultPath)) {
-        await config.update('icpPath', defaultPath, ConfigurationTarget.Global);
-        return defaultPath;
-    }
-
-    // 3. Not found — notify user
-    window.showErrorMessage(
+    // 4. Not found — notify user.
+    const action = await window.showErrorMessage(
         'Integration Control Plane (ICP) is not installed. Please install ICP or set the path manually in settings.',
         'Download ICP',
         'Set Path'
-    ).then((action) => {
-        if (action === 'Download ICP') {
-            env.openExternal(Uri.parse('https://wso2.com/integrator/downloads/')); // TODO: confirm download URL
-        } else if (action === 'Set Path') {
-            openICPSettings();
-        }
-    });
+    );
+    if (action === 'Download ICP') {
+        env.openExternal(Uri.parse('https://wso2.com/products/downloads/?product=wso2integrator&package=icp'));
+    } else if (action === 'Set Path') {
+        openICPSettings();
+    }
     return undefined;
 }
 
