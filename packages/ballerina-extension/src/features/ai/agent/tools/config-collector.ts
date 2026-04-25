@@ -48,7 +48,10 @@ const ConfigCollectorSchema = z.object({
     mode: z.enum(["collect", "check"]).describe("Operation mode"),
     filePath: z.string().optional().describe("Path to config file (for check mode)"),
     variables: z.array(ConfigVariableSchema).optional().describe("Configuration variables"),
-    variableNames: z.array(z.string()).optional().describe("Variable names for check mode"),
+    variableNames: z.array(z.string()).optional().describe(
+        "Variable names to verify in check mode. " +
+        "Omit to discover ALL existing variable names in the file — useful when you want to reuse names that are already there."
+    ),
     isTestConfig: z.boolean().optional().describe("Set to true when collecting configuration for tests. Tool will automatically read from Config.toml and write to tests/Config.toml"),
     packagePath: z.string().optional().describe(
         "Relative path to the target package within the workspace project (e.g., \"pkg1\"). " +
@@ -122,10 +125,14 @@ export function createConfigCollectorTool(
         description: `
 Manages configuration values in Config.toml for Ballerina integrations securely.
 
+The codebase listing includes a <config_files main="present|absent" tests="present|absent"/> tag per project.
+Use it to know whether Config.toml already exists before deciding to check or collect.
+
 IMPORTANT: Only call COLLECT mode immediately before executing the project (running or testing). Do NOT call it during code writing or implementation — even if the code has sensitive configurables. Write the code first, then collect config only when you are about to run or test.
 
 Operation Modes:
 1. COLLECT: Collect configuration values from the user
+   - ALWAYS provide `variables` — never call collect without them
    - Call ONLY immediately before running or testing the project — never during code writing
    - Shows a form; nothing is written until the user confirms. If skipped, no file is created or modified
    - Pre-populates from existing Config.toml if it exists
@@ -136,10 +143,12 @@ Operation Modes:
    - Example (workspace): { mode: "collect", variables: [...], packagePath: "pkg1" }
 
 2. CHECK: Inspect which values are filled or missing — can be called at any time
-   - Returns status only, never actual values
+   - Returns variable names and status; never actual values
+   - Omit variableNames to discover ALL existing variables in the file — use this when Config.toml is present and you want to reuse existing names in a later collect call
    - For workspace projects, pass packagePath to inspect the Config.toml of a specific package
-   - Example: { mode: "check", variableNames: ["dbPassword", "apiKey"], filePath: "Config.toml" }
-   - Example (workspace): { mode: "check", variableNames: ["dbPassword"], packagePath: "pkg1" }
+   - Example (discover all): { mode: "check" }
+   - Example (verify specific): { mode: "check", variableNames: ["dbPassword", "apiKey"] }
+   - Example (workspace): { mode: "check", packagePath: "pkg1" }
    - Returns: { status: { dbPassword: "filled", apiKey: "missing" } }
 
 VARIABLE NAMING:
@@ -377,7 +386,7 @@ async function handleCollectMode(
 }
 
 async function handleCheckMode(
-    variableNames: string[],
+    variableNames: string[] | undefined,
     filePath: string | undefined,
     paths: ConfigCollectorPaths,
     isTestConfig?: boolean,
@@ -408,23 +417,26 @@ async function handleCheckMode(
         };
     }
 
-    // Read all variables from the file
     const status = getAllConfigStatus(configPath);
 
-    // Any requested variable names not found in file → mark as missing
-    for (const name of variableNames) {
-        if (!(name in status)) {
-            status[name] = "missing";
+    // When specific names are provided, pad any that are absent from the file as "missing"
+    if (variableNames && variableNames.length > 0) {
+        for (const name of variableNames) {
+            if (!(name in status)) {
+                status[name] = "missing";
+            }
         }
     }
 
-    const filledCount = Object.values(status).filter((s) => s === "filled").length;
-    const missingCount = Object.values(status).filter((s) => s === "missing").length;
-    const totalCount = filledCount + missingCount;
+    const filledNames = Object.entries(status).filter(([, s]) => s === "filled").map(([n]) => n);
+    const missingNames = Object.entries(status).filter(([, s]) => s === "missing").map(([n]) => n);
 
     return {
         success: true,
-        message: `${configFileName} has ${totalCount} variable(s): ${filledCount} filled, ${missingCount} with placeholder`,
+        message:
+            `${configFileName} — ` +
+            `filled: [${filledNames.join(", ") || "none"}], ` +
+            `missing: [${missingNames.join(", ") || "none"}]`,
         status,
     };
 }
