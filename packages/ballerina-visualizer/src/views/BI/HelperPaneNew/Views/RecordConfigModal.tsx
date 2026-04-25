@@ -27,6 +27,7 @@ import { useForm } from "react-hook-form";
 import { debounce } from "lodash";
 import ReactMarkdown from "react-markdown";
 import { updateFieldsSelection } from "../Components/RecordConstructView/utils";
+import { rewrapIntersectionRecord, unwrapIntersectionRecord } from "../Components/RecordConstructView/utils/intersection";
 import { ChipExpressionEditorDefaultConfiguration } from "@wso2/ballerina-side-panel/lib/components/editors/MultiModeExpressionEditor/ChipExpressionEditor/ChipExpressionDefaultConfig";
 
 type ConfigureRecordPageProps = {
@@ -141,6 +142,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
 
     const [recordModel, setRecordModel] = useState<TypeField[]>([]);
     const recordModelRef = useRef<TypeField[]>([]);
+    const originalRecordConfigRef = useRef<TypeField | null>(null);
     const [selectedMemberName, setSelectedMemberName] = useState<string>("");
     const firstRender = useRef<boolean>(true);
     const initialMountRef = useRef<boolean>(true);
@@ -269,9 +271,11 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
         const newRecordModel = getRecordModelFromSourceResponse.recordConfig;
 
         if (newRecordModel) {
+            originalRecordConfigRef.current = newRecordModel;
+            const unwrapped = unwrapIntersectionRecord(newRecordModel);
             const recordConfig: TypeField = {
                 name: newRecordModel.name,
-                ...newRecordModel
+                ...unwrapped
             }
 
             setRecordModel([recordConfig]);
@@ -345,9 +349,10 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
         const typeFieldResponse: GetRecordConfigResponse = await rpcClient.getBIDiagramRpcClient().getRecordConfig(request);
         console.log(">>> GetRecordConfigResponse", typeFieldResponse);
         if (typeFieldResponse.recordConfig) {
+            originalRecordConfigRef.current = typeFieldResponse.recordConfig;
             const recordConfig: TypeField = {
                 name: defaultSelection.type,
-                ...typeFieldResponse.recordConfig
+                ...unwrapIntersectionRecord(typeFieldResponse.recordConfig)
             }
 
             const newModel = [recordConfig];
@@ -398,10 +403,10 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
 
             const typeFieldResponse: GetRecordConfigResponse = await rpcClient.getBIDiagramRpcClient().getRecordConfig(request);
             if (typeFieldResponse.recordConfig) {
-
+                originalRecordConfigRef.current = typeFieldResponse.recordConfig;
                 const recordConfig: TypeField = {
                     name: member.type,
-                    ...typeFieldResponse.recordConfig
+                    ...unwrapIntersectionRecord(typeFieldResponse.recordConfig)
                 }
 
                 const newModel = [recordConfig];
@@ -422,7 +427,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
     const handleModelChange = async (updatedModel: TypeField[]) => {
         const request: RecordSourceGenRequest = {
             filePath: fileName,
-            type: updatedModel[0]
+            type: rewrapIntersectionRecord(updatedModel[0], originalRecordConfigRef.current)
         }
         const recordSourceResponse: RecordSourceGenResponse = await rpcClient.getBIDiagramRpcClient().getRecordSource(request);
         console.log(">>> recordSourceResponse", recordSourceResponse);
