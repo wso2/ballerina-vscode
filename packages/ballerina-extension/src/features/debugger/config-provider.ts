@@ -278,6 +278,8 @@ async function getModifiedConfigs(workspaceFolder: WorkspaceFolder, config: Debu
         }
     }
 
+    config.name = path.basename(config.script);
+
     // To make compatible with 1.2.x which supports scriptArguments
     if (config.programArgs) {
         config.scriptArguments = config.programArgs;
@@ -657,8 +659,26 @@ class BIRunAdapter extends LoggingDebugSession {
     task: TaskExecution | null = null;
     taskTerminationListener: Disposable | null = null;
 
+    private static activeAdapter: BIRunAdapter | null = null;
+
     protected launchRequest(response: DebugProtocol.LaunchResponse, args: DebugProtocol.LaunchRequestArguments, request?: DebugProtocol.Request): void {
-        getCurrentProjectRoot().then((projectRoot) => {
+        getCurrentProjectRoot().then(async (projectRoot) => {
+            if (BIRunAdapter.activeAdapter?.task) {
+                const choice = await window.showInformationMessage(
+                    'There is already a running integration. Do you want to stop it and start this integration?',
+                    'Yes', 'No'
+                );
+                if (choice !== 'Yes') {
+                    response.success = true;
+                    this.sendResponse(response);
+                    this.sendEvent(new TerminatedEvent());
+                    return;
+                }
+                const previousAdapter = BIRunAdapter.activeAdapter;
+                BIRunAdapter.activeAdapter = null;
+                previousAdapter.task.terminate();
+            }
+
             const taskDefinition: TaskDefinition = {
                 type: 'shell',
                 task: 'run'
@@ -706,10 +726,14 @@ class BIRunAdapter extends LoggingDebugSession {
             try {
                 tasks.executeTask(task).then((taskExecution) => {
                     this.task = taskExecution;
+                    BIRunAdapter.activeAdapter = this;
 
                     // Add task termination listener
                     this.taskTerminationListener = tasks.onDidEndTaskProcess(e => {
                         if (e.execution === this.task) {
+                            if (BIRunAdapter.activeAdapter === this) {
+                                BIRunAdapter.activeAdapter = null;
+                            }
                             this.sendEvent(new TerminatedEvent());
                         }
                     });
@@ -730,6 +754,9 @@ class BIRunAdapter extends LoggingDebugSession {
     protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): void {
         if (this.task) {
             this.task.terminate();
+        }
+        if (BIRunAdapter.activeAdapter === this) {
+            BIRunAdapter.activeAdapter = null;
         }
         this.cleanupListeners();
         response.success = true;
