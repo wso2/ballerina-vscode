@@ -116,11 +116,13 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async getDefaultPrompt(): Promise<AIPanelPrompt> {
         let defaultPrompt: AIPanelPrompt = extension.aiChatDefaultPrompt;
 
-        // Normalize code context to use relative paths
+        // Normalize code context to use workspace-relative paths
         if (defaultPrompt && 'codeContext' in defaultPrompt && defaultPrompt.codeContext) {
+            const smCtx = StateMachine.context();
+            const workspaceRoot = smCtx.workspacePath || smCtx.projectPath;
             defaultPrompt = {
                 ...defaultPrompt,
-                codeContext: normalizeCodeContext(defaultPrompt.codeContext)
+                codeContext: normalizeCodeContext(defaultPrompt.codeContext, workspaceRoot, smCtx.projectPath)
             };
         }
 
