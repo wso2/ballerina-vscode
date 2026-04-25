@@ -655,20 +655,31 @@ public class DataMapManager {
         if (node.kind() != SyntaxKind.LET_VAR_DECL) {
             return inputPorts;
         }
+        Set<String> parentVarNames = new HashSet<>();
         NonTerminalNode parentNode = node.parent();
         while (parentNode != null) {
-            if (parentNode.kind() == SyntaxKind.LOCAL_VAR_DECL) {
+            SyntaxKind parentKind = parentNode.kind();
+            if (parentKind == SyntaxKind.LET_VAR_DECL) {
+                String letVarName = CommonUtils.getVariableName(
+                        ((LetVariableDeclarationNode) parentNode).typedBindingPattern());
+                parentVarNames.add(letVarName);
+            } else if (parentKind == SyntaxKind.LOCAL_VAR_DECL || parentKind == SyntaxKind.MODULE_VAR_DECL) {
+                String varName = CommonUtils.getVariableName(
+                        ((VariableDeclarationNode) parentNode).typedBindingPattern());
+                parentVarNames.add(varName);
+                break;
+            } else if (parentKind == SyntaxKind.EXPRESSION_FUNCTION_BODY
+                    || parentKind == SyntaxKind.FUNCTION_DEFINITION) {
                 break;
             }
             parentNode = parentNode.parent();
         }
-        if (parentNode == null) {
+        if (parentVarNames.isEmpty()) {
             return inputPorts;
         }
-        String varName = CommonUtils.getVariableName(((VariableDeclarationNode) parentNode).typedBindingPattern());
         List<MappingPort> newInputPorts = new ArrayList<>();
         for (MappingPort inputPort : inputPorts) {
-            if (!inputPort.displayName.equals(varName)) {
+            if (!parentVarNames.contains(inputPort.displayName)) {
                 newInputPorts.add(inputPort);
             }
         }
