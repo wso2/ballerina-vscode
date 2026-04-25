@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ChipExpressionEditorDefaultConfiguration } from "./ChipExpressionEditor/ChipExpressionDefaultConfig";
+import { ChipExpressionEditorDefaultConfiguration, HelperPaneMenuItem } from "./ChipExpressionEditor/ChipExpressionDefaultConfig";
 import { TokenType } from "./ChipExpressionEditor/types";
 import { ParsedToken } from "./ChipExpressionEditor/utils";
 import { ThemeColors } from "@wso2/ui-toolkit/lib/styles/Theme";
@@ -109,6 +109,10 @@ export class StringTemplateEditorConfig extends ChipExpressionEditorDefaultConfi
             (expValue.trim().startsWith(prefix) && expValue.trim().endsWith(suffix)) ||
             (expValue.trim().startsWith('"') && expValue.trim().endsWith('"')) 
         )
+    }
+
+    getHelperPaneHiddenItems(): HelperPaneMenuItem[] {
+        return [HelperPaneMenuItem.FUNCTIONS];
     }
 }
 

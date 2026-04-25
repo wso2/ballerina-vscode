@@ -32,4 +32,6 @@ export * from "./MultiModeExpressionEditor/ChipExpressionEditor/components/ChipE
 export * from "./MultiModeExpressionEditor/Configurations";
 export { getPropertyFromFormField } from "./utils";
 export { InputMode } from "./MultiModeExpressionEditor/ChipExpressionEditor/types";
+export { HelperPaneMenuItem } from "./MultiModeExpressionEditor/ChipExpressionEditor/ChipExpressionDefaultConfig";
+export { getEditorConfiguration } from "./ExpressionField";
 export { ExpandedEditor } from "./ExpandedEditor";
