@@ -691,7 +691,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                     if (defaultValue != null && !defaultValue.isEmpty()) {
                         options = reorderOptionsByDefaultValue(options, defaultValue);
                     }
-                    type().fieldType(ValueType.SINGLE_SELECT).options(options).stepOut();
+                    builder.type().fieldType(ValueType.SINGLE_SELECT).options(options).stepOut();
                 } else {
                     // Handle union of primitive types by defining an input type for each primitive type
                     for (TypeSymbol ts : typeSymbols) {
