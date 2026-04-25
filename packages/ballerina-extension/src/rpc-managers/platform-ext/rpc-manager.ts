@@ -865,7 +865,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 serviceId: params.marketplaceItem.serviceId,
             });
 
-            const choreoDir = path.join(projectPath, ".choreo");
+            const choreoDir = path.join(projectPath, ".wso2");
             if (!fs.existsSync(choreoDir)) {
                 fs.mkdirSync(choreoDir, { recursive: true });
             }
