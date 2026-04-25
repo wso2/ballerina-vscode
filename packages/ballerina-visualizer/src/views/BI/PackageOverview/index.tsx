@@ -580,6 +580,12 @@ function LocalICPDeployment() {
         return () => clearInterval(interval);
     }, []);
 
+    useEffect(() => {
+        if (serverRunning) {
+            setIsExpanded(true);
+        }
+    }, [serverRunning]);
+
     const handleServerToggle = async (e: React.MouseEvent) => {
         e.stopPropagation();
         setServerBusy(true);

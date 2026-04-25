@@ -243,10 +243,13 @@ export function getUserPrompt(params: GenerateAgentCodeRequest, tempProjectPath:
 
     // Add code context if available
     if (params.codeContext) {
-        content.push({
-            type: 'text' as const,
-            text: formatCodeContext(params.codeContext, tempProjectPath)
-        });
+        const codeContextText = formatCodeContext(params.codeContext, tempProjectPath);
+        if (codeContextText) {
+            content.push({
+                type: 'text' as const,
+                text: codeContextText
+            });
+        }
     }
 
     // Add file attachments if available
