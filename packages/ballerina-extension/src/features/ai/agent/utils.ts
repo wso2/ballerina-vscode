@@ -355,6 +355,11 @@ export async function applyTextEdits(filePath: string, textEdits: TextEdit[]): P
 export function formatCodeContext(codeContext: CodeContext, tempProjectPath: string): string {
     const absolutePath = path.join(tempProjectPath, codeContext.filePath);
 
+    if (!fs.existsSync(absolutePath)) {
+        console.warn(`[formatCodeContext] File not found in temp project: ${absolutePath}`);
+        return '';
+    }
+
     const fileContent = normalizeToLf(fs.readFileSync(absolutePath, "utf-8"));
     const lines = fileContent.split("\n");
     const totalLines = lines.length;
