@@ -115,7 +115,7 @@ export async function prepareAndGenerateConfig(
         return true;
     }
 
-    return await handleOnUnSetValues(packageName, configFile, ignoreFile, ballerinaExtInstance, isCommand, isBi, executeRun);
+    return await handleOnUnSetValues(packageName, packagePath, configFile, ignoreFile, ballerinaExtInstance, isCommand, isBi, executeRun);
 }
 
 export async function checkConfigUpdateRequired(
@@ -210,7 +210,7 @@ export async function getCurrentBIProject(projectPath: string): Promise<Ballerin
     return await getCurrentBallerinaProject(projectRoot || projectPath);
 }
 
-export async function handleOnUnSetValues(packageName: string, configFile: string, ignoreFile: string, ballerinaExtInstance: BallerinaExtension, isCommand: boolean, isBi: boolean, executeRun: boolean = true): Promise<boolean> {
+export async function handleOnUnSetValues(packageName: string, packagePath: string, configFile: string, ignoreFile: string, ballerinaExtInstance: BallerinaExtension, isCommand: boolean, isBi: boolean, executeRun: boolean = true): Promise<boolean> {
     let result;
     let btnTitle: string;
     let message: string;
@@ -273,7 +273,7 @@ export async function handleOnUnSetValues(packageName: string, configFile: strin
         return false;
     } else if (!isCommand && result === ignoreButton) {
         if (executeRun) {
-            executeRunCommand(ballerinaExtInstance, configFile, isBi);
+            executeRunCommand(ballerinaExtInstance, packagePath, isBi);
         }
         return true;
     }
