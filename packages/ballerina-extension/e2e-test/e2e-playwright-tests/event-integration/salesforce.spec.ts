@@ -49,6 +49,7 @@ export default function createTests() {
                 }
             });
             await form.submit('Create');
+            console.log('Form submitted, waiting for service creation to complete.');
 
             const onCreate = artifactWebView.locator(`text="onCreate"`);
             await onCreate.waitFor();
@@ -62,8 +63,9 @@ export default function createTests() {
             const onRestore = artifactWebView.locator(`text="onRestore"`);
             await onRestore.waitFor();
 
+            console.log('Service created successfully, proceeding with assertions.');
             const projectExplorer = new ProjectExplorer(page.page);
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `Salesforce Event Integration - /data/ChangeEvents`]);
+            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `Salesforce Event Integration - "/data/ChangeEvents"`]);
 
             listenerName = `salesforceListener`;
             const context = artifactWebView.locator(`text=${listenerName}`);
@@ -121,7 +123,7 @@ export default function createTests() {
                 throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
             }
             const projectExplorer = new ProjectExplorer(page.page);
-            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `Salesforce Event Integration - /data/ChangeEvents`]);
+            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `Salesforce Event Integration - "/data/ChangeEvents"`]);
             await serviceTreeItem.click({ button: 'right' });
             const deleteButton = page.page.getByRole('button', { name: 'Delete' }).first();
             await deleteButton.waitFor({ timeout: 5000 });
