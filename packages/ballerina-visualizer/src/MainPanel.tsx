@@ -328,498 +328,498 @@ const MainPanel = () => {
                     setViewComponent(<LoadingRing />);
                 } else {
                     switch (value?.view) {
-                    case MACHINE_VIEW.PackageOverview: {
-                        const { PackageOverview } = await import("./views/BI/PackageOverview");
-                        if (isStaleNavigation()) return;
-                        setViewComponent(
-                            <PackageOverview
-                                projectPath={value.projectPath}
-                                isInDevant={value.isInDevant}
-                            />
-                        );
-                        break;
-                    }
-                    case MACHINE_VIEW.WorkspaceOverview: {
-                        const { WorkspaceOverview } = await import("./views/BI/WorkspaceOverview");
-                        if (isStaleNavigation()) return;
-                        setViewComponent(<WorkspaceOverview />);
-                        break;
-                    }
-                    case MACHINE_VIEW.ServiceDesigner: {
-                        const { ServiceDesigner } = await import("./views/BI/ServiceDesigner");
-                        if (isStaleNavigation()) return;
-                        setViewComponent(
-                            <ServiceDesigner
-                                projectPath={value.projectPath}
-                                serviceIdentifier={value.identifier}
-                                filePath={value.documentUri}
-                                position={value?.position}
-                            />
-                        );
-                        break;
-                    }
-                    case MACHINE_VIEW.AIAgentDesigner: {
-                        const { AIAgentDesigner } = await import("./views/BI/AIChatAgent");
-                        if (isStaleNavigation()) return;
-                        setViewComponent(
-                            <AIAgentDesigner
-                                projectPath={value?.projectPath}
-                                filePath={value.documentUri}
-                                position={value?.position}
-                            />
-                        );
-                        break;
-                    }
-                    case MACHINE_VIEW.BIDiagram:
-                        const { default: DiagramWrapper } = await import("./views/BI/DiagramWrapper");
-                        if (isStaleNavigation()) return;
-                        rpcClient.getLangClientRpcClient().getSTByRange({
-                            documentIdentifier: {
-                                uri: URI.file(value.documentUri).toString(),
-                            },
-                            lineRange: {
-                                start: {
-                                    line: value?.position?.startLine,
-                                    character: value?.position?.startColumn,
-                                },
-                                end: {
-                                    line: value?.position?.endLine,
-                                    character: value?.position?.endColumn,
-                                },
-                            },
-                        }).then((st) => {
+                        case MACHINE_VIEW.PackageOverview: {
+                            const { PackageOverview } = await import("./views/BI/PackageOverview");
                             if (isStaleNavigation()) return;
                             setViewComponent(
-                                <DiagramWrapper
-                                    key={value?.identifier}
-                                    syntaxTree={st.syntaxTree}
-                                    projectPath={value?.projectPath}
-                                    filePath={value?.documentUri}
-                                    view={value?.focusFlowDiagramView}
-                                    breakpointState={breakpointStateRef.current}
+                                <PackageOverview
+                                    projectPath={value.projectPath}
+                                    isInDevant={value.isInDevant}
                                 />
                             );
-                        }).catch((error) => {
-                            console.error("Error fetching ST:", error);
-                            if (isStaleNavigation()) return;
-                            // Fallback to render without waiting
-                            setViewComponent(
-                                <DiagramWrapper
-                                    key={value?.identifier}
-                                    projectPath={value?.projectPath}
-                                    filePath={value?.documentUri}
-                                    view={value?.focusFlowDiagramView}
-                                    breakpointState={breakpointStateRef.current}
-                                />
-                            );
-                        });
-                        break;
-                    case MACHINE_VIEW.ERDiagram: {
-                        const { ERDiagram } = await import("./views/ERDiagram");
-                        if (isStaleNavigation()) return;
-                        setViewComponent(<ERDiagram projectPath={value.projectPath} />);
-                        break;
-                    }
-                    case MACHINE_VIEW.TypeDiagram: {
-                        const { TypeDiagram } = await import("./views/TypeDiagram");
-                        if (isStaleNavigation()) return;
-                        setViewComponent(
-                            <TypeDiagram
-                                key={remountKey}
-                                selectedTypeId={value?.identifier}
-                                addType={value?.addType}
-                                projectPath={value?.projectPath}
-                            />
-                        );
-                        break;
-                    }
-                    case MACHINE_VIEW.DataMapper: {
-                        const { DataMapper } = await import("./views/DataMapper");
-                        if (isStaleNavigation()) return;
-                        let position: LinePosition = {
-                            line: value?.position?.startLine,
-                            offset: value?.position?.startColumn
-                        };
-                        if (STKindChecker.isFunctionDefinition(value?.syntaxTree) &&
-                            STKindChecker.isExpressionFunctionBody(value?.syntaxTree.functionBody)
-                        ) {
-                            position = {
-                                line: value?.syntaxTree.functionBody.expression.position.startLine,
-                                offset: value?.syntaxTree.functionBody.expression.position.startColumn
-                            };
+                            break;
                         }
-                        setViewComponent(
-                            <DataMapper
-                                key={value?.dataMapperMetadata?.name}
-                                filePath={value.documentUri}
-                                codedata={value?.dataMapperMetadata?.codeData}
-                                name={value?.dataMapperMetadata?.name}
-                                projectPath={value.projectPath}
-                                position={position}
-                                reusable
-                            />
-                        );
-                        break;
-                    }
-                    case MACHINE_VIEW.InlineDataMapper: {
-                        const { DataMapper } = await import("./views/DataMapper");
-                        if (isStaleNavigation()) return;
-                        setViewComponent(
-                            <DataMapper
-                                projectPath={value.projectPath}
-                                filePath={value.documentUri}
-                                codedata={value?.dataMapperMetadata?.codeData}
-                                name={value?.dataMapperMetadata?.name}
-                            />
-                        );
-                        break;
-                    }
-                    case MACHINE_VIEW.BIDataMapperForm: {
-                        const { FunctionForm } = await import("./views/BI/FunctionForm");
-                        const defaultFunctionsFile = await getDefaultFunctionsFile();
-                        if (isStaleNavigation()) return;
-                        setViewComponent(
-                            <FunctionForm
-                                key={remountKey}
-                                projectPath={value.projectPath}
-                                filePath={defaultFunctionsFile}
-                                functionName={value?.identifier}
-                                isDataMapper={true}
-                            />
-                        );
-                        break;
-                    }
-                    case MACHINE_VIEW.BINPFunctionForm: {
-                        const { FunctionForm } = await import("./views/BI/FunctionForm");
-                        const defaultFunctionsFile = await getDefaultFunctionsFile();
-                        if (isStaleNavigation()) return;
-                        setViewComponent(
-                            <FunctionForm
-                                projectPath={value.projectPath}
-                                filePath={defaultFunctionsFile}
-                                functionName={value?.identifier}
-                                isDataMapper={false}
-                                isNpFunction={true}
-                            />
-                        );
-                        break;
-                    }
-                    case MACHINE_VIEW.GraphQLDiagram:
-                        const { GraphQLDiagram } = await import("./views/GraphQLDiagram");
-                        if (isStaleNavigation()) return;
-                        const projectStructure = await rpcClient.getBIDiagramRpcClient().getProjectStructure();
-                        if (isStaleNavigation()) return;
-                        const project = projectStructure.projects.find(project => project.projectPath === value.projectPath);
-                        const services = project?.directoryMap?.[DIRECTORY_MAP.SERVICE] as ProjectStructureArtifactResponse[] | undefined;
-                        const entryPoint = services?.find((service: ProjectStructureArtifactResponse) => service.name === value?.identifier);
-                        setViewComponent(
-                            <GraphQLDiagram
-                                projectPath={value.projectPath}
-                                serviceIdentifier={value?.identifier}
-                                filePath={value?.documentUri}
-                                position={entryPoint?.position ?? value?.position}
-                            />);
-                        break;
-                    case MACHINE_VIEW.BallerinaUpdateView: {
-                        const { BallerinaUpdateView } = await import("./views/BI/BallerinaUpdateView");
-                        if (isStaleNavigation()) return;
-                        setNavActive(false);
-                        setViewComponent(<BallerinaUpdateView />);
-                        break;
-                    }
-                    case MACHINE_VIEW.BIWelcome: {
-                        const { WelcomeView } = await import("./views/BI/WelcomeView");
-                        if (isStaleNavigation()) return;
-                        setNavActive(false);
-                        setViewComponent(<WelcomeView isBISupported={value.metadata.isBISupported} />);
-                        break;
-                    }
-                    case MACHINE_VIEW.BISamplesView: {
-                        const { SamplesView } = await import("./views/BI/SamplesView");
-                        if (isStaleNavigation()) return;
-                        setNavActive(false);
-                        setViewComponent(<SamplesView />);
-                        break;
-                    }
-                    case MACHINE_VIEW.SetupView: {
-                        const { SetupView } = await import("./views/BI/SetupView");
-                        if (isStaleNavigation()) return;
-                        setNavActive(false);
-                        setViewComponent(<SetupView haveLS={value.metadata.haveLS} />);
-                        break;
-                    }
-                    case MACHINE_VIEW.BIProjectForm: {
-                        const { ProjectForm } = await import("./views/BI/ProjectForm");
-                        if (isStaleNavigation()) return;
-                        setShowHome(false);
-                        setViewComponent(<ProjectForm />);
-                        break;
-                    }
-                    case MACHINE_VIEW.BIImportIntegration: {
-                        const { ImportIntegration } = await import("./views/BI/ImportIntegration");
-                        if (isStaleNavigation()) return;
-                        setShowHome(false);
-                        setViewComponent(<ImportIntegration />);
-                        break;
-                    }
-                    case MACHINE_VIEW.BIAddProjectForm: {
-                        const { AddProjectForm } = await import("./views/BI/ProjectForm/AddProjectForm");
-                        if (isStaleNavigation()) return;
-                        setShowHome(false);
-                        setViewComponent(<AddProjectForm />);
-                        break;
-                    }
-                    case MACHINE_VIEW.BIComponentView: {
-                        const { ComponentListView } = await import("./views/BI/ComponentListView");
-                        if (isStaleNavigation()) return;
-                        setViewComponent(
-                            <ComponentListView
-                                projectPath={value?.projectPath}
-                                scope={value.scope}
-                            />
-                        );
-                        break;
-                    }
-                    case MACHINE_VIEW.AIChatAgentWizard: {
-                        const { AIChatAgentWizard } = await import("./views/BI/AIChatAgent/AIChatAgentWizard");
-                        if (isStaleNavigation()) return;
-                        setViewComponent(<AIChatAgentWizard />);
-                        break;
-                    }
-                    case MACHINE_VIEW.BIServiceWizard: {
-                        const { ServiceCreationView } = await import("./views/BI/ServiceDesigner/ServiceCreationView");
-                        if (isStaleNavigation()) return;
-                        setViewComponent(
-                            <ServiceCreationView
-                                projectPath={value.projectPath}
-                                orgName={value?.artifactInfo.org}
-                                packageName={value?.artifactInfo.packageName}
-                                moduleName={value?.artifactInfo.moduleName}
-                                version={value?.artifactInfo.version}
-                            />
-                        );
-                        break;
-                    }
-                    case MACHINE_VIEW.BIServiceClassDesigner: {
-                        const { ServiceClassDesigner } = await import("./views/BI/ServiceClassEditor/ServiceClassDesigner");
-                        if (isStaleNavigation()) return;
-                        setViewComponent(
-                            <ServiceClassDesigner
-                                projectPath={value.projectPath}
-                                type={value?.type}
-                                fileName={value?.documentUri}
-                                position={value?.position}
-                                isGraphql={value?.isGraphql}
-                            />
-                        );
-                        break;
-                    }
-                    case MACHINE_VIEW.BIServiceConfigView: {
-                        const { default: ServiceConfigureView } = await import("./views/BI/ServiceDesigner/ServiceConfigureView");
-                        if (isStaleNavigation()) return;
-                        setViewComponent(
-                            <ServiceConfigureView
-                                projectPath={value.projectPath}
-                                filePath={value.documentUri}
-                                position={value?.position}
-                                listenerName={value?.identifier}
-                            />
-                        );
-                        break;
-                    }
-                    case MACHINE_VIEW.BIServiceClassConfigView: {
-                        const { ServiceClassConfig } = await import("./views/BI/ServiceClassEditor/ServiceClassConfig");
-                        if (isStaleNavigation()) return;
-                        setViewComponent(
-                            <ServiceClassConfig
-                                projectPath={value.projectPath}
-                                type={value?.type}
-                                fileName={value.documentUri}
-                                position={value?.position}
-                            />
-                        );
-                        break;
-                    }
-                    case MACHINE_VIEW.BIListenerConfigView: {
-                        const { ListenerEditView } = await import("./views/BI/ServiceDesigner/ListenerEditView");
-                        if (isStaleNavigation()) return;
-                        setViewComponent(
-                            <ListenerEditView
-                                projectPath={value.projectPath}
-                                filePath={value.documentUri}
-                                position={value?.position}
-                            />);
-                        break;
-                    }
-                    case MACHINE_VIEW.AddConnectionWizard: {
-                        const { default: AddConnectionPopup } = await import("./views/BI/Connection/AddConnectionPopup");
-                        if (isStaleNavigation()) return;
-                        setViewComponent(
-                            <AddConnectionPopup
-                                key={remountKey}
-                                projectPath={value.projectPath}
-                                fileName={value.documentUri || value.projectPath}
-                                onNavigateToOverview={handleNavigateToOverview}
-                            />
-                        );
-                        break;
-                    }
-                    case MACHINE_VIEW.EditConnectionWizard: {
-                        const { default: EditConnectionPopup } = await import("./views/BI/Connection/EditConnectionPopup");
-                        if (isStaleNavigation()) return;
-                        setViewComponent(
-                            <EditConnectionPopup
-                                key={remountKey}
-                                connectionName={value?.identifier}
-                            />
-                        );
-                        break;
-                    }
-                    case MACHINE_VIEW.AddCustomConnector: {
-                        const { default: AddConnectionWizard } = await import("./views/BI/Connection/AddConnectionWizard");
-                        if (isStaleNavigation()) return;
-                        setViewComponent(
-                            <AddConnectionWizard
-                                projectPath={value.projectPath}
-                                fileName={value.documentUri || value.projectPath}
-                                openCustomConnectorView={true}
-                            />
-                        );
-                        break;
-                    }
-                    case MACHINE_VIEW.BIMainFunctionForm: {
-                        const { FunctionForm } = await import("./views/BI/FunctionForm");
-                        const defaultFunctionsFile = await getDefaultFunctionsFile();
-                        if (isStaleNavigation()) return;
-                        setViewComponent(
-                            <FunctionForm
-                                projectPath={value.projectPath}
-                                filePath={defaultFunctionsFile}
-                                functionName={value?.identifier}
-                                isAutomation={true}
-                            />
-                        );
-                        break;
-                    }
-                    case MACHINE_VIEW.BIFunctionForm: {
-                        const { FunctionForm } = await import("./views/BI/FunctionForm");
-                        const defaultFunctionsFile = await getDefaultFunctionsFile();
-                        if (isStaleNavigation()) return;
-                        setViewComponent(
-                            <FunctionForm
-                                key={remountKey}
-                                projectPath={value.projectPath}
-                                filePath={defaultFunctionsFile}
-                                functionName={value?.identifier}
-                            />);
-                        break;
-                    }
-                    case MACHINE_VIEW.BITestFunctionForm: {
-                        const { TestFunctionForm } = await import("./views/BI/TestFunctionForm");
-                        if (isStaleNavigation()) return;
-                        setViewComponent(
-                            <TestFunctionForm
-                                key={value?.identifier} // Force remount when switching between different tests
-                                projectPath={value.projectPath}
-                                functionName={value?.identifier}
-                                filePath={value?.documentUri}
-                                serviceType={value?.serviceType}
-                            />);
-                        break;
-                    }
-                    case MACHINE_VIEW.BIAIEvaluationForm: {
-                        const { AIEvaluationForm } = await import("./views/BI/AIEvaluationForm");
-                        if (isStaleNavigation()) return;
-                        setViewComponent(
-                            <AIEvaluationForm
-                                key={value?.identifier} // Force remount when switching between different tests
-                                projectPath={value.projectPath}
-                                functionName={value?.identifier}
-                                filePath={value?.documentUri}
-                                serviceType={value?.serviceType}
-                                isVersionSupported={value?.metadata?.featureSupport?.aiEvaluation}
-                            />);
-                        break;
-                    }
-                    case MACHINE_VIEW.ViewConfigVariables: {
-                        const { default: ViewConfigurableVariables } = await import("./views/BI/Configurables/ViewConfigurableVariables");
-                        const [configFilePath, testsConfigTomlPath] = await Promise.all([
-                            getConfigFilePath(),
-                            getTestsConfigTomlPath(),
-                        ]);
-                        if (isStaleNavigation()) return;
-                        setViewComponent(
-                            <ViewConfigurableVariables
-                                key={remountKey}
-                                projectPath={value?.projectPath}
-                                fileName={configFilePath}
-                                testsConfigTomlPath={testsConfigTomlPath}
-                                org={value?.org}
-                            />
-                        );
-                        break;
-                    }
-                    case MACHINE_VIEW.AddConfigVariables: {
-                        const { default: ViewConfigurableVariables } = await import("./views/BI/Configurables/ViewConfigurableVariables");
-                        const [configFilePath, testsConfigTomlPath] = await Promise.all([
-                            getConfigFilePath(),
-                            getTestsConfigTomlPath(),
-                        ]);
-                        if (isStaleNavigation()) return;
-                        setViewComponent(
-                            <ViewConfigurableVariables
-                                key={remountKey}
-                                projectPath={value?.projectPath}
-                                fileName={configFilePath}
-                                testsConfigTomlPath={testsConfigTomlPath}
-                                org={value?.org}
-                                addNew={true}
-                            />
-                        );
-                        break;
-                    }
-                    case MACHINE_VIEW.ServiceFunctionForm: {
-                        const { ServiceFunctionForm } = await import("./views/BI/ServiceFunctionForm");
-                        if (isStaleNavigation()) return;
-                        setViewComponent(
-                            <ServiceFunctionForm
-                                position={value?.position}
-                                currentFilePath={value.documentUri}
-                                projectPath={value.projectPath}
-                            />
-                        );
-                        break;
-                    }
-                    case MACHINE_VIEW.ReviewMode: {
-                        const { ReviewMode } = await import("./views/ReviewMode");
-                        if (isStaleNavigation()) return;
-                        setViewComponent(<ReviewMode />);
-                        break;
-                    }
-                    case MACHINE_VIEW.EvalsetViewer: {
-                        const { EvalsetViewer } = await import("./views/EvalsetViewer/EvalsetViewer");
-                        if (isStaleNavigation()) return;
-                        setViewComponent(
-                            <EvalsetViewer
-                                projectPath={value.projectPath}
-                                filePath={value?.evalsetData.filePath}
-                                content={value?.evalsetData.content}
-                                threadId={value?.evalsetData?.threadId}
-                            />
-                        );
-                        break;
-                    }
-                    case MACHINE_VIEW.ConfigurationCollector: {
-                        const { ConfigurationCollector } = await import("./views/AIPanel/components/ConfigurationCollector");
-                        if (isStaleNavigation()) return;
-                        setViewComponent(
-                            <ConfigurationCollector
-                                data={value.agentMetadata?.configurationCollector}
-                                onClose={() => handleApprovalClose(value.agentMetadata?.configurationCollector)}
-                            />
-                        );
-                        break;
-                    }
+                        case MACHINE_VIEW.WorkspaceOverview: {
+                            const { WorkspaceOverview } = await import("./views/BI/WorkspaceOverview");
+                            if (isStaleNavigation()) return;
+                            setViewComponent(<WorkspaceOverview />);
+                            break;
+                        }
+                        case MACHINE_VIEW.ServiceDesigner: {
+                            const { ServiceDesigner } = await import("./views/BI/ServiceDesigner");
+                            if (isStaleNavigation()) return;
+                            setViewComponent(
+                                <ServiceDesigner
+                                    projectPath={value.projectPath}
+                                    serviceIdentifier={value.identifier}
+                                    filePath={value.documentUri}
+                                    position={value?.position}
+                                />
+                            );
+                            break;
+                        }
+                        case MACHINE_VIEW.AIAgentDesigner: {
+                            const { AIAgentDesigner } = await import("./views/BI/AIChatAgent");
+                            if (isStaleNavigation()) return;
+                            setViewComponent(
+                                <AIAgentDesigner
+                                    projectPath={value?.projectPath}
+                                    filePath={value.documentUri}
+                                    position={value?.position}
+                                />
+                            );
+                            break;
+                        }
+                        case MACHINE_VIEW.BIDiagram:
+                            const { default: DiagramWrapper } = await import("./views/BI/DiagramWrapper");
+                            if (isStaleNavigation()) return;
+                            rpcClient.getLangClientRpcClient().getSTByRange({
+                                documentIdentifier: {
+                                    uri: URI.file(value.documentUri).toString(),
+                                },
+                                lineRange: {
+                                    start: {
+                                        line: value?.position?.startLine,
+                                        character: value?.position?.startColumn,
+                                    },
+                                    end: {
+                                        line: value?.position?.endLine,
+                                        character: value?.position?.endColumn,
+                                    },
+                                },
+                            }).then((st) => {
+                                if (isStaleNavigation()) return;
+                                setViewComponent(
+                                    <DiagramWrapper
+                                        key={value?.identifier}
+                                        syntaxTree={st.syntaxTree}
+                                        projectPath={value?.projectPath}
+                                        filePath={value?.documentUri}
+                                        view={value?.focusFlowDiagramView}
+                                        breakpointState={breakpointStateRef.current}
+                                    />
+                                );
+                            }).catch((error) => {
+                                console.error("Error fetching ST:", error);
+                                if (isStaleNavigation()) return;
+                                // Fallback to render without waiting
+                                setViewComponent(
+                                    <DiagramWrapper
+                                        key={value?.identifier}
+                                        projectPath={value?.projectPath}
+                                        filePath={value?.documentUri}
+                                        view={value?.focusFlowDiagramView}
+                                        breakpointState={breakpointStateRef.current}
+                                    />
+                                );
+                            });
+                            break;
+                        case MACHINE_VIEW.ERDiagram: {
+                            const { ERDiagram } = await import("./views/ERDiagram");
+                            if (isStaleNavigation()) return;
+                            setViewComponent(<ERDiagram projectPath={value.projectPath} />);
+                            break;
+                        }
+                        case MACHINE_VIEW.TypeDiagram: {
+                            const { TypeDiagram } = await import("./views/TypeDiagram");
+                            if (isStaleNavigation()) return;
+                            setViewComponent(
+                                <TypeDiagram
+                                    key={remountKey}
+                                    selectedTypeId={value?.identifier}
+                                    addType={value?.addType}
+                                    projectPath={value?.projectPath}
+                                />
+                            );
+                            break;
+                        }
+                        case MACHINE_VIEW.DataMapper: {
+                            const { DataMapper } = await import("./views/DataMapper");
+                            if (isStaleNavigation()) return;
+                            let position: LinePosition = {
+                                line: value?.position?.startLine,
+                                offset: value?.position?.startColumn
+                            };
+                            if (STKindChecker.isFunctionDefinition(value?.syntaxTree) &&
+                                STKindChecker.isExpressionFunctionBody(value?.syntaxTree.functionBody)
+                            ) {
+                                position = {
+                                    line: value?.syntaxTree.functionBody.expression.position.startLine,
+                                    offset: value?.syntaxTree.functionBody.expression.position.startColumn
+                                };
+                            }
+                            setViewComponent(
+                                <DataMapper
+                                    key={value?.dataMapperMetadata?.name}
+                                    filePath={value.documentUri}
+                                    codedata={value?.dataMapperMetadata?.codeData}
+                                    name={value?.dataMapperMetadata?.name}
+                                    projectPath={value.projectPath}
+                                    position={position}
+                                    reusable
+                                />
+                            );
+                            break;
+                        }
+                        case MACHINE_VIEW.InlineDataMapper: {
+                            const { DataMapper } = await import("./views/DataMapper");
+                            if (isStaleNavigation()) return;
+                            setViewComponent(
+                                <DataMapper
+                                    projectPath={value.projectPath}
+                                    filePath={value.documentUri}
+                                    codedata={value?.dataMapperMetadata?.codeData}
+                                    name={value?.dataMapperMetadata?.name}
+                                />
+                            );
+                            break;
+                        }
+                        case MACHINE_VIEW.BIDataMapperForm: {
+                            const { FunctionForm } = await import("./views/BI/FunctionForm");
+                            const defaultFunctionsFile = await getDefaultFunctionsFile();
+                            if (isStaleNavigation()) return;
+                            setViewComponent(
+                                <FunctionForm
+                                    key={remountKey}
+                                    projectPath={value.projectPath}
+                                    filePath={defaultFunctionsFile}
+                                    functionName={value?.identifier}
+                                    isDataMapper={true}
+                                />
+                            );
+                            break;
+                        }
+                        case MACHINE_VIEW.BINPFunctionForm: {
+                            const { FunctionForm } = await import("./views/BI/FunctionForm");
+                            const defaultFunctionsFile = await getDefaultFunctionsFile();
+                            if (isStaleNavigation()) return;
+                            setViewComponent(
+                                <FunctionForm
+                                    projectPath={value.projectPath}
+                                    filePath={defaultFunctionsFile}
+                                    functionName={value?.identifier}
+                                    isDataMapper={false}
+                                    isNpFunction={true}
+                                />
+                            );
+                            break;
+                        }
+                        case MACHINE_VIEW.GraphQLDiagram:
+                            const { GraphQLDiagram } = await import("./views/GraphQLDiagram");
+                            if (isStaleNavigation()) return;
+                            const projectStructure = await rpcClient.getBIDiagramRpcClient().getProjectStructure();
+                            if (isStaleNavigation()) return;
+                            const project = projectStructure.projects.find(project => project.projectPath === value.projectPath);
+                            const services = project?.directoryMap?.[DIRECTORY_MAP.SERVICE] as ProjectStructureArtifactResponse[] | undefined;
+                            const entryPoint = services?.find((service: ProjectStructureArtifactResponse) => service.name === value?.identifier);
+                            setViewComponent(
+                                <GraphQLDiagram
+                                    projectPath={value.projectPath}
+                                    serviceIdentifier={value?.identifier}
+                                    filePath={value?.documentUri}
+                                    position={entryPoint?.position ?? value?.position}
+                                />);
+                            break;
+                        case MACHINE_VIEW.BallerinaUpdateView: {
+                            const { BallerinaUpdateView } = await import("./views/BI/BallerinaUpdateView");
+                            if (isStaleNavigation()) return;
+                            setNavActive(false);
+                            setViewComponent(<BallerinaUpdateView />);
+                            break;
+                        }
+                        case MACHINE_VIEW.BIWelcome: {
+                            const { WelcomeView } = await import("./views/BI/WelcomeView");
+                            if (isStaleNavigation()) return;
+                            setNavActive(false);
+                            setViewComponent(<WelcomeView isBISupported={value.metadata.isBISupported} />);
+                            break;
+                        }
+                        case MACHINE_VIEW.BISamplesView: {
+                            const { SamplesView } = await import("./views/BI/SamplesView");
+                            if (isStaleNavigation()) return;
+                            setNavActive(false);
+                            setViewComponent(<SamplesView />);
+                            break;
+                        }
+                        case MACHINE_VIEW.SetupView: {
+                            const { SetupView } = await import("./views/BI/SetupView");
+                            if (isStaleNavigation()) return;
+                            setNavActive(false);
+                            setViewComponent(<SetupView haveLS={value.metadata.haveLS} />);
+                            break;
+                        }
+                        case MACHINE_VIEW.BIProjectForm: {
+                            const { ProjectForm } = await import("./views/BI/ProjectForm");
+                            if (isStaleNavigation()) return;
+                            setShowHome(false);
+                            setViewComponent(<ProjectForm />);
+                            break;
+                        }
+                        case MACHINE_VIEW.BIImportIntegration: {
+                            const { ImportIntegration } = await import("./views/BI/ImportIntegration");
+                            if (isStaleNavigation()) return;
+                            setShowHome(false);
+                            setViewComponent(<ImportIntegration />);
+                            break;
+                        }
+                        case MACHINE_VIEW.BIAddProjectForm: {
+                            const { AddProjectForm } = await import("./views/BI/ProjectForm/AddProjectForm");
+                            if (isStaleNavigation()) return;
+                            setShowHome(false);
+                            setViewComponent(<AddProjectForm />);
+                            break;
+                        }
+                        case MACHINE_VIEW.BIComponentView: {
+                            const { ComponentListView } = await import("./views/BI/ComponentListView");
+                            if (isStaleNavigation()) return;
+                            setViewComponent(
+                                <ComponentListView
+                                    projectPath={value?.projectPath}
+                                    scope={value.scope}
+                                />
+                            );
+                            break;
+                        }
+                        case MACHINE_VIEW.AIChatAgentWizard: {
+                            const { AIChatAgentWizard } = await import("./views/BI/AIChatAgent/AIChatAgentWizard");
+                            if (isStaleNavigation()) return;
+                            setViewComponent(<AIChatAgentWizard />);
+                            break;
+                        }
+                        case MACHINE_VIEW.BIServiceWizard: {
+                            const { ServiceCreationView } = await import("./views/BI/ServiceDesigner/ServiceCreationView");
+                            if (isStaleNavigation()) return;
+                            setViewComponent(
+                                <ServiceCreationView
+                                    projectPath={value.projectPath}
+                                    orgName={value?.artifactInfo.org}
+                                    packageName={value?.artifactInfo.packageName}
+                                    moduleName={value?.artifactInfo.moduleName}
+                                    version={value?.artifactInfo.version}
+                                />
+                            );
+                            break;
+                        }
+                        case MACHINE_VIEW.BIServiceClassDesigner: {
+                            const { ServiceClassDesigner } = await import("./views/BI/ServiceClassEditor/ServiceClassDesigner");
+                            if (isStaleNavigation()) return;
+                            setViewComponent(
+                                <ServiceClassDesigner
+                                    projectPath={value.projectPath}
+                                    type={value?.type}
+                                    fileName={value?.documentUri}
+                                    position={value?.position}
+                                    isGraphql={value?.isGraphql}
+                                />
+                            );
+                            break;
+                        }
+                        case MACHINE_VIEW.BIServiceConfigView: {
+                            const { default: ServiceConfigureView } = await import("./views/BI/ServiceDesigner/ServiceConfigureView");
+                            if (isStaleNavigation()) return;
+                            setViewComponent(
+                                <ServiceConfigureView
+                                    projectPath={value.projectPath}
+                                    filePath={value.documentUri}
+                                    position={value?.position}
+                                    listenerName={value?.identifier}
+                                />
+                            );
+                            break;
+                        }
+                        case MACHINE_VIEW.BIServiceClassConfigView: {
+                            const { ServiceClassConfig } = await import("./views/BI/ServiceClassEditor/ServiceClassConfig");
+                            if (isStaleNavigation()) return;
+                            setViewComponent(
+                                <ServiceClassConfig
+                                    projectPath={value.projectPath}
+                                    type={value?.type}
+                                    fileName={value.documentUri}
+                                    position={value?.position}
+                                />
+                            );
+                            break;
+                        }
+                        case MACHINE_VIEW.BIListenerConfigView: {
+                            const { ListenerEditView } = await import("./views/BI/ServiceDesigner/ListenerEditView");
+                            if (isStaleNavigation()) return;
+                            setViewComponent(
+                                <ListenerEditView
+                                    projectPath={value.projectPath}
+                                    filePath={value.documentUri}
+                                    position={value?.position}
+                                />);
+                            break;
+                        }
+                        case MACHINE_VIEW.AddConnectionWizard: {
+                            const { default: AddConnectionPopup } = await import("./views/BI/Connection/AddConnectionPopup");
+                            if (isStaleNavigation()) return;
+                            setViewComponent(
+                                <AddConnectionPopup
+                                    key={remountKey}
+                                    projectPath={value.projectPath}
+                                    fileName={value.documentUri || value.projectPath}
+                                    onNavigateToOverview={handleNavigateToOverview}
+                                />
+                            );
+                            break;
+                        }
+                        case MACHINE_VIEW.EditConnectionWizard: {
+                            const { default: EditConnectionPopup } = await import("./views/BI/Connection/EditConnectionPopup");
+                            if (isStaleNavigation()) return;
+                            setViewComponent(
+                                <EditConnectionPopup
+                                    key={remountKey}
+                                    connectionName={value?.identifier}
+                                />
+                            );
+                            break;
+                        }
+                        case MACHINE_VIEW.AddCustomConnector: {
+                            const { default: AddConnectionWizard } = await import("./views/BI/Connection/AddConnectionWizard");
+                            if (isStaleNavigation()) return;
+                            setViewComponent(
+                                <AddConnectionWizard
+                                    projectPath={value.projectPath}
+                                    fileName={value.documentUri || value.projectPath}
+                                    openCustomConnectorView={true}
+                                />
+                            );
+                            break;
+                        }
+                        case MACHINE_VIEW.BIMainFunctionForm: {
+                            const { FunctionForm } = await import("./views/BI/FunctionForm");
+                            const defaultFunctionsFile = await getDefaultFunctionsFile();
+                            if (isStaleNavigation()) return;
+                            setViewComponent(
+                                <FunctionForm
+                                    projectPath={value.projectPath}
+                                    filePath={defaultFunctionsFile}
+                                    functionName={value?.identifier}
+                                    isAutomation={true}
+                                />
+                            );
+                            break;
+                        }
+                        case MACHINE_VIEW.BIFunctionForm: {
+                            const { FunctionForm } = await import("./views/BI/FunctionForm");
+                            const defaultFunctionsFile = await getDefaultFunctionsFile();
+                            if (isStaleNavigation()) return;
+                            setViewComponent(
+                                <FunctionForm
+                                    key={remountKey}
+                                    projectPath={value.projectPath}
+                                    filePath={defaultFunctionsFile}
+                                    functionName={value?.identifier}
+                                />);
+                            break;
+                        }
+                        case MACHINE_VIEW.BITestFunctionForm: {
+                            const { TestFunctionForm } = await import("./views/BI/TestFunctionForm");
+                            if (isStaleNavigation()) return;
+                            setViewComponent(
+                                <TestFunctionForm
+                                    key={value?.identifier} // Force remount when switching between different tests
+                                    projectPath={value.projectPath}
+                                    functionName={value?.identifier}
+                                    filePath={value?.documentUri}
+                                    serviceType={value?.serviceType}
+                                />);
+                            break;
+                        }
+                        case MACHINE_VIEW.BIAIEvaluationForm: {
+                            const { AIEvaluationForm } = await import("./views/BI/AIEvaluationForm");
+                            if (isStaleNavigation()) return;
+                            setViewComponent(
+                                <AIEvaluationForm
+                                    key={value?.identifier} // Force remount when switching between different tests
+                                    projectPath={value.projectPath}
+                                    functionName={value?.identifier}
+                                    filePath={value?.documentUri}
+                                    serviceType={value?.serviceType}
+                                    isVersionSupported={value?.metadata?.featureSupport?.aiEvaluation}
+                                />);
+                            break;
+                        }
+                        case MACHINE_VIEW.ViewConfigVariables: {
+                            const { default: ViewConfigurableVariables } = await import("./views/BI/Configurables/ViewConfigurableVariables");
+                            const [configFilePath, testsConfigTomlPath] = await Promise.all([
+                                getConfigFilePath(),
+                                getTestsConfigTomlPath(),
+                            ]);
+                            if (isStaleNavigation()) return;
+                            setViewComponent(
+                                <ViewConfigurableVariables
+                                    key={remountKey}
+                                    projectPath={value?.projectPath}
+                                    fileName={configFilePath}
+                                    testsConfigTomlPath={testsConfigTomlPath}
+                                    org={value?.org}
+                                />
+                            );
+                            break;
+                        }
+                        case MACHINE_VIEW.AddConfigVariables: {
+                            const { default: ViewConfigurableVariables } = await import("./views/BI/Configurables/ViewConfigurableVariables");
+                            const [configFilePath, testsConfigTomlPath] = await Promise.all([
+                                getConfigFilePath(),
+                                getTestsConfigTomlPath(),
+                            ]);
+                            if (isStaleNavigation()) return;
+                            setViewComponent(
+                                <ViewConfigurableVariables
+                                    key={remountKey}
+                                    projectPath={value?.projectPath}
+                                    fileName={configFilePath}
+                                    testsConfigTomlPath={testsConfigTomlPath}
+                                    org={value?.org}
+                                    addNew={true}
+                                />
+                            );
+                            break;
+                        }
+                        case MACHINE_VIEW.ServiceFunctionForm: {
+                            const { ServiceFunctionForm } = await import("./views/BI/ServiceFunctionForm");
+                            if (isStaleNavigation()) return;
+                            setViewComponent(
+                                <ServiceFunctionForm
+                                    position={value?.position}
+                                    currentFilePath={value.documentUri}
+                                    projectPath={value.projectPath}
+                                />
+                            );
+                            break;
+                        }
+                        case MACHINE_VIEW.ReviewMode: {
+                            const { ReviewMode } = await import("./views/ReviewMode");
+                            if (isStaleNavigation()) return;
+                            setViewComponent(<ReviewMode />);
+                            break;
+                        }
+                        case MACHINE_VIEW.EvalsetViewer: {
+                            const { EvalsetViewer } = await import("./views/EvalsetViewer/EvalsetViewer");
+                            if (isStaleNavigation()) return;
+                            setViewComponent(
+                                <EvalsetViewer
+                                    projectPath={value.projectPath}
+                                    filePath={value?.evalsetData.filePath}
+                                    content={value?.evalsetData.content}
+                                    threadId={value?.evalsetData?.threadId}
+                                />
+                            );
+                            break;
+                        }
+                        case MACHINE_VIEW.ConfigurationCollector: {
+                            const { ConfigurationCollector } = await import("./views/AIPanel/components/ConfigurationCollector");
+                            if (isStaleNavigation()) return;
+                            setViewComponent(
+                                <ConfigurationCollector
+                                    data={value.agentMetadata?.configurationCollector}
+                                    onClose={() => handleApprovalClose(value.agentMetadata?.configurationCollector)}
+                                />
+                            );
+                            break;
+                        }
 
                         default:
                             setNavActive(false);
@@ -862,7 +862,7 @@ const MainPanel = () => {
     };
 
     const handleNavigateToOverview = () => {
-        rpcClient.getVisualizerRpcClient().goHome();
+        rpcClient.getVisualizerRpcClient().goHome({ isPackageOverview: true });
     };
 
     const handleApprovalClose = (approvalData: any | undefined) => {
