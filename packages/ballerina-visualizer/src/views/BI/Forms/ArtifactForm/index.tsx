@@ -441,7 +441,9 @@ export function ArtifactForm(props: ArtifactFormProps) {
             setFields(fields);
             fieldsRef.current = fields;
             fieldsValuesRef.current = fields;
-            setFormImports(getImportsForFormFields(fields));
+            const initialImports = getImportsForFormFields(fields);
+            formImportsRef.current = initialImports;
+            setFormImports(initialImports);
         }
     }, [fields]);
 
