@@ -64,7 +64,10 @@ export function OperationForm(props: OperationFormProps) {
 
         params.forEach(param => {
             // Find matching field configurations from schema
-            const typeField = paramFields.find(field => getPrimaryInputType(field.types)?.fieldType === 'TYPE');
+            const typeField = paramFields.find(field => {
+                const fieldType = getPrimaryInputType(field.types)?.fieldType;
+                return fieldType === 'TYPE' || fieldType === 'ACTION_TYPE';
+            });
             const nameField = paramFields.find(field => field.key === 'variable');
             const defaultField = paramFields.find(field => field.key === 'defaultable');
             const documentationField = paramFields.find(field => field.key === 'documentation');
