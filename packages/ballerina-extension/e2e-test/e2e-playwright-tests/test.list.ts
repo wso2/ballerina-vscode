@@ -19,13 +19,16 @@
 /// <reference types="node" />
 
 import { test } from '@playwright/test';
-import { page, extensionsFolder, newProjectPath } from './utils/helpers';
+import * as helpers from './utils/helpers';
+import { extensionsFolder, newProjectPath, zipProjectSnapshot } from './utils/helpers';
 import { downloadExtensionFromMarketplace } from '@wso2/playwright-vscode-tester';
 import fs from 'fs';
 import path from 'path';
 const videosFolder = path.join(__dirname, '..', 'test-resources', 'videos');
 const VIDEO_SAVE_TIMEOUT_MS = Number(process.env.BI_E2E_VIDEO_SAVE_TIMEOUT_MS ?? 20000);
 const PAGE_CLOSE_TIMEOUT_MS = Number(process.env.BI_E2E_PAGE_CLOSE_TIMEOUT_MS ?? 10000);
+const ELECTRON_EXIT_WAIT_MS = Number(process.env.BI_E2E_ELECTRON_EXIT_WAIT_MS ?? 5000);
+const WORKER_FORCE_EXIT_MS = Number(process.env.BI_E2E_WORKER_FORCE_EXIT_MS ?? 8000);
 
 async function withTimeout<T>(operation: Promise<T>, timeoutMs: number, timeoutMessage: string): Promise<T> {
     return Promise.race([
@@ -98,57 +101,85 @@ test.beforeAll(async () => {
     }
 });
 
-// <----Automation Test---->
-test.describe(automation);
+test.describe('Ballerina E2E Group 1', { tag: '@group1' }, async () => {
+    // <----Automation Test---->
+    test.describe(automation);
 
-// // <----Automation Run/Debug Test---->
-test.describe(automationRun);
-test.describe(automationDebug);
+    // <----Automation Run Test---->
+    test.describe(automationRun);
 
-// // <----Expression Editor Test---->
-test.describe(expressionEditor);
+    // <----Expression Editor Test---->
+    test.describe(expressionEditor);
 
-// // <----AI Chat Service Test---->
-test.describe(aiChatService);
+    // <----Integration as API Test---->
+    test.describe(httpService);
 
-// // <----Integration as API Test---->
-test.describe(httpService);
-test.describe(graphqlService);
-test.describe(tcpService);
+    // <----Event Integration Test---->
+    test.describe(kafkaIntegration);
 
-// <----Event Integration Test---->
-test.describe(kafkaIntegration);
-test.describe(rabbitmqIntegration);
-test.describe(mqttIntegration);
-test.describe(azureIntegration);
-test.describe(salesforceIntegration);
-test.describe(twillioIntegration);
-test.describe(githubIntegration);
+    // <----File Integration Test---->
+    test.describe(ftpIntegration);
+});
 
-// <----File Integration Test---->
-test.describe(ftpIntegration);
-test.describe(directoryIntegration);
+test.describe('Ballerina E2E Group 2', { tag: '@group2' }, async () => {
+    // <----Automation Debug Test---->
+    test.describe(automationDebug);
 
-// <----Other Artifacts Test---->
-test.describe(functionArtifact);
-// test.describe(naturalFunctionArtifact); // TODO: Enable this once the ballerina version is switchable
-test.describe(connectionArtifact);
-test.describe(configuration); // TODO: This tests is failing due to https://github.com/wso2/product-ballerina-integrator/issues/1231. Enable after fixing the issue.
-test.describe(typeTest); // TODO: This tests is failing due to https://github.com/wso2/product-ballerina-integrator/issues/1222. Enable after fixing the issue.
-test.describe(serviceTest);
+    // <----AI Chat Service Test---->
+    test.describe(aiChatService);
 
-// <----Import Integration Test---->
-test.describe.skip(importIntegration);
+    // <----Integration as API Test---->
+    test.describe(graphqlService);
 
-// <----Data Mapper Test---->
-test.describe(reusableDataMapper);
-test.describe(inlineDataMapper);
+    // <----Event Integration Test---->
+    test.describe(rabbitmqIntegration);
+    test.describe(salesforceIntegration);
 
-// <----Diagram Test---->
-test.describe(diagram);
+    // <----File Integration Test---->
+    test.describe(directoryIntegration);
 
-// <----Test Function Test---->
-test.describe(testFunction);
+    // <----Other Artifacts Test---->
+    test.describe(functionArtifact);
+});
+
+test.describe('Ballerina E2E Group 3', { tag: '@group3' }, async () => {
+    // <----Integration as API Test---->
+    test.describe(tcpService);
+
+    // <----Event Integration Test---->
+    test.describe(mqttIntegration);
+    test.describe(twillioIntegration);
+
+    // <----Other Artifacts Test---->
+    test.describe.skip(naturalFunctionArtifact); // TODO: Enable this once the ballerina version is switchable
+    test.describe(connectionArtifact);
+    test.describe(configuration);
+
+    // <----Import Integration Test---->
+    test.describe.skip(importIntegration);
+
+    // <----Data Mapper Test---->
+    test.describe(reusableDataMapper);
+});
+
+test.describe('Ballerina E2E Group 4', { tag: '@group4' }, async () => {
+    // <----Event Integration Test---->
+    test.describe(githubIntegration);
+    test.describe(azureIntegration);
+
+    // <----Other Artifacts Test---->
+    test.describe(typeTest);
+    test.describe(serviceTest);
+
+    // <----Data Mapper Test---->
+    test.describe.skip(inlineDataMapper); // Failing due to a issue
+
+    // <----Diagram Test---->
+    test.describe(diagram);
+
+    // <----Test Function Test---->
+    test.describe(testFunction);
+});
 
 test.afterAll(async () => {
     console.log('\n' + '='.repeat(80));
@@ -158,31 +189,104 @@ test.afterAll(async () => {
     const dateTime = new Date().toISOString().replace(/:/g, '-');
     console.log('💾 Saving test video...');
     try {
-        const activePage = page?.page;
+        const activePage = helpers.page?.page;
         if (activePage) {
             const video = activePage.video();
-            if (video) {
-                fs.mkdirSync(videosFolder, { recursive: true });
-                const videoFilePath = path.join(videosFolder, `test_${dateTime}.webm`);
-                await withTimeout(
-                    video.saveAs(videoFilePath),
-                    VIDEO_SAVE_TIMEOUT_MS,
-                    `Video save timed out after ${VIDEO_SAVE_TIMEOUT_MS}ms`
-                );
-                console.log(`✅ Video saved successfully (${videoFilePath})`);
-            } else {
-                console.log('ℹ️  No video available to save');
-            }
+
+            // Close the window first so the video recording is finalized on
+            // disk. `video.saveAs()` only resolves after the page owning the
+            // recording has closed, so we MUST close the page before awaiting
+            // the save — regardless of whether the last test passed or failed.
+            // (Leaving the window open on failure, as the previous workaround
+            // did, ends up hanging the worker: see the vscode.close() comment
+            // below for why the worker cannot exit while Electron is alive.)
             await withTimeout(
                 activePage.close(),
                 PAGE_CLOSE_TIMEOUT_MS,
                 `Page close timed out after ${PAGE_CLOSE_TIMEOUT_MS}ms`
-            );
+            ).catch((err) => {
+                console.warn(`ℹ️  Page close skipped: ${(err as Error).message}`);
+            });
+
+            if (video) {
+                fs.mkdirSync(videosFolder, { recursive: true });
+                const videoFilePath = path.join(videosFolder, `test_${dateTime}.webm`);
+                try {
+                    await withTimeout(
+                        video.saveAs(videoFilePath),
+                        VIDEO_SAVE_TIMEOUT_MS,
+                        `Video save timed out after ${VIDEO_SAVE_TIMEOUT_MS}ms`
+                    );
+                    console.log(`✅ Video saved successfully (${videoFilePath})`);
+                } catch (err) {
+                    console.warn(`⚠️  Video save failed: ${(err as Error).message}`);
+                }
+            } else {
+                console.log('ℹ️  No video available to save');
+            }
         } else {
             console.log('ℹ️  No active browser page found, skipping video save');
         }
     } catch (error) {
         console.warn('⚠️  Failed to save/close test video page, continuing cleanup...', error);
+    }
+
+    // Snapshot the project when the suite is interrupted (e.g. manually stopped)
+    zipProjectSnapshot('suite_teardown');
+
+    // Terminate the VS Code Electron subprocess so the worker's Node event
+    // loop can exit.
+    //
+    // Why SIGKILL instead of `vscode.close()`:
+    //   After a failing test, VS Code often has a running task (e.g. the
+    //   "Run Integration" terminal child) or a modal that blocks graceful
+    //   quit. `electronApp.close()` then hangs until its own timeout, and
+    //   Playwright's internal close-in-flight promises leave Node-side
+    //   handles in a state that keeps the worker's event loop alive.
+    //   We've already captured the screenshot, project snapshot, and video
+    //   above — nothing else needs a clean quit here.
+    //
+    // Why closing at all is REQUIRED (not optional):
+    //   `_electron.launch()` opens an IPC pipe between the Playwright
+    //   worker (Node) and the Electron main process. While the pipe is
+    //   open, the worker process cannot exit — even after afterAll
+    //   returns. Playwright waits for the current worker to exit before
+    //   spawning the retry worker; a stuck worker freezes the entire run
+    //   (no retry, no next test, `pnpm run e2e-test` hangs).
+    //
+    // Each retry / next worker starts fresh (new Node process, re-imports
+    // modules, runs beforeAll -> initVSCode -> launches a new Electron),
+    // so tearing Electron down here is safe and does not interfere with
+    // retries.
+    if (helpers.vscode) {
+        console.log('🛑 Terminating VS Code Electron app...');
+        try {
+            const electronProcess = helpers.vscode.process?.();
+            if (electronProcess && !electronProcess.killed) {
+                await new Promise<void>((resolve) => {
+                    let settled = false;
+                    const done = () => {
+                        if (settled) return;
+                        settled = true;
+                        clearTimeout(timer);
+                        resolve();
+                    };
+                    const timer = setTimeout(done, ELECTRON_EXIT_WAIT_MS);
+                    electronProcess.once('exit', done);
+                    try {
+                        electronProcess.kill('SIGKILL');
+                    } catch {
+                        // already gone — resolve immediately
+                        done();
+                    }
+                });
+                console.log('✅ VS Code Electron app terminated');
+            } else {
+                console.log('ℹ️  No live Electron process to terminate');
+            }
+        } catch (err) {
+            console.warn(`⚠️  Failed to terminate Electron: ${(err as Error).message}`);
+        }
     }
 
     // Clean up the test project directory
@@ -198,4 +302,16 @@ test.afterAll(async () => {
     } else {
         console.log('ℹ️  Test project directory does not exist, skipping cleanup\n');
     }
+
+    // Safety net: if Playwright's internal handles still keep the event loop
+    // alive after we've torn everything down (observed on failing tests),
+    // force-exit so the retry worker can actually spawn. `unref()` means the
+    // timer itself does NOT keep the loop alive — if the loop can exit
+    // naturally it will, and Playwright sees a normal worker exit. We only
+    // hit `process.exit()` when the loop is genuinely stuck.
+    const forceExitTimer = setTimeout(() => {
+        console.log(`⚡ Worker event loop still alive ${WORKER_FORCE_EXIT_MS}ms after teardown — force-exiting so Playwright can spawn the retry worker`);
+        process.exit(0);
+    }, WORKER_FORCE_EXIT_MS);
+    forceExitTimer.unref();
 });

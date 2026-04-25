@@ -17,7 +17,7 @@
  */
 
 import { ImportIntegrationResponse } from "../../interfaces/extended-lang-client";
-import { GetMigrationToolsResponse, ImportIntegrationRPCRequest, MigrateRequest, MigrationToolPullRequest, OpenMigrationReportRequest, OpenSubProjectReportRequest, SaveMigrationReportRequest, StoreSubProjectReportsRequest } from "./interfaces";
+import { ActiveMigrationSession, GetMigrationToolsResponse, ImportIntegrationRPCRequest, MigrateRequest, MigrationToolPullRequest, OpenMigrationReportRequest, OpenSubProjectReportRequest, SaveMigrationReportRequest, StoreSubProjectReportsRequest } from "./interfaces";
 
 export interface MigrateIntegrationAPI {
     getMigrationTools: () => Promise<GetMigrationToolsResponse>;
@@ -28,4 +28,15 @@ export interface MigrateIntegrationAPI {
     storeSubProjectReports: (params: StoreSubProjectReportsRequest) => void;
     saveMigrationReport: (params: SaveMigrationReportRequest) => void;
     migrateProject: (params: MigrateRequest) => void;
+    getActiveMigrationSession: () => Promise<ActiveMigrationSession>;
+    /** Starts (or resumes) the AI enhancement pipeline from AI Chat. */
+    startMigrationEnhancement: () => Promise<void>;
+    /** Seeds any persisted migration conversation history into the chat state. */
+    seedMigrationHistory: () => Promise<boolean>;
+    /** Triggers the wizard-level streaming enhancement pipeline (called from AI Chat after startMigrationEnhancement). */
+    wizardEnhancementReady: () => Promise<void>;
+    /** Aborts the currently running migration AI agent. */
+    abortMigrationAgent: () => Promise<void>;
+    /** Retrieves the persisted migration conversation history messages for display in AI Chat. */
+    getMigrationHistoryMessages: () => Promise<Array<{ role: string; content: string }>>;
 }

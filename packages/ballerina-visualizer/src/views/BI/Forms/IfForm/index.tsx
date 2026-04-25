@@ -377,7 +377,7 @@ export function IfForm(props: IfFormProps) {
                                 openSubPanel={openSubPanel}
                                 targetLineRange={targetLineRange}
                                 fileName={fileName}
-                                onRemove={index !== 0 && !branch.label.includes("Else") ? () => removeCondition(index) : undefined}
+                                onRemove={index !== 0 ? () => removeCondition(index) : undefined}
                                 completions={activeEditor === index ? expressionEditor.completions : []}
                                 triggerCharacters={expressionEditor.triggerCharacters}
                                 retrieveCompletions={expressionEditor.retrieveCompletions}

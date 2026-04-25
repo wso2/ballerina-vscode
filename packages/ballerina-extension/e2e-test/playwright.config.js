@@ -6,7 +6,7 @@ exports.default = (0, test_1.defineConfig)({
     testMatch: 'test.list.ts',
     fullyParallel: false,
     forbidOnly: !!process.env.CI,
-    retries: process.env.CI ? 2 : 0,
+    retries: process.env.BI_E2E_RETRIES ? Number(process.env.BI_E2E_RETRIES) : 2,
     maxFailures: 10,
     workers: 1,
     reporter: 'html',

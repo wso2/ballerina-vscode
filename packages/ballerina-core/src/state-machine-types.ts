@@ -21,8 +21,12 @@ import { NodePosition, STNode } from "@wso2/syntax-tree";
 import { Command } from "./interfaces/ai-panel";
 import { LinePosition } from "./interfaces/common";
 import { ProjectInfo, ProjectMigrationResult, Type } from "./interfaces/extended-lang-client";
-import { CodeData, DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
+import { DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
+import { SCOPE, ArtifactData, DataMapperMetadata } from "./interfaces/shared-types";
 import { DiagnosticEntry, DocumentationGeneratorIntermediaryState, SourceFile, CodeContext, FileAttatchment } from "./rpc-types/ai-panel/interfaces";
+
+export { SCOPE };
+export type { ArtifactData, DataMapperMetadata };
 
 export type MachineStateValue =
     | 'initialize'
@@ -49,16 +53,6 @@ export enum EVENT_TYPE {
     CLOSE_VIEW = "CLOSE_VIEW",
     VIEW_UPDATE = "VIEW_UPDATE",
     UPDATE_PROJECT_LOCATION = "UPDATE_PROJECT_LOCATION"
-}
-
-export enum SCOPE {
-    AUTOMATION = "automation",
-    INTEGRATION_AS_API = "integration-as-api",
-    EVENT_INTEGRATION = "event-integration",
-    FILE_INTEGRATION = "file-integration",
-    AI_AGENT = "ai-agent",
-    LIBRARY = "library",
-    ANY = "any"
 }
 
 export type VoidCommands = "OPEN_LOW_CODE" | "OPEN_PROJECT" | "CREATE_PROJECT";
@@ -167,11 +161,6 @@ export interface ArtifactInfo {
     version?: string;
 }
 
-export interface ArtifactData {
-    artifactType: DIRECTORY_MAP;
-    identifier?: string;
-}
-
 export interface ConfigurationCollectorMetadata {
     requestId: string;
     variables: Array<{
@@ -217,11 +206,6 @@ export interface VisualizerMetadata {
     selectedConnectorDescription?: string;
     selectedConnectorIcon?: string;
     categoryName?: string;
-}
-
-export interface DataMapperMetadata {
-    name: string;
-    codeData: CodeData;
 }
 
 export interface ReviewViewItem {
@@ -372,7 +356,7 @@ export type ChatNotify =
     | PlanUpdated
     | CompactionStartEvent
     | CompactionEndEvent
-    | CompactionFailedEvent
+    | CompactionDisabledEvent
     | ConfigChangeEvent;
 
 export interface ChatStart {
@@ -446,6 +430,7 @@ export interface EvalsToolResult {
 export interface UsageMetricsEvent {
     type: "usage_metrics";
     isRepair?: boolean;
+    model?: string;
     usage: {
         inputTokens: number;
         cacheCreationInputTokens: number;
@@ -456,6 +441,7 @@ export interface UsageMetricsEvent {
         systemInstructions: number;
         toolDefinitions: number;
         reservedOutput: number;
+        files: number;
         messages: number;
         toolResults: number;
     };
@@ -555,24 +541,24 @@ export interface PlanUpdated {
 }
 
 // ==================================
-// Mid-Stream Compaction Events
+// Server-side Compaction Events
 // ==================================
 
-/** Fired when mid-stream compaction starts (stream naturally pauses) */
+/** Fired when the server starts compacting (detected mid-stream via providerMetadata) */
 export interface CompactionStartEvent {
     type: 'compaction_start';
 }
 
-/** Fired when mid-stream compaction completes and streaming resumes */
+/** Fired when server-side compaction completes; carries the extracted summary */
 export interface CompactionEndEvent {
     type: 'compaction_end';
-    metadata?: GenerationCompactionMetadata;
+    /** Extracted <summary> content from the compaction block */
+    summary?: string;
 }
 
-/** Fired when mid-stream compaction fails and context cannot be reduced */
-export interface CompactionFailedEvent {
-    type: 'compaction_failed';
-    reason: string;
+/** Fired once per session when compaction is disabled because the codebase floor exceeds the trigger */
+export interface CompactionDisabledEvent {
+    type: 'compaction_disabled';
 }
 
 /** Fired when a VS Code configuration setting relevant to the AI panel changes */
@@ -821,9 +807,8 @@ export enum TaskStatus {
 
 export enum TaskTypes {
     SERVICE_DESIGN = "service_design",
-    CONNECTIONS_INIT = "connections_init",
     IMPLEMENTATION = "implementation",
-    TESTING = "testing"
+    EXECUTION = "execution"
 }
 
 /**

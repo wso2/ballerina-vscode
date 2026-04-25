@@ -20,42 +20,11 @@ import {
     DIRECTORY_MAP,
     ProjectStructure,
     ProjectStructureResponse,
-    ProjectScopeMapping
+    ProjectScopeMapping,
+    findScopeByModule
 } from "@wso2/ballerina-core";
-
-const INTEGRATION_API_MODULES = [
-    "http",
-    "graphql",
-    "tcp"
-];
-const EVENT_INTEGRATION_MODULES = [
-    "kafka",
-    "rabbitmq",
-    "salesforce",
-    "trigger.github",
-    "mqtt",
-    "asb",
-    "mssql",
-    "mysql",
-    "postgresql"
-];
-const FILE_INTEGRATION_MODULES = [
-    "ftp",
-    "file"
-];
-const AI_AGENT_MODULE = "ai";
-
-export function findScopeByModule(moduleName: string): SCOPE {
-    if (AI_AGENT_MODULE === moduleName) {
-        return SCOPE.AI_AGENT;
-    } else if (INTEGRATION_API_MODULES.includes(moduleName)) {
-        return SCOPE.INTEGRATION_AS_API;
-    } else if (EVENT_INTEGRATION_MODULES.includes(moduleName)) {
-        return SCOPE.EVENT_INTEGRATION;
-    } else if (FILE_INTEGRATION_MODULES.includes(moduleName)) {
-        return SCOPE.FILE_INTEGRATION;
-    }
-}
+export { validateComponentName } from "../ProjectForm/utils";
+export { findScopeByModule };
 
 /**
  * Extracts deployable integration types (scopes) from project structure.

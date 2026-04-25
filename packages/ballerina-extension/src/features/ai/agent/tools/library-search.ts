@@ -146,6 +146,7 @@ This tool discovers relevant Ballerina libraries using keyword-based search. It 
 - First keyword = most important (highest weight in search)
 - Subsequent keywords = less important (decreasing weight)
 - Use specific terms (e.g., "Stripe", "GitHub", "PostgreSQL") before generic ones (e.g., "payment", "API", "database")
+- Include 'trigger' keyword to indicate webhook related libraries.
 
 **When to use this tool:**
 - To discover which libraries are available for a specific use case or integration

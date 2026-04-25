@@ -52,6 +52,8 @@ import {
     MACHINE_VIEW,
     EditorDisplayMode,
     Imports,
+    getSecondaryInputType,
+    DIRECTORY_MAP,
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { FormContext, Provider } from "../../context";
@@ -424,6 +426,7 @@ export interface FormProps {
     openFormTypeEditor?: (open: boolean, newType?: string, editingField?: FormField) => void;
     derivedFields?: FieldDerivation[]; // Configuration for auto-deriving field values from other fields
     updateImports?: (key: string, imports: Imports) => void;
+    defaultExpandAdvanced?: boolean;
 }
 
 export const Form = forwardRef((props: FormProps, _ref) => {
@@ -494,7 +497,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
         rpcClient.getBIDiagramRpcClient().formDirtyDidChange({ filePath: fileName, isDirty });
     }, [isDirty, fileName, rpcClient]);
 
-    const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
+    const [showAdvancedOptions, setShowAdvancedOptions] = useState(props.defaultExpandAdvanced ?? false);
     const [activeFormField, setActiveFormField] = useState<string | undefined>(undefined);
     const [diagnosticsInfo, setDiagnosticsInfo] = useState<FormDiagnostics[] | undefined>(undefined);
     const [isMarkdownExpanded, setIsMarkdownExpanded] = useState(false);
@@ -534,7 +537,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                     } else if (isDropdownField(field)) {
                         defaultValues[field.key] = getValueForDropdown(field) ?? "";
                     } else if (field.type === "FLAG") {
-                         defaultValues[field.key] = field.value;
+                        defaultValues[field.key] = field.value;
                     } else if (typeof field.value === "string") {
                         defaultValues[field.key] = formatJSONLikeString(field.value) ?? "";
                     } else {
@@ -545,20 +548,6 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                     }
                     if (field.key === "parameters" && field.value?.length && field.value.length === 0) {
                         defaultValues[field.key] = formValues[field.key] ?? [];
-                    }
-
-                    if (field.key === "type") {
-                        // Handle the case where the type is changed via 'Add Type'
-                        const existingType = formValues[field.key];
-                        const newType = field.value;
-
-                        if (existingType !== newType) {
-                            setValue(field.key, newType);
-                            getVisualiableFields();
-                        }
-                        else if (newType === undefined) {
-                             defaultValues[field.key] = "";
-                        }
                     }
 
                     // Handle choice fields and their properties
@@ -582,7 +571,26 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                         }
                     }
 
-                    diagnosticsMap.push({ key: field.key, diagnostics: [] });
+                    const rawDiag = (field.diagnostics as any);
+                    const diagArray = Array.isArray(rawDiag) ? rawDiag : (rawDiag?.diagnostics ?? []);
+                    diagnosticsMap.push({ key: field.key, diagnostics: diagArray });
+                }
+
+                if (getPrimaryInputType(field.types)?.fieldType === "TYPE") {
+                    const existingType = formValues[field.key];
+                    const newType = field.value;
+                    const isValueChanged = existingType !== newType;
+                    const isFieldDirty = dirtyFields?.[field.key];
+                    if (isValueChanged) {
+                        const newValue = isFieldDirty ? existingType : newType;
+                        setValue(field.key, newValue);
+                        defaultValues[field.key] = newValue;
+                        getVisualiableFields();
+                    } else if (newType === undefined) {
+                        defaultValues[field.key] = "";
+                    } else {
+                        defaultValues[field.key] = newType;
+                    }
                 }
 
                 // Handle the case where the name is updated dynamically (e.g., from a sibling field's onValueChange like headerName)
@@ -772,8 +780,8 @@ export const Form = forwardRef((props: FormProps, _ref) => {
     // has advance fields
     const hasAdvanceFields = formFields.some((field) => field.advanced && field.enabled && !field.hidden) || advancedChoiceFields.length > 0;
     const variableField = formFields.find((field) => field.key === "variable");
-    const typeField = formFields.find((field) => field.key === "type");
-    const expressionField = formFields.find((field) => field.key === "expression");
+    const typeField = formFields.find((field) => getPrimaryInputType(field.types)?.fieldType === "TYPE");
+    const expressionField = formFields.find((field) => getSecondaryInputType(field.types)?.fieldType === "EXPRESSION" || getPrimaryInputType(field.types)?.fieldType === "ACTION_OR_EXPRESSION");
     const targetTypeField = formFields.find((field) => field.codedata?.kind === "PARAM_FOR_TYPE_INFER");
     const hasParameters = hasRequiredParameters(formFields, selectedNode) || hasOptionalParameters(formFields);
 
@@ -808,9 +816,9 @@ export const Form = forwardRef((props: FormProps, _ref) => {
         }
     };
 
-    // Find the first editable field
+    // Find the first editable identifier field
     const firstEditableFieldIndex = formFields.findIndex(
-        (field) => field.editable !== false
+        (field) => field.editable !== false && getPrimaryInputType(field.types)?.fieldType === "IDENTIFIER"
     );
 
     const isValid = useMemo(() => {
@@ -824,7 +832,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                     continue;
                 }
 
-                let diagnostics: Diagnostic[] = diagnosticsInfoItem.diagnostics || [];
+                let diagnostics: Diagnostic[] = Array.isArray(diagnosticsInfoItem.diagnostics) ? diagnosticsInfoItem.diagnostics : [];
                 if (diagnostics.length === 0) {
                     // Only clear errors that were set by the expression diagnostics system,
                     // not errors set by other validators (e.g., PathEditor)
@@ -979,6 +987,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                 editorConfig: {
                     view: MACHINE_VIEW.BIDiagram,
                     displayMode: EditorDisplayMode.VIEW,
+                    artifactType: DIRECTORY_MAP.FUNCTION,
                 },
             });
         })();
@@ -1197,6 +1206,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                                     <S.Row key={updatedField.key}>
                                         <FieldFactory
                                             field={updatedField}
+                                            handleFormValidation={handleFormValidation}
                                             openRecordEditor={
                                                 openRecordEditor &&
                                                 ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))

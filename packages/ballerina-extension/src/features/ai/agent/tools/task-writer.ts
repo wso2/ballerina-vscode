@@ -31,8 +31,8 @@ export interface TaskWriteResult {
 
 export const TaskInputSchema = z.object({
     description: z.string().min(1).describe("Clear, actionable description of the task to be implemented"),
-    status: z.enum([TaskStatus.PENDING, TaskStatus.IN_PROGRESS, TaskStatus.COMPLETED]).describe("Current status of the task. Use 'pending' for tasks not started, 'in_progress' when actively working on it, 'completed' when work is finished."),
-    type: z.enum([TaskTypes.SERVICE_DESIGN, TaskTypes.CONNECTIONS_INIT, TaskTypes.IMPLEMENTATION, TaskTypes.TESTING]).describe("Type of the implementation task. service_design: creates the HTTP service contract only (no implementation). connections_init: creates connection/client initializations only. implementation: all other implementation tasks. testing: writing test cases for the implemented logic — include only if the user has explicitly asked for tests.")
+    status: z.enum([TaskStatus.PENDING, TaskStatus.IN_PROGRESS, TaskStatus.COMPLETED]).describe("Current status of the task. Make sure mark it as completed only after the task is fully done and diagnostics are clean."),
+    type: z.enum([TaskTypes.SERVICE_DESIGN, TaskTypes.IMPLEMENTATION, TaskTypes.EXECUTION]).describe("Type of the implementation task. service_design: creates the service contract only (no implementation). implementation: all other implementation tasks. execution: executing the implemented logic(run, try it, test) — include only if the user has explicitly asked for execution.")
 });
 
 const TaskWriteInputSchema = z.object({
@@ -63,7 +63,7 @@ export function createTaskWriteTool(
         description: `Create and update implementation tasks for the design plan.
 ## Task Ordering:
 - Tasks should be ordered sequentially as they need to be executed.
-- Prioritize service design, then connection initializations, then implementation tasks.
+- Prioritize service design, then implementation tasks.
 
 ## CRITICAL RULE - ALWAYS SEND ALL TASKS:
 This tool is STATELESS. Every call MUST include ALL tasks.
@@ -97,7 +97,6 @@ Send ALL tasks with status "pending".
 Example:
 [
   {"description": "Create the HTTP service contract", "status": "pending", "type": "service_design"},
-  {"description": "Create the MYSQL Connection", "status": "pending", "type": "connections_init"},
   {"description": "Implement the resource functions", "status": "pending", "type": "implementation"}
 ]
 
@@ -116,22 +115,19 @@ Example (3 tasks total):
 Start task 1 - Send ALL:
 [
   {"description": "Create the HTTP service contract", "status": "in_progress", "type": "service_design"},
-  {"description": "Create the MYSQL Connection", "status": "pending", "type": "connections_init"},
   {"description": "Implement the resource functions", "status": "pending", "type": "implementation"}
 ]
 
 Complete task 1 - Send ALL:
 [
   {"description": "Create the HTTP service contract", "status": "completed", "type": "service_design"},
-  {"description": "Create the MYSQL Connection", "status": "pending", "type": "connections_init"},
   {"description": "Implement the resource functions", "status": "pending", "type": "implementation"}
 ]
 
 After approval, start task 2 - Send ALL:
 [
   {"description": "Create the HTTP service contract", "status": "completed", "type": "service_design"},
-  {"description": "Create the MYSQL Connection", "status": "in_progress", "type": "connections_init"},
-  {"description": "Implement the resource functions", "status": "pending", "type": "implementation"}
+  {"description": "Implement the resource functions", "status": "in_progress", "type": "implementation"}
 ]
 
 Rules:

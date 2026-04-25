@@ -141,64 +141,80 @@ function convertObjectToToml(config: any, originalContent: string): string {
  */
 function updateOrAddSection(content: string, sectionName: string, values: Record<string, any>): string {
     const sectionHeader = `[${sectionName}]`;
-    
-    // Build the new section content
-    let sectionLines: string[] = [sectionHeader];
-    for (const [key, value] of Object.entries(values)) {
-        const formattedValue = stringify.value(value);
-        sectionLines.push(`${key} = ${formattedValue}`);
-    }
-    const sectionContent = sectionLines.join('\n');
-    
-    // Check if section exists
     const lines = content.split('\n');
     const sectionStartIndex = lines.findIndex(line => line.trim() === sectionHeader);
-    
+
+    // Build formatted key=value lines for the new values
+    const keyPatterns = new Map(
+        Object.keys(values).map(key => [
+            key,
+            new RegExp(`^\\s*${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*=`)
+        ])
+    );
+    const formatEntry = (key: string, value: any) => `${key} = ${stringify.value(value)}`;
+
     if (sectionStartIndex !== -1) {
         // Section exists - find where it ends
         let sectionEndIndex = lines.length;
         for (let i = sectionStartIndex + 1; i < lines.length; i++) {
-            const trimmedLine = lines[i].trim();
-            // Check if this is the start of a new section
-            if (trimmedLine.startsWith('[') && trimmedLine.endsWith(']')) {
+            const trimmed = lines[i].trim();
+            if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
                 sectionEndIndex = i;
                 break;
             }
         }
-        
-        // Replace the section
-        const beforeSection = lines.slice(0, sectionStartIndex);
-        const afterSection = lines.slice(sectionEndIndex);
-        
-        // Combine: before + new section + after
-        const resultLines: string[] = [];
-        if (beforeSection.length > 0) {
-            resultLines.push(...beforeSection);
+
+        // Merge: update matching keys in place, preserve everything else
+        const mergedKeys = new Set<string>();
+        const existingLines = lines.slice(sectionStartIndex + 1, sectionEndIndex);
+
+        const updatedLines = existingLines.map(line => {
+            const trimmed = line.trim();
+            if (trimmed === '' || trimmed.startsWith('#')) {
+                return line;
+            }
+            for (const [key, pattern] of keyPatterns) {
+                if (pattern.test(trimmed)) {
+                    mergedKeys.add(key);
+                    return formatEntry(key, values[key]);
+                }
+            }
+            return line;
+        });
+
+        // Strip trailing blank lines so new keys sit directly after existing ones
+        while (updatedLines.length > 0 && updatedLines[updatedLines.length - 1].trim() === '') {
+            updatedLines.pop();
         }
-        resultLines.push(...sectionLines);
-        if (afterSection.length > 0) {
-            resultLines.push(...afterSection);
+
+        // Append keys that weren't already in the section
+        for (const [key, value] of Object.entries(values)) {
+            if (!mergedKeys.has(key)) {
+                updatedLines.push(formatEntry(key, value));
+            }
         }
-        
-        return resultLines.join('\n');
+
+        return [
+            ...lines.slice(0, sectionStartIndex),
+            sectionHeader,
+            ...updatedLines,
+            ...lines.slice(sectionEndIndex),
+        ].join('\n');
     }
-    
-    // Section doesn't exist - append it
-    const trimmedLines = lines.filter((line, index) => {
-        // Remove trailing empty lines
-        if (index >= lines.length - 1 && line.trim() === '') {
-            return false;
-        }
-        return true;
-    });
-    
-    // Add the new section
-    if (trimmedLines.length > 0 && trimmedLines[trimmedLines.length - 1].trim() !== '') {
-        trimmedLines.push('');
+
+    // Section doesn't exist - strip trailing blank lines and append new section
+    while (lines.length > 0 && lines[lines.length - 1].trim() === '') {
+        lines.pop();
     }
-    trimmedLines.push(...sectionLines);
-    
-    return trimmedLines.join('\n');
+    if (lines.length > 0) {
+        lines.push('');
+    }
+    lines.push(sectionHeader);
+    for (const [key, value] of Object.entries(values)) {
+        lines.push(formatEntry(key, value));
+    }
+
+    return lines.join('\n');
 }
 
 /**

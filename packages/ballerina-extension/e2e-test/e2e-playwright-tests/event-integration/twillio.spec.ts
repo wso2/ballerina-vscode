@@ -23,8 +23,7 @@ import { ProjectExplorer } from '../utils/pages';
 import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 
 export default function createTests() {
-    test.describe('Twillio Integration Tests', {
-        tag: '@group1',
+    test.describe.serial('Twillio Integration Tests', {
     }, async () => {
         let listenerName: string;
         initTest();
@@ -76,7 +75,7 @@ export default function createTests() {
             await onCanceled.waitFor();
 
             const projectExplorer = new ProjectExplorer(page.page);
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `twilio:CallStatusService`], true);
+            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `twilio:CallStatusService`]);
 
             const context = artifactWebView.locator(`text=${listenerName}`);
             await context.waitFor();
@@ -154,7 +153,7 @@ export default function createTests() {
                 throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
             }
             const projectExplorer = new ProjectExplorer(page.page);
-            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `twilio:CallStatusService`], true);
+            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `twilio:CallStatusService`]);
             await serviceTreeItem.click({ button: 'right' });
             const deleteButton = page.page.getByRole('button', { name: 'Delete' }).first();
             await deleteButton.waitFor({ timeout: 5000 });

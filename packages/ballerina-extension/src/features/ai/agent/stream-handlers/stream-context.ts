@@ -15,7 +15,7 @@
 // under the License.
 
 import { ExecutionContext, ProjectSource } from "@wso2/ballerina-core";
-import { CopilotEventHandler } from "../../utils/events";
+import { CopilotEventHandler, ToolModelUsage } from "../../utils/events";
 import { StreamTextResult } from 'ai';
 
 /**
@@ -51,4 +51,7 @@ export interface StreamContext {
 
     // Mid-stream compaction status
     compactionFailedMidStream?: boolean;
+
+    // Accumulated token usage from tool-internal LLM calls, keyed by model name
+    toolModelUsage: ToolModelUsage;
 }

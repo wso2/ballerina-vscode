@@ -20,6 +20,8 @@ import * as fs from "fs";
 import * as path from "path";
 import type { TextEdit } from "vscode-languageserver-protocol";
 import { StateMachine } from "../../../stateMachine";
+import { normalizeToLf, readAndNormalize, restoreEol } from "../utils/eol-utils";
+import { isWorkspaceTempProject } from "./tools/path-utils";
 
 /**
  * Files that require path sanitization (temp paths replaced with workspace paths)
@@ -306,8 +308,10 @@ export async function applyTextEdits(filePath: string, textEdits: TextEdit[]): P
 
         // Read existing content or start with empty string
         let content = '';
+        let originalEol: import("../utils/eol-utils").EolSequence = '\n';
         if (fs.existsSync(filePath)) {
-            content = fs.readFileSync(filePath, 'utf-8');
+            const raw = fs.readFileSync(filePath, 'utf-8');
+            [content, originalEol] = readAndNormalize(raw);
         }
 
         // If file is new and empty, ensure at least empty content
@@ -334,8 +338,8 @@ export async function applyTextEdits(filePath: string, textEdits: TextEdit[]): P
             result = result.substring(0, edit.start) + edit.newText + result.substring(edit.end);
         }
 
-        // Write the modified content back to the file
-        fs.writeFileSync(filePath, result, 'utf-8');
+        // Write the modified content back to the file, restoring original line endings
+        fs.writeFileSync(filePath, restoreEol(result, originalEol), 'utf-8');
     } catch (error) {
         console.error(`[applyTextEdits] Error applying edits to ${filePath}:`, error);
         throw error;
@@ -351,7 +355,12 @@ export async function applyTextEdits(filePath: string, textEdits: TextEdit[]): P
 export function formatCodeContext(codeContext: CodeContext, tempProjectPath: string): string {
     const absolutePath = path.join(tempProjectPath, codeContext.filePath);
 
-    const fileContent = fs.readFileSync(absolutePath, "utf-8");
+    if (!fs.existsSync(absolutePath)) {
+        console.warn(`[formatCodeContext] File not found in temp project: ${absolutePath}`);
+        return '';
+    }
+
+    const fileContent = normalizeToLf(fs.readFileSync(absolutePath, "utf-8"));
     const lines = fileContent.split("\n");
     const totalLines = lines.length;
 
@@ -411,4 +420,36 @@ function getCodeContextInstruction(type: "addition" | "selection"): string {
     } else {
         return "The user has selected a block of code that is relevant to the current task. The selected code is enclosed between >>> SELECTION START <<< and >>> SELECTION END <<< markers in the code context below.";
     }
+}
+
+
+export function solveRelativeTempPath(servicePath: string): { tempProjectPath: string; packagePath?: string } | undefined {
+    if (!servicePath || !path.isAbsolute(servicePath)) {
+        return undefined;
+    }
+
+    const normalizedServicePath = path.normalize(servicePath);
+    const parsedPath = path.parse(normalizedServicePath);
+    const relativeFromRoot = normalizedServicePath.slice(parsedPath.root.length);
+    const segments = relativeFromRoot.split(path.sep).filter(Boolean);
+    const tempRootIdx = segments.findIndex((segment) => segment.startsWith("bal-proj-"));
+
+    if (tempRootIdx === -1) {
+        return undefined;
+    }
+
+    const tempProjectPath = path.join(parsedPath.root, ...segments.slice(0, tempRootIdx + 1));
+    if (!fs.existsSync(tempProjectPath)) {
+        return undefined;
+    }
+
+    const packagePath = isWorkspaceTempProject(tempProjectPath)
+        ? path.relative(tempProjectPath, normalizedServicePath)
+        : undefined;
+
+    if (packagePath && (packagePath === ".." || packagePath.startsWith(`..${path.sep}`) || path.isAbsolute(packagePath))) {
+        return undefined;
+    }
+
+    return { tempProjectPath, packagePath };
 }

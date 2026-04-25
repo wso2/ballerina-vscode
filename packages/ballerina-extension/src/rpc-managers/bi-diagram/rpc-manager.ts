@@ -20,6 +20,7 @@
 import {
     AIChatRequest,
     AddFieldRequest,
+    InlineAgentChatRequest,
     AddFunctionRequest,
     AddImportItemResponse,
     AddProjectToWorkspaceRequest,
@@ -75,7 +76,6 @@ import {
     DevantMetadata,
     WorkspaceDevantMetadata,
     ProjectDevantMetadata,
-    Diagnostics,
     EndOfFileRequest,
     ExpressionCompletionsRequest,
     ExpressionCompletionsResponse,
@@ -153,8 +153,13 @@ import {
     Category,
     NodePosition,
     PackageTomlValues,
+    EVENT_TYPE,
     UpdateProjectTitleRequest,
-    SuggestedProjectDefaultsResponse
+    UpdatePackageTitleRequest,
+    SuggestedProjectDefaultsResponse,
+    ProjectInfo,
+    PROJECT_KIND,
+    MACHINE_VIEW
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
@@ -178,7 +183,7 @@ import { DebugProtocol } from "vscode-debugprotocol";
 import { extension } from "../../BalExtensionContext";
 import { OLD_BACKEND_URL } from "../../features/ai/utils";
 import { fetchWithAuth } from "../../features/ai/utils/ai-client";
-import { cleanAndValidateProject, getCurrentBIProject } from "../../features/config-generator/configGenerator";
+import { getCurrentBIProject } from "../../features/config-generator/configGenerator";
 import { BreakpointManager } from "../../features/debugger/breakpoint-manager";
 import { StateMachine, updateView } from "../../stateMachine";
 import { getAccessToken, getLoginMethod } from "../../utils/ai/auth";
@@ -202,8 +207,7 @@ import { getView } from "../../utils/state-machine-utils";
 import { isLibraryProject } from "../../utils/config";
 import { PlatformExtRpcManager } from "../platform-ext/rpc-manager";
 import { openAIPanelWithPrompt } from "../../views/ai-panel/aiMachine";
-import { checkProjectDiagnostics, removeUnusedImports } from "../ai-panel/repair-utils";
-import { getCurrentBallerinaProject } from "../../utils/project-utils";
+import { getCurrentBallerinaProject, getCurrentProjectRoot } from "../../utils/project-utils";
 import { CommonRpcManager } from "../common/rpc-manager";
 import * as toml from "@iarna/toml";
 import { readOrWriteReadmeContent } from "./utils";
@@ -212,7 +216,53 @@ import { chatStateStorage } from "../../views/ai-panel/chatStateStorage";
 import { getRepoRoot } from "../platform-ext/platform-utils";
 import { WI_EXTENSION_ID } from "../../utils";
 import { notifyOnIdentifierUpdated } from "../../RPCLayer";
+import { openView } from "../../stateMachine";
 
+function ensureGitignoreEntry(projectRoot: string): void {
+    const gitignorePath = path.join(projectRoot, '.gitignore');
+    const entry = '_agent_chat.bal';
+
+    try {
+        let content = '';
+        if (fs.existsSync(gitignorePath)) {
+            content = fs.readFileSync(gitignorePath, 'utf8');
+        }
+        if (!content.split('\n').some(line => line.trim() === entry)) {
+            const newline = content.endsWith('\n') || content === '' ? '' : '\n';
+            fs.appendFileSync(gitignorePath, `${newline}${entry}\n`);
+        }
+    } catch (e) {
+        console.warn('[agent-chat] Failed to update .gitignore:', e);
+    }
+}
+
+/**
+ * Reads a Ballerina.toml file, sets `doc[section][field] = value`, and writes it back.
+ * Throws if the file is missing or unparseable.
+ */
+function setTomlSectionField(filePath: string, section: string, field: string, value: string): void {
+    let content: string;
+    try {
+        content = fs.readFileSync(filePath, 'utf-8');
+    } catch {
+        throw new Error(`Ballerina.toml not found at ${filePath}`);
+    }
+    let doc: ReturnType<typeof toml.parse>;
+    try {
+        doc = toml.parse(content);
+    } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        throw new Error(`Invalid TOML in ${filePath}: ${message}`);
+    }
+    const sectionObj = doc[section];
+    if (sectionObj !== null && typeof sectionObj === "object" && !Array.isArray(sectionObj)) {
+        (sectionObj as Record<string, unknown>)[field] = value;
+    } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (doc as any)[section] = { [field]: value };
+    }
+    fs.writeFileSync(filePath, toml.stringify(doc), "utf-8");
+}
 
 export class BiDiagramRpcManager implements BIDiagramAPI {
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
@@ -752,6 +802,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             } catch (error) {
                 window.showErrorMessage("Error converting integration to workspace");
                 console.error("Error converting integration to workspace:", error);
+                return;
             }
         } else {
             try {
@@ -805,7 +856,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         return new Promise(async (resolve) => {
             const projectPath = StateMachine.context().projectPath;
             if (!projectPath) {
-                resolve({ components: {packages: []} });
+                resolve({ components: { packages: [] } });
                 return;
             }
             const components = await StateMachine.langClient().getBallerinaProjectComponents({
@@ -943,8 +994,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async deleteFlowNode(params: BISourceCodeRequest): Promise<UpdatedArtifactsResponse> {
         console.log(">>> requesting bi delete node from ls", params);
-        // Clean project diagnostics before deleting flow node
-        await cleanAndValidateProject(StateMachine.langClient(), StateMachine.context().projectPath);
 
         return new Promise((resolve) => {
             StateMachine.langClient()
@@ -1166,6 +1215,16 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     async deployProject(params: DeploymentRequest): Promise<DeploymentResponse> {
         const scopes = params.integrationTypes;
 
+        const componentPath = StateMachine.context().projectPath;
+        const projectInfo = StateMachine.context().projectInfo;
+
+        let componentInfo: ProjectInfo;
+        if (projectInfo?.projectPath === componentPath) {
+            componentInfo = projectInfo;
+        } else {
+            componentInfo = projectInfo?.children?.find(child => child.projectPath === componentPath);
+        }
+
         const integrationType = await this.selectIntegrationType(scopes);
 
         if (!integrationType) {
@@ -1174,7 +1233,11 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
         const deploymentParams: ICreateNewIntegrationCmdParams = {
             buildPackLang: "ballerina",
-            integrations: [{ fsPath: StateMachine.context().projectPath, supportedIntegrationTypes: [integrationType] }],
+            integrations: [{
+                fsPath: StateMachine.context().projectPath,
+                supportedIntegrationTypes: [integrationType],
+                name: componentInfo?.title || componentInfo?.name
+            }],
             workspaceDir: StateMachine.context().workspacePath || StateMachine.context().projectPath,
         };
         await commands.executeCommand(WICommandIds.CreateNewComponent, deploymentParams);
@@ -1183,17 +1246,18 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async deployWorkspace(params: WorkspaceDeploymentRequest): Promise<DeploymentResponse> {
+        const projectInfo = StateMachine.context().projectInfo;
         const projectScopes = params.projectScopes;
         if (!projectScopes?.length) {
             window.showWarningMessage("No deployable projects found in the workspace.");
             return { isCompleted: true };
         }
-        const integrations: ICreateNewIntegrationCmdIntegrations[]= [];
+        const integrations: ICreateNewIntegrationCmdIntegrations[] = [];
 
         // If there is only one project in the workspace and it has multiple integration types,
         // ask the user to pick the type similar to the single project deploy flow.
         if (projectScopes.length === 1) {
-            const { projectPath, integrationTypes } = projectScopes[0];
+            const { projectPath, integrationTypes, projectTitle } = projectScopes[0];
 
             const integrationType = await this.selectIntegrationType(integrationTypes);
 
@@ -1201,16 +1265,24 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 return { isCompleted: true };
             }
 
-            integrations.push({fsPath: projectPath, supportedIntegrationTypes: [integrationType] });
+            integrations.push({
+                fsPath: projectPath,
+                supportedIntegrationTypes: [integrationType],
+                name: projectTitle
+            });
         } else {
             for (const projectScope of projectScopes) {
-                const { projectPath, integrationTypes } = projectScope;
+                const { projectPath, integrationTypes, projectTitle } = projectScope;
                 if (!integrationTypes?.length) {
                     window.showWarningMessage(`No integration types found for ${path.basename(projectPath)}.`);
                     continue;
                 }
 
-                integrations.push({fsPath: projectPath, supportedIntegrationTypes: integrationTypes });
+                integrations.push({
+                    fsPath: projectPath,
+                    supportedIntegrationTypes: integrationTypes,
+                    name: projectTitle
+                });
             }
         }
 
@@ -1220,7 +1292,11 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
         await commands.executeCommand(
             WICommandIds.CreateNewComponent,
-            { buildPackLang: 'ballerina', integrations, workspaceDir: StateMachine.context().workspacePath } as ICreateNewIntegrationCmdParams,
+            {
+                buildPackLang: 'ballerina',
+                integrations,
+                workspaceDir: StateMachine.context().workspacePath
+            } as ICreateNewIntegrationCmdParams,
             params.rootDirectory
         );
         return { isCompleted: true };
@@ -1257,6 +1333,96 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             });
         } else {
             openAIPanelWithPrompt(undefined);
+        }
+    }
+
+    async startInlineAgentChat(params: InlineAgentChatRequest): Promise<void> {
+        try {
+            const confirm = await window.showInformationMessage(
+                'This will generate a chat service for this agent in your project.',
+                'Continue',
+                'Cancel'
+            );
+            if (confirm !== 'Continue') { return; }
+
+            const agentChatFile = path.join(path.dirname(params.filePath), '_agent_chat.bal');
+            const fileExisted = fs.existsSync(agentChatFile);
+
+            const result: any = await StateMachine.langClient().sendRequest(
+                "agentManager/addAgentChatService",
+                { filePath: params.filePath, agentVariableName: params.agentVarName }
+            );
+
+            if (result.errorMsg) {
+                window.showErrorMessage(`Failed to add agent chat service: ${result.errorMsg}`);
+                return;
+            }
+
+            const generatedFilePath = result.filePath as string;
+            const servicePosition = {
+                startLine: result.startLine as number,
+                startColumn: result.startColumn as number,
+                endLine: result.endLine as number,
+                endColumn: result.endColumn as number,
+            };
+
+            ensureGitignoreEntry(path.dirname(generatedFilePath));
+
+            // Notify LS about the file change so it reloads before navigation
+            const fileUri = vscode.Uri.file(generatedFilePath);
+            await StateMachine.langClient().sendNotification(
+                'workspace/didChangeWatchedFiles',
+                { changes: [{ uri: fileUri.toString(), type: fileExisted ? 2 : 1 }] }
+            );
+
+            // Navigate to the chat resource function flow diagram
+            openView(EVENT_TYPE.OPEN_VIEW, {
+                documentUri: generatedFilePath,
+                position: servicePosition,
+            });
+
+            // Auto-trigger the chat panel
+            vscode.commands.executeCommand('ballerina.tryIt',
+                false, undefined,
+                { basePath: `/agent-chat/${params.agentVarName}`, listener: 'agentChatListener' },
+                generatedFilePath, true,
+            );
+        } catch (error) {
+            window.showErrorMessage(`Failed to set up agent chat: ${error}`);
+        }
+    }
+
+    async cleanupAgentChatServices(): Promise<boolean> {
+        try {
+            const projectRoot = StateMachine.context().projectPath;
+            if (!projectRoot) { return false; }
+            const chatFile = path.join(projectRoot, '_agent_chat.bal');
+            if (fs.existsSync(chatFile)) {
+                const confirm = await window.showWarningMessage(
+                    'Remove all test chat services from your project?',
+                    { modal: true },
+                    'Remove'
+                );
+                if (confirm !== 'Remove') { return false; }
+
+                fs.unlinkSync(chatFile);
+                console.log(`[agent-chat] Deleted ${chatFile}`);
+
+                // Notify the LS that the file was deleted so it re-indexes
+                const fileUri = vscode.Uri.file(chatFile);
+                await StateMachine.langClient().sendNotification(
+                    'workspace/didChangeWatchedFiles',
+                    { changes: [{ uri: fileUri.toString(), type: 3 /* Deleted */ }] }
+                );
+                // Wait for LS to process the deletion
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('[agent-chat] Failed to delete _agent_chat.bal:', error);
+            return false;
         }
     }
 
@@ -1331,8 +1497,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             task: 'run'
         };
 
-        let buildCommand = docker ? 'bal build --cloud="docker"' : 'bal build';
-
         // If docker is true check if docker command is available
         if (docker) {
             const dockerAvailable = await this.checkDockerAvailability();
@@ -1342,20 +1506,54 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             }
         }
 
+        const context = StateMachine.context();
+        const { workspacePath, view: webviewType, projectPath } = context;
+
+        let targetPath = projectPath ?? "";
+        if (workspacePath && webviewType === MACHINE_VIEW.WorkspaceOverview) {
+            // The workspace overview is active — build the whole workspace.
+            targetPath = workspacePath;
+        } else if (workspacePath && !projectPath) {
+            // A workspace is open but no specific project is selected; fall back
+            // to whichever project the active editor belongs to, or the workspace
+            // root if there is no active editor.
+            try {
+                targetPath = await getCurrentProjectRoot();
+            } catch (error) {
+                targetPath = workspacePath;
+            }
+        } else {
+            // A specific project is already selected in the state machine; use it.
+            // Wrap getCurrentProjectRoot in try/catch because there may not be an
+            // active text editor when this is invoked from the RPC manager.
+            try {
+                targetPath = await getCurrentProjectRoot();
+            } catch (error) {
+                targetPath = projectPath ?? workspacePath ?? "";
+            }
+        }
+
+        if (!targetPath) {
+            window.showErrorMessage('No Ballerina project found.');
+            return;
+        }
+
         // Get Ballerina home path from settings
         const config = workspace.getConfiguration('ballerina');
         const ballerinaHome = config.get<string>('home');
-        if (ballerinaHome) {
-            // Add ballerina home to build path only if it's configured
-            buildCommand = path.join(ballerinaHome, 'bin', buildCommand);
-        }
+        const balCmd = ballerinaHome ? path.join(ballerinaHome, 'bin', 'bal') : 'bal';
+        const buildCommand = docker ? `${balCmd} build --cloud="docker"` : `${balCmd} build`;
 
-        // Use the current process environment which should have the updated PATH
-        const execution = new ShellExecution(buildCommand, { env: process.env as { [key: string]: string } });
+        // Run the build command scoped to the resolved project directory so that
+        // only that project is compiled (not every project in the workspace).
+        const execution = new ShellExecution(buildCommand, {
+            cwd: targetPath,
+            env: process.env as { [key: string]: string }
+        });
 
         const task = new Task(
             taskDefinition,
-            workspace.workspaceFolders![0], // Assumes at least one workspace folder is open
+            workspace.workspaceFolders![0],
             'Ballerina Build',
             'ballerina',
             execution
@@ -1400,7 +1598,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async deleteByComponentInfo(params: BIDeleteByComponentInfoRequest): Promise<BIDeleteByComponentInfoResponse> {
         console.log(">>> requesting bi delete node from ls by componentInfo", params);
-        const projectDiags: Diagnostics[] = await checkProjectDiagnostics(StateMachine.langClient(), StateMachine.context().projectPath);
 
         const position: NodePosition = {
             startLine: params.component?.startLine,
@@ -1444,25 +1641,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         }
 
 
-        // If there are diagnostics, remove unused imports first, then delete component
-        if (projectDiags.length > 0) {
-            return new Promise((resolve, reject) => {
-                removeUnusedImports(projectDiags, StateMachine.langClient())
-                    .then(() => {
-                        // After removing unused imports, proceed with component deletion
-                        return performDelete();
-                    })
-                    .then((result) => {
-                        resolve(result);
-                    })
-                    .catch((error) => {
-                        reject("Error during delete operation: " + error);
-                    });
-            });
-        } else {
-            // No diagnostics, directly delete component
-            return performDelete();
-        }
+        return performDelete();
     }
 
     async getFormDiagnostics(params: FormDiagnosticsRequest): Promise<FormDiagnosticsResponse> {
@@ -2006,8 +2185,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             const projectPath = StateMachine.context().projectPath;
             const repoRoot = getRepoRoot(projectPath);
             if (repoRoot) {
-                const contextYamlPath = path.join(repoRoot, ".choreo", "context.yaml");
-                if (fs.existsSync(contextYamlPath)) {
+                const contextYamlPath = path.join(repoRoot, ".wso2", "context.yaml");
+                // leaving .choreo/context.yaml check for backward compatibility, can remove after some time
+                const choreoContextYamlPath = path.join(repoRoot, ".choreo", "context.yaml");
+                if (fs.existsSync(contextYamlPath) || fs.existsSync(choreoContextYamlPath)) {
                     hasContextYaml = true;
                 }
             }
@@ -2055,8 +2236,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             const platformExt = extensions.getExtension(WI_EXTENSION_ID);
             if (!platformExt) {
                 // Check for context.yaml as fallback
-                const contextYamlPath = path.join(repoRoot, ".choreo", "context.yaml");
-                const hasContextYaml = fs.existsSync(contextYamlPath);
+                const contextYamlPath = path.join(repoRoot, ".wso2", "context.yaml");
+                // leaving .choreo/context.yaml check for backward compatibility, can remove after some time
+                const choreoContextYamlPath = path.join(repoRoot, ".choreo", "context.yaml");
+                const hasContextYaml = fs.existsSync(contextYamlPath) || fs.existsSync(choreoContextYamlPath);
                 return {
                     isLoggedIn: false,
                     hasAnyComponent: hasContextYaml,
@@ -2099,8 +2282,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
             // If not logged in, check for context.yaml as fallback
             if (!isLoggedIn) {
-                const contextYamlPath = path.join(repoRoot, ".choreo", "context.yaml");
-                if (fs.existsSync(contextYamlPath)) {
+                const contextYamlPath = path.join(repoRoot, ".wso2", "context.yaml");
+                // leaving .choreo/context.yaml check for backward compatibility, can remove after some time
+                const choreoContextYamlPath = path.join(repoRoot, ".choreo", "context.yaml");
+                if (fs.existsSync(contextYamlPath) || fs.existsSync(choreoContextYamlPath)) {
                     hasAnyComponent = true;
                 }
             }
@@ -2395,52 +2580,36 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async updateProjectTitle(params: UpdateProjectTitleRequest): Promise<void> {
-        const ballerinaTomlPath = path.join(params.projectPath, 'Ballerina.toml');
-        let content: string;
-        try {
-            content = fs.readFileSync(ballerinaTomlPath, 'utf-8');
-        } catch {
-            throw new Error(`Ballerina.toml not found at ${ballerinaTomlPath}`);
-        }
-        let doc: ReturnType<typeof toml.parse>;
-        try {
-            doc = toml.parse(content);
-        } catch (e) {
-            const message = e instanceof Error ? e.message : String(e);
-            throw new Error(`Invalid TOML in ${ballerinaTomlPath}: ${message}`);
-        }
-        const workspace = doc.workspace;
-        if (
-            workspace !== undefined &&
-            workspace !== null &&
-            typeof workspace === "object" &&
-            !Array.isArray(workspace) &&
-            !(workspace instanceof Date)
-        ) {
-            (workspace as ReturnType<typeof toml.parse>).title = params.title;
-        } else {
-            doc.workspace = { title: params.title };
-        }
-        fs.writeFileSync(ballerinaTomlPath, toml.stringify(doc), "utf-8");
-
-        const localProjectYamlPath = path.join(params.projectPath, '.choreo', 'local-project.yaml');
-        try {
-            const yamlContent = fs.readFileSync(localProjectYamlPath, 'utf-8');
-            const updatedYaml = yamlContent.replace(
-                /^name\s*:.*$/m,
-                `name: ${JSON.stringify(params.title)}`
-            );
-            fs.writeFileSync(localProjectYamlPath, updatedYaml, 'utf-8');
-        } catch {
-            // file doesn't exist, skip
-        }
-
+        setTomlSectionField(path.join(params.projectPath, 'Ballerina.toml'), 'workspace', 'title', params.title);
         const currentProjectInfo = StateMachine.context().projectInfo;
         if (currentProjectInfo.projectPath === params.projectPath) {
             StateMachine.updateProjectInfo({ ...currentProjectInfo, title: params.title });
         } else {
             StateMachine.refreshProjectInfo();
         }
+    }
+
+    async updatePackageTitle(params: UpdatePackageTitleRequest): Promise<void> {
+        setTomlSectionField(path.join(params.packagePath, 'Ballerina.toml'), 'package', 'title', params.title);
+        // Update projectInfo so any subsequent buildProjectsStructure call uses the new title.
+        const currentProjectInfo = StateMachine.context().projectInfo;
+        let updatedProjectInfo: ProjectInfo;
+        if (
+            currentProjectInfo.projectKind === PROJECT_KIND.WORKSPACE_PROJECT &&
+            currentProjectInfo.children?.length > 0
+        ) {
+            updatedProjectInfo = {
+                ...currentProjectInfo,
+                children: currentProjectInfo.children.map((child) =>
+                    child.projectPath === params.packagePath
+                        ? { ...child, title: params.title }
+                        : child
+                ),
+            };
+        } else {
+            updatedProjectInfo = { ...currentProjectInfo, title: params.title };
+        }
+        StateMachine.updateProjectInfo(updatedProjectInfo, { silent: true });
     }
 
     async getSuggestedProjectDefaults(params: { isInProject: boolean }): Promise<SuggestedProjectDefaultsResponse> {

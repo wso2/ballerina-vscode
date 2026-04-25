@@ -81,7 +81,7 @@ async function stopService(
     }
 
     if (!service.process.killed) {
-        killProcessGroup(service.process, 'SIGTERM');
+        await killProcessGroup(service.process, 'SIGTERM');
     }
 
     await waitForExit(service.process);

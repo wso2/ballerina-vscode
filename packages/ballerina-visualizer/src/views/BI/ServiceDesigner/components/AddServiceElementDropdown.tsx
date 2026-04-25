@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { Codicon, DropdownButton, Typography } from "@wso2/ui-toolkit";
+import { DropdownButton, Icon, ProgressRing, Typography } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 
 const ButtonText = styled.span`
@@ -30,13 +30,28 @@ interface AddServiceElementDropdownProps {
     buttonTitle: string;
     toolTip?: string;
     defaultOption?: string;
+    onPrimaryAction?: () => void;
+    buttonIconName?: string;
+    buttonIconIsCodicon?: boolean;
+    showButtonSpinner?: boolean;
     onOptionChange: (option: string) => void;
     options: DropdownOptionProps[];
 }
 
 
 export function AddServiceElementDropdown(props: AddServiceElementDropdownProps) {
-    const { buttonTitle, toolTip, defaultOption, onOptionChange, options } = props;
+    const {
+        buttonTitle,
+        toolTip,
+        defaultOption,
+        onPrimaryAction,
+        buttonIconName,
+        buttonIconIsCodicon = false,
+        showButtonSpinner = false,
+        onOptionChange,
+        options
+    } = props;
+    const enablePrimaryAction = !!onPrimaryAction
     const dropdownOptions = options.map((option) => (
         {
             content: <DropdownOption
@@ -52,18 +67,30 @@ export function AddServiceElementDropdown(props: AddServiceElementDropdownProps)
             <DropdownButton
                 buttonContent={
                     <>
+                        {showButtonSpinner ? (
+                            <ProgressRing sx={{ width: 18, height: 18, marginRight: 8 }} />
+                        ) : (
+                            buttonIconName && (
+                                <Icon
+                                    name={buttonIconName}
+                                    isCodicon={buttonIconIsCodicon}
+                                    sx={{ marginRight: 8, fontSize: "16px", width:"16px" }}
+                                />
+                            )
+                        )}
                         <ButtonText>{buttonTitle}</ButtonText>
                     </>
                 }
-                selecteOption={""}
+                selecteOption={defaultOption ?? ""}
                 tooltip={toolTip ?? "Add Functions or Handlers"}
                 dropDownAlign="bottom"
+                selectIconSx={{marginRight: enablePrimaryAction ? 10: 0}}
                 buttonSx={{
                     appearance: 'none',
                     height: '28px',
                     minHeight: '28px',
-                    cursor: 'default',
-                    pointerEvents: 'none'
+                    cursor: enablePrimaryAction ? 'pointer' : 'default',
+                    pointerEvents: enablePrimaryAction ? 'auto' : 'none'
                 }}
                 optionButtonSx={{
                     borderLeft: "none",
@@ -81,7 +108,11 @@ export function AddServiceElementDropdown(props: AddServiceElementDropdownProps)
                     left: 'auto'
                 }}
                 onOptionChange={onOptionChange}
-                onClick={() => { }}
+                onClick={() => {
+                    if (enablePrimaryAction) {
+                        onPrimaryAction();
+                    }
+                }}
                 options={dropdownOptions}
             />
         </div>
@@ -92,13 +123,15 @@ export interface DropdownOptionProps {
     title: string;
     description: string;
     value?: string;
+    iconName?: string; // Used to be shown in the main panel when selected
+    iconIsCodicon?: boolean;
 }
 
 function DropdownOption({ title, description }: DropdownOptionProps) {
     return (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px 8px 8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div>
-                <Typography variant="body2" sx={{ fontWeight: 'medium' }}>{title}</Typography>
+                <Typography variant="body2" sx={{ fontWeight: 'medium', lineHeight: 1 }}>{title}</Typography>
                 <Typography variant="body3" sx={{ color: 'var(--vscode-descriptionForeground)' }}>
                     {description}
                 </Typography>

@@ -16,14 +16,14 @@
  * under the License.
  */
 
-import React, { ReactNode, useEffect, useMemo, useState } from "react";
+import React, { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { EditableTitle } from "../../../components/EditableTitle";
 import {
     ProjectStructure,
     EVENT_TYPE,
     MACHINE_VIEW,
     BuildMode,
     BI_COMMANDS,
-    SHARED_COMMANDS,
     DIRECTORY_MAP,
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -35,7 +35,7 @@ import { VSCodeLink } from "@vscode/webview-ui-toolkit/react";
 import ReactMarkdown from "react-markdown";
 import { IOpenInConsoleCmdParams, WICommandIds } from "@wso2/wso2-platform-core";
 import { AlertBoxWithClose } from "../../AIPanel/AlertBoxWithClose";
-import { getIntegrationTypes } from "./utils";
+import { getIntegrationTypes, validateComponentName } from "./utils";
 import { UndoRedoGroup } from "../../../components/UndoRedoGroup";
 import { usePlatformExtContext } from "../../../providers/platform-ext-ctx-provider";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
@@ -476,8 +476,8 @@ function DeploymentOptions({
                         buttonText={isDeployed ? "View in Console" : "Deploy"}
                         isExpanded={expandedOptions.has("devant")}
                         onToggle={() => toggleOption("devant")}
-                        onDeploy={isDeployed? () => goToDevant() : handleDeploy}
-                        learnMoreLink={"https://wso2.com/devant/docs"}
+                        onDeploy={isDeployed ? () => goToDevant() : handleDeploy}
+                        learnMoreLink={"https://wso2.com/devant/docs/"}
                         hasDeployableIntegration={hasDeployableIntegration}
                         secondaryAction={
                             isDeployed && platformExtState?.hasLocalChanges
@@ -493,7 +493,7 @@ function DeploymentOptions({
                         }
                     />
                 )}
-                
+
                 <DeploymentOption
                     title="Deploy with Docker"
                     description="Create a Docker image of your integration and deploy it to any Docker-enabled system."
@@ -768,8 +768,7 @@ export function PackageOverview(props: PackageOverviewProps) {
     const [isInProject, setIsInProject] = useState(false);
     const [isLibrary, setIsLibrary] = useState<boolean>(false);
     const [isNPSupported, setIsNPSupported] = useState<boolean>(false);
-
-    const fetchContext = () => {
+    const fetchContext = useCallback(() => {
         rpcClient
             .getBIDiagramRpcClient()
             .getProjectStructure()
@@ -804,20 +803,29 @@ export function PackageOverview(props: PackageOverviewProps) {
             .then((res) => {
                 setReadmeContent(res.content);
             });
-    };
-
-    rpcClient?.onProjectContentUpdated((state: boolean) => {
-        if (state) {
-            fetchContext();
-        }
-    });
+    }, [rpcClient, projectPath]);
 
     useEffect(() => {
         fetchContext();
         showLoginAlert().then((status) => {
             setShowAlert(status);
         });
-    }, [projectPath]);
+    }, [projectPath, fetchContext]);
+
+    // Keep a stable ref so the subscription callback always calls the latest fetchContext
+    // without needing to re-register the listener every time fetchContext changes.
+    const fetchContextRef = useRef(fetchContext);
+    fetchContextRef.current = fetchContext;
+
+    useEffect(() => {
+        if (!rpcClient) return;
+        const unsubscribe = rpcClient.onProjectContentUpdated((state: boolean) => {
+            if (state) {
+                fetchContextRef.current();
+            }
+        });
+        return unsubscribe;
+    }, [rpcClient]);
 
     const deployableIntegrationTypes = useMemo(() => {
         return getIntegrationTypes(projectStructure);
@@ -826,6 +834,23 @@ export function PackageOverview(props: PackageOverviewProps) {
     const integrationTitle = useMemo(() => {
         return projectStructure?.projectTitle || projectStructure?.projectName;
     }, [projectStructure]);
+
+    const validateTitle = useCallback((value: string): string => {
+        return validateComponentName(value.trim(), isLibrary) ?? "";
+    }, [isLibrary]);
+
+    const handleTitleUpdate = useCallback(async (newTitle: string) => {
+        await rpcClient.getBIDiagramRpcClient().updatePackageTitle({
+            packagePath: projectPath,
+            title: newTitle,
+        });
+        // Optimistically update the displayed title immediately.
+        // Do NOT call fetchContext() here — buildProjectsStructure in the backend is async;
+        // calling getProjectStructure() too early would return stale data and overwrite this update.
+        // The backend's notifyCurrentWebview() fires after buildProjectsStructure completes,
+        // which triggers onProjectContentUpdated → fetchContext() as the background confirm.
+        setProjectStructure(prev => prev ? { ...prev, projectTitle: newTitle } : prev);
+    }, [projectPath, rpcClient]);
 
     function isEmptyIntegration(): boolean {
         // Filter out connections that start with underscore
@@ -998,11 +1023,19 @@ export function PackageOverview(props: PackageOverviewProps) {
                         subtitle={isLibrary ? "Library" : "Integration"}
                         onBack={handleBack}
                         actions={headerActions}
+                        onTitleEdit={handleTitleUpdate}
+                        validateTitle={validateTitle}
                     />
                 ) : (
                     <HeaderRow>
                         <TitleContainer>
-                            <ProjectTitle>{integrationTitle}</ProjectTitle>
+                            <EditableTitle
+                                title={integrationTitle}
+                                onCommit={handleTitleUpdate}
+                                validate={validateTitle}
+                            >
+                                <ProjectTitle>{integrationTitle}</ProjectTitle>
+                            </EditableTitle>
                             <ProjectSubtitle>{isLibrary ? "Library" : "Integration"}</ProjectSubtitle>
                         </TitleContainer>
                         <HeaderControls>
@@ -1038,7 +1071,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                                     {!isEmptyIntegration() && (
                                         <ActionContainer>
                                             <Button appearance="secondary" onClick={handleGenerate}>
-                                                <Icon name="bi-ai-chat" sx={{ marginRight: 4 }} iconSx={{ position: "relative", top: "2px" }} /> Generate with AI
+                                                <Icon name="bi-ai-chat" sx={{ marginRight: 8 }} iconSx={{ width: "16px", height: "16px", fontSize: "16px" }} /> Generate with AI
                                             </Button>
                                             <Button appearance="primary" onClick={handleAddConstruct}>
                                                 <Codicon name="add" sx={{ marginRight: 8 }} /> Add Artifact

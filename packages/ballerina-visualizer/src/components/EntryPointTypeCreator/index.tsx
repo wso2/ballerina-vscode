@@ -23,7 +23,7 @@ import styled from "@emotion/styled";
 import DynamicModal from "../../components/Modal";
 
 import { EditorContext, StackItem } from "@wso2/type-editor";
-import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../../views/BI/Forms/FormGenerator";
+import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../../views/BI/Forms/FlowNodeForm";
 import { FormTypeEditor } from "../../views/BI/TypeEditor";
 
 export const Title = styled.div`

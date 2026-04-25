@@ -26,6 +26,7 @@ import {
     addProjectToWorkspace,
     AddProjectToWorkspaceRequest,
     AIChatRequest,
+    InlineAgentChatRequest,
     BIAiSuggestionsRequest,
     BIAvailableNodesRequest,
     BIDeleteByComponentInfoRequest,
@@ -128,6 +129,8 @@ import {
     ModelFromCodeRequest,
     openAIChat,
     OpenAPIClientDeleteRequest,
+    startInlineAgentChat,
+    cleanupAgentChatServices,
     OpenAPIClientGenerationRequest,
     OpenAPIGeneratedModulesRequest,
     openConfigToml,
@@ -164,7 +167,9 @@ import {
     validateProjectPath,
     getSuggestedProjectDefaults,
     UpdateProjectTitleRequest,
-    updateProjectTitle
+    UpdatePackageTitleRequest,
+    updateProjectTitle,
+    updatePackageTitle
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { BiDiagramRpcManager } from "./rpc-manager";
@@ -210,6 +215,8 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(deployProject, (args: DeploymentRequest) => rpcManger.deployProject(args));
     messenger.onRequest(deployWorkspace, (args: WorkspaceDeploymentRequest) => rpcManger.deployWorkspace(args));
     messenger.onNotification(openAIChat, (args: AIChatRequest) => rpcManger.openAIChat(args));
+    messenger.onNotification(startInlineAgentChat, (args: InlineAgentChatRequest) => rpcManger.startInlineAgentChat(args));
+    messenger.onRequest(cleanupAgentChatServices, () => rpcManger.cleanupAgentChatServices());
     messenger.onRequest(getSignatureHelp, (args: SignatureHelpRequest) => rpcManger.getSignatureHelp(args));
     messenger.onNotification(buildProject, (args: BuildMode) => rpcManger.buildProject(args));
     messenger.onNotification(runProject, () => rpcManger.runProject());
@@ -255,5 +262,6 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getOpenApiGeneratedModules, (args: OpenAPIGeneratedModulesRequest) => rpcManger.getOpenApiGeneratedModules(args));
     messenger.onRequest(deleteOpenApiGeneratedModules, (args: OpenAPIClientDeleteRequest) => rpcManger.deleteOpenApiGeneratedModules(args));
     messenger.onRequest(updateProjectTitle, (args: UpdateProjectTitleRequest) => rpcManger.updateProjectTitle(args));
+    messenger.onRequest(updatePackageTitle, (args: UpdatePackageTitleRequest) => rpcManger.updatePackageTitle(args));
     messenger.onRequest(getSuggestedProjectDefaults, (args: { isInProject: boolean }) => rpcManger.getSuggestedProjectDefaults(args));
 }

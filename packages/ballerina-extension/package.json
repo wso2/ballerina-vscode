@@ -2,7 +2,7 @@
     "name": "ballerina",
     "displayName": "Ballerina",
     "description": "Ballerina Language support, debugging, graphical visualization, AI-based data-mapping and many more.",
-    "version": "5.9.326022015",
+    "version": "5.9.4",
     "publisher": "wso2",
     "icon": "resources/images/ballerina.png",
     "homepage": "https://wso2.com/ballerina/vscode/docs",
@@ -264,13 +264,22 @@
                 "ballerina.copilot.checkpoints.ignorePatterns": {
                     "type": "array",
                     "default": [
-                        ".git/**",
-                        "target/**",
-                        "build/**",
-                        "dist/**",
-                        ".vscode/**",
-                        "*.log",
-                        ".DS_Store"
+                        "**/node_modules/**",
+                        "**/.git/**",
+                        "**/target/**",
+                        "**/build/**",
+                        "**/dist/**",
+                        "**/.vscode/**",
+                        "**/*.log",
+                        "**/.DS_Store",
+                        "**/*.jar",
+                        "**/*.class",
+                        "**/*.bala",
+                        "**/*.zip",
+                        "**/*.rar",
+                        "**/*.war",
+                        "**/*.tar",
+                        "**/*.gz"
                     ],
                     "description": "File patterns to ignore when creating checkpoints."
                 },
@@ -772,11 +781,6 @@
                 "enablement": "isSupportedProject"
             },
             {
-                "command": "ballerina.startTraceServer",
-                "title": "Start Trace Server",
-                "category": "Ballerina"
-            },
-            {
                 "command": "ballerina.enableTracing",
                 "title": "Enable Tracing",
                 "category": "Ballerina",
@@ -788,6 +792,12 @@
                 "category": "Ballerina",
                 "icon": "$(circle-slash)",
                 "enablement": "isSupportedProject"
+            },
+            {
+                "command": "ballerina.startTraceServer",
+                "title": "Start Trace Server",
+                "category": "Ballerina",
+                "enablement": "isSupportedProject && ballerina.tracingEnabled"
             },
             {
                 "command": "ballerina.clearTraces",
@@ -916,17 +926,22 @@
                 {
                     "command": "BI.test.edit.function.def",
                     "group": "inline",
-                    "when": "testId not in testGroups"
+                    "when": "(isBIProject || isBallerinaProject) && testId not in testGroups"
                 },
                 {
                     "command": "BI.test.edit.function",
                     "group": "inline",
-                    "when": "testId not in testGroups"
+                    "when": "(isBIProject || isBallerinaProject) && testId not in testGroups"
+                },
+                {
+                    "command": "BI.test.add.function",
+                    "group": "inline",
+                    "when": "(isBIProject || isBallerinaProject) && testId not in testGroups"
                 },
                 {
                     "command": "BI.test.delete.function",
                     "group": "inline",
-                    "when": "testId not in testGroups"
+                    "when": "(isBIProject || isBallerinaProject) && testId not in testGroups"
                 },
                 {
                     "command": "ballerina.openEvaluationHistory",
@@ -1222,14 +1237,14 @@
                 "description": "start",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f21f"
+                    "fontCharacter": "\\f246"
                 }
             },
             "ballerina-debug": {
                 "description": "debug",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f17a"
+                    "fontCharacter": "\\f1be"
                 }
             },
             "ballerina-source-view": {
@@ -1243,7 +1258,7 @@
                 "description": "persist-diagram",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f1f9"
+                    "fontCharacter": "\\f21d"
                 }
             },
             "ballerina-cached-rounded": {
@@ -1341,7 +1356,7 @@
                 "description": "design-view",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f1bf"
+                    "fontCharacter": "\\f1c3"
                 }
             },
             "distro-file-submodule": {
@@ -1406,9 +1421,8 @@
         "test:libs-integration": "pnpm run test-compile && node ./out/test/runLibsIntegrationTest.js",
         "e2e-test-setup": "npx extest get-vscode -c 1.100.0 && npx extest get-chromedriver -c 1.100.0 && npx extest install-vsix -f $(ls vsix/*.vsix)",
         "preui-test": "node -e \"const fs = require('fs'); if (fs.existsSync('test-resou')) { fs.unlinkSync('test-resou'); }\"",
-        "e2e-test": "pnpm run test-compile && npx extest run-tests 'out/ui-test/*.test.js' --mocha_config ui-test/.mocharc.js -o ui-test/settings.json",
-        "e2e-test:bi": "pnpm exec playwright test -c e2e-test/playwright.config.js",
-        "e2e-test:bi:download-prerelease": "DOWNLOAD_PRERELEASE=true pnpm exec playwright test -c e2e-test/playwright.config.js",
+        "e2e-test": "pnpm exec playwright test -c e2e-test/playwright.config.js",
+        "e2e-test:download-prerelease": "DOWNLOAD_PRERELEASE=true pnpm exec playwright test -c e2e-test/playwright.config.js",
         "test-coverage": "cross-env COVER_CONFIG=html pnpm run test",
         "build-tm-grammar": "js-yaml grammar/ballerina-grammar/syntaxes/ballerina.tmLanguage.yaml > grammar/ballerina-grammar/syntaxes/ballerina.tmLanguage.json",
         "lint": "tslint --fix 'src/**/*{.ts,.tsx}'",
@@ -1417,16 +1431,16 @@
         "copyVSIX": "copyfiles *.vsix ./vsix",
         "copyVSIXToRoot": "copyfiles -f ./vsix/*.vsix ../../..",
         "download-ls": "node scripts/download-ls.js",
-        "download-ls:prerelease": "node scripts/download-ls.js --prerelease --replace",
+        "download-ls:prerelease": "node scripts/download-ls.js --tag prerelease --replace",
         "build": "pnpm run compile && pnpm run lint && pnpm run postbuild",
         "rebuild": "pnpm run clean && pnpm run compile && pnpm run postbuild",
         "postbuild": "pnpm run download-ls && pnpm run copyFonts && pnpm run copyJSLibs && pnpm run package && pnpm run copyVSIX",
-        "copyJSLibs": "copyfiles -f ../ballerina-visualizer/build/*.js resources/jslibs && copyfiles -f ../trace-visualizer/build/*.js resources/jslibs"
+        "copyJSLibs": "copyfiles -f ../ballerina-visualizer/build/*.js resources/jslibs && copyfiles -f ../ballerina-visualizer/build/images/* resources/jslibs/images && copyfiles -f ../trace-visualizer/build/*.js resources/jslibs"
     },
     "dependencies": {
-        "@ai-sdk/amazon-bedrock": "4.0.67",
-        "@ai-sdk/anthropic": "3.0.48",
-        "@ai-sdk/google-vertex": "4.0.66",
+        "@ai-sdk/amazon-bedrock": "4.0.83",
+        "@ai-sdk/anthropic": "3.0.64",
+        "@ai-sdk/google-vertex": "4.0.94",
         "@iarna/toml": "2.2.5",
         "@types/lodash": "4.14.200",
         "@vscode/test-electron": "2.5.2",
@@ -1452,7 +1466,7 @@
         "node-fetch": "3.3.2",
         "node-schedule": "2.1.1",
         "portfinder": "1.0.32",
-        "protobufjs": "7.2.5",
+        "protobufjs": "7.5.5",
         "source-map-support": "0.5.21",
         "unzipper": "0.12.3",
         "uuid": "11.1.0",
@@ -1468,7 +1482,8 @@
         "vscode-uri": "3.0.8",
         "xml-js": "1.6.11",
         "xstate": "4.38.3",
-        "zod": "4.1.8"
+        "zod": "4.1.8",
+        "yaml": "2.8.0"
     },
     "devDependencies": {
         "@sentry/webpack-plugin": "1.20.1",
@@ -1479,7 +1494,7 @@
         "@types/vscode": "1.100.0",
         "@types/vscode-notebook-renderer": "1.72.2",
         "adm-zip": "0.5.16",
-        "axios": "1.13.5",
+        "axios": "1.15.0",
         "chai": "4.3.10",
         "copyfiles": "2.4.1",
         "cross-env": "7.0.3",

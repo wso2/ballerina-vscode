@@ -57,9 +57,9 @@ export function activateTryItCommand(ballerinaExtInstance: BallerinaExtension) {
         clientManager.setClient(ballerinaExtInstance.langClient);
 
         // Register try it command handler
-        const disposable = commands.registerCommand(PALETTE_COMMANDS.TRY_IT, async (withNotice: boolean = false, resourceMetadata?: ResourceMetadata, serviceMetadata?: ServiceMetadata, filePath?: string) => {
+        const disposable = commands.registerCommand(PALETTE_COMMANDS.TRY_IT, async (withNotice: boolean = false, resourceMetadata?: ResourceMetadata, serviceMetadata?: ServiceMetadata, filePath?: string, autoRun?: boolean) => {
             try {
-                await openTryItView(withNotice, resourceMetadata, serviceMetadata, filePath);
+                await openTryItView(withNotice, resourceMetadata, serviceMetadata, filePath, autoRun);
             } catch (error) {
                 handleError(error, "Opening Try It view failed");
             }
@@ -73,7 +73,7 @@ export function activateTryItCommand(ballerinaExtInstance: BallerinaExtension) {
     }
 }
 
-async function openTryItView(withNotice: boolean = false, resourceMetadata?: ResourceMetadata, serviceMetadata?: ServiceMetadata, filePath?: string): Promise<void> {
+async function openTryItView(withNotice: boolean = false, resourceMetadata?: ResourceMetadata, serviceMetadata?: ServiceMetadata, filePath?: string, autoRun?: boolean): Promise<void> {
     try {
         if (!clientManager.hasClient()) {
             throw new Error('Ballerina Language Server is not connected');
@@ -104,13 +104,15 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
 
             wasServiceAlreadyRunning = false;
         } else {
-            const processesRunning = await checkBallerinaProcessRunning(projectPath);
+            const processesRunning = autoRun
+                ? await autoRunIntegration(projectPath)
+                : await checkBallerinaProcessRunning(projectPath);
             if (!processesRunning) {
                 return;
             }
         }
 
-        let selectedService: ServiceInfo;
+        let selectedService: ServiceInfo | undefined;
         // If in resource try it mode, find the service containing the resource path
         if (resourceMetadata) {
             const matchingService = await findServiceForResource(services, resourceMetadata, serviceMetadata);
@@ -122,14 +124,18 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
             selectedService = matchingService;
         } else if (services.length > 1) {
             if (serviceMetadata) {
+                const normalize = (p: string) => p.replace(/\\/g, '');
                 const matchingService = services.find(service =>
-                    service.basePath === serviceMetadata.basePath && compareListeners(service.listener, serviceMetadata.listener)
+                    normalize(service.basePath) === normalize(serviceMetadata.basePath) && compareListeners(service.listener, serviceMetadata.listener)
                 );
 
                 if (matchingService) {
                     selectedService = matchingService;
                 }
-            } else {
+            }
+
+            // If no service was matched via metadata, fall back to QuickPick
+            if (!selectedService) {
                 const quickPickItems = services.map(service => ({
                     label: `'${service.basePath}' on ${service.listener.name}`,
                     description: `${service.type} Service`,
@@ -596,6 +602,43 @@ async function getServicePort(projectDir: string, service: ServiceInfo, openapiS
 }
 
 /**
+ * Automatically starts the integration without prompting the user.
+ * Used when the intent to run is already clear (e.g., user clicked "Chat" on an agent).
+ */
+async function autoRunIntegration(projectDir: string): Promise<boolean> {
+    try {
+        const balProcesses = await findRunningBallerinaProcesses(projectDir)
+            .catch(error => {
+                throw new Error(`Failed to find running Ballerina processes: ${error.message}`);
+            });
+
+        if (balProcesses?.length) {
+            return true;
+        }
+
+        const { workspacePath, view: webviewType } = StateMachine.context();
+        const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
+        const needsPackageSelection = requiresPackageSelection(workspacePath, webviewType, projectDir, isWebviewOpen, false);
+
+        if (isWebviewOpen && needsPackageSelection) {
+            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview, projectPath: projectDir });
+        }
+
+        clearTerminal();
+        await startDebugging(Uri.file(projectDir), false, false, true);
+
+        const newProcesses = await waitForBallerinaService(projectDir).then(() => {
+            return findRunningBallerinaProcesses(projectDir);
+        });
+
+        return newProcesses?.length > 0;
+    } catch (error) {
+        handleError(error, "Auto-running integration", false);
+        return false;
+    }
+}
+
+/**
  * Helper function to detect running Ballerina processes and, prompt the user to run the program if not found
  */
 async function checkBallerinaProcessRunning(projectDir: string): Promise<boolean> {
@@ -932,10 +975,10 @@ function compareListeners(serviceInfoListener: { name: string, port?: string }, 
         return true;
     }
 
-    // anonymous listeners
-    if (serviceMetadataListener.startsWith('new http:Listener') && serviceInfoListener.port) {
-        // Extract port from 'http:Listener(9090)'
-        const portMatch = serviceMetadataListener.match(/new http:Listener\((\d+)\)/);
+    // anonymous listeners - handle any listener type (e.g., http:Listener, ai:Listener, etc.)
+    if (serviceMetadataListener.startsWith('new ') && serviceInfoListener.port) {
+        // Extract port from patterns like 'new http:Listener(9090)', 'new ai:Listener(8080)', etc.
+        const portMatch = serviceMetadataListener.match(/new \w+:\w+\((\d+)/);
         if (portMatch && portMatch[1]) {
             const port = parseInt(portMatch[1], 10);
             return port === parseInt(serviceInfoListener.port);

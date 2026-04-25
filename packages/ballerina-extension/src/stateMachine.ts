@@ -150,7 +150,9 @@ const stateMachine = createMachine<MachineContext>(
                     async (context, event) => {
                         // Rebuild project structure with updated project info
                         await buildProjectsStructure(event.projectInfo, StateMachine.langClient(), true);
-                        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.WorkspaceOverview });
+                        if (!event.silent) {
+                            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.WorkspaceOverview });
+                        }
                     }
                 ]
             },
@@ -863,8 +865,8 @@ export const StateMachine = {
     refreshProjectInfo: () => {
         stateService.send({ type: 'REFRESH_PROJECT_INFO' });
     },
-    updateProjectInfo: (projectInfo: ProjectInfo) => {
-        stateService.send({ type: 'UPDATE_PROJECT_INFO', projectInfo });
+    updateProjectInfo: (projectInfo: ProjectInfo, options?: { silent?: boolean }) => {
+        stateService.send({ type: 'UPDATE_PROJECT_INFO', projectInfo, silent: options?.silent });
     },
     resetToExtensionReady: () => {
         stateService.send({ type: 'RESET_TO_EXTENSION_READY' });

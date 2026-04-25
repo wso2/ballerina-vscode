@@ -530,7 +530,11 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         const deployementParams: ICreateNewIntegrationCmdParams = {
             buildPackLang:"ballerina",
             workspaceDir: StateMachine.context().workspacePath || StateMachine.context().projectPath,
-            integrations: [{ fsPath: StateMachine.context().projectPath, supportedIntegrationTypes: [integrationType] }]
+            integrations: [{
+                fsPath: StateMachine.context().projectPath,
+                supportedIntegrationTypes: [integrationType],
+                name: project?.projectTitle || project?.projectName
+            }]
         };
         vscode.commands.executeCommand(WICommandIds.CreateNewComponent, deployementParams);
     }
@@ -861,7 +865,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 serviceId: params.marketplaceItem.serviceId,
             });
 
-            const choreoDir = path.join(projectPath, ".choreo");
+            const choreoDir = path.join(projectPath, ".wso2");
             if (!fs.existsSync(choreoDir)) {
                 fs.mkdirSync(choreoDir, { recursive: true });
             }
