@@ -241,7 +241,6 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         const view = viewRef.current;
 
         if (options.closeHelperPane) {
-            setIsTokenUpdateScheduled(true);
             setHelperPaneState(prev => ({ ...prev, isOpen: false }));
         }
 
@@ -275,6 +274,10 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
             changes: { from, to, insert: finalValue },
             selection: { anchor: cursorPosition }
         });
+
+        if (options.closeHelperPane) {
+            setIsTokenUpdateScheduled(true);
+        }
     }
 
     const handleHelperPaneManualToggle = () => {
