@@ -258,6 +258,18 @@ async function handleCollectMode(
     const validationError = validateConfigVariables(variables);
     if (validationError) { return validationError; }
 
+    if (!variables || variables.length === 0) {
+        return {
+            success: false,
+            message:
+                "No variables provided to collect. " +
+                "Always pass `variables` with the configurable identifiers from the code. " +
+                "Use mode: 'check' first if you need to discover existing variable names in Config.toml.",
+            error: "No variables provided",
+            errorCode: "NO_VARIABLES",
+        };
+    }
+
     // Resolve and validate the package base path. For workspace projects, the
     // agent must pass packagePath so Config.toml lands inside the target
     // package rather than the workspace root. The helper rejects directory
