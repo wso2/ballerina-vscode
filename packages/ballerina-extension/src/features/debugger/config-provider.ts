@@ -93,16 +93,16 @@ class DebugConfigProvider implements DebugConfigurationProvider {
             return Promise.resolve({ request: '', type: '', name: '' });
         }
 
-        // Check if config generation is required before starting the debug session
-        const shouldProceed = await prepareAndGenerateConfig(extension.ballerinaExtInstance, config.script, false, StateMachine.context().isBI, false);
-        if (!shouldProceed) {
-            return Promise.resolve({ request: '', type: '', name: '' });
-        }
-
         if (config.noDebug && (extension.ballerinaExtInstance.enabledRunFast() || StateMachine.context().isBI)) {
             await handleMainFunctionParams(config);
         }
         const configs = await getModifiedConfigs(_folder, config);
+
+        // Check if config generation is required before starting the debug session
+        const shouldProceed = await prepareAndGenerateConfig(extension.ballerinaExtInstance, configs.script, false, StateMachine.context().isBI, false);
+        if (!shouldProceed) {
+            return Promise.resolve({ request: '', type: '', name: '' });
+        }
 
         // connect to Devant if applicable
         await new PlatformExtRpcManager().setupDevantProxyForDebugging(configs);
