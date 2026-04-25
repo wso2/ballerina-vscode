@@ -94,8 +94,16 @@ function getConfigFileName(isTestConfig?: boolean): string {
 }
 
 function validateConfigVariables(
-    variables: ConfigVariable[]
+    variables: ConfigVariable[] | undefined
 ): ConfigCollectorResult | null {
+    if (!variables || variables.length === 0) {
+        return createErrorResult(
+            "NO_VARIABLES",
+            "No variables provided to collect. " +
+            "Always pass `variables` with the configurable identifiers from the code. " +
+            "Use mode: 'check' first if you need to discover existing variable names in Config.toml."
+        );
+    }
     for (const variable of variables) {
         if (!validateVariableName(variable.name)) {
             return createErrorResult(
@@ -254,7 +262,7 @@ export async function ConfigCollectorTool(
 }
 
 async function handleCollectMode(
-    variables: ConfigVariable[],
+    variables: ConfigVariable[] | undefined,
     paths: ConfigCollectorPaths,
     eventHandler: CopilotEventHandler,
     requestId: string,
@@ -262,21 +270,8 @@ async function handleCollectMode(
     modifiedFiles?: string[],
     packagePath?: string
 ): Promise<ConfigCollectorResult> {
-    // Validate variable names
     const validationError = validateConfigVariables(variables);
     if (validationError) { return validationError; }
-
-    if (!variables || variables.length === 0) {
-        return {
-            success: false,
-            message:
-                "No variables provided to collect. " +
-                "Always pass `variables` with the configurable identifiers from the code. " +
-                "Use mode: 'check' first if you need to discover existing variable names in Config.toml.",
-            error: "No variables provided",
-            errorCode: "NO_VARIABLES",
-        };
-    }
 
     // Resolve and validate the package base path. For workspace projects, the
     // agent must pass packagePath so Config.toml lands inside the target
