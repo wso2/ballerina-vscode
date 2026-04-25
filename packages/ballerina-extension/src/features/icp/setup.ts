@@ -197,9 +197,11 @@ export function getProjectHandle(projectPath: string): string {
         const contextYaml = path.join(projectRoot, dir, 'context.yaml');
         try {
             const content = fs.readFileSync(contextYaml, 'utf-8');
-            const data = yaml.load(content) as Record<string, any>;
-            if (data?.project) {
-                return data.project;
+            const parsed = yaml.load(content);
+            const entry = Array.isArray(parsed) ? parsed[0] : parsed;
+            const project = (entry as Record<string, any>)?.project;
+            if (project) {
+                return project;
             }
         } catch {
             // file not found or parse error
