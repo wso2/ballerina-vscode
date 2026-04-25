@@ -685,15 +685,22 @@ class BIRunAdapter extends LoggingDebugSession {
                     this.sendEvent(new TerminatedEvent());
                     return;
                 }
-                BIRunAdapter.activeAdapter = null;
                 // Await full termination before starting the new task to avoid port
                 // conflicts from the still-shutting-down previous process.
+                // activeAdapter is cleared inside the promise so concurrent launches
+                // still see a running integration until the process actually stops.
                 await new Promise<void>((resolve) => {
-                    const timeout = setTimeout(resolve, 3000);
-                    const listener = tasks.onDidEndTaskProcess(e => {
+                    let listener: { dispose(): void };
+                    const timeout = setTimeout(() => {
+                        listener.dispose();
+                        BIRunAdapter.activeAdapter = null;
+                        resolve();
+                    }, 10000);
+                    listener = tasks.onDidEndTaskProcess(e => {
                         if (e.execution === existingTask) {
                             clearTimeout(timeout);
                             listener.dispose();
+                            BIRunAdapter.activeAdapter = null;
                             resolve();
                         }
                     });
@@ -701,6 +708,7 @@ class BIRunAdapter extends LoggingDebugSession {
                     if (!tasks.taskExecutions.some(e => e === existingTask)) {
                         clearTimeout(timeout);
                         listener.dispose();
+                        BIRunAdapter.activeAdapter = null;
                         resolve();
                         return;
                     }
