@@ -196,9 +196,13 @@ function populateServiceInitModelFromFormFields(formFields: FormField[], model: 
             // represents a channel name and must be a Ballerina string literal (with quotes).
             // Without quotes, Ballerina treats it as a path expression (HTTP-style), causing
             // "Invalid channel name" runtime error.
-            if (field.key === "basePath" && model.moduleName === "salesforce" &&
-                typeof value === "string" && value && !value.startsWith('"')) {
-                property.value = `"${value}"`;
+            if (field.key === "basePath" && model.moduleName === "salesforce" && typeof value === "string") {
+                const trimmedValue = value.trim();
+                const isQuoted = trimmedValue.startsWith('"') && trimmedValue.endsWith('"');
+
+                property.value = trimmedValue && !isQuoted
+                    ? JSON.stringify(trimmedValue)
+                    : value as string;
             } else {
                 property.value = value as string;
             }
