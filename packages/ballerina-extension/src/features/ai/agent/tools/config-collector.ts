@@ -430,6 +430,8 @@ async function handleCheckMode(
     const filledNames = Object.entries(status).filter(([, s]) => s === "filled").map(([n]) => n);
     const missingNames = Object.entries(status).filter(([, s]) => s === "missing").map(([n]) => n);
 
+    console.log(`[ConfigCollector] check ${configFileName} — filled: [${filledNames.join(", ") || "none"}], missing: [${missingNames.join(", ") || "none"}]`);
+
     return {
         success: true,
         message:
