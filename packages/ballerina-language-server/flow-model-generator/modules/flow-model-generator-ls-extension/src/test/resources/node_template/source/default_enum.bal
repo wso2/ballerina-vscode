@@ -18,5 +18,5 @@ enum Day {
 function function3(Day[] days) {
 }
 
-function function2(){
+function function4(){
 }
