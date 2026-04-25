@@ -137,7 +137,7 @@ export const getFilteredSubFields = (field: IOType, searchValue: string) => {
 		if (matchingName || matchedSubFields?.length > 0) {
 			return {
 				...field,
-				memberType: {
+				member: {
 					...field.member,
 					fields: matchingName ? field.member?.fields : matchedSubFields
 				}
