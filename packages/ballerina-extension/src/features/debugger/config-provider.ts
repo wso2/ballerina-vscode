@@ -687,21 +687,31 @@ class BIRunAdapter extends LoggingDebugSession {
                 }
                 // Await full termination before starting the new task to avoid port
                 // conflicts from the still-shutting-down previous process.
-                // activeAdapter is cleared inside the promise so concurrent launches
-                // still see a running integration until the process actually stops.
-                await new Promise<void>((resolve) => {
+                // activeAdapter is cleared only when the task is confirmed stopped (or
+                // the user explicitly forces a start), so concurrent launches always
+                // see a live reference while the previous process is still alive.
+                const shouldProceed = await new Promise<boolean>((resolve) => {
                     let listener: { dispose(): void };
-                    const timeout = setTimeout(() => {
+                    const timeout = setTimeout(async () => {
                         listener.dispose();
-                        BIRunAdapter.activeAdapter = null;
-                        resolve();
+                        const forceChoice = await window.showWarningMessage(
+                            'The previous integration is taking too long to stop. Force start the new integration anyway?',
+                            'Force Start', 'Cancel'
+                        );
+                        if (forceChoice === 'Force Start') {
+                            BIRunAdapter.activeAdapter = null;
+                            resolve(true);
+                        } else {
+                            // Leave activeAdapter set — the old process is still running.
+                            resolve(false);
+                        }
                     }, 10000);
                     listener = tasks.onDidEndTaskProcess(e => {
                         if (e.execution === existingTask) {
                             clearTimeout(timeout);
                             listener.dispose();
                             BIRunAdapter.activeAdapter = null;
-                            resolve();
+                            resolve(true);
                         }
                     });
                     // Task may have already ended while the dialog was open.
@@ -709,11 +719,19 @@ class BIRunAdapter extends LoggingDebugSession {
                         clearTimeout(timeout);
                         listener.dispose();
                         BIRunAdapter.activeAdapter = null;
-                        resolve();
+                        resolve(true);
                         return;
                     }
                     existingTask.terminate();
                 });
+
+                if (!shouldProceed) {
+                    (this.session.configuration as any).suggestTryit = false;
+                    response.success = true;
+                    this.sendResponse(response);
+                    this.sendEvent(new TerminatedEvent());
+                    return;
+                }
             }
 
             const taskDefinition: TaskDefinition = {
