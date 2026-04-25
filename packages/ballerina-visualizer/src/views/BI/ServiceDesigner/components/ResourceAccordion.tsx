@@ -134,10 +134,11 @@ export interface ResourceAccordionProps {
     onEditResource: (resource: FunctionModel) => void;
     onDeleteResource: (resource: FunctionModel) => void;
     onResourceImplement: (resource: FunctionModel) => void;
+    deletionTypeLabel?: string;
 }
 
 export function ResourceAccordion(params: ResourceAccordionProps) {
-    const { functionModel, method, goToSource, onEditResource, onDeleteResource, onResourceImplement } = params;
+    const { functionModel, method, goToSource, onEditResource, onDeleteResource, onResourceImplement, deletionTypeLabel } = params;
 
     const [isOpen, setIsOpen] = useState(false);
     const [isConfirmOpen, setConfirmOpen] = useState(false);
@@ -234,8 +235,8 @@ export function ResourceAccordion(params: ResourceAccordionProps) {
             <Confirm
                 isOpen={isConfirmOpen}
                 onConfirm={handleConfirm}
-                confirmText="Okay"
-                message="Are you sure want to delete this resource?"
+                confirmText="Delete"
+                message={`Are you sure want to delete this ${deletionTypeLabel || "resource"}?`}
                 anchorEl={confirmEl}
                 anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
                 transformOrigin={{ vertical: "top", horizontal: "right" }}

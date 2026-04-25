@@ -151,10 +151,11 @@ export interface ResourceAccordionPropsV2 {
     readOnly?: boolean;
     methodName?: string;
     isMcpTool?: boolean;
+    deletionTypeLabel?: string;
 }
 
 export function ResourceAccordionV2(params: ResourceAccordionPropsV2) {
-    const { resource, onEditResource, onDeleteResource, onResourceImplement, readOnly, methodName, isMcpTool } = params;
+    const { resource, onEditResource, onDeleteResource, onResourceImplement, readOnly, methodName, isMcpTool, deletionTypeLabel } = params;
 
     const [isOpen, setIsOpen] = useState(false);
     const [isConfirmOpen, setConfirmOpen] = useState(false);
@@ -278,8 +279,8 @@ export function ResourceAccordionV2(params: ResourceAccordionPropsV2) {
             <Confirm
                 isOpen={isConfirmOpen}
                 onConfirm={handleConfirm}
-                confirmText="Okay"
-                message="Are you sure you want to delete this resource?"
+                confirmText="Delete"
+                message={`Are you sure you want to delete this ${deletionTypeLabel || "resource"}?`}
                 anchorEl={confirmEl}
                 anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
                 transformOrigin={{ vertical: "top", horizontal: "right" }}
