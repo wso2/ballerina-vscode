@@ -208,22 +208,17 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
 
 
     const handleTypeItemClick = (item: TypeHelperItem) => {
-        const trimmedType = currentType.trimEnd();
-        if (
-            /\|$/.test(trimmedType) ||
-            /readonly\s*&$/.test(trimmedType)
-        ) {
-            const newType = currentType + item.insertText;
-            onChange(
-                newType,
-                newType.length
-            );
-        } else {
-            onChange(
-                item.insertText,
-                item.insertText.length
-            );
-        }
+        const prefixRegex = /[a-zA-Z0-9_':]*$/;
+        const suffixRegex = /^[a-zA-Z0-9_':]*/;
+        const prefixMatch = currentType.slice(0, currentCursorPosition).match(prefixRegex);
+        const suffixMatch = currentType.slice(currentCursorPosition).match(suffixRegex);
+        const prefixCursorPosition = currentCursorPosition - (prefixMatch?.[0]?.length ?? 0);
+        const suffixCursorPosition = currentCursorPosition + (suffixMatch?.[0]?.length ?? 0);
+
+        onChange(
+            currentType.slice(0, prefixCursorPosition) + item.insertText + currentType.slice(suffixCursorPosition),
+            prefixCursorPosition + item.insertText.length
+        );
         onCloseCompletions?.();
         onClose();
     };

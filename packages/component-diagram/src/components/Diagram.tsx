@@ -52,6 +52,7 @@ export interface DiagramProps {
     onAutomationSelect: (automation: CDAutomation) => void;
     onConnectionSelect: (connection: CDConnection) => void;
     onDeleteComponent: (component: CDListener | CDService | CDAutomation | CDConnection, nodeType?: string) => void;
+    onCleanupTestServices?: () => void;
 }
 
 export type GQLFuncListType = Record<GroupKey, Array<CDFunction | CDResourceFunction>>;
@@ -330,7 +331,7 @@ export function Diagram(props: DiagramProps) {
 
     return (
         <>
-            <Controls engine={diagramEngine} />
+            <Controls engine={diagramEngine} onCleanupTestServices={props.onCleanupTestServices} />
 
             {diagramEngine && diagramModel && (
                 <DiagramContextProvider value={context}>

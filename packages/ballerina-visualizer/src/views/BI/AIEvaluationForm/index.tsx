@@ -26,7 +26,7 @@ import { EVENT_TYPE } from "@wso2/ballerina-core";
 import { TitleBar } from "../../../components/TitleBar";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { FormHeader } from "../../../components/FormHeader";
-import FormGeneratorNew from "../Forms/FormGeneratorNew";
+import ArtifactForm from "../Forms/ArtifactForm";
 import { getImportsForProperty } from "../../../utils/bi";
 import { CardSelector } from "./CardSelector";
 
@@ -113,6 +113,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
     const [dataProviderMode, setDataProviderMode] = useState<string>('evalSet');
     const [evalsetOptions, setEvalsetOptions] = useState<Array<{ value: string; content: string }>>([]);
     const [isSaving, setIsSaving] = useState<boolean>(false);
+    const [selectedEvalsetFile, setSelectedEvalsetFile] = useState<string>('');
 
     // Helper function to apply field visibility rules based on data provider mode
     const applyFieldVisibility = (fields: FormField[], mode: string): FormField[] => {
@@ -134,6 +135,9 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
         if (fieldKey === 'dataProviderMode') {
             setDataProviderMode(value);
             updateFieldVisibility(value);
+        }
+        if (fieldKey === 'evalSetFile') {
+            setSelectedEvalsetFile(value || '');
         }
     };
 
@@ -212,6 +216,10 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
         const mode = String(modeField?.value || 'evalSet');
         setDataProviderMode(mode);
 
+        // Initialize evalset file selection from loaded data
+        const evalSetFileField = formFields.find(f => f.key === 'evalSetFile');
+        setSelectedEvalsetFile(String(evalSetFileField?.value || ''));
+
         // Set initial field visibility
         formFields = applyFieldVisibility(formFields, mode);
 
@@ -219,6 +227,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
     }
 
     const loadEmptyForm = async () => {
+        setSelectedEvalsetFile('');
         const emptyTestFunction = getEmptyTestFunctionModel();
         setTestFunction(emptyTestFunction);
         let formFields = generateFormFields(emptyTestFunction);
@@ -822,7 +831,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                     <FormContainer>
 
                         {targetLineRange && (
-                            <FormGeneratorNew
+                            <ArtifactForm
                                 fileName={filePath}
                                 fields={formFields}
                                 targetLineRange={targetLineRange}
@@ -830,6 +839,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                                 preserveFieldOrder={true}
                                 onChange={handleFieldChange}
                                 isSaving={isSaving}
+                                disableSaveButton={dataProviderMode === 'evalSet' && !selectedEvalsetFile}
                                 injectedComponents={[
                                     {
                                         component: <CardSelector

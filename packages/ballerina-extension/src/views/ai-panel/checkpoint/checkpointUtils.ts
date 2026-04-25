@@ -24,21 +24,13 @@ import { ArtifactNotificationHandler, ArtifactsUpdated } from '../../../utils/pr
 import { VisualizerRpcManager } from '../../../rpc-managers/visualizer/rpc-manager';
 import { StateMachine, updateView } from '../../../../src/stateMachine';
 import { refreshDataMapper } from '../../../../src/rpc-managers/data-mapper/utils';
+import { notifyCurrentWebview, suppressWebviewNotifications } from '../../../../src/RPCLayer';
 
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-function matchesPattern(filePath: string, pattern: string): boolean {
-    const normalizedPath = filePath.replace(/\\/g, '/');
-
-    const regexPattern = pattern
-        .replace(/\./g, '\\.')
-        .replace(/\*\*/g, '::DOUBLESTAR::')
-        .replace(/\*/g, '[^/]*')
-        .replace(/::DOUBLESTAR::/g, '.*');
-
-    const regex = new RegExp(`^${regexPattern}$`);
-    return regex.test(normalizedPath);
-}
+const SKIP_REWRITE_WHEN_UNCHANGED_FILENAMES: ReadonlySet<string> = new Set([
+    'Ballerina.toml'
+]);
 
 export async function captureWorkspaceSnapshot(messageId: string): Promise<Checkpoint | null> {
     const config = getCheckpointConfig();
@@ -147,10 +139,24 @@ export async function restoreWorkspaceSnapshot(checkpoint: Checkpoint, skipArtif
             // Queue all file creations/updates with content
             for (const [filePath, content] of Object.entries(checkpoint.workspaceSnapshot)) {
                 const fileUri = vscode.Uri.file(path.join(workspaceRoot.fsPath, filePath));
-                
+
+                // TODO: workaround — rewriting Ballerina.toml triggers an unwanted PackageOverview → WorkspaceOverview redirect.
+                if (SKIP_REWRITE_WHEN_UNCHANGED_FILENAMES.has(path.basename(filePath))) {
+                    let alreadyMatches = false;
+                    try {
+                        const existing = await vscode.workspace.fs.readFile(fileUri);
+                        alreadyMatches = Buffer.from(existing).toString('utf8') === content;
+                    } catch {
+                        // File does not exist on disk.
+                    }
+                    if (alreadyMatches) {
+                        continue;
+                    }
+                }
+
                 // Create file first (empty or existing)
                 workspaceEdit.createFile(fileUri, { ignoreIfExists: true, overwrite: true });
-                
+
                 // Then replace content to trigger proper LS notifications
                 workspaceEdit.replace(
                     fileUri,
@@ -165,14 +171,22 @@ export async function restoreWorkspaceSnapshot(checkpoint: Checkpoint, skipArtif
             progress.report({ message: 'Applying workspace changes...' });
 
             // Apply all changes atomically
-            const success = await vscode.workspace.applyEdit(workspaceEdit);
-            await vscode.workspace.saveAll();
+            const resumeNotifications = suppressWebviewNotifications();
+            let success = false;
+            try {
+                success = await vscode.workspace.applyEdit(workspaceEdit);
+                await vscode.workspace.saveAll();
+            } finally {
+                resumeNotifications();
+            }
+
             if (!success) {
                 throw new Error('Failed to apply workspace edit');
             }
 
             progress.report({ message: 'Checkpoint restored successfully!' });
             await renderDatamapper();
+            notifyCurrentWebview();
         });
 
         // Wait for artifact update notification if any .bal files were restored
@@ -235,41 +249,13 @@ export async function renderDatamapper() {
     await refreshDataMapper(filePath, dataMapperMetadata.codeData, varName);
 }
 
-async function getAllWorkspaceFiles(workspaceRoot: vscode.Uri, ignorePatterns: string[]): Promise<vscode.Uri[]> {
-    const files: vscode.Uri[] = [];
-
-    async function scanDirectory(dirUri: vscode.Uri): Promise<void> {
-        try {
-            const entries = await vscode.workspace.fs.readDirectory(dirUri);
-
-            for (const [name, type] of entries) {
-                const entryUri = vscode.Uri.joinPath(dirUri, name);
-                const relativePath = path.relative(workspaceRoot.fsPath, entryUri.fsPath);
-
-                if (shouldIgnoreFile(relativePath, ignorePatterns)) {
-                    continue;
-                }
-
-                if (type === vscode.FileType.File) {
-                    files.push(entryUri);
-                } else if (type === vscode.FileType.Directory) {
-                    await scanDirectory(entryUri);
-                }
-            }
-        } catch (error) {
-            console.error(`[Checkpoint] Failed to scan directory ${dirUri.fsPath}:`, error);
-        }
-    }
-
-    await scanDirectory(workspaceRoot);
-    return files;
-}
-
-function shouldIgnoreFile(filePath: string, ignorePatterns: string[]): boolean {
-    for (const pattern of ignorePatterns) {
-        if (matchesPattern(filePath, pattern)) {
-            return true;
-        }
-    }
-    return false;
+async function getAllWorkspaceFiles(
+    workspaceRoot: vscode.Uri,
+    ignorePatterns: string[]
+): Promise<vscode.Uri[]> {
+    const include = new vscode.RelativePattern(workspaceRoot, '**/*');
+    const exclude = ignorePatterns.length > 0
+        ? new vscode.RelativePattern(workspaceRoot, `{${ignorePatterns.join(',')}}`)
+        : null;
+    return vscode.workspace.findFiles(include, exclude);
 }

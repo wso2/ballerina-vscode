@@ -51,8 +51,8 @@ import { FormMapEditorWrapper } from "./FormMapEditorNewWrapper";
 import { InputMode } from "./MultiModeExpressionEditor/ChipExpressionEditor/types";
 import { ArgManagerEditor } from "../ParamManager/ArgManager";
 import { DependentTypeEditor } from "./DependentTypeEditor";
-import { FormSectionGroup } from "./FormSectionGroup";
 import { FieldFactory } from "./FieldFactory";
+import { GroupSectionEditor } from "./GroupSectionEditor";
 
 export interface FormFieldEditorProps {
     field: FormField;
@@ -116,30 +116,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
     if (!field.enabled || field.hidden) {
         return <></>;
     } else if (fieldInputType.fieldType === "GROUP_SECTION") {
-        return (
-            <FormSectionGroup title={field.label}>
-                {field.advanceProps?.map((childField) => (
-                    <FieldFactory
-                        key={childField.key}
-                        field={childField}
-                        selectedNode={selectedNode}
-                        openRecordEditor={openRecordEditor}
-                        openSubPanel={openSubPanel}
-                        subPanelView={subPanelView}
-                        handleOnFieldFocus={handleOnFieldFocus}
-                        onBlur={onBlur}
-                        handleOnTypeChange={handleOnTypeChange}
-                        recordTypeFields={recordTypeFields}
-                        onIdentifierEditingStateChange={onIdentifierEditingStateChange}
-                        setSubComponentEnabled={setSubComponentEnabled}
-                        handleNewTypeSelected={handleNewTypeSelected}
-                        isContextTypeEditorSupported={isContextTypeEditorSupported}
-                        openFormTypeEditor={openFormTypeEditor}
-                        updateImports={updateImports}
-                    />
-                ))}
-            </FormSectionGroup>
-        );
+        return <GroupSectionEditor {...props} />;
     } else if (fieldInputType.fieldType === "RECORD_FIELD_SELECTOR" && field.codedata?.kind === "PARAM_FOR_TYPE_INFER") {
         return <DependentTypeEditor field={field} />;
     } else if (fieldInputType.fieldType === "SLIDER") {
@@ -183,7 +160,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
                 handleNewTypeSelected={handleNewTypeSelected}
             />
         );
-    } else if (!field.items && (field.key === "type" || fieldInputType.fieldType === "TYPE") && field.editable) {
+    } else if (!field.items && fieldInputType.fieldType === "TYPE" && field.editable) {
         return (
             <TypeEditor
                 field={field}

@@ -36,7 +36,7 @@ interface MatchNodeWidgetProps {
     onClick?: (node: FlowNode) => void;
 }
 
-export interface NodeWidgetProps extends Omit<MatchNodeWidgetProps, "children"> {}
+export interface NodeWidgetProps extends Omit<MatchNodeWidgetProps, "children"> { }
 
 export function MatchNodeWidget(props: MatchNodeWidgetProps) {
     const { model, engine, onClick } = props;
@@ -142,6 +142,7 @@ export function MatchNodeWidget(props: MatchNodeWidgetProps) {
                 <NodeStyles.Column onClick={handleOnClick}>
                     {hasBreakpoint && (
                         <div
+                            data-testid={isActiveBreakpoint ? "breakpoint-indicator-diagram-active" : "breakpoint-indicator-diagram"}
                             style={{
                                 position: "absolute",
                                 left: -5,
@@ -171,10 +172,10 @@ export function MatchNodeWidget(props: MatchNodeWidgetProps) {
                                 hasError
                                     ? ThemeColors.ERROR
                                     : isSelected && !disabled
-                                    ? ThemeColors.SECONDARY
-                                    : isHovered && !disabled && !readOnly
-                                    ? ThemeColors.SECONDARY
-                                    : ThemeColors.OUTLINE_VARIANT
+                                        ? ThemeColors.SECONDARY
+                                        : isHovered && !disabled && !readOnly
+                                            ? ThemeColors.SECONDARY
+                                            : ThemeColors.OUTLINE_VARIANT
                             }
                             strokeWidth={NODE_BORDER_WIDTH}
                             strokeDasharray={disabled ? "5 5" : "none"}

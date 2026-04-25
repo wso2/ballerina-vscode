@@ -113,6 +113,7 @@ import {
     BIAiSuggestionsRequest,
     BIAiSuggestionsResponse,
     AIChatRequest,
+    InlineAgentChatRequest,
     BreakpointRequest,
     CurrentBreakpointsResponse,
     FormDidOpenParams,
@@ -130,7 +131,8 @@ import {
     ValidateProjectFormRequest,
     ValidateProjectFormResponse,
     SuggestedProjectDefaultsResponse,
-    UpdateProjectTitleRequest
+    UpdateProjectTitleRequest,
+    UpdatePackageTitleRequest
 } from "./interfaces";
 
 export interface BIDiagramAPI {
@@ -173,6 +175,8 @@ export interface BIDiagramAPI {
     deployProject: (params: DeploymentRequest) => Promise<DeploymentResponse>;
     deployWorkspace: (params: WorkspaceDeploymentRequest) => Promise<DeploymentResponse>;
     openAIChat: (params: AIChatRequest) => void;
+    startInlineAgentChat: (params: InlineAgentChatRequest) => void;
+    cleanupAgentChatServices: () => Promise<boolean>;
     getSignatureHelp: (params: SignatureHelpRequest) => Promise<SignatureHelpResponse>;
     buildProject: (mode: BuildMode) => void;
     runProject: () => void;
@@ -218,4 +222,5 @@ export interface BIDiagramAPI {
     deleteOpenApiGeneratedModules: (params: OpenAPIClientDeleteRequest) => Promise<OpenAPIClientDeleteResponse>;
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
     updateProjectTitle: (params: UpdateProjectTitleRequest) => Promise<void>;
+    updatePackageTitle: (params: UpdatePackageTitleRequest) => Promise<void>;
 }

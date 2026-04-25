@@ -18,7 +18,7 @@
 
 import { CompletionItem } from "@wso2/ui-toolkit";
 import { INPUT_MODE_MAP, InputMode, TokenType, CompoundTokenSequence, TokenMetadata, DocumentType, TokenPattern } from "./types";
-import { getPrimaryInputType, InputType } from "@wso2/ballerina-core";
+import { getPrimaryInputType, getSecondaryInputType, InputType } from "@wso2/ballerina-core";
 import { FnSignatureDocumentation } from "@wso2/ui-toolkit";
 
 export const TOKEN_LINE_OFFSET_INDEX = 0;
@@ -98,7 +98,7 @@ export const getDefaultExpressionMode = (inputTypes: InputType[]): InputMode => 
     return getInputModeFromTypes(primaryInputType);
 }
 export const getSecondaryMode = (inputTypes: InputType[]): InputMode => {
-    const secondaryInputType = inputTypes?.length ? inputTypes[inputTypes.length - 1] : undefined;
+    const secondaryInputType = getSecondaryInputType(inputTypes);
     return getInputModeFromTypes(secondaryInputType);
 }
 
@@ -196,9 +196,44 @@ export const filterCompletionsByPrefixAndType = (completions: CompletionItem[], 
     );
 };
 
+const splitTopLevelFields = (body: string): Record<string, string> => {
+    const fields: Record<string, string> = {};
+    let depth = 0;
+    let quote: string | null = null;
+    let segmentStart = 0;
+
+    const push = (endExclusive: number) => {
+        const segment = body.slice(segmentStart, endExclusive).trim();
+        if (!segment) return;
+        const colon = segment.indexOf(':');
+        if (colon === -1) return;
+        const key = segment.slice(0, colon).trim();
+        const value = segment.slice(colon + 1).trim();
+        if (key) fields[key] = value;
+    };
+
+    for (let i = 0; i < body.length; i++) {
+        const c = body[i];
+        if (quote) {
+            if (c === '\\') { i++; continue; }
+            if (c === quote) quote = null;
+            continue;
+        }
+        if (c === '"' || c === '\'' || c === '`') { quote = c; continue; }
+        if (c === '{' || c === '[' || c === '(') { depth++; continue; }
+        if (c === '}' || c === ']' || c === ')') { depth--; continue; }
+        if (c === ',' && depth === 0) {
+            push(i);
+            segmentStart = i + 1;
+        }
+    }
+    push(body.length);
+    return fields;
+};
+
 /**
  * Extracts metadata for document tokens
- * Pattern: ${<ai:DocumentType>{content: value}}
+ * Pattern: ${<ai:DocumentType>{content: <value>, metadata?: {...}}}
  */
 export const extractDocumentMetadata = (
     tokens: ParsedToken[],
@@ -209,20 +244,51 @@ export const extractDocumentMetadata = (
     const startToken = tokens[startIndex];
     const endToken = tokens[endIndex];
     const fullValue = docText.substring(startToken.start, endToken.end);
-    const documentRegex = /\$\{<ai:(\w+)>\{content:\s*([^}]+)\}\}/;
-    const match = fullValue.match(documentRegex);
 
-    if (!match) {
+    const prefixMatch = fullValue.match(/^\$\{<ai:(\w+)>\{/);
+    if (!prefixMatch) {
+        return null;
+    }
+    const documentType = prefixMatch[1] as DocumentType;
+    const bodyStart = prefixMatch[0].length;
+
+    let depth = 1;
+    let bodyEnd = -1;
+    let quote: string | null = null;
+    for (let i = bodyStart; i < fullValue.length; i++) {
+        const c = fullValue[i];
+        if (quote) {
+            if (c === '\\') { i++; continue; }
+            if (c === quote) quote = null;
+            continue;
+        }
+        if (c === '"' || c === '\'' || c === '`') { quote = c; continue; }
+        if (c === '{') depth++;
+        else if (c === '}') {
+            depth--;
+            if (depth === 0) {
+                if (fullValue[i + 1] !== '}') return null;
+                bodyEnd = i;
+                break;
+            }
+        }
+    }
+    if (bodyEnd === -1) {
         return null;
     }
 
-    const documentType = match[1] as DocumentType;
-    const content = match[2].trim();
+    const body = fullValue.slice(bodyStart, bodyEnd);
+    const fields = splitTopLevelFields(body);
+    const content = fields.content?.trim() ?? '';
+    if (!content) {
+        return null;
+    }
 
     return {
         content,
         fullValue,
-        documentType
+        documentType,
+        fields
     };
 };
 
@@ -258,18 +324,52 @@ export const extractVariableMetadata = (
 // Patterns are checked in priority order (higher priority number = higher priority)
 export const TOKEN_PATTERNS: readonly TokenPattern[] = [
     {
+        kind: 'anchored',
         name: TokenType.DOCUMENT,
-        sequence: [TokenType.START_EVENT, TokenType.TYPE_CAST, TokenType.VALUE, TokenType.END_EVENT],
+        startSequence: [TokenType.START_EVENT, TokenType.TYPE_CAST],
+        endType: TokenType.END_EVENT,
         extractor: extractDocumentMetadata,
         priority: 2
     },
     {
+        kind: 'fixed',
         name: TokenType.VARIABLE,
         sequence: [TokenType.START_EVENT, TokenType.VARIABLE, TokenType.END_EVENT],
         extractor: extractVariableMetadata,
         priority: 1
     }
 ];
+
+const matchPatternAt = (
+    pattern: TokenPattern,
+    tokens: ParsedToken[],
+    i: number,
+    usedIndices: Set<number>
+): { startIndex: number; endIndex: number } | null => {
+    if (pattern.kind === 'fixed') {
+        const length = pattern.sequence.length;
+        if (i + length > tokens.length) return null;
+        for (let j = 0; j < length; j++) {
+            if (usedIndices.has(i + j)) return null;
+            if (tokens[i + j]?.type !== pattern.sequence[j]) return null;
+        }
+        return { startIndex: i, endIndex: i + length - 1 };
+    }
+
+    const prefixLength = pattern.startSequence.length;
+    if (i + prefixLength > tokens.length) return null;
+    for (let j = 0; j < prefixLength; j++) {
+        if (usedIndices.has(i + j)) return null;
+        if (tokens[i + j]?.type !== pattern.startSequence[j]) return null;
+    }
+    for (let k = i + prefixLength; k < tokens.length; k++) {
+        if (usedIndices.has(k)) return null;
+        if (tokens[k]?.type === pattern.endType) {
+            return { startIndex: i, endIndex: k };
+        }
+    }
+    return null;
+};
 
 // Detects compound token sequences based on defined patterns
 export const detectTokenPatterns = (
@@ -282,46 +382,29 @@ export const detectTokenPatterns = (
     // Sort patterns by priority (higher priority first)
     const sortedPatterns = [...TOKEN_PATTERNS].sort((a, b) => b.priority - a.priority);
 
-    // Try to match each pattern
     for (const pattern of sortedPatterns) {
-        const sequenceLength = pattern.sequence.length;
+        for (let i = 0; i < tokens.length; i++) {
+            const range = matchPatternAt(pattern, tokens, i, usedIndices);
+            if (!range) continue;
 
-        // Sliding window to find matching sequences
-        for (let i = 0; i <= tokens.length - sequenceLength; i++) {
-            // Skip if any token in this range is already used
-            if (Array.from({ length: sequenceLength }, (_, j) => i + j).some(idx => usedIndices.has(idx))) {
-                continue;
-            }
+            const { startIndex, endIndex } = range;
+            const metadata = pattern.extractor(tokens, startIndex, endIndex, docText);
+            if (!metadata) continue;
 
-            // Check if token sequence matches pattern
-            const matches = pattern.sequence.every((expectedType, offset) => {
-                return tokens[i + offset]?.type === expectedType;
+            compounds.push({
+                startIndex,
+                endIndex,
+                tokenType: pattern.name,
+                displayText: metadata.content,
+                metadata,
+                start: tokens[startIndex].start,
+                end: tokens[endIndex].end
             });
 
-            if (matches) {
-                const startIndex = i;
-                const endIndex = i + sequenceLength - 1;
-
-                // Extract metadata using pattern's extractor
-                const metadata = pattern.extractor(tokens, startIndex, endIndex, docText);
-
-                if (metadata) {
-                    compounds.push({
-                        startIndex,
-                        endIndex,
-                        tokenType: pattern.name,
-                        displayText: metadata.content,
-                        metadata,
-                        start: tokens[startIndex].start,
-                        end: tokens[endIndex].end
-                    });
-
-                    // Mark tokens as used
-                    for (let j = startIndex; j <= endIndex; j++) {
-                        usedIndices.add(j);
-                    }
-                }
+            for (let j = startIndex; j <= endIndex; j++) {
+                usedIndices.add(j);
             }
+            i = endIndex;
         }
     }
 

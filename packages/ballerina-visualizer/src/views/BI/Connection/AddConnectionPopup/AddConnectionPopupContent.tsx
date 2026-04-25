@@ -260,21 +260,21 @@ export function AddConnectionPopupContent(props: Props) {
     };
 
     const connectorOptions = getConnectorCreationOptions();
-
+    
     return (
         <>
             {platformExtState?.isExtInstalled && !platformExtState?.isLoggedIn && (
                 <>
                     {!platformExtState?.hasPossibleComponent ? (
                         <IntroText>
-                            <VSCodeLink onClick={platformRpcClient.deployIntegrationInDevant}>
-                                Deploy integration to WSO2 Cloud
+                            <VSCodeLink onClick={() => platformRpcClient.deployIntegrationInDevant()}>
+                                Deploy integration
                             </VSCodeLink>{" "}
                             or{" "}
                             <VSCodeLink onClick={handleLinkWorkspace}>
-                                associate with a WSO2 Cloud project
+                                associate workspace
                             </VSCodeLink>{" "}
-                            in order to connect with cloud dependencies
+                            with a WSO2 Cloud project in order to connect with cloud dependencies
                         </IntroText>
                     ) : <IntroText>
                         <VSCodeLink onClick={loginToDevant}>

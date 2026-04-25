@@ -18,7 +18,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { FieldType, LineRange, PropertyModel, Type } from '@wso2/ballerina-core';
-import { FormGeneratorNew } from '../Forms/FormGeneratorNew';
+import { ArtifactForm } from '../Forms/ArtifactForm';
 import { FormField, FormImports, FormValues } from '@wso2/ballerina-side-panel';
 import { getImportsForProperty } from '../../../utils/bi';
 
@@ -100,7 +100,7 @@ export function VariableForm(props: VariableFormProps) {
     return (
         <>
             {fields.length > 0 && (
-                <FormGeneratorNew
+                <ArtifactForm
                     fileName={filePath}
                     targetLineRange={lineRange}
                     fields={fields}

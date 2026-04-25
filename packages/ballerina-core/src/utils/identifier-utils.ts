@@ -21,19 +21,27 @@ import { ComponentInfo } from "../interfaces/ballerina";
 import { BallerinaProjectComponents } from "../interfaces/extended-lang-client";
 import { SCOPE } from "../state-machine-types";
 
-const INTEGRATION_API_MODULES = ["http", "graphql", "tcp"];
-const EVENT_INTEGRATION_MODULES = ["kafka", "rabbitmq", "salesforce", "trigger.github", "mqtt", "asb"];
-const FILE_INTEGRATION_MODULES = ["ftp", "file"];
-const AI_AGENT_MODULE = "ai";
+/** Modules that map to the INTEGRATION_AS_API scope. */
+const INTEGRATION_API_MODULES: ReadonlySet<string> = new Set(["http", "graphql", "tcp"]);
+
+/** Modules that map to the EVENT_INTEGRATION scope. */
+const EVENT_INTEGRATION_MODULES: ReadonlySet<string> = new Set([
+    "kafka", "rabbitmq", "salesforce", "trigger.github", "mqtt", "asb", "mssql", "mysql", "postgresql",
+]);
+
+/** Modules that map to the FILE_INTEGRATION scope. */
+const FILE_INTEGRATION_MODULES: ReadonlySet<string> = new Set(["ftp", "file"]);
 
 export function findScopeByModule(moduleName: string): SCOPE {
-    if (AI_AGENT_MODULE === moduleName) {
+    if (moduleName === "ai") {
         return SCOPE.AI_AGENT;
-    } else if (INTEGRATION_API_MODULES.includes(moduleName)) {
+    } else if (moduleName === "mcp") {
+        return SCOPE.MCP;
+    } else if (INTEGRATION_API_MODULES.has(moduleName)) {
         return SCOPE.INTEGRATION_AS_API;
-    } else if (EVENT_INTEGRATION_MODULES.includes(moduleName)) {
+    } else if (EVENT_INTEGRATION_MODULES.has(moduleName)) {
         return SCOPE.EVENT_INTEGRATION;
-    } else if (FILE_INTEGRATION_MODULES.includes(moduleName)) {
+    } else if (FILE_INTEGRATION_MODULES.has(moduleName)) {
         return SCOPE.FILE_INTEGRATION;
     }
 }

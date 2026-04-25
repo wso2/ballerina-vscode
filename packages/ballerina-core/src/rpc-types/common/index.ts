@@ -67,4 +67,6 @@ export interface CommonRPCAPI {
     getDefaultOrgName: () => Promise<DefaultOrgNameResponse>;
     publishToCentral: () => Promise<PublishToCentralResponse>;
     hasCentralPATConfigured: () => Promise<boolean>;
+    getPreferredTryItOption: () => Promise<string | undefined>;
+    setPreferredTryItOption: (option: string) => Promise<void>;
 }

@@ -23,6 +23,10 @@ export const getPrimaryInputType = (types: InputType[]): InputType | undefined =
   return types[0];
 }
 
+export const getSecondaryInputType = (inputTypes: InputType[]) => {
+    return inputTypes?.length ? inputTypes[inputTypes.length - 1] : undefined;
+}
+
 export const isTemplateType = (
   value: InputType
 ): value is TemplateType => {

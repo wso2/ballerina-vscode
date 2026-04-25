@@ -23,8 +23,7 @@ import { ProjectExplorer } from '../utils/pages';
 import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 
 export default function createTests() {
-    test.describe('RabbitMQ Integration Tests', {
-        tag: '@group1',
+    test.describe.serial('RabbitMQ Integration Tests', {
     }, async () => {
         let listenerName: string;
         let queueName: string;
@@ -60,7 +59,7 @@ export default function createTests() {
 
             // Verify integration appears in project tree
             const projectExplorer = new ProjectExplorer(page.page);
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `RabbitMQ Event Integration - "${queueName}"`], true);
+            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `RabbitMQ Event Integration - "${queueName}"`]);
         });
 
         test('Add onMessage Handler', async ({ }, testInfo) => {
@@ -128,7 +127,6 @@ export default function createTests() {
 
             // Try to detect if user got redirected to diagram view, otherwise click new resource under agent view
             const diagramCanvas = artifactWebView.locator('[data-testid="bi-diagram-canvas"]');
-            const visualizerContainer = artifactWebView.locator('#visualizer-container');
             let didRedirect = true;
             try {
                 await diagramCanvas.waitFor({ timeout: 10000 });
@@ -145,9 +143,10 @@ export default function createTests() {
                 // Now wait for the diagram canvas to appear
                 await diagramCanvas.waitFor({ timeout: 10000 });
             }
-            // Verify the resource is added in the diagram view
-            const resourceElement = visualizerContainer.getByText("onMessage", { exact: true });
-            await resourceElement.waitFor({ timeout: 30000 });
+            // Verify the selected handler name from the title bar area.
+            const titleBarContainer = artifactWebView.locator('[data-testid="title-bar-container"]');
+            await titleBarContainer.getByText('onMessage', { exact: true }).first()
+                .waitFor({ state: 'visible', timeout: 30000 });
         });
 
         test('Editing RabbitMQ Integration', async ({ }, testInfo) => {
@@ -155,7 +154,7 @@ export default function createTests() {
             console.log('Editing a service in test attempt: ', testAttempt);
 
             const projectExplorer = new ProjectExplorer(page.page);
-            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `RabbitMQ Event Integration - "${queueName}"`], true);
+            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `RabbitMQ Event Integration - "${queueName}"`]);
             await serviceTreeItem.click({ force: true });
 
             const artifactWebView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page);
@@ -192,7 +191,7 @@ export default function createTests() {
             await backBtn.waitFor();
             await backBtn.click();
 
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `RabbitMQ Event Integration - "${queueName}"`], true);
+            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `RabbitMQ Event Integration - "${queueName}"`]);
 
             const updatedQueueNameElement = artifactWebView.locator(`text=${queueName}`);
             await updatedQueueNameElement.waitFor({ state: 'visible' });
@@ -208,7 +207,7 @@ export default function createTests() {
             }
 
             const projectExplorer = new ProjectExplorer(page.page);
-            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `RabbitMQ Event Integration - "${queueName}"`], true);
+            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `RabbitMQ Event Integration - "${queueName}"`]);
             await serviceTreeItem.click({ button: 'right' });
             const deleteButton = page.page.getByRole('button', { name: 'Delete' }).first();
             await deleteButton.waitFor({ timeout: 5000 });

@@ -28,7 +28,7 @@ import { ComponentInfo, DataMapperMetadata, Diagnostics, DMModel, ImportStatemen
 // ==================================
 export type AIPanelPrompt =
     | { type: 'command-template'; command: Command; templateId: TemplateId; text?: string; params?: Record<string, string>; metadata?: Record<string, any>; hiddenContext?: string }
-    | { type: 'text'; text: string; planMode: boolean; codeContext?: CodeContext; autoSubmit?: boolean; hiddenContext?: string }
+    | { type: 'text'; text: string; planMode: boolean; codeContext?: CodeContext; autoSubmit?: boolean; hiddenContext?: string; suggestedCommandTemplates?: AIPanelPrompt[];    inputPlaceholder?:string; }
     | undefined;
 
 export interface AIMachineSnapshot {
@@ -520,6 +520,35 @@ export interface UsageResponse {
 
 export interface OpenFileDiffRequest {
     relativePath: string;
+}
+
+// ==================================
+// Running Services (long-lived processes started by the AI agent)
+// ==================================
+
+/** Serializable view of a running service tracked by the agent's RunningServicesManager. */
+export interface RunningServiceInfo {
+    /** Unique identifier returned by the runBallerinaPackage tool. */
+    taskId: string;
+    /** Filesystem path of the package being run. */
+    packagePath: string;
+    /** Epoch ms when the process started. */
+    startedAt: number;
+    /** True once the process has exited (naturally or via stop). */
+    exited: boolean;
+    /** Exit code of the process. 0 while still running. */
+    exitCode: number;
+}
+
+export interface StopRunningServiceRequest {
+    taskId: string;
+}
+
+export interface RunServiceRequest {
+    /** Relative path from workspace root to the package to run (undefined if running from workspace root). */
+    packagePath?: string;
+    /** Absolute path to the temp directory containing the package. */
+    tempProjectPath: string;
 }
 // ==================================
 // Compaction Related Interfaces

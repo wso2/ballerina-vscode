@@ -43,7 +43,9 @@ import { debug } from "./logger";
 import { parse } from "@iarna/toml";
 import { getProjectTomlValues, isLibraryProject, VALIDATOR_PACKAGE_NAME } from "./config";
 import { extension } from "../BalExtensionContext";
+import { scheduleMigrationEnhancement, writeEnhanceToml } from "../features/ai/migration/orchestrator";
 import { runBackgroundTerminalCommand } from "./runCommand";
+import { stringify as stringifyYaml } from "yaml";
 
 export const README_FILE = "README.md";
 export const FUNCTIONS_FILE = "functions.bal";
@@ -59,6 +61,7 @@ interface ProcessedProjectInfo {
     finalVersion: string;
     packageName: string;
     integrationName: string;
+    orgHandle: string;
 }
 
 const settingsJsonContent = `
@@ -305,8 +308,32 @@ function setupProjectInfo(projectRequest: ProjectRequest): ProcessedProjectInfo 
         finalOrgName,
         finalVersion,
         packageName: projectRequest.packageName,
-        integrationName: projectRequest.projectName
+        integrationName: projectRequest.projectName,
+        orgHandle: projectRequest.orgHandle
     };
+}
+
+/**
+ * Writes a local context file for the given project.
+ * Creates (if missing) `{projectRoot}/.wso2/context.yaml` and stores the org/project handles with `local: true`.
+ * @param projectRoot - Absolute path to the project root directory
+ * @param orgHandle - Choreo organization handle
+ * @param projectHandle - Choreo project handle
+ */
+export async function writeLocalContextYaml(
+    projectRoot: string,
+    orgHandle: string,
+    projectHandle: string
+): Promise<void> {
+    try {
+        const choreoDir = path.join(projectRoot, '.wso2');
+        const localProjectFile = path.join(choreoDir, 'context.yaml');
+        const content = stringifyYaml([{ org: orgHandle, project: projectHandle, local: true }]);
+        await fs.promises.mkdir(choreoDir, { recursive: true });
+        await fs.promises.writeFile(localProjectFile, content, { encoding: 'utf8' });
+    } catch (error) {
+        console.warn("Failed to write context.yaml (non-critical):", error);
+    }
 }
 
 export async function createEmptyBIWorkspace(projectRequest: ProjectRequest): Promise<string> {
@@ -338,7 +365,7 @@ export async function createBIWorkspaceWithProject(projectRequest: ProjectReques
     const ballerinaTomlContent = `
 [workspace]
 title = "${projectRequest.workspaceName}"
-packages = ["${projectRequest.packageName}"]
+packages = ["${sanitizeName(projectRequest.packageName)}"]
 
 `;
 
@@ -364,7 +391,14 @@ packages = ["${projectRequest.packageName}"]
 
 export async function createBIProjectPure(projectRequest: ProjectRequest): Promise<string> {
     const projectInfo = setupProjectInfo(projectRequest);
-    const { projectRoot, finalOrgName, finalVersion, packageName: finalPackageName, integrationName } = projectInfo;
+    const {
+        projectRoot,
+        finalOrgName,
+        finalVersion,
+        packageName,
+        integrationName,
+        orgHandle
+    } = projectInfo;
 
     const EMPTY = "\n";
 
@@ -376,8 +410,8 @@ export async function createBIProjectPure(projectRequest: ProjectRequest): Promi
 
     const ballerinaTomlContent = `
 [package]
-org = "${finalOrgName}"
-name = "${finalPackageName}"
+org = "${orgHandle ?? finalOrgName}"
+name = "${packageName}"
 version = "${finalVersion}"
 ${distributionLine}title = "${integrationName}"
 
@@ -470,20 +504,23 @@ export async function convertProjectToWorkspace(params: AddProjectToWorkspaceReq
     const updatedProjectPath = path.join(newDirectory, path.basename(currentProjectPath));
     fs.renameSync(currentProjectPath, updatedProjectPath);
 
-    createWorkspaceToml(newDirectory, params.workspaceName, currentPackageName);
-    addToWorkspaceToml(newDirectory, params.packageName);
+    const existingProjectDirName = path.basename(currentProjectPath);
+    createWorkspaceToml(newDirectory, params.workspaceName, existingProjectDirName);
+    addToWorkspaceToml(newDirectory, sanitizeName(params.packageName));
 
     await createProjectInWorkspace(params, newDirectory);
 
     // create settings.json file
     createVSCodeSettings(newDirectory);
+    // write local context file
+    await writeLocalContextYaml(newDirectory, params.orgHandle, params.projectHandle);
 
     openInVSCode(newDirectory);
 }
 
 export async function addProjectToExistingWorkspace(params: AddProjectToWorkspaceRequest): Promise<void> {
     const workspacePath = StateMachine.context().workspacePath;
-    addToWorkspaceToml(workspacePath, params.packageName);
+    addToWorkspaceToml(workspacePath, sanitizeName(params.packageName));
 
     await createProjectInWorkspace(params, workspacePath);
 }
@@ -535,11 +572,12 @@ export function deleteProjectFromWorkspace(workspacePath: string, packagePath: s
         const tomlData = parse(ballerinaTomlContent) as Partial<WorkspaceTomlValues>;
         const existingPackages: string[] = tomlData?.workspace?.packages ?? [];
 
-        if (!existingPackages.includes(relativeProjectPath)) {
+        const matchedEntry = existingPackages.find(p => path.normalize(p) === relativeProjectPath);
+        if (!matchedEntry) {
             return; // Package not found
         }
 
-        const updatedContent = removePackageFromToml(ballerinaTomlContent, relativeProjectPath);
+        const updatedContent = removePackageFromToml(ballerinaTomlContent, matchedEntry);
         fs.writeFileSync(ballerinaTomlPath, updatedContent);
 
         // send didChange event to the language server
@@ -605,6 +643,7 @@ async function createProjectInWorkspace(params: AddProjectToWorkspaceRequest, wo
         projectPath: workspacePath,
         createDirectory: true,
         orgName: params.orgName,
+        orgHandle: params.orgHandle,
         version: params.version,
         isLibrary: params.isLibrary,
         projectHandle: params.projectHandle
@@ -629,7 +668,7 @@ export async function createBIProjectFromMigration(params: MigrateRequest) {
 
         if (fileName === "Ballerina.toml") {
             content = content.replace(/name = ".*?"/, `name = "${sanitizedPackageName}"`);
-            content = content.replace(/org = ".*?"/, `org = "${projectInfo.finalOrgName}"`);
+            content = content.replace(/org = ".*?"/, `org = "${projectInfo.orgHandle ?? projectInfo.finalOrgName}"`);
 
             // Remove any existing distribution line
             content = content.replace(/^\s*distribution\s*=\s*".*?"\n?/m, '');
@@ -656,7 +695,28 @@ export async function createBIProjectFromMigration(params: MigrateRequest) {
     fs.writeFileSync(gitignorePath, gitignoreContent.trim());
 
     debug(`BI project created successfully at ${projectRoot}`);
-    commands.executeCommand('vscode.openFolder', Uri.file(path.resolve(projectRoot)));
+
+    const resolvedRoot = path.resolve(projectRoot);
+    const aiEnabled = params.aiFeatureUsed ?? false;
+
+    // Write the AI enhancement state file – acts as the source of truth for the
+    // migration UI banner.  This is done for ALL values of aiFeatureUsed so
+    // the card can offer a "Start Enhancement" button even when the user skipped.
+    writeEnhanceToml(resolvedRoot, aiEnabled, false, params.sourcePath);
+
+    if (aiEnabled) {
+        // When AI enhancement is enabled, return the project root to the caller
+        // so the wizard can run the enhancement pipeline before opening the folder.
+        // The caller (RPC manager) will notify the webview with the project root
+        // and kick off the agent; vscode.openFolder is deferred until the
+        // enhancement completes or the user skips.
+        return resolvedRoot;
+    }
+
+    // No AI enhancement – open the project immediately.
+    scheduleMigrationEnhancement(aiEnabled, resolvedRoot, params.sourcePath);
+    commands.executeCommand('vscode.openFolder', Uri.file(resolvedRoot));
+    return resolvedRoot;
 }
 
 async function createProjectFiles(project: ProjectMigrationResult, projectRoot: string) {

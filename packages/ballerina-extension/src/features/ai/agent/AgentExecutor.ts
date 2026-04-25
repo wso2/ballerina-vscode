@@ -17,7 +17,7 @@
  */
 
 import { AICommandExecutor, AICommandConfig, AIExecutionResult } from '../executors/base/AICommandExecutor';
-import { Command, GenerateAgentCodeRequest, ProjectSource, ExecutionContext, SemanticDiff, ReviewModeData, PROJECT_KIND } from '@wso2/ballerina-core';
+import { Command, GenerateAgentCodeRequest, ProjectSource, ExecutionContext, SemanticDiff, ReviewModeData, PROJECT_KIND, LoginMethod } from '@wso2/ballerina-core';
 import { StateMachine } from '../../../stateMachine';
 import { ModelMessage, stepCountIs, streamText, TextStreamPart } from 'ai';
 import { getAnthropicClient, getProviderCacheControl, addCacheControlToMessages, ANTHROPIC_SONNET_4 } from '../utils/ai-client';
@@ -31,13 +31,20 @@ import { integrateCodeToWorkspace } from './utils';
 import { getWorkspaceTomlValues } from '../../../utils';
 import { StreamContext } from './stream-handlers/stream-context';
 import { checkCompilationErrors } from './tools/diagnostics-utils';
-import { updateAndSaveChat } from '../utils/events';
+import { updateAndSaveChat, calculateTotalCost } from '../utils/events';
 import { chatStateStorage } from '../../../views/ai-panel/chatStateStorage';
 import * as path from 'path';
 import { approvalViewManager } from '../state/ApprovalViewManager';
-import { compactionManager } from '../compaction-manager';
-import { CompactionGuard } from './compaction/CompactionGuard';
-import { contextExhausted } from './compaction/contextExhausted';
+import {
+    buildContextManagementOptions,
+    buildBedrockContextManagementOptions,
+    detectAppliedCompaction,
+    estimateFloorTokens,
+    extractCompactionSummary,
+    stripAnalysisFromCompactionBlocks,
+    COMPACTION_BLOCK_PREFIX,
+} from '@wso2/copilot-utilities/context-management';
+import { getLoginMethod } from '../../../utils/ai/auth';
 import {
     sendTelemetryEvent,
     sendTelemetryException,
@@ -52,7 +59,47 @@ import { getHashedProjectId } from "../../telemetry/common/project-id";
 import { workspace } from 'vscode';
 import { runningServicesManager } from './tools/running-service-manager';
 
+
 const RESERVED_OUTPUT_TOKENS = 8_192;
+
+/**
+ * Tracks threads that have already received a compaction_disabled warning this session.
+ * Keyed by `${projectRootPath}:${threadId}`. Cleared on chat clear.
+ */
+const compactionDisabledWarnedThreads = new Set<string>();
+
+/** Called by clearChat to reset the warned state for a workspace. */
+export function clearCompactionDisabledWarning(projectRootPath: string, threadId: string): void {
+    compactionDisabledWarnedThreads.delete(`${projectRootPath}:${threadId}`);
+}
+
+function supportsCompaction(loginMethod: LoginMethod): boolean {
+    return loginMethod === LoginMethod.ANTHROPIC_KEY
+        || loginMethod === LoginMethod.BI_INTEL
+        || loginMethod === LoginMethod.VERTEX_AI
+        || loginMethod === LoginMethod.AWS_BEDROCK;
+}
+
+function buildCompactionProviderOptions(loginMethod: LoginMethod, floorTokens: number) {
+    if (!supportsCompaction(loginMethod)) { return undefined; }
+    const config = { estimatedFloorTokens: floorTokens };
+    const options = loginMethod === LoginMethod.AWS_BEDROCK
+        ? buildBedrockContextManagementOptions(config)
+        : buildContextManagementOptions(config);
+    return options ?? undefined;
+}
+
+function warnCompactionDisabledOnce(projectRootPath: string, eventHandler: (e: any) => void): void {
+    const warnKey = `${projectRootPath}:default`;
+    if (!compactionDisabledWarnedThreads.has(warnKey)) {
+        compactionDisabledWarnedThreads.add(warnKey);
+        eventHandler({ type: 'compaction_disabled' });
+    }
+}
+
+function usesContentBasedCompactionDetection(loginMethod: LoginMethod): boolean {
+    return loginMethod === LoginMethod.AWS_BEDROCK;
+}
 
 /** Estimate character length of a message's content for proportional token breakdown. */
 function msgCharLen(msg: ModelMessage): number {
@@ -63,6 +110,10 @@ function msgCharLen(msg: ModelMessage): number {
  * Estimates per-category token breakdown by scaling character-based proportions to the
  * actual API-reported inputTokens total. The grand total is always exact; per-category
  * values are ~75-85% accurate.
+ *
+ * codebaseCharsPerTurn: char length of the codebase structure block injected as the first
+ * content block of each user message. Multiplied by user message count to estimate total
+ * file content across the full conversation history.
  */
 function computeTokenBreakdown(
     baseMessages: ModelMessage[],
@@ -70,7 +121,8 @@ function computeTokenBreakdown(
     accToolCallChars: number,
     accToolResultChars: number,
     inputTokens: number,
-): { systemInstructions: number; toolDefinitions: number; reservedOutput: number; messages: number; toolResults: number } {
+    codebaseCharsPerTurn: number,
+): { systemInstructions: number; toolDefinitions: number; reservedOutput: number; files: number; messages: number; toolResults: number } {
     const systemChars = baseMessages.filter(m => m.role === 'system').reduce((s, m) => s + msgCharLen(m), 0);
     const baseConvChars = baseMessages.filter(m => m.role === 'user' || m.role === 'assistant').reduce((s, m) => s + msgCharLen(m), 0);
     const baseToolChars = baseMessages.filter(m => m.role === 'tool').reduce((s, m) => s + msgCharLen(m), 0);
@@ -80,11 +132,17 @@ function computeTokenBreakdown(
     const toolDefsChars = JSON.stringify(tools ?? {}).length;
     const totalChars = systemChars + convChars + toolChars + toolDefsChars || 1;
 
+    // Estimate total file content chars: codebase block appears in every user message turn
+    const userMsgCount = baseMessages.filter(m => m.role === 'user').length;
+    const totalCodebaseChars = Math.min(codebaseCharsPerTurn * userMsgCount, convChars);
+    const pureConvChars = convChars - totalCodebaseChars;
+
     const systemInstructions = Math.round(inputTokens * systemChars / totalChars);
-    const messages = Math.round(inputTokens * convChars / totalChars);
+    const files = Math.round(inputTokens * totalCodebaseChars / totalChars);
+    const messages = Math.round(inputTokens * pureConvChars / totalChars);
     const toolResults = Math.round(inputTokens * toolChars / totalChars);
-    const toolDefinitions = Math.max(0, inputTokens - systemInstructions - messages - toolResults);
-    return { systemInstructions, toolDefinitions, reservedOutput: RESERVED_OUTPUT_TOKENS, messages, toolResults };
+    const toolDefinitions = Math.max(0, inputTokens - systemInstructions - files - messages - toolResults);
+    return { systemInstructions, toolDefinitions, reservedOutput: RESERVED_OUTPUT_TOKENS, files, messages, toolResults };
 }
 
 /**
@@ -157,6 +215,9 @@ async function determineAffectedPackages(
  * - Plan approval workflow (via ApprovalManager in TaskWrite tool)
  */
 export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
+    /** Tracks in-flight tool-call start times keyed by toolCallId for duration logging. */
+    private readonly _pendingToolCalls = new Map<string, number>();
+
     constructor(config: AICommandConfig<GenerateAgentCodeRequest>) {
         super(config);
     }
@@ -205,25 +266,21 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 workingDirectory: workspaceId,
             };
 
-            // Resolve model ONCE — reused for both agent streaming and compaction (M02)
+            // Resolve model and login method
+            const loginMethod = await getLoginMethod();
             const model = await getAnthropicClient(ANTHROPIC_SONNET_4);
-
-            // Bind the authenticated model to the compaction manager
-            compactionManager.bindModel(model);
 
             const userMessageContent = getUserPrompt(params, tempProjectPath, projects);
 
-            // PRE-TURN compaction: compact if context is already above threshold
-            // failures are handled gracefully inside checkAndCompact (returns without throwing)
-            // abortSignal ensures the summarization LLM call is also cancelled on user abort
-            await compactionManager.checkAndCompact(
-                workspaceId,
-                threadId,
-                projectState,
-                this.config.abortController.signal,
-                this.config.eventHandler,
-                [ { role: "user", content: userMessageContent } ]
-            );
+            // Estimate fixed overhead (system prompt + codebase) to decide if compaction is viable
+            const systemPromptText = getSystemPrompt(projects, params.operationType);
+            const floorTokens = estimateFloorTokens(systemPromptText, JSON.stringify(userMessageContent));
+
+            const projectRootPath = this.config.executionContext.workspacePath || this.config.executionContext.projectPath || '';
+            const providerOptions = buildCompactionProviderOptions(loginMethod, floorTokens);
+            if (supportsCompaction(loginMethod) && providerOptions === undefined) {
+                warnCompactionDisabledOnce(projectRootPath, this.config.eventHandler);
+            }
 
             // 3. Add generation to chat storage (if enabled)
             this.addGeneration(params.usecase, {
@@ -253,9 +310,14 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 },
             ];
 
+            // Accumulator for token usage from tool-internal LLM calls (e.g. Haiku filtering)
+            // These are separate API calls NOT included in the main agent loop's totalUsage
+            const toolModelUsage: Record<string, { inputTokens: number; outputTokens: number }> = {};
+
             // Create tools
             const tools = createToolRegistry({
                 eventHandler: this.config.eventHandler,
+                toolModelUsage,
                 tempProjectPath,
                 modifiedFiles,
                 allModifiedFiles,
@@ -264,6 +326,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 projectRootPath: this.config.executionContext.workspacePath || this.config.executionContext.projectPath || '',
                 generationId: this.config.generationId,
                 threadId: 'default',
+                migrationSourcePath: this.config.toolOptions?.migrationSourcePath,
                 runningServices: runningServicesManager,
                 webSearchEnabled: params.webSearchEnabled ?? false,
                 ctx: this.config.executionContext,
@@ -273,46 +336,34 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             let accToolCallChars = 0;
             let accToolResultChars = 0;
 
-            // === MID-STREAM COMPACTION GUARD ===
-            // Watches actual inputTokens between steps and compacts when threshold is reached.
-            // Uses 80% of the context window as the mid-stream trigger point.
-            const compactionGuard = new CompactionGuard({
-                engine: compactionManager.getEngine(),
-                tokenThreshold: Math.floor(200_000 * 0.80),  // 160K tokens = 80% of context window
-                maxCompactionAttempts: 3,
-                preserveRecentMessageCount: 6,  // Keep last 3 tool-call + tool-result pairs
-                eventHandler: this.config.eventHandler,
-                originalUserMessage: Array.isArray(userMessageContent) 
-                    ? userMessageContent.map((c: any) => c.text || '').join('\n') 
-                    : String(userMessageContent),
-                projectState,
-                abortSignal: this.config.abortController.signal,
-                persistCallback: (compactedMessages, metadata) =>
-                    compactionManager.persistMidStreamCompaction(
-                        workspaceId,
-                        threadId,
-                        this.config.generationId,
-                        compactedMessages,
-                        metadata
-                    ),
-            });
+            // === SERVER-SIDE COMPACTION STATE ===
+            // Primary detection: providerMetadata on text-start (Anthropic/BI_INTEL/Vertex).
+            // Fallback detection: content-based (<analysis> prefix) for Bedrock, which emits
+            // bare text-start events with no providerMetadata.
+            const useContentBasedDetection = usesContentBasedCompactionDetection(loginMethod);
+            let isCompactionBlock = false;
+            let compactionContent = '';
+            let cleanedCompactionSummary: string | undefined;
 
-            // Stream LLM response with mid-stream compaction and dual stop conditions
-            const { fullStream, response, totalUsage } = streamText({
+            // Stream LLM response with server-side context management
+            const { fullStream, response, usage, totalUsage } = streamText({
                 model,
                 maxOutputTokens: 8192,
                 temperature: 0,
                 messages: allMessages,
                 tools,
                 abortSignal: this.config.abortController.signal,
+                providerOptions: providerOptions as any,
 
-                // MID-STREAM COMPACTION + PROMPT CACHING: compact if needed, then apply
-                // incremental cache control to the last message so Anthropic caches the
+                // Strip <analysis> blocks from compaction entries before each subsequent step
+                // to avoid re-sending thousands of reasoning tokens.
+                // Also apply incremental cache control to the last message so Anthropic caches the
                 // growing conversation history on each step.
-                prepareStep: async ({ steps, stepNumber, messages }) => {
-                    const compacted = await compactionGuard.maybeCompact({ steps, stepNumber, messages });
-                    const resolvedMessages = compacted ? compacted.messages : messages;
-                    return { messages: addCacheControlToMessages({ messages: resolvedMessages, model }) };
+                prepareStep: async ({ messages: stepMessages }) => {
+                    if (cleanedCompactionSummary) {
+                        stripAnalysisFromCompactionBlocks(stepMessages);
+                    }
+                    return { messages: addCacheControlToMessages({ messages: stepMessages, model }) };
                 },
 
                 // Emit per-step token usage for context usage widget + observability
@@ -320,6 +371,18 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                     // Accumulate tool call/result chars for per-category breakdown estimation
                     accToolCallChars += JSON.stringify(step.toolCalls ?? []).length;
                     accToolResultChars += JSON.stringify(step.toolResults ?? []).length;
+
+                    console.log(
+                        `[AgentExecutor] Step ${step.stepNumber} complete: ` +
+                        `${step.usage?.inputTokens ?? 0} input tokens, ` +
+                        `finishReason: ${step.finishReason}`
+                    );
+
+                    // Detect tool-use clearing (no mid-stream signal for this edit type)
+                    const appliedCompaction = detectAppliedCompaction(step.providerMetadata);
+                    if (appliedCompaction?.clearedToolUses) {
+                        console.log(`[AgentExecutor] Server cleared ${appliedCompaction.clearedToolUses} tool uses`);
+                    }
 
                     // Persist partial modelMessages after each step so chat is recoverable mid-stream
                     const stepMessages = step.response?.messages ?? [];
@@ -348,19 +411,19 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                         );
                         this.config.eventHandler({
                             type: "usage_metrics",
+                            model: ANTHROPIC_SONNET_4,
                             usage: {
                                 inputTokens,
-                                cacheCreationInputTokens: (step.usage as any).cacheCreationInputTokens || 0,
-                                cacheReadInputTokens: (step.usage as any).cacheReadInputTokens || 0,
-                                outputTokens: step.usage.outputTokens || 0,
+                                cacheCreationInputTokens: cacheWriteTokens,
+                                cacheReadInputTokens: cacheReadTokens,
+                                outputTokens,
                             },
-                            breakdown: computeTokenBreakdown(allMessages, tools, accToolCallChars, accToolResultChars, inputTokens),
+                            breakdown: computeTokenBreakdown(allMessages, tools, accToolCallChars, accToolResultChars, inputTokens, (userMessageContent[0] as any)?.text?.length ?? 0),
                         });
                     }
                 },
 
-                // DUAL STOP CONDITIONS: step limit OR context exhaustion
-                stopWhen: [stepCountIs(50), contextExhausted(compactionGuard)],
+                stopWhen: [stepCountIs(50)],
             });
 
             // Send start event to frontend
@@ -380,17 +443,74 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 ctx: this.config.executionContext,
                 generationStartTime,
                 projectId,
+                toolModelUsage,
             };
 
             // Process stream events - NATIVE V6 PATTERN
             try {
                 for await (const part of fullStream) {
+                    // Handle compaction block detection inline (text-start/text-delta)
+                    if (part.type === 'text-start') {
+                        const isCompaction = (part as any).providerMetadata?.anthropic?.type === 'compaction';
+                        if (isCompaction) {
+                            isCompactionBlock = true;
+                            compactionContent = '';
+                            this.config.eventHandler({ type: 'compaction_start' });
+                        } else {
+                            if (isCompactionBlock) {
+                                // Compaction block just ended — flush it
+                                isCompactionBlock = false;
+                                const summary = extractCompactionSummary(compactionContent);
+                                cleanedCompactionSummary = summary || compactionContent;
+                                this.config.eventHandler({ type: 'compaction_end', summary: summary ?? undefined });
+                                // Reset context widget to near-zero after compaction
+                                this.config.eventHandler({
+                                    type: 'usage_metrics',
+                                    usage: { inputTokens: 0, cacheCreationInputTokens: 0, cacheReadInputTokens: 0, outputTokens: 0 },
+                                });
+                                // Inline notice before the continuing response
+                                this.config.eventHandler({
+                                    type: 'content_block',
+                                    content: '<compaction>Context compacted — key context preserved, conversation continues below.</compaction>',
+                                });
+                            }
+                            // Normal text-start: emit paragraph break
+                            this.config.eventHandler({ type: 'content_block', content: ' \n' });
+                        }
+                        continue;
+                    }
+
+                    if (part.type === 'text-delta') {
+                        if (isCompactionBlock) {
+                            compactionContent += part.text;
+                        } else if (useContentBasedDetection && !isCompactionBlock && compactionContent === '' && part.text.trimStart().startsWith(COMPACTION_BLOCK_PREFIX)) {
+                            // Bedrock: no providerMetadata on text-start, detect via content
+                            isCompactionBlock = true;
+                            compactionContent = part.text;
+                            this.config.eventHandler({ type: 'compaction_start' });
+                        } else {
+                            this.config.eventHandler({ type: 'content_block', content: part.text });
+                        }
+                        continue;
+                    }
+
                     await this.handleStreamPart(part, streamContext);
                 }
 
-                // Check if context was exhausted mid-stream and update context BEFORE handleStreamFinish logic
-                if (compactionGuard.lastCompactionFailed) {
-                    streamContext.compactionFailedMidStream = true;
+                // Flush compaction block if still open at stream end (e.g. compaction was last block)
+                if (isCompactionBlock) {
+                    isCompactionBlock = false;
+                    const summary = extractCompactionSummary(compactionContent);
+                    cleanedCompactionSummary = summary || compactionContent;
+                    this.config.eventHandler({ type: 'compaction_end', summary: summary ?? undefined });
+                    this.config.eventHandler({
+                        type: 'usage_metrics',
+                        usage: { inputTokens: 0, cacheCreationInputTokens: 0, cacheReadInputTokens: 0, outputTokens: 0 },
+                    });
+                    this.config.eventHandler({
+                        type: 'content_block',
+                        content: '<compaction>Context compacted — key context preserved.</compaction>',
+                    });
                 }
 
                 // Check if abort was called after stream completed
@@ -415,7 +535,6 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                         console.warn("[AgentExecutor] Could not retrieve partial response messages:", e);
                     }
 
-                    // Only save if LLM actually responded — user message without LLM response is meaningless
                     const projectRootPath = this.config.executionContext.workspacePath || this.config.executionContext.projectPath || '';
                     const threadId = 'default';
                     if (partialLLMMessages.length > 0) {
@@ -431,8 +550,9 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                                 },
                             ],
                         });
-                        updateAndSaveChat(this.config.generationId, Command.Agent, this.config.eventHandler);
                     }
+                    // Emit save_chat so any pre-step-boundary streamed text is persisted into uiResponse.
+                    updateAndSaveChat(this.config.generationId, Command.Agent, this.config.eventHandler);
                     // Clear review state
                     const pendingReview = chatStateStorage.getPendingReviewGeneration(projectRootPath, threadId);
                     if (pendingReview && pendingReview.id === this.config.generationId) {
@@ -455,26 +575,19 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                         }
                     );
 
+                    // Notify caller with partial messages (wizard migration history persistence)
+                    if (this.config.onMessagesAvailable) {
+                        this.config.onMessagesAvailable(
+                            [{ role: "user", content: streamContext.userMessageContent }, ...partialLLMMessages],
+                            'aborted'
+                        );
+                    }
+
                     // Note: Abort event is sent by base class handleExecutionError()
                 }
 
                 // Re-throw for base class error handling
                 throw error;
-            }
-
-            // Update token estimation context with actual total usage
-            try {
-                const resolvedUsage = await totalUsage;
-                if (resolvedUsage) {
-                    const toolDefinitionsChars = JSON.stringify(tools).length;
-                    compactionManager.updateTokenContext(
-                        resolvedUsage.inputTokens ?? 0,
-                        Math.ceil(getSystemPrompt(projects, params.operationType).length / 4),
-                        Math.ceil(toolDefinitionsChars / 4) // Dynamic estimate for tool definitions
-                    );
-                }
-            } catch (usageError) {
-                console.warn('[AgentExecutor] Could not retrieve usage for token context update:', usageError);
             }
 
             return {
@@ -487,9 +600,17 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                 throw error;
             }
 
+            console.error("[AgentExecutor] Non-abort error in execute():", error);
+
+            // Abort the controller so that any in-flight tool executions
+            // managed by the AI SDK are cancelled and stop emitting events.
+            if (!this.config.abortController.signal.aborted) {
+                this.config.abortController.abort();
+            }
+
             this.config.eventHandler({
                 type: "error",
-                content: "An error occurred during agent execution. Please check the logs for details."
+                content: getErrorMessage(error)
             });
 
             // For other errors, return result with error
@@ -498,9 +619,6 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                 modifiedFiles,
                 error: error as Error,
             };
-        } finally {
-            // Stop all services started during this agent loop
-            runningServicesManager.stopAll();
         }
     }
 
@@ -512,20 +630,6 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         context: StreamContext
     ): Promise<void> {
         switch (part.type) {
-            case "text-delta":
-                context.eventHandler({
-                    type: "content_block",
-                    content: part.text
-                });
-                break;
-
-            case "text-start":
-                context.eventHandler({
-                    type: "content_block",
-                    content: " \n"
-                });
-                break;
-
             case "error":
                 const error = part.error instanceof Error ? part.error : new Error(String(part.error));
                 await this.handleStreamError(error, context);
@@ -535,8 +639,31 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                 await this.handleStreamFinish(context);
                 break;
 
+            case "tool-call":
+                if (this.config.debugLogger) {
+                    this._pendingToolCalls.set((part as any).toolCallId, Date.now());
+                }
+                break;
+
+            case "tool-result":
+                if (this.config.debugLogger) {
+                    const startMs = this._pendingToolCalls.get((part as any).toolCallId);
+                    if (startMs !== undefined) {
+                        const durationMs = Date.now() - startMs;
+                        const rawResult = (part as any).result;
+                        const raw = typeof rawResult === "string"
+                            ? rawResult
+                            : rawResult === undefined
+                                ? "<no result>"
+                                : JSON.stringify(rawResult) ?? "<no result>";
+                        this.config.debugLogger.logToolCall((part as any).toolName, durationMs, raw);
+                        this._pendingToolCalls.delete((part as any).toolCallId);
+                    }
+                }
+                break;
+
             default:
-                // Tool calls/results handled automatically by SDK
+                // All other stream part types (step-finish, etc.) are handled by the SDK.
                 break;
         }
     }
@@ -619,18 +746,6 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         const assistantMessages = finalResponse.messages || [];
         const tempProjectPath = context.ctx.tempProjectPath!;
 
-        // Check if mid-stream compaction forcefully stopped the model
-        if (context.compactionFailedMidStream) {
-            assistantMessages.push({
-                role: 'assistant',
-                content: `\n\n> **Notice:** The context window limit was reached mid-task, and the generation was paused cleanly. Please review the current state and issue a new prompt to continue where I left off.`
-            });
-            context.eventHandler({
-                type: 'content_block',
-                content: `\n\n> **Notice:** The context window limit was reached mid-task, and the generation was paused cleanly. Please review the current state and issue a new prompt to continue where I left off.`
-            });
-        }
-
         // Run final diagnostics
         const finalDiagnostics = await checkCompilationErrors(tempProjectPath);
         context.eventHandler({
@@ -647,16 +762,28 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         const totalTokenUsage = await context.totalUsage;
         const inputTokens = totalTokenUsage.inputTokens || 0;
         const outputTokens = totalTokenUsage.outputTokens || 0;
-        const totalTokens = totalTokenUsage.totalTokens || 0;
         const totalCacheRead = totalTokenUsage.inputTokenDetails?.cacheReadTokens || 0;
         const totalCacheWrite = totalTokenUsage.inputTokenDetails?.cacheWriteTokens || 0;
+        // Aggregate tool-internal LLM usage across all models
+        const toolTokens = Object.values(context.toolModelUsage).reduce(
+            (acc, u) => ({ input: acc.input + u.inputTokens, output: acc.output + u.outputTokens }),
+            { input: 0, output: 0 }
+        );
+
+        const totalCost = calculateTotalCost(
+            ANTHROPIC_SONNET_4,
+            { inputTokens, outputTokens, cacheReadTokens: totalCacheRead, cacheWriteTokens: totalCacheWrite },
+            context.toolModelUsage
+        );
+
         console.log('[AgentExecutor] Generation complete — token usage:', {
             input: inputTokens,
             output: outputTokens,
-            total: totalTokens,
             cacheRead: totalCacheRead,
             cacheWrite: totalCacheWrite,
             cacheRatio: `${inputTokens > 0 ? (totalCacheRead / inputTokens * 100).toFixed(1) : '0'}%`,
+            toolModelUsage: context.toolModelUsage,
+            cost: `$${totalCost.toFixed(4)}`,
         });
 
         // Send telemetry for generation complete
@@ -667,42 +794,57 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             {
                 'message.id': context.messageId,
                 'project.id': context.projectId,
-                'generation.modified_files_count': context.modifiedFiles.length.toString(),
                 'generation.start_time': context.generationStartTime.toString(),
                 'generation.end_time': generationEndTime.toString(),
                 'plan_mode': isPlanModeEnabled.toString(),
-                'project.files_after': finalProjectMetrics.fileCount.toString(),
-                'project.lines_after': finalProjectMetrics.lineCount.toString(),
-                'tokens.input': inputTokens.toString(),
-                'tokens.output': outputTokens.toString(),
-                'tokens.total': totalTokens.toString(),
+            },
+            {
+                'tokens.input': inputTokens,
+                'tokens.output': outputTokens,
+                'tokens.cache_read': totalCacheRead,
+                'tokens.cache_creation': totalCacheWrite,
+                'tokens.tool.input': toolTokens.input,
+                'tokens.tool.output': toolTokens.output,
+                'generation.modified_files_count': context.modifiedFiles.length,
+                'project.files_after': finalProjectMetrics.fileCount,
+                'project.lines_after': finalProjectMetrics.lineCount,
+                'cost.total': totalCost,
             }
         );
 
         // Update chat state storage
         await this.updateChatState(context, assistantMessages, tempProjectPath);
 
-        // Integrate generated code into workspace immediately so user sees changes during review
-        const workspaceId = context.ctx.workspacePath || context.ctx.projectPath;
-        const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, 'default');
-        if (pendingReview && pendingReview.reviewState.modifiedFiles.length > 0) {
-            const integrationCtx = { ...context.ctx };
-            // In workspace mode, resolve project path from modified files if not set
-            if (!integrationCtx.projectPath && integrationCtx.workspacePath && pendingReview.reviewState.modifiedFiles.length > 0) {
-                const firstBalFile = pendingReview.reviewState.modifiedFiles.find(f => f.endsWith('.bal'));
-                if (firstBalFile) {
-                    const packageName = firstBalFile.split('/')[0];
-                    if (packageName) {
-                        integrationCtx.projectPath = path.join(integrationCtx.workspacePath, packageName);
-                        StateMachine.context().projectPath = integrationCtx.projectPath;
+        // Integrate generated code into workspace immediately so user sees changes during review.
+        // Skip only when the temp path IS the real workspace directory (migration wizard in-place
+        // editing). A review-continuation run also sets existingTempPath but to a temp dir, so we
+        // compare resolved paths rather than just checking existingTempPath presence.
+        const workspaceRoot = context.ctx.workspacePath || context.ctx.projectPath;
+        const isInPlaceEditing =
+            !!workspaceRoot &&
+            path.resolve(tempProjectPath) === path.resolve(workspaceRoot);
+        if (!isInPlaceEditing) {
+            const workspaceId = workspaceRoot;
+            const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, 'default');
+            if (pendingReview && pendingReview.reviewState.modifiedFiles.length > 0) {
+                const integrationCtx = { ...context.ctx };
+                // In workspace mode, resolve project path from modified files if not set
+                if (!integrationCtx.projectPath && integrationCtx.workspacePath && pendingReview.reviewState.modifiedFiles.length > 0) {
+                    const firstBalFile = pendingReview.reviewState.modifiedFiles.find(f => f.endsWith('.bal'));
+                    if (firstBalFile) {
+                        const packageName = firstBalFile.split('/')[0];
+                        if (packageName) {
+                            integrationCtx.projectPath = path.join(integrationCtx.workspacePath, packageName);
+                            StateMachine.context().projectPath = integrationCtx.projectPath;
+                        }
                     }
                 }
+                await integrateCodeToWorkspace(
+                    pendingReview.reviewState.tempProjectPath!,
+                    new Set(pendingReview.reviewState.modifiedFiles),
+                    integrationCtx
+                );
             }
-            await integrateCodeToWorkspace(
-                pendingReview.reviewState.tempProjectPath!,
-                new Set(pendingReview.reviewState.modifiedFiles),
-                integrationCtx
-            );
         }
 
         // Emit UI events

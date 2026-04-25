@@ -17,6 +17,7 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { EditableTitle } from "../../../components/EditableTitle";
 import {
     ProjectStructureResponse,
     SHARED_COMMANDS,
@@ -189,18 +190,6 @@ const TitleContainer = styled.div`
     position: relative;
 `;
 
-const EditableTitleWrapper = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-
-    &:is(:hover, :focus-visible) .edit-title-icon-wrapper {
-        opacity: 1;
-        max-width: 28px;
-    }
-`;
-
 const ProjectTitle = styled.h1`
     font-weight: bold;
     font-size: 1.5rem;
@@ -210,54 +199,6 @@ const ProjectTitle = styled.h1`
     @media (min-width: 768px) {
         font-size: 1.875rem;
     }
-`;
-
-const TitleInput = styled.input<{ $hasError?: boolean }>`
-    font-weight: bold;
-    font-size: 1.5rem;
-    margin-bottom: 0;
-    margin-top: 0;
-    background: transparent;
-    border: none;
-    border-bottom: 2px solid ${({ $hasError }: { $hasError?: boolean }) => $hasError
-        ? 'var(--vscode-inputValidation-errorBorder)'
-        : 'var(--vscode-focusBorder)'};
-    color: var(--vscode-foreground);
-    outline: none;
-    padding: 0;
-    font-family: inherit;
-    min-width: 120px;
-    width: auto;
-    @media (min-width: 768px) {
-        font-size: 1.875rem;
-    }
-`;
-
-const TitleValidationMessage = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 0.72rem;
-    color: var(--vscode-inputValidation-errorForeground, var(--vscode-errorForeground));
-    background: var(--vscode-inputValidation-errorBackground, transparent);
-    border: 1px solid var(--vscode-inputValidation-errorBorder);
-    border-radius: 2px;
-    padding: 2px 6px;
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 0;
-    white-space: nowrap;
-    z-index: 10;
-`;
-
-const EditTitleIconWrapper = styled.div`
-    max-width: 0;
-    overflow: hidden;
-    opacity: 0;
-    transition: max-width 0.15s ease, opacity 0.15s ease;
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
 `;
 
 const ProjectSubtitle = styled.h2`
@@ -437,6 +378,7 @@ interface DeploymentOptionsProps {
     hasDeployableIntegration: boolean;
     hasUndeployedIntegrations: boolean;
     deployableProjectPaths: Set<string>;
+    libraryProjectPaths: Set<string>;
 }
 
 function DeploymentOptions({
@@ -447,7 +389,8 @@ function DeploymentOptions({
     devantMetadata,
     hasDeployableIntegration,
     hasUndeployedIntegrations,
-    deployableProjectPaths
+    deployableProjectPaths,
+    libraryProjectPaths
 }: DeploymentOptionsProps) {
     const [expandedOptions, setExpandedOptions] = useState<Set<string>>(new Set(['cloud']));
     const { rpcClient } = useRpcContext();
@@ -465,9 +408,13 @@ function DeploymentOptions({
         });
     };
 
-    // Calculate deployment states
-    const deployedProjects = devantMetadata?.projectsMetadata?.filter(p => p.hasComponent) || [];
-    const undeployedProjects = devantMetadata?.projectsMetadata?.filter(p => !p.hasComponent) || [];
+    // Calculate deployment states, excluding library projects which are never deployable to cloud
+    const deployedProjects = devantMetadata?.projectsMetadata?.filter(
+        p => p.hasComponent && !libraryProjectPaths.has(p.projectPath)
+    ) || [];
+    const undeployedProjects = devantMetadata?.projectsMetadata?.filter(
+        p => !p.hasComponent && !libraryProjectPaths.has(p.projectPath)
+    ) || [];
     const deployedWithChanges = deployedProjects.filter(p => p.hasLocalChanges);
     
     const hasDeployedProjects = deployedProjects.length > 0;
@@ -476,7 +423,7 @@ function DeploymentOptions({
 
     // Determine title, description, button text, and whether deployment is allowed
     let title = "Deploy to WSO2 Cloud";
-    let description = "Deploy your project integrations to WSO2 Cloud.";
+    let description = "Deploy your integrations to WSO2 Cloud.";
     let buttonText = "Deploy";
     let primaryAction: () => void | Promise<void> = handleDeploy;
     let secondaryAction = undefined;
@@ -486,7 +433,7 @@ function DeploymentOptions({
     if (hasDeployedProjects && !hasUndeployedProjects) {
         // All projects are deployed - disable deployment button
         title = "Deployed in WSO2 Cloud";
-        description = "All project integrations are deployed in WSO2 Cloud.";
+        description = "All integrations are deployed in WSO2 Cloud.";
         buttonText = "View in Console";
         primaryAction = goToDevant;
         isDeploymentDisabled = false; // View action is always enabled
@@ -553,7 +500,7 @@ function DeploymentOptions({
                         isExpanded={expandedOptions.has("cloud")}
                         onToggle={() => toggleOption("cloud")}
                         onDeploy={primaryAction}
-                        learnMoreLink={"https://wso2.com/devant/docs"}
+                        learnMoreLink={"https://wso2.com/devant/docs/"}
                         hasDeployableIntegration={!isDeploymentDisabled}
                         disabledTooltip={disabledTooltip}
                         secondaryAction={secondaryAction}
@@ -687,10 +634,6 @@ export function WorkspaceOverview() {
     const [readmeContent, setReadmeContent] = React.useState<string>("");
     const [projectCollection, setProjectCollection] = React.useState<ProjectStructureResponse>();
     const [icpStatusByProjectPath, setIcpStatusByProjectPath] = React.useState<Record<string, boolean>>({});
-    const [isEditingTitle, setIsEditingTitle] = useState(false);
-    const [titleInputValue, setTitleInputValue] = useState("");
-    const [titleError, setTitleError] = useState("");
-    const titleInputRef = useRef<HTMLInputElement>(null);
     const [displayedTitle, setDisplayedTitle] = useState("");
     const [titleVisible, setTitleVisible] = useState(true);
 
@@ -756,11 +699,20 @@ export function WorkspaceOverview() {
             });
     };
 
-    rpcClient?.onProjectContentUpdated((state: boolean) => {
-        if (state) {
-            fetchContext();
-        }
-    });
+    // Stable ref so the subscription callback always calls the latest
+    // fetchContext without re-registering on every render.
+    const fetchContextRef = useRef(fetchContext);
+    fetchContextRef.current = fetchContext;
+
+    useEffect(() => {
+        if (!rpcClient) return;
+        const unsubscribe = rpcClient.onProjectContentUpdated((state: boolean) => {
+            if (state) {
+                fetchContextRef.current();
+            }
+        });
+        return unsubscribe;
+    }, [rpcClient]);
 
     useEffect(() => {
         fetchContext();
@@ -818,6 +770,16 @@ export function WorkspaceOverview() {
         return getWorkspaceProjectScopes(projectCollection);
     }, [projectCollection]);
 
+    // Libraries can never be deployed to cloud; exclude them from deployment state calculations.
+    const libraryProjectPaths = useMemo(() => {
+        return (projectCollection?.projects ?? []).reduce<Set<string>>((paths, project) => {
+            if (project.isLibrary && project.projectPath) {
+                paths.add(project.projectPath);
+            }
+            return paths;
+        }, new Set<string>());
+    }, [projectCollection?.projects]);
+
     // Calculate which projects need deployment
     const undeployedProjectScopes = useMemo(() => {
         if (!devantMetadata?.projectsMetadata || !projectCollection) {
@@ -830,12 +792,22 @@ export function WorkspaceOverview() {
                 .map(p => p.projectPath)
         );
 
-        return projectScopes.filter(scope => !deployedPaths.has(scope.projectPath));
-    }, [projectScopes, devantMetadata, projectCollection]);
+        return projectScopes.filter(scope =>
+            !deployedPaths.has(scope.projectPath) &&
+            !libraryProjectPaths.has(scope.projectPath)
+        );
+    }, [projectScopes, devantMetadata, projectCollection, libraryProjectPaths]);
 
     const deployableProjectPaths = useMemo(() => {
         return new Set(projectScopes.map(scope => scope.projectPath));
     }, [projectScopes]);
+
+    const hasDeployableIntegration = useMemo(() => {
+        return projectScopes.some(scope =>
+            scope.integrationTypes.length > 0 &&
+            !libraryProjectPaths.has(scope.projectPath)
+        );
+    }, [projectScopes, libraryProjectPaths]);
 
     const validateTitle = useCallback((value: string): string => {
         const trimmed = value.trim();
@@ -854,60 +826,13 @@ export function WorkspaceOverview() {
         return "";
     }, []);
 
-    const startEditingTitle = useCallback(() => {
-        const currentTitle = projectCollection?.workspaceTitle || projectCollection?.workspaceName || "";
-        setTitleInputValue(currentTitle);
-        setTitleError("");
-        setIsEditingTitle(true);
-        setTimeout(() => {
-            titleInputRef.current?.select();
-        }, 0);
-    }, [projectCollection]);
-
-    const commitTitleEdit = useCallback(async () => {
-        const trimmed = titleInputValue.trim();
-        if (!projectCollection?.workspacePath) {
-            setIsEditingTitle(false);
-            return;
-        }
-        // Empty input — silently restore the previous name
-        if (!trimmed) {
-            setTitleError("");
-            setIsEditingTitle(false);
-            return;
-        }
-        // Invalid name — restore previous name instead of saving
-        if (titleError) {
-            setTitleError("");
-            setIsEditingTitle(false);
-            return;
-        }
-        // No change — skip commit
-        const currentTitle = projectCollection?.workspaceTitle || projectCollection?.workspaceName || "";
-        if (trimmed === currentTitle) {
-            setIsEditingTitle(false);
-            return;
-        }
-        try {
-            await rpcClient.getBIDiagramRpcClient().updateProjectTitle({
-                projectPath: projectCollection.workspacePath,
-                title: trimmed
-            });
-            setIsEditingTitle(false);
-        } catch {
-            // keep edit mode open on failure
-        }
-    }, [titleInputValue, titleError, projectCollection, rpcClient]);
-
-    const handleTitleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            e.currentTarget.blur();
-        } else if (e.key === "Escape") {
-            setTitleError("");
-            setIsEditingTitle(false);
-        }
-    }, []);
+    const handleTitleUpdate = useCallback(async (newTitle: string) => {
+        if (!projectCollection?.workspacePath) return;
+        await rpcClient.getBIDiagramRpcClient().updateProjectTitle({
+            projectPath: projectCollection.workspacePath,
+            title: newTitle
+        });
+    }, [projectCollection, rpcClient]);
 
     if (!projectCollection) {
         return (
@@ -1034,45 +959,13 @@ export function WorkspaceOverview() {
         <PageLayout>
             <HeaderRow>
                 <TitleContainer>
-                    {isEditingTitle ? (
-                        <>
-                            <TitleInput
-                                ref={titleInputRef}
-                                value={titleInputValue}
-                                size={Math.max(titleInputValue.length, 8)}
-                                $hasError={!!titleError}
-                                onChange={(e) => { setTitleInputValue(e.target.value); setTitleError(validateTitle(e.target.value)); }}
-                                onKeyDown={handleTitleKeyDown}
-                                onBlur={commitTitleEdit}
-                                autoFocus
-                            />
-                            {titleError && (
-                                <TitleValidationMessage>
-                                    <Codicon name="info" sx={{ fontSize: '12px', flexShrink: 0 }} />
-                                    {titleError}
-                                </TitleValidationMessage>
-                            )}
-                        </>
-                    ) : (
-                        <EditableTitleWrapper
-                            role="button"
-                            tabIndex={0}
-                            onClick={startEditingTitle}
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter" || e.key === " ") {
-                                    e.preventDefault();
-                                    startEditingTitle();
-                                }
-                            }}
-                            title="Click to edit project title"
-                            aria-label="Edit project title"
-                        >
-                            <ProjectTitle style={{ opacity: titleVisible ? 1 : 0 }}>{displayedTitle}</ProjectTitle>
-                            <EditTitleIconWrapper className="edit-title-icon-wrapper">
-                                <Codicon name="edit" sx={{ color: 'var(--vscode-descriptionForeground)', fontSize: '14px', width: '16px' }} />
-                            </EditTitleIconWrapper>
-                        </EditableTitleWrapper>
-                    )}
+                    <EditableTitle
+                        title={projectCollection?.workspaceTitle || projectCollection?.workspaceName || ""}
+                        onCommit={handleTitleUpdate}
+                        validate={validateTitle}
+                    >
+                        <ProjectTitle style={{ opacity: titleVisible ? 1 : 0 }}>{displayedTitle}</ProjectTitle>
+                    </EditableTitle>
                     <ProjectSubtitle>Project</ProjectSubtitle>
                 </TitleContainer>
             </HeaderRow>
@@ -1182,9 +1075,10 @@ export function WorkspaceOverview() {
                             handleDeploy={handleDeploy}
                             goToDevant={goToDevant}
                             devantMetadata={devantMetadata}
-                            hasDeployableIntegration={projectScopes.length > 0}
+                            hasDeployableIntegration={hasDeployableIntegration}
                             hasUndeployedIntegrations={undeployedProjectScopes.length > 0}
                             deployableProjectPaths={deployableProjectPaths}
+                            libraryProjectPaths={libraryProjectPaths}
                         />
                         <Divider sx={{ margin: "16px 0" }} />
                         <IntegrationControlPlane
