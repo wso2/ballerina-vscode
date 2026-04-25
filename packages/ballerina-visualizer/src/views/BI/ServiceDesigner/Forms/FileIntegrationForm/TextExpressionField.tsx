@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import styled from "@emotion/styled";
 import { debounce } from "lodash";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -192,39 +192,6 @@ const removeLiteralWrapping = (value: string): string => {
     return unquoteStringLiteral(trimmed);
 };
 
-const getValidationErrorMessage = (error: unknown): string => {
-    if (error instanceof Error && error.message) {
-        return error.message;
-    }
-
-    if (typeof error === "string" && error.trim()) {
-        return error;
-    }
-
-    if (error && typeof error === "object") {
-        const err = error as Record<string, any>;
-        const message =
-            err?.message ||
-            err?.error?.message ||
-            err?.data?.message ||
-            err?.response?.message ||
-            err?.response?.data?.message;
-        if (typeof message === "string" && message.trim()) {
-            return message;
-        }
-        try {
-            const serialized = JSON.stringify(error);
-            if (serialized && serialized !== "{}") {
-                return serialized;
-            }
-        } catch {
-            // Ignore stringify failures and return fallback.
-        }
-    }
-
-    return "Unable to validate expression.";
-};
-
 const toExpressionProperty = (propertyModel: PropertyModel | undefined, value: string): ExpressionProperty => ({
     metadata: {
         label: propertyModel?.metadata?.label || "",
@@ -275,10 +242,19 @@ export interface TextExpressionFieldProps {
     disabled?: boolean;
     onChange: (value: string) => void;
     onDiagnosticsChange?: (diagnostics: Diagnostic[]) => void;
-    onValidationStateChange?: (state: { isValidating: boolean; hasValidationFailure: boolean }) => void;
+    onValidationStateChange?: (state: { isValidating: boolean }) => void;
 }
 
-export function TextExpressionField(props: TextExpressionFieldProps) {
+export interface TextExpressionFieldHandle {
+    /**
+     * Synchronously re-runs expression diagnostics against the language server for the current
+     * value, bypassing the typing-time debounce. Returns the resulting diagnostics. If the LS
+     * call itself fails, returns an empty array (same silent fallback as typing-time validation).
+     */
+    revalidate: () => Promise<Diagnostic[]>;
+}
+
+export const TextExpressionField = forwardRef<TextExpressionFieldHandle, TextExpressionFieldProps>((props, ref) => {
     const { id, value, property, filePath, targetLineRange, required, disabled, onChange, onDiagnosticsChange, onValidationStateChange } = props;
     const { rpcClient } = useRpcContext();
 
@@ -326,8 +302,6 @@ export function TextExpressionField(props: TextExpressionFieldProps) {
     });
     const [diagnostics, setDiagnostics] = useState<Diagnostic[]>([]);
     const [isValidating, setIsValidating] = useState(false);
-    const [hasValidationFailure, setHasValidationFailure] = useState(false);
-    const [validationFailureMessage, setValidationFailureMessage] = useState("");
     const [showWarning, setShowWarning] = useState(false);
     const [completions, setCompletions] = useState<CompletionItem[]>([]);
     const [filteredCompletions, setFilteredCompletions] = useState<CompletionItem[]>([]);
@@ -347,22 +321,16 @@ export function TextExpressionField(props: TextExpressionFieldProps) {
     }, [onValidationStateChange]);
 
     useEffect(() => {
-        onValidationStateChangeRef.current?.({ isValidating, hasValidationFailure });
-    }, [isValidating, hasValidationFailure]);
+        onValidationStateChangeRef.current?.({ isValidating });
+    }, [isValidating]);
 
     useEffect(() => {
         propertyRef.current = property;
     }, [property]);
 
-    const clearValidationFailure = useCallback(() => {
-        setHasValidationFailure(false);
-        setValidationFailureMessage("");
-    }, []);
-
     const resetValidationState = useCallback(() => {
         setIsValidating(false);
-        clearValidationFailure();
-    }, [clearValidationFailure]);
+    }, []);
 
     const canSwitchToText = useMemo(() => {
         const trimmed = getTrimmed(value);
@@ -378,52 +346,67 @@ export function TextExpressionField(props: TextExpressionFieldProps) {
         return templateContent !== null && templateContent.trim() === "";
     }, [value]);
 
+    const runValidation = useCallback(async (expression: string): Promise<Diagnostic[]> => {
+        if (!rpcClient || !filePath) {
+            resetValidationState();
+            return [];
+        }
+
+        const startLine = targetLineRange?.startLine ?? { line: 0, offset: 0 };
+        const expressionForDiagnostics = inputMode === InputMode.TEXT
+            && !isQuotedStringLiteral(expression)
+            && !isStringTemplateLiteral(expression)
+            ? JSON.stringify(expression)
+            : expression;
+        const prop = toDiagnosticsExpressionProperty(propertyRef.current, expressionForDiagnostics);
+
+        let result: Diagnostic[] = [];
+        try {
+            const response = await rpcClient.getBIDiagramRpcClient().getExpressionDiagnostics({
+                filePath,
+                context: {
+                    expression: expressionForDiagnostics,
+                    startLine,
+                    lineOffset: 0,
+                    offset: 0,
+                    codedata: prop.codedata,
+                    property: prop,
+                } as any,
+            });
+
+            result = removeDuplicateDiagnostics(response.diagnostics || []);
+            setDiagnostics(result);
+            onDiagnosticsChangeRef.current?.(result);
+        } catch (error) {
+            // Silently ignore LS failures during fast textarea validation; the save path
+            // re-runs validation via revalidate() to give the LS one more chance before save.
+            console.error(">>> Error getting expression diagnostics", error);
+            setDiagnostics([]);
+            onDiagnosticsChangeRef.current?.([]);
+        } finally {
+            setIsValidating(false);
+        }
+        return result;
+    }, [rpcClient, filePath, targetLineRange, inputMode, resetValidationState]);
+
     const validateExpression = useMemo(
-        () =>
-            debounce(async (expression: string) => {
-                if (!rpcClient || !filePath) {
-                    resetValidationState();
-                    return;
-                }
-
-                const startLine = targetLineRange?.startLine ?? { line: 0, offset: 0 };
-                const expressionForDiagnostics = inputMode === InputMode.TEXT
-                    && !isQuotedStringLiteral(expression)
-                    && !isStringTemplateLiteral(expression)
-                    ? JSON.stringify(expression)
-                    : expression;
-                const prop = toDiagnosticsExpressionProperty(propertyRef.current, expressionForDiagnostics);
-
-                try {
-                    const response = await rpcClient.getBIDiagramRpcClient().getExpressionDiagnostics({
-                        filePath,
-                        context: {
-                            expression: expressionForDiagnostics,
-                            startLine,
-                            lineOffset: 0,
-                            offset: 0,
-                            codedata: prop.codedata,
-                            property: prop,
-                        } as any,
-                    });
-
-                    const uniqueDiagnostics = removeDuplicateDiagnostics(response.diagnostics || []);
-                    setDiagnostics(uniqueDiagnostics);
-                    onDiagnosticsChangeRef.current?.(uniqueDiagnostics);
-                    clearValidationFailure();
-                } catch (e) {
-                    // Treat LS diagnostics failures as blocking save until recovered.
-                    setDiagnostics([]);
-                    onDiagnosticsChangeRef.current?.([]);
-                    setHasValidationFailure(true);
-                    const errorMessage = getValidationErrorMessage(e);
-                    setValidationFailureMessage(errorMessage);
-                } finally {
-                    setIsValidating(false);
-                }
-            }, 250),
-        [rpcClient, filePath, targetLineRange, inputMode, clearValidationFailure, resetValidationState]
+        () => debounce((expression: string) => { void runValidation(expression); }, 250),
+        [runValidation]
     );
+
+    useImperativeHandle(ref, () => ({
+        revalidate: async () => {
+            validateExpression.cancel();
+            const trimmed = getTrimmed(value);
+            if (!trimmed) {
+                setDiagnostics([]);
+                onDiagnosticsChangeRef.current?.([]);
+                setIsValidating(false);
+                return [];
+            }
+            return runValidation(value);
+        }
+    }), [validateExpression, runValidation, value]);
 
     const retrieveCompletions = useMemo(
         () =>
@@ -521,7 +504,7 @@ export function TextExpressionField(props: TextExpressionFieldProps) {
     useEffect(() => {
         return () => {
             onDiagnosticsChange?.([]);
-            onValidationStateChange?.({ isValidating: false, hasValidationFailure: false });
+            onValidationStateChange?.({ isValidating: false });
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -697,10 +680,6 @@ export function TextExpressionField(props: TextExpressionFieldProps) {
                 <ErrorBanner errorMsg={errorMessage} />
             )}
 
-            {hasValidationFailure && (
-                <ErrorBanner errorMsg={validationFailureMessage || `Unable to validate ${fieldLabel} expression from language server diagnostics.`} />
-            )}
-
             <WarningPopup
                 isOpen={showWarning}
                 onContinue={() => {
@@ -714,4 +693,6 @@ export function TextExpressionField(props: TextExpressionFieldProps) {
             />
         </div>
     );
-}
+});
+
+TextExpressionField.displayName = "TextExpressionField";
