@@ -25,10 +25,18 @@ import {
   ImportInfo,
 } from "@wso2/ballerina-core";
 import { ExtendedLangClient } from "../../../../core";
-import { DefaultableParam, IncludedRecordParam, RequiredParam, RestParam } from "@wso2/syntax-tree";
+import { DefaultableParam, IncludedRecordParam, RequiredParam, RestParam, STKindChecker } from "@wso2/syntax-tree";
 import { INVALID_RECORD_REFERENCE } from "../../../../views/ai-panel/errorCodes";
 import { isAnyPrimitiveType, isPrimitiveArrayType } from "./type-utils";
 import { getFunctionDefinitionFromSyntaxTree } from "./temp-project";
+
+const WRAPPED_BASE_TYPES = new Set(['json', 'xml']);
+const SERIALIZE_FUNC_NAMES = new Set(['toJson', 'toXml']);
+
+// Matches scalar wrapped types: json, xml, json|error, xml|string, etc.
+function isWrappedType(typeStr: string): boolean {
+  return typeStr.split('|').map(t => t.trim()).some(t => WRAPPED_BASE_TYPES.has(t));
+}
 
 /**
  * Functions for extracting and validating mapping parameters
@@ -76,6 +84,10 @@ export async function extractMappingDetails(
     inputParams = params.map(param => (param.typeName.source || "").trim());
     inputNames = params.map(param => (param.paramName.value || "").trim());
     outputParam = (funcNode.functionSignature.returnTypeDesc.type.source || "").trim();
+
+    const resolved = resolveWrappedTypesFromBody(funcNode, inputParams, inputNames, outputParam);
+    inputParams = resolved.inputParams;
+    outputParam = resolved.outputParam;
   }
 
   const inputs = processInputs(inputParams, recordMap, allImports, importsMap);
@@ -253,6 +265,60 @@ function processSingleType(
   }
 
   throw new Error(`${cleanedRecordName} is not defined.`);
+}
+
+// Resolves actual record types from the LetExpression body when params are wrapped in json/xml
+function resolveWrappedTypesFromBody(
+  funcNode: any,
+  inputParams: string[],
+  inputNames: string[],
+  outputParam: string
+): { inputParams: string[]; outputParam: string } {
+  const funcBody = funcNode.functionBody;
+  if (!STKindChecker.isExpressionFunctionBody(funcBody)) { return { inputParams, outputParam }; }
+
+  const bodyExpr = funcBody.expression;
+
+  // LetExpression pattern: json/xml scalar params resolved via let expr = check parseAsType(param)
+  if (STKindChecker.isLetExpression(bodyExpr)) {
+    const letVarDecls = bodyExpr.letVarDeclarations.filter(STKindChecker.isLetVarDecl);
+
+    const findDeclForParam = (paramName: string) => letVarDecls.find((decl: any) => {
+      if (!STKindChecker.isCheckExpression(decl.expression)) { return false; }
+      const inner = decl.expression.expression;
+      if (!STKindChecker.isFunctionCall(inner) || !STKindChecker.isQualifiedNameReference(inner.functionName)) { return false; }
+      if (inner.functionName.identifier.value !== 'parseAsType') { return false; }
+      const firstArg = inner.arguments.find(STKindChecker.isPositionalArg);
+      return firstArg !== undefined && STKindChecker.isSimpleNameReference(firstArg.expression)
+        && firstArg.expression.name.value === paramName;
+    });
+
+    const resolvedInputParams = inputParams.map((paramType, idx) => {
+      if (!isWrappedType(paramType)) { return paramType; }
+      const decl = findDeclForParam(inputNames[idx]);
+      return decl ? (decl.typedBindingPattern.typeDescriptor.source ?? paramType).trim() : paramType;
+    });
+
+    let resolvedOutputParam = outputParam;
+    if (isWrappedType(outputParam) && STKindChecker.isFunctionCall(bodyExpr.expression)) {
+      const { functionName, arguments: args } = bodyExpr.expression;
+      if (STKindChecker.isQualifiedNameReference(functionName) && SERIALIZE_FUNC_NAMES.has(functionName.identifier.value)) {
+        const firstArg = args.find(STKindChecker.isPositionalArg);
+        if (firstArg && STKindChecker.isSimpleNameReference(firstArg.expression)) {
+          const varName = firstArg.expression.name.value;
+          const decl = letVarDecls.find((d: any) =>
+            STKindChecker.isCaptureBindingPattern(d.typedBindingPattern.bindingPattern) &&
+            d.typedBindingPattern.bindingPattern.variableName.value === varName
+          );
+          if (decl) { resolvedOutputParam = (decl.typedBindingPattern.typeDescriptor.source ?? outputParam).trim(); }
+        }
+      }
+    }
+
+    return { inputParams: resolvedInputParams, outputParam: resolvedOutputParam };
+  }
+
+  return { inputParams, outputParam };
 }
 
 // Process a record type reference and validate it exists, handling both union and single types
