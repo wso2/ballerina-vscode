@@ -137,7 +137,8 @@ public class Value {
         return enabled && (
                 (value != null && ((value instanceof String && !((String) value).isEmpty()) ||
                         (value instanceof JsonPrimitive jsonPrimitive && !jsonPrimitive.getAsString().isEmpty()) ||
-                                (value instanceof Map<?, ?>))) ||
+                                (value instanceof Map<?, ?>) ||
+                                (value instanceof List<?> list && !list.isEmpty()))) ||
                         (values != null && !values.isEmpty()));
     }
 
