@@ -1588,7 +1588,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             StateMachine.langClient()
                 .getVisibleTypes(params)
                 .then((visibleTypes) => {
-                    resolve(visibleTypes);
+                    resolve(visibleTypes?.filter((item) => item.label !== "record"));
                 })
                 .catch((error) => {
                     reject("Error fetching visible types from ls");
