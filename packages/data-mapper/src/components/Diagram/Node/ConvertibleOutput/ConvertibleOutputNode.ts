@@ -42,6 +42,7 @@ export class ConvertibleOutputNode extends DataMapperNodeModel {
     public hasNoMatchingFields: boolean;
     public x: number;
     public y: number;
+    public isConvertedFieldArrayLiteral: boolean;
 
     constructor(
         public context: IDataMapperContext,
@@ -58,6 +59,7 @@ export class ConvertibleOutputNode extends DataMapperNodeModel {
         this.filteredOutputType = getSearchFilteredOutput(this.outputType);
 
         if (this.filteredOutputType) {
+            const mappings = this.context.model.mappings;
             this.rootName = this.filteredOutputType?.id;
 
             const collapsedFields = useDMCollapsedFieldsStore.getState().fields;
@@ -82,20 +84,28 @@ export class ConvertibleOutputNode extends DataMapperNodeModel {
                     field: this.filteredOutputType.convertedField,
                     type: "IN",
                     parentId: "",
-                    mappings: this.context.model.mappings,
+                    mappings: mappings,
                     portPrefix: CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX,
                     parent: headerPort,
                     collapsedFields,
                     expandedFields,
                     hidden: headerPort.attributes.collapsed
                 });
+
+                if (this.filteredOutputType.kind === TypeKind.Array) {
+                    const mapping = mappings[0]; // There is only one mapping for the output root
+                    const mappingElements = mapping?.elements ?? [];
+                    this.isConvertedFieldArrayLiteral = mappingElements.length > 0
+                        || (mappingElements.length === 0 && /^\s*\[\s*\]\s*$/.test(mapping.expression));
+                }
+            
             } else {
                 const headerPort = this.addPortsForHeader({
                     dmType: this.filteredOutputType,
                     name: this.rootName,
                     portType: "IN",
                     portPrefix: CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX,
-                    mappings: this.context.model.mappings,
+                    mappings: mappings,
                     collapsedFields,
                     expandedFields
                 });

@@ -36,6 +36,7 @@ import { useShallow } from "zustand/react/shallow";
 import { fieldFQNFromPortName, getDefaultValue, isWithinSubMappingRootView } from "../../utils/common-utils";
 import { addValue, removeMapping } from "../../utils/modification-utils";
 import { DiagnosticTooltip } from "../../Diagnostic/DiagnosticTooltip";
+import { FieldActionButton } from "../commons/FieldActionButton";
 
 export interface ArrayOutputWidgetProps {
 	id: string;
@@ -87,10 +88,10 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 	const portIn = getPort(`${id}.IN`);
 	const isExprBarFocused = exprBarFocusedPort?.getName() === portIn?.getName();
 	const isUnknownType = outputType.kind === TypeKind.Unknown;
-	const isConvertedVariable = outputType.category === InputCategory.ConvertedVariable;
+	const isNotConvertedField = outputType.category !== InputCategory.ConvertedVariable;
 
 	let expanded = true;
-	if ((portIn && portIn.attributes.collapsed) && !isConvertedVariable) {
+	if ((portIn && portIn.attributes.collapsed) && isNotConvertedField) {
 		expanded = false;
 	}
 
@@ -214,17 +215,35 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 					</span>
 					<span className={classes.label}>
 						<FieldActionWrapper>
-							<Button
-								id={"expand-or-collapse-" + id} 
-								appearance="icon"
-								tooltip="Expand/Collapse"
-								onClick={handleExpand}
-								data-testid={`${id}-expand-icon-mapping-target-node`}
-							>
-								{expanded ? <Codicon name="chevron-down" /> : <Codicon name="chevron-right" />}
-							</Button>
+							{isNotConvertedField ? (
+								<Button
+									id={"expand-or-collapse-" + id}
+									appearance="icon"
+									tooltip="Expand/Collapse"
+									onClick={handleExpand}
+									data-testid={`${id}-expand-icon-mapping-target-node`}
+								>
+									{expanded ? <Codicon name="chevron-down" /> : <Codicon name="chevron-right" />}
+								</Button>
+							) : (
+								<Button
+									id={"converted-icon-" + id}
+									appearance="icon"
+									tooltip="Type defined variable"
+								>
+									<Icon name="arrow-left-up" />
+								</Button>
+							)}
 						</FieldActionWrapper>
 						{label}
+						{!isNotConvertedField && (
+							<FieldActionButton
+								id={"edit-" + id}
+								tooltip="Edit"
+								iconName="edit"
+								onClick={async () => await context.createConvertedVariable(outputType.name, false, outputType.typeName)}
+							/>
+						)}
 					</span>
 					{context.model.hasInvalidOutput && (
 						<DiagnosticTooltip

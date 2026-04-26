@@ -48,6 +48,7 @@ export interface ConvertibleOutputWidgetProps {
     mappings?: Mapping[];
     valueLabel?: string;
     originalTypeName?: string;
+    isConvertedFieldArrayLiteral?: boolean;
 }
 
 export function ConvertibleOutputWidget(props: ConvertibleOutputWidgetProps) {
@@ -60,6 +61,7 @@ export function ConvertibleOutputWidget(props: ConvertibleOutputWidgetProps) {
         context,
         mappings,
         valueLabel,
+        isConvertedFieldArrayLiteral
     } = props;
     const id = outputType.convertedField ? props.id + ".C#" : props.id;
 
@@ -226,25 +228,13 @@ export function ConvertibleOutputWidget(props: ConvertibleOutputWidgetProps) {
                 )}
             </TreeContainer>
             {expanded && outputType.convertedField && (
-                // <ConvertibleOutputWidget
-                //     engine={engine}
-                //     id={`${CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX}.${outputType.convertedField.name}`}
-                //     outputType={outputType.convertedField}
-                //     typeName={outputType.convertedField.typeName}
-                //     value={undefined}
-                //     getPort={getPort}
-                //     context={context}
-                //     mappings={mappings}
-                //     valueLabel={outputType.convertedField.displayName || outputType.convertedField.name}
-                //     originalTypeName={outputType.convertedField.typeName}
-                // />
                 outputType.convertedField.kind === TypeKind.Array ? (
                     <ArrayOutputWidget
                         engine={engine}
                         id={`${CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX}.${outputType.convertedField.name}`}
                         outputType={outputType.convertedField}
                         typeName={outputType.convertedField.typeName}
-                        isBodyArrayLitExpr={false} // need to set properly
+                        isBodyArrayLitExpr={isConvertedFieldArrayLiteral}
                         getPort={getPort}
                         context={context}
                         valueLabel={outputType.convertedField.displayName || outputType.convertedField.name}
