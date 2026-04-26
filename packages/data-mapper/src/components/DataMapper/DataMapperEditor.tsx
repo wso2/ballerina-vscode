@@ -334,7 +334,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
     const autoMapDisabled =
         model.inputs?.some(isUnresolvedJsonOrXml) ||
         isUnresolvedJsonOrXml(model.output);
-    const autoMapDisabledTooltip = "Generate a record type from a sample to use AI mapping";
+    const autoMapDisabledTooltip = "Auto Map requires specific record types instead of generic types";
 
     const addNewSubMapping = async (
         subMappingName: string,
