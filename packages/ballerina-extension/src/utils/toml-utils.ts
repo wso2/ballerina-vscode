@@ -90,7 +90,7 @@ export function writeConfigValuesToConfig(
         }
     }
 
-    const intKeys = new Set<string>();
+    const numericKeys = new Set<string>();
     for (const [variableName, value] of Object.entries(configValues)) {
         const varType = typeMap.get(variableName) || "string";
         if (varType === "int") {
@@ -99,13 +99,14 @@ export function writeConfigValuesToConfig(
                 throw new Error(`Invalid integer value for ${variableName}`);
             }
             section[variableName] = intValue;
-            intKeys.add(variableName);
+            numericKeys.add(variableName);
         } else if (varType === "decimal") {
             const decimalValue = parseFloat(value);
             if (isNaN(decimalValue)) {
                 throw new Error(`Invalid decimal value for ${variableName}`);
             }
             section[variableName] = decimalValue;
+            numericKeys.add(variableName);
         } else {
             section[variableName] = value;
         }
@@ -119,13 +120,13 @@ export function writeConfigValuesToConfig(
 
         let tomlContent = stringify(config);
 
-        // @iarna/toml formats large integers with underscores (e.g. 8_080); Ballerina requires plain digits
-        for (const intKey of intKeys) {
-            const intValue = section[intKey];
-            if (typeof intValue === "number") {
-                const escapedKey = intKey.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-                const formattedPattern = new RegExp(`^\\s*${escapedKey}\\s*=\\s*[0-9_]+`, "gm");
-                tomlContent = tomlContent.replace(formattedPattern, `${intKey} = ${intValue}`);
+        // @iarna/toml formats large numbers with underscores (e.g. 8_080); Ballerina requires plain digits
+        for (const key of numericKeys) {
+            const numValue = section[key];
+            if (typeof numValue === "number") {
+                const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+                const formattedPattern = new RegExp(`^\\s*${escapedKey}\\s*=\\s*[0-9][0-9_]*(?:\\.[0-9]+)?`, "gm");
+                tomlContent = tomlContent.replace(formattedPattern, `${key} = ${numValue}`);
             }
         }
 
