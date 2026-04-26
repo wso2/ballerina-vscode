@@ -686,25 +686,30 @@ class BIRunAdapter extends LoggingDebugSession {
                     this.sendEvent(new TerminatedEvent());
                     return;
                 }
-                // Await full termination before starting the new task to avoid port
-                // conflicts from the still-shutting-down previous process.
-                // activeAdapter is cleared only when the task is confirmed stopped (or
-                // the user explicitly forces a start), so concurrent launches always
-                // see a live reference while the previous process is still alive.
+                // Claim the slot immediately after user confirms — blocks any concurrent
+                // launchRequest from also reading null and racing past the conflict check.
+                BIRunAdapter.activeAdapter = this;
+
+                // Await full termination before starting the new task to avoid port conflicts.
+                // The slot is already ours; the old adapter's taskTerminationListener will
+                // perform its own identity-guarded clear and will not clobber our reference.
                 const shouldProceed = await new Promise<boolean>((resolve) => {
                     let listener: { dispose(): void };
                     const timeout = setTimeout(async () => {
                         listener.dispose();
                         const forceChoice = await window.showWarningMessage(
-                            'The previous integration has not stopped yet (terminate was already sent). Force start the new integration anyway?',
+                            'The previous run has not stopped yet (terminate was already sent). Force start anyway?',
                             'Force Start', 'Cancel new launch'
                         );
                         if (forceChoice === 'Force Start') {
-                            BIRunAdapter.activeAdapter = null;
+                            // Slot is already ours — no activeAdapter change needed.
                             resolve(true);
                         } else {
-                            // terminate() was already issued; the old process is still shutting down.
-                            // Abort the new launch — the old process will finish stopping on its own.
+                            // Abort the new launch; release the slot we claimed.
+                            // The old process will finish shutting down on its own.
+                            if (BIRunAdapter.activeAdapter === this) {
+                                BIRunAdapter.activeAdapter = null;
+                            }
                             resolve(false);
                         }
                     }, 10000);
@@ -712,15 +717,13 @@ class BIRunAdapter extends LoggingDebugSession {
                         if (e.execution === existingTask) {
                             clearTimeout(timeout);
                             listener.dispose();
-                            BIRunAdapter.activeAdapter = null;
                             resolve(true);
                         }
                     });
-                    // Task may have already ended while the dialog was open.
+                    // Task may have already ended while the confirmation dialog was open.
                     if (!tasks.taskExecutions.some(e => e === existingTask)) {
                         clearTimeout(timeout);
                         listener.dispose();
-                        BIRunAdapter.activeAdapter = null;
                         resolve(true);
                         return;
                     }
@@ -734,6 +737,10 @@ class BIRunAdapter extends LoggingDebugSession {
                     this.sendEvent(new TerminatedEvent());
                     return;
                 }
+            } else {
+                // No active run — claim the slot before any await to prevent a concurrent
+                // launchRequest from also reading null and bypassing the conflict check.
+                BIRunAdapter.activeAdapter = this;
             }
 
             const taskDefinition: TaskDefinition = {
@@ -763,9 +770,13 @@ class BIRunAdapter extends LoggingDebugSession {
                 debugLog(`[BIRunAdapter] Setting cwd to project root: ${cwd}`);
             } catch (error) {
                 window.showErrorMessage(`Failed to determine working directory`);
+                if (BIRunAdapter.activeAdapter === this) {
+                    BIRunAdapter.activeAdapter = null;
+                }
                 response.success = false;
                 this.sendResponse(response);
-                throw error;
+                this.sendEvent(new TerminatedEvent());
+                return;
             }
 
             const execution = new ShellExecution(runCommand, {
@@ -781,34 +792,41 @@ class BIRunAdapter extends LoggingDebugSession {
             );
 
             try {
-                tasks.executeTask(task).then((taskExecution) => {
-                    this.task = taskExecution;
-                    BIRunAdapter.activeAdapter = this;
+                const taskExecution = await tasks.executeTask(task);
+                this.task = taskExecution;
+                // activeAdapter is already set to this — assigned before any await above.
 
-                    // Add task termination listener
-                    this.taskTerminationListener = tasks.onDidEndTaskProcess(e => {
-                        if (e.execution === this.task) {
-                            this.taskTerminationListener?.dispose();
-                            this.taskTerminationListener = null;
-                            if (BIRunAdapter.activeAdapter === this) {
-                                BIRunAdapter.activeAdapter = null;
-                            }
-                            // Skip TerminatedEvent if disconnectRequest already fired —
-                            // the session is already being torn down by VS Code.
-                            if (!this.disconnected) {
-                                this.sendEvent(new TerminatedEvent());
-                            }
+                this.taskTerminationListener = tasks.onDidEndTaskProcess(e => {
+                    if (e.execution === this.task) {
+                        this.taskTerminationListener?.dispose();
+                        this.taskTerminationListener = null;
+                        if (BIRunAdapter.activeAdapter === this) {
+                            BIRunAdapter.activeAdapter = null;
                         }
-                    });
-
-                    response.success = true;
-                    this.sendResponse(response);
+                        // Skip TerminatedEvent if disconnectRequest already fired —
+                        // the session is already being torn down by VS Code.
+                        if (!this.disconnected) {
+                            this.sendEvent(new TerminatedEvent());
+                        }
+                    }
                 });
+
+                response.success = true;
+                this.sendResponse(response);
             } catch (error) {
                 window.showErrorMessage(`Failed to run Ballerina package: ${error}`);
+                if (BIRunAdapter.activeAdapter === this) {
+                    BIRunAdapter.activeAdapter = null;
+                }
+                response.success = false;
+                this.sendResponse(response);
+                this.sendEvent(new TerminatedEvent());
             }
         }).catch((error) => {
             window.showErrorMessage(`Failed to determine project root: ${error}`);
+            if (BIRunAdapter.activeAdapter === this) {
+                BIRunAdapter.activeAdapter = null;
+            }
             response.success = false;
             this.sendResponse(response);
         });
@@ -831,16 +849,6 @@ class BIRunAdapter extends LoggingDebugSession {
         this.sendResponse(response);
     }
 
-    private cleanupListeners(): void {
-        if (this.taskTerminationListener) {
-            this.taskTerminationListener.dispose();
-            this.taskTerminationListener = null;
-        }
-        if (this.notificationHandler) {
-            this.notificationHandler.dispose();
-            this.notificationHandler = null;
-        }
-    }
 }
 
 async function runFast(root: string, options: { debugPort?: number; env?: Map<string, string>; programArgs?: string[]; } = {}): Promise<boolean> {
