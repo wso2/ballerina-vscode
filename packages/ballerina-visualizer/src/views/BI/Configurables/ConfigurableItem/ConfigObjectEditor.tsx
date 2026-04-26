@@ -16,13 +16,13 @@
  * under the License.
  */
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "@emotion/styled";
 import { VSCodeTextField, VSCodeButton, VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react";
 import { GetRecordConfigRequest, Property, TypeField, RecordSourceGenRequest, RecordSourceGenResponse, getPrimaryInputType } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Codicon, Typography } from "@wso2/ui-toolkit";
-import { rewrapIntersectionRecord, unwrapIntersectionRecord } from "../../HelperPaneNew/Components/RecordConstructView/utils/intersection";
+import { unwrapIntersectionRecord } from "../../HelperPaneNew/Components/RecordConstructView/utils/intersection";
 
 const EditorContainer = styled.div`
     width: 100%;
@@ -457,7 +457,6 @@ export function ConfigObjectEditor(props: ObjectEditorProps) {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [error, setError] = useState<string>('');
-    const originalRecordConfigRef = useRef<TypeField | null>(null);
 
     const { rpcClient } = useRpcContext();
 
@@ -503,7 +502,6 @@ export function ConfigObjectEditor(props: ObjectEditorProps) {
             console.log('recordConfig', response);
 
             if (response.recordConfig) {
-                originalRecordConfigRef.current = response.recordConfig;
                 const configWithName: TypeField = {
                     name: typeValue.value as string,
                     ...unwrapIntersectionRecord(response.recordConfig)
@@ -587,7 +585,7 @@ export function ConfigObjectEditor(props: ObjectEditorProps) {
             try {
                 const request: RecordSourceGenRequest = {
                     filePath: fileName,
-                    type: rewrapIntersectionRecord(withOnlyFilledFields(recordConfig), originalRecordConfigRef.current)
+                    type: withOnlyFilledFields(recordConfig)
                 };
                 const response: RecordSourceGenResponse = await rpcClient.getBIDiagramRpcClient().getRecordSource(request);
                 console.log('>>> recordSourceResponse', response);
