@@ -65,7 +65,7 @@ export function EditForm(props: ConfigFormProps) {
                 }
             };
         }
-        
+
         await rpcClient.getBIDiagramRpcClient().updateConfigVariablesV2({
             configFilePath: props.filename,
             configVariable: data,
