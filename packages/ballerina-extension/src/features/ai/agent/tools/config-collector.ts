@@ -40,7 +40,7 @@ const TEST_CONFIG_FILE_PATH = "tests/Config.toml";
 const ConfigVariableSchema = z.object({
     name: z.string().describe("Variable name in camelCase — must match the Ballerina configurable identifier exactly"),
     description: z.string().describe("Human-readable description"),
-    type: z.enum(["string", "int"]).optional().describe("Data type: string (default) or int"),
+    type: z.enum(["string", "int", "decimal"]).optional().describe("Data type: string (default), int, or decimal"),
     secret: z.boolean().optional().describe("Mark as true for sensitive values (API keys, passwords, tokens) to render as a masked input"),
 });
 

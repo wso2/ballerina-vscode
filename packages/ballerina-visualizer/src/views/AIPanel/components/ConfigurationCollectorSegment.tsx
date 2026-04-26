@@ -71,7 +71,7 @@ const ButtonGroup = styled.div`
 interface ConfigurationVariable {
     name: string;
     description: string;
-    type?: "string" | "int";
+    type?: "string" | "int" | "decimal";
 }
 
 export interface ConfigurationCollectionData {

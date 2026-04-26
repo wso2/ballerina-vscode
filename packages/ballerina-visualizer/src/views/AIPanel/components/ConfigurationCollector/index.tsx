@@ -169,7 +169,12 @@ export const ConfigurationCollector: React.FC<ConfigurationCollectorProps> = ({ 
             } else if (variable.type === "int") {
                 const intValue = parseInt(value, 10);
                 if (isNaN(intValue)) {
-                    newErrors[variable.name] = "Please enter a valid number";
+                    newErrors[variable.name] = "Please enter a valid integer";
+                }
+            } else if (variable.type === "decimal") {
+                const decimalValue = parseFloat(value);
+                if (isNaN(decimalValue)) {
+                    newErrors[variable.name] = "Please enter a valid decimal number";
                 }
             }
         });
@@ -274,7 +279,7 @@ export const ConfigurationCollector: React.FC<ConfigurationCollectorProps> = ({ 
                             const isVisible = visibleFields[variable.name];
                             const inputType = isSecret
                                 ? (isVisible ? "text" : "password")
-                                : (variable.type === "int" ? "number" : "text");
+                                : (variable.type === "int" || variable.type === "decimal" ? "number" : "text");
                             return (
                                 <ConfigurationField key={variable.name}>
                                     <FieldLabel>
@@ -286,7 +291,7 @@ export const ConfigurationCollector: React.FC<ConfigurationCollectorProps> = ({ 
                                     <FieldInputWrapper>
                                         <FieldInput
                                             type={inputType}
-                                            placeholder={variable.type === "int" ? "Enter number" : "Enter value"}
+                                            placeholder={variable.type === "int" || variable.type === "decimal" ? "Enter number" : "Enter value"}
                                             value={configValues[variable.name] || ""}
                                             onChange={(e) => handleInputChange(variable.name, e.target.value)}
                                             onKeyDown={handleKeyDown}
