@@ -434,7 +434,7 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
         if (!viewRef.current) return;
 
         const view = viewRef.current;
-        
+
         if (options?.closeHelperPane) {
             setHelperPaneState({
                 isOpen: false,
@@ -485,7 +485,9 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
 
         setHelperPaneState(prev => ({
             ...prev,
-            isOpen: prev.isOpen && !options?.closeHelperPane
+            isOpen: prev.isOpen && !options?.closeHelperPane,
+            clickedChipPos: undefined,
+            clickedChipNode: undefined
         }));
 
         // Trigger onChange to update parent
