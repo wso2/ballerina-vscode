@@ -92,6 +92,7 @@ import IfForm from "../IfForm";
 import { cloneDeep, debounce } from "lodash";
 import {
     createNodeWithUpdatedLineRange,
+    deserializeForDiagnosticsAPI,
     processFormData,
     removeEmptyNodes,
     updateNodeWithProperties,
@@ -706,9 +707,25 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
         });
     }, [canFixFormDiagnostics, diagnosticsTargetRange, fileName, formDiagnostics, rpcClient]);
 
+    const buildValidationData = (data: FormValues): FormValues => {
+        const expressionFieldKeys = fields
+            .filter(field => field.types.map(type => type.fieldType).some(ft => ft === "EXPRESSION" || ft === "ACTION_OR_EXPRESSION"))
+            .map(field => field.key);
+        return {
+            ...data,
+            ...Object.fromEntries(
+                expressionFieldKeys
+                    .filter(key => typeof data[key] === "string")
+                    .map(key => [key, deserializeForDiagnosticsAPI(data[key] as string)])
+            ),
+        };
+    };
+
     const handleOnBlur = async (data: FormValues, dirtyFields: any) => {
         if (node && targetLineRange && !skipFormValidation) {
-            const updatedNode = mergeFormDataWithFlowNode(data, targetLineRange, dirtyFields);
+            const validationData = buildValidationData(data);
+
+            const updatedNode = mergeFormDataWithFlowNode(validationData, targetLineRange, dirtyFields);
             const nodeWithDiagnostics = await getFormWithDiagnostics(updatedNode);
             setDiagnosticsToFields(data, nodeWithDiagnostics!);
         }
@@ -1010,7 +1027,8 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
 
     const handleFormValidation = async (data: FormValues, dirtyFields?: any): Promise<boolean> => {
         if (node && targetLineRange && !skipFormValidation) {
-            const updatedNode = mergeFormDataWithFlowNode(data, targetLineRange, dirtyFields);
+            const validationData = buildValidationData(data);
+            const updatedNode = mergeFormDataWithFlowNode(validationData, targetLineRange, dirtyFields);
             const nodeWithDiagnostics = await getFormWithDiagnostics(updatedNode);
             setDiagnosticsToFields(data, nodeWithDiagnostics!);
 
@@ -1069,7 +1087,7 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                     const response = await rpcClient.getBIDiagramRpcClient().getExpressionDiagnostics({
                         filePath: fileName,
                         context: {
-                            expression: expression,
+                            expression: deserializeForDiagnosticsAPI(expression),
                             startLine: updateLineRange(targetLineRange, expressionOffsetRef.current).startLine,
                             lineOffset: 0,
                             offset: 0,
