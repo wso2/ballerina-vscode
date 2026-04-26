@@ -18,7 +18,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import styled from "@emotion/styled";
-import { Codicon, TextField } from "@wso2/ui-toolkit";
+import { Codicon, TextField, Tooltip } from "@wso2/ui-toolkit";
 import { Description, FieldGroup, Note, SubSectionDivider, SubSectionLabel } from "../styles";
 import { CollapsibleSection } from "./CollapsibleSection";
 import { sanitizePackageName, sanitizeProjectHandle } from "../utils";
@@ -58,6 +58,8 @@ export interface AdvancedConfigurationSectionProps {
     organizations?: Organization[];
     /** Whether the section contains validation errors */
     hasError?: boolean;
+    /** Whether the org field is locked (derived from context.yaml or existing package) */
+    isOrgLocked?: boolean;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -125,6 +127,11 @@ const OrgComboboxWrapper = styled.div`
     position: relative;
 `;
 
+const LockedOrgWrapper = styled.div`
+    opacity: 0.65;
+    cursor: not-allowed;
+`;
+
 // ── Sign-in hint styles ────────────────────────────────────────────────────────
 
 const SignInHint = styled.div`
@@ -175,21 +182,19 @@ export interface OrgFieldProps {
     onOrgChange: (value: string) => void;
     onSignIn: () => void;
     onCancelSignIn: () => void;
+    isLocked?: boolean;
+    lockedTooltip?: string;
 }
 
-export function OrgField({ organizations, orgName, orgNameError, description, isSigningIn, onOrgChange, onSignIn, onCancelSignIn }: OrgFieldProps) {
+export function OrgField({ organizations, orgName, orgNameError, description, isSigningIn, onOrgChange, onSignIn, onCancelSignIn, isLocked }: OrgFieldProps) {
     const hasOrgs = Array.isArray(organizations) && organizations.length > 0;
-    // Show the sign-in hint only when organizations is undefined/null (user not logged in).
-    // An empty array means the user IS logged in but has no orgs yet — no hint needed.
     const showSignInHint = organizations === undefined || organizations === null;
 
-    // Track which suggestion is keyboard-highlighted (index into filteredSuggestions).
+    // All hooks must be declared unconditionally before any early returns.
     const [activeIndex, setActiveIndex] = useState<number>(-1);
-    // Whether the suggestion list is visible.
     const [isOpen, setIsOpen] = useState(false);
     const listRef = useRef<HTMLUListElement>(null);
 
-    /** Suggestions filtered by the current input value against both handle and name. */
     const filteredSuggestions = hasOrgs
         ? (organizations as Organization[]).filter((org) => {
               const query = orgName.toLowerCase();
@@ -201,9 +206,7 @@ export function OrgField({ organizations, orgName, orgNameError, description, is
         : [];
 
     const openList = useCallback(() => {
-        if (hasOrgs) {
-            setIsOpen(true);
-        }
+        if (hasOrgs) setIsOpen(true);
     }, [hasOrgs]);
 
     const closeList = useCallback(() => {
@@ -215,7 +218,6 @@ export function OrgField({ organizations, orgName, orgNameError, description, is
         (value: string) => {
             onOrgChange(value);
             setActiveIndex(-1);
-            // Show the list whenever the user is typing and there are candidates.
             setIsOpen(hasOrgs);
         },
         [onOrgChange, hasOrgs]
@@ -229,20 +231,13 @@ export function OrgField({ organizations, orgName, orgNameError, description, is
         [onOrgChange, closeList]
     );
 
-    /**
-     * Keyboard navigation: ArrowDown/ArrowUp move through suggestions, Enter
-     * confirms, Escape dismisses without changing value.
-     */
     const handleKeyDown = useCallback(
         (e: React.KeyboardEvent<HTMLInputElement>) => {
-            if (!isOpen || filteredSuggestions.length === 0) {
-                return;
-            }
+            if (!isOpen || filteredSuggestions.length === 0) return;
             switch (e.key) {
                 case "ArrowDown": {
                     e.preventDefault();
-                    const nextDown =
-                        activeIndex < filteredSuggestions.length - 1 ? activeIndex + 1 : 0;
+                    const nextDown = activeIndex < filteredSuggestions.length - 1 ? activeIndex + 1 : 0;
                     setActiveIndex(nextDown);
                     (listRef.current?.children[nextDown] as HTMLElement | undefined)
                         ?.scrollIntoView({ block: "nearest", inline: "nearest" });
@@ -250,8 +245,7 @@ export function OrgField({ organizations, orgName, orgNameError, description, is
                 }
                 case "ArrowUp": {
                     e.preventDefault();
-                    const nextUp =
-                        activeIndex > 0 ? activeIndex - 1 : filteredSuggestions.length - 1;
+                    const nextUp = activeIndex > 0 ? activeIndex - 1 : filteredSuggestions.length - 1;
                     setActiveIndex(nextUp);
                     (listRef.current?.children[nextUp] as HTMLElement | undefined)
                         ?.scrollIntoView({ block: "nearest", inline: "nearest" });
@@ -273,6 +267,34 @@ export function OrgField({ organizations, orgName, orgNameError, description, is
         [isOpen, filteredSuggestions, activeIndex, handleSelectSuggestion, closeList]
     );
 
+    if (isLocked) {
+        const tooltip = "Organization is shared across all integrations in this project.";
+        return (
+            <>
+                <Tooltip content={tooltip} containerSx={{ width: "100%" }}>
+                    <LockedOrgWrapper>
+                        <TextField
+                            value={orgName}
+                            label="Organization Name"
+                            disabled={true}
+                            icon={{
+                                iconComponent: (
+                                    <Codicon
+                                        name="lock"
+                                        iconSx={{ fontSize: "13px", color: "var(--vscode-descriptionForeground)" }}
+                                        sx={{ display: "flex" }}
+                                    />
+                                ),
+                                position: "end",
+                            }}
+                        />
+                    </LockedOrgWrapper>
+                </Tooltip>
+                <Description>{description}</Description>
+            </>
+        );
+    }
+
     return (
         <>
             <OrgComboboxWrapper>
@@ -293,8 +315,6 @@ export function OrgField({ organizations, orgName, orgNameError, description, is
                                 role="option"
                                 aria-selected={index === activeIndex}
                                 isActive={index === activeIndex}
-                                // Use onMouseDown instead of onClick so the event fires before
-                                // the TextField's onBlur, which would close the list first.
                                 onMouseDown={(e: React.MouseEvent) => {
                                     e.preventDefault();
                                     handleSelectSuggestion(org.handle);
@@ -356,7 +376,8 @@ export function AdvancedConfigurationSection({
     packageNameError,
     projectHandleError,
     organizations,
-    hasError
+    hasError,
+    isOrgLocked
 }: AdvancedConfigurationSectionProps) {
     const { isSigningIn, handleSignIn, handleCancelSignIn } = useSignIn();
     const createWithinProject = data.projectHandle !== undefined;
@@ -382,6 +403,7 @@ export function AdvancedConfigurationSection({
                             onOrgChange={(value) => onChange({ orgName: value })}
                             onSignIn={handleSignIn}
                             onCancelSignIn={handleCancelSignIn}
+                            isLocked={isOrgLocked}
                         />
                     </FieldGroup>
                     <FieldGroup>
@@ -420,6 +442,7 @@ export function AdvancedConfigurationSection({
                         onOrgChange={(value) => onChange({ orgName: value })}
                         onSignIn={handleSignIn}
                         onCancelSignIn={handleCancelSignIn}
+                        isLocked={isOrgLocked}
                     />
                 </FieldGroup>
             )}

@@ -62,6 +62,7 @@ import { extension } from "../../BalExtensionContext";
 import { StateMachine } from "../../stateMachine";
 import {
     getProjectTomlValues,
+    getWorkspaceTomlValues,
     goToSource
 } from "../../utils";
 import { getUsername } from "../../utils/bi";
@@ -483,17 +484,32 @@ export class CommonRpcManager implements CommonRPCAPI {
             const projectPath = StateMachine.context()?.workspacePath;
 
             if (projectPath) {
-                const contextYamlPath = path.join(projectPath, ".wso2", "context.yaml");
-                const content = await fs.promises.readFile(contextYamlPath, "utf-8");
-                const parsed = loadYaml(content);
-                if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0].org === "string" && parsed[0].org) {
-                    return { orgName: parsed[0].org };
+                // Check .wso2/context.yaml then .choreo/context.yaml
+                for (const contextDir of ['.wso2', '.choreo']) {
+                    try {
+                        const contextYamlPath = path.join(projectPath, contextDir, "context.yaml");
+                        const content = await fs.promises.readFile(contextYamlPath, "utf-8");
+                        const parsed = loadYaml(content);
+                        if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0].org === "string" && parsed[0].org) {
+                            return { orgName: parsed[0].org, isLocked: true, source: 'context-yaml' };
+                        }
+                    } catch { /* file missing or unreadable — try next */ }
+                }
+
+                // Check existing packages listed in the workspace Ballerina.toml
+                const workspaceToml = await getWorkspaceTomlValues(projectPath);
+                const packages = workspaceToml?.workspace?.packages ?? [];
+                for (const pkg of packages) {
+                    const pkgToml = await getProjectTomlValues(path.join(projectPath, pkg));
+                    if (pkgToml?.package?.org) {
+                        return { orgName: pkgToml.package.org, isLocked: true, source: 'existing-package' };
+                    }
                 }
             }
         } catch {
             // fall through to default
         }
-        return { orgName: getUsername() };
+        return { orgName: getUsername(), isLocked: false, source: 'user-default' };
     }
 
     async publishToCentral(): Promise<PublishToCentralResponse> {
