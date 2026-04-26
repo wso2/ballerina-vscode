@@ -105,7 +105,7 @@ export const shouldRenderAsEmptySpace = (tokenType: TokenType, content: string):
 };
 
 export const getChipDisplayContent = (tokenType: TokenType, content: string): string => {
-    return shouldRenderAsEmptySpace(tokenType, content) ? '  ' : content;
+    return shouldRenderAsEmptySpace(tokenType, content) ? '' : content;
 };
 
 export const BaseChip = styled('span')(BASE_CHIP_STYLES);
