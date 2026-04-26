@@ -732,13 +732,7 @@ public class AiUtils {
                 .map(m -> new ModuleInfo(m.org(), m.name(), m.name(), m.version()))
                 .toList();
 
-        List<AvailableNode> modelProviders = new ArrayList<>();
-        List<AvailableNode> embeddingProviders = new ArrayList<>();
-        List<AvailableNode> vectorStores = new ArrayList<>();
-        List<AvailableNode> chunkers = new ArrayList<>();
-        List<AvailableNode> dataLoaders = new ArrayList<>();
-        List<AvailableNode> shortTermMemoryStores = new ArrayList<>();
-        List<AvailableNode> knowledgeBases = new ArrayList<>();
+        List<AvailableNode> categoryNodes = new ArrayList<>();
 
         for (ModuleInfo module : modules) {
             // Include version in codedata only if the project has a Dependencies.toml.
@@ -750,10 +744,10 @@ public class AiUtils {
                     diskCache.load(module.org(), module.packageName(), module.version());
             if (cached.isPresent()) {
                 for (AiComponentDiskCache.CachedComponent comp : cached.get()) {
-                    NodeKind kind = NodeKind.valueOf(comp.category());
-                    AvailableNode node = reconstructFromCache(comp, module, codedataVersion);
-                    addToCategory(kind, node, modelProviders, embeddingProviders, vectorStores,
-                            chunkers, dataLoaders, shortTermMemoryStores, knowledgeBases);
+                    if (!category.name().equals(comp.category())) {
+                        continue;
+                    }
+                    categoryNodes.add(reconstructFromCache(comp, module, codedataVersion));
                 }
                 continue;
             }
@@ -774,36 +768,14 @@ public class AiUtils {
                     .filter(ClassSymbol.class::isInstance).map(ClassSymbol.class::cast);
 
             for (var classSymbol : classSymbols.toList()) {
-                if (isModelProviderClass(classSymbol)) {
-                    AvailableNode node = buildAvailableNode(classSymbol, module, codedataVersion, MODEL_PROVIDER);
-                    modelProviders.add(node);
-                    toCache.add(toCachedComponent(classSymbol, node, MODEL_PROVIDER));
-                } else if (isEmbeddingProviderClass(classSymbol)) {
-                    AvailableNode node = buildAvailableNode(classSymbol, module, codedataVersion,
-                            EMBEDDING_PROVIDER);
-                    embeddingProviders.add(node);
-                    toCache.add(toCachedComponent(classSymbol, node, EMBEDDING_PROVIDER));
-                } else if (isVectorStoreClass(classSymbol)) {
-                    AvailableNode node = buildAvailableNode(classSymbol, module, codedataVersion, VECTOR_STORE);
-                    vectorStores.add(node);
-                    toCache.add(toCachedComponent(classSymbol, node, VECTOR_STORE));
-                } else if (isChunkerClass(classSymbol)) {
-                    AvailableNode node = buildAvailableNode(classSymbol, module, codedataVersion, CHUNKER);
-                    chunkers.add(node);
-                    toCache.add(toCachedComponent(classSymbol, node, CHUNKER));
-                } else if (isDataLoaderClass(classSymbol)) {
-                    AvailableNode node = buildAvailableNode(classSymbol, module, codedataVersion, DATA_LOADER);
-                    dataLoaders.add(node);
-                    toCache.add(toCachedComponent(classSymbol, node, DATA_LOADER));
-                } else if (isShortTermMemoryStoreClass(classSymbol)) {
-                    AvailableNode node = buildAvailableNode(classSymbol, module, codedataVersion,
-                            SHORT_TERM_MEMORY_STORE);
-                    shortTermMemoryStores.add(node);
-                    toCache.add(toCachedComponent(classSymbol, node, SHORT_TERM_MEMORY_STORE));
-                } else if (isKnowledgeBaseClass(classSymbol)) {
-                    AvailableNode node = buildAvailableNode(classSymbol, module, codedataVersion, KNOWLEDGE_BASE);
-                    knowledgeBases.add(node);
-                    toCache.add(toCachedComponent(classSymbol, node, KNOWLEDGE_BASE));
+                NodeKind classKind = classifyComponent(classSymbol);
+                if (classKind == null) {
+                    continue;
+                }
+                AvailableNode node = buildAvailableNode(classSymbol, module, codedataVersion, classKind);
+                toCache.add(toCachedComponent(classSymbol, node, classKind));
+                if (classKind == category) {
+                    categoryNodes.add(node);
                 }
             }
 
@@ -811,15 +783,46 @@ public class AiUtils {
             diskCache.save(module.org(), module.packageName(), module.version(), toCache);
         }
 
-        mergeIntoCache(cachedModelProviderMap, cacheKey, modelProviders);
-        mergeIntoCache(cachedEmbeddingProviderMap, cacheKey, embeddingProviders);
-        mergeIntoCache(cachedVectorStoreMap, cacheKey, vectorStores);
-        mergeIntoCache(cachedChunkerMap, cacheKey, chunkers);
-        mergeIntoCache(cachedDataLoaderMap, cacheKey, dataLoaders);
-        mergeIntoCache(cachedShortTermMemoryStoreMap, cacheKey, shortTermMemoryStores);
-        mergeIntoCache(cachedKnowledgeBaseMap, cacheKey, knowledgeBases);
-
+        mergeIntoCache(getCategoryCache(category), cacheKey, categoryNodes);
         completed.add(category);
+    }
+
+    private static NodeKind classifyComponent(ClassSymbol classSymbol) {
+        if (isModelProviderClass(classSymbol)) {
+            return MODEL_PROVIDER;
+        }
+        if (isEmbeddingProviderClass(classSymbol)) {
+            return EMBEDDING_PROVIDER;
+        }
+        if (isVectorStoreClass(classSymbol)) {
+            return VECTOR_STORE;
+        }
+        if (isChunkerClass(classSymbol)) {
+            return CHUNKER;
+        }
+        if (isDataLoaderClass(classSymbol)) {
+            return DATA_LOADER;
+        }
+        if (isShortTermMemoryStoreClass(classSymbol)) {
+            return SHORT_TERM_MEMORY_STORE;
+        }
+        if (isKnowledgeBaseClass(classSymbol)) {
+            return KNOWLEDGE_BASE;
+        }
+        return null;
+    }
+
+    private static Map<String, List<AvailableNode>> getCategoryCache(NodeKind category) {
+        return switch (category) {
+            case MODEL_PROVIDER -> cachedModelProviderMap;
+            case EMBEDDING_PROVIDER -> cachedEmbeddingProviderMap;
+            case VECTOR_STORE -> cachedVectorStoreMap;
+            case CHUNKER -> cachedChunkerMap;
+            case DATA_LOADER -> cachedDataLoaderMap;
+            case SHORT_TERM_MEMORY_STORE -> cachedShortTermMemoryStoreMap;
+            case KNOWLEDGE_BASE -> cachedKnowledgeBaseMap;
+            default -> throw new IllegalArgumentException("Unsupported AI component category: " + category);
+        };
     }
 
     private static void mergeIntoCache(Map<String, List<AvailableNode>> cacheMap,
@@ -972,24 +975,6 @@ public class AiUtils {
         String className = classSymbol.getName().orElse("");
         return new AiComponentDiskCache.CachedComponent(className, node.metadata().label(),
                 node.metadata().description(), category.name(), node.codedata().symbol());
-    }
-
-    private static void addToCategory(NodeKind category, AvailableNode node,
-                                      List<AvailableNode> modelProviders, List<AvailableNode> embeddingProviders,
-                                      List<AvailableNode> vectorStores, List<AvailableNode> chunkers,
-                                      List<AvailableNode> dataLoaders, List<AvailableNode> shortTermMemoryStores,
-                                      List<AvailableNode> knowledgeBases) {
-        switch (category) {
-            case MODEL_PROVIDER -> modelProviders.add(node);
-            case EMBEDDING_PROVIDER -> embeddingProviders.add(node);
-            case VECTOR_STORE -> vectorStores.add(node);
-            case CHUNKER -> chunkers.add(node);
-            case DATA_LOADER -> dataLoaders.add(node);
-            case SHORT_TERM_MEMORY_STORE -> shortTermMemoryStores.add(node);
-            case KNOWLEDGE_BASE -> knowledgeBases.add(node);
-            default -> {
-            }
-        }
     }
 
     private static Optional<String> getDisplayLabel(ClassSymbol classSymbol) {
