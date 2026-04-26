@@ -1136,10 +1136,10 @@ public class FunctionDataBuilder {
     }
 
     private String getTypeSignature(String type) {
-        if (userModuleInfo == null) {
-            return CommonUtils.getClassType(moduleInfo.moduleName(), type);
+        if (userModuleInfo != null && (!moduleInfo.isComplete() || userModuleInfo.equals(moduleInfo))) {
+            return type;
         }
-        return type;
+        return CommonUtils.getClassType(moduleInfo.moduleName(), type);
     }
 
     private String getFunctionName() {

@@ -1,0 +1,105 @@
+{
+  "source": "data_mapper/main.bal",
+  "description": "Regression: getNodeTemplate for ballerinax/ibm.ibmmq:Topic when invoked from a project context (userModuleInfo non-null and != target). The emitted type.value must be 'ibmmq:Topic' (default import prefix), not bare 'Topic'.",
+  "codedata": {
+    "node": "NEW_CONNECTION",
+    "org": "ballerinax",
+    "module": "ibm.ibmmq",
+    "packageName": "ibm.ibmmq",
+    "object": "Topic",
+    "symbol": "init",
+    "version": "1.4.4"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "Ibmmq Topic",
+      "description": "IBM MQ Topic client.",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ibm.ibmmq_1.4.4.png"
+    },
+    "codedata": {
+      "node": "NEW_CONNECTION",
+      "org": "ballerinax",
+      "module": "ibm.ibmmq",
+      "packageName": "ibm.ibmmq",
+      "object": "Topic",
+      "symbol": "init",
+      "version": "1.4.4",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "ibmmq:Topic",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {}
+      },
+      "variable": {
+        "metadata": {
+          "label": "Connection Name",
+          "description": "Name of the connection"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "ibmmqTopic",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "scope": {
+        "metadata": {
+          "label": "Connection Scope",
+          "description": "Scope of the connection, Global or Local"
+        },
+        "types": [
+          {
+            "fieldType": "ENUM",
+            "selected": true
+          }
+        ],
+        "value": "Global",
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Terminate on error"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": true,
+        "optional": false,
+        "editable": false,
+        "advanced": true,
+        "hidden": true
+      }
+    },
+    "flags": 0
+  }
+}

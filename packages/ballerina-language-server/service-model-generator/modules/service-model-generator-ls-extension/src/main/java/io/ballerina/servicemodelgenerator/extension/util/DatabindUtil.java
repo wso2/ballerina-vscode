@@ -992,7 +992,10 @@ public final class DatabindUtil {
         // Add required imports
         if (!context.requiredImports().isEmpty()) {
             String importsText = String.join("\n", context.requiredImports());
-            edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().startLine()), importsText + "\n"));
+            LinePosition importPosition = modulePartNode.imports().isEmpty()
+                    ? LinePosition.from(0, 0)
+                    : modulePartNode.imports().get(modulePartNode.imports().size() - 1).lineRange().endLine();
+            edits.add(new TextEdit(Utils.toRange(importPosition), importsText + "\n"));
         }
 
         // Add the type definition

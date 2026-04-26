@@ -1,0 +1,98 @@
+{
+  "source": "new_connection-ibmmq-no-isgenerated/main.bal",
+  "description": "Regression: when codedata.isGenerated is omitted (null), the NEW_CONNECTION source generator must still emit the import edit. Currently fails because Boolean.FALSE.equals(null) is false, which skips acceptImport().",
+  "diagram": {
+    "id": "31",
+    "metadata": {
+      "label": "Ibmmq Topic",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ibm.ibmmq_1.4.4.png"
+    },
+    "codedata": {
+      "node": "NEW_CONNECTION",
+      "org": "ballerinax",
+      "module": "ibm.ibmmq",
+      "packageName": "ibm.ibmmq",
+      "object": "Topic",
+      "symbol": "init",
+      "version": "1.4.4",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "valueType": "TYPE",
+        "value": "ibmmq:Topic",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true
+      },
+      "variable": {
+        "metadata": {
+          "label": "Connection Name",
+          "description": "Name of the connection"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "ibmmqTopic",
+        "optional": false,
+        "editable": true
+      },
+      "scope": {
+        "metadata": {
+          "label": "Connection Scope",
+          "description": "Scope of the connection, Global or Local"
+        },
+        "valueType": "ENUM",
+        "value": "Global",
+        "optional": false,
+        "editable": true
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Terminate on error"
+        },
+        "valueType": "FLAG",
+        "value": true,
+        "optional": false,
+        "editable": false
+      }
+    },
+    "flags": 0
+  },
+  "output": {
+    "new_connection-ibmmq-no-isgenerated/connections.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "import ballerinax/ibm.ibmmq;"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "final ibmmq:Topic ibmmqTopic = check new ();"
+      }
+    ]
+  }
+}
