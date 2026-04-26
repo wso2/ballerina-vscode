@@ -660,6 +660,7 @@ class BIRunAdapter extends LoggingDebugSession {
     taskTerminationListener: Disposable | null = null;
 
     private session: DebugSession;
+    private disconnected = false;
     private static activeAdapter: BIRunAdapter | null = null;
 
     constructor(session: DebugSession) {
@@ -695,14 +696,15 @@ class BIRunAdapter extends LoggingDebugSession {
                     const timeout = setTimeout(async () => {
                         listener.dispose();
                         const forceChoice = await window.showWarningMessage(
-                            'The previous integration is taking too long to stop. Force start the new integration anyway?',
-                            'Force Start', 'Cancel'
+                            'The previous integration has not stopped yet (terminate was already sent). Force start the new integration anyway?',
+                            'Force Start', 'Cancel new launch'
                         );
                         if (forceChoice === 'Force Start') {
                             BIRunAdapter.activeAdapter = null;
                             resolve(true);
                         } else {
-                            // Leave activeAdapter set — the old process is still running.
+                            // terminate() was already issued; the old process is still shutting down.
+                            // Abort the new launch — the old process will finish stopping on its own.
                             resolve(false);
                         }
                     }, 10000);
@@ -786,10 +788,16 @@ class BIRunAdapter extends LoggingDebugSession {
                     // Add task termination listener
                     this.taskTerminationListener = tasks.onDidEndTaskProcess(e => {
                         if (e.execution === this.task) {
+                            this.taskTerminationListener?.dispose();
+                            this.taskTerminationListener = null;
                             if (BIRunAdapter.activeAdapter === this) {
                                 BIRunAdapter.activeAdapter = null;
                             }
-                            this.sendEvent(new TerminatedEvent());
+                            // Skip TerminatedEvent if disconnectRequest already fired —
+                            // the session is already being torn down by VS Code.
+                            if (!this.disconnected) {
+                                this.sendEvent(new TerminatedEvent());
+                            }
                         }
                     });
 
@@ -807,13 +815,18 @@ class BIRunAdapter extends LoggingDebugSession {
     }
 
     protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): void {
+        this.disconnected = true;
         if (this.task) {
             this.task.terminate();
-        }
-        if (BIRunAdapter.activeAdapter === this) {
+            // Don't clear activeAdapter here — the process is still shutting down.
+            // taskTerminationListener will clear it once onDidEndTaskProcess fires.
+        } else if (BIRunAdapter.activeAdapter === this) {
             BIRunAdapter.activeAdapter = null;
         }
-        this.cleanupListeners();
+        if (this.notificationHandler) {
+            this.notificationHandler.dispose();
+            this.notificationHandler = null;
+        }
         response.success = true;
         this.sendResponse(response);
     }
