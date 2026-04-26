@@ -73,18 +73,16 @@ export function removeEmptyNodes(updatedNode: FlowNode): FlowNode {
 }
 
 export const deserializeForDiagnosticsAPI = (expr: string): string => {
-    return expr.replace(/"[^"]*"|'[^']*'|`[^`]*`|\$\d+/g, (match) => {
-        // Double/single quoted strings — preserve as-is
-        if (match.startsWith('"') || match.startsWith("'")) return match;
-
-        // Backtick string — sanitize inside ${...} interpolations, preserve the rest
-        if (match.startsWith('`')) {
-            return match.replace(/\$\{([^}]*)\}/g, (_, inner) => {
-                return '${' + deserializeForDiagnosticsAPI(inner) + '}';
-            });
+    return expr.replace(
+        /"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`[^`]*`|\$\d+/g,
+        (match) => {
+            if (match.startsWith('"') || match.startsWith("'")) return match;
+            if (match.startsWith('`')) {
+                return match.replace(/\$\{([^}]*)\}/g, (_, inner) => {
+                    return '${' + deserializeForDiagnosticsAPI(inner) + '}';
+                });
+            }
+            return "";
         }
-
-        // Bare $N — remove
-        return "";
-    });
+    );
 };

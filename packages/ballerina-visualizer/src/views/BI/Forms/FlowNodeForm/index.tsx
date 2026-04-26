@@ -180,6 +180,14 @@ interface FlowNodeFormProps {
     defaultExpandAdvanced?: boolean;
 }
 
+const EXPRESSION_FIELD_TYPES = new Set([
+    "EXPRESSION",
+    "ACTION_OR_EXPRESSION",
+    "LV_EXPRESSION",
+    "ACTION_EXPRESSION",
+    "EXPRESSION_SET",
+]);
+
 // Styled component for the action button description
 const ActionButtonDescription = styled.div`
     font-size: var(--vscode-font-size);
@@ -709,8 +717,7 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
 
     const buildValidationData = (data: FormValues): FormValues => {
         const expressionFieldKeys = fields
-            .filter(field => field.types.map(type => type.fieldType).some(ft => ft === "EXPRESSION" || ft === "ACTION_OR_EXPRESSION"))
-            .map(field => field.key);
+            .filter(field => field.types?.some(t => EXPRESSION_FIELD_TYPES.has(t.fieldType))).map(field => field.key);
         return {
             ...data,
             ...Object.fromEntries(
