@@ -166,7 +166,7 @@ export interface ConfigurationCollectorMetadata {
     variables: Array<{
         name: string;
         description: string;
-        type?: "string" | "int" | "decimal";
+        type?: string;
         secret?: boolean;
     }>;
     existingValues?: Record<string, string>;
@@ -502,7 +502,7 @@ export interface ConfigurationCollectionEvent {
     variables?: Array<{
         name: string;
         description: string;
-        type?: "string" | "int" | "decimal";
+        type?: string;
         secret?: boolean;
     }>;
     existingValues?: Record<string, string>;
