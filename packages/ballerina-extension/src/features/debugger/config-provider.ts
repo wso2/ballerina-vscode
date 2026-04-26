@@ -87,10 +87,10 @@ export enum DEBUG_CONFIG {
 
 class DebugConfigProvider implements DebugConfigurationProvider {
     async resolveDebugConfiguration(_folder: WorkspaceFolder, config: DebugConfiguration)
-        : Promise<DebugConfiguration> {
+        : Promise<DebugConfiguration | null | undefined> {
         if (!config.type) {
             commands.executeCommand('workbench.action.debug.configure');
-            return Promise.resolve({ request: '', type: '', name: '' });
+            return undefined;
         }
 
         if (config.noDebug && (extension.ballerinaExtInstance.enabledRunFast() || StateMachine.context().isBI)) {
@@ -101,7 +101,7 @@ class DebugConfigProvider implements DebugConfigurationProvider {
         // Check if config generation is required before starting the debug session
         const shouldProceed = await prepareAndGenerateConfig(extension.ballerinaExtInstance, configs.script, false, StateMachine.context().isBI, false);
         if (!shouldProceed) {
-            return Promise.resolve({ request: '', type: '', name: '' });
+            return undefined;
         }
 
         // connect to Devant if applicable
