@@ -18,7 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.extension.response;
 
-import org.ballerinalang.diagramutil.connector.models.connector.Type;
+import com.google.gson.JsonElement;
 
 /**
  * Represents the response for the record config API.
@@ -27,7 +27,7 @@ import org.ballerinalang.diagramutil.connector.models.connector.Type;
  */
 public class RecordConfigResponse extends AbstractFlowModelResponse {
 
-    private Type recordConfig;
+    private JsonElement recordConfig;
     private String typeName;
 
     public void setTypeName(String typeName) {
@@ -38,11 +38,11 @@ public class RecordConfigResponse extends AbstractFlowModelResponse {
         return typeName;
     }
 
-    public void setRecordConfig(Type recordConfig) {
+    public void setRecordConfig(JsonElement recordConfig) {
         this.recordConfig = recordConfig;
     }
 
-    public Type getRecordConfig() {
+    public JsonElement getRecordConfig() {
         return recordConfig;
     }
 }
