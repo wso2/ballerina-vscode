@@ -16,14 +16,18 @@
  * under the License.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActionButtons, Divider, SidePanelBody, ProgressIndicator, Tooltip, CheckBoxGroup, CheckBox, Codicon, LinkButton, Dropdown, Typography, RadioButtonGroup } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
 import { Diagnostic, FunctionModel, ParameterModel, GeneralPayloadContext, Type, ServiceModel, Protocol, Imports, PropertyModel } from '@wso2/ballerina-core';
 import { cloneDeep } from 'lodash';
+import WarningPopup from '@wso2/ballerina-side-panel/lib/components/WarningPopup';
 import { EntryPointTypeCreator } from '../../../../../components/EntryPointTypeCreator';
 import { Parameters } from './Parameters/Parameters';
-import { TextExpressionField } from './TextExpressionField';
+import { TextExpressionField, TextExpressionFieldHandle } from './TextExpressionField';
+
+const SIGNATURE_CHANGE_BODY_WARNING =
+    "This edit will change the file handler signature. Nodes in the function body may be broken due to this change. Continue?";
 
 const FileConfigContainer = styled.div`
     margin-bottom: 0;
@@ -147,6 +151,18 @@ const typeNameToParamName = (typeName: string, pluralize: boolean = false): stri
     return camelCase + 's';
 };
 
+/**
+ * Produces a stable key representing the function's generated signature. Two models that share
+ * this key regenerate to the same signature; any diff here indicates that saving will rewrite
+ * the handler signature on disk and potentially break body code that referenced the previous one.
+ */
+const getFunctionSignatureKey = (fm: FunctionModel): string => {
+    const params = (fm.parameters ?? []).map(p =>
+        [p.kind ?? '', p.name?.value ?? '', p.type?.value ?? '', p.enabled ?? false].join('|')
+    );
+    return [fm.name?.value ?? '', ...params].join(';');
+};
+
 export const EditorContentColumn = styled.div`
     display: flex;
     flex-direction: column;
@@ -168,7 +184,6 @@ export interface FileIntegrationFormProps {
 
 type MoveToValidationState = {
     isValidating: boolean;
-    hasValidationFailure: boolean;
 };
 
 export function FileIntegrationForm(props: FileIntegrationFormProps) {
@@ -183,6 +198,8 @@ export function FileIntegrationForm(props: FileIntegrationFormProps) {
     } as GeneralPayloadContext;
 
     const [isTypeEditorOpen, setIsTypeEditorOpen] = useState<boolean>(false);
+    const [isSignatureWarningOpen, setIsSignatureWarningOpen] = useState<boolean>(false);
+    const initialSignatureKeyRef = useRef<string | null>(null);
 
     // Derive the event-category label from model (e.g. "onCreate", "onError")
     const currentCategory = functionModel?.metadata?.label || selectedHandler;
@@ -224,6 +241,7 @@ export function FileIntegrationForm(props: FileIntegrationFormProps) {
             return;
         }
         setFunctionModel(props.functionModel ? cloneDeep(props.functionModel) : null);
+        initialSignatureKeyRef.current = props.functionModel ? getFunctionSignatureKey(props.functionModel) : null;
     }, [isNew, props.functionModel]);
 
     const handleParamChange = (params: ParameterModel[]) => {
@@ -232,10 +250,48 @@ export function FileIntegrationForm(props: FileIntegrationFormProps) {
         }
     };
 
-    const handleSave = () => {
+    const moveToFieldRefs = useRef<Record<string, TextExpressionFieldHandle | null>>({});
+
+    const hasSignatureChanged = (): boolean => {
+        if (isNew || !functionModel || !initialSignatureKeyRef.current) {
+            return false;
+        }
+        return getFunctionSignatureKey(functionModel) !== initialSignatureKeyRef.current;
+    };
+
+    const handleSave = async () => {
+        if (!functionModel) return;
+
+        // Save-time revalidation: matches the DeclareVariable / FlowNodeForm pattern of running a
+        // final LS check before save. Typing-time diagnostics are debounced and swallow LS errors
+        // silently, so this is the authoritative gate. Severity-1 diagnostics block save; LS
+        // failures here fall through silently and the save proceeds (same contract as typing-time).
+        const liveRefs = Object.values(moveToFieldRefs.current).filter(
+            (handle): handle is TextExpressionFieldHandle => handle !== null && handle !== undefined
+        );
+        if (liveRefs.length > 0) {
+            const allDiagnostics = await Promise.all(liveRefs.map(h => h.revalidate()));
+            const hasErrorDiagnostics = allDiagnostics.some(diags => diags.some(d => d.severity === 1));
+            if (hasErrorDiagnostics) return;
+        }
+
+        if (hasSignatureChanged()) {
+            setIsSignatureWarningOpen(true);
+            return;
+        }
+
+        onSave(functionModel, isNew);
+    };
+
+    const confirmSignatureChangeSave = () => {
+        setIsSignatureWarningOpen(false);
         if (functionModel) {
             onSave(functionModel, isNew);
         }
+    };
+
+    const cancelSignatureChangeSave = () => {
+        setIsSignatureWarningOpen(false);
     };
 
     const handleCancel = () => {
@@ -447,10 +503,6 @@ export function FileIntegrationForm(props: FileIntegrationFormProps) {
         return Object.values(moveToValidationStateByAction).some(s => s?.isValidating);
     }, [moveToValidationStateByAction]);
 
-    const hasMoveToValidationFailure = useMemo(() => {
-        return Object.values(moveToValidationStateByAction).some(s => s?.hasValidationFailure);
-    }, [moveToValidationStateByAction]);
-
     // ----- Choice helpers — model-driven, no 'MOVE' string hardcoding -----
 
     const getSelectedActionValue = (action: PropertyModel | undefined): string => {
@@ -486,7 +538,7 @@ export function FileIntegrationForm(props: FileIntegrationFormProps) {
         return postProcessSubActions.some(([, action]) => isRequiredNestedPropertyEmpty(action));
     }, [postProcessSubActions]);
 
-    const isSaveDisabled = hasInvalidMoveTo || hasMoveToErrorDiagnostics || hasPendingMoveToValidation || hasMoveToValidationFailure;
+    const isSaveDisabled = hasInvalidMoveTo || hasMoveToErrorDiagnostics || hasPendingMoveToValidation;
 
     const saveTooltip = useMemo(() => {
         if (isSaving) return "Saving...";
@@ -665,6 +717,13 @@ export function FileIntegrationForm(props: FileIntegrationFormProps) {
                                 return (
                                     <TextExpressionField
                                         key={stateKey}
+                                        ref={(handle) => {
+                                            if (handle) {
+                                                moveToFieldRefs.current[stateKey] = handle;
+                                            } else {
+                                                delete moveToFieldRefs.current[stateKey];
+                                            }
+                                        }}
                                         id={`ftp-${functionModel?.name?.value ?? 'handler'}-${stateKey}`}
                                         value={prop.value || ''}
                                         property={prop}
@@ -766,12 +825,18 @@ export function FileIntegrationForm(props: FileIntegrationFormProps) {
                                                 </Typography>
                                                 <Parameters
                                                     parameters={[contentParameter]}
-                                                    onChange={(params) => {
-                                                        if (params.length === 0) {
+                                                    onChange={(editedContentParams) => {
+                                                        if (editedContentParams.length === 0) {
                                                             handleDeleteContentSchema();
-                                                        } else {
-                                                            handleParamChange(params);
+                                                            return;
                                                         }
+                                                        // Parameters is rendered with only the content param, so preserve
+                                                        // the rest of the function's parameters (advanced params, etc.).
+                                                        const [editedContent] = editedContentParams;
+                                                        const merged = (functionModel.parameters ?? []).map(p =>
+                                                            p.kind === 'DATA_BINDING' ? editedContent : p
+                                                        );
+                                                        handleParamChange(merged);
                                                     }}
                                                     showPayload={true}
                                                     typeLabel={contentSchemaLabel}
@@ -849,6 +914,13 @@ export function FileIntegrationForm(props: FileIntegrationFormProps) {
                     sx={{ justifyContent: "flex-end" }}
                 />
             </SidePanelBody>
+
+            <WarningPopup
+                isOpen={isSignatureWarningOpen}
+                onContinue={confirmSignatureChangeSave}
+                onCancel={cancelSignatureChangeSave}
+                message={SIGNATURE_CHANGE_BODY_WARNING}
+            />
 
             {/* EntryPointTypeCreator Modal for Define Content Schema */}
             <EntryPointTypeCreator

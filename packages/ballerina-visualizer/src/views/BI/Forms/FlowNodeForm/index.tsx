@@ -581,7 +581,7 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                     }
                 }
 
-                else if (isContainingRepeatableMap) {
+                else if (isContainingRepeatableMap && nodeProperties?.[field.key]?.value !== undefined) {
                     if (!(typeof nodeProperties?.[field.key]?.value === "object")) {
                         throw new Error(`Expected value for repeatable map field "${field.key}" to be an object, but got ${typeof nodeProperties?.[field.key]?.value}.`);
                     }

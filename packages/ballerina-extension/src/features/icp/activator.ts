@@ -199,11 +199,10 @@ function createICPTask(icpPath: string): vscode.Task {
                 icpProcess = process.platform === 'win32'
                     ? cp.spawn(icpPath, [], {
                         shell: true,
-                        detached: true,
                         windowsHide: true,
                         env: { ...process.env },
                     })
-                    : cp.spawn('sh', [icpPath], {
+                    : cp.spawn('bash', [icpPath], {
                         detached: true,
                         env: { ...process.env },
                     });
