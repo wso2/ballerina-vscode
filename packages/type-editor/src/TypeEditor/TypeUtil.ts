@@ -147,7 +147,7 @@ export const typeToSource = (type: string | Type): string => {
 
     if (type.codedata.node === 'MAP') {
         const valueType = type.members?.[0]?.type;
-        return valueType ? `map<${typeToSource(valueType)}>` : 'map<>';
+        return valueType ? `map<${typeToSource(valueType)}>` : 'map<anydata>';
     }
 
     return type.codedata.node;
