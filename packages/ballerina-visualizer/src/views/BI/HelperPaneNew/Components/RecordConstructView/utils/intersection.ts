@@ -20,8 +20,10 @@ import { TypeField } from "@wso2/ballerina-core";
 
 // `readonly & record { ... }` arrives from the language server as an
 // `intersection` whose members are a `readonly` marker and the inner record.
-// The record editor only knows how to render `record`, so we hide the
-// wrapper from the form and re-apply it when sending back to the server.
+// The record editor only knows how to render `record`, so we unwrap the
+// inner record before handing it to the form. The send path uses that same
+// inner record directly — `typeInfo` carries the `readonly & record` identity,
+// and the LS rejects `intersection` typeName when generating a record literal.
 
 export function isIntersectionRecord(tf: TypeField | null | undefined): boolean {
     if (!tf || tf.typeName !== "intersection" || !Array.isArray(tf.members)) {
@@ -47,15 +49,3 @@ export function unwrapIntersectionRecord(tf: TypeField): TypeField {
     return merged;
 }
 
-export function rewrapIntersectionRecord(
-    modifiedRecord: TypeField,
-    original: TypeField | null | undefined
-): TypeField {
-    if (!original || !isIntersectionRecord(original)) {
-        return modifiedRecord;
-    }
-    const members = original.members!.map(m =>
-        m?.typeName === "record" ? { ...modifiedRecord, name: undefined } : m
-    );
-    return { ...original, members, selected: true };
-}

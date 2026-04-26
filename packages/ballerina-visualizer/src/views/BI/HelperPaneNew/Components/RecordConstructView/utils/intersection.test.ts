@@ -19,7 +19,6 @@
 import { TypeField } from "@wso2/ballerina-core";
 import {
     isIntersectionRecord,
-    rewrapIntersectionRecord,
     unwrapIntersectionRecord,
 } from "./intersection";
 
@@ -135,42 +134,3 @@ describe("unwrapIntersectionRecord", () => {
     });
 });
 
-describe("rewrapIntersectionRecord", () => {
-    it("returns the modified record as-is when original was a plain record", () => {
-        const modified: TypeField = { ...plainRecord, selected: true };
-        expect(rewrapIntersectionRecord(modified, plainRecord)).toBe(modified);
-    });
-
-    it("returns the modified record as-is when original is null", () => {
-        const modified: TypeField = { ...plainRecord, selected: true };
-        expect(rewrapIntersectionRecord(modified, null)).toBe(modified);
-    });
-
-    it("preserves readonly member ordering and replaces only the record member", () => {
-        const unwrapped = unwrapIntersectionRecord(intersectionPet);
-        const modified: TypeField = {
-            ...unwrapped,
-            fields: unwrapped.fields!.map(f =>
-                f.name === "id" ? { ...f, selected: true } : f
-            ),
-        };
-        const result = rewrapIntersectionRecord(modified, intersectionPet);
-        expect(result.typeName).toBe("intersection");
-        expect(result.selected).toBe(true);
-        expect(result.members).toBeDefined();
-        expect(result.members!.length).toBe(2);
-        expect(result.members![0].typeName).toBe("readonly");
-        expect(result.members![1].typeName).toBe("record");
-        const recordMember = result.members![1];
-        const idField = recordMember.fields!.find(f => f.name === "id");
-        expect(idField?.selected).toBe(true);
-    });
-
-    it("composes with unwrap to round-trip the wrapper structure", () => {
-        const unwrapped = unwrapIntersectionRecord(intersectionPet);
-        const round = rewrapIntersectionRecord(unwrapped, intersectionPet);
-        expect(round.typeName).toBe("intersection");
-        expect(round.members!.map(m => m.typeName)).toEqual(["readonly", "record"]);
-        expect(round.members![1].fields!.length).toBe(3);
-    });
-});
