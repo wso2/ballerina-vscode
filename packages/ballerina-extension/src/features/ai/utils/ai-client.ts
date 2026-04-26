@@ -213,15 +213,12 @@ export const getAnthropicClient = async (model: AnthropicModel): Promise<any> =>
                 project: vertexCredentials.projectId,
                 location: vertexCredentials.location,
                 googleAuthOptions: {
-                    credentials: {
-                        client_email: vertexCredentials.clientEmail,
-                        private_key: vertexCredentials.privateKey,
-                    },
+                    keyFile: vertexCredentials.keyFile,
                 },
             });
 
             const vertexModelMap: Record<AnthropicModel, string> = {
-                [ANTHROPIC_HAIKU]: "claude-3-5-haiku@20241022",
+                [ANTHROPIC_HAIKU]: "claude-haiku-4-5@20251001",
                 [ANTHROPIC_SONNET_4]: "claude-sonnet-4-6",
             };
 

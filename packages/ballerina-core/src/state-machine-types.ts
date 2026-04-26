@@ -634,8 +634,7 @@ export type AIMachineEventMap = {
     [AIMachineEventType.SUBMIT_VERTEX_AI_CREDENTIALS]: {
         projectId: string;
         location: string;
-        clientEmail: string;
-        privateKey: string;
+        keyFile: string;
     };
     [AIMachineEventType.LOGOUT]: undefined;
     [AIMachineEventType.SILENT_LOGOUT]: undefined;
@@ -867,8 +866,7 @@ interface AwsBedrockSecrets {
 export interface VertexAiSecrets {
     projectId: string;
     location: string;
-    clientEmail: string;
-    privateKey: string;
+    keyFile: string;
 }
 
 export type AuthCredentials =
