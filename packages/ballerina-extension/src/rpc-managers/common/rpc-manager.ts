@@ -506,6 +506,16 @@ export class CommonRpcManager implements CommonRPCAPI {
                     }
                 }
             }
+
+            const integrationPath = StateMachine.context()?.projectPath;
+
+            if (integrationPath) {
+                // Check for existing packages in the project Ballerina.toml
+                const projectToml = await getProjectTomlValues(integrationPath);
+                if (projectToml?.package?.org) {
+                    return { orgName: projectToml.package.org, isLocked: true, source: 'existing-package' };
+                }
+            }
         } catch {
             // fall through to default
         }

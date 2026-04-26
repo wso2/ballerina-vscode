@@ -156,7 +156,7 @@ const RESTRICTED_IDENTIFIER_REGEX = /^[a-zA-Z][a-zA-Z0-9]*(_[a-zA-Z0-9]+)*$/;
 
 export const validateOrgName = (orgName: string): string | null => {
     if (!orgName || orgName.length === 0) {
-        return"Organization name is required";
+        return "Organization name is required";
     }
 
     // Check for reserved org names (case-insensitive)
