@@ -1698,9 +1698,9 @@ export class BallerinaExtension {
         debug(`[VERSION] Input parameters - ballerinaHome: '${ballerinaHome}', overrideBallerinaHome: ${overrideBallerinaHome}`);
 
         // Use BALLERINA_HOME in WSO2 Integrator if set, otherwise fallback to system PATH
-        if (process.env.WSO2_INTEGRATOR_RUNTIME && process.env.BALLERINA_HOME) {
-            debug(`[VERSION] Detected WSO2 Integrator environment with BALLERINA_HOME: ${process.env.BALLERINA_HOME}`);
-            ballerinaHome = process.env.BALLERINA_HOME;
+        if (process.env.WSO2_INTEGRATOR_RUNTIME && process.env.WSO2_INTEGRATOR_BALLERINA_HOME) {
+            debug(`[VERSION] Detected WSO2 Integrator environment with BALLERINA_HOME: ${process.env.WSO2_INTEGRATOR_BALLERINA_HOME}`);
+            ballerinaHome = process.env.WSO2_INTEGRATOR_BALLERINA_HOME;
             overrideBallerinaHome = true;
         } else {
             try {
