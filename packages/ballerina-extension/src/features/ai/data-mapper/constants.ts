@@ -65,3 +65,9 @@ export enum PrimitiveArrayType {
 export enum ErrorType {
   ERROR = "error"
 }
+
+// Json and Xml types
+export enum JsonXmlType {
+  JSON = "json",
+  XML = "xml",
+}
