@@ -385,10 +385,9 @@ function isFieldEditable(expression: Property, connections?: FlowNode[], clientN
 
 function getFormFieldValue(expression: Property, clientName?: string) {
     if (clientName && getPrimaryInputType(expression.types)?.fieldType === "IDENTIFIER" && expression.metadata.label === "Connection") {
-        console.log(">>> client name as set field value", clientName);
         return clientName;
     }
-    return (expression.value ?? "") as string;
+    return expression.value;
 }
 
 function getFormFieldItems(expression: Property, connections: FlowNode[]): string[] {
