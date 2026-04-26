@@ -18,25 +18,19 @@
 
 import {
   ComponentInfo,
+  DataMapperModelResponse,
   DataMappingRecord,
-  ExistingFunctionMatchResult,
+  DMModel,
+  MatchedFunction,
   ExtractMappingDetailsRequest,
   ExtractMappingDetailsResponse,
   ImportInfo,
 } from "@wso2/ballerina-core";
 import { ExtendedLangClient } from "../../../../core";
-import { DefaultableParam, IncludedRecordParam, RequiredParam, RestParam, STKindChecker } from "@wso2/syntax-tree";
+import { STKindChecker } from "@wso2/syntax-tree";
 import { INVALID_RECORD_REFERENCE } from "../../../../views/ai-panel/errorCodes";
 import { isAnyPrimitiveType, isPrimitiveArrayType } from "./type-utils";
 import { getFunctionDefinitionFromSyntaxTree } from "./temp-project";
-
-const WRAPPED_BASE_TYPES = new Set(['json', 'xml']);
-const SERIALIZE_FUNC_NAMES = new Set(['toJson', 'toXml']);
-
-// Matches scalar wrapped types: json, xml, json|error, xml|string, etc.
-function isWrappedType(typeStr: string): boolean {
-  return typeStr.split('|').map(t => t.trim()).some(t => WRAPPED_BASE_TYPES.has(t));
-}
 
 /**
  * Functions for extracting and validating mapping parameters
@@ -52,7 +46,7 @@ export async function extractMappingDetails(
   let outputParam: string;
   let inputNames: string[] = [];
 
-  const existingFunctionMatch = await processExistingFunctions(
+  const matchedFunction = await processExistingFunctions(
     existingFunctions,
     parameters.functionName,
     langClient
@@ -61,7 +55,7 @@ export async function extractMappingDetails(
   const hasProvidedRecords = parameters.inputRecord.length > 0 || parameters.outputRecord !== "";
 
   if (hasProvidedRecords) {
-    if (existingFunctionMatch.match) {
+    if (matchedFunction !== null) {
       throw new Error(
         `${parameters.functionName} function already exists. Please provide a valid function name.`
       );
@@ -69,25 +63,46 @@ export async function extractMappingDetails(
     inputParams = parameters.inputRecord;
     outputParam = parameters.outputRecord;
   } else {
-    if (!existingFunctionMatch.match || !existingFunctionMatch.functionDefNode) {
+    if (!matchedFunction) {
       throw new Error(
         `${parameters.functionName} function was not found. Please provide a valid function name.`
       );
     }
 
-    const funcNode = existingFunctionMatch.functionDefNode;
-    const params = funcNode.functionSignature.parameters?.filter(
-      (param): param is RequiredParam | DefaultableParam | RestParam | IncludedRecordParam =>
-        param.kind !== 'CommaToken'
-    ) ?? [];
+    const funcNode = matchedFunction.functionDefNode;
+    const filePath = matchedFunction.matchingFunctionFilePath;
 
-    inputParams = params.map(param => (param.typeName.source || "").trim());
-    inputNames = params.map(param => (param.paramName.value || "").trim());
-    outputParam = (funcNode.functionSignature.returnTypeDesc.type.source || "").trim();
+    let position = {
+      line: funcNode.position.startLine,
+      offset: funcNode.position.startColumn
+    };
+    if (STKindChecker.isExpressionFunctionBody(funcNode.functionBody)) {
+      position = {
+        line: funcNode.functionBody.expression.position.startLine,
+        offset: funcNode.functionBody.expression.position.startColumn
+      };
+    }
 
-    const resolved = resolveWrappedTypesFromBody(funcNode, inputParams, inputNames, outputParam);
-    inputParams = resolved.inputParams;
-    outputParam = resolved.outputParam;
+    const codedata = {
+      lineRange: {
+        fileName: filePath,
+        startLine: { line: funcNode.position.startLine, offset: funcNode.position.startColumn },
+        endLine: { line: funcNode.position.endLine, offset: funcNode.position.endColumn }
+      }
+    };
+
+    const dmModelResponse = await langClient.getDataMapperMappings({ filePath, codedata, position }) as DataMapperModelResponse;
+    if (!dmModelResponse?.mappingsModel) {
+      throw new Error(`Failed to retrieve data mapper model for function: ${parameters.functionName}`);
+    }
+    const dmModel = dmModelResponse.mappingsModel as DMModel;
+    if (!dmModel.inputs || !dmModel.output) {
+      throw new Error(`Data mapper model for function "${parameters.functionName}" has missing inputs or output`);
+    }
+
+    inputParams = dmModel.inputs.map(input => (input.convertedVariable?.typeName ?? input.typeName ?? "").trim());
+    inputNames = dmModel.inputs.map(input => input.name);
+    outputParam = (dmModel.output.convertedVariable?.typeName ?? dmModel.output.typeName ?? "").trim();
   }
 
   const inputs = processInputs(inputParams, recordMap, allImports, importsMap);
@@ -100,7 +115,7 @@ export async function extractMappingDetails(
     outputParam,
     imports: Object.values(importsMap),
     inputNames,
-    existingFunctionMatch,
+    matchedFunction,
   };
 }
 
@@ -109,28 +124,18 @@ export async function processExistingFunctions(
   existingFunctions: ComponentInfo[],
   functionName: string,
   langClient: ExtendedLangClient
-): Promise<ExistingFunctionMatchResult> {
+): Promise<MatchedFunction | null> {
   for (const func of existingFunctions) {
-    const filePath = func.filePath;
-    const fileName = filePath.split("/").pop();
-
-    const funcDefNode = await getFunctionDefinitionFromSyntaxTree(langClient, filePath, functionName);
+    const funcDefNode = await getFunctionDefinitionFromSyntaxTree(langClient, func.filePath, functionName);
     if (funcDefNode) {
       return {
-        match: true,
-        matchingFunctionFile: fileName,
+        matchingFunctionFilePath: func.filePath,
         functionDefNode: funcDefNode,
       };
-    } else {
-      continue;
     }
   }
 
-  return {
-    match: false,
-    matchingFunctionFile: null,
-    functionDefNode: null,
-  };
+  return null;
 }
 
 // Process input parameters
@@ -265,60 +270,6 @@ function processSingleType(
   }
 
   throw new Error(`${cleanedRecordName} is not defined.`);
-}
-
-// Resolves actual record types from the LetExpression body when params are wrapped in json/xml
-function resolveWrappedTypesFromBody(
-  funcNode: any,
-  inputParams: string[],
-  inputNames: string[],
-  outputParam: string
-): { inputParams: string[]; outputParam: string } {
-  const funcBody = funcNode.functionBody;
-  if (!STKindChecker.isExpressionFunctionBody(funcBody)) { return { inputParams, outputParam }; }
-
-  const bodyExpr = funcBody.expression;
-
-  // LetExpression pattern: json/xml scalar params resolved via let expr = check parseAsType(param)
-  if (STKindChecker.isLetExpression(bodyExpr)) {
-    const letVarDecls = bodyExpr.letVarDeclarations.filter(STKindChecker.isLetVarDecl);
-
-    const findDeclForParam = (paramName: string) => letVarDecls.find((decl: any) => {
-      if (!STKindChecker.isCheckExpression(decl.expression)) { return false; }
-      const inner = decl.expression.expression;
-      if (!STKindChecker.isFunctionCall(inner) || !STKindChecker.isQualifiedNameReference(inner.functionName)) { return false; }
-      if (inner.functionName.identifier.value !== 'parseAsType') { return false; }
-      const firstArg = inner.arguments.find(STKindChecker.isPositionalArg);
-      return firstArg !== undefined && STKindChecker.isSimpleNameReference(firstArg.expression)
-        && firstArg.expression.name.value === paramName;
-    });
-
-    const resolvedInputParams = inputParams.map((paramType, idx) => {
-      if (!isWrappedType(paramType)) { return paramType; }
-      const decl = findDeclForParam(inputNames[idx]);
-      return decl ? (decl.typedBindingPattern.typeDescriptor.source ?? paramType).trim() : paramType;
-    });
-
-    let resolvedOutputParam = outputParam;
-    if (isWrappedType(outputParam) && STKindChecker.isFunctionCall(bodyExpr.expression)) {
-      const { functionName, arguments: args } = bodyExpr.expression;
-      if (STKindChecker.isQualifiedNameReference(functionName) && SERIALIZE_FUNC_NAMES.has(functionName.identifier.value)) {
-        const firstArg = args.find(STKindChecker.isPositionalArg);
-        if (firstArg && STKindChecker.isSimpleNameReference(firstArg.expression)) {
-          const varName = firstArg.expression.name.value;
-          const decl = letVarDecls.find((d: any) =>
-            STKindChecker.isCaptureBindingPattern(d.typedBindingPattern.bindingPattern) &&
-            d.typedBindingPattern.bindingPattern.variableName.value === varName
-          );
-          if (decl) { resolvedOutputParam = (decl.typedBindingPattern.typeDescriptor.source ?? outputParam).trim(); }
-        }
-      }
-    }
-
-    return { inputParams: resolvedInputParams, outputParam: resolvedOutputParam };
-  }
-
-  return { inputParams, outputParam };
 }
 
 // Process a record type reference and validate it exists, handling both union and single types
