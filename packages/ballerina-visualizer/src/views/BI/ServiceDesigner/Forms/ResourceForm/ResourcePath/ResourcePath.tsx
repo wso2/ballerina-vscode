@@ -152,7 +152,7 @@ export function ResourcePath(props: ResourcePathProps) {
 		});
 		if (existingResourcePaths?.includes(pathID)) {
 			onError(true);
-			setResourcePathErrors("resource path already exists for the selected HTTP method");
+			setResourcePathErrors("Resource path already exists for the selected HTTP method");
 			return;
 		}
 
