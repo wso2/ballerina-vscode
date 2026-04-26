@@ -716,12 +716,10 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
 
     const handleFormChange = useCallback(
         (fieldKey: string, value: any, allValues: FormValues) => {
-            if (formDiagnostics.length > 0) {
-                setFormDiagnostics([]);
-            }
+            setFormDiagnostics(prev => prev.length > 0 ? [] : prev);
             onChange?.(fieldKey, value, allValues);
         },
-        [formDiagnostics, onChange]
+        [onChange]
     );
 
     const mergeFormDataWithFlowNode = (data: FormValues, targetLineRange: LineRange, dirtyFields?: any): FlowNode => {
