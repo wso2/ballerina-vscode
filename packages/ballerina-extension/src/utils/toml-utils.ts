@@ -120,13 +120,27 @@ export function writeConfigValuesToConfig(
 
         let tomlContent = stringify(config);
 
-        // @iarna/toml formats large numbers with underscores (e.g. 8_080); Ballerina requires plain digits
-        for (const key of numericKeys) {
-            const numValue = section[key];
-            if (typeof numValue === "number") {
-                const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-                const formattedPattern = new RegExp(`^\\s*${escapedKey}\\s*=\\s*[0-9][0-9_]*(?:\\.[0-9]+)?`, "gm");
-                tomlContent = tomlContent.replace(formattedPattern, `${key} = ${numValue}`);
+        // @iarna/toml formats large numbers with underscores (e.g. 8_080); Ballerina requires plain digits.
+        // Scope replacements to the [org.name] section only to avoid touching identically-named keys
+        // in other sections of the same file.
+        if (numericKeys.size > 0) {
+            const sectionHeader = `[${orgName}.${packageName}]`;
+            const sectionStart = tomlContent.indexOf(sectionHeader);
+            if (sectionStart !== -1) {
+                const afterHeader = sectionStart + sectionHeader.length;
+                const nextSection = tomlContent.indexOf("\n[", afterHeader);
+                const sectionEnd = nextSection !== -1 ? nextSection : tomlContent.length;
+
+                let sectionSlice = tomlContent.slice(sectionStart, sectionEnd);
+                for (const key of numericKeys) {
+                    const numValue = section[key];
+                    if (typeof numValue === "number") {
+                        const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+                        const pattern = new RegExp(`^(\\s*${escapedKey}\\s*=\\s*)[0-9][0-9_]*(?:\\.[0-9]+)?`, "gm");
+                        sectionSlice = sectionSlice.replace(pattern, `$1${numValue}`);
+                    }
+                }
+                tomlContent = tomlContent.slice(0, sectionStart) + sectionSlice + tomlContent.slice(sectionEnd);
             }
         }
 
