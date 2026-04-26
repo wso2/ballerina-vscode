@@ -669,11 +669,16 @@ class BIRunAdapter extends LoggingDebugSession {
     }
 
     protected launchRequest(response: DebugProtocol.LaunchResponse, args: DebugProtocol.LaunchRequestArguments, request?: DebugProtocol.Request): void {
-        getCurrentProjectRoot().then(async (projectRoot) => {
-            const existingAdapter = BIRunAdapter.activeAdapter;
-            const existingTask = existingAdapter?.task ?? null;
+        // Capture and claim the slot synchronously before any await — serializes concurrent
+        // launchRequests so neither can read null and race past the conflict check.
+        const existingAdapter = BIRunAdapter.activeAdapter;
+        BIRunAdapter.activeAdapter = this;
 
-            if (existingTask) {
+        getCurrentProjectRoot().then(async (projectRoot) => {
+            // Treat any non-null existingAdapter as a conflict, even if its task hasn't
+            // started yet (adapter claimed slot but still launching).
+            if (existingAdapter) {
+                const existingTask = existingAdapter.task;
                 const choice = await window.showInformationMessage(
                     'There is already a running integration. Do you want to stop it and start this integration?',
                     'Yes', 'No'
@@ -681,66 +686,65 @@ class BIRunAdapter extends LoggingDebugSession {
                 if (choice !== 'Yes') {
                     // Prevent the debug tracker from triggering the Try It view for this cancelled session.
                     (this.session.configuration as any).suggestTryit = false;
+                    // Restore the previous adapter so the next launch still detects it.
+                    if (BIRunAdapter.activeAdapter === this) {
+                        BIRunAdapter.activeAdapter = existingAdapter;
+                    }
                     response.success = true;
                     this.sendResponse(response);
                     this.sendEvent(new TerminatedEvent());
                     return;
                 }
-                // Claim the slot immediately after user confirms — blocks any concurrent
-                // launchRequest from also reading null and racing past the conflict check.
-                BIRunAdapter.activeAdapter = this;
 
-                // Await full termination before starting the new task to avoid port conflicts.
-                // The slot is already ours; the old adapter's taskTerminationListener will
-                // perform its own identity-guarded clear and will not clobber our reference.
-                const shouldProceed = await new Promise<boolean>((resolve) => {
-                    let listener: { dispose(): void };
-                    const timeout = setTimeout(async () => {
-                        listener.dispose();
-                        const forceChoice = await window.showWarningMessage(
-                            'The previous run has not stopped yet (terminate was already sent). Force start anyway?',
-                            'Force Start', 'Cancel new launch'
-                        );
-                        if (forceChoice === 'Force Start') {
-                            // Slot is already ours — no activeAdapter change needed.
-                            resolve(true);
-                        } else {
-                            // Abort the new launch; release the slot we claimed.
-                            // The old process will finish shutting down on its own.
-                            if (BIRunAdapter.activeAdapter === this) {
-                                BIRunAdapter.activeAdapter = null;
+                // Slot is already ours. Only wait for termination if the task has actually
+                // started — if existingTask is null the previous launch hadn't begun yet.
+                if (existingTask) {
+                    // Await full termination before starting the new task to avoid port conflicts.
+                    // The old adapter's taskTerminationListener uses an identity-guarded clear
+                    // and will not clobber our reference.
+                    const shouldProceed = await new Promise<boolean>((resolve) => {
+                        let listener: { dispose(): void };
+                        const timeout = setTimeout(async () => {
+                            listener.dispose();
+                            const forceChoice = await window.showWarningMessage(
+                                'The previous run has not stopped yet (terminate was already sent). Force start anyway?',
+                                'Force Start', 'Cancel new launch'
+                            );
+                            if (forceChoice === 'Force Start') {
+                                resolve(true);
+                            } else {
+                                // Old process is shutting down — no valid reference to restore.
+                                if (BIRunAdapter.activeAdapter === this) {
+                                    BIRunAdapter.activeAdapter = null;
+                                }
+                                resolve(false);
                             }
-                            resolve(false);
-                        }
-                    }, 10000);
-                    listener = tasks.onDidEndTaskProcess(e => {
-                        if (e.execution === existingTask) {
+                        }, 10000);
+                        listener = tasks.onDidEndTaskProcess(e => {
+                            if (e.execution === existingTask) {
+                                clearTimeout(timeout);
+                                listener.dispose();
+                                resolve(true);
+                            }
+                        });
+                        // Task may have already ended while the confirmation dialog was open.
+                        if (!tasks.taskExecutions.some(e => e === existingTask)) {
                             clearTimeout(timeout);
                             listener.dispose();
                             resolve(true);
+                            return;
                         }
+                        existingTask.terminate();
                     });
-                    // Task may have already ended while the confirmation dialog was open.
-                    if (!tasks.taskExecutions.some(e => e === existingTask)) {
-                        clearTimeout(timeout);
-                        listener.dispose();
-                        resolve(true);
+
+                    if (!shouldProceed) {
+                        (this.session.configuration as any).suggestTryit = false;
+                        response.success = true;
+                        this.sendResponse(response);
+                        this.sendEvent(new TerminatedEvent());
                         return;
                     }
-                    existingTask.terminate();
-                });
-
-                if (!shouldProceed) {
-                    (this.session.configuration as any).suggestTryit = false;
-                    response.success = true;
-                    this.sendResponse(response);
-                    this.sendEvent(new TerminatedEvent());
-                    return;
                 }
-            } else {
-                // No active run — claim the slot before any await to prevent a concurrent
-                // launchRequest from also reading null and bypassing the conflict check.
-                BIRunAdapter.activeAdapter = this;
             }
 
             const taskDefinition: TaskDefinition = {
@@ -829,6 +833,7 @@ class BIRunAdapter extends LoggingDebugSession {
             }
             response.success = false;
             this.sendResponse(response);
+            this.sendEvent(new TerminatedEvent());
         });
     }
 
