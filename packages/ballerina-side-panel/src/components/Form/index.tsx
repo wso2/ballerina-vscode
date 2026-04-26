@@ -606,7 +606,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                 }
             });
             setDiagnosticsInfo(diagnosticsMap);
-            reset(defaultValues);
+            reset(defaultValues, { keepDirtyValues: true });
 
             if (changeOptionalFieldTitle) {
                 setOptionalFieldsTitle("Advanced Configurations");
