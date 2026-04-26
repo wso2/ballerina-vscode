@@ -49,7 +49,8 @@ import {
     FormExpressionEditorProps,
     FormImports,
     HelperpaneOnChangeOptions,
-    InputMode
+    InputMode,
+    getTypeCompletionSearchText
 } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { CompletionItem, FormExpressionEditorRef, HelperPaneHeight, Overlay, ThemeColors } from "@wso2/ui-toolkit";
@@ -623,7 +624,7 @@ export function ArtifactForm(props: ArtifactFormProps) {
                 setTypes(visibleTypes);
 
                 if (!fetchReferenceTypes) {
-                    const effectiveText = value.slice(0, cursorPosition);
+                    const effectiveText = getTypeCompletionSearchText(value, cursorPosition);
                     let filteredTypes = visibleTypes.filter((type) => {
                         const lowerCaseText = effectiveText.toLowerCase();
                         const lowerCaseLabel = type.label.toLowerCase();
