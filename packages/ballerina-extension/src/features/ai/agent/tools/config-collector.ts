@@ -269,11 +269,12 @@ export async function ConfigCollectorTool(
     }
 }
 
+// Returns null on LS error (transient failure), {} when LS responded but found no configurables.
 async function getConfigurableTypesFromSource(
     projectPath: string,
     orgName: string,
     packageName: string
-): Promise<Record<string, string>> {
+): Promise<Record<string, string> | null> {
     try {
         const response = await langClient.getConfigVariablesV2({ projectPath, includeLibraries: false }) as any;
         const configVariables = response?.configVariables;
@@ -303,7 +304,7 @@ async function getConfigurableTypesFromSource(
         return types;
     } catch (error) {
         console.error("[ConfigCollector] Failed to query configurables from LS:", error);
-        return {};
+        return null;
     }
 }
 
@@ -335,6 +336,12 @@ async function handleCollectMode(
     // Derive variable types from the LS rather than accepting them from the agent.
     // The LS reads the 'configurable' declarations already written in source.
     const sourceTypes = await getConfigurableTypesFromSource(packageBasePath, orgName, packageName);
+    if (sourceTypes === null) {
+        return createErrorResult(
+            "LS_UNAVAILABLE",
+            "Language server is unavailable or failed to respond. Wait a moment and retry."
+        );
+    }
     if (Object.keys(sourceTypes).length === 0) {
         return createErrorResult(
             "NO_CONFIGURABLES_IN_SOURCE",
