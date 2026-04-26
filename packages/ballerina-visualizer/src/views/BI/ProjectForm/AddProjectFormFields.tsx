@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { TextField } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { usePlatformExtContext } from "../../../providers/platform-ext-ctx-provider";
@@ -59,7 +59,11 @@ export function AddProjectFormFields({
     const { rpcClient } = useRpcContext();
     const { platformExtState } = usePlatformExtContext();
     const isLoggedIn = !!platformExtState?.isLoggedIn;
-    const organizations = isLoggedIn ? (platformExtState?.userInfo?.organizations ?? []) : undefined;
+    const orgsSource = platformExtState?.userInfo?.organizations;
+    const organizations = useMemo(
+        () => isLoggedIn ? (orgsSource ?? []) : undefined,
+        [isLoggedIn, orgsSource]
+    );
     const [packageNameTouched, setPackageNameTouched] = useState(false);
     const [projectHandleTouched, setProjectHandleTouched] = useState(false);
     const isOrgTouched = useRef(false);
