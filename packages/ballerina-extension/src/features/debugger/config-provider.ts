@@ -713,9 +713,10 @@ class BIRunAdapter extends LoggingDebugSession {
                             if (forceChoice === 'Force Start') {
                                 resolve(true);
                             } else {
-                                // Old process is shutting down — no valid reference to restore.
+                                // Process is still running — restore the previous adapter so
+                                // subsequent launches still detect it as a conflict.
                                 if (BIRunAdapter.activeAdapter === this) {
-                                    BIRunAdapter.activeAdapter = null;
+                                    BIRunAdapter.activeAdapter = existingAdapter;
                                 }
                                 resolve(false);
                             }
@@ -795,10 +796,19 @@ class BIRunAdapter extends LoggingDebugSession {
                 execution
             );
 
+            // Guard against being superseded while awaiting getCurrentProjectRoot() or the
+            // termination wait above — the other adapter already owns the slot.
+            if (BIRunAdapter.activeAdapter !== this) {
+                (this.session.configuration as any).suggestTryit = false;
+                response.success = true;
+                this.sendResponse(response);
+                this.sendEvent(new TerminatedEvent());
+                return;
+            }
+
             try {
                 const taskExecution = await tasks.executeTask(task);
                 this.task = taskExecution;
-                // activeAdapter is already set to this — assigned before any await above.
 
                 this.taskTerminationListener = tasks.onDidEndTaskProcess(e => {
                     if (e.execution === this.task) {
