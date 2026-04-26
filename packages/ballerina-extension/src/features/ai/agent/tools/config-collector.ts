@@ -30,6 +30,7 @@ import {
     readExistingConfigValues,
 } from "../../../../utils/toml-utils";
 import { resolveContained, resolvePackageBasePath } from "./path-utils";
+import { getOrgPackageName } from "../../../../utils/config";
 
 export const CONFIG_COLLECTOR_TOOL = "ConfigCollector";
 
@@ -278,6 +279,13 @@ async function handleCollectMode(
     // package rather than the workspace root. The helper rejects directory
     // traversal attempts and missing-but-required values.
     const packageBasePath = resolvePackageBasePath(paths.tempPath, packagePath);
+    const { orgName, packageName } = getOrgPackageName(packageBasePath);
+    if (!orgName || !packageName) {
+        return createErrorResult(
+            "MISSING_PACKAGE_INFO",
+            "Ballerina.toml is missing or does not declare both 'org' and 'name' under [package]. Cannot scope Config.toml to the correct section."
+        );
+    }
 
     // Determine paths based on isTestConfig flag
     const configPath = getConfigPath(packageBasePath, isTestConfig);
@@ -291,7 +299,9 @@ async function handleCollectMode(
     // Read existing configuration values from source config (if they exist) for pre-populating the form
     const existingValues = readExistingConfigValues(
         sourceConfigPath,
-        variables.map(v => v.name)
+        variables.map(v => v.name),
+        orgName,
+        packageName
     );
 
     // Analyze existing values to determine appropriate messaging
@@ -340,7 +350,7 @@ async function handleCollectMode(
     }
 
     // Write actual configuration values to determined config path
-    writeConfigValuesToConfig(configPath, userResponse.configValues!, variables);
+    writeConfigValuesToConfig(configPath, userResponse.configValues!, variables, orgName, packageName);
 
     // Track modified file for syncing to workspace.
     // Path is relative to tempProjectPath, so prefix with packagePath for workspace projects.
@@ -389,6 +399,13 @@ async function handleCheckMode(
     // Resolve and validate the package base path. For workspace projects the
     // agent must pass packagePath to inspect a specific package's Config.toml.
     const packageBasePath = resolvePackageBasePath(paths.tempPath, packagePath);
+    const { orgName, packageName } = getOrgPackageName(packageBasePath);
+    if (!orgName || !packageName) {
+        return createErrorResult(
+            "MISSING_PACKAGE_INFO",
+            "Ballerina.toml is missing or does not declare both 'org' and 'name' under [package]. Cannot scope Config.toml to the correct section."
+        );
+    }
 
     let configPath: string;
     let configFileName: string;
@@ -411,7 +428,7 @@ async function handleCheckMode(
         };
     }
 
-    const status = getAllConfigStatus(configPath);
+    const status = getAllConfigStatus(configPath, orgName, packageName);
 
     // When specific names are provided, pad any that are absent from the file as "missing"
     if (variableNames && variableNames.length > 0) {
