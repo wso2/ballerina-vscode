@@ -66,8 +66,9 @@ export function AddProjectFormFields({
     const [isPackageInfoExpanded, setIsPackageInfoExpanded] = useState(false);
     const [integrationNameError, setIntegrationNameError] = useState<string | null>(null);
     const [packageNameError, setPackageNameError] = useState<string | null>(null);
-    const [orgNameError, setOrgNameError] = useState<string | null>(null);
     const [projectHandleError, setProjectHandleError] = useState<string | null>(null);
+    const [isOrgLocked, setIsOrgLocked] = useState(isInProject);
+    const [isOrgDataLoaded, setIsOrgDataLoaded] = useState(false);
     const resourceTypeLabel = formData.isLibrary ? "Library" : "Integration";
     const resourceTypeLabelLower = resourceTypeLabel.toLowerCase();
 
@@ -97,17 +98,34 @@ export function AddProjectFormFields({
 
         (async () => {
             try {
-                const { orgName: rpcOrg } = await rpcClientRef.current.getCommonRpcClient().getDefaultOrgName();
+                const { orgName: rpcOrg, isLocked } = await rpcClientRef.current.getCommonRpcClient().getDefaultOrgName();
                 if (controller.signal.aborted) return;
 
-                if (isInProject) {
-                    // Inside a project: context.yaml (via RPC) always wins.
+                if (isInProject && isLocked) {
+                    // Org is derived from context.yaml or an existing package — lock the field.
+                    setIsOrgLocked(true);
+                    setIsOrgDataLoaded(true);
                     onFormDataChange({ orgName: rpcOrg });
                     return;
                 }
 
-                // Prefer context.yaml org if it matches one of the user's orgs,
-                // otherwise use the first org, otherwise fall back to the username.
+                setIsOrgLocked(false);
+                setIsOrgDataLoaded(true);
+
+                if (isInProject) {
+                    // No context.yaml and no existing packages — let the user pick/type.
+                    const contextMatch = organizations?.find((o) => o.handle === rpcOrg);
+                    if (contextMatch) {
+                        onFormDataChange({ orgName: contextMatch.handle });
+                    } else if (organizations && organizations.length > 0) {
+                        onFormDataChange({ orgName: organizations[0].handle });
+                    } else {
+                        onFormDataChange({ orgName: rpcOrg });
+                    }
+                    return;
+                }
+
+                // Not in project: prefer context.yaml match → first org → username fallback.
                 const contextMatch = organizations?.find((o) => o.handle === rpcOrg);
                 if (contextMatch) {
                     onFormDataChange({ orgName: contextMatch.handle });
@@ -138,18 +156,16 @@ export function AddProjectFormFields({
         setPackageNameError(error);
     }, [formData.packageName]);
 
-    // Real-time validation for organization name
-    useEffect(() => {
-        const error = validateOrgName(formData.orgName);
-        setOrgNameError(error);
-    }, [formData.orgName]);
-
     // Real-time validation for project handle
     useEffect(() => {
         if (formData.projectHandle !== undefined) {
             setProjectHandleError(validateProjectHandle(formData.projectHandle));
         }
     }, [formData.projectHandle]);
+
+    // Computed inline — avoids a one-render lag from a useState/useEffect pair which would
+    // cause hasAdvancedConfigError to briefly read a stale error while orgName is updating.
+    const orgNameError = (!isOrgLocked && isOrgDataLoaded) ? validateOrgName(formData.orgName) : null;
 
     const hasAdvancedConfigError = !!(
         projectHandlePathError ||
@@ -225,10 +241,11 @@ export function AddProjectFormFields({
                 }}
                 isLibrary={formData.isLibrary}
                 packageNameError={packageNameValidationError || packageNameError}
-                orgNameError={orgNameError}
+                orgNameError={orgNameError || undefined}
                 projectHandleError={projectHandlePathError || projectHandleError}
                 organizations={organizations}
                 hasError={hasAdvancedConfigError}
+                isOrgLocked={isOrgLocked}
             />
         </>
     );

@@ -152,6 +152,8 @@ export interface SampleDownloadRequest {
 
 export interface DefaultOrgNameResponse {
     orgName: string;
+    isLocked?: boolean;
+    source?: 'context-yaml' | 'existing-package' | 'user-default';
 }
 
 export interface PublishToCentralResponse {
