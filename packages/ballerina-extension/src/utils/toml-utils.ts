@@ -21,7 +21,7 @@ import { parse, stringify } from "@iarna/toml";
 export interface ConfigVariable {
     name: string;
     description: string;
-    type?: "string" | "int";
+    type?: "string" | "int" | "decimal";
     secret?: boolean;
 }
 
@@ -112,6 +112,12 @@ export function writeConfigValuesToConfig(
             }
             config[variableName] = intValue;
             intKeys.add(variableName);
+        } else if (varType === "decimal") {
+            const decimalValue = parseFloat(value);
+            if (isNaN(decimalValue)) {
+                throw new Error(`Invalid decimal value for ${variableName}`);
+            }
+            config[variableName] = decimalValue;
         } else {
             config[variableName] = value;
         }
