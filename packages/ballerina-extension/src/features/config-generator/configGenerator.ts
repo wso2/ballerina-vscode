@@ -206,11 +206,16 @@ export async function getCurrentBallerinaProjectFromContext(ballerinaExtInstance
 }
 
 export async function getCurrentBIProject(projectPath: string): Promise<BallerinaProject | undefined> {
-    if (projectPath) {
-        return await getCurrentBallerinaProject(projectPath);
+    try {
+        if (projectPath) {
+            return await getCurrentBallerinaProject(projectPath);
+        }
+        const projectRoot = await getCurrentProjectRoot();
+        return await getCurrentBallerinaProject(projectRoot);
+    } catch (error) {
+        console.error('Failed to resolve current BI project:', error);
+        return undefined;
     }
-    const projectRoot = await getCurrentProjectRoot();
-    return await getCurrentBallerinaProject(projectRoot);
 }
 
 export async function handleOnUnSetValues(packageName: string, packagePath: string, configFile: string, ignoreFile: string, ballerinaExtInstance: BallerinaExtension, isCommand: boolean, isBi: boolean, executeRun: boolean = true): Promise<boolean> {
