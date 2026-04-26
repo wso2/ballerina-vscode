@@ -19,12 +19,12 @@
 import React, { useEffect, useState } from 'react';
 import { Codicon, Dropdown, LinkButton, TextField, Typography } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
-import { ParameterModel, PropertyModel } from '@wso2/ballerina-core';
+import { ParameterModel, ProjectStructureArtifactResponse, PropertyModel } from '@wso2/ballerina-core';
 import { SegmentParam } from '@wso2/ballerina-side-panel';
 import { parseResourcePath } from '../Utils/ResourcePathParser';
 import { getColorByMethod } from '../../../../../../utils/utils';
 import { ParamEditor } from '../Parameters/ParamEditor';
-import { removeForwardSlashes } from '../../../utils';
+import { removeForwardSlashes, sanitizedHttpPath } from '../../../utils';
 
 
 const MethodLabel = styled.label`
@@ -100,10 +100,11 @@ export interface ResourcePathProps {
 	onError: (hasErros: boolean) => void;
 	isNew?: boolean;
 	readonly?: boolean;
+	existingResources?: ProjectStructureArtifactResponse[];
 }
 
 export function ResourcePath(props: ResourcePathProps) {
-	const { method, path, onChange, onError, isNew, readonly } = props;
+	const { method, path, onChange, onError, isNew, readonly, existingResources } = props;
 
 	const [inputValue, setInputValue] = useState('');
 	const [resourcePathErrors, setResourcePathErrors] = useState<string>("");
@@ -115,6 +116,12 @@ export function ResourcePath(props: ResourcePathProps) {
 		onError(!resourePathStr);
 		setInputValue(resourePathStr);
 	}, []);
+
+	useEffect(() => {
+		if (inputValue) {
+			handleBlur();
+		}
+	}, [inputValue]);
 
 	const handleMethodChange = (value: string) => {
 		onChange({ ...method, value: value.toLowerCase() }, path);
@@ -130,6 +137,22 @@ export function ResourcePath(props: ResourcePathProps) {
 		if (errors.length > 0) {
 			onError(true);
 			setResourcePathErrors(errors[0].message);
+			return;
+		}
+
+		// Path ID ex: get#foo/bar
+		const pathID = `${method.value?.toLowerCase()}#${sanitizedHttpPath(inputValue as string)}`;
+		// Get the paths and split by # to lowercase the method and concat again to get the path ID
+		const existingResourcePaths = existingResources?.map((resource) => {
+			const parts = resource.id.split('#');
+			if (parts.length > 0) {
+				parts[0] = parts[0].toLowerCase();
+			}
+			return parts.join('#');
+		});
+		if (existingResourcePaths?.includes(pathID)) {
+			onError(true);
+			setResourcePathErrors("Resource path already exists for the selected HTTP method");
 			return;
 		}
 

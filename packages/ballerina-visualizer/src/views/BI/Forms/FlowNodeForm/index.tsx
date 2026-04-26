@@ -424,6 +424,9 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
     }, [rpcClient]);
 
     useEffect(() => {
+        if (showProgressIndicator) {
+            return;
+        }
         if (!node) {
             return;
         }
@@ -441,7 +444,7 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
         return () => {
             handleFormClose();
         };
-    }, [node]);
+    }, [node, showProgressIndicator]);
 
 
     const handleFormOpen = () => {

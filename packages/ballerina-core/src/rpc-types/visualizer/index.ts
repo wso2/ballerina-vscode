@@ -19,14 +19,14 @@
 import { HistoryEntry } from "../../history";
 import { ProjectStructureArtifactResponse, UpdatedArtifactsResponse } from "../../interfaces/bi";
 import { ColorThemeKind } from "../../state-machine-types";
-import { AddToUndoStackRequest, HandleApprovalPopupCloseRequest, JoinProjectPathRequest, JoinProjectPathResponse, OpenViewRequest, ReopenApprovalViewRequest, UndoRedoStateResponse, SaveEvalThreadRequest, SaveEvalThreadResponse, GoBackRequest } from "./interfaces";
+import { AddToUndoStackRequest, HandleApprovalPopupCloseRequest, JoinProjectPathRequest, JoinProjectPathResponse, OpenViewRequest, ReopenApprovalViewRequest, UndoRedoStateResponse, SaveEvalThreadRequest, SaveEvalThreadResponse, GoBackRequest, GoHomeRequest } from "./interfaces";
 
 export interface VisualizerAPI {
     openView: (params: OpenViewRequest) => void;
     getHistory: () => Promise<HistoryEntry[]>;
     addToHistory: (entry: HistoryEntry) => void;
     goBack: (params: GoBackRequest) => void;
-    goHome: () => void;
+    goHome: (params: GoHomeRequest) => void;
     goSelected: (index: number) => void;
     undo: (count: number) => Promise<string>;
     redo: (count: number) => Promise<string>;
