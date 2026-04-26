@@ -178,7 +178,10 @@ export interface OrgFieldProps {
 }
 
 export function OrgField({ organizations, orgName, orgNameError, description, isSigningIn, onOrgChange, onSignIn, onCancelSignIn }: OrgFieldProps) {
-    const hasOrgs = organizations !== undefined && organizations.length > 0;
+    const hasOrgs = Array.isArray(organizations) && organizations.length > 0;
+    // Show the sign-in hint only when organizations is undefined/null (user not logged in).
+    // An empty array means the user IS logged in but has no orgs yet — no hint needed.
+    const showSignInHint = organizations === undefined || organizations === null;
 
     // Track which suggestion is keyboard-highlighted (index into filteredSuggestions).
     const [activeIndex, setActiveIndex] = useState<number>(-1);
@@ -310,7 +313,7 @@ export function OrgField({ organizations, orgName, orgNameError, description, is
                 )}
             </OrgComboboxWrapper>
             <Description>{description}</Description>
-            {!hasOrgs && (
+            {showSignInHint && (
                 <SignInHint>
                     <Codicon
                         name="account"
