@@ -547,6 +547,9 @@ export async function generateMappingCodeCore(
         const doesFunctionAlreadyExist = existingFunctionsInProject.some(func => func.name === targetFunctionName);
         let tempDirectory = tempProjectPath;
         let projectFilePath = mappingContext.filePath;
+        if (path.isAbsolute(projectFilePath)) {
+            projectFilePath = path.relative(ctx.projectPath, projectFilePath);
+        }
         if (ctx.workspacePath) {
             projectFilePath = path.join(projectName, projectFilePath);
         }
@@ -886,6 +889,9 @@ export async function generateInlineMappingCodeCore(
         const context = StateMachine.context();
         let projectRoot = tempProjectPath;
         let targetFileName = inlineMappingRequest.metadata.codeData.lineRange.fileName;
+        if (path.isAbsolute(targetFileName)) {
+            targetFileName = path.relative(ctx.projectPath, targetFileName);
+        }
         if (ctx.workspacePath) {
             projectRoot = path.join(projectRoot, projectName);
             targetFileName = path.join(projectName, targetFileName);
