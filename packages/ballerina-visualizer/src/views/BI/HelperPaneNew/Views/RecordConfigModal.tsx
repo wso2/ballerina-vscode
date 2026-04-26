@@ -147,6 +147,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
     const onChangeRef = useRef(onChange);
     const sourceCode = useRef<string>(currentValue);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [hasTooManyFieldsError, setHasTooManyFieldsError] = useState<boolean>(false);
     // Local state for expression value - only update form on save/close
     const [localExpressionValue, setLocalExpressionValue] = useState<string>(currentValue);
     // Diagnostics state
@@ -238,6 +239,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
 
     const fetchRecordModelFromSource = async (currentValue: string) => {
         setIsLoading(true);
+        setHasTooManyFieldsError(false);
         let org = "";
         let module = "";
         let version = "";
@@ -266,6 +268,13 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
         const getRecordModelFromSourceResponse: GetRecordModelFromSourceResponse =
             await rpcClient.getBIDiagramRpcClient().getRecordModelFromSource(getRecordModelFromSourceRequest);
         console.log(">>> getRecordModelFromSourceResponse", getRecordModelFromSourceResponse);
+
+        if (getRecordModelFromSourceResponse.errorMsg) {
+            setHasTooManyFieldsError(true);
+            setIsLoading(false);
+            return;
+        }
+
         const newRecordModel = getRecordModelFromSourceResponse.recordConfig;
 
         if (newRecordModel) {
@@ -310,6 +319,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
 
     const getNewRecordModel = async () => {
         setIsLoading(true);
+        setHasTooManyFieldsError(false);
         const defaultSelection = recordTypeField.recordTypeMembers[0];
         setSelectedMemberName(defaultSelection.type);
 
@@ -344,6 +354,11 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
         }
         const typeFieldResponse: GetRecordConfigResponse = await rpcClient.getBIDiagramRpcClient().getRecordConfig(request);
         console.log(">>> GetRecordConfigResponse", typeFieldResponse);
+        if (typeFieldResponse.errorMsg) {
+            setHasTooManyFieldsError(true);
+            setIsLoading(false);
+            return;
+        }
         if (typeFieldResponse.recordConfig) {
             const recordConfig: TypeField = {
                 name: defaultSelection.type,
@@ -371,6 +386,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                 m.selected = m.type === value;
             });
             setIsLoading(true);
+            setHasTooManyFieldsError(false);
             setSelectedMemberName(member.type);
 
             let org = "";
@@ -397,6 +413,11 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             }
 
             const typeFieldResponse: GetRecordConfigResponse = await rpcClient.getBIDiagramRpcClient().getRecordConfig(request);
+            if (typeFieldResponse.errorMsg) {
+                setHasTooManyFieldsError(true);
+                setIsLoading(false);
+                return;
+            }
             if (typeFieldResponse.recordConfig) {
 
                 const recordConfig: TypeField = {
@@ -668,7 +689,9 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                 />
                             </LabelContainer>
                         )}
-                        {selectedMemberName && recordModel?.length > 0 ? (
+                        {hasTooManyFieldsError ? (
+                            <Typography variant="body3">Too many fields in the record type. Use the expression editor.</Typography>
+                        ) : selectedMemberName && recordModel?.length > 0 ? (
                             <RecordConfigView
                                 recordModel={recordModel}
                                 onModelChange={handleModelChange}
