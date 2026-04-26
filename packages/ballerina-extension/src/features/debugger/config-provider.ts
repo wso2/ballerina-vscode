@@ -87,16 +87,22 @@ export enum DEBUG_CONFIG {
 
 class DebugConfigProvider implements DebugConfigurationProvider {
     async resolveDebugConfiguration(_folder: WorkspaceFolder, config: DebugConfiguration)
-        : Promise<DebugConfiguration> {
+        : Promise<DebugConfiguration | null | undefined> {
         if (!config.type) {
             commands.executeCommand('workbench.action.debug.configure');
-            return Promise.resolve({ request: '', type: '', name: '' });
-
+            return undefined;
         }
+
         if (config.noDebug && (extension.ballerinaExtInstance.enabledRunFast() || StateMachine.context().isBI)) {
             await handleMainFunctionParams(config);
         }
         const configs = await getModifiedConfigs(_folder, config);
+
+        // Check if config generation is required before starting the debug session
+        const shouldProceed = await prepareAndGenerateConfig(extension.ballerinaExtInstance, configs.script, false, StateMachine.context().isBI, false);
+        if (!shouldProceed) {
+            return undefined;
+        }
 
         // connect to Devant if applicable
         await new PlatformExtRpcManager().setupDevantProxyForDebugging(configs);
@@ -537,9 +543,6 @@ class BallerinaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFa
         const langClient = extension.ballerinaExtInstance.langClient;
         const projectRoot = await getCurrentProjectRoot();
         await cleanAndValidateProject(langClient, projectRoot);
-
-        // Check if config generation is required before starting the debug session
-        await prepareAndGenerateConfig(extension.ballerinaExtInstance, session.configuration.script, false, StateMachine.context().isBI, false);
 
         if (session.configuration.noDebug && extension.ballerinaExtInstance.enabledRunFast()) {
             return new Promise((resolve) => {
