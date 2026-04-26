@@ -20,15 +20,19 @@ package io.ballerina.flowmodelgenerator.extension.typesmanager;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.extension.request.RecordConfigRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
+import org.ballerinalang.langserver.util.TestUtil;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Test cases for retrieving the record config model.
@@ -48,13 +52,36 @@ public class RecordConfigTest extends AbstractLSTest {
                 testConfig.typeConstraint());
         JsonObject response = getResponse(request);
         JsonElement configResponse = response.get("recordConfig");
-        if (!configResponse.equals(testConfig.output())) {
+        if (response.has("errorMsg")) {
+            JsonElement errorMsg = response.get("errorMsg");
+            TestConfig updateConfig = new TestConfig(testConfig.filePath(), testConfig.description(),
+                    testConfig.codedata(), testConfig.typeConstraint(), errorMsg);
+            if (testConfig.output() instanceof JsonPrimitive) {
+                String expectedErrorMsg = testConfig.output().getAsString();
+//                updateConfig(configJsonPath, updateConfig);
+                Assert.assertEquals(errorMsg.getAsString(), expectedErrorMsg, String.format("Failed test: '%s' (%s)",
+                        testConfig.description(), configJsonPath));
+            } else {
+//                updateConfig(configJsonPath, updateConfig);
+                Assert.fail(String.format("Expected an error message for test: '%s' (%s)", testConfig.description(),
+                        configJsonPath));
+            }
+
+        } else if (configResponse != null && !configResponse.equals(testConfig.output())) {
             TestConfig updateConfig = new TestConfig(testConfig.filePath(), testConfig.description(),
                     testConfig.codedata(), testConfig.typeConstraint(), configResponse);
 //             updateConfig(configJsonPath, updateConfig);
             compareJsonElements(configResponse, testConfig.output());
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
+    }
+
+    @Override
+    protected JsonObject getResponse(Object request) {
+        String api = getServiceName() + "/" + getApiName();
+        CompletableFuture<?> result = serviceEndpoint.request(api, request);
+        String response = TestUtil.getResponseString(result);
+        return JsonParser.parseString(response).getAsJsonObject().getAsJsonObject("result");
     }
 
     @Override
