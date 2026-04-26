@@ -35,7 +35,7 @@ export class ArrayOutputNodeFactory extends AbstractReactFactory<ArrayOutputNode
 	generateReactWidget(event: { model: ArrayOutputNode; }): JSX.Element {
 		return (
 			<>
-				{event.model.hasNoMatchingFields ? (
+				{(event.model.hasNoMatchingFields || !event.model.filteredOutputType) ? (
 					<OutputSearchNoResultFound kind={SearchNoResultFoundKind.OutputField} />
 				) : (
 					<ArrayOutputWidget
