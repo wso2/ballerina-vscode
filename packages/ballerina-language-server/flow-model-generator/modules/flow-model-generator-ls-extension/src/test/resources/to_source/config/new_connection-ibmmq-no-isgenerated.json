@@ -30,7 +30,10 @@
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": true
+        "hidden": true,
+        "imports": {
+          "rabbitmq": "ballerinax/ibm.ibmmq"
+        }
       },
       "variable": {
         "metadata": {

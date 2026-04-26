@@ -44,7 +44,7 @@
             "selected": true
           }
         ],
-        "value": "StreamingClient",
+        "value": "grpc:StreamingClient",
         "placeholder": "var",
         "optional": false,
         "editable": false,
@@ -63,7 +63,7 @@
             "selected": true
           }
         ],
-        "value": "streamingClient",
+        "value": "grpcStreamingclient",
         "optional": false,
         "editable": true,
         "advanced": false,
