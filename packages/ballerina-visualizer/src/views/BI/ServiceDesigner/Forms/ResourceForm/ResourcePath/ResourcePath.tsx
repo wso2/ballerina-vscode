@@ -24,7 +24,7 @@ import { SegmentParam } from '@wso2/ballerina-side-panel';
 import { parseResourcePath } from '../Utils/ResourcePathParser';
 import { getColorByMethod } from '../../../../../../utils/utils';
 import { ParamEditor } from '../Parameters/ParamEditor';
-import { removeForwardSlashes } from '../../../utils';
+import { removeForwardSlashes, sanitizedHttpPath } from '../../../utils';
 
 
 const MethodLabel = styled.label`
@@ -141,7 +141,7 @@ export function ResourcePath(props: ResourcePathProps) {
 		}
 
 		// Path ID ex: get#foo/bar
-		const pathID = `${method.value?.toLowerCase()}#${inputValue}`;
+		const pathID = `${method.value?.toLowerCase()}#${sanitizedHttpPath(inputValue as string)}`;
 		// Get the paths and split by # to lowercase the method and concat again to get the path ID
 		const existingResourcePaths = existingResources?.map((resource) => {
 			const parts = resource.id.split('#');
