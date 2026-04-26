@@ -50,6 +50,7 @@ export class ConvertibleOutputNodeFactory extends AbstractReactFactory<Convertib
                         mappings={event.model.filteredMappings}
                         valueLabel={event.model.filteredOutputType?.displayName || event.model.filteredOutputType?.name}
                         originalTypeName={event.model.filteredOutputType?.name}
+                        isConvertedFieldArrayLiteral={event.model.isConvertedFieldArrayLiteral}
                     />
                 )}
             </>
