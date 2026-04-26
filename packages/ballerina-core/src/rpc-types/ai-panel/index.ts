@@ -137,4 +137,8 @@ export interface AIPanelAPI {
     getRunningServices: () => Promise<RunningServiceInfo[]>;
     stopRunningService: (params: StopRunningServiceRequest) => Promise<boolean>;
     runService: (params: RunServiceRequest) => Promise<boolean>;
+    // ==================================
+    // Vertex AI BYOK Helpers
+    // ==================================
+    getDefaultVertexCredsPath: () => Promise<string>;
 }

@@ -17,6 +17,7 @@
  */
 
 import * as vscode from 'vscode';
+import * as fs from 'fs';
 import { AIUserToken, LoginMethod, AuthCredentials } from '@wso2/ballerina-core';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { createAmazonBedrock } from '@ai-sdk/amazon-bedrock';
@@ -249,13 +250,25 @@ export const validateAwsCredentials = async (credentials: {
 export const validateVertexAiCredentials = async (credentials: {
     projectId: string;
     location: string;
-    clientEmail: string;
-    privateKey: string;
+    keyFile: string;
 }): Promise<AIUserToken> => {
-    const { projectId, location, clientEmail, privateKey } = credentials;
+    const { projectId, location, keyFile } = credentials;
 
-    if (!projectId || !location || !clientEmail || !privateKey) {
-        throw new Error('GCP Project ID, location, client email, and private key are required.');
+    if (!projectId || !location || !keyFile) {
+        throw new Error('GCP Project ID, location, and service account JSON file are required.');
+    }
+
+    if (!fs.existsSync(keyFile)) {
+        throw new Error(`Service account JSON file not found: ${keyFile}`);
+    }
+
+    try {
+        JSON.parse(fs.readFileSync(keyFile, 'utf8'));
+    } catch (error) {
+        if (error instanceof SyntaxError) {
+            throw new Error('Credentials file is not valid JSON.');
+        }
+        throw error;
     }
 
     try {
@@ -263,15 +276,12 @@ export const validateVertexAiCredentials = async (credentials: {
             project: projectId,
             location: location,
             googleAuthOptions: {
-                credentials: {
-                    client_email: clientEmail,
-                    private_key: privateKey,
-                },
+                keyFile: keyFile,
             },
         });
 
         await generateText({
-            model: vertexAnthropic('claude-3-5-haiku@20241022'),
+            model: vertexAnthropic('claude-haiku-4-5@20251001'),
             maxOutputTokens: 1,
             messages: [{ role: 'user', content: 'Hi' }]
         });
@@ -281,8 +291,7 @@ export const validateVertexAiCredentials = async (credentials: {
             secrets: {
                 projectId,
                 location,
-                clientEmail,
-                privateKey
+                keyFile
             }
         };
         await storeAuthCredentials(authCredentials);
@@ -291,15 +300,16 @@ export const validateVertexAiCredentials = async (credentials: {
 
     } catch (error) {
         console.error('Vertex AI validation failed:', error);
-        if (error instanceof Error) {
-            if (error.message.includes('401') || error.message.includes('authentication') || error.message.includes('UNAUTHENTICATED')) {
-                throw new Error('Invalid credentials. Please check your service account email and private key.');
-            } else if (error.message.includes('403') || error.message.includes('PERMISSION_DENIED')) {
-                throw new Error('Permission denied. Please ensure your service account has access to Vertex AI.');
-            } else if (error.message.includes('404') || error.message.includes('NOT_FOUND')) {
-                throw new Error('Project or location not found. Please check your GCP Project ID and location.');
-            }
+        const detail = error instanceof Error ? error.message : String(error);
+        if (detail.includes('401') || detail.includes('authentication') || detail.includes('UNAUTHENTICATED')) {
+            throw new Error(`Invalid credentials. Please check your service account JSON file. (${detail})`);
+        } else if (detail.includes('403') || detail.includes('PERMISSION_DENIED')) {
+            throw new Error(`Permission denied. Please ensure your service account has access to Vertex AI. (${detail})`);
+        } else if (detail.includes('404') || detail.includes('NOT_FOUND')) {
+            throw new Error(`Project or location not found, or the model is not available in this region. (${detail})`);
+        } else if (detail.includes('429') || detail.includes('Too Many Requests') || detail.includes('RESOURCE_EXHAUSTED')) {
+            throw new Error(`Quota exceeded. Your GCP project may have 0 quota for this Anthropic model — request a quota increase in GCP Console → IAM & Admin → Quotas. (${detail})`);
         }
-        throw new Error('Validation failed. Please check the log for more details.');
+        throw new Error(`Validation failed: ${detail}`);
     }
 };
