@@ -88,21 +88,24 @@ export function AddProjectFormFields({
         }
     };
 
-    const rpcClientRef = useRef(rpcClient);
-    rpcClientRef.current = rpcClient;
-
     useEffect(() => {
         if (isOrgTouched.current) return;
 
         const controller = new AbortController();
 
+        const pickOrg = (rpcOrg: string) => {
+            const match = organizations?.find((o) => o.handle === rpcOrg);
+            if (match) return match.handle;
+            if (organizations && organizations.length > 0) return organizations[0].handle;
+            return rpcOrg;
+        };
+
         (async () => {
             try {
-                const { orgName: rpcOrg, isLocked } = await rpcClientRef.current.getCommonRpcClient().getDefaultOrgName();
+                const { orgName: rpcOrg, isLocked } = await rpcClient.getCommonRpcClient().getDefaultOrgName();
                 if (controller.signal.aborted) return;
 
                 if (isInProject && isLocked) {
-                    // Org is derived from context.yaml or an existing package — lock the field.
                     setIsOrgLocked(true);
                     setIsOrgDataLoaded(true);
                     onFormDataChange({ orgName: rpcOrg });
@@ -111,29 +114,7 @@ export function AddProjectFormFields({
 
                 setIsOrgLocked(false);
                 setIsOrgDataLoaded(true);
-
-                if (isInProject) {
-                    // No context.yaml and no existing packages — let the user pick/type.
-                    const contextMatch = organizations?.find((o) => o.handle === rpcOrg);
-                    if (contextMatch) {
-                        onFormDataChange({ orgName: contextMatch.handle });
-                    } else if (organizations && organizations.length > 0) {
-                        onFormDataChange({ orgName: organizations[0].handle });
-                    } else {
-                        onFormDataChange({ orgName: rpcOrg });
-                    }
-                    return;
-                }
-
-                // Not in project: prefer context.yaml match → first org → username fallback.
-                const contextMatch = organizations?.find((o) => o.handle === rpcOrg);
-                if (contextMatch) {
-                    onFormDataChange({ orgName: contextMatch.handle });
-                } else if (organizations && organizations.length > 0) {
-                    onFormDataChange({ orgName: organizations[0].handle });
-                } else {
-                    onFormDataChange({ orgName: rpcOrg });
-                }
+                onFormDataChange({ orgName: pickOrg(rpcOrg) });
             } catch (error) {
                 if (controller.signal.aborted) return;
 
@@ -150,7 +131,7 @@ export function AddProjectFormFields({
         return () => {
             controller.abort();
         };
-    }, [isInProject, organizations, onFormDataChange]);
+    }, [isInProject, organizations, onFormDataChange, rpcClient]);
 
     // Real-time validation for integration/library name
     useEffect(() => {

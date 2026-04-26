@@ -491,7 +491,7 @@ export class CommonRpcManager implements CommonRPCAPI {
                         const content = await fs.promises.readFile(contextYamlPath, "utf-8");
                         const parsed = loadYaml(content);
                         if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0].org === "string" && parsed[0].org) {
-                            return { orgName: parsed[0].org, isLocked: true, source: 'context-yaml' };
+                            return { orgName: parsed[0].org, isLocked: true };
                         }
                     } catch { /* file missing or unreadable — try next */ }
                 }
@@ -502,7 +502,7 @@ export class CommonRpcManager implements CommonRPCAPI {
                 for (const pkg of packages) {
                     const pkgToml = await getProjectTomlValues(path.join(projectPath, pkg));
                     if (pkgToml?.package?.org) {
-                        return { orgName: pkgToml.package.org, isLocked: true, source: 'existing-package' };
+                        return { orgName: pkgToml.package.org, isLocked: true };
                     }
                 }
             }
@@ -513,13 +513,13 @@ export class CommonRpcManager implements CommonRPCAPI {
                 // Check for existing packages in the project Ballerina.toml
                 const projectToml = await getProjectTomlValues(integrationPath);
                 if (projectToml?.package?.org) {
-                    return { orgName: projectToml.package.org, isLocked: true, source: 'existing-package' };
+                    return { orgName: projectToml.package.org, isLocked: true };
                 }
             }
         } catch {
             // fall through to default
         }
-        return { orgName: getUsername(), isLocked: false, source: 'user-default' };
+        return { orgName: getUsername(), isLocked: false };
     }
 
     async publishToCentral(): Promise<PublishToCentralResponse> {
