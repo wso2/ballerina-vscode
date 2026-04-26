@@ -218,6 +218,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
     const functionFilePath = useRef<string>(Utils.joinPath(URI.file(projectPath), "functions.bal").fsPath);
     const parameterFieldsRef = useRef<ToolParameterItem[]>([]);
     const oauthConfigPropertiesRef = useRef<{ key: string; property: Property }[]>([]);
+    const isSelectingNodeRef = useRef<boolean>(false);
 
     // Create custom diagnostic filter for Tool Input parameters
     const customDiagnosticFilter = useCallback((diagnostics: Diagnostic[]) => {
@@ -577,18 +578,27 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
     };
 
     const handleOnSelectNode = async (nodeId: string, metadata?: any) => {
-        const { node } = metadata as { node: AvailableNode };
-        setToolNodeId(nodeId);
-        selectedNodeRef.current = node;
-        setSelectedNodeCodeData(node.codedata);
+        if (isSelectingNodeRef.current) return;
+        isSelectingNodeRef.current = true;
+        setLoading(true);
 
-        if (nodeId === FUNCTION_CALL) {
-            await loadFunctionCallFields(node);
-        } else if (nodeId === REMOTE_ACTION_CALL || nodeId === RESOURCE_ACTION_CALL || nodeId === METHOD_CALL) {
-            await loadConnectionCallFields(node);
+        try {
+            const { node } = metadata as { node: AvailableNode };
+            setToolNodeId(nodeId);
+            selectedNodeRef.current = node;
+            setSelectedNodeCodeData(node.codedata);
+
+            if (nodeId === FUNCTION_CALL) {
+                await loadFunctionCallFields(node);
+            } else if (nodeId === REMOTE_ACTION_CALL || nodeId === RESOURCE_ACTION_CALL || nodeId === METHOD_CALL) {
+                await loadConnectionCallFields(node);
+            }
+
+            setSidePanelView(SidePanelView.TOOL_FORM);
+        } finally {
+            setLoading(false);
+            isSelectingNodeRef.current = false;
         }
-
-        setSidePanelView(SidePanelView.TOOL_FORM);
     };
 
     const handleOnAddConnection = () => {
