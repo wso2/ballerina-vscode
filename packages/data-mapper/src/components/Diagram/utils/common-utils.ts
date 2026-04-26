@@ -335,6 +335,14 @@ export function isExpandable(field: IOType): boolean {
         fieldKind === TypeKind.Enum;
 }
 
+// True when an input/output is typed as json/xml without a record schema
+// (no resolved fields and no user-converted variable yet).
+export function isUnresolvedJsonOrXml(field: IOType): boolean {
+    const fieldKind = field?.kind;
+    const isJsonOrXml = fieldKind === TypeKind.Json || fieldKind === TypeKind.Xml;
+    return isJsonOrXml && !field.fields && !field.convertedField;
+}
+
 export function getTargetField(viewId: string, outputId: string){
     const outputIdParts = outputId.split(".").slice(1);
     // Added to support multi dimensional arrays
