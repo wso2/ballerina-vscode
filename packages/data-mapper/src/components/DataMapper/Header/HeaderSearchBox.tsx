@@ -97,8 +97,8 @@ export default function HeaderSearchBox() {
 
         setInputSearchTerm(inSearchTerm);
         setOutputSearchTerm(outSearchTerm);
-        dmStore.setInputSearch(inSearchTerm.searchText.trim());
-        dmStore.setOutputSearch(outSearchTerm.searchText.trim());
+        dmStore.setInputSearch(inSearchTerm.searchText.trim().toLowerCase());
+        dmStore.setOutputSearch(outSearchTerm.searchText.trim().toLowerCase());
 
     };
 
