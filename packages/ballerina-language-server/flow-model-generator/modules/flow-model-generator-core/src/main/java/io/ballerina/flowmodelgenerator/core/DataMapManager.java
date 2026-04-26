@@ -660,13 +660,9 @@ public class DataMapManager {
         while (parentNode != null) {
             SyntaxKind parentKind = parentNode.kind();
             if (parentKind == SyntaxKind.LET_VAR_DECL) {
-                String letVarName = CommonUtils.getVariableName(
-                        ((LetVariableDeclarationNode) parentNode).typedBindingPattern());
-                parentVarNames.add(letVarName);
+                parentVarNames.add(getVariableName(parentNode));
             } else if (parentKind == SyntaxKind.LOCAL_VAR_DECL || parentKind == SyntaxKind.MODULE_VAR_DECL) {
-                String varName = CommonUtils.getVariableName(
-                        ((VariableDeclarationNode) parentNode).typedBindingPattern());
-                parentVarNames.add(varName);
+                parentVarNames.add(getVariableName(parentNode));
                 break;
             } else if (parentKind == SyntaxKind.EXPRESSION_FUNCTION_BODY
                     || parentKind == SyntaxKind.FUNCTION_DEFINITION) {

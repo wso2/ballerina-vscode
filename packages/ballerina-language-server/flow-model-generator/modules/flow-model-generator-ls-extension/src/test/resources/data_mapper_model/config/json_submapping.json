@@ -4,7 +4,7 @@
   "codedata": {
     "node": "DATA_MAPPER_DEFINITION",
     "lineRange": {
-      "fileName": "function_def3.bal",
+      "fileName": "json_submapping.bal",
       "startLine": {
         "line": 42,
         "offset": 87
