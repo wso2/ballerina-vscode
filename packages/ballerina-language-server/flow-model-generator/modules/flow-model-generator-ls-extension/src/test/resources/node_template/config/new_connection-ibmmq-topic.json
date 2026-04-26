@@ -46,7 +46,10 @@
         "editable": false,
         "advanced": false,
         "hidden": true,
-        "codedata": {}
+        "codedata": {},
+        "imports": {
+          "ibmmq": "ballerinax/ibm.ibmmq"
+        }
       },
       "variable": {
         "metadata": {
