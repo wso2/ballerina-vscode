@@ -183,10 +183,20 @@ export interface OrgFieldProps {
     onSignIn: () => void;
     onCancelSignIn: () => void;
     isLocked?: boolean;
-    lockedTooltip?: string;
 }
 
-export function OrgField({ organizations, orgName, orgNameError, description, isSigningIn, onOrgChange, onSignIn, onCancelSignIn, isLocked }: OrgFieldProps) {
+export function OrgField(props: OrgFieldProps) {
+    const {
+        organizations,
+        orgName,
+        orgNameError,
+        description,
+        isSigningIn,
+        onOrgChange,
+        onSignIn,
+        onCancelSignIn,
+        isLocked
+    } = props;
     const hasOrgs = Array.isArray(organizations) && organizations.length > 0;
     const showSignInHint = organizations === undefined || organizations === null;
 

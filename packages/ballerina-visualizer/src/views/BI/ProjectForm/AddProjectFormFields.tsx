@@ -67,7 +67,7 @@ export function AddProjectFormFields({
     const [integrationNameError, setIntegrationNameError] = useState<string | null>(null);
     const [packageNameError, setPackageNameError] = useState<string | null>(null);
     const [projectHandleError, setProjectHandleError] = useState<string | null>(null);
-    const [isOrgLocked, setIsOrgLocked] = useState(isInProject);
+    const [isOrgLocked, setIsOrgLocked] = useState(false);
     const [isOrgDataLoaded, setIsOrgDataLoaded] = useState(false);
     const resourceTypeLabel = formData.isLibrary ? "Library" : "Integration";
     const resourceTypeLabelLower = resourceTypeLabel.toLowerCase();
@@ -135,7 +135,15 @@ export function AddProjectFormFields({
                     onFormDataChange({ orgName: rpcOrg });
                 }
             } catch (error) {
+                if (controller.signal.aborted) return;
+
                 console.error("Failed to fetch default org name:", error);
+                setIsOrgLocked(false);
+                setIsOrgDataLoaded(true);
+
+                if (organizations && organizations.length > 0) {
+                    onFormDataChange({ orgName: organizations[0].handle });
+                }
             }
         })();
 
