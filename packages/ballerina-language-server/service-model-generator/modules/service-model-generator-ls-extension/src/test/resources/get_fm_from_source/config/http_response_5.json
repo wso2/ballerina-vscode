@@ -431,7 +431,7 @@
             ],
             "enabled": true,
             "editable": true,
-            "optional": false,
+            "optional": true,
             "advanced": false
           },
           "name": {
@@ -465,9 +465,9 @@
             "imports": {},
             "value": [
               {
+                "type": "string",
                 "optional": false,
-                "name": "x\\-path",
-                "type": "string"
+                "name": "x\\-path"
               }
             ],
             "types": [
