@@ -391,7 +391,7 @@ const MainPanel = () => {
                             if (isStaleNavigation()) return;
                             setViewComponent(
                                 <DiagramWrapper
-                                    key={value?.identifier}
+                                    key={[value?.documentUri, value?.identifier].filter(Boolean).join('#')}
                                     syntaxTree={st.syntaxTree}
                                     projectPath={value?.projectPath}
                                     filePath={value?.documentUri}
@@ -405,7 +405,7 @@ const MainPanel = () => {
                             // Fallback to render without waiting
                             setViewComponent(
                                 <DiagramWrapper
-                                    key={value?.identifier}
+                                    key={[value?.documentUri, value?.identifier].filter(Boolean).join('#')}
                                     projectPath={value?.projectPath}
                                     filePath={value?.documentUri}
                                     view={value?.focusFlowDiagramView}

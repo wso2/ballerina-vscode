@@ -24,7 +24,7 @@ import { cloneDeep } from 'lodash';
 import WarningPopup from '@wso2/ballerina-side-panel/lib/components/WarningPopup';
 import { EntryPointTypeCreator } from '../../../../../components/EntryPointTypeCreator';
 import { Parameters } from './Parameters/Parameters';
-import { TextExpressionField } from './TextExpressionField';
+import { TextExpressionField, TextExpressionFieldHandle } from './TextExpressionField';
 
 const SIGNATURE_CHANGE_BODY_WARNING =
     "This edit will change the file handler signature. Nodes in the function body may be broken due to this change. Continue?";
@@ -184,7 +184,6 @@ export interface FileIntegrationFormProps {
 
 type MoveToValidationState = {
     isValidating: boolean;
-    hasValidationFailure: boolean;
 };
 
 export function FileIntegrationForm(props: FileIntegrationFormProps) {
@@ -251,6 +250,8 @@ export function FileIntegrationForm(props: FileIntegrationFormProps) {
         }
     };
 
+    const moveToFieldRefs = useRef<Record<string, TextExpressionFieldHandle | null>>({});
+
     const hasSignatureChanged = (): boolean => {
         if (isNew || !functionModel || !initialSignatureKeyRef.current) {
             return false;
@@ -258,24 +259,35 @@ export function FileIntegrationForm(props: FileIntegrationFormProps) {
         return getFunctionSignatureKey(functionModel) !== initialSignatureKeyRef.current;
     };
 
-    const performSave = () => {
-        if (functionModel) {
-            onSave(functionModel, isNew);
-        }
-    };
-
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!functionModel) return;
+
+        // Save-time revalidation: matches the DeclareVariable / FlowNodeForm pattern of running a
+        // final LS check before save. Typing-time diagnostics are debounced and swallow LS errors
+        // silently, so this is the authoritative gate. Severity-1 diagnostics block save; LS
+        // failures here fall through silently and the save proceeds (same contract as typing-time).
+        const liveRefs = Object.values(moveToFieldRefs.current).filter(
+            (handle): handle is TextExpressionFieldHandle => handle !== null && handle !== undefined
+        );
+        if (liveRefs.length > 0) {
+            const allDiagnostics = await Promise.all(liveRefs.map(h => h.revalidate()));
+            const hasErrorDiagnostics = allDiagnostics.some(diags => diags.some(d => d.severity === 1));
+            if (hasErrorDiagnostics) return;
+        }
+
         if (hasSignatureChanged()) {
             setIsSignatureWarningOpen(true);
             return;
         }
-        performSave();
+
+        onSave(functionModel, isNew);
     };
 
     const confirmSignatureChangeSave = () => {
         setIsSignatureWarningOpen(false);
-        performSave();
+        if (functionModel) {
+            onSave(functionModel, isNew);
+        }
     };
 
     const cancelSignatureChangeSave = () => {
@@ -491,10 +503,6 @@ export function FileIntegrationForm(props: FileIntegrationFormProps) {
         return Object.values(moveToValidationStateByAction).some(s => s?.isValidating);
     }, [moveToValidationStateByAction]);
 
-    const hasMoveToValidationFailure = useMemo(() => {
-        return Object.values(moveToValidationStateByAction).some(s => s?.hasValidationFailure);
-    }, [moveToValidationStateByAction]);
-
     // ----- Choice helpers — model-driven, no 'MOVE' string hardcoding -----
 
     const getSelectedActionValue = (action: PropertyModel | undefined): string => {
@@ -530,7 +538,7 @@ export function FileIntegrationForm(props: FileIntegrationFormProps) {
         return postProcessSubActions.some(([, action]) => isRequiredNestedPropertyEmpty(action));
     }, [postProcessSubActions]);
 
-    const isSaveDisabled = hasInvalidMoveTo || hasMoveToErrorDiagnostics || hasPendingMoveToValidation || hasMoveToValidationFailure;
+    const isSaveDisabled = hasInvalidMoveTo || hasMoveToErrorDiagnostics || hasPendingMoveToValidation;
 
     const saveTooltip = useMemo(() => {
         if (isSaving) return "Saving...";
@@ -709,6 +717,13 @@ export function FileIntegrationForm(props: FileIntegrationFormProps) {
                                 return (
                                     <TextExpressionField
                                         key={stateKey}
+                                        ref={(handle) => {
+                                            if (handle) {
+                                                moveToFieldRefs.current[stateKey] = handle;
+                                            } else {
+                                                delete moveToFieldRefs.current[stateKey];
+                                            }
+                                        }}
                                         id={`ftp-${functionModel?.name?.value ?? 'handler'}-${stateKey}`}
                                         value={prop.value || ''}
                                         property={prop}

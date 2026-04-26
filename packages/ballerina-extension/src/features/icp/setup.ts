@@ -190,18 +190,22 @@ export async function getStoredICPSecret(projectPath: string): Promise<string | 
     return extension.context.secrets.get(`${ICP_SECRET_KEY_PREFIX}${projectPath}`);
 }
 
-function getProjectHandle(projectPath: string): string {
+export function getProjectHandle(projectPath: string): string {
     // projectPath is the package dir; project root is its parent
     const projectRoot = path.dirname(projectPath);
-    const contextYaml = path.join(projectRoot, '.choreo', 'context.yaml');
-    try {
-        const content = fs.readFileSync(contextYaml, 'utf-8');
-        const data = yaml.load(content) as Array<Record<string, any>>;
-        if (Array.isArray(data) && data[0]?.project) {
-            return data[0].project;
+    for (const dir of ['.choreo', '.wso2']) {
+        const contextYaml = path.join(projectRoot, dir, 'context.yaml');
+        try {
+            const content = fs.readFileSync(contextYaml, 'utf-8');
+            const parsed = yaml.load(content);
+            const entry = Array.isArray(parsed) ? parsed[0] : parsed;
+            const project = (entry as Record<string, any>)?.project;
+            if (project) {
+                return project;
+            }
+        } catch {
+            // file not found or parse error
         }
-    } catch {
-        // file not found or parse error
     }
     return 'default-project';
 }
