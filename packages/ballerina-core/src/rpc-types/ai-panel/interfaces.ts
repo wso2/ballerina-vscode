@@ -169,20 +169,19 @@ export interface ExtractMappingDetailsRequest {
     functionContents: Record<string, string>;        
 }
 
-export interface ExistingFunctionMatchResult {
-    match: boolean;
-    matchingFunctionFile: string | null;
-    functionDefNode: FunctionDefinition | null;
+export interface MatchedFunction {
+    matchingFunctionFilePath: string;
+    functionDefNode: FunctionDefinition;
 }
 
 export interface ExtractMappingDetailsResponse {
-    inputs: DataMappingRecord[];    
-    output: DataMappingRecord; 
+    inputs: DataMappingRecord[];
+    output: DataMappingRecord;
     inputParams: string[];
-    outputParam: string;   
+    outputParam: string;
     imports: ImportInfo[];
     inputNames: string[];
-    existingFunctionMatch: ExistingFunctionMatchResult;       
+    matchedFunction: MatchedFunction | null;
 }
 
 export interface RepairCodeParams {

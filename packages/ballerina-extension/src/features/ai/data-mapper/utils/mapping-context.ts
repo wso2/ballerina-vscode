@@ -19,7 +19,7 @@
 import {
   ComponentInfo,
   DataMappingRecord,
-  ExistingFunctionMatchResult,
+  MatchedFunction,
   ImportInfo,
   MappingParameters,
   ProjectComponentsResponse,
@@ -118,12 +118,12 @@ export function collectModuleInfo(projectComponents: ProjectComponentsResponse):
 
 // Determine file path for mapping function
 export function determineMappingFilePath(
-  existingFunctionMatch: ExistingFunctionMatchResult,
+  matchedFunction: MatchedFunction | null,
   activeFile: string,
   projectRoot?: string
 ): string {
-  if (existingFunctionMatch.match) {
-    return existingFunctionMatch.matchingFunctionFile;
+  if (matchedFunction) {
+    return path.basename(matchedFunction.matchingFunctionFilePath);
   } else if (activeFile && activeFile.endsWith(".bal")) {
     return activeFile;
   } else {
@@ -218,7 +218,7 @@ export async function prepareMappingContext(
     functionContents: Object.fromEntries(functionSourceContents)
   }, langClient);
 
-  const targetFilePath = determineMappingFilePath(extractedMappingDetails.existingFunctionMatch, currentActiveFileName, projectRoot);
+  const targetFilePath = determineMappingFilePath(extractedMappingDetails.matchedFunction, currentActiveFileName, projectRoot);
 
   return {
     recordMap: availableRecordTypes,
