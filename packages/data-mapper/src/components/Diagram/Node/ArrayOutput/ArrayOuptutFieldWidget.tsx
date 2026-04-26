@@ -20,7 +20,7 @@ import React, { useMemo, useState } from "react";
 
 import { DiagramEngine } from "@projectstorm/react-diagrams-core";
 import { Button, Codicon, Icon, ProgressRing, TruncatedLabel, TruncatedLabelGroup } from "@wso2/ui-toolkit";
-import { IOType, TypeKind } from "@wso2/ballerina-core";
+import { InputCategory, IOType, TypeKind } from "@wso2/ballerina-core";
 import classnames from "classnames";
 
 import { useIONodesStyles } from "../../../styles";
@@ -100,9 +100,10 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
     const searchValue = useDMSearchStore.getState().outputSearch;
     const hasElements = elements?.length > 0 && elements.some((element) => element.mappings.length > 0);
     const connectedViaLink = Object.values(portIn?.getLinks() || {}).length > 0;
+    const isConvertedVariable = field?.category === InputCategory.ConvertedVariable;
 
     let expanded = true;
-    if (portIn && portIn.attributes.collapsed) {
+    if (portIn && portIn.attributes.collapsed && !isConvertedVariable) {
         expanded = false;
     }
 

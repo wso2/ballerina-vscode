@@ -34,6 +34,8 @@ import { CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX } from '../../utils/constants';
 import { FieldActionButton } from '../commons/FieldActionButton';
 import { PayloadWidget } from '../commons/PayloadWidget';
 import { DiagnosticTooltip } from '../../Diagnostic/DiagnosticTooltip';
+import { ArrayOutputWidget } from '../ArrayOutput/ArrayOutputWidget';
+import { ObjectOutputWidget } from '../ObjectOutput/ObjectOutputWidget';
 
 export interface ConvertibleOutputWidgetProps {
     id: string; // this will be the root ID used to prepend for UUIDs of nested fields
@@ -224,18 +226,43 @@ export function ConvertibleOutputWidget(props: ConvertibleOutputWidgetProps) {
                 )}
             </TreeContainer>
             {expanded && outputType.convertedField && (
-                <ConvertibleOutputWidget
-                    engine={engine}
-                    id={`${CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX}.${outputType.convertedField.name}`}
-                    outputType={outputType.convertedField}
-                    typeName={outputType.convertedField.typeName}
-                    value={undefined}
-                    getPort={getPort}
-                    context={context}
-                    mappings={mappings}
-                    valueLabel={outputType.convertedField.displayName || outputType.convertedField.name}
-                    originalTypeName={outputType.convertedField.typeName}
-                />
+                // <ConvertibleOutputWidget
+                //     engine={engine}
+                //     id={`${CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX}.${outputType.convertedField.name}`}
+                //     outputType={outputType.convertedField}
+                //     typeName={outputType.convertedField.typeName}
+                //     value={undefined}
+                //     getPort={getPort}
+                //     context={context}
+                //     mappings={mappings}
+                //     valueLabel={outputType.convertedField.displayName || outputType.convertedField.name}
+                //     originalTypeName={outputType.convertedField.typeName}
+                // />
+                outputType.convertedField.kind === TypeKind.Array ? (
+                    <ArrayOutputWidget
+                        engine={engine}
+                        id={`${CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX}.${outputType.convertedField.name}`}
+                        outputType={outputType.convertedField}
+                        typeName={outputType.convertedField.typeName}
+                        isBodyArrayLitExpr={false} // need to set properly
+                        getPort={getPort}
+                        context={context}
+                        valueLabel={outputType.convertedField.displayName || outputType.convertedField.name}
+                    />
+                ) : (
+                    <ObjectOutputWidget
+                        engine={engine}
+                        id={`${CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX}.${outputType.convertedField.name}`}
+                        outputType={outputType.convertedField}
+                        typeName={outputType.convertedField.typeName}
+                        value={undefined}
+                        getPort={getPort}
+                        context={context}
+                        mappings={mappings}
+                        valueLabel={outputType.convertedField.displayName || outputType.convertedField.name}
+                        originalTypeName={outputType.convertedField.typeName}
+                    />
+                )
             )}
             {expanded && isConvertibleType && !outputType.convertedField && (
                 <PayloadWidget

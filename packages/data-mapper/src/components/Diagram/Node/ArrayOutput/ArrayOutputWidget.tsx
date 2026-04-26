@@ -20,7 +20,7 @@ import React, { useState } from "react";
 
 import { DiagramEngine } from '@projectstorm/react-diagrams';
 import { Button, Codicon, Icon, ProgressRing, TruncatedLabel, TruncatedLabelGroup } from "@wso2/ui-toolkit";
-import { IOType, TypeKind } from '@wso2/ballerina-core';
+import { InputCategory, IOType, TypeKind } from '@wso2/ballerina-core';
 import classnames from "classnames";
 
 import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
@@ -87,9 +87,10 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 	const portIn = getPort(`${id}.IN`);
 	const isExprBarFocused = exprBarFocusedPort?.getName() === portIn?.getName();
 	const isUnknownType = outputType.kind === TypeKind.Unknown;
+	const isConvertedVariable = outputType.category === InputCategory.ConvertedVariable;
 
 	let expanded = true;
-	if ((portIn && portIn.attributes.collapsed)) {
+	if ((portIn && portIn.attributes.collapsed) && !isConvertedVariable) {
 		expanded = false;
 	}
 
