@@ -188,7 +188,7 @@ export function ResourceForm(props: ResourceFormProps) {
 				{isSaving && <ProgressIndicator id="resource-loading-bar" />}
 				<SidePanelBody>
 					<ResourcePath method={functionModel.accessor} path={functionModel.name} onChange={onPathChange}
-						onError={onResourcePathError} readonly={!functionModel.editable} />
+						onError={onResourcePathError} readonly={!functionModel.editable} existingResources={existingResources} />
 					<Divider />
 					<Parameters
 						readonly={!functionModel.editable}
