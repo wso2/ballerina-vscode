@@ -56,6 +56,7 @@ import {
     StopRunningServiceRequest,
     RunServiceRequest,
 } from "@wso2/ballerina-core";
+import * as os from "os";
 import * as fs from 'fs';
 import path from "path";
 import * as vscode from 'vscode';
@@ -857,4 +858,19 @@ export class AiPanelRpcManager implements AIPanelAPI {
             return false;
         }
     }
+
+    async getDefaultVertexCredsPath(): Promise<string> {
+        const fromEnv = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+        if (fromEnv && fs.existsSync(fromEnv)) {
+            return fromEnv;
+        }
+        const adcPath = process.platform === "win32"
+            ? path.join(process.env.APPDATA || "", "gcloud", "application_default_credentials.json")
+            : path.join(os.homedir(), ".config", "gcloud", "application_default_credentials.json");
+        if (fs.existsSync(adcPath)) {
+            return adcPath;
+        }
+        return "";
+    }
+
 }

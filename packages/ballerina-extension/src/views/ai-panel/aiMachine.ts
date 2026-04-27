@@ -461,15 +461,14 @@ const validateAwsCredentialsService = async (_context: AIMachineContext, event: 
 };
 
 const validateVertexAiCredentialsService = async (_context: AIMachineContext, event: any) => {
-    const { projectId, location, clientEmail, privateKey } = event.payload || {};
-    if (!projectId || !location || !clientEmail || !privateKey) {
-        throw new Error('GCP Project ID, location, client email, and private key are required');
+    const { projectId, location, keyFile } = event.payload || {};
+    if (!projectId || !location || !keyFile) {
+        throw new Error('GCP Project ID, location, and service account JSON file are required');
     }
     return await validateVertexAiCredentials({
         projectId,
         location,
-        clientEmail,
-        privateKey
+        keyFile
     });
 };
 

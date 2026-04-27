@@ -593,3 +593,4 @@ export interface PromptEnhancementRequest {
 export interface PromptEnhancementResponse {
     enhancedPrompt: string;
 }
+

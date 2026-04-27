@@ -364,8 +364,7 @@ export const getBiIntelId = async (): Promise<string | undefined> => {
 export const getVertexAiCredentials = async (): Promise<{
     projectId: string;
     location: string;
-    clientEmail: string;
-    privateKey: string;
+    keyFile: string;
 } | undefined> => {
     const credentials = await getAuthCredentials();
     if (!credentials || credentials.loginMethod !== LoginMethod.VERTEX_AI) {
