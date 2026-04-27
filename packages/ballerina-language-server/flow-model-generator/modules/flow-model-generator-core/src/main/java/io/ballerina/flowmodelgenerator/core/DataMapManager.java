@@ -4173,7 +4173,7 @@ public class DataMapManager {
     }
 
     public JsonElement convertType(Path filePath, SemanticModel semanticModel, JsonElement cd, String typeName,
-                                   String variableName, String parentTypeName, boolean isInput,
+                                   String variableName, String parentTypeName, boolean isInput, boolean isArray,
                                    Map<String, String> imports) {
         Codedata codedata = gson.fromJson(cd, Codedata.class);
         NonTerminalNode node = getNode(codedata.lineRange());
@@ -4197,7 +4197,7 @@ public class DataMapManager {
                 if (codedata.isNew() != null && codedata.isNew()) {
                     ExpressionNode expr = letExpr.expression();
                     String statement = String.format(", %s %s = %s", typeName, variableName,
-                            expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR ? expr.toSourceCode().trim() : "{}");
+                            getConvertedOutputExpression(expr, isArray));
                     SeparatedNodeList<LetVariableDeclarationNode> letVarDeclarationNodes = letExpr.letVarDeclarations();
                     LinePosition linePosition =
                             letVarDeclarationNodes.get(letVarDeclarationNodes.size() - 1).lineRange().endLine();
@@ -4231,7 +4231,7 @@ public class DataMapManager {
             boolean hasErrorReturn = addErrorReturn(functionDefinitionNode, semanticModel, textEdits);
             if (!isInput) {
                 statement = String.format("let %s %s = %s in %s", typeName, variableName,
-                        expression.kind() == SyntaxKind.MAPPING_CONSTRUCTOR ? expression.toSourceCode().trim() : "{}",
+                        getConvertedOutputExpression(expression, isArray),
                         addTypeConversion(parentTypeName, textEdits, variableName, document.syntaxTree().rootNode(),
                                 hasErrorReturn));
             } else {
@@ -4247,6 +4247,24 @@ public class DataMapManager {
 
         textEditsMap.put(filePath, textEdits);
         return gson.toJsonTree(textEditsMap);
+    }
+
+    private String getConvertedOutputExpression(ExpressionNode expr, boolean isArray) {
+        SyntaxKind kind = expr.kind();
+
+        if (isArray) {
+            if (kind == SyntaxKind.LIST_CONSTRUCTOR) {
+                return expr.toSourceCode().trim();
+            } else {
+                return "[]";
+            }
+        }
+
+        if (kind == SyntaxKind.MAPPING_CONSTRUCTOR) {
+            return expr.toSourceCode().trim();
+        } else {
+            return "{}";
+        }
     }
 
     private LetVariableDeclarationNode getMatchingLetVar(SeparatedNodeList<LetVariableDeclarationNode> letVarNodes,
