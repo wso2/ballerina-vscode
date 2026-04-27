@@ -589,13 +589,21 @@
                 }
             },
             {
+                "command": "ballerina.open.bi.new",
+                "title": "New Integration",
+                "category": "WSO2 Integrator",
+                "enablement": "isSupportedProject"
+            },
+            {
                 "command": "BI.project.run",
                 "title": "Run Integration",
                 "icon": {
                     "dark": "./resources/images/icons/start-inverse.svg",
                     "light": "./resources/images/icons/start.svg"
                 },
-                "category": "BI"
+                "category": "WSO2 Integrator",
+                "enablement": "isSupportedProject"
+                
             },
             {
                 "command": "BI.project.debug",
@@ -604,112 +612,114 @@
                     "dark": "./resources/images/icons/debug-inverse.svg",
                     "light": "./resources/images/icons/debug.svg"
                 },
-                "category": "WSO2 Integrator"
+                "category": "WSO2 Integrator",
+                "enablement": "isSupportedProject"
             },
             {
                 "command": "BI.test.edit.function",
                 "title": "View test flow",
                 "icon": "$(type-hierarchy)",
-                "category": "BI"
+                "category": "WSO2 Integrator"
             },
             {
                 "command": "BI.test.edit.function.def",
                 "title": "Edit test function definition",
                 "icon": "$(edit)",
-                "category": "BI"
+                "category": "WSO2 Integrator"
             },
             {
                 "command": "BI.test.add.function",
                 "title": "Add New Test",
                 "icon": "$(add)",
-                "category": "BI",
+                "category": "WSO2 Integrator",
                 "enablement": "isSupportedProject"
             },
             {
                 "command": "BI.test.add.ai.evaluation",
                 "title": "Add AI Evaluation",
-                "category": "BI",
+                "category": "WSO2 Integrator",
                 "enablement": "isSupportedProject"
             },
             {
                 "command": "BI.test.delete.function",
                 "title": "Delete test function",
                 "icon": "$(trash)",
-                "category": "BI"
+                "category": "WSO2 Integrator"
             },
             {
                 "command": "BI.view.typeDiagram",
                 "title": "Type Diagram",
-                "category": "BI"
+                "category": "WSO2 Integrator",
+                "enablement": "isSupportedProject"
             },
             {
                 "command": "BI.project-explorer.add-connection",
                 "title": "Add Connection",
                 "icon": "$(add)",
                 "group": "navigation",
-                "category": "BI"
+                "category": "WSO2 Integrator"
             },
             {
                 "command": "BI.project-explorer.add-custom-connector",
                 "title": "Add Custom Connector",
                 "icon": "$(add)",
                 "group": "navigation",
-                "category": "BI"
+                "category": "WSO2 Integrator"
             },
             {
                 "command": "BI.project-explorer.delete",
                 "title": "Delete",
                 "icon": "$(trash)",
-                "category": "BI"
+                "category": "WSO2 Integrator"
             },
             {
                 "command": "BI.project-explorer.add-entry-point",
                 "title": "Add Entry Point",
                 "icon": "$(add)",
                 "group": "navigation",
-                "category": "BI"
+                "category": "WSO2 Integrator"
             },
             {
                 "command": "BI.project-explorer.add-type",
                 "title": "Add Types",
                 "icon": "$(add)",
                 "group": "navigation",
-                "category": "BI"
+                "category": "WSO2 Integrator"
             },
             {
                 "command": "BI.project-explorer.view-type-diagram",
                 "title": "View Type Diagram",
                 "icon": "$(ballerina-design-view)",
                 "group": "navigation",
-                "category": "BI"
+                "category": "WSO2 Integrator"
             },
             {
                 "command": "BI.project-explorer.add-function",
                 "title": "Add Function",
                 "icon": "$(add)",
                 "group": "navigation",
-                "category": "BI"
+                "category": "WSO2 Integrator"
             },
             {
                 "command": "BI.project-explorer.add-configuration",
                 "title": "Add Configuration",
                 "icon": "$(add)",
                 "group": "navigation",
-                "category": "BI"
+                "category": "WSO2 Integrator"
             },
             {
                 "command": "BI.project-explorer.view-configuration",
                 "title": "View Configurations",
                 "icon": "$(ballerina-design-view)",
                 "group": "navigation",
-                "category": "BI"
+                "category": "WSO2 Integrator"
             },
             {
                 "command": "BI.project-explorer.add",
                 "title": "Add Integration or Library",
                 "icon": "$(add)",
                 "group": "navigation",
-                "category": "BI",
+                "category": "WSO2 Integrator",
                 "when": "ballerina.bi.workspaceSupported"
             },
             {
@@ -717,33 +727,34 @@
                 "title": "Show Overview",
                 "icon": "$(ballerina-design-view)",
                 "group": "navigation",
-                "category": "BI"
+                "category": "WSO2 Integrator"
             },
             {
                 "command": "BI.project-explorer.add-data-mapper",
                 "title": "Add Data Mapper",
                 "icon": "$(add)",
                 "group": "navigation",
-                "category": "BI"
+                "category": "WSO2 Integrator"
             },
             {
                 "command": "BI.project-explorer.add-natural-function",
                 "title": "Add Natural Function",
                 "icon": "$(add)",
                 "group": "navigation",
-                "category": "BI"
+                "category": "WSO2 Integrator"
             },
             {
                 "command": "BI.toggle.trace.logs",
                 "title": "Toggle Trace Logs",
-                "category": "BI"
+                "category": "WSO2 Integrator",
+                "enablement": "isSupportedProject"
             },
             {
                 "command": "BI.devant.push.cloud",
                 "title": "Save Changes in the cloud",
                 "icon": "$(save)",
                 "group": "navigation",
-                "category": "BI",
+                "category": "WSO2 Integrator",
                 "enablement": "isBIProject && devant.editor"
             },
             {
