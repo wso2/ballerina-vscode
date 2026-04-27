@@ -166,7 +166,7 @@ export interface ConfigurationCollectorMetadata {
     variables: Array<{
         name: string;
         description: string;
-        type?: "string" | "int";
+        type?: string;
         secret?: boolean;
     }>;
     existingValues?: Record<string, string>;
@@ -181,6 +181,7 @@ export interface AgentMetadata {
 export interface ApprovalOverlayState {
     show: boolean;
     message?: string;
+    requestId?: string;
 }
 
 export interface VisualizerMetadata {
@@ -501,7 +502,7 @@ export interface ConfigurationCollectionEvent {
     variables?: Array<{
         name: string;
         description: string;
-        type?: "string" | "int";
+        type?: string;
         secret?: boolean;
     }>;
     existingValues?: Record<string, string>;

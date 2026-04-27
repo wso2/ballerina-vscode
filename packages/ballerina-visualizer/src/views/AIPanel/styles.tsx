@@ -114,4 +114,23 @@ export const OverlayMessage = styled.div`
     background: var(--vscode-editor-background);
     border: 1px solid var(--vscode-panel-border);
     border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+`;
+
+export const OverlayCloseButton = styled.button`
+    background: transparent;
+    border: none;
+    color: var(--vscode-descriptionForeground);
+    cursor: pointer;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    &:hover {
+        color: var(--vscode-foreground);
+        background: var(--vscode-toolbar-hoverBackground);
+    }
 `;

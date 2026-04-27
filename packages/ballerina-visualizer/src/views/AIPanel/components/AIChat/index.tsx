@@ -55,7 +55,7 @@ import { ConfigurationCollectorSegment, ConfigurationCollectionData } from "../C
 import CheckpointSeparator from "../CheckpointSeparator";
 import { Attachment, AttachmentStatus, TaskApprovalRequest } from "@wso2/ballerina-core";
 
-import { AIChatView, Header, HeaderButtons, ChatMessage, TurnGroup, AuthProviderChip, UsageBadge, ApprovalOverlay, OverlayMessage } from "../../styles";
+import { AIChatView, Header, HeaderButtons, ChatMessage, TurnGroup, AuthProviderChip, UsageBadge, ApprovalOverlay, OverlayMessage, OverlayCloseButton } from "../../styles";
 import ReferenceDropdown from "../ReferenceDropdown";
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 import MarkdownRenderer from "../MarkdownRenderer";
@@ -1729,7 +1729,22 @@ const AIChat: React.FC = () => {
                 <AIChatView style={{ position: "relative" }}>
                     {approvalOverlay.show && (
                         <ApprovalOverlay>
-                            <OverlayMessage>{approvalOverlay.message || 'Processing...'}</OverlayMessage>
+                            <OverlayMessage>
+                                <span>{approvalOverlay.message || 'Processing...'}</span>
+                                {approvalOverlay.requestId && (
+                                    <OverlayCloseButton
+                                        title="Close"
+                                        aria-label="Close"
+                                        onClick={() => {
+                                            rpcClient
+                                                .getVisualizerRpcClient()
+                                                .handleApprovalPopupClose({ requestId: approvalOverlay.requestId! });
+                                        }}
+                                    >
+                                        <span className="codicon codicon-close" />
+                                    </OverlayCloseButton>
+                                )}
+                            </OverlayMessage>
                         </ApprovalOverlay>
                     )}
                     <Header>

@@ -232,6 +232,16 @@ export function formatCodebaseStructure(projects: ProjectSource[], tempProjectPa
         text += "<files>\n";
         text += files.map(formatFileWithContent).join("\n");
         text += "\n</files>\n";
+
+        if (tempProjectPath) {
+            const pkgRoot = isWorkspace && project.packagePath
+                ? path.join(tempProjectPath, project.packagePath)
+                : tempProjectPath;
+            const mainConfig = fs.existsSync(path.join(pkgRoot, "Config.toml")) ? "present" : "absent";
+            const testConfig = fs.existsSync(path.join(pkgRoot, "tests", "Config.toml")) ? "present" : "absent";
+            text += `<config_files main="${mainConfig}" tests="${testConfig}"/>\n`;
+        }
+
         text += "</project>\n";
     }
 
