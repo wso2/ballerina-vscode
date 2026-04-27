@@ -295,6 +295,11 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                     m.selected = m.type === newRecordModel.name;
                 });
             }
+        } catch (error) {
+            setHasTooManyFieldsError(false);
+            setRecordModel([]);
+            recordModelRef.current = [];
+            throw error;
         } finally {
             setIsLoading(false);
         }
@@ -442,6 +447,9 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                 // Generate source with the auto-selected field
                 await handleModelChange(newModel);
             }
+        } catch (error) {
+            setRecordModel([]);
+            recordModelRef.current = [];
         } finally {
             setIsLoading(false);
         }
@@ -704,7 +712,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                 onModelChange={handleModelChange}
                             />
                         ) : !isLoading ? (
-                            <Typography variant="body3">Record construction assistance is unavailable.</Typography>
+                            <Typography variant="body3">Record construction assistance is unavailable. Use the expression editor.</Typography>
                         ) : null}
                     </LeftColumn>
                     <RightColumn>
