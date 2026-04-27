@@ -19,7 +19,7 @@ import { RequiresAuthCheckbox } from "./Mcp/RequiresAuthCheckbox";
 import { attemptValueResolution, createMockTools, extractOriginalValues, generateToolKitName } from "./Mcp/utils";
 import { cleanServerUrl } from "./formUtils";
 import { Container, LoaderContainer } from "./styles";
-import { extractAccessToken, findAgentNodeFromAgentCallNode, getEndOfFileLineRange, resolveVariableValue, resolveAuthConfig, checkAiPackageVersionSupport } from "./utils";
+import { extractAccessToken, findAgentNodeFromAgentCallNode, getEndOfFileLineRange, removeQuotes, resolveVariableValue, resolveAuthConfig, checkAiPackageVersionSupport } from "./utils";
 
 interface Tool {
     name: string;
@@ -38,6 +38,10 @@ const SERVER_URL_FIELD_KEY = "serverUrl";
 const AUTH_FIELD_KEY = "auth";
 const RESULT_FIELD_KEY = "variable";
 const TOOLKIT_NAME_FIELD_KEY = "toolKitName";
+
+// Delegates to the shared removeQuotes so `"url"` and string `url` compare equal.
+const normalizeExpressionValue = (value: unknown): string =>
+    typeof value === "string" ? removeQuotes(value) : "";
 
 export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
     const { agentCallNode, onSave, editMode = false } = props;
@@ -63,6 +67,7 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
     const [resolutionError, setResolutionError] = useState<string>("");
     const [toolSource, setToolSource] = useState<'auto-fetched' | 'manual-discovery' | 'saved-mock' | null>(null);
     const isInitializingEditModeRef = useRef<boolean>(false);
+    const lastProcessedValuesRef = useRef<{ serverUrl: string; auth: string } | null>(null);
 
     const mcpToolKitNodeTemplateRef = useRef<FlowNode>(null);
     const mcpToolKitNodeRef = useRef<FlowNode>(null);
@@ -288,6 +293,8 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
 
             const { serverUrl: savedUrl, auth: savedAuth, permittedTools, requiresAuth: savedRequiresAuth, toolScopes: savedToolScopes } = extractOriginalValues(node);
 
+            lastProcessedValuesRef.current = { serverUrl: savedUrl, auth: savedAuth };
+
             // Update form state so FlowNodeForm displays values
             setRequiresAuth(savedRequiresAuth);
 
@@ -413,6 +420,13 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                 updatedNode: node,
                 toolScopes: showScopes && Object.keys(toolScopes).length > 0 ? toolScopes : undefined,
             });
+            
+            try {
+                await rpcClient.getAIAgentRpcClient().fixMissingImports();
+            } catch (importFixError) {
+                console.warn("fixMissingImports failed after MCP save", importFixError);
+            }
+
             onSave?.();
         } catch (error) {
             console.error("Error saving MCP server:", error);
@@ -497,14 +511,21 @@ export function AddMcpServer(props: AddMcpServerProps): JSX.Element {
                     node={mcpToolKitNodeRef.current}
                     onSubmit={handleSave}
                     onChange={(fieldKey, value) => {
+                        const processed = lastProcessedValuesRef.current;
                         if (fieldKey === SERVER_URL_FIELD_KEY) {
+                            const isReplay = processed !== null &&
+                                normalizeExpressionValue(value) === normalizeExpressionValue(processed.serverUrl);
                             setServerUrl(value);
-                            if (editMode && !isInitializingEditModeRef.current && toolSource !== null) {
+                            if (processed) processed.serverUrl = value;
+                            if (editMode && !isInitializingEditModeRef.current && toolSource !== null && !isReplay) {
                                 setToolSource(null);
                             }
                         } else if (fieldKey === AUTH_FIELD_KEY) {
+                            const isReplay = processed !== null &&
+                                normalizeExpressionValue(value) === normalizeExpressionValue(processed.auth);
                             setAuth(value);
-                            if (editMode && !isInitializingEditModeRef.current && toolSource !== null) {
+                            if (processed) processed.auth = value;
+                            if (editMode && !isInitializingEditModeRef.current && toolSource !== null && !isReplay) {
                                 setToolSource(null);
                             }
                         }
