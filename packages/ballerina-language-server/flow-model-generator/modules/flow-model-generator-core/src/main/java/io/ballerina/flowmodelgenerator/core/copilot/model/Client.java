@@ -18,6 +18,8 @@
 
 package io.ballerina.flowmodelgenerator.core.copilot.model;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +32,8 @@ public class Client {
     private String name;
     private String description;
     private List<LibraryFunction> functions;
+    @SerializedName("isDeprecated")
+    private Boolean deprecated;
 
     public Client(String name, String description) {
         this.name = name;
@@ -59,5 +63,13 @@ public class Client {
 
     public void setFunctions(List<LibraryFunction> functions) {
         this.functions = functions;
+    }
+
+    public Boolean isDeprecated() {
+        return deprecated;
+    }
+
+    public void setDeprecated(Boolean deprecated) {
+        this.deprecated = deprecated;
     }
 }

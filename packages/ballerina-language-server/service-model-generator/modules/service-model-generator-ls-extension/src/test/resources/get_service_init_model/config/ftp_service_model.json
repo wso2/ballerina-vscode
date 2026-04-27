@@ -12,9 +12,9 @@
       "orgName": "ballerina",
       "packageName": "ftp",
       "moduleName": "ftp",
-      "version": "2.18.0",
+      "version": "2.19.0",
       "type": "ftp",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.18.0.png",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.19.0.png",
       "properties": {
         "configureListener": {
           "metadata": {
@@ -159,8 +159,8 @@
                                         "label": "Username",
                                         "description": "Remote server username for authentication"
                                       },
-                                      "placeholder": "default",
-                                      "value": "\"default\"",
+                                      "placeholder": "",
+                                      "value": "",
                                       "types": [
                                         {
                                           "fieldType": "TEXT",
@@ -175,7 +175,7 @@
                                       ],
                                       "enabled": true,
                                       "editable": true,
-                                      "optional": true,
+                                      "optional": false,
                                       "advanced": false
                                     },
                                     "password": {
@@ -183,8 +183,8 @@
                                         "label": "Password",
                                         "description": "Remote server password for authentication"
                                       },
-                                      "placeholder": "default",
-                                      "value": "\"default\"",
+                                      "placeholder": "",
+                                      "value": "",
                                       "types": [
                                         {
                                           "fieldType": "TEXT",
@@ -310,6 +310,68 @@
                                 },
                                 {
                                   "metadata": {
+                                    "label": "Basic Authentication",
+                                    "description": ""
+                                  },
+                                  "placeholder": "true",
+                                  "value": "true",
+                                  "properties": {
+                                    "userName": {
+                                      "metadata": {
+                                        "label": "Username",
+                                        "description": "Remote server username for authentication"
+                                      },
+                                      "placeholder": "",
+                                      "value": "",
+                                      "types": [
+                                        {
+                                          "fieldType": "TEXT",
+                                          "ballerinaType": "string",
+                                          "selected": true
+                                        },
+                                        {
+                                          "fieldType": "EXPRESSION",
+                                          "ballerinaType": "string",
+                                          "selected": false
+                                        }
+                                      ],
+                                      "enabled": true,
+                                      "editable": true,
+                                      "optional": false,
+                                      "advanced": false
+                                    },
+                                    "password": {
+                                      "metadata": {
+                                        "label": "Password",
+                                        "description": "Remote server password for authentication"
+                                      },
+                                      "placeholder": "",
+                                      "value": "",
+                                      "types": [
+                                        {
+                                          "fieldType": "TEXT",
+                                          "ballerinaType": "string",
+                                          "selected": true
+                                        },
+                                        {
+                                          "fieldType": "EXPRESSION",
+                                          "ballerinaType": "string",
+                                          "selected": false
+                                        }
+                                      ],
+                                      "enabled": true,
+                                      "editable": true,
+                                      "optional": true,
+                                      "advanced": false
+                                    }
+                                  },
+                                  "enabled": false,
+                                  "editable": true,
+                                  "optional": false,
+                                  "advanced": false
+                                },
+                                {
+                                  "metadata": {
                                     "label": "Certificate Based Authentication",
                                     "description": ""
                                   },
@@ -333,7 +395,7 @@
                                           "typeMembers": [
                                             {
                                               "type": "PrivateKey",
-                                              "packageInfo": "ballerina:ftp:2.18.0",
+                                              "packageInfo": "ballerina:ftp:2.19.0",
                                               "packageName": "ftp",
                                               "kind": "RECORD_TYPE",
                                               "selected": true
@@ -495,8 +557,8 @@
                                         "label": "Username",
                                         "description": "Remote server username for authentication"
                                       },
-                                      "placeholder": "default",
-                                      "value": "\"default\"",
+                                      "placeholder": "",
+                                      "value": "",
                                       "types": [
                                         {
                                           "fieldType": "TEXT",
@@ -511,7 +573,7 @@
                                       ],
                                       "enabled": true,
                                       "editable": true,
-                                      "optional": true,
+                                      "optional": false,
                                       "advanced": false
                                     },
                                     "password": {
@@ -523,7 +585,7 @@
                                         "type": "IDENTIFIER"
                                       },
                                       "placeholder": "",
-                                      "value": "\"default\"",
+                                      "value": "",
                                       "types": [
                                         {
                                           "fieldType": "TEXT",
@@ -576,7 +638,7 @@
                                   "typeMembers": [
                                     {
                                       "type": "SecureSocket",
-                                      "packageInfo": "ballerina:ftp:2.18.0",
+                                      "packageInfo": "ballerina:ftp:2.19.0",
                                       "packageName": "ftp",
                                       "kind": "RECORD_TYPE",
                                       "selected": true

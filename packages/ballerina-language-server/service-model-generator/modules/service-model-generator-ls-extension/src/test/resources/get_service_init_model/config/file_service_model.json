@@ -1,5 +1,5 @@
 {
-  "description": "Test getting tcp service init model",
+  "description": "Test getting file service init model",
   "filePath": "sample1/main.bal",
   "orgName": "ballerina",
   "pkgName": "file",
@@ -12,9 +12,9 @@
       "orgName": "ballerina",
       "packageName": "file",
       "moduleName": "file",
-      "version": "1.12.0",
+      "version": "1.13.0",
       "type": "file",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_file_1.12.0.png",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_file_1.13.0.png",
       "properties": {
         "path": {
           "metadata": {

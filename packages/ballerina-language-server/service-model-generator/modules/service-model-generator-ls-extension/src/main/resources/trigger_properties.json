@@ -119,6 +119,16 @@
     "triggerName": "Solace"
   },
   "12": {
+    "name": "trigger.shopify",
+    "orgName": "ballerinax",
+    "packageName": "trigger.shopify",
+    "keywords": [
+      "shopify",
+      "event"
+    ],
+    "triggerName": "Shopify"
+  },
+  "13": {
     "name": "mssql",
     "orgName": "ballerinax",
     "packageName": "mssql",
@@ -128,7 +138,7 @@
       "event"
     ]
   },
-  "13": {
+  "14": {
     "name": "postgresql",
     "orgName": "ballerinax",
     "packageName": "postgresql",

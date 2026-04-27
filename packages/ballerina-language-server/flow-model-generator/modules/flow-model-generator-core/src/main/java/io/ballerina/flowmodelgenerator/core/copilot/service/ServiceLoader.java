@@ -27,459 +27,133 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * Service loader for loading library service definitions.
- * Handles loading from inbuilt-triggers and generic-services JSON files.
+ * Loads trigger services from service-index.sqlite and generic services from generic-services.json.
  *
  * @since 1.7.0
  */
 public class ServiceLoader {
 
+    private static final Logger LOGGER = Logger.getLogger(ServiceLoader.class.getName());
     private static final String GENERIC_SERVICES_JSON_PATH = "/copilot/generic-services.json";
+
+    // Lazily cached generic services keyed by library name
+    private static volatile Map<String, JsonArray> genericServicesCache;
 
     private ServiceLoader() {
         // Prevent instantiation
     }
 
     /**
-     * Loads all services for a given library from both inbuilt triggers and generic services.
+     * Loads all services for a given library from the service-index DB and generic services.
+     * Index-sourced entries carry a {@code name} field (the service-type name); callers that
+     * want deprecation flags should pass the result through
+     * {@link CopilotDeprecationEnricher#enrich(JsonArray, io.ballerina.compiler.api.SemanticModel)}
+     * before consuming.
+     *
+     * <p>If a generic-services.json entry shares its {@code name} with an index-sourced fixed
+     * entry, the generic entry takes precedence and the fixed one is dropped. This lets curated
+     * generic definitions (e.g. a hand-written {@code http:Listener} listener spec) override the
+     * raw shape produced by the SQLite index.
      *
      * @param libraryName the library name (e.g., "ballerina/http", "ballerinax/kafka")
      * @return JsonArray containing all services for this library
      */
     public static JsonArray loadAllServices(String libraryName) {
+        JsonArray genericServices = getGenericServices(libraryName);
+
+        Set<String> genericNames = new HashSet<>();
+        for (JsonElement element : genericServices) {
+            JsonObject svc = element.getAsJsonObject();
+            if (svc.has("name")) {
+                genericNames.add(svc.get("name").getAsString());
+            }
+        }
+
         JsonArray services = new JsonArray();
-
-        // Load from inbuilt triggers
-        JsonArray triggerServices = loadFromInbuiltTriggers(libraryName);
-        triggerServices.forEach(services::add);
-
-        // Load from generic services
-        JsonArray genericServices = loadFromGenericServices(libraryName);
+        for (JsonElement element : ServiceIndexLoader.loadFromServiceIndex(libraryName)) {
+            JsonObject svc = element.getAsJsonObject();
+            if (svc.has("name") && genericNames.contains(svc.get("name").getAsString())) {
+                continue;
+            }
+            services.add(svc);
+        }
         genericServices.forEach(services::add);
-
         return services;
     }
 
     /**
-     * Loads services from inbuilt-triggers JSON files.
-     * These JSON files contain service definitions with listener and function information.
-     *
-     * @param libraryName the library name (e.g., "ballerinax/kafka")
-     * @return JsonArray containing services, or empty array if not found
-     */
-    private static JsonArray loadFromInbuiltTriggers(String libraryName) {
-        JsonArray services = new JsonArray();
-
-        // Map library names to inbuilt-triggers file names
-        String triggerFileName = getInbuiltTriggerFileName(libraryName);
-        if (triggerFileName == null) {
-            return services; // No inbuilt trigger for this library
-        }
-
-        try (InputStream inputStream = ServiceLoader.class.getResourceAsStream(
-                "/inbuilt-triggers/" + triggerFileName)) {
-            if (inputStream == null) {
-                return services; // File not found
-            }
-
-            try (InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
-
-                JsonObject triggerData = JsonParser.parseReader(reader).getAsJsonObject();
-
-                // Extract listener information
-                JsonObject listener = triggerData.getAsJsonObject("listener");
-                if (listener == null) {
-                    return services;
-                }
-
-                // Extract service types
-                JsonArray serviceTypes = triggerData.getAsJsonArray("serviceTypes");
-                if (serviceTypes == null || serviceTypes.isEmpty()) {
-                    return services;
-                }
-
-                // Extract package name from library name for link resolution
-                String packageName = libraryName.contains("/") ?
-                        libraryName.substring(libraryName.indexOf("/") + 1) : libraryName;
-
-                // For each service type, create a service object
-                for (JsonElement serviceTypeElement : serviceTypes) {
-                    JsonObject serviceType = serviceTypeElement.getAsJsonObject();
-
-                    JsonObject serviceObj = new JsonObject();
-
-                    // Service type: "fixed" for specific listeners
-                    serviceObj.addProperty("type", "fixed");
-
-                    // Build listener object
-                    JsonObject listenerObj = buildListenerFromTriggerData(listener, packageName);
-                    serviceObj.add("listener", listenerObj);
-
-                    // Extract functions from service type and add as methods for fixed services
-                    JsonArray functionsFromService = serviceType.getAsJsonArray("functions");
-                    if (functionsFromService != null && !functionsFromService.isEmpty()) {
-                        JsonArray transformedMethods = new JsonArray();
-                        for (JsonElement funcElement : functionsFromService) {
-                            JsonObject func = funcElement.getAsJsonObject();
-                            JsonObject transformedMethod = transformServiceMethod(func, packageName);
-                            transformedMethods.add(transformedMethod);
-                        }
-                        serviceObj.add("methods", transformedMethods);
-                    }
-
-                    services.add(serviceObj);
-                }
-
-            }
-        } catch (IOException e) {
-            // If file doesn't exist or cannot be read, return empty array
-            return services;
-        }
-
-        return services;
-    }
-
-    /**
-     * Loads generic services for a specific library from the generic-services.json file.
+     * Returns cached generic services for a specific library from the generic-services.json resource.
      *
      * @param libraryName the library name (e.g., "ballerina/http")
      * @return JsonArray containing services for this library, or empty array if not found
      */
-    private static JsonArray loadFromGenericServices(String libraryName) {
-        JsonArray matchingServices = new JsonArray();
+    private static JsonArray getGenericServices(String libraryName) {
+        Map<String, JsonArray> cache = genericServicesCache;
+        if (cache == null) {
+            synchronized (ServiceLoader.class) {
+                cache = genericServicesCache;
+                if (cache == null) {
+                    cache = loadGenericServicesMap();
+                    genericServicesCache = cache;
+                }
+            }
+        }
+        return cache.getOrDefault(libraryName, new JsonArray());
+    }
+
+    /**
+     * Parses generic-services.json once and indexes entries by library name.
+     */
+    private static Map<String, JsonArray> loadGenericServicesMap() {
+        Map<String, JsonArray> map = new HashMap<>();
 
         try (InputStream inputStream = ServiceLoader.class.getResourceAsStream(GENERIC_SERVICES_JSON_PATH)) {
             if (inputStream == null) {
-                return matchingServices; // File not found, return empty array
+                LOGGER.warning("Generic services resource not found: " + GENERIC_SERVICES_JSON_PATH);
+                return map;
             }
 
             try (InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
                 JsonObject genericServicesData = JsonParser.parseReader(reader).getAsJsonObject();
 
-                // Get the services array
                 JsonArray allServices = genericServicesData.getAsJsonArray("services");
                 if (allServices == null || allServices.isEmpty()) {
-                    return matchingServices;
+                    return map;
                 }
 
-                // Filter services by library name
                 for (JsonElement serviceElement : allServices) {
                     JsonObject service = serviceElement.getAsJsonObject();
 
-                    // Check if this service belongs to the requested library
-                    if (service.has("libraryName") &&
-                        service.get("libraryName").getAsString().equals(libraryName)) {
+                    if (service.has("libraryName")) {
+                        String libName = service.get("libraryName").getAsString();
 
-                        // Create a copy of the service without the libraryName field
                         JsonObject serviceObj = new JsonObject();
                         serviceObj.addProperty("type", service.get("type").getAsString());
+                        if (service.has("name")) {
+                            serviceObj.addProperty("name", service.get("name").getAsString());
+                        }
                         serviceObj.addProperty("instructions", service.get("instructions").getAsString());
 
-                        // Copy listener object
                         if (service.has("listener")) {
                             serviceObj.add("listener", service.get("listener"));
                         }
 
-                        matchingServices.add(serviceObj);
+                        map.computeIfAbsent(libName, k -> new JsonArray()).add(serviceObj);
                     }
                 }
             }
         } catch (IOException e) {
-            // If file doesn't exist or cannot be read, return empty array
-            return matchingServices;
+            LOGGER.warning("Failed to load generic services: " + e.getMessage());
         }
 
-        return matchingServices;
-    }
-
-    /**
-     * Maps library names to inbuilt-trigger file names.
-     *
-     * @param libraryName the library name (e.g., "ballerinax/kafka")
-     * @return the trigger file name (e.g., "kafka.json") or null if not a trigger library
-     */
-    private static String getInbuiltTriggerFileName(String libraryName) {
-        // Remove org prefix if present
-        String packageName = libraryName.contains("/") ?
-                libraryName.substring(libraryName.indexOf("/") + 1) : libraryName;
-
-        // Map known trigger libraries to their JSON file names
-        return switch (packageName) {
-            case "kafka" -> "kafka.json";
-            case "asb" -> "asb.json";
-            case "jms" -> "jms.json";
-            case "rabbitmq" -> "rabbitmq.json";
-            case "nats" -> "nats.json";
-            case "ftp" -> "ftp.json";
-            case "mqtt" -> "mqtt.json";
-            case "salesforce" -> "salesforce.json";
-            case "trigger.github", "github" -> "github.json";
-            default -> null;
-        };
-    }
-
-    /**
-     * Builds a listener object from inbuilt-triggers listener data.
-     *
-     * @param listenerData the listener JSON object from triggers file
-     * @return JsonObject representing the listener
-     */
-    private static JsonObject buildListenerFromTriggerData(JsonObject listenerData, String packageName) {
-        JsonObject listenerObj = new JsonObject();
-
-        // Get listener name from valueTypeConstraint
-        String listenerName = listenerData.has("valueTypeConstraint") ?
-                listenerData.get("valueTypeConstraint").getAsString() : "Listener";
-        listenerObj.addProperty("name", listenerName);
-
-        // Extract parameters from listener properties
-        JsonArray parametersArray = new JsonArray();
-        if (listenerData.has("properties")) {
-            JsonObject properties = listenerData.getAsJsonObject("properties");
-            for (String propKey : properties.keySet()) {
-                JsonObject prop = properties.getAsJsonObject(propKey);
-                JsonObject paramObj = buildParameterFromProperty(propKey, prop, packageName);
-                parametersArray.add(paramObj);
-            }
-        }
-
-        listenerObj.add("parameters", parametersArray);
-        return listenerObj;
-    }
-
-    /**
-     * Builds a parameter object from a listener property.
-     *
-     * @param propertyName the property name
-     * @param property the property JSON object
-     * @return JsonObject representing the parameter
-     */
-    private static JsonObject buildParameterFromProperty(String propertyName, JsonObject property,
-                                                          String packageName) {
-        JsonObject paramObj = new JsonObject();
-
-        // Parameter name
-        paramObj.addProperty("name", propertyName);
-
-        // Parameter description from metadata
-        String description = "";
-        if (property.has("metadata")) {
-            JsonObject metadata = property.getAsJsonObject("metadata");
-            if (metadata.has("description")) {
-                description = metadata.get("description").getAsString();
-            }
-        }
-        paramObj.addProperty("description", description);
-
-        // Parameter type
-        String typeName = property.has("valueTypeConstraint") ?
-                property.get("valueTypeConstraint").getAsString() : "string";
-        JsonObject typeObj = resolveTypeWithLinks(typeName, packageName);
-        paramObj.add("type", typeObj);
-
-        // Default value if present
-        if (property.has("placeholder") && !property.get("placeholder").isJsonNull()
-                && !property.get("placeholder").getAsString().isEmpty()) {
-            paramObj.addProperty("default", property.get("placeholder").getAsString());
-        }
-
-        return paramObj;
-    }
-
-    /**
-     * Transforms a service function from trigger data to a service method format.
-     * Service methods don't include the name field (unlike LibraryFunction).
-     *
-     * @param functionData the function JSON object from triggers file
-     * @return JsonObject representing the transformed service method
-     */
-    private static JsonObject transformServiceMethod(JsonObject functionData, String packageName) {
-        JsonObject method = new JsonObject();
-
-        // Determine method type
-        String methodType = "remote";
-        if (functionData.has("qualifiers")) {
-            JsonArray qualifiers = functionData.getAsJsonArray("qualifiers");
-            if (qualifiers != null && !qualifiers.isEmpty()) {
-                String qualifier = qualifiers.get(0).getAsString();
-                methodType = qualifier.equals("resource") ? "resource" : "remote";
-            }
-        }
-        method.addProperty("type", methodType);
-
-        // Method documentation
-        if (functionData.has("documentation")) {
-            method.addProperty("description", functionData.get("documentation").getAsString());
-        }
-
-        // Parameters
-        if (functionData.has("parameters")) {
-            JsonArray parameters = functionData.getAsJsonArray("parameters");
-            JsonArray transformedParams = new JsonArray();
-            for (JsonElement paramElement : parameters) {
-                JsonObject param = paramElement.getAsJsonObject();
-                JsonObject transformedParam = new JsonObject();
-
-                // Parameter name
-                if (param.has("name")) {
-                    transformedParam.addProperty("name", param.get("name").getAsString());
-                }
-
-                // Parameter description
-                if (param.has("documentation")) {
-                    transformedParam.addProperty("description", param.get("documentation").getAsString());
-                }
-
-                // Parameter type
-                JsonObject typeObj = extractTypeObject(param, packageName);
-                transformedParam.add("type", typeObj);
-
-                // Optional flag
-                if (param.has("optional")) {
-                    transformedParam.addProperty("optional", param.get("optional").getAsBoolean());
-                }
-
-                transformedParams.add(transformedParam);
-            }
-            method.add("parameters", transformedParams);
-        }
-
-        // Return type
-        if (functionData.has("returnType")) {
-            JsonObject returnTypeData = functionData.getAsJsonObject("returnType");
-            JsonObject returnObj = new JsonObject();
-            JsonObject returnTypeObj = extractTypeObject(returnTypeData, packageName);
-            returnObj.add("type", returnTypeObj);
-            method.add("return", returnObj);
-        }
-
-        return method;
-    }
-
-    /**
-     * Extracts type information from a JSON object containing type data.
-     * Handles both "type" and "typeName" fields, where "type" can be either a string or an array.
-     * Falls back to "valueTypeConstraint" when "typeName" is a generic type category like "record".
-     *
-     * @param typeData the JSON object containing type information
-     * @return JsonObject with "name" property containing the type name
-     */
-    private static JsonObject extractTypeObject(JsonObject typeData, String packageName) {
-        String typeName = null;
-
-        if (typeData.has("typeName")) {
-            typeName = typeData.get("typeName").getAsString();
-        }
-
-        // When typeName is a generic type category (e.g., "record"), use valueTypeConstraint
-        // which has the specific record type name (e.g., "github:IssueCommentEvent")
-        if ("record".equals(typeName) && typeData.has("valueTypeConstraint")) {
-            typeName = typeData.get("valueTypeConstraint").getAsString();
-        } else if (typeName == null) {
-            if (typeData.has("type")) {
-                JsonElement typeElement = typeData.get("type");
-                if (typeElement.isJsonArray()) {
-                    JsonArray typeArray = typeElement.getAsJsonArray();
-                    if (!typeArray.isEmpty()) {
-                        typeName = typeArray.get(0).getAsString();
-                    }
-                } else {
-                    typeName = typeElement.getAsString();
-                }
-            }
-        }
-
-        return resolveTypeWithLinks(typeName != null ? typeName : "", packageName);
-    }
-
-    /**
-     * Resolves a type name by stripping the package prefix if it matches the current library,
-     * and adding internal links for each non-primitive type component.
-     *
-     * @param typeName the raw type name (e.g., "salesforce:ListenerConfig", "error?")
-     * @param packageName the current package name (e.g., "salesforce")
-     * @return JsonObject with "name" and optionally "links"
-     */
-    private static JsonObject resolveTypeWithLinks(String typeName, String packageName) {
-        JsonObject typeObj = new JsonObject();
-
-        // Fast path for non-union types (the common case)
-        if (!typeName.contains("|")) {
-            String prefix = findMatchingPrefix(typeName, packageName);
-            if (prefix != null) {
-                String strippedName = typeName.substring(prefix.length());
-                String recordName = strippedName.endsWith("?") ?
-                        strippedName.substring(0, strippedName.length() - 1) : strippedName;
-                typeObj.addProperty("name", strippedName);
-                JsonArray links = new JsonArray();
-                JsonObject link = new JsonObject();
-                link.addProperty("category", "internal");
-                link.addProperty("recordName", recordName);
-                links.add(link);
-                typeObj.add("links", links);
-            } else {
-                typeObj.addProperty("name", typeName);
-            }
-            return typeObj;
-        }
-
-        // Union type handling
-        JsonArray links = new JsonArray();
-        String[] parts = typeName.split("\\|");
-        StringBuilder resolvedBuilder = new StringBuilder();
-        for (int i = 0; i < parts.length; i++) {
-            String part = parts[i].trim();
-
-            String prefix = findMatchingPrefix(part, packageName);
-            if (prefix != null) {
-                String strippedName = part.substring(prefix.length());
-                String recordName = strippedName.endsWith("?") ?
-                        strippedName.substring(0, strippedName.length() - 1) : strippedName;
-                part = strippedName;
-
-                JsonObject link = new JsonObject();
-                link.addProperty("category", "internal");
-                link.addProperty("recordName", recordName);
-                links.add(link);
-            }
-
-            if (i > 0) {
-                resolvedBuilder.append("|");
-            }
-            resolvedBuilder.append(part);
-        }
-
-        typeObj.addProperty("name", resolvedBuilder.toString());
-        if (!links.isEmpty()) {
-            typeObj.add("links", links);
-        }
-
-        return typeObj;
-    }
-
-    /**
-     * Finds the matching package prefix for a type name.
-     * For submodule packages (e.g., "trigger.github"), also tries the module alias
-     * (e.g., "github:") since Ballerina import aliases use the last segment.
-     *
-     * @param typeName the type name to check
-     * @param packageName the package name (e.g., "trigger.github" or "salesforce")
-     * @return the matching prefix string, or null if no prefix matches
-     */
-    private static String findMatchingPrefix(String typeName, String packageName) {
-        String fullPrefix = packageName + ":";
-        if (typeName.startsWith(fullPrefix)) {
-            return fullPrefix;
-        }
-        // For submodule packages (e.g., "trigger.github"), try the module alias ("github:")
-        if (packageName.contains(".")) {
-            String aliasPrefix = packageName.substring(packageName.lastIndexOf('.') + 1) + ":";
-            if (typeName.startsWith(aliasPrefix)) {
-                return aliasPrefix;
-            }
-        }
-        return null;
+        return map;
     }
 }
