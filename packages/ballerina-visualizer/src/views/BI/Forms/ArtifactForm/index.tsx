@@ -77,6 +77,7 @@ import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../Flo
 import { EditorContext, StackItem } from "@wso2/type-editor";
 import DynamicModal from "../../../../components/Modal";
 import { useModalStack } from "../../../../Context";
+import { deserializeForDiagnosticsAPI } from "../form-utils";
 
 interface ArtifactTypeEditorState {
     isOpen: boolean;
@@ -707,7 +708,7 @@ export function ArtifactForm(props: ArtifactFormProps) {
                         const response = await rpcClient.getBIDiagramRpcClient().getExpressionDiagnostics({
                             filePath: fileName,
                             context: {
-                                expression: expression,
+                                expression: deserializeForDiagnosticsAPI(expression),
                                 startLine: getAdjustedStartLine(targetLineRange, expressionOffsetRef.current),
                                 lineOffset: 0,
                                 offset: 0,
