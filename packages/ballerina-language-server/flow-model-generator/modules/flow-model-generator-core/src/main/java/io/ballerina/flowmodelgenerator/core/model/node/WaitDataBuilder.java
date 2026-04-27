@@ -487,11 +487,9 @@ public class WaitDataBuilder extends CallBuilder {
         FunctionSignatureNode signatureNode = functionNode.functionSignature();
         LineRange closeParenLineRange = signatureNode.closeParenToken().lineRange();
         Range insertRange = CommonUtils.toRange(closeParenLineRange.startLine());
-        if (!signatureNode.parameters().isEmpty()) {
-            sourceBuilder.token().keyword(SyntaxKind.COMMA_TOKEN).whiteSpace();
-        }
-
+        // When adding data param, ctx param will always present
         sourceBuilder.token()
+                .keyword(SyntaxKind.COMMA_TOKEN)
                 .name(dataTypeName)
                 .whiteSpace()
                 .name(DEFAULT_DATA_PARAM_NAME)
