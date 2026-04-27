@@ -1693,9 +1693,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                         selectedNodeRef.current = undefined;
                         closeSidePanelAndFetchUpdatedFlowModel();
                     }
-                    if (options?.postUpdateCallBack) {
-                        options.postUpdateCallBack();
-                    }
                     shouldUpdateLineRangeRef.current = options?.isChangeFromHelperPane;
                     if (options?.isChangeFromHelperPane) {
                         const updatedModel = await rpcClient.getBIDiagramRpcClient().getFlowModel({});
@@ -1739,6 +1736,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                         shouldUpdateLineRangeRef.current = false;
                     }
                     updatedNodeRef.current = updatedNode;
+                    if (options?.postUpdateCallBack) {
+                        options.postUpdateCallBack();
+                    }
                 } else {
                     console.error(">>> Error updating source code", response);
                 }
