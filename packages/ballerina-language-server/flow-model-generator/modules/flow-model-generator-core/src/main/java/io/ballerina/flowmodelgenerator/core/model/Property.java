@@ -370,6 +370,10 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
     public static class Builder<T> extends FacetedBuilder<T> implements DiagnosticHandler.DiagnosticCapable {
 
+        // Tracks type signatures currently being expanded in typeWithExpression on this thread.
+        // Prevents infinite recursion for self-referential types.
+        private static final ThreadLocal<Set<String>> EXPANDING_TYPES = ThreadLocal.withInitial(java.util.HashSet::new);
+
         private List<PropertyType> types = new ArrayList<>();
         private Object value;
         private Object oldValue;
@@ -665,6 +669,27 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             }
             String ballerinaType = CommonUtils.getTypeSignature(typeSymbol, moduleInfo);
 
+            // Short-circuit self-referential types
+            Set<String> expanding = EXPANDING_TYPES.get();
+            if (!expanding.add(ballerinaType)) {
+                builder.type().fieldType(ValueType.EXPRESSION).ballerinaType(ballerinaType).stepOut();
+                return this;
+            }
+            try {
+                return typeWithExpressionInner(typeSymbol, moduleInfo, value, semanticModel, defaultValue,
+                        builder, diagnosticHandler, ballerinaType);
+            } finally {
+                expanding.remove(ballerinaType);
+                if (expanding.isEmpty()) {
+                    EXPANDING_TYPES.remove();
+                }
+            }
+        }
+
+        private Builder<T> typeWithExpressionInner(TypeSymbol typeSymbol, ModuleInfo moduleInfo,
+                                                   Node value, SemanticModel semanticModel, String defaultValue,
+                                                   Property.Builder<?> builder,
+                                                   DiagnosticHandler diagnosticHandler, String ballerinaType) {
             // Handle the primitive input types
             boolean success = handlePrimitiveType(typeSymbol, ballerinaType, semanticModel, moduleInfo, builder);
 
@@ -691,7 +716,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                     if (defaultValue != null && !defaultValue.isEmpty()) {
                         options = reorderOptionsByDefaultValue(options, defaultValue);
                     }
-                    type().fieldType(ValueType.SINGLE_SELECT).options(options).stepOut();
+                    builder.type().fieldType(ValueType.SINGLE_SELECT).options(options).stepOut();
                 } else {
                     // Handle union of primitive types by defining an input type for each primitive type
                     for (TypeSymbol ts : typeSymbols) {

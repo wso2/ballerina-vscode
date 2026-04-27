@@ -751,7 +751,7 @@
             ],
             "enabled": true,
             "editable": true,
-            "optional": false,
+            "optional": true,
             "advanced": false
           },
           "name": {

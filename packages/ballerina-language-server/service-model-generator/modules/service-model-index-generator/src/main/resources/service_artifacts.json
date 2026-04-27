@@ -385,7 +385,7 @@
     },
     {
       "name": "ftp",
-      "version": "2.18.0",
+      "version": "2.19.0",
       "serviceTypeSkipList": [
         "Service"
       ],
@@ -1629,14 +1629,14 @@
         "typeDescriptorDescription": "The name of the service contract type",
         "typeDescriptorDefaultValue": "Service",
         "addDefaultTypeDescriptor": 0,
-        "optionalAbsoluteResourcePath": 0,
-        "absoluteResourcePathLabel": "Event Channel",
-        "absoluteResourcePathDescription": "The event channel name",
-        "absoluteResourcePathDefaultValue": "/data/ChangeEvents",
-        "optionalStringLiteral": 1,
-        "stringLiteralLabel": "Service Base Path",
-        "stringLiteralDescription": "",
-        "stringLiteralDefaultValue": "",
+        "optionalAbsoluteResourcePath": 1,
+        "absoluteResourcePathLabel": "Service base path",
+        "absoluteResourcePathDescription": "",
+        "absoluteResourcePathDefaultValue": "",
+        "optionalStringLiteral": 0,
+        "stringLiteralLabel": "Event Channel",
+        "stringLiteralDescription": "The event channel name",
+        "stringLiteralDefaultValue": "\"/data/ChangeEvents\"",
         "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "event"
       },
@@ -1646,11 +1646,15 @@
         "basePath": {
           "label": "Event Channel",
           "description": "The event channel name",
-          "defaultValue": "/data/ChangeEvents",
+          "defaultValue": "\"/data/ChangeEvents\"",
           "placeholder": "/data/ChangeEvents",
           "types": [
             {
-              "fieldType": "SERVICE_PATH",
+              "fieldType": "TEXT",
+              "ballerinaType": "string"
+            },
+            {
+              "fieldType": "EXPRESSION",
               "ballerinaType": "string"
             }
           ],
