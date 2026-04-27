@@ -191,6 +191,21 @@ export function activateSubscriptions() {
     );
 
     context.subscriptions.push(
+        vscode.commands.registerCommand(SHARED_COMMANDS.OPEN_BI_NEW_PROJECT, () => {
+            const isWorkspaceSupported = isSupportedSLVersion(
+                extension.ballerinaExtInstance,
+                createVersionNumber(2201, 13, 0)
+            );
+
+            if (isWorkspaceSupported) {
+                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BIAddProjectForm });
+            } else {
+                vscode.window.showErrorMessage(MESSAGES.PROJECTS_NOT_SUPPORTED);
+            }
+        })
+    );
+
+    context.subscriptions.push(
         vscode.commands.registerCommand(BI_COMMANDS.OPEN_TYPE_DIAGRAM, handleOpenTypeDiagram)
     );
 
