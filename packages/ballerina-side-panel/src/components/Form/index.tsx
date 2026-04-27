@@ -606,7 +606,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                 }
             });
             setDiagnosticsInfo(diagnosticsMap);
-            reset(defaultValues);
+            reset(defaultValues, { keepDirtyValues: true });
 
             if (changeOptionalFieldTitle) {
                 setOptionalFieldsTitle("Advanced Configurations");
@@ -780,7 +780,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
     // has advance fields
     const hasAdvanceFields = formFields.some((field) => field.advanced && field.enabled && !field.hidden) || advancedChoiceFields.length > 0;
     const variableField = formFields.find((field) => field.key === "variable");
-    const typeField = formFields.find((field) => getPrimaryInputType(field.types)?.fieldType === "TYPE");
+    const typeField = formFields.find((field) => !field.advanced && !field.hidden && getPrimaryInputType(field.types)?.fieldType === "TYPE");
     const expressionField = formFields.find((field) => getSecondaryInputType(field.types)?.fieldType === "EXPRESSION" || getPrimaryInputType(field.types)?.fieldType === "ACTION_OR_EXPRESSION");
     const targetTypeField = formFields.find((field) => field.codedata?.kind === "PARAM_FOR_TYPE_INFER");
     const hasParameters = hasRequiredParameters(formFields, selectedNode) || hasOptionalParameters(formFields);

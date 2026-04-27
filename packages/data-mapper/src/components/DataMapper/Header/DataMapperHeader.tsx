@@ -39,11 +39,13 @@ export interface DataMapperHeaderProps {
     onRefresh: () => Promise<void>;
     onReset: () => Promise<void>;
     autoMapWithAI: () => Promise<void>;
+    autoMapDisabled?: boolean;
+    autoMapDisabledTooltip?: string;
     undoRedoGroup: () => JSX.Element;
 }
 
 export function DataMapperHeader(props: DataMapperHeaderProps) {
-    const { views, reusable, switchView, hasEditDisabled, onClose, onBack, onRefresh, onReset, onEdit, autoMapWithAI, undoRedoGroup } = props;
+    const { views, reusable, switchView, hasEditDisabled, onClose, onBack, onRefresh, onReset, onEdit, autoMapWithAI, autoMapDisabled, autoMapDisabledTooltip, undoRedoGroup } = props;
 
     const handleAutoMap = async () => {
         await autoMapWithAI();
@@ -82,7 +84,11 @@ export function DataMapperHeader(props: DataMapperHeaderProps) {
                     <FilterBar>
                         <HeaderSearchBox />
                     </FilterBar>
-                    <AutoMapButton onClick={handleAutoMap} disabled={false} />
+                    <AutoMapButton
+                        onClick={handleAutoMap}
+                        disabled={autoMapDisabled}
+                        tooltip={autoMapDisabled ? autoMapDisabledTooltip : undefined}
+                    />
                     {onEdit && <ConfigButton onClick={onEdit} disabled={hasEditDisabled} />}
                 </RightContainer>
                 <VSCodeButton

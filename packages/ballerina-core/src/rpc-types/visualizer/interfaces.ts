@@ -84,3 +84,7 @@ export interface SaveEvalThreadResponse {
 export interface GoBackRequest {
     identifier?: string;
 }
+
+export interface GoHomeRequest {
+    isPackageOverview?: boolean; // If true, go to the package overview, otherwise go to the workspace overview
+}

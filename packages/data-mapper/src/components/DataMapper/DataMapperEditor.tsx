@@ -28,6 +28,7 @@ import { DataMapperHeader } from "./Header/DataMapperHeader";
 import { DataMapperNodeModel } from "../Diagram/Node/commons/DataMapperNode";
 import { IONodeInitVisitor } from "../../visitors/IONodeInitVisitor";
 import { traverseNode } from "../../utils/model-utils";
+import { isUnresolvedJsonOrXml } from "../Diagram/utils/common-utils";
 import { View } from "./Views/DataMapperView";
 import {
     useDMCollapsedFieldsStore,
@@ -330,6 +331,11 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         await rpcClient.getAiPanelRpcClient().openChatWindowWithCommand();
     };
 
+    const autoMapDisabled =
+        model.inputs?.some(isUnresolvedJsonOrXml) ||
+        isUnresolvedJsonOrXml(model.output);
+    const autoMapDisabledTooltip = "Auto Map requires specific record types instead of generic types";
+
     const addNewSubMapping = async (
         subMappingName: string,
         type: string,
@@ -354,6 +360,8 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                     onReset={handleOnReset}
                     onEdit={onEdit}
                     autoMapWithAI={autoMapWithAI}
+                    autoMapDisabled={autoMapDisabled}
+                    autoMapDisabledTooltip={autoMapDisabledTooltip}
                     undoRedoGroup={undoRedoGroup}
                 />
             )}
