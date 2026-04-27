@@ -148,6 +148,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
     const sourceCode = useRef<string>(currentValue);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [hasTooManyFieldsError, setHasTooManyFieldsError] = useState<boolean>(false);
+    const TOO_MANY_FIELDS_ERROR = "Record config is too large to send. The record type has too many nested fields.";
     // Local state for expression value - only update form on save/close
     const [localExpressionValue, setLocalExpressionValue] = useState<string>(currentValue);
     // Diagnostics state
@@ -240,60 +241,61 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
     const fetchRecordModelFromSource = async (currentValue: string) => {
         setIsLoading(true);
         setHasTooManyFieldsError(false);
-        let org = "";
-        let module = "";
-        let version = "";
-        let packageInfo = "";
+        try {
+            let org = "";
+            let module = "";
+            let version = "";
+            let packageInfo = "";
 
-        if (recordTypeField.recordTypeMembers[0].packageInfo?.length > 0) {
-            const parts = recordTypeField.recordTypeMembers[0].packageInfo.split(':');
-            if (parts.length === 3) {
-                [org, module, version] = parts;
-                packageInfo = recordTypeField.recordTypeMembers[0].packageInfo;
+            if (recordTypeField.recordTypeMembers[0].packageInfo?.length > 0) {
+                const parts = recordTypeField.recordTypeMembers[0].packageInfo.split(':');
+                if (parts.length === 3) {
+                    [org, module, version] = parts;
+                    packageInfo = recordTypeField.recordTypeMembers[0].packageInfo;
+                }
+            } else {
+                const tomValues = await rpcClient.getCommonRpcClient().getCurrentProjectTomlValues();
+                org = tomValues?.package?.org || "";
+                module = tomValues?.package?.name || "";
+                version = tomValues?.package?.version || "";
             }
-        } else {
-            const tomValues = await rpcClient.getCommonRpcClient().getCurrentProjectTomlValues();
-            org = tomValues?.package?.org || "";
-            module = tomValues?.package?.name || "";
-            version = tomValues?.package?.version || "";
-        }
-        packageInfo = `${org}:${module}:${version}`;
-        recordTypeField.recordTypeMembers[0].packageInfo = packageInfo;
-        const getRecordModelFromSourceRequest: GetRecordModelFromSourceRequest = {
-            filePath: fileName,
-            typeMembers: recordTypeField.recordTypeMembers,
-            expr: currentValue
-        }
+            packageInfo = `${org}:${module}:${version}`;
+            recordTypeField.recordTypeMembers[0].packageInfo = packageInfo;
+            const getRecordModelFromSourceRequest: GetRecordModelFromSourceRequest = {
+                filePath: fileName,
+                typeMembers: recordTypeField.recordTypeMembers,
+                expr: currentValue
+            }
 
-        const getRecordModelFromSourceResponse: GetRecordModelFromSourceResponse =
-            await rpcClient.getBIDiagramRpcClient().getRecordModelFromSource(getRecordModelFromSourceRequest);
-        console.log(">>> getRecordModelFromSourceResponse", getRecordModelFromSourceResponse);
+            const getRecordModelFromSourceResponse: GetRecordModelFromSourceResponse =
+                await rpcClient.getBIDiagramRpcClient().getRecordModelFromSource(getRecordModelFromSourceRequest);
+            console.log(">>> getRecordModelFromSourceResponse", getRecordModelFromSourceResponse);
 
-        if (getRecordModelFromSourceResponse.errorMsg) {
-            setHasTooManyFieldsError(true);
+            if (getRecordModelFromSourceResponse.errorMsg) {
+                setHasTooManyFieldsError(getRecordModelFromSourceResponse.errorMsg === TOO_MANY_FIELDS_ERROR);
+                return;
+            }
+
+            const newRecordModel = getRecordModelFromSourceResponse.recordConfig;
+
+            if (newRecordModel) {
+                const recordConfig: TypeField = {
+                    name: newRecordModel.name,
+                    ...newRecordModel
+                }
+
+                setRecordModel([recordConfig]);
+                recordModelRef.current = [recordConfig];
+                setSelectedMemberName(newRecordModel.name);
+
+                // Update selected flags so the backend receives the correct type on submit
+                recordTypeField.recordTypeMembers.forEach(m => {
+                    m.selected = m.type === newRecordModel.name;
+                });
+            }
+        } finally {
             setIsLoading(false);
-            return;
         }
-
-        const newRecordModel = getRecordModelFromSourceResponse.recordConfig;
-
-        if (newRecordModel) {
-            const recordConfig: TypeField = {
-                name: newRecordModel.name,
-                ...newRecordModel
-            }
-
-            setRecordModel([recordConfig]);
-            recordModelRef.current = [recordConfig];
-            setSelectedMemberName(newRecordModel.name);
-
-            // Update selected flags so the backend receives the correct type on submit
-            recordTypeField.recordTypeMembers.forEach(m => {
-                m.selected = m.type === newRecordModel.name;
-            });
-        }
-
-        setIsLoading(false);
     }
 
     const getExistingRecordModel = async () => {
@@ -322,73 +324,77 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
         setHasTooManyFieldsError(false);
         const defaultSelection = recordTypeField.recordTypeMembers[0];
         setSelectedMemberName(defaultSelection.type);
+        try {
+            let org = "";
+            let module = "";
+            let version = "";
+            let packageName = "";
 
-        let org = "";
-        let module = "";
-        let version = "";
-        let packageName = "";
-
-        if (defaultSelection?.packageInfo.length > 0) {
-            const parts = defaultSelection.packageInfo.split(':');
-            if (parts.length === 3) {
-                [org, module, version] = parts;
-                packageName = defaultSelection.packageName;
+            if (defaultSelection?.packageInfo.length > 0) {
+                const parts = defaultSelection.packageInfo.split(':');
+                if (parts.length === 3) {
+                    [org, module, version] = parts;
+                    packageName = defaultSelection.packageName;
+                }
+            } else {
+                const tomValues = await rpcClient.getCommonRpcClient().getCurrentProjectTomlValues();
+                org = tomValues?.package?.org || "";
+                module = tomValues?.package?.name || "";
+                version = tomValues?.package?.version || "";
+                packageName = tomValues?.package?.name || "";
             }
-        } else {
-            const tomValues = await rpcClient.getCommonRpcClient().getCurrentProjectTomlValues();
-            org = tomValues?.package?.org || "";
-            module = tomValues?.package?.name || "";
-            version = tomValues?.package?.version || "";
-            packageName = tomValues?.package?.name || "";
-        }
 
-        const request: GetRecordConfigRequest = {
-            filePath: fileName,
-            codedata: {
-                org: org,
-                module: module,
-                version: version,
-                packageName: packageName,
-            },
-            typeConstraint: defaultSelection.type,
-        }
-        const typeFieldResponse: GetRecordConfigResponse = await rpcClient.getBIDiagramRpcClient().getRecordConfig(request);
-        console.log(">>> GetRecordConfigResponse", typeFieldResponse);
-        if (typeFieldResponse.errorMsg) {
-            setHasTooManyFieldsError(true);
+            const request: GetRecordConfigRequest = {
+                filePath: fileName,
+                codedata: {
+                    org: org,
+                    module: module,
+                    version: version,
+                    packageName: packageName,
+                },
+                typeConstraint: defaultSelection.type,
+            }
+            const typeFieldResponse: GetRecordConfigResponse = await rpcClient.getBIDiagramRpcClient().getRecordConfig(request);
+            console.log(">>> GetRecordConfigResponse", typeFieldResponse);
+            if (typeFieldResponse.errorMsg) {
+                setHasTooManyFieldsError(typeFieldResponse.errorMsg === TOO_MANY_FIELDS_ERROR);
+                return;
+            }
+            if (typeFieldResponse.recordConfig) {
+                const recordConfig: TypeField = {
+                    name: defaultSelection.type,
+                    ...typeFieldResponse.recordConfig
+                }
+
+                const newModel = [recordConfig];
+                setRecordModel(newModel);
+                recordModelRef.current = newModel;
+
+                // Auto-select the first field for new models
+                autoSelectFirstRecord(newModel);
+
+                // Generate source with the auto-selected field
+                await handleModelChange(newModel);
+            }
+        } finally {
             setIsLoading(false);
-            return;
         }
-        if (typeFieldResponse.recordConfig) {
-            const recordConfig: TypeField = {
-                name: defaultSelection.type,
-                ...typeFieldResponse.recordConfig
-            }
-
-            const newModel = [recordConfig];
-            setRecordModel(newModel);
-            recordModelRef.current = newModel;
-
-            // Auto-select the first field for new models
-            autoSelectFirstRecord(newModel);
-
-            // Generate source with the auto-selected field
-            await handleModelChange(newModel);
-        }
-        setIsLoading(false);
     }
 
     const handleMemberChange = async (value: string) => {
         const member = recordTypeField.recordTypeMembers.find(m => m.type === value);
-        if (member) {
-            // Update selected flags so the backend receives the correct type on submit
-            recordTypeField.recordTypeMembers.forEach(m => {
-                m.selected = m.type === value;
-            });
-            setIsLoading(true);
-            setHasTooManyFieldsError(false);
-            setSelectedMemberName(member.type);
+        if (!member) {
+            return;
+        }
 
+        // Update selected flags so the backend receives the correct type on submit
+        recordTypeField.recordTypeMembers.forEach(m => {
+            m.selected = m.type === value;
+        });
+        setIsLoading(true);
+        setHasTooManyFieldsError(false);
+        setSelectedMemberName(member.type);
+        try {
             let org = "";
             let module = "";
             let version = "";
@@ -414,12 +420,10 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
 
             const typeFieldResponse: GetRecordConfigResponse = await rpcClient.getBIDiagramRpcClient().getRecordConfig(request);
             if (typeFieldResponse.errorMsg) {
-                setHasTooManyFieldsError(true);
-                setIsLoading(false);
+                setHasTooManyFieldsError(typeFieldResponse.errorMsg === TOO_MANY_FIELDS_ERROR);
                 return;
             }
             if (typeFieldResponse.recordConfig) {
-
                 const recordConfig: TypeField = {
                     name: member.type,
                     ...typeFieldResponse.recordConfig
@@ -435,9 +439,9 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                 // Generate source with the auto-selected field
                 await handleModelChange(newModel);
             }
+        } finally {
+            setIsLoading(false);
         }
-
-        setIsLoading(false);
     };
 
     const handleModelChange = async (updatedModel: TypeField[]) => {
@@ -690,7 +694,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                             </LabelContainer>
                         )}
                         {hasTooManyFieldsError ? (
-                            <Typography variant="body3">Too many fields in the record type. Use the expression editor.</Typography>
+                            <Typography variant="body3">Record construction assistance is unavailable. Due to too many fields in the record type. Use the expression editor.</Typography>
                         ) : selectedMemberName && recordModel?.length > 0 ? (
                             <RecordConfigView
                                 recordModel={recordModel}
