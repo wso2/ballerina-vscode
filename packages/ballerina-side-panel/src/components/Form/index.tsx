@@ -17,6 +17,7 @@
  */
 
 import React, { forwardRef, useCallback, useMemo, useEffect, useState, useRef } from "react";
+import isEqual from "lodash/isEqual";
 import { useForm } from "react-hook-form";
 import ReactMarkdown from "react-markdown";
 import {
@@ -907,7 +908,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
         if (props.onChange) {
             const prevValues = prevValuesRef.current;
             Object.entries(watchedValues).forEach(([key, value]) => {
-                if (prevValues[key] !== value) {
+                if (!isEqual(prevValues[key], value)) {
                     props.onChange?.(key, value, watchedValues);
                 }
             });
