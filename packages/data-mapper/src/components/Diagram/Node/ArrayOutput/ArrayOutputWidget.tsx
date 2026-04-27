@@ -241,7 +241,9 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 								id={"edit-" + id}
 								tooltip="Edit"
 								iconName="edit"
-								onClick={async () => await context.createConvertedVariable(outputType.name, false, outputType.typeName)}
+								onClick={async () =>
+									await context.createConvertedVariable(outputType.name, false, outputType.name)
+								}
 							/>
 						)}
 					</span>

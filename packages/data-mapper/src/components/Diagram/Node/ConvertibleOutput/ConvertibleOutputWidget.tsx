@@ -185,7 +185,9 @@ export function ConvertibleOutputWidget(props: ConvertibleOutputWidgetProps) {
                                 id={"edit-" + id}
                                 tooltip="Edit"
                                 iconName="edit"
-                                onClick={async () => await context.createConvertedVariable(outputType.name, false, outputType.typeName)}
+                                onClick={async () => 
+                                    await context.createConvertedVariable(outputType.name, false, outputType.name)
+                                }
                             />
                         )}
                     </span>
@@ -256,7 +258,9 @@ export function ConvertibleOutputWidget(props: ConvertibleOutputWidgetProps) {
             )}
             {expanded && isConvertibleType && !outputType.convertedField && (
                 <PayloadWidget
-                    onClick={async () => await context.createConvertedVariable(valueLabel, false, undefined, outputType.typeName)}
+                    onClick={async () => 
+                        await context.createConvertedVariable(outputType.name, false, outputType.name, outputType.typeName)
+                    }
                     typeName={outputType.typeName?.toUpperCase()}
                 />
             )}
