@@ -526,6 +526,7 @@ export interface CreateConvertedVariableRequest {
     variableName: string;
     isInput: boolean;
     typeName: string;
+    isArray: boolean;
     parentTypeName?: string;
     imports?: Imports;
 }
