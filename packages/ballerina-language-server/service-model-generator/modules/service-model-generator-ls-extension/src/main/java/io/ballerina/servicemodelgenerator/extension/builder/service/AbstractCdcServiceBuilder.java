@@ -50,14 +50,18 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_CDC_OPERATION_ENABLE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_REQUIRED;
@@ -73,10 +77,13 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.OPEN_B
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERVICE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERVICE_TYPE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.TWO_NEW_LINES;
 import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.extractParameterKinds;
 import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.restoreAndUpdateDataBindingParams;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.extractFunctionsFromSource;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getRequiredFunctionsForServiceType;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.TRIGGER_ADD;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.applyEnabledChoiceProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
@@ -124,6 +131,21 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
     protected static final String KEY_CONFIGURE_LISTENER = "configureListener";
     protected static final String KEY_ADVANCED_CONFIGURATIONS = "advancedConfigurations";
     protected static final String KEY_TABLE = "table";
+
+    // Operation enable/disable property keys (FLAG checkboxes in the init form)
+    protected static final String KEY_ENABLE_CREATE   = "enableCreate";
+    protected static final String KEY_ENABLE_UPDATE   = "enableUpdate";
+    protected static final String KEY_ENABLE_DELETE   = "enableDelete";
+    protected static final String KEY_ENABLE_TRUNCATE = "enableTruncate";
+
+    private record CdcOperation(String key, String code, String functionName) { }
+
+    private static final List<CdcOperation> CDC_OPERATIONS = List.of(
+            new CdcOperation(KEY_ENABLE_CREATE,   "c", "onCreate"),
+            new CdcOperation(KEY_ENABLE_UPDATE,   "u", "onUpdate"),
+            new CdcOperation(KEY_ENABLE_DELETE,   "d", "onDelete"),
+            new CdcOperation(KEY_ENABLE_TRUNCATE, "t", "onTruncate")
+    );
 
     // Type and annotation names
     protected static final String TYPE_CDC_LISTENER = "CdcListener";
@@ -365,6 +387,10 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
         if (useExistingListener) {
             listenerName = existingListenerName;
             listenerDeclaration = "";
+            // Infer which operations are active from the existing listener's skippedOperations
+            Set<String> skippedOps = extractSkippedOpsForExistingListener(
+                    existingListenerName, context.semanticModel(), context.project());
+            injectCdcOperationCheckboxes(properties, skippedOps);
         } else {
             // Build new listener declaration
             applyListenerConfigurations(properties);
@@ -388,6 +414,53 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
         return Map.of(context.filePath(), edits);
     }
 
+    /**
+     * Looks up an existing CDC listener by name, extracts its raw options string, and returns the set of
+     * skipped operation codes (e.g. {"u", "d"}) found in the skippedOperations field.
+     */
+    private Set<String> extractSkippedOpsForExistingListener(
+            String listenerName, SemanticModel semanticModel, Project project) {
+        Map<String, Map<String, Value>> configs = extractListenerConfigs(
+                Set.of(listenerName), semanticModel, project);
+        Map<String, Value> config = configs.get(listenerName);
+        if (config == null) {
+            return Set.of();
+        }
+        Value optionsValue = config.get(KEY_OPTIONS);
+        if (optionsValue == null || optionsValue.getValue() == null) {
+            return Set.of();
+        }
+        return parseSkippedOpsFromOptionsString(optionsValue.getValue());
+    }
+
+    /**
+     * Parses the operation codes from a skippedOperations list embedded in an options string.
+     * Handles source-text like {@code {skippedOperations: ["u", "d"]}}.
+     */
+    private static Set<String> parseSkippedOpsFromOptionsString(String optionsStr) {
+        Matcher outer = Pattern.compile("skippedOperations\\s*:\\s*\\[([^\\]]*)\\]").matcher(optionsStr);
+        if (!outer.find()) {
+            return Set.of();
+        }
+        Set<String> skipped = new HashSet<>();
+        Matcher inner = Pattern.compile("\"([^\"]+)\"").matcher(outer.group(1));
+        while (inner.find()) {
+            skipped.add(inner.group(1));
+        }
+        return skipped;
+    }
+
+    /**
+     * Injects synthetic CDC operation checkbox properties into the properties map so that
+     * {@link #computeActiveOpFunctionNames} works correctly when using an existing listener
+     * (where the checkboxes are not present in the submitted form data).
+     */
+    private static void injectCdcOperationCheckboxes(Map<String, Value> properties, Set<String> skippedOps) {
+        CDC_OPERATIONS.forEach(op -> properties.put(op.key(), new Value.ValueBuilder()
+                .value(skippedOps.contains(op.code()) ? "false" : "true")
+                .build()));
+    }
+
     private void addImportTextEdits(ModulePartNode modulePartNode, Import[] imports, List<TextEdit> edits) {
         for (Import im : imports) {
             String org = im.org();
@@ -403,8 +476,17 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
     }
 
     private void addServiceTextEdits(AddServiceInitModelContext context, String listenerName, List<TextEdit> edits) {
-        Map<String, Value> properties = context.serviceInitModel().getProperties();
+        ServiceInitModel serviceInitModel = context.serviceInitModel();
+        Map<String, Value> properties = serviceInitModel.getProperties();
         Value tableValue = properties.get(KEY_TABLE);
+
+        // Enable only the functions that correspond to the selected operations
+        List<String> activeOpFunctions = computeActiveOpFunctionNames(properties);
+        List<Function> functions = getRequiredFunctionsForServiceType(serviceInitModel);
+        functions.forEach(f -> f.setEnabled(activeOpFunctions.contains(f.getName().getValue())));
+        List<String> functionsStr = buildMethodDefinitions(functions, TRIGGER_ADD, new HashMap<>());
+        String serviceBody = String.join(TWO_NEW_LINES, functionsStr);
+
         String serviceDeclaration =
                 buildServiceConfigurations(tableValue) +
                         NEW_LINE +
@@ -412,15 +494,32 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
                         SPACE + ON + SPACE + listenerName + SPACE +
                         OPEN_BRACE +
                         NEW_LINE +
+                        (serviceBody.isEmpty() ? "" : serviceBody + NEW_LINE) +
                         CLOSE_BRACE + NEW_LINE;
         ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
         edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().endLine()), serviceDeclaration));
+    }
 
+    /**
+     * Returns the remote function names for operations that are enabled (not unchecked) in the init form.
+     */
+    private List<String> computeActiveOpFunctionNames(Map<String, Value> properties) {
+        // onRead is always generated (not controlled by skippedOperations)
+        List<String> active = new ArrayList<>(List.of("onRead"));
+        for (CdcOperation op : CDC_OPERATIONS) {
+            Value v = properties.get(op.key());
+            if (v != null && !"false".equalsIgnoreCase(v.getValue())) {
+                active.add(op.functionName());
+            }
+        }
+        return active;
     }
 
     private ListenerDTO buildCdcListenerDTO(String moduleName, Map<String, Value> properties) {
         List<String> requiredParams = new ArrayList<>();
         List<String> includedParams = new ArrayList<>();
+        List<String> skippedOps = new ArrayList<>();
+        String userOptionsValue = null;
         for (Map.Entry<String, Value> entry : properties.entrySet()) {
             Value value = entry.getValue();
             if (value.getCodedata() == null) {
@@ -437,6 +536,10 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
                     || argType.equals(ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD)) {
                 String key = entry.getKey();
                 String fieldValue = value.getValue();
+                if ("options".equals(key)) {
+                    userOptionsValue = fieldValue;
+                    continue;
+                }
                 if (KEY_INTERNAL_SCHEMA_STORAGE.equals(key) || KEY_OFFSET_STORAGE.equals(key)) {
                     String selectedType = getSelectedTypeMemberName(value);
                     if (selectedType != null) {
@@ -444,7 +547,17 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
                     }
                 }
                 includedParams.add(key + " = " + fieldValue);
+            } else if (argType.equals(ARG_TYPE_CDC_OPERATION_ENABLE)) {
+                // Collect deselected operations to build skippedOperations
+                boolean enabled = !"false".equalsIgnoreCase(value.getValue());
+                if (!enabled) {
+                    skippedOps.add("\"" + codedata.getOriginalName() + "\"");
+                }
             }
+        }
+        String finalOptions = buildOptionsWithSkippedOps(userOptionsValue, skippedOps);
+        if (finalOptions != null) {
+            includedParams.add("options = " + finalOptions);
         }
         String listenerProtocol = getProtocol(moduleName);
         String listenerVarName = properties.get(ServiceInitModel.KEY_LISTENER_VAR_NAME).getValue();
@@ -453,6 +566,31 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
         String listenerDeclaration = String.format("listener %s:%s %s = new (%s);",
                 listenerProtocol, TYPE_CDC_LISTENER, listenerVarName, args);
         return new ListenerDTO(listenerProtocol, listenerVarName, listenerDeclaration);
+    }
+
+    private static String buildOptionsWithSkippedOps(String userOptionsValue, List<String> skippedOps) {
+        String skippedOpsStr = skippedOps.isEmpty() ? null :
+                "skippedOperations: [" + String.join(", ", skippedOps) + "]";
+        boolean hasUserValue = userOptionsValue != null && !userOptionsValue.isBlank();
+        if (!hasUserValue && skippedOpsStr == null) {
+            return null;
+        }
+        if (!hasUserValue) {
+            return "{" + skippedOpsStr + "}";
+        }
+        if (skippedOpsStr == null) {
+            return userOptionsValue;
+        }
+        String replaced = userOptionsValue.replaceAll(
+                "skippedOperations\\s*:\\s*\\[[^\\]]*\\]", skippedOpsStr);
+        if (replaced.equals(userOptionsValue)) {
+            replaced = userOptionsValue.trim();
+            if (replaced.endsWith("}")) {
+                replaced = replaced.substring(0, replaced.length() - 1).stripTrailing();
+                replaced = (replaced.endsWith(",") ? replaced : replaced + ",") + " " + skippedOpsStr + "}";
+            }
+        }
+        return replaced;
     }
 
     /**
@@ -633,7 +771,7 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
             updateDatabindingParameterMetadata(function);
         }
 
-        // After all consolidation and databinding processing is complete,
+        // After all consolidation and data binding processing is complete,
         // apply onUpdate parameter combining to all functions
         applyOnUpdateCombining(serviceModel);
         updateServiceConfigAnnotation(serviceModel);
