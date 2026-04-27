@@ -432,7 +432,7 @@
             },
             {
                 "command": "ballerina.reset.bi",
-                "title": "Reset BI Auth",
+                "title": "Reset Auth",
                 "category": "Ballerina"
             },
             {
@@ -603,7 +603,6 @@
                 },
                 "category": "WSO2 Integrator",
                 "enablement": "isSupportedProject"
-                
             },
             {
                 "command": "BI.project.debug",
