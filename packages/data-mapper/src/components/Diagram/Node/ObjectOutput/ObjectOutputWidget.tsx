@@ -80,7 +80,7 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 	const portIn = getPort(`${id}.IN`);
 	const isExprBarFocused = exprBarFocusedPort?.getName() === portIn?.getName();
 	const isUnknownType = outputType.kind === TypeKind.Unknown;
-	const isNotConvertedField = outputType.category !== InputCategory.ConvertedVariable;
+	const isConvertedField = outputType.category === InputCategory.ConvertedVariable;
 
 	let expanded = true;
 	if (portIn && portIn.attributes.collapsed) {
@@ -150,7 +150,15 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 					</span>
 					<span className={classes.label}>
 						<FieldActionWrapper>
-							{isNotConvertedField ? (
+							{isConvertedField ? (
+								<Button
+									id={"converted-icon-" + id}
+									appearance="icon"
+									tooltip="Type defined variable"
+								>
+									<Icon name="arrow-left-up" />
+								</Button>
+							) : (
 								<Button
 									id={"expand-or-collapse-" + id}
 									appearance="icon"
@@ -160,18 +168,10 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 								>
 									{expanded ? <Codicon name="chevron-down" /> : <Codicon name="chevron-right" />}
 								</Button>
-							) : (
-								<Button
-									id={"converted-icon-" + id}
-									appearance="icon"
-									tooltip="Type defined variable"
-								>
-									<Icon name="arrow-left-up" />
-								</Button>
 							)}
 						</FieldActionWrapper>
 						{label}
-						{!isNotConvertedField && (
+						{isConvertedField && (
 							<FieldActionButton
 								id={"edit-" + id}
 								tooltip="Edit"
