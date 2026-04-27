@@ -717,6 +717,14 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
         }
     };
 
+    const handleFormChange = useCallback(
+        (fieldKey: string, value: any, allValues: FormValues) => {
+            setFormDiagnostics(prev => prev.length > 0 ? [] : prev);
+            onChange?.(fieldKey, value, allValues);
+        },
+        [onChange]
+    );
+
     const mergeFormDataWithFlowNode = (data: FormValues, targetLineRange: LineRange, dirtyFields?: any): FlowNode => {
         const clonedNode = cloneDeep(node);
         // Create updated node with new line range
@@ -1921,7 +1929,7 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                         node.codedata.node === ("DATA_MAPPER_CREATION" as NodeKind)
                     }
                     scopeFieldAddon={scopeFieldAddon}
-                    onChange={onChange}
+                    onChange={handleFormChange}
                     injectedComponents={injectedComponents}
                     derivedFields={props.derivedFields}
                     updateImports={handleUpdateImports}
