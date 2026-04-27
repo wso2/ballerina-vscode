@@ -181,7 +181,7 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
             }
         } else if (!inputTypeName.isEmpty()) {
             // New workflow — emit the input param from the property using the default name.
-            generateParameter(sourceBuilder, inputTypeName,DEFAULT_INPUT_PARAM_NAME);
+            generateParameter(sourceBuilder, inputTypeName, DEFAULT_INPUT_PARAM_NAME);
         }
 
         sourceBuilder.token().keyword(SyntaxKind.CLOSE_PAREN_TOKEN);

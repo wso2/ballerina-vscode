@@ -142,7 +142,7 @@ service /market on new http:Listener(9090) {
         }
     }
 
-    resource function get tomatoes(any quantity) returns string {
+    resource function get tomatoes(int? quantity) returns string {
         if quantity is int {
             var q = <int>quantity;
             match q {
