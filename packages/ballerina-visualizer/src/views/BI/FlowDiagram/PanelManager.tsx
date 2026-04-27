@@ -17,7 +17,7 @@
  */
 
 import { useEffect, useRef } from "react";
-import { PanelContainer, NodeList, CardList, ExpressionFormField, NodeListSkeleton } from "@wso2/ballerina-side-panel";
+import { PanelContainer, NodeList, CardList, ExpressionFormField } from "@wso2/ballerina-side-panel";
 import {
     FlowNode,
     LineRange,
@@ -649,7 +649,20 @@ export function PanelManager(props: PanelManagerProps) {
                 );
 
             case SidePanelView.LOADING:
-                return <NodeListSkeleton />;
+                return (
+                    <NodeList
+                        loading
+                        categories={categories}
+                        onSelect={onSelectNode}
+                        onSelectConnector={onSelectConnectorPopup}
+                        onSearchTextChange={onSearchTextChange}
+                        searchText={searchText}
+                        onClose={onClose}
+                        title={"All Components"}
+                        searchPlaceholder={"Search all components"}
+                        onBack={canGoBack ? onBack : undefined}
+                    />
+                );
 
             case SidePanelView.FORM:
                 return (
