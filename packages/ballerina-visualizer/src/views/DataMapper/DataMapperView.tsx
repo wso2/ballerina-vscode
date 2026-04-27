@@ -642,7 +642,8 @@ export function DataMapperView(props: DataMapperViewProps) {
         initialTypeNameRef.current = await genUniqueName(initialTypeName, viewState.viewId);
 
         onTypeCreateRef.current = (type: Type | string, imports?: Imports) => {
-            const newTypeName = typeof type === 'string' ? type : (type as Type).name;
+            const typeName = typeof type === 'string' ? type : (type as Type).name;
+            const isArray = (type as Type).codedata?.node === "ARRAY" || typeName.endsWith("[]");
             requestRefreshDMModel();
             rpcClient
                 .getDataMapperRpcClient()
@@ -655,9 +656,11 @@ export function DataMapperView(props: DataMapperViewProps) {
                     varName: name,
                     targetField: viewState.viewId,
                     subMappingName: viewState.subMappingName,
-                    typeName: newTypeName,
-                    isInput,
+
                     variableName,
+                    isInput,
+                    typeName,
+                    isArray,
                     parentTypeName,
                     imports
                 }).then(res => {
