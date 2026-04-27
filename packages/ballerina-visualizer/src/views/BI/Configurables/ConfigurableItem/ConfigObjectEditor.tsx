@@ -23,6 +23,7 @@ import { GetRecordConfigRequest, Property, TypeField, RecordSourceGenRequest, Re
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Codicon, Typography } from "@wso2/ui-toolkit";
 import { unwrapIntersectionRecord } from "../../HelperPaneNew/Components/RecordConstructView/utils/intersection";
+import { validateTomlValue } from "./utils";
 
 const EditorContainer = styled.div`
     width: 100%;
@@ -105,6 +106,11 @@ const ArrayItem = styled.div`
     margin-bottom: 8px;
 `;
 
+const ArrayInputContainer = styled.div`
+    flex: 1;
+    max-width: 350px;
+`;
+
 const ArrayControls = styled.div`
     display: flex;
     gap: 4px;
@@ -118,6 +124,13 @@ const AddButton = styled(VSCodeButton)`
 const RemoveButton = styled(VSCodeButton)`
     font-size: 12px;
     min-width: 24px;
+`;
+
+const ValidationErrorText = styled.div`
+    color: var(--vscode-editorError-foreground);
+    font-size: 12px;
+    line-height: 16px;
+    margin-top: 4px;
 `;
 
 interface ObjectEditorProps {
@@ -141,6 +154,8 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
     const [fieldValue, setFieldValue] = useState<string>(field.value !== undefined && field.value !== null ? String(field.value) : '');
     const [boolValue, setBoolValue] = useState<boolean>(field.value === true || field.value === 'true');
     const [arrayItems, setArrayItems] = useState<any[]>([]);
+    const [validationError, setValidationError] = useState<string>('');
+    const [arrayValidationErrors, setArrayValidationErrors] = useState<{ [index: number]: string }>({});
 
     // Check field type
     const isArrayType = field.typeName === 'array' || field.typeName?.endsWith('[]');
@@ -175,6 +190,8 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
         } else {
             setFieldValue(field.value !== undefined && field.value !== null ? String(field.value) : '');
         }
+        setValidationError('');
+        setArrayValidationErrors({});
     }, [field.value, isArrayType, isBooleanType, isStringType]);
 
     // Initialize empty array if no value exists
@@ -186,6 +203,27 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
 
     const hasNestedFields = field.fields && field.fields.length > 0;
     const isRecordType = field.typeName === 'record';
+
+    const getValueForValidation = (value: any, type: string) => {
+        if (type === 'string' && typeof value === 'string' && !/^".*"$/.test(value)) {
+            return `"${value}"`;
+        }
+        return String(value);
+    };
+
+    const getArrayValidationErrors = (items: any[]) => {
+        const errors: { [index: number]: string } = {};
+        const memberTypeName = field.memberType?.typeName || '';
+
+        items.forEach((item, index) => {
+            const error = validateTomlValue(getValueForValidation(item, memberTypeName), memberTypeName);
+            if (error) {
+                errors[index] = error;
+            }
+        });
+
+        return errors;
+    };
 
     const handleValueChange = (e: any) => {
         let newValue = e.target.value;
@@ -201,6 +239,13 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
             // For numeric types, don't wrap with quotes
             // No action needed for numeric types; leave newValue unchanged.
         }
+
+        const currentValidationError = validateTomlValue(String(newValue), String(field.typeName || ''));
+        setValidationError(currentValidationError);
+        if (currentValidationError) {
+            return;
+        }
+
         field.value = newValue;
         onFieldChange(field, newValue);
     };
@@ -214,12 +259,16 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
 
     const handleNumericChange = (e: any) => {
         const value = e.target.value;
-        // Only allow numeric input
-        if (value === '' || /^-?\d*\.?\d*$/.test(value)) {
-            setFieldValue(value);
-            field.value = value;
-            onFieldChange(field, value);
+        setFieldValue(value);
+
+        const currentValidationError = validateTomlValue(value, String(field.typeName || ''));
+        setValidationError(currentValidationError);
+        if (currentValidationError) {
+            return;
         }
+
+        field.value = value;
+        onFieldChange(field, value);
     };
 
     const handleArrayItemChange = (index: number, value: any) => {
@@ -239,6 +288,12 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
         }
 
         setArrayItems(newArrayItems);
+
+        const currentValidationErrors = getArrayValidationErrors(newArrayItems);
+        setArrayValidationErrors(currentValidationErrors);
+        if (Object.keys(currentValidationErrors).length > 0) {
+            return;
+        }
 
         // Update the field with the new array value
         // If all items are empty, set to empty array []
@@ -263,6 +318,11 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
 
         const newArrayItems = [...arrayItems, defaultValue];
         setArrayItems(newArrayItems);
+        const currentValidationErrors = getArrayValidationErrors(newArrayItems);
+        setArrayValidationErrors(currentValidationErrors);
+        if (Object.keys(currentValidationErrors).length > 0) {
+            return;
+        }
 
         // Update field value and trigger change
         field.value = JSON.stringify(newArrayItems);
@@ -272,6 +332,11 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
     const removeArrayItem = (index: number) => {
         const newArrayItems = arrayItems.filter((_, i) => i !== index);
         setArrayItems(newArrayItems);
+        const currentValidationErrors = getArrayValidationErrors(newArrayItems);
+        setArrayValidationErrors(currentValidationErrors);
+        if (Object.keys(currentValidationErrors).length > 0) {
+            return;
+        }
 
         // If no items left, set value to empty array []
         if (newArrayItems.length === 0) {
@@ -342,26 +407,37 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
                                             Item {index + 1}
                                         </VSCodeCheckbox>
                                     ) : memberTypeName === 'int' || memberTypeName === 'float' || memberTypeName === 'decimal' ? (
-                                        <VSCodeTextField
-                                            value={typeof item === 'string' ? item : String(item)}
-                                            disabled={disabled}
-                                            style={{ flex: 1, maxWidth: '350px' }}
-                                            onChange={(e: any) => {
-                                                const value = e.target.value;
-                                                if (value === '' || /^-?\d*\.?\d*$/.test(value)) {
-                                                    handleArrayItemChange(index, value);
-                                                }
-                                            }}
-                                            placeholder={`Item ${index + 1} (${memberTypeName})`}
-                                        />
+                                        <ArrayInputContainer>
+                                            <VSCodeTextField
+                                                value={typeof item === 'string' ? item : String(item)}
+                                                disabled={disabled}
+                                                style={{
+                                                    width: '100%',
+                                                    borderColor: arrayValidationErrors[index] ? 'var(--vscode-editorError-foreground)' : undefined
+                                                }}
+                                                onChange={(e: any) => handleArrayItemChange(index, e.target.value)}
+                                                placeholder={`Item ${index + 1} (${memberTypeName})`}
+                                            />
+                                            {arrayValidationErrors[index] && (
+                                                <ValidationErrorText>{arrayValidationErrors[index]}</ValidationErrorText>
+                                            )}
+                                        </ArrayInputContainer>
                                     ) : (
-                                        <VSCodeTextField
-                                            value={typeof item === 'string' ? item : JSON.stringify(item)}
-                                            disabled={disabled}
-                                            style={{ flex: 1, maxWidth: '350px' }}
-                                            onChange={(e: any) => handleArrayItemChange(index, e.target.value)}
-                                            placeholder={`Item ${index + 1}${memberTypeName ? ` (${memberTypeName})` : ''}`}
-                                        />
+                                        <ArrayInputContainer>
+                                            <VSCodeTextField
+                                                value={typeof item === 'string' ? item : JSON.stringify(item)}
+                                                disabled={disabled}
+                                                style={{
+                                                    width: '100%',
+                                                    borderColor: arrayValidationErrors[index] ? 'var(--vscode-editorError-foreground)' : undefined
+                                                }}
+                                                onChange={(e: any) => handleArrayItemChange(index, e.target.value)}
+                                                placeholder={`Item ${index + 1}${memberTypeName ? ` (${memberTypeName})` : ''}`}
+                                            />
+                                            {arrayValidationErrors[index] && (
+                                                <ValidationErrorText>{arrayValidationErrors[index]}</ValidationErrorText>
+                                            )}
+                                        </ArrayInputContainer>
                                     )}
                                     <RemoveButton
                                         appearance="icon"
@@ -404,10 +480,17 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
                 <VSCodeTextField
                     value={fieldValue}
                     disabled={disabled}
-                    style={{ width: '100%', maxWidth: '400px' }}
+                    style={{
+                        width: '100%',
+                        maxWidth: '400px',
+                        borderColor: validationError ? 'var(--vscode-editorError-foreground)' : undefined
+                    }}
                     onChange={handleNumericChange}
                     placeholder={field.defaultValue !== undefined ? `Default: ${field.defaultValue}` : 'Enter a number'}
                 />
+            )}
+            {isNumericType && !isArrayType && validationError && (
+                <ValidationErrorText>{validationError}</ValidationErrorText>
             )}
 
             {/* String field rendering */}
@@ -415,10 +498,17 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
                 <VSCodeTextField
                     value={fieldValue}
                     disabled={disabled}
-                    style={{ width: '100%', maxWidth: '400px' }}
+                    style={{
+                        width: '100%',
+                        maxWidth: '400px',
+                        borderColor: validationError ? 'var(--vscode-editorError-foreground)' : undefined
+                    }}
                     onChange={handleValueChange}
                     placeholder={field.defaultValue !== undefined ? `Default: ${field.defaultValue}` : ''}
                 />
+            )}
+            {isStringType && !isArrayType && validationError && (
+                <ValidationErrorText>{validationError}</ValidationErrorText>
             )}
 
             {/* Other types field rendering */}
@@ -426,10 +516,17 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
                 <VSCodeTextField
                     value={fieldValue}
                     disabled={disabled}
-                    style={{ width: '100%', maxWidth: '400px' }}
+                    style={{
+                        width: '100%',
+                        maxWidth: '400px',
+                        borderColor: validationError ? 'var(--vscode-editorError-foreground)' : undefined
+                    }}
                     onChange={handleValueChange}
                     placeholder={field.defaultValue !== undefined ? `Default: ${field.defaultValue}` : ''}
                 />
+            )}
+            {!isBooleanType && !isNumericType && !isStringType && !isRecordType && !hasNestedFields && !isArrayType && validationError && (
+                <ValidationErrorText>{validationError}</ValidationErrorText>
             )}
 
             {/* Nested fields rendering */}

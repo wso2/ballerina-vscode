@@ -26,6 +26,7 @@ import remarkBreaks from "remark-breaks";
 import { VSCodeTextArea } from "@vscode/webview-ui-toolkit/react";
 import EditForm from "../EditConfigurableVariables";
 import ConfigObjectEditor from "./ConfigObjectEditor";
+import { validateTomlValue } from "./utils";
 
 const Container = styled.div`
     padding: 12px 14px 18px;
@@ -117,6 +118,7 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
     const [configVariable, setConfigVariable] = useState<ConfigVariable>(variable);
     const [isEditConfigVariableFormOpen, setEditConfigVariableFormOpen] = useState<boolean>(false);
     const [isUpdating, setIsUpdating] = useState<boolean>(false);
+    const [validationError, setValidationError] = useState<string>('');
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const activeValueKey = props.isTestsContext ? 'testConfigValue' : 'configValue';
@@ -149,7 +151,11 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
             return;
         }
         setConfigVariable(variable);
-    }, [variable]);
+        setValidationError(validateTomlValue(
+            variable?.properties?.[activeValueKey]?.value ? String(variable.properties[activeValueKey].value) : '',
+            String(variable?.properties?.type?.value || '')
+        ));
+    }, [variable, activeValueKey]);
 
     useEffect(() => {
         return () => {
@@ -163,11 +169,17 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
         setEditConfigVariableFormOpen(true);
     };
 
+    const getValidationError = (value: string) => {
+        return validateTomlValue(value, String(configVariable.properties?.type?.value || ''));
+    }
+
     const handleTextAreaChange = (value: any) => {
         if (configVariable.properties?.type?.value === 'string' && !/^".*"$/.test(value)) {
             value = `"${value}"`;
         }
 
+        const currentValidationError = getValidationError(value);
+        setValidationError(currentValidationError);
         latestValueRef.current = value;
         isDirtyRef.current = true;
 
@@ -184,6 +196,9 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
 
         if (debounceTimerRef.current) {
             clearTimeout(debounceTimerRef.current);
+        }
+        if (currentValidationError) {
+            return;
         }
         debounceTimerRef.current = setTimeout(() => {
             debounceTimerRef.current = null;
@@ -203,6 +218,11 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
             clearTimeout(debounceTimerRef.current);
             debounceTimerRef.current = null;
             if (latestValueRef.current !== null) {
+                const currentValidationError = getValidationError(latestValueRef.current);
+                setValidationError(currentValidationError);
+                if (currentValidationError) {
+                    return;
+                }
                 sendConfigUpdate(latestValueRef.current);
             }
         }
@@ -431,7 +451,8 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
                         style={{
                             width: '100%',
                             minHeight: '20px',
-                            opacity: isUpdating ? 0.6 : 1
+                            opacity: isUpdating ? 0.6 : 1,
+                            borderColor: validationError ? 'var(--vscode-editorError-foreground)' : undefined
                         }}
                         onInput={(e: Event) => handleTextAreaChange((e.currentTarget as HTMLTextAreaElement).value)}
                         onBlur={handleTextAreaBlur}
@@ -443,6 +464,16 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
                         }
                         `}</style>
                     </VSCodeTextArea>
+                    {validationError && (
+                        <div style={{
+                            color: 'var(--vscode-editorError-foreground)',
+                            fontSize: '12px',
+                            lineHeight: '16px',
+                            marginTop: '4px'
+                        }}>
+                            {validationError}
+                        </div>
+                    )}
                     {isUpdating && (
                         <span style={{
                             position: 'absolute',
