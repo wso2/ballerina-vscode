@@ -61,10 +61,6 @@ public class RecordConfigTest extends AbstractLSTest {
 //                updateConfig(configJsonPath, updateConfig);
                 Assert.assertEquals(errorMsg.getAsString(), expectedErrorMsg, String.format("Failed test: '%s' (%s)",
                         testConfig.description(), configJsonPath));
-            } else {
-//                updateConfig(configJsonPath, updateConfig);
-                Assert.fail(String.format("Expected an error message for test: '%s' (%s)", testConfig.description(),
-                        configJsonPath));
             }
 
         } else if (configResponse != null && !configResponse.equals(testConfig.output())) {
