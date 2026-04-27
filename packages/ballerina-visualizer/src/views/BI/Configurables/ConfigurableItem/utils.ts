@@ -87,12 +87,12 @@ export const validateTomlValue = (value: string, type: string): string => {
         const unionTypes = trimmedType.split('|').map(getValidationTypeName);
         return unionTypes.some(unionType => validateTomlValue(trimmedValue, unionType) === '')
             ? ''
-            : `Enter a valid TOML value for ${type}.`;
+            : `Enter a valid value for ${type}.`;
     }
 
     if (trimmedType.endsWith('[]')) {
         if (!trimmedValue.startsWith('[') || !trimmedValue.endsWith(']')) {
-            return `Enter a TOML array for ${type}.`;
+            return `Enter a array for ${type}.`;
         }
 
         const elementType = trimmedType.slice(0, -2);
@@ -103,18 +103,18 @@ export const validateTomlValue = (value: string, type: string): string => {
 
         const hasInvalidElement = splitTopLevelValues(arrayContent)
             .some(item => validateTomlValue(item, elementType) !== '');
-        return hasInvalidElement ? `Enter valid ${elementType} values in the TOML array.` : '';
+        return hasInvalidElement ? `Enter valid ${elementType} values in the array.` : '';
     }
 
     switch (trimmedType) {
         case 'string':
             return TOML_STRING_PATTERN.test(trimmedValue)
                 ? ''
-                : 'Enter a valid TOML string. Escape quotes and line breaks.';
+                : 'Enter a valid string value.';
         case 'int':
         case 'byte':
             if (!TOML_INTEGER_PATTERN.test(trimmedValue)) {
-                return `Enter a valid TOML integer for ${trimmedType}.`;
+                return `Enter a valid integer value for ${trimmedType}.`;
             }
             if (trimmedType === 'byte') {
                 const byteValue = getTomlIntegerValue(trimmedValue);
@@ -127,7 +127,7 @@ export const validateTomlValue = (value: string, type: string): string => {
         case 'decimal':
             return TOML_FLOAT_PATTERN.test(trimmedValue)
                 ? ''
-                : `Enter a valid TOML number for ${trimmedType}.`;
+                : `Enter a valid number value for ${trimmedType}.`;
         case 'boolean':
             return TOML_BOOLEAN_PATTERN.test(trimmedValue)
                 ? ''
