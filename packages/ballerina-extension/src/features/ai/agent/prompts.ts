@@ -149,7 +149,7 @@ ${getLanglibInstructions()}
 
 ### Local Connectors
 - If the codebase structure shows connector modules in generated/moduleName, import using: import packageName.moduleName
-- Generated connector files are listed as paths only in the codebase structure. Use the \`${FILE_READ_TOOL_NAME}\` tool with the listed path to fetch the content when needed.
+- Generated connector files appear under a \`<generated_files>\` block in the codebase structure as path-only entries (e.g. \`<file path="generated/moduleName/client.bal"/>\`) — no source content is included. Use the \`${FILE_READ_TOOL_NAME}\` tool with the listed path to fetch the content when needed.
 
 ## Code Structure
 - In WSO2 Integrator, Automation is simply an app with a main method unless user specifically mentions a service. Cron Job kind of requirements are handled in the deployment level for Kubernetes or Integration platform level.
