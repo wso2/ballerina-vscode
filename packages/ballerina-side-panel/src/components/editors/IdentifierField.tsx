@@ -115,12 +115,6 @@ export function IdentifierField(props: IdentifierFieldProps) {
         }
     }, 250), [rpcClient, field, targetLineRange, fileName, setIdentifierErrorState]);
 
-    useEffect(() => {
-        return () => {
-            validateIdentifierName.cancel();
-        };
-    }, [validateIdentifierName]);
-
     const handleOnBlur = (e: React.ChangeEvent<HTMLInputElement>) => {
         validateIdentifierName(e.target.value);
         onBlur?.();
