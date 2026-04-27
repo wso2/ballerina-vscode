@@ -32,6 +32,7 @@ export const BI_COMMANDS = {
     BI_RUN_PROJECT: 'BI.project.run',
     BI_DEBUG_PROJECT: 'BI.project.debug',
     PROJECT_EXPLORER: 'BI.project-explorer',
+    PROJECT_EXPLORER_REFRESH: 'BI.project-explorer.refresh',
     ADD_CONNECTIONS: 'BI.project-explorer.add-connection',
     ADD_CUSTOM_CONNECTOR: 'BI.project-explorer.add-custom-connector',
     DELETE_COMPONENT: 'BI.project-explorer.delete',

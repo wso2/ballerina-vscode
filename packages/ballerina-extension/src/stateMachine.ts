@@ -94,7 +94,7 @@ const stateMachine = createMachine<MachineContext>(
                     () => {
                         // Use queueMicrotask to ensure context is updated before command execution
                         queueMicrotask(() => {
-                            commands.executeCommand("BI.project-explorer.refresh");
+                            refreshProjectExplorer();
                             // Check if the current view is Service desginer and if so don't notify the webview
                             if (StateMachine.context().view !== MACHINE_VIEW.ServiceDesigner && StateMachine.context().view !== MACHINE_VIEW.BIDiagram) {
                                 notifyCurrentWebview();
@@ -1080,6 +1080,19 @@ async function handleSingleWorkspaceFolder(workspaceURI: Uri): Promise<ProjectMe
         }
 
         return { isBI, projectPath, scope, orgName, packageName };
+    }
+}
+
+function refreshProjectExplorer() {
+    try {
+        const integratorExtension = extensions.getExtension('wso2.wso2-integrator');
+        if (integratorExtension && !integratorExtension.isActive) {
+            return;
+        }
+    
+        commands.executeCommand(BI_COMMANDS.PROJECT_EXPLORER_REFRESH);
+    } catch (error) {
+        console.error('Error refreshing project explorer:', error);
     }
 }
 
