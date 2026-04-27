@@ -108,6 +108,10 @@ export function AddProjectFormFields({
             try {
                 const { orgName: rpcOrg, isLocked } = await rpcClient.getCommonRpcClient().getDefaultOrgName();
                 if (controller.signal.aborted) return;
+                if (isOrgTouched.current) {
+                    setIsOrgDataLoaded(true);
+                    return;
+                }
 
                 if (isInProject && isLocked) {
                     setIsOrgLocked(true);
@@ -121,6 +125,10 @@ export function AddProjectFormFields({
                 onFormDataChange({ orgName: pickOrg(rpcOrg) });
             } catch (error) {
                 if (controller.signal.aborted) return;
+                if (isOrgTouched.current) {
+                    setIsOrgDataLoaded(true);
+                    return;
+                }
 
                 console.error("Failed to fetch default org name:", error);
                 setIsOrgLocked(false);
