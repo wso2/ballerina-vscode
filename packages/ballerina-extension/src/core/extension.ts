@@ -707,7 +707,11 @@ export class BallerinaExtension {
     }
 
     async updateBallerinaVisually() {
-        commands.executeCommand(SHARED_COMMANDS.SETUP_BALLERINA);
+        try {
+            await commands.executeCommand(SHARED_COMMANDS.SETUP_BALLERINA);
+        } catch (error) {
+            console.warn("[SETUP] Failed to open setup flow", error);
+        }
         const realPath = this.ballerinaHome ? fs.realpathSync.native(this.ballerinaHome) : "";
         this.executeCommandWithProgress(realPath.includes("ballerina-home") ? 'bal dist update' : 'sudo bal dist update');
     }
