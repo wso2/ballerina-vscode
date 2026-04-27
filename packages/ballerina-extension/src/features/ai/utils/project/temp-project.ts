@@ -283,16 +283,14 @@ async function getCurrentProjectSource(
     await populateModules(modulesDir, project);
     await populateModules(generatedDir, project);
 
-    // Read test files from tests/ directory
+    // Read test files from tests/ directory (recursive, paths relative to testsDir)
     const testsDir = path.join(targetProjectPath, 'tests');
     if (fs.existsSync(testsDir)) {
         project.tests = {};
-        const testFiles = fs.readdirSync(testsDir);
-        for (const file of testFiles) {
-            if (file.endsWith('.bal')) {
-                const filePath = path.join(testsDir, file);
-                project.tests[`tests/${file}`] = await fs.promises.readFile(filePath, 'utf-8');
-            }
+        const testFiles = findAllBalFiles(testsDir);
+        for (const relPath of testFiles) {
+            const filePath = path.join(testsDir, relPath);
+            project.tests[relPath] = await fs.promises.readFile(filePath, 'utf-8');
         }
     }
 
