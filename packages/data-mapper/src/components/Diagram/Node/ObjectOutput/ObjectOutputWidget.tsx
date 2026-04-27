@@ -83,7 +83,7 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 	const isNotConvertedField = outputType.category !== InputCategory.ConvertedVariable;
 
 	let expanded = true;
-	if ((portIn && portIn.attributes.collapsed) && isNotConvertedField) {
+	if (portIn && portIn.attributes.collapsed) {
 		expanded = false;
 	}
 	const isDisabled = portIn?.attributes.descendantHasValue;

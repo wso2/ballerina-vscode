@@ -179,10 +179,11 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		const newParentId = this.getNewParentId(parentId, elementIndex);
 		let fieldFQN = this.getOutputFieldFQN(newParentId, field, elementIndex);
 		const portName = this.getPortName(portPrefix, fieldFQN);
+		const isConvertedField = field.category === InputCategory.ConvertedVariable;
 		
 		const mapping = findMappingByOutput(mappings, fieldFQN);
 		const isCollapsed = this.isOutputPortCollapsed(hidden, collapsedFields, expandedFields, 
-			portName, isArray, field.isDeepNested, mapping, mappings, fieldFQN);
+			portName, isArray, field.isDeepNested, isConvertedField, mapping, mappings, fieldFQN);
 
 		if (field.isDeepNested && !isCollapsed && !hidden) {
 			await this.context.enrichChildFields(field);
@@ -355,12 +356,15 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		portName: string,
 		isArray: boolean,
 		isDeepNested: boolean,
+		isConvertedField: boolean,
 		mapping: Mapping,
 		mappings: Mapping[],
 		outputId: string
 	): boolean {
 		// Auto-expand all output fields when output search is active
 		if (!isDeepNested && useDMSearchStore.getState().outputSearch) {return false;}
+
+		if (isConvertedField) { return false; }
 
 		if ((isArray && !mapping?.elements?.length) ||
 			(isDeepNested && !hasChildMappingsForOutput(mappings, outputId))) {
