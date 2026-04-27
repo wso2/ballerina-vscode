@@ -103,6 +103,42 @@ export interface ResourcePathProps {
 	existingResources?: ProjectStructureArtifactResponse[];
 }
 
+const PATH_PARAM_SEGMENT_REGEX = /^\[[^\]]+\]$/;
+
+function normalizeResourcePathId(resourceId: string): string {
+	const parts = resourceId.split('#');
+	if (parts.length > 0) {
+		parts[0] = parts[0].toLowerCase();
+	}
+	return parts.join('#');
+}
+
+function hasParameterChildPathConflict(pathA: string, pathB: string): boolean {
+	const segmentsA = pathA.split('/');
+	const segmentsB = pathB.split('/');
+	const [shorterSegments, longerSegments] = segmentsA.length < segmentsB.length
+		? [segmentsA, segmentsB]
+		: [segmentsB, segmentsA];
+
+	if (longerSegments.length !== shorterSegments.length + 1) {
+		return false;
+	}
+
+	const hasSameParentPath = shorterSegments.every((segment, index) => segment === longerSegments[index]);
+	const extraSegment = longerSegments[longerSegments.length - 1];
+	return hasSameParentPath && PATH_PARAM_SEGMENT_REGEX.test(extraSegment);
+}
+
+function isDuplicateResourcePath(pathID: string, existingPathID: string): boolean {
+	if (pathID === existingPathID) {
+		return true;
+	}
+
+	const [method, path] = pathID.split('#');
+	const [existingMethod, existingPath] = existingPathID.split('#');
+	return method === existingMethod && hasParameterChildPathConflict(path, existingPath);
+}
+
 export function ResourcePath(props: ResourcePathProps) {
 	const { method, path, onChange, onError, isNew, readonly, existingResources } = props;
 
@@ -143,14 +179,8 @@ export function ResourcePath(props: ResourcePathProps) {
 		// Path ID ex: get#foo/bar
 		const pathID = `${method.value?.toLowerCase()}#${sanitizedHttpPath(inputValue as string)}`;
 		// Get the paths and split by # to lowercase the method and concat again to get the path ID
-		const existingResourcePaths = existingResources?.map((resource) => {
-			const parts = resource.id.split('#');
-			if (parts.length > 0) {
-				parts[0] = parts[0].toLowerCase();
-			}
-			return parts.join('#');
-		});
-		if (existingResourcePaths?.includes(pathID)) {
+		const existingResourcePaths = existingResources?.map((resource) => normalizeResourcePathId(resource.id));
+		if (existingResourcePaths?.some((existingPathID) => isDuplicateResourcePath(pathID, existingPathID))) {
 			onError(true);
 			setResourcePathErrors("Resource path already exists for the selected HTTP method");
 			return;
