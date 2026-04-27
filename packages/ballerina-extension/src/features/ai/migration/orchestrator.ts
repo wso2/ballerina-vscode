@@ -750,9 +750,10 @@ export async function runMigrationAgent(): Promise<void> {
                 } catch (pkgError) {
                     if (_migrationAbortController.signal.aborted) { throw pkgError; }
                     const errMsg = pkgError instanceof Error ? pkgError.message : String(pkgError);
+                    const safeErrMsg = errMsg.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
                     console.error(`[MigrationEnhancement] Package ${pkgRelPath} failed:`, pkgError);
                     debugLogger.logError(`Package ${pkgRelPath}`, pkgError);
-                    eventHandler({ type: "content_block", content: `\n\n⚠️ Package \`${pkgRelPath}\` failed: ${errMsg}. Continuing to next package.\n\n` });
+                    eventHandler({ type: "content_block", content: `\n\n<errormsg>Package \`${pkgRelPath}\` failed: ${safeErrMsg}. Continuing to next package.</errormsg>\n\n` });
                     results.push({ packagePath: pkgRelPath, success: false, error: errMsg });
                 }
             }
@@ -775,8 +776,9 @@ export async function runMigrationAgent(): Promise<void> {
                     } catch (wsError) {
                         if (!_migrationAbortController.signal.aborted) {
                             const errMsg = wsError instanceof Error ? wsError.message : String(wsError);
+                            const safeErrMsg = errMsg.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
                             debugLogger.logError("workspace validation", wsError);
-                            eventHandler({ type: "content_block", content: `\n\n⚠️ Workspace validation failed: ${errMsg}\n\n` });
+                            eventHandler({ type: "content_block", content: `\n\n<errormsg>Workspace validation failed: ${safeErrMsg}</errormsg>\n\n` });
                         }
                     }
                 }
@@ -1157,9 +1159,10 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
                 } catch (pkgError) {
                     if (_migrationAbortController.signal.aborted) { throw pkgError; }
                     const errMsg = pkgError instanceof Error ? pkgError.message : String(pkgError);
+                    const safeErrMsg = errMsg.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
                     console.error(`[MigrationEnhancement] Package ${pkgRelPath} failed:`, pkgError);
                     debugLogger.logError(`Package ${pkgRelPath}`, pkgError);
-                    eventHandler({ type: "content_block", content: `\n\n⚠️ Package \`${pkgRelPath}\` failed: ${errMsg}. Continuing to next package.\n\n` });
+                    eventHandler({ type: "content_block", content: `\n\n<errormsg>Package \`${pkgRelPath}\` failed: ${safeErrMsg}. Continuing to next package.</errormsg>\n\n` });
                     results.push({ packagePath: pkgRelPath, success: false, error: errMsg });
                 }
             }
@@ -1182,8 +1185,9 @@ export async function runWizardMigrationEnhancement(): Promise<void> {
                     } catch (wsError) {
                         if (!_migrationAbortController.signal.aborted) {
                             const errMsg = wsError instanceof Error ? wsError.message : String(wsError);
+                            const safeErrMsg = errMsg.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
                             debugLogger.logError("workspace validation (wizard)", wsError);
-                            eventHandler({ type: "content_block", content: `\n\n⚠️ Workspace validation failed: ${errMsg}\n\n` });
+                            eventHandler({ type: "content_block", content: `\n\n<errormsg>Workspace validation failed: ${safeErrMsg}</errormsg>\n\n` });
                         }
                     }
                 }
