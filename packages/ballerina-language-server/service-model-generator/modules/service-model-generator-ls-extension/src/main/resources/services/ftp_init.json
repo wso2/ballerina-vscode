@@ -5,9 +5,9 @@
   "orgName": "ballerina",
   "packageName": "ftp",
   "moduleName": "ftp",
-  "version": "2.18.0",
+  "version": "2.19.0",
   "type": "ftp",
-  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.18.0.png",
+  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.19.0.png",
   "properties": {
     "configureListener": {
       "metadata": {
@@ -473,7 +473,7 @@
                                       "typeMembers": [
                                         {
                                           "type": "PrivateKey",
-                                          "packageInfo": "ballerina:ftp:2.18.0",
+                                          "packageInfo": "ballerina:ftp:2.19.0",
                                           "packageName": "ftp",
                                           "kind": "RECORD_TYPE",
                                           "selected": true
@@ -723,7 +723,7 @@
                               "typeMembers": [
                                 {
                                   "type": "SecureSocket",
-                                  "packageInfo": "ballerina:ftp:2.18.0",
+                                  "packageInfo": "ballerina:ftp:2.19.0",
                                   "packageName": "ftp",
                                   "kind": "RECORD_TYPE",
                                   "selected": true
