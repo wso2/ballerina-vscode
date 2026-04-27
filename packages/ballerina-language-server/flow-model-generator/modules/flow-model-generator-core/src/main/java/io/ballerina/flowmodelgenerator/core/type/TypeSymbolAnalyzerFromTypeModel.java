@@ -68,14 +68,24 @@ public class TypeSymbolAnalyzerFromTypeModel {
     private static void updateIntersectionTypeConfig(IntersectionType intersectionType,
                                                      MappingConstructorExpressionNode mappingConstructor) {
         for (Type type : intersectionType.members) {
-            if (type instanceof RecordType recordType) {
-                updateTypeConfig(recordType, mappingConstructor);
-                if (recordType.selected) {
-                    intersectionType.selected = true;
-                    break;
-                }
+            if (updateIntersectionMemberConfig(type, mappingConstructor)) {
+                intersectionType.selected = true;
+                break;
             }
         }
+    }
+
+    private static boolean updateIntersectionMemberConfig(Type type,
+                                                          MappingConstructorExpressionNode mappingConstructor) {
+        if (type instanceof RecordType recordType) {
+            updateTypeConfig(recordType, mappingConstructor);
+            return recordType.selected;
+        }
+        if (type instanceof IntersectionType nestedIntersectionType) {
+            updateIntersectionTypeConfig(nestedIntersectionType, mappingConstructor);
+            return nestedIntersectionType.selected;
+        }
+        return false;
     }
 
     private static void updateUnionTypeConfig(UnionType unionType,
