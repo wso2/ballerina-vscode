@@ -458,12 +458,8 @@
             "packageName": "ftp",
             "object": "Client",
             "symbol": "init",
-<<<<<<< FixIncorrectCodegeneration
-            "version": "2.18.0",
+            "version": "2.19.0",
             "isGenerated": false
-=======
-            "version": "2.19.0"
->>>>>>> 1.7.x
           },
           "enabled": true
         },
