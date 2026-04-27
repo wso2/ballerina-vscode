@@ -471,13 +471,7 @@ public class TypesManagerService implements ExtendedLanguageServerService {
                             String.format("Type '%s' is not a record", request.typeConstraint()));
                 }
                 Type type = Type.fromSemanticSymbol(typeSymbol.get(), semanticModel.get(), packageName);
-                SizeLimitedWriter writer = new SizeLimitedWriter(MAX_RECORD_CONFIG_JSON_CHARS);
-                try {
-                    new Gson().toJson(type, writer);
-                    response.setRecordConfig(JsonParser.parseString(writer.getContent()));
-                } catch (JsonIOException e) {
-                    response.setError(new RuntimeException(RECORD_CONFIG_ERROR_MESSAGE));
-                }
+                serializeRecordConfig(type, response);
             } catch (OutOfMemoryError oom) {
                 response.setError(new RuntimeException(RECORD_CONFIG_ERROR_MESSAGE, oom));
             } catch (Throwable e) {
@@ -513,13 +507,7 @@ public class TypesManagerService implements ExtendedLanguageServerService {
                             request.typeConstraint(), info.org(), info.moduleName(), info.version()));
                 }
                 Type type = TypeSymbolAnalyzerFromTypeModel.analyze(typeSymbol.get(), request.expr(), semanticModel);
-                SizeLimitedWriter writer = new SizeLimitedWriter(MAX_RECORD_CONFIG_JSON_CHARS);
-                try {
-                    new Gson().toJson(type, writer);
-                    response.setRecordConfig(JsonParser.parseString(writer.getContent()));
-                } catch (JsonIOException e) {
-                    response.setError(new RuntimeException(RECORD_CONFIG_ERROR_MESSAGE));
-                }
+                serializeRecordConfig(type, response);
             } catch (Throwable e) {
                 response.setError(e);
             }
@@ -555,13 +543,7 @@ public class TypesManagerService implements ExtendedLanguageServerService {
                                 semanticModel);
                         if (type != null && type.selected) {
                             type.name = memberInfo.type();
-                            SizeLimitedWriter writer = new SizeLimitedWriter(MAX_RECORD_CONFIG_JSON_CHARS);
-                            try {
-                                new Gson().toJson(type, writer);
-                                response.setRecordConfig(JsonParser.parseString(writer.getContent()));
-                            } catch (JsonIOException e) {
-                                response.setError(new RuntimeException(RECORD_CONFIG_ERROR_MESSAGE));
-                            }
+                            serializeRecordConfig(type, response);
                             response.setTypeName(memberInfo.type());
                             break;
                         }
@@ -705,6 +687,16 @@ public class TypesManagerService implements ExtendedLanguageServerService {
                 return new PackageNameModulePartName(parts[0], null);
             }
             return new PackageNameModulePartName(null, null);
+        }
+    }
+
+    private void serializeRecordConfig(Type type, RecordConfigResponse response) {
+        SizeLimitedWriter writer = new SizeLimitedWriter(MAX_RECORD_CONFIG_JSON_CHARS);
+        try {
+            new Gson().toJson(type, writer);
+            response.setRecordConfig(JsonParser.parseString(writer.getContent()));
+        } catch (JsonIOException e) {
+            response.setError(new RuntimeException(RECORD_CONFIG_ERROR_MESSAGE));
         }
     }
 
