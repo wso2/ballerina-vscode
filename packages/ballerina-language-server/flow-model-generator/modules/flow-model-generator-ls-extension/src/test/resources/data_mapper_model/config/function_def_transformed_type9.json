@@ -1,0 +1,151 @@
+{
+  "source": "function_def_transformed_type2.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "DATA_MAPPER_DEFINITION",
+    "lineRange": {
+      "fileName": "function_def_transformed_type1.bal",
+      "startLine": {
+        "line": 40,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 43,
+        "offset": 40
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 41,
+    "offset": 4
+  },
+  "targetField": "transformJsonXml4.0",
+  "model": {
+    "inputs": [
+      {
+        "name": "customerDetails",
+        "displayName": "customerDetails",
+        "typeName": "json",
+        "kind": "json",
+        "category": "parameter",
+        "convertedVariable": {
+          "member": {
+            "fields": [],
+            "name": "customerDetailsConverted",
+            "displayName": "<customerDetailsConvertedItem>",
+            "typeName": "CreateOrder",
+            "kind": "record",
+            "ref": "-555319738"
+          },
+          "name": "customerDetailsConverted",
+          "displayName": "customerDetailsConverted",
+          "typeName": "CreateOrder[]",
+          "kind": "array",
+          "category": "converted-variable",
+          "ref": "667729809"
+        }
+      },
+      {
+        "name": "customerDetails1",
+        "displayName": "customerDetails1",
+        "typeName": "json",
+        "kind": "json",
+        "category": "parameter"
+      },
+      {
+        "fields": [],
+        "name": "ordersItem",
+        "displayName": "ordersItem",
+        "typeName": "CreateOrder",
+        "kind": "record",
+        "category": "local-variable",
+        "focusExpression": "customerDetailsConverted",
+        "ref": "-555319738",
+        "isIterationVariable": true
+      }
+    ],
+    "output": {
+      "member": {
+        "fields": [],
+        "name": "transformJsonXml4",
+        "displayName": "<transformJsonXml4Item>",
+        "typeName": "CreateOrder",
+        "kind": "record",
+        "ref": "-555319738"
+      },
+      "name": "transformJsonXml4",
+      "displayName": "transformJsonXml4",
+      "typeName": "CreateOrder[]",
+      "kind": "array",
+      "ref": "667729809"
+    },
+    "subMappings": [],
+    "mappings": [
+      {
+        "output": "transformJsonXml4.OrderId",
+        "inputs": [],
+        "expression": "\"\"",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      },
+      {
+        "output": "transformJsonXml4.CustomerName",
+        "inputs": [],
+        "expression": "\"\"",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "query": {
+      "output": "transformJsonXml4",
+      "inputs": [
+        "customerDetailsConverted"
+      ],
+      "fromClause": {
+        "type": "from",
+        "properties": {
+          "name": "ordersItem",
+          "type": "CreateOrder",
+          "expression": "customerDetailsConverted",
+          "isOuter": false
+        }
+      },
+      "intermediateClauses": [],
+      "resultClause": {
+        "type": "select",
+        "properties": {
+          "expression": "{OrderId: \"\", CustomerName: \"\"}",
+          "isOuter": false
+        }
+      }
+    },
+    "refs": {
+      "-555319738": {
+        "fields": [
+          {
+            "name": "OrderId",
+            "displayName": "OrderId",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "CustomerName",
+            "displayName": "CustomerName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "CreateOrder",
+        "kind": "record"
+      }
+    },
+    "hasInvalidOutput": false
+  }
+}

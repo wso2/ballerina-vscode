@@ -31,7 +31,7 @@ import java.util.Map;
  * @param parentTypeName The parent type name of the converted type
  * @param variableName The converted variable name
  * @param isInput      The converted variable is input or output
- * @param isArray      The converted variable is array or not
+ * @param isArray      Whether the converted variable is an array
  * @param imports      The imports to be added for the conversion
  *
  * @since 2.0.0

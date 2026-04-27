@@ -1223,20 +1223,27 @@ public class DataMapManager {
                 if (convertedVariables != null && convertedVariables.inputs() != null) {
                     for (ConvertedVariable convertedVariable : convertedVariables.inputs()) {
                         if (convertedVariable.paramName().equals(name)) {
-                            TypedBindingPatternNode typedBindingPatternNode =
-                                    convertedVariable.letVarDeclaration().typedBindingPattern();
-                            Optional<Symbol> optSymbol = semanticModel.symbol(typedBindingPatternNode.typeDescriptor());
+                            LetVariableDeclarationNode letVarDeclaration = convertedVariable.letVarDeclaration();
+                            Optional<Symbol> optSymbol = semanticModel.symbol(letVarDeclaration);
                             if (optSymbol.isEmpty()) {
                                 continue;
                             }
-                            BindingPatternNode bindingPattern = typedBindingPatternNode.bindingPattern();
+
+                            Symbol letVarSymbol = optSymbol.get();
+                            if (letVarSymbol.kind() != SymbolKind.VARIABLE) {
+                                continue;
+                            }
+
+                            BindingPatternNode bindingPattern =
+                                    letVarDeclaration.typedBindingPattern().bindingPattern();
                             if (bindingPattern.kind() != SyntaxKind.CAPTURE_BINDING_PATTERN) {
                                 continue;
                             }
+
                             String text = ((CaptureBindingPatternNode) bindingPattern).variableName().text();
                             MappingPort convertedMappingPort = getRefMappingPort(text, text,
-                                    ReferenceType.fromSemanticSymbol(optSymbol.get(), typeDefSymbols),
-                                    new HashMap<>(), references);
+                                    ReferenceType.fromSemanticSymbol(((VariableSymbol) letVarSymbol).typeDescriptor(),
+                                            typeDefSymbols), new HashMap<>(), references);
                             convertedMappingPort.category = "converted-variable";
                             refMappingPort.setConvertedVariable(convertedMappingPort);
                         }
@@ -1396,18 +1403,23 @@ public class DataMapManager {
                     for (ConvertedVariable convertedVariable : convertedVariables.inputs()) {
                         if (convertedVariable.paramName().equals(name)) {
                             LetVariableDeclarationNode letVarDeclarationNode = convertedVariable.letVarDeclaration();
-                            Optional<Symbol> optSymbol =
-                                    semanticModel.symbol(letVarDeclarationNode.typedBindingPattern().typeDescriptor());
+                            Optional<Symbol> optSymbol = semanticModel.symbol(letVarDeclarationNode);
                             if (optSymbol.isEmpty()) {
                                 continue;
                             }
+
+                            Symbol letVarSymbol = optSymbol.get();
+                            if (letVarSymbol.kind() != SymbolKind.VARIABLE) {
+                                continue;
+                            }
+
                             String letVarName = getLetVarName(letVarDeclarationNode);
                             if (letVarName == null) {
                                 continue;
                             }
                             MappingPort convertedMappingPort = getRefMappingPort(letVarName, letVarName,
-                                    ReferenceType.fromSemanticSymbol(optSymbol.get(), typeDefSymbols),
-                                    new HashMap<>(), references);
+                                    ReferenceType.fromSemanticSymbol(((VariableSymbol) letVarSymbol).typeDescriptor(),
+                                            typeDefSymbols), new HashMap<>(), references);
                             convertedMappingPort.category = "converted-variable";
                             refMappingPort.setConvertedVariable(convertedMappingPort);
                         }
