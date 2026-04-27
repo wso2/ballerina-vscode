@@ -266,7 +266,7 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 						</DiagnosticTooltip>
 					)}
 					{(isLoading) ? (
-						<ProgressRing />
+						<ProgressRing sx={{ height: '16px', width: '16px' }} />
 					) : (
 						<FieldActionWrapper>
 							<ValueConfigMenu
