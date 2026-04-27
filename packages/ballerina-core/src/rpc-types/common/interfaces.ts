@@ -152,6 +152,7 @@ export interface SampleDownloadRequest {
 
 export interface DefaultOrgNameResponse {
     orgName: string;
+    isLocked?: boolean;
 }
 
 export interface PublishToCentralResponse {

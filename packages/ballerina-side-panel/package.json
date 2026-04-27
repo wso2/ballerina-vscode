@@ -9,6 +9,7 @@
     "types": "lib/index.d.ts",
     "scripts": {
         "build": "tsc --pretty && npm run copy:assets",
+        "test": "npm run build && node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test test/typeCompletionUtils.test.mjs",
         "storybook": "start-storybook -p 6006",
         "watch": "tsc --pretty --watch",
         "build-storybook": "build-storybook",

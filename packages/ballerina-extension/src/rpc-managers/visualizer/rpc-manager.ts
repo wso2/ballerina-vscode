@@ -20,6 +20,7 @@ import {
     ColorThemeKind,
     EVENT_TYPE,
     GoBackRequest,
+    GoHomeRequest,
     HandleApprovalPopupCloseRequest,
     HistoryEntry,
     JoinProjectPathRequest,
@@ -85,14 +86,15 @@ export class VisualizerRpcManager implements VisualizerAPI {
         return history.get();
     }
 
-    goHome(): void {
+    goHome(params: GoHomeRequest): void {
         history.clear();
         const isWithinBallerinaWorkspace = !!StateMachine.context().workspacePath;
+        const isPackageOverview = params?.isPackageOverview;
         commands.executeCommand(SHARED_COMMANDS.FORCE_UPDATE_PROJECT_ARTIFACTS).then(() => {
             openView(
                 EVENT_TYPE.OPEN_VIEW,
                 {
-                    view: isWithinBallerinaWorkspace
+                    view: isWithinBallerinaWorkspace && !isPackageOverview
                         ? MACHINE_VIEW.WorkspaceOverview
                         : MACHINE_VIEW.PackageOverview
                 },

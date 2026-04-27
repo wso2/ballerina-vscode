@@ -27,6 +27,7 @@ import { useForm } from "react-hook-form";
 import { debounce } from "lodash";
 import ReactMarkdown from "react-markdown";
 import { updateFieldsSelection } from "../Components/RecordConstructView/utils";
+import { unwrapIntersectionRecord } from "../Components/RecordConstructView/utils/intersection";
 import { ChipExpressionEditorDefaultConfiguration } from "@wso2/ballerina-side-panel/lib/components/editors/MultiModeExpressionEditor/ChipExpressionEditor/ChipExpressionDefaultConfig";
 
 type ConfigureRecordPageProps = {
@@ -265,7 +266,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                 filePath: fileName,
                 typeMembers: recordTypeField.recordTypeMembers,
                 expr: currentValue
-            }
+            };
 
             const getRecordModelFromSourceResponse: GetRecordModelFromSourceResponse =
                 await rpcClient.getBIDiagramRpcClient().getRecordModelFromSource(getRecordModelFromSourceRequest);
@@ -281,14 +282,13 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             if (newRecordModel) {
                 const recordConfig: TypeField = {
                     name: newRecordModel.name,
-                    ...newRecordModel
-                }
+                    ...unwrapIntersectionRecord(newRecordModel)
+                };
 
                 setRecordModel([recordConfig]);
                 recordModelRef.current = [recordConfig];
                 setSelectedMemberName(newRecordModel.name);
 
-                // Update selected flags so the backend receives the correct type on submit
                 recordTypeField.recordTypeMembers.forEach(m => {
                     m.selected = m.type === newRecordModel.name;
                 });
@@ -298,9 +298,11 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
         }
     }
 
+
     const getExistingRecordModel = async () => {
         await fetchRecordModelFromSource(currentValue);
     };
+
 
 
     // Helper function to auto-select the first record in the model.
@@ -353,7 +355,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                     packageName: packageName,
                 },
                 typeConstraint: defaultSelection.type,
-            }
+            };
             const typeFieldResponse: GetRecordConfigResponse = await rpcClient.getBIDiagramRpcClient().getRecordConfig(request);
             console.log(">>> GetRecordConfigResponse", typeFieldResponse);
             if (typeFieldResponse.errorMsg) {
@@ -363,17 +365,14 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             if (typeFieldResponse.recordConfig) {
                 const recordConfig: TypeField = {
                     name: defaultSelection.type,
-                    ...typeFieldResponse.recordConfig
-                }
+                    ...unwrapIntersectionRecord(typeFieldResponse.recordConfig)
+                };
 
                 const newModel = [recordConfig];
                 setRecordModel(newModel);
                 recordModelRef.current = newModel;
 
-                // Auto-select the first field for new models
                 autoSelectFirstRecord(newModel);
-
-                // Generate source with the auto-selected field
                 await handleModelChange(newModel);
             }
         } finally {
@@ -426,7 +425,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             if (typeFieldResponse.recordConfig) {
                 const recordConfig: TypeField = {
                     name: member.type,
-                    ...typeFieldResponse.recordConfig
+                    ...unwrapIntersectionRecord(typeFieldResponse.recordConfig)
                 }
 
                 const newModel = [recordConfig];
@@ -737,9 +736,9 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                     }}
                                     triggerCharacters={triggerCharacters}
                                 >
-                                    <div ref={anchorRef} style={{ 
-                                        flex: 1, 
-                                        display: 'flex', 
+                                    <div ref={anchorRef} style={{
+                                        flex: 1,
+                                        display: 'flex',
                                         flexDirection: 'column',
                                         minHeight: 0,
                                         gap: '8px'
@@ -752,7 +751,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                             targetLineRange={targetLineRange}
                                             extractArgsFromFunction={wrappedExtractArgsFromFunction}
                                             getHelperPane={wrappedGetHelperPane}
-                                            sx={{ 
+                                            sx={{
                                                 height: "100%",
                                                 minHeight: 0,
                                                 flex: 1
