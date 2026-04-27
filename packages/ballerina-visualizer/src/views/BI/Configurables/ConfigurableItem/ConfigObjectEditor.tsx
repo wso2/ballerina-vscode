@@ -23,7 +23,7 @@ import { GetRecordConfigRequest, Property, TypeField, RecordSourceGenRequest, Re
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Codicon, Typography } from "@wso2/ui-toolkit";
 import { unwrapIntersectionRecord } from "../../HelperPaneNew/Components/RecordConstructView/utils/intersection";
-import { validateTomlValue } from "./utils";
+import { getTomlPlaceholder, validateTomlValue } from "./utils";
 
 const EditorContainer = styled.div`
     width: 100%;
@@ -160,7 +160,7 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
     // Check field type
     const isArrayType = field.typeName === 'array' || field.typeName?.endsWith('[]');
     const isBooleanType = field.typeName === 'boolean';
-    const isNumericType = field.typeName === 'int' || field.typeName === 'float' || field.typeName === 'decimal';
+    const isNumericType = field.typeName === 'int' || field.typeName === 'byte' || field.typeName === 'float' || field.typeName === 'decimal';
     const isStringType = field.typeName === 'string';
 
     // Update field value when the field prop changes
@@ -281,7 +281,7 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
             newArrayItems[index] = value;
         } else if (memberTypeName === 'boolean') {
             newArrayItems[index] = value;
-        } else if (memberTypeName === 'int' || memberTypeName === 'float' || memberTypeName === 'decimal') {
+        } else if (memberTypeName === 'int' || memberTypeName === 'byte' || memberTypeName === 'float' || memberTypeName === 'decimal') {
             newArrayItems[index] = value;
         } else {
             newArrayItems[index] = value;
@@ -310,7 +310,7 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
 
         if (memberTypeName === 'boolean') {
             defaultValue = false;
-        } else if (memberTypeName === 'int' || memberTypeName === 'float' || memberTypeName === 'decimal') {
+        } else if (memberTypeName === 'int' || memberTypeName === 'byte' || memberTypeName === 'float' || memberTypeName === 'decimal') {
             defaultValue = '';
         } else if (memberTypeName === 'string') {
             defaultValue = '';
@@ -406,7 +406,7 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
                                         >
                                             Item {index + 1}
                                         </VSCodeCheckbox>
-                                    ) : memberTypeName === 'int' || memberTypeName === 'float' || memberTypeName === 'decimal' ? (
+                                    ) : memberTypeName === 'int' || memberTypeName === 'byte' || memberTypeName === 'float' || memberTypeName === 'decimal' ? (
                                         <ArrayInputContainer>
                                             <VSCodeTextField
                                                 value={typeof item === 'string' ? item : String(item)}
@@ -416,7 +416,7 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
                                                     borderColor: arrayValidationErrors[index] ? 'var(--vscode-editorError-foreground)' : undefined
                                                 }}
                                                 onChange={(e: any) => handleArrayItemChange(index, e.target.value)}
-                                                placeholder={`Item ${index + 1} (${memberTypeName})`}
+                                                placeholder={getTomlPlaceholder(memberTypeName || '')}
                                             />
                                             {arrayValidationErrors[index] && (
                                                 <ValidationErrorText>{arrayValidationErrors[index]}</ValidationErrorText>
@@ -486,7 +486,7 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
                         borderColor: validationError ? 'var(--vscode-editorError-foreground)' : undefined
                     }}
                     onChange={handleNumericChange}
-                    placeholder={field.defaultValue !== undefined ? `Default: ${field.defaultValue}` : 'Enter a number'}
+                    placeholder={getTomlPlaceholder(field.typeName || '', field.defaultValue)}
                 />
             )}
             {isNumericType && !isArrayType && validationError && (
@@ -504,7 +504,7 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
                         borderColor: validationError ? 'var(--vscode-editorError-foreground)' : undefined
                     }}
                     onChange={handleValueChange}
-                    placeholder={field.defaultValue !== undefined ? `Default: ${field.defaultValue}` : ''}
+                    placeholder={getTomlPlaceholder(field.typeName || '', field.defaultValue)}
                 />
             )}
             {isStringType && !isArrayType && validationError && (
@@ -522,7 +522,7 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
                         borderColor: validationError ? 'var(--vscode-editorError-foreground)' : undefined
                     }}
                     onChange={handleValueChange}
-                    placeholder={field.defaultValue !== undefined ? `Default: ${field.defaultValue}` : ''}
+                    placeholder={getTomlPlaceholder(field.typeName || '', field.defaultValue)}
                 />
             )}
             {!isBooleanType && !isNumericType && !isStringType && !isRecordType && !hasNestedFields && !isArrayType && validationError && (

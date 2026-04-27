@@ -26,7 +26,7 @@ import remarkBreaks from "remark-breaks";
 import { VSCodeTextArea } from "@vscode/webview-ui-toolkit/react";
 import EditForm from "../EditConfigurableVariables";
 import ConfigObjectEditor from "./ConfigObjectEditor";
-import { validateTomlValue } from "./utils";
+import { getTomlPlaceholder, validateTomlValue } from "./utils";
 
 const Container = styled.div`
     padding: 12px 14px 18px;
@@ -448,6 +448,10 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
                         })()}
                         resize="vertical"
                         value={configVariable?.properties?.[activeValueKey]?.value ? getPlainValue(String(configVariable?.properties?.[activeValueKey]?.value)) : ''}
+                        placeholder={getTomlPlaceholder(
+                            String(configVariable?.properties?.type?.value || ''),
+                            configVariable?.properties?.defaultValue?.value
+                        )}
                         style={{
                             width: '100%',
                             minHeight: '20px',

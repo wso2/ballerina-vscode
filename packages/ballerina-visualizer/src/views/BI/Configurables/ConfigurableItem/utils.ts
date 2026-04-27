@@ -23,6 +23,38 @@ const TOML_BOOLEAN_PATTERN = /^(true|false)$/;
 
 const getValidationTypeName = (type: string) => type.replace(/\?$/, '').trim();
 
+export const getTomlPlaceholder = (type: string, defaultValue?: unknown): string => {
+    if (defaultValue !== undefined && defaultValue !== null && defaultValue !== '') {
+        return `Default: ${String(defaultValue)}`;
+    }
+
+    const trimmedType = getValidationTypeName(type);
+
+    if (trimmedType.includes('|')) {
+        return `Enter a valid value for ${type}`;
+    }
+
+    if (trimmedType.endsWith('[]') || trimmedType === 'array') {
+        return 'Enter an array, e.g. [value1, value2]';
+    }
+
+    switch (trimmedType) {
+        case 'string':
+            return 'Enter text';
+        case 'int':
+            return 'Enter an integer';
+        case 'byte':
+            return 'Enter a byte value (0-255)';
+        case 'float':
+        case 'decimal':
+            return 'Enter a number';
+        case 'boolean':
+            return 'Enter true or false';
+        default:
+            return type ? `Enter ${type}` : 'Enter a value';
+    }
+};
+
 const getTomlIntegerValue = (value: string) => {
     const normalizedValue = value.replace(/_/g, '').replace(/^\+/, '');
     return Number(normalizedValue);
