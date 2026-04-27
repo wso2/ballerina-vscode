@@ -274,6 +274,8 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
 
             if (getRecordModelFromSourceResponse.errorMsg) {
                 setHasTooManyFieldsError(getRecordModelFromSourceResponse.errorMsg === TOO_MANY_FIELDS_ERROR);
+                setRecordModel([]);
+                recordModelRef.current = [];
                 return;
             }
 
