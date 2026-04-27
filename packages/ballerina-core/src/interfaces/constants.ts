@@ -30,7 +30,6 @@ export const SHARED_COMMANDS = {
 export const BI_COMMANDS = {
     BI_RUN_PROJECT: 'BI.project.run',
     BI_DEBUG_PROJECT: 'BI.project.debug',
-    REFRESH_COMMAND: 'BI.project-explorer.refresh',
     PROJECT_EXPLORER: 'BI.project-explorer',
     ADD_CONNECTIONS: 'BI.project-explorer.add-connection',
     ADD_CUSTOM_CONNECTOR: 'BI.project-explorer.add-custom-connector',
