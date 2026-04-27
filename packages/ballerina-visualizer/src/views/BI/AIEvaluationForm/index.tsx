@@ -140,6 +140,8 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
     const [evalsetOptions, setEvalsetOptions] = useState<Array<{ value: string; content: string }>>([]);
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [selectedEvalsetFile, setSelectedEvalsetFile] = useState<string>('');
+    const [evalsetsLoaded, setEvalsetsLoaded] = useState<boolean>(false);
+    const [evalsetsLoadError, setEvalsetsLoadError] = useState<boolean>(false);
 
     // Helper function to apply field visibility rules based on data provider mode
     const applyFieldVisibility = (fields: FormField[], mode: string): FormField[] => {
@@ -148,7 +150,8 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                 return { ...field, hidden: mode !== 'function' };
             }
             if (field.key === 'evalSetFile') {
-                const hidden = mode !== 'evalSet' || evalsetOptions.length === 0;
+                const hasValue = !!field.value;
+                const hidden = mode !== 'evalSet' || (evalsetOptions.length === 0 && !hasValue);
                 return { ...field, hidden };
             }
             if (field.key === 'runs') {
@@ -227,9 +230,13 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                 content: `${evalset.name}`
             }));
             setEvalsetOptions(options);
+            setEvalsetsLoadError(false);
         } catch (error) {
             console.error('Failed to load evalsets:', error);
             setEvalsetOptions([]);
+            setEvalsetsLoadError(true);
+        } finally {
+            setEvalsetsLoaded(true);
         }
     };
 
@@ -877,16 +884,20 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                                         />,
                                         index: 2
                                     },
-                                    ...(dataProviderMode === 'evalSet' && evalsetOptions.length === 0 ? [{
+                                    ...(dataProviderMode === 'evalSet' && evalsetsLoaded && evalsetOptions.length === 0 && !selectedEvalsetFile ? [{
                                         component: (
                                             <EmptyEvalsetContainer>
                                                 <EmptyEvalsetTitle>
-                                                    <Icon name="bi-data-table" sx={{ fontSize: "16px", width: "16px", height: "16px" }} />
-                                                    No evalset files found
+                                                    <Icon name={evalsetsLoadError ? "bi-error" : "bi-data-table"} sx={{ fontSize: "16px", width: "16px", height: "16px" }} />
+                                                    {evalsetsLoadError ? "Failed to load evalsets" : "No evalset files found"}
                                                 </EmptyEvalsetTitle>
                                                 <EmptyEvalsetMessage>
-                                                    Evalsets are created by exporting traces from conversations with your agents.
-                                                    Have a conversation with an agent and export the traces, or switch to <strong>Standalone/Custom</strong> mode to define your evaluation logic from scratch.
+                                                    {evalsetsLoadError ? (
+                                                        <>Could not load evalsets for this project. Try reopening this view, or switch to <strong>Standalone/Custom</strong> mode to define your evaluation logic from scratch.</>
+                                                    ) : (
+                                                        <>Evalsets are created by exporting traces from conversations with your agents.
+                                                        Have a conversation with an agent and export the traces, or switch to <strong>Standalone/Custom</strong> mode to define your evaluation logic from scratch.</>
+                                                    )}
                                                 </EmptyEvalsetMessage>
                                             </EmptyEvalsetContainer>
                                         ),
