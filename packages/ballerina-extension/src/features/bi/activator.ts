@@ -69,21 +69,6 @@ export function activate(context: BallerinaExtension) {
         const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
         const hasActiveTextEditor = !!window.activeTextEditor;
 
-        // Guard: exit early if no Ballerina project is detected
-        if (!projectPath && !workspacePath) {
-            let workspaceType: { type: string };
-            try {
-                workspaceType = await findWorkspaceTypeFromWorkspaceFolders();
-            } catch {
-                window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
-                return;
-            }
-            if (workspaceType.type === "UNKNOWN") {
-                window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
-                return;
-            }
-        }
-
         // Check if ICP is enabled for this project
         if (projectPath && stateMachineContext.langClient) {
             try {
