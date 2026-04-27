@@ -41,7 +41,7 @@ export function registerAgentChatRpcHandlers(messenger: Messenger) {
     const rpcManger = new AgentChatRpcManager();
     messenger.onRequest(getChatMessage, (args: ChatReqMessage) => rpcManger.getChatMessage(args));
     messenger.onNotification(abortChatRequest, () => rpcManger.abortChatRequest());
-    messenger.onRequest(getTracingStatus, () => rpcManger.getTracingStatus());
+    messenger.onRequest(getTracingStatus, (params) => rpcManger.getTracingStatus(params));
     messenger.onNotification(showTraceView, (args: TraceInput) => rpcManger.showTraceView(args));
     messenger.onNotification(showSessionOverview, (args: SessionInput) => rpcManger.showSessionOverview(args));
     messenger.onRequest(getChatHistory, () => rpcManger.getChatHistory());

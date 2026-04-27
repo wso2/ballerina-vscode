@@ -29,6 +29,7 @@ import {
     TraceInput,
     SessionInput,
     TraceStatus,
+    TraceStatusRequest,
     ChatHistoryResponse,
     AgentStatusResponse,
     ClearChatResponse,
@@ -42,7 +43,8 @@ import {
     SwitchAgentResponse,
     getAvailableChatAgents,
     switchChatAgent,
-    activeAgentChanged
+    activeAgentChanged,
+    tracingStatusChanged
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -62,8 +64,8 @@ export class AgentChatRpcClient implements AgentChatAPI {
         return this._messenger.sendNotification(abortChatRequest, HOST_EXTENSION);
     }
 
-    getTracingStatus(): Promise<TraceStatus> {
-        return this._messenger.sendRequest(getTracingStatus, HOST_EXTENSION);
+    getTracingStatus(params: TraceStatusRequest = {}): Promise<TraceStatus> {
+        return this._messenger.sendRequest(getTracingStatus, HOST_EXTENSION, params);
     }
 
     showTraceView(params: TraceInput): Promise<void> {
@@ -100,5 +102,9 @@ export class AgentChatRpcClient implements AgentChatAPI {
 
     onActiveAgentChanged(handler: (agentName: string) => void): void {
         this._messenger.onNotification(activeAgentChanged, handler);
+    }
+
+    onTracingStatusChanged(handler: (status: TraceStatus) => void): void {
+        this._messenger.onNotification(tracingStatusChanged, handler);
     }
 }

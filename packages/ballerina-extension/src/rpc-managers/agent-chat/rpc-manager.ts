@@ -23,6 +23,7 @@ import {
     ExecutionStep,
     TraceInput,
     TraceStatus,
+    TraceStatusRequest,
     ChatHistoryMessage,
     ChatHistoryResponse,
     AgentStatusResponse,
@@ -34,6 +35,8 @@ import {
     SwitchAgentResponse
 } from "@wso2/ballerina-core";
 import * as vscode from 'vscode';
+import * as fs from 'fs';
+import * as path from 'path';
 import { extension } from '../../BalExtensionContext';
 import { TracerMachine, TraceServer } from "../../features/tracing";
 import { TraceDetailsWebview } from "../../features/tracing/trace-details-webview";
@@ -215,13 +218,12 @@ export class AgentChatRpcManager implements AgentChatAPI {
         }
     }
 
-    async getTracingStatus(): Promise<TraceStatus> {
-        return new Promise(async (resolve) => {
-            const isEnabled = TracerMachine.isEnabled();
-            resolve({
-                enabled: isEnabled
-            });
-        });
+    async getTracingStatus(params?: TraceStatusRequest): Promise<TraceStatus> {
+        if (params?.projectPath) {
+            const enabled = fs.existsSync(path.join(params.projectPath, 'trace_enabled.bal'));
+            return { enabled };
+        }
+        return { enabled: TracerMachine.isEnabled() };
     }
 
 

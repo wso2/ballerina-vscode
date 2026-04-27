@@ -89,10 +89,7 @@ function isTraceEnabledInProject(context: TracerMachineContext): Promise<{ isTra
 }
 
 function enableTracingInProject(context: TracerMachineContext, event?: any): void {
-    console.log('enableTracingInProject called with project path:', event?.projectPath);
-
     if (!event?.projectPath) {
-        console.error('enableTracingInProject: No project path provided');
         return;
     }
 
@@ -106,10 +103,7 @@ function enableTracingInProject(context: TracerMachineContext, event?: any): voi
 }
 
 function disableTracingInProject(context: TracerMachineContext, event?: any): void {
-    console.log('disableTracingInProject called with project path:', event?.projectPath);
-
     if (!event?.projectPath) {
-        console.error('disableTracingInProject: No project path provided');
         return;
     }
 
@@ -130,7 +124,19 @@ function startServer(context: TracerMachineContext, event?: any): Thenable<vscod
 }
 
 function stopServer(context: TracerMachineContext, event?: any): Promise<void> {
-    return TraceServer.stop();
+    const taskExecution = context.taskExecution;
+    if (!taskExecution || !vscode.tasks.taskExecutions.includes(taskExecution)) {
+        return TraceServer.stop();
+    }
+    return new Promise<void>((resolve, reject) => {
+        const subscription = vscode.tasks.onDidEndTask((endEvent) => {
+            if (endEvent.execution === taskExecution) {
+                subscription.dispose();
+                TraceServer.stop().then(resolve, reject);
+            }
+        });
+        taskExecution.terminate();
+    });
 }
 
 
@@ -205,6 +211,10 @@ function createTracerMachine(projectPath?: string, childProjectPaths?: string[])
                         },
                     ],
                     on: {
+                        // ENABLE while already enabled: write trace_enabled.bal for the new project, stay in enabled.
+                        ENABLE: {
+                            actions: [enableTracingInProject],
+                        },
                         DISABLE: [
                             {
                                 target: 'enabled.serverStopping',
@@ -213,6 +223,9 @@ function createTracerMachine(projectPath?: string, childProjectPaths?: string[])
                                     return TraceServer.isRunning();
                                 },
                                 actions: [
+                                    // Remove the file here while event.projectPath is still available;
+                                    // serverStopping.onDone receives a different event and would lose it.
+                                    disableTracingInProject,
                                     assign({
                                         isDisabling: true,
                                     }),
@@ -346,10 +359,10 @@ function createTracerMachine(projectPath?: string, childProjectPaths?: string[])
                                 src: stopServer,
                                 onDone: [
                                     {
+                                        // File was already removed when DISABLE was received in `enabled`.
                                         target: "#tracerMachine.disabled",
                                         cond: (context) => context.isDisabling === true,
                                         actions: [
-                                            disableTracingInProject,
                                             assign({
                                                 isDisabling: false,
                                             }),
@@ -406,6 +419,10 @@ function createTracerMachine(projectPath?: string, childProjectPaths?: string[])
                                     currentProjectPath: (context, event) => (event as any).projectPath,
                                 })
                             ]
+                        },
+                        // DISABLE while already disabled: another project still has trace_enabled.bal — remove that file. Stay in disabled.
+                        DISABLE: {
+                            actions: [disableTracingInProject],
                         },
                         REFRESH: {
                             target: 'init',
