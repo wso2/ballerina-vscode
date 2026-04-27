@@ -79,7 +79,6 @@ import {
     generateOpenAPI,
     getAIMachineSnapshot,
     getActiveTempDir,
-    getAffectedPackages,
     getChatMessages,
     getCheckpoints,
     getDefaultPrompt,
@@ -236,10 +235,6 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     getSemanticDiff(params: SemanticDiffRequest): Promise<SemanticDiffResponse> {
         return this._messenger.sendRequest(getSemanticDiff, HOST_EXTENSION, params);
-    }
-
-    getAffectedPackages(): Promise<string[]> {
-        return this._messenger.sendRequest(getAffectedPackages, HOST_EXTENSION);
     }
 
     isWorkspaceProject(): Promise<boolean> {
