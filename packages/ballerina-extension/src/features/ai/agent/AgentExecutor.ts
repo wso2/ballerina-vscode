@@ -870,6 +870,9 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         // Skip review mode if no files were modified
         if (generationModifiedFiles.length === 0) {
             console.log("[AgentExecutor] No modified files - skipping review mode");
+            chatStateStorage.updateReviewState(projectRootPath, threadId, context.messageId, {
+                status: 'accepted',
+            });
             return;
         }
 
