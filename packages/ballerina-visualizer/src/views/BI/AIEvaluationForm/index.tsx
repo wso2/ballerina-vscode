@@ -219,6 +219,12 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
             formFields = applyFieldVisibility(formFields, mode);
 
             setFormFields(formFields);
+
+            const evalSetFileField = formFields.find(f => f.key === 'evalSetFile');
+            const fieldValue = String(evalSetFileField?.value || '');
+            if (fieldValue) {
+                setSelectedEvalsetFile(prev => prev || fieldValue);
+            }
         }
     }, [evalsetOptions]);
 
@@ -371,8 +377,11 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
 
                 const evalSetFileField = configAnnotation.fields.find(f => f.originalName === 'evalSetFile');
                 if (evalSetFileField) {
+                    const generatedField = generateFieldFromProperty('evalSetFile', evalSetFileField);
+                    const defaultValue = generatedField.value || (evalsetOptions.length > 0 ? evalsetOptions[0].value : '');
                     fields.push({
-                        ...generateFieldFromProperty('evalSetFile', evalSetFileField),
+                        ...generatedField,
+                        value: defaultValue,
                         type: 'SINGLE_SELECT',
                         types: [{ fieldType: 'SINGLE_SELECT', selected: false }],
                         itemOptions: evalsetOptions
