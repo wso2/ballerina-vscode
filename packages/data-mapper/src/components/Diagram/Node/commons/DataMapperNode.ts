@@ -17,7 +17,7 @@
  */
 // tslint:disable: no-empty-interface
 import { DiagramModel, NodeModel, NodeModelGenerics } from '@projectstorm/react-diagrams';
-import { IOType, Mapping, MappingElement, TypeKind } from '@wso2/ballerina-core';
+import { InputCategory, IOType, Mapping, MappingElement, TypeKind } from '@wso2/ballerina-core';
 
 import { IDataMapperContext } from '../../../../utils/DataMapperContext/DataMapperContext';
 import { MappingMetadata } from '../../Mappings/MappingMetadata';
@@ -120,6 +120,7 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		const portName = this.getPortName(portPrefix, unsafeFieldFQN);
 		const isFocused = this.isFocusedField(focusedFieldFQNs, portName);
 		const isPreview = parent.attributes.isPreview || this.isPreviewPort(focusedFieldFQNs, parent.attributes.field);
+		const isConvertedField = field.category === InputCategory.ConvertedVariable;
 
 		let collapseByDefault = false;
 		let isEnrichRequired = false;
@@ -130,7 +131,7 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		}
 
 		const isCollapsed = this.isInputPortCollapsed(hidden, collapsedFields, expandedFields, 
-			portName, isArray, field.isDeepNested, isFocused, collapseByDefault);
+			portName, isArray, field.isDeepNested, isFocused, isConvertedField, collapseByDefault);
 
 		if (isEnrichRequired || (!isCollapsed && !hidden && field.isDeepNested)) {
 			await this.context.enrichChildFields(field);
@@ -333,10 +334,13 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		isArray: boolean,
 		isDeepNested: boolean,
 		isFocused: boolean,
+		isConvertedField: boolean,
 		collapseByDefault: boolean
 	) {
 		// Auto-expand all input fields when input search is active
 		if (!isDeepNested && useDMSearchStore.getState().inputSearch) {return false;}
+
+		if (isConvertedField) { return false; }
 
 		if ((isArray && !isFocused) || collapseByDefault ){
 			return expandedFields && !expandedFields.includes(portName);
