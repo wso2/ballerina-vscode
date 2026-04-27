@@ -421,29 +421,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
         }
     }
 
-    async getAffectedPackages(): Promise<string[]> {
-        // Get project root path and thread ID
-        const projectRootPath = resolveProjectRootPath();
-        const threadId = 'default';
-
-        // Get the LATEST under_review generation (not the first one)
-        const thread = chatStateStorage.getOrCreateThread(projectRootPath, threadId);
-        const underReviewGenerations = thread.generations.filter(
-            g => g.reviewState.status === 'under_review'
-        );
-
-        if (underReviewGenerations.length === 0) {
-            console.log(">>> No pending review generation, returning empty affected packages");
-            return [];
-        }
-
-        // Return packages from the LATEST under_review generation
-        const latestReview = underReviewGenerations[underReviewGenerations.length - 1];
-        const affectedPackages = latestReview.reviewState.affectedPackagePaths || [];
-        console.log(`>>> Returning ${affectedPackages.length} affected packages from generation ${latestReview.id}:`, affectedPackages);
-        return affectedPackages;
-    }
-
     async isWorkspaceProject(): Promise<boolean> {
         const context = StateMachine.context();
         const isWorkspace = context.projectInfo?.projectKind === 'WORKSPACE_PROJECT';
