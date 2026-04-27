@@ -729,8 +729,8 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                         if (resourcePathProperty) {
                             const sourcePath = resourcePathProperty.codedata?.originalName ?? resourcePathProperty.value;
                             const displayPath = resourcePathProperty.value;
-                            const replacePathParam = (p: unknown) =>
-                                typeof p === "string" ? p.replace(`[${key}]`, `[${paramValue}]`) : p;
+                            const replacePathParam = <T,>(p: T): T =>
+                                (typeof p === "string" ? p.replace(`[${key}]`, `[${paramValue}]`) : p) as T;
                             newProperties["resourcePath"] = {
                                 ...resourcePathProperty,
                                 codedata: {
