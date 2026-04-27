@@ -181,27 +181,11 @@ export function activateSubscriptions() {
     );
 
     context.subscriptions.push(
-        vscode.commands.registerCommand(SHARED_COMMANDS.OPEN_BI_WELCOME, () => {
+        vscode.commands.registerCommand(SHARED_COMMANDS.SETUP_BALLERINA, () => {
             if (StateMachine.langClient()) {
                 openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BIWelcome });
             } else {
                 openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.SetupView });
-            }
-        })
-    );
-
-    context.subscriptions.push(
-        vscode.commands.registerCommand(SHARED_COMMANDS.OPEN_BI_NEW_PROJECT, () => {
-            const isBallerinaWorkspace = !!StateMachine.context().workspacePath;
-            const isWorkspaceSupported = isSupportedSLVersion(
-                extension.ballerinaExtInstance,
-                createVersionNumber(2201, 13, 0)
-            );
-
-            if (isBallerinaWorkspace && isWorkspaceSupported) {
-                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BIAddProjectForm });
-            } else {
-                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BIProjectForm });
             }
         })
     );
