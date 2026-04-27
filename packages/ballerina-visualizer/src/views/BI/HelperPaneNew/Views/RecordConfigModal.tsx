@@ -420,6 +420,8 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             const typeFieldResponse: GetRecordConfigResponse = await rpcClient.getBIDiagramRpcClient().getRecordConfig(request);
             if (typeFieldResponse.errorMsg) {
                 setHasTooManyFieldsError(typeFieldResponse.errorMsg === TOO_MANY_FIELDS_ERROR);
+                setRecordModel([]);
+                recordModelRef.current = [];
                 return;
             }
             if (typeFieldResponse.recordConfig) {
@@ -693,7 +695,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                             </LabelContainer>
                         )}
                         {hasTooManyFieldsError ? (
-                            <Typography variant="body3">Record construction assistance is unavailable. Due to too many fields in the record type. Use the expression editor.</Typography>
+                            <Typography variant="body3">Record construction assistance is unavailable due to too many fields in the record type. Use the expression editor.</Typography>
                         ) : selectedMemberName && recordModel?.length > 0 ? (
                             <RecordConfigView
                                 recordModel={recordModel}
