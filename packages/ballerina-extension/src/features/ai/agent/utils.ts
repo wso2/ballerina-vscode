@@ -148,13 +148,17 @@ ${sourceFile.content}
 }
 
 /**
- * Collects files with content from a ProjectSource
+ * Collects files from a ProjectSource, split into regular files (with content) and
+ * generated connector files (paths only — content is large and fetched on demand).
  * @param project ProjectSource to collect files from
  * @param includePackagePath Whether to prepend packagePath to file paths (for multi-project case)
- * @returns Array of SourceFile objects with paths and content
  */
-function collectFilesFromProject(project: ProjectSource, includePackagePath: boolean = false): SourceFile[] {
+function collectFilesFromProject(
+    project: ProjectSource,
+    includePackagePath: boolean = false
+): { files: SourceFile[]; generatedFiles: SourceFile[] } {
     const files: SourceFile[] = [];
+    const generatedFiles: SourceFile[] = [];
     const prefix = includePackagePath && project.packagePath ? `${project.packagePath}/` : "";
 
     // Collect source files
@@ -165,14 +169,21 @@ function collectFilesFromProject(project: ProjectSource, includePackagePath: boo
         });
     }
 
-    // Collect module files
+    // Collect module files — generated modules go to generatedFiles (paths only)
     if (project.projectModules) {
         for (const module of project.projectModules) {
             for (const sourceFile of module.sourceFiles) {
-                files.push({
-                    filePath: `${prefix}${sourceFile.filePath}`,
-                    content: sourceFile.content,
-                });
+                if (module.isGenerated) {
+                    generatedFiles.push({
+                        filePath: `${prefix}generated/${module.moduleName}/${sourceFile.filePath}`,
+                        content: "",
+                    });
+                } else {
+                    files.push({
+                        filePath: `${prefix}${sourceFile.filePath}`,
+                        content: sourceFile.content,
+                    });
+                }
             }
         }
     }
@@ -181,13 +192,13 @@ function collectFilesFromProject(project: ProjectSource, includePackagePath: boo
     if (project.projectTests) {
         for (const testFile of project.projectTests) {
             files.push({
-                filePath: `${prefix}${testFile.filePath}`,
+                filePath: `${prefix}tests/${testFile.filePath}`,
                 content: testFile.content,
             });
         }
     }
 
-    return files;
+    return { files, generatedFiles };
 }
 
 /**
@@ -225,13 +236,19 @@ export function formatCodebaseStructure(projects: ProjectSource[], tempProjectPa
     }
 
     for (const project of projects) {
-        const files = collectFilesFromProject(project, isWorkspace);
+        const { files, generatedFiles } = collectFilesFromProject(project, isWorkspace);
         const activeStatus = project.isActive ? ' active="true"' : "";
 
         text += `<project name="${project.projectName}"${activeStatus}>\n`;
         text += "<files>\n";
         text += files.map(formatFileWithContent).join("\n");
         text += "\n</files>\n";
+
+        if (generatedFiles.length > 0) {
+            text += "<generated_files>\n";
+            text += generatedFiles.map(f => `<file path="${f.filePath}"/>`).join("\n");
+            text += "\n</generated_files>\n";
+        }
 
         if (tempProjectPath) {
             const pkgRoot = isWorkspace && project.packagePath
