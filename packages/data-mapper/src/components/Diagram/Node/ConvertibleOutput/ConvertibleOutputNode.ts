@@ -42,7 +42,7 @@ export class ConvertibleOutputNode extends DataMapperNodeModel {
     public hasNoMatchingFields: boolean;
     public x: number;
     public y: number;
-    public isConvertedFieldArrayLiteral: boolean;
+    public isConvertedFieldArrayLiteral: boolean = false;
 
     constructor(
         public context: IDataMapperContext,
@@ -92,11 +92,10 @@ export class ConvertibleOutputNode extends DataMapperNodeModel {
                     hidden: headerPort.attributes.collapsed
                 });
 
-                if (this.filteredOutputType.kind === TypeKind.Array) {
+                if (this.filteredOutputType.convertedField.kind === TypeKind.Array) {
                     const mapping = mappings[0]; // There is only one mapping for the output root
-                    const mappingElements = mapping?.elements ?? [];
-                    this.isConvertedFieldArrayLiteral = mappingElements.length > 0
-                        || (mappingElements.length === 0 && /^\s*\[\s*\]\s*$/.test(mapping.expression));
+                    this.isConvertedFieldArrayLiteral = mapping?.elements?.length > 0
+                        || (mapping?.elements?.length === 0 && /^\s*\[\s*\]\s*$/.test(mapping?.expression));
                 }
             
             } else {
