@@ -43,7 +43,8 @@ import { registerTestManagerRpcHandlers } from './rpc-managers/test-manager/rpc-
 import { registerIcpServiceRpcHandlers } from './rpc-managers/icp-service/rpc-handler';
 import { extension } from './BalExtensionContext';
 import { registerAgentChatRpcHandlers } from './rpc-managers/agent-chat/rpc-handler';
-import { activeAgentChanged } from '@wso2/ballerina-core';
+import { ChatPanel } from './views/agent-chat/webview';
+import { activeAgentChanged, tracingStatusChanged, TraceStatus } from '@wso2/ballerina-core';
 import { ArtifactsUpdated, ArtifactNotificationHandler } from './utils/project-artifacts-handler';
 import { registerMigrateIntegrationRpcHandlers } from './rpc-managers/migrate-integration/rpc-handler';
 import { registerPlatformExtRpcHandlers } from './rpc-managers/platform-ext/rpc-handler';
@@ -237,5 +238,11 @@ export function notifyOnIdentifierUpdated(artifacts: ProjectStructureArtifactRes
 }
 
 export function sendAgentChangedNotification(agentName: string) {
-    RPCLayer._messenger.sendNotification(activeAgentChanged, { type: 'webview', webviewType: 'ballerina.agent-chat-panel' }, agentName);
+    RPCLayer._messenger.sendNotification(activeAgentChanged, { type: 'webview', webviewType: ChatPanel.viewType }, agentName);
+}
+
+export function sendTracingStatusChangedNotification(status: TraceStatus) {
+    for (const webviewType of [ChatPanel.viewType, VisualizerWebview.viewType]) {
+        RPCLayer._messenger.sendNotification(tracingStatusChanged, { type: 'webview', webviewType }, status);
+    }
 }
