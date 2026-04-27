@@ -62,11 +62,14 @@ export let isPluginStartup = true;
  */
 export class BallerinaExtensionState {
     /**
-     * Check if a debug session is currently active
-     * @returns true if a debug session is active, false otherwise
+     * Check if a debug session is currently active.
+     * BI run mode also creates a VS Code debug session with noDebug enabled,
+     * so only sessions started in actual debug mode should return true.
+     * @returns true if a debug-mode session is active, false otherwise
      */
     public static isDebugSessionActive(): boolean {
-        return vscode.debug.activeDebugSession !== undefined;
+        const activeSession = vscode.debug.activeDebugSession;
+        return activeSession !== undefined && activeSession.configuration.noDebug !== true;
     }
 }
 
