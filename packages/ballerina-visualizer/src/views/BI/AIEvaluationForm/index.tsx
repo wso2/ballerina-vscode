@@ -94,6 +94,32 @@ const UpgradeMessage = styled.p`
     line-height: 1.6;
 `;
 
+const EmptyEvalsetContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 14px;
+    margin-top: 12px;
+    border: 1px solid var(--vscode-input-border, var(--vscode-panel-border));
+    border-radius: 4px;
+    background-color: var(--vscode-editorWidget-background);
+`;
+
+const EmptyEvalsetTitle = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--vscode-foreground);
+    font-size: 13px;
+    font-weight: 500;
+`;
+
+const EmptyEvalsetMessage = styled.div`
+    color: var(--vscode-descriptionForeground);
+    font-size: 12px;
+    line-height: 1.5;
+`;
+
 interface TestFunctionDefProps {
     projectPath: string;
     functionName?: string;
@@ -122,7 +148,8 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                 return { ...field, hidden: mode !== 'function' };
             }
             if (field.key === 'evalSetFile') {
-                return { ...field, hidden: mode !== 'evalSet' };
+                const hidden = mode !== 'evalSet' || evalsetOptions.length === 0;
+                return { ...field, hidden };
             }
             if (field.key === 'runs') {
                 return { ...field };
@@ -849,7 +876,22 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                                             onChange={handleCardSelectorChange}
                                         />,
                                         index: 2
-                                    }
+                                    },
+                                    ...(dataProviderMode === 'evalSet' && evalsetOptions.length === 0 ? [{
+                                        component: (
+                                            <EmptyEvalsetContainer>
+                                                <EmptyEvalsetTitle>
+                                                    <Icon name="bi-data-table" sx={{ fontSize: "16px", width: "16px", height: "16px" }} />
+                                                    No evalset files found
+                                                </EmptyEvalsetTitle>
+                                                <EmptyEvalsetMessage>
+                                                    Evalsets are created by exporting traces from conversations with your agents.
+                                                    Have a conversation with an agent and export the traces, or switch to <strong>Standalone/Custom</strong> mode to define your evaluation logic from scratch.
+                                                </EmptyEvalsetMessage>
+                                            </EmptyEvalsetContainer>
+                                        ),
+                                        index: 3
+                                    }] : [])
                                 ]}
                             />
                         )}
