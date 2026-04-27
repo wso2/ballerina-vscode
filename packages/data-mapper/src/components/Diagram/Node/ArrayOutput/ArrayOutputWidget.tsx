@@ -91,7 +91,7 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 	const isNotConvertedField = outputType.category !== InputCategory.ConvertedVariable;
 
 	let expanded = true;
-	if ((portIn && portIn.attributes.collapsed) && isNotConvertedField) {
+	if (portIn && portIn.attributes.collapsed) {
 		expanded = false;
 	}
 
