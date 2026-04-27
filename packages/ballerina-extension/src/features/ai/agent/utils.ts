@@ -181,7 +181,7 @@ function collectFilesFromProject(project: ProjectSource, includePackagePath: boo
     if (project.projectTests) {
         for (const testFile of project.projectTests) {
             files.push({
-                filePath: `${prefix}${testFile.filePath}`,
+                filePath: `${prefix}tests/${testFile.filePath}`,
                 content: testFile.content,
             });
         }
