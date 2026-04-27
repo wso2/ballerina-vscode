@@ -22,6 +22,7 @@ import styled from "@emotion/styled";
 import { useEffect, useRef, useState} from "react";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { RecordConfigView } from "./RecordConfigView";
+import { unwrapIntersectionRecord } from "../HelperPaneNew/Components/RecordConstructView/utils/intersection";
 
 type ConfigureRecordPageProps = {
     fileName: string;
@@ -79,7 +80,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
         if (newRecordModel) {
             const recordConfig: TypeField = {
                 name: newRecordModel.name,
-                ...newRecordModel
+                ...unwrapIntersectionRecord(newRecordModel)
             }
 
             setRecordModel([recordConfig]);
@@ -132,7 +133,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
         if (typeFieldResponse.recordConfig) {
             const recordConfig: TypeField = {
                 name: defaultSelection.type,
-                ...typeFieldResponse.recordConfig
+                ...unwrapIntersectionRecord(typeFieldResponse.recordConfig)
             }
 
             setRecordModel([recordConfig]);
@@ -179,10 +180,9 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
 
             const typeFieldResponse: GetRecordConfigResponse = await rpcClient.getBIDiagramRpcClient().getRecordConfig(request);
             if (typeFieldResponse.recordConfig) {
-
                 const recordConfig: TypeField = {
                     name: member.type,
-                    ...typeFieldResponse.recordConfig
+                    ...unwrapIntersectionRecord(typeFieldResponse.recordConfig)
                 }
 
                 setRecordModel([recordConfig]);
