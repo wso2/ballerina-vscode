@@ -979,8 +979,9 @@ public final class DatabindUtil {
         ModulePartNode modulePartNode = context.modulePartNode();
 
         if (modulePartNode.members().isEmpty()) {
-            // Empty file, insert at the beginning
-            insertPosition = LinePosition.from(0, 0);
+            // No members yet — anchor at the module-part start, which skips leading minutiae
+            // (license/doc comments) so the type definition lands below them.
+            insertPosition = modulePartNode.lineRange().startLine();
         } else {
             // Insert at the end of the file
             Node lastMember = modulePartNode.members().get(modulePartNode.members().size() - 1);
@@ -992,10 +993,7 @@ public final class DatabindUtil {
         // Add required imports
         if (!context.requiredImports().isEmpty()) {
             String importsText = String.join("\n", context.requiredImports());
-            LinePosition importPosition = modulePartNode.imports().isEmpty()
-                    ? LinePosition.from(0, 0)
-                    : modulePartNode.imports().get(modulePartNode.imports().size() - 1).lineRange().endLine();
-            edits.add(new TextEdit(Utils.toRange(importPosition), importsText + "\n"));
+            edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().startLine()), importsText + "\n"));
         }
 
         // Add the type definition
@@ -1249,10 +1247,7 @@ public final class DatabindUtil {
         // Add required imports
         if (!editContext.requiredImports().isEmpty()) {
             String importsText = String.join("\n", editContext.requiredImports());
-            LinePosition importPosition = modulePartNode.imports().isEmpty()
-                    ? LinePosition.from(0, 0)
-                    : modulePartNode.imports().get(modulePartNode.imports().size() - 1).lineRange().endLine();
-            edits.add(new TextEdit(Utils.toRange(importPosition), importsText + "\n"));
+            edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().startLine()), importsText + "\n"));
         }
 
         // Create a TextEdit to replace the old definition
