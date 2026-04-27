@@ -614,12 +614,7 @@
                     "dark": "./resources/images/icons/debug-inverse.svg",
                     "light": "./resources/images/icons/debug.svg"
                 },
-                "category": "BI"
-            },
-            {
-                "command": "BI.project-explorer.refresh",
-                "title": "Refresh Ballerina",
-                "category": "BI"
+                "category": "WSO2 Integrator"
             },
             {
                 "command": "BI.test.edit.function",
