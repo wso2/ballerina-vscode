@@ -113,6 +113,10 @@ function normalizeResourcePathId(resourceId: string): string {
 	return parts.join('#');
 }
 
+function getResourcePathId(method: PropertyModel, path: PropertyModel): string {
+	return normalizeResourcePathId(`${method.value?.toLowerCase()}#${sanitizedHttpPath(path.value as string)}`);
+}
+
 function hasParameterChildPathConflict(pathA: string, pathB: string): boolean {
 	const segmentsA = pathA.split('/');
 	const segmentsB = pathB.split('/');
@@ -143,6 +147,7 @@ export function ResourcePath(props: ResourcePathProps) {
 	const { method, path, onChange, onError, isNew, readonly, existingResources } = props;
 
 	const [inputValue, setInputValue] = useState('');
+	const [initialPathID] = useState(() => !isNew ? getResourcePathId(method, path) : undefined);
 	const [resourcePathErrors, setResourcePathErrors] = useState<string>("");
 	const [editModel, setEditModel] = useState<ParameterModel | undefined>(undefined);
 	const [showParamEditor, setShowParamEditor] = useState<boolean>(false);
@@ -177,10 +182,10 @@ export function ResourcePath(props: ResourcePathProps) {
 		}
 
 		// Path ID ex: get#foo/bar
-		const pathID = `${method.value?.toLowerCase()}#${sanitizedHttpPath(inputValue as string)}`;
+		const pathID = normalizeResourcePathId(`${method.value?.toLowerCase()}#${sanitizedHttpPath(inputValue as string)}`);
 		// Get the paths and split by # to lowercase the method and concat again to get the path ID
 		const existingResourcePaths = existingResources?.map((resource) => normalizeResourcePathId(resource.id));
-		if (existingResourcePaths?.some((existingPathID) => isDuplicateResourcePath(pathID, existingPathID))) {
+		if (existingResourcePaths?.some((existingPathID) => existingPathID !== initialPathID && isDuplicateResourcePath(pathID, existingPathID))) {
 			onError(true);
 			setResourcePathErrors("Resource path already exists for the selected HTTP method");
 			return;

@@ -1424,6 +1424,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         filePath={filePath}
                                         onSave={handleResourceSubmit}
                                         onClose={handleNewFunctionClose}
+                                        existingResources={resources}
                                         payloadContext={{
                                             protocol: Protocol.HTTP,
                                             serviceName: serviceModel.name || '',
