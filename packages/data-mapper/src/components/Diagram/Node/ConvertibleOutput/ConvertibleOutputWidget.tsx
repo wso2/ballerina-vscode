@@ -43,12 +43,12 @@ export interface ConvertibleOutputWidgetProps {
     typeName: string;
     value: any;
     engine: DiagramEngine;
+    isConvertedFieldArrayLiteral: boolean;
     getPort: (portId: string) => InputOutputPortModel;
     context: IDataMapperContext;
     mappings?: Mapping[];
     valueLabel?: string;
     originalTypeName?: string;
-    isConvertedFieldArrayLiteral?: boolean;
 }
 
 export function ConvertibleOutputWidget(props: ConvertibleOutputWidgetProps) {
@@ -57,11 +57,11 @@ export function ConvertibleOutputWidget(props: ConvertibleOutputWidgetProps) {
         typeName,
         value,
         engine,
+        isConvertedFieldArrayLiteral,
         getPort,
         context,
         mappings,
         valueLabel,
-        isConvertedFieldArrayLiteral
     } = props;
     const id = outputType.convertedField ? props.id + ".C#" : props.id;
 
