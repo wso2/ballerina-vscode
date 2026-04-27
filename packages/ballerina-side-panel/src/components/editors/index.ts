@@ -31,5 +31,6 @@ export * from "./SliderEditor";
 export * from "./MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor";
 export * from "./MultiModeExpressionEditor/Configurations";
 export { getPropertyFromFormField } from "./utils";
+export { getTypeCompletionSearchText } from "./typeCompletionUtils";
 export { InputMode } from "./MultiModeExpressionEditor/ChipExpressionEditor/types";
 export { ExpandedEditor } from "./ExpandedEditor";
