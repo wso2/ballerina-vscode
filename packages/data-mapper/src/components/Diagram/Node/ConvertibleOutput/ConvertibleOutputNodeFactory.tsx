@@ -36,19 +36,19 @@ export class ConvertibleOutputNodeFactory extends AbstractReactFactory<Convertib
     generateReactWidget(event: { model: ConvertibleOutputNode; }): JSX.Element {
         return (
             <>
-                {event.model.hasNoMatchingFields ? (
+                {(event.model.hasNoMatchingFields || !event.model.filteredOutputType) ? (
                     <OutputSearchNoResultFound kind={SearchNoResultFoundKind.OutputField} />
                 ) : (
                     <ConvertibleOutputWidget
                         engine={this.engine}
                         id={`${CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX}.${event.model.rootName}`}
-                        outputType={event.model.outputType}
+                        outputType={event.model.filteredOutputType}
                         typeName={event.model.typeName}
                         value={undefined}
                         getPort={(portId: string) => event.model.getPort(portId) as InputOutputPortModel}
                         context={event.model.context}
                         mappings={event.model.filteredMappings}
-                        valueLabel={event.model.outputType.displayName || event.model.outputType.name}
+                        valueLabel={event.model.filteredOutputType?.displayName || event.model.filteredOutputType?.name}
                         originalTypeName={event.model.filteredOutputType?.name}
                     />
                 )}

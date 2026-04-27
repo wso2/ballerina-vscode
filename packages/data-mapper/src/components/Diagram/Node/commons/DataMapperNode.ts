@@ -130,7 +130,7 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		}
 
 		const isCollapsed = this.isInputPortCollapsed(hidden, collapsedFields, expandedFields, 
-			portName, isArray, isFocused, collapseByDefault);
+			portName, isArray, field.isDeepNested, isFocused, collapseByDefault);
 
 		if (isEnrichRequired || (!isCollapsed && !hidden && field.isDeepNested)) {
 			await this.context.enrichChildFields(field);
@@ -331,11 +331,12 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		expandedFields: string[],
 		portName: string,
 		isArray: boolean,
+		isDeepNested: boolean,
 		isFocused: boolean,
 		collapseByDefault: boolean
 	) {
 		// Auto-expand all input fields when input search is active
-		if (useDMSearchStore.getState().inputSearch) {return false;}
+		if (!isDeepNested && useDMSearchStore.getState().inputSearch) {return false;}
 
 		if ((isArray && !isFocused) || collapseByDefault ){
 			return expandedFields && !expandedFields.includes(portName);
@@ -355,7 +356,7 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		outputId: string
 	): boolean {
 		// Auto-expand all output fields when output search is active
-		if (useDMSearchStore.getState().outputSearch) {return false;}
+		if (!isDeepNested && useDMSearchStore.getState().outputSearch) {return false;}
 
 		if ((isArray && !mapping?.elements?.length) ||
 			(isDeepNested && !hasChildMappingsForOutput(mappings, outputId))) {

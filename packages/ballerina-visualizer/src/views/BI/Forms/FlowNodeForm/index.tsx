@@ -424,6 +424,9 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
     }, [rpcClient]);
 
     useEffect(() => {
+        if (showProgressIndicator) {
+            return;
+        }
         if (!node) {
             return;
         }
@@ -441,7 +444,7 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
         return () => {
             handleFormClose();
         };
-    }, [node]);
+    }, [node, showProgressIndicator]);
 
 
     const handleFormOpen = () => {
@@ -713,6 +716,14 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
             setDiagnosticsToFields(data, nodeWithDiagnostics!);
         }
     };
+
+    const handleFormChange = useCallback(
+        (fieldKey: string, value: any, allValues: FormValues) => {
+            setFormDiagnostics(prev => prev.length > 0 ? [] : prev);
+            onChange?.(fieldKey, value, allValues);
+        },
+        [onChange]
+    );
 
     const mergeFormDataWithFlowNode = (data: FormValues, targetLineRange: LineRange, dirtyFields?: any): FlowNode => {
         const clonedNode = cloneDeep(node);
@@ -1918,7 +1929,7 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                         node.codedata.node === ("DATA_MAPPER_CREATION" as NodeKind)
                     }
                     scopeFieldAddon={scopeFieldAddon}
-                    onChange={onChange}
+                    onChange={handleFormChange}
                     injectedComponents={injectedComponents}
                     derivedFields={props.derivedFields}
                     updateImports={handleUpdateImports}
