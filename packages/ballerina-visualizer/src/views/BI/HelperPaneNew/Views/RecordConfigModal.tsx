@@ -708,14 +708,14 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                             </LabelContainer>
                         )}
                         {hasTooManyFieldsError ? (
-                            <Typography variant="body3">Record construction assistance is unavailable due to too many fields in the record type. Use the expression editor.</Typography>
+                            <Typography variant="body3">Record construction assistance is unavailable due to too many fields in the record type. Please switch to Expression mode.</Typography>
                         ) : selectedMemberName && recordModel?.length > 0 ? (
                             <RecordConfigView
                                 recordModel={recordModel}
                                 onModelChange={handleModelChange}
                             />
                         ) : !isLoading ? (
-                            <Typography variant="body3">Record construction assistance is unavailable. Use the expression editor.</Typography>
+                            <Typography variant="body3">Record construction assistance is unavailable. Please switch to Expression mode.</Typography>
                         ) : null}
                     </LeftColumn>
                     <RightColumn>
