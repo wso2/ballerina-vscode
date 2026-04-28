@@ -50,6 +50,16 @@ export function updateFormFieldWithImports(formField: FormField, fieldImports: F
     return formField;
 }
 
+export function shouldRunExternalFormValidation({
+    formStateIsValid,
+    errors,
+}: {
+    formStateIsValid: boolean;
+    errors?: Record<string, unknown>;
+}): boolean {
+    return formStateIsValid && Object.keys(errors ?? {}).length === 0;
+}
+
 export function isPrioritizedField(field: FormField): boolean {
     return field.key === "variable" || getPrimaryInputType(field.types)?.fieldType === "TYPE" || field.codedata?.kind === "PARAM_FOR_TYPE_INFER";
 }
