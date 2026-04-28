@@ -412,8 +412,7 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
                                                 value={typeof item === 'string' ? item : String(item)}
                                                 disabled={disabled}
                                                 style={{
-                                                    width: '100%',
-                                                    borderColor: arrayValidationErrors[index] ? 'var(--vscode-editorError-foreground)' : undefined
+                                                    width: '100%'
                                                 }}
                                                 onChange={(e: any) => handleArrayItemChange(index, e.target.value)}
                                                 placeholder={getTomlPlaceholder(memberTypeName || '')}
@@ -428,8 +427,7 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
                                                 value={typeof item === 'string' ? item : JSON.stringify(item)}
                                                 disabled={disabled}
                                                 style={{
-                                                    width: '100%',
-                                                    borderColor: arrayValidationErrors[index] ? 'var(--vscode-editorError-foreground)' : undefined
+                                                    width: '100%'
                                                 }}
                                                 onChange={(e: any) => handleArrayItemChange(index, e.target.value)}
                                                 placeholder={`Item ${index + 1}${memberTypeName ? ` (${memberTypeName})` : ''}`}
@@ -482,8 +480,7 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
                     disabled={disabled}
                     style={{
                         width: '100%',
-                        maxWidth: '400px',
-                        borderColor: validationError ? 'var(--vscode-editorError-foreground)' : undefined
+                        maxWidth: '400px'
                     }}
                     onChange={handleNumericChange}
                     placeholder={getTomlPlaceholder(field.typeName || '', field.defaultValue)}
@@ -500,8 +497,7 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
                     disabled={disabled}
                     style={{
                         width: '100%',
-                        maxWidth: '400px',
-                        borderColor: validationError ? 'var(--vscode-editorError-foreground)' : undefined
+                        maxWidth: '400px'
                     }}
                     onChange={handleValueChange}
                     placeholder={getTomlPlaceholder(field.typeName || '', field.defaultValue)}
@@ -518,8 +514,7 @@ function TypeFieldRenderer(props: TypeFieldRendererProps) {
                     disabled={disabled}
                     style={{
                         width: '100%',
-                        maxWidth: '400px',
-                        borderColor: validationError ? 'var(--vscode-editorError-foreground)' : undefined
+                        maxWidth: '400px'
                     }}
                     onChange={handleValueChange}
                     placeholder={getTomlPlaceholder(field.typeName || '', field.defaultValue)}
