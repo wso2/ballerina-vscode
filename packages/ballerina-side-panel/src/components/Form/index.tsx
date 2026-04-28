@@ -62,6 +62,7 @@ import {
     formatJSONLikeString,
     stripHtmlTags,
     updateFormFieldWithImports,
+    shouldRunExternalFormValidation,
     isPrioritizedField,
     hasRequiredParameters,
     hasOptionalParameters,
@@ -621,13 +622,14 @@ export const Form = forwardRef((props: FormProps, _ref) => {
         onSubmit && onSubmit(data, dirtyFields);
     };
 
-    const handleFormValidation = async (formData?: FormValues): Promise<boolean> => {
+    const canRunExternalFormValidation = () => shouldRunExternalFormValidation({ formStateIsValid, errors });
+
+    const runExternalFormValidation = async (data: FormValues): Promise<boolean> => {
         if (!onFormValidation) {
             return true;
         }
 
         setIsValidatingForm(true);
-        const data = formData ?? getValues();
 
         try {
             const validationResult = await onFormValidation(data, dirtyFields);
@@ -637,7 +639,18 @@ export const Form = forwardRef((props: FormProps, _ref) => {
         }
     }
 
+    const handleFormValidation = async (formData?: FormValues): Promise<boolean> => {
+        if (!onFormValidation || !canRunExternalFormValidation()) {
+            return true;
+        }
+
+        return runExternalFormValidation(formData ?? getValues());
+    }
+
     const handleOnBlur = async () => {
+        if (!canRunExternalFormValidation()) {
+            return;
+        }
         onBlur?.(getValues(), dirtyFields);
     };
 
@@ -1001,7 +1014,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
         handleSubmit(
             async (data) => {
                 try {
-                    const isValidForm = await handleFormValidation(data);
+                    const isValidForm = await runExternalFormValidation(data);
                     if (!isValidForm) {
                         setSavingButton(null);
                         return;
