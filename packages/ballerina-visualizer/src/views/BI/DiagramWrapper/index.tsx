@@ -24,7 +24,7 @@ import { BISequenceDiagram } from "../SequenceDiagram";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { TitleBar } from "../../../components/TitleBar";
-import { CodeData, EVENT_TYPE, FOCUS_FLOW_DIAGRAM_VIEW, FocusFlowDiagramView, FunctionModel, LineRange, ParentMetadata, SHARED_COMMANDS } from "@wso2/ballerina-core";
+import { CodeData, DIRECTORY_MAP, EVENT_TYPE, FOCUS_FLOW_DIAGRAM_VIEW, FocusFlowDiagramView, FunctionModel, LineRange, ParentMetadata, ProjectStructureArtifactResponse, Protocol, SHARED_COMMANDS } from "@wso2/ballerina-core";
 import { VisualizerLocation, NodePosition } from "@wso2/ballerina-core";
 import { MACHINE_VIEW } from "@wso2/ballerina-core";
 import styled from "@emotion/styled";
@@ -87,6 +87,26 @@ const Path = styled.span`
     line-height: 1.3;
 `;
 
+function servicePositionWithinArtifact(artifactPos: NodePosition | undefined, svcPos: NodePosition | undefined): boolean {
+    if (!artifactPos || !svcPos) {
+        return false;
+    }
+    const oStart = artifactPos.startLine ?? 0;
+    const oEnd = artifactPos.endLine ?? oStart;
+    const iStart = svcPos.startLine ?? 0;
+    const iEnd = svcPos.endLine ?? iStart;
+    if (iStart < oStart || iEnd > oEnd) {
+        return false;
+    }
+    if (iStart === oStart && (svcPos.startColumn ?? 0) < (artifactPos.startColumn ?? 0)) {
+        return false;
+    }
+    if (iEnd === oEnd && (svcPos.endColumn ?? 0) > (artifactPos.endColumn ?? 0)) {
+        return false;
+    }
+    return true;
+}
+
 
 export interface DiagramWrapperProps {
     projectPath: string;
@@ -113,6 +133,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     const [parentCodedata, setParentCodedata] = useState<CodeData>();
 
     const [functionModel, setFunctionModel] = useState<FunctionModel>();
+    const [resources, setResources] = useState<ProjectStructureArtifactResponse[]>([]);
     const [servicePosition, setServicePosition] = useState<NodePosition>();
     const [isSaving, setIsSaving] = useState(false);
     const [isTracingEnabled, setIsTracingEnabled] = useState(false);
@@ -261,7 +282,8 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     };
 
     const getFunctionModel = async () => {
-        const location = (await rpcClient.getVisualizerLocation()).position;
+        const visualizerLocation = await rpcClient.getVisualizerLocation();
+        const location = visualizerLocation.position;
         const codeData: CodeData = {
             lineRange: {
                 fileName: filePath,
@@ -270,6 +292,13 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
             }
         }
         const functionModel = await rpcClient.getServiceDesignerRpcClient().getFunctionFromSource({ filePath: filePath, codedata: codeData });
+        const projectStructure = await rpcClient.getBIDiagramRpcClient().getProjectStructure();
+        const project = projectStructure.projects.find(project => project.projectPath === visualizerLocation.projectPath);
+        const services = project?.directoryMap[DIRECTORY_MAP.SERVICE] || [];
+        const selectedService = services.find(
+            service => service.path === filePath && servicePositionWithinArtifact(service.position, servicePosition)
+        ) || services.find(service => service.name === serviceName);
+        setResources(selectedService?.resources || []);
         setFunctionModel(functionModel.function);
     }
 
@@ -434,7 +463,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                 if (isMountedRef.current) {
                     setSelectedTryItOption(optionToRun);
                 }
-                await rpcClient.getCommonRpcClient().setPreferredTryItOption(optionToRun); 
+                await rpcClient.getCommonRpcClient().setPreferredTryItOption(optionToRun);
             }
 
             switch (optionToRun) {
@@ -636,13 +665,22 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                 width={400}
                 overlay={true}
             >
-                <ResourceForm
-                    model={functionModel}
-                    isSaving={isSaving}
-                    filePath={filePath}
-                    onSave={handleResourceSubmit}
-                    onClose={handleFunctionClose}
-                />
+                {functionModel && (
+                    <ResourceForm
+                        model={functionModel}
+                        isSaving={isSaving}
+                        isNew={false}
+                        filePath={filePath}
+                        onSave={handleResourceSubmit}
+                        onClose={handleFunctionClose}
+                        existingResources={resources}
+                        payloadContext={{
+                            protocol: Protocol.HTTP,
+                            serviceName: serviceName ?? "",
+                            serviceBasePath: basePath ?? "",
+                        }}
+                    />
+                )}
             </PanelContainer>
         </View >
     );
