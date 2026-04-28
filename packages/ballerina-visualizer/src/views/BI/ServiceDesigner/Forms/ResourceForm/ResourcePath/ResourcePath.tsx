@@ -105,7 +105,7 @@ export interface ResourcePathProps {
 
 const PATH_PARAM_SEGMENT_REGEX = /^\[[^\]]+\]$/;
 
-function normalizeResourcePathId(resourceId: string): string {
+export function normalizeResourcePathId(resourceId: string): string {
 	const parts = resourceId.split('#');
 	if (parts.length > 0) {
 		parts[0] = parts[0].toLowerCase();
@@ -113,24 +113,27 @@ function normalizeResourcePathId(resourceId: string): string {
 	return parts.join('#');
 }
 
-function getResourcePathId(method: PropertyModel, path: PropertyModel): string {
-	return normalizeResourcePathId(`${method.value?.toLowerCase()}#${sanitizedHttpPath(path.value as string)}`);
+export function getResourcePathId(method: PropertyModel, path: PropertyModel | string): string {
+	const pathValue = typeof path === 'string' ? path : path.value as string;
+	return normalizeResourcePathId(`${method.value?.toLowerCase()}#${sanitizedHttpPath(pathValue)}`);
 }
 
-function hasParameterChildPathConflict(pathA: string, pathB: string): boolean {
+function hasSameResourcePathPattern(pathA: string, pathB: string): boolean {
 	const segmentsA = pathA.split('/');
 	const segmentsB = pathB.split('/');
-	const [shorterSegments, longerSegments] = segmentsA.length < segmentsB.length
-		? [segmentsA, segmentsB]
-		: [segmentsB, segmentsA];
 
-	if (longerSegments.length !== shorterSegments.length + 1) {
+	if (segmentsA.length !== segmentsB.length) {
 		return false;
 	}
 
-	const hasSameParentPath = shorterSegments.every((segment, index) => segment === longerSegments[index]);
-	const extraSegment = longerSegments[longerSegments.length - 1];
-	return hasSameParentPath && PATH_PARAM_SEGMENT_REGEX.test(extraSegment);
+	return segmentsA.every((segment, index) => {
+		const existingSegment = segmentsB[index];
+		const isPathParam = PATH_PARAM_SEGMENT_REGEX.test(segment);
+		const isExistingPathParam = PATH_PARAM_SEGMENT_REGEX.test(existingSegment);
+		return segment === existingSegment ||
+			isPathParam ||
+			isExistingPathParam;
+	});
 }
 
 function isDuplicateResourcePath(pathID: string, existingPathID: string): boolean {
@@ -140,14 +143,14 @@ function isDuplicateResourcePath(pathID: string, existingPathID: string): boolea
 
 	const [method, path] = pathID.split('#');
 	const [existingMethod, existingPath] = existingPathID.split('#');
-	return method === existingMethod && hasParameterChildPathConflict(path, existingPath);
+	return method === existingMethod && hasSameResourcePathPattern(path, existingPath);
 }
 
 export function ResourcePath(props: ResourcePathProps) {
 	const { method, path, onChange, onError, isNew, readonly, existingResources } = props;
 
 	const [inputValue, setInputValue] = useState('');
-	const [initialPathID] = useState(() => !isNew ? getResourcePathId(method, path) : undefined);
+	const [initialPathID] = useState(() => getResourcePathId(method, path));
 	const [resourcePathErrors, setResourcePathErrors] = useState<string>("");
 	const [editModel, setEditModel] = useState<ParameterModel | undefined>(undefined);
 	const [showParamEditor, setShowParamEditor] = useState<boolean>(false);
@@ -182,10 +185,15 @@ export function ResourcePath(props: ResourcePathProps) {
 		}
 
 		// Path ID ex: get#foo/bar
-		const pathID = normalizeResourcePathId(`${method.value?.toLowerCase()}#${sanitizedHttpPath(inputValue as string)}`);
+		const pathID = getResourcePathId(method, inputValue);
 		// Get the paths and split by # to lowercase the method and concat again to get the path ID
 		const existingResourcePaths = existingResources?.map((resource) => normalizeResourcePathId(resource.id));
-		if (existingResourcePaths?.some((existingPathID) => existingPathID !== initialPathID && isDuplicateResourcePath(pathID, existingPathID))) {
+		if (existingResourcePaths?.some((existingPathID) => {
+			if (existingPathID === initialPathID) {
+				return false;
+			}
+			return isDuplicateResourcePath(pathID, existingPathID);
+		})) {
 			onError(true);
 			setResourcePathErrors("Resource path already exists for the selected HTTP method");
 			return;
