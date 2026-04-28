@@ -72,7 +72,7 @@ const ModeToggle: React.FC<ModeToggleProps> = ({ mode, onChange, disabled }) => 
         <ToggleOption
             active={mode === AgentMode.Edit}
             title="Direct file edits"
-            onClick={() => onChange(AgentMode.Edit)}
+            onClick={() => mode !== AgentMode.Edit && onChange(AgentMode.Edit)}
         >
             <span className="codicon codicon-edit" style={{ fontSize: 11 }} />
             Edit
@@ -80,7 +80,7 @@ const ModeToggle: React.FC<ModeToggleProps> = ({ mode, onChange, disabled }) => 
         <ToggleOption
             active={mode === AgentMode.Plan}
             title="Design first, then build"
-            onClick={() => onChange(AgentMode.Plan)}
+            onClick={() => mode !== AgentMode.Plan && onChange(AgentMode.Plan)}
         >
             <span className="codicon codicon-list-tree" style={{ fontSize: 11 }} />
             Plan
