@@ -54,3 +54,9 @@ function transform11(json user, json student) returns json|error =>
         {a: 10, b: 20};
 
 function transform9(xml user, json student) returns xml => xml ``;
+
+type Students Student[];
+
+function transform10(json user, json student) returns json => {
+
+};
