@@ -168,7 +168,9 @@ export function ResourcePath(props: ResourcePathProps) {
 	}, [inputValue]);
 
 	const handleMethodChange = (value: string) => {
-		onChange({ ...method, value: value.toLowerCase() }, path);
+		const updatedMethod = { ...method, value: value.toLowerCase() };
+		onChange(updatedMethod, path);
+		handleBlur(updatedMethod);
 	};
 
 	const handlePathChange = (value: string) => {
@@ -176,7 +178,7 @@ export function ResourcePath(props: ResourcePathProps) {
 		onChange(method, { ...path, value });
 	};
 
-	const handleBlur = () => {
+	const handleBlur = (selectedMethod: PropertyModel = method) => {
 		const { errors, valid, segments } = parseResourcePath(inputValue);
 		if (errors.length > 0) {
 			onError(true);
@@ -185,7 +187,7 @@ export function ResourcePath(props: ResourcePathProps) {
 		}
 
 		// Path ID ex: get#foo/bar
-		const pathID = getResourcePathId(method, inputValue);
+		const pathID = getResourcePathId(selectedMethod, inputValue);
 		// Get the paths and split by # to lowercase the method and concat again to get the path ID
 		const existingResourcePaths = existingResources?.map((resource) => normalizeResourcePathId(resource.id));
 		if (existingResourcePaths?.some((existingPathID) => {
@@ -312,8 +314,8 @@ export function ResourcePath(props: ResourcePathProps) {
 						handlePathChange(input);
 					}}
 					disabled={readonly}
-					onKeyUp={handleBlur}
-					onBlur={handleBlur}
+					onKeyUp={() => handleBlur()}
+					onBlur={() => handleBlur()}
 					placeholder="path/foo"
 					value={removeForwardSlashes(path.value as string)}
 					onFocus={(e) => e.target.select()}
