@@ -232,7 +232,7 @@
                     "enableCreate": {
                       "metadata": {
                         "label": "Capture INSERT events",
-                        "description": "Capture INSERT events"
+                        "description": "When enabled, the CDC listener will capture INSERT events"
                       },
                       "codedata": {
                         "argType": "CDC_OPERATION_ENABLE",
@@ -253,7 +253,7 @@
                     "enableUpdate": {
                       "metadata": {
                         "label": "Capture UPDATE events",
-                        "description": "Capture UPDATE events"
+                        "description": "When enabled, the CDC listener will capture UPDATE events"
                       },
                       "codedata": {
                         "argType": "CDC_OPERATION_ENABLE",
@@ -274,7 +274,7 @@
                     "enableDelete": {
                       "metadata": {
                         "label": "Capture DELETE events",
-                        "description": "Capture DELETE events"
+                        "description": "When enabled, the CDC listener will capture DELETE events"
                       },
                       "codedata": {
                         "argType": "CDC_OPERATION_ENABLE",
@@ -295,8 +295,8 @@
                     "enableTruncate": {
                       "metadata": {
                         "label": "Capture TRUNCATE events",
-                        "description": "Capture TRUNCATE events"
-                      },
+                        "description": "When enabled, the CDC listener will capture TRUNCATE events"
+                      }
                       "codedata": {
                         "argType": "CDC_OPERATION_ENABLE",
                         "originalName": "t"
