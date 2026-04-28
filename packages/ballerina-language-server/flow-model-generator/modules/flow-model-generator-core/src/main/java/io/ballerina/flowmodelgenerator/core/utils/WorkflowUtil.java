@@ -188,7 +188,7 @@ public class WorkflowUtil {
     }
 
     public static boolean isWorkflowContextParameter(ParameterSymbol paramSymbol) {
-        TypeSymbol typeDesc = paramSymbol.typeDescriptor();
+        TypeSymbol typeDesc = TypeUtils.resolveTypeReference(paramSymbol.typeDescriptor());
         return WorkflowUtil.isWorkflowModule(typeDesc.getModule())
                 && typeDesc.getName().map(Constants.Workflow.CONTEXT_CLASS_NAME::equals).orElse(false);
     }

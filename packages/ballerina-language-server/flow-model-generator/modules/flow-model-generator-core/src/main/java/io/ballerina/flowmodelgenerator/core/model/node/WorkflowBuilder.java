@@ -151,32 +151,57 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
                         sourceBuilder.workspaceManager, sourceBuilder.filePath);
                 ModuleInfo moduleInfo = ModuleInfo.from(FileSystemUtils.getDocument(
                         sourceBuilder.workspaceManager, sourceBuilder.filePath).module().descriptor());
+                boolean inputParamEmitted = false;
                 for (ParameterNode parameter : existingFn.functionSignature().parameters()) {
-                    Optional<Symbol> symbol = semanticModel.symbol(parameter);
-                    if (symbol.isEmpty() || symbol.get().kind() != SymbolKind.PARAMETER) {
-                        continue;
+                        Optional<Symbol> symbol = semanticModel.symbol(parameter);
+                        if (symbol.isEmpty() || symbol.get().kind() != SymbolKind.PARAMETER) {
+                            continue;
+                        }
+                        ParameterSymbol paramSymbol = (ParameterSymbol) symbol.get();
+                        boolean isCtx = WorkflowUtil.isWorkflowContextParameter(paramSymbol);
+                        boolean isData = !isCtx && WorkflowUtil.isValidDataType(
+                                TypeUtils.resolveTypeReference(paramSymbol.typeDescriptor()));
+                        boolean isInput = !isCtx && !isData;
+
+                        // Drop existing input param when the user cleared the input type.
+                        if (isInput && inputTypeName.isEmpty()) {
+                            continue;
+                        }
+
+                        // Inject new input param before the first data param to preserve
+                        // canonical order (ctx, input, datas) when the original function had none.
+                        if (isData && !inputParamEmitted && !inputTypeName.isEmpty()) {
+                            if (hasPrevParam) {
+                                sourceBuilder.token().keyword(SyntaxKind.COMMA_TOKEN);
+                            }
+                            generateParameter(sourceBuilder, inputTypeName, DEFAULT_INPUT_PARAM_NAME);
+                            hasPrevParam = inputParamEmitted = true;
+                        }
+
+                        Optional<String> paramName = paramSymbol.getName();
+                        // ctx/data params with no name cannot be emitted — skip.
+                        if (!isInput && paramName.isEmpty()) {
+                            continue;
+                        }
+                        if (hasPrevParam) {
+                            sourceBuilder.token().keyword(SyntaxKind.COMMA_TOKEN);
+                        }
+                        if (isInput) {
+                            generateParameter(sourceBuilder, inputTypeName, paramName.orElse(DEFAULT_INPUT_PARAM_NAME));
+                            inputParamEmitted = true;
+                        } else {
+                            generateParameter(sourceBuilder, CommonUtils.getTypeSignature(semanticModel,
+                                    paramSymbol.typeDescriptor(), false, moduleInfo), paramName.get());
+                        }
+                        hasPrevParam = true;
                     }
-                    ParameterSymbol paramSymbol = (ParameterSymbol) symbol.get();
-                    boolean isInput = !WorkflowUtil.isWorkflowContextParameter(paramSymbol) &&
-                            !WorkflowUtil.isValidDataType(TypeUtils.resolveTypeReference(paramSymbol.typeDescriptor()));
-                    if (isInput && inputTypeName.isEmpty()) {
-                        continue;
-                    }
+
+                // Fallback: no data param triggered pre-injection (e.g. ctx-only signature).
+                if (!inputParamEmitted && !inputTypeName.isEmpty()) {
                     if (hasPrevParam) {
                         sourceBuilder.token().keyword(SyntaxKind.COMMA_TOKEN);
                     }
-                    Optional<String> paramName = paramSymbol.getName();
-                    if (isInput) {
-                        generateParameter(sourceBuilder, inputTypeName, paramName.orElse(DEFAULT_INPUT_PARAM_NAME));
-                        hasPrevParam = true;
-                    } else {
-                        if (paramName.isPresent()) {
-                            String typeName = CommonUtils.getTypeSignature(semanticModel,
-                                    paramSymbol.typeDescriptor(), false, moduleInfo);
-                            generateParameter(sourceBuilder, typeName, paramName.get());
-                            hasPrevParam = true;
-                        }
-                    }
+                    generateParameter(sourceBuilder, inputTypeName, DEFAULT_INPUT_PARAM_NAME);
                 }
             }
         } else if (!inputTypeName.isEmpty()) {

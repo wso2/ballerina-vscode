@@ -1,16 +1,27 @@
 {
-  "source": "workflow_function/functions.bal",
-  "description": "Create a new workflow function with input parameter",
+  "source": "workflow_data/functions.bal",
+  "description": "Edit an existing ctx+datas workflow - add input type, injected before data param to preserve canonical order ctx,input,datas",
   "diagram": {
     "metadata": {
       "label": "Workflow Process Function",
       "description": "Define a workflow process function"
     },
     "codedata": {
-      "isNew": true,
+      "isNew": false,
       "node": "WORKFLOW",
       "org": "ballerina",
-      "module": "workflow"
+      "module": "workflow",
+      "lineRange": {
+        "fileName": "functions.bal",
+        "startLine": {
+          "line": 23,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 24,
+          "offset": 93
+        }
+      }
     },
     "returning": false,
     "properties": {
@@ -21,7 +32,7 @@
         },
         "valueType": "IDENTIFIER",
         "valueTypeConstraint": "Global",
-        "value": "orderWorkflow",
+        "value": "ctxDatasWorkflow",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -33,7 +44,7 @@
           "description": "Description of the function"
         },
         "valueType": "TEXT",
-        "value": "Process an order workflow",
+        "value": "",
         "optional": true,
         "editable": true,
         "advanced": false,
@@ -45,7 +56,7 @@
           "description": "Type of the input data to the workflow"
         },
         "valueType": "TYPE",
-        "value": "OrderInput",
+        "value": "BookingInput",
         "optional": true,
         "editable": true,
         "advanced": false,
@@ -79,19 +90,19 @@
     "flags": 0
   },
   "output": {
-    "workflow_function/functions.bal": [
+    "workflow_data/functions.bal": [
       {
         "range": {
           "start": {
-            "line": 47,
-            "character": 1
+            "line": 23,
+            "character": 0
           },
           "end": {
-            "line": 47,
-            "character": 1
+            "line": 24,
+            "character": 93
           }
         },
-        "newText": "\n# Process an order workflow\n@workflow:Workflow\nfunction orderWorkflow(OrderInput input) returns error? {\n}"
+        "newText": "@workflow:Workflow\nfunction ctxDatasWorkflow( workflow:Context ctx, BookingInput input, BookingWorkflowEvents events) returns error?"
       }
     ]
   }

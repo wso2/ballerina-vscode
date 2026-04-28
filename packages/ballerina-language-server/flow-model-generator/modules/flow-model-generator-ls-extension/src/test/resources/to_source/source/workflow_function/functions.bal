@@ -41,3 +41,8 @@ function orderWorkflow2(OrderInput input) returns error? {
 function workflowWithNoInput() returns error? {
 
 }
+
+@workflow:Workflow
+function ctxOnlyWorkflow(workflow:Context ctx) returns error? {
+
+}

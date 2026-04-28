@@ -116,7 +116,7 @@
             "character": 61
           }
         },
-        "newText": ",  OrderWorkflowData data"
+        "newText": ", OrderWorkflowData data"
       }
     ],
     "workflow_data/types.bal": [
