@@ -91,7 +91,8 @@ export enum MESSAGES {
     INVALID_XML = "Invalid XML String",
     INVALID_XML_RESPONSE = "XML response is invalid.",
     NO_PROJECT_FOUND = "No Ballerina project found.",
-    NO_FILE_FOUND = "Unable to locate the file."
+    NO_FILE_FOUND = "Unable to locate the file.",
+    PROJECTS_NOT_SUPPORTED = "Your current Ballerina version does not support projects.",
 }
 
 export const BAL_CONFIG_FILE = 'Config.toml';
