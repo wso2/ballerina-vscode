@@ -245,7 +245,7 @@
                 },
                 "enableCreate": {
                   "metadata": {
-                    "label": "Capture INSERT events",
+                    "label": "Insert events",
                     "description": "When enabled, the CDC listener will capture INSERT events"
                   },
                   "codedata": {
@@ -266,7 +266,7 @@
                 },
                 "enableUpdate": {
                   "metadata": {
-                    "label": "Capture UPDATE events",
+                    "label": "Update events",
                     "description": "When enabled, the CDC listener will capture UPDATE events"
                   },
                   "codedata": {
@@ -287,7 +287,7 @@
                 },
                 "enableDelete": {
                   "metadata": {
-                    "label": "Capture DELETE events",
+                    "label": "Delete events",
                     "description": "When enabled, the CDC listener will capture DELETE events"
                   },
                   "codedata": {
@@ -308,7 +308,7 @@
                 },
                 "enableTruncate": {
                   "metadata": {
-                    "label": "Capture TRUNCATE events",
+                    "label": "Truncate events",
                     "description": "When enabled, the CDC listener will capture TRUNCATE events"
                   },
                   "codedata": {
