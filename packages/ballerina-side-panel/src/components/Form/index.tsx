@@ -577,14 +577,15 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                     diagnosticsMap.push({ key: field.key, diagnostics: diagArray });
                 }
 
-                if (getPrimaryInputType(field.types)?.fieldType === "TYPE") {
+                const primaryInputType = getPrimaryInputType(field.types)?.fieldType;
+                if (primaryInputType === "TYPE" || primaryInputType === "ACTION_TYPE") {
                     const existingType = formValues[field.key];
                     const newType = field.value;
                     const isValueChanged = existingType !== newType;
                     const isFieldDirty = dirtyFields?.[field.key];
                     if (isValueChanged) {
                         const newValue = isFieldDirty ? existingType : newType;
-                        setValue(field.key, newValue);
+                        setValue(field.key, newValue, { shouldValidate: true });
                         defaultValues[field.key] = newValue;
                         getVisualiableFields();
                     } else if (newType === undefined) {
