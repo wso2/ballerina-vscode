@@ -100,9 +100,7 @@ const splitTopLevelValues = (value: string) => {
         }
     }
 
-    if (current.trim()) {
-        values.push(current.trim());
-    }
+    values.push(current.trim());
 
     return values;
 };
@@ -133,9 +131,19 @@ export const validateTomlValue = (value: string, type: string): string => {
             return '';
         }
 
-        const hasInvalidElement = splitTopLevelValues(arrayContent)
-            .some(item => validateTomlValue(item, elementType) !== '');
-        return hasInvalidElement ? `Enter valid ${elementType} values in the array.` : '';
+        const elements = splitTopLevelValues(arrayContent);
+        for (let i = 0; i < elements.length; i++) {
+            const element = elements[i];
+            if (!element) {
+                return `Element at index ${i} is empty in the ${type} array.`;
+            }
+
+            const elementError = validateTomlValue(element, elementType);
+            if (elementError) {
+                return `Element at index ${i}: ${elementError}`;
+            }
+        }
+        return '';
     }
 
     switch (trimmedType) {
