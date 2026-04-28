@@ -1045,6 +1045,122 @@ export async function signInForAI(): Promise<{ success: boolean; error?: string 
     });
 }
 
+/**
+ * Authenticates with Anthropic using an API key and waits until the state machine
+ * reaches Authenticated (or fails), with a 2-minute timeout.
+ */
+export async function signInWithAnthropicKey(apiKey: string): Promise<{ success: boolean; error?: string }> {
+    const AUTH_TIMEOUT_MS = 120_000;
+
+    const state = AIStateMachine.state();
+    if (state === "Authenticated") { return { success: true }; }
+    if (state === "Disabled") { return { success: false, error: "AI features are disabled." }; }
+
+    AIStateMachine.sendEvent(AIMachineEventType.AUTH_WITH_API_KEY);
+    AIStateMachine.sendEvent({ type: AIMachineEventType.SUBMIT_API_KEY, payload: { apiKey } } as any);
+
+    return new Promise<{ success: boolean; error?: string }>((resolve) => {
+        let settled = false;
+        const finish = (result: { success: boolean; error?: string }) => {
+            if (settled) { return; }
+            settled = true;
+            clearTimeout(timeout);
+            sub.unsubscribe();
+            resolve(result);
+        };
+        const timeout = setTimeout(() => finish({ success: false, error: "Sign-in timed out. Please try again." }), AUTH_TIMEOUT_MS);
+        const sub = AIStateMachine.service().subscribe((snapshot) => {
+            const s = snapshot.value;
+            if (s === "Authenticated") {
+                finish({ success: true });
+            } else if (s === "Unauthenticated" || s === "Disabled") {
+                const ctx = AIStateMachine.context();
+                finish({ success: false, error: ctx?.errorMessage || "Authentication failed. Please check your API key." });
+            }
+        });
+    });
+}
+
+/**
+ * Authenticates with AWS Bedrock using access key credentials.
+ */
+export async function signInWithAwsBedrock(creds: {
+    accessKeyId: string;
+    secretAccessKey: string;
+    region: string;
+    sessionToken?: string;
+}): Promise<{ success: boolean; error?: string }> {
+    const AUTH_TIMEOUT_MS = 120_000;
+
+    const state = AIStateMachine.state();
+    if (state === "Authenticated") { return { success: true }; }
+    if (state === "Disabled") { return { success: false, error: "AI features are disabled." }; }
+
+    AIStateMachine.sendEvent(AIMachineEventType.AUTH_WITH_AWS_BEDROCK);
+    AIStateMachine.sendEvent({ type: AIMachineEventType.SUBMIT_AWS_CREDENTIALS, payload: creds } as any);
+
+    return new Promise<{ success: boolean; error?: string }>((resolve) => {
+        let settled = false;
+        const finish = (result: { success: boolean; error?: string }) => {
+            if (settled) { return; }
+            settled = true;
+            clearTimeout(timeout);
+            sub.unsubscribe();
+            resolve(result);
+        };
+        const timeout = setTimeout(() => finish({ success: false, error: "Sign-in timed out. Please try again." }), AUTH_TIMEOUT_MS);
+        const sub = AIStateMachine.service().subscribe((snapshot) => {
+            const s = snapshot.value;
+            if (s === "Authenticated") {
+                finish({ success: true });
+            } else if (s === "Unauthenticated" || s === "Disabled") {
+                const ctx = AIStateMachine.context();
+                finish({ success: false, error: ctx?.errorMessage || "Authentication failed. Please check your AWS credentials." });
+            }
+        });
+    });
+}
+
+/**
+ * Authenticates with Google Vertex AI using service account credentials.
+ */
+export async function signInWithVertexAI(creds: {
+    projectId: string;
+    location: string;
+    clientEmail: string;
+    privateKey: string;
+}): Promise<{ success: boolean; error?: string }> {
+    const AUTH_TIMEOUT_MS = 120_000;
+
+    const state = AIStateMachine.state();
+    if (state === "Authenticated") { return { success: true }; }
+    if (state === "Disabled") { return { success: false, error: "AI features are disabled." }; }
+
+    AIStateMachine.sendEvent(AIMachineEventType.AUTH_WITH_VERTEX_AI);
+    AIStateMachine.sendEvent({ type: AIMachineEventType.SUBMIT_VERTEX_AI_CREDENTIALS, payload: creds } as any);
+
+    return new Promise<{ success: boolean; error?: string }>((resolve) => {
+        let settled = false;
+        const finish = (result: { success: boolean; error?: string }) => {
+            if (settled) { return; }
+            settled = true;
+            clearTimeout(timeout);
+            sub.unsubscribe();
+            resolve(result);
+        };
+        const timeout = setTimeout(() => finish({ success: false, error: "Sign-in timed out. Please try again." }), AUTH_TIMEOUT_MS);
+        const sub = AIStateMachine.service().subscribe((snapshot) => {
+            const s = snapshot.value;
+            if (s === "Authenticated") {
+                finish({ success: true });
+            } else if (s === "Unauthenticated" || s === "Disabled") {
+                const ctx = AIStateMachine.context();
+                finish({ success: false, error: ctx?.errorMessage || "Authentication failed. Please check your Google Vertex AI credentials." });
+            }
+        });
+    });
+}
+
 export async function runWizardMigrationEnhancement(): Promise<void> {
     console.log('[orchestrator] runWizardMigrationEnhancement called. _wizardProjectRoot:', _wizardProjectRoot);
     const projectRoot = _wizardProjectRoot;
