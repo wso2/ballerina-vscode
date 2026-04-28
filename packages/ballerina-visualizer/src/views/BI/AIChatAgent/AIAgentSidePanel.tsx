@@ -62,6 +62,7 @@ import { createDefaultParameterValue, createToolInputFields, createToolParameter
 import { FUNCTION_CALL, METHOD_CALL, REMOTE_ACTION_CALL, RESOURCE_ACTION_CALL } from "../../../constants";
 import { NewToolSelectionMode } from "./NewTool";
 import { fetchOAuthConfigProperties } from "./utils";
+import { updateResourcePathProperty } from "./agentTools";
 
 const LoaderContainer = styled.div`
     display: flex;
@@ -727,18 +728,11 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                     if (toolNodeId === RESOURCE_ACTION_CALL) {
                         const resourcePathProperty = newProperties["resourcePath"];
                         if (resourcePathProperty) {
-                            const sourcePath = resourcePathProperty.codedata?.originalName ?? resourcePathProperty.value;
-                            const displayPath = resourcePathProperty.value;
-                            const replacePathParam = <T,>(p: T): T =>
-                                (typeof p === "string" ? p.replace(`[${key}]`, `[${paramValue}]`) : p) as T;
-                            newProperties["resourcePath"] = {
-                                ...resourcePathProperty,
-                                codedata: {
-                                    ...resourcePathProperty.codedata,
-                                    originalName: String(replacePathParam(sourcePath))
-                                },
-                                value: replacePathParam(displayPath)
-                            };
+                            newProperties["resourcePath"] = updateResourcePathProperty(
+                                resourcePathProperty,
+                                key,
+                                paramValue
+                            );
                         }
                     }
                 });
