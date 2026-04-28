@@ -62,27 +62,41 @@ const SectionDescription = styled.span`
 /**
  * Parse auth values from a Ballerina @ai:AgentTool annotation string.
  * Expected format within the annotation:
- *   auth: { baseAuthUrl: string `val`, scopes: [string `a`, string `b`], isPkceEnabled: true }
+ *   auth: { baseAuthUrl: string `val`, scopes: [string `a`, string `b`], isPkceEnabled: true,
+ *           secureSocket: { enable: false } }
  */
 interface ParsedConfigValue {
     value: string;
     isExpression: boolean;
 }
 
+// Match `re` (which must end with `{`) and extend to its balanced `}`.
+// Returns the full span and the inner body (without outer braces), or null.
+function matchBraced(str: string, re: RegExp): { start: number; end: number; body: string } | null {
+    const m = re.exec(str);
+    if (!m) return null;
+    const open = m.index + m[0].length - 1;
+    let depth = 0;
+    for (let i = open; i < str.length; i++) {
+        if (str[i] === "{") depth++;
+        else if (str[i] === "}" && --depth === 0) {
+            return { start: m.index, end: i + 1, body: str.substring(open + 1, i) };
+        }
+    }
+    return null;
+}
+
 function parseAuth(annotationValue: string, oauthKeys: string[]): Record<string, ParsedConfigValue> {
     const result: Record<string, ParsedConfigValue> = {};
-    const configMatch = annotationValue.match(/auth\s*:\s*\{([^}]*)\}/s);
-    if (!configMatch) {
-        return result;
-    }
-    const configBlock = configMatch[1];
+    const auth = matchBraced(annotationValue, /auth\s*:\s*\{/);
+    if (!auth) return result;
+    const configBlock = auth.body;
 
     for (const key of oauthKeys) {
         if (key === "scopes") {
             const scopesMatch = configBlock.match(/scopes\s*:\s*\[([^\]]*)\]/);
             if (scopesMatch) {
                 const items = scopesMatch[1].split(",").map((s) => s.trim()).filter(Boolean);
-                // Check if all items are string templates or quoted strings
                 const unwrapped = items.map((item) => {
                     const strTemplate = item.match(/^string\s*`([^`]*)`$/);
                     if (strTemplate) return { val: strTemplate[1], isLiteral: true };
@@ -96,30 +110,35 @@ function parseAuth(annotationValue: string, oauthKeys: string[]): Record<string,
                     isExpression: !allLiteral,
                 };
             }
-        } else if (key === "isPkceEnabled") {
+            continue;
+        }
+        if (key === "isPkceEnabled") {
             const boolMatch = configBlock.match(/isPkceEnabled\s*:\s*(true|false)/);
             if (boolMatch) {
                 result.isPkceEnabled = { value: boolMatch[1], isExpression: false };
             }
-        } else {
-            const valueMatch = configBlock.match(new RegExp(`${key}\\s*:\\s*(.+?)\\s*(?:,|$)`, "m"));
-            if (valueMatch) {
-                const raw = valueMatch[1].trim();
-                // Check if value is a string template or double-quoted string
-                const strTemplate = raw.match(/^string\s*`([^`]*)`$/);
-                if (strTemplate) {
-                    result[key] = { value: strTemplate[1], isExpression: false };
-                    continue;
-                }
-                const quoted = raw.match(/^"([^"]*)"$/);
-                if (quoted) {
-                    result[key] = { value: quoted[1], isExpression: false };
-                    continue;
-                }
-                // Bare expression
-                result[key] = { value: raw, isExpression: true };
-            }
+            continue;
         }
+        // Record value: key: { ... } with balanced-brace matching
+        const rec = matchBraced(configBlock, new RegExp(`(?:^|,)\\s*${key}\\s*:\\s*\\{`));
+        if (rec) {
+            result[key] = { value: `{${rec.body}}`, isExpression: false };
+            continue;
+        }
+        const valueMatch = configBlock.match(new RegExp(`${key}\\s*:\\s*(.+?)\\s*(?:,|$)`, "m"));
+        if (!valueMatch) continue;
+        const raw = valueMatch[1].trim();
+        const strTemplate = raw.match(/^string\s*`([^`]*)`$/);
+        if (strTemplate) {
+            result[key] = { value: strTemplate[1], isExpression: false };
+            continue;
+        }
+        const quoted = raw.match(/^"([^"]*)"$/);
+        if (quoted) {
+            result[key] = { value: quoted[1], isExpression: false };
+            continue;
+        }
+        result[key] = { value: raw, isExpression: true };
     }
     return result;
 }
@@ -148,8 +167,12 @@ function buildAuthAnnotation(config: Record<string, string>, expressionKeys: Set
         if (expressionKeys.has(key)) {
             return `${key}: ${value}`;
         }
-        // Don't double-wrap if already quoted or a string template
-        if (/^".*"$/.test(value) || /^string\s*`.*`$/.test(value)) {
+        // Don't double-wrap if already quoted, a string template, or a record literal
+        if (
+            /^".*"$/.test(value) ||
+            /^string\s*`.*`$/.test(value) ||
+            /^\{[\s\S]*\}$/.test(value)
+        ) {
             return `${key}: ${value}`;
         }
         return `${key}: "${value}"`;
@@ -592,15 +615,18 @@ export function FunctionForm(props: FunctionFormProps) {
             let annotationStr = functionNodeCopy.properties.annotations.value as string;
             if (annotationStr.includes("@ai:AgentTool")) {
                 const configBlock = buildAuthAnnotation(oauthConfig, expressionKeys);
-                if (annotationStr.match(/auth\s*:\s*\{[^}]*\}/s)) {
+                const auth = matchBraced(annotationStr, /auth\s*:\s*\{/);
+                if (auth) {
+                    let { start: s, end: e } = auth;
                     if (configBlock) {
-                        // Replace existing auth block
-                        annotationStr = annotationStr.replace(/auth\s*:\s*\{[^}]*\}/s, configBlock);
+                        annotationStr = annotationStr.slice(0, s) + configBlock + annotationStr.slice(e);
                     } else {
-                        // Remove auth block along with surrounding comma
-                        annotationStr = annotationStr.replace(/,\s*auth\s*:\s*\{[^}]*\}/s, "");
-                        annotationStr = annotationStr.replace(/auth\s*:\s*\{[^}]*\}\s*,?/s, "");
-                        // Clean up empty braces: "@ai:AgentTool { }" -> "@ai:AgentTool"
+                        // Also consume a leading or trailing comma so siblings don't dangle
+                        const lead = annotationStr.slice(0, s).match(/,\s*$/);
+                        const trail = annotationStr.slice(e).match(/^\s*,/);
+                        if (lead) s -= lead[0].length;
+                        else if (trail) e += trail[0].length;
+                        annotationStr = annotationStr.slice(0, s) + annotationStr.slice(e);
                         annotationStr = annotationStr.replace(/@ai:AgentTool\s*\{\s*\}/, "@ai:AgentTool");
                     }
                     functionNodeCopy.properties.annotations.value = annotationStr;
