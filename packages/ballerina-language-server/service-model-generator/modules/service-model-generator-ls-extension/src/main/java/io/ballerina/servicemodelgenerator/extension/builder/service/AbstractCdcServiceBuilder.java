@@ -475,9 +475,6 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
         ServiceInitModel serviceInitModel = context.serviceInitModel();
         Map<String, Value> properties = serviceInitModel.getProperties();
         Value tableValue = properties.get(KEY_TABLE);
-
-        String serviceBody = "";
-
         String serviceDeclaration =
                 buildServiceConfigurations(tableValue) +
                         NEW_LINE +
@@ -485,7 +482,6 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
                         SPACE + ON + SPACE + listenerName + SPACE +
                         OPEN_BRACE +
                         NEW_LINE +
-                        (serviceBody.isEmpty() ? "" : serviceBody + NEW_LINE) +
                         CLOSE_BRACE + NEW_LINE;
         ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
         edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().endLine()), serviceDeclaration));
