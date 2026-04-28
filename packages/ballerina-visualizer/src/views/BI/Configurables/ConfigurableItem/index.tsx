@@ -26,7 +26,7 @@ import remarkBreaks from "remark-breaks";
 import { VSCodeTextArea } from "@vscode/webview-ui-toolkit/react";
 import EditForm from "../EditConfigurableVariables";
 import ConfigObjectEditor from "./ConfigObjectEditor";
-import { getTomlPlaceholder, validateTomlValue } from "./utils";
+import { getTomlPlaceholder, isTomlStringType, shouldQuoteTomlStringValue, validateTomlValue } from "./utils";
 
 const Container = styled.div`
     padding: 12px 14px 18px;
@@ -174,7 +174,7 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
     }
 
     const handleTextAreaChange = (value: any) => {
-        if (configVariable.properties?.type?.value === 'string' && !/^".*"$/.test(value)) {
+        if (shouldQuoteTomlStringValue(String(value), String(configVariable.properties?.type?.value || ''))) {
             value = `"${value}"`;
         }
 
@@ -229,7 +229,7 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
     }
 
     const getPlainValue = (value: string) => {
-        if (configVariable.properties?.type?.value === 'string' && /^".*"$/.test(value)) {
+        if (isTomlStringType(String(configVariable.properties?.type?.value || '')) && /^".*"$/.test(value)) {
             return value.replace(/^"|"$/g, '');
         }
         return value;
