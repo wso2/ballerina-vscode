@@ -338,7 +338,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             let version = "";
             let packageName = "";
 
-            if (defaultSelection?.packageInfo.length > 0) {
+            if (defaultSelection?.packageInfo?.length > 0) {
                 const parts = defaultSelection.packageInfo.split(':');
                 if (parts.length === 3) {
                     [org, module, version] = parts;
