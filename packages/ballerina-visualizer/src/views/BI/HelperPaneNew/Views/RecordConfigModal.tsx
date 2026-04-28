@@ -299,7 +299,6 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             setHasTooManyFieldsError(false);
             setRecordModel([]);
             recordModelRef.current = [];
-            throw error;
         } finally {
             setIsLoading(false);
         }
@@ -382,6 +381,10 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                 autoSelectFirstRecord(newModel);
                 await handleModelChange(newModel);
             }
+        } catch (error) {
+            setHasTooManyFieldsError(false);
+            setRecordModel([]);
+            recordModelRef.current = [];
         } finally {
             setIsLoading(false);
         }
