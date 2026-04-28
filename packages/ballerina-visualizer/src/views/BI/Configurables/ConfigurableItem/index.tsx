@@ -455,8 +455,7 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
                         style={{
                             width: '100%',
                             minHeight: '20px',
-                            opacity: isUpdating ? 0.6 : 1,
-                            borderColor: validationError ? 'var(--vscode-editorError-foreground)' : undefined
+                            opacity: isUpdating ? 0.6 : 1
                         }}
                         onInput={(e: Event) => handleTextAreaChange((e.currentTarget as HTMLTextAreaElement).value)}
                         onBlur={handleTextAreaBlur}
