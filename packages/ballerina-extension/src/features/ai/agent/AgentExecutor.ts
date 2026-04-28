@@ -824,13 +824,12 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             !!workspaceRoot &&
             path.resolve(tempProjectPath) === path.resolve(workspaceRoot);
         if (!isInPlaceEditing) {
-            const workspaceId = workspaceRoot;
-            const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, 'default');
-            if (pendingReview && pendingReview.reviewState.modifiedFiles.length > 0) {
+            const generationFiles = new Set([...context.allModifiedFiles, ...context.modifiedFiles]);
+            if (generationFiles.size > 0) {
                 const integrationCtx = { ...context.ctx };
                 // In workspace mode, resolve project path from modified files if not set
-                if (!integrationCtx.projectPath && integrationCtx.workspacePath && pendingReview.reviewState.modifiedFiles.length > 0) {
-                    const firstBalFile = pendingReview.reviewState.modifiedFiles.find(f => f.endsWith('.bal'));
+                if (!integrationCtx.projectPath && integrationCtx.workspacePath) {
+                    const firstBalFile = Array.from(generationFiles).find(f => f.endsWith('.bal'));
                     if (firstBalFile) {
                         const packageName = firstBalFile.split('/')[0];
                         if (packageName) {
@@ -839,11 +838,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                         }
                     }
                 }
-                await integrateCodeToWorkspace(
-                    pendingReview.reviewState.tempProjectPath!,
-                    new Set(pendingReview.reviewState.modifiedFiles),
-                    integrationCtx
-                );
+                await integrateCodeToWorkspace(tempProjectPath, generationFiles, integrationCtx);
             }
         }
 
@@ -853,7 +848,6 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
 
     /**
      * Updates chat state storage with generation results.
-     * Includes accumulated modified files tracking across review continuations.
      */
     private async updateChatState(
         context: StreamContext,
@@ -863,16 +857,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         const projectRootPath = context.ctx.workspacePath || context.ctx.projectPath || '';
         const threadId = 'default';
 
-        // Check if we're updating an existing review context
-        const existingReview = chatStateStorage.getPendingReviewGeneration(projectRootPath, threadId);
         const generationModifiedFiles = Array.from(new Set([...context.allModifiedFiles, ...context.modifiedFiles]));
-        let accumulatedModifiedFiles = generationModifiedFiles;
-
-        if (existingReview && existingReview.reviewState.tempProjectPath === tempProjectPath) {
-            const existingFiles = new Set(existingReview.reviewState.modifiedFiles || []);
-            accumulatedModifiedFiles = Array.from(new Set([...existingFiles, ...generationModifiedFiles]));
-            console.log(`[AgentExecutor] Accumulated modified files: ${accumulatedModifiedFiles.length} total (${existingReview.reviewState.modifiedFiles?.length || 0} existing + ${generationModifiedFiles.length} new)`);
-        }
 
         // Update chat state storage with user message + assistant messages
         chatStateStorage.updateGeneration(projectRootPath, threadId, context.messageId, {
@@ -883,25 +868,28 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         });
 
         // Skip review mode if no files were modified
-        if (accumulatedModifiedFiles.length === 0) {
+        if (generationModifiedFiles.length === 0) {
             console.log("[AgentExecutor] No modified files - skipping review mode");
+            chatStateStorage.updateReviewState(projectRootPath, threadId, context.messageId, {
+                status: 'accepted',
+            });
             return;
         }
 
         // Determine which packages have been affected by the changes
         // This returns temp package paths for use with Language Server APIs
         const affectedPackagePaths = await determineAffectedPackages(
-            accumulatedModifiedFiles,
+            generationModifiedFiles,
             context.projects,
             context.ctx,
             tempProjectPath
         );
 
-        // Update review state and open review mode
+        // Update review state — modifiedFiles is per-generation only
         chatStateStorage.updateReviewState(projectRootPath, threadId, context.messageId, {
             status: 'under_review',
             tempProjectPath,
-            modifiedFiles: accumulatedModifiedFiles,
+            modifiedFiles: generationModifiedFiles,
             affectedPackagePaths: affectedPackagePaths,
         });
 
@@ -912,14 +900,20 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
      * Emits review actions and chat save events to UI.
      */
     private async emitReviewActions(context: StreamContext): Promise<void> {
-        // Use accumulated modifiedFiles from chatStateStorage (merged across review continuations)
         const workspaceId = context.ctx.workspacePath || context.ctx.projectPath;
         const threadId = 'default';
-        const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
-        const generationModifiedFiles = Array.from(new Set([...context.allModifiedFiles, ...context.modifiedFiles]));
-        const accumulatedModifiedFiles = pendingReview
-            ? Array.from(new Set([...pendingReview.reviewState.modifiedFiles, ...generationModifiedFiles]))
-            : generationModifiedFiles;
+
+        // Union modifiedFiles and affectedPackagePaths across all under-review generations at read
+        // time — each generation stores only its own files, the cumulative view is derived here.
+        const underReviewGenerations = chatStateStorage
+            .getOrCreateThread(workspaceId, threadId)
+            .generations.filter(g => g.reviewState.status === 'under_review');
+        const accumulatedModifiedFiles = Array.from(
+            new Set(underReviewGenerations.flatMap(g => g.reviewState.modifiedFiles ?? []))
+        );
+        const cachedAffectedPackages = Array.from(
+            new Set(underReviewGenerations.flatMap(g => g.reviewState.affectedPackagePaths ?? []))
+        );
 
         if (accumulatedModifiedFiles.length > 0) {
             const semanticDiffs: SemanticDiff[] = [];
@@ -928,8 +922,8 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             const diffPackageMap: string[] = [];
             const langClient = StateMachine.context().langClient;
             const tempDir = context.ctx.tempProjectPath!;
-            affectedPackages = pendingReview?.reviewState.affectedPackagePaths?.length
-                ? pendingReview.reviewState.affectedPackagePaths
+            affectedPackages = cachedAffectedPackages.length > 0
+                ? cachedAffectedPackages
                 : await determineAffectedPackages(accumulatedModifiedFiles, context.projects, context.ctx, tempDir);
             const isWorkspace = StateMachine.context().projectInfo?.projectKind === PROJECT_KIND.WORKSPACE_PROJECT;
             for (const pkg of affectedPackages) {
@@ -963,9 +957,6 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                 isWorkspace,
             };
 
-            const hasSemanticResults = loadDesignDiagrams || semanticDiffs.length > 0;
-            const isBI = StateMachine.context().isBI;
-            const autoOpen = !!(isBI && hasSemanticResults);
             approvalViewManager.openReviewMode(reviewData, false);
 
             context.eventHandler({
