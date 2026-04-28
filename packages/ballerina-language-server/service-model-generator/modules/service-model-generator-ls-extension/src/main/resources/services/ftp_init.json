@@ -5,9 +5,9 @@
   "orgName": "ballerina",
   "packageName": "ftp",
   "moduleName": "ftp",
-  "version": "2.18.0",
+  "version": "2.19.0",
   "type": "ftp",
-  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.18.0.png",
+  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.19.0.png",
   "properties": {
     "configureListener": {
       "metadata": {
@@ -216,7 +216,7 @@
                                   },
                                   "enabled": true,
                                   "editable": true,
-                                  "value": "\"default\"",
+                                  "value": "",
                                   "types": [
                                     {
                                       "fieldType": "TEXT",
@@ -232,8 +232,8 @@
                                   "valueType": "IDENTIFIER",
                                   "valueTypeConstraint": "string",
                                   "isType": false,
-                                  "placeholder": "default",
-                                  "optional": true,
+                                  "placeholder": "",
+                                  "optional": false,
                                   "advanced": false
                                 },
                                 "password": {
@@ -243,7 +243,7 @@
                                   },
                                   "enabled": true,
                                   "editable": true,
-                                  "value": "\"default\"",
+                                  "value": "",
                                   "types": [
                                     {
                                       "fieldType": "TEXT",
@@ -259,7 +259,7 @@
                                   "valueType": "IDENTIFIER",
                                   "valueTypeConstraint": "string",
                                   "isType": false,
-                                  "placeholder": "default",
+                                  "placeholder": "",
                                   "optional": true,
                                   "advanced": false
                                 }
@@ -376,6 +376,76 @@
                             },
                             {
                               "metadata": {
+                                "label": "Basic Authentication",
+                                "description": ""
+                              },
+                              "enabled": false,
+                              "editable": true,
+                              "value": "true",
+                              "valueType": "FORM",
+                              "isType": false,
+                              "placeholder": "true",
+                              "optional": false,
+                              "advanced": false,
+                              "properties": {
+                                "userName": {
+                                  "metadata": {
+                                    "label": "Username",
+                                    "description": "Remote server username for authentication"
+                                  },
+                                  "enabled": true,
+                                  "editable": true,
+                                  "value": "",
+                                  "types": [
+                                    {
+                                      "fieldType": "TEXT",
+                                      "ballerinaType": "string",
+                                      "selected": true
+                                    },
+                                    {
+                                      "fieldType": "EXPRESSION",
+                                      "ballerinaType": "string",
+                                      "selected": false
+                                    }
+                                  ],
+                                  "valueType": "IDENTIFIER",
+                                  "valueTypeConstraint": "string",
+                                  "isType": false,
+                                  "placeholder": "",
+                                  "optional": false,
+                                  "advanced": false
+                                },
+                                "password": {
+                                  "metadata": {
+                                    "label": "Password",
+                                    "description": "Remote server password for authentication"
+                                  },
+                                  "enabled": true,
+                                  "editable": true,
+                                  "value": "",
+                                  "types": [
+                                    {
+                                      "fieldType": "TEXT",
+                                      "ballerinaType": "string",
+                                      "selected": true
+                                    },
+                                    {
+                                      "fieldType": "EXPRESSION",
+                                      "ballerinaType": "string",
+                                      "selected": false
+                                    }
+                                  ],
+                                  "valueType": "IDENTIFIER",
+                                  "valueTypeConstraint": "string",
+                                  "isType": false,
+                                  "placeholder": "",
+                                  "optional": true,
+                                  "advanced": false
+                                }
+                              }
+                            },
+                            {
+                              "metadata": {
                                 "label": "Certificate Based Authentication",
                                 "description": ""
                               },
@@ -403,7 +473,7 @@
                                       "typeMembers": [
                                         {
                                           "type": "PrivateKey",
-                                          "packageInfo": "ballerina:ftp:2.18.0",
+                                          "packageInfo": "ballerina:ftp:2.19.0",
                                           "packageName": "ftp",
                                           "kind": "RECORD_TYPE",
                                           "selected": true
@@ -584,7 +654,7 @@
                                   },
                                   "enabled": true,
                                   "editable": true,
-                                  "value": "\"default\"",
+                                  "value": "",
                                   "types": [
                                     {
                                       "fieldType": "TEXT",
@@ -600,8 +670,8 @@
                                   "valueType": "IDENTIFIER",
                                   "valueTypeConstraint": "string",
                                   "isType": false,
-                                  "placeholder": "default",
-                                  "optional": true,
+                                  "placeholder": "",
+                                  "optional": false,
                                   "advanced": false
                                 },
                                 "password": {
@@ -611,7 +681,7 @@
                                   },
                                   "enabled": true,
                                   "editable": true,
-                                  "value": "\"default\"",
+                                  "value": "",
                                   "types": [
                                     {
                                       "fieldType": "TEXT",
@@ -653,7 +723,7 @@
                               "typeMembers": [
                                 {
                                   "type": "SecureSocket",
-                                  "packageInfo": "ballerina:ftp:2.18.0",
+                                  "packageInfo": "ballerina:ftp:2.19.0",
                                   "packageName": "ftp",
                                   "kind": "RECORD_TYPE",
                                   "selected": true

@@ -161,7 +161,7 @@
                   "advanced": false,
                   "hidden": false
                 },
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
@@ -169,7 +169,36 @@
                 "selected": false
               }
             ],
-            "value": "{orderId: \"123\", customerName: \"John\"}",
+            "value": {
+              "orderId": {
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "anydata",
+                    "selected": true
+                  }
+                ],
+                "value": "\"123\"",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              },
+              "customerName": {
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "anydata",
+                    "selected": true
+                  }
+                ],
+                "value": "\"John\"",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              }
+            },
             "placeholder": "()",
             "optional": true,
             "editable": true,

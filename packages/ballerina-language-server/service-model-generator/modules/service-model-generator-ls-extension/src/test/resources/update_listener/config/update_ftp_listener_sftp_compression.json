@@ -1,0 +1,182 @@
+{
+  "filePath": "update_ftp_listener.bal",
+  "description": "REPEATABLE_LIST property (sftpCompression) sent as a List value should be emitted in the constructor call",
+  "listener": {
+    "name": "Ftp Listener",
+    "type": "ftp",
+    "displayName": "Ftp",
+    "description": "FTP listener",
+    "moduleName": "ftp",
+    "orgName": "ballerina",
+    "version": "2.16.0",
+    "packageName": "ftp",
+    "listenerProtocol": "ftp",
+    "icon": "",
+    "properties": {
+      "variableNameKey": {
+        "metadata": {
+          "label": "Name",
+          "description": "The name of the listener"
+        },
+        "codedata": {
+          "lineRange": {
+            "fileName": "update_ftp_listener.bal",
+            "startLine": {
+              "line": 2,
+              "offset": 22
+            },
+            "endLine": {
+              "line": 2,
+              "offset": 31
+            }
+          }
+        },
+        "value": "listener1",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "enabled": true,
+        "editable": false,
+        "optional": false,
+        "advanced": false
+      },
+      "listenerType": {
+        "metadata": {
+          "label": "Listener Type",
+          "description": "The type of the listener"
+        },
+        "value": "Listener",
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "enabled": false,
+        "editable": false,
+        "optional": false,
+        "advanced": false
+      },
+      "host": {
+        "metadata": {
+          "label": "Host",
+          "description": "FTP server host"
+        },
+        "codedata": {
+          "type": "LISTENER_INIT_PARAM",
+          "originalName": "host"
+        },
+        "placeholder": "\"127.0.0.1\"",
+        "value": "\"127.0.0.1\"",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string",
+            "selected": true
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": false
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": false
+      },
+      "sftpCompression": {
+        "metadata": {
+          "label": "Sftp Compression",
+          "description": "Compression algorithms to use (SFTP only)"
+        },
+        "codedata": {
+          "type": "LISTENER_INIT_PARAM",
+          "originalName": "sftpCompression"
+        },
+        "placeholder": "[]",
+        "value": [
+          {
+            "key": "ar-elm-1",
+            "value": "\"zlib\"",
+            "types": [
+              {
+                "fieldType": "SINGLE_SELECT",
+                "ballerinaType": "ftp:TransferCompression",
+                "selected": true
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "ftp:TransferCompression",
+                "selected": false
+              }
+            ]
+          }
+        ],
+        "types": [
+          {
+            "fieldType": "REPEATABLE_LIST",
+            "ballerinaType": "ftp:TransferCompression[]",
+            "template": {
+              "types": [
+                {
+                  "fieldType": "SINGLE_SELECT",
+                  "ballerinaType": "ftp:TransferCompression",
+                  "selected": true
+                },
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "ftp:TransferCompression",
+                  "selected": false
+                }
+              ]
+            },
+            "selected": true
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "ftp:TransferCompression[]",
+            "selected": false
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": false
+      }
+    },
+    "codedata": {
+      "lineRange": {
+        "fileName": "update_ftp_listener.bal",
+        "startLine": {
+          "line": 2,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 2,
+          "offset": 59
+        }
+      }
+    }
+  },
+  "output": {
+    "update_ftp_listener.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 2,
+            "character": 0
+          },
+          "end": {
+            "line": 2,
+            "character": 59
+          }
+        },
+        "newText": "listener ftp:Listener listener1 = new (host = \"127.0.0.1\", sftpCompression = [\"zlib\"]);"
+      }
+    ]
+  }
+}

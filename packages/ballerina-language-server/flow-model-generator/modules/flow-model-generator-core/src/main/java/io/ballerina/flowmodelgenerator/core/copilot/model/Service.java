@@ -29,12 +29,16 @@ import java.util.List;
  */
 public class Service {
     private String type;
+    @SerializedName("name")
+    private String name;
     @SerializedName("instructions")
     private String instructions;
     private Listener listener;
     @SerializedName("methods")
     private List<ServiceRemoteFunction> methods;
     private String testGenerationInstruction;
+    @SerializedName("isDeprecated")
+    private Boolean deprecated;
 
     public Service() {
     }
@@ -45,6 +49,14 @@ public class Service {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getInstructions() {
@@ -77,5 +89,13 @@ public class Service {
 
     public void setTestGenerationInstruction(String testGenerationInstruction) {
         this.testGenerationInstruction = testGenerationInstruction;
+    }
+
+    public Boolean isDeprecated() {
+        return deprecated;
+    }
+
+    public void setDeprecated(Boolean deprecated) {
+        this.deprecated = deprecated;
     }
 }

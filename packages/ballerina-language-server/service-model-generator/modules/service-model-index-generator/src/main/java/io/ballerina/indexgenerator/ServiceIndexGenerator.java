@@ -47,6 +47,7 @@ import io.ballerina.compiler.api.symbols.TableTypeSymbol;
 import io.ballerina.compiler.api.symbols.TupleTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
+import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.api.symbols.resourcepath.PathSegmentList;
@@ -164,7 +165,7 @@ class ServiceIndexGenerator {
             if (symbol.kind() == SymbolKind.CLASS) {
                 ClassSymbol classSymbol = (ClassSymbol) symbol;
 
-                if (classSymbol.nameEquals("Listener")) {
+                if (isListenerClass(classSymbol)) {
 
                     Optional<MethodSymbol> initMethodSymbol = classSymbol.initMethod();
                     if (initMethodSymbol.isEmpty()) {
@@ -240,6 +241,22 @@ class ServiceIndexGenerator {
                         GSON.toJson(property.types()), property.sourceKind());
             }
         }
+    }
+
+    /**
+     * Treats a class as a listener if it is literally named {@code Listener} or if it
+     * type-includes another type named {@code Listener} (e.g. {@code *cdc:Listener}).
+     * This catches CDC-style listeners shipped under names like {@code CdcListener}
+     * that the strict name match would otherwise drop.
+     */
+    private static boolean isListenerClass(ClassSymbol classSymbol) {
+        if (classSymbol.nameEquals("Listener")) {
+            return true;
+        }
+        return classSymbol.typeInclusions().stream()
+                .filter(typeSymbol -> typeSymbol instanceof TypeReferenceTypeSymbol)
+                .map(typeSymbol -> (TypeReferenceTypeSymbol) typeSymbol)
+                .anyMatch(typeRef -> typeRef.definition().nameEquals("Listener"));
     }
 
     private static void processListenerInit(SemanticModel semanticModel, FunctionSymbol functionSymbol,

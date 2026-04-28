@@ -20,7 +20,9 @@ package io.ballerina.flowmodelgenerator.extension;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
@@ -78,6 +80,8 @@ import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
 import org.eclipse.lsp4j.services.LanguageServer;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -93,6 +97,9 @@ public class TypesManagerService implements ExtendedLanguageServerService {
 
     // A type can be deleted if it has at most one reference (the definition itself).
     public static final int MAX_REFERENCE_FOR_DELETE = 1;
+    private static final long MAX_RECORD_CONFIG_JSON_CHARS = 10L * 1024 * 1024;
+    private static final String RECORD_CONFIG_ERROR_MESSAGE = "Record config is too large to send. " +
+            "The record type has too many nested fields.";
     private WorkspaceManagerProxy workspaceManagerProxy;
 
     // Cache key for SemanticModel
@@ -463,7 +470,10 @@ public class TypesManagerService implements ExtendedLanguageServerService {
                     throw new IllegalArgumentException(
                             String.format("Type '%s' is not a record", request.typeConstraint()));
                 }
-                response.setRecordConfig(Type.fromSemanticSymbol(typeSymbol.get(), semanticModel.get(), packageName));
+                Type type = Type.fromSemanticSymbol(typeSymbol.get(), semanticModel.get(), packageName);
+                serializeRecordConfig(type, response);
+            } catch (OutOfMemoryError oom) {
+                response.setError(new RuntimeException(RECORD_CONFIG_ERROR_MESSAGE, oom));
             } catch (Throwable e) {
                 response.setError(e);
             }
@@ -496,8 +506,8 @@ public class TypesManagerService implements ExtendedLanguageServerService {
                     throw new IllegalArgumentException(String.format("Type '%s' not found in package '%s/%s:%s'",
                             request.typeConstraint(), info.org(), info.moduleName(), info.version()));
                 }
-                Type type  = TypeSymbolAnalyzerFromTypeModel.analyze(typeSymbol.get(), request.expr(), semanticModel);
-                response.setRecordConfig(type);
+                Type type = TypeSymbolAnalyzerFromTypeModel.analyze(typeSymbol.get(), request.expr(), semanticModel);
+                serializeRecordConfig(type, response);
             } catch (Throwable e) {
                 response.setError(e);
             }
@@ -532,11 +542,14 @@ public class TypesManagerService implements ExtendedLanguageServerService {
                         Type type = TypeSymbolAnalyzerFromTypeModel.analyze(typeSymbol.get(), expression,
                                 semanticModel);
                         if (type != null && type.selected) {
-                            response.setRecordConfig(type);
                             type.name = memberInfo.type();
+                            serializeRecordConfig(type, response);
                             response.setTypeName(memberInfo.type());
                             break;
                         }
+                    } catch (OutOfMemoryError oom) {
+                        response.setError(new RuntimeException(RECORD_CONFIG_ERROR_MESSAGE, oom));
+                        return response;
                     } catch (Throwable ignored) {
                     }
                 }
@@ -674,6 +687,61 @@ public class TypesManagerService implements ExtendedLanguageServerService {
                 return new PackageNameModulePartName(parts[0], null);
             }
             return new PackageNameModulePartName(null, null);
+        }
+    }
+
+    private void serializeRecordConfig(Type type, RecordConfigResponse response) {
+        SizeLimitedWriter writer = new SizeLimitedWriter(MAX_RECORD_CONFIG_JSON_CHARS);
+        try {
+            new Gson().toJson(type, writer);
+            response.setRecordConfig(JsonParser.parseString(writer.getContent()));
+        } catch (JsonIOException e) {
+            response.setError(new RuntimeException(RECORD_CONFIG_ERROR_MESSAGE));
+        }
+    }
+
+    /**
+     * A Writer that stops Gson serialization as soon as the output would exceed a character limit.
+     * Overriding both write methods prevents the default Writer from allocating an intermediate
+     * char[] when Gson passes a String segment, so the limit is enforced before any extra allocation.
+     * Gson wraps the resulting IOException in JsonIOException, which callers catch to detect the limit.
+     */
+    private static final class SizeLimitedWriter extends Writer {
+
+        private final StringBuilder sb;
+        private final long limit;
+
+        SizeLimitedWriter(long limit) {
+            this.sb = new StringBuilder();
+            this.limit = limit;
+        }
+
+        @Override
+        public void write(char[] cbuf, int off, int len) throws IOException {
+            if (sb.length() + len > limit) {
+                throw new IOException("Record config payload exceeds the size limit");
+            }
+            sb.append(cbuf, off, len);
+        }
+
+        @Override
+        public void write(String str, int off, int len) throws IOException {
+            if (sb.length() + len > limit) {
+                throw new IOException("Record config payload exceeds the size limit");
+            }
+            sb.append(str, off, off + len);
+        }
+
+        @Override
+        public void flush() {
+        }
+
+        @Override
+        public void close() {
+        }
+
+        String getContent() {
+            return sb.toString();
         }
     }
 }

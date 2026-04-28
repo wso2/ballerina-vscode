@@ -173,7 +173,7 @@ public class HttpResponse {
         }
 
         public Builder mediaType(String mediaType, boolean editable) {
-            this.mediaType = createValue(mediaType, Value.FieldType.EXPRESSION, editable);
+            this.mediaType = createOptionalValue(mediaType, Value.FieldType.EXPRESSION, editable);
             return this;
         }
 
