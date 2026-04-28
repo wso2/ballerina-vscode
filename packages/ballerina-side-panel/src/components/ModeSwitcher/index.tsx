@@ -77,8 +77,8 @@ const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ value, isRecordTypeField, o
 
     const handleConfirmSwitch = () => {
         if (pendingMode) {
+            setValue(fieldKey, "", { shouldDirty: true });
             onChange(pendingMode);
-            setValue(fieldKey, undefined);
             setPendingMode(null);
         }
         setShowWarning(false);

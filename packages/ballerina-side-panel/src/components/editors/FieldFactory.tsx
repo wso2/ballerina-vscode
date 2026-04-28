@@ -242,7 +242,7 @@ export const FieldFactory = (props: FieldFactoryProps) => {
                 props.handleFormValidation?.(currentValues);
             }
         } else {
-            props.handleFormValidation?.();
+            props.handleFormValidation?.({ ...currentValues, [props.field.key]: "" });
         }
     }, [props.handleFormValidation, form, props.field.key]);
 
