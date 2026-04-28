@@ -909,7 +909,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             .getOrCreateThread(workspaceId, threadId)
             .generations.filter(g => g.reviewState.status === 'under_review');
         const accumulatedModifiedFiles = Array.from(
-            new Set(underReviewGenerations.flatMap(g => g.reviewState.modifiedFiles))
+            new Set(underReviewGenerations.flatMap(g => g.reviewState.modifiedFiles ?? []))
         );
         const cachedAffectedPackages = Array.from(
             new Set(underReviewGenerations.flatMap(g => g.reviewState.affectedPackagePaths ?? []))
