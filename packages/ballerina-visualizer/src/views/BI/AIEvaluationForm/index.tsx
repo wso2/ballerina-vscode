@@ -94,6 +94,32 @@ const UpgradeMessage = styled.p`
     line-height: 1.6;
 `;
 
+const EmptyEvalsetContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 14px;
+    margin-top: 12px;
+    border: 1px solid var(--vscode-input-border, var(--vscode-panel-border));
+    border-radius: 4px;
+    background-color: var(--vscode-editorWidget-background);
+`;
+
+const EmptyEvalsetTitle = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--vscode-foreground);
+    font-size: 13px;
+    font-weight: 500;
+`;
+
+const EmptyEvalsetMessage = styled.div`
+    color: var(--vscode-descriptionForeground);
+    font-size: 12px;
+    line-height: 1.5;
+`;
+
 interface TestFunctionDefProps {
     projectPath: string;
     functionName?: string;
@@ -114,6 +140,8 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
     const [evalsetOptions, setEvalsetOptions] = useState<Array<{ value: string; content: string }>>([]);
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [selectedEvalsetFile, setSelectedEvalsetFile] = useState<string>('');
+    const [evalsetsLoaded, setEvalsetsLoaded] = useState<boolean>(false);
+    const [evalsetsLoadError, setEvalsetsLoadError] = useState<boolean>(false);
 
     // Helper function to apply field visibility rules based on data provider mode
     const applyFieldVisibility = (fields: FormField[], mode: string): FormField[] => {
@@ -122,7 +150,9 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                 return { ...field, hidden: mode !== 'function' };
             }
             if (field.key === 'evalSetFile') {
-                return { ...field, hidden: mode !== 'evalSet' };
+                const hasValue = !!field.value;
+                const hidden = mode !== 'evalSet' || (evalsetOptions.length === 0 && !hasValue);
+                return { ...field, hidden };
             }
             if (field.key === 'runs') {
                 return { ...field };
@@ -189,6 +219,12 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
             formFields = applyFieldVisibility(formFields, mode);
 
             setFormFields(formFields);
+
+            const evalSetFileField = formFields.find(f => f.key === 'evalSetFile');
+            const fieldValue = String(evalSetFileField?.value || '');
+            if (fieldValue) {
+                setSelectedEvalsetFile(prev => prev || fieldValue);
+            }
         }
     }, [evalsetOptions]);
 
@@ -200,9 +236,13 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                 content: `${evalset.name}`
             }));
             setEvalsetOptions(options);
+            setEvalsetsLoadError(false);
         } catch (error) {
             console.error('Failed to load evalsets:', error);
             setEvalsetOptions([]);
+            setEvalsetsLoadError(true);
+        } finally {
+            setEvalsetsLoaded(true);
         }
     };
 
@@ -337,8 +377,11 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
 
                 const evalSetFileField = configAnnotation.fields.find(f => f.originalName === 'evalSetFile');
                 if (evalSetFileField) {
+                    const generatedField = generateFieldFromProperty('evalSetFile', evalSetFileField);
+                    const defaultValue = generatedField.value || (evalsetOptions.length > 0 ? evalsetOptions[0].value : '');
                     fields.push({
-                        ...generateFieldFromProperty('evalSetFile', evalSetFileField),
+                        ...generatedField,
+                        value: defaultValue,
                         type: 'SINGLE_SELECT',
                         types: [{ fieldType: 'SINGLE_SELECT', selected: false }],
                         itemOptions: evalsetOptions
@@ -849,7 +892,26 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                                             onChange={handleCardSelectorChange}
                                         />,
                                         index: 2
-                                    }
+                                    },
+                                    ...(dataProviderMode === 'evalSet' && evalsetsLoaded && evalsetOptions.length === 0 && !selectedEvalsetFile ? [{
+                                        component: (
+                                            <EmptyEvalsetContainer>
+                                                <EmptyEvalsetTitle>
+                                                    <Icon name={evalsetsLoadError ? "bi-error" : "bi-data-table"} sx={{ fontSize: "16px", width: "16px", height: "16px" }} />
+                                                    {evalsetsLoadError ? "Failed to load evalsets" : "No evalset files found"}
+                                                </EmptyEvalsetTitle>
+                                                <EmptyEvalsetMessage>
+                                                    {evalsetsLoadError ? (
+                                                        <>Could not load evalsets for this project. Try reopening this view, or switch to <strong>Standalone/Custom</strong> mode to define your evaluation logic from scratch.</>
+                                                    ) : (
+                                                        <>Evalsets are created by exporting traces from conversations with your agents.
+                                                        Have a conversation with an agent and export the traces, or switch to <strong>Standalone/Custom</strong> mode to define your evaluation logic from scratch.</>
+                                                    )}
+                                                </EmptyEvalsetMessage>
+                                            </EmptyEvalsetContainer>
+                                        ),
+                                        index: 3
+                                    }] : [])
                                 ]}
                             />
                         )}

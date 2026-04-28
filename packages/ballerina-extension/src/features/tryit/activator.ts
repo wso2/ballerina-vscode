@@ -478,8 +478,11 @@ async function getAvailableServices(projectDir: string): Promise<ServiceInfo[] |
 
 // Helper function to compare path patterns, considering path parameters
 function comparePathPatterns(specPath: string, targetPath: string): boolean {
+    // Ballerina uses "." to mean the root path of the service (equivalent to "/")
+    const normalizedTarget = targetPath === '.' ? '/' : targetPath;
+
     const specSegments = specPath.split('/').filter(Boolean);
-    const targetSegments = targetPath.split('/').filter(Boolean);
+    const targetSegments = normalizedTarget.split('/').filter(Boolean);
 
     if (specSegments.length !== targetSegments.length) {
         return false;

@@ -56,6 +56,7 @@ import {
     StopRunningServiceRequest,
     RunServiceRequest,
 } from "@wso2/ballerina-core";
+import * as os from "os";
 import * as fs from 'fs';
 import path from "path";
 import * as vscode from 'vscode';
@@ -534,6 +535,20 @@ export class AiPanelRpcManager implements AIPanelAPI {
                 }
             }
 
+            // Append revert notification to model messages so the LLM knows changes were reverted
+            const existingMessages = latestReview.modelMessages || [];
+            chatStateStorage.updateGeneration(projectRootPath, threadId, latestReview.id, {
+                modelMessages: [
+                    ...existingMessages,
+                    {
+                        role: "user",
+                        content: `<revert_notification>
+User reverted the last made changes. The files have been restored to the state before this generation.
+</revert_notification>`,
+                    },
+                ],
+            });
+
             // Mark ALL under_review generations as error/declined
             chatStateStorage.declineAllReviews(projectRootPath, threadId);
             console.log("[Review Actions] Marked all under_review generations as declined");
@@ -857,4 +872,19 @@ export class AiPanelRpcManager implements AIPanelAPI {
             return false;
         }
     }
+
+    async getDefaultVertexCredsPath(): Promise<string> {
+        const fromEnv = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+        if (fromEnv && fs.existsSync(fromEnv)) {
+            return fromEnv;
+        }
+        const adcPath = process.platform === "win32"
+            ? path.join(process.env.APPDATA || "", "gcloud", "application_default_credentials.json")
+            : path.join(os.homedir(), ".config", "gcloud", "application_default_credentials.json");
+        if (fs.existsSync(adcPath)) {
+            return adcPath;
+        }
+        return "";
+    }
+
 }

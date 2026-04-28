@@ -18,14 +18,16 @@
 
 import {
   ComponentInfo,
+  DataMapperModelResponse,
   DataMappingRecord,
-  ExistingFunctionMatchResult,
+  DMModel,
+  MatchedFunction,
   ExtractMappingDetailsRequest,
   ExtractMappingDetailsResponse,
   ImportInfo,
 } from "@wso2/ballerina-core";
 import { ExtendedLangClient } from "../../../../core";
-import { DefaultableParam, IncludedRecordParam, RequiredParam, RestParam } from "@wso2/syntax-tree";
+import { STKindChecker } from "@wso2/syntax-tree";
 import { INVALID_RECORD_REFERENCE } from "../../../../views/ai-panel/errorCodes";
 import { isAnyPrimitiveType, isPrimitiveArrayType } from "./type-utils";
 import { getFunctionDefinitionFromSyntaxTree } from "./temp-project";
@@ -44,7 +46,7 @@ export async function extractMappingDetails(
   let outputParam: string;
   let inputNames: string[] = [];
 
-  const existingFunctionMatch = await processExistingFunctions(
+  const matchedFunction = await processExistingFunctions(
     existingFunctions,
     parameters.functionName,
     langClient
@@ -53,7 +55,7 @@ export async function extractMappingDetails(
   const hasProvidedRecords = parameters.inputRecord.length > 0 || parameters.outputRecord !== "";
 
   if (hasProvidedRecords) {
-    if (existingFunctionMatch.match) {
+    if (matchedFunction !== null) {
       throw new Error(
         `${parameters.functionName} function already exists. Please provide a valid function name.`
       );
@@ -61,21 +63,46 @@ export async function extractMappingDetails(
     inputParams = parameters.inputRecord;
     outputParam = parameters.outputRecord;
   } else {
-    if (!existingFunctionMatch.match || !existingFunctionMatch.functionDefNode) {
+    if (!matchedFunction) {
       throw new Error(
         `${parameters.functionName} function was not found. Please provide a valid function name.`
       );
     }
 
-    const funcNode = existingFunctionMatch.functionDefNode;
-    const params = funcNode.functionSignature.parameters?.filter(
-      (param): param is RequiredParam | DefaultableParam | RestParam | IncludedRecordParam =>
-        param.kind !== 'CommaToken'
-    ) ?? [];
+    const funcNode = matchedFunction.functionDefNode;
+    const filePath = matchedFunction.matchingFunctionFilePath;
 
-    inputParams = params.map(param => (param.typeName.source || "").trim());
-    inputNames = params.map(param => (param.paramName.value || "").trim());
-    outputParam = (funcNode.functionSignature.returnTypeDesc.type.source || "").trim();
+    let position = {
+      line: funcNode.position.startLine,
+      offset: funcNode.position.startColumn
+    };
+    if (STKindChecker.isExpressionFunctionBody(funcNode.functionBody)) {
+      position = {
+        line: funcNode.functionBody.expression.position.startLine,
+        offset: funcNode.functionBody.expression.position.startColumn
+      };
+    }
+
+    const codedata = {
+      lineRange: {
+        fileName: filePath,
+        startLine: { line: funcNode.position.startLine, offset: funcNode.position.startColumn },
+        endLine: { line: funcNode.position.endLine, offset: funcNode.position.endColumn }
+      }
+    };
+
+    const dmModelResponse = await langClient.getDataMapperMappings({ filePath, codedata, position }) as DataMapperModelResponse;
+    if (!dmModelResponse?.mappingsModel) {
+      throw new Error(`Failed to retrieve data mapper model for function: ${parameters.functionName}`);
+    }
+    const dmModel = dmModelResponse.mappingsModel as DMModel;
+    if (!dmModel.inputs || !dmModel.output) {
+      throw new Error(`Data mapper model for function "${parameters.functionName}" has missing inputs or output`);
+    }
+
+    inputParams = dmModel.inputs.map(input => (input.convertedVariable?.typeName ?? input.typeName ?? "").trim());
+    inputNames = dmModel.inputs.map(input => input.name);
+    outputParam = (dmModel.output.convertedVariable?.typeName ?? dmModel.output.typeName ?? "").trim();
   }
 
   const inputs = processInputs(inputParams, recordMap, allImports, importsMap);
@@ -88,7 +115,7 @@ export async function extractMappingDetails(
     outputParam,
     imports: Object.values(importsMap),
     inputNames,
-    existingFunctionMatch,
+    matchedFunction,
   };
 }
 
@@ -97,28 +124,18 @@ export async function processExistingFunctions(
   existingFunctions: ComponentInfo[],
   functionName: string,
   langClient: ExtendedLangClient
-): Promise<ExistingFunctionMatchResult> {
+): Promise<MatchedFunction | null> {
   for (const func of existingFunctions) {
-    const filePath = func.filePath;
-    const fileName = filePath.split("/").pop();
-
-    const funcDefNode = await getFunctionDefinitionFromSyntaxTree(langClient, filePath, functionName);
+    const funcDefNode = await getFunctionDefinitionFromSyntaxTree(langClient, func.filePath, functionName);
     if (funcDefNode) {
       return {
-        match: true,
-        matchingFunctionFile: fileName,
+        matchingFunctionFilePath: func.filePath,
         functionDefNode: funcDefNode,
       };
-    } else {
-      continue;
     }
   }
 
-  return {
-    match: false,
-    matchingFunctionFile: null,
-    functionDefNode: null,
-  };
+  return null;
 }
 
 // Process input parameters

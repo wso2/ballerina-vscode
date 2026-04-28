@@ -18,7 +18,7 @@ import { DIAGNOSTICS_TOOL_NAME } from "./tools/diagnostics";
 import { LIBRARY_GET_TOOL } from "./tools/library-get";
 import { LIBRARY_SEARCH_TOOL } from "./tools/library-search";
 import { TASK_WRITE_TOOL_NAME } from "./tools/task-writer";
-import { FILE_BATCH_EDIT_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME } from "./tools/text-editor";
+import { FILE_BATCH_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME } from "./tools/text-editor";
 import { CONNECTOR_GENERATOR_TOOL } from "./tools/connector-generator";
 import { CONFIG_COLLECTOR_TOOL } from "./tools/config-collector";
 import { CLARIFY_TOOL } from "./tools/clarify";
@@ -149,6 +149,7 @@ ${getLanglibInstructions()}
 
 ### Local Connectors
 - If the codebase structure shows connector modules in generated/moduleName, import using: import packageName.moduleName
+- Generated connector files appear under a \`<generated_files>\` block in the codebase structure as path-only entries (e.g. \`<file path="generated/moduleName/client.bal"/>\`) — no source content is included. Use the \`${FILE_READ_TOOL_NAME}\` tool with the listed path to fetch the content when needed.
 
 ## Code Structure
 - In WSO2 Integrator, Automation is simply an app with a main method unless user specifically mentions a service. Cron Job kind of requirements are handled in the deployment level for Kubernetes or Integration platform level.
@@ -203,7 +204,7 @@ When working with Ballerina workspace projects (projects with a root Ballerina.t
 # Running, invoking and tests
 - You should only Run or write tests if the user explicitly asks to do so.
 - Providing values to configurables is a runtime task and should only do it before running or executing the tests.
-- For Config.toml configuration value management, use ${CONFIG_COLLECTOR_TOOL} to request for values. Check the different modes of the tool for various usecases.
+- For Config.toml configuration value management, use ${CONFIG_COLLECTOR_TOOL}. The codebase listing shows <config_files main="present|absent" tests="present|absent"/> per project indicating whether Config.toml files exist.
 - You can call ${BALLERINA_STOP_TOOL_NAME} when you need to restart a service (e.g. after code changes) or when the user explicitly asks to stop it.
 
 ## Test Runner

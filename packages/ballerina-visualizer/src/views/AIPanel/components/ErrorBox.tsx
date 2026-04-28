@@ -17,7 +17,6 @@
  */
 
 import styled from "@emotion/styled";
-import { Codicon } from "@wso2/ui-toolkit";
 import React from "react";
 
 const Container = styled.div`
@@ -59,7 +58,7 @@ interface ErrorBoxProps {
 const ErrorBox: React.FC<ErrorBoxProps> = ({ children }) => {
     return (
         <Container>
-            <Codicon name="error" />
+            <span className="codicon codicon-error" />
             <ErrorText>{children}</ErrorText>
         </Container>
     );

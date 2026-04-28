@@ -49,7 +49,8 @@ import {
     FormExpressionEditorProps,
     FormImports,
     HelperpaneOnChangeOptions,
-    InputMode
+    InputMode,
+    getTypeCompletionSearchText
 } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { CompletionItem, FormExpressionEditorRef, HelperPaneHeight, Overlay, ThemeColors } from "@wso2/ui-toolkit";
@@ -76,6 +77,7 @@ import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../Flo
 import { EditorContext, StackItem } from "@wso2/type-editor";
 import DynamicModal from "../../../../components/Modal";
 import { useModalStack } from "../../../../Context";
+import { deserializeForDiagnosticsAPI } from "../form-utils";
 
 interface ArtifactTypeEditorState {
     isOpen: boolean;
@@ -623,7 +625,7 @@ export function ArtifactForm(props: ArtifactFormProps) {
                 setTypes(visibleTypes);
 
                 if (!fetchReferenceTypes) {
-                    const effectiveText = value.slice(0, cursorPosition);
+                    const effectiveText = getTypeCompletionSearchText(value, cursorPosition);
                     let filteredTypes = visibleTypes.filter((type) => {
                         const lowerCaseText = effectiveText.toLowerCase();
                         const lowerCaseLabel = type.label.toLowerCase();
@@ -706,7 +708,7 @@ export function ArtifactForm(props: ArtifactFormProps) {
                         const response = await rpcClient.getBIDiagramRpcClient().getExpressionDiagnostics({
                             filePath: fileName,
                             context: {
-                                expression: expression,
+                                expression: deserializeForDiagnosticsAPI(expression),
                                 startLine: getAdjustedStartLine(targetLineRange, expressionOffsetRef.current),
                                 lineOffset: 0,
                                 offset: 0,

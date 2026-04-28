@@ -33,7 +33,8 @@ import {
     PopupFooter,
 } from "../../../BI/Connection/styles";
 
-// Form styled components
+// ─── Styled components ────────────────────────────────────────────────────────
+
 const FormSection = styled.div`
     display: flex;
     flex-direction: column;
@@ -89,6 +90,24 @@ const FieldInput = styled.input<{ hasError: boolean; hasToggle?: boolean }>`
     }
 `;
 
+const FieldSelect = styled.select<{ hasError: boolean }>`
+    width: 100%;
+    padding: 10px 12px;
+    background-color: ${ThemeColors.SURFACE_DIM};
+    color: ${ThemeColors.ON_SURFACE};
+    border: 1px solid ${(props: { hasError: boolean }) =>
+        props.hasError ? ThemeColors.ERROR : ThemeColors.OUTLINE_VARIANT};
+    border-radius: 6px;
+    font-size: 13px;
+    box-sizing: border-box;
+    cursor: pointer;
+
+    &:focus {
+        outline: none;
+        border-color: ${ThemeColors.PRIMARY};
+    }
+`;
+
 const ToggleVisibilityButton = styled.button`
     position: absolute;
     right: 8px;
@@ -120,36 +139,181 @@ const LoadingContainer = styled.div`
     color: ${ThemeColors.ON_SURFACE_VARIANT};
 `;
 
+// ─── Field type config (single source of truth) ───────────────────────────────
+//
+// To add a new Ballerina type: add an entry here. No other code needs to change.
+
+type InputKind = "text" | "number" | "select";
+
+interface SelectOption {
+    label: string;
+    value: string;
+}
+
+interface FieldConfig {
+    inputKind: InputKind;
+    placeholder?: string;
+    selectOptions?: SelectOption[];
+    defaultValue?: string;
+    validate: (value: string) => string | null;
+}
+
+const NUMERIC_INT_TYPES = new Set(["int", "byte"]);
+const NUMERIC_FLOAT_TYPES = new Set(["decimal", "float"]);
+
+function getFieldConfig(type: string | undefined): FieldConfig {
+    if (NUMERIC_INT_TYPES.has(type ?? "")) {
+        return {
+            inputKind: "number",
+            placeholder: "Enter integer",
+            validate: (v) => {
+                if (!v.trim()) return "This field is required";
+                if (isNaN(parseInt(v, 10)) || !Number.isInteger(parseFloat(v))) return "Enter a valid integer";
+                return null;
+            },
+        };
+    }
+    if (NUMERIC_FLOAT_TYPES.has(type ?? "")) {
+        return {
+            inputKind: "number",
+            placeholder: "Enter number",
+            validate: (v) => {
+                if (!v.trim()) return "This field is required";
+                if (isNaN(parseFloat(v))) return "Enter a valid number";
+                return null;
+            },
+        };
+    }
+    if (type === "boolean") {
+        return {
+            inputKind: "select",
+            defaultValue: "true",
+            selectOptions: [
+                { label: "true", value: "true" },
+                { label: "false", value: "false" },
+            ],
+            validate: () => null, // select always holds a valid option
+        };
+    }
+    // Default: string, records, arrays, maps, or any unknown LS type
+    return {
+        inputKind: "text",
+        placeholder: "Enter value",
+        validate: (v) => (!v || !v.trim() ? "This field is required" : null),
+    };
+}
+
+// ─── ConfigField sub-component ────────────────────────────────────────────────
+
+interface ConfigFieldProps {
+    variable: { name: string; description?: string; type?: string; secret?: boolean };
+    value: string;
+    error?: string;
+    isVisible: boolean;
+    onToggleVisibility: () => void;
+    onChange: (name: string, value: string) => void;
+    onKeyDown: (e: React.KeyboardEvent) => void;
+}
+
+const ConfigField: React.FC<ConfigFieldProps> = ({
+    variable, value, error, isVisible, onToggleVisibility, onChange, onKeyDown,
+}) => {
+    const config = getFieldConfig(variable.type);
+    const isSecret = variable.secret === true;
+
+    const renderInput = () => {
+        if (!isSecret && config.inputKind === "select") {
+            return (
+                <FieldSelect
+                    hasError={!!error}
+                    value={value}
+                    onChange={(e) => onChange(variable.name, e.target.value)}
+                >
+                    {config.selectOptions!.map((opt) => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                </FieldSelect>
+            );
+        }
+
+        const htmlInputType = isSecret
+            ? (isVisible ? "text" : "password")
+            : config.inputKind;
+
+        return (
+            <FieldInputWrapper>
+                <FieldInput
+                    type={htmlInputType}
+                    placeholder={config.placeholder}
+                    value={value}
+                    onChange={(e) => onChange(variable.name, e.target.value)}
+                    onKeyDown={onKeyDown}
+                    hasError={!!error}
+                    hasToggle={isSecret}
+                />
+                {isSecret && (
+                    <ToggleVisibilityButton
+                        type="button"
+                        onClick={onToggleVisibility}
+                        title={isVisible ? "Hide value" : "Show value"}
+                    >
+                        <Codicon name={isVisible ? "eye-closed" : "eye"} />
+                    </ToggleVisibilityButton>
+                )}
+            </FieldInputWrapper>
+        );
+    };
+
+    return (
+        <ConfigurationField>
+            <FieldLabel>
+                {variable.name}
+                {variable.description && (
+                    <FieldDescription>- {variable.description}</FieldDescription>
+                )}
+            </FieldLabel>
+            {renderInput()}
+            {error && <FieldError>{error}</FieldError>}
+        </ConfigurationField>
+    );
+};
+
+// ─── ConfigurationCollector ───────────────────────────────────────────────────
+
 interface ConfigurationCollectorProps {
     data?: ConfigurationCollectorMetadata;
     onClose: (parent?: ParentPopupData) => void;
 }
 
+function buildInitialValues(data: ConfigurationCollectorMetadata | undefined): Record<string, string> {
+    const values: Record<string, string> = { ...(data?.existingValues ?? {}) };
+    data?.variables?.forEach((v) => {
+        const config = getFieldConfig(v.type);
+        if (!(v.name in values) && config.defaultValue !== undefined) {
+            values[v.name] = config.defaultValue;
+        }
+    });
+    return values;
+}
+
 export const ConfigurationCollector: React.FC<ConfigurationCollectorProps> = ({ data, onClose }) => {
     const { rpcClient } = useRpcContext();
-    const [configValues, setConfigValues] = useState<Record<string, string>>(data?.existingValues || {});
+    const [configValues, setConfigValues] = useState<Record<string, string>>(buildInitialValues(data));
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isProcessing, setIsProcessing] = useState(false);
     const [visibleFields, setVisibleFields] = useState<Record<string, boolean>>({});
 
-    const toggleVisibility = (name: string) => {
-        setVisibleFields((prev) => ({ ...prev, [name]: !prev[name] }));
-    };
-
-    // Initialize configuration values when data prop changes
     useEffect(() => {
-        if (data?.existingValues) {
-            setConfigValues(data.existingValues);
-        }
+        setConfigValues(buildInitialValues(data));
         setVisibleFields({});
     }, [data]);
 
     const handleInputChange = (variableName: string, value: string) => {
         setConfigValues((prev) => ({ ...prev, [variableName]: value }));
         setErrors((prev) => {
-            const newErrors = { ...prev };
-            delete newErrors[variableName];
-            return newErrors;
+            const next = { ...prev };
+            delete next[variableName];
+            return next;
         });
     };
 
@@ -161,19 +325,10 @@ export const ConfigurationCollector: React.FC<ConfigurationCollectorProps> = ({ 
 
     const validateConfiguration = (): boolean => {
         const newErrors: Record<string, string> = {};
-
         data?.variables?.forEach((variable) => {
-            const value = configValues[variable.name];
-            if (!value || !value.trim()) {
-                newErrors[variable.name] = "This field is required";
-            } else if (variable.type === "int") {
-                const intValue = parseInt(value, 10);
-                if (isNaN(intValue)) {
-                    newErrors[variable.name] = "Please enter a valid number";
-                }
-            }
+            const error = getFieldConfig(variable.type).validate(configValues[variable.name] ?? "");
+            if (error) newErrors[variable.name] = error;
         });
-
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -213,7 +368,6 @@ export const ConfigurationCollector: React.FC<ConfigurationCollectorProps> = ({ 
             onClose();
             return;
         }
-
         try {
             await rpcClient.getAiPanelRpcClient().cancelConfiguration({
                 requestId: data.requestId,
@@ -226,14 +380,10 @@ export const ConfigurationCollector: React.FC<ConfigurationCollectorProps> = ({ 
 
     // Close button (X) just closes the popup without canceling configuration collection
     // User can reopen via the Configure button in the chat segment
-    const handleClose = () => {
-        onClose();
-    };
+    const handleClose = () => onClose();
 
     // Prevent overlay clicks from closing the popup
-    const handleOverlayClick = (e: React.MouseEvent) => {
-        e.stopPropagation();
-    };
+    const handleOverlayClick = (e: React.MouseEvent) => e.stopPropagation();
 
     if (!data) {
         return (
@@ -269,44 +419,18 @@ export const ConfigurationCollector: React.FC<ConfigurationCollectorProps> = ({ 
                 </PopupHeader>
                 <PopupContent>
                     <FormSection>
-                        {data.variables?.map((variable) => {
-                            const isSecret = variable.secret === true;
-                            const isVisible = visibleFields[variable.name];
-                            const inputType = isSecret
-                                ? (isVisible ? "text" : "password")
-                                : (variable.type === "int" ? "number" : "text");
-                            return (
-                                <ConfigurationField key={variable.name}>
-                                    <FieldLabel>
-                                        {variable.name}
-                                        {variable.description && (
-                                            <FieldDescription>- {variable.description}</FieldDescription>
-                                        )}
-                                    </FieldLabel>
-                                    <FieldInputWrapper>
-                                        <FieldInput
-                                            type={inputType}
-                                            placeholder={variable.type === "int" ? "Enter number" : "Enter value"}
-                                            value={configValues[variable.name] || ""}
-                                            onChange={(e) => handleInputChange(variable.name, e.target.value)}
-                                            onKeyDown={handleKeyDown}
-                                            hasError={!!errors[variable.name]}
-                                            hasToggle={isSecret}
-                                        />
-                                        {isSecret && (
-                                            <ToggleVisibilityButton
-                                                type="button"
-                                                onClick={() => toggleVisibility(variable.name)}
-                                                title={isVisible ? "Hide value" : "Show value"}
-                                            >
-                                                <Codicon name={isVisible ? "eye-closed" : "eye"} />
-                                            </ToggleVisibilityButton>
-                                        )}
-                                    </FieldInputWrapper>
-                                    {errors[variable.name] && <FieldError>{errors[variable.name]}</FieldError>}
-                                </ConfigurationField>
-                            );
-                        })}
+                        {data.variables?.map((variable) => (
+                            <ConfigField
+                                key={variable.name}
+                                variable={variable}
+                                value={configValues[variable.name] ?? ""}
+                                error={errors[variable.name]}
+                                isVisible={visibleFields[variable.name] ?? false}
+                                onToggleVisibility={() => setVisibleFields((prev) => ({ ...prev, [variable.name]: !prev[variable.name] }))}
+                                onChange={handleInputChange}
+                                onKeyDown={handleKeyDown}
+                            />
+                        ))}
                     </FormSection>
                 </PopupContent>
                 <PopupFooter>
