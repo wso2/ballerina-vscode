@@ -3,6 +3,7 @@
 <suite name="flow-model-generator-core-test-suite">
     <test name="flow-model-generator-core-tests">
         <classes>
+            <class name="io.ballerina.flowmodelgenerator.core.AiComponentDiskCacheTest"/>
             <class name="io.ballerina.flowmodelgenerator.core.ConnectionActionProviderTest"/>
             <class name="io.ballerina.flowmodelgenerator.core.copilot.service.ServiceIndexLoaderTest"/>
         </classes>
