@@ -667,17 +667,27 @@ export async function createBIProjectFromMigration(params: MigrateRequest) {
         const filePath = path.join(projectRoot, fileName);
 
         if (fileName === "Ballerina.toml") {
-            content = content.replace(/name = ".*?"/, `name = "${sanitizedPackageName}"`);
-            content = content.replace(/org = ".*?"/, `org = "${projectInfo.orgHandle ?? projectInfo.finalOrgName}"`);
+            if (params.projects && params.projects.length > 0) {
+                // Multi-project migration: this is a workspace-level Ballerina.toml ([workspace] section).
+                // The packages list from the LS reflects the CLI's directory naming convention,
+                // which may differ from the projectName values used to create actual directories.
+                // Rebuild the packages list from the actual project names.
+                const packageList = params.projects.map(p => `"${p.projectName}"`).join(', ');
+                content = content.replace(/packages\s*=\s*\[[\s\S]*?\]/, `packages = [${packageList}]`);
+            } else {
+                // Single-project migration: this is a package-level Ballerina.toml ([package] section).
+                content = content.replace(/name = ".*?"/, `name = "${sanitizedPackageName}"`);
+                content = content.replace(/org = ".*?"/, `org = "${projectInfo.orgHandle ?? projectInfo.finalOrgName}"`);
 
-            // Remove any existing distribution line
-            content = content.replace(/^\s*distribution\s*=\s*".*?"\n?/m, '');
+                // Remove any existing distribution line
+                content = content.replace(/^\s*distribution\s*=\s*".*?"\n?/m, '');
 
-            // Get the Ballerina distribution version
-            const distribution = getBallerinaDistribution();
-            const distributionLine = distribution ? `\ndistribution = "${distribution}"` : '';
+                // Get the Ballerina distribution version
+                const distribution = getBallerinaDistribution();
+                const distributionLine = distribution ? `\ndistribution = "${distribution}"` : '';
 
-            content = content.replace(/version = ".*?"/, `version = "${projectInfo.finalVersion}"${distributionLine}\ntitle = "${projectInfo.integrationName}"`);
+                content = content.replace(/version = ".*?"/, `version = "${projectInfo.finalVersion}"${distributionLine}\ntitle = "${projectInfo.integrationName}"`);
+            }
         }
 
         writeBallerinaFileDidOpen(filePath, content || EMPTY);
