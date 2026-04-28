@@ -34,6 +34,7 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationService;
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.StableSnapshot;
+import org.ballerinalang.langserver.workspace.execution.WorkspaceRunService;
 import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
 import org.ballerinalang.langserver.workspace.executionmanager.ExecutionService;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectService;
@@ -41,7 +42,6 @@ import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
-import org.eclipse.lsp4j.FileChangeType;
 import org.eclipse.lsp4j.FileEvent;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
@@ -67,6 +67,7 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
     private final ProjectService projectService;
     private final CompilationService compilationService;
     private final ExecutionService executionService;
+    private final WorkspaceRunService workspaceRunService;
 
     /**
      * Creates a new facade with all required service dependencies.
@@ -82,6 +83,7 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
         this.projectService = projectService;
         this.compilationService = compilationService;
         this.executionService = executionService;
+        this.workspaceRunService = new WorkspaceRunService(projectService);
     }
 
     @Override
@@ -118,8 +120,7 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
 
     @Override
     public Optional<Project> project(Path filePath) {
-        Project project = projectService.loadOrCreate(filePath, null);
-        return Optional.ofNullable(project);
+        return projectService.project(filePath);
     }
 
     @Override
@@ -165,12 +166,6 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
     public Optional<SyntaxTree> syntaxTree(Path filePath) {
         try {
             Project project = projectService.loadOrCreate(filePath, null);
-            PackageDescriptor descriptor = project.currentPackage().descriptor();
-            StableSnapshot snapshot = compilationService.stableSnapshot(project, descriptor, null);
-            SyntaxTree tree = snapshot == null ? null : snapshot.syntaxTree(filePath);
-            if (tree != null) {
-                return Optional.of(tree);
-            }
             DocumentId docId = project.documentId(filePath);
             return Optional.of(project.currentPackage().module(docId.moduleId()).document(docId).syntaxTree());
         } catch (Exception e) {
@@ -182,12 +177,6 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
     public Optional<SyntaxTree> syntaxTree(Path filePath, CancelChecker cancelChecker) {
         try {
             Project project = projectService.loadOrCreate(filePath, cancelChecker);
-            PackageDescriptor descriptor = project.currentPackage().descriptor();
-            StableSnapshot snapshot = compilationService.stableSnapshot(project, descriptor, cancelChecker);
-            SyntaxTree tree = snapshot == null ? null : snapshot.syntaxTree(filePath);
-            if (tree != null) {
-                return Optional.of(tree);
-            }
             DocumentId docId = project.documentId(filePath);
             return Optional.of(project.currentPackage().module(docId.moduleId()).document(docId).syntaxTree());
         } catch (Exception e) {
@@ -199,10 +188,9 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
     public Optional<SemanticModel> semanticModel(Path filePath) {
         try {
             Project project = projectService.loadOrCreate(filePath, null);
-            PackageDescriptor descriptor = project.currentPackage().descriptor();
-            StableSnapshot snapshot = compilationService.stableSnapshot(project, descriptor, null);
-            SemanticModel semanticModel = snapshot == null ? null : snapshot.semanticModel(filePath);
-            return Optional.ofNullable(semanticModel);
+            DocumentId docId = project.documentId(filePath);
+            PackageCompilation compilation = project.currentPackage().getCompilation();
+            return Optional.of(compilation.getSemanticModel(docId.moduleId()));
         } catch (Exception e) {
             return Optional.empty();
         }
@@ -212,10 +200,9 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
     public Optional<SemanticModel> semanticModel(Path filePath, CancelChecker cancelChecker) {
         try {
             Project project = projectService.loadOrCreate(filePath, cancelChecker);
-            PackageDescriptor descriptor = project.currentPackage().descriptor();
-            StableSnapshot snapshot = compilationService.stableSnapshot(project, descriptor, cancelChecker);
-            SemanticModel semanticModel = snapshot == null ? null : snapshot.semanticModel(filePath);
-            return Optional.ofNullable(semanticModel);
+            DocumentId docId = project.documentId(filePath);
+            PackageCompilation compilation = project.currentPackage().getCompilation();
+            return Optional.of(compilation.getSemanticModel(docId.moduleId()));
         } catch (Exception e) {
             return Optional.empty();
         }
@@ -249,10 +236,14 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
 
     @Override
     public void didOpen(Path filePath, DidOpenTextDocumentParams params) throws WorkspaceDocumentException {
-        projectService.loadOrCreate(filePath, null);
-        String uriString = params.getTextDocument().getUri();
-        String content = params.getTextDocument().getText();
-        projectService.didOpen(toDocumentUri(uriString), content);
+        try {
+            String uriString = params.getTextDocument().getUri();
+            String content = params.getTextDocument().getText();
+            projectService.didOpen(toDocumentUri(uriString), content);
+        } catch (RuntimeException e) {
+            projectService.evictProject(filePath);
+            throw new WorkspaceDocumentException(e);
+        }
     }
 
     @Override
@@ -271,7 +262,6 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
 
     @Override
     public void didChangeWatched(Path filePath, FileEvent fileEvent) throws WorkspaceDocumentException {
-        projectService.loadOrCreate(filePath, null);
         projectService.didChangeWatchedFiles(List.of(fileEvent));
     }
 
@@ -280,17 +270,6 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
         List<FileEvent> events = params != null && params.getChanges() != null
                 ? params.getChanges() : List.of();
         projectService.didChangeWatchedFiles(events);
-        for (FileEvent event : events) {
-            try {
-                Path filePath = Path.of(URI.create(event.getUri()));
-                if (event.getType() == FileChangeType.Deleted) {
-                    projectService.removeDocumentFromProject(filePath);
-                } else if (event.getType() == FileChangeType.Changed) {
-                    projectService.evictProject(filePath);
-                }
-            } catch (Exception ignored) {
-            }
-        }
         return List.of();
     }
 
@@ -301,15 +280,16 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
 
     @Override
     public RunResult run(RunContext runContext) throws IOException {
-        executionService.run(runContext);
-        return new RunResult(null, List.of());
+        return workspaceRunService.run(runContext);
     }
 
     @Override
     public boolean stop(Path filePath) {
+        Path sourceRoot = workspaceRunService.sourceRoot(filePath);
+        boolean stopped = workspaceRunService.stop(filePath);
         try {
-            executionService.stop(new DocumentUri.FileUri(filePath.toAbsolutePath().normalize().toUri()));
-            return true;
+            executionService.stop(new DocumentUri.FileUri(sourceRoot.toUri()));
+            return stopped;
         } catch (Exception e) {
             return false;
         }
@@ -338,4 +318,5 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
             default -> throw new IllegalArgumentException("Unknown URI scheme: " + uri.getScheme());
         };
     }
+
 }

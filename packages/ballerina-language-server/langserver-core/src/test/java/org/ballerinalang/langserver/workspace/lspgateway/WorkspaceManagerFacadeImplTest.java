@@ -35,7 +35,6 @@ import org.ballerinalang.langserver.workspace.compilerengine.snapshot.StableSnap
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
 import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
 import org.ballerinalang.langserver.workspace.executionmanager.ExecutionService;
-import org.ballerinalang.langserver.workspace.executionmanager.ProcessId;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectService;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
@@ -166,14 +165,13 @@ public class WorkspaceManagerFacadeImplTest {
     @Test
     public void testProject_DelegatesToProjectService() {
         Project mockProject = Mockito.mock(Project.class);
-        Mockito.when(mockProjectService.loadOrCreate(Mockito.eq(testPath), Mockito.any()))
-                .thenReturn(mockProject);
+        Mockito.when(mockProjectService.project(testPath)).thenReturn(Optional.of(mockProject));
 
         Optional<Project> result = facade.project(testPath);
 
         Assert.assertTrue(result.isPresent());
         Assert.assertEquals(result.get(), mockProject);
-        Mockito.verify(mockProjectService).loadOrCreate(Mockito.eq(testPath), Mockito.isNull());
+        Mockito.verify(mockProjectService).project(testPath);
     }
 
     @Test
@@ -275,97 +273,99 @@ public class WorkspaceManagerFacadeImplTest {
     }
 
     @Test
-    public void testSyntaxTree_DelegatesToCompilationService() {
+    public void testSyntaxTree_ReadsCurrentProjectDocument() {
         SyntaxTree mockTree = Mockito.mock(SyntaxTree.class);
-        StableSnapshot snapshot = createStableSnapshot(mockTree, Mockito.mock(SemanticModel.class),
-                Mockito.mock(PackageCompilation.class));
-        PackageDescriptor mockDescriptor = Mockito.mock(PackageDescriptor.class);
         Project mockProject = Mockito.mock(Project.class);
         Package mockPackage = Mockito.mock(Package.class);
+        DocumentId mockDocId = Mockito.mock(DocumentId.class);
+        ModuleId mockModuleId = Mockito.mock(ModuleId.class);
+        Module mockModule = Mockito.mock(Module.class);
+        Document mockDocument = Mockito.mock(Document.class);
+
         Mockito.when(mockProjectService.loadOrCreate(Mockito.eq(testPath), Mockito.isNull())).thenReturn(mockProject);
+        Mockito.when(mockProject.documentId(testPath)).thenReturn(mockDocId);
+        Mockito.when(mockDocId.moduleId()).thenReturn(mockModuleId);
         Mockito.when(mockProject.currentPackage()).thenReturn(mockPackage);
-        Mockito.when(mockPackage.descriptor()).thenReturn(mockDescriptor);
-        Mockito.when(mockCompilationService.stableSnapshot(Mockito.any(Project.class),
-                Mockito.eq(mockDescriptor), Mockito.isNull()))
-                .thenReturn(snapshot);
+        Mockito.when(mockPackage.module(mockModuleId)).thenReturn(mockModule);
+        Mockito.when(mockModule.document(mockDocId)).thenReturn(mockDocument);
+        Mockito.when(mockDocument.syntaxTree()).thenReturn(mockTree);
 
         Optional<SyntaxTree> result = facade.syntaxTree(testPath);
 
         Assert.assertTrue(result.isPresent());
         Assert.assertEquals(result.get(), mockTree);
-        Mockito.verify(mockCompilationService).stableSnapshot(Mockito.any(Project.class),
-                Mockito.eq(mockDescriptor), Mockito.isNull());
+        Mockito.verify(mockProjectService).loadOrCreate(testPath, null);
     }
 
     @Test
-    public void testSyntaxTreeWithCancelChecker_DelegatesToCompilationService() {
+    public void testSyntaxTreeWithCancelChecker_ReadsCurrentProjectDocument() {
         CancelChecker cancelChecker = Mockito.mock(CancelChecker.class);
         SyntaxTree mockTree = Mockito.mock(SyntaxTree.class);
-        StableSnapshot snapshot = createStableSnapshot(mockTree, Mockito.mock(SemanticModel.class),
-                Mockito.mock(PackageCompilation.class));
-        PackageDescriptor mockDescriptor = Mockito.mock(PackageDescriptor.class);
         Project mockProject = Mockito.mock(Project.class);
         Package mockPackage = Mockito.mock(Package.class);
+        DocumentId mockDocId = Mockito.mock(DocumentId.class);
+        ModuleId mockModuleId = Mockito.mock(ModuleId.class);
+        Module mockModule = Mockito.mock(Module.class);
+        Document mockDocument = Mockito.mock(Document.class);
+
         Mockito.when(mockProjectService.loadOrCreate(testPath, cancelChecker)).thenReturn(mockProject);
+        Mockito.when(mockProject.documentId(testPath)).thenReturn(mockDocId);
+        Mockito.when(mockDocId.moduleId()).thenReturn(mockModuleId);
         Mockito.when(mockProject.currentPackage()).thenReturn(mockPackage);
-        Mockito.when(mockPackage.descriptor()).thenReturn(mockDescriptor);
-        Mockito.when(mockCompilationService.stableSnapshot(Mockito.any(Project.class),
-                Mockito.eq(mockDescriptor), Mockito.eq(cancelChecker)))
-                .thenReturn(snapshot);
+        Mockito.when(mockPackage.module(mockModuleId)).thenReturn(mockModule);
+        Mockito.when(mockModule.document(mockDocId)).thenReturn(mockDocument);
+        Mockito.when(mockDocument.syntaxTree()).thenReturn(mockTree);
 
         Optional<SyntaxTree> result = facade.syntaxTree(testPath, cancelChecker);
 
         Assert.assertTrue(result.isPresent());
         Assert.assertEquals(result.get(), mockTree);
-        Mockito.verify(mockCompilationService).stableSnapshot(Mockito.any(Project.class),
-                Mockito.eq(mockDescriptor), Mockito.eq(cancelChecker));
+        Mockito.verify(mockProjectService).loadOrCreate(testPath, cancelChecker);
     }
 
     @Test
-    public void testSemanticModel_DelegatesToCompilationService() {
+    public void testSemanticModel_ReadsCurrentProjectCompilation() {
         SemanticModel mockModel = Mockito.mock(SemanticModel.class);
-        StableSnapshot snapshot = createStableSnapshot(Mockito.mock(SyntaxTree.class), mockModel,
-                Mockito.mock(PackageCompilation.class));
-        PackageDescriptor mockDescriptor = Mockito.mock(PackageDescriptor.class);
+        DocumentId mockDocId = Mockito.mock(DocumentId.class);
+        ModuleId mockModuleId = Mockito.mock(ModuleId.class);
         Project mockProject = Mockito.mock(Project.class);
         Package mockPackage = Mockito.mock(Package.class);
+        PackageCompilation mockCompilation = Mockito.mock(PackageCompilation.class);
         Mockito.when(mockProjectService.loadOrCreate(Mockito.eq(testPath), Mockito.isNull())).thenReturn(mockProject);
+        Mockito.when(mockProject.documentId(testPath)).thenReturn(mockDocId);
+        Mockito.when(mockDocId.moduleId()).thenReturn(mockModuleId);
         Mockito.when(mockProject.currentPackage()).thenReturn(mockPackage);
-        Mockito.when(mockPackage.descriptor()).thenReturn(mockDescriptor);
-        Mockito.when(mockCompilationService.stableSnapshot(Mockito.any(Project.class),
-                Mockito.eq(mockDescriptor), Mockito.isNull()))
-                .thenReturn(snapshot);
+        Mockito.when(mockPackage.getCompilation()).thenReturn(mockCompilation);
+        Mockito.when(mockCompilation.getSemanticModel(mockModuleId)).thenReturn(mockModel);
 
         Optional<SemanticModel> result = facade.semanticModel(testPath);
 
         Assert.assertTrue(result.isPresent());
         Assert.assertEquals(result.get(), mockModel);
-        Mockito.verify(mockCompilationService).stableSnapshot(Mockito.any(Project.class),
-                Mockito.eq(mockDescriptor), Mockito.isNull());
+        Mockito.verifyNoInteractions(mockCompilationService);
     }
 
     @Test
-    public void testSemanticModelWithCancelChecker_DelegatesToCompilationService() {
+    public void testSemanticModelWithCancelChecker_ReadsCurrentProjectCompilation() {
         CancelChecker cancelChecker = Mockito.mock(CancelChecker.class);
         SemanticModel mockModel = Mockito.mock(SemanticModel.class);
-        StableSnapshot snapshot = createStableSnapshot(Mockito.mock(SyntaxTree.class), mockModel,
-                Mockito.mock(PackageCompilation.class));
-        PackageDescriptor mockDescriptor = Mockito.mock(PackageDescriptor.class);
+        DocumentId mockDocId = Mockito.mock(DocumentId.class);
+        ModuleId mockModuleId = Mockito.mock(ModuleId.class);
         Project mockProject = Mockito.mock(Project.class);
         Package mockPackage = Mockito.mock(Package.class);
+        PackageCompilation mockCompilation = Mockito.mock(PackageCompilation.class);
         Mockito.when(mockProjectService.loadOrCreate(testPath, cancelChecker)).thenReturn(mockProject);
+        Mockito.when(mockProject.documentId(testPath)).thenReturn(mockDocId);
+        Mockito.when(mockDocId.moduleId()).thenReturn(mockModuleId);
         Mockito.when(mockProject.currentPackage()).thenReturn(mockPackage);
-        Mockito.when(mockPackage.descriptor()).thenReturn(mockDescriptor);
-        Mockito.when(mockCompilationService.stableSnapshot(Mockito.any(Project.class),
-                Mockito.eq(mockDescriptor), Mockito.eq(cancelChecker)))
-                .thenReturn(snapshot);
+        Mockito.when(mockPackage.getCompilation()).thenReturn(mockCompilation);
+        Mockito.when(mockCompilation.getSemanticModel(mockModuleId)).thenReturn(mockModel);
 
         Optional<SemanticModel> result = facade.semanticModel(testPath, cancelChecker);
 
         Assert.assertTrue(result.isPresent());
         Assert.assertEquals(result.get(), mockModel);
-        Mockito.verify(mockCompilationService).stableSnapshot(Mockito.any(Project.class),
-                Mockito.eq(mockDescriptor), Mockito.eq(cancelChecker));
+        Mockito.verifyNoInteractions(mockCompilationService);
     }
 
     @Test
@@ -498,7 +498,6 @@ public class WorkspaceManagerFacadeImplTest {
         facade.didChangeWatched(params);
 
         Mockito.verify(mockProjectService).didChangeWatchedFiles(List.of(event));
-        Mockito.verify(mockProjectService).removeDocumentFromProject(Mockito.any(Path.class));
     }
 
     @Test
@@ -509,15 +508,15 @@ public class WorkspaceManagerFacadeImplTest {
     }
 
     @Test
-    public void testRun_DelegatesToExecutionService() throws IOException {
+    public void testRun_ResolvesWorkspaceProjectForLegacyRunResult() throws IOException {
         RunContext context = new RunContext("java", testPath, Collections.emptyList(), Collections.emptyMap(), null);
-        ProcessId mockProcessId = Mockito.mock(ProcessId.class);
-        Mockito.when(mockExecutionService.run(context)).thenReturn(mockProcessId);
 
         RunResult result = facade.run(context);
 
         Assert.assertNotNull(result);
-        Mockito.verify(mockExecutionService).run(context);
+        Assert.assertNull(result.process());
+        Mockito.verify(mockProjectService).loadOrCreate(Mockito.eq(testPath), Mockito.isNull());
+        Mockito.verifyNoInteractions(mockExecutionService);
     }
 
     @Test
