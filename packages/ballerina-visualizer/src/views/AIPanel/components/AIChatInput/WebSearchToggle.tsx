@@ -33,11 +33,9 @@ const ToggleButton = styled.button<{ isActive: boolean }>`
     color: ${({ isActive }: { isActive: boolean }) =>
         isActive ? "var(--vscode-editor-foreground)" : "var(--vscode-descriptionForeground)"};
     cursor: pointer;
-    opacity: ${({ isActive }: { isActive: boolean }) => (isActive ? 1 : 0.5)};
-    transition: background-color 0.1s, color 0.1s, opacity 0.1s;
+    transition: background-color 0.1s, color 0.1s;
 
     &:hover {
-        opacity: 1;
         background-color: ${({ isActive }: { isActive: boolean }) =>
             isActive
                 ? "var(--vscode-editor-inactiveSelectionBackground)"
@@ -56,6 +54,8 @@ const WebSearchToggle: React.FC<WebSearchToggleProps> = ({ isActive, onToggle })
     <ToggleButton
         isActive={isActive}
         onClick={onToggle}
+        aria-pressed={isActive}
+        aria-label={isActive ? "Web access enabled, click to revoke" : "Web access disabled, click to allow"}
         title={isActive ? "Web access allowed — click to revoke" : "Allow web access"}
     >
         <span className="codicon codicon-globe" style={{ fontSize: 14 }} />
