@@ -27,19 +27,23 @@ const ToggleButton = styled.button<{ isActive: boolean }>`
     height: 24px;
     padding: 0;
     border-radius: 4px;
-    border: 1px solid ${({ isActive }: { isActive: boolean }) =>
-        isActive ? "var(--vscode-button-background)" : "transparent"};
+    border: none;
     background-color: ${({ isActive }: { isActive: boolean }) =>
-        isActive ? "var(--vscode-button-background)" : "transparent"};
+        isActive ? "var(--vscode-editor-inactiveSelectionBackground)" : "transparent"};
     color: ${({ isActive }: { isActive: boolean }) =>
-        isActive ? "var(--vscode-button-foreground)" : "var(--vscode-foreground)"};
+        isActive ? "var(--vscode-editor-foreground)" : "var(--vscode-descriptionForeground)"};
     cursor: pointer;
-    opacity: ${({ isActive }: { isActive: boolean }) => (isActive ? 1 : 0.7)};
+    opacity: ${({ isActive }: { isActive: boolean }) => (isActive ? 1 : 0.5)};
+    transition: background-color 0.1s, color 0.1s, opacity 0.1s;
 
     &:hover {
         opacity: 1;
         background-color: ${({ isActive }: { isActive: boolean }) =>
-            isActive ? "var(--vscode-button-hoverBackground)" : "var(--vscode-toolbar-hoverBackground)"};
+            isActive
+                ? "var(--vscode-editor-inactiveSelectionBackground)"
+                : "var(--vscode-toolbar-hoverBackground)"};
+        color: ${({ isActive }: { isActive: boolean }) =>
+            isActive ? "var(--vscode-editor-foreground)" : "var(--vscode-foreground)"};
     }
 `;
 
