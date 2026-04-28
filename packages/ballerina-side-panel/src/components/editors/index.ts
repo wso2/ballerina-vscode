@@ -33,4 +33,6 @@ export * from "./MultiModeExpressionEditor/Configurations";
 export { getPropertyFromFormField } from "./utils";
 export { getTypeCompletionSearchText } from "./typeCompletionUtils";
 export { InputMode } from "./MultiModeExpressionEditor/ChipExpressionEditor/types";
+export { HelperPaneMenuItem } from "./MultiModeExpressionEditor/ChipExpressionEditor/ChipExpressionDefaultConfig";
+export { getEditorConfiguration } from "./ExpressionField";
 export { ExpandedEditor } from "./ExpandedEditor";

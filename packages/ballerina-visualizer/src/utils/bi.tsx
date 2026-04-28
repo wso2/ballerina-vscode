@@ -958,12 +958,15 @@ export const convertToHelperPaneFunction = (functions: Category[]): HelperPaneFu
     const response: HelperPaneFunctionInfo = {
         category: [],
     };
-    for (const category of functions) {
+    for (const category of functions.filter((category) => category.metadata.label !== "Agent Tools")) {
         const categoryKind = getFunctionItemKind(category.metadata.label);
         const items: HelperPaneCompletionItem[] = [];
         const subCategory: HelperPaneFunctionCategory[] = [];
         for (const categoryItem of category?.items) {
             if (isCategoryType(categoryItem)) {
+                if (categoryItem.metadata.label === "Agent Tools") {
+                    continue;
+                }
                 subCategory.push({
                     label: categoryItem.metadata.label,
                     items: categoryItem.items.map((item) => ({

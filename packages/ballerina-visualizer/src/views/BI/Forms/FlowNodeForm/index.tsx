@@ -981,6 +981,13 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
 
     const extractArgsFromFunction = async (value: string, property: ExpressionProperty, cursorPosition: number) => {
         const { lineOffset, charOffset } = calculateExpressionOffsets(value, cursorPosition);
+        // Merge the latest imports from formImportsRef to avoid stale field.imports when a
+        // helper pane item is selected (formImportsRef is updated synchronously before onChange
+        // fires, but the field prop hasn't re-rendered yet with the new imports).
+        const latestImports = Object.values(formImportsRef.current).reduce<Imports>(
+            (acc, fieldImports) => ({ ...acc, ...fieldImports }),
+            {}
+        );
         const signatureHelp = await rpcClient.getBIDiagramRpcClient().getSignatureHelp({
             filePath: fileName,
             context: {
@@ -989,7 +996,7 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                 lineOffset: lineOffset,
                 offset: charOffset,
                 codedata: node.codedata,
-                property: property,
+                property: { ...property, imports: { ...(property.imports || {}), ...latestImports } },
             },
             signatureHelpContext: {
                 isRetrigger: false,
