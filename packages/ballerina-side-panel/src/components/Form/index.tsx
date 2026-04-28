@@ -62,6 +62,7 @@ import {
     formatJSONLikeString,
     stripHtmlTags,
     updateFormFieldWithImports,
+    hasIncompleteRequiredFormFields,
     shouldRunExternalFormValidation,
     isPrioritizedField,
     hasRequiredParameters,
@@ -622,7 +623,11 @@ export const Form = forwardRef((props: FormProps, _ref) => {
         onSubmit && onSubmit(data, dirtyFields);
     };
 
-    const canRunExternalFormValidation = () => shouldRunExternalFormValidation({ formStateIsValid, errors });
+    const canRunExternalFormValidation = (values: FormValues) => shouldRunExternalFormValidation({
+        formStateIsValid,
+        errors,
+        hasIncompleteRequiredFields: hasIncompleteRequiredFormFields(formFields, values),
+    });
 
     const runExternalFormValidation = async (data: FormValues): Promise<boolean> => {
         if (!onFormValidation) {
@@ -640,18 +645,20 @@ export const Form = forwardRef((props: FormProps, _ref) => {
     }
 
     const handleFormValidation = async (formData?: FormValues): Promise<boolean> => {
-        if (!onFormValidation || !canRunExternalFormValidation()) {
+        const data = formData ?? getValues();
+        if (!onFormValidation || !canRunExternalFormValidation(data)) {
             return true;
         }
 
-        return runExternalFormValidation(formData ?? getValues());
+        return runExternalFormValidation(data);
     }
 
     const handleOnBlur = async () => {
-        if (!canRunExternalFormValidation()) {
+        const values = getValues();
+        if (!canRunExternalFormValidation(values)) {
             return;
         }
-        onBlur?.(getValues(), dirtyFields);
+        onBlur?.(values, dirtyFields);
     };
 
     const handleOpenRecordEditor = (open: boolean, typeField?: FormField, newType?: string | NodeProperties) => {
@@ -885,15 +892,19 @@ export const Form = forwardRef((props: FormProps, _ref) => {
         return !hasDiagnostics;
     }, [diagnosticsInfo, formFields]);
 
+    const prevValuesRef = useRef<FormValues>({});
+    const watchedValues = watch();
+    const hasIncompleteRequiredFields = hasIncompleteRequiredFormFields(formFields, watchedValues);
+
     // Call onValidityChange when form validity changes
     useEffect(() => {
         if (onValidityChange) {
             // formStateIsValid captures errors from PathEditor and other validators (setError)
-            const formIsValid = isValid && formStateIsValid && !isValidating && Object.keys(errors).length === 0 &&
+            const formIsValid = isValid && formStateIsValid && !isValidating && Object.keys(errors).length === 0 && !hasIncompleteRequiredFields &&
                 (!concertMessage || !concertRequired || isUserConcert) && !isIdentifierEditing && !isSubComponentEnabled;
             onValidityChange(formIsValid);
         }
-    }, [isValid, formStateIsValid, isValidating, errors, concertMessage, concertRequired, isUserConcert, isIdentifierEditing, isSubComponentEnabled, onValidityChange]);
+    }, [isValid, formStateIsValid, isValidating, errors, hasIncompleteRequiredFields, concertMessage, concertRequired, isUserConcert, isIdentifierEditing, isSubComponentEnabled, onValidityChange]);
 
     const handleIdentifierEditingStateChange = (isEditing: boolean) => {
         setIsIdentifierEditing(isEditing);
@@ -905,7 +916,8 @@ export const Form = forwardRef((props: FormProps, _ref) => {
 
     const disableSaveButton =
         isValidating || props.disableSaveButton || (concertMessage && concertRequired && !isUserConcert) ||
-        isIdentifierEditing || isSubComponentEnabled || isValidatingForm || !formStateIsValid || Object.keys(errors).length > 0;
+        isIdentifierEditing || isSubComponentEnabled || isValidatingForm || hasIncompleteRequiredFields ||
+        !formStateIsValid || Object.keys(errors).length > 0;
 
     const handleShowMoreClick = () => {
         setIsMarkdownExpanded(!isMarkdownExpanded);
@@ -916,8 +928,6 @@ export const Form = forwardRef((props: FormProps, _ref) => {
         }
     };
 
-    const prevValuesRef = useRef<FormValues>({});
-    const watchedValues = watch();
     useEffect(() => {
         if (props.onChange) {
             const prevValues = prevValuesRef.current;
