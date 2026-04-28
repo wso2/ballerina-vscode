@@ -50,14 +50,39 @@ export function updateFormFieldWithImports(formField: FormField, fieldImports: F
     return formField;
 }
 
+export function hasIncompleteRequiredFormFields(
+    formFields: Pick<FormField, "key" | "optional" | "hidden" | "enabled">[] = [],
+    values: Record<string, unknown> = {}
+): boolean {
+    return formFields.some((field) => {
+        if (field.optional || field.hidden || field.enabled === false) {
+            return false;
+        }
+
+        const value = values[field.key];
+        if (value === undefined || value === null) {
+            return true;
+        }
+        if (typeof value === "string") {
+            return value.trim() === "";
+        }
+        if (Array.isArray(value)) {
+            return value.length === 0;
+        }
+        return false;
+    });
+}
+
 export function shouldRunExternalFormValidation({
     formStateIsValid,
     errors,
+    hasIncompleteRequiredFields = false,
 }: {
     formStateIsValid: boolean;
     errors?: Record<string, unknown>;
+    hasIncompleteRequiredFields?: boolean;
 }): boolean {
-    return formStateIsValid && Object.keys(errors ?? {}).length === 0;
+    return formStateIsValid && Object.keys(errors ?? {}).length === 0 && !hasIncompleteRequiredFields;
 }
 
 export function isPrioritizedField(field: FormField): boolean {
