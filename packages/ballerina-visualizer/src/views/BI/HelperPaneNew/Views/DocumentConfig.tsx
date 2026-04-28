@@ -128,7 +128,7 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
     // Use navigation path for completions instead of currentValue
     const navigationPath = useMemo(() => getCurrentNavigationPath(), [breadCrumbSteps]);
     const completionContext = useMemo(() =>
-        navigationPath ? navigationPath + '.' : currentValue,
+        navigationPath ? navigationPath + '.' : (currentValue ?? ''),
         [navigationPath, currentValue]
     );
 
