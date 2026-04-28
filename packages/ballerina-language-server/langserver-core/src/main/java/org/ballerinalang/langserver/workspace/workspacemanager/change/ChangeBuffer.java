@@ -228,7 +228,7 @@ public class ChangeBuffer {
      * @param uri document identity
      * @return {@code true} if EDITOR layer key exists for this URI
      */
-    private boolean isOpen(DocumentUri uri) {
+    public boolean isOpen(DocumentUri uri) {
         ConcurrentHashMap<ChangeLayer, ConcurrentLinkedQueue<BufferedChange>> layerMap = layeredChanges.get(uri);
         return layerMap != null && layerMap.containsKey(ChangeLayer.EDITOR);
     }

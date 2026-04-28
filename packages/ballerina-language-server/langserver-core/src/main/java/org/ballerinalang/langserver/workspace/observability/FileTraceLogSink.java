@@ -26,6 +26,7 @@ import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -136,7 +137,8 @@ public final class FileTraceLogSink implements TraceLogSink {
     }
 
     private static Path defaultLogFilePath() {
-        String fileName = "ballerina-ls-trace-" + FILE_TIMESTAMP_FORMAT.format(LocalDateTime.now()) + ".log";
+        String fileName = "ballerina-ls-trace-" + FILE_TIMESTAMP_FORMAT.format(LocalDateTime.now())
+                + "-" + UUID.randomUUID() + ".log";
         return Path.of(System.getProperty("java.io.tmpdir")).resolve(fileName);
     }
 

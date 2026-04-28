@@ -469,11 +469,11 @@ public class CompilationPipelineTest {
         }
     }
 
-    @Test(expectedExceptions = NullPointerException.class)
-    public void pipeline_rejectsNullContentVersion() {
-        StableSnapshot snapshot = createMockSnapshot(new ContentVersion(1));
-        pipeline = createPipeline(task -> snapshot);
-        pipeline.requestCompilation(null);
+    @Test
+    public void pipeline_requestCompilationMarksContentVersionNonnull() throws NoSuchMethodException {
+        Assert.assertTrue(hasNonnull(CompilationPipeline.class.getMethod("requestCompilation",
+                        ContentVersion.class).getParameterAnnotations()[0]),
+                "contentVersion parameter must be @Nonnull");
     }
 
     @Test

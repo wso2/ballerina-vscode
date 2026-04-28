@@ -116,10 +116,12 @@ public class WorkspaceContextContractsTest {
         Assert.assertTrue(CompilationService.class.isInterface());
         Assert.assertEquals(CompilationService.class.getMethods().length, 2);
 
-        Method stableSnapshot = CompilationService.class.getMethod("stableSnapshot", PackageDescriptor.class, CancelChecker.class);
+        Method stableSnapshot = CompilationService.class.getMethod("stableSnapshot", Project.class, PackageDescriptor.class,
+                CancelChecker.class);
         Assert.assertEquals(stableSnapshot.getReturnType(), StableSnapshot.class);
 
-        Method latestSnapshot = CompilationService.class.getMethod("latestSnapshot", PackageDescriptor.class, CancelChecker.class);
+        Method latestSnapshot = CompilationService.class.getMethod("latestSnapshot", Project.class, PackageDescriptor.class,
+                CancelChecker.class);
         Assert.assertEquals(latestSnapshot.getReturnType(), SnapshotView.class);
     }
 

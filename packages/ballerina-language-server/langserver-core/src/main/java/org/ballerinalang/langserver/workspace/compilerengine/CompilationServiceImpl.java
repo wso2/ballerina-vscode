@@ -44,6 +44,7 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -72,6 +73,7 @@ import javax.annotation.Nonnull;
 public class CompilationServiceImpl implements CompilationService, AutoCloseable {
 
     private static final Logger LOG = Logger.getLogger(CompilationServiceImpl.class.getName());
+    private static final int INITIAL_REQUEST_VERSION = 1;
 
     private final DualSnapshotStore snapshotStore;
     private final EventSyncPubSubHolder eventBus;
@@ -210,7 +212,7 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         this.circuitActions = new ConcurrentHashMap<>();
         this.throttledRequests = new ConcurrentHashMap<>();
         this.sourceRootIndex = new ConcurrentHashMap<>();
-        this.versionCounter = new AtomicInteger(0);
+        this.versionCounter = new AtomicInteger(INITIAL_REQUEST_VERSION);
         this.throttledUntilNanos = new AtomicLong(0L);
         this.closed = new AtomicBoolean(false);
         this.retryScheduler = Executors.newScheduledThreadPool(1, r -> {
@@ -328,15 +330,21 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
     // ---- Private Methods ----
 
     private void subscribeToEvents() {
-        eventBus.subscribe("ce-workspace-events", SubscriberTier.CRITICAL,
+        eventBus.subscribe("ce-control-events", SubscriberTier.CRITICAL,
                 Set.of(EventKind.WORKSPACE_PROJECT_REGISTERED,
                        EventKind.WORKSPACE_PROJECT_EVICTED,
                        EventKind.WORKSPACE_PROJECT_KIND_TRANSITIONED,
-                       EventKind.WORKSPACE_PROJECT_UPDATED),
-                this::handleWorkspaceEvent);
+                       EventKind.WORKSPACE_PROJECT_UPDATED,
+                       EventKind.RM_E1_HEAP_PRESSURE_DETECTED),
+                this::handleControlEvent);
+    }
 
-        eventBus.subscribe("ce-heap-pressure-events", SubscriberTier.CRITICAL,
-                Set.of(EventKind.RM_E1_HEAP_PRESSURE_DETECTED), this::handleHeapPressureEvent);
+    private void handleControlEvent(DomainEvent event) {
+        if (event.eventKind() == EventKind.RM_E1_HEAP_PRESSURE_DETECTED) {
+            handleHeapPressureEvent(event);
+            return;
+        }
+        handleWorkspaceEvent(event);
     }
 
     private void handleWorkspaceEvent(DomainEvent event) {
@@ -449,8 +457,30 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
     }
 
     private void requestCompilation(CompilationPipeline pipeline) {
-        ContentVersion nextVersion = new ContentVersion(versionCounter.getAndIncrement());
+        ContentVersion nextVersion = nextContentVersion(pipeline.key());
         pipeline.requestCompilation(nextVersion);
+    }
+
+    private ContentVersion nextContentVersion(CompilationKey key) {
+        return nextContentVersion(versionCounter, snapshotStore, key);
+    }
+
+    private static ContentVersion nextContentVersion(AtomicInteger versionCounter, DualSnapshotStore snapshotStore,
+                                                     CompilationKey key) {
+        StableSnapshot stableSnapshot = snapshotStore.getStable(key);
+        int minimumVersion = stableSnapshot == null ? INITIAL_REQUEST_VERSION : stableSnapshot.contentVersion()
+                .next()
+                .value();
+        int requestedVersion = versionCounter.getAndUpdate(currentVersion ->
+                Math.max(incrementVersion(currentVersion), incrementVersion(minimumVersion)));
+        return new ContentVersion(Math.max(requestedVersion, minimumVersion));
+    }
+
+    private static int incrementVersion(int version) {
+        if (version == Integer.MAX_VALUE) {
+            throw new IllegalStateException("content version overflow");
+        }
+        return version + 1;
     }
 
     private void cancelThrottledRequest(CompilationKey key) {
@@ -489,7 +519,7 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         }
         sourceRootIndex.computeIfAbsent(sourceRootIdentifier, k -> ConcurrentHashMap.newKeySet()).add(key);
         circuitActions.put(key, circuitAction);
-        pipeline.requestCompilation(new ContentVersion(versionCounter.getAndIncrement()));
+        pipeline.requestCompilation(nextContentVersion(key));
     }
 
     private void evictPipeline(String sourceRootIdentifier) {
@@ -629,6 +659,9 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
                 retryCount.set(0);
                 return result;
             } catch (Throwable e) {
+                if (task.isCancelled() || Thread.currentThread().isInterrupted() || causedByInterruptedException(e)) {
+                    throw new CancellationException("Compilation cancelled");
+                }
                 FailureClass failureClass = classifyFailure(e);
                 scheduleRetryOrOpenCircuit(failureClass);
                 if (e instanceof Exception) {
@@ -637,6 +670,17 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
                     throw new RuntimeException(e);
                 }
             }
+        }
+
+        private static boolean causedByInterruptedException(Throwable throwable) {
+            Throwable current = throwable;
+            while (current != null) {
+                if (current instanceof InterruptedException) {
+                    return true;
+                }
+                current = current.getCause();
+            }
+            return false;
         }
 
         @Override
@@ -668,7 +712,7 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
                 CompilationPipeline pipeline = pipelines.get(key);
                 if (pipeline != null) {
                     retryTask = retryScheduler.schedule(() -> {
-                        ContentVersion nextVersion = new ContentVersion(versionCounter.getAndIncrement());
+                        ContentVersion nextVersion = nextContentVersion(versionCounter, snapshotStore, key);
                         pipeline.requestCompilation(nextVersion);
                     }, retryDelayMs, TimeUnit.MILLISECONDS);
                 }

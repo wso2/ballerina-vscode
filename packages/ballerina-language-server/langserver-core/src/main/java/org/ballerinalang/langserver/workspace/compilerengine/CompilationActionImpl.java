@@ -153,12 +153,12 @@ public final class CompilationActionImpl implements CompilationPipeline.Compilat
             packageModule.documentIds().forEach(docId -> project.documentPath(docId).ifPresent(path ->
             {
                 syntaxTrees.put(docId, packageModule.document(docId).syntaxTree());
-                pathToDocumentIds.put(path.normalize(), docId);
+                pathToDocumentIds.put(path.toAbsolutePath().normalize(), docId);
             }));
             packageModule.testDocumentIds().forEach(docId -> project.documentPath(docId).ifPresent(path ->
             {
                 syntaxTrees.put(docId, packageModule.document(docId).syntaxTree());
-                pathToDocumentIds.put(path.normalize(), docId);
+                pathToDocumentIds.put(path.toAbsolutePath().normalize(), docId);
             }));
         });
         if (syntaxTrees.isEmpty() || semanticModels.isEmpty()) {
