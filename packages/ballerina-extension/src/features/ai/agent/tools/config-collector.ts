@@ -30,6 +30,8 @@ import {
     readExistingConfigValues,
 } from "../../../../utils/toml-utils";
 import { resolveContained, resolvePackageBasePath } from "./path-utils";
+import { getOrgPackageName } from "../../../../utils/config";
+import { langClient } from "../../activator";
 
 export const CONFIG_COLLECTOR_TOOL = "ConfigCollector";
 
@@ -40,7 +42,6 @@ const TEST_CONFIG_FILE_PATH = "tests/Config.toml";
 const ConfigVariableSchema = z.object({
     name: z.string().describe("Variable name in camelCase — must match the Ballerina configurable identifier exactly"),
     description: z.string().describe("Human-readable description"),
-    type: z.enum(["string", "int"]).optional().describe("Data type: string (default) or int"),
     secret: z.boolean().optional().describe("Mark as true for sensitive values (API keys, passwords, tokens) to render as a masked input"),
 });
 
@@ -48,7 +49,10 @@ const ConfigCollectorSchema = z.object({
     mode: z.enum(["collect", "check"]).describe("Operation mode"),
     filePath: z.string().optional().describe("Path to config file (for check mode)"),
     variables: z.array(ConfigVariableSchema).optional().describe("Configuration variables"),
-    variableNames: z.array(z.string()).optional().describe("Variable names for check mode"),
+    variableNames: z.array(z.string()).optional().describe(
+        "Variable names to verify in check mode. " +
+        "Omit to discover ALL existing variable names in the file — useful when you want to reuse names that are already there."
+    ),
     isTestConfig: z.boolean().optional().describe("Set to true when collecting configuration for tests. Tool will automatically read from Config.toml and write to tests/Config.toml"),
     packagePath: z.string().optional().describe(
         "Relative path to the target package within the workspace project (e.g., \"pkg1\"). " +
@@ -91,8 +95,16 @@ function getConfigFileName(isTestConfig?: boolean): string {
 }
 
 function validateConfigVariables(
-    variables: ConfigVariable[]
+    variables: ConfigVariable[] | undefined
 ): ConfigCollectorResult | null {
+    if (!variables || variables.length === 0) {
+        return createErrorResult(
+            "NO_VARIABLES",
+            "No variables provided to collect. " +
+            "Always pass `variables` with the configurable identifiers from the code. " +
+            "Use mode: 'check' first if you need to discover existing variable names in Config.toml."
+        );
+    }
     for (const variable of variables) {
         if (!validateVariableName(variable.name)) {
             return createErrorResult(
@@ -122,10 +134,21 @@ export function createConfigCollectorTool(
         description: `
 Manages configuration values in Config.toml for Ballerina integrations securely.
 
+The codebase listing includes a <config_files main="present|absent" tests="present|absent"/> tag per project showing the initial state.
+Before collecting, always call CHECK first (without variableNames) to discover any existing variable names and reuse them — Config.toml may have been added mid-session even if the listing shows absent.
+
 IMPORTANT: Only call COLLECT mode immediately before executing the project (running or testing). Do NOT call it during code writing or implementation — even if the code has sensitive configurables. Write the code first, then collect config only when you are about to run or test.
+
+REQUIRED ORDER:
+1. Write the Ballerina source code including all 'configurable' declarations and save the file.
+2. Only then call collect. Variable names are validated against the LS's view of the source.
+   - If a name is not declared in source, you get UNKNOWN_CONFIGURABLE — check the code first.
+   - If no configurables are found at all, you get NO_CONFIGURABLES_IN_SOURCE — write the code first.
+Variable type is derived automatically from the source declaration — do NOT pass a type field.
 
 Operation Modes:
 1. COLLECT: Collect configuration values from the user
+   - ALWAYS provide 'variables' — never call collect without them
    - Call ONLY immediately before running or testing the project — never during code writing
    - Shows a form; nothing is written until the user confirms. If skipped, no file is created or modified
    - Pre-populates from existing Config.toml if it exists
@@ -136,10 +159,11 @@ Operation Modes:
    - Example (workspace): { mode: "collect", variables: [...], packagePath: "pkg1" }
 
 2. CHECK: Inspect which values are filled or missing — can be called at any time
-   - Returns status only, never actual values
+   - Returns variable names and status; never actual values
    - For workspace projects, pass packagePath to inspect the Config.toml of a specific package
-   - Example: { mode: "check", variableNames: ["dbPassword", "apiKey"], filePath: "Config.toml" }
-   - Example (workspace): { mode: "check", variableNames: ["dbPassword"], packagePath: "pkg1" }
+   - Example (discover): { mode: "check" }
+   - Example (verify): { mode: "check", variableNames: ["dbPassword", "apiKey"], filePath: "Config.toml" }
+   - Example (workspace): { mode: "check", packagePath: "pkg1" }
    - Returns: { status: { dbPassword: "filled", apiKey: "missing" } }
 
 VARIABLE NAMING:
@@ -245,8 +269,47 @@ export async function ConfigCollectorTool(
     }
 }
 
+// Returns null on LS error (transient failure), {} when LS responded but found no configurables.
+async function getConfigurableTypesFromSource(
+    projectPath: string,
+    orgName: string,
+    packageName: string
+): Promise<Record<string, string> | null> {
+    try {
+        const response = await langClient.getConfigVariablesV2({ projectPath, includeLibraries: false }) as any;
+        const configVariables = response?.configVariables;
+        if (!configVariables || typeof configVariables !== "object") {
+            return {};
+        }
+
+        // Response is { [pkgKey: string]: { [moduleName: string]: ConfigVariable[] } }
+        // where pkgKey is "org/packageName"
+        const pkgKey = `${orgName}/${packageName}`;
+        const modules = configVariables[pkgKey];
+        if (!modules || typeof modules !== "object") {
+            return {};
+        }
+
+        const types: Record<string, string> = {};
+        for (const moduleVars of Object.values(modules)) {
+            if (!Array.isArray(moduleVars)) { continue; }
+            for (const variable of moduleVars) {
+                const name = variable?.properties?.variable?.value;
+                const type = variable?.properties?.type?.value;
+                if (typeof name === "string" && name) {
+                    types[name] = typeof type === "string" && type ? type : "string";
+                }
+            }
+        }
+        return types;
+    } catch (error) {
+        console.error("[ConfigCollector] Failed to query configurables from LS:", error);
+        return null;
+    }
+}
+
 async function handleCollectMode(
-    variables: ConfigVariable[],
+    variables: ConfigVariable[] | undefined,
     paths: ConfigCollectorPaths,
     eventHandler: CopilotEventHandler,
     requestId: string,
@@ -254,7 +317,6 @@ async function handleCollectMode(
     modifiedFiles?: string[],
     packagePath?: string
 ): Promise<ConfigCollectorResult> {
-    // Validate variable names
     const validationError = validateConfigVariables(variables);
     if (validationError) { return validationError; }
 
@@ -263,6 +325,42 @@ async function handleCollectMode(
     // package rather than the workspace root. The helper rejects directory
     // traversal attempts and missing-but-required values.
     const packageBasePath = resolvePackageBasePath(paths.tempPath, packagePath);
+    const { orgName, packageName } = getOrgPackageName(packageBasePath);
+    if (!orgName || !packageName) {
+        return createErrorResult(
+            "MISSING_PACKAGE_INFO",
+            "Ballerina.toml is missing or does not declare both 'org' and 'name' under [package]. Cannot scope Config.toml to the correct section."
+        );
+    }
+
+    // Derive variable types from the LS rather than accepting them from the agent.
+    // The LS reads the 'configurable' declarations already written in source.
+    const sourceTypes = await getConfigurableTypesFromSource(packageBasePath, orgName, packageName);
+    if (sourceTypes === null) {
+        return createErrorResult(
+            "LS_UNAVAILABLE",
+            "Language server is unavailable or failed to respond. Wait a moment and retry."
+        );
+    }
+    if (Object.keys(sourceTypes).length === 0) {
+        return createErrorResult(
+            "NO_CONFIGURABLES_IN_SOURCE",
+            "No configurables found in source. Write the 'configurable' declarations in code first and save, then call collect again."
+        );
+    }
+
+    const unknownNames = variables.filter(v => !(v.name in sourceTypes));
+    if (unknownNames.length > 0) {
+        return createErrorResult(
+            "UNKNOWN_CONFIGURABLE",
+            `Variables not declared in source: ${unknownNames.map(v => v.name).join(", ")}. ` +
+            `Available in source: ${Object.keys(sourceTypes).join(", ")}. ` +
+            `Verify the configurable declarations in your .bal files match the names you're passing, then retry.`
+        );
+    }
+
+    // Enrich variables with LS-derived types so the writer uses the correct type.
+    const enrichedVariables: ConfigVariable[] = variables.map(v => ({ ...v, type: sourceTypes[v.name] }));
 
     // Determine paths based on isTestConfig flag
     const configPath = getConfigPath(packageBasePath, isTestConfig);
@@ -276,7 +374,9 @@ async function handleCollectMode(
     // Read existing configuration values from source config (if they exist) for pre-populating the form
     const existingValues = readExistingConfigValues(
         sourceConfigPath,
-        variables.map(v => v.name)
+        variables.map(v => v.name),
+        orgName,
+        packageName
     );
 
     // Analyze existing values to determine appropriate messaging
@@ -300,7 +400,7 @@ async function handleCollectMode(
     // This returns ACTUAL values (not exposed to agent)
     const userResponse = await approvalManager.requestConfiguration(
         requestId,
-        variables,
+        enrichedVariables,
         existingValues,
         eventHandler,
         isTestConfig,
@@ -325,7 +425,7 @@ async function handleCollectMode(
     }
 
     // Write actual configuration values to determined config path
-    writeConfigValuesToConfig(configPath, userResponse.configValues!, variables);
+    writeConfigValuesToConfig(configPath, userResponse.configValues!, enrichedVariables, orgName, packageName);
 
     // Track modified file for syncing to workspace.
     // Path is relative to tempProjectPath, so prefix with packagePath for workspace projects.
@@ -359,13 +459,13 @@ async function handleCollectMode(
 
     return {
         success: true,
-        message: `Successfully collected ${variables.length} configuration value(s) and saved to ${configFileName}${userResponse.comment ? ". User note: " + userResponse.comment : ""}`,
+        message: `Successfully collected ${enrichedVariables.length} configuration value(s) and saved to ${configFileName}${userResponse.comment ? ". User note: " + userResponse.comment : ""}`,
         status: statusMetadata,
     };
 }
 
 async function handleCheckMode(
-    variableNames: string[],
+    variableNames: string[] | undefined,
     filePath: string | undefined,
     paths: ConfigCollectorPaths,
     isTestConfig?: boolean,
@@ -374,6 +474,13 @@ async function handleCheckMode(
     // Resolve and validate the package base path. For workspace projects the
     // agent must pass packagePath to inspect a specific package's Config.toml.
     const packageBasePath = resolvePackageBasePath(paths.tempPath, packagePath);
+    const { orgName, packageName } = getOrgPackageName(packageBasePath);
+    if (!orgName || !packageName) {
+        return createErrorResult(
+            "MISSING_PACKAGE_INFO",
+            "Ballerina.toml is missing or does not declare both 'org' and 'name' under [package]. Cannot scope Config.toml to the correct section."
+        );
+    }
 
     let configPath: string;
     let configFileName: string;
@@ -396,23 +503,28 @@ async function handleCheckMode(
         };
     }
 
-    // Read all variables from the file
-    const status = getAllConfigStatus(configPath);
+    const status = getAllConfigStatus(configPath, orgName, packageName);
 
-    // Any requested variable names not found in file → mark as missing
-    for (const name of variableNames) {
-        if (!(name in status)) {
-            status[name] = "missing";
+    // When specific names are provided, pad any that are absent from the file as "missing"
+    if (variableNames && variableNames.length > 0) {
+        for (const name of variableNames) {
+            if (!(name in status)) {
+                status[name] = "missing";
+            }
         }
     }
 
-    const filledCount = Object.values(status).filter((s) => s === "filled").length;
-    const missingCount = Object.values(status).filter((s) => s === "missing").length;
-    const totalCount = filledCount + missingCount;
+    const filledNames = Object.entries(status).filter(([, s]) => s === "filled").map(([n]) => n);
+    const missingNames = Object.entries(status).filter(([, s]) => s === "missing").map(([n]) => n);
+
+    console.log(`[ConfigCollector] check ${configFileName} — filled: [${filledNames.join(", ") || "none"}], missing: [${missingNames.join(", ") || "none"}]`);
 
     return {
         success: true,
-        message: `${configFileName} has ${totalCount} variable(s): ${filledCount} filled, ${missingCount} with placeholder`,
+        message:
+            `${configFileName} — ` +
+            `filled: [${filledNames.join(", ") || "none"}], ` +
+            `missing: [${missingNames.join(", ") || "none"}]`,
         status,
     };
 }

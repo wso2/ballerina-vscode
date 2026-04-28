@@ -46,7 +46,7 @@ export function PanelOverlayRenderer() {
     }
 
     // Base z-index for overlays (high enough to be above main panel)
-    const BASE_Z_INDEX = 10000;
+    const BASE_Z_INDEX = 2000;
 
     return (
         <>

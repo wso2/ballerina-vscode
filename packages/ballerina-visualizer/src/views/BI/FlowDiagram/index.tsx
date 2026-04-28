@@ -1654,6 +1654,12 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             return;
         }
 
+        const NODES_TO_SKIP_ARTIFACT = ["MODEL_PROVIDER", "KNOWLEDGE_BASE", "DATA_LOADER"];
+        let skipArtifact = false;
+        if (NODES_TO_SKIP_ARTIFACT.includes(updatedNode?.codedata?.node)) {
+            skipArtifact = true;
+        }
+
         rpcClient
             .getBIDiagramRpcClient()
             .getSourceCode({
@@ -1661,7 +1667,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 flowNode: updatedNode,
                 isFunctionNodeUpdate: editorConfig?.displayMode !== EditorDisplayMode.NONE,
                 isHelperPaneChange: options?.isChangeFromHelperPane,
-                artifactData: getArtifactData(editorConfig),
+                artifactData: !skipArtifact ? getArtifactData(editorConfig) : undefined,
+
             })
             .then(async (response) => {
                 if (response.artifacts.length > 0) {
@@ -1685,9 +1692,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     if (options?.closeSidePanel) {
                         selectedNodeRef.current = undefined;
                         closeSidePanelAndFetchUpdatedFlowModel();
-                    }
-                    if (options?.postUpdateCallBack) {
-                        options.postUpdateCallBack();
                     }
                     shouldUpdateLineRangeRef.current = options?.isChangeFromHelperPane;
                     if (options?.isChangeFromHelperPane) {
@@ -1732,6 +1736,9 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                         shouldUpdateLineRangeRef.current = false;
                     }
                     updatedNodeRef.current = updatedNode;
+                    if (options?.postUpdateCallBack) {
+                        options.postUpdateCallBack();
+                    }
                 } else {
                     console.error(">>> Error updating source code", response);
                 }

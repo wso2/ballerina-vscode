@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ErrorType, NullablePrimitiveType, PrimitiveArrayType, PrimitiveType } from "../constants";
+import { ErrorType, JsonXmlType, NullablePrimitiveType, PrimitiveArrayType, PrimitiveType } from "../constants";
 
 /**
  * Type checking utilities for Ballerina types
@@ -51,6 +51,10 @@ const isErrorType = (type: string): boolean => {
   return Object.values(ErrorType).includes(type as ErrorType);
 };
 
+const isJsonXmlType = (type: string): boolean => {
+  return Object.values(JsonXmlType).includes(type as JsonXmlType);
+};
+
 export const isAnyPrimitiveType = (type: string): boolean => {
-  return isPrimitiveType(type) || isNullablePrimitiveType(type) || isPrimitiveArrayType(type) || isErrorType(type);
+  return isPrimitiveType(type) || isNullablePrimitiveType(type) || isPrimitiveArrayType(type) || isErrorType(type) || isJsonXmlType(type);
 };

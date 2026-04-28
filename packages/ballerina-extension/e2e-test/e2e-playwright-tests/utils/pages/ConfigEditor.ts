@@ -42,8 +42,18 @@ export class ConfigEditor {
     }
 
     public async addNewConfigurableVariable() {
-        const addConfigButton = this.webView.getByRole('button', { name: 'Add Config' });
-        await addConfigButton.click();
+        // Prefer role locator, but fall back to text selector for custom button renderers in CI.
+        const addConfigButton = this.webView
+            .getByRole('button', { name: 'Add Config' })
+            .or(this.webView.locator('button:has-text("Add Config"), vscode-button:has-text("Add Config")'));
+
+        // The Add Config button is only shown for the Integration package.
+        if (!(await addConfigButton.first().isVisible().catch(() => false))) {
+            await this.selectPackage('Integration');
+        }
+
+        await addConfigButton.first().waitFor({ state: 'visible', timeout: 30000 });
+        await addConfigButton.first().click();
     }
 
     public async verifyPageLoaded() {

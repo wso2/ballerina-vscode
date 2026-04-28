@@ -115,12 +115,12 @@ export class ApprovalViewManager {
         });
 
         const overlayMessage = this.getOverlayMessage(approvalType);
-        this.sendChatOverlayNotification(true, overlayMessage);
+        this.sendChatOverlayNotification(true, overlayMessage, requestId);
     }
 
-    private sendChatOverlayNotification(show: boolean, message?: string): void {
+    private sendChatOverlayNotification(show: boolean, message?: string, requestId?: string): void {
         try {
-            notifyApprovalOverlayState({ show, message });
+            notifyApprovalOverlayState({ show, message, requestId });
             console.log(`[ApprovalViewManager] Chat overlay ${show ? 'enabled' : 'disabled'}`, message ? `with message: ${message}` : '');
         } catch (error) {
             console.error('[ApprovalViewManager] Failed to send chat overlay notification:', error);
@@ -161,6 +161,15 @@ export class ApprovalViewManager {
         });
 
         view.isClosed = true;
+
+        // Close the popup webview if it is still open (e.g. when dismissed via the overlay X).
+        // When the popup itself triggered this call, ctx.view won't match so this is a no-op.
+        if (view.viewType === 'popup') {
+            const popupCtx = StateMachinePopup.context();
+            if (popupCtx.view === view.machineView) {
+                StateMachinePopup.sendEvent(EVENT_TYPE.CLOSE_VIEW, { view: null, agentMetadata: undefined });
+            }
+        }
 
         if (!this.hasActiveApprovals()) {
             this.sendChatOverlayNotification(false);
@@ -311,7 +320,7 @@ export class ApprovalViewManager {
         view.isAutoOpened = false;
 
         const overlayMessage = this.getOverlayMessage(view.approvalType);
-        this.sendChatOverlayNotification(true, overlayMessage);
+        this.sendChatOverlayNotification(true, overlayMessage, view.requestId);
 
         const { viewType, hadExistingVisualizer } = this._openApprovalViewPopup(
             view.machineView,

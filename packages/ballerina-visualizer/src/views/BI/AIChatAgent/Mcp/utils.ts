@@ -28,8 +28,8 @@ export interface Tool {
 
 export interface ResolutionResult {
     canResolve: boolean;
-    resolvedUrl: string;
-    resolvedAuth: string;
+    resolvedUrl: string | null;
+    resolvedAuth: string | null;
     error: string;
 }
 
@@ -62,8 +62,8 @@ export async function attemptValueResolution(
         error = `Failed to resolve server URL: ${e instanceof Error ? e.message : String(e)}`;
     }
 
-    // Try to resolve auth
-    let resolvedAuthValue = null;
+    // Default to "" so no-auth servers count as resolved; null signals a real failure.
+    let resolvedAuthValue: string | null = "";
     if (auth && auth.trim()) {
         try {
             resolvedAuthValue = await resolveAuthConfig(

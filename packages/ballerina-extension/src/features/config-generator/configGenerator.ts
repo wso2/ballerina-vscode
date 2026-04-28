@@ -43,7 +43,7 @@ export async function prepareAndGenerateConfig(
     isBi?: boolean,
     executeRun: boolean = true,
     needsPackageSelection: boolean = false
-): Promise<void> {
+): Promise<boolean> {
 
     let packagePath: string;
     let packageName: string;
@@ -55,7 +55,7 @@ export async function prepareAndGenerateConfig(
 
             const selectedPackage = await selectPackageOrPrompt(packageList, "Select an integration to run");
             if (!selectedPackage) {
-                return;
+                return false;
             }
 
             const selectedPackageInfo = packages?.find((child) => child.projectPath === selectedPackage);
@@ -76,14 +76,14 @@ export async function prepareAndGenerateConfig(
             }
         } catch (error) {
             console.error("Error selecting integration:", error);
-            return;
+            return false;
         }
     } else {
         const currentProject: BallerinaProject | undefined = await getCurrentBIProject(projectPath);
 
         if (!currentProject) {
             window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
-            return;
+            return false;
         }
 
         packagePath = currentProject.path;
@@ -112,10 +112,10 @@ export async function prepareAndGenerateConfig(
         if (!isCommand && executeRun) {
             executeRunCommand(ballerinaExtInstance, packagePath, isBi);
         }
-        return;
+        return true;
     }
 
-    await handleOnUnSetValues(packageName, configFile, ignoreFile, ballerinaExtInstance, isCommand, isBi);
+    return await handleOnUnSetValues(packageName, packagePath, configFile, ignoreFile, ballerinaExtInstance, isCommand, isBi, executeRun);
 }
 
 export async function checkConfigUpdateRequired(
@@ -206,11 +206,19 @@ export async function getCurrentBallerinaProjectFromContext(ballerinaExtInstance
 }
 
 export async function getCurrentBIProject(projectPath: string): Promise<BallerinaProject | undefined> {
-    const projectRoot = await getCurrentProjectRoot();
-    return await getCurrentBallerinaProject(projectRoot || projectPath);
+    try {
+        if (projectPath) {
+            return await getCurrentBallerinaProject(projectPath);
+        }
+        const projectRoot = await getCurrentProjectRoot();
+        return await getCurrentBallerinaProject(projectRoot);
+    } catch (error) {
+        console.error('Failed to resolve current BI project:', error);
+        return undefined;
+    }
 }
 
-export async function handleOnUnSetValues(packageName: string, configFile: string, ignoreFile: string, ballerinaExtInstance: BallerinaExtension, isCommand: boolean, isBi: boolean): Promise<void> {
+export async function handleOnUnSetValues(packageName: string, packagePath: string, configFile: string, ignoreFile: string, ballerinaExtInstance: BallerinaExtension, isCommand: boolean, isBi: boolean, executeRun: boolean = true): Promise<boolean> {
     let result;
     let btnTitle: string;
     let message: string;
@@ -270,9 +278,14 @@ export async function handleOnUnSetValues(packageName: string, configFile: strin
         }
 
         openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.ViewConfigVariables });
+        return false;
     } else if (!isCommand && result === ignoreButton) {
-        executeRunCommand(ballerinaExtInstance, configFile, isBi);
+        if (executeRun) {
+            executeRunCommand(ballerinaExtInstance, packagePath, isBi);
+        }
+        return true;
     }
+    return false;
 }
 
 
