@@ -36,6 +36,7 @@ import io.ballerina.servicemodelgenerator.extension.builder.service.McpServiceBu
 import io.ballerina.servicemodelgenerator.extension.builder.service.MssqlCdcServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.PostgresqlCdcServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.RabbitMQServiceBuilder;
+import io.ballerina.servicemodelgenerator.extension.builder.service.ShopifyTriggerServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.SolaceServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.TCPServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
@@ -72,6 +73,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBIT
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SOLACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TRIGGER_GITHUB;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.TRIGGER_SHOPIFY;
 
 /**
  * ServiceBuilderRouter is responsible for routing service building requests to the appropriate service builder
@@ -95,6 +97,7 @@ public class ServiceBuilderRouter {
         put(POSTGRESQL, PostgresqlCdcServiceBuilder::new);
         put(FTP, FTPServiceBuilder::new);
         put(TRIGGER_GITHUB, GithubTriggerServiceBuilder::new);
+        put(TRIGGER_SHOPIFY, ShopifyTriggerServiceBuilder::new);
     }};
 
     public static ServiceNodeBuilder getServiceBuilder(String protocol) {

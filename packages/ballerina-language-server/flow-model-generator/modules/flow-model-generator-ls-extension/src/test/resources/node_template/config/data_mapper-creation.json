@@ -103,7 +103,7 @@
           }
         ],
         "value": {},
-        "optional": true,
+        "optional": false,
         "editable": false,
         "advanced": false,
         "hidden": false

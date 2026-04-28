@@ -170,6 +170,7 @@ public class DataMappingModelTest extends AbstractLSTest {
                 {Path.of("function_def_transformed_type5.json")},
                 {Path.of("function_def_transformed_type6.json")},
                 {Path.of("function_def_transformed_type7.json")},
+                {Path.of("json_submapping.json")},
         };
     }
 

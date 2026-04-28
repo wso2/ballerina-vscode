@@ -64,6 +64,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA;
+import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINAX;
 import static io.ballerina.modelgenerator.commons.CommonUtils.getPersistDatabaseIcon;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiKnowledgeBase;
@@ -199,8 +200,15 @@ public class ConnectionActionProvider {
                 sanitizeSegment(version));
     }
 
-    private List<Item> getOrBuildTemplates(ConnectorContext context) {
-        return getOrBuild(context.cacheKey(), () -> buildTemplates(context, context.project()));
+    List<Item> getOrBuildTemplates(ConnectorContext context) {
+        return getOrBuildTemplates(context, () -> buildTemplates(context, context.project()));
+    }
+
+    List<Item> getOrBuildTemplates(ConnectorContext context, SupplierFn<List<Item>> supplier) {
+        if (!context.cacheable()) {
+            return supplier.get();
+        }
+        return getOrBuild(context.cacheKey(), supplier);
     }
 
     private ConnectorContext createContext(ClassSymbol classSymbol, Project project, SemanticModel semanticModel) {
@@ -210,9 +218,11 @@ public class ConnectionActionProvider {
                 .orElseThrow();
         Package resolvedPackage = resolvePackage(moduleInfo, project).orElse(null);
         boolean persistClient = isPersistClient(classSymbol, semanticModel);
+        String cacheKey = generateKey(moduleInfo.org(), moduleInfo.packageName(), moduleInfo.moduleName(), className,
+                moduleInfo.version());
+        boolean cacheable = BALLERINA.equals(moduleInfo.org()) || BALLERINAX.equals(moduleInfo.org());
         return new ConnectorContext(
-                generateKey(moduleInfo.org(), moduleInfo.packageName(), moduleInfo.moduleName(), className,
-                        moduleInfo.version()),
+                cacheKey,
                 classSymbol,
                 className,
                 moduleInfo,
@@ -220,7 +230,8 @@ public class ConnectionActionProvider {
                 isAiKnowledgeBase(classSymbol),
                 isAgentClass(classSymbol),
                 persistClient ? getPersistDatabaseIcon(classSymbol).orElse(null) : null,
-                project
+                project,
+                cacheable
         );
     }
 
@@ -234,10 +245,7 @@ public class ConnectionActionProvider {
             return null;
         }
         Optional<ClassSymbol> classSymbol = resolveClassSymbol(semanticModel, codedata.object());
-        if (classSymbol.isEmpty()) {
-            return null;
-        }
-        return createContext(classSymbol.get(), project, semanticModel);
+        return classSymbol.map(symbol -> createContext(symbol, project, semanticModel)).orElse(null);
     }
 
     private List<Item> buildTemplates(ConnectorContext context, Project project) {
@@ -247,7 +255,6 @@ public class ConnectionActionProvider {
                 .project(project)
                 .moduleInfo(context.moduleInfo())
                 .resolvedPackage(context.resolvedPackage())
-                .enableIndex()
                 .buildChildNodes();
 
         List<Item> methods = new ArrayList<>();
@@ -302,7 +309,7 @@ public class ConnectionActionProvider {
                     .buildAvailableNode();
             methods.add(node);
         }
-        return methods;
+        return List.copyOf(methods);
     }
 
     private List<Item> bindParentSymbol(List<Item> cachedMethods, String parentSymbolName,
@@ -470,9 +477,9 @@ public class ConnectionActionProvider {
         private static final ConnectionActionProvider INSTANCE = new ConnectionActionProvider();
     }
 
-    private record ConnectorContext(String cacheKey, ClassSymbol classSymbol, String className, ModuleInfo moduleInfo,
-                                    Package resolvedPackage, boolean knowledgeBase, boolean agentClass,
-                                    String iconOverride, Project project) {
+    record ConnectorContext(String cacheKey, ClassSymbol classSymbol, String className, ModuleInfo moduleInfo,
+                            Package resolvedPackage, boolean knowledgeBase, boolean agentClass,
+                            String iconOverride, Project project, boolean cacheable) {
     }
 
     // Exposed for core tests: getOrBuild using Caffeine atomic loading

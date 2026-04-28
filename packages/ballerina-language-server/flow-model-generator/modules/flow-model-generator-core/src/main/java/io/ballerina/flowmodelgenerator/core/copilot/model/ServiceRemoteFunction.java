@@ -29,15 +29,26 @@ import java.util.List;
  * @since 1.7.0
  */
 public class ServiceRemoteFunction {
+    private String name;
     private String type;
     private String description;
     private List<Parameter> parameters;
     @SerializedName("return")
     private Return returnInfo;
     private boolean optional;
+    @SerializedName("isDeprecated")
+    private Boolean deprecated;
 
     public ServiceRemoteFunction() {
         this.parameters = new ArrayList<>();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getType() {
@@ -78,5 +89,13 @@ public class ServiceRemoteFunction {
 
     public void setOptional(boolean optional) {
         this.optional = optional;
+    }
+
+    public Boolean isDeprecated() {
+        return deprecated;
+    }
+
+    public void setDeprecated(Boolean deprecated) {
+        this.deprecated = deprecated;
     }
 }

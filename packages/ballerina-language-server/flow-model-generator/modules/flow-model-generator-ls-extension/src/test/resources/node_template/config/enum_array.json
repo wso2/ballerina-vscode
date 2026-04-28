@@ -1,0 +1,110 @@
+{
+  "source": "default_enum.bal",
+  "position": {
+    "line": 20,
+    "offset": 22
+  },
+  "description": "Function call with enum array parameter",
+  "codedata": {
+    "node": "FUNCTION_CALL",
+    "org": "$anon",
+    "module": ".",
+    "packageName": ".",
+    "symbol": "function3",
+    "version": "0.0.0"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "function3",
+      "description": "",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/$anon_._0.0.0.png"
+    },
+    "codedata": {
+      "node": "FUNCTION_CALL",
+      "org": "$anon",
+      "module": ".",
+      "packageName": ".",
+      "symbol": "function3",
+      "version": "0.0.0",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "days": {
+        "metadata": {
+          "label": "Days"
+        },
+        "types": [
+          {
+            "fieldType": "REPEATABLE_LIST",
+            "ballerinaType": "Day[]",
+            "template": {
+              "types": [
+                {
+                  "fieldType": "SINGLE_SELECT",
+                  "options": [
+                    {
+                      "label": "Sunday",
+                      "value": "\"Sunday\""
+                    },
+                    {
+                      "label": "Saturday",
+                      "value": "\"Saturday\""
+                    },
+                    {
+                      "label": "Friday",
+                      "value": "\"Friday\""
+                    },
+                    {
+                      "label": "Thursday",
+                      "value": "\"Thursday\""
+                    },
+                    {
+                      "label": "Wednesday",
+                      "value": "\"Wednesday\""
+                    },
+                    {
+                      "label": "Tuesday",
+                      "value": "\"Tuesday\""
+                    },
+                    {
+                      "label": "Monday",
+                      "value": "\"Monday\""
+                    }
+                  ],
+                  "selected": false
+                },
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "Day",
+                  "selected": false
+                }
+              ],
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "Day[]",
+            "selected": false
+          }
+        ],
+        "placeholder": "[]",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "days"
+        }
+      }
+    },
+    "flags": 0
+  }
+}

@@ -99,6 +99,8 @@ public class ModelToJsonConverter {
                     ? context.serialize(library.getFunctions()) : new JsonArray());
             json.add("services", library.getServices() != null
                     ? context.serialize(library.getServices()) : new JsonArray());
+            json.add("annotations", library.getAnnotations() != null
+                    ? context.serialize(library.getAnnotations()) : new JsonArray());
 
             return json;
         }
