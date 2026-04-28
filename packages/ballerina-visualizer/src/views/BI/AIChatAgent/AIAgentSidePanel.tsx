@@ -62,6 +62,7 @@ import { createDefaultParameterValue, createToolInputFields, createToolParameter
 import { FUNCTION_CALL, METHOD_CALL, REMOTE_ACTION_CALL, RESOURCE_ACTION_CALL } from "../../../constants";
 import { NewToolSelectionMode } from "./NewTool";
 import { fetchOAuthConfigProperties } from "./utils";
+import { updateResourcePathProperty } from "./agentTools";
 
 const LoaderContainer = styled.div`
     display: flex;
@@ -218,6 +219,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
     const functionFilePath = useRef<string>(Utils.joinPath(URI.file(projectPath), "functions.bal").fsPath);
     const parameterFieldsRef = useRef<ToolParameterItem[]>([]);
     const oauthConfigPropertiesRef = useRef<{ key: string; property: Property }[]>([]);
+    const isSelectingNodeRef = useRef<boolean>(false);
 
     // Create custom diagnostic filter for Tool Input parameters
     const customDiagnosticFilter = useCallback((diagnostics: Diagnostic[]) => {
@@ -577,18 +579,27 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
     };
 
     const handleOnSelectNode = async (nodeId: string, metadata?: any) => {
-        const { node } = metadata as { node: AvailableNode };
-        setToolNodeId(nodeId);
-        selectedNodeRef.current = node;
-        setSelectedNodeCodeData(node.codedata);
+        if (isSelectingNodeRef.current) return;
+        isSelectingNodeRef.current = true;
+        setLoading(true);
 
-        if (nodeId === FUNCTION_CALL) {
-            await loadFunctionCallFields(node);
-        } else if (nodeId === REMOTE_ACTION_CALL || nodeId === RESOURCE_ACTION_CALL || nodeId === METHOD_CALL) {
-            await loadConnectionCallFields(node);
+        try {
+            const { node } = metadata as { node: AvailableNode };
+            setToolNodeId(nodeId);
+            selectedNodeRef.current = node;
+            setSelectedNodeCodeData(node.codedata);
+
+            if (nodeId === FUNCTION_CALL) {
+                await loadFunctionCallFields(node);
+            } else if (nodeId === REMOTE_ACTION_CALL || nodeId === RESOURCE_ACTION_CALL || nodeId === METHOD_CALL) {
+                await loadConnectionCallFields(node);
+            }
+
+            setSidePanelView(SidePanelView.TOOL_FORM);
+        } finally {
+            setLoading(false);
+            isSelectingNodeRef.current = false;
         }
-
-        setSidePanelView(SidePanelView.TOOL_FORM);
     };
 
     const handleOnAddConnection = () => {
@@ -717,18 +728,11 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                     if (toolNodeId === RESOURCE_ACTION_CALL) {
                         const resourcePathProperty = newProperties["resourcePath"];
                         if (resourcePathProperty) {
-                            const path = resourcePathProperty.value;
-                            const updatedPath = typeof path === "string" ? path.replace(`[${key}]`, `[${paramValue}]`) : path;
-                            newProperties["resourcePath"] = {
-                                ...resourcePathProperty,
-                                codedata: resourcePathProperty.codedata ? {
-                                    ...resourcePathProperty.codedata,
-                                    originalName: typeof updatedPath === "string" ? updatedPath : String(updatedPath)
-                                } : {
-                                    originalName: typeof updatedPath === "string" ? updatedPath : String(updatedPath)
-                                },
-                                value: updatedPath
-                            };
+                            newProperties["resourcePath"] = updateResourcePathProperty(
+                                resourcePathProperty,
+                                key,
+                                paramValue
+                            );
                         }
                     }
                 });
