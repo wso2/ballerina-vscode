@@ -45,10 +45,11 @@ export interface InputNodeWidgetProps {
 	context: IDataMapperContext;
     valueLabel?: string;
     focusedInputs?: string[];
+    parentName?: string;
 }
 
 export function InputNodeWidget(props: InputNodeWidgetProps) {
-    const { engine, dmType, id, getPort, context, valueLabel, focusedInputs } = props;
+    const { engine, dmType, id, getPort, context, valueLabel, focusedInputs, parentName } = props;
     
     const [portState, setPortState] = useState<PortState>(PortState.Unselected);
     const [isHovered, setIsHovered] = useState(false);
@@ -178,7 +179,9 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
                                 id={"edit-" + id}
                                 tooltip="Edit"
                                 iconName="edit"
-                                onClick={async () => await context.createConvertedVariable(dmType.name, true, dmType.typeName)}
+                                onClick={async () => 
+                                    await context.createConvertedVariable(dmType.name, true, parentName || dmType.name)
+                                }
                             />
                         )}
                     </span>
@@ -220,11 +223,14 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
                     context={context}
                     valueLabel={dmType.convertedField.name}
                     focusedInputs={focusedInputs}
+                    parentName={dmType.name}
                 />
             }
             {expanded && isConvertibleType && !dmType.convertedField &&
                 <PayloadWidget
-                    onClick={async () => await context.createConvertedVariable(headerLabel, true, undefined, dmType.typeName)}
+                    onClick={async () => 
+                        await context.createConvertedVariable(dmType.name, true, dmType.name, dmType.typeName)
+                    }
                     typeName={dmType.typeName.toUpperCase()}
                 />
             }

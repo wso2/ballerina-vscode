@@ -34,6 +34,8 @@ import { CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX } from '../../utils/constants';
 import { FieldActionButton } from '../commons/FieldActionButton';
 import { PayloadWidget } from '../commons/PayloadWidget';
 import { DiagnosticTooltip } from '../../Diagnostic/DiagnosticTooltip';
+import { ArrayOutputWidget } from '../ArrayOutput/ArrayOutputWidget';
+import { ObjectOutputWidget } from '../ObjectOutput/ObjectOutputWidget';
 
 export interface ConvertibleOutputWidgetProps {
     id: string; // this will be the root ID used to prepend for UUIDs of nested fields
@@ -41,6 +43,7 @@ export interface ConvertibleOutputWidgetProps {
     typeName: string;
     value: any;
     engine: DiagramEngine;
+    isConvertedFieldArrayLiteral: boolean;
     getPort: (portId: string) => InputOutputPortModel;
     context: IDataMapperContext;
     mappings?: Mapping[];
@@ -54,6 +57,7 @@ export function ConvertibleOutputWidget(props: ConvertibleOutputWidgetProps) {
         typeName,
         value,
         engine,
+        isConvertedFieldArrayLiteral,
         getPort,
         context,
         mappings,
@@ -181,7 +185,9 @@ export function ConvertibleOutputWidget(props: ConvertibleOutputWidgetProps) {
                                 id={"edit-" + id}
                                 tooltip="Edit"
                                 iconName="edit"
-                                onClick={async () => await context.createConvertedVariable(outputType.name, false, outputType.typeName)}
+                                onClick={async () => 
+                                    await context.createConvertedVariable(outputType.name, false, outputType.name)
+                                }
                             />
                         )}
                     </span>
@@ -224,22 +230,37 @@ export function ConvertibleOutputWidget(props: ConvertibleOutputWidgetProps) {
                 )}
             </TreeContainer>
             {expanded && outputType.convertedField && (
-                <ConvertibleOutputWidget
-                    engine={engine}
-                    id={`${CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX}.${outputType.convertedField.name}`}
-                    outputType={outputType.convertedField}
-                    typeName={outputType.convertedField.typeName}
-                    value={undefined}
-                    getPort={getPort}
-                    context={context}
-                    mappings={mappings}
-                    valueLabel={outputType.convertedField.displayName || outputType.convertedField.name}
-                    originalTypeName={outputType.convertedField.typeName}
-                />
+                outputType.convertedField.kind === TypeKind.Array ? (
+                    <ArrayOutputWidget
+                        engine={engine}
+                        id={`${CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX}.${outputType.convertedField.name}`}
+                        outputType={outputType.convertedField}
+                        typeName={outputType.convertedField.typeName}
+                        isBodyArrayLitExpr={isConvertedFieldArrayLiteral}
+                        getPort={getPort}
+                        context={context}
+                        valueLabel={outputType.convertedField.displayName || outputType.convertedField.name}
+                    />
+                ) : (
+                    <ObjectOutputWidget
+                        engine={engine}
+                        id={`${CONVERTIBLE_OUTPUT_TARGET_PORT_PREFIX}.${outputType.convertedField.name}`}
+                        outputType={outputType.convertedField}
+                        typeName={outputType.convertedField.typeName}
+                        value={undefined}
+                        getPort={getPort}
+                        context={context}
+                        mappings={mappings}
+                        valueLabel={outputType.convertedField.displayName || outputType.convertedField.name}
+                        originalTypeName={outputType.convertedField.typeName}
+                    />
+                )
             )}
             {expanded && isConvertibleType && !outputType.convertedField && (
                 <PayloadWidget
-                    onClick={async () => await context.createConvertedVariable(valueLabel, false, undefined, outputType.typeName)}
+                    onClick={async () => 
+                        await context.createConvertedVariable(outputType.name, false, outputType.name, outputType.typeName)
+                    }
                     typeName={outputType.typeName?.toUpperCase()}
                 />
             )}

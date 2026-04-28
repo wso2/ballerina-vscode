@@ -45,6 +45,7 @@ export class ConvertibleOutputNodeFactory extends AbstractReactFactory<Convertib
                         outputType={event.model.filteredOutputType}
                         typeName={event.model.typeName}
                         value={undefined}
+                        isConvertedFieldArrayLiteral={event.model.isConvertedFieldArrayLiteral}
                         getPort={(portId: string) => event.model.getPort(portId) as InputOutputPortModel}
                         context={event.model.context}
                         mappings={event.model.filteredMappings}

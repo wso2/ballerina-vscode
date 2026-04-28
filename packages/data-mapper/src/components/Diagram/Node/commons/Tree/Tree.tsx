@@ -61,7 +61,7 @@ export const TreeHeader = styled.div<{ isSelected?: boolean; isDisabled?: boolea
     borderRadius: '3px',
     width: '100%',
     display: 'flex',
-    cursor: isDisabled ? 'not-allowed' : 'pointer',
+    cursor: 'pointer',
     '&:hover': {
       backgroundColor: isDisabled
         ? 'var(--vscode-tab-inactiveBackground)'
