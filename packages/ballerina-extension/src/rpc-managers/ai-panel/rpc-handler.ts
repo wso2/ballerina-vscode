@@ -49,7 +49,6 @@ import {
     generateOpenAPI,
     GenerateOpenAPIRequest,
     getActiveTempDir,
-    getAffectedPackages,
     getAIMachineSnapshot,
     getChatMessages,
     getCheckpoints,
@@ -144,7 +143,6 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(isUserAuthenticated, () => rpcManger.isUserAuthenticated());
     messenger.onRequest(openAIPanel, (args: AIPanelPrompt) => rpcManger.openAIPanel(args));
     messenger.onRequest(getSemanticDiff, (args: SemanticDiffRequest) => rpcManger.getSemanticDiff(args));
-    messenger.onRequest(getAffectedPackages, () => rpcManger.getAffectedPackages());
     messenger.onRequest(isWorkspaceProject, () => rpcManger.isWorkspaceProject());
     messenger.onRequest(acceptChanges, () => rpcManger.acceptChanges());
     messenger.onRequest(declineChanges, () => rpcManger.declineChanges());

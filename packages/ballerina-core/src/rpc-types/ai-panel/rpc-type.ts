@@ -89,7 +89,6 @@ export const addFilesToProject: RequestType<AddFilesToProjectRequest, boolean> =
 export const isUserAuthenticated: RequestType<void, boolean> = { method: `${_preFix}/isUserAuthenticated` };
 export const openAIPanel: RequestType<AIPanelPrompt, void> = { method: `${_preFix}/openAIPanel` };
 export const getSemanticDiff: RequestType<SemanticDiffRequest, SemanticDiffResponse> = { method: `${_preFix}/getSemanticDiff` };
-export const getAffectedPackages: NotificationType<void> = { method: `${_preFix}/getAffectedPackages` };
 export const isWorkspaceProject: RequestType<void, boolean> = { method: `${_preFix}/isWorkspaceProject` };
 export const acceptChanges: RequestType<void, void> = { method: `${_preFix}/acceptChanges` };
 export const declineChanges: RequestType<void, void> = { method: `${_preFix}/declineChanges` };
