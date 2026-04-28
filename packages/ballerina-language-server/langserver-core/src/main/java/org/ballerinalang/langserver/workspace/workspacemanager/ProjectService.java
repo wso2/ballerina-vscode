@@ -29,6 +29,9 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+
+import javax.annotation.Nonnull;
 
 /**
  * Project context service contract.
@@ -45,6 +48,15 @@ public interface ProjectService {
      * @return resolved project
      */
     Project loadOrCreate(Path path, CancelChecker cancelChecker);
+
+    /**
+     * Returns a currently cached project for the provided path without loading from disk.
+     *
+     * @param path path to resolve
+     * @return cached project, if one is already registered
+     */
+    @Nonnull
+    Optional<Project> project(Path path);
 
     /**
      * Returns all known projects.

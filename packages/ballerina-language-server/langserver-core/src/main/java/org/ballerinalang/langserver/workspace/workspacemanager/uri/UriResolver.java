@@ -368,10 +368,11 @@ public final class UriResolver {
     public void onDocumentUpdate(@Nonnull DocumentUri uri, @Nonnull String scheme, @Nonnull Document newDocument) {
         Module module = newDocument.module();
         Project project = module.project();
+        Path sourceRoot = projectRootPath(uri, project);
 
         TrieNode<ResolvedEntry> snapshot = root.get();
         TrieNode<ResolvedEntry> updated = snapshot
-                .insert(toSegments(project.sourceRoot()), scheme, new ResolvedEntry.ProjectEntry(project))
+                .insert(toSegments(sourceRoot), scheme, new ResolvedEntry.ProjectEntry(project))
                 .insert(toSegments(modulePath(uri, project)), scheme, new ResolvedEntry.ModuleEntry(module))
                 .insert(toSegments(uri.uri()), scheme, new ResolvedEntry.DocumentEntry(newDocument));
         root.set(updated);
@@ -397,11 +398,12 @@ public final class UriResolver {
      */
     public void onDocumentRemove(@Nonnull DocumentUri uri, @Nonnull String scheme, @Nonnull Module updatedModule) {
         Project project = updatedModule.project();
+        Path sourceRoot = projectRootPath(uri, project);
 
         TrieNode<ResolvedEntry> snapshot = root.get();
         TrieNode<ResolvedEntry> updated = snapshot
                 .remove(toSegments(uri.uri()), scheme)
-                .insert(toSegments(project.sourceRoot()), scheme, new ResolvedEntry.ProjectEntry(project))
+                .insert(toSegments(sourceRoot), scheme, new ResolvedEntry.ProjectEntry(project))
                 .insert(toSegments(modulePath(uri, project)), scheme, new ResolvedEntry.ModuleEntry(updatedModule));
         root.set(updated);
     }
@@ -548,7 +550,7 @@ public final class UriResolver {
     }
 
     private static Path modulePath(DocumentUri documentUri, Project project) {
-        Path sourceRoot = project.sourceRoot().toAbsolutePath().normalize();
+        Path sourceRoot = projectRootPath(documentUri, project);
         Path documentPath = Path.of(documentUri.uri().getPath()).toAbsolutePath().normalize();
         if (sourceRoot.equals(documentPath)) {
             return sourceRoot;
@@ -561,6 +563,13 @@ public final class UriResolver {
                     .resolve(relativePath.getName(1).toString());
         }
         return sourceRoot;
+    }
+
+    private static Path projectRootPath(DocumentUri documentUri, Project project) {
+        if (project.kind() == io.ballerina.projects.ProjectKind.SINGLE_FILE_PROJECT) {
+            return Path.of(documentUri.uri().getPath()).toAbsolutePath().normalize();
+        }
+        return project.sourceRoot().toAbsolutePath().normalize();
     }
 
     /**

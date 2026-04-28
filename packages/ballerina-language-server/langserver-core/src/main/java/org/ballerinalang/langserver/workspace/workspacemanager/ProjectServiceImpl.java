@@ -22,6 +22,7 @@ import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.Project;
+import io.ballerina.projects.util.ProjectConstants;
 import org.ballerinalang.langserver.workspace.eventbus.event.BatchEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.CompilerEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
@@ -49,7 +50,9 @@ import org.eclipse.lsp4j.FileEvent;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
+import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
@@ -60,6 +63,7 @@ import javax.annotation.Nonnull;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 /**
  * Service layer implementation managing workspace projects.
@@ -79,9 +83,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 public final class ProjectServiceImpl implements ProjectService {
 
     private static final int DEFAULT_MAX_PROJECTS = 128;
-    private static final String BALLERINA_TOML = "Ballerina.toml";
-    private static final String DEPENDENCIES_TOML = "Dependencies.toml";
-    private static final Set<String> BUFFERED_TOML_FILES = Set.of(BALLERINA_TOML, DEPENDENCIES_TOML, "Cloud.toml");
+    private static final String BALLERINA_TOML = ProjectConstants.BALLERINA_TOML;
+    private static final String DEPENDENCIES_TOML = ProjectConstants.DEPENDENCIES_TOML;
+    private static final Set<String> BUFFERED_TOML_FILES = Set.of(
+            BALLERINA_TOML,
+            DEPENDENCIES_TOML,
+            ProjectConstants.CLOUD_TOML,
+            ProjectConstants.COMPILER_PLUGIN_TOML,
+            ProjectConstants.BAL_TOOL_TOML);
 
     private final UriResolver uriResolver;
     private final EventSyncPubSubHolder eventBus;
@@ -95,6 +104,7 @@ public final class ProjectServiceImpl implements ProjectService {
     private final ConcurrentHashMap<Path, AtomicInteger> dependenciesSelfWriteTokens;
     private final ConcurrentHashMap<DocumentUri, Set<EventKind>> observedCompilerSignals;
     private final ConcurrentHashMap<Path, DocumentUri> rootCache;
+    private final Set<DocumentUri> deletedSingleFileRoots;
 
     /**
      * Constructs a project service with full wiring of dependencies.
@@ -114,6 +124,7 @@ public final class ProjectServiceImpl implements ProjectService {
         this.dependenciesSelfWriteTokens = new ConcurrentHashMap<>();
         this.observedCompilerSignals = new ConcurrentHashMap<>();
         this.rootCache = new ConcurrentHashMap<>();
+        this.deletedSingleFileRoots = ConcurrentHashMap.newKeySet();
         this.uriResolver = new UriResolver(DEFAULT_MAX_PROJECTS, this::onImplicitProjectEviction);
         this.changeApplier = new ChangeApplier(changeBuffer, this.uriResolver);
         subscribeToEvents();
@@ -137,6 +148,7 @@ public final class ProjectServiceImpl implements ProjectService {
         this.dependenciesSelfWriteTokens = new ConcurrentHashMap<>();
         this.observedCompilerSignals = new ConcurrentHashMap<>();
         this.rootCache = new ConcurrentHashMap<>();
+        this.deletedSingleFileRoots = ConcurrentHashMap.newKeySet();
         this.uriResolver = new UriResolver(DEFAULT_MAX_PROJECTS, this::onImplicitProjectEviction);
         this.changeApplier = changeApplier;
         subscribeToEvents();
@@ -148,10 +160,13 @@ public final class ProjectServiceImpl implements ProjectService {
 
     @Override
     public Project loadOrCreate(@Nonnull Path path, CancelChecker cancelChecker) {
+        processClosedWatcherEvents();
         Path normalized = path.toAbsolutePath().normalize();
         DocumentUri docUri = toFileUri(normalized);
+        deletedSingleFileRoots.remove(docUri);
         Optional<Project> cachedProject = uriResolver.project(docUri);
         if (cachedProject.isPresent()) {
+            ensureResolvableSourceDocument(normalized, cachedProject.get());
             return cachedProject.get();
         }
 
@@ -167,11 +182,30 @@ public final class ProjectServiceImpl implements ProjectService {
                                 root, detectKind(root)));
         try {
             Project loaded = loader.load(toFileUri(normalized), wmProject.kind());
+            ensureResolvableSourceDocument(normalized, loaded);
             uriResolver.registerProject(root, loaded);
             publishWm(EventKind.WORKSPACE_PROJECT_REGISTERED, root);
             return loaded;
         } catch (Exception e) {
             throw new RuntimeException("Failed to load project for " + root, e);
+        }
+    }
+
+    @Override
+    public @Nonnull Optional<Project> project(@Nonnull Path path) {
+        Path normalized = path.toAbsolutePath().normalize();
+        DocumentUri docUri = toFileUri(normalized);
+        if (deletedSingleFileRoots.contains(docUri)) {
+            return Optional.empty();
+        }
+        Optional<Project> cachedProject = uriResolver.project(docUri);
+        if (cachedProject.isPresent()) {
+            return cachedProject;
+        }
+        try {
+            return uriResolver.getProject(resolveSourceRoot(normalized));
+        } catch (Exception ignored) {
+            return Optional.empty();
         }
     }
 
@@ -401,6 +435,10 @@ public final class ProjectServiceImpl implements ProjectService {
      */
     public void applyDocumentContent(Path filePath, String content) {
         Path normalized = filePath.toAbsolutePath().normalize();
+        DocumentUri uri = toFileUri(normalized);
+        if (applyDocumentContent(uri, content)) {
+            return;
+        }
         try {
             // loadOrCreate is idempotent: returns cached project if already loaded.
             Project project = loadOrCreate(normalized, null);
@@ -415,17 +453,45 @@ public final class ProjectServiceImpl implements ProjectService {
         }
     }
 
+    private boolean applyDocumentContent(DocumentUri uri, String content) {
+        try {
+            Optional<Document> document = uriResolver.document(uri);
+            if (document.isEmpty()) {
+                return false;
+            }
+            Document updated = document.get().modify().withContent(content).apply();
+            uriResolver.onDocumentUpdate(uri, uri.uri().getScheme(), updated);
+            return true;
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
     // =========================================================================
     // Document Lifecycle Methods (T-044: absorb DocumentService into ProjectService)
     // =========================================================================
 
     @Override
     public void didOpen(@Nonnull DocumentUri uri, @Nonnull String content) {
+        if (changeBuffer.isOpen(uri)) {
+            return;
+        }
         TextDocumentContentChangeEvent fullText = new TextDocumentContentChangeEvent(content);
         int version = versionCounters.computeIfAbsent(uri, k -> new AtomicInteger(0)).incrementAndGet();
         changeBuffer.append(uri, new BufferedChange(fullText, ChangeLayer.EDITOR, new ContentVersion(version)));
         incrementOpenDocumentCount(uri);
-        applyBufferedChanges();
+        try {
+            loadOrCreate(pathOf(uri), null);
+            applyBufferedChanges();
+            if (versionCounters.getOrDefault(uri, new AtomicInteger()).get() == version) {
+                applyDocumentContent(pathOf(uri), content);
+            }
+        } catch (RuntimeException e) {
+            changeBuffer.clear(uri);
+            versionCounters.remove(uri);
+            decrementOpenDocumentCount(uri);
+            throw e;
+        }
     }
 
     @Override
@@ -436,6 +502,9 @@ public final class ProjectServiceImpl implements ProjectService {
             changeBuffer.append(uri, new BufferedChange(change, ChangeLayer.EDITOR, new ContentVersion(version)));
         }
         applyBufferedChanges();
+        if (!changes.isEmpty()) {
+            applyDocumentContent(pathOf(uri), changes.get(changes.size() - 1).getText());
+        }
     }
 
     @Override
@@ -458,8 +527,9 @@ public final class ProjectServiceImpl implements ProjectService {
                     }
                     appendWatchedTomlChange(docUri, event.getType());
                     transitionProjectKindIfNeeded(filePath, event.getType());
+                    refreshProjectForTomlIdentityChange(filePath, event.getType());
                 } else {
-                    changeBuffer.routeWatcherEvent(docUri, event);
+                    routeSourceWatcherEvent(docUri, filePath, event);
                 }
                 applyBufferedChanges();
             } catch (Exception ignored) {
@@ -626,6 +696,123 @@ public final class ProjectServiceImpl implements ProjectService {
         changeBuffer.append(uri, new BufferedChange(change, ChangeLayer.EDITOR, new ContentVersion(version)));
     }
 
+    private void routeSourceWatcherEvent(DocumentUri uri, Path filePath, FileEvent event) {
+        boolean open = changeBuffer.isOpen(uri);
+        changeBuffer.routeWatcherEvent(uri, event);
+        switch (event.getType()) {
+            case Created -> refreshProjectForSourceChange(uri, filePath);
+            case Deleted -> {
+                if (open) {
+                    Optional<Project> cachedProject = uriResolver.project(uri);
+                    if (cachedProject.isPresent()
+                            && cachedProject.get().kind() == io.ballerina.projects.ProjectKind.SINGLE_FILE_PROJECT) {
+                        removeSingleFileProject(filePath);
+                    } else {
+                        removeDocumentFromProject(filePath);
+                    }
+                    changeBuffer.clear(uri);
+                    versionCounters.remove(uri);
+                    decrementOpenDocumentCount(uri);
+                } else {
+                    removeOrRefreshProjectForSourceDelete(uri, filePath);
+                }
+            }
+            case Changed -> { }
+        }
+    }
+
+    private void processClosedWatcherEvents() {
+        changeBuffer.drainClosedDocChanges().forEach((uri, event) -> {
+            if (changeBuffer.isOpen(uri)) {
+                return;
+            }
+            Path filePath = pathOf(uri);
+            switch (event.getType()) {
+                case Created, Changed -> refreshProjectForSourceChange(uri, filePath);
+                case Deleted -> removeOrRefreshProjectForSourceDelete(uri, filePath);
+            }
+        });
+    }
+
+    private void refreshProjectForTomlIdentityChange(Path filePath, FileChangeType changeType) {
+        if (changeType != FileChangeType.Created && changeType != FileChangeType.Deleted) {
+            return;
+        }
+
+        Path parent = filePath.getParent();
+        if (parent == null) {
+            return;
+        }
+
+        rootCache.clear();
+        if (isBallerinaToml(filePath) && changeType == FileChangeType.Deleted) {
+            removeProjectsAtOrUnder(parent);
+            return;
+        }
+        if (isBallerinaToml(filePath)) {
+            removeProjectsAtOrUnder(parent);
+        }
+        refreshProject(parent);
+    }
+
+    private void refreshProjectForSourceChange(DocumentUri uri, Path filePath) {
+        DocumentUri root = uriResolver.project(uri)
+                .map(project -> sourceRootLike(uri, project.sourceRoot()))
+                .orElseGet(() -> resolveSourceRoot(filePath));
+        refreshProject(pathOf(root));
+    }
+
+    private void removeOrRefreshProjectForSourceDelete(DocumentUri uri, Path filePath) {
+        Optional<Project> cachedProject = uriResolver.project(uri);
+        if (cachedProject.isPresent()
+                && cachedProject.get().kind() == io.ballerina.projects.ProjectKind.SINGLE_FILE_PROJECT) {
+            removeSingleFileProject(filePath);
+            return;
+        }
+
+        DocumentUri root = cachedProject
+                .map(project -> sourceRootLike(uri, project.sourceRoot()))
+                .orElseGet(() -> resolveSourceRoot(filePath));
+        refreshProject(pathOf(root));
+    }
+
+    private void refreshProject(Path loadPath) {
+        Path normalized = loadPath.toAbsolutePath().normalize();
+        rootCache.clear();
+        DocumentUri root = resolveSourceRoot(normalized);
+        try {
+            ProjectKind kind = detectKind(root);
+            Project refreshed = loader.load(toFileUri(normalized), kind);
+            workspaceProjects.computeIfAbsent(root,
+                    ignored -> new org.ballerinalang.langserver.workspace.workspacemanager.project.Project(root, kind));
+            uriResolver.onProjectUpdate(root, root.uri().getScheme(), refreshed);
+            publishWm(EventKind.WORKSPACE_PROJECT_UPDATED, root);
+        } catch (Exception ignored) {
+            removeCachedProject(root);
+        }
+    }
+
+    private void removeProjectsAtOrUnder(Path rootPath) {
+        Path normalizedRoot = rootPath.toAbsolutePath().normalize();
+        List<DocumentUri> roots = workspaceProjects.keySet().stream()
+                .filter(root -> pathOf(root).startsWith(normalizedRoot))
+                .toList();
+        roots.forEach(this::removeCachedProject);
+    }
+
+    private void removeCachedProject(DocumentUri root) {
+        uriResolver.onProjectRemove(root);
+        workspaceProjects.remove(root);
+        purgeEntriesForRoot(root);
+        rootCache.clear();
+    }
+
+    private void removeSingleFileProject(Path filePath) {
+        DocumentUri root = resolveSourceRoot(filePath);
+        deletedSingleFileRoots.add(root);
+        removeCachedProject(root);
+    }
+
     private void transitionProjectKindIfNeeded(Path filePath, FileChangeType changeType) {
         if (!isBallerinaToml(filePath)
                 || (changeType != FileChangeType.Created && changeType != FileChangeType.Deleted)) {
@@ -681,6 +868,64 @@ public final class ProjectServiceImpl implements ProjectService {
     private boolean isDependenciesToml(Path path) {
         Path fileName = path.getFileName();
         return fileName != null && DEPENDENCIES_TOML.equals(fileName.toString());
+    }
+
+    private void ensureResolvableSourceDocument(Path path, Project project) {
+        if (!isBallerinaSource(path) || !Files.isRegularFile(path)) {
+            return;
+        }
+        ensureNoGeneratedSourceDuplicates(path);
+        if (!isInspectableProject(project)) {
+            return;
+        }
+        try {
+            DocumentId documentId = project.documentId(path);
+            project.currentPackage().module(documentId.moduleId()).document(documentId);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to resolve document for " + path, e);
+        }
+    }
+
+    private boolean isBallerinaSource(Path path) {
+        Path fileName = path.getFileName();
+        return fileName != null && fileName.toString().endsWith(".bal");
+    }
+
+    private void ensureNoGeneratedSourceDuplicates(Path path) {
+        Path rootPath = pathOf(resolveSourceRoot(path));
+        Path generatedRoot = rootPath.resolve(ProjectConstants.GENERATED_MODULES_ROOT);
+        if (!Files.isDirectory(generatedRoot)) {
+            return;
+        }
+        try (Stream<Path> generatedSources = Files.walk(generatedRoot)) {
+            Optional<Path> duplicate = generatedSources
+                    .filter(Files::isRegularFile)
+                    .filter(this::isBallerinaSource)
+                    .filter(generatedSource -> Files.isRegularFile(sourcePathForGenerated(rootPath, generatedRoot,
+                            generatedSource)))
+                    .findAny();
+            if (duplicate.isPresent()) {
+                throw new RuntimeException("Duplicate generated source exists in project: " + rootPath);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to inspect generated sources for " + rootPath, e);
+        }
+    }
+
+    private Path sourcePathForGenerated(Path rootPath, Path generatedRoot, Path generatedSource) {
+        Path relative = generatedRoot.relativize(generatedSource);
+        if (relative.getNameCount() == 1) {
+            return rootPath.resolve(relative);
+        }
+        return rootPath.resolve(ProjectConstants.MODULES_ROOT).resolve(relative);
+    }
+
+    private boolean isInspectableProject(Project project) {
+        try {
+            return project.sourceRoot() != null && project.currentPackage() != null && project.kind() != null;
+        } catch (Exception ignored) {
+            return false;
+        }
     }
 
     /**

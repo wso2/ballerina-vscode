@@ -168,7 +168,7 @@ public class ChangeApplier {
             return false;
         }
 
-        Map<Module, Map<Document, List<TextDocumentContentChangeEvent>>> changesByModule = new HashMap<>();
+        boolean applied = false;
         for (Map.Entry<DocumentUri, List<BufferedChange>> entry : changesByUri.entrySet()) {
             Optional<Document> document = resolveDocument(entry.getKey());
             if (document.isEmpty()) {
@@ -177,16 +177,10 @@ public class ChangeApplier {
             List<TextDocumentContentChangeEvent> events = entry.getValue().stream()
                     .map(BufferedChange::change)
                     .toList();
-            changesByModule.computeIfAbsent(document.get().module(), ignored -> new HashMap<>())
-                    .put(document.get(), events);
+            applyViaDocumentModify(entry.getKey(), document.get(), events);
+            applied = true;
         }
-
-        if (changesByModule.isEmpty()) {
-            return false;
-        }
-
-        applyClusteredChanges(changesByModule);
-        return true;
+        return applied;
     }
 
     private boolean applyResolvedChanges(List<ResolvedPendingChange> resolvedChanges) {
@@ -194,7 +188,7 @@ public class ChangeApplier {
         for (ResolvedPendingChange pendingChange : resolvedChanges) {
             ResolvedEntry resolvedEntry = pendingChange.entry();
             if (resolvedEntry instanceof ResolvedEntry.DocumentEntry documentEntry) {
-                applyViaDocumentModify(documentEntry.document(), pendingChange.changes());
+                applyViaDocumentModify(pendingChange.uri(), documentEntry.document(), pendingChange.changes());
                 applied = true;
                 continue;
             }
@@ -255,37 +249,11 @@ public class ChangeApplier {
         return changes.stream().allMatch(change -> change.getRange() == null && WATCHER_MARKERS.contains(change.getText()));
     }
 
-    private void applyClusteredChanges(Map<Module, Map<Document, List<TextDocumentContentChangeEvent>>> changesByModule) {
-        if (changesByModule.size() == 1) {
-            Module module = changesByModule.keySet().iterator().next();
-            Map<Document, List<TextDocumentContentChangeEvent>> docChanges = changesByModule.get(module);
-            if (docChanges.size() == 1) {
-                Document document = docChanges.keySet().iterator().next();
-                applyViaDocumentModify(document, docChanges.get(document));
-                return;
-            }
-            applyViaModuleModify(docChanges);
-            return;
-        }
-        applyViaPackageModify(changesByModule);
-    }
-
-    private void applyViaDocumentModify(Document document, List<TextDocumentContentChangeEvent> changes) {
-        document.modify()
+    private void applyViaDocumentModify(DocumentUri uri, Document document, List<TextDocumentContentChangeEvent> changes) {
+        Document updated = document.modify()
                 .withContent(strategy.computeContent(document, changes))
                 .apply();
-    }
-
-    private void applyViaModuleModify(Map<Document, List<TextDocumentContentChangeEvent>> docChanges) {
-        for (Map.Entry<Document, List<TextDocumentContentChangeEvent>> entry : docChanges.entrySet()) {
-            applyViaDocumentModify(entry.getKey(), entry.getValue());
-        }
-    }
-
-    private void applyViaPackageModify(Map<Module, Map<Document, List<TextDocumentContentChangeEvent>>> changesByModule) {
-        for (Map<Document, List<TextDocumentContentChangeEvent>> docChanges : changesByModule.values()) {
-            applyViaModuleModify(docChanges);
-        }
+        uriResolver.onDocumentUpdate(uri, uri.uri().getScheme(), updated);
     }
 
     private Optional<DocumentUri> sourceRootOf(DocumentUri uri, ResolvedEntry resolvedEntry) {

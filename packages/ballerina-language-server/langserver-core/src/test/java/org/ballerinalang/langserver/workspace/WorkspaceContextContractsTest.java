@@ -88,10 +88,13 @@ public class WorkspaceContextContractsTest {
     @Test
     public void projectService_matchesContractSignatures() throws ReflectiveOperationException {
         Assert.assertTrue(ProjectService.class.isInterface());
-        Assert.assertEquals(ProjectService.class.getMethods().length, 12);
+        Assert.assertEquals(ProjectService.class.getMethods().length, 13);
 
         Method loadOrCreate = ProjectService.class.getMethod("loadOrCreate", Path.class, CancelChecker.class);
         Assert.assertEquals(loadOrCreate.getReturnType(), Project.class);
+
+        Method project = ProjectService.class.getMethod("project", Path.class);
+        Assert.assertEquals(project.getReturnType(), java.util.Optional.class);
 
         Method allProjects = ProjectService.class.getMethod("allProjects");
         Assert.assertEquals(allProjects.getReturnType(), Collection.class);
