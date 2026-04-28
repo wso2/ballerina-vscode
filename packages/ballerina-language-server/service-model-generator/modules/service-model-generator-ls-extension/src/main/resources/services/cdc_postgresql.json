@@ -245,7 +245,7 @@
                 },
                 "enableCreate": {
                   "metadata": {
-                    "label": "Enable onCreate",
+                    "label": "Capture INSERT events",
                     "description": "Capture INSERT events"
                   },
                   "codedata": {
@@ -266,7 +266,7 @@
                 },
                 "enableUpdate": {
                   "metadata": {
-                    "label": "Enable onUpdate",
+                    "label": "Capture UPDATE events",
                     "description": "Capture UPDATE events"
                   },
                   "codedata": {
@@ -287,7 +287,7 @@
                 },
                 "enableDelete": {
                   "metadata": {
-                    "label": "Enable onDelete",
+                    "label": "Capture DELETE events",
                     "description": "Capture DELETE events"
                   },
                   "codedata": {
@@ -308,7 +308,7 @@
                 },
                 "enableTruncate": {
                   "metadata": {
-                    "label": "Enable onTruncate",
+                    "label": "Capture TRUNCATE events",
                     "description": "Capture TRUNCATE events"
                   },
                   "codedata": {

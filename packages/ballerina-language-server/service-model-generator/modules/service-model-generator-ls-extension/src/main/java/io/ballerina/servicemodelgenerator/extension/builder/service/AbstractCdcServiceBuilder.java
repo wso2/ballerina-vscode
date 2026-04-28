@@ -50,7 +50,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -77,13 +76,10 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.OPEN_B
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERVICE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERVICE_TYPE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.TWO_NEW_LINES;
 import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.extractParameterKinds;
 import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.restoreAndUpdateDataBindingParams;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.extractFunctionsFromSource;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
-import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getRequiredFunctionsForServiceType;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAddContext.TRIGGER_ADD;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.applyEnabledChoiceProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
@@ -138,13 +134,13 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
     protected static final String KEY_ENABLE_DELETE   = "enableDelete";
     protected static final String KEY_ENABLE_TRUNCATE = "enableTruncate";
 
-    private record CdcOperation(String key, String code, String functionName) { }
+    private record CdcOperation(String key, String code) { }
 
     private static final List<CdcOperation> CDC_OPERATIONS = List.of(
-            new CdcOperation(KEY_ENABLE_CREATE,   "c", "onCreate"),
-            new CdcOperation(KEY_ENABLE_UPDATE,   "u", "onUpdate"),
-            new CdcOperation(KEY_ENABLE_DELETE,   "d", "onDelete"),
-            new CdcOperation(KEY_ENABLE_TRUNCATE, "t", "onTruncate")
+            new CdcOperation(KEY_ENABLE_CREATE,   "c"),
+            new CdcOperation(KEY_ENABLE_UPDATE,   "u"),
+            new CdcOperation(KEY_ENABLE_DELETE,   "d"),
+            new CdcOperation(KEY_ENABLE_TRUNCATE, "t")
     );
 
     // Type and annotation names
@@ -452,7 +448,7 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
 
     /**
      * Injects synthetic CDC operation checkbox properties into the properties map so that
-     * {@link #computeActiveOpFunctionNames} works correctly when using an existing listener
+     *  works correctly when using an existing listener
      * (where the checkboxes are not present in the submitted form data).
      */
     private static void injectCdcOperationCheckboxes(Map<String, Value> properties, Set<String> skippedOps) {
@@ -480,12 +476,7 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
         Map<String, Value> properties = serviceInitModel.getProperties();
         Value tableValue = properties.get(KEY_TABLE);
 
-        // Enable only the functions that correspond to the selected operations
-        List<String> activeOpFunctions = computeActiveOpFunctionNames(properties);
-        List<Function> functions = getRequiredFunctionsForServiceType(serviceInitModel);
-        functions.forEach(f -> f.setEnabled(activeOpFunctions.contains(f.getName().getValue())));
-        List<String> functionsStr = buildMethodDefinitions(functions, TRIGGER_ADD, new HashMap<>());
-        String serviceBody = String.join(TWO_NEW_LINES, functionsStr);
+        String serviceBody = "";
 
         String serviceDeclaration =
                 buildServiceConfigurations(tableValue) +
@@ -498,21 +489,6 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
                         CLOSE_BRACE + NEW_LINE;
         ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
         edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().endLine()), serviceDeclaration));
-    }
-
-    /**
-     * Returns the remote function names for operations that are enabled (not unchecked) in the init form.
-     */
-    private List<String> computeActiveOpFunctionNames(Map<String, Value> properties) {
-        // onRead is always generated (not controlled by skippedOperations)
-        List<String> active = new ArrayList<>(List.of("onRead"));
-        for (CdcOperation op : CDC_OPERATIONS) {
-            Value v = properties.get(op.key());
-            if (v != null && !"false".equalsIgnoreCase(v.getValue())) {
-                active.add(op.functionName());
-            }
-        }
-        return active;
     }
 
     private ListenerDTO buildCdcListenerDTO(String moduleName, Map<String, Value> properties) {

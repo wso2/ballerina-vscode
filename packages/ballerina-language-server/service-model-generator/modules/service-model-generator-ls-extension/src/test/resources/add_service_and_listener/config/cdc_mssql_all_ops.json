@@ -177,7 +177,7 @@
       },
       "enableCreate": {
         "metadata": {
-          "label": "Enable onCreate",
+          "label": "Capture INSERT events",
           "description": "Capture INSERT events"
         },
         "codedata": {
@@ -198,7 +198,7 @@
       },
       "enableUpdate": {
         "metadata": {
-          "label": "Enable onUpdate",
+          "label": "Capture UPDATE events",
           "description": "Capture UPDATE events"
         },
         "codedata": {
@@ -219,7 +219,7 @@
       },
       "enableDelete": {
         "metadata": {
-          "label": "Enable onDelete",
+          "label": "Capture DELETE events",
           "description": "Capture DELETE events"
         },
         "codedata": {
@@ -321,7 +321,7 @@
             "character": 0
           }
         },
-        "newText": "\nservice cdc:Service on mssqlCdcListener {\n\tremote function onRead(record {} afterEntry, string tableName) returns error? {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n\n\tremote function onCreate(record {} afterEntry, string tableName) returns error? {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n\n\tremote function onUpdate(record {} beforeEntry, record {} afterEntry, string tableName) returns error? {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n\n\tremote function onDelete(record {} beforeEntry, string tableName) returns error? {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n}\n"
+        "newText": "\nservice cdc:Service on mssqlCdcListener {\n}\n"
       }
     ]
   }
