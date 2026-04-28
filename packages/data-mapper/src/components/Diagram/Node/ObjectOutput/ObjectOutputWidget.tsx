@@ -20,7 +20,7 @@ import React, { useState } from 'react';
 
 import { DiagramEngine } from '@projectstorm/react-diagrams';
 import { Button, Codicon, Icon, TruncatedLabel, TruncatedLabelGroup } from '@wso2/ui-toolkit';
-import { IOType, Mapping, TypeKind } from '@wso2/ballerina-core';
+import { InputCategory, IOType, Mapping, TypeKind } from '@wso2/ballerina-core';
 
 import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
 import { DataMapperPortWidget, PortState, InputOutputPortModel } from '../../Port';
@@ -31,6 +31,8 @@ import { useDMCollapsedFieldsStore, useDMExpressionBarStore, useDMIOConfigPanelS
 import { OutputSearchHighlight } from '../commons/Search';
 import { useShallow } from 'zustand/react/shallow';
 import { DiagnosticTooltip } from '../../Diagnostic/DiagnosticTooltip';
+import FieldActionWrapper from '../commons/FieldActionWrapper';
+import { FieldActionButton } from '../commons/FieldActionButton';
 
 export interface ObjectOutputWidgetProps {
 	id: string; // this will be the root ID used to prepend for UUIDs of nested fields
@@ -78,9 +80,10 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 	const portIn = getPort(`${id}.IN`);
 	const isExprBarFocused = exprBarFocusedPort?.getName() === portIn?.getName();
 	const isUnknownType = outputType.kind === TypeKind.Unknown;
+	const isConvertedField = outputType.category === InputCategory.ConvertedVariable;
 
 	let expanded = true;
-	if ((portIn && portIn.attributes.collapsed)) {
+	if (portIn && portIn.attributes.collapsed) {
 		expanded = false;
 	}
 	const isDisabled = portIn?.attributes.descendantHasValue;
@@ -146,16 +149,38 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 						}
 					</span>
 					<span className={classes.label}>
-						<Button
-							id={"expand-or-collapse-" + id}
-							appearance="icon"
-							tooltip="Expand/Collapse"
-							onClick={handleExpand}
-							data-testid={`${id}-expand-icon-mapping-target-node`}
-						>
-							{expanded ? <Codicon name="chevron-down" /> : <Codicon name="chevron-right" />}
-						</Button>
+						<FieldActionWrapper>
+							{isConvertedField ? (
+								<Button
+									id={"converted-icon-" + id}
+									appearance="icon"
+									tooltip="Type defined variable"
+								>
+									<Icon name="arrow-left-up" />
+								</Button>
+							) : (
+								<Button
+									id={"expand-or-collapse-" + id}
+									appearance="icon"
+									tooltip="Expand/Collapse"
+									onClick={handleExpand}
+									data-testid={`${id}-expand-icon-mapping-target-node`}
+								>
+									{expanded ? <Codicon name="chevron-down" /> : <Codicon name="chevron-right" />}
+								</Button>
+							)}
+						</FieldActionWrapper>
 						{label}
+						{isConvertedField && (
+							<FieldActionButton
+								id={"edit-" + id}
+								tooltip="Edit"
+								iconName="edit"
+								onClick={async () =>
+									await context.createConvertedVariable(outputType.name, false, outputType.name)
+								}
+							/>
+						)}
 					</span>
 					{context.model.hasInvalidOutput && (
 						<DiagnosticTooltip
