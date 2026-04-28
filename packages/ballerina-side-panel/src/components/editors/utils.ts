@@ -312,7 +312,7 @@ function pushPair(
 export function buildStringArray(elements: FormField[]): string {
     if (typeof elements === "string") return elements;
     const parts = elements.map(el => {
-        return (el.value as string).trim();
+        return ((el.value as string) ?? "").trim();
     });
     return `[${parts.join(", ")}]`;
 }
@@ -321,8 +321,8 @@ export function buildStringMap(elements: FormField[][] | string): string {
     if (typeof elements === "string") return elements;
     let finalString = "{";
     elements.forEach((el, index) => {
-        let processedValue = (el[1].value as string).trim();
-        const keyValue = (el[0].value as string).trim();
+        let processedValue = ((el[1].value as string) ?? "").trim();
+        const keyValue = ((el[0].value as string) ?? "").trim();
         
         if (index !== 0) {
             finalString += `, ${keyValue}: ${processedValue}`;
