@@ -23,6 +23,12 @@ const TOML_BOOLEAN_PATTERN = /^(true|false)$/;
 
 const getValidationTypeName = (type: string) => type.replace(/\?$/, '').trim();
 
+const getValidationTypeNames = (type: string) => getValidationTypeName(type)
+    .split('|')
+    .map(getValidationTypeName);
+
+export const isTomlStringType = (type: string) => getValidationTypeNames(type).includes('string');
+
 export const getTomlPlaceholder = (type: string, defaultValue?: unknown): string => {
     if (defaultValue !== undefined && defaultValue !== null && defaultValue !== '') {
         return `Default: ${String(defaultValue)}`;
@@ -175,4 +181,15 @@ export const validateTomlValue = (value: string, type: string): string => {
         default:
             return '';
     }
+};
+
+export const shouldQuoteTomlStringValue = (value: string, type: string) => {
+    const trimmedValue = value.trim();
+    if (!isTomlStringType(type) || TOML_STRING_PATTERN.test(trimmedValue)) {
+        return false;
+    }
+
+    const nonStringTypes = getValidationTypeNames(type).filter(typeName => typeName && typeName !== 'string');
+    return nonStringTypes.length === 0
+        || nonStringTypes.every(typeName => validateTomlValue(trimmedValue, typeName) !== '');
 };
