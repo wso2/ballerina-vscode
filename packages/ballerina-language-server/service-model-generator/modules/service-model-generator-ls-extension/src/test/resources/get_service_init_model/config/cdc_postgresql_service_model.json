@@ -296,7 +296,7 @@
                       "metadata": {
                         "label": "Truncate events",
                         "description": "When enabled, the CDC listener will capture TRUNCATE events"
-                      }
+                      },
                       "codedata": {
                         "argType": "CDC_OPERATION_ENABLE",
                         "originalName": "t"
