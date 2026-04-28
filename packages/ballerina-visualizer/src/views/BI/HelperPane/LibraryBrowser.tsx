@@ -101,9 +101,11 @@ export const LibraryBrowser = ({
     };
 
     const handleFunctionItemSelect = async (item: HelperPaneCompletionItem) => {
+        // Close helper pane immediately to prevent duplicate clicks
+        // while the async function template API call is in progress
+        onClose();
         const { value, cursorOffset } = await onFunctionItemSelect(item);
         onChange({ value, cursorOffset });
-        onClose();
     };
 
     return (
