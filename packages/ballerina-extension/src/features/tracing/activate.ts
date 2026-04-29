@@ -95,9 +95,7 @@ export function activateTracing(ballerinaExtInstance: BallerinaExtension) {
         } else if (prevEnabled && !isEnabled) {
             disposeTraceAnimation();
         }
-        if (prevEnabled !== isEnabled) {
-            sendTracingStatusChangedNotification({ enabled: isEnabled });
-        }
+        sendTracingStatusChangedNotification({ enabled: isEnabled });
         prevEnabled = isEnabled;
     });
 

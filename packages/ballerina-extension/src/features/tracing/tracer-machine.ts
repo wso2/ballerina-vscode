@@ -118,6 +118,26 @@ function disableTracingInProject(context: TracerMachineContext, event?: any): vo
     }
 }
 
+// True when a known project other than the one being disabled still has trace_enabled.bal.
+function hasOtherEnabledProjects(context: TracerMachineContext, event?: any): boolean {
+    const targetPath = event?.projectPath;
+    if (!targetPath) {
+        return false;
+    }
+    const candidates = new Set<string>();
+    if (context.currentProjectPath) {
+        candidates.add(context.currentProjectPath);
+    }
+    context.childProjectPaths?.forEach(p => candidates.add(p));
+    candidates.delete(targetPath);
+    for (const projectPath of candidates) {
+        if (fs.existsSync(path.join(projectPath, 'trace_enabled.bal'))) {
+            return true;
+        }
+    }
+    return false;
+}
+
 function startServer(context: TracerMachineContext, event?: any): Thenable<vscode.TaskExecution> {
     const task = createTraceServerTask();
     return vscode.tasks.executeTask(task);
@@ -216,6 +236,11 @@ function createTracerMachine(projectPath?: string, childProjectPaths?: string[])
                             actions: [enableTracingInProject],
                         },
                         DISABLE: [
+                            // Other projects still have trace_enabled.bal — remove this project's file and stay in enabled.
+                            {
+                                cond: hasOtherEnabledProjects,
+                                actions: [disableTracingInProject],
+                            },
                             {
                                 target: 'enabled.serverStopping',
                                 cond: () => {
