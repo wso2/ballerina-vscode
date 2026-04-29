@@ -46,9 +46,9 @@ import {
 import { correctTokenStreamPositions, normalizeEditorValue } from "../utils";
 import { history } from "@codemirror/commands";
 import { autocompletion } from "@codemirror/autocomplete";
-import { FloatingButtonContainer, FloatingToggleButton, ChipEditorContainer } from "../styles";
+import { FloatingButtonContainer, FloatingToggleButton, ChipEditorContainer, LoadingOverlay, LoadingPlaceholder } from "../styles";
 import { HelperpaneOnChangeOptions } from "../../../../Form/types";
-import { CompletionItem, FnSignatureDocumentation, HelperPaneHeight } from "@wso2/ui-toolkit";
+import { CompletionItem, FnSignatureDocumentation, HelperPaneHeight, ProgressRing } from "@wso2/ui-toolkit";
 import { CloseHelperIcon, ExpandIcon, MinimizeIcon, OpenHelperIcon } from "./FloatingButtonIcons";
 import { LineRange } from "@wso2/ballerina-core";
 import { HelperPaneToggleButton } from "./HelperPaneToggleButton";
@@ -104,6 +104,15 @@ export type ChipExpressionEditorComponentProps = {
     placeholder?: string;
 }
 
+function resolveInitialValueResolving(
+    value: string | undefined,
+    configuration: ChipExpressionEditorDefaultConfiguration
+): boolean {
+    if (!value) return false;
+    const deserialized = configuration.deserializeValue(value);
+    return normalizeEditorValue(deserialized) !== normalizeEditorValue(value);
+}
+
 export const ChipExpressionEditorComponent = (props: ChipExpressionEditorComponentProps) => {
     const { configuration = new ChipExpressionEditorConfig() } = props;
     const editorRef = useRef<HTMLDivElement>(null);
@@ -111,6 +120,9 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
     const fieldContainerRef = useRef<HTMLDivElement>(null);
     const viewRef = useRef<EditorView | null>(null);
     const [isTokenUpdateScheduled, setIsTokenUpdateScheduled] = useState(true);
+    const [isValueResolving, setIsValueResolving] = useState(
+        () => resolveInitialValueResolving(props.value, configuration)
+    );
     const completionsRef = useRef<CompletionItem[]>(props.completions);
     const helperPaneToggleButtonRef = useRef<HTMLButtonElement>(null);
     const completionsFetchScheduledRef = useRef<boolean>(false);
@@ -393,7 +405,10 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
             const currentDoc = viewRef.current!.state.doc.toString();
             const isExternalUpdate = serializedValue !== currentDoc;
 
-            if (!isTokenUpdateScheduled && !isExternalUpdate) return;
+            if (!isTokenUpdateScheduled && !isExternalUpdate) {
+                setIsValueResolving(false);
+                return;
+            }
 
             const startLine = props.targetLineRange?.startLine;
             const tokenStream = await expressionEditorRpcManager?.getExpressionTokens(
@@ -423,7 +438,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                 ...(changes && { changes }),
                 ...(annotations.length > 0 && { annotations }),
             });
-
+            setIsValueResolving(false);
         };
         updateEditorState();
     }, [props.value, props.fileName, props.targetLineRange?.startLine, isTokenUpdateScheduled]);
@@ -487,6 +502,12 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                         width: '100%',
                         height: '100%'
                     }} />
+                    {isValueResolving && (
+                        <LoadingOverlay>
+                            <ProgressRing sx={{ height: 16, width: 16 }} color="var(--vscode-input-placeholderForeground)" />
+                            <LoadingPlaceholder>Loading...</LoadingPlaceholder>
+                        </LoadingOverlay>
+                    )}
                     {helperPaneState.isOpen && configuration.showHelperPane() &&
                         <HelperPane
                             ref={helperPaneRef}
