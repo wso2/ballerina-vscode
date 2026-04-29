@@ -355,3 +355,24 @@ export const SkeletonLoader = styled.div`
     pointer-events: none;
     animation: ${loading} 1s infinite alternate;
 `;
+
+export const LoadingOverlay = styled.div`
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 8px;
+    background: var(--vscode-input-background);
+    border: 1px solid var(--vscode-dropdown-border);
+    z-index: 1000;
+    pointer-events: none;
+`;
+
+export const LoadingPlaceholder = styled.span`
+    color: var(--vscode-input-placeholderForeground);
+    font-size: 13px;
+`;
