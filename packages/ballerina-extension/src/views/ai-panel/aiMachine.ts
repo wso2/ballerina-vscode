@@ -567,10 +567,16 @@ const setupPlatformExtensionListener = () => {
                         (currentState as any).Authenticating === 'ssoFlow';
                     if (!inUnauthenticated && !inSsoFlow) return;
 
-                    try {
-                        await bridgePlatformLogin();
-                    } catch (error) {
-                        console.error('Failed to bridge platform login:', error);
+                    if (inUnauthenticated) {
+                        // COMPLETE_AUTH is only valid in ssoFlow; drive through LOGIN instead
+                        aiStateService.send(AIMachineEventType.LOGIN);
+                    } else {
+                        try {
+                            await bridgePlatformLogin();
+                        } catch (error) {
+                            console.error('Failed to bridge platform login:', error);
+                            aiStateService.send(AIMachineEventType.CANCEL_LOGIN);
+                        }
                     }
                 } else {
                     // Integrator signed out — only react if Copilot is using BI_INTEL.
