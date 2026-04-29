@@ -53,24 +53,6 @@
         "advanced": false,
         "hidden": false
       },
-      "inputType": {
-        "metadata": {
-          "label": "Input Type",
-          "description": "Type of the input data to the workflow"
-        },
-        "types": [
-          {
-            "fieldType": "TYPE",
-            "ballerinaType": "anydata",
-            "selected": false
-          }
-        ],
-        "value": "",
-        "optional": true,
-        "editable": true,
-        "advanced": false,
-        "hidden": false
-      },
       "type": {
         "metadata": {
           "label": "Return Type",
@@ -97,6 +79,41 @@
           {
             "fieldType": "DOC_TEXT",
             "selected": true
+          }
+        ],
+        "value": "",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "isPublic": {
+        "metadata": {
+          "label": "public",
+          "description": "Make visible across the project"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": "false",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "inputType": {
+        "metadata": {
+          "label": "Input Type",
+          "description": "Type of the input data to the workflow"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "ballerinaType": "anydata",
+            "selected": false
           }
         ],
         "value": "",
