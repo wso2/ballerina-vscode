@@ -83,6 +83,8 @@ export default function createTests() {
 
             await form.submit('Create Integration');
 
+            // Wait for 2 seconds
+            await page.page.waitForTimeout(2000);
             // Handle the VS Code save confirmation dialog rendered outside the webview iframe.
             const saveDialog = workbenchPage.locator('div.monaco-dialog-box[role="dialog"]').first();
             const discardAndNavigateButton = saveDialog.getByRole('button', { name: "Don't Save" }).first();
