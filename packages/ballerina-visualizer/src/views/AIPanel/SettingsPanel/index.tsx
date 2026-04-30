@@ -120,11 +120,14 @@ const SignOutButton = styled.button`
     white-space: nowrap;
     flex-shrink: 0;
     font-family: var(--vscode-font-family);
-    transition: all 0.15s ease;
-    color: var(--vscode-errorForeground);
-    background: var(--vscode-inputValidation-errorBackground, transparent);
-    border: 1px solid var(--vscode-errorForeground);
-    &:hover { opacity: 0.85; }
+    transition: color 0.15s ease, border-color 0.15s ease;
+    color: var(--vscode-descriptionForeground);
+    background: transparent;
+    border: 1px solid var(--vscode-panel-border, var(--vscode-input-border));
+    &:hover {
+        color: var(--vscode-errorForeground);
+        border-color: var(--vscode-errorForeground);
+    }
 `;
 
 const CopilotButton = styled.button<{ authorized: boolean }>`
