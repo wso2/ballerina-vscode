@@ -222,7 +222,7 @@ async function executeBallPullCommand(): Promise<void> {
     }
 }
 
-async function initVSCode() {
+async function initVSCode(workspacePath: string = newProjectPath) {
     if (vscode && page) {
         await page.executePaletteCommand('Reload Window');
     } else {
@@ -234,7 +234,7 @@ async function initVSCode() {
             undefined,
             false,
             launchExtensionsFolder,
-            newProjectPath,
+            workspacePath,
             profileName
         );
     }
@@ -462,7 +462,7 @@ export function initTest(newProject: boolean = true, skipProjectCreation: boolea
                 resetTestProjectFromTemplate();
             }
             console.log('  📦 Starting VSCode...');
-            await initVSCode();
+            await initVSCode(newProject ? newProjectPath : dataFolder);
         } else {
             // IMPORTANT: when reusing an existing VS Code window, we MUST close
             // editors BEFORE wiping the project folder from disk. Otherwise
