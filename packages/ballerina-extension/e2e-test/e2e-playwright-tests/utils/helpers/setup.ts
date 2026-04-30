@@ -27,7 +27,7 @@ import { BI_INTEGRATOR_LABEL, BI_WEBVIEW_NOT_FOUND_ERROR, DEFAULT_PROJECT_FOLDER
 import { waitForBISidebarTreeView } from './sidebar';
 
 /** Runtime test workspace lives under e2e-test/data (sibling of e2e-playwright-tests). */
-const dataFolder = path.join(__dirname, '..', '..', '..', 'data');
+export const dataFolder = path.join(__dirname, '..', '..', '..', 'data');
 /** Template package committed with tests (minimal Ballerina project to copy). */
 const emptyProjectPath = path.join(__dirname, '..', '..', 'data', 'empty_project');
 export const extensionsFolder = path.join(__dirname, '..', '..', '..', '..', 'vsix');
@@ -418,9 +418,6 @@ export async function setupBallerinaIntegrator() {
 export async function createProject(page: ExtendedPage, projectName?: string) {
     console.log('Creating new project');
 
-    // Execute bal pull command before project creation
-    await executeBallPullCommand();
-
     await setupBallerinaIntegrator();
     const webview = await getWebview(BI_INTEGRATOR_LABEL, page);
     if (!webview) {
@@ -452,7 +449,12 @@ export async function createProject(page: ExtendedPage, projectName?: string) {
 export function initTest(newProject: boolean = true, skipProjectCreation: boolean = true, cleanupAfter?: boolean, projectName?: string) {
     test.beforeAll(async ({ }, testInfo) => {
         console.log(`\n▶️  STARTING TEST: ${testInfo.title} (Attempt ${testInfo.retry + 1})`);
-        fs.mkdirSync(dataFolder, { recursive: true });
+        // Delete the data folder
+        if (fs.existsSync(dataFolder)) {
+            fs.rmSync(dataFolder, { recursive: true, force: true });
+        }
+        // Set permissions to read write execute for all files and folders in the data folder
+        fs.mkdirSync(dataFolder, { recursive: true, mode: 0o777 });
 
         if (!vscode || !page) {
             if (newProject) {
