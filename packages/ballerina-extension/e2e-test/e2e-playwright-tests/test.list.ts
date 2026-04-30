@@ -134,7 +134,7 @@ test.describe('Ballerina E2E Group 2', { tag: '@group2' }, async () => {
     test.describe(aiChatService);
 
     // <----Integration as API Test---->
-    test.describe.skip(graphqlService); // TODO: Fix this test
+    test.describe(graphqlService);
 
     // <----Event Integration Test---->
     test.describe(rabbitmqIntegration);
