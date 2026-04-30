@@ -98,7 +98,8 @@
             "packageName": "asb",
             "object": "Administrator",
             "symbol": "init",
-            "version": "3.9.1"
+            "version": "3.9.1",
+            "isGenerated": false
           },
           "enabled": true
         },
@@ -115,7 +116,8 @@
             "packageName": "snowflake",
             "object": "AdvancedClient",
             "symbol": "init",
-            "version": "2.2.2"
+            "version": "2.2.2",
+            "isGenerated": false
           },
           "enabled": true
         },
@@ -132,7 +134,8 @@
             "packageName": "azure_storage_service",
             "object": "BlobClient",
             "symbol": "init",
-            "version": "4.3.4"
+            "version": "4.3.4",
+            "isGenerated": false
           },
           "enabled": true
         }

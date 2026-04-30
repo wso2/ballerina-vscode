@@ -28,6 +28,7 @@ import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import org.ballerinalang.diagramutil.connector.models.connector.Type;
 import org.ballerinalang.diagramutil.connector.models.connector.types.ArrayType;
+import org.ballerinalang.diagramutil.connector.models.connector.types.IntersectionType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.RecordType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.UnionType;
 
@@ -54,12 +55,37 @@ public class TypeSymbolAnalyzerFromTypeModel {
                 TypeSymbolAnalyzerFromTypeModel.updateTypeConfig(recordType, mapping);
             } else if (type instanceof UnionType unionType) {
                 TypeSymbolAnalyzerFromTypeModel.updateUnionTypeConfig(unionType, mapping);
+            } else if (type instanceof IntersectionType intersectionType) {
+                TypeSymbolAnalyzerFromTypeModel.updateIntersectionTypeConfig(intersectionType, mapping);
             }
         } else {
             throw new IllegalArgumentException("Invalid expression");
         }
 
         return type;
+    }
+
+    private static void updateIntersectionTypeConfig(IntersectionType intersectionType,
+                                                     MappingConstructorExpressionNode mappingConstructor) {
+        for (Type type : intersectionType.members) {
+            if (updateIntersectionMemberConfig(type, mappingConstructor)) {
+                intersectionType.selected = true;
+                break;
+            }
+        }
+    }
+
+    private static boolean updateIntersectionMemberConfig(Type type,
+                                                          MappingConstructorExpressionNode mappingConstructor) {
+        if (type instanceof RecordType recordType) {
+            updateTypeConfig(recordType, mappingConstructor);
+            return recordType.selected;
+        }
+        if (type instanceof IntersectionType nestedIntersectionType) {
+            updateIntersectionTypeConfig(nestedIntersectionType, mappingConstructor);
+            return nestedIntersectionType.selected;
+        }
+        return false;
     }
 
     private static void updateUnionTypeConfig(UnionType unionType,

@@ -225,6 +225,69 @@
                       "optional": true,
                       "advanced": false
                     },
+                    "enableCreate": {
+                      "metadata": {
+                        "label": "Insert events",
+                        "description": "When enabled, the CDC listener will capture INSERT events"
+                      },
+                      "codedata": {
+                        "argType": "CDC_OPERATION_ENABLE",
+                        "originalName": "c"
+                      },
+                      "value": "true",
+                      "types": [
+                        {
+                          "fieldType": "FLAG",
+                          "selected": true
+                        }
+                      ],
+                      "enabled": true,
+                      "editable": true,
+                      "optional": false,
+                      "advanced": false
+                    },
+                    "enableUpdate": {
+                      "metadata": {
+                        "label": "Update events",
+                        "description": "When enabled, the CDC listener will capture UPDATE events"
+                      },
+                      "codedata": {
+                        "argType": "CDC_OPERATION_ENABLE",
+                        "originalName": "u"
+                      },
+                      "value": "true",
+                      "types": [
+                        {
+                          "fieldType": "FLAG",
+                          "selected": true
+                        }
+                      ],
+                      "enabled": true,
+                      "editable": true,
+                      "optional": false,
+                      "advanced": false
+                    },
+                    "enableDelete": {
+                      "metadata": {
+                        "label": "Delete events",
+                        "description": "When enabled, the CDC listener will capture DELETE events"
+                      },
+                      "codedata": {
+                        "argType": "CDC_OPERATION_ENABLE",
+                        "originalName": "d"
+                      },
+                      "value": "true",
+                      "types": [
+                        {
+                          "fieldType": "FLAG",
+                          "selected": true
+                        }
+                      ],
+                      "enabled": true,
+                      "editable": true,
+                      "optional": false,
+                      "advanced": false
+                    },
                     "advancedConfigurations": {
                       "metadata": {
                         "label": "Advanced Configurations",

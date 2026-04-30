@@ -24,3 +24,7 @@ function transform1(xml varXml) returns json => let Foo varXmlConverted = check 
 function transform2(json j, User u) returns json|error =>
     let User user = {code: u.code, number: u.number}, Foo foo = check jsondata:parseAsType(j),
     SecondaryPhones secondaryPhones = {} in jsondata:toJson(secondaryPhones);
+
+function transform3(json j, User u) returns json|error =>
+    let User user = {code: u.code, number: u.number}, Foo[] foo = check jsondata:parseAsType(j),
+    SecondaryPhones secondaryPhones = {} in jsondata:toJson(secondaryPhones);

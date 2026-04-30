@@ -1,34 +1,30 @@
 {
   "source": "data_mapper/main.bal",
-  "position": {
-    "line": 14,
-    "offset": 0
-  },
-  "description": "Sample diagram node",
+  "description": "Regression: getNodeTemplate for ballerinax/ibm.ibmmq:Topic when invoked from a project context (userModuleInfo non-null and != target). The emitted type.value must be 'ibmmq:Topic' (default import prefix), not bare 'Topic'.",
   "codedata": {
     "node": "NEW_CONNECTION",
-    "org": "ballerina",
-    "module": "grpc",
-    "packageName": "grpc",
-    "object": "StreamingClient",
-    "version": "1.13.2",
-    "symbol": "init"
+    "org": "ballerinax",
+    "module": "ibm.ibmmq",
+    "packageName": "ibm.ibmmq",
+    "object": "Topic",
+    "symbol": "init",
+    "version": "1.4.4"
   },
   "output": {
     "id": "31",
     "metadata": {
-      "label": "gRPC Streaming",
-      "description": "The base client used in the generated client code to provide the gRPC streaming client actions for\ninteracting  with the gRPC server.",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_grpc_1.13.2.png"
+      "label": "Ibmmq Topic",
+      "description": "IBM MQ Topic client.",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ibm.ibmmq_1.4.4.png"
     },
     "codedata": {
       "node": "NEW_CONNECTION",
-      "org": "ballerina",
-      "module": "grpc",
-      "packageName": "grpc",
-      "object": "StreamingClient",
+      "org": "ballerinax",
+      "module": "ibm.ibmmq",
+      "packageName": "ibm.ibmmq",
+      "object": "Topic",
       "symbol": "init",
-      "version": "1.13.2",
+      "version": "1.4.4",
       "isNew": true
     },
     "returning": false,
@@ -44,7 +40,7 @@
             "selected": true
           }
         ],
-        "value": "grpc:StreamingClient",
+        "value": "ibmmq:Topic",
         "placeholder": "var",
         "optional": false,
         "editable": false,
@@ -52,7 +48,7 @@
         "hidden": true,
         "codedata": {},
         "imports": {
-          "grpc": "ballerina/grpc"
+          "ibmmq": "ballerinax/ibm.ibmmq"
         }
       },
       "variable": {
@@ -66,7 +62,7 @@
             "selected": true
           }
         ],
-        "value": "grpcStreamingclient",
+        "value": "ibmmqTopic",
         "optional": false,
         "editable": true,
         "advanced": false,
