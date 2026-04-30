@@ -92,8 +92,10 @@ export default function createTests() {
 
             console.log('Waiting for project and BI webview');
             const artifactWebView = await getWebview(BI_INTEGRATOR_LABEL, page);
+            console.log('Waiting for project name to be visible');
             await artifactWebView.locator(`text=${projectName}`).waitFor({ timeout: 40000 });
 
+            console.log('Clicking on the integration name');
             // Click on the integration name ("testIntegration") directly from the BI webview project tree, not the project explorer
             const integrationNodeInWebview = artifactWebView.locator(`text=${integrationName}`);
             // await expect(integrationNodeInWebview).toBeVisible();
