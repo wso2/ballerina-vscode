@@ -405,7 +405,7 @@ const aiMachine = createMachine<AIMachineContext, AIMachineSendableEvent>({
     }
 });
 
-const bridgePlatformLogin = async (): Promise<void> => {
+const completeSsoSignIn = async (): Promise<void> => {
     const stsToken = await getPlatformStsToken();
     if (!stsToken) {
         throw new Error('Failed to get STS token from platform extension');
@@ -422,7 +422,7 @@ const openLogin = async () => {
             const isLoggedIn = await isDevantUserLoggedIn();
             if (isLoggedIn) {
                 // Already logged in, exchange token
-                await bridgePlatformLogin();
+                await completeSsoSignIn();
                 resolve(true);
                 return;
             }
@@ -572,9 +572,9 @@ const setupPlatformExtensionListener = () => {
                         aiStateService.send(AIMachineEventType.LOGIN);
                     } else {
                         try {
-                            await bridgePlatformLogin();
+                            await completeSsoSignIn();
                         } catch (error) {
-                            console.error('Failed to bridge platform login:', error);
+                            console.error('Failed to complete SSO sign-in:', error);
                             aiStateService.send(AIMachineEventType.CANCEL_LOGIN);
                         }
                     }
