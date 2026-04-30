@@ -107,26 +107,26 @@ test.describe('Ballerina E2E Group 1', { tag: '@group1' }, async () => {
     // <----Create Project Test---->
     test.describe(createProject);
 
-    // // <----Automation Test---->
-    // test.describe(automation);
+    // <----Automation Test---->
+    test.describe(automation);
 
-    // // <----Automation Run Test---->
-    // test.describe(automationRun);
+    // <----Automation Run Test---->
+    test.describe(automationRun);
 
-    // // <----Expression Editor Test---->
-    // test.describe(expressionEditor);
+    // <----Expression Editor Test---->
+    test.describe(expressionEditor);
 
-    // // <----Integration as API Test---->
-    // test.describe(httpService);
+    // <----Integration as API Test---->
+    test.describe(httpService);
 
-    // // <----Event Integration Test---->
-    // test.describe(kafkaIntegration);
+    // <----Event Integration Test---->
+    test.describe(kafkaIntegration);
 
-    // // <----File Integration Test---->
-    // test.describe(ftpIntegration);
+    // <----File Integration Test---->
+    test.describe(ftpIntegration);
 });
 
-test.describe.skip('Ballerina E2E Group 2', { tag: '@group2' }, async () => {
+test.describe('Ballerina E2E Group 2', { tag: '@group2' }, async () => {
     // <----Automation Debug Test---->
     test.describe(automationDebug);
 
@@ -147,7 +147,7 @@ test.describe.skip('Ballerina E2E Group 2', { tag: '@group2' }, async () => {
     test.describe(functionArtifact);
 });
 
-test.describe.skip('Ballerina E2E Group 3', { tag: '@group3' }, async () => {
+test.describe('Ballerina E2E Group 3', { tag: '@group3' }, async () => {
     // <----Integration as API Test---->
     test.describe(tcpService);
 
@@ -167,7 +167,7 @@ test.describe.skip('Ballerina E2E Group 3', { tag: '@group3' }, async () => {
     test.describe(reusableDataMapper);
 });
 
-test.describe.skip('Ballerina E2E Group 4', { tag: '@group4' }, async () => {
+test.describe('Ballerina E2E Group 4', { tag: '@group4' }, async () => {
     // <----Event Integration Test---->
     test.describe(githubIntegration);
     test.describe(azureIntegration);

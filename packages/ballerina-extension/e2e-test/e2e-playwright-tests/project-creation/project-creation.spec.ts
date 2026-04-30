@@ -26,7 +26,7 @@ export default function createTests() {
     test.describe.serial('Project Creation Tests', {
     }, async () => {
         initTest(false);
-        test('Create Project', async () => {
+        test('Create Project', async ({ }, testInfo) => {
             const workbenchPage = page.page;
             // Activity bar entry is an <a class="action-label" aria-label="...">, not a tab role.
             console.log('Clicking on the WSO2 Integrator activity tab');
@@ -84,6 +84,7 @@ export default function createTests() {
             await form.submit('Create Integration');
 
             console.log('Waiting for project and BI webview');
+            const testAttempt = testInfo.retry + 1;
             const artifactWebView = await getWebview(BI_INTEGRATOR_LABEL, page);
             console.log('Waiting for project name to be visible');
             await artifactWebView.locator(`text=${projectName}`).waitFor({ timeout: 40000 });
@@ -97,65 +98,32 @@ export default function createTests() {
 
             // Create automation
 
-            // 1. Click on the "Add Artifact" button
-            // 2. Verify the Artifacts menu is displayed
-            // 3. Under "Automation" section, click on "Automation" option
-            await addArtifact('Automation', 'automation');
-
-            const artifactWebView2 = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page, 30000);
+            console.log('Creating a new service in test attempt: ', testAttempt);
+            // Creating a HTTP Service
+            await addArtifact('HTTP Service', 'http-service-card');
+            const artifactWebView2 = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page);
             if (!artifactWebView2) {
                 throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
             }
-
-            // 4. Verify the "Create New Automation" form is displayed
-            const createForm = artifactWebView2.getByRole('heading', { name: /Create New Automation/i });
-            await createForm.waitFor({ timeout: 10000 });
-
-            // 6. (Optional) Click on "Advanced Configurations" to expand the section
-            const advancedConfigExpand = artifactWebView2.getByText('Expand').first();
-            if (await advancedConfigExpand.isVisible({ timeout: 2000 }).catch(() => false)) {
-                await advancedConfigExpand.click();
-                await page.page.waitForTimeout(500);
-            }
-
-            // 7. (Optional) Verify "Return Error" checkbox is checked by default
-            const returnErrorCheckbox = artifactWebView2.getByRole('checkbox', { name: /Return Error/i }).first();
-            if (await returnErrorCheckbox.isVisible()) {
-                const isChecked = await returnErrorCheckbox.isChecked();
-                if (!isChecked) {
-                    throw new Error('Return Error checkbox should be checked by default');
+            const sampleName = `/sample${testAttempt}`;
+            const form2 = new Form(page.page, BI_INTEGRATOR_LABEL, artifactWebView2);
+            await form2.switchToFormView(false, artifactWebView2);
+            await form2.fill({
+                values: {
+                    'Service Base Path*': {
+                        type: 'input',
+                        value: sampleName,
+                    }
                 }
-            }
-
-            // 8. Click on the "Create" button
-            await artifactWebView2.getByRole('button', { name: 'Create' }).click();
-
-            // 9. Verify the Automation is created and the automation designer view is displayed
-            const diagramCanvas = artifactWebView2.locator('#bi-diagram-canvas');
-            await diagramCanvas.waitFor({ state: 'visible', timeout: 30000 });
-
-            // 10. Verify the automation name is displayed (default: "main")
-            const diagramTitle = artifactWebView2.locator('h2', { hasText: 'Automation' });
-            await diagramTitle.waitFor();
-
-            // 11. Verify the "Flow" and "Sequence" tabs are available
-            // Wait for the diagram to fully load before checking for tabs
-            await page.page.waitForTimeout(1000);
-            // The tabs are clickable generic elements, not role="tab"
-            const flowTab = artifactWebView2.getByText('Flow').first();
-            await flowTab.waitFor({ timeout: 10000, state: 'visible' });
-            const sequenceTab = artifactWebView2.getByText('Sequence').first();
-            await sequenceTab.waitFor({ timeout: 10000, state: 'visible' });
-
-            // 12. Verify the flow diagram shows a "Start" node
-            // Check if "Start" node is present using data-testid
-            const startNode = artifactWebView2.locator('[data-testid="start-node"]');
-            await startNode.waitFor({ timeout: 10000, state: 'visible' });
-
-            // 13. Verify the flow diagram shows an "Error Handler" node
-            // Check if "Error Handler" node is present without using CSS class selectors
-            await artifactWebView2.getByText(/^Error Handler$/, { exact: true }).first();
-
+            });
+            await form2.submit('Create');
+            // Check for both possible text matches to avoid strict mode violation
+            const httpServiceLabel = artifactWebView2.locator(`text=HTTP Service - ${sampleName}`);
+            const servicePathLabel = artifactWebView2.locator(`text=${sampleName}`).first();
+            await Promise.race([
+                httpServiceLabel.waitFor(),
+                servicePathLabel.waitFor()
+            ]);
         });
     });
 }
