@@ -552,22 +552,22 @@ const setupPlatformExtensionListener = () => {
             }
 
             disposePlatformLoginListener?.();
-            const dispose = api.subscribeIsLoggedIn(async (isLoggedIn: boolean) => {
-                const currentState = aiStateService.getSnapshot().value;
+            const dispose = api.subscribeIsLoggedIn(async (wiLoggedIn: boolean) => {
+                const copilotState = aiStateService.getSnapshot().value;
 
-                if (isLoggedIn) {
+                if (wiLoggedIn) {
                     // Don't override an explicit non-BI_INTEL choice (Anthropic/AWS/Vertex).
-                    const existing = await getAuthCredentials();
-                    if (existing && existing.loginMethod !== LoginMethod.BI_INTEL) return;
+                    const copilotCreds = await getAuthCredentials();
+                    if (copilotCreds && copilotCreds.loginMethod !== LoginMethod.BI_INTEL) return;
 
-                    const inUnauthenticated = currentState === 'Unauthenticated';
-                    const inSsoFlow =
-                        typeof currentState === 'object' &&
-                        'Authenticating' in currentState &&
-                        (currentState as any).Authenticating === 'ssoFlow';
-                    if (!inUnauthenticated && !inSsoFlow) return;
+                    const copilotUnauthenticated = copilotState === 'Unauthenticated';
+                    const copilotInSsoFlow =
+                        typeof copilotState === 'object' &&
+                        'Authenticating' in copilotState &&
+                        (copilotState as any).Authenticating === 'ssoFlow';
+                    if (!copilotUnauthenticated && !copilotInSsoFlow) return;
 
-                    if (inUnauthenticated) {
+                    if (copilotUnauthenticated) {
                         // COMPLETE_AUTH is only valid in ssoFlow; drive through LOGIN instead
                         aiStateService.send(AIMachineEventType.LOGIN);
                     } else {
@@ -580,8 +580,8 @@ const setupPlatformExtensionListener = () => {
                     }
                 } else {
                     // Integrator signed out — only react if Copilot is using BI_INTEL.
-                    const existing = await getAuthCredentials();
-                    if (existing?.loginMethod === LoginMethod.BI_INTEL) {
+                    const copilotCreds = await getAuthCredentials();
+                    if (copilotCreds?.loginMethod === LoginMethod.BI_INTEL) {
                         aiStateService.send(AIMachineEventType.LOGOUT);
                     }
                 }
