@@ -91,40 +91,13 @@ export default function createTests() {
             }
 
             console.log('Waiting for project and BI webview');
-            let artifactWebView;
-            const maxArtifactWebViewRetries = 5;
-            for (let attempt = 1; attempt <= maxArtifactWebViewRetries; attempt++) {
-                try {
-                    artifactWebView = await getWebview(BI_INTEGRATOR_LABEL, page);
-                    await artifactWebView.locator(`text=${projectName}`).waitFor({ timeout: 40000 });
-                    break;
-                } catch (error) {
-                    const message = error instanceof Error ? error.message : String(error);
-                    const isRetryableWebviewIssue = message.includes('Frame was detached')
-                        || message.includes('Failed to access iframe')
-                        || message.includes(BI_WEBVIEW_NOT_FOUND_ERROR);
-                    if (attempt === maxArtifactWebViewRetries || !isRetryableWebviewIssue) {
-                        throw error;
-                    }
-                    console.log(`Artifact webview was unstable while waiting for project. Retrying (${attempt}/${maxArtifactWebViewRetries})`);
-                    await page.page.waitForTimeout(1500);
-                }
-            }
-
-
-            // console.log('Waiting Tree View to load');
-            // const projectExplorer = new ProjectExplorer(workbenchPage);
-            // const rootItem = await projectExplorer.findItem([integrationName]);
-            // await expect(rootItem).toBeVisible();
-
-            // Click on the integration name
-            // Click on the integration name ("testIntegration") in the project explorer tree
+            const artifactWebView = await getWebview(BI_INTEGRATOR_LABEL, page);
+            await artifactWebView.locator(`text=${projectName}`).waitFor({ timeout: 40000 });
 
             // Click on the integration name ("testIntegration") directly from the BI webview project tree, not the project explorer
             const integrationNodeInWebview = artifactWebView.locator(`text=${integrationName}`);
             // await expect(integrationNodeInWebview).toBeVisible();
             await integrationNodeInWebview.click({ force: true });
-
 
 
             // Create automation
