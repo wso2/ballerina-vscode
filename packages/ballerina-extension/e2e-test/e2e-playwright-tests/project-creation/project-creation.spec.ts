@@ -83,15 +83,6 @@ export default function createTests() {
 
             await form.submit('Create Integration');
 
-            // Wait for 2 seconds
-            await page.page.waitForTimeout(2000);
-            // Handle the VS Code save confirmation dialog rendered outside the webview iframe.
-            const saveDialog = workbenchPage.locator('div.monaco-dialog-box[role="dialog"]').first();
-            const discardAndNavigateButton = saveDialog.getByRole('button', { name: "Don't Save" }).first();
-            if (await discardAndNavigateButton.isVisible({ timeout: 2000 }).catch(() => false)) {
-                await discardAndNavigateButton.click();
-            }
-
             console.log('Waiting for project and BI webview');
             const artifactWebView = await getWebview(BI_INTEGRATOR_LABEL, page);
             console.log('Waiting for project name to be visible');
