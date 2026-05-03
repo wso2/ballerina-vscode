@@ -51,10 +51,10 @@ export function updateFormFieldWithImports(formField: FormField, fieldImports: F
 }
 
 export function hasIncompleteRequiredFormFields(
-    formFields: Pick<FormField, "key" | "optional" | "hidden" | "enabled">[] = [],
+    formFields: FormField[] = [],
     values: Record<string, unknown> = {}
 ): boolean {
-    return formFields.some((field) => {
+    const checkField = (field: FormField): boolean => {
         if (field.optional || field.hidden || field.enabled === false) {
             return false;
         }
@@ -64,13 +64,22 @@ export function hasIncompleteRequiredFormFields(
             return true;
         }
         if (typeof value === "string") {
-            return value.trim() === "";
+            if (value.trim() === "") {
+                return true;
+            }
+            if (field.dynamicFormFields?.[value]) {
+                if (field.dynamicFormFields[value].some(checkField)) {
+                    return true;
+                }
+            }
         }
         if (Array.isArray(value)) {
             return value.length === 0;
         }
         return false;
-    });
+    };
+
+    return formFields.some(checkField);
 }
 
 export function shouldRunExternalFormValidation({
