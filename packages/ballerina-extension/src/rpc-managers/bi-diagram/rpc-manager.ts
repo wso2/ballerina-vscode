@@ -269,7 +269,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     private convertAiToFileScheme(uri: string): string {
         if (uri.startsWith('ai://')) {
-            return 'file://' + uri.substring(5);
+            const fileUri = Uri.parse(uri).with({ scheme: 'file' }).toString();
+            return fileUri;
         }
         return uri;
     }
