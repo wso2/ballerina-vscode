@@ -154,3 +154,185 @@ test("hasIncompleteRequiredFormFields returns false when required visible fields
         false
     );
 });
+
+test("hasIncompleteRequiredFormFields returns true when dynamic child field is empty", () => {
+    assert.equal(
+        hasIncompleteRequiredFormFields(
+            [
+                {
+                    key: "connectionType",
+                    optional: false,
+                    hidden: false,
+                    enabled: true,
+                    dynamicFormFields: {
+                        HTTP: [
+                            {
+                                key: "url",
+                                optional: false,
+                                hidden: false,
+                                enabled: true,
+                            },
+                        ],
+                    },
+                },
+            ],
+            { connectionType: "HTTP", url: "" }
+        ),
+        true
+    );
+});
+
+test("hasIncompleteRequiredFormFields returns false when dynamic child fields are filled", () => {
+    assert.equal(
+        hasIncompleteRequiredFormFields(
+            [
+                {
+                    key: "connectionType",
+                    optional: false,
+                    hidden: false,
+                    enabled: true,
+                    dynamicFormFields: {
+                        HTTP: [
+                            {
+                                key: "url",
+                                optional: false,
+                                hidden: false,
+                                enabled: true,
+                            },
+                        ],
+                    },
+                },
+            ],
+            { connectionType: "HTTP", url: "https://example.com" }
+        ),
+        false
+    );
+});
+
+test("hasIncompleteRequiredFormFields ignores dynamic child fields when parent is empty", () => {
+    assert.equal(
+        hasIncompleteRequiredFormFields(
+            [
+                {
+                    key: "connectionType",
+                    optional: false,
+                    hidden: false,
+                    enabled: true,
+                    dynamicFormFields: {
+                        HTTP: [
+                            {
+                                key: "url",
+                                optional: false,
+                                hidden: false,
+                                enabled: true,
+                            },
+                        ],
+                    },
+                },
+            ],
+            { connectionType: "", url: "" }
+        ),
+        true
+    );
+});
+
+test("hasIncompleteRequiredFormFields ignores dynamic child fields when parent selection has no dynamic fields", () => {
+    assert.equal(
+        hasIncompleteRequiredFormFields(
+            [
+                {
+                    key: "connectionType",
+                    optional: false,
+                    hidden: false,
+                    enabled: true,
+                    dynamicFormFields: {
+                        HTTP: [
+                            {
+                                key: "url",
+                                optional: false,
+                                hidden: false,
+                                enabled: true,
+                            },
+                        ],
+                    },
+                },
+            ],
+            { connectionType: "FILE", url: "" }
+        ),
+        false
+    );
+});
+
+test("hasIncompleteRequiredFormFields returns true when nested dynamic child field is empty", () => {
+    assert.equal(
+        hasIncompleteRequiredFormFields(
+            [
+                {
+                    key: "connectionType",
+                    optional: false,
+                    hidden: false,
+                    enabled: true,
+                    dynamicFormFields: {
+                        HTTP: [
+                            {
+                                key: "authType",
+                                optional: false,
+                                hidden: false,
+                                enabled: true,
+                                dynamicFormFields: {
+                                    OAuth: [
+                                        {
+                                            key: "token",
+                                            optional: false,
+                                            hidden: false,
+                                            enabled: true,
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                },
+            ],
+            { connectionType: "HTTP", authType: "OAuth", token: "" }
+        ),
+        true
+    );
+});
+
+test("hasIncompleteRequiredFormFields returns false when nested dynamic child fields are filled", () => {
+    assert.equal(
+        hasIncompleteRequiredFormFields(
+            [
+                {
+                    key: "connectionType",
+                    optional: false,
+                    hidden: false,
+                    enabled: true,
+                    dynamicFormFields: {
+                        HTTP: [
+                            {
+                                key: "authType",
+                                optional: false,
+                                hidden: false,
+                                enabled: true,
+                                dynamicFormFields: {
+                                    OAuth: [
+                                        {
+                                            key: "token",
+                                            optional: false,
+                                            hidden: false,
+                                            enabled: true,
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                    },
+                },
+            ],
+            { connectionType: "HTTP", authType: "OAuth", token: "abc123" }
+        ),
+        false
+    );
+});
