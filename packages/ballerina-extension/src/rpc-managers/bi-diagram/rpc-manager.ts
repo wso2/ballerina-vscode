@@ -267,13 +267,6 @@ function setTomlSectionField(filePath: string, section: string, field: string, v
 export class BiDiagramRpcManager implements BIDiagramAPI {
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
 
-    private toRawPath(input: string): string {
-        if (input.includes('://')) {
-            return Uri.parse(input).fsPath;
-        }
-        return input;
-    }
-
     private convertAiToFileScheme(uri: string): string {
         if (uri.startsWith('ai://')) {
             return 'file://' + uri.substring(5);
@@ -281,23 +274,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         return uri;
     }
 
-    private mapTempPathToOriginal(tempFilePath: string): string {
-        const rawPath = this.toRawPath(tempFilePath);
-        const context = StateMachine.context();
-        const originalRoot = context.workspacePath || context.projectPath;
-        const workspaceId = context.workspacePath || context.projectPath;
-        const threadId = 'default';
-        const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
-        if (pendingReview?.reviewState?.tempProjectPath && originalRoot) {
-            const normalizedTempRoot = pendingReview.reviewState.tempProjectPath.replace(/\\/g, '/');
-            const normalizedFilePath = rawPath.replace(/\\/g, '/');
-            if (normalizedFilePath.startsWith(normalizedTempRoot)) {
-                const relativePath = normalizedFilePath.substring(normalizedTempRoot.length);
-                return originalRoot + relativePath;
-            }
-        }
-        return rawPath;
-    }
 
     async getFlowModel(params: BIFlowModelRequest): Promise<BIFlowModelResponse> {
         console.log(">>> requesting bi flow model from ls", params);
