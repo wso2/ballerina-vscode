@@ -274,6 +274,13 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         return input;
     }
 
+    private convertAiToFileScheme(uri: string): string {
+        if (uri.startsWith('ai://')) {
+            return 'file://' + uri.substring(5);
+        }
+        return uri;
+    }
+
     private mapTempPathToOriginal(tempFilePath: string): string {
         const rawPath = this.toRawPath(tempFilePath);
         const context = StateMachine.context();
@@ -301,9 +308,9 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             if (params?.filePath && params?.startLine && params?.endLine) {
                 console.log(">>> using params to create request");
                 let filePath = params.filePath;
-                // When useFileSchema is set, map temp path to original project path
+                // When useFileSchema is set, use file:// scheme to show original content
                 if (params.useFileSchema) {
-                    filePath = this.mapTempPathToOriginal(filePath);
+                    filePath = this.convertAiToFileScheme(filePath);
                 }
                 request = {
                     filePath,
@@ -1739,10 +1746,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async getEnclosedFunction(params: BIGetEnclosedFunctionRequest): Promise<BIGetEnclosedFunctionResponse> {
         console.log(">>> requesting parent functin definition", params);
-        // When useFileSchema is set, map temp path to original project path
+        // When useFileSchema is set, use file:// scheme to show original content
         let filePath = params.filePath;
         if (params.useFileSchema) {
-            filePath = this.mapTempPathToOriginal(filePath);
+            filePath = this.convertAiToFileScheme(filePath);
         }
         const request = { filePath, position: params.position, findClass: params.findClass };
         return new Promise((resolve) => {
@@ -1828,8 +1835,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             let projectPath: string;
             if (params?.projectPath) {
                 if (params.useFileSchema) {
-                    // Map temp project path to original project raw path
-                    projectPath = this.mapTempPathToOriginal(params.projectPath);
+                    // Use file:// scheme to show original content
+                    projectPath = Uri.file(params.projectPath).toString();
                 } else {
                     const uri = Uri.file(params.projectPath);
                     projectPath = uri.with({ scheme: 'ai' }).toString();
@@ -1870,9 +1877,9 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             });
         }
 
-        // When useFileSchema is set, map temp path to original project path
+        // When useFileSchema is set, use file:// scheme to show original content
         if (params.useFileSchema) {
-            filePath = this.mapTempPathToOriginal(filePath);
+            filePath = this.convertAiToFileScheme(filePath);
         }
 
         return new Promise((resolve, reject) => {
