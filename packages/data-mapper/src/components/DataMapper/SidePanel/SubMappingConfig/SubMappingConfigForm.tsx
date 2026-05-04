@@ -28,7 +28,7 @@ import {
 import { useDMSubMappingConfigPanelStore } from "../../../../store/store";
 import { View } from "../../Views/DataMapperView";
 
-import { CodeData, DMFormField, DMFormFieldValues, DMFormProps} from "@wso2/ballerina-core";
+import { CodeData, DMFormField, DMFormFieldValues, DMFormImports, DMFormProps} from "@wso2/ballerina-core";
 
 const ADD_NEW_SUB_MAPPING_HEADER = "Add New Sub Mapping";
 const EDIT_SUB_MAPPING_HEADER = "Edit Sub Mapping";
@@ -36,7 +36,7 @@ const EDIT_SUB_MAPPING_HEADER = "Edit Sub Mapping";
 export type SubMappingConfigFormProps = {
     views: View[];
     updateView: (updatedView: View) => void;
-    addSubMapping: (subMappingName: string, type: string, index: number, targetField: string, importsCodedata?: CodeData) => Promise<void>;
+    addSubMapping: (subMappingName: string, type: string, index: number, targetField: string, formImports?: DMFormImports, importsCodedata?: CodeData) => Promise<void>;
     generateForm: (formProps: DMFormProps) => JSX.Element;
 };
 
@@ -84,7 +84,7 @@ export function SubMappingConfigForm(props: SubMappingConfigFormProps) {
 
     const isEdit = nextSubMappingIndex === -1 && !suggestedNextSubMappingName;
 
-    const onAdd = async (data: DMFormFieldValues, importsCodedata?: CodeData) => {
+    const onAdd = async (data: DMFormFieldValues, formImports?: DMFormImports, importsCodedata?: CodeData) => {
         setFormValues({
             name: data.name,
             type: data.type
@@ -93,13 +93,13 @@ export function SubMappingConfigForm(props: SubMappingConfigFormProps) {
 
         try {
             const targetField = views[views.length - 1].targetField;
-            await addSubMapping(data.name, data.type, nextSubMappingIndex, targetField, importsCodedata);
+            await addSubMapping(data.name, data.type, nextSubMappingIndex, targetField, formImports, importsCodedata);
         } finally {
             setIsAddingNewSubMapping(false);
         }
     };
 
-    const onEdit = async (data: DMFormFieldValues, importsCodedata?: CodeData) => {
+    const onEdit = async (data: DMFormFieldValues, formImports?: DMFormImports, importsCodedata?: CodeData) => {
         // TODO: Implement onEdit
     };
 
@@ -107,11 +107,11 @@ export function SubMappingConfigForm(props: SubMappingConfigFormProps) {
         resetSubMappingConfig();
     };
 
-    const onSubmit = (data: DMFormFieldValues, formImports?: DMFormFieldValues, importsCodedata?: CodeData) => {
+    const onSubmit = (data: DMFormFieldValues, formImports?: DMFormImports, importsCodedata?: CodeData) => {
         if (isEdit) {
-            onEdit(data, importsCodedata);
+            onEdit(data, formImports, importsCodedata);
         } else {
-            onAdd(data, importsCodedata);
+            onAdd(data, formImports, importsCodedata);
         }
     };
 
