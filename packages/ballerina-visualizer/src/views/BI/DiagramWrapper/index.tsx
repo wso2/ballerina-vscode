@@ -525,6 +525,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                 appearance={isTracingEnabled ? "primary" : "secondary"}
                 onClick={handleToggleTracing}
                 disabled={isToggling}
+                tooltip={isTracingEnabled ? "Disable tracing" : "Enable tracing"}
             >
                 <Icon
                     name={isTracingEnabled ? "telescope" : "circle-slash"}
