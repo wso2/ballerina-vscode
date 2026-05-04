@@ -608,7 +608,11 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
             {loadingDiagram && !hasLoadedTitleBar ? (
                 <TitleBarSkeleton />
             ) : (
-                <TitleBar title={getTitle()} subtitleElement={getSubtitleElement} actions={getActions()} />
+                <TitleBar
+                    title={getTitle()}
+                    subtitleElement={getSubtitleElement}
+                    actions={loadingDiagram ? null : getActions()}
+                />
             )}
             {enableSequenceDiagram && !isAgent &&
                 (
