@@ -57,6 +57,7 @@ import * as unzipper from 'unzipper';
 import { commands, env, MarkdownString, ProgressLocation, QuickPickItem, Uri, window, workspace } from "vscode";
 import { URI } from "vscode-uri";
 import { parse } from "@iarna/toml";
+import { load as loadYaml } from "js-yaml";
 import { extension } from "../../BalExtensionContext";
 import { StateMachine } from "../../stateMachine";
 import {
@@ -203,14 +204,14 @@ export class CommonRpcManager implements CommonRPCAPI {
     async selectFileOrDirPath(params: FileOrDirRequest): Promise<FileOrDirResponse> {
         return new Promise(async (resolve) => {
             if (params.isFile) {
-                const selectedFile = await askFilePath();
+                const selectedFile = await askFilePath(params.filters);
                 if (!selectedFile || selectedFile.length === 0) {
                     window.showErrorMessage('A file must be selected');
                     resolve({ path: "" });
                 } else {
                     const filePath = selectedFile[0].fsPath;
                     const projectPath = StateMachine.context().projectPath;
-                    if (projectPath && !filePath.startsWith(projectPath)) {
+                    if (!params.allowOutsideProject && projectPath && !filePath.startsWith(projectPath)) {
                         const resp = await window.showErrorMessage('The selected file is not within your project. Do you want to move it inside the project?', { modal: true }, 'Yes');
                         if (resp === 'Yes') {
                             // Move the file inside the project
@@ -478,6 +479,20 @@ export class CommonRpcManager implements CommonRPCAPI {
     }
 
     async getDefaultOrgName(): Promise<DefaultOrgNameResponse> {
+        try {
+            const projectPath = StateMachine.context()?.workspacePath;
+
+            if (projectPath) {
+                const contextYamlPath = path.join(projectPath, ".choreo", "context.yaml");
+                const content = await fs.promises.readFile(contextYamlPath, "utf-8");
+                const parsed = loadYaml(content);
+                if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0].org === "string" && parsed[0].org) {
+                    return { orgName: parsed[0].org };
+                }
+            }
+        } catch {
+            // fall through to default
+        }
         return { orgName: getUsername() };
     }
 
@@ -733,6 +748,14 @@ export class CommonRpcManager implements CommonRPCAPI {
         } else {
             window.showErrorMessage(result.message || 'Failed to publish project to Ballerina Central');
         }
+    }
+
+    async getPreferredTryItOption(): Promise<string | undefined> {
+        return extension.context.globalState.get<string>("ballerina.bi.preferredTryItOption");
+    }
+
+    async setPreferredTryItOption(option: string): Promise<void> {
+        await extension.context.globalState.update("ballerina.bi.preferredTryItOption", option);
     }
 
     async hasCentralPATConfigured(): Promise<boolean> {

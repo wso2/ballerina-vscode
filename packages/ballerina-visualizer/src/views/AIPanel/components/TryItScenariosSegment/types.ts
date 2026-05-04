@@ -53,3 +53,40 @@ export type HTTPToolEventOutput = {
     scenario?: string;
     output: HTTPResponse | HTTPErrorResponse;
 };
+
+export type HurlToolOutput = {
+    input: {
+        requests: Array<{
+            name: string;
+            method: string;
+            url: string;
+            headers: Array<{ key: string; value: string }>;
+            queryParameters: Array<{ key: string; value: string }>;
+            body?: string;
+            assertions?: string[];
+        }>;
+    };
+    output: {
+        status: string;
+        durationMs: number;
+        entries: Array<{
+            name: string;
+            method?: string;
+            url?: string;
+            statusCode?: number;
+            responseHeaders?: Array<{ name: string; value: string }>;
+            responseBody?: string;
+            status: string;
+            durationMs?: number;
+            assertions: Array<{
+                expression: string;
+                status: string;
+                expected?: string;
+                actual?: string;
+                message?: string;
+            }>;
+            errorMessage?: string;
+        }>;
+        warnings: string[];
+    };
+};

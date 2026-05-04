@@ -42,7 +42,7 @@ import { RelativeLoader } from "../../../../components/RelativeLoader";
 import { HelperView } from "../../HelperView";
 import { BodyText } from "../../../styles";
 import { DownloadIcon } from "../../../../components/DownloadIcon";
-import FormGeneratorNew from "../../Forms/FormGeneratorNew";
+import ArtifactForm from "../../Forms/ArtifactForm";
 import { FormSubmitOptions } from "../../FlowDiagram";
 
 const Container = styled.div`
@@ -496,7 +496,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                         <BodyText style={{ padding: "20px 16px 0 16px" }}>
                             Provide the necessary details to generate the connector.
                         </BodyText>
-                        <FormGeneratorNew
+                        <ArtifactForm
                             fileName={fileName}
                             targetLineRange={targetLineRange}
                             fields={genConnectorFields}

@@ -15,6 +15,7 @@
 // under the License.
 
 import { createAnthropic } from "@ai-sdk/anthropic";
+import { LanguageModel, ModelMessage, JSONValue } from "ai";
 import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
 import { createVertexAnthropic } from "@ai-sdk/google-vertex/anthropic";
 import { getAccessToken, getLoginMethod, getRefreshedAccessToken, getAwsBedrockCredentials, getVertexAiCredentials } from "../../../utils/ai/auth";
@@ -24,7 +25,7 @@ import { LLM_API_BASE_PATH } from "../constants";
 import { AIMachineEventType, AnthropicKeySecrets, LoginMethod, BIIntelSecrets } from "@wso2/ballerina-core";
 
 export const ANTHROPIC_HAIKU = "claude-haiku-4-5-20251001";
-export const ANTHROPIC_SONNET_4 = "claude-sonnet-4-5-20250929";
+export const ANTHROPIC_SONNET_4 = "claude-sonnet-4-6";
 
 type AnthropicModel =
     | typeof ANTHROPIC_HAIKU
@@ -189,7 +190,7 @@ export const getAnthropicClient = async (model: AnthropicModel): Promise<any> =>
             // Map Anthropic model names to AWS Bedrock model IDs (base models without region prefix)
             const baseModelMap: Record<AnthropicModel, string> = {
                 [ANTHROPIC_HAIKU]: "anthropic.claude-haiku-4-5-20251001-v1:0",
-                [ANTHROPIC_SONNET_4]: "anthropic.claude-sonnet-4-5-20250929-v1:0",
+                [ANTHROPIC_SONNET_4]: "anthropic.claude-sonnet-4-6",
             };
             
             const baseModelId = baseModelMap[model];
@@ -221,7 +222,7 @@ export const getAnthropicClient = async (model: AnthropicModel): Promise<any> =>
 
             const vertexModelMap: Record<AnthropicModel, string> = {
                 [ANTHROPIC_HAIKU]: "claude-3-5-haiku@20241022",
-                [ANTHROPIC_SONNET_4]: "claude-sonnet-4-5@20250929",
+                [ANTHROPIC_SONNET_4]: "claude-sonnet-4-6",
             };
 
             const vertexModelId = vertexModelMap[model];
@@ -244,8 +245,8 @@ export const getAnthropicClient = async (model: AnthropicModel): Promise<any> =>
 /**
  * Type definition for provider-specific cache options
  */
-export type ProviderCacheOptions = 
-    | { anthropic: { cacheControl: { type: string } } } 
+export type ProviderCacheOptions =
+    | { anthropic: { cacheControl: { type: string } } }
     | { bedrock: { cachePoint: { type: string } } };
 
 /**
@@ -265,3 +266,48 @@ export const getProviderCacheControl = async (): Promise<ProviderCacheOptions> =
             return { anthropic: { cacheControl: { type: "ephemeral" } } };
     }
 };
+
+function isAnthropicModel(model: LanguageModel): boolean {
+    if (typeof model === 'string') {
+        return model.includes('anthropic') || model.includes('claude');
+    }
+    return (
+        model.provider === 'anthropic' ||
+        model.provider.includes('anthropic') ||
+        model.modelId.includes('anthropic') ||
+        model.modelId.includes('claude')
+    );
+}
+
+/**
+ * Add cache control to the last message in the array.
+ * This tells Anthropic to cache everything up to this point.
+ * On each agent step the last message shifts forward, incrementally caching conversation history.
+ */
+export function addCacheControlToMessages({
+    messages,
+    model,
+    providerOptions = {
+        anthropic: { cacheControl: { type: 'ephemeral' } },
+    },
+}: {
+    messages: ModelMessage[];
+    model: LanguageModel;
+    providerOptions?: Record<string, Record<string, JSONValue>>;
+}): ModelMessage[] {
+    if (messages.length === 0) { return messages; }
+    if (!isAnthropicModel(model)) { return messages; }
+
+    return messages.map((message, index) => {
+        if (index === messages.length - 1) {
+            return {
+                ...message,
+                providerOptions: {
+                    ...message.providerOptions,
+                    ...providerOptions,
+                },
+            };
+        }
+        return message;
+    });
+}

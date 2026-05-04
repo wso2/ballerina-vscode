@@ -33,6 +33,7 @@ export interface BaseProjectFormData {
 export interface AddProjectFormData extends BaseProjectFormData {
     // Kept for RPC payload compatibility; conceptually this is the project name.
     workspaceName?: string;
+    projectHandle?: string;
 }
 
 /**

@@ -17,6 +17,7 @@
  */
 /** @jsxImportSource @emotion/react */
 import React, { ReactNode, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import styled from "@emotion/styled";
 import { DiagramEngine, PortWidget } from "@projectstorm/react-diagrams-core";
 import { AgentCallNodeModel } from "./AgentCallNodeModel";
@@ -24,16 +25,27 @@ import {
     AGENT_NODE_ADD_TOOL_BUTTON_WIDTH,
     AGENT_NODE_TOOL_GAP,
     AGENT_NODE_TOOL_SECTION_GAP,
+    CANVAS_BG_COLOR,
     DRAFT_NODE_BORDER_WIDTH,
+    NODE_BG_BREAKPOINT_COLOR,
+    NODE_BORDER_ERROR_COLOR,
     LABEL_HEIGHT,
     LABEL_WIDTH,
+    LINK_COLOR,
+    NODE_BG_COLOR,
+    NODE_BG_HOVER_COLOR,
+    NODE_HOVER_GLOW,
+    NODE_BORDER_COLOR,
+    NODE_BORDER_SELECTED_COLOR,
     NODE_BORDER_WIDTH,
+    NODE_ERROR_COLOR,
     NODE_GAP_X,
     NODE_HEIGHT,
     NODE_PADDING,
+    NODE_TEXT_COLOR,
     NODE_WIDTH,
 } from "../../../resources/constants";
-import { Button, Icon, Item, Menu, MenuItem, Popover, ThemeColors, getAIModuleIcon, DefaultLlmIcon } from "@wso2/ui-toolkit";
+import { Button, Icon, Item, Menu, MenuItem, getAIModuleIcon, DefaultLlmIcon, ThemeColors } from "@wso2/ui-toolkit";
 import { MoreVertIcon } from "../../../resources/icons";
 import { AgentData, FlowNode, ToolData } from "../../../utils/types";
 import NodeIcon, { CHART_COLORS, getAIColor, isDarkTheme, ThemeListener } from "../../NodeIcon";
@@ -90,17 +102,18 @@ export namespace NodeStyles {
         border-style: ${(props: NodeStyleProp) => (props.disabled ? "dashed" : "solid")};
         border-color: ${(props: NodeStyleProp) =>
             props.hasError
-                ? ThemeColors.ERROR
+                ? NODE_BORDER_ERROR_COLOR
                 : props.isSelected && !props.disabled
-                    ? ThemeColors.SECONDARY
+                    ? NODE_BORDER_SELECTED_COLOR
                     : props.hovered && !props.disabled && !props.readOnly
-                        ? ThemeColors.SECONDARY
-                        : ThemeColors.OUTLINE_VARIANT};
+                        ? NODE_BORDER_SELECTED_COLOR
+                        : NODE_BORDER_COLOR};
         border-radius: 10px;
         background-color: ${(props: NodeStyleProp) =>
-            props?.isActiveBreakpoint ? ThemeColors.DEBUGGER_BREAKPOINT_BACKGROUND : ThemeColors.SURFACE_DIM};
-        color: ${ThemeColors.ON_SURFACE};
-        transition: border-color 0.4s ease-out;
+            props?.isActiveBreakpoint ? NODE_BG_BREAKPOINT_COLOR : props.hovered && !props.disabled && !props.readOnly ? NODE_BG_HOVER_COLOR : NODE_BG_COLOR};
+        color: ${NODE_TEXT_COLOR};
+        box-shadow: ${(props: NodeStyleProp) => props.hovered && !props.disabled && !props.readOnly ? NODE_HOVER_GLOW : 'none'};
+        transition: box-shadow 0.1s ease, background-color 0.1s ease, border-color 0.1s ease;
     `;
 
     export const Header = styled.div<{}>`
@@ -144,7 +157,7 @@ export namespace NodeStyles {
     export const Icon = styled.div`
         padding: 4px;
         svg {
-            fill: ${ThemeColors.ON_SURFACE};
+            fill: ${NODE_TEXT_COLOR};
         }
     `;
 
@@ -166,7 +179,7 @@ export namespace NodeStyles {
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
-        color: ${ThemeColors.ON_SURFACE};
+        color: ${NODE_TEXT_COLOR};
         opacity: 0.7;
         margin-top: -2px;
     `;
@@ -252,7 +265,7 @@ export namespace NodeStyles {
         blockquote {
             margin: 0.3em 0;
             padding-left: 8px;
-            border-left: 2px solid ${ThemeColors.OUTLINE_VARIANT};
+            border-left: 2px solid ${NODE_BORDER_COLOR};
         }
 
         blockquote:first-child {
@@ -272,7 +285,7 @@ export namespace NodeStyles {
         }
 
         a {
-            color: ${ThemeColors.PRIMARY};
+            color: ${LINK_COLOR};
             text-decoration: none;
         }
 
@@ -282,7 +295,7 @@ export namespace NodeStyles {
     `;
 
     export const Role = styled(MarkdownContent)`
-        color: ${ThemeColors.PRIMARY};
+        color: ${LINK_COLOR};
         font-family: "GilmerMedium";
         font-weight: bold;
         padding: 0 4px;
@@ -299,13 +312,13 @@ export namespace NodeStyles {
     `;
 
     export const RolePlaceholder = styled(Role)`
-        color: ${ThemeColors.ON_SURFACE};
+        color: ${NODE_TEXT_COLOR};
         opacity: 0.5;
         font-style: italic;
     `;
 
     export const Instructions = styled(MarkdownContent)`
-        color: ${ThemeColors.ON_SURFACE};
+        color: ${NODE_TEXT_COLOR};
         opacity: 0.7;
         overflow: hidden;
         height: 100%;
@@ -364,7 +377,7 @@ export namespace NodeStyles {
         font-size: 20px;
         width: 20px;
         height: 20px;
-        color: ${ThemeColors.ERROR};
+        color: ${NODE_ERROR_COLOR};
     `;
 
     export const Hr = styled.hr`
@@ -384,37 +397,37 @@ export namespace NodeStyles {
         width: 100%;
         margin: 8px 0;
         padding: 8px 0;
-        border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+        border: 1px solid ${NODE_BORDER_COLOR};
         border-radius: 4px;
         background-color: transparent;
-        color: ${ThemeColors.ON_SURFACE};
+        color: ${NODE_TEXT_COLOR};
         font-size: 14px;
         font-family: "GilmerRegular";
         cursor: ${(props: { readOnly: boolean }) => (props.readOnly ? "default" : "pointer")};
         &:hover {
-            background-color: ${ThemeColors.SURFACE_BRIGHT};
+            background-color: ${CANVAS_BG_COLOR};
             border-color: ${(props: { readOnly: boolean }) =>
-            props.readOnly ? ThemeColors.OUTLINE_VARIANT : ThemeColors.SECONDARY};
+            props.readOnly ? NODE_BORDER_COLOR : NODE_BORDER_SELECTED_COLOR};
         }
     `;
 
     export const MemoryCard = styled.div<{ readOnly: boolean }>`
         width: 100%;
         padding: 8px 6px 8px 12px;
-        border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+        border: 1px solid ${NODE_BORDER_COLOR};
         border-radius: 4px;
         background-color: transparent;
-        color: ${ThemeColors.ON_SURFACE};
+        color: ${NODE_TEXT_COLOR};
         cursor: ${(props: { readOnly: boolean }) => (props.readOnly ? "default" : "pointer")};
         &:hover {
             border-color: ${(props: { readOnly: boolean }) =>
-            props.readOnly ? ThemeColors.OUTLINE_VARIANT : ThemeColors.SECONDARY};
+            props.readOnly ? NODE_BORDER_COLOR : NODE_BORDER_SELECTED_COLOR};
         }
     `;
 
     export const MemoryContainer = styled.div`
         width: 100%;
-        border-bottom: 1px dashed ${ThemeColors.OUTLINE_VARIANT};
+        border-bottom: 1px dashed ${NODE_BORDER_COLOR};
         padding-bottom: 8px;
         z-index: 2;
     `;
@@ -429,7 +442,7 @@ export namespace NodeStyles {
     export const MemoryMeta = styled.div`
         font-size: 12px;
         font-family: monospace;
-        color: ${ThemeColors.ON_SURFACE};
+        color: ${NODE_TEXT_COLOR};
         opacity: 0.7;
     `;
 
@@ -488,23 +501,75 @@ export interface NodeWidgetProps extends Omit<AgentCallNodeWidgetProps, "childre
 
 export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     const { model, engine, onClick } = props;
-    const { onNodeSelect, goToSource, onDeleteNode, removeBreakpoint, addBreakpoint, agentNode, readOnly, selectedNodeId, entrypointContext } =
-        useDiagramContext();
+    const { onNodeSelect, goToSource, onDeleteNode, removeBreakpoint, addBreakpoint, agentNode, readOnly, selectedNodeId, entrypointContext } = useDiagramContext();
     const traceAnimation = useTraceAnimation();
 
     const isSelected = selectedNodeId === model.node.id;
 
     const [isBoxHovered, setIsBoxHovered] = useState(false);
+    const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
+    const [toolMenuPos, setToolMenuPos] = useState<{ top: number; left: number } | null>(null);
     const [agentIdHovered, setAgentIdHovered] = useState(false);
-    const [anchorEl, setAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
-    const [toolAnchorEl, setToolAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
     const [selectedTool, setSelectedTool] = useState<ToolData | null>(null);
-    const [memoryMenuAnchorEl, setMemoryMenuAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
+    const [memoryMenuPos, setMemoryMenuPos] = useState<{ top: number; left: number } | null>(null);
     const [menuButtonElement, setMenuButtonElement] = useState<HTMLElement | null>(null);
     const [memoryMenuButtonElement, setMemoryMenuButtonElement] = useState<HTMLElement | null>(null);
-    const isMenuOpen = Boolean(anchorEl);
-    const isToolMenuOpen = Boolean(toolAnchorEl);
-    const isMemoryMenuOpen = Boolean(memoryMenuAnchorEl);
+    const isMenuOpen = menuPos !== null;
+    const isToolMenuOpen = toolMenuPos !== null;
+    const isMemoryMenuOpen = memoryMenuPos !== null;
+
+    const getMenuPos = (el: HTMLElement): { top: number; left: number } => {
+        const rect = el.getBoundingClientRect();
+        return { top: rect.bottom, left: rect.left };
+    };
+
+    useEffect(() => {
+        if (!isMenuOpen || !menuButtonElement) return;
+        const handle = engine.getModel().registerListener({
+            offsetUpdated: () => setMenuPos(getMenuPos(menuButtonElement)),
+            zoomUpdated: () => setMenuPos(getMenuPos(menuButtonElement)),
+        });
+        return () => handle.deregister();
+    }, [isMenuOpen, menuButtonElement]);
+
+    useEffect(() => {
+        if (!isMenuOpen) return;
+        const handleClickOutside = () => setMenuPos(null);
+        const timer = setTimeout(() => document.addEventListener("mousedown", handleClickOutside), 0);
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isMenuOpen]);
+
+    useEffect(() => {
+        if (!isToolMenuOpen) return;
+        const handleClickOutside = () => { setToolMenuPos(null); setSelectedTool(null); };
+        const timer = setTimeout(() => document.addEventListener("mousedown", handleClickOutside), 0);
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isToolMenuOpen]);
+
+    useEffect(() => {
+        if (!isMemoryMenuOpen || !memoryMenuButtonElement) return;
+        const handle = engine.getModel().registerListener({
+            offsetUpdated: () => setMemoryMenuPos(getMenuPos(memoryMenuButtonElement)),
+            zoomUpdated: () => setMemoryMenuPos(getMenuPos(memoryMenuButtonElement)),
+        });
+        return () => handle.deregister();
+    }, [isMemoryMenuOpen, memoryMenuButtonElement]);
+
+    useEffect(() => {
+        if (!isMemoryMenuOpen) return;
+        const handleClickOutside = () => setMemoryMenuPos(null);
+        const timer = setTimeout(() => document.addEventListener("mousedown", handleClickOutside), 0);
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isMemoryMenuOpen]);
     const hasBreakpoint = model.hasBreakpoint();
     const isActiveBreakpoint = model.isActiveBreakpoint();
     const [aiColor, setAiColor] = useState<string>(() => getAIColor());
@@ -533,7 +598,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     const onNodeClick = () => {
         onClick && onClick(model.node);
         onNodeSelect && onNodeSelect(model.node);
-        setAnchorEl(null);
+        setMenuPos(null);
     };
 
     const onModelEditClick = () => {
@@ -541,7 +606,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
             return;
         }
         agentNode?.onModelSelect && agentNode.onModelSelect(model.node);
-        setAnchorEl(null);
+        setMenuPos(null);
     };
 
     const onMemoryManagerClick = () => {
@@ -549,7 +614,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
             return;
         }
         agentNode?.onSelectMemoryManager && agentNode.onSelectMemoryManager(model.node);
-        setMemoryMenuAnchorEl(null);
+        setMemoryMenuPos(null);
     };
 
     const onMemoryManagerDeleteClick = () => {
@@ -557,7 +622,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
             return;
         }
         agentNode?.onDeleteMemoryManager && agentNode.onDeleteMemoryManager(model.node);
-        setMemoryMenuAnchorEl(null);
+        setMemoryMenuPos(null);
     };
 
     const onToolClick = (tool: ToolData) => {
@@ -567,10 +632,10 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
         const toolType = tool.type ?? "";
         if (toolType === "MCP Server") {
             agentNode?.onSelectMcpToolkit && agentNode.onSelectMcpToolkit(tool, model.node);
-            setAnchorEl(null);
+            setMenuPos(null);
         } else {
             agentNode?.onSelectTool && agentNode.onSelectTool(tool, model.node);
-            setAnchorEl(null);
+            setMenuPos(null);
         }
     };
 
@@ -579,33 +644,35 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
             return;
         }
         agentNode?.onAddTool && agentNode.onAddTool(model.node);
-        setAnchorEl(null);
+        setMenuPos(null);
     };
 
     const onGoToSource = () => {
         goToSource && goToSource(model.node);
-        setAnchorEl(null);
+        setMenuPos(null);
     };
 
     const deleteNode = () => {
         onDeleteNode && onDeleteNode(model.node);
-        setAnchorEl(null);
+        setMenuPos(null);
     };
 
     const handleOnMenuClick = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
         if (readOnly) {
             return;
         }
-        setAnchorEl(event.currentTarget);
+        const target = menuButtonElement || (event.currentTarget as HTMLElement);
+        setMenuPos(getMenuPos(target));
     };
 
     const handleOnContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
         event.preventDefault();
-        setAnchorEl(menuButtonElement || event.currentTarget);
+        const target = menuButtonElement || event.currentTarget;
+        setMenuPos(getMenuPos(target as HTMLElement));
     };
 
     const handleOnMenuClose = () => {
-        setAnchorEl(null);
+        setMenuPos(null);
         setIsBoxHovered(false);
     };
 
@@ -614,12 +681,12 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
             return;
         }
         event.stopPropagation();
-        setToolAnchorEl(event.currentTarget);
+        setToolMenuPos(getMenuPos(event.currentTarget as HTMLElement));
         setSelectedTool(tool);
     };
 
     const handleToolMenuClose = () => {
-        setToolAnchorEl(null);
+        setToolMenuPos(null);
         setSelectedTool(null);
     };
 
@@ -638,12 +705,12 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
 
     const onAddBreakpoint = () => {
         addBreakpoint && addBreakpoint(model.node);
-        setAnchorEl(null);
+        setMenuPos(null);
     };
 
     const onRemoveBreakpoint = () => {
         removeBreakpoint && removeBreakpoint(model.node);
-        setAnchorEl(null);
+        setMenuPos(null);
     };
 
     const handleOnMemoryMenuClick = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
@@ -651,17 +718,18 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
             return;
         }
         event.stopPropagation();
-        setMemoryMenuAnchorEl(event.currentTarget);
+        setMemoryMenuPos(getMenuPos(event.currentTarget as HTMLElement));
     };
 
     const handleMemoryContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
         event.preventDefault();
         event.stopPropagation();
-        setMemoryMenuAnchorEl(memoryMenuButtonElement || event.currentTarget);
+        const target = memoryMenuButtonElement || event.currentTarget;
+        setMemoryMenuPos(getMenuPos(target as HTMLElement));
     };
 
     const handleMemoryMenuClose = () => {
-        setMemoryMenuAnchorEl(null);
+        setMemoryMenuPos(null);
     };
 
     const handleThemeChange = () => {
@@ -670,7 +738,17 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
         setAiColor(getAIColor());
     };
 
+    const onChatWithAgent = () => {
+        agentNode?.onChatWithAgent?.(model.node);
+        setMenuPos(null);
+    };
+
     const menuItems: Item[] = [
+        ...(agentNode?.onChatWithAgent ? [{
+            id: "chat",
+            label: "Chat",
+            onClick: () => onChatWithAgent(),
+        }] : []),
         {
             id: "edit",
             label: "Edit",
@@ -711,14 +789,13 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
     const nodeTitle = "AI Agent";
     const hasError = nodeHasError(model.node);
     const nodeMetadata = model?.node.metadata.data as NodeMetadata;
+    const nodeModelIconUrl = nodeMetadata?.model?.path;
     const tools = nodeMetadata?.tools || [];
 
-    if (nodeMetadata?.agent) {
-        nodeMetadata.agent = sanitizeAgentData(nodeMetadata.agent);
-    }
+    const sanitizedAgent = nodeMetadata?.agent ? sanitizeAgentData(nodeMetadata.agent) : undefined;
     const nodeToolNames = tools.map((t: ToolData) => t.name).sort();
-    const nodeRole = nodeMetadata?.agent?.role || '';
-    const nodeInstructions = nodeMetadata?.agent?.instructions || '';
+    const nodeRole = sanitizedAgent?.role || '';
+    const nodeInstructions = sanitizedAgent?.instructions || '';
 
     const isTraceMatch = traceAnimation && (() => {
         // Guard: only animate if the trace's entrypoint matches the current flow diagram's service/function
@@ -742,7 +819,6 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                 ?.replace(/\n#\s*Instructions for Tool Validation Failure Handling[^\n]*\n[\s\S]*$/, '')
                 ?.trim();
             const instrMatch = nodeInstructions != null && cleanedInstructions === nodeInstructions.trim();
-
 
             if (nodeRole != null && nodeInstructions != null) {
                 return roleMatch && instrMatch;
@@ -851,7 +927,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                                 </NodeStyles.Description>
                             </NodeStyles.Header>
                             <NodeStyles.ActionButtonGroup>
-                                {hasError && <DiagnosticsPopUp node={model.node} />}
+                                {hasError && <DiagnosticsPopUp node={model.node} engine={engine} />}
                                 <NodeStyles.MenuButton
                                     ref={setMenuButtonElement}
                                     buttonSx={readOnly ? { cursor: "not-allowed" } : {}}
@@ -862,28 +938,33 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                                 </NodeStyles.MenuButton>
                             </NodeStyles.ActionButtonGroup>
                         </NodeStyles.Row>
-                        <Popover
-                            open={isMenuOpen}
-                            anchorEl={anchorEl}
-                            handleClose={handleOnMenuClose}
-                            sx={{
-                                padding: 0,
-                                borderRadius: 0,
-                            }}
-                        >
-                            <Menu>
-                                <>
-                                    {menuItems.map((item) => (
-                                        <MenuItem key={item.id} item={item} />
-                                    ))}
-                                    <BreakpointMenu
-                                        hasBreakpoint={hasBreakpoint}
-                                        onAddBreakpoint={onAddBreakpoint}
-                                        onRemoveBreakpoint={onRemoveBreakpoint}
-                                    />
-                                </>
-                            </Menu>
-                        </Popover>
+                        {isMenuOpen && menuPos && createPortal(
+                            <div
+                                style={{
+                                    position: "fixed",
+                                    top: menuPos.top,
+                                    left: menuPos.left,
+                                    zIndex: 1300,
+                                    boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                                    borderRadius: 0,
+                                }}
+                                onMouseDown={(e) => e.stopPropagation()}
+                            >
+                                <Menu>
+                                    <>
+                                        {menuItems.map((item) => (
+                                            <MenuItem key={item.id} item={item} />
+                                        ))}
+                                        <BreakpointMenu
+                                            hasBreakpoint={hasBreakpoint}
+                                            onAddBreakpoint={onAddBreakpoint}
+                                            onRemoveBreakpoint={onRemoveBreakpoint}
+                                        />
+                                    </>
+                                </Menu>
+                            </div>,
+                            document.body
+                        )}
                     </NodeStyles.Row>
 
                     <NodeStyles.MemoryContainer>
@@ -919,60 +1000,69 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                                 </NodeStyles.MemoryButton>
                             )}
                         </NodeStyles.Row>
-                        <Popover
-                            open={isMemoryMenuOpen}
-                            anchorEl={memoryMenuAnchorEl}
-                            handleClose={handleMemoryMenuClose}
-                            sx={{
-                                padding: 0,
-                                borderRadius: 0,
-                            }}
-                        >
-                            <Menu>
-                                <>
-                                    {memoryMenuItems.map((item) => (
-                                        <MenuItem key={item.id} item={item} />
-                                    ))}
-                                </>
-                            </Menu>
-                        </Popover>
+                        {isMemoryMenuOpen && memoryMenuPos && createPortal(
+                            <div
+                                style={{
+                                    position: "fixed",
+                                    top: memoryMenuPos.top,
+                                    left: memoryMenuPos.left,
+                                    zIndex: 1300,
+                                    boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                                    borderRadius: 0,
+                                }}
+                                onMouseDown={(e) => e.stopPropagation()}
+                            >
+                                <Menu>
+                                    <>
+                                        {memoryMenuItems.map((item) => (
+                                            <MenuItem key={item.id} item={item} />
+                                        ))}
+                                    </>
+                                </Menu>
+                            </div>,
+                            document.body
+                        )}
                     </NodeStyles.MemoryContainer>
 
-                    {nodeMetadata?.agent?.role ? (
-                        <NodeStyles.Row readOnly={readOnly} onClick={handleOnClick}>
-                            <NodeStyles.Role>
-                                <ReactMarkdown
-                                    disallowedElements={['script', 'iframe', 'object', 'embed', 'link', 'style']}
-                                    unwrapDisallowed={true}
-                                >
-                                    {nodeMetadata.agent.role}
-                                </ReactMarkdown>
-                            </NodeStyles.Role>
-                        </NodeStyles.Row>
-                    ) : (
-                        <NodeStyles.Row readOnly={readOnly} onClick={handleOnClick}>
-                            <NodeStyles.RolePlaceholder>Define agent's role</NodeStyles.RolePlaceholder>
-                        </NodeStyles.Row>
-                    )}
+                    {
+                        sanitizedAgent?.role ? (
+                            <NodeStyles.Row readOnly={readOnly} onClick={handleOnClick}>
+                                <NodeStyles.Role>
+                                    <ReactMarkdown
+                                        disallowedElements={['script', 'iframe', 'object', 'embed', 'link', 'style']}
+                                        unwrapDisallowed={true}
+                                    >
+                                        {sanitizedAgent?.role}
+                                    </ReactMarkdown>
+                                </NodeStyles.Role>
+                            </NodeStyles.Row>
+                        ) : (
+                            <NodeStyles.Row readOnly={readOnly} onClick={handleOnClick}>
+                                <NodeStyles.RolePlaceholder>Define agent's role</NodeStyles.RolePlaceholder>
+                            </NodeStyles.Row>
+                        )
+                    }
 
-                    {nodeMetadata?.agent?.instructions ? (
-                        <NodeStyles.InstructionsRow readOnly={readOnly} onClick={handleOnClick}>
-                            <NodeStyles.Instructions>
-                                <ReactMarkdown
-                                    disallowedElements={['script', 'iframe', 'object', 'embed', 'link', 'style']}
-                                    unwrapDisallowed={true}
-                                >
-                                    {nodeMetadata.agent.instructions}
-                                </ReactMarkdown>
-                            </NodeStyles.Instructions>
-                        </NodeStyles.InstructionsRow>
-                    ) : (
-                        <NodeStyles.InstructionsRow readOnly={readOnly} onClick={handleOnClick}>
-                            <NodeStyles.InstructionsPlaceholder>
-                                Provide specific instructions on how the agent should behave.
-                            </NodeStyles.InstructionsPlaceholder>
-                        </NodeStyles.InstructionsRow>
-                    )}
+                    {
+                        sanitizedAgent?.instructions ? (
+                            <NodeStyles.InstructionsRow readOnly={readOnly} onClick={handleOnClick}>
+                                <NodeStyles.Instructions>
+                                    <ReactMarkdown
+                                        disallowedElements={['script', 'iframe', 'object', 'embed', 'link', 'style']}
+                                        unwrapDisallowed={true}
+                                    >
+                                        {sanitizedAgent?.instructions}
+                                    </ReactMarkdown>
+                                </NodeStyles.Instructions>
+                            </NodeStyles.InstructionsRow>
+                        ) : (
+                            <NodeStyles.InstructionsRow readOnly={readOnly} onClick={handleOnClick}>
+                                <NodeStyles.InstructionsPlaceholder>
+                                    Provide specific instructions on how the agent should behave.
+                                </NodeStyles.InstructionsPlaceholder>
+                            </NodeStyles.InstructionsRow>
+                        )
+                    }
                 </NodeStyles.Column>
                 <NodeStyles.BottomPortWidget port={model.getPort("out")!} engine={engine} />
             </NodeStyles.Box>
@@ -989,8 +1079,8 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                         cx="80"
                         cy="24"
                         r="22"
-                        fill={ThemeColors.SURFACE_DIM}
-                        stroke={ThemeColors.OUTLINE_VARIANT}
+                        fill={NODE_BG_COLOR}
+                        stroke={NODE_BORDER_COLOR}
                         strokeWidth={1.5}
                         strokeDasharray={disabled ? "5 5" : "none"}
                         opacity={disabled ? 0.7 : 1}
@@ -999,7 +1089,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                             cursor: ${readOnly ? "default" : "pointer"};
                             transition: stroke 0.4s ease-out;
                             &:hover {
-                                stroke: ${readOnly ? ThemeColors.OUTLINE_VARIANT : ThemeColors.SECONDARY};
+                                stroke: ${readOnly ? NODE_BORDER_COLOR : NODE_BORDER_SELECTED_COLOR};
                             }
                         `}
                     >
@@ -1027,10 +1117,10 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                         y="12"
                         width="44"
                         height="44"
-                        fill={ThemeColors.ON_SURFACE}
+                        fill={NODE_TEXT_COLOR}
                         style={{ pointerEvents: "none" }}
                     >
-                        {getAIModuleIcon(nodeMetadata?.model?.type) ?? <DefaultLlmIcon />}
+                        {getAIModuleIcon(nodeMetadata?.model?.type) ?? (nodeModelIconUrl ? <img src={nodeModelIconUrl} style={{ width: 24, height: 24 }} /> : <DefaultLlmIcon />)}
                     </foreignObject>
 
                     {/* Base Line */}
@@ -1040,7 +1130,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                         x2="57"
                         y2="25"
                         style={{
-                            stroke: ThemeColors.ON_SURFACE,
+                            stroke: NODE_TEXT_COLOR,
                             strokeWidth: 1.5,
                             markerEnd: `url(#${model.node.id}-arrow-head)`,
                             markerStart: `url(#${model.node.id}-diamond-start)`,
@@ -1087,13 +1177,13 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                             css={css`
                             cursor: ${readOnly ? "default" : "pointer"};
                             &:hover circle:first-of-type {
-                                stroke: ${ThemeColors.SECONDARY};
+                                stroke: ${NODE_BORDER_SELECTED_COLOR};
                             }
                             &:hover foreignObject .connector-icon path {
-                                fill: ${ThemeColors.SECONDARY};
+                                fill: ${NODE_BORDER_SELECTED_COLOR};
                             }
                             &:hover text {
-                                fill: ${ThemeColors.SECONDARY};
+                                fill: ${NODE_BORDER_SELECTED_COLOR};
                             }
                             &:hover .tool-tooltip {
                                 opacity: 1;
@@ -1110,8 +1200,8 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                                 cx="80"
                                 cy="24"
                                 r="22"
-                                fill={ThemeColors.SURFACE_DIM}
-                                stroke={ThemeColors.OUTLINE_VARIANT}
+                                fill={NODE_BG_COLOR}
+                                stroke={NODE_BORDER_COLOR}
                                 strokeWidth={1.5}
                                 strokeDasharray={disabled ? "5 5" : "none"}
                                 opacity={disabled ? 0.7 : 1}
@@ -1142,7 +1232,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                                 y="12"
                                 width="44"
                                 height="44"
-                                fill={ThemeColors.ON_SURFACE}
+                                fill={NODE_TEXT_COLOR}
                                 style={{ pointerEvents: "none" }}
                             >
                                 <div className="connector-icon">
@@ -1162,7 +1252,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                                 x="110"
                                 y="28"
                                 textAnchor="start"
-                                fill={isToolActive ? aiColor : ThemeColors.ON_SURFACE}
+                                fill={isToolActive ? aiColor : NODE_TEXT_COLOR}
                                 fontSize="14px"
                                 fontFamily="GilmerRegular"
                                 dominantBaseline="middle"
@@ -1231,7 +1321,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                                 x2="57"
                                 y2="25"
                                 style={{
-                                    stroke: ThemeColors.ON_SURFACE,
+                                    stroke: NODE_TEXT_COLOR,
                                     strokeWidth: 1.5,
                                     markerEnd: `url(#${model.node.id}-arrow-head-tool-${sanitizeId(tool.name)})`,
                                     strokeDasharray: "6 6",
@@ -1270,8 +1360,8 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                             >
                                 <div
                                     css={css`
-                                    background-color: ${ThemeColors.SURFACE_BRIGHT};
-                                    color: ${ThemeColors.ON_SURFACE};
+                                    background-color: ${CANVAS_BG_COLOR};
+                                    color: ${NODE_TEXT_COLOR};
                                     padding: 4px 8px;
                                     border-radius: 4px;
                                     font-size: 12px;
@@ -1291,21 +1381,26 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                     );
                 })}
 
-                {/* Tool Menu Popover */}
-                <Popover
-                    open={isToolMenuOpen}
-                    anchorEl={toolAnchorEl}
-                    handleClose={handleToolMenuClose}
-                    sx={{
-                        padding: 0,
-                        borderRadius: 0,
-                    }}
-                >
-                    <Menu>
-                        {selectedTool &&
-                            toolMenuItems(selectedTool).map((item) => <MenuItem key={item.id} item={item} />)}
-                    </Menu>
-                </Popover>
+                {/* Tool Menu Portal */}
+                {isToolMenuOpen && toolMenuPos && createPortal(
+                    <div
+                        style={{
+                            position: "fixed",
+                            top: toolMenuPos.top,
+                            left: toolMenuPos.left,
+                            zIndex: 1300,
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                            borderRadius: 0,
+                        }}
+                        onMouseDown={(e) => e.stopPropagation()}
+                    >
+                        <Menu>
+                            {selectedTool &&
+                                toolMenuItems(selectedTool).map((item) => <MenuItem key={item.id} item={item} />)}
+                        </Menu>
+                    </div>,
+                    document.body
+                )}
 
                 {/* Add "Add new tool" button below all tools — hidden in read-only mode */}
                 {!readOnly && <g
@@ -1324,7 +1419,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                         css={css`
                             cursor: ${readOnly ? "not-allowed" : "pointer"};
                             &:hover path:last-of-type {
-                                fill: ${ThemeColors.SECONDARY};
+                                fill: ${NODE_BORDER_SELECTED_COLOR};
                             }
                             &:hover + .custom-tooltip {
                                 opacity: 1;
@@ -1334,11 +1429,11 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                     >
                         <title>Add New Tool / MCP Server</title>
                         <path
-                            fill={ThemeColors.SURFACE_BRIGHT}
+                            fill={CANVAS_BG_COLOR}
                             d="M12 0C5 0 0 5 0 12s5 12 12 12 12-5 12-12S19 0 12 0z"
                         />
                         <path
-                            fill={ThemeColors.ON_SURFACE}
+                            fill={NODE_TEXT_COLOR}
                             d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2m0 18a8 8 0 1 1 8-8a8 8 0 0 1-8 8m4-9h-3V8a1 1 0 0 0-2 0v3H8a1 1 0 0 0 0 2h3v3a1 1 0 0 0 2 0v-3h3a1 1 0 0 0 0-2"
                         />
                     </svg>
@@ -1348,8 +1443,8 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                         <div
                             className="custom-tooltip"
                             css={css`
-                                background-color: ${ThemeColors.SURFACE_BRIGHT};
-                                color: ${ThemeColors.ON_SURFACE};
+                                background-color: ${CANVAS_BG_COLOR};
+                                color: ${NODE_TEXT_COLOR};
                                 padding: 4px 8px;
                                 border-radius: 4px;
                                 font-size: 12px;
@@ -1377,7 +1472,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                         viewBox="0 0 4 4"
                         orient="auto"
                     >
-                        <polygon points="0,4 0,0 4,2" fill={ThemeColors.ON_SURFACE}></polygon>
+                        <polygon points="0,4 0,0 4,2" fill={NODE_TEXT_COLOR}></polygon>
                     </marker>
 
                     <marker
@@ -1405,8 +1500,8 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                             cx="4"
                             cy="4"
                             r="3"
-                            fill={ThemeColors.SURFACE_DIM}
-                            stroke={ThemeColors.ON_SURFACE}
+                            fill={NODE_BG_COLOR}
+                            stroke={NODE_TEXT_COLOR}
                             strokeWidth="1"
                         />
                     </marker>
@@ -1421,7 +1516,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
                                 viewBox="0 0 4 4"
                                 orient="auto"
                             >
-                                <polygon points="0,4 0,0 4,2" fill={ThemeColors.ON_SURFACE}></polygon>
+                                <polygon points="0,4 0,0 4,2" fill={NODE_TEXT_COLOR}></polygon>
                             </marker>
 
                             <marker
@@ -1452,12 +1547,25 @@ function sanitizeId(name: string): string {
 // sanitize agent instructions and role
 // remove leading and trailing quotes
 // remove suffix "string `" and prefix "`"
-function sanitizeAgentData(data: AgentData) {
-    if (data.role) {
-        data.role = data.role.replace(/^['"]|['"]$/g, "").replace(/^string `|`$/g, "");
+function stripWrappingQuotes(str: string): string {
+    // Handle `string \`...\`` template format — backticks are the definitive wrapper, no further stripping needed
+    if (str.startsWith('string `') && str.endsWith('`')) {
+        return str.slice('string `'.length, -1);
     }
-    if (data.instructions) {
-        data.instructions = data.instructions.replace(/^['"]|['"]$/g, "").replace(/^string `|`$/g, "");
+    // Only strip quotes if wrapped in a single matching pair (not multiple like """...""")
+    if (
+        ((str.startsWith('"') && str.endsWith('"')) || (str.startsWith("'") && str.endsWith("'")))
+        && !(str.startsWith('""') || str.startsWith("''"))
+    ) {
+        return str.slice(1, -1);
     }
-    return data;
+    return str;
+}
+
+function sanitizeAgentData(data: AgentData): AgentData {
+    return {
+        ...data,
+        role: data.role ? stripWrappingQuotes(data.role) : data.role,
+        instructions: data.instructions ? stripWrappingQuotes(data.instructions) : data.instructions,
+    };
 }

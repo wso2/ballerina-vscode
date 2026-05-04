@@ -36,6 +36,7 @@ import { activate as activateLibraryBrowser } from './features/library-browser';
 import { activate as activateBIFeatures } from './features/bi';
 import { activate as activateERDiagram } from './views/persist-layer-diagram';
 import { activateAiPanel } from './views/ai-panel';
+import { activateMigrationPanel } from './views/migration-panel';
 import { debug, handleResolveMissingDependencies, log } from './utils';
 import { activateUriHandlers } from './utils/uri-handlers';
 import { StateMachine } from './stateMachine';
@@ -45,11 +46,13 @@ import { extension } from './BalExtensionContext';
 import { ExtendedClientCapabilities } from '@wso2/ballerina-core';
 import { RPCLayer } from './RPCLayer';
 import { activateAIFeatures } from './features/ai/activator';
+import { runningServicesManager } from './features/ai/agent/tools/running-service-manager';
 import { activateTryItCommand } from './features/tryit/activator';
 import { activate as activateNPFeatures } from './features/natural-programming/activator';
 import { activateAgentChatPanel } from './views/agent-chat/activate';
 import { activateTracing } from './features/tracing';
 import { activateICP } from './features/icp';
+import { onWizardChatNotify, setWizardProjectRoot, runWizardMigrationEnhancement, abortMigrationAgent, openMigratedProject, isAIAuthenticated, signInForAI } from './features/ai/migration/orchestrator';
 
 let langClient: ExtendedLangClient;
 export let isPluginStartup = true;
@@ -126,16 +129,25 @@ export async function activate(context: ExtensionContext) {
     extension.context = context;
     // Init RPC Layer methods
     RPCLayer.init();
-    
+
     // Wait for the ballerina extension to be ready
     await StateMachine.initialize();
-    
+
     // Then return the ballerina extension context
-    return { 
-        ballerinaExtInstance: extension.ballerinaExtInstance, 
+    return {
+        ballerinaExtInstance: extension.ballerinaExtInstance,
         projectPath: StateMachine.context().projectPath,
         VisualizerWebview,
-        BallerinaExtensionState
+        BallerinaExtensionState,
+        migration: {
+            setWizardProjectRoot,
+            wizardEnhancementReady: runWizardMigrationEnhancement,
+            abortAgent: abortMigrationAgent,
+            openMigratedProject,
+            onChatNotify: onWizardChatNotify,
+            isAIAuthenticated,
+            signInForAI,
+        },
     };
 }
 
@@ -201,6 +213,9 @@ export async function activateBallerina(): Promise<BallerinaExtension> {
 
         //activate ai panel
         activateAiPanel(ballerinaExtInstance);
+
+        // Activate migration enhancement panel
+        activateMigrationPanel(ballerinaExtInstance);
 
         // Activate AI features
         activateAIFeatures(ballerinaExtInstance);
@@ -291,12 +306,14 @@ async function updateCodeServerConfig() {
     await config.update('enableRunFast', true);
 }
 
-export function deactivate(): Thenable<void> | undefined {
+export async function deactivate(): Promise<void> {
     debug('Deactive the Ballerina VS Code extension.');
+
+    await runningServicesManager.dispose();
 
     if (!langClient) {
         return;
     }
     extension.ballerinaExtInstance.telemetryReporter.dispose();
-    return langClient.stop();
+    await langClient.stop();
 }

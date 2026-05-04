@@ -20,14 +20,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FormField, FormValues, FormImports } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { convertConfig } from "../../utils/bi";
-import { FormGeneratorNew } from "../../views/BI/Forms/FormGeneratorNew";
+import { ArtifactForm } from "../../views/BI/Forms/ArtifactForm";
 import { RelativeLoader } from "../RelativeLoader";
 import { InfoBox } from "../InfoBox";
 import { ConnectionCreatorProps } from "./types";
 import { getConnectionSpecialConfig } from "./config";
 import { updateFormFieldsWithData, updateNodeTemplateProperties, updateNodeWithConnectionVariable, updateNodeLineRange } from "./utils";
 import { cloneDeep } from "lodash";
-import { LineRange } from "@wso2/ballerina-core";
+import { LineRange, RecordTypeField, getPrimaryInputType, PropertyTypeMemberInfo } from "@wso2/ballerina-core";
 import { LoaderContainer } from "../RelativeLoader/styles";
 import { URI, Utils } from "vscode-uri";
 import { CONNECTIONS_FILE } from "../../constants";
@@ -41,6 +41,7 @@ export function ConnectionCreator(props: ConnectionCreatorProps): JSX.Element {
 
     const { rpcClient } = useRpcContext();
     const [connectionFields, setConnectionFields] = useState<FormField[]>([]);
+    const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [savingForm, setSavingForm] = useState<boolean>(false);
 
@@ -73,6 +74,27 @@ export function ConnectionCreator(props: ConnectionCreatorProps): JSX.Element {
         if (nodeFormTemplate && nodeFormTemplate.properties) {
             const fields = convertConfig(nodeFormTemplate.properties);
             setConnectionFields(fields);
+
+            const rtFields: RecordTypeField[] = Object.entries(nodeFormTemplate.properties)
+                .filter(
+                    ([_, property]) =>
+                        getPrimaryInputType(property?.types)?.typeMembers &&
+                        getPrimaryInputType(property?.types)?.typeMembers.some((member: PropertyTypeMemberInfo) => member.kind === "RECORD_TYPE")
+                )
+                .map(([key, property]) => ({
+                    key,
+                    property: {
+                        ...property,
+                        metadata: {
+                            label: property.metadata?.label || key,
+                            description: property.metadata?.description || "",
+                        },
+                    },
+                    recordTypeMembers: getPrimaryInputType(property.types)?.typeMembers.filter(
+                        (member: PropertyTypeMemberInfo) => member.kind === "RECORD_TYPE"
+                    ) || [],
+                }));
+            setRecordTypeFields(rtFields);
         }
         setLoading(false);
     };
@@ -95,7 +117,7 @@ export function ConnectionCreator(props: ConnectionCreatorProps): JSX.Element {
             updateNodeWithConnectionVariable(connectionKind, selectedNode, nodeTemplate?.properties?.variable?.value as string);
             // Update the line range for the selected node if it was updated
             updateNodeLineRange(selectedNode, response.artifacts);
-            onSave?.(selectedNode);
+            onSave?.(selectedNode, response.artifacts);
         } catch (error) {
             console.error(`>>> Error creating ${connectionKind}`, error);
         }
@@ -110,7 +132,7 @@ export function ConnectionCreator(props: ConnectionCreatorProps): JSX.Element {
             )}
             {!loading && connectionFields?.length > 0 && (
                 <>
-                    <FormGeneratorNew
+                    <ArtifactForm
                         fileName={connectionsFilePath.current || projectPath.current}
                         fields={connectionFields}
                         onSubmit={handleOnSave}
@@ -119,6 +141,7 @@ export function ConnectionCreator(props: ConnectionCreatorProps): JSX.Element {
                         targetLineRange={targetLineRangeRef.current}
                         helperPaneSide="left"
                         isSaving={savingForm}
+                        recordTypeFields={recordTypeFields}
                         injectedComponents={shouldShowInfo && specialConfig.infoMessage ? [
                             {
                                 component: <InfoBox

@@ -21,10 +21,20 @@ import { css, keyframes } from "@emotion/react";
 import { useState, useEffect } from "react";
 import { DiagramEngine } from "@projectstorm/react-diagrams";
 import { NodeLinkModel } from "./NodeLinkModel";
-import { NODE_WIDTH } from "../../resources/constants";
+import {
+    ADD_BUTTON_BG_COLOR,
+    ADD_BUTTON_COLOR,
+    ADD_BUTTON_DISABLED_COLOR,
+    ADD_BUTTON_HOVERED_COLOR,
+    CANVAS_BG_COLOR,
+    LINK_COLOR,
+    LINK_DISABLED_COLOR,
+    LINK_HOVERED_COLOR,
+    NODE_WIDTH,
+} from "../../resources/constants";
 import { useDiagramContext } from "../DiagramContext";
 import AddCommentPopup from "../AddCommentPopup";
-import { Popover, ThemeColors } from "@wso2/ui-toolkit";
+import { Popover } from "@wso2/ui-toolkit";
 
 interface NodeLinkWidgetProps {
     link: NodeLinkModel;
@@ -60,10 +70,10 @@ export const NodeLinkWidget: React.FC<NodeLinkWidgetProps> = ({ link, engine }) 
     const shouldHighlight =
         showAddButton && (isHovered || link.showButtonAlways || isCommentBoxOpen);
     const linkColor = link.disabled
-        ? ThemeColors.OUTLINE_VARIANT
+        ? LINK_DISABLED_COLOR
         : isHovered && !readOnly
-        ? ThemeColors.SECONDARY
-        : ThemeColors.PRIMARY;
+        ? LINK_HOVERED_COLOR
+        : LINK_COLOR;
 
     const addButtonPosition = link.getAddButtonPosition();
 
@@ -136,6 +146,10 @@ export const NodeLinkWidget: React.FC<NodeLinkWidgetProps> = ({ link, engine }) 
                 strokeWidth={1.5}
                 strokeDasharray={link.brokenLine ? "5,5" : "0"}
                 markerEnd={link.showArrowToNode() ? `url(#${link.getID()}-arrow-head)` : ""}
+                style={{
+                    filter: isHovered && !readOnly ? `drop-shadow(0 0 3px ${LINK_HOVERED_COLOR})` : 'none',
+                    transition: 'filter 0.1s ease',
+                }}
             />
             {link.label && (
                 <foreignObject
@@ -159,7 +173,7 @@ export const NodeLinkWidget: React.FC<NodeLinkWidgetProps> = ({ link, engine }) 
                                 alignItems: "center",
                                 borderRadius: "20px",
                                 border: `1.5px solid ${linkColor}`,
-                                backgroundColor: `${ThemeColors.SURFACE_BRIGHT}`,
+                                backgroundColor: `${ADD_BUTTON_BG_COLOR}`,
                                 padding: "2px 10px",
                                 boxSizing: "border-box",
                                 width: "fit-content",
@@ -208,11 +222,11 @@ export const NodeLinkWidget: React.FC<NodeLinkWidgetProps> = ({ link, engine }) 
                             `}
                         >
                             <path
-                                fill={ThemeColors.SURFACE_BRIGHT}
+                                fill={ADD_BUTTON_BG_COLOR}
                                 d="M12 0C5 0 0 5 0 12s5 12 12 12 12-5 12-12S19 0 12 0z"
                             />
                             <path
-                                fill={isCommentButtonHovered ? ThemeColors.SECONDARY : ThemeColors.PRIMARY}
+                                fill={isCommentButtonHovered ? ADD_BUTTON_HOVERED_COLOR : ADD_BUTTON_COLOR}
                                 d="m6 17l-2.15 2.15q-.25.25-.55.125T3 18.8V5q0-.825.588-1.412T5 3h12q.825 0 1.413.588T19 5v4.025q0 .425-.288.7T18 10t-.712-.288T17 9V5H5v10h6q.425 0 .713.288T12 16t-.288.713T11 17zm2-8h6q.425 0 .713-.288T15 8t-.288-.712T14 7H8q-.425 0-.712.288T7 8t.288.713T8 9m0 4h3q.425 0 .713-.288T12 12t-.288-.712T11 11H8q-.425 0-.712.288T7 12t.288.713T8 13m9 4h-2q-.425 0-.712-.288T14 16t.288-.712T15 15h2v-2q0-.425.288-.712T18 12t.713.288T19 13v2h2q.425 0 .713.288T22 16t-.288.713T21 17h-2v2q0 .425-.288.713T18 20t-.712-.288T17 19zM5 15V5z"
                             />
                         </svg>
@@ -230,11 +244,11 @@ export const NodeLinkWidget: React.FC<NodeLinkWidgetProps> = ({ link, engine }) 
                             `}
                         >
                             <path
-                                fill={ThemeColors.SURFACE_BRIGHT}
+                                fill={ADD_BUTTON_BG_COLOR}
                                 d="M12 0C5 0 0 5 0 12s5 12 12 12 12-5 12-12S19 0 12 0z"
                             />
                             <path
-                                fill={isNodeButtonHovered ? ThemeColors.SECONDARY : ThemeColors.PRIMARY}
+                                fill={isNodeButtonHovered ? ADD_BUTTON_HOVERED_COLOR : ADD_BUTTON_COLOR}
                                 d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2m0 18a8 8 0 1 1 8-8a8 8 0 0 1-8 8m4-9h-3V8a1 1 0 0 0-2 0v3H8a1 1 0 0 0 0 2h3v3a1 1 0 0 0 2 0v-3h3a1 1 0 0 0 0-2"
                             />
                         </svg>
@@ -253,11 +267,11 @@ export const NodeLinkWidget: React.FC<NodeLinkWidgetProps> = ({ link, engine }) 
                         >
                             {!isUserAuthenticated && <title>You need to be logged into WSO2 Integrator Copilot to access AI features</title>}
                             <path
-                                fill={ThemeColors.SURFACE_BRIGHT}
+                                fill={ADD_BUTTON_BG_COLOR}
                                 d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                             />
                             <path
-                                fill={!isUserAuthenticated ? ThemeColors.OUTLINE_VARIANT : (isPromptButtonHovered ? ThemeColors.SECONDARY : ThemeColors.PRIMARY)}
+                                fill={!isUserAuthenticated ? ADD_BUTTON_DISABLED_COLOR : (isPromptButtonHovered ? ADD_BUTTON_HOVERED_COLOR : ADD_BUTTON_COLOR)}
                                 d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
                             />
                         </svg>

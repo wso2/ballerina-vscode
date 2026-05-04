@@ -16,7 +16,8 @@
  * under the License.
  */
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { EditableTitle } from "../../../components/EditableTitle";
 import {
     ProjectStructureResponse,
     SHARED_COMMANDS,
@@ -81,12 +82,6 @@ const HeaderRow = styled.div`
     border-bottom: 1px solid var(--vscode-dropdown-border);
     flex-shrink: 0;
     margin: 16px 16px 0 16px;
-`;
-
-const HeaderControls = styled.div`
-    display: flex;
-    gap: 12px;
-    align-items: center;
 `;
 
 const MainContent = styled.div<{ hasDeployment?: boolean }>`
@@ -192,6 +187,7 @@ const TitleContainer = styled.div`
     display: flex;
     align-items: flex-end;
     gap: 8px;
+    position: relative;
 `;
 
 const ProjectTitle = styled.h1`
@@ -199,6 +195,7 @@ const ProjectTitle = styled.h1`
     font-size: 1.5rem;
     margin-bottom: 0;
     margin-top: 0;
+    transition: opacity 0.40s ease;
     @media (min-width: 768px) {
         font-size: 1.875rem;
     }
@@ -287,6 +284,7 @@ interface DeploymentOptionProps {
     onDeploy: () => void;
     learnMoreLink?: string;
     hasDeployableIntegration?: boolean;
+    disabledTooltip?: string;
     secondaryAction?: {
         description: string;
         buttonText: string;
@@ -303,6 +301,7 @@ function DeploymentOption({
     onDeploy,
     learnMoreLink,
     hasDeployableIntegration,
+    disabledTooltip,
     secondaryAction
 }: DeploymentOptionProps) {
     const { rpcClient } = useRpcContext();
@@ -346,7 +345,7 @@ function DeploymentOption({
                         onDeploy();
                     }}
                     disabled={!hasDeployableIntegration}
-                    tooltip={hasDeployableIntegration ? "" : "No deployable integration found"}
+                    tooltip={hasDeployableIntegration ? "" : (disabledTooltip ?? "No deployable integration found")}
                 >
                     {buttonText}
                 </Button>
@@ -497,6 +496,7 @@ function DeploymentOptions({
                         onDeploy={primaryAction}
                         learnMoreLink={"https://wso2.com/devant/docs"}
                         hasDeployableIntegration={!isDeploymentDisabled}
+                        disabledTooltip={disabledTooltip}
                         secondaryAction={secondaryAction}
                     />
                 )}
@@ -525,6 +525,32 @@ function DeploymentOptions({
     );
 }
 
+const ICPButtonContent = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+`;
+
+type IcpAction = "enableAll" | "disableAll" | "enableRemaining";
+
+function ICPActionButton({ action, label, loadingLabel, onClick, icpActionLoading, isLoading }: {
+    action: IcpAction;
+    label: string;
+    loadingLabel: string;
+    onClick: () => void;
+    icpActionLoading: IcpAction | null;
+    isLoading: boolean;
+}) {
+    return (
+        <Button appearance="secondary" onClick={onClick} disabled={isLoading}>
+            <ICPButtonContent>
+                {icpActionLoading === action && <ProgressRing sx={{ width: 12, height: 12 }} />}
+                {icpActionLoading === action ? loadingLabel : label}
+            </ICPButtonContent>
+        </Button>
+    );
+}
+
 interface IntegrationControlPlaneProps {
     icpState: "all" | "partial" | "none";
     enabledCount: number;
@@ -532,6 +558,7 @@ interface IntegrationControlPlaneProps {
     onEnableAll: () => void;
     onDisableAll: () => void;
     onEnableRemaining: () => void;
+    icpActionLoading: IcpAction | null;
 }
 
 function IntegrationControlPlane({
@@ -540,9 +567,11 @@ function IntegrationControlPlane({
     totalCount,
     onEnableAll,
     onDisableAll,
-    onEnableRemaining
+    onEnableRemaining,
+    icpActionLoading
 }: IntegrationControlPlaneProps) {
     const { rpcClient } = useRpcContext();
+    const isLoading = icpActionLoading !== null;
 
     const openLearnMoreURL = () => {
         rpcClient.getCommonRpcClient().openExternalUrl({
@@ -561,19 +590,34 @@ function IntegrationControlPlane({
                 {totalCount > 0 ? `${enabledCount}/${totalCount} integrations are ICP-enabled` : "No ICP-eligible integrations found"}
             </Description>
             {icpState === "all" && (
-                <Button appearance="secondary" onClick={onDisableAll}>
-                    Disable ICP for all integrations
-                </Button>
+                <ICPActionButton
+                    action="disableAll"
+                    label="Disable ICP for all integrations"
+                    loadingLabel="Disabling..."
+                    onClick={onDisableAll}
+                    icpActionLoading={icpActionLoading}
+                    isLoading={isLoading}
+                />
             )}
             {icpState === "none" && (
-                <Button appearance="secondary" onClick={onEnableAll}>
-                    Enable ICP for all integrations
-                </Button>
+                <ICPActionButton
+                    action="enableAll"
+                    label="Enable ICP for all integrations"
+                    loadingLabel="Enabling..."
+                    onClick={onEnableAll}
+                    icpActionLoading={icpActionLoading}
+                    isLoading={isLoading}
+                />
             )}
             {icpState === "partial" && (
-                <Button appearance="secondary" onClick={onEnableRemaining}>
-                    Enable ICP for remaining integrations
-                </Button>
+                <ICPActionButton
+                    action="enableRemaining"
+                    label="Enable ICP for remaining integrations"
+                    loadingLabel="Enabling..."
+                    onClick={onEnableRemaining}
+                    icpActionLoading={icpActionLoading}
+                    isLoading={isLoading}
+                />
             )}
         </div>
     );
@@ -584,8 +628,11 @@ export function WorkspaceOverview() {
     const [readmeContent, setReadmeContent] = React.useState<string>("");
     const [projectCollection, setProjectCollection] = React.useState<ProjectStructureResponse>();
     const [icpStatusByProjectPath, setIcpStatusByProjectPath] = React.useState<Record<string, boolean>>({});
+    const [displayedTitle, setDisplayedTitle] = useState("");
+    const [titleVisible, setTitleVisible] = useState(true);
 
     const [showAlert, setShowAlert] = React.useState(false);
+    const [icpActionLoading, setIcpActionLoading] = React.useState<IcpAction | null>(null);
 
     const { data: devantMetadata } = useQuery({
         queryKey: ["project-devant-metadata"],
@@ -659,6 +706,25 @@ export function WorkspaceOverview() {
         });
     }, []);
 
+    useEffect(() => {
+        const newTitle = projectCollection?.workspaceTitle || projectCollection?.workspaceName || "";
+        if (newTitle === displayedTitle) {
+            return;
+        }
+        if (!displayedTitle) {
+            // First load — no animation needed
+            setDisplayedTitle(newTitle);
+            return;
+        }
+        // Fade out → swap → fade in
+        setTitleVisible(false);
+        const swap = setTimeout(() => {
+            setDisplayedTitle(newTitle);
+            setTitleVisible(true);
+        }, 400);
+        return () => clearTimeout(swap);
+    }, [projectCollection?.workspaceTitle, projectCollection?.workspaceName]);
+
     const isEmptyProject = useMemo(() => {
         return projectCollection?.projects.length === 0;
     }, [projectCollection]);
@@ -707,6 +773,31 @@ export function WorkspaceOverview() {
     const deployableProjectPaths = useMemo(() => {
         return new Set(projectScopes.map(scope => scope.projectPath));
     }, [projectScopes]);
+
+    const validateTitle = useCallback((value: string): string => {
+        const trimmed = value.trim();
+        if (!trimmed) {
+            return "You are required to enter a project name.";
+        }
+        if (!/^[a-zA-Z]/.test(trimmed)) {
+            return "Name must start with an alphabetical letter.";
+        }
+        if (trimmed.length < 3) {
+            return "The name must have at least three characters.";
+        }
+        if (/[^a-zA-Z0-9\-_ ]/.test(trimmed)) {
+            return "The name cannot contain special characters.";
+        }
+        return "";
+    }, []);
+
+    const handleTitleUpdate = useCallback(async (newTitle: string) => {
+        if (!projectCollection?.workspacePath) return;
+        await rpcClient.getBIDiagramRpcClient().updateProjectTitle({
+            projectPath: projectCollection.workspacePath,
+            title: newTitle
+        });
+    }, [projectCollection, rpcClient]);
 
     if (!projectCollection) {
         return (
@@ -773,10 +864,6 @@ export function WorkspaceOverview() {
     };
 
     const updateICPForProjectPaths = async (projectPaths: string[], enableICP: boolean) => {
-        if (projectPaths.length === 0) {
-            return;
-        }
-
         for (const projectPath of projectPaths) {
             try {
                 if (enableICP) {
@@ -790,20 +877,21 @@ export function WorkspaceOverview() {
         }
     };
 
-    const handleEnableAllICP = async () => {
-        await updateICPForProjectPaths(icpProjectPaths, true);
-        await syncProjectICPStatus(icpProjectPaths);
+    const runIcpAction = async (action: IcpAction, paths: string[], enable: boolean) => {
+        setIcpActionLoading(action);
+        try {
+            await updateICPForProjectPaths(paths, enable);
+        } finally {
+            await syncProjectICPStatus(icpProjectPaths);
+            setIcpActionLoading(null);
+        }
     };
 
-    const handleDisableAllICP = async () => {
-        await updateICPForProjectPaths(icpProjectPaths, false);
-        await syncProjectICPStatus(icpProjectPaths);
-    };
-
-    const handleEnableRemainingICP = async () => {
+    const handleEnableAllICP = () => runIcpAction("enableAll", icpProjectPaths, true);
+    const handleDisableAllICP = () => runIcpAction("disableAll", icpProjectPaths, false);
+    const handleEnableRemainingICP = () => {
         const remainingProjectPaths = icpProjectPaths.filter((projectPath) => !icpStatusByProjectPath[projectPath]);
-        await updateICPForProjectPaths(remainingProjectPaths, true);
-        await syncProjectICPStatus(icpProjectPaths);
+        return runIcpAction("enableRemaining", remainingProjectPaths, true);
     };
 
     const goToDevant = () => {
@@ -836,16 +924,15 @@ export function WorkspaceOverview() {
         <PageLayout>
             <HeaderRow>
                 <TitleContainer>
-                    <ProjectTitle>{projectCollection?.workspaceTitle || projectCollection?.workspaceName}</ProjectTitle>
+                    <EditableTitle
+                        title={projectCollection?.workspaceTitle || projectCollection?.workspaceName || ""}
+                        onCommit={handleTitleUpdate}
+                        validate={validateTitle}
+                    >
+                        <ProjectTitle style={{ opacity: titleVisible ? 1 : 0 }}>{displayedTitle}</ProjectTitle>
+                    </EditableTitle>
                     <ProjectSubtitle>Project</ProjectSubtitle>
                 </TitleContainer>
-                <HeaderControls>
-                    <UndoRedoGroup key={Date.now()} />
-                    <Button appearance="primary" onClick={handleAddResource}>
-                        <Codicon name="add" sx={{ marginRight: 8 }} />
-                        Add Integration or Library
-                    </Button>
-                </HeaderControls>
             </HeaderRow>
 
             <MainContent hasDeployment={hasStandardIntegrations}>
@@ -878,6 +965,9 @@ export function WorkspaceOverview() {
                                         <Button appearance="secondary" onClick={handleGenerate}>
                                             <Icon name="bi-ai-chat" sx={{ marginRight: 4 }} iconSx={{ position: "relative", top: "2px" }} /> Generate with AI
                                         </Button>
+                                        <Button appearance="primary" onClick={handleAddResource}>
+                                            <Codicon name="add" sx={{ marginRight: 8 }} /> Add
+                                        </Button>
                                     </SectionActions>
                                 )}
                             </SectionHeader>
@@ -893,7 +983,7 @@ export function WorkspaceOverview() {
                                         Start by adding integrations and libraries to your project
                                     </Typography>
                                     <ButtonContainer>
-                                        <Button appearance="secondary" onClick={handleAddResource}>
+                                        <Button appearance="primary" onClick={handleAddResource}>
                                             <Codicon name="add" sx={{ marginRight: 8 }} /> Add Integration or Library
                                         </Button>
                                         <Button appearance="secondary" onClick={handleGenerate}>
@@ -962,6 +1052,7 @@ export function WorkspaceOverview() {
                             onEnableAll={handleEnableAllICP}
                             onDisableAll={handleDisableAllICP}
                             onEnableRemaining={handleEnableRemainingICP}
+                            icpActionLoading={icpActionLoading}
                         />
                     </SidePanel>
                 )}

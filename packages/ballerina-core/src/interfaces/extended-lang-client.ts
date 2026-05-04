@@ -23,7 +23,7 @@ import { DocumentIdentifier, LinePosition, LineRange, NOT_SUPPORTED_TYPE, Positi
 import { BallerinaConnectorInfo, BallerinaExampleCategory, BallerinaModuleResponse, BallerinaModulesRequest, BallerinaTrigger, BallerinaTriggerInfo, BallerinaConnector, ExecutorPosition, ExpressionRange, JsonToRecordMapperDiagnostic, MainTriggerModifyRequest, NoteBookCellOutputValue, NotebookCellMetaInfo, OASpec, PackageSummary, PartialSTModification, ResolvedTypeForExpression, ResolvedTypeForSymbol, STModification, SequenceModel, SequenceModelDiagnostic, ServiceTriggerModifyRequest, SymbolDocumentation, XMLToRecordConverterDiagnostic, TypeField, ComponentInfo } from "./ballerina";
 import { ModulePart, STNode } from "@wso2/syntax-tree";
 import { CodeActionParams, DefinitionParams, DocumentSymbolParams, ExecuteCommandParams, InitializeParams, InitializeResult, LocationLink, RenameParams } from "vscode-languageserver-protocol";
-import { Category, Flow, FlowNode, CodeData, ConfigVariable, FunctionNode, Property, PropertyTypeMemberInfo, DIRECTORY_MAP, Imports, NodeKind, InputType, FormFieldInputType, ProjectStructureArtifactResponse } from "./bi";
+import { Category, Flow, FlowNode, CodeData, ConfigVariable, FunctionNode, Property, PropertyTypeMemberInfo, DIRECTORY_MAP, Imports, NodeKind, InputType, FormFieldInputType, ProjectStructureArtifactResponse, VISIBILITY } from "./bi";
 import { ConnectorRequest, ConnectorResponse } from "../rpc-types/connector-wizard/interfaces";
 import { SqFlow } from "../rpc-types/sequence-diagram/interfaces";
 import { FieldType, FunctionModel, ListenerModel, ServiceClassModel, ServiceInitModel, ServiceModel } from "./service";
@@ -957,6 +957,8 @@ export type SearchKind =
     | "FUNCTION"
     | "CONNECTOR"
     | "TYPE"
+    | "WORKFLOW_RUN"
+    | "ACTIVITY_CALL"
     | "NP_FUNCTION"
     | "MODEL_PROVIDER"
     | "VECTOR_STORE"
@@ -966,7 +968,7 @@ export type SearchKind =
     | "CHUNKER"
     | "AGENT"
     | "MEMORY"
-    | "MEMORY_STORE"
+    | "SHORT_TERM_MEMORY_STORE"
     | "AGENT_TOOL"
     | "CLASS_INIT"
     | "ALL";
@@ -980,6 +982,27 @@ export type BISearchRequest = {
 
 export type BISearchResponse = {
     categories: Category[];
+}
+
+export interface WorkflowDataRequest {
+    workflowName: string;
+    filePath: string;
+}
+
+export interface WorkflowData {
+    name: string;
+    type: string;
+}
+
+export interface WorkflowDataResponse {
+    data?: WorkflowData[];
+    output?: {
+        data?: WorkflowData[];
+        events?: WorkflowData[];
+    };
+    events?: WorkflowData[];
+    errorMsg?: string;
+    stacktrace?: string;
 }
 
 export type BISearchNodesRequest = {
@@ -1846,9 +1869,21 @@ export interface AIToolResponse {
     };
 }
 
+export interface CertConfig {
+    path?: string;
+    password?: string;
+}
+
+export interface SecureSocketConfig {
+    cert?: CertConfig;
+    key?: CertConfig;
+    insecure?: boolean;
+}
+
 export interface McpToolsRequest {
     serviceUrl?: string;
     accessToken?: string;
+    secureSocket?: SecureSocketConfig;
 }
 
 export interface McpToolsResponse {
@@ -1966,6 +2001,7 @@ export interface BaseArtifact<T = any> {
     name: string;
     module?: string;
     scope: string;
+    visibility?: VISIBILITY;
     icon?: string; // Optional for those that have an icon
     children?: Record<string, BaseArtifact>; // To allow nested structures
     accessor?: string; // Specific to Entry Points
@@ -1975,6 +2011,7 @@ export interface BaseArtifact<T = any> {
 // Artifact Types
 export enum ARTIFACT_TYPE {
     Functions = "Functions",
+    Workflows = "Workflows",
     Connections = "Connections",
     Listeners = "Listeners",
     EntryPoints = "Entry Points",
@@ -1992,6 +2029,7 @@ export enum PROJECT_KIND {
 
 export interface Artifacts {
     [ARTIFACT_TYPE.Functions]: Record<string, BaseArtifact>;
+    [ARTIFACT_TYPE.Workflows]?: Record<string, BaseArtifact>;
     [ARTIFACT_TYPE.Connections]: Record<string, BaseArtifact>;
     [ARTIFACT_TYPE.Listeners]: Record<string, BaseArtifact>;
     [ARTIFACT_TYPE.EntryPoints]: Record<string, BaseArtifact>;
@@ -2087,6 +2125,7 @@ export interface BIInterface extends BaseLangClientInterface {
     getTypes: (params: GetTypesRequest) => Promise<GetTypesResponse>;
     getSimpleTypeOfExpression: (params: GetSimpleTypeOfExpressionRequest) => Promise<GetSimpleTypeOfExpressionResponse>;
     updateType: (params: UpdateTypeRequest) => Promise<UpdateTypeResponse>;
+    getAllData: (params: WorkflowDataRequest) => Promise<WorkflowDataResponse>;
     updateImports: (params: UpdateImportsRequest) => Promise<ImportsInfoResponse>;
     addFunction: (params: AddFunctionRequest) => Promise<AddImportItemResponse>;
     convertJsonToRecordType: (params: JsonToRecordParams) => Promise<TypeDataWithReferences>;

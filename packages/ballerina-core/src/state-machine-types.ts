@@ -21,7 +21,7 @@ import { NodePosition, STNode } from "@wso2/syntax-tree";
 import { Command } from "./interfaces/ai-panel";
 import { LinePosition } from "./interfaces/common";
 import { ProjectInfo, ProjectMigrationResult, Type } from "./interfaces/extended-lang-client";
-import { CodeData, DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
+import { CodeData, DIRECTORY_MAP, FlowNode, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
 import { DiagnosticEntry, DocumentationGeneratorIntermediaryState, SourceFile, CodeContext, FileAttatchment } from "./rpc-types/ai-panel/interfaces";
 
 export type MachineStateValue =
@@ -57,6 +57,7 @@ export enum SCOPE {
     EVENT_INTEGRATION = "event-integration",
     FILE_INTEGRATION = "file-integration",
     AI_AGENT = "ai-agent",
+    MCP = "mcp-server",
     LIBRARY = "library",
     ANY = "any"
 }
@@ -91,6 +92,8 @@ export enum MACHINE_VIEW {
     BIMainFunctionForm = "Add Automation SKIP",
     BIFunctionForm = "Add Function SKIP",
     BIAgentToolForm = "Add Agent Tool SKIP",
+    BIWorkflowForm = "Add Workflow SKIP",
+    BIActivityForm = "Add Workflow Activity SKIP",
     BINPFunctionForm = "Add Natural Function SKIP",
     BITestFunctionForm = "Add Test Function SKIP",
     BIAIEvaluationForm = "AI Evaluation SKIP",
@@ -367,11 +370,12 @@ export type ChatNotify =
     | GeneratedSourcesEvent
     | ConnectorGenerationNotification
     | ConfigurationCollectionEvent
+    | ClarifyEvent
     | ChatComponentEvent
     | PlanUpdated
     | CompactionStartEvent
     | CompactionEndEvent
-    | CompactionFailedEvent
+    | CompactionDisabledEvent
     | ConfigChangeEvent;
 
 export interface ChatStart {
@@ -445,6 +449,7 @@ export interface EvalsToolResult {
 export interface UsageMetricsEvent {
     type: "usage_metrics";
     isRepair?: boolean;
+    model?: string;
     usage: {
         inputTokens: number;
         cacheCreationInputTokens: number;
@@ -455,6 +460,7 @@ export interface UsageMetricsEvent {
         systemInstructions: number;
         toolDefinitions: number;
         reservedOutput: number;
+        files: number;
         messages: number;
         toolResults: number;
     };
@@ -467,6 +473,7 @@ export interface TaskApprovalRequest {
     tasks: Task[];
     taskDescription?: string;
     message?: string;
+    autoApproved?: boolean;
 }
 
 export interface WebToolApprovalEvent {
@@ -525,6 +532,21 @@ export interface ConfigurationCollectionEvent {
     };
 }
 
+export interface ClarifyQuestion {
+    question: string;
+    tabLabel: string;
+    options: Array<{ label: string; value: string }>;
+    selectionType: "single" | "multiple";
+}
+
+export interface ClarifyEvent {
+    type: "clarify_event";
+    requestId: string;
+    stage: "asking" | "answered" | "skipped";
+    questions: ClarifyQuestion[];
+    answers?: Array<{ question: string; answers: string[] }>;
+}
+
 export interface ChatComponentEvent {
     type: "chat_component";
     id?: string;
@@ -538,24 +560,24 @@ export interface PlanUpdated {
 }
 
 // ==================================
-// Mid-Stream Compaction Events
+// Server-side Compaction Events
 // ==================================
 
-/** Fired when mid-stream compaction starts (stream naturally pauses) */
+/** Fired when the server starts compacting (detected mid-stream via providerMetadata) */
 export interface CompactionStartEvent {
     type: 'compaction_start';
 }
 
-/** Fired when mid-stream compaction completes and streaming resumes */
+/** Fired when server-side compaction completes; carries the extracted summary */
 export interface CompactionEndEvent {
     type: 'compaction_end';
-    metadata?: GenerationCompactionMetadata;
+    /** Extracted <summary> content from the compaction block */
+    summary?: string;
 }
 
-/** Fired when mid-stream compaction fails and context cannot be reduced */
-export interface CompactionFailedEvent {
-    type: 'compaction_failed';
-    reason: string;
+/** Fired once per session when compaction is disabled because the codebase floor exceeds the trigger */
+export interface CompactionDisabledEvent {
+    type: 'compaction_disabled';
 }
 
 /** Fired when a VS Code configuration setting relevant to the AI panel changes */
@@ -804,9 +826,8 @@ export enum TaskStatus {
 
 export enum TaskTypes {
     SERVICE_DESIGN = "service_design",
-    CONNECTIONS_INIT = "connections_init",
     IMPLEMENTATION = "implementation",
-    TESTING = "testing"
+    EXECUTION = "execution"
 }
 
 /**

@@ -33,7 +33,7 @@ export const VariableForm = (props: FormProps) => {
     }, [props.formFields]);
 
     const handleOnTypeChange = (type: string | CompletionItem) => {
-        handleSelectedTypeChange(type);
+        handleSelectedTypeChange?.(type);
     };
     return (
         <>

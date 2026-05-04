@@ -42,6 +42,7 @@ import {
     createBIWorkspaceWithProject,
     createEmptyBIWorkspace
 } from "../../utils/bi";
+import { checkAndRunPendingEnhancement } from "../ai/migration/orchestrator";
 import { createVersionNumber, findBallerinaPackageRoot, isSupportedSLVersion } from ".././../utils";
 import { extension } from "../../BalExtensionContext";
 import { VisualizerWebview } from "../../views/visualizer/webview";
@@ -73,7 +74,7 @@ export function activate(context: BallerinaExtension) {
             try {
                 const icpStatus = await stateMachineContext.langClient.isIcpEnabled({ projectPath });
                 if (icpStatus && 'enabled' in icpStatus && icpStatus.enabled) {
-                    const proceed = await ensureICPServerRunning();
+                    const proceed = await ensureICPServerRunning(projectPath);
                     if (!proceed) {
                         return;
                     }
@@ -177,6 +178,14 @@ export function activate(context: BallerinaExtension) {
         await handleCommandWithContext(item, MACHINE_VIEW.BINPFunctionForm);
     });
 
+    commands.registerCommand(BI_COMMANDS.ADD_WORKFLOW, async (item?: TreeItem) => {
+        await handleCommandWithContext(item, MACHINE_VIEW.BIWorkflowForm);
+    });
+
+    commands.registerCommand(BI_COMMANDS.ADD_WORKFLOW_ACTIVITY, async (item?: TreeItem) => {
+        await handleCommandWithContext(item, MACHINE_VIEW.BIActivityForm);
+    });
+
     commands.registerCommand(BI_COMMANDS.TOGGLE_TRACE_LOGS, toggleTraceLogs);
 
     commands.registerCommand(BI_COMMANDS.CREATE_BI_PROJECT, async (params) => {
@@ -217,6 +226,18 @@ export function activate(context: BallerinaExtension) {
 
     // Open the ballerina toml file as the first file for LS to trigger the project loading
     openBallerinaTomlFile(context);
+
+    // After the language server and project are fully ready, check whether a
+    // migration AI enhancement was scheduled before the last folder reload.
+    const service = StateMachine.service();
+    const subscription = service.subscribe((state) => {
+        if (state.value === "extensionReady" && state.changed) {
+            subscription.unsubscribe();
+            checkAndRunPendingEnhancement().catch((err) =>
+                console.error("[MigrationEnhancement] Unexpected error:", err)
+            );
+        }
+    });
 }
 
 

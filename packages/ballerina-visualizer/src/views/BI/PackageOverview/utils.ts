@@ -22,6 +22,7 @@ import {
     ProjectStructureResponse,
     ProjectScopeMapping
 } from "@wso2/ballerina-core";
+export { validateComponentName } from "../ProjectForm/utils";
 
 const INTEGRATION_API_MODULES = [
     "http",
@@ -44,10 +45,13 @@ const FILE_INTEGRATION_MODULES = [
     "file"
 ];
 const AI_AGENT_MODULE = "ai";
+const MCP_MODULE = "mcp";
 
 export function findScopeByModule(moduleName: string): SCOPE {
     if (AI_AGENT_MODULE === moduleName) {
         return SCOPE.AI_AGENT;
+    } else if (MCP_MODULE === moduleName) {
+        return SCOPE.MCP;
     } else if (INTEGRATION_API_MODULES.includes(moduleName)) {
         return SCOPE.INTEGRATION_AS_API;
     } else if (EVENT_INTEGRATION_MODULES.includes(moduleName)) {

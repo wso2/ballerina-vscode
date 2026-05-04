@@ -22,7 +22,7 @@ import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { FormField, FormImports, FormValues } from "@wso2/ballerina-side-panel";
 import { URI, Utils } from "vscode-uri";
-import FormGeneratorNew from "../Forms/FormGeneratorNew";
+import ArtifactForm from "../Forms/ArtifactForm";
 import { FormHeader } from "../../../components/FormHeader";
 import { convertConfig, getImportsForProperty } from "../../../utils/bi";
 import { LoadingContainer } from "../../styles";
@@ -84,6 +84,13 @@ export function FunctionFormStatic(props: FunctionFormProps) {
     const fileName = filePath.split(/[\\/]/).pop();
     const formType = useRef("Function");
 
+    const hideTypeDescriptionField = (flowNode: FunctionNode): FunctionNode => {
+        if (flowNode?.properties?.typeDescription) {
+            flowNode.properties.typeDescription.hidden = true;
+        }
+        return flowNode;
+    };
+
     useEffect(() => {
         let nodeKind: NodeKind;
         if (isAutomation || functionName === "main") {
@@ -141,7 +148,7 @@ export function FunctionFormStatic(props: FunctionFormProps) {
             filePath: Utils.joinPath(URI.file(projectPath), fileName).fsPath,
             id: { node: kind },
         });
-        let flowNode = res.flowNode;
+        let flowNode = hideTypeDescriptionField(res.flowNode);
 
         let properties = flowNode.properties as NodeProperties;
 
@@ -195,7 +202,7 @@ export function FunctionFormStatic(props: FunctionFormProps) {
                 fileName,
                 projectPath
             });
-        let flowNode = res.functionDefinition;
+        let flowNode = hideTypeDescriptionField(res.functionDefinition);
         if (isNpFunction) {
             /* 
             * TODO: Remove this once the LS is updated
@@ -379,7 +386,7 @@ export function FunctionFormStatic(props: FunctionFormProps) {
             )}
             <FormContainer>
                 {filePath && targetLineRange && functionFields.length > 0 &&
-                    <FormGeneratorNew
+                    <ArtifactForm
                         fileName={filePath}
                         targetLineRange={targetLineRange}
                         fields={functionFields}

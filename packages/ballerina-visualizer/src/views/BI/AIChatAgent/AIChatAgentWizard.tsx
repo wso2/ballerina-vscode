@@ -81,7 +81,7 @@ const AI_WSO2_MODEL_PROVIDER = "wso2ModelProvider";
 const MODEL = "Model";
 const KNOWN_SUFFIXES = ["agent", "model"];
 
-function toBaseName(name: string): string {
+function toCamelCase(name: string): string {
     // Split on spaces/underscores, convert to camelCase
     const words = name.trim().split(/[\s_]+/).filter(Boolean);
     if (words.length === 0) return "";
@@ -98,9 +98,13 @@ function toBaseName(name: string): string {
     } else {
         lowerFirst = firstWord.charAt(0).toLowerCase() + firstWord.slice(1);
     }
-    const camel = lowerFirst
-        + words.slice(1).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join("");
-    // Strip known suffixes
+    return lowerFirst
+        + words.slice(1).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join("");
+}
+
+function toBaseName(name: string): string {
+    const camel = toCamelCase(name);
+    // Strip known suffixes to avoid e.g. "salesAgentAgent"
     const lower = camel.toLowerCase();
     for (const suffix of KNOWN_SUFFIXES) {
         if (lower.endsWith(suffix) && lower.length > suffix.length) {
@@ -157,12 +161,13 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             return false;
         }
         const base = toBaseName(name);
+        const camel = toCamelCase(name);
         if (!base) {
             setNameError("Name is required");
             return false;
         }
         if (designModelRef.current) {
-            const basePath = `/${base}`;
+            const basePath = `/${camel}`;
             const isServiceExists = designModelRef.current.services.some(
                 service => service.absolutePath?.trim().toLowerCase() === basePath.toLowerCase()
             );
@@ -198,6 +203,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             return;
         }
         const baseName = toBaseName(agentName);
+        const servicePath = toCamelCase(agentName);
         setIsCreating(true);
         try {
             // Initialize wizard data when user clicks create
@@ -322,7 +328,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
             serviceConfiguration.properties["listener"].editable = true;
             serviceConfiguration.properties["listener"].items = [AI_CHAT_AGENT_LISTENER];
             serviceConfiguration.properties["listener"].value = AI_CHAT_AGENT_LISTENER;
-            serviceConfiguration.properties["basePath"].value = `/${baseName}`;
+            serviceConfiguration.properties["basePath"].value = `/${servicePath}`;
             serviceConfiguration.properties["agentName"].value = baseName;
 
             const serviceSourceCodeResult = await rpcClient.getServiceDesignerRpcClient().addServiceSourceCode({

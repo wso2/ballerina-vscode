@@ -24,6 +24,7 @@ import { StateMachine } from "../../../../stateMachine";
 import { sendAISchemaDidChange, sendAiSchemaDidOpen } from "../../utils/project/ls-schema-notifications";
 import { CopilotEventHandler } from "../../utils/events";
 import { normalizeInvisibleChars } from "../../utils/string-utils";
+import { normalizeToLf, readAndNormalize, restoreEol } from "../../utils/eol-utils";
 
 // ============================================================================
 // Display Helper Functions
@@ -85,7 +86,7 @@ interface TextEditorResult {
 // ============================================================================
 
 const VALID_FILE_EXTENSIONS = [
-    '.bal', '.toml', '.md', '.sql'
+    '.bal', '.toml', '.md', '.sql', ".yaml", ".yml", ".json", ".graphql", ".txt"
 ];
 
 const RESTRICTED_READ_FILES = ['Config.toml'];
@@ -423,8 +424,9 @@ export function createEditExecute(
       return result;
     }
 
-    // Read file content (keep original for exact matching)
-    const content = fs.readFileSync(fullPath, 'utf-8');
+    // Read file content and normalize line endings (CRLF → LF)
+    const rawContent = fs.readFileSync(fullPath, 'utf-8');
+    const [content, originalEol] = readAndNormalize(rawContent);
 
     // Try exact match first (99% case - no normalization needed)
     const exactOccurrenceCount = countOccurrences(content, old_string);
@@ -484,8 +486,8 @@ export function createEditExecute(
       }
     }
 
-    // Write back to temp directory
-    fs.writeFileSync(fullPath, newContent, 'utf-8');
+    // Write back to temp directory, restoring original line endings
+    fs.writeFileSync(fullPath, restoreEol(newContent, originalEol), 'utf-8');
 
     if (modifiedFiles) {
       insertIntoUpdateFileNames(modifiedFiles, file_path);
@@ -571,8 +573,9 @@ export function createMultiEditExecute(
       return result;
     }
 
-    // Read file content (keep original for exact matching)
-    const originalContent = fs.readFileSync(fullPath, 'utf-8');
+    // Read file content and normalize line endings (CRLF → LF)
+    const rawContent = fs.readFileSync(fullPath, 'utf-8');
+    const [originalContent, originalEol] = readAndNormalize(rawContent);
 
     // First pass: check if all edits work with exact matching (99% case)
     let useNormalizedMatching = false;
@@ -654,8 +657,8 @@ export function createMultiEditExecute(
     }
 
     // All validations passed, content already has all edits applied
-    // Write back to temp directory
-    fs.writeFileSync(fullPath, content, 'utf-8');
+    // Write back to temp directory, restoring original line endings
+    fs.writeFileSync(fullPath, restoreEol(content, originalEol), 'utf-8');
 
     if (modifiedFiles) {
       insertIntoUpdateFileNames(modifiedFiles, file_path);
@@ -729,8 +732,8 @@ export function createReadExecute(
     // Emit tool_call event now that we know the file exists
     emitFileToolCall(eventHandler, FILE_READ_TOOL_NAME, file_path);
 
-    // Read file content
-    const content = fs.readFileSync(fullPath, 'utf-8');
+    // Read file content and normalize line endings (CRLF → LF)
+    const content = normalizeToLf(fs.readFileSync(fullPath, 'utf-8'));
 
     // Handle empty file
     if (content.trim().length === 0) {

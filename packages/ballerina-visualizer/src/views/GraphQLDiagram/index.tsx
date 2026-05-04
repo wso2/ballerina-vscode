@@ -49,7 +49,7 @@ import { GraphqlObjectViewer } from "./ObjectViewer";
 import { FormTypeEditor } from "../BI/TypeEditor";
 import { EditorContext, StackItem } from "@wso2/type-editor";
 import DynamicModal from "../../components/Modal";
-import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../BI/Forms/FormGenerator";
+import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../BI/Forms/FlowNodeForm";
 import React from "react";
 import { removeForwardSlashes } from "../BI/ServiceDesigner/utils";
 

@@ -18,15 +18,17 @@
 
 import styled from "@emotion/styled";
 import React, { useState } from "react";
-import { HTTPErrorResponse, HTTPResponse, ParsedHTTPRequest } from "../TryItScenariosSegment/types";
+import { HurlToolOutput } from "../TryItScenariosSegment/types";
 import {
     InlineCard,
     InlineCardHeader,
     InlineCardIcon,
     InlineCardTitle,
-    InlineCardSubtitle,
+    InlineCardSubtitle
 } from "./styles";
+import { Button } from "@wso2/ui-toolkit";
 
+const HURL_IMPORT_VSCODE_COMMAND = "HTTPClient.importHurlString";
 // ── Styled components ─────────────────────────────────────────────────────────
 
 const METHOD_COLORS: Record<string, string> = {
@@ -60,37 +62,15 @@ const RequestRow = styled.div`
     min-height: 22px;
 `;
 
-const RequestToggleRow = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 3px 0 2px;
-    min-height: 22px;
-    cursor: pointer;
-    border-radius: 2px;
-    &:hover {
-        background-color: var(--vscode-toolbar-hoverBackground);
-    }
-`;
-
-const ChevronIcon = styled.span<{ expanded: boolean }>`
-    font-size: 11px;
-    flex-shrink: 0;
-    color: var(--vscode-descriptionForeground);
-    display: flex;
-    align-items: center;
-    margin-left: auto;
-    transform: rotate(${(props: { expanded: boolean }) => props.expanded ? "0deg" : "-90deg"});
-    transition: transform 0.2s ease;
-`;
-
 const MethodBadge = styled.span<{ method: string }>`
     display: inline-block;
-    padding: 1px 5px;
+    width: 54px;
+    padding: 1px 0;
     border-radius: 3px;
     font-size: 10px;
     font-weight: 700;
     text-transform: uppercase;
+    text-align: center;
     color: #fff;
     background-color: ${(props: { method: string }) => METHOD_COLORS[props.method?.toUpperCase()] ?? "#666"};
     flex-shrink: 0;
@@ -111,7 +91,6 @@ const StatusBadge = styled.span<{ status: number }>`
     color: ${(props: { status: number }) => getStatusColor(props.status)};
     flex-shrink: 0;
 `;
-
 
 const DetailsBlock = styled.div`
     border-top: 1px solid var(--vscode-panel-border);
@@ -199,6 +178,16 @@ const StatusLine = styled.div`
     gap: 6px;
 `;
 
+const SummaryStatusLine = styled(StatusLine)`
+    justify-content: space-between;
+`;
+
+const SummaryDetails = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 10px;
+`;
+
 const StatusCode = styled.span<{ status: number }>`
     font-size: 11px;
     font-weight: 700;
@@ -216,6 +205,49 @@ const ErrorMessage = styled.span`
     font-weight: 600;
 `;
 
+const ScenarioGroup = styled.div`
+    margin: 4px 0 2px;
+    overflow: hidden;
+`;
+
+const Divider = styled.hr`
+    border: none;
+    height: 1px;
+    margin: 0;
+    background: linear-gradient(
+        to right,
+        transparent,
+        var(--vscode-panel-border) 36px,
+        var(--vscode-panel-border) calc(100% - 36px),
+        transparent
+    );
+`;
+
+const ScenarioContent = styled.div`
+    padding: 2px 8px 4px;
+`;
+
+const HeaderRightStack = styled.div`
+    margin-left: auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    gap: 2px;
+`;
+
+const HeaderActions = styled.div`
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+`;
+
+const EditLoadingIcon = styled.span`
+    font-size: 10px;
+    line-height: 1;
+`;
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const formatJson = (value: unknown): string => {
@@ -226,18 +258,21 @@ const formatJson = (value: unknown): string => {
     return JSON.stringify(value, null, 2);
 };
 
-const renderHeaders = (headers: Record<string, string>) => {
-    const entries = Object.entries(headers);
-    if (!entries.length) return null;
+const renderHeaders = (headers: Array<{ key?: string; name?: string; value?: string }>) => {
+    if (!headers.length) return null;
     return (
         <InnerSection>
-            {entries.map(([k, v]) => (
-                <HeaderRow key={k}>
-                    <HeaderKey>{k}</HeaderKey>
+            {headers.map((header, idx) => {
+                const headerName = header.key ?? header.name ?? "";
+                const headerValue = header.value ?? "";
+                return (
+                <HeaderRow key={`${headerName}-${idx}`}>
+                    <HeaderKey>{headerName}</HeaderKey>
                     <HeaderSep>:&nbsp;</HeaderSep>
-                    <HeaderVal>{v}</HeaderVal>
+                    <HeaderVal>{headerValue}</HeaderVal>
                 </HeaderRow>
-            ))}
+                );
+            })}
         </InnerSection>
     );
 };
@@ -254,91 +289,90 @@ const renderBody = (data: unknown) => {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-interface HTTPRequestDetailProps {
-    request: ParsedHTTPRequest;
-    output?: HTTPResponse | HTTPErrorResponse;
+interface HTTPTestScenarioDetailProps {
+    loading:boolean;
+    input?: HurlToolOutput["input"];
+    output?: HurlToolOutput["output"];
 }
 
-const HTTPRequestDetail: React.FC<HTTPRequestDetailProps> = ({ request, output }) => {
-    const [expanded, setExpanded] = useState(false);
+interface HTTPEntryRowProps {
+    entry: HurlToolOutput["output"]["entries"][number];
+    request?: HurlToolOutput["input"]["requests"][number];
+}
 
-    const isResult = !!output;
-    const isError = isResult && "error" in output! && (output as HTTPErrorResponse).error;
-    const statusCode = isError
-        ? (output as HTTPErrorResponse).response?.status
-        : isResult ? (output as HTTPResponse).status : undefined;
+const HTTPEntryRow: React.FC<HTTPEntryRowProps> = ({ entry, request }) => {
+    const [expanded, setExpanded] = useState(false);
+    const isPassed = entry.status === "passed";
 
     return (
         <>
-            <RequestToggleRow onClick={() => setExpanded(p => !p)}>
-                {!isResult ? (
-                    <InlineCardIcon style={{ fontSize: 12, color: "var(--vscode-charts-blue)" }}>
-                        <span className="codicon codicon-loading codicon-modifier-spin" />
-                    </InlineCardIcon>
-                ) : isError ? (
-                    <InlineCardIcon style={{ fontSize: 12, color: "var(--vscode-errorForeground)" }}>
-                        <span className="codicon codicon-chrome-close" />
-                    </InlineCardIcon>
-                ) : null}
-                <MethodBadge method={request.method}>{request.method}</MethodBadge>
-                <UrlLabel>{request.url}</UrlLabel>
-                {statusCode !== undefined && <StatusBadge status={statusCode}>{statusCode}</StatusBadge>}
-                <ChevronIcon expanded={expanded}>
-                    <span className="codicon codicon-chevron-down" />
-                </ChevronIcon>
-            </RequestToggleRow>
+            <RequestRow>
+                {entry.method && <MethodBadge method={entry.method}>{entry.method}</MethodBadge>}
+                <UrlLabel>{entry.url ?? entry.name}</UrlLabel>
+                {!isPassed && <span style={{fontSize: "14px", fontWeight: 500}} className="codicon codicon-warning" />}
+                {entry.statusCode !== undefined && <StatusBadge status={entry.statusCode}>{entry.statusCode}</StatusBadge>}
+                <Button appearance="icon" onClick={() => setExpanded(p => !p)} tooltip={expanded ? "Collapse" : "Expand"}>
+                    <span className={`codicon ${expanded ? "codicon-chevron-up" : "codicon-chevron-down"}`} />
+                </Button>
+            </RequestRow>
 
             {expanded && (
                 <DetailsBlock>
+                    {request && (
+                        <Section>
+                            <SectionLabel>Request</SectionLabel>
+                            <CodeBlock>
+                                <InnerSection>
+                                    <StatusLine>
+                                        <span style={{ color: METHOD_COLORS[request.method?.toUpperCase()] ?? "#666", fontWeight: 700, fontSize: 11 }}>
+                                            {request.method}
+                                        </span>
+                                        <span style={{ color: "var(--vscode-textLink-foreground)", fontSize: 11 }}>{request.url}</span>
+                                    </StatusLine>
+                                </InnerSection>
+                                {request.headers?.length > 0 && renderHeaders(request.headers)}
+                                {renderBody(request.body)}
+                            </CodeBlock>
+                        </Section>
+                    )}
+
                     <Section>
-                        <SectionLabel>Request</SectionLabel>
+                        <SectionLabel>Response</SectionLabel>
                         <CodeBlock>
-                            <InnerSection>
-                                <StatusLine>
-                                    <span style={{ color: METHOD_COLORS[request.method?.toUpperCase()] ?? "#666", fontWeight: 700, fontSize: 11 }}>
-                                        {request.method}
-                                    </span>
-                                    <span style={{ color: "var(--vscode-textLink-foreground)", fontSize: 11 }}>{request.url}</span>
-                                </StatusLine>
-                            </InnerSection>
-                            {request.headers && renderHeaders(request.headers)}
-                            {renderBody(request.data)}
+                            {entry.statusCode !== undefined && (
+                                <InnerSection>
+                                    <StatusLine>
+                                        <StatusCode status={entry.statusCode}>{entry.statusCode}</StatusCode>
+                                    </StatusLine>
+                                </InnerSection>
+                            )}
+                            {entry.responseHeaders && entry.responseHeaders.length > 0 && renderHeaders(entry.responseHeaders)}
+                            {renderBody(entry.responseBody)}
                         </CodeBlock>
                     </Section>
 
-                    {isResult && output && (
+                    {entry.assertions && entry.assertions.length > 0 && (
                         <Section>
-                            <SectionLabel>Response</SectionLabel>
-                            {isError ? (
-                                <CodeBlock>
-                                    <InnerSection>
-                                        <ErrorMessage>{(output as HTTPErrorResponse).message}</ErrorMessage>
-                                    </InnerSection>
-                                    {(output as HTTPErrorResponse).response && (
-                                        <InnerSection>
-                                            <StatusLine>
-                                                <StatusCode status={(output as HTTPErrorResponse).response!.status}>
-                                                    {(output as HTTPErrorResponse).response!.status}
-                                                </StatusCode>
-                                                <StatusText>{(output as HTTPErrorResponse).response!.statusText}</StatusText>
-                                            </StatusLine>
-                                        </InnerSection>
+                            <SectionLabel>Assertions</SectionLabel>
+                            {entry.assertions.map((assertion, aidx) => (
+                                <CodeBlock key={aidx} style={{ borderColor: assertion.status === "passed" ? "var(--vscode-charts-green, #388a34)" : "var(--vscode-errorForeground)" }}>
+                                    <span style={{ color: assertion.status === "passed" ? "var(--vscode-charts-green, #388a34)" : "var(--vscode-errorForeground)", fontWeight: 700 }}>
+                                        {assertion.status.toUpperCase()}
+                                    </span>
+                                    {" "}{assertion.expression}
+                                    {assertion.message && <span style={{ color: "var(--vscode-descriptionForeground)" }}> — {assertion.message}</span>}
+                                    {assertion.expected !== undefined && assertion.actual !== undefined && (
+                                        <span style={{ color: "var(--vscode-descriptionForeground)" }}> (Expected: {assertion.expected}, Actual: {assertion.actual})</span>
                                     )}
                                 </CodeBlock>
-                            ) : (
-                                <CodeBlock>
-                                    <InnerSection>
-                                        <StatusLine>
-                                            <StatusCode status={(output as HTTPResponse).status}>
-                                                {(output as HTTPResponse).status}
-                                            </StatusCode>
-                                            <StatusText>{(output as HTTPResponse).statusText}</StatusText>
-                                        </StatusLine>
-                                    </InnerSection>
-                                    {(output as HTTPResponse).headers && renderHeaders((output as HTTPResponse).headers)}
-                                    {renderBody((output as HTTPResponse).data)}
-                                </CodeBlock>
-                            )}
+                            ))}
+                        </Section>
+                    )}
+
+                    {entry.errorMessage && (
+                        <Section>
+                            <SectionLabel>Error</SectionLabel>
+                            <ErrorMessage>{entry.errorMessage}</ErrorMessage>
                         </Section>
                     )}
                 </DetailsBlock>
@@ -347,18 +381,105 @@ const HTTPRequestDetail: React.FC<HTTPRequestDetailProps> = ({ request, output }
     );
 };
 
+const HTTPTestScenarioDetail: React.FC<HTTPTestScenarioDetailProps> = ({ loading, input, output }) => {
+    if (loading) {
+        return (
+            <StatusLine>
+                <InlineCardIcon style={{ fontSize: 12, color: "var(--vscode-charts-blue)" }}>
+                    <span className="codicon codicon-loading codicon-modifier-spin" />
+                </InlineCardIcon>
+                <span>Sending Requests...</span>
+            </StatusLine>
+        );
+    }
+
+    if (!output) return null;
+
+    const hasNoEntries = output.entries.length === 0;
+
+    return (
+        <>
+            {hasNoEntries ? (
+                <Section>
+                    <SummaryStatusLine style={{ marginBottom: 6 }}>
+                        <SummaryDetails>
+                            <StatusText>Issue</StatusText>
+                            <StatusText>{output.status}</StatusText>
+                        </SummaryDetails>
+                    </SummaryStatusLine>
+                    {output.warnings && output.warnings.length > 0 ? (
+                        <ErrorMessage>{output.warnings[0]}</ErrorMessage>
+                    ) : (
+                        <StatusText>No request entries were produced for this scenario.</StatusText>
+                    )}
+                </Section>
+            ) : (
+                output.entries.map((entry, idx) => (
+                    <HTTPEntryRow
+                        key={idx}
+                        entry={entry}
+                        request={input?.requests[idx]}
+                    />
+                ))
+            )}
+        </>
+    );
+}
+
 // ── TryItCard ─────────────────────────────────────────────────────────────────
 
 interface TryItCardProps {
     input?: any;
-    output?: any;
+    output?: {hurlScript: string; scenario?: string; runResult: HurlToolOutput};
+    rpcClient?: any;
 }
 
-const TryItCard: React.FC<TryItCardProps> = ({ input, output }) => {
-    if (!input?.request) return null;
+const TryItCard: React.FC<TryItCardProps> = ({ input, output, rpcClient }) => {
+    const [isEditing, setIsEditing] = useState(false);
 
-    const isRunning = !output;
-    const scenario = input.scenario ?? output?.scenario;
+    if (!input?.hurlScript && !output?.hurlScript) return null;
+    const hurlScript = input?.hurlScript ?? output?.hurlScript;
+    const scenario = input?.scenario ?? output?.scenario;
+    const handleEdit = async () => {
+        if (!hurlScript || !rpcClient) {
+            return;
+        }
+
+        setIsEditing(true);
+
+        try {
+            const commonRpcClient = rpcClient.getCommonRpcClient();
+
+            await commonRpcClient?.executeCommand?.({
+                commands: ["workbench.action.focusFirstEditorGroup"]
+            });
+
+            await commonRpcClient?.executeCommand?.({
+                commands: [
+                    HURL_IMPORT_VSCODE_COMMAND,
+                    hurlScript,
+                    { viewColumn: "active",
+                      fileName: scenario
+                     }
+                ]
+            });
+        } catch (e) {
+            // eslint-disable-next-line no-console
+            console.error("Failed to invoke edit command", e);
+        } finally {
+            setIsEditing(false);
+        }
+    };
+
+    const content = (
+        <HTTPTestScenarioDetail
+            loading={!output}
+            input={output?.runResult?.input}
+            output={output?.runResult?.output}
+        />
+    );
+
+    const multipleEntries = output ? output?.runResult?.output.entries.length > 1 : false;
 
     return (
         <InlineCard>
@@ -366,23 +487,30 @@ const TryItCard: React.FC<TryItCardProps> = ({ input, output }) => {
                 <InlineCardIcon>
                     <span className="codicon codicon-send" />
                 </InlineCardIcon>
-                <InlineCardTitle>HTTP Request</InlineCardTitle>
-                {scenario && <InlineCardSubtitle>{scenario}</InlineCardSubtitle>}
+                <InlineCardTitle>HTTP Request{multipleEntries && `s`}</InlineCardTitle>
+                <HeaderRightStack>
+                    <HeaderActions>
+                        <Button
+                            appearance="icon"
+                            tooltip={isEditing ? "Opening in HTTP Client..." : "Edit in HTTP Client"}
+                            onClick={handleEdit}
+                            disabled={isEditing}
+                        >
+                            {isEditing ? (
+                                <EditLoadingIcon className="codicon codicon-loading codicon-modifier-spin" />
+                            ) : (
+                                <span className="codicon codicon-edit" />
+                            )}
+                        </Button>
+                    </HeaderActions>
+                </HeaderRightStack>
             </InlineCardHeader>
-
-            {isRunning ? (
-                <RequestRow>
-                    <InlineCardIcon style={{ fontSize: 12, color: "var(--vscode-charts-blue)" }}>
-                        <span className="codicon codicon-loading codicon-modifier-spin" />
-                    </InlineCardIcon>
-                    <span style={{ fontSize: 11, color: "var(--vscode-descriptionForeground)" }}>Running...</span>
-                </RequestRow>
-            ) : (
-                <HTTPRequestDetail
-                    request={output?.request ?? input.request}
-                    output={output?.output}
-                />
-            )}
+            <ScenarioGroup>
+                <Divider />
+                <ScenarioContent>
+                    {scenario && <InlineCardSubtitle>{scenario}</InlineCardSubtitle>}
+                    {content}</ScenarioContent>
+            </ScenarioGroup>
         </InlineCard>
     );
 };

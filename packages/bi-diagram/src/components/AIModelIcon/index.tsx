@@ -24,10 +24,11 @@ import { NodeIcon } from "../NodeIcon";
 interface AIModelIconProps {
     type: string;
     codedata?: CodeData;
+    iconUrl?: string;
 }
 
 export function AIModelIcon(props: AIModelIconProps): React.ReactElement {
-    const { type, codedata } = props;
+    const { type, codedata, iconUrl } = props;
 
     if (codedata && isWso2Module(codedata)) {
         return <Icon name="bi-wso2" sx={{ width: 24, height: 24, fontSize: 24 }} />;
@@ -36,6 +37,12 @@ export function AIModelIcon(props: AIModelIconProps): React.ReactElement {
     const icon = getAIModuleIcon(type, 24);
     if (icon) {
         return icon;
+    }
+
+    // Fallback to icon URL from metadata (fetched from Central)
+    // Skip for ballerina/ai core module — its CDN icon is generic; node-type icons are better
+    if (iconUrl && (codedata?.module !== "ai" && codedata?.module !== "ai.devant")) {
+        return <img src={iconUrl} style={{ width: 24, height: 24 }} />;
     }
 
     if (codedata?.node) {
