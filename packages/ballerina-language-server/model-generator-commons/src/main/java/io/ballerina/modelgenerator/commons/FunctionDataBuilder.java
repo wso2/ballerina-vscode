@@ -465,7 +465,7 @@ public class FunctionDataBuilder {
                         FunctionData functionData = new FunctionData(0, clientName, getDescription(classSymbol),
                                 getTypeSignature(clientName), moduleInfo.packageName(), moduleInfo.moduleName(),
                                 moduleInfo.org(), moduleInfo.version(), "", functionKind,
-                                false, false, null);
+                                false, false, getImportStatement(moduleInfo));
                         functionData.setParameters(Map.of());
                         return functionData;
                     }
@@ -1136,10 +1136,10 @@ public class FunctionDataBuilder {
     }
 
     private String getTypeSignature(String type) {
-        if (userModuleInfo == null) {
-            return CommonUtils.getClassType(moduleInfo.moduleName(), type);
+        if (userModuleInfo != null && (!moduleInfo.isComplete() || userModuleInfo.equals(moduleInfo))) {
+            return type;
         }
-        return type;
+        return CommonUtils.getClassType(moduleInfo.moduleName(), type);
     }
 
     private String getFunctionName() {

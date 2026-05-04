@@ -19,3 +19,9 @@ type Employee record {|
     decimal salary;
     EmployeeLog...;
 |};
+
+public type Pet readonly & record {
+    string[] photoUrls;
+    string name;
+    int id?;
+};

@@ -151,6 +151,7 @@ public class AiUtils {
     private static final String NAME = "name";
     private static final String VERSION = "version";
     private static final String INIT_METHOD = "init";
+    private static final AiComponentDiskCache diskCache = new AiComponentDiskCache();
 
     public static final String MEMORY_DEFAULT_VALUE = "10";
     public static final String AI_PROMPT_TYPE = "ai:Prompt";
@@ -731,15 +732,27 @@ public class AiUtils {
                 .map(m -> new ModuleInfo(m.org(), m.name(), m.name(), m.version()))
                 .toList();
 
-        List<AvailableNode> modelProviders = new ArrayList<>();
-        List<AvailableNode> embeddingProviders = new ArrayList<>();
-        List<AvailableNode> vectorStores = new ArrayList<>();
-        List<AvailableNode> chunkers = new ArrayList<>();
-        List<AvailableNode> dataLoaders = new ArrayList<>();
-        List<AvailableNode> shortTermMemoryStores = new ArrayList<>();
-        List<AvailableNode> knowledgeBases = new ArrayList<>();
+        List<AvailableNode> categoryNodes = new ArrayList<>();
 
         for (ModuleInfo module : modules) {
+            // Include version in codedata only if the project has a Dependencies.toml.
+            // Omitting version (null) means "use latest from Central".
+            String codedataVersion = hasDependenciesToml ? module.version() : null;
+
+            // Try disk cache first — avoids expensive semantic model loading
+            Optional<List<AiComponentDiskCache.CachedComponent>> cached =
+                    diskCache.load(module.org(), module.packageName(), module.version());
+            if (cached.isPresent()) {
+                for (AiComponentDiskCache.CachedComponent comp : cached.get()) {
+                    if (!category.name().equals(comp.category())) {
+                        continue;
+                    }
+                    categoryNodes.add(reconstructFromCache(comp, module, codedataVersion));
+                }
+                continue;
+            }
+
+            // Cache miss — load semantic model (expensive)
             Optional<SemanticModel> semanticModel;
             try {
                 semanticModel = getSemanticModel(module);
@@ -749,43 +762,67 @@ public class AiUtils {
             if (semanticModel.isEmpty()) {
                 continue;
             }
+
+            List<AiComponentDiskCache.CachedComponent> toCache = new ArrayList<>();
             Stream<ClassSymbol> classSymbols = semanticModel.get().moduleSymbols().stream()
                     .filter(ClassSymbol.class::isInstance).map(ClassSymbol.class::cast);
 
-            // Include version in codedata only if the project has a Dependencies.toml.
-            // Omitting version (null) means "use latest from Central".
-            String codedataVersion = hasDependenciesToml ? module.version() : null;
-
             for (var classSymbol : classSymbols.toList()) {
-                if (isModelProviderClass(classSymbol)) {
-                    modelProviders.add(buildAvailableNode(classSymbol, module, codedataVersion, MODEL_PROVIDER));
-                } else if (isEmbeddingProviderClass(classSymbol)) {
-                    embeddingProviders.add(buildAvailableNode(classSymbol, module, codedataVersion,
-                            EMBEDDING_PROVIDER));
-                } else if (isVectorStoreClass(classSymbol)) {
-                    vectorStores.add(buildAvailableNode(classSymbol, module, codedataVersion, VECTOR_STORE));
-                } else if (isChunkerClass(classSymbol)) {
-                    chunkers.add(buildAvailableNode(classSymbol, module, codedataVersion, CHUNKER));
-                } else if (isDataLoaderClass(classSymbol)) {
-                    dataLoaders.add(buildAvailableNode(classSymbol, module, codedataVersion, DATA_LOADER));
-                } else if (isShortTermMemoryStoreClass(classSymbol)) {
-                    shortTermMemoryStores.add(buildAvailableNode(classSymbol, module, codedataVersion,
-                            SHORT_TERM_MEMORY_STORE));
-                } else if (isKnowledgeBaseClass(classSymbol)) {
-                    knowledgeBases.add(buildAvailableNode(classSymbol, module, codedataVersion, KNOWLEDGE_BASE));
+                NodeKind classKind = classifyComponent(classSymbol);
+                if (classKind == null) {
+                    continue;
+                }
+                AvailableNode node = buildAvailableNode(classSymbol, module, codedataVersion, classKind);
+                toCache.add(toCachedComponent(classSymbol, node, classKind));
+                if (classKind == category) {
+                    categoryNodes.add(node);
                 }
             }
+
+            // Persist ALL discovered components to disk (even if empty — caches "no components")
+            diskCache.save(module.org(), module.packageName(), module.version(), toCache);
         }
 
-        mergeIntoCache(cachedModelProviderMap, cacheKey, modelProviders);
-        mergeIntoCache(cachedEmbeddingProviderMap, cacheKey, embeddingProviders);
-        mergeIntoCache(cachedVectorStoreMap, cacheKey, vectorStores);
-        mergeIntoCache(cachedChunkerMap, cacheKey, chunkers);
-        mergeIntoCache(cachedDataLoaderMap, cacheKey, dataLoaders);
-        mergeIntoCache(cachedShortTermMemoryStoreMap, cacheKey, shortTermMemoryStores);
-        mergeIntoCache(cachedKnowledgeBaseMap, cacheKey, knowledgeBases);
-
+        mergeIntoCache(getCategoryCache(category), cacheKey, categoryNodes);
         completed.add(category);
+    }
+
+    private static NodeKind classifyComponent(ClassSymbol classSymbol) {
+        if (isModelProviderClass(classSymbol)) {
+            return MODEL_PROVIDER;
+        }
+        if (isEmbeddingProviderClass(classSymbol)) {
+            return EMBEDDING_PROVIDER;
+        }
+        if (isVectorStoreClass(classSymbol)) {
+            return VECTOR_STORE;
+        }
+        if (isChunkerClass(classSymbol)) {
+            return CHUNKER;
+        }
+        if (isDataLoaderClass(classSymbol)) {
+            return DATA_LOADER;
+        }
+        if (isShortTermMemoryStoreClass(classSymbol)) {
+            return SHORT_TERM_MEMORY_STORE;
+        }
+        if (isKnowledgeBaseClass(classSymbol)) {
+            return KNOWLEDGE_BASE;
+        }
+        return null;
+    }
+
+    private static Map<String, List<AvailableNode>> getCategoryCache(NodeKind category) {
+        return switch (category) {
+            case MODEL_PROVIDER -> cachedModelProviderMap;
+            case EMBEDDING_PROVIDER -> cachedEmbeddingProviderMap;
+            case VECTOR_STORE -> cachedVectorStoreMap;
+            case CHUNKER -> cachedChunkerMap;
+            case DATA_LOADER -> cachedDataLoaderMap;
+            case SHORT_TERM_MEMORY_STORE -> cachedShortTermMemoryStoreMap;
+            case KNOWLEDGE_BASE -> cachedKnowledgeBaseMap;
+            default -> throw new IllegalArgumentException("Unsupported AI component category: " + category);
+        };
     }
 
     private static void mergeIntoCache(Map<String, List<AvailableNode>> cacheMap,
@@ -914,6 +951,30 @@ public class AiUtils {
             default -> codedataBuilder.object(className).symbol(INIT_METHOD);
         }
         return new AvailableNode(metadata, codedataBuilder.build(), true);
+    }
+
+    private static AvailableNode reconstructFromCache(AiComponentDiskCache.CachedComponent comp,
+                                                      ModuleInfo moduleInfo, String codedataVersion) {
+        String icon = CommonUtils.generateIcon(moduleInfo.org(), moduleInfo.packageName(), moduleInfo.version());
+        Metadata metadata = new Metadata.Builder<>(null).label(comp.label()).description(comp.description())
+                .icon(icon).build();
+        NodeKind kind = NodeKind.valueOf(comp.category());
+        Codedata.Builder<Object> codedataBuilder = new Codedata.Builder<>(null).version(codedataVersion)
+                .packageName(moduleInfo.packageName()).module(moduleInfo.moduleName()).org(moduleInfo.org())
+                .node(kind);
+        if (INIT_METHOD.equals(comp.symbol())) {
+            codedataBuilder.object(comp.className()).symbol(INIT_METHOD);
+        } else {
+            codedataBuilder.symbol(comp.symbol());
+        }
+        return new AvailableNode(metadata, codedataBuilder.build(), true);
+    }
+
+    private static AiComponentDiskCache.CachedComponent toCachedComponent(ClassSymbol classSymbol,
+                                                                          AvailableNode node, NodeKind category) {
+        String className = classSymbol.getName().orElse("");
+        return new AiComponentDiskCache.CachedComponent(className, node.metadata().label(),
+                node.metadata().description(), category.name(), node.codedata().symbol());
     }
 
     private static Optional<String> getDisplayLabel(ClassSymbol classSymbol) {
