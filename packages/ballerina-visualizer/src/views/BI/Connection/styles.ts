@@ -17,7 +17,7 @@
  */
 
 import styled from "@emotion/styled";
-import { Button, Overlay, ThemeColors, Typography } from "@wso2/ui-toolkit";
+import { Button, Codicon, Overlay, ThemeColors, Typography } from "@wso2/ui-toolkit";
 
 export const PopupOverlay = styled(Overlay)`
     z-index: 1999;
@@ -90,10 +90,167 @@ export const PopupContent = styled.div`
     gap: 16px;
 `;
 
+export const FooterContainer = styled.div`
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+`;
+
+export const ActionButton = styled(Button)`
+    width: 100% !important;
+    min-width: 0 !important;
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+`;
+
+export const ConnectorInfoContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+`;
+
+export const ConnectorContentContainer = styled.div<{ hasFooterButton?: boolean }>`
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    padding-bottom: ${(props: { hasFooterButton?: boolean }) => props.hasFooterButton ? "0" : "24px"};
+    min-height: 0;
+`;
+
+export const ConnectorProgressContainer = styled.p`
+    display: flex;
+    padding: 50px;
+    justify-content: center;
+    align-items: center;
+`;
+
 export const PopupFooter = styled.div`
     padding: 16px 20px;
     display: flex;
     justify-content: flex-end;
     gap: 8px;
     border-top: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+`;
+
+export const FormSection = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+`;
+
+export const FormField = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+`;
+
+export const TablesGrid = styled.div`
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    position: relative;
+`;
+
+export const TableCard = styled.div<{ selected?: boolean }>`
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border: 1px solid ${(props: { selected?: boolean }) => (props.selected ? ThemeColors.PRIMARY : ThemeColors.OUTLINE_VARIANT)};
+    border-radius: 8px;
+    background-color: ${(props: { selected?: boolean }) => (props.selected ? ThemeColors.PRIMARY_CONTAINER : ThemeColors.SURFACE_DIM)};
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+        border-color: ${ThemeColors.PRIMARY};
+        background-color: ${ThemeColors.PRIMARY_CONTAINER};
+    }
+`;
+
+export const TableCheckbox = styled.input`
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+`;
+
+export const TableName = styled(Typography)`
+    font-size: 14px;
+    font-weight: 500;
+    color: ${ThemeColors.ON_SURFACE};
+    margin: 0;
+`;
+
+export const ErrorContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+    border-radius: 8px;
+    background-color: ${ThemeColors.SURFACE_DIM};
+    border: 1px solid ${ThemeColors.ERROR};
+`;
+
+export const ErrorHeader = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+`;
+
+export const ErrorTitle = styled(Typography)`
+    font-size: 16px;
+    font-weight: 600;
+    color: ${ThemeColors.ERROR};
+    margin: 0;
+`;
+
+export const ErrorDetailsSection = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+`;
+
+export const ErrorDetailsHeader = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+
+    &:hover {
+        opacity: 0.8;
+    }
+`;
+
+export const ErrorDetailsChevronIcon = styled(Codicon)`
+    font-size: 12px;
+    color: ${ThemeColors.ON_SURFACE_VARIANT};
+`;
+
+export const ErrorDetailsContent = styled.div<{ expanded: boolean }>`
+    max-height: ${(props: { expanded: boolean }) => (props.expanded ? "500px" : "0")};
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    padding-left: 20px;
+`;
+
+export const ErrorDetailsText = styled(Typography)`
+    font-size: 12px;
+    color: ${ThemeColors.ON_SURFACE_VARIANT};
+    font-family: monospace;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin: 0;
+    padding: 8px;
+    background-color: ${ThemeColors.SURFACE_CONTAINER};
+    border-radius: 4px;
+    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
 `;

@@ -28,6 +28,7 @@ export interface StreamContext {
 
     // Shared mutable state (accumulated during stream processing)
     modifiedFiles: string[];
+    allModifiedFiles: Set<string>;
 
     // Configuration (immutable during stream)
     projects: ProjectSource[];
@@ -47,4 +48,7 @@ export interface StreamContext {
     // Telemetry tracking
     generationStartTime: number;
     projectId: string;
+
+    // Mid-stream compaction status
+    compactionFailedMidStream?: boolean;
 }

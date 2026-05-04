@@ -22,6 +22,7 @@ export interface IDataMapperContext {
     model: ExpandedDMModel;
     views: View[];
     hasInputsOutputsChanged: boolean;
+    reusable: boolean;
     addView: (view: View) => void;
     applyModifications: (outputId: string, expression: string, viewId: string, name: string) => Promise<void>;
     addArrayElement: (outputId: string, viewId: string, name: string) => Promise<void>;
@@ -31,10 +32,12 @@ export interface IDataMapperContext {
     addClauses: (clause: IntermediateClause, targetField: string, isNew: boolean, index:number) => Promise<void>;
     mapWithCustomFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>;
     mapWithTransformFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>;
+    resolveOutput: () => Promise<void>;
     goToFunction: (functionRange: LineRange) => Promise<void>;
     enrichChildFields: (parentField: IOType) => Promise<void>;
     genUniqueName: (name: string, viewId: string) => Promise<string>;
     getConvertedExpression: (expression: string, expressionType: TypeKind, outputType: TypeKind) => Promise<string>;
+    createConvertedVariable: (variableName: string, isInput: boolean, typeName?: string, parentTypeName?: string) => Promise<void>;
 }
 
 export class DataMapperContext implements IDataMapperContext {
@@ -43,6 +46,7 @@ export class DataMapperContext implements IDataMapperContext {
         public model: ExpandedDMModel,
         public views: View[] = [],
         public hasInputsOutputsChanged: boolean = false,
+        public reusable: boolean,
         public addView: (view: View) => void,
         public applyModifications: (outputId: string, expression: string, viewId: string, name: string) => Promise<void>,
         public addArrayElement: (outputId: string, viewId: string, name: string) => Promise<void>,
@@ -52,9 +56,11 @@ export class DataMapperContext implements IDataMapperContext {
         public addClauses: (clause: IntermediateClause, targetField: string, isNew: boolean, index:number) => Promise<void>,
         public mapWithCustomFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>,
         public mapWithTransformFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>,
+        public resolveOutput: () => Promise<void>,
         public goToFunction: (functionRange: LineRange) => Promise<void>,
         public enrichChildFields: (parentField: IOType) => Promise<void>,
         public genUniqueName: (name: string, viewId: string) => Promise<string>,
-        public getConvertedExpression: (expression: string, expressionType: TypeKind, outputType: TypeKind) => Promise<string>
+        public getConvertedExpression: (expression: string, expressionType: TypeKind, outputType: TypeKind) => Promise<string>,
+        public createConvertedVariable: (variableName: string, isInput: boolean, typeName?: string, parentTypeName?: string) => Promise<void>
     ){}
 }

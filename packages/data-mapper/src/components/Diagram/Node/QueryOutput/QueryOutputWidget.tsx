@@ -72,7 +72,7 @@ export function QueryOutputWidget(props: QueryOutputWidgetProps) {
 
 	const field = outputType.member || outputType;
 
-	const portIn = getPort(`${id}.#.IN`);
+	const portIn = getPort(`${id}.Q#.IN`);
 	const isUnknownType = outputType.kind === TypeKind.Unknown;
 
 	let expanded = true;
@@ -113,10 +113,10 @@ export function QueryOutputWidget(props: QueryOutputWidgetProps) {
 
 	return (
 		<>
-			<TreeContainer data-testid={`${id}.#-node`} onContextMenu={onRightClick}>
+			<TreeContainer data-testid={`${id}.Q#-node`} onContextMenu={onRightClick}>
 				<TreeHeader
 					isSelected={portState !== PortState.Unselected}
-					id={"recordfield-" + id + ".#"}
+					id={"recordfield-" + id + ".Q#"}
 					onMouseEnter={onMouseEnter}
 					onMouseLeave={onMouseLeave}
 				>

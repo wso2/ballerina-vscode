@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { AvailableNode, Category, functionKinds, Item, VisibleTypeItem, GeneralPayloadContext, Protocol } from '@wso2/ballerina-core';
+import { AvailableNode, Category, functionKinds, Item, VisibleTypeItem, GeneralPayloadContext, Protocol, FunctionKind } from '@wso2/ballerina-core';
 import type { TypeHelperCategory, TypeHelperItem, TypeHelperOperator } from '@wso2/type-editor';
 import { COMPLETION_ITEM_KIND, convertCompletionItemKind } from '@wso2/ui-toolkit';
 import { getFunctionItemKind, isDMSupportedType } from '../../../utils/bi';
@@ -54,6 +54,12 @@ export const getTypes = (types: VisibleTypeItem[], filterDMTypes?: boolean, payl
 
         // If types should be filtered for the data mapper
         if (filterDMTypes && !isDMSupportedType(type)) {
+            continue;
+        }
+
+        // Skip User-Defined types since they will again fetched 
+        // from search API align with other integrations types
+        if (type.labelDetails?.detail === "User-Defined") {
             continue;
         }
 
@@ -111,27 +117,13 @@ const isCategoryType = (item: Item): item is Category => {
     return !(item as AvailableNode)?.codedata;
 }
 
-export const getImportedTypes = (types: Category[]) => {
-    const categories: TypeHelperCategory[] = [];
-
-    for (const category of types) {
-        if (category.items.length === 0) {
-            continue;
-        }
-
-        const categoryKind = getFunctionItemKind(category.metadata.label);
-        if (categoryKind !== functionKinds.IMPORTED) {
-            continue;
-        }
-
+export const transformTypesFromSearchToHelperCategory = (types: Category[]): TypeHelperCategory[] => {
+    return types.map((category) => {
         const items: TypeHelperItem[] = [];
         const subCategories: TypeHelperCategory[] = [];
+        const categoryKind = getFunctionItemKind(category.metadata.label);
         for (const categoryItem of category.items) {
             if (isCategoryType(categoryItem)) {
-                if (categoryItem.items.length === 0) {
-                    continue;
-                }
-
                 subCategories.push({
                     category: categoryItem.metadata.label,
                     items: categoryItem.items.map((item) => ({
@@ -149,6 +141,75 @@ export const getImportedTypes = (types: Category[]) => {
                     type: COMPLETION_ITEM_KIND.TypeParameter,
                     codedata: categoryItem.codedata,
                     kind: categoryKind
+                });
+            }
+        }
+
+        return {
+            category: category.metadata.label,
+            subCategory: subCategories,
+            items: items
+        }
+    });
+}
+
+export const getFilteredTypesByKind = (types: Category[], kind: FunctionKind) => {
+    const categories: TypeHelperCategory[] = [];
+
+    for (const category of types) {
+        if (category.items.length === 0) {
+            continue;
+        }
+
+        const categoryKind = getFunctionItemKind(category.metadata.label);
+        if (categoryKind !== kind) {
+            continue;
+        }
+
+        const items: TypeHelperItem[] = [];
+        const subCategories: TypeHelperCategory[] = [];
+        for (const categoryItem of category.items) {
+            if (isCategoryType(categoryItem)) {
+                if (categoryItem.items.length === 0) {
+                    continue;
+                }
+
+                let subCategoryKind = categoryKind;
+                if (kind === functionKinds.CURRENT) {
+                    // HACK: If item is under the current project category,
+                    // but it is not in the current integration, then 
+                    // treat is as an imported item.
+                    subCategoryKind = getFunctionItemKind(categoryItem.metadata.label);
+                    if (subCategoryKind !== functionKinds.CURRENT) {
+                        subCategoryKind = functionKinds.IMPORTED
+                    }
+                }
+
+                subCategories.push({
+                    category: categoryItem.metadata.label,
+                    items: categoryItem.items.map((item) => ({
+                        name: item.metadata.label,
+                        insertText: item.metadata.label,
+                        type: COMPLETION_ITEM_KIND.TypeParameter,
+                        codedata: (item as AvailableNode).codedata,
+                        kind: subCategoryKind,
+                        labelDetails: {
+                            description: (item as AvailableNode).codedata.node,
+                            detail: ""
+                        }
+                    }))
+                });
+            } else {
+                items.push({
+                    name: categoryItem.metadata.label,
+                    insertText: categoryItem.metadata.label,
+                    type: COMPLETION_ITEM_KIND.TypeParameter,
+                    codedata: categoryItem.codedata,
+                    kind: categoryKind,
+                    labelDetails: {
+                        description: categoryItem.codedata.node,
+                        detail: ""
+                    }
                 });
             }
         }

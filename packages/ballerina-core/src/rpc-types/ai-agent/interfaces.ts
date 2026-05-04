@@ -97,6 +97,7 @@ export interface McpToolUpdateRequest {
     agentFlowNode: FlowNode;
     selectedTools: string[];
     updatedNode?: FlowNode;
+    toolScopes?: Record<string, string[]>;
 }
 
 export interface ToolParameters {

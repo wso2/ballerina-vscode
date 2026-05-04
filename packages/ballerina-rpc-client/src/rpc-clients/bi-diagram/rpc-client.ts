@@ -60,6 +60,7 @@ import {
     DeleteTypeRequest,
     DeleteTypeResponse,
     DeploymentRequest,
+    WorkspaceDeploymentRequest,
     DeploymentResponse,
     DevantMetadata,
     EndOfFileRequest,
@@ -72,6 +73,7 @@ import {
     FormDiagnosticsResponse,
     FormDidCloseParams,
     FormDidOpenParams,
+    FormDirtyDidChangeParams,
     FunctionNodeRequest,
     FunctionNodeResponse,
     GeneratedClientSaveResponse,
@@ -80,6 +82,8 @@ import {
     GetRecordConfigResponse,
     GetRecordModelFromSourceRequest,
     GetRecordModelFromSourceResponse,
+    GetSimpleTypeOfExpressionRequest,
+    GetSimpleTypeOfExpressionResponse,
     GetTypeRequest,
     GetTypeResponse,
     GetTypesRequest,
@@ -141,8 +145,10 @@ import {
     deleteProject,
     deleteType,
     deployProject,
+    deployWorkspace,
     formDidClose,
     formDidOpen,
+    formDirtyDidChange,
     generateOpenApiClient,
     getAiSuggestions,
     getAvailableAgents,
@@ -159,6 +165,7 @@ import {
     getDataMapperCompletions,
     getDesignModel,
     getDevantMetadata,
+    getWorkspaceDevantMetadata,
     getEnclosedFunction,
     getEndOfFile,
     getExpressionCompletions,
@@ -180,6 +187,7 @@ import {
     getRecordSource,
     getServiceClassModel,
     getSignatureHelp,
+    getSimpleTypeOfExpression,
     getSourceCode,
     getType,
     getTypeFromJson,
@@ -204,7 +212,8 @@ import {
     updateType,
     updateTypes,
     validateProjectPath,
-    verifyTypeDelete
+    verifyTypeDelete,
+    WorkspaceDevantMetadata
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -339,7 +348,7 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
     getConfigVariableNodeTemplate(params: GetConfigVariableNodeTemplateRequest): Promise<BINodeTemplateResponse> {
         return this._messenger.sendRequest(getConfigVariableNodeTemplate, HOST_EXTENSION, params);
     }
-    
+
     OpenConfigTomlRequest(params: OpenConfigTomlRequest): Promise<void> {
         return this._messenger.sendRequest(openConfigToml, HOST_EXTENSION, params);
     }
@@ -362,6 +371,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     deployProject(params: DeploymentRequest): Promise<DeploymentResponse> {
         return this._messenger.sendRequest(deployProject, HOST_EXTENSION, params);
+    }
+
+    deployWorkspace(params: WorkspaceDeploymentRequest): Promise<DeploymentResponse> {
+        return this._messenger.sendRequest(deployWorkspace, HOST_EXTENSION, params);
     }
 
     openAIChat(params: AIChatRequest): void {
@@ -412,6 +425,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
         return this._messenger.sendRequest(formDidClose, HOST_EXTENSION, params);
     }
 
+    formDirtyDidChange(params: FormDirtyDidChangeParams): void {
+        this._messenger.sendNotification(formDirtyDidChange, HOST_EXTENSION, params);
+    }
+
     getDesignModel(params: BIDesignModelRequest): Promise<BIDesignModelResponse> {
         return this._messenger.sendRequest(getDesignModel, HOST_EXTENSION, params);
     }
@@ -422,6 +439,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     getType(params: GetTypeRequest): Promise<GetTypeResponse> {
         return this._messenger.sendRequest(getType, HOST_EXTENSION, params);
+    }
+
+    getSimpleTypeOfExpression(params: GetSimpleTypeOfExpressionRequest): Promise<GetSimpleTypeOfExpressionResponse> {
+        return this._messenger.sendRequest(getSimpleTypeOfExpression, HOST_EXTENSION, params);
     }
 
     updateType(params: UpdateTypeRequest): Promise<UpdateTypeResponse> {
@@ -510,6 +531,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     getDevantMetadata(): Promise<DevantMetadata | undefined> {
         return this._messenger.sendRequest(getDevantMetadata, HOST_EXTENSION);
+    }
+
+    getWorkspaceDevantMetadata(): Promise<WorkspaceDevantMetadata | undefined> {
+        return this._messenger.sendRequest(getWorkspaceDevantMetadata, HOST_EXTENSION);
     }
 
     generateOpenApiClient(params: OpenAPIClientGenerationRequest): Promise<GeneratedClientSaveResponse> {

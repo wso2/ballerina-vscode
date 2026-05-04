@@ -189,7 +189,7 @@ export function ParamEditor(props: ParamProps) {
                     documentation: '',
                     enabled: param.name?.enabled,
                     value: param.name.value,
-                    types: [{fieldType: getPrimaryInputType(param.name.types)?.fieldType, selected: false}]
+                    types: [{ fieldType: getPrimaryInputType(param.name.types)?.fieldType, selected: false }]
                 });
                 fields.push({
                     key: `type`,
@@ -203,7 +203,7 @@ export function ParamEditor(props: ParamProps) {
                     defaultValue: "string",
                     value: param.type.value,
                     items: ["string", "int", "float", "decimal", "boolean"],
-                    types: [{fieldType: getPrimaryInputType(param.type.types)?.fieldType, selected: false}]
+                    types: [{ fieldType: getPrimaryInputType(param.type.types)?.fieldType, selected: false }]
                 });
                 break;
             case "HEADER":
@@ -217,7 +217,7 @@ export function ParamEditor(props: ParamProps) {
                     documentation: '',
                     enabled: true,
                     value: (param.headerName?.value || "Content-Type").replace(/"/g, ""),
-                    types: [{fieldType: getPrimaryInputType(param.headerName?.types)?.fieldType, selected: false}],
+                    types: [{ fieldType: "AUTOCOMPLETE", selected: false }], // TODO: Need to come up with a better way to handle this
                     onValueChange: (value: string | boolean) => {
                         const sanitizeValue = (value as string)
                             .replace(/-([a-zA-Z])/g, (_, c) => c ? c.toUpperCase() : '')
@@ -227,9 +227,10 @@ export function ParamEditor(props: ParamProps) {
                         // Set the sanitized value to the variable name field
                         // When the header name changes, auto-update the variable name field (param.name.value) to a sanitized version
                         if (param.name && typeof param.name === 'object') {
-                            param.name.value = sanitizeValue;
-                            param.headerName.value = `"${value}"`;
-                            onChange({ ...param, name: { ...param.name, value: sanitizedValueWithLowerFirst } });
+                            if (isNew) {
+                                param.name.value = sanitizedValueWithLowerFirst;
+                            }
+                            onChange({ ...param, name: { ...param.name }, headerName: { ...param.headerName, value: `"${value}"` } });
                         }
                     }
                 });
@@ -243,7 +244,7 @@ export function ParamEditor(props: ParamProps) {
                     documentation: '',
                     enabled: param.name?.enabled,
                     value: param.name.value || "contentType",
-                    types: [{fieldType: getPrimaryInputType(param.name.types)?.fieldType, selected: false}]
+                    types: [{ fieldType: getPrimaryInputType(param.name.types)?.fieldType, selected: false }]
                 });
                 fields.push({
                     key: `type`,
@@ -257,7 +258,7 @@ export function ParamEditor(props: ParamProps) {
                     defaultValue: "string",
                     value: param.type.value,
                     items: ["string", "int", "float", "decimal", "boolean"],
-                    types: [{fieldType: getPrimaryInputType(param.type.types)?.fieldType, selected: false}]
+                    types: [{ fieldType: getPrimaryInputType(param.type.types)?.fieldType, selected: false }]
                 });
                 break;
             case "PAYLOAD":
@@ -270,7 +271,7 @@ export function ParamEditor(props: ParamProps) {
                     documentation: '',
                     enabled: param.name?.enabled,
                     value: param.name.value,
-                    types: [{fieldType: getPrimaryInputType(param.name.types)?.fieldType, selected: false}]
+                    types: [{ fieldType: getPrimaryInputType(param.name.types)?.fieldType, selected: false }]
                 });
                 fields.push({
                     key: `type`,
@@ -282,7 +283,7 @@ export function ParamEditor(props: ParamProps) {
                     enabled: param.type?.enabled,
                     value: param.type.value || "json",
                     defaultValue: "json",
-                    types: [{fieldType: getPrimaryInputType(param.type.types)?.fieldType, selected: false}],
+                    types: [{ fieldType: getPrimaryInputType(param.type.types)?.fieldType, selected: false }],
                     // isContextTypeSupported: true // Enable this to support context typeEditor
                 });
                 break;
@@ -300,7 +301,7 @@ export function ParamEditor(props: ParamProps) {
                 documentation: '',
                 enabled: true,
                 value: (param.defaultValue as PropertyModel)?.value,
-                types: [{fieldType: getPrimaryInputType((param.defaultValue as PropertyModel).types)?.fieldType, selected: false}]
+                types: [{ fieldType: getPrimaryInputType((param.defaultValue as PropertyModel).types)?.fieldType, selected: false }]
             });
         }
         setCurrentFields(fields);

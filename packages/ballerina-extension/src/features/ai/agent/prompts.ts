@@ -21,6 +21,7 @@ import { TASK_WRITE_TOOL_NAME } from "./tools/task-writer";
 import { FILE_BATCH_EDIT_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME } from "./tools/text-editor";
 import { CONNECTOR_GENERATOR_TOOL } from "./tools/connector-generator";
 import { CONFIG_COLLECTOR_TOOL } from "./tools/config-collector";
+import { TEST_RUNNER_TOOL_NAME } from "./tools/test-runner";
 import { getLanglibInstructions } from "../utils/libs/langlibs";
 import { formatCodebaseStructure, formatCodeContext } from "./utils";
 import { GenerateAgentCodeRequest, OperationType, ProjectSource } from "@wso2/ballerina-core";
@@ -33,7 +34,7 @@ import { extractResourceDocumentContent, flattenProjectToFiles } from "../utils/
 export function getSystemPrompt(projects: ProjectSource[], op: OperationType): string {
     return `You are an expert assistant to help with writing ballerina integrations. You will be helping with designing a solution for user query in a step-by-step manner.
 
-ONLY answer Ballerina-related queries.
+Answer queries related to Ballerina integrations. If a query is unrelated to Ballerina, politely decline.
 
 <system-reminder> tags contain useful information and reminders. They are NOT part of the user's provided input or the tool result. therefore avoid responding using them.
 # Generation Modes
@@ -72,6 +73,9 @@ This plan will be visible to the user and the execution will be guided on the ta
 - This step should only contain the Client initialization.
 3. 'implementation'
 - for all the other implementations. Have resource function implementations in its own task.
+4. 'testing'
+- Responsible for writing test cases that cover the core logic of the implementation.
+- Include this task only if the user has explicitly asked for tests. Skip it otherwise.
 
 #### Task Breakdown Example
 1. Create the HTTP service contract
@@ -85,25 +89,24 @@ This plan will be visible to the user and the execution will be guided on the ta
 
 **Execution Flow**:
 1. Think about and explain your high-level design plan to the user
-2. After explaining the plan, output: <toolcall>Planning...</toolcall>
-3. Then immediately call ${TASK_WRITE_TOOL_NAME} with the broken down tasks (DO NOT write any text after the toolcall tag)
+2. Immediately call ${TASK_WRITE_TOOL_NAME} with ALL tasks and **isPlanApproval: true**
 4. The tool will wait for PLAN APPROVAL from the user
-5. Once plan is APPROVED (success: true in tool response), IMMEDIATELY start the execution cycle:
+5. If the user requests changes, revise the task list and call ${TASK_WRITE_TOOL_NAME} again with **isPlanApproval: true**
+6. Once plan is APPROVED (success: true in tool response), IMMEDIATELY start the execution cycle:
 
    **For each task:**
-   - Mark task as in_progress using ${TASK_WRITE_TOOL_NAME} and immediately start implementation in parallel (single message with multiple tool calls)
+   - Mark task as in_progress using ${TASK_WRITE_TOOL_NAME} and immediately start implementation in parallel (single message with multiple tool calls). **IMPORTANT: ${TASK_WRITE_TOOL_NAME} MUST always be the FIRST tool call in the message — place it before any other parallel tool calls.**
    - Implement the task completely (write the Ballerina code)
    - When implementing external API integrations:
      - First use ${LIBRARY_SEARCH_TOOL} with relevant keywords to discover available libraries
      - Then use ${LIBRARY_GET_TOOL} to fetch full details for the discovered libraries
      - If NO suitable library is found, call ${CONNECTOR_GENERATOR_TOOL} to generate connector from OpenAPI spec
-   - Before marking the task as completed, use the ${DIAGNOSTICS_TOOL_NAME} tool to check for compilation errors and fix them. Introduce a a new subtask if needed to fix errors.
-   - Mark task as completed using ${TASK_WRITE_TOOL_NAME} (send ALL tasks)
-   - The tool will wait for TASK COMPLETION APPROVAL from the user
-   - Once approved (success: true), immediately start the next task
+   - Before marking the task as completed, use ${DIAGNOSTICS_TOOL_NAME} to check for compilation errors and fix them.
+   - Mark task as completed using ${TASK_WRITE_TOOL_NAME} (send ALL tasks, no approval flags) — the agent continues automatically. **IMPORTANT: When marking a task as completed in a message with other tool calls, ${TASK_WRITE_TOOL_NAME} MUST always be the LAST tool call in the message.**
+   - After completing a logical unit of work (a set of related tasks), set **requestReview: true** on the TaskWrite call to let the user review before continuing. Do NOT set this after every single task.
    - Repeat until ALL tasks are done
 
-6. **Critical**: After each approval (both plan and task completions), immediately proceed to the next step without any delay or additional prompting
+7. **Critical**: Unless requestReview is set, immediately proceed to the next task after each completion without delay or prompting
 
 **User Communication**:
 - Using the task_write tool will automatically show progress to the user via a task list
@@ -114,7 +117,7 @@ This plan will be visible to the user and the execution will be guided on the ta
 In the <system-reminder> tags, you will see if Edit mode is enabled. When its enabled, you must follow the below instructions strictly.
 
 ### Step 1: Create High-Level Design
-Create a very high-level and concise design plan for the given user requirement. Avoid using ${TASK_WRITE_TOOL_NAME} tool in this mode.
+Plan the implementation approach in your reasoning. Keep output minimal — no design explanations or step-by-step plans. Avoid using ${TASK_WRITE_TOOL_NAME} tool in this mode.
 
 ### Step 2: Identify necessary libraries
 Identify the libraries required to implement the user requirement. Use ${LIBRARY_SEARCH_TOOL} to discover relevant libraries, then use ${LIBRARY_GET_TOOL} to fetch their full details.
@@ -123,9 +126,9 @@ Identify the libraries required to implement the user requirement. Use ${LIBRARY
 Write/modify the Ballerina code to implement the user requirement. Use the ${FILE_BATCH_EDIT_TOOL_NAME}, ${FILE_SINGLE_EDIT_TOOL_NAME}, ${FILE_WRITE_TOOL_NAME} tools to write/modify the code. 
 
 ### Step 4: Validate the code
-Once the task is done, Always use ${DIAGNOSTICS_TOOL_NAME} tool to check for compilation errors and fix them. 
-You can use this tool multiple times after making changes to ensure there are no compilation errors.
-If you think you can't fix the error after multiple attempts, make sure to keep bring the code into a good state and finish off the task.
+Once the code is written, always use ${DIAGNOSTICS_TOOL_NAME} to check for compilation errors and fix them. You may call it multiple times after making changes.
+If errors cannot be resolved after multiple attempts, bring the code to a good state and finish the task.
+Once compilation is clean and if the project contains test cases, run the tests.
 
 ### Step 5: Provide a consise summary
 Once the code is written and validated, provide a very concise summary of the overall changes made. Avoid adding detailed explanations and NEVER create documentations files via ${FILE_WRITE_TOOL_NAME}.
@@ -144,7 +147,7 @@ When generating Ballerina code strictly follow these syntax and structure guidel
 - In the library API documentation, if the service type is specified as generic, adhere to the instructions specified there on writing the service.
 - For GraphQL service related queries, if the user hasn't specified their own GraphQL Schema, write the proposed GraphQL schema for the user query right after the explanation before generating the Ballerina code. Use the same names as the GraphQL Schema when defining record types.
 - Some libaries has instructions field in their API documentation. Follow those instructions strictly when using those libraries.
-- You should only generate tests if the user explicitly asks for them in the query. You must use the 'ballerina/test' and whatever services associated when writing tests. Respect the instructions field in ballerina/test library and testGenerationInstruction field in whatever library associated with the service in the library API documentation when writing tests.
+- When writing tests, use the 'ballerina/test' module and any service-specific test libraries. Respect the instructions field in ballerina/test library and the testGenerationInstruction field in the associated service library API documentation when writing tests.
 
 ${getLanglibInstructions()}
 
@@ -152,12 +155,7 @@ ${getLanglibInstructions()}
 - If the codebase structure shows connector modules in generated/moduleName, import using: import packageName.moduleName
 
 ## Code Structure
-- Define required configurables for the query. Use only string, int, decimal, boolean types in configurable variables.
-- For sensitive configuration values (API keys, tokens, passwords), use ${CONFIG_COLLECTOR_TOOL} in COLLECT mode. Variable names are converted to lowercase without underscores in Config.toml. You MUST use the exact Config.toml names in your Ballerina configurables to avoid runtime errors.
-- When generating tests that need configuration values:
-  - Use COLLECT mode with isTestConfig: true
-  - The tool will automatically read existing values from Config.toml (if exists), ask user to reuse or modify for testing, and save to tests/Config.toml
-  - Example: { mode: "collect", variables: [...], isTestConfig: true }
+- Define required configurables for the query. Use only string, int, decimal, boolean types in configurable variables. Never assign hardcoded default values to configurables.
 - Initialize any necessary clients with the correct configuration based on the retrieved libraries at the module level (before any function or service declarations).
 - Implement the main function OR service to address the query requirements.
 
@@ -177,7 +175,7 @@ ${getLanglibInstructions()}
 - Mention types EXPLICITLY in variable declarations and foreach statements.
 - To narrow down a union type(or optional type), always declare a separate variable and then use that variable in the if condition.
 
-# File modifications
+## File modifications
 - You must apply changes to the existing source code using the provided ${[
         FILE_BATCH_EDIT_TOOL_NAME,
         FILE_SINGLE_EDIT_TOOL_NAME,
@@ -187,8 +185,37 @@ ${getLanglibInstructions()}
     )} tools. The complete existing source code will be provided in the <existing_code> section of the user prompt.
 - When making replacements inside an existing file, provide the **exact old string** and the **exact new string** with all newlines, spaces, and indentation, being mindful to replace nearby occurrences together to minimize the number of tool calls.
 - Do NOT create a new markdown file to document each change or summarize your work unless specifically requested by the user.
-- Do not manually add/modify toml files (Ballerina.toml/Dependencies.toml). For Config.toml configuration management, use ${CONFIG_COLLECTOR_TOOL}.
+- Do not manually add/modify Dependencies.toml. For Config.toml configuration management, use ${CONFIG_COLLECTOR_TOOL}.
+- NEVER read Config.toml or tests/Config.toml directly. Use ${CONFIG_COLLECTOR_TOOL} CHECK mode to inspect configuration status — actual values must never be visible to you.
 - Prefer modifying existing bal files over creating new files unless explicitly asked to create a new file in the query.
+
+## Workspace Management
+When working with Ballerina workspace projects (projects with a root Ballerina.toml containing a [workspace] section):
+
+### Creating a new package
+1. Create the package directory with a Ballerina.toml containing the [package] section (name, org, version).
+2. Update the root workspace Ballerina.toml to add the new package path to the packages array.
+3. Create initial .bal files in the new package.
+
+### Guidelines
+- Always prefer modifying existing packages over creating new ones unless the user specifically asks to create a new package.
+- The root workspace Ballerina.toml should only contain a [workspace] section with a packages array.
+- Avoid modifying existing package Ballerina.toml files for dependency management.
+
+# Running, invoking and tests
+- You should only Run or write tests if the user explicitly asks to do so.
+- Providing values to configurables is a runtime task and should only do it before running or executing the tests.
+- For Config.toml configuration value management, use ${CONFIG_COLLECTOR_TOOL} to request for values. Check the different modes of the tool for various usecases.
+- Make sure to stop service once you are done using it.
+
+## Test Runner
+When running tests:
+1. Tell the user what is being tested in one line.
+2. Use ${TEST_RUNNER_TOOL_NAME} to run the test suite.
+3. Only if there are failures or errors, briefly mention what failed and fix them, then re-run.
+
+# Web Tools
+You have access to web_search and web_fetch tools. Always prefer domain-specific tools first. Use web tools only when no suitable domain-specific tool can answer the query, or when the user provides a URL or asks for live/external information.
 
 ${getNPSuffix(projects, op)}
 `;
@@ -200,12 +227,20 @@ ${getNPSuffix(projects, op)}
  * @param tempProjectPath Path to temp project
  * @param projects Project source information
  */
+function getSystemContextBlock(): string {
+    const now = new Date();
+    return `<system-reminder>
+System context:
+- Current date and time: ${now.toUTCString()}
+</system-reminder>`;
+}
+
 export function getUserPrompt(params: GenerateAgentCodeRequest, tempProjectPath: string, projects: ProjectSource[]) {
     const content = [];
 
     content.push({
         type: 'text' as const,
-        text: formatCodebaseStructure(projects)
+        text: formatCodebaseStructure(projects, tempProjectPath)
     });
 
     // Add code context if available
@@ -242,9 +277,25 @@ ${params.usecase}
         type: 'text' as const,
         text: getGenerationType(params.isPlanMode)
     });
+
+    if (params.webSearchEnabled) {
+        content.push({
+            type: 'text' as const,
+            text: getWebToolsHint()
+        });
+    }
+
+    content.push({
+        type: 'text' as const,
+        text: getSystemContextBlock()
+    });
+
     return content;
 }
 
+export function getWebToolsHint(): string {
+    return `<system-reminder>The user has enabled web tools. Use web_search for live or up-to-date information. Use web_fetch when the user provides a URL. Invoke these tools proactively when the query suggests current data or external content is needed.</system-reminder>`;
+}
 
 function getGenerationType(isPlanMode:boolean):string {
     if (isPlanMode) {

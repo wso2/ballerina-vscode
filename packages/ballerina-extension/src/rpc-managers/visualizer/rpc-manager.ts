@@ -19,6 +19,7 @@ import {
     AddToUndoStackRequest,
     ColorThemeKind,
     EVENT_TYPE,
+    GoBackRequest,
     HandleApprovalPopupCloseRequest,
     HistoryEntry,
     JoinProjectPathRequest,
@@ -60,14 +61,24 @@ export class VisualizerRpcManager implements VisualizerAPI {
                     openPopupView(params.type, params.location as PopupVisualizerLocation);
                 }
             } else {
+                if (params.resetHistory) {
+                    // Clear history directly without calling setReadyMode() — that resets the
+                    // state machine to extensionReady which can crash updateView when the
+                    // project-structure context is still live.
+                    history.clear();
+                }
                 openView(params.type, params.location as VisualizerLocation);
             }
         });
     }
 
-    goBack(): void {
+    goBack(params: GoBackRequest): void {
+        const wasReviewMode = StateMachine.context().view === MACHINE_VIEW.ReviewMode;
         history.pop();
-        updateView();
+        updateView(false, params?.identifier);
+        if (wasReviewMode) {
+            approvalViewManager.notifyReviewModeClosed();
+        }
     }
 
     async getHistory(): Promise<HistoryEntry[]> {
@@ -238,7 +249,7 @@ export class VisualizerRpcManager implements VisualizerAPI {
                 return;
             }
             const filePath = Array.isArray(params.segments) ? Utils.joinPath(URI.file(projectPath), ...params.segments) : Utils.joinPath(URI.file(projectPath), params.segments);
-            resolve({ filePath: filePath.fsPath, projectPath: projectPath });
+            resolve({ filePath: filePath.fsPath, projectPath: projectPath, exists: params.checkExists ? fs.existsSync(filePath.fsPath) : undefined });
         });
     }
     async undoRedoState(): Promise<UndoRedoStateResponse> {
@@ -299,15 +310,29 @@ export class VisualizerRpcManager implements VisualizerAPI {
     }
 
     reviewAccepted(): void {
-        // When user accepts changes in review mode, navigate back to normal view
-        console.log("Review accepted - changes will be kept");
-        // Navigate to package overview
-        openView(
-            EVENT_TYPE.OPEN_VIEW,
-            {
-                view: MACHINE_VIEW.PackageOverview
-            }
-        );
+        approvalViewManager.clearReviewData();
+        approvalViewManager.notifyReviewModeClosed();
+        const currentHistory = history.get();
+        const currentEntry = currentHistory[currentHistory.length - 1];
+
+        // If currently in review mode, drop it and restore the last non-review entry.
+        if (currentEntry?.location.view === MACHINE_VIEW.ReviewMode) {
+            history.pop();
+        }
+
+        // Restore the latest history entry when available.
+        if (history.get().length > 0) {
+            updateView();
+            return;
+        }
+
+        // If history is empty, fallback to the default overview.
+        const isWithinBallerinaWorkspace = !!StateMachine.context().workspacePath;
+        openView(EVENT_TYPE.OPEN_VIEW, {
+            view: isWithinBallerinaWorkspace
+                ? MACHINE_VIEW.WorkspaceOverview
+                : MACHINE_VIEW.PackageOverview
+        });
     }
 
     handleApprovalPopupClose(params: HandleApprovalPopupCloseRequest): void {
@@ -316,6 +341,10 @@ export class VisualizerRpcManager implements VisualizerAPI {
 
     reopenApprovalView(params: ReopenApprovalViewRequest): void {
         approvalViewManager.reopenApprovalViewPopup(params.requestId);
+    }
+
+    navigateReviewMode(index: number): void {
+        approvalViewManager.navigateReviewMode(index);
     }
 
     async saveEvalThread(params: SaveEvalThreadRequest): Promise<SaveEvalThreadResponse> {

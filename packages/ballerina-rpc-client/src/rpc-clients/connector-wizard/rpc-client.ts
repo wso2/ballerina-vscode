@@ -26,6 +26,9 @@ import {
     generateWSDLApiClient,
     getConnector,
     getConnectors,
+    introspectCredentials,
+    IntrospectCredentialsRequest,
+    IntrospectCredentialsResponse,
     introspectDatabase,
     IntrospectDatabaseRequest,
     IntrospectDatabaseResponse,
@@ -63,5 +66,9 @@ export class ConnectorWizardRpcClient implements ConnectorWizardAPI {
 
     generateWSDLApiClient(params: WSDLApiClientGenerationRequest): Promise<WSDLApiClientGenerationResponse> {
         return this._messenger.sendRequest(generateWSDLApiClient, HOST_EXTENSION, params);
+    }
+
+    introspectCredentials(params: IntrospectCredentialsRequest): Promise<IntrospectCredentialsResponse> {
+        return this._messenger.sendRequest(introspectCredentials, HOST_EXTENSION, params);
     }
 }

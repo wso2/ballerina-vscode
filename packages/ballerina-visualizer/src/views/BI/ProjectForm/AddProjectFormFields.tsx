@@ -20,13 +20,13 @@ import { useEffect, useState } from "react";
 import { TextField } from "@wso2/ui-toolkit";
 import {
     FieldGroup,
-    WorkspaceSection,
+    ProjectSection,
     SectionDivider,
     OptionalSectionsLabel,
 } from "./styles";
 import { ProjectTypeSelector, PackageInfoSection } from "./components";
 import { AddProjectFormData } from "./types";
-import { sanitizePackageName, validatePackageName } from "./utils";
+import { sanitizePackageName, validatePackageName, validateOrgName } from "./utils";
 
 // Re-export for backwards compatibility
 export type { AddProjectFormData } from "./types";
@@ -34,19 +34,24 @@ export type { AddProjectFormData } from "./types";
 export interface AddProjectFormFieldsProps {
     formData: AddProjectFormData;
     onFormDataChange: (data: Partial<AddProjectFormData>) => void;
-    isInWorkspace: boolean; // true if already in a workspace, false if in a package
+    isInProject: boolean;
     packageNameValidationError?: string;
+    projectNameValidationError?: string;
 }
 
 export function AddProjectFormFields({ 
     formData, 
     onFormDataChange,
-    isInWorkspace,
-    packageNameValidationError
+    isInProject,
+    packageNameValidationError,
+    projectNameValidationError
 }: AddProjectFormFieldsProps) {
     const [packageNameTouched, setPackageNameTouched] = useState(false);
     const [isPackageInfoExpanded, setIsPackageInfoExpanded] = useState(false);
     const [packageNameError, setPackageNameError] = useState<string | null>(null);
+    const [orgNameError, setOrgNameError] = useState<string | null>(null);
+    const resourceTypeLabel = formData.isLibrary ? "Library" : "Integration";
+    const resourceTypeLabelLower = resourceTypeLabel.toLowerCase();
 
     const handleIntegrationName = (value: string) => {
         onFormDataChange({ integrationName: value });
@@ -72,28 +77,35 @@ export function AddProjectFormFields({
         setPackageNameError(error);
     }, [formData.packageName]);
 
+    // Real-time validation for organization name
+    useEffect(() => {
+        const error = validateOrgName(formData.orgName);
+        setOrgNameError(error);
+    }, [formData.orgName]);
+
     return (
         <>
-            {!isInWorkspace && (
-                <WorkspaceSection>
+            {!isInProject && (
+                <ProjectSection>
                     <TextField
                         onTextChange={(value) => onFormDataChange({ workspaceName: value })}
                         value={formData.workspaceName}
-                        label="Workspace Name"
-                        placeholder="Enter workspace name"
+                        label="Project Name"
+                        placeholder="Enter project name"
                         autoFocus={true}
                         required={true}
+                        errorMsg={projectNameValidationError || ""}
                     />
-                </WorkspaceSection>
+                </ProjectSection>
             )}
 
             <FieldGroup>
                 <TextField
                     onTextChange={handleIntegrationName}
                     value={formData.integrationName}
-                    label="Integration Name"
-                    placeholder="Enter an integration name"
-                    autoFocus={isInWorkspace}
+                    label={`${resourceTypeLabel} Name`}
+                    placeholder={`Enter a ${resourceTypeLabelLower} name`}
+                    autoFocus={isInProject}
                     required={true}
                 />
             </FieldGroup>
@@ -103,7 +115,7 @@ export function AddProjectFormFields({
                     onTextChange={handlePackageName}
                     value={formData.packageName}
                     label="Package Name"
-                    description="This will be used as the Ballerina package name for the integration."
+                    description={`This will be used as the Ballerina package name for the ${resourceTypeLabelLower}.`}
                     errorMsg={packageNameValidationError || packageNameError || ""}
                 />
             </FieldGroup>
@@ -121,6 +133,7 @@ export function AddProjectFormFields({
                 onToggle={() => setIsPackageInfoExpanded(!isPackageInfoExpanded)}
                 data={{ orgName: formData.orgName, version: formData.version }}
                 onChange={(data) => onFormDataChange(data)}
+                orgNameError={orgNameError}
             />
         </>
     );

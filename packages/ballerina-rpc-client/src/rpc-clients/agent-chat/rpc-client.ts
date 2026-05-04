@@ -34,7 +34,15 @@ import {
     ClearChatResponse,
     getChatHistory,
     clearChatHistory,
-    getAgentStatus
+    getAgentStatus,
+    getSessionInfo,
+    SessionInfoResponse,
+    AvailableAgentsResponse,
+    SwitchAgentRequest,
+    SwitchAgentResponse,
+    getAvailableChatAgents,
+    switchChatAgent,
+    activeAgentChanged
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -76,5 +84,21 @@ export class AgentChatRpcClient implements AgentChatAPI {
 
     getAgentStatus(): Promise<AgentStatusResponse> {
         return this._messenger.sendRequest(getAgentStatus, HOST_EXTENSION);
+    }
+
+    getSessionInfo(): Promise<SessionInfoResponse> {
+        return this._messenger.sendRequest(getSessionInfo, HOST_EXTENSION);
+    }
+
+    getAvailableChatAgents(): Promise<AvailableAgentsResponse> {
+        return this._messenger.sendRequest(getAvailableChatAgents, HOST_EXTENSION);
+    }
+
+    switchChatAgent(params: SwitchAgentRequest): Promise<SwitchAgentResponse> {
+        return this._messenger.sendRequest(switchChatAgent, HOST_EXTENSION, params);
+    }
+
+    onActiveAgentChanged(handler: (agentName: string) => void): void {
+        this._messenger.onNotification(activeAgentChanged, handler);
     }
 }

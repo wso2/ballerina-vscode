@@ -22,11 +22,9 @@
  */
 
 import { log } from "console";
-import fileUriToPath from "file-uri-to-path";
-import { LANGUAGE } from "../../core";
-import { DEBUG_REQUEST, DEBUG_CONFIG, constructDebugConfig } from "../debugger";
-import { Uri, WorkspaceFolder, workspace, DebugConfiguration, debug, window, CancellationToken, TestItem, TestMessage, TestRunProfileKind, TestRunRequest } from "vscode";
-import child_process from 'child_process';
+import { constructDebugConfig } from "../debugger";
+import { Uri, WorkspaceFolder, workspace, DebugConfiguration, debug, CancellationToken, TestItem, TestMessage, TestRunProfileKind, TestRunRequest, TestRun } from "vscode";
+import { spawn } from 'child_process';
 
 const fs = require('fs');
 import path from 'path';
@@ -34,6 +32,7 @@ import { BALLERINA_COMMANDS } from "../project";
 import { discoverTests, gatherTestItems } from "./discover";
 import { testController, projectRoot } from "./activator";
 import { extension } from "../../BalExtensionContext";
+import { quoteShellPath } from "../../utils/config";
 
 enum EXEC_ARG {
     TESTS = '--tests',
@@ -61,105 +60,124 @@ export function runHandler(request: TestRunRequest, cancellation: CancellationTo
         const startTime = Date.now();
         run.appendOutput(`Running Tests\r\n`);
 
-        if (request.profile?.kind == TestRunProfileKind.Run) {
-            let testNames = "";
-            // mark tests as running in test explorer
-            for (const { test, } of queue) {
-                testNames = testNames == "" ? test.label : `${testNames},${test.label}`;
-                run.started(test);
-            }
-            let testsJson: JSON | undefined = undefined;
-            try {
-                // execute test
-                const executor = extension.ballerinaExtInstance.getBallerinaCmd();
-                const commandText = `${executor} ${BALLERINA_COMMANDS.TEST} ${EXEC_ARG.TESTS} ${testNames} ${EXEC_ARG.COVERAGE}`;
-                await runCommand(commandText, projectRoot);
-
-            } catch {
-                // exception.
-            } finally {
-                const EndTime = Date.now();
-                const timeElapsed = (EndTime - startTime) / queue.length;
-
-                // reading test results
-                testsJson = await readTestJson(path.join(projectRoot!, TEST_RESULTS_PATH).toString());
-                if (!testsJson) {
-                    for (const { test, } of queue) {
-                        const testMessage: TestMessage = new TestMessage("Command failed");
-                        run.failed(test, testMessage, timeElapsed);
-                    }
-                    return;
-                }
-
-                const moduleStatus = testsJson["moduleStatus"];
-
+        try {
+            if (request.profile?.kind == TestRunProfileKind.Run) {
+                let testNames = "";
+                // mark tests as running in test explorer
                 for (const { test, } of queue) {
-                    let found = false;
-                    for (const status of moduleStatus) {
-                        const testResults = status["tests"];
-                        for (const testResult of testResults) {
-                            if (testResult.name !== test.label && !testResult.name.startsWith(`${test.label}#`)) {
-                                continue;
-                            }
+                    testNames = testNames == "" ? test.label : `${testNames},${test.label}`;
+                    run.started(test);
+                }
+                let testsJson: JSON | undefined = undefined;
+                try {
+                    // execute test
+                    const executor = extension.ballerinaExtInstance.getBallerinaCmd();
+                    const commandText = `${quoteShellPath(executor)} ${BALLERINA_COMMANDS.TEST} ${EXEC_ARG.TESTS} ${testNames} ${EXEC_ARG.COVERAGE}`;
+                    await runCommand(commandText, projectRoot, run);
 
-                            if (testResult.status === TEST_STATUS.PASSED) {
-                                run.passed(test, timeElapsed);
-                                found = true;
-                            } else if (testResult.status === TEST_STATUS.FAILED) {
-                                // test failed
-                                const testMessage: TestMessage = new TestMessage(testResult.failureMessage);
-                                run.failed(test, testMessage, timeElapsed);
-                                found = true;
+                } catch {
+                    // exception - test command may have failed but results might still be available.
+                } finally {
+                    const EndTime = Date.now();
+                    const timeElapsed = (EndTime - startTime) / queue.length;
+
+                    // reading test results
+                    testsJson = await readTestJson(path.join(projectRoot!, TEST_RESULTS_PATH).toString());
+                    if (!testsJson) {
+                        for (const { test, } of queue) {
+                            const testMessage: TestMessage = new TestMessage("Command failed");
+                            run.failed(test, testMessage, timeElapsed);
+                        }
+                        return;
+                    }
+
+                    const moduleStatus = testsJson["moduleStatus"];
+
+                    for (const { test, } of queue) {
+                        let found = false;
+                        for (const status of moduleStatus) {
+                            const testResults = status["tests"];
+                            for (const testResult of testResults) {
+                                if (testResult.name !== test.label && !testResult.name.startsWith(`${test.label}#`)) {
+                                    continue;
+                                }
+
+                                if (testResult.status === TEST_STATUS.PASSED) {
+                                    run.passed(test, timeElapsed);
+                                    found = true;
+                                } else if (testResult.status === TEST_STATUS.FAILED) {
+                                    // test failed
+                                    const testMessage: TestMessage = new TestMessage(testResult.failureMessage);
+                                    run.failed(test, testMessage, timeElapsed);
+                                    found = true;
+                                }
+                            }
+                            if (found) {
+                                break;
                             }
                         }
                         if (found) {
-                            break;
+                            continue;
                         }
+                        // test failed
+                        const testMessage: TestMessage = new TestMessage("");
+                        run.failed(test, testMessage, timeElapsed);
                     }
-                    if (found) {
-                        continue;
-                    }
-                    // test failed
-                    const testMessage: TestMessage = new TestMessage("");
-                    run.failed(test, testMessage, timeElapsed);
                 }
+            } else if (request.profile?.kind == TestRunProfileKind.Debug) {
+                const tests = queue.map(t => t.test.label);
+                await startDebugging(Uri.parse(projectRoot), true, tests);
             }
-        } else if (request.profile?.kind == TestRunProfileKind.Debug) {
-            const tests = queue.map(t => t.test.label);
-            await startDebugging(Uri.parse(projectRoot), true, tests);
+        } finally {
+            run.appendOutput(`Tests Completed\r\n`);
+            run.end();
         }
-        run.appendOutput(`Tests Completed\r\n`);
-
-        run.end();
     }
 }
 /**
- * Run terminal command.
+ * Run terminal command using spawn to avoid buffer limits and stream output.
  * @param command Command to run.
  * @param pathToRun Path to execute the command.
- * @param returnData Indicates whether to return the stdout
+ * @param run Optional TestRun to stream output to.
  */
-export async function runCommand(command, pathToRun: string | undefined, returnData = false) {
+export async function runCommand(command: string, pathToRun: string | undefined, run?: TestRun) {
     return new Promise<string>(function (resolve, reject) {
         if (pathToRun == undefined) {
+            reject(new Error("No path to run"));
             return;
         } else if (pathToRun.endsWith(".bal")) {
             const lastIndex = pathToRun.lastIndexOf(path.sep);
             pathToRun = pathToRun.slice(0, lastIndex);
         }
-        child_process.exec(`${command}`, { cwd: pathToRun }, async (err, stdout, stderr) => {
-            if (err) {
-                log(`error: ${err}`);
-                window.showInformationMessage(
-                    err.message
-                );
-                reject(err);
+
+        let stdout = '';
+        const proc = spawn(command, { shell: true, cwd: pathToRun });
+
+        proc.stdout.on('data', (data: Buffer) => {
+            const str = data.toString();
+            stdout += str;
+            if (run) {
+                run.appendOutput(str.replace(/\r?\n/g, '\r\n'));
+            }
+        });
+
+        proc.stderr.on('data', (data: Buffer) => {
+            const str = data.toString();
+            if (run) {
+                run.appendOutput(str.replace(/\r?\n/g, '\r\n'));
+            }
+        });
+
+        proc.on('error', (err) => {
+            log(`error: ${err}`);
+            reject(err);
+        });
+
+        proc.on('close', (code) => {
+            if (code !== 0) {
+                reject(new Error(`Command exited with code ${code}`));
             } else {
-                if (returnData) {
-                    resolve(stdout);
-                } else {
-                    resolve("OK");
-                }
+                resolve(stdout || "OK");
             }
         });
     });

@@ -24,6 +24,8 @@ import {
     ConnectorWizardAPI,
     ConnectorsRequest,
     ConnectorsResponse,
+    IntrospectCredentialsRequest,
+    IntrospectCredentialsResponse,
     IntrospectDatabaseRequest,
     IntrospectDatabaseResponse,
     PersistClientGenerateRequest,
@@ -134,5 +136,22 @@ export class ConnectorWizardRpcManager implements ConnectorWizardAPI {
                 resolve(undefined);
             }
         });
+    }
+
+    async introspectCredentials(params: IntrospectCredentialsRequest): Promise<IntrospectCredentialsResponse> {
+        return new Promise((resolve) => {
+            console.log(">>> introspect credentials request", params);
+            StateMachine.langClient()
+                .introspectCredentials(params)
+                .then((response) => {
+                    console.log(">>> introspect credentials response", response);
+                    resolve(response as IntrospectCredentialsResponse);
+                })
+                .catch((error) => {
+                    console.log(">>> error introspecting database", error);
+                    resolve(undefined);
+                });
+        });
+
     }
 }

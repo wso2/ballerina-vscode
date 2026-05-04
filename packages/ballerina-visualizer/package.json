@@ -11,7 +11,7 @@
     "start": "webpack-dev-server --mode=development --progress",
     "test": "jest --coverage",
     "test:watch": "jest --watch",
-    "build": "webpack --config webpack.config.js --mode=production && pnpm run postbuild",
+    "build": "NODE_OPTIONS=--max-old-space-size=4096 webpack --config webpack.config.js --mode=production && pnpm run postbuild",
     "copy:assets": "copyfiles -u 1 \"src/**/*.scss\"  \"src/**/*.svg\"  \"src/**/*.css\" \"src/resources/assets/font/*.*\" lib/",
     "deploy": "npm publish",
     "postbuild": "copyfiles -u 1 -V build/*.js build/fonts/* build/images/* -e build/*.txt ../ballerina-extension/resources/jslibs"

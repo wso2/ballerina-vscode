@@ -28,6 +28,7 @@ import { getTargetPortPrefix } from "../../utils/port-utils";
 import { ArrayOutputNode } from "../ArrayOutput";
 import { removeMapping } from "../../utils/modification-utils";
 import { QueryOutputNode } from "../QueryOutput";
+import { ConvertibleOutputNode } from "../ConvertibleOutput";
 import { useDMSearchStore } from "../../../../store/store";
 import { PrimitiveOutputNode } from "../PrimitiveOutput";
 
@@ -103,7 +104,8 @@ export class LinkConnectorNode extends DataMapperNodeModel {
                 if (node instanceof ObjectOutputNode ||
                     node instanceof ArrayOutputNode ||
                     node instanceof QueryOutputNode ||
-                    node instanceof PrimitiveOutputNode
+                    node instanceof PrimitiveOutputNode ||
+                    node instanceof ConvertibleOutputNode
                 ) {
                     const targetPortPrefix = getTargetPortPrefix(node);
 

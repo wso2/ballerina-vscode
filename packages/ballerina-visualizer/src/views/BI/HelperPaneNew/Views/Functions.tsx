@@ -270,27 +270,32 @@ export const FunctionsPage = ({
                                             }
 
                                             //if sub category is empty
-                                            if (category.subCategory.length === 0) {
+                                            const nonEmptySubCategories = category.subCategory.filter(
+                                                sub => sub.items && sub.items.length > 0
+                                            );
+                                            if (nonEmptySubCategories.length === 0) {
                                                 return null;
                                             }
 
                                             return (
-                                                <ExpandableList>
-                                                    {category.subCategory.map((subCategory) => (
-                                                        <ExpandableList.Section key={subCategory.label} title={subCategory.label} level={0}>
-                                                            <div style={{ marginTop: '10px' }}>
-                                                                {subCategory.items.map((item) => (
-                                                                    <HelperPaneListItem
-                                                                        key={item.label}
-                                                                        onClick={async () => await handleFunctionItemSelect(item)}
-                                                                    >
-                                                                        {getHelperPaneIcon(HelperPaneIconType.FUNCTION)}
-                                                                        <FunctionItemLabel>{`${item.label}()`}</FunctionItemLabel>
-                                                                    </HelperPaneListItem>
-                                                                ))}
-                                                            </div>
-                                                        </ExpandableList.Section>
-                                                    ))}
+                                                <ExpandableList key={category.label}>
+                                                    <ExpandableList.Section title={category.label} level={0}>
+                                                        {nonEmptySubCategories.map((subCategory) => (
+                                                            <ExpandableList.Section key={subCategory.label} title={subCategory.label} level={1}>
+                                                                <div style={{ marginTop: '10px' }}>
+                                                                    {subCategory.items.map((item) => (
+                                                                        <HelperPaneListItem
+                                                                            key={item.label}
+                                                                            onClick={async () => await handleFunctionItemSelect(item)}
+                                                                        >
+                                                                            {getHelperPaneIcon(HelperPaneIconType.FUNCTION)}
+                                                                            <FunctionItemLabel>{`${item.label}()`}</FunctionItemLabel>
+                                                                        </HelperPaneListItem>
+                                                                    ))}
+                                                                </div>
+                                                            </ExpandableList.Section>
+                                                        ))}
+                                                    </ExpandableList.Section>
                                                 </ExpandableList>
                                             )
                                         })}

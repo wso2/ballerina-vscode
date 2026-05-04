@@ -22,7 +22,7 @@ import { RefObject, useRef } from 'react';
 
 import { debounce } from 'lodash';
 import { useCallback, useState } from 'react';
-import { CodeData, InputType, LineRange, getPrimaryInputType } from '@wso2/ballerina-core';
+import { CodeData, InputType, LineRange, functionKinds, getPrimaryInputType } from '@wso2/ballerina-core';
 import {
     TypeHelperCategory,
     TypeHelperComponent,
@@ -30,7 +30,7 @@ import {
     TypeHelperOperator
 } from '@wso2/type-editor';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
-import { filterOperators, filterTypes, getImportedTypes, getTypeBrowserTypes, getTypes } from '../TypeEditor/utils';
+import { filterOperators, filterTypes, getFilteredTypesByKind, getTypeBrowserTypes, getTypes } from '../TypeEditor/utils';
 import { TYPE_HELPER_OPERATORS } from '../TypeEditor/constants';
 import { useMutation } from "@tanstack/react-query";
 import { createPortal } from "react-dom";
@@ -60,10 +60,11 @@ type TypeHelperProps = {
     typeHelperState: boolean;
     onChange: (newType: string, newCursorPosition: number) => void;
     changeTypeHelperState: (isOpen: boolean) => void;
-    updateImports: (key: string, imports: {[key: string]: string}, codedata?: CodeData) => void;
+    updateImports: (key: string, imports: { [key: string]: string }, codedata?: CodeData) => void;
     onTypeCreate: (typeName: string) => void;
     onCloseCompletions?: () => void;
     typeHelperContext?: TypeHelperContext;
+    recordsOnly?: boolean;
 };
 
 const TypeHelperEl = (props: TypeHelperProps) => {
@@ -83,7 +84,8 @@ const TypeHelperEl = (props: TypeHelperProps) => {
         onTypeCreate,
         onCloseCompletions,
         exprRef,
-        typeHelperContext 
+        typeHelperContext,
+        recordsOnly
     } = props;
 
     const { rpcClient } = useRpcContext();
@@ -93,6 +95,7 @@ const TypeHelperEl = (props: TypeHelperProps) => {
 
     const [basicTypes, setBasicTypes] = useState<TypeHelperCategory[]>([]);
     const [importedTypes, setImportedTypes] = useState<TypeHelperCategory[]>([]);
+    const [workspaceTypes, setWorkspaceTypes] = useState<TypeHelperCategory[]>([]);
     const [filteredBasicTypes, setFilteredBasicTypes] = useState<TypeHelperCategory[]>([]);
     const [filteredOperators, setFilteredOperators] = useState<TypeHelperOperator[]>([]);
     const [filteredTypeBrowserTypes, setFilteredTypeBrowserTypes] = useState<TypeHelperCategory[]>([]);
@@ -108,7 +111,8 @@ const TypeHelperEl = (props: TypeHelperProps) => {
             if (isType && !fetchedInitialTypes.current) {
                 try {
                     const isFetchingTypesForDM = primaryBallerinaType === "json";
-                    const types = (typeHelperContext === TypeHelperContext.GRAPHQL_FIELD_TYPE || typeHelperContext === TypeHelperContext.GRAPHQL_INPUT_TYPE)
+                    const isGraphQLContext = typeHelperContext === TypeHelperContext.GRAPHQL_FIELD_TYPE || typeHelperContext === TypeHelperContext.GRAPHQL_INPUT_TYPE;
+                    const types = isGraphQLContext
                         ? await rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({
                             filePath: filePath,
                             context: typeHelperContext,
@@ -127,19 +131,23 @@ const TypeHelperEl = (props: TypeHelperProps) => {
                     setFilteredBasicTypes(basicTypes);
                     fetchedInitialTypes.current = true;
 
-                    if (typeHelperContext === TypeHelperContext.HTTP_STATUS_CODE) {
-                        const searchResponse = await rpcClient.getBIDiagramRpcClient().search({
-                            filePath: filePath,
-                            position: targetLineRange,
-                            queryMap: {
-                                q: '',
-                                offset: 0,
-                                limit: 1000
-                            },
-                            searchKind: 'TYPE'
-                        });
 
-                        const importedTypes = getImportedTypes(searchResponse.categories);
+                    const searchResponse = await rpcClient.getBIDiagramRpcClient().search({
+                        filePath: filePath,
+                        position: targetLineRange,
+                        queryMap: {
+                            q: '',
+                            offset: 0,
+                            limit: 1000
+                        },
+                        searchKind: 'TYPE'
+                    });
+
+                    const workspaceTypes = getFilteredTypesByKind(searchResponse.categories, functionKinds.CURRENT);
+                    setWorkspaceTypes(workspaceTypes);
+                    // Additionally fetch imported types 
+                    if (!isGraphQLContext) {
+                        const importedTypes = getFilteredTypesByKind(searchResponse.categories, functionKinds.IMPORTED);
                         setImportedTypes(importedTypes);
                     }
 
@@ -163,8 +171,10 @@ const TypeHelperEl = (props: TypeHelperProps) => {
                         searchKind: 'TYPE'
                     });
 
-                    const importedTypes = getImportedTypes(response.categories);
+                    const importedTypes = getFilteredTypesByKind(response.categories, functionKinds.IMPORTED);
+                    const workspaceTypes = getFilteredTypesByKind(response.categories, functionKinds.CURRENT);
                     setImportedTypes(importedTypes);
+                    setWorkspaceTypes(workspaceTypes);
                 } catch (error) {
                     console.error(error);
                 } finally {
@@ -200,7 +210,7 @@ const TypeHelperEl = (props: TypeHelperProps) => {
                             limit: 1000
                         },
                         searchKind: 'TYPE'
-                        })
+                    })
                     .then((response) => {
                         setFilteredTypeBrowserTypes(getTypeBrowserTypes(response.categories));
                     })
@@ -220,8 +230,8 @@ const TypeHelperEl = (props: TypeHelperProps) => {
         [debouncedSearchTypeBrowser]
     );
 
-    const { mutateAsync: addFunction, isPending: isAddingType  } = useMutation({
-        mutationFn: (item: TypeHelperItem) => 
+    const { mutateAsync: addFunction, isPending: isAddingType } = useMutation({
+        mutationFn: (item: TypeHelperItem) =>
             rpcClient.getBIDiagramRpcClient().addFunction({
                 filePath: filePath,
                 codedata: item.codedata,
@@ -261,10 +271,11 @@ const TypeHelperEl = (props: TypeHelperProps) => {
                 currentCursorPosition={currentCursorPosition}
                 loading={loading}
                 loadingTypeBrowser={loadingTypeBrowser}
-                referenceTypes={basicTypes}
-                basicTypes={filteredBasicTypes}
+                referenceTypes={recordsOnly ? [] : basicTypes}
+                basicTypes={recordsOnly ? [] : filteredBasicTypes}
                 importedTypes={importedTypes}
-                operators={filteredOperators}
+                workspaceTypes={workspaceTypes}
+                operators={recordsOnly ? [] : filteredOperators}
                 typeBrowserTypes={filteredTypeBrowserTypes}
                 typeBrowserRef={typeBrowserRef}
                 typeHelperHeight={helperPaneHeight}
@@ -273,7 +284,7 @@ const TypeHelperEl = (props: TypeHelperProps) => {
                 onSearchTypeBrowser={handleSearchTypeBrowser}
                 onTypeItemClick={handleTypeItemClick}
                 onClose={handleTypeHelperClose}
-                onTypeCreate={handleTypeCreate}
+                onTypeCreate={recordsOnly ? undefined : handleTypeCreate}
                 onCloseCompletions={onCloseCompletions}
                 exprRef={exprRef}
             />

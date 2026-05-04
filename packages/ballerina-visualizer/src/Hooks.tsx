@@ -80,5 +80,9 @@ export const useDataMapperModel = (
         await refetch();
     };
 
-    return { model, isFetching, isError, refreshDMModel };
+    const requestRefreshDMModel = () => {
+        triggerRefresh.current = true;
+    };
+
+    return { model, isFetching, isError, refreshDMModel, requestRefreshDMModel };
 };

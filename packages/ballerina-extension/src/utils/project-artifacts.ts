@@ -98,11 +98,13 @@ async function buildProjectArtifactsStructure(
 export async function updateProjectArtifacts(publishedArtifacts: ArtifactsNotification): Promise<void> {
     // Current project structure
     const currentProjectStructure: ProjectStructureResponse = StateMachine.context().projectStructure;
-    if (!StateMachine.context().projectPath && !StateMachine.context().workspacePath) {
-        console.warn("No project or workspace path found in the StateMachine context.");
+
+    const rootPath = StateMachine.context().projectPath ?? StateMachine.context().workspacePath;
+    if (!rootPath) {
+        console.warn("[updateProjectArtifacts] No project or workspace path found in the StateMachine context.");
         return;
     }
-    const projectUri = URI.file(StateMachine.context().projectPath) || URI.file(StateMachine.context().workspacePath);
+    const projectUri = URI.file(rootPath);
     const isWithinProject = URI
         .parse(publishedArtifacts.uri).fsPath.toLowerCase()
         .includes(projectUri.fsPath.toLowerCase());
@@ -111,8 +113,47 @@ export async function updateProjectArtifacts(publishedArtifacts: ArtifactsNotifi
 
     const persistDir = Utils.joinPath(projectUri, 'persist').fsPath.toLowerCase();
     const isInPersistDir = URI.parse(publishedArtifacts.uri).fsPath.toLowerCase().includes(persistDir);
-    
+
     if (currentProjectStructure && isWithinProject && !isSubmodule && !isInPersistDir) {
+        // If user is working on a workspace project pick the workspace path, otherwise fallback to the project path.
+        // Fallback can happen when user is working on a standalone integration/library and
+        // adding another integration/library via AI chat.
+        const workspacePath = StateMachine.context().workspacePath ?? StateMachine.context().projectPath;
+        if (!workspacePath) {
+            console.warn("[updateProjectArtifacts] Workspace path not found in the StateMachine context.");
+            return;
+        }
+        
+        const projectInfo = await StateMachine.langClient().getProjectInfo({ projectPath: workspacePath });
+        if (!projectInfo) {
+            console.warn("[updateProjectArtifacts] Project info not found for the project:", rootPath);
+            return;
+        }
+
+        const isWorkspace = projectInfo.projectKind === PROJECT_KIND.WORKSPACE_PROJECT;
+        const packages = isWorkspace ? projectInfo.children : [projectInfo];
+
+        const untrackedProjectPaths = packages
+            ?.filter(child => child?.projectPath !== undefined)
+            ?.filter(
+                child => !currentProjectStructure.projects
+                    ?.some(project => project.projectPath === child.projectPath)
+            ).map(child => child.projectPath) ?? [];
+
+        // Check if the active project exists in the current structure.
+        // If not (e.g., a new package was added by Copilot), a full rebuild is needed
+        // since we can't incrementally update a project that doesn't exist yet.
+        for (const untrackedProjectPath of untrackedProjectPaths) {
+            console.log("[updateProjectArtifacts] Project not found in structure, triggering full rebuild:", untrackedProjectPath);
+            const notificationHandler = ArtifactNotificationHandler.getInstance();
+            notificationHandler.publish(ArtifactsUpdated.method, {
+                data: [],
+                timestamp: Date.now()
+            });
+            StateMachine.refreshProjectInfo();
+            return;
+        }
+
         const entryLocations = await traverseUpdatedComponents(publishedArtifacts.artifacts, currentProjectStructure);
         const notificationHandler = ArtifactNotificationHandler.getInstance();
         // Publish a notification to the artifact handler
@@ -169,6 +210,7 @@ async function getComponents(
 
 async function getEntryValue(artifact: BaseArtifact, projectPath: string, icon: string, moduleName?: string) {
     const targetFile = Utils.joinPath(URI.file(projectPath), artifact.location.fileName).fsPath;
+    const isPublic = artifact.scope?.toLowerCase() === "global";
     const entryValue: ProjectStructureArtifactResponse = {
         id: artifact.id,
         name: artifact.name,
@@ -178,6 +220,7 @@ async function getEntryValue(artifact: BaseArtifact, projectPath: string, icon: 
         icon: artifact.module ? `bi-${artifact.module}` : icon,
         context: artifact.name === "automation" ? "main" : artifact.name,
         resources: [],
+        isPublic,
         position: {
             endColumn: artifact.location.endLine.offset,
             endLine: artifact.location.endLine.line,
@@ -192,7 +235,7 @@ async function getEntryValue(artifact: BaseArtifact, projectPath: string, icon: 
             break;
         case DIRECTORY_MAP.SERVICE:
             // Do things related to service
-            entryValue.name = artifact.name; // GraphQL Service - /foo
+            entryValue.name = getServiceDisplayName(artifact); // GraphQL Service - /foo
             entryValue.icon = getCustomEntryNodeIcon(artifact.module);
             if (artifact.module === "ai") {
                 entryValue.resources = [];
@@ -247,6 +290,18 @@ async function getEntryValue(artifact: BaseArtifact, projectPath: string, icon: 
             break;
     }
     return entryValue;
+}
+
+function getServiceDisplayName(artifact: BaseArtifact): string {
+    if (artifact.module !== "ftp") {
+        return artifact.name;
+    }
+    const accessor = artifact.accessor?.trim();
+    if (!accessor) {
+        return artifact.name;
+    }
+    const suffix = ` - ${accessor}`;
+    return artifact.name.includes(suffix) ? artifact.name : `${artifact.name}${suffix}`;
 }
 
 /**
@@ -423,7 +478,6 @@ async function traverseUpdatedComponents(publishedArtifacts: Artifacts, currentP
 
     const projectPath = StateMachine.context().projectPath;
     const project = currentProjectStructure.projects.find(project => project.projectPath === projectPath);
-
     for (const key of Object.keys(project.directoryMap)) {
         if (project.directoryMap[key]) {
             project.directoryMap[key].sort((a, b) => a.name.localeCompare(b.name));

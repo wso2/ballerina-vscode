@@ -18,7 +18,7 @@
 
 import { useState, useRef, KeyboardEvent, useEffect, useLayoutEffect, useImperativeHandle, forwardRef } from "react";
 import styled from "@emotion/styled";
-import { Codicon } from "@wso2/ui-toolkit";
+import { Icon } from "@wso2/ui-toolkit";
 import { AIPanelPrompt, Attachment, AttachmentStatus, Command, ExtendedDataMapperMetadata, TemplateId } from "@wso2/ballerina-core";
 import AttachmentBox, { AttachmentsContainer } from "../AttachmentBox";
 import { StyledInputComponent, StyledInputRef } from "./StyledInput";
@@ -27,11 +27,15 @@ import { Suggestion, SuggestionType, useCommands } from "./hooks/useCommands";
 import { ChatBadgeType } from "../ChatBadge";
 import { Input } from "./utils/inputUtils";
 import SuggestionsList from "./SuggestionsList";
+import ModeToggle, { AgentMode } from "./ModeToggle";
+import AutoApproveChip from "./AutoApproveChip";
+import WebSearchToggle from "./WebSearchToggle";
 import { CommandTemplates } from "../../commandTemplates/data/commandTemplates.const";
 import { Tag } from "../../commandTemplates/models/tag.model";
 import { getFirstOccurringPlaceholder, matchCommandTemplate } from "./utils/utils";
 import { getAllCommands, getTags, getTemplateDefinitionsByCommand } from "../../commandTemplates/utils/utils";
 import { PlaceholderTagMap } from "../../commandTemplates/data/placeholderTags.const";
+import ContextUsageWidget from "../AIChat/compaction/ContextUsageWidget";
 
 // Styled Components
 const Container = styled.div`
@@ -107,6 +111,7 @@ const ActionButton = styled.button`
     }
 `;
 
+
 export interface TagOptions {
     placeholderTags: PlaceholderTagMap;
     loadGeneralTags: () => Promise<Tag[]>;
@@ -125,11 +130,21 @@ interface AIChatInputProps {
     onSend: (content: { input: Input[]; attachments: Attachment[]; metadata?: Record<string, any> }) => Promise<void>;
     onStop: () => void;
     isLoading: boolean;
+    agentMode?: AgentMode;
+    onChangeAgentMode?: (mode: AgentMode) => void;
+    isAutoApproveEnabled?: boolean;
+    onDisableAutoApprove?: () => void;
+    isWebToolsEnabled?: boolean;
+    onToggleWebSearch?: () => void;
+    disabled?: boolean;
+    contextUsage?: { inputTokens: number; percentage: number; breakdown?: { systemInstructions: number; toolDefinitions: number; reservedOutput: number; messages: number; toolResults: number } } | null;
 }
 
 const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
-    ({ initialCommandTemplate, tagOptions, attachmentOptions, placeholder, onSend, onStop, isLoading }, ref) => {
-        const [inputValue, setInputValue] = useState<{
+    ({ initialCommandTemplate, tagOptions, attachmentOptions, placeholder, onSend, onStop, isLoading,
+       agentMode = AgentMode.Edit, onChangeAgentMode, isAutoApproveEnabled = false, onDisableAutoApprove,
+       isWebToolsEnabled = false, onToggleWebSearch, disabled,
+       contextUsage }, ref) => {        const [inputValue, setInputValue] = useState<{
             text: string;
             [key: string]: any;
         }>({
@@ -532,8 +547,9 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
                             onChange={setInputValue}
                             onKeyDown={handleKeyDown}
                             onBlur={() => completeSuggestionSelection()}
-                            placeholder={placeholder}
+                            placeholder={disabled ? "Usage limit exceeded" : placeholder}
                             onPostDOMUpdate={executeOnPostDOMUpdate}
+                            disabled={disabled}
                         />
                         {/* Attachments Display */}
                         {attachments.length > 0 && (
@@ -551,7 +567,22 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
                         )}
 
                         <ActionRow>
-                            <div style={{ display: "flex" }}>
+                            <div style={{ display: "flex", alignItems: "center" }}>
+                                {onChangeAgentMode && (
+                                    <ModeToggle
+                                        mode={agentMode}
+                                        onChange={onChangeAgentMode}
+                                        disabled={isLoading}
+                                    />
+                                )}
+                                {isAutoApproveEnabled && onDisableAutoApprove && (
+                                    <AutoApproveChip onToggle={onDisableAutoApprove} />
+                                )}
+                                {onToggleWebSearch && (
+                                    <WebSearchToggle isActive={isWebToolsEnabled} onToggle={onToggleWebSearch} />
+                                )}
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center" }}>
                                 <ActionButton
                                     title="Chat with Command"
                                     disabled={inputValue.text !== ""}
@@ -570,18 +601,28 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
                                     onChange={onAttachmentSelection}
                                 />
                                 <ActionButton title="Attach Context" onClick={handleAttachClick}>
-                                    <Codicon name="new-file" />
+                                    <Icon name="Paperclip" sx={{ fontSize: "16px" }} />
                                 </ActionButton>
+
+                                {contextUsage && (
+                                    <ContextUsageWidget
+                                        percentage={contextUsage.percentage}
+                                        inputTokens={contextUsage.inputTokens}
+                                        breakdown={contextUsage.breakdown}
+                                    />
+                                )}
                             </div>
-                            <div>
+                            <div style={{ display: "flex", alignItems: "center" }}>
+                                <div style={{ width: "1px", height: "16px", background: "var(--vscode-panel-border)", margin: "0 2px" }} />
                                 <ActionButton
                                     title={isLoading ? "Stop (Escape)" : "Send (Enter)"}
-                                    disabled={inputValue.text.trim() === "" && !isLoading}
+                                    disabled={(inputValue.text.trim() === "" && !isLoading) || disabled}
                                     onClick={isLoading ? handleStop : handleSend}
                                 >
-                                    <span
-                                        className={`codicon ${isLoading ? "codicon-stop-circle" : "codicon-send"}`}
-                                    ></span>
+                                    {isLoading
+                                        ? <span className="codicon codicon-stop-circle"></span>
+                                        : <Icon name="Send" sx={{ fontSize: "16px" }} />
+                                    }
                                 </ActionButton>
                             </div>
                         </ActionRow>

@@ -113,7 +113,7 @@ Use the submit_evaluation tool to provide your assessment.`;
 
     try {
         const result = await generateText({
-            model: anthropic('claude-sonnet-4-20250514'),
+            model: anthropic('claude-sonnet-4-5-20250929'),
             system: systemPrompt,
             prompt: userPrompt,
             temperature: 0.1,

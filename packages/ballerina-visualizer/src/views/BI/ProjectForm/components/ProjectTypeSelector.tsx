@@ -26,7 +26,7 @@ import {
     RadioContent,
     RadioTitle,
     RadioDescription,
-    ProjectTypeNote,
+    Note,
 } from "../styles";
 
 export interface ProjectTypeOption {
@@ -47,13 +47,13 @@ export interface ProjectTypeSelectorProps {
 const PROJECT_TYPE_OPTIONS: ProjectTypeOption[] = [
     {
         value: "integration",
-        title: "Standard Integration (Default)",
-        description: "A deployable project that can be built, tested, and deployed as an integration.",
+        title: "Integration (Default)",
+        description: "A deployable unit that can be built, tested, and deployed.",
     },
     {
         value: "library",
-        title: "Library Project",
-        description: "Shared logic and utilities that can be reused across multiple projects in the workspace.",
+        title: "Library",
+        description: "Shared logic and utilities that can be reused across multiple integrations.",
     },
 ];
 
@@ -64,7 +64,7 @@ export function ProjectTypeSelector({
 }: ProjectTypeSelectorProps) {
     return (
         <ProjectTypeContainer>
-            <ProjectTypeLabel>Project Type</ProjectTypeLabel>
+            <ProjectTypeLabel>Type</ProjectTypeLabel>
             <RadioGroup>
                 {PROJECT_TYPE_OPTIONS.map((option) => {
                     const isLibrary = option.value === "library";
@@ -87,8 +87,7 @@ export function ProjectTypeSelector({
                     );
                 })}
             </RadioGroup>
-            {note && <ProjectTypeNote>{note}</ProjectTypeNote>}
+            {note && <Note>{note}</Note>}
         </ProjectTypeContainer>
     );
 }
-

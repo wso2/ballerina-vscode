@@ -45,7 +45,10 @@ module.exports = {
       enforce: "pre",
       test: /\.js$/,
       loader: "source-map-loader",
-      exclude: /node_modules\/parse5/,
+      exclude: [
+        /node_modules\/parse5/,
+        /node_modules\/autolinker/
+      ],
     },
     {
       test: /\.css$/,

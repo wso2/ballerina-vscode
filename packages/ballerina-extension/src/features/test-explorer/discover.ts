@@ -19,7 +19,7 @@
 
 import path from "path";
 import { StateMachine } from "../../stateMachine";
-import { TestsDiscoveryRequest, TestsDiscoveryResponse, FunctionTreeNode, ProjectInfo } from "@wso2/ballerina-core";
+import { TestsDiscoveryRequest, TestsDiscoveryResponse, FunctionTreeNode, ProjectInfo, PROJECT_KIND } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "../../core";
 import { Position, Range, TestController, Uri, TestItem, commands } from "vscode";
 import { getWorkspaceRoot, getCurrentProjectRoot } from "../../utils/project-utils";
@@ -33,8 +33,14 @@ export async function discoverTestFunctionsInProject(ballerinaExtInstance: Balle
     
     const workspaceRoot = getWorkspaceRoot();
     const projectInfo = await ballerinaExtInstance.langClient?.getProjectInfo({ projectPath: workspaceRoot });
+    const isEmptyProject = projectInfo?.projectKind === PROJECT_KIND.WORKSPACE_PROJECT &&
+        projectInfo.children?.length === 0;
 
-    // Handle workspace with multiple child projects
+    if (isEmptyProject) {
+        return;
+    }
+
+    // Handle project with multiple integrations/libraries
     if (projectInfo?.children?.length > 0) {
         await discoverTestsInWorkspace(projectInfo.children, ballerinaExtInstance, testController);
         return;

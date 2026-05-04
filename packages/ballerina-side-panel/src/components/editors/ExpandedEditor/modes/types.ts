@@ -48,7 +48,11 @@ export interface EditorModeWithPreviewProps extends EditorModeProps {
 /**
  * Extended props for expression mode with completions and helper pane support
  */
+export type AIStatusLabel = "AI Enhanced" | "AI Generated" | "Original" | null;
+
 export interface EditorModeExpressionProps extends EditorModeProps {
+    /** Callback to report AI enhancement status for display in the header */
+    onAIStatusChange?: (status: AIStatusLabel) => void;
     /** Completion items for autocomplete */
     completions?: CompletionItem[];
     /** File name for context */

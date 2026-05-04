@@ -85,7 +85,7 @@ export function ImportIntegrationForm({
         }
 
         if (!importSourcePath || importSourcePath.trim().length === 0) {
-            setSourcePathError("Please select your project folder");
+            setSourcePathError("Please select your integration folder");
             hasError = true;
         }
 
@@ -118,13 +118,13 @@ export function ImportIntegrationForm({
     return (
         <>
             <BodyText>
-                This wizard converts an external integration project from MuleSoft or TIBCO into a ready-to-use BI
+                This wizard converts an external integration from MuleSoft or TIBCO into a ready-to-use BI
                 project.
             </BodyText>
             <Typography variant="h3" sx={{ marginTop: 20, marginBottom: 8 }}>
                 Choose the source platform
             </Typography>
-            <BodyText>Select the integration platform that your current project uses:</BodyText>
+            <BodyText>Select the integration platform that your current integration uses:</BodyText>
             {integrationSelectionError && (
                 <div style={{ color: "var(--vscode-errorForeground)", marginBottom: 8, fontSize: 12 }}>
                     {integrationSelectionError}
@@ -148,11 +148,11 @@ export function ImportIntegrationForm({
 
             {selectedIntegration && (
                 <StepContainer>
-                    <Typography variant="h3" sx={{ marginBottom: 8 }}>Select Your Project Folder</Typography>
+                    <Typography variant="h3" sx={{ marginBottom: 8 }}>Select Your Integration Folder</Typography>
                     <BodyText>{selectedIntegration.description}</BodyText>
                     <DirectorySelector
                         id="import-project-folder-selector"
-                        placeholder="Enter path or browse to select your project folder..."
+                        placeholder="Enter path or browse to select your integration folder..."
                         selectedPath={importSourcePath}
                         onSelect={handleFolderSelection}
                         onChange={(value) => {

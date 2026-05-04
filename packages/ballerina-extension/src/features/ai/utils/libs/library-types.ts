@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { jsonSchema } from "ai";
+import { z } from 'zod';
 
 export interface Type {
     name: string;
@@ -162,6 +162,7 @@ export interface Library {
     clients: Client[];
     functions?: RemoteFunction[];
     services?: Service[];
+    instructions?: string;
 }
 
 
@@ -191,30 +192,16 @@ export interface GetTypesResponse {
 }
 
 
-export const getTypesResponseSchema = jsonSchema<GetTypesResponse>({
-    type: 'object',
-    properties: {
-        libraries: {
-            type: 'array',
-            items: {
-                type: 'object',
-                properties: {
-                    libName: { type: 'string' },
-                    types: {
-                        type: 'array',
-                        items: {
-                            type: 'object',
-                            properties: {
-                                name: { type: 'string' },
-                                description: { type: 'string' }
-                            },
-                            required: ['name', 'description']
-                        }
-                    }
-                },
-                required: ['libName', 'types']
-            }
-        }
-    },
-    required: ['libraries']
+const miniTypeSchema = z.object({
+    name: z.string(),
+    description: z.string(),
+});
+
+const getTypeResponseSchema = z.object({
+    libName: z.string(),
+    types: z.array(miniTypeSchema),
+});
+
+export const getTypesResponseSchema = z.object({
+    libraries: z.array(getTypeResponseSchema),
 });

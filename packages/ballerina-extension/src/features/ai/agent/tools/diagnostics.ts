@@ -1,5 +1,6 @@
 import { tool } from 'ai';
 import { z } from 'zod';
+import * as path from 'path';
 import { checkCompilationErrors, DiagnosticsCheckResult } from './diagnostics-utils';
 import { CopilotEventHandler } from '../../utils/events';
 
@@ -7,9 +8,14 @@ export const DIAGNOSTICS_TOOL_NAME = "getCompilationErrors";
 
 /**
  * Input schema for the diagnostics tool
- * No input parameters needed - tool operates on current code state
  */
-const DiagnosticsInputSchema = z.object({});
+const DiagnosticsInputSchema = z.object({
+    packagePath: z.string().optional().describe(
+        "Relative path to the package within the workspace project. " +
+        "Required for workspace projects - call this tool once per modified package. " +
+        "Omit for single-package (non-workspace) projects."
+    ),
+});
 
 /**
  * Creates the compilation errors checking tool
@@ -34,21 +40,29 @@ Use this tool when:
 - You want to catch errors early before marking a task as complete
 - You need detailed diagnostics with resolving hints for any compilation issues
 
+For workspace projects, you MUST call this tool separately for each modified package, providing the packagePath parameter.
+For single-package projects, omit the packagePath parameter.
+
 The tool analyzes the entire Ballerina package and returns:
 - Compilation errors with file location, error message, and diagnostic code
 - Resolving hints for common error codes to help fix issues quickly
 - Empty list if no errors are found
 `,
         inputSchema: DiagnosticsInputSchema,
-        execute: async (): Promise<DiagnosticsCheckResult> => {
+        execute: async ({ packagePath }): Promise<DiagnosticsCheckResult> => {
             // Emit tool_call event to visualizer (shows "Checking for errors..." in UI)
             eventHandler({
                 type: "tool_call",
                 toolName: DIAGNOSTICS_TOOL_NAME,
             });
 
+            // Resolve the target path: append packagePath for workspace projects
+            const targetPath = packagePath
+                ? path.join(tempProjectPath, packagePath)
+                : tempProjectPath;
+
             // Use shared utility to check compilation errors
-            const result = await checkCompilationErrors(tempProjectPath);
+            const result = await checkCompilationErrors(targetPath);
 
             // Emit tool_result event to visualizer (shows result in UI)
             eventHandler({

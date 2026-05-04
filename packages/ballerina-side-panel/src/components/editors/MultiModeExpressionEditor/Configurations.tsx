@@ -97,6 +97,7 @@ export class StringTemplateEditorConfig extends ChipExpressionEditorDefaultConfi
     }
 
     getIsValueCompatible(expValue: string) {
+        if (!expValue) return true;
         const suffix = this.getSerializationSuffix();
         const prefix = this.getSerializationPrefix();
         return (expValue.trim().startsWith(prefix) && expValue.trim().endsWith(suffix))
@@ -217,12 +218,27 @@ export class NumberExpressionEditorConfig extends ChipExpressionEditorDefaultCon
     }
 
     getIsValueCompatible(value: string): boolean {
+        if (!value) return true;
         return this.DECIMAL_INPUT_REGEX.test(value);
     }
 }
 
 export class RecordConfigExpressionEditorConfig extends ChipExpressionEditorDefaultConfiguration {
-   getIsToggleHelperAvailable(): boolean {
+    getIsToggleHelperAvailable(): boolean {
         return false;
-   }
+    }
+}
+
+export class BooleanEditorConfig extends ChipExpressionEditorDefaultConfiguration {
+    deserializeValue(value: string): string {
+        if (this.getIsValueCompatible(value)) {
+            return value;
+        }
+        return "";
+    }
+
+    getIsValueCompatible(expValue: string) {
+        if (!expValue) return true;
+        return expValue.toLocaleLowerCase() === "true" || expValue.toLocaleLowerCase() === "false";
+    }
 }

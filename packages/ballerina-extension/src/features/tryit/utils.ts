@@ -28,8 +28,8 @@ export const TRYIT_TEMPLATE = `/*
 
 {{#each paths}}
 {{#each this}}
-/*
-{{#unless ../../isResourceMode}}#### {{uppercase @key}} {{@../key}}{{/unless}}
+{{#unless ../../isResourceMode}}/*
+#### {{uppercase @key}} {{@../key}}
 
 {{#if parameters}}
 {{#with (groupParams parameters)}}
@@ -56,6 +56,7 @@ export const TRYIT_TEMPLATE = `/*
 {{/with}}
 {{/if}}
 */
+{{/unless}}
 ###
 {{uppercase @key}} http://localhost:{{../../port}}{{trim ../../basePath}}{{{@../key}}}{{queryParams parameters}}{{#if parameters}}{{headerParams parameters}}{{/if}}
 {{#if requestBody}}Content-Type: {{getContentType requestBody}}

@@ -648,16 +648,20 @@ export function ActionTypeEditor(props: ActionTypeEditorProps) {
                                     // Set show default completion
                                     const typeExists = referenceTypes.find((type) => type.label === updatedValue);
 
-                                    if (getExpressionEditorDiagnostics) {
-                                        const required = !field.optional;
+                                    // disabling expression editor diagnostics for type field 
+                                    // as the expressionEditor/diagnstics API is currently
+                                    // having a limitation on validating the type fields
+                                    
+                                    // if (getExpressionEditorDiagnostics) {
+                                    //     const required = !field.optional;
 
-                                        getExpressionEditorDiagnostics(
-                                            (required ?? !field.optional) || updatedValue !== '',
-                                            updatedValue,
-                                            field.key,
-                                            getPropertyFromFormField(field)
-                                        );
-                                    }
+                                    //     getExpressionEditorDiagnostics(
+                                    //         (required ?? !field.optional) || updatedValue !== '',
+                                    //         updatedValue,
+                                    //         field.key,
+                                    //         getPropertyFromFormField(field)
+                                    //     );
+                                    // }
 
                                     handleNewTypeSelected && handleNewTypeSelected(typeExists ? typeExists : updatedValue)
                                     const validTypeForCreation = updatedValue.match(/^[a-zA-Z_'][a-zA-Z0-9_]*$/);
