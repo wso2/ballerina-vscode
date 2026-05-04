@@ -47,6 +47,8 @@ build/
 # macOS metadata files
 .DS_Store
 .claude
+.tasks/
+CLAUDE.md
 
 # Rewrite specific stuff
 .claude

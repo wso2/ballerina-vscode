@@ -93,65 +93,28 @@
     "flags": 0
   },
   "output": {
-    "id": "31",
+    "id": "33280",
     "metadata": {
       "label": "Declare Variable",
       "description": "Create a new variable"
     },
     "codedata": {
       "node": "VARIABLE",
-      "isNew": true,
       "lineRange": {
+        "fileName": "function2.bal",
         "startLine": {
           "line": 1,
           "offset": 16
         },
         "endLine": {
           "line": 1,
-          "offset": 16
+          "offset": 48
         }
-      }
+      },
+      "sourceCode": "string[] var1 = getCSVFiles(\"\");"
     },
     "returning": false,
     "properties": {
-      "variable": {
-        "metadata": {
-          "label": "Name",
-          "description": "Name of the variable"
-        },
-        "types": [
-          {
-            "fieldType": "IDENTIFIER",
-            "selected": false
-          }
-        ],
-        "value": "var1",
-        "optional": false,
-        "editable": true,
-        "advanced": false,
-        "hidden": false,
-        "modified": false
-      },
-      "type": {
-        "metadata": {
-          "label": "Type",
-          "description": "Type of the variable"
-        },
-        "types": [
-          {
-            "fieldType": "TYPE",
-            "selected": false
-          }
-        ],
-        "value": "string[]",
-        "placeholder": "var",
-        "optional": false,
-        "editable": true,
-        "advanced": false,
-        "hidden": false,
-        "codedata": {},
-        "modified": false
-      },
       "expression": {
         "metadata": {
           "label": "Expression",
@@ -160,7 +123,7 @@
         "types": [
           {
             "fieldType": "ACTION_OR_EXPRESSION",
-            "selected": false
+            "selected": true
           }
         ],
         "value": "getCSVFiles(\"\")",
@@ -168,8 +131,6 @@
         "editable": true,
         "advanced": false,
         "hidden": false,
-        "imports": {},
-        "modified": false,
         "diagnostics": {
           "hasDiagnostics": true,
           "diagnostics": [
@@ -179,11 +140,60 @@
             }
           ]
         }
+      },
+      "variable": {
+        "metadata": {
+          "label": "Name",
+          "description": "Name of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "var1",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "lineRange": {
+            "fileName": "function2.bal",
+            "startLine": {
+              "line": 1,
+              "offset": 25
+            },
+            "endLine": {
+              "line": 1,
+              "offset": 29
+            }
+          }
+        }
+      },
+      "type": {
+        "metadata": {
+          "label": "Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "string[]",
+        "placeholder": "var",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {}
       }
     },
-    "flags": 0,
     "diagnostics": {
       "hasDiagnostics": true
-    }
+    },
+    "flags": 0
   }
 }

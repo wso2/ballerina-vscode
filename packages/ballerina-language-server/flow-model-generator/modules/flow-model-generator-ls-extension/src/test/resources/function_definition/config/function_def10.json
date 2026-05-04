@@ -110,7 +110,7 @@
       "isPublic": {
         "metadata": {
           "label": "public",
-          "description": "Make visible across the workspace"
+          "description": "Make visible across the project"
         },
         "types": [
           {
@@ -118,7 +118,7 @@
             "selected": true
           }
         ],
-        "value": true,
+        "value": "true",
         "optional": false,
         "editable": true,
         "advanced": false,

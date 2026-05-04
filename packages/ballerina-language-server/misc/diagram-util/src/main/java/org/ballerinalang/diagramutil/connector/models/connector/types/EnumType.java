@@ -20,6 +20,7 @@ package org.ballerinalang.diagramutil.connector.models.connector.types;
 import com.google.gson.annotations.Expose;
 import org.ballerinalang.diagramutil.connector.models.connector.Type;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -43,4 +44,16 @@ public class EnumType extends Type {
         this.members = members;
     }
 
+    @Override
+    public EnumType copy() {
+        List<Type> copiedMembers = new ArrayList<>();
+        if (this.members != null) {
+            for (Type member : this.members) {
+                copiedMembers.add(member.copy());
+            }
+        }
+        EnumType copy = new EnumType(copiedMembers);
+        copyBaseFields(copy);
+        return copy;
+    }
 }

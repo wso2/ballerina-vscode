@@ -102,6 +102,24 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 NameUtil.generateTypeName("var", names), assignment);
     }
 
+    public FormBuilder<T> data(String label, String doc, String templateName, boolean optional) {
+        propertyBuilder
+                .metadata()
+                    .label(label)
+                    .description(doc)
+                    .stepOut()
+                .value(templateName)
+                .type()
+                    .fieldType(Property.ValueType.IDENTIFIER)
+                    .selected(true)
+                    .stepOut()
+                .optional(optional)
+                .editable();
+
+        addProperty(Property.VARIABLE_KEY);
+        return this;
+    }
+
     public FormBuilder<T> data(Node node, String label, String doc, String templateName, boolean assignment) {
         propertyBuilder
                 .metadata()
@@ -1092,7 +1110,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .editable(editable)
                 .optional(optional)
                 .advanced(advanced)
-                .value(value)
+                .value(String.valueOf(value))
                 .type()
                     .fieldType(Property.ValueType.FLAG)
                     .selected(true)
@@ -1252,8 +1270,8 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
         // Build the parameter name property
         propertyBuilder
                 .metadata()
-                    .label(Property.VARIABLE_KEY)
-                    .description(Property.VARIABLE_DOC)
+                    .label(Property.ARGUMENT_LABEL)
+                    .description(Property.ARGUMENT_DOC)
                     .stepOut()
                 .type()
                     .fieldType(Property.ValueType.LV_EXPRESSION)
@@ -1408,6 +1426,32 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
         }
         Property property = propertyBuilder.build();
         this.nodeProperties.put(key, property);
+        return this;
+    }
+
+    /**
+     * Reserves a slot in the node properties map for the given key so that a subsequent
+     * {@code addProperty(key, ...)} call preserves the originally reserved position (LinkedHashMap
+     * retains insertion order across put-overwrites of an existing key). No-op if the key is already
+     * present.
+     *
+     * @param key the property key whose source-code position should be locked in
+     * @return this builder for fluent chaining
+     */
+    public final FormBuilder<T> reserveProperty(String key) {
+        this.nodeProperties.putIfAbsent(key, new Property.Builder<>(null).build());
+        return this;
+    }
+
+    /**
+     * Removes a previously reserved slot when the caller decides not to emit a real Property under
+     * this key — prevents an empty placeholder from leaking into the serialized node properties.
+     *
+     * @param key the property key to drop
+     * @return this builder for fluent chaining
+     */
+    public final FormBuilder<T> removeProperty(String key) {
+        this.nodeProperties.remove(key);
         return this;
     }
 

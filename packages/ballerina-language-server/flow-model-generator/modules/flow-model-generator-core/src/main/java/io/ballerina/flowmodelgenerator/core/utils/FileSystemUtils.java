@@ -28,14 +28,17 @@ import io.ballerina.projects.ProjectException;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
+import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 import org.eclipse.lsp4j.FileChangeType;
 import org.eclipse.lsp4j.FileEvent;
+import org.eclipse.lsp4j.TextDocumentItem;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 /**
@@ -64,19 +67,34 @@ public class FileSystemUtils {
     public static Document getDocument(WorkspaceManager workspaceManager, Path filePath) {
         Document document;
         try {
-            document = workspaceManager.document(filePath).orElseThrow();
-        } catch (Throwable e) {
-            // Create a new file as it does not exist
-            try {
+            // Create the file on disk first so that ProjectPaths.packageRoot() can locate the package root.
+            // Without this, workspaceManager.document() throws ProjectException (not NoSuchElementException)
+            // for non-existent files, bypassing the catch block below.
+            if (!Files.exists(filePath)) {
                 Files.createFile(filePath);
                 CREATED_FILES.add(filePath);
-                FileEvent fileEvent = new FileEvent(filePath.toUri().toString(), FileChangeType.Created);
-                workspaceManager.didChangeWatched(filePath, fileEvent);
-                document = workspaceManager.document(filePath).orElseThrow();
-            } catch (IOException | WorkspaceDocumentException fileCreationException) {
-                throw new RuntimeException("Error occurred while creating the file: " + filePath,
-                        fileCreationException);
             }
+            document = workspaceManager.document(filePath).orElseThrow();
+        } catch (NoSuchElementException e) {
+            // File exists on disk but is not yet loaded in the workspace; load it via didOpen.
+            // This works in both production and test environments, unlike didChangeWatched which is
+            // disabled when the file watcher is off.
+            try {
+                String content = Files.readString(filePath);
+                TextDocumentItem textDocumentItem = new TextDocumentItem();
+                textDocumentItem.setUri(filePath.toUri().toString());
+                textDocumentItem.setLanguageId("ballerina");
+                textDocumentItem.setVersion(1);
+                textDocumentItem.setText(content);
+                workspaceManager.didOpen(filePath, new DidOpenTextDocumentParams(textDocumentItem));
+                document = workspaceManager.document(filePath).orElseThrow(
+                        () -> new WorkspaceDocumentException("Error occurred while loading the file: " + filePath));
+            } catch (IOException | WorkspaceDocumentException fileLoadException) {
+                throw new RuntimeException("Error occurred while loading the file: " + filePath,
+                        fileLoadException);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Error occurred while creating the file: " + filePath, e);
         }
         return document;
     }

@@ -14,3 +14,9 @@ enum Day {
     Saturday,
     Sunday
 }
+
+function function3(Day[] days) {
+}
+
+function function4() {
+}

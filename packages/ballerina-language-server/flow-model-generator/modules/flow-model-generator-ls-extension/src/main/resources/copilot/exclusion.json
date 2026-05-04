@@ -92,5 +92,22 @@
         ]
       }
     ]
+  },
+  {
+    "name": "ballerina/workflow",
+    "functions": [
+      {
+        "name": "registerProcess"
+      }
+    ]
+  },
+  {
+    "name": "ballerinax/trigger.salesforce"
+  },
+  {
+    "name": "ballerinax/ai"
+  },
+  {
+    "name": "xlibb/solace"
   }
 ]

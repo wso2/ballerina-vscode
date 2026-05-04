@@ -20,13 +20,14 @@ package io.ballerina.servicemodelgenerator.extension.builder.service;
 
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
+import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.openapi.core.generators.common.exception.BallerinaOpenApiException;
+import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
-import io.ballerina.servicemodelgenerator.extension.model.Option;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyTypeMemberInfo;
@@ -49,14 +50,17 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_CDC_OPERATION_ENABLE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_REQUIRED;
@@ -76,6 +80,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.ext
 import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.restoreAndUpdateDataBindingParams;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.extractFunctionsFromSource;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.applyEnabledChoiceProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
 
@@ -101,6 +106,11 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
     protected static final String CDC_MODULE_NAME = "cdc";
     protected static final String UNNAMED_IMPORT_SUFFIX = " as _";
 
+    // Schema driver module names
+    private static final String SCHEMA_DRIVER_AMAZON_S3 = "cdc.schema.aws.s3.driver";
+    private static final String SCHEMA_DRIVER_AZURE_BLOB = "cdc.schema.azure.blob.driver";
+    private static final String SCHEMA_DRIVER_ROCKETMQ = "cdc.schema.rocketmq.driver";
+
     // Property keys
     protected static final String KEY_LISTENER_VAR_NAME = "listenerVarName";
     protected static final String KEY_HOST = "host";
@@ -111,13 +121,27 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
     protected static final String KEY_SCHEMAS = "schemas";
     protected static final String KEY_SECURE_SOCKET = "secureSocket";
     protected static final String KEY_OPTIONS = "options";
+    protected static final String KEY_LIVENESS_INTERVAL = "livenessInterval";
+    protected static final String KEY_INTERNAL_SCHEMA_STORAGE = "internalSchemaStorage";
+    protected static final String KEY_OFFSET_STORAGE = "offsetStorage";
     protected static final String KEY_CONFIGURE_LISTENER = "configureListener";
-    protected static final String KEY_SELECT_LISTENER = "selectListener";
+    protected static final String KEY_ADVANCED_CONFIGURATIONS = "advancedConfigurations";
     protected static final String KEY_TABLE = "table";
 
-    // Choice indices
-    protected static final int CHOICE_SELECT_EXISTING_LISTENER = 0;
-    protected static final int CHOICE_CONFIGURE_NEW_LISTENER = 1;
+    // Operation enable/disable property keys (FLAG checkboxes in the init form)
+    protected static final String KEY_ENABLE_CREATE   = "enableCreate";
+    protected static final String KEY_ENABLE_UPDATE   = "enableUpdate";
+    protected static final String KEY_ENABLE_DELETE   = "enableDelete";
+    protected static final String KEY_ENABLE_TRUNCATE = "enableTruncate";
+
+    private record CdcOperation(String key, String code) { }
+
+    private static final List<CdcOperation> CDC_OPERATIONS = List.of(
+            new CdcOperation(KEY_ENABLE_CREATE,   "c"),
+            new CdcOperation(KEY_ENABLE_UPDATE,   "u"),
+            new CdcOperation(KEY_ENABLE_DELETE,   "d"),
+            new CdcOperation(KEY_ENABLE_TRUNCATE, "t")
+    );
 
     // Type and annotation names
     protected static final String TYPE_CDC_LISTENER = "CdcListener";
@@ -138,14 +162,6 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
     private static final String SERVICE_CONFIG_ANNOTATION = "ServiceConfig";
     private static final String SERVICE_CONFIG_ANNOTATION_KEY = "annotServiceConfig";
     private static final String SERVICE_CONFIG_ANNOTATION_CONSTRAINT = "cdc:CdcServiceConfig";
-
-    /**
-     * Data holder for listener information.
-     *
-     * @param name        The listener variable name
-     * @param declaration The listener declaration code
-     */
-    protected record ListenerInfo(String name, String declaration) { }
 
     /**
      * Data holder for import information.
@@ -182,6 +198,34 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
     @Override
     public abstract String kind();
 
+    /**
+     * Returns the display label for this CDC type (e.g., "MSSQL CDC", "PostgreSQL CDC").
+     * Used in the listener choice UI labels.
+     */
+    protected abstract String getDisplayLabel();
+
+    /**
+     * Extracts read-only listener configurations from existing listener declarations in source code.
+     *
+     * @param listenerNames  Set of listener variable names to extract configs for
+     * @param semanticModel  Semantic model for symbol resolution
+     * @param project        Project for source traversal
+     * @return Map of listener name to its configuration properties (read-only Values)
+     */
+    protected abstract Map<String, Map<String, Value>> extractListenerConfigs(
+            Set<String> listenerNames, SemanticModel semanticModel, Project project);
+
+    /**
+     * Applies metadata (labels, descriptions) from the JSON template properties onto the extracted
+     * existing listener configs so that labels and descriptions are consistent between
+     * "Create new" and "Use existing" views.
+     *
+     * @param configs        Extracted listener configs (listener name -> property key -> Value)
+     * @param templateProps  Properties from the JSON template (the init model properties)
+     */
+    protected abstract void applyInitModelMetadata(Map<String, Map<String, Value>> configs,
+                                                    Map<String, Value> templateProps);
+
     @Override
     public ServiceInitModel getServiceInitModel(GetServiceInitModelContext context) {
         InputStream resourceStream = this.getClass().getClassLoader()
@@ -192,13 +236,109 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
         try (JsonReader reader = new JsonReader(new InputStreamReader(resourceStream, StandardCharsets.UTF_8))) {
             ServiceInitModel serviceInitModel = new Gson().fromJson(reader, ServiceInitModel.class);
             Map<String, Value> properties = serviceInitModel.getProperties();
-            Set<String> listeners = ListenerUtil.getCompatibleListeners(context.moduleName(),
+
+            // Navigate into the pre-structured configureListener CHOICE
+            Value configureListener = properties.get(KEY_CONFIGURE_LISTENER);
+            Value createNewChoice = configureListener.getChoices().get(0);
+            Value listenerConfig = createNewChoice.getProperties().get("listenerConfig");
+            Value advancedSection = listenerConfig.getProperties().get(KEY_ADVANCED_CONFIGURATIONS);
+
+            // Generate a unique listener variable name
+            String listenerVarName = Utils.generateVariableIdentifier(context.semanticModel(), context.document(),
+                    context.document().syntaxTree().rootNode().lineRange().endLine(),
+                    listenerConfig.getProperties().get(KEY_LISTENER_VAR_NAME).getValue());
+            listenerConfig.getProperties().get(KEY_LISTENER_VAR_NAME).setValue(listenerVarName);
+
+            // Check for existing compatible listeners
+            Set<String> compatibleListeners = ListenerUtil.getCompatibleListeners(context.moduleName(),
                     context.semanticModel(), context.project());
-            if (listeners.isEmpty()) {
-                formatInitModelForNewListener(properties);
-            } else {
-                formatInitModelForExistingListener(listeners, properties);
+
+            if (!compatibleListeners.isEmpty()) {
+                // Build template props by flattening listener fields for metadata mapping
+                Map<String, Value> templateProps = new LinkedHashMap<>(listenerConfig.getProperties());
+                if (advancedSection.getProperties() != null) {
+                    templateProps.putAll(advancedSection.getProperties());
+                }
+
+                // Extract configs from existing listener declarations
+                Map<String, Map<String, Value>> listenerConfigs = extractListenerConfigs(compatibleListeners,
+                        context.semanticModel(), context.project());
+                applyInitModelMetadata(listenerConfigs, templateProps);
+
+                // Populate "Use existing" choice
+                Value existingChoice = configureListener.getChoices().get(1);
+                existingChoice.setMetadata(new MetaData("Use existing",
+                        "Select an existing " + getDisplayLabel() + " listener"));
+                existingChoice.setEnabled(true);
+                existingChoice.setEditable(true);
+
+                // Determine which keys are "advanced" from the template
+                Set<String> advancedKeys = advancedSection.getProperties() != null
+                        ? advancedSection.getProperties().keySet() : Set.of();
+
+                // Build SINGLE_SELECT dropdown with per-listener configs
+                List<String> listenerNames = new ArrayList<>(compatibleListeners);
+                Map<String, Value> perListenerConfigs = new LinkedHashMap<>();
+                for (String name : listenerNames) {
+                    Map<String, Value> config = listenerConfigs.getOrDefault(name, new LinkedHashMap<>());
+                    Map<String, Value> basicProps = new LinkedHashMap<>();
+                    Map<String, Value> advancedProps = new LinkedHashMap<>();
+                    for (Map.Entry<String, Value> entry : config.entrySet()) {
+                        entry.getValue().setEditable(false);
+                        if (advancedKeys.contains(entry.getKey())) {
+                            advancedProps.put(entry.getKey(), entry.getValue());
+                        } else {
+                            basicProps.put(entry.getKey(), entry.getValue());
+                        }
+                    }
+
+                    // Build "Advanced Configurations" GROUP_SECTION if there are advanced props
+                    if (!advancedProps.isEmpty()) {
+                        Value advancedGroup = new Value.ValueBuilder()
+                                .metadata("Advanced Configurations", "")
+                                .types(List.of(new PropertyType.Builder()
+                                        .fieldType(Value.FieldType.GROUP_SECTION)
+                                        .selected(false)
+                                        .build()))
+                                .enabled(true)
+                                .editable(false)
+                                .setProperties(advancedProps)
+                                .build();
+                        // Override selected after build, since ValueBuilder.types() auto-selects
+                        advancedGroup.getTypes().getFirst().selected(false);
+                        basicProps.put(KEY_ADVANCED_CONFIGURATIONS, advancedGroup);
+                    }
+
+                    Value configGroup = new Value.ValueBuilder()
+                            .metadata(name, getDisplayLabel() + " source: " + name)
+                            .value(name)
+                            .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                            .enabled(true)
+                            .editable(false)
+                            .setProperties(basicProps)
+                            .build();
+                    perListenerConfigs.put(name, configGroup);
+                }
+
+                Value listenerDropdown = new Value.ValueBuilder()
+                        .metadata("Listener Name", "Select an existing " + getDisplayLabel() + " listener")
+                        .value(listenerNames.get(0))
+                        .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT)))
+                        .enabled(true)
+                        .editable(true)
+                        .setItems(new ArrayList<>(listenerNames))
+                        .setProperties(perListenerConfigs)
+                        .build();
+
+                Map<String, Value> existingProps = new LinkedHashMap<>();
+                existingProps.put(ServiceInitModel.KEY_EXISTING_LISTENER, listenerDropdown);
+                existingChoice.getProperties().get("listenerConfig").setProperties(existingProps);
+
+                // Set "Use existing" as default selection
+                configureListener.setValue("1");
+                createNewChoice.setEnabled(false);
             }
+
             return serviceInitModel;
         } catch (IOException e) {
             return null;
@@ -212,6 +352,20 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
         ServiceInitModel serviceInitModel = context.serviceInitModel();
         Map<String, Value> properties = serviceInitModel.getProperties();
 
+        // Apply the configure listener choice (always present now)
+        if (properties.containsKey(KEY_CONFIGURE_LISTENER)) {
+            applyEnabledChoiceProperty(serviceInitModel, KEY_CONFIGURE_LISTENER);
+        }
+        properties = serviceInitModel.getProperties();
+
+        // Unwrap GROUP_SECTION children back into the properties map
+        unwrapGroupSections(properties);
+
+        // Determine if "Use existing" was selected
+        boolean useExistingListener = ListenerUtil.shouldUseExistingListener(properties);
+        String existingListenerName = ListenerUtil.getExistingListenerName(properties).orElse("");
+        properties.remove(ServiceInitModel.KEY_EXISTING_LISTENER);
+
         ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
         List<TextEdit> edits = new ArrayList<>();
 
@@ -223,58 +377,84 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
         };
         addImportTextEdits(modulePartNode, imports, edits);
 
-        // Get listener information and add declaration
-        ListenerInfo listenerInfo = getListenerInfo(context, properties);
-        addListenerDeclarationEdit(context, listenerInfo.declaration(), edits);
+        String listenerName;
+        String listenerDeclaration;
+
+        if (useExistingListener) {
+            listenerName = existingListenerName;
+            listenerDeclaration = "";
+            // Infer which operations are active from the existing listener's skippedOperations
+            Set<String> skippedOps = extractSkippedOpsForExistingListener(
+                    existingListenerName, context.semanticModel(), context.project());
+            injectCdcOperationCheckboxes(properties, skippedOps);
+        } else {
+            // Build new listener declaration
+            applyListenerConfigurations(properties);
+            // Add driver imports for schema storage types that require external drivers
+            List<Import> schemaDriverImports = getSchemaDriverImports(properties);
+            if (!schemaDriverImports.isEmpty()) {
+                addImportTextEdits(modulePartNode, schemaDriverImports.toArray(new Import[0]), edits);
+            }
+            ListenerDTO listenerDTO = buildCdcListenerDTO(
+                    serviceInitModel.getModuleName(), properties);
+            listenerName = listenerDTO.listenerVarName();
+            listenerDeclaration = NEW_LINE + listenerDTO.listenerDeclaration();
+        }
+
+        // Add listener declaration if creating new
+        addListenerDeclarationEdit(context, listenerDeclaration, edits);
 
         // Add service declaration
-        addServiceTextEdits(context, listenerInfo.name(), edits);
+        addServiceTextEdits(context, listenerName, edits);
 
         return Map.of(context.filePath(), edits);
     }
 
-    private void formatInitModelForNewListener(Map<String, Value> properties) {
-        properties.remove(KEY_CONFIGURE_LISTENER);
-    }
-
-    private void formatInitModelForExistingListener(Set<String> listenerNames, Map<String, Value> properties) {
-        Value configureListenerValue = properties.get(KEY_CONFIGURE_LISTENER);
-
-        updateListenerNameSuffix(listenerNames, properties);
-
-        // fill the existing listeners values
-        Value selectListenerTemplate = configureListenerValue.getChoices().get(CHOICE_SELECT_EXISTING_LISTENER)
-                .getProperties().get(KEY_SELECT_LISTENER);
-        Value existingListenerOptions = new Value.ValueBuilder()
-                .metadata(selectListenerTemplate.getMetadata().label(),
-                        selectListenerTemplate.getMetadata().description())
-                .value(listenerNames.iterator().next())
-                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT, Option.of(listenerNames))))
-                .enabled(true)
-                .editable(true)
-                .setAdvanced(false)
-                .build();
-        configureListenerValue.getChoices().get(CHOICE_SELECT_EXISTING_LISTENER)
-                .getProperties().put(KEY_SELECT_LISTENER, existingListenerOptions);
-
-        // Add all listener properties to choice 1 of configureListener
-        getListenerFields().forEach(key -> {
-            Value value = properties.get(key);
-            configureListenerValue.getChoices().get(CHOICE_CONFIGURE_NEW_LISTENER).getProperties().put(key, value);
-        });
-        // Remove all listener properties from outside
-        getListenerFields().forEach(properties::remove);
-    }
-
-    private void updateListenerNameSuffix(Set<String> listenerNames, Map<String, Value> properties) {
-        Value listenerVarName = properties.get(ServiceInitModel.KEY_LISTENER_VAR_NAME);
-        // add a number suffix if there are existing listeners
-        String baseListenerName = listenerVarName.getValue();
-        int suffix = listenerNames.size() + 1;
-        while (listenerNames.contains(baseListenerName + suffix)) {
-            suffix++;
+    /**
+     * Looks up an existing CDC listener by name, extracts its raw options string, and returns the set of
+     * skipped operation codes (e.g. {"u", "d"}) found in the skippedOperations field.
+     */
+    private Set<String> extractSkippedOpsForExistingListener(
+            String listenerName, SemanticModel semanticModel, Project project) {
+        Map<String, Map<String, Value>> configs = extractListenerConfigs(
+                Set.of(listenerName), semanticModel, project);
+        Map<String, Value> config = configs.get(listenerName);
+        if (config == null) {
+            return Set.of();
         }
-        listenerVarName.setValue(baseListenerName + suffix);
+        Value optionsValue = config.get(KEY_OPTIONS);
+        if (optionsValue == null || optionsValue.getValue() == null) {
+            return Set.of();
+        }
+        return parseSkippedOpsFromOptionsString(optionsValue.getValue());
+    }
+
+    /**
+     * Parses the operation codes from a skippedOperations list embedded in an options string.
+     * Handles source-text like {@code {skippedOperations: ["u", "d"]}}.
+     */
+    private static Set<String> parseSkippedOpsFromOptionsString(String optionsStr) {
+        Matcher outer = Pattern.compile("skippedOperations\\s*:\\s*\\[([^\\]]*)\\]").matcher(optionsStr);
+        if (!outer.find()) {
+            return Set.of();
+        }
+        Set<String> skipped = new HashSet<>();
+        Matcher inner = Pattern.compile("\"([^\"]+)\"").matcher(outer.group(1));
+        while (inner.find()) {
+            skipped.add(inner.group(1));
+        }
+        return skipped;
+    }
+
+    /**
+     * Injects synthetic CDC operation checkbox properties into the properties map so that
+     *  works correctly when using an existing listener
+     * (where the checkboxes are not present in the submitted form data).
+     */
+    private static void injectCdcOperationCheckboxes(Map<String, Value> properties, Set<String> skippedOps) {
+        CDC_OPERATIONS.forEach(op -> properties.put(op.key(), new Value.ValueBuilder()
+                .value(skippedOps.contains(op.code()) ? "false" : "true")
+                .build()));
     }
 
     private void addImportTextEdits(ModulePartNode modulePartNode, Import[] imports, List<TextEdit> edits) {
@@ -292,7 +472,8 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
     }
 
     private void addServiceTextEdits(AddServiceInitModelContext context, String listenerName, List<TextEdit> edits) {
-        Map<String, Value> properties = context.serviceInitModel().getProperties();
+        ServiceInitModel serviceInitModel = context.serviceInitModel();
+        Map<String, Value> properties = serviceInitModel.getProperties();
         Value tableValue = properties.get(KEY_TABLE);
         String serviceDeclaration =
                 buildServiceConfigurations(tableValue) +
@@ -304,12 +485,13 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
                         CLOSE_BRACE + NEW_LINE;
         ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
         edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().endLine()), serviceDeclaration));
-
     }
 
     private ListenerDTO buildCdcListenerDTO(String moduleName, Map<String, Value> properties) {
         List<String> requiredParams = new ArrayList<>();
         List<String> includedParams = new ArrayList<>();
+        List<String> skippedOps = new ArrayList<>();
+        String userOptionsValue = null;
         for (Map.Entry<String, Value> entry : properties.entrySet()) {
             Value value = entry.getValue();
             if (value.getCodedata() == null) {
@@ -324,8 +506,30 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
                 requiredParams.add(value.getValue());
             } else if (argType.equals(ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD)
                     || argType.equals(ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD)) {
-                includedParams.add(entry.getKey() + " = " + value.getValue());
+                String key = entry.getKey();
+                String fieldValue = value.getValue();
+                if ("options".equals(key)) {
+                    userOptionsValue = fieldValue;
+                    continue;
+                }
+                if (KEY_INTERNAL_SCHEMA_STORAGE.equals(key) || KEY_OFFSET_STORAGE.equals(key)) {
+                    String selectedType = getSelectedTypeMemberName(value);
+                    if (selectedType != null) {
+                        fieldValue = "<" + CDC_MODULE_NAME + ":" + selectedType + ">" + fieldValue;
+                    }
+                }
+                includedParams.add(key + " = " + fieldValue);
+            } else if (argType.equals(ARG_TYPE_CDC_OPERATION_ENABLE)) {
+                // Collect deselected operations to build skippedOperations
+                boolean enabled = !"false".equalsIgnoreCase(value.getValue());
+                if (!enabled) {
+                    skippedOps.add("\"" + codedata.getOriginalName() + "\"");
+                }
             }
+        }
+        String finalOptions = buildOptionsWithSkippedOps(userOptionsValue, skippedOps);
+        if (finalOptions != null) {
+            includedParams.add("options = " + finalOptions);
         }
         String listenerProtocol = getProtocol(moduleName);
         String listenerVarName = properties.get(ServiceInitModel.KEY_LISTENER_VAR_NAME).getValue();
@@ -336,6 +540,31 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
         return new ListenerDTO(listenerProtocol, listenerVarName, listenerDeclaration);
     }
 
+    private static String buildOptionsWithSkippedOps(String userOptionsValue, List<String> skippedOps) {
+        String skippedOpsStr = skippedOps.isEmpty() ? null :
+                "skippedOperations: [" + String.join(", ", skippedOps) + "]";
+        boolean hasUserValue = userOptionsValue != null && !userOptionsValue.isBlank();
+        if (!hasUserValue && skippedOpsStr == null) {
+            return null;
+        }
+        if (!hasUserValue) {
+            return "{" + skippedOpsStr + "}";
+        }
+        if (skippedOpsStr == null) {
+            return userOptionsValue;
+        }
+        String replaced = userOptionsValue.replaceAll(
+                "skippedOperations\\s*:\\s*\\[[^\\]]*\\]", skippedOpsStr);
+        if (replaced.equals(userOptionsValue)) {
+            replaced = userOptionsValue.trim();
+            if (replaced.endsWith("}")) {
+                replaced = replaced.substring(0, replaced.length() - 1).stripTrailing();
+                replaced = (replaced.endsWith(",") ? replaced : replaced + ",") + " " + skippedOpsStr + "}";
+            }
+        }
+        return replaced;
+    }
+
     /**
      * Applies listener-specific configurations by building database config and validating options.
      *
@@ -343,7 +572,7 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
      */
     private void applyListenerConfigurations(Map<String, Value> properties) {
         addDatabaseConfiguration(properties);
-        validateAndRemoveInvalidOptions(properties);
+        validateAndRemoveInvalidParams(properties);
     }
 
     private String buildServiceConfigurations(Value tableValue) {
@@ -380,23 +609,56 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
         return OPEN_BRACE + String.join(", ", dbFields) + CLOSE_BRACE;
     }
 
-    private Map<String, Value> getListenerProperties(Map<String, Value> properties, boolean listenerExists) {
-        if (listenerExists) {
-            return properties.get(KEY_CONFIGURE_LISTENER).getChoices().get(CHOICE_CONFIGURE_NEW_LISTENER)
-                    .getProperties();
-        }
-        return properties;
-    }
-
     private boolean isInvalidValue(String value) {
         return value.isBlank() || emptyStringTemplate.matcher(value.trim()).matches();
     }
 
-    private void validateAndRemoveInvalidOptions(Map<String, Value> properties) {
-        Value optionsValue = properties.get(KEY_OPTIONS);
-        if (optionsValue != null && isInvalidValue(optionsValue.getValue())) {
-            properties.remove(KEY_OPTIONS);
+    private void validateAndRemoveInvalidParams(Map<String, Value> properties) {
+        for (String key : List.of(KEY_OPTIONS, KEY_LIVENESS_INTERVAL,
+                                  KEY_INTERNAL_SCHEMA_STORAGE, KEY_OFFSET_STORAGE)) {
+            Value v = properties.get(key);
+            if (v != null && v.getValue() != null && isInvalidValue(v.getValue())) {
+                properties.remove(key);
+            }
         }
+    }
+
+    private String getSelectedTypeMemberName(Value value) {
+        if (value == null || value.getTypes() == null) {
+            return null;
+        }
+        return value.getTypes().stream()
+                .filter(t -> t.fieldType() == Value.FieldType.RECORD_MAP_EXPRESSION && t.selected())
+                .findFirst()
+                .map(t -> t.typeMembers() == null ? null :
+                        t.typeMembers().stream()
+                                .filter(PropertyTypeMemberInfo::selected)
+                                .findFirst()
+                                .map(PropertyTypeMemberInfo::type)
+                                .orElse(null))
+                .orElse(null);
+    }
+
+    private List<Import> getSchemaDriverImports(Map<String, Value> properties) {
+        List<Import> driverImports = new ArrayList<>();
+        Value schemaStorage = properties.get(KEY_INTERNAL_SCHEMA_STORAGE);
+        if (schemaStorage == null) {
+            return driverImports;
+        }
+        String selectedType = getSelectedTypeMemberName(schemaStorage);
+        if (selectedType == null) {
+            return driverImports;
+        }
+        switch (selectedType) {
+            case "AmazonS3InternalSchemaStorage" ->
+                    driverImports.add(new Import(BALLERINAX, SCHEMA_DRIVER_AMAZON_S3, true));
+            case "AzureBlobInternalSchemaStorage" ->
+                    driverImports.add(new Import(BALLERINAX, SCHEMA_DRIVER_AZURE_BLOB, true));
+            case "RocketMQInternalSchemaStorage" ->
+                    driverImports.add(new Import(BALLERINAX, SCHEMA_DRIVER_ROCKETMQ, true));
+            default -> { }
+        }
+        return driverImports;
     }
 
     private void addDatabaseConfiguration(Map<String, Value> properties) {
@@ -409,48 +671,6 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
                 .setCodedata(new Codedata(null, ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD))
                 .build();
         properties.put(KEY_DATABASE, databaseValue);
-    }
-
-    /**
-     * Determines listener information based on whether an existing listener is used or a new one is created.
-     *
-     * @param context    The service initialization context
-     * @param properties The service properties
-     * @return ListenerInfo containing the listener name and declaration
-     */
-    private ListenerInfo getListenerInfo(AddServiceInitModelContext context, Map<String, Value> properties) {
-        Set<String> listeners = ListenerUtil.getCompatibleListeners(
-                context.serviceInitModel().getModuleName(),
-                context.semanticModel(),
-                context.project()
-        );
-
-        boolean listenerExists = !listeners.isEmpty();
-        Map<String, Value> listenerProperties = getListenerProperties(properties, listenerExists);
-        applyListenerConfigurations(listenerProperties);
-
-        boolean useExistingListener = listenerExists
-                && !properties.get(KEY_CONFIGURE_LISTENER)
-                .getChoices().get(CHOICE_CONFIGURE_NEW_LISTENER).isEnabled();
-
-        String listenerDeclaration;
-        String listenerName;
-
-        if (!listenerExists || !useExistingListener) {
-            ListenerDTO listenerDTO = buildCdcListenerDTO(
-                    context.serviceInitModel().getModuleName(),
-                    listenerProperties
-            );
-            listenerDeclaration = NEW_LINE + listenerDTO.listenerDeclaration();
-            listenerName = listenerDTO.listenerVarName();
-        } else {
-            listenerDeclaration = "";
-            listenerName = properties.get(KEY_CONFIGURE_LISTENER)
-                    .getChoices().get(CHOICE_SELECT_EXISTING_LISTENER)
-                    .getProperties().get(KEY_SELECT_LISTENER).getValue();
-        }
-
-        return new ListenerInfo(listenerName, listenerDeclaration);
     }
 
     /**
@@ -523,7 +743,7 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
             updateDatabindingParameterMetadata(function);
         }
 
-        // After all consolidation and databinding processing is complete,
+        // After all consolidation and data binding processing is complete,
         // apply onUpdate parameter combining to all functions
         applyOnUpdateCombining(serviceModel);
         updateServiceConfigAnnotation(serviceModel);
@@ -564,7 +784,7 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
                 .ballerinaType(SERVICE_CONFIG_ANNOTATION_CONSTRAINT)
                 .setMembers(List.of(new PropertyTypeMemberInfo(
                         SERVICE_CONFIG_ANNOTATION_CONSTRAINT,
-                        "ballerinax:cdc:1.1.0", // TODO: resolve the correct version when there is a value
+                        "ballerinax:cdc:1.3.0", // TODO: resolve the correct version when there is a value
                         CDC_MODULE_NAME,
                         "RECORD_TYPE",
                         true

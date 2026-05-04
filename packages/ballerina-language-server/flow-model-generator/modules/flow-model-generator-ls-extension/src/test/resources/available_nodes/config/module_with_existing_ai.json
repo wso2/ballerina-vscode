@@ -64,7 +64,7 @@
                 "org": "ballerina",
                 "module": "ai",
                 "packageName": "ai",
-                "object": "VectorKnowledgeBase",
+                "object": "KnowledgeBase",
                 "symbol": "init",
                 "version": "1.0.0"
               },
@@ -157,6 +157,34 @@
               "enabled": true
             }
           ]
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "label": "Workflow",
+        "description": "Workflow orchestration components"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "Run Workflow",
+            "description": "Run a new workflow instance"
+          },
+          "codedata": {
+            "node": "WORKFLOW_RUN"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Send Data",
+            "description": "Send data to an existing workflow instance"
+          },
+          "codedata": {
+            "node": "SEND_DATA"
+          },
+          "enabled": true
         }
       ]
     },

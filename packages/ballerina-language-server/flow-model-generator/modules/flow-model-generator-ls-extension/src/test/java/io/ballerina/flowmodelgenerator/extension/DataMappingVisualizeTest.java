@@ -45,6 +45,7 @@ public class DataMappingVisualizeTest extends AbstractLSTest {
     @Override
     protected Object[] getConfigsList() {
         return new Object[][]{
+                {Path.of("multiproject.json")},
                 {Path.of("variable1.json")},
                 {Path.of("variable2.json")},
                 {Path.of("variable3.json")},
@@ -53,6 +54,8 @@ public class DataMappingVisualizeTest extends AbstractLSTest {
                 {Path.of("variable6.json")},
                 {Path.of("variable7.json")},
                 {Path.of("variable8.json")},
+                {Path.of("variable9.json")},
+                {Path.of("variable10.json")},
         };
     }
 

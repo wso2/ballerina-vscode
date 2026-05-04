@@ -30,6 +30,7 @@ configurations {
 
 dependencies {
     implementation project(":model-generator-commons")
+    implementation project(":flow-model-generator:flow-model-generator-core")
 
     implementation project(":langserver-commons")
     implementation "org.ballerinalang:ballerina-lang:${ballerinaLangVersion}"

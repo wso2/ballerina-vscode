@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
  * @since 1.1.0
  */
 public class EmbeddingProviderSearchCommand extends SearchCommand {
+
     private static final String EMBEDDING_PROVIDER_LABEL = "Embedding Providers";
 
     public EmbeddingProviderSearchCommand(Project project, LineRange position, Map<String, String> queryMap) {
@@ -55,7 +56,7 @@ public class EmbeddingProviderSearchCommand extends SearchCommand {
     protected List<Item> search() {
         List<AvailableNode> modelProviders = AiUtils.getEmbeddingProviders(project);
         List<Item> matchingProviders = modelProviders.stream()
-                .filter(node -> node.codedata().module().contains(query))
+                .filter(node -> AiUtils.matchesQuery(node, query))
                 .collect(Collectors.toList());
 
         Category category = new Category.Builder(null).metadata().label(EMBEDDING_PROVIDER_LABEL)

@@ -55,6 +55,8 @@ public abstract class SearchCommand {
     final DefaultViewHolder defaultViewHolder;
 
     protected static final String DATA_MAPPER_FILE_NAME = "data_mappings.bal";
+    protected static final String CURRENT_INTEGRATION_INDICATOR = " (Current Integration)";
+
     private static final Gson GSON = new Gson();
     private static final int DEFAULT_LIMIT = 20;
     private static final int DEFAULT_OFFSET = 0;
@@ -76,10 +78,12 @@ public abstract class SearchCommand {
             case CLASS_INIT -> new ClassInitSearchCommand(module, position,
                     queryMap); // This is a temporary implementation, to support ballerinax/ai usage
             case MEMORY -> new MemoryManagerSearchCommand(module, position, queryMap);
-            case MEMORY_STORE -> new MemoryStoreSearchCommand(module, position, queryMap);
+            case SHORT_TERM_MEMORY_STORE -> new ShortTermMemoryStoreSearchCommand(module, position, queryMap);
             case AGENT_TOOL -> new AgentToolSearchCommand(module, position, queryMap);
             case KNOWLEDGE_BASE -> new KnowledgeBaseSearchCommand(module, position, queryMap);
             case ALL -> new AllKindsSearchCommand(module, position, queryMap, functionsDoc);
+            case WORKFLOW_RUN -> new WorkflowSearchCommand(module, position, queryMap);
+            case ACTIVITY_CALL -> new ActivitySearchCommand(module, position, queryMap);
         };
     }
 
@@ -207,9 +211,11 @@ public abstract class SearchCommand {
         AGENT,
         CLASS_INIT,
         MEMORY,
-        MEMORY_STORE,
+        SHORT_TERM_MEMORY_STORE,
         AGENT_TOOL,
         KNOWLEDGE_BASE,
-        ALL
+        ALL,
+        WORKFLOW_RUN,
+        ACTIVITY_CALL
     }
 }

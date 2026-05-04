@@ -10,7 +10,10 @@
         "items": [
           {
             "metadata": {
-              "label": "devantChunker"
+              "label": "devantChunker",
+              "data": {
+                "connectorType": "Default"
+              }
             },
             "items": [
               {
@@ -36,7 +39,10 @@
           },
           {
             "metadata": {
-              "label": "genericChunker"
+              "label": "genericChunker",
+              "data": {
+                "connectorType": "Default"
+              }
             },
             "items": [
               {
@@ -62,7 +68,10 @@
           },
           {
             "metadata": {
-              "label": "htmlChunker"
+              "label": "htmlChunker",
+              "data": {
+                "connectorType": "Default"
+              }
             },
             "items": [
               {
@@ -88,7 +97,10 @@
           },
           {
             "metadata": {
-              "label": "mdChunker"
+              "label": "mdChunker",
+              "data": {
+                "connectorType": "Default"
+              }
             },
             "items": [
               {

@@ -28,12 +28,12 @@ import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.projects.Document;
+import org.ballerinalang.langserver.common.utils.NameUtil;
 import org.ballerinalang.model.types.TypeKind;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -45,14 +45,14 @@ import java.util.Optional;
  */
 public class DataMapperCreationBuilder extends NodeBuilder {
 
-    public static final String LABEL = "Data Mapper";
-    public static final String DESCRIPTION = "Define a data mapper";
+    public static final String LABEL = "Data Mapper Creation";
+    public static final String DESCRIPTION = "Define a data mapper and assign its result";
 
     public static final String DATA_MAPPER_NAME_LABEL = "Data Mapper Name";
     public static final String DATA_MAPPER_NAME_DOC = "Name of the data mapper";
 
     public static final String PARAMETERS_LABEL = "Inputs";
-    public static final String PARAMETERS_DOC = "Input variables of the data mapper";
+    public static final String PARAMETERS_DOC = "Arguments passed to the data mapper";
 
     public static final String OUTPUT_LABEL = "Output";
     public static final String OUTPUT_DOC = "Output type of the data mapper";
@@ -90,6 +90,14 @@ public class DataMapperCreationBuilder extends NodeBuilder {
         return FUNCTION_NAME;
     }
 
+    protected boolean isOutputOptional() {
+        return false;
+    }
+
+    protected boolean isInputsOptional() {
+        return false;
+    }
+
     @Override
     public void setConcreteConstData() {
         metadata().label(LABEL).description(DESCRIPTION);
@@ -105,25 +113,23 @@ public class DataMapperCreationBuilder extends NodeBuilder {
         properties().functionNameTemplate(getFunctionName(), context.getAllVisibleSymbolNames(),
                 getNameLabel(), getNameDoc());
 
-        setMandatoryProperties(context, this, null);
+        properties().nestedProperty();
         setOptionalProperties(this);
-    }
 
-    public void setMandatoryProperties(TemplateContext context, NodeBuilder nodeBuilder, String returnType) {
-        nodeBuilder.properties()
-                .dataVariable(null, context.getAllVisibleSymbolNames());
-
-        nodeBuilder.properties().custom()
+        properties().custom()
                 .metadata()
                     .label(OUTPUT_LABEL)
                     .description(getOutputDoc())
                 .stepOut()
-                .value(returnType)
+                .value("")
                 .type(Property.ValueType.TYPE, RETURN_TYPE)
                 .editable()
+                .optional(isOutputOptional())
                 .stepOut()
-                .addProperty(Property.TYPE_KEY)
-                .nestedProperty();
+                .addProperty(Property.TYPE_KEY);
+
+        properties().data(Property.RESULT_NAME, Property.RESULT_DOC,
+                NameUtil.generateTypeName("var", context.getAllVisibleSymbolNames()), isOutputOptional());
     }
 
     public static void setProperty(FormBuilder<?> formBuilder, String type, String name) {
@@ -133,17 +139,12 @@ public class DataMapperCreationBuilder extends NodeBuilder {
     public void setOptionalProperties(NodeBuilder nodeBuilder) {
         nodeBuilder.properties()
                 .endNestedProperty(Property.ValueType.REPEATABLE_PROPERTY, Property.PARAMETERS_KEY, PARAMETERS_LABEL,
-                        getParametersDoc(), getParameterSchema(), false, false);
+                        getParametersDoc(), getParameterSchema(), isInputsOptional(), false);
     }
 
     @Override
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
-        Map<Path, List<TextEdit>> invocation = createInvocation(sourceBuilder);
-        Map<Path, List<TextEdit>> definition = createDefinition(sourceBuilder);
-
-        Map<Path, List<TextEdit>> combined = new HashMap<>(definition);
-        combined.putAll(invocation);
-        return combined;
+        return combineTextEdits(createInvocation(sourceBuilder), createDefinition(sourceBuilder));
     }
 
     private Map<Path, List<TextEdit>> createDefinition(SourceBuilder sourceBuilder) {
@@ -177,24 +178,8 @@ public class DataMapperCreationBuilder extends NodeBuilder {
             definitionBuilder.token().name(String.join(", ", paramList));
         }
         definitionBuilder.token().keyword(SyntaxKind.CLOSE_PAREN_TOKEN);
+        endSourceGeneration(definitionBuilder);
 
-        // Write the return type
-        Optional<Property> returnType = definitionBuilder.getProperty(Property.TYPE_KEY);
-        if (returnType.isEmpty() || returnType.get().value().toString().isEmpty()) {
-            throw new IllegalStateException("The return type should be defined");
-        }
-        String returnTypeString = returnType.get().value().toString();
-        definitionBuilder.token()
-                .keyword(SyntaxKind.RETURNS_KEYWORD)
-                .name(returnTypeString);
-
-        Optional<String> returnBody =
-                definitionBuilder.getExpressionBodyText(returnTypeString, returnType.get().imports());
-        if (returnBody.isEmpty()) {
-            throw new IllegalStateException("Failed to produce the function body");
-        }
-
-        endSourceGeneration(definitionBuilder, returnBody.get());
         Document document = FileSystemUtils.getDocument(definitionBuilder.workspaceManager, nodeDefinitionPath);
         return definitionBuilder
                 .textEdit(SourceBuilder.SourceKind.DECLARATION, nodeDefinitionPath,
@@ -202,16 +187,36 @@ public class DataMapperCreationBuilder extends NodeBuilder {
                 .build();
     }
 
-    protected void endSourceGeneration(SourceBuilder sourceBuilder, String returnBody) {
+    protected void endSourceGeneration(SourceBuilder sourceBuilder) {
+        // Write the return type
+        Optional<Property> returnType = sourceBuilder.getProperty(Property.TYPE_KEY);
+        if (returnType.isEmpty() || returnType.get().value().toString().isEmpty()) {
+            throw new IllegalStateException("The return type should be defined");
+        }
+        String returnTypeString = returnType.get().value().toString();
+        sourceBuilder.token()
+                .keyword(SyntaxKind.RETURNS_KEYWORD)
+                .name(returnTypeString);
+
+        Optional<String> returnBody =
+                sourceBuilder.getExpressionBodyText(returnTypeString, returnType.get().imports());
+        if (returnBody.isEmpty()) {
+            throw new IllegalStateException("Failed to produce the function body");
+        }
+
         sourceBuilder
                 .token()
                 .keyword(SyntaxKind.RIGHT_DOUBLE_ARROW_TOKEN)
-                .name(returnBody)
+                .name(returnBody.get())
                 .endOfStatement();
     }
 
     private Map<Path, List<TextEdit>> createInvocation(SourceBuilder sourceBuilder) {
-        sourceBuilder.newVariableWithInferredType();
+        Optional<Property> returnType = sourceBuilder.getProperty(Property.TYPE_KEY);
+        if (returnType.isPresent() && !returnType.get().value().toString().isEmpty()) {
+            sourceBuilder.newVariableWithInferredType();
+        }
+
         Optional<Property> property = sourceBuilder.getProperty(Property.FUNCTION_NAME_KEY);
         if (property.isEmpty()) {
             throw new IllegalStateException("Name is not present");
@@ -242,6 +247,21 @@ public class DataMapperCreationBuilder extends NodeBuilder {
                 .textEdit(SourceBuilder.SourceKind.STATEMENT)
                 .acceptImportWithVariableType()
                 .build();
+    }
+
+    private Map<Path, List<TextEdit>> combineTextEdits(Map<Path, List<TextEdit>> source,
+                                                       Map<Path, List<TextEdit>> target) {
+        for (Map.Entry<Path, List<TextEdit>> sourceEntry : source.entrySet()) {
+            Path path = sourceEntry.getKey();
+            List<TextEdit> targetTextEdits = target.get(path);
+            if (targetTextEdits == null) {
+                target.put(path, sourceEntry.getValue());
+            } else {
+                targetTextEdits.addAll(sourceEntry.getValue());
+            }
+        }
+
+        return target;
     }
 
     private static class ParameterSchemaHolder {

@@ -32,7 +32,9 @@ public class Library {
     private List<Client> clients;
     private List<LibraryFunction> functions;
     private List<Service> services;
+    private List<Annotation> annotations;
     private String instructions;
+    private String readme;
 
     public Library(String name, String description) {
         this.name = name;
@@ -61,6 +63,14 @@ public class Library {
 
     public void setInstructions(String instructions) {
         this.instructions = instructions;
+    }
+
+    public String getReadme() {
+        return readme;
+    }
+
+    public void setReadme(String readme) {
+        this.readme = readme;
     }
 
     public List<Client> getClients() {
@@ -93,5 +103,13 @@ public class Library {
 
     public void setServices(List<Service> services) {
         this.services = services;
+    }
+
+    public List<Annotation> getAnnotations() {
+        return annotations;
+    }
+
+    public void setAnnotations(List<Annotation> annotations) {
+        this.annotations = annotations;
     }
 }

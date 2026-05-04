@@ -18,9 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.core.search;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import io.ballerina.flowmodelgenerator.core.LocalIndexCentral;
+import io.ballerina.flowmodelgenerator.core.AiUtils;
 import io.ballerina.flowmodelgenerator.core.model.AvailableNode;
 import io.ballerina.flowmodelgenerator.core.model.Category;
 import io.ballerina.flowmodelgenerator.core.model.Item;
@@ -30,8 +28,8 @@ import io.ballerina.tools.text.LineRange;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Handles the search command for knowledge bases.
@@ -40,8 +38,7 @@ import java.util.Map;
  */
 public class KnowledgeBaseSearchCommand extends SearchCommand {
 
-    private static final Gson GSON = new Gson();
-    private List<Item> cachedKnowledgeBases;
+    private static final String KNOWLEDGE_BASE_LABEL = "Knowledge Bases";
 
     public KnowledgeBaseSearchCommand(Project project, LineRange position, Map<String, String> queryMap) {
         super(project, position, queryMap);
@@ -49,45 +46,26 @@ public class KnowledgeBaseSearchCommand extends SearchCommand {
 
     @Override
     protected List<Item> defaultView() {
-        return getKnowledgeBases();
+        List<AvailableNode> knowledgeBases = AiUtils.getKnowledgeBases(project);
+        Category category = new Category.Builder(null).metadata().label(KNOWLEDGE_BASE_LABEL)
+                .stepOut().items(List.copyOf(knowledgeBases)).build();
+        return List.of(category);
     }
 
     @Override
     protected List<Item> search() {
-        List<Item> knowledgeBases = getKnowledgeBases();
-        if (knowledgeBases.isEmpty() || !(knowledgeBases.getFirst() instanceof Category knowledgeBaseCategory)) {
-            return knowledgeBases;
-        }
+        List<AvailableNode> knowledgeBases = AiUtils.getKnowledgeBases(project);
+        List<Item> matchingBases = knowledgeBases.stream()
+                .filter(node -> AiUtils.matchesQuery(node, query))
+                .collect(Collectors.toList());
 
-        List<Item> stores = knowledgeBaseCategory.items();
-
-        List<Item> matchingStores = stores.stream()
-                .filter(item -> item instanceof AvailableNode availableNode &&
-                        (query == null || availableNode.metadata().label().toLowerCase(Locale.ROOT)
-                                .contains(query.toLowerCase(Locale.ROOT))))
-                .toList();
-
-        stores.clear();
-        stores.addAll(matchingStores);
-
-        return List.of(knowledgeBaseCategory);
+        Category category = new Category.Builder(null).metadata().label(KNOWLEDGE_BASE_LABEL)
+                .stepOut().items(matchingBases).build();
+        return List.of(category);
     }
 
     @Override
     protected Map<String, List<SearchResult>> fetchPopularItems() {
         return Collections.emptyMap();
-    }
-
-    @Override
-    public JsonArray execute() {
-        List<Item> items = (query.isEmpty()) ? defaultView() : search();
-        return GSON.toJsonTree(items).getAsJsonArray();
-    }
-
-    private List<Item> getKnowledgeBases() {
-        if (cachedKnowledgeBases == null) {
-            cachedKnowledgeBases = List.copyOf(LocalIndexCentral.getInstance().getKnowledgeBases());
-        }
-        return cachedKnowledgeBases;
     }
 }

@@ -258,6 +258,7 @@ public class AllKindsSearchCommand extends SearchCommand {
                 .object(result.name())
                 .symbol("init")
                 .version(result.packageInfo().version())
+                .isGenerated(false)
                 .build();
 
         return new AvailableNode(metadata, codedata, true);

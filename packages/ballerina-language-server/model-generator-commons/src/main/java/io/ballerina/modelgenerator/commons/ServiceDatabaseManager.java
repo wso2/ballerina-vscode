@@ -146,7 +146,7 @@ public class ServiceDatabaseManager {
                 "p.import_statements, " +
                 "pmt.type AS member_type, " +
                 "pmt.kind AS member_kind, " +
-                "pmt.package AS member_package " +
+                "pmt.packageInfo AS member_package " +
                 "FROM Parameter p " +
                 "LEFT JOIN ParameterMemberType pmt ON p.parameter_id = pmt.parameter_id " +
                 "WHERE p.listener_id = ?;";

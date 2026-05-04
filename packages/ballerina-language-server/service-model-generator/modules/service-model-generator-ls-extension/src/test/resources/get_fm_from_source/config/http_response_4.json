@@ -431,7 +431,7 @@
             ],
             "enabled": true,
             "editable": false,
-            "optional": false,
+            "optional": true,
             "advanced": false
           },
           "name": {
@@ -520,7 +520,7 @@
             ],
             "enabled": true,
             "editable": false,
-            "optional": false,
+            "optional": true,
             "advanced": false
           },
           "name": {
@@ -609,7 +609,7 @@
             ],
             "enabled": true,
             "editable": false,
-            "optional": false,
+            "optional": true,
             "advanced": false
           },
           "name": {
@@ -644,9 +644,9 @@
             "imports": {},
             "value": [
               {
+                "type": "string",
                 "optional": false,
-                "name": "x\\-path",
-                "type": "string"
+                "name": "x\\-path"
               }
             ],
             "types": [

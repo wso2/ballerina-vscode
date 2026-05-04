@@ -28,6 +28,7 @@ import io.ballerina.servicemodelgenerator.extension.builder.service.AiChatServic
 import io.ballerina.servicemodelgenerator.extension.builder.service.AsbServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.DefaultServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.FTPServiceBuilder;
+import io.ballerina.servicemodelgenerator.extension.builder.service.GithubTriggerServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.GraphqlServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.HttpServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.KafkaServiceBuilder;
@@ -35,6 +36,7 @@ import io.ballerina.servicemodelgenerator.extension.builder.service.McpServiceBu
 import io.ballerina.servicemodelgenerator.extension.builder.service.MssqlCdcServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.PostgresqlCdcServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.RabbitMQServiceBuilder;
+import io.ballerina.servicemodelgenerator.extension.builder.service.ShopifyTriggerServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.SolaceServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.TCPServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
@@ -70,6 +72,8 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.POSTGR
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBITMQ;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SOLACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.TRIGGER_GITHUB;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.TRIGGER_SHOPIFY;
 
 /**
  * ServiceBuilderRouter is responsible for routing service building requests to the appropriate service builder
@@ -92,6 +96,8 @@ public class ServiceBuilderRouter {
         put(MSSQL, MssqlCdcServiceBuilder::new);
         put(POSTGRESQL, PostgresqlCdcServiceBuilder::new);
         put(FTP, FTPServiceBuilder::new);
+        put(TRIGGER_GITHUB, GithubTriggerServiceBuilder::new);
+        put(TRIGGER_SHOPIFY, ShopifyTriggerServiceBuilder::new);
     }};
 
     public static ServiceNodeBuilder getServiceBuilder(String protocol) {

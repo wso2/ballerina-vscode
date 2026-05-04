@@ -95,6 +95,36 @@ public class Constants {
 
     }
 
+    // Constants used for Workflow
+    public static final class Workflow {
+
+        private Workflow() {
+        }
+
+        public static final String WORKFLOW_ORG = "ballerina";
+        public static final String WORKFLOW_MODULE = "workflow";
+        public static final String CONTEXT_CLASS_NAME = "Context";
+        public static final String RUN_METHOD_NAME = "run";
+        public static final String RUN_LABEL = "Run Workflow";
+        public static final String RUN_DESCRIPTION = "Run a new workflow instance";
+        public static final String SEND_DATA_METHOD_NAME = "sendData";
+        public static final String SEND_DATA_LABEL = "Send Data";
+        public static final String SEND_DATA_DESCRIPTION = "Send data to an existing workflow instance";
+        public static final String CALL_ACTIVITY_METHOD_NAME = "callActivity";
+        public static final String AWAIT_METHOD_NAME = "await";
+        public static final String CALL_ACTIVITY_LABEL = "Call Activity";
+        public static final String CALL_ACTIVITY_DESCRIPTION = "Call a workflow activity function";
+        public static final String WAIT_DATA_LABEL = "Wait for Data";
+        public static final String WAIT_DATA_DESCRIPTION = "Wait for workflow data to be received";
+        public static final String WORKFLOW = "Workflow";
+        public static final String ACTIVITY = "Activity";
+        public static final String DEFAULT_CTX_PARAM_NAME = "ctx";
+        public static final String DEFAULT_DATA_PARAM_NAME = "data";
+        public static final String DEFAULT_INPUT_PARAM_NAME = "input";
+        public static final String DATA_SUFFIX = "Data";
+        public static final String ANYDATA = "anydata";
+    }
+
     // Constants used for AI
     public static final class Ai {
 
@@ -104,11 +134,13 @@ public class Constants {
         public static final String BALLERINA_ORG = "ballerina";
         public static final String AI_PACKAGE = "ai";
         public static final String MCP_PACKAGE = "mcp";
+        public static final String LOG_PACKAGE = "log";
+        public static final String HTTP_PACKAGE = "http";
 
         public static final String RECURSIVE_DOCUMENT_CHUNKER_LABEL = "Recursive Document Chunker";
         public static final String AUGMENT_QUERY_LABEL = "Augment Query";
 
-        public static final String KNOWLEDGE_BASE_TYPE_NAME = "VectorKnowledgeBase";
+        public static final String KNOWLEDGE_BASE_TYPE_NAME = "KnowledgeBase";
         public static final String AGENT_TYPE_NAME = "Agent";
 
         public static final String AGENT_RUN_METHOD_NAME = "run";
@@ -121,6 +153,7 @@ public class Constants {
         public static final String VECTOR_STORE_TYPE_NAME = "VectorStore";
         public static final String CHUNKER_TYPE_NAME = "Chunker";
         public static final String DATA_LOADER_TYPE_NAME = "DataLoader";
+        public static final String SHORT_TERM_MEMORY_STORE_TYPE_NAME = "ShortTermMemoryStore";
         public static final String WSO2_MODEL_PROVIDER_NAME = "Wso2ModelProvider";
         public static final String WSO2_EMBEDDING_PROVIDER_NAME = "Wso2EmbeddingProvider";
         public static final String GET_DEFAULT_MODEL_PROVIDER_METHOD = "getDefaultModelProvider";

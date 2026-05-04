@@ -66,6 +66,7 @@ public class Constants {
     public static final String ASB = "asb";
     public static final String SF = "salesforce";
     public static final String TRIGGER_GITHUB = "trigger.github";
+    public static final String TRIGGER_SHOPIFY = "trigger.shopify";
     public static final String MSSQL = "mssql";
     public static final String POSTGRESQL = "postgresql";
 
@@ -114,8 +115,11 @@ public class Constants {
     public static final String ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD = "LISTENER_PARAM_INCLUDED_FIELD";
     public static final String ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD =
             "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD";
+    // Use this argument type with listener configuration parameters which can't be provided as included-fields
+    public static final String ARG_TYPE_LISTENER_PARAM_CONFIG_FIELD = "LISTENER_PARAM_CONFIG_FIELD";
     public static final String ARG_TYPE_SERVICE_BASE_PATH = "SERVICE_BASE_PATH";
     public static final String ARG_TYPE_SERVICE_TYPE_DESCRIPTOR = "SERVICE_TYPE_DESCRIPTOR";
+    public static final String ARG_TYPE_CDC_OPERATION_ENABLE = "CDC_OPERATION_ENABLE";
 
     public static final String TYPE_SERVICE = "Service";
 

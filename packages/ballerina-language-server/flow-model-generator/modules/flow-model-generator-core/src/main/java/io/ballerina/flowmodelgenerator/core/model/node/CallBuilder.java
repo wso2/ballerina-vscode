@@ -95,7 +95,7 @@ public abstract class CallBuilder extends NodeBuilder {
                 .filePath(context.filePath());
 
         NodeKind functionNodeKind = getFunctionNodeKind();
-        if (functionNodeKind != NodeKind.FUNCTION_CALL) {
+        if (functionNodeKind != NodeKind.FUNCTION_CALL && functionNodeKind != NodeKind.ACTIVITY_CALL) {
             functionDataBuilder.parentSymbolType(codedata.object());
         }
         FunctionData functionData = functionDataBuilder.build();
@@ -121,7 +121,7 @@ public abstract class CallBuilder extends NodeBuilder {
                 .inferredReturnType(functionData.inferredReturnType() ? functionData.returnType() : null);
 
         if (functionNodeKind != NodeKind.FUNCTION_CALL && functionNodeKind != NodeKind.AGENT &&
-                functionNodeKind != NodeKind.CLASS_INIT) {
+                functionNodeKind != NodeKind.CLASS_INIT && functionNodeKind != NodeKind.ACTIVITY_CALL) {
             properties().custom()
                     .metadata()
                     .label(Property.CONNECTION_LABEL)
@@ -215,7 +215,7 @@ public abstract class CallBuilder extends NodeBuilder {
         // RECORD_FIELD_SELECTOR and provide the necessary type models for it.
         TypesManager typesManager = new TypesManager(module.document(module.documentIds().iterator().next()));
         RecordSelectorType recordSelectorType = typesManager.getRecordSelectorType(paramData.typeSymbol(),
-                module);
+                module, true);
 
         if (recordSelectorType != null && targetVarType != null) {
             TypeSymbol recordTargetVarType = targetVarType;
@@ -225,7 +225,7 @@ public abstract class CallBuilder extends NodeBuilder {
             }
             if (CommonUtil.getRawType(recordTargetVarType).typeKind().equals(TypeDescKind.RECORD)) {
                 RecordSelectorType targetVarRecordSelectorType = typesManager.getRecordSelectorType(
-                        recordTargetVarType, module);
+                        recordTargetVarType, module, false);
                 if (targetVarRecordSelectorType != null) {
                     recordSelectorType = mergeWithTargetVarRecordSelectorType(targetVarRecordSelectorType,
                             recordSelectorType);

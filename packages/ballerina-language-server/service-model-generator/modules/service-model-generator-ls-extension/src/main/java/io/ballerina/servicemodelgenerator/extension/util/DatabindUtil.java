@@ -979,8 +979,9 @@ public final class DatabindUtil {
         ModulePartNode modulePartNode = context.modulePartNode();
 
         if (modulePartNode.members().isEmpty()) {
-            // Empty file, insert at the beginning
-            insertPosition = LinePosition.from(0, 0);
+            // No members yet — anchor at the module-part start, which skips leading minutiae
+            // (license/doc comments) so the type definition lands below them.
+            insertPosition = modulePartNode.lineRange().startLine();
         } else {
             // Insert at the end of the file
             Node lastMember = modulePartNode.members().get(modulePartNode.members().size() - 1);

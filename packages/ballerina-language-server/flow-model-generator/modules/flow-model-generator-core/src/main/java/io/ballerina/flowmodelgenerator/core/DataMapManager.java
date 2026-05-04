@@ -245,14 +245,9 @@ public class DataMapManager {
         boolean hasInvalidFields = hasInvalidFields(semanticModel, targetNode.typeSymbol());
         try {
             TypeSymbol targetTypeSymbol = targetNode.typeSymbol();
-            TypeSymbol rawtargetTypeSymbol = CommonUtils.getRawType(targetNode.typeSymbol());
-            if (rawtargetTypeSymbol.typeKind() == TypeDescKind.UNION) {
-                targetTypeSymbol =
-                        filterErrorOrNil(semanticModel, (UnionTypeSymbol) rawtargetTypeSymbol, new ArrayList<>());
-            }
             RefType refType = ReferenceType.fromSemanticSymbol(targetTypeSymbol, typeDefSymbols);
 
-            if (convertedVariables != null && convertedVariables.output() != null) {
+            if (convertedVariables != null && convertedVariables.output() != null && !isFocusedView(targetField)) {
                 TypeSymbol parentTypeSymbol = convertedVariables.output().parentType();
                 RefType parentRefType = ReferenceType.fromSemanticSymbol(parentTypeSymbol, typeDefSymbols);
                 String parentName = convertedVariables.output().paramName();
@@ -289,11 +284,16 @@ public class DataMapManager {
             FromClauseNode fromClauseNode = queryExpressionNode.queryPipeline().fromClause();
             LinePosition fromClausePosition = fromClauseNode.lineRange().startLine();
             List<Symbol> symbols = semanticModel.visibleSymbols(document, fromClausePosition);
+            String convertedOutputName = getConvertedOutputName(convertedVariables);
             symbols = symbols.stream()
-                    .filter(symbol -> !symbol.getName().orElse("").equals(getVariableName(node)))
+                    .filter(symbol -> {
+                        String n = symbol.getName().orElse("");
+                        return !n.equals(getVariableName(node)) && !n.equals(convertedOutputName);
+                    })
                     .collect(Collectors.toList());
             List<Symbol> moduleSymbols = semanticModel.moduleSymbols();
-            inputPorts = getQueryInputPorts(symbols, enumPorts, references, typeDefSymbols, moduleSymbols);
+            inputPorts = getQueryInputPorts(semanticModel, symbols, enumPorts, references, typeDefSymbols,
+                    moduleSymbols, convertedVariables);
             inputPorts.sort(Comparator.comparing(mt -> mt.name));
 
             List<String> inputs = new ArrayList<>();
@@ -655,20 +655,27 @@ public class DataMapManager {
         if (node.kind() != SyntaxKind.LET_VAR_DECL) {
             return inputPorts;
         }
+        Set<String> parentVarNames = new HashSet<>();
         NonTerminalNode parentNode = node.parent();
         while (parentNode != null) {
-            if (parentNode.kind() == SyntaxKind.LOCAL_VAR_DECL) {
+            SyntaxKind parentKind = parentNode.kind();
+            if (parentKind == SyntaxKind.LET_VAR_DECL) {
+                parentVarNames.add(getVariableName(parentNode));
+            } else if (parentKind == SyntaxKind.LOCAL_VAR_DECL || parentKind == SyntaxKind.MODULE_VAR_DECL) {
+                parentVarNames.add(getVariableName(parentNode));
+                break;
+            } else if (parentKind == SyntaxKind.EXPRESSION_FUNCTION_BODY
+                    || parentKind == SyntaxKind.FUNCTION_DEFINITION) {
                 break;
             }
             parentNode = parentNode.parent();
         }
-        if (parentNode == null) {
+        if (parentVarNames.isEmpty()) {
             return inputPorts;
         }
-        String varName = CommonUtils.getVariableName(((VariableDeclarationNode) parentNode).typedBindingPattern());
         List<MappingPort> newInputPorts = new ArrayList<>();
         for (MappingPort inputPort : inputPorts) {
-            if (!inputPort.displayName.equals(varName)) {
+            if (!parentVarNames.contains(inputPort.displayName)) {
                 newInputPorts.add(inputPort);
             }
         }
@@ -717,6 +724,12 @@ public class DataMapManager {
             }
         } else {
             return null;
+        }
+
+        TypeSymbol rawTargetTypeSymbol = CommonUtils.getRawType(typeSymbol);
+        if (rawTargetTypeSymbol.typeKind() == TypeDescKind.UNION) {
+            typeSymbol =
+                    filterErrorOrNil(semanticModel, (UnionTypeSymbol) rawTargetTypeSymbol, new ArrayList<>());
         }
 
         ExpressionNode expr = getMappingExpr(parentNode);
@@ -828,16 +841,22 @@ public class DataMapManager {
             return null;
         }
         ExpressionNode checkedExpr = ((CheckExpressionNode) expr).expression();
-        if (checkedExpr.kind() != SyntaxKind.METHOD_CALL) {
+        if (checkedExpr.kind() != SyntaxKind.FUNCTION_CALL) {
             return null;
         }
-        MethodCallExpressionNode methodCall = (MethodCallExpressionNode) checkedExpr;
-        NameReferenceNode methodName = methodCall.methodName();
-        if (methodName.toSourceCode().startsWith("ensureType")) {
-            ExpressionNode methodCallExpr = methodCall.expression();
-            Optional<TypeSymbol> typeSymbol = semanticModel.typeOf(methodCallExpr);
+        FunctionCallExpressionNode funcCall = (FunctionCallExpressionNode) checkedExpr;
+        NameReferenceNode funcName = funcCall.functionName();
+        if (funcName.toSourceCode().startsWith("jsondata:parseAsType") ||
+                funcName.toSourceCode().startsWith("xmldata:parseAsType")) {
+            SeparatedNodeList<FunctionArgumentNode> args = funcCall.arguments();
+            if (args.isEmpty()) {
+                return null;
+            }
+            ExpressionNode argExpr = ((PositionalArgumentNode) args.get(0)).expression();
+            Optional<TypeSymbol> typeSymbol = semanticModel.typeOf(argExpr);
             if (typeSymbol.isPresent()) {
-                return new ConvertedVariable(letVarDeclaration, typeSymbol.get(), methodCallExpr.toSourceCode().trim());
+                return new ConvertedVariable(letVarDeclaration, typeSymbol.get(),
+                        argExpr.toSourceCode().trim());
             }
         }
         return null;
@@ -850,16 +869,25 @@ public class DataMapManager {
             return null;
         }
         String varName = ((CaptureBindingPatternNode) bindingPattern).variableName().text();
-        String jsonConversion = "jsondata:toJson(" + varName + ")";
-        String xmlConversion = "xmldata:toXml(" + varName + ")";
 
-        String letExprSource = letExpr.toSourceCode().trim();
-        if (varName.equals(letExprSource) ||
-                jsonConversion.equals(letExprSource) || xmlConversion.equals(letExprSource)) {
+        String exprSource;
+        if (letExpr.kind() == SyntaxKind.CHECK_EXPRESSION) {
+            exprSource = ((CheckExpressionNode) letExpr).expression().toSourceCode().trim();
+        } else {
+            exprSource = letExpr.toSourceCode().trim();
+        }
+        if (isConvertedOutput(varName, exprSource)) {
             return new ConvertedVariable(letVarDeclaration, parentType, varName);
         }
 
         return null;
+    }
+
+    boolean isConvertedOutput(String varName, String letExpr) {
+        String jsonConversion = "jsondata:toJson(" + varName + ")";
+        String xmlConversion = "xmldata:toXml(" + varName + ")";
+
+        return varName.equals(letExpr) || letExpr.equals(jsonConversion) || letExpr.equals(xmlConversion);
     }
 
     private String getLastNonNumericName(String[] names) {
@@ -955,6 +983,10 @@ public class DataMapManager {
             }
             idx++;
         }
+    }
+
+    private boolean isFocusedView(String targetField) {
+        return targetField != null && targetField.split(DOT).length > 1;
     }
 
     private record MatchingNode(ExpressionNode expr, QueryExpressionNode queryExpr, LetExpressionNode letExpr) {
@@ -1191,20 +1223,27 @@ public class DataMapManager {
                 if (convertedVariables != null && convertedVariables.inputs() != null) {
                     for (ConvertedVariable convertedVariable : convertedVariables.inputs()) {
                         if (convertedVariable.paramName().equals(name)) {
-                            TypedBindingPatternNode typedBindingPatternNode =
-                                    convertedVariable.letVarDeclaration().typedBindingPattern();
-                            Optional<Symbol> optSymbol = semanticModel.symbol(typedBindingPatternNode.typeDescriptor());
+                            LetVariableDeclarationNode letVarDeclaration = convertedVariable.letVarDeclaration();
+                            Optional<Symbol> optSymbol = semanticModel.symbol(letVarDeclaration);
                             if (optSymbol.isEmpty()) {
                                 continue;
                             }
-                            BindingPatternNode bindingPattern = typedBindingPatternNode.bindingPattern();
+
+                            Symbol letVarSymbol = optSymbol.get();
+                            if (letVarSymbol.kind() != SymbolKind.VARIABLE) {
+                                continue;
+                            }
+
+                            BindingPatternNode bindingPattern =
+                                    letVarDeclaration.typedBindingPattern().bindingPattern();
                             if (bindingPattern.kind() != SyntaxKind.CAPTURE_BINDING_PATTERN) {
                                 continue;
                             }
+
                             String text = ((CaptureBindingPatternNode) bindingPattern).variableName().text();
                             MappingPort convertedMappingPort = getRefMappingPort(text, text,
-                                    ReferenceType.fromSemanticSymbol(optSymbol.get(), typeDefSymbols),
-                                    new HashMap<>(), references);
+                                    ReferenceType.fromSemanticSymbol(((VariableSymbol) letVarSymbol).typeDescriptor(),
+                                            typeDefSymbols), new HashMap<>(), references);
                             convertedMappingPort.category = "converted-variable";
                             refMappingPort.setConvertedVariable(convertedMappingPort);
                         }
@@ -1295,9 +1334,20 @@ public class DataMapManager {
                 .withMemberTypes(memberTypes.toArray(TypeSymbol[]::new)).build();
     }
 
-    private List<MappingPort> getQueryInputPorts(List<Symbol> visibleSymbols, List<MappingPort> enumPorts,
-                                                 Map<String, MappingPort> references, List<Symbol> typeDefSymbols,
-                                                    List<Symbol> moduleSymbols) {
+    private List<MappingPort> getQueryInputPorts(SemanticModel semanticModel, List<Symbol> visibleSymbols,
+                                                 List<MappingPort> enumPorts, Map<String, MappingPort> references,
+                                                 List<Symbol> typeDefSymbols, List<Symbol> moduleSymbols,
+                                                 ConvertedVariables convertedVariables) {
+        Set<String> convertedVarNames = new HashSet<>();
+        if (convertedVariables != null && convertedVariables.inputs() != null) {
+            for (ConvertedVariable convertedVariable : convertedVariables.inputs()) {
+                String letVarName = getLetVarName(convertedVariable.letVarDeclaration());
+                if (letVarName != null) {
+                    convertedVarNames.add(letVarName);
+                }
+            }
+        }
+
         List<MappingPort> mappingPorts = new ArrayList<>();
         for (Symbol symbol : visibleSymbols) {
             SymbolKind kind = symbol.kind();
@@ -1306,6 +1356,11 @@ public class DataMapManager {
                 if (optName.isEmpty()) {
                     continue;
                 }
+                String name = optName.get();
+                if (convertedVarNames.contains(name)) {
+                    continue;
+                }
+
                 RefType refType;
                 try {
                     refType = ReferenceType.fromSemanticSymbol(symbol, typeDefSymbols);
@@ -1315,8 +1370,7 @@ public class DataMapManager {
                 } catch (UnsupportedOperationException e) {
                     continue;
                 }
-                MappingPort refMappingPort = getRefMappingPort(optName.get(), optName.get(), refType, new HashMap<>(),
-                        references);
+                MappingPort refMappingPort = getRefMappingPort(name, name, refType, new HashMap<>(), references);
                 VariableSymbol varSymbol = (VariableSymbol) symbol;
                 setModuleInfo(varSymbol.typeDescriptor(), refMappingPort);
                 if (varSymbol.qualifiers().contains(Qualifier.CONFIGURABLE)) {
@@ -1341,10 +1395,36 @@ public class DataMapManager {
                     continue;
                 }
 
-                MappingPort refMappingPort = getRefMappingPort(optName.get(), optName.get(), refType, new HashMap<>(),
-                        references);
+                String name = optName.get();
+                MappingPort refMappingPort = getRefMappingPort(name, name, refType, new HashMap<>(), references);
                 setModuleInfo(((ParameterSymbol) symbol).typeDescriptor(), refMappingPort);
                 refMappingPort.category = "parameter";
+                if (convertedVariables != null && convertedVariables.inputs() != null) {
+                    for (ConvertedVariable convertedVariable : convertedVariables.inputs()) {
+                        if (convertedVariable.paramName().equals(name)) {
+                            LetVariableDeclarationNode letVarDeclarationNode = convertedVariable.letVarDeclaration();
+                            Optional<Symbol> optSymbol = semanticModel.symbol(letVarDeclarationNode);
+                            if (optSymbol.isEmpty()) {
+                                continue;
+                            }
+
+                            Symbol letVarSymbol = optSymbol.get();
+                            if (letVarSymbol.kind() != SymbolKind.VARIABLE) {
+                                continue;
+                            }
+
+                            String letVarName = getLetVarName(letVarDeclarationNode);
+                            if (letVarName == null) {
+                                continue;
+                            }
+                            MappingPort convertedMappingPort = getRefMappingPort(letVarName, letVarName,
+                                    ReferenceType.fromSemanticSymbol(((VariableSymbol) letVarSymbol).typeDescriptor(),
+                                            typeDefSymbols), new HashMap<>(), references);
+                            convertedMappingPort.category = "converted-variable";
+                            refMappingPort.setConvertedVariable(convertedMappingPort);
+                        }
+                    }
+                }
                 mappingPorts.add(refMappingPort);
             } else if (kind == SymbolKind.CONSTANT) {
                 RefType refType;
@@ -1381,6 +1461,22 @@ public class DataMapManager {
             }
         }
         return mappingPorts;
+    }
+
+    private String getLetVarName(LetVariableDeclarationNode letVarDeclaration) {
+        BindingPatternNode bindingPattern = letVarDeclaration.typedBindingPattern().bindingPattern();
+        if (bindingPattern.kind() != SyntaxKind.CAPTURE_BINDING_PATTERN) {
+            return null;
+        }
+
+        return ((CaptureBindingPatternNode) bindingPattern).variableName().text();
+    }
+
+    private String getConvertedOutputName(ConvertedVariables convertedVariables) {
+        if (convertedVariables == null || convertedVariables.output() == null) {
+            return null;
+        }
+        return getLetVarName(convertedVariables.output().letVarDeclaration());
     }
 
     private MappingPort getRefMappingPort(String id, String name, RefType type, Map<String, Type> visitedTypes,
@@ -1895,16 +1991,20 @@ public class DataMapManager {
 
     private ExpressionNode findConvertedVariable(LetExpressionNode letExpr) {
         ExpressionNode expr = letExpr.expression();
-        String exprSource = expr.toSourceCode().trim();
+        String exprSource;
+        if (expr.kind() == SyntaxKind.CHECK_EXPRESSION) {
+            exprSource = ((CheckExpressionNode) expr).expression().toSourceCode().trim();
+        } else {
+            exprSource = expr.toSourceCode().trim();
+        }
+
         for (LetVariableDeclarationNode letVar : letExpr.letVarDeclarations()) {
             BindingPatternNode bindingPattern = letVar.typedBindingPattern().bindingPattern();
             if (bindingPattern.kind() != SyntaxKind.CAPTURE_BINDING_PATTERN) {
                 continue;
             }
             String varName = ((CaptureBindingPatternNode) bindingPattern).variableName().text();
-            String jsonConversion = "jsondata:toJson(" + varName + ")";
-            String xmlConversion = "xmldata:toXml(" + varName + ")";
-            if (varName.equals(exprSource) || jsonConversion.equals(exprSource) || xmlConversion.equals(exprSource)) {
+            if (isConvertedOutput(varName, exprSource)) {
                 ExpressionNode letVarExpr = letVar.expression();
                 if (letVarExpr.kind() == SyntaxKind.LET_EXPRESSION) {
                     return ((LetExpressionNode) letVarExpr).expression();
@@ -1942,16 +2042,17 @@ public class DataMapManager {
                     return expr;
                 }
                 ExpressionNode letExpr = letExprNode.expression();
-
+                String exprSource;
+                if (letExpr.kind() == SyntaxKind.CHECK_EXPRESSION) {
+                    exprSource = ((CheckExpressionNode) letExpr).expression().toSourceCode().trim();
+                } else {
+                    exprSource = letExpr.toSourceCode().trim();
+                }
                 for (LetVariableDeclarationNode letVarDeclaration : letExprNode.letVarDeclarations()) {
                     BindingPatternNode bindingPatternNode = letVarDeclaration.typedBindingPattern().bindingPattern();
                     if (bindingPatternNode.kind() == SyntaxKind.CAPTURE_BINDING_PATTERN) {
                         String varName = ((CaptureBindingPatternNode) bindingPatternNode).variableName().text();
-                        String letExprSource = letExpr.toSourceCode().trim();
-                        String jsonConversion = "jsondata:toJson(" + varName + ")";
-                        String xmlConversion = "xmldata:toXml(" + varName + ")";
-                        if (varName.equals(letExprSource) ||
-                                jsonConversion.equals(letExprSource) || xmlConversion.equals(letExprSource)) {
+                        if (isConvertedOutput(varName, exprSource)) {
                             return letVarDeclaration.expression();
                         }
                     }
@@ -2037,197 +2138,259 @@ public class DataMapManager {
     private void genDeleteMappingSource(SemanticModel semanticModel, ExpressionNode expr, String[] names, int idx,
                                         List<TextEdit> textEdits, TypeSymbol targetSymbol) {
         if (idx == names.length) {
-            NonTerminalNode currentNode = expr;
-            NonTerminalNode highestEmptyField = null;
+            handleDeleteAtTarget(semanticModel, expr, textEdits, targetSymbol);
+            return;
+        }
 
-            while (true) {
-                NonTerminalNode parentNode = currentNode.parent();
-                if (parentNode == null) {
-                    break;
+        switch (expr.kind()) {
+            case MAPPING_CONSTRUCTOR -> {
+                MappingConstructorExpressionNode mappingCtrExpr = (MappingConstructorExpressionNode) expr;
+                String name = names[idx];
+                Map<String, SpecificFieldNode> mappingFields = convertMappingFieldsToMap(mappingCtrExpr);
+                SpecificFieldNode mappingFieldNode = mappingFields.get(name);
+                if (mappingFieldNode != null) {
+                    genDeleteMappingSource(semanticModel, mappingFieldNode.valueExpr().orElseThrow(), names, idx + 1,
+                            textEdits, targetSymbol);
                 }
-                if (parentNode.kind() == SyntaxKind.SPECIFIC_FIELD) {
-                    SpecificFieldNode specificField = (SpecificFieldNode) parentNode;
-                    NonTerminalNode grandParent = parentNode.parent();
-
-                    if (grandParent != null && grandParent.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
-                        MappingConstructorExpressionNode mappingCtr = (MappingConstructorExpressionNode)
-                                grandParent;
-
-                        if (mappingCtr.fields().size() == 1) {
-                            highestEmptyField = specificField;
-                            currentNode = grandParent;
-                            continue;
-                        }
-                    }
-                }
-                break;
             }
-
-            if (highestEmptyField != null) {
-                textEdits.add(new TextEdit(CommonUtils.toRange(highestEmptyField.lineRange()), ""));
-            } else {
-                NonTerminalNode parent = expr.parent();
-                SyntaxKind parentKind = parent.kind();
-                if (parentKind == SyntaxKind.SPECIFIC_FIELD) {
-                    SpecificFieldNode specificField = (SpecificFieldNode) parent;
-                    MappingConstructorExpressionNode mappingCtr = (MappingConstructorExpressionNode)
-                            specificField.parent();
-                    SeparatedNodeList<MappingFieldNode> fields = mappingCtr.fields();
-                    int fieldCount = fields.size();
-
-                    if (fieldCount > 1) {
-                        int fieldIndex = -1;
-                        for (int i = 0; i < fieldCount; i++) {
-                            if (fields.get(i) == specificField) {
-                                fieldIndex = i;
-                                break;
-                            }
-                        }
-                        if (fieldIndex >= 0) {
-                            TextRange deleteRange;
-                            if (fieldIndex == fieldCount - 1) {
-                                TextRange fieldRange = specificField.textRange();
-                                Node separator = fields.getSeparator(fieldIndex - 1);
-                                if (separator != null) {
-                                    deleteRange = TextRange.from(
-                                            separator.textRange().startOffset(),
-                                            fieldRange.endOffset() - separator.textRange().startOffset()
-                                    );
-                                } else {
-                                    deleteRange = fieldRange;
-                                }
-                            } else {
-                                TextRange fieldRange = specificField.textRange();
-                                Node separator = fields.getSeparator(fieldIndex);
-                                if (separator != null) {
-                                    deleteRange = TextRange.from(
-                                            fieldRange.startOffset(),
-                                            fields.get(fieldIndex + 1).
-                                                    textRange().startOffset() - fieldRange.startOffset()
-                                    );
-                                } else {
-                                    deleteRange = fieldRange;
-                                }
-                            }
-
-                            String fileName = document.name();
-                            LinePosition startPos = document.syntaxTree().
-                                    textDocument().linePositionFrom(deleteRange.startOffset());
-                            LinePosition endPos = document.syntaxTree().
-                                    textDocument().linePositionFrom(deleteRange.endOffset());
-
-                            LineRange lineRangeToDelete = LineRange.from(fileName, startPos, endPos);
-                            textEdits.add(new TextEdit(CommonUtils.toRange(lineRangeToDelete), ""));
-                        } else {
-                            textEdits.add(new TextEdit(CommonUtils.toRange(specificField.lineRange()), ""));
-                        }
-                    } else {
-                        textEdits.add(new TextEdit(CommonUtils.toRange(specificField.lineRange()), ""));
-                    }
-                } else if (parentKind == SyntaxKind.LIST_CONSTRUCTOR) {
-                    ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) parent;
-                    SeparatedNodeList<Node> expressions = listCtrExpr.expressions();
-                    int memberIdx = 0;
-                    for (int i = 0; i < expressions.size(); i++) {
-                        if (expressions.get(i).equals(expr)) {
-                            memberIdx = i;
-                            break;
-                        }
-                    }
-
-                    if (expressions.size() == 1) {
-                        textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), ""));
-                    } else {
-                        if (memberIdx + 1 == expressions.size()) {
-                            LinePosition startPos = expressions.get(memberIdx - 1).lineRange().endLine();
-                            LinePosition endPos = expr.lineRange().endLine();
-                            textEdits.add(new TextEdit(CommonUtils.toRange(startPos, endPos), ""));
-                        } else if (memberIdx == 0) {
-                            LinePosition startPos = expr.lineRange().startLine();
-                            LinePosition endPos = expressions.get(1).lineRange().startLine();
-                            textEdits.add(new TextEdit(CommonUtils.toRange(startPos, endPos), ""));
-                        } else {
-                            LinePosition startPos = expressions.get(memberIdx - 1).lineRange().endLine();
-                            LinePosition endPos = expr.lineRange().endLine();
-                            textEdits.add(new TextEdit(CommonUtils.toRange(startPos, endPos), ""));
-                        }
-                    }
-                } else if (parentKind == SyntaxKind.LOCAL_VAR_DECL ||
-                        parentKind == SyntaxKind.LET_VAR_DECL) {
-                    Optional<Symbol> optSymbol = semanticModel.symbol(parent);
-                    if (optSymbol.isPresent()) {
-                        Symbol symbol = optSymbol.get();
-                        if (symbol.kind() == SymbolKind.VARIABLE) {
-                            VariableSymbol varSymbol = (VariableSymbol) symbol;
-                            String defaultVal = getDefaultValue(
-                                    CommonUtil.getRawType(varSymbol.typeDescriptor()).typeKind().getName());
-                            textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
-                        }
-                    }
-                } else if (parentKind == SyntaxKind.EXPRESSION_FUNCTION_BODY) {
-                    Optional<Symbol> optSymbol = semanticModel.symbol(parent.parent());
-                    if (optSymbol.isEmpty()) {
-                        return;
-                    }
-                    Symbol symbol = optSymbol.get();
-                    if (symbol.kind() == SymbolKind.FUNCTION) {
-                        FunctionSymbol functionSymbol = (FunctionSymbol) symbol;
-                        Optional<TypeSymbol> returnType = functionSymbol.typeDescriptor().returnTypeDescriptor();
-                        if (returnType.isPresent()) {
-                            TypeSymbol returnTypeSymbol = returnType.get();
-                            String defaultVal = getDefaultValue(
-                                    CommonUtil.getRawType(returnTypeSymbol).typeKind().getName());
-                            textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
-                        }
-                    }
-                } else if (parent.kind() == SyntaxKind.SELECT_CLAUSE) {
-                    if (targetSymbol != null) {
-                        if (targetSymbol instanceof ArrayTypeSymbol arrayTypeSymbol) {
-                            String defaultVal = getDefaultValue(
-                                    CommonUtil.getRawType(arrayTypeSymbol.memberTypeDescriptor()).typeKind().getName());
-                            textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
-                        }
-                    }
-                } else if (parentKind == SyntaxKind.COLLECT_CLAUSE) {
-                    if (targetSymbol != null) {
-                        String defaultVal = getDefaultValue(
-                                CommonUtil.getRawType(targetSymbol).typeKind().getName());
-                        textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
+            case LIST_CONSTRUCTOR -> {
+                ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) expr;
+                String name = names[idx];
+                if (name.matches("\\d+")) {
+                    int index = Integer.parseInt(name);
+                    if (index < listCtrExpr.expressions().size()) {
+                        genDeleteMappingSource(semanticModel, (ExpressionNode) listCtrExpr.expressions().get(index),
+                                names, idx + 1, textEdits, targetSymbol);
                     }
                 }
             }
-        } else if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
-            MappingConstructorExpressionNode mappingCtrExpr = (MappingConstructorExpressionNode) expr;
-            String name = names[idx];
-            Map<String, SpecificFieldNode> mappingFields = convertMappingFieldsToMap(mappingCtrExpr);
-            SpecificFieldNode mappingFieldNode = mappingFields.get(name);
-            if (mappingFieldNode != null) {
-                genDeleteMappingSource(semanticModel, mappingFieldNode.valueExpr().orElseThrow(), names, idx + 1,
-                        textEdits, targetSymbol);
-            }
-        } else if (expr.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
-            ListConstructorExpressionNode listCtrExpr = (ListConstructorExpressionNode) expr;
-            String name = names[idx];
-            if (name.matches("\\d+")) {
-                int index = Integer.parseInt(name);
-                if (index < listCtrExpr.expressions().size()) {
-                    genDeleteMappingSource(semanticModel, (ExpressionNode) listCtrExpr.expressions().get(index),
-                            names, idx + 1, textEdits, targetSymbol);
+            case QUERY_EXPRESSION -> {
+                QueryExpressionNode queryExpr = (QueryExpressionNode) expr;
+                ClauseNode clauseNode = queryExpr.resultClause();
+                ExpressionNode resultExpr;
+                if (clauseNode.kind() == SyntaxKind.SELECT_CLAUSE) {
+                    resultExpr = ((SelectClauseNode) clauseNode).expression();
+                } else {
+                    resultExpr = ((CollectClauseNode) clauseNode).expression();
                 }
+                genDeleteMappingSource(semanticModel, resultExpr, names, idx, textEdits, targetSymbol);
             }
-        } else if (expr.kind() == SyntaxKind.QUERY_EXPRESSION) {
-            QueryExpressionNode queryExpr = (QueryExpressionNode) expr;
-            ClauseNode clauseNode = queryExpr.resultClause();
-            ExpressionNode resultExpr;
-            if (clauseNode.kind() == SyntaxKind.SELECT_CLAUSE) {
-                resultExpr = ((SelectClauseNode) clauseNode).expression();
-            } else {
-                resultExpr = ((CollectClauseNode) clauseNode).expression();
+            default -> {
             }
-            genDeleteMappingSource(semanticModel, resultExpr, names, idx, textEdits, targetSymbol);
         }
     }
 
+    private void handleDeleteAtTarget(SemanticModel semanticModel, ExpressionNode expr, List<TextEdit> textEdits,
+                                      TypeSymbol targetSymbol) {
+        SpecificFieldNode highestEmptyField = findHighestEmptyField(expr);
+        if (highestEmptyField != null) {
+            textEdits.add(new TextEdit(CommonUtils.toRange(highestEmptyField.lineRange()), ""));
+            return;
+        }
+
+        NonTerminalNode parent = expr.parent();
+        if (parent == null) {
+            return;
+        }
+
+        switch (parent.kind()) {
+            case SPECIFIC_FIELD -> deleteSpecificField((SpecificFieldNode) parent, textEdits);
+            case LIST_CONSTRUCTOR -> deleteListMember(expr, (ListConstructorExpressionNode) parent, textEdits);
+            case LOCAL_VAR_DECL, MODULE_VAR_DECL, LET_VAR_DECL ->
+                    replaceWithDefaultValueForVarDecl(semanticModel, parent, expr, textEdits);
+            case LET_EXPRESSION -> replaceWithDefaultValueForLetExpr(semanticModel, parent, expr, textEdits);
+            case EXPRESSION_FUNCTION_BODY -> replaceWithDefaultValueForFunctionBody(semanticModel, parent, expr,
+                    textEdits);
+            case SELECT_CLAUSE -> replaceWithDefaultValueForSelectClause(expr, targetSymbol, textEdits);
+            case COLLECT_CLAUSE -> replaceWithDefaultValueForCollectClause(expr, targetSymbol, textEdits);
+            default -> {
+            }
+        }
+    }
+
+    private SpecificFieldNode findHighestEmptyField(ExpressionNode expr) {
+        NonTerminalNode currentNode = expr;
+        SpecificFieldNode highestEmptyField = null;
+
+        while (true) {
+            NonTerminalNode parentNode = currentNode.parent();
+            if (parentNode == null || parentNode.kind() != SyntaxKind.SPECIFIC_FIELD) {
+                break;
+            }
+            SpecificFieldNode specificField = (SpecificFieldNode) parentNode;
+            NonTerminalNode grandParent = parentNode.parent();
+            if (grandParent == null || grandParent.kind() != SyntaxKind.MAPPING_CONSTRUCTOR) {
+                break;
+            }
+
+            MappingConstructorExpressionNode mappingCtr = (MappingConstructorExpressionNode) grandParent;
+            if (mappingCtr.fields().size() == 1) {
+                highestEmptyField = specificField;
+                currentNode = grandParent;
+                continue;
+            }
+            break;
+        }
+
+        return highestEmptyField;
+    }
+
+    private void deleteSpecificField(SpecificFieldNode specificField, List<TextEdit> textEdits) {
+        MappingConstructorExpressionNode mappingCtr = (MappingConstructorExpressionNode) specificField.parent();
+        SeparatedNodeList<MappingFieldNode> fields = mappingCtr.fields();
+        int fieldCount = fields.size();
+
+        if (fieldCount <= 1) {
+            textEdits.add(new TextEdit(CommonUtils.toRange(specificField.lineRange()), ""));
+            return;
+        }
+
+        int fieldIndex = -1;
+        for (int i = 0; i < fieldCount; i++) {
+            if (fields.get(i) == specificField) {
+                fieldIndex = i;
+                break;
+            }
+        }
+
+        if (fieldIndex < 0) {
+            textEdits.add(new TextEdit(CommonUtils.toRange(specificField.lineRange()), ""));
+            return;
+        }
+
+        TextRange deleteRange = computeFieldDeleteRange(specificField, fields, fieldIndex);
+        LineRange lineRangeToDelete = lineRangeFromTextRange(deleteRange);
+        textEdits.add(new TextEdit(CommonUtils.toRange(lineRangeToDelete), ""));
+    }
+
+    private TextRange computeFieldDeleteRange(SpecificFieldNode specificField,
+                                              SeparatedNodeList<MappingFieldNode> fields, int fieldIndex) {
+        int fieldCount = fields.size();
+        TextRange fieldRange = specificField.textRange();
+
+        if (fieldIndex == fieldCount - 1) {
+            Node separator = fields.getSeparator(fieldIndex - 1);
+            if (separator != null) {
+                return TextRange.from(separator.textRange().startOffset(),
+                        fieldRange.endOffset() - separator.textRange().startOffset());
+            }
+            return fieldRange;
+        }
+
+        Node separator = fields.getSeparator(fieldIndex);
+        if (separator != null) {
+            return TextRange.from(fieldRange.startOffset(),
+                    fields.get(fieldIndex + 1).textRange().startOffset() - fieldRange.startOffset());
+        }
+        return fieldRange;
+    }
+
+    private LineRange lineRangeFromTextRange(TextRange deleteRange) {
+        String fileName = document.name();
+        LinePosition startPos = document.syntaxTree().textDocument().linePositionFrom(deleteRange.startOffset());
+        LinePosition endPos = document.syntaxTree().textDocument().linePositionFrom(deleteRange.endOffset());
+        return LineRange.from(fileName, startPos, endPos);
+    }
+
+    private void deleteListMember(ExpressionNode expr, ListConstructorExpressionNode listCtrExpr,
+                                  List<TextEdit> textEdits) {
+        SeparatedNodeList<Node> expressions = listCtrExpr.expressions();
+        int memberIdx = 0;
+        for (int i = 0; i < expressions.size(); i++) {
+            if (expressions.get(i).equals(expr)) {
+                memberIdx = i;
+                break;
+            }
+        }
+
+        if (expressions.size() == 1) {
+            textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), ""));
+            return;
+        }
+
+        if (memberIdx == 0) {
+            LinePosition startPos = expr.lineRange().startLine();
+            LinePosition endPos = expressions.get(1).lineRange().startLine();
+            textEdits.add(new TextEdit(CommonUtils.toRange(startPos, endPos), ""));
+            return;
+        }
+
+        LinePosition startPos = expressions.get(memberIdx - 1).lineRange().endLine();
+        LinePosition endPos = expr.lineRange().endLine();
+        textEdits.add(new TextEdit(CommonUtils.toRange(startPos, endPos), ""));
+    }
+
+    private void replaceWithDefaultValueForVarDecl(SemanticModel semanticModel, NonTerminalNode parent,
+                                                   ExpressionNode expr, List<TextEdit> textEdits) {
+        Optional<Symbol> optSymbol = semanticModel.symbol(parent);
+        if (optSymbol.isEmpty()) {
+            return;
+        }
+        Symbol symbol = optSymbol.get();
+        if (symbol.kind() != SymbolKind.VARIABLE) {
+            return;
+        }
+        VariableSymbol varSymbol = (VariableSymbol) symbol;
+        replaceWithDefaultValue(expr, CommonUtil.getRawType(varSymbol.typeDescriptor()), textEdits);
+    }
+
+    private void replaceWithDefaultValueForLetExpr(SemanticModel semanticModel, NonTerminalNode parent,
+                                                   ExpressionNode expr, List<TextEdit> textEdits) {
+        NonTerminalNode parentOrLetExpr = parent.parent();
+        if (parentOrLetExpr == null || (parentOrLetExpr.kind() != SyntaxKind.LOCAL_VAR_DECL &&
+                parentOrLetExpr.kind() != SyntaxKind.MODULE_VAR_DECL)) {
+            return;
+        }
+        Optional<Symbol> optSymbol = semanticModel.symbol(parentOrLetExpr);
+        if (optSymbol.isEmpty()) {
+            return;
+        }
+        Symbol symbol = optSymbol.get();
+        if (symbol.kind() != SymbolKind.VARIABLE) {
+            return;
+        }
+        VariableSymbol varSymbol = (VariableSymbol) symbol;
+        replaceWithDefaultValue(expr, CommonUtil.getRawType(varSymbol.typeDescriptor()), textEdits);
+    }
+
+    private void replaceWithDefaultValueForFunctionBody(SemanticModel semanticModel, NonTerminalNode parent,
+                                                        ExpressionNode expr, List<TextEdit> textEdits) {
+        Optional<Symbol> optSymbol = semanticModel.symbol(parent.parent());
+        if (optSymbol.isEmpty()) {
+            return;
+        }
+        Symbol symbol = optSymbol.get();
+        if (symbol.kind() != SymbolKind.FUNCTION) {
+            return;
+        }
+        FunctionSymbol functionSymbol = (FunctionSymbol) symbol;
+        Optional<TypeSymbol> returnType = functionSymbol.typeDescriptor().returnTypeDescriptor();
+        if (returnType.isEmpty()) {
+            return;
+        }
+        replaceWithDefaultValue(expr, CommonUtil.getRawType(returnType.get()), textEdits);
+    }
+
+    private void replaceWithDefaultValueForSelectClause(ExpressionNode expr, TypeSymbol targetSymbol,
+                                                        List<TextEdit> textEdits) {
+        if (!(targetSymbol instanceof ArrayTypeSymbol arrayTypeSymbol)) {
+            return;
+        }
+        replaceWithDefaultValue(expr, CommonUtil.getRawType(arrayTypeSymbol.memberTypeDescriptor()), textEdits);
+    }
+
+    private void replaceWithDefaultValueForCollectClause(ExpressionNode expr, TypeSymbol targetSymbol,
+                                                         List<TextEdit> textEdits) {
+        if (targetSymbol == null) {
+            return;
+        }
+        replaceWithDefaultValue(expr, CommonUtil.getRawType(targetSymbol), textEdits);
+    }
+
+    private void replaceWithDefaultValue(ExpressionNode expr, TypeSymbol typeSymbol, List<TextEdit> textEdits) {
+        String defaultVal = getDefaultValue(typeSymbol.typeKind().getName());
+        textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
+    }
 
     private void setImportStatements(Map<String, String> importStatements, List<TextEdit> textEdits) {
         if (importStatements == null) {
@@ -2546,7 +2709,7 @@ public class DataMapManager {
         return modules;
     }
 
-    public JsonElement getVisualizableProperties(SemanticModel sm, JsonElement node) {
+    public JsonElement getVisualizableProperties(SemanticModel sm, JsonElement node, Project project) {
         Codedata codedata = gson.fromJson(node, Codedata.class);
         String org = codedata.org();
         SemanticModel semanticModel;
@@ -2554,11 +2717,15 @@ public class DataMapManager {
             semanticModel = sm;
         } else {
             ModuleInfo moduleInfo = new ModuleInfo(org, codedata.packageName(), codedata.module(), codedata.version());
-            Optional<SemanticModel> optSemanticModel = PackageUtil.getSemanticModel(moduleInfo);
-            if (optSemanticModel.isEmpty()) {
+            Optional<SemanticModel> semanticModelOpt = PackageUtil.getSemanticModelFromWorkspace(
+                    project, org, codedata.packageName(), codedata.module());
+            if (semanticModelOpt.isEmpty()) {
+                semanticModelOpt = PackageUtil.getSemanticModel(moduleInfo);
+            }
+            if (semanticModelOpt.isEmpty()) {
                 throw new IllegalStateException("Semantic model cannot be found for the module: " + moduleInfo);
             }
-            semanticModel = optSemanticModel.get();
+            semanticModel = semanticModelOpt.get();
         }
 
         String symbolStr = codedata.symbol();
@@ -2613,7 +2780,7 @@ public class DataMapManager {
         if (kind == TypeDescKind.TUPLE) {
             return new DataMapCapability(true, "[]");
         } else if (isEffectiveRecordType(kind, rawTypeSymbol)) {
-            if (isArray) {
+            if (isArray || kind == TypeDescKind.ARRAY) {
                 return new DataMapCapability(true, "[]");
             }
             return new DataMapCapability(true, "{}");
@@ -2628,6 +2795,8 @@ public class DataMapManager {
             return new DataMapCapability(false, "false");
         } else if (kind == TypeDescKind.STRING) {
             return new DataMapCapability(false, "\"\"");
+        } else if (kind == TypeDescKind.ARRAY) {
+            return new DataMapCapability(false, "[]");
         }
         return null;
     }
@@ -2649,10 +2818,13 @@ public class DataMapManager {
         }
     }
 
-    private boolean isEffectiveRecordType(TypeDescKind kind, TypeSymbol rawTypeSymbol) {
+    private boolean isEffectiveRecordType(TypeDescKind kind, TypeSymbol typeSymbol) {
         if (kind == TypeDescKind.ARRAY) {
-            TypeDescKind memberKind = ((ArrayTypeSymbol) rawTypeSymbol).memberTypeDescriptor().typeKind();
-            return isEffectiveRecordType(memberKind, ((ArrayTypeSymbol) rawTypeSymbol).memberTypeDescriptor());
+            TypeSymbol rawTypeSymbol = CommonUtils.getRawType(((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor());
+            return isEffectiveRecordType(rawTypeSymbol.typeKind(), rawTypeSymbol);
+        } else if (kind == TypeDescKind.TYPE_REFERENCE) {
+            TypeSymbol rawTypeSymbol = CommonUtils.getRawType(typeSymbol);
+            return isEffectiveRecordType(rawTypeSymbol.typeKind(), rawTypeSymbol);
         }
         return kind == TypeDescKind.RECORD;
     }
@@ -4013,7 +4185,7 @@ public class DataMapManager {
     }
 
     public JsonElement convertType(Path filePath, SemanticModel semanticModel, JsonElement cd, String typeName,
-                                   String variableName, String parentTypeName, boolean isInput,
+                                   String variableName, String parentTypeName, boolean isInput, boolean isArray,
                                    Map<String, String> imports) {
         Codedata codedata = gson.fromJson(cd, Codedata.class);
         NonTerminalNode node = getNode(codedata.lineRange());
@@ -4037,14 +4209,15 @@ public class DataMapManager {
                 if (codedata.isNew() != null && codedata.isNew()) {
                     ExpressionNode expr = letExpr.expression();
                     String statement = String.format(", %s %s = %s", typeName, variableName,
-                            expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR ? expr.toSourceCode().trim() : "{}");
+                            getConvertedOutputExpression(expr, isArray));
                     SeparatedNodeList<LetVariableDeclarationNode> letVarDeclarationNodes = letExpr.letVarDeclarations();
                     LinePosition linePosition =
                             letVarDeclarationNodes.get(letVarDeclarationNodes.size() - 1).lineRange().endLine();
                     textEdits.add(new TextEdit(CommonUtils.toRange(linePosition), statement));
+                    boolean hasErrorReturn = addErrorReturn(functionDefinitionNode, semanticModel, textEdits);
                     textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()),
                             addTypeConversion(parentTypeName, textEdits, variableName,
-                                    document.syntaxTree().rootNode())));
+                                    document.syntaxTree().rootNode(), hasErrorReturn)));
                 } else {
                     LetVariableDeclarationNode letVar = getMatchingLetVar(letExpr.letVarDeclarations(), variableName);
                     textEdits.add(new TextEdit(
@@ -4052,8 +4225,10 @@ public class DataMapManager {
                 }
             } else {
                 if (codedata.isNew() != null && codedata.isNew()) {
-                    String statement = String.format(" %s %sConverted = check %s.ensureType(),", typeName, variableName,
-                            variableName);
+                    String conversionExpr = getInputConversionExpr(parentTypeName, variableName,
+                            textEdits, document.syntaxTree().rootNode());
+                    String statement = String.format(" %s %sConverted = %s,", typeName, variableName,
+                            conversionExpr);
                     textEdits.add(
                             new TextEdit(CommonUtils.toRange(letExpr.letKeyword().lineRange().endLine()), statement));
                     addErrorReturn(functionDefinitionNode, semanticModel, textEdits);
@@ -4065,14 +4240,17 @@ public class DataMapManager {
             }
         } else {
             String statement;
+            boolean hasErrorReturn = addErrorReturn(functionDefinitionNode, semanticModel, textEdits);
             if (!isInput) {
                 statement = String.format("let %s %s = %s in %s", typeName, variableName,
-                        expression.kind() == SyntaxKind.MAPPING_CONSTRUCTOR ? expression.toSourceCode().trim() : "{}",
-                        addTypeConversion(parentTypeName, textEdits, variableName, document.syntaxTree().rootNode()));
+                        getConvertedOutputExpression(expression, isArray),
+                        addTypeConversion(parentTypeName, textEdits, variableName, document.syntaxTree().rootNode(),
+                                hasErrorReturn));
             } else {
-                statement = String.format("let %s %sConverted = check %s.ensureType() in %s", typeName, variableName,
-                        variableName, expression.toSourceCode().trim());
-                addErrorReturn(functionDefinitionNode, semanticModel, textEdits);
+                String conversionExpr = getInputConversionExpr(parentTypeName, variableName,
+                        textEdits, document.syntaxTree().rootNode());
+                statement = String.format("let %s %sConverted = %s in %s", typeName, variableName,
+                        conversionExpr, expression.toSourceCode().trim());
             }
             textEdits.add(new TextEdit(CommonUtils.toRange(expression.lineRange()), statement));
         }
@@ -4081,6 +4259,24 @@ public class DataMapManager {
 
         textEditsMap.put(filePath, textEdits);
         return gson.toJsonTree(textEditsMap);
+    }
+
+    private String getConvertedOutputExpression(ExpressionNode expr, boolean isArray) {
+        SyntaxKind kind = expr.kind();
+
+        if (isArray) {
+            if (kind == SyntaxKind.LIST_CONSTRUCTOR) {
+                return expr.toSourceCode().trim();
+            } else {
+                return "[]";
+            }
+        }
+
+        if (kind == SyntaxKind.MAPPING_CONSTRUCTOR) {
+            return expr.toSourceCode().trim();
+        } else {
+            return "{}";
+        }
     }
 
     private LetVariableDeclarationNode getMatchingLetVar(SeparatedNodeList<LetVariableDeclarationNode> letVarNodes,
@@ -4098,11 +4294,11 @@ public class DataMapManager {
         throw new IllegalStateException("Could not find the variable declaration for the variable: " + name);
     }
 
-    private void addErrorReturn(FunctionDefinitionNode funcDefNode, SemanticModel semanticModel,
+    private boolean addErrorReturn(FunctionDefinitionNode funcDefNode, SemanticModel semanticModel,
                                 List<TextEdit> textEdits) {
         Optional<Symbol> optFuncSymbol = semanticModel.symbol(funcDefNode);
         if (optFuncSymbol.isEmpty()) {
-            return;
+            return false;
         }
         FunctionTypeSymbol functionTypeSymbol = ((FunctionSymbol) optFuncSymbol.get()).typeDescriptor();
         Optional<TypeSymbol> optReturnTypeSymbol = functionTypeSymbol.returnTypeDescriptor();
@@ -4118,30 +4314,51 @@ public class DataMapManager {
                     textEdits.add(
                             new TextEdit(CommonUtils.toRange(returnTypeNode.get().lineRange().endLine()), "|error"));
                 }
+                return false;
             }
+            return true;
         } else {
             textEdits.add(new TextEdit(
                     CommonUtils.toRange(funcDefNode.functionSignature().lineRange().endLine()), " returns error?"));
+            return false;
         }
     }
 
     private String addTypeConversion(String parentTypeName, List<TextEdit> textEdits, String variableName,
-                                     ModulePartNode rootNode) {
+                                     ModulePartNode rootNode, boolean hasErrorReturn) {
         if (parentTypeName.equals("json")) {
             if (!CommonUtils.importExists(rootNode, "ballerina", "data.jsondata")) {
                 textEdits.add(new TextEdit(CommonUtils.toRange(rootNode.lineRange().startLine()),
                         "import ballerina/data.jsondata;\n"));
             }
-            return "jsondata:toJson(" + variableName + ")";
+            return (hasErrorReturn ? "" : "check ") + "jsondata:toJson(" + variableName + ")";
         } else if (parentTypeName.equals("xml")) {
             if (!CommonUtils.importExists(rootNode, "ballerina", "data.xmldata")) {
                 textEdits.add(new TextEdit(CommonUtils.toRange(rootNode.lineRange().startLine()),
                         "import ballerina/data.xmldata;\n"));
             }
-            return "xmldata:toXml(" + variableName + ")";
+            return (hasErrorReturn ? "" : "check ") + "xmldata:toXml(" + variableName + ")";
         }
 
         return variableName;
+    }
+
+    private String getInputConversionExpr(String parentTypeName, String variableName, List<TextEdit> textEdits,
+                                          ModulePartNode rootNode) {
+        if ("json".equals(parentTypeName)) {
+            if (!CommonUtils.importExists(rootNode, "ballerina", "data.jsondata")) {
+                textEdits.add(new TextEdit(CommonUtils.toRange(rootNode.lineRange().startLine()),
+                        "import ballerina/data.jsondata;\n"));
+            }
+            return "check jsondata:parseAsType(" + variableName + ")";
+        } else if ("xml".equals(parentTypeName)) {
+            if (!CommonUtils.importExists(rootNode, "ballerina", "data.xmldata")) {
+                textEdits.add(new TextEdit(CommonUtils.toRange(rootNode.lineRange().startLine()),
+                        "import ballerina/data.xmldata;\n"));
+            }
+            return "check xmldata:parseAsType(" + variableName + ")";
+        }
+        return "check " + variableName + ".ensureType()";
     }
 
     private void addImports(List<TextEdit> textEdits, ModulePartNode rootNode, Map<String, String> imports) {

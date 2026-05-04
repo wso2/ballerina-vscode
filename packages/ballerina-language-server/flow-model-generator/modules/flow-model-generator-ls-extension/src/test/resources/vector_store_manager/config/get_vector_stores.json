@@ -10,7 +10,10 @@
         "items": [
           {
             "metadata": {
-              "label": "inMemoryVectorStore"
+              "label": "inMemoryVectorStore",
+              "data": {
+                "connectorType": "Default"
+              }
             },
             "items": [
               {
@@ -74,7 +77,10 @@
           },
           {
             "metadata": {
-              "label": "pineconeVectorStore"
+              "label": "pineconeVectorStore",
+              "data": {
+                "connectorType": "Default"
+              }
             },
             "items": [
               {

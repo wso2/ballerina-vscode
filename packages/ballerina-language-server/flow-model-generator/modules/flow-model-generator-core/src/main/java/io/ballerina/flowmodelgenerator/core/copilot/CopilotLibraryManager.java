@@ -23,21 +23,29 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.reflect.TypeToken;
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.flowmodelgenerator.core.InstructionLoader;
 import io.ballerina.flowmodelgenerator.core.copilot.database.LibraryDatabaseAccessor;
+import io.ballerina.flowmodelgenerator.core.copilot.model.Annotation;
 import io.ballerina.flowmodelgenerator.core.copilot.model.Client;
 import io.ballerina.flowmodelgenerator.core.copilot.model.Library;
 import io.ballerina.flowmodelgenerator.core.copilot.model.Service;
+import io.ballerina.flowmodelgenerator.core.copilot.service.AnnotationLoader;
+import io.ballerina.flowmodelgenerator.core.copilot.service.CopilotDeprecationEnricher;
+import io.ballerina.flowmodelgenerator.core.copilot.service.CopilotListenerNameEnricher;
 import io.ballerina.flowmodelgenerator.core.copilot.service.ServiceLoader;
 import io.ballerina.flowmodelgenerator.core.copilot.util.SymbolProcessor;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
+import io.ballerina.projects.Package;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -59,6 +67,17 @@ public class CopilotLibraryManager {
     private static final String EXCLUSION_JSON_PATH = "/copilot/exclusion.json";
     private static final String TYPE_GENERIC = "generic";
 
+    // Libraries for which README content should be included in the filtered response.
+    private static final Set<String> README_WHITELIST = Set.of(
+            "ballerinax/salesforce",
+            "ballerina/ai",
+            "ballerinax/cdc",
+            "ballerinax/mysql",
+            "ballerinax/postgresql",
+            "ballerina/ftp",
+            "ballerina/file"
+    );
+
     /**
      * Loads all libraries from the database.
      * Returns a list of libraries with name and description only.
@@ -79,6 +98,7 @@ public class CopilotLibraryManager {
             throw new RuntimeException("Failed to load libraries from database: " + e.getMessage(), e);
         }
 
+        applyLibraryExclusions(libraries);
         return libraries;
     }
 
@@ -86,6 +106,7 @@ public class CopilotLibraryManager {
      * Loads filtered libraries using the semantic model.
      * Returns libraries with full details including clients, functions, typedefs, and services.
      * Applies exclusions and augments with instructions before returning.
+     * README content is included only for libraries in {@link #README_WHITELIST}.
      *
      * @param libraryNames Array of library names in "org/package_name" format to filter
      * @return List of Library objects with complete information
@@ -106,13 +127,16 @@ public class CopilotLibraryManager {
             ModuleInfo moduleInfo = new ModuleInfo(org, packageName, org + "/" +
                     packageName, null);
 
-            // Get semantic model for the module
-            Optional<SemanticModel> optSemanticModel = PackageUtil.getSemanticModel(org, packageName);
-            if (optSemanticModel.isEmpty()) {
-                continue; // Skip if semantic model not found
+            // Resolve the package once; the README loader below reuses this same Package
+            // to avoid a second (potentially network-bound) resolution.
+            Optional<Package> optPackage = PackageUtil.getModulePackage(
+                    PackageUtil.getSampleProject(), org, packageName);
+            if (optPackage.isEmpty()) {
+                continue;
             }
-
-            SemanticModel semanticModel = optSemanticModel.get();
+            Package pkg = optPackage.get();
+            SemanticModel semanticModel = PackageUtil.getCompilation(pkg)
+                    .getSemanticModel(pkg.getDefaultModule().moduleId());
 
             // Get the package description from database
             String description = LibraryDatabaseAccessor.getPackageDescription(org, packageName).orElse("");
@@ -132,14 +156,27 @@ public class CopilotLibraryManager {
             library.setFunctions(symbolResult.getFunctions());
             library.setTypeDefs(symbolResult.getTypeDefs());
 
-            // Load services from both inbuilt triggers and generic services
             JsonArray servicesJson = ServiceLoader.loadAllServices(libraryName);
+            List<Symbol> moduleSymbols = semanticModel.moduleSymbols();
+            CopilotDeprecationEnricher.enrich(servicesJson, moduleSymbols);
+            CopilotListenerNameEnricher.enrich(servicesJson, moduleSymbols);
             List<Service> services = new ArrayList<>();
             for (JsonElement serviceElement : servicesJson) {
                 Service service = GSON.fromJson(serviceElement, Service.class);
                 services.add(service);
             }
             library.setServices(services);
+
+            JsonArray annotationsJson = AnnotationLoader.loadFromServiceIndex(libraryName);
+            List<Annotation> annotations = new ArrayList<>();
+            for (JsonElement annotationElement : annotationsJson) {
+                annotations.add(GSON.fromJson(annotationElement, Annotation.class));
+            }
+            library.setAnnotations(annotations);
+
+            if (README_WHITELIST.contains(libraryName)) {
+                readPackageReadme(pkg).ifPresent(library::setReadme);
+            }
 
             libraries.add(library);
         }
@@ -170,7 +207,24 @@ public class CopilotLibraryManager {
             throw new RuntimeException("Failed to search libraries by keywords: " + e.getMessage(), e);
         }
 
+        applyLibraryExclusions(libraries);
         return libraries;
+    }
+
+    /**
+     * Reads the README.md content from the docs directory of a resolved .bala package.
+     *
+     * @param pkg the resolved package
+     * @return an Optional containing the README content if present
+     */
+    private Optional<String> readPackageReadme(Package pkg) {
+        Path readmePath = pkg.project().sourceRoot().resolve("docs").resolve("README.md");
+        try {
+            return Optional.of(Files.readString(readmePath, StandardCharsets.UTF_8));
+        } catch (IOException e) {
+            // README is optional — absent or unreadable yields an empty result.
+            return Optional.empty();
+        }
     }
 
     /**
@@ -192,16 +246,23 @@ public class CopilotLibraryManager {
             }
         }
 
-        for (Library library : libraries) {
+        libraries.removeIf(library -> {
             String libraryName = library.getName();
             if (libraryName == null || !exclusionMap.containsKey(libraryName)) {
-                continue;
+                return false;
             }
 
             ExclusionEntry exclusion = exclusionMap.get(libraryName);
 
+            // If only the name is specified (no functions or clients), exclude the entire library
+            boolean hasFunctionExclusions = exclusion.functions != null && !exclusion.functions.isEmpty();
+            boolean hasClientExclusions = exclusion.clients != null && !exclusion.clients.isEmpty();
+            if (!hasFunctionExclusions && !hasClientExclusions) {
+                return true;
+            }
+
             // Exclude module-level functions
-            if (exclusion.functions != null && library.getFunctions() != null) {
+            if (hasFunctionExclusions && library.getFunctions() != null) {
                 Set<String> excludedNames = exclusion.functions.stream()
                         .map(f -> f.name)
                         .collect(Collectors.toSet());
@@ -209,10 +270,12 @@ public class CopilotLibraryManager {
             }
 
             // Exclude client functions
-            if (exclusion.clients != null && library.getClients() != null) {
+            if (hasClientExclusions && library.getClients() != null) {
                 applyClientExclusions(library.getClients(), exclusion.clients);
             }
-        }
+
+            return false;
+        });
     }
 
     private void applyClientExclusions(List<Client> clients, List<ExcludedClient> exclusionClients) {

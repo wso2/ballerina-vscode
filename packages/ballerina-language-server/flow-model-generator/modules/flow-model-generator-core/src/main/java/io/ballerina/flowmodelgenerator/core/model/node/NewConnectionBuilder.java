@@ -20,6 +20,7 @@ package io.ballerina.flowmodelgenerator.core.model.node;
 
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
+import io.ballerina.flowmodelgenerator.core.ConnectionActionProvider;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
@@ -46,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Represents a new connection node in the flow model.
@@ -63,12 +65,6 @@ public class NewConnectionBuilder extends CallBuilder {
     public static final String CONNECTION_NAME_DOC = "Name of the connection";
     private static final String CONNECTIONS_BAL = "connections.bal";
     private static final String DRIVER_SUB_PACKAGE = ".driver";
-    public static final List<String> CONNECTION_DRIVERS = List.of(
-            "ballerinax/mysql",
-            "ballerinax/postgresql",
-            "ballerinax/oracledb",
-            "ballerinax/mssql"
-    );
 
     @Override
     public void setConcreteConstData() {
@@ -112,13 +108,14 @@ public class NewConnectionBuilder extends CallBuilder {
             sourceBuilder.acceptImport();
         }
 
+        preloadConnectorActions(sourceBuilder);
         return sourceBuilder.build();
     }
 
     private static void checkDriverImport(SourceBuilder sourceBuilder, Codedata codedata, Path filePath) {
         // TODO: This information should be embedded to the package index.
         // Check if the new connection requires a driver import
-        if (CONNECTION_DRIVERS.contains(codedata.getImportSignature())) {
+        if (CommonUtils.PERSIST_DB_DRIVERS.contains(codedata.getImportSignature())) {
             sourceBuilder.acceptImport(codedata.org(), codedata.module() + DRIVER_SUB_PACKAGE, true);
         }
     }
@@ -187,6 +184,13 @@ public class NewConnectionBuilder extends CallBuilder {
         properties()
                 .scope(Property.GLOBAL_SCOPE)
                 .checkError(true, CHECK_ERROR_DOC, false);
+    }
+
+    private void preloadConnectorActions(SourceBuilder sourceBuilder) {
+        CompletableFuture.runAsync(() -> {
+            ConnectionActionProvider.getInstance().populate(sourceBuilder.flowNode.codedata(),
+                    sourceBuilder.workspaceManager, sourceBuilder.filePath);
+        });
     }
 
     @Override

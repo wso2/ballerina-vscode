@@ -44,7 +44,7 @@
         "isPublic": {
           "metadata": {
             "label": "public",
-            "description": "Make visible across the workspace"
+            "description": "Make visible across the project"
           },
           "types": [
             {
@@ -52,7 +52,7 @@
               "selected": true
             }
           ],
-          "value": false,
+          "value": "false",
           "optional": true,
           "editable": true,
           "advanced": false,
@@ -168,7 +168,7 @@
         "isPublic": {
           "metadata": {
             "label": "public",
-            "description": "Make visible across the workspace"
+            "description": "Make visible across the project"
           },
           "types": [
             {
@@ -176,7 +176,7 @@
               "selected": true
             }
           ],
-          "value": false,
+          "value": "false",
           "optional": true,
           "editable": true,
           "advanced": false,
@@ -297,7 +297,7 @@
         "isPublic": {
           "metadata": {
             "label": "public",
-            "description": "Make visible across the workspace"
+            "description": "Make visible across the project"
           },
           "types": [
             {
@@ -305,7 +305,7 @@
               "selected": true
             }
           ],
-          "value": false,
+          "value": "false",
           "optional": true,
           "editable": true,
           "advanced": false,
@@ -526,7 +526,7 @@
         "isPublic": {
           "metadata": {
             "label": "public",
-            "description": "Make visible across the workspace"
+            "description": "Make visible across the project"
           },
           "types": [
             {
@@ -534,7 +534,7 @@
               "selected": true
             }
           ],
-          "value": false,
+          "value": "false",
           "optional": true,
           "editable": true,
           "advanced": false,
@@ -729,7 +729,7 @@
         "isPublic": {
           "metadata": {
             "label": "public",
-            "description": "Make visible across the workspace"
+            "description": "Make visible across the project"
           },
           "types": [
             {
@@ -737,7 +737,7 @@
               "selected": true
             }
           ],
-          "value": false,
+          "value": "false",
           "optional": true,
           "editable": true,
           "advanced": false,
@@ -942,7 +942,7 @@
         "isPublic": {
           "metadata": {
             "label": "public",
-            "description": "Make visible across the workspace"
+            "description": "Make visible across the project"
           },
           "types": [
             {
@@ -950,7 +950,7 @@
               "selected": true
             }
           ],
-          "value": false,
+          "value": "false",
           "optional": true,
           "editable": true,
           "advanced": false,
@@ -1140,7 +1140,7 @@
         "isPublic": {
           "metadata": {
             "label": "public",
-            "description": "Make visible across the workspace"
+            "description": "Make visible across the project"
           },
           "types": [
             {
@@ -1148,7 +1148,7 @@
               "selected": true
             }
           ],
-          "value": false,
+          "value": "false",
           "optional": true,
           "editable": true,
           "advanced": false,

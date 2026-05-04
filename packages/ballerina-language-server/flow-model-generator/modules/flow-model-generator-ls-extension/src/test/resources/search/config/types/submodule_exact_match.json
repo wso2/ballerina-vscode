@@ -120,7 +120,7 @@
               "metadata": {
                 "label": "SearchIndexerLimits",
                 "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_azure.ai.search_1.0.1.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_azure.ai.search_1.0.2.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
@@ -128,32 +128,7 @@
                 "module": "azure.ai.search",
                 "packageName": "azure.ai.search",
                 "symbol": "SearchIndexerLimits",
-                "version": "1.0.1"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "automata",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "SearchResponse",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_automata_1.5.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "automata",
-                "packageName": "automata",
-                "symbol": "SearchResponse",
-                "version": "1.5.1"
+                "version": "1.0.2"
               },
               "enabled": true
             }
@@ -611,6 +586,31 @@
                 "packageName": "pipedrive",
                 "symbol": "SearchItemByFieldResponse200",
                 "version": "1.5.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "github",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "SearchResultTextMatches",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_github_5.1.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "github",
+                "packageName": "github",
+                "symbol": "SearchResultTextMatches",
+                "version": "5.1.0"
               },
               "enabled": true
             }

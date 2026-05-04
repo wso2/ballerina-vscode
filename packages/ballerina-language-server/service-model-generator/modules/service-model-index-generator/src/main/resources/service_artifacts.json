@@ -236,7 +236,7 @@
     },
     {
       "name": "file",
-      "version": "1.12.0",
+      "version": "1.13.0",
       "serviceTypeSkipList": [
         "Service"
       ],
@@ -269,8 +269,8 @@
               "description": "The `onCreate` remote method will be triggered when a file is created in the specified directory",
               "accessor": "",
               "kind": "REMOTE",
-              "returnType": "",
-              "returnError": 0,
+              "returnType": "error?",
+              "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 0,
               "optional": 1,
@@ -293,8 +293,8 @@
               "description": "The `onDelete` remote method will be triggered when a file is deleted in the specified directory",
               "accessor": "",
               "kind": "REMOTE",
-              "returnType": "",
-              "returnError": 0,
+              "returnType": "error?",
+              "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 0,
               "optional": 1,
@@ -317,8 +317,8 @@
               "description": "The `onModify` remote method will be triggered when a file is modified in the specified directory",
               "accessor": "",
               "kind": "REMOTE",
-              "returnType": "",
-              "returnError": 0,
+              "returnType": "error?",
+              "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 0,
               "optional": 1,
@@ -385,13 +385,13 @@
     },
     {
       "name": "ftp",
-      "version": "2.16.0",
+      "version": "2.19.0",
       "serviceTypeSkipList": [
         "Service"
       ],
       "serviceDeclaration": {
         "displayName": "FTP / SFTP",
-        "description": "Create a service to monitor a directory in a FTP server for file events",
+        "description": "Create a service to monitor a directory in a FTP/SFTP server for file events. Supports content-specific handlers for CSV, JSON, XML, text, and raw binary files, with optional data binding to custom record types and streaming for large files.",
         "optionalTypeDescriptor": 1,
         "typeDescriptorLabel": "Service Type",
         "typeDescriptorDescription": "The name of the service contract type",
@@ -408,28 +408,57 @@
         "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "file"
       },
+      "annotations": {
+        "ServiceConfig": {
+          "attachmentPoints": [
+            "SERVICE"
+          ],
+          "displayName": "Service Configuration",
+          "description": "Define service-level configuration such as the FTP directory path to monitor",
+          "typeConstraint": "ftp:FtpServiceConfig"
+        },
+        "FunctionConfig": {
+          "attachmentPoints": [
+            "OBJECT_METHOD"
+          ],
+          "displayName": "Function Configuration",
+          "description": "Configure pre/post processing actions on the file (e.g., move or delete the file after processing)",
+          "typeConstraint": "ftp:FtpFunctionConfig"
+        }
+      },
       "serviceTypes": {
         "Service": {
           "name": "Service",
-          "description": "",
+          "description": "FTP service that handles file events from a remote FTP/SFTP location",
           "functions": [
             {
-              "name": "onFileChange",
-              "description": "The `onFileChange` remote method will be triggered when a file change event occurs",
+              "name": "onFileCsv",
+              "description": "Triggered when a CSV file is added to the monitored FTP location. Supports raw 2D string arrays, data binding to custom record types, and streaming for large files",
               "accessor": "",
               "kind": "REMOTE",
               "returnType": "error?",
               "returnError": 1,
               "returnTypeEditable": 0,
               "enable": 0,
-              "optional": 0,
+              "optional": 1,
               "parameters": [
                 {
-                  "name": "event",
-                  "label": "The File watch event",
-                  "description": "The File watch event",
+                  "name": "content",
+                  "label": "CSV Content",
+                  "description": "CSV file content. Can be string[][] for raw rows, record{}[] for data-bound rows, stream<string[]> for streaming raw rows from large files, or stream<record{}> for streaming data-bound rows",
+                  "kind": "DATA_BINDING",
+                  "type": "string[][]",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 1
+                },
+                {
+                  "name": "fileInfo",
+                  "label": "File Metadata",
+                  "description": "Additional file properties such as size, modification time, and permissions",
                   "kind": "REQUIRED",
-                  "type": "ftp:WatchEvent & readonly",
+                  "type": "ftp:FileInfo",
                   "defaultValue": "",
                   "importStatements": "",
                   "nameEditable": 1,
@@ -437,8 +466,262 @@
                 },
                 {
                   "name": "caller",
-                  "label": "Caller",
-                  "description": "The FTP caller object to execute file operations",
+                  "label": "FTP Connection",
+                  "description": "Optional FTP connection for performing additional file operations (move, delete) within this handler",
+                  "kind": "REQUIRED",
+                  "type": "ftp:Caller",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onFileJson",
+              "description": "Triggered when a JSON file is added to the monitored FTP location. Supports raw json or data binding to custom record types",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 0,
+              "optional": 1,
+              "parameters": [
+                {
+                  "name": "content",
+                  "label": "JSON Content",
+                  "description": "JSON file content. Can be json for raw JSON or a custom record type for data binding",
+                  "kind": "DATA_BINDING",
+                  "type": "json",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 1
+                },
+                {
+                  "name": "fileInfo",
+                  "label": "File Metadata",
+                  "description": "Additional file properties such as size, modification time, and permissions",
+                  "kind": "REQUIRED",
+                  "type": "ftp:FileInfo",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                },
+                {
+                  "name": "caller",
+                  "label": "FTP Connection",
+                  "description": "Optional FTP connection for performing additional file operations (move, delete) within this handler",
+                  "kind": "REQUIRED",
+                  "type": "ftp:Caller",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onFileXml",
+              "description": "Triggered when an XML file is added to the monitored FTP location",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 0,
+              "optional": 1,
+              "parameters": [
+                {
+                  "name": "content",
+                  "label": "XML Content",
+                  "description": "XML file content",
+                  "kind": "REQUIRED",
+                  "type": "xml",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                },
+                {
+                  "name": "fileInfo",
+                  "label": "File Metadata",
+                  "description": "Additional file properties such as size, modification time, and permissions",
+                  "kind": "REQUIRED",
+                  "type": "ftp:FileInfo",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                },
+                {
+                  "name": "caller",
+                  "label": "FTP Connection",
+                  "description": "Optional FTP connection for performing additional file operations (move, delete) within this handler",
+                  "kind": "REQUIRED",
+                  "type": "ftp:Caller",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onFileText",
+              "description": "Triggered when a text file is added to the monitored FTP location",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 0,
+              "optional": 1,
+              "parameters": [
+                {
+                  "name": "content",
+                  "label": "Text Content",
+                  "description": "Text file content",
+                  "kind": "REQUIRED",
+                  "type": "string",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                },
+                {
+                  "name": "fileInfo",
+                  "label": "File Metadata",
+                  "description": "Additional file properties such as size, modification time, and permissions",
+                  "kind": "REQUIRED",
+                  "type": "ftp:FileInfo",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                },
+                {
+                  "name": "caller",
+                  "label": "FTP Connection",
+                  "description": "Optional FTP connection for performing additional file operations (move, delete) within this handler",
+                  "kind": "REQUIRED",
+                  "type": "ftp:Caller",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onFile",
+              "description": "Triggered when any file is added to the monitored FTP location. Supports raw byte arrays and streaming for large binary files",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 0,
+              "optional": 1,
+              "parameters": [
+                {
+                  "name": "content",
+                  "label": "File Content",
+                  "description": "Raw file content as byte[] or stream<byte[]> for large files",
+                  "kind": "REQUIRED",
+                  "type": "byte[]",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 1
+                },
+                {
+                  "name": "fileInfo",
+                  "label": "File Metadata",
+                  "description": "Additional file properties such as size, modification time, and permissions",
+                  "kind": "REQUIRED",
+                  "type": "ftp:FileInfo",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                },
+                {
+                  "name": "caller",
+                  "label": "FTP Connection",
+                  "description": "Optional FTP connection for performing additional file operations (move, delete) within this handler",
+                  "kind": "REQUIRED",
+                  "type": "ftp:Caller",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onFileDelete",
+              "description": "Triggered when a file is deleted from the monitored FTP location",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 0,
+              "optional": 1,
+              "parameters": [
+                {
+                  "name": "deletedFile",
+                  "label": "Deleted File Path",
+                  "description": "Path of the deleted file",
+                  "kind": "REQUIRED",
+                  "type": "string",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                },
+                {
+                  "name": "caller",
+                  "label": "FTP Connection",
+                  "description": "Optional FTP connection for performing additional file operations (move, delete) within this handler",
+                  "kind": "REQUIRED",
+                  "type": "ftp:Caller",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onError",
+              "description": "Triggered when an error occurs during file processing. Implement this to handle failures gracefully",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 0,
+              "optional": 1,
+              "parameters": [
+                {
+                  "name": "ftpError",
+                  "label": "FTP Error",
+                  "description": "The error that occurred during file processing",
+                  "kind": "REQUIRED",
+                  "type": "ftp:Error",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                },
+                {
+                  "name": "caller",
+                  "label": "FTP Connection",
+                  "description": "Optional FTP connection for performing additional file operations (move, delete) within this handler",
                   "kind": "REQUIRED",
                   "type": "ftp:Caller",
                   "defaultValue": "",
@@ -515,7 +798,7 @@
         },
         "path": {
           "label": "Path",
-          "description": "The path to be monitored",
+          "description": "The remote FTP directory path to be monitored",
           "defaultValue": "\"/\"",
           "placeholder": "\"/\"",
           "types": [
@@ -528,13 +811,18 @@
               "ballerinaType": "string"
             }
           ],
-          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
+          "sourceKind": "SOURCE_ANNOTATION"
         }
       },
       "readOnlyMetadata": [
         {
           "key": "protocol",
           "displayName": "Protocol",
+          "kind": "LISTENER_PARAM"
+        },
+        {
+          "key": "path",
+          "displayName": "Path",
           "kind": "LISTENER_PARAM"
         }
       ]
@@ -599,8 +887,8 @@
         "serviceUri": {
           "label": "Service URI",
           "description": "The URI of the MQTT broker",
-          "defaultValue": "\"mqtt://localhost:1883\"",
-          "placeholder": "mqtt://localhost:1883",
+          "defaultValue": "\"tcp://localhost:1883\"",
+          "placeholder": "tcp://localhost:1883",
           "types": [
             {
               "fieldType": "TEXT",
@@ -1342,19 +1630,36 @@
         "typeDescriptorDefaultValue": "Service",
         "addDefaultTypeDescriptor": 0,
         "optionalAbsoluteResourcePath": 1,
-        "absoluteResourcePathLabel": "Service Base Path",
+        "absoluteResourcePathLabel": "Service base path",
         "absoluteResourcePathDescription": "",
         "absoluteResourcePathDefaultValue": "",
-        "optionalStringLiteral": 1,
-        "stringLiteralLabel": "Service Base Path",
-        "stringLiteralDescription": "",
-        "stringLiteralDefaultValue": "",
+        "optionalStringLiteral": 0,
+        "stringLiteralLabel": "Event Channel",
+        "stringLiteralDescription": "The event channel name",
+        "stringLiteralDefaultValue": "\"/data/ChangeEvents\"",
         "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "event"
       },
       "serviceTypes": {
       },
       "initForm": {
+        "basePath": {
+          "label": "Event Channel",
+          "description": "The event channel name",
+          "defaultValue": "\"/data/ChangeEvents\"",
+          "placeholder": "/data/ChangeEvents",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string"
+            }
+          ],
+          "sourceKind": "SERVICE_BASE_PATH"
+        },
         "auth": {
           "label": "Auth",
           "description": "Configurations related to username/password authentication",
@@ -1377,7 +1682,7 @@
               "ballerinaType": "salesforce:CredentialsConfig"
             }
           ],
-          "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD"
+          "sourceKind": "LISTENER_PARAM_CONFIG_FIELD"
         }
       }
     },
@@ -1545,6 +1850,23 @@
             }
           ],
           "sourceKind": "SERVICE_TYPE_DESCRIPTOR"
+        },
+        "listenOn": {
+          "label": "Webhook Listener Port",
+          "description": "The port on which the webhook listener accepts incoming requests",
+          "defaultValue": "8090",
+          "placeholder": "8090",
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "int"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int"
+            }
+          ],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
         }
       }
     },
@@ -1698,7 +2020,7 @@
     },
     {
       "name": "mssql",
-      "version": "1.16.1",
+      "version": "1.17.0",
       "serviceTypeSkipList": [],
       "serviceDeclaration": {
         "displayName": "CDC for Microsoft SQL Server",
@@ -1912,7 +2234,7 @@
     },
     {
       "name": "postgresql",
-      "version": "1.16.2",
+      "version": "1.17.0",
       "serviceTypeSkipList": [],
       "serviceDeclaration": {
         "displayName": "CDC for PostgreSQL",
@@ -2145,6 +2467,441 @@
           "key": "tables",
           "displayName": "Table Name",
           "kind": "ANNOTATION"
+        }
+      ]
+    },
+    {
+      "name": "trigger.shopify",
+      "version": "1.6.0",
+      "serviceTypeSkipList": [],
+      "serviceDeclaration": {
+        "displayName": "Shopify Event Integration",
+        "description": "Create a service to handle events from a Shopify store",
+        "optionalTypeDescriptor": 0,
+        "typeDescriptorLabel": "Event Channel",
+        "typeDescriptorDescription": "The event channel name",
+        "typeDescriptorDefaultValue": "",
+        "addDefaultTypeDescriptor": 0,
+        "optionalAbsoluteResourcePath": 1,
+        "absoluteResourcePathLabel": "Service Base Path",
+        "absoluteResourcePathDescription": "",
+        "absoluteResourcePathDefaultValue": "",
+        "optionalStringLiteral": 1,
+        "stringLiteralLabel": "Service Base Path",
+        "stringLiteralDescription": "",
+        "stringLiteralDefaultValue": "",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
+        "kind": "event"
+      },
+      "serviceTypes": {
+        "OrdersService": {
+          "name": "OrdersService",
+          "description": "Triggers when a new event related to Shopify orders is received",
+          "functions": [
+            {
+              "name": "onOrdersCreate",
+              "description": "Triggers when a new order is created",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The Shopify order event",
+                  "kind": "REQUIRED",
+                  "type": "shopify:OrderEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onOrdersCancelled",
+              "description": "Triggers when an order is cancelled",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The Shopify order event",
+                  "kind": "REQUIRED",
+                  "type": "shopify:OrderEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onOrdersFulfilled",
+              "description": "Triggers when an order is fulfilled",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The Shopify order event",
+                  "kind": "REQUIRED",
+                  "type": "shopify:OrderEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onOrdersPaid",
+              "description": "Triggers when an order is paid",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The Shopify order event",
+                  "kind": "REQUIRED",
+                  "type": "shopify:OrderEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onOrdersPartiallyFulfilled",
+              "description": "Triggers when an order is partially fulfilled",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The Shopify order event",
+                  "kind": "REQUIRED",
+                  "type": "shopify:OrderEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onOrdersUpdated",
+              "description": "Triggers when an order is updated",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The Shopify order event",
+                  "kind": "REQUIRED",
+                  "type": "shopify:OrderEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            }
+          ]
+        },
+        "CustomersService": {
+          "name": "CustomersService",
+          "description": "Triggers when a new event related to Shopify customers is received",
+          "functions": [
+            {
+              "name": "onCustomersCreate",
+              "description": "Triggers when a new customer is created",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The Shopify customer event",
+                  "kind": "REQUIRED",
+                  "type": "shopify:CustomerEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onCustomersDisable",
+              "description": "Triggers when a customer is disabled",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The Shopify customer event",
+                  "kind": "REQUIRED",
+                  "type": "shopify:CustomerEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onCustomersEnable",
+              "description": "Triggers when a customer is enabled",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The Shopify customer event",
+                  "kind": "REQUIRED",
+                  "type": "shopify:CustomerEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onCustomersUpdate",
+              "description": "Triggers when a customer is updated",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The Shopify customer event",
+                  "kind": "REQUIRED",
+                  "type": "shopify:CustomerEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onCustomersMarketingConsentUpdate",
+              "description": "Triggers when a customer's marketing consent is updated",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The Shopify customer event",
+                  "kind": "REQUIRED",
+                  "type": "shopify:CustomerEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            }
+          ]
+        },
+        "ProductsService": {
+          "name": "ProductsService",
+          "description": "Triggers when a new event related to Shopify products is received",
+          "functions": [
+            {
+              "name": "onProductsCreate",
+              "description": "Triggers when a new product is created",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The Shopify product event",
+                  "kind": "REQUIRED",
+                  "type": "shopify:ProductEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onProductsUpdate",
+              "description": "Triggers when a product is updated",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The Shopify product event",
+                  "kind": "REQUIRED",
+                  "type": "shopify:ProductEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            }
+          ]
+        },
+        "FulfillmentsService": {
+          "name": "FulfillmentsService",
+          "description": "Triggers when a new event related to Shopify fulfillments is received",
+          "functions": [
+            {
+              "name": "onFulfillmentsCreate",
+              "description": "Triggers when a new fulfillment is created",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The Shopify fulfillment event",
+                  "kind": "REQUIRED",
+                  "type": "shopify:FulfillmentEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onFulfillmentsUpdate",
+              "description": "Triggers when a fulfillment is updated",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 1,
+              "parameters": [
+                {
+                  "name": "event",
+                  "label": "Event",
+                  "description": "The Shopify fulfillment event",
+                  "kind": "REQUIRED",
+                  "type": "shopify:FulfillmentEvent",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "initForm": {
+        "basePath": {
+          "label": "Event Channel",
+          "description": "The event channel name",
+          "defaultValue": "OrdersService",
+          "placeholder": "OrdersService",
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "ballerinaType": "shopify:GenericServiceType",
+              "options": [
+                {
+                  "label": "OrdersService",
+                  "value": "OrdersService"
+                },
+                {
+                  "label": "CustomersService",
+                  "value": "CustomersService"
+                },
+                {
+                  "label": "ProductsService",
+                  "value": "ProductsService"
+                },
+                {
+                  "label": "FulfillmentsService",
+                  "value": "FulfillmentsService"
+                }
+              ]
+            }
+          ],
+          "sourceKind": "SERVICE_TYPE_DESCRIPTOR"
+        }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "serviceType",
+          "displayName": "Event Channel",
+          "kind": "SERVICE_DESCRIPTION"
         }
       ]
     }

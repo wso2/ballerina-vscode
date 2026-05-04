@@ -18,8 +18,12 @@
 
 package io.ballerina.flowmodelgenerator.core.model.node;
 
+import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
+import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
+
+import java.util.Optional;
 
 /**
  * Represents the properties of function creation node.
@@ -28,13 +32,13 @@ import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
  */
 public class FunctionCreationBuilder extends DataMapperCreationBuilder {
 
-    public static final String LABEL = "Function Definition";
-    public static final String DESCRIPTION = "Define a function";
+    public static final String LABEL = "Function Creation";
+    public static final String DESCRIPTION = "Define a function and assign its result";
 
     public static final String FUNCTION_NAME_LABEL = "Function Name";
     public static final String FUNCTION_NAME_DOC = "Name of the function";
 
-    public static final String PARAMETERS_DOC = "Input variables of the function";
+    public static final String PARAMETERS_DOC = "Arguments passed to the function";
 
     public static final String OUTPUT_DOC = "Output type of the function";
 
@@ -79,10 +83,27 @@ public class FunctionCreationBuilder extends DataMapperCreationBuilder {
     }
 
     @Override
-    protected void endSourceGeneration(SourceBuilder sourceBuilder, String returnBody) {
+    protected void endSourceGeneration(SourceBuilder sourceBuilder) {
+        Optional<Property> returnType = sourceBuilder.getProperty(Property.TYPE_KEY);
+        if (returnType.isPresent() && !returnType.get().value().toString().isEmpty()) {
+            sourceBuilder.token()
+                    .keyword(SyntaxKind.RETURNS_KEYWORD)
+                    .name(returnType.get().value().toString());
+        }
+
         sourceBuilder
                 .token()
                 .openBrace()
                 .closeBrace();
+    }
+
+    @Override
+    protected boolean isOutputOptional() {
+        return true;
+    }
+
+    @Override
+    protected boolean isInputsOptional() {
+        return true;
     }
 }

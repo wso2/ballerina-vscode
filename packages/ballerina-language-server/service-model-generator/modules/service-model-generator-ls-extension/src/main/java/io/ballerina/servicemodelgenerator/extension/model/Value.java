@@ -69,8 +69,9 @@ public class Value {
     }
 
     public Value(MetaData metadata, boolean enabled, boolean editable, Object value, List<Object> values,
-                 String placeholder, boolean optional, boolean advanced, Map<String, Value> properties,
-                 List<Object> items, Codedata codedata, List<PropertyType> types, Map<String, String> imports) {
+                 String placeholder, boolean optional, boolean advanced,
+                 Map<String, Value> properties, List<Object> items, Codedata codedata,
+                 List<PropertyType> types, Map<String, String> imports) {
         this.metadata = metadata;
         this.enabled = enabled;
         this.editable = editable;
@@ -113,6 +114,7 @@ public class Value {
         ACTION_TYPE,
         REPEATABLE_LIST,
         REPEATABLE_MAP,
+        GROUP_SECTION,
     }
 
     public MetaData getMetadata() {
@@ -135,7 +137,8 @@ public class Value {
         return enabled && (
                 (value != null && ((value instanceof String && !((String) value).isEmpty()) ||
                         (value instanceof JsonPrimitive jsonPrimitive && !jsonPrimitive.getAsString().isEmpty()) ||
-                                (value instanceof Map<?, ?>))) ||
+                                (value instanceof Map<?, ?>) ||
+                                (value instanceof List<?> list && !list.isEmpty()))) ||
                         (values != null && !values.isEmpty()));
     }
 
@@ -436,8 +439,8 @@ public class Value {
         }
 
         public Value build() {
-            return new Value(metadata, enabled, editable, value, values, placeholder, optional, advanced, properties,
-                    items, codedata, types, imports);
+            return new Value(metadata, enabled, editable, value, values, placeholder, optional, advanced,
+                    properties, items, codedata, types, imports);
         }
     }
 }

@@ -18,9 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.core.search;
 
-import io.ballerina.centralconnector.CentralAPI;
 import io.ballerina.centralconnector.RemoteCentral;
-import io.ballerina.centralconnector.response.SymbolResponse;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ClassSymbol;
 import io.ballerina.compiler.api.symbols.Documentable;
@@ -28,13 +26,18 @@ import io.ballerina.compiler.api.symbols.Documentation;
 import io.ballerina.compiler.api.symbols.Qualifiable;
 import io.ballerina.compiler.api.symbols.Qualifier;
 import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
+import io.ballerina.compiler.api.symbols.TypeDescKind;
+import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
+import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.flowmodelgenerator.core.model.AvailableNode;
 import io.ballerina.flowmodelgenerator.core.model.Category;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.Item;
 import io.ballerina.flowmodelgenerator.core.model.Metadata;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
+import io.ballerina.flowmodelgenerator.core.utils.CentralSearchUtil;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.SearchResult;
@@ -46,11 +49,11 @@ import io.ballerina.projects.Project;
 import io.ballerina.projects.directory.BuildProject;
 import io.ballerina.projects.directory.WorkspaceProject;
 import io.ballerina.tools.text.LineRange;
+import org.ballerinalang.langserver.common.utils.SymbolUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -77,7 +80,6 @@ import java.util.Optional;
  */
 class TypeSearchCommand extends SearchCommand {
 
-    public static final String CURRENT_INTEGRATION_INDICATOR = " (current)";
     private final List<String> moduleNames;
 
     public TypeSearchCommand(Project project, LineRange position, Map<String, String> queryMap) {
@@ -129,46 +131,11 @@ class TypeSearchCommand extends SearchCommand {
      */
     @Override
     protected List<Item> searchCurrentOrganization(String currentOrg) {
-        List<SearchResult> organizationTypes = new ArrayList<>();
-        CentralAPI centralClient = RemoteCentral.getInstance();
-        Map<String, String> queryMap = new HashMap<>();
-        boolean success = false;
-        // TODO: Enable once https://github.com/ballerina-platform/ballerina-central/issues/284 is resolved
-//        if (centralClient.hasAuthorizedAccess()) {
-//            queryMap.put("user-packages", "true");
-//            success = true;
-//        }
-        if (currentOrg != null && !currentOrg.isEmpty()) {
-            String orgQuery = "org:" + currentOrg;
-            queryMap.put("q", query.isEmpty() ? orgQuery : query + " " + orgQuery);
-            success = true;
-        }
-        if (success) {
-            queryMap.put("limit", String.valueOf(limit));
-            queryMap.put("offset", String.valueOf(offset));
-            SymbolResponse symbolResponse = centralClient.searchSymbols(queryMap);
-            if (symbolResponse != null && symbolResponse.symbols() != null) {
-                for (SymbolResponse.Symbol symbol : symbolResponse.symbols()) {
-                    // Consider records and other type-like symbols
-                    if ("record".equals(symbol.symbolType()) || symbol.symbolType().contains("type")) {
-                        SearchResult.Package packageInfo = new SearchResult.Package(
-                                symbol.organization(),
-                                symbol.name(),
-                                symbol.name(),
-                                symbol.version()
-                        );
-                        SearchResult searchResult = SearchResult.from(
-                                packageInfo,
-                                symbol.symbolName(),
-                                symbol.description(),
-                                true
-                        );
-                        organizationTypes.add(searchResult);
-                    }
-                }
-            }
-            buildLibraryNodes(organizationTypes);
-        }
+        CentralSearchUtil centralSearch = new CentralSearchUtil(RemoteCentral.getInstance());
+        List<SearchResult> organizationTypes = centralSearch.searchSymbolsByOrganization(
+                currentOrg, query, limit, offset,
+                s -> "record".equals(s) || s.contains("type"));
+        buildLibraryNodes(organizationTypes);
         return rootBuilder.build().items();
     }
 
@@ -252,13 +219,29 @@ class TypeSearchCommand extends SearchCommand {
 
         List<Item> availableNodes = new ArrayList<>();
         for (ScoredType scoredType : scoredTypes) {
+            Optional<? extends TypeSymbol> typeDescriptor = SymbolUtil.getTypeDescriptor(scoredType.symbol());
+            typeDescriptor = (typeDescriptor.isPresent() &&
+                    typeDescriptor.get().typeKind() == TypeDescKind.TYPE_REFERENCE)
+                    ? Optional.of(((TypeReferenceTypeSymbol) typeDescriptor.get()).typeDescriptor())
+                    : typeDescriptor;
+
+            // The following information is needed for config editor
+            NodeKind nodeKind = NodeKind.TYPEDESC;
+            if (typeDescriptor.isPresent() && typeDescriptor.get().typeKind() != null
+                    && typeDescriptor.get().typeKind() != TypeDescKind.COMPILATION_ERROR) {
+                nodeKind = typeDescriptor.get().kind() == SymbolKind.CLASS
+                        ? NodeKind.CLASS
+                        : toNodeKind(typeDescriptor.get().typeKind());
+
+            }
+
             Metadata metadata = new Metadata.Builder<>(null)
                     .label(scoredType.typeName())
                     .description(scoredType.description())
                     .build();
 
             Codedata codedata = new Codedata.Builder<>(null)
-                    .node(NodeKind.TYPEDESC)
+                    .node(nodeKind)
                     .org(orgName)
                     .module(packageName)
                     .packageName(packageName)
@@ -309,7 +292,7 @@ class TypeSearchCommand extends SearchCommand {
         }
     }
 
-     private void buildImportedLocalModules() {
+    private void buildImportedLocalModules() {
         Iterable<Module> modules = project.currentPackage().modules();
         for (Module module : modules) {
             if (module.isDefaultModule()) {
@@ -374,16 +357,31 @@ class TypeSearchCommand extends SearchCommand {
         }
     }
 
-        /**
-         * Helper record to store type definition and class symbols along with their relevance scores for ranking.
-         *
-         * @param symbol the symbol representing the type
-         * @param typeName the name of the type
-         * @param description the description of the type
-         * @param score the relevance score for ranking
-         */
-        private record ScoredType(Symbol symbol, String typeName, String description, int score) {
+    private static NodeKind toNodeKind(TypeDescKind typeDescKind) {
+        return switch (typeDescKind) {
+            case ARRAY -> NodeKind.ARRAY;
+            case RECORD -> NodeKind.RECORD;
+            case UNION -> NodeKind.UNION;
+            case INTERSECTION -> NodeKind.INTERSECTION;
+            case TABLE -> NodeKind.TABLE;
+            case MAP -> NodeKind.MAP;
+            case ERROR -> NodeKind.ERROR;
+            case OBJECT -> NodeKind.OBJECT;
+            case TUPLE -> NodeKind.TUPLE;
+            case STREAM -> NodeKind.STREAM;
+            case FUTURE -> NodeKind.FUTURE;
+            default -> NodeKind.TYPEDESC;
+        };
     }
 
-
+    /**
+     * Helper record to store type definition and class symbols along with their relevance scores for ranking.
+     *
+     * @param symbol      the symbol representing the type
+     * @param typeName    the name of the type
+     * @param description the description of the type
+     * @param score       the relevance score for ranking
+     */
+    private record ScoredType(Symbol symbol, String typeName, String description, int score) {
+    }
 }

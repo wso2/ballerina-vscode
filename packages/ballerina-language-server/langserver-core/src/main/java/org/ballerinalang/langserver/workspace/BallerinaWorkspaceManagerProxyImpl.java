@@ -132,6 +132,24 @@ public final class BallerinaWorkspaceManagerProxyImpl implements BallerinaWorksp
     }
 
     /**
+     * Enables or disables last-close project eviction for legacy workspace managers.
+     * WorkspaceManagerFacadeImpl manages project lifecycle internally.
+     *
+     * @param enabled whether last-close eviction should be enabled
+     */
+    public void setEvictProjectOnLastClose(boolean enabled) {
+        setEvictProjectOnLastClose(fileWorkspaceManager, enabled);
+        setEvictProjectOnLastClose(exprWorkspaceManager, enabled);
+        setEvictProjectOnLastClose(aiWorkspaceManager, enabled);
+    }
+
+    private static void setEvictProjectOnLastClose(WorkspaceManager manager, boolean enabled) {
+        if (manager instanceof BallerinaWorkspaceManager ballerinaWorkspaceManager) {
+            ballerinaWorkspaceManager.setEvictProjectOnLastClose(enabled);
+        }
+    }
+
+    /**
      * Extracts the scheme from a URI string.
      * Returns empty string if no scheme found.
      */

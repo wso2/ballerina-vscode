@@ -177,6 +177,18 @@
           "description": "Define the agent's primary function"
         },
         "valueType": "STRING",
+        "types": [
+          {
+            "fieldType": "PROMPT",
+            "ballerinaType": "string",
+            "selected": true
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": false
+          }
+        ],
         "value": "string ````Role Prompt Inside Backticks````",
         "placeholder": "e.g., Customer Support Assistant, Sales Advisor, Data Analyst",
         "optional": true,
@@ -194,6 +206,18 @@
           "description": "Detailed instructions for the agent"
         },
         "valueType": "STRING",
+        "types": [
+          {
+            "fieldType": "PROMPT",
+            "ballerinaType": "string",
+            "selected": true
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": false
+          }
+        ],
         "value": "string ````Instructions Prompt Inside Backticks````",
         "placeholder": "e.g., You are a friendly assistant. Your goal is to...",
         "optional": true,

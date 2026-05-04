@@ -1,0 +1,574 @@
+{
+  "start": {
+    "line": 42,
+    "offset": 0
+  },
+  "end": {
+    "line": 49,
+    "offset": 1
+  },
+  "source": "workflow_operations.bal",
+  "description": "Test workflow:run returns WORKFLOW_RUN and workflow:sendData returns SEND_DATA node",
+  "diagram": {
+    "fileName": "workflow_operations.bal",
+    "nodes": [
+      {
+        "id": "74804",
+        "metadata": {
+          "label": "Start",
+          "data": {
+            "kind": "Function",
+            "label": "main",
+            "isServiceFunction": false,
+            "return": "error?"
+          }
+        },
+        "codedata": {
+          "node": "EVENT_START",
+          "lineRange": {
+            "fileName": "workflow_operations.bal",
+            "startLine": {
+              "line": 42,
+              "offset": 38
+            },
+            "endLine": {
+              "line": 49,
+              "offset": 1
+            }
+          },
+          "sourceCode": "public function main() returns error? {\n    // Workflow run - should be WORKFLOW_RUN\n    string workflowId = check workflow:run(orderWorkflow, {orderId: \"123\", customerName: \"John\"});\n    io:println(\"Workflow started with ID: \" + workflowId);\n\n    // Send data - should be SEND_DATA\n    check workflow:sendData(orderWorkflow, \"4422\", {approved: true, approverName: \"Admin\"}, \"approve\");\n}"
+        },
+        "returning": false,
+        "diagnostics": {
+          "hasDiagnostics": true
+        },
+        "flags": 0
+      },
+      {
+        "id": "74444",
+        "metadata": {
+          "label": "Comment",
+          "description": "Workflow run - should be WORKFLOW_RUN"
+        },
+        "codedata": {
+          "node": "COMMENT",
+          "lineRange": {
+            "fileName": "workflow_operations.bal",
+            "startLine": {
+              "line": 43,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 43,
+              "offset": 44
+            }
+          },
+          "sourceCode": "Workflow run - should be WORKFLOW_RUN"
+        },
+        "returning": false,
+        "properties": {
+          "comment": {
+            "metadata": {
+              "label": "Comment",
+              "description": "Comment to describe the flow"
+            },
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "selected": true
+              }
+            ],
+            "value": "Workflow run - should be WORKFLOW_RUN",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "flags": 0
+      },
+      {
+        "id": "75614",
+        "metadata": {
+          "label": "Run Workflow",
+          "description": "Run a workflow instance",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.3.4.png"
+        },
+        "codedata": {
+          "node": "WORKFLOW_RUN",
+          "org": "ballerina",
+          "module": "workflow",
+          "packageName": ".",
+          "symbol": "orderWorkflow",
+          "version": "0.0.0",
+          "lineRange": {
+            "fileName": "workflow_operations.bal",
+            "startLine": {
+              "line": 44,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 44,
+              "offset": 98
+            }
+          },
+          "sourceCode": "// Workflow run - should be WORKFLOW_RUN\n    string workflowId = check workflow:run(orderWorkflow, {orderId: \"123\", customerName: \"John\"});"
+        },
+        "returning": false,
+        "properties": {
+          "processFunction": {
+            "metadata": {
+              "label": "Process Function",
+              "description": "The workflow function (must have `@Workflow`)"
+            },
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "function",
+                "selected": true
+              }
+            ],
+            "value": "orderWorkflow",
+            "placeholder": "",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "REQUIRED",
+              "originalName": "processFunction"
+            }
+          },
+          "input": {
+            "metadata": {
+              "label": "Input",
+              "description": "Optional input data for the workflow"
+            },
+            "types": [
+              {
+                "fieldType": "REPEATABLE_MAP",
+                "ballerinaType": "map<anydata>",
+                "template": {
+                  "types": [
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "anydata",
+                      "selected": false
+                    }
+                  ],
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "selected": true
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "map<anydata>?",
+                "selected": false
+              }
+            ],
+            "value": {
+              "orderId": {
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "anydata",
+                    "selected": true
+                  }
+                ],
+                "value": "\"123\"",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              },
+              "customerName": {
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "anydata",
+                    "selected": true
+                  }
+                ],
+                "value": "\"John\"",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "placeholder": "()",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "DEFAULTABLE",
+              "originalName": "input"
+            },
+            "defaultValue": "()"
+          },
+          "checkError": {
+            "metadata": {
+              "label": "Check Error",
+              "description": "Trigger error flow"
+            },
+            "types": [
+              {
+                "fieldType": "FLAG",
+                "selected": true
+              }
+            ],
+            "value": true,
+            "optional": false,
+            "editable": true,
+            "advanced": true,
+            "hidden": true
+          },
+          "variable": {
+            "metadata": {
+              "label": "Variable Name",
+              "description": "Name of the variable"
+            },
+            "types": [
+              {
+                "fieldType": "IDENTIFIER",
+                "selected": true
+              }
+            ],
+            "value": "workflowId",
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "lineRange": {
+                "fileName": "workflow_operations.bal",
+                "startLine": {
+                  "line": 44,
+                  "offset": 11
+                },
+                "endLine": {
+                  "line": 44,
+                  "offset": 21
+                }
+              }
+            }
+          },
+          "type": {
+            "metadata": {
+              "label": "Variable Type",
+              "description": "Type of the variable"
+            },
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "selected": true
+              }
+            ],
+            "value": "string",
+            "placeholder": "var",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {}
+          }
+        },
+        "flags": 1
+      },
+      {
+        "id": "76566",
+        "metadata": {
+          "label": "println",
+          "description": "Prints `any`, `error` or string templates(such as `The respective int value is ${val}`) value(s) to the STDOUT\nfollowed by a new line.\n```ballerina\nio:println(\"Start processing the CSV file from \", srcFileName);\n```\n",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_io_1.8.0.png"
+        },
+        "codedata": {
+          "node": "FUNCTION_CALL",
+          "org": "ballerina",
+          "module": "io",
+          "packageName": "io",
+          "symbol": "println",
+          "version": "1.8.0",
+          "lineRange": {
+            "fileName": "workflow_operations.bal",
+            "startLine": {
+              "line": 45,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 45,
+              "offset": 58
+            }
+          },
+          "sourceCode": "io:println(\"Workflow started with ID: \" + workflowId);"
+        },
+        "returning": false,
+        "properties": {
+          "values": {
+            "metadata": {
+              "label": "values",
+              "description": "The value(s) to be printed"
+            },
+            "types": [
+              {
+                "fieldType": "REPEATABLE_LIST",
+                "ballerinaType": "io:Printable",
+                "template": {
+                  "types": [
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "io:Printable",
+                      "selected": false
+                    }
+                  ],
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "selected": true
+              }
+            ],
+            "value": [
+              {
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "io:Printable",
+                    "selected": true
+                  }
+                ],
+                "value": "\"Workflow started with ID: \" + workflowId",
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              }
+            ],
+            "placeholder": "()",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "REST_PARAMETER",
+              "originalName": "values"
+            }
+          }
+        },
+        "flags": 0
+      },
+      {
+        "id": "77445",
+        "metadata": {
+          "label": "Comment",
+          "description": "Send data - should be SEND_DATA"
+        },
+        "codedata": {
+          "node": "COMMENT",
+          "lineRange": {
+            "fileName": "workflow_operations.bal",
+            "startLine": {
+              "line": 46,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 47,
+              "offset": 38
+            }
+          },
+          "sourceCode": "Send data - should be SEND_DATA"
+        },
+        "returning": false,
+        "properties": {
+          "comment": {
+            "metadata": {
+              "label": "Comment",
+              "description": "Comment to describe the flow"
+            },
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "selected": true
+              }
+            ],
+            "value": "Send data - should be SEND_DATA",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "flags": 0
+      },
+      {
+        "id": "79587",
+        "metadata": {
+          "label": "Send Data",
+          "description": "Send data to an existing workflow instance",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.3.4.png"
+        },
+        "codedata": {
+          "node": "SEND_DATA",
+          "org": "ballerina",
+          "module": "workflow",
+          "packageName": "workflow",
+          "symbol": "sendData",
+          "version": "0.3.4",
+          "lineRange": {
+            "fileName": "workflow_operations.bal",
+            "startLine": {
+              "line": 48,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 48,
+              "offset": 103
+            }
+          },
+          "sourceCode": "// Send data - should be SEND_DATA\n    check workflow:sendData(orderWorkflow, \"4422\", {approved: true, approverName: \"Admin\"}, \"approve\");"
+        },
+        "returning": false,
+        "properties": {
+          "workflow": {
+            "metadata": {
+              "label": "Workflow",
+              "description": "The workflow function (must have `@Workflow`)"
+            },
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "function",
+                "selected": true
+              }
+            ],
+            "value": "orderWorkflow",
+            "placeholder": "",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "REQUIRED",
+              "originalName": "workflow"
+            }
+          },
+          "workflowId": {
+            "metadata": {
+              "label": "Workflow Id",
+              "description": "Target workflow ID (from `run`)"
+            },
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string",
+                "selected": true
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string",
+                "selected": false
+              }
+            ],
+            "value": "\"4422\"",
+            "placeholder": "\"\"",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "REQUIRED",
+              "originalName": "workflowId"
+            }
+          },
+          "dataName": {
+            "metadata": {
+              "label": "Data Name",
+              "description": "Field name in the workflow's events record"
+            },
+            "types": [
+              {
+                "fieldType": "TEXT",
+                "ballerinaType": "string",
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string",
+                "selected": false
+              }
+            ],
+            "value": "{approved: true, approverName: \"Admin\"}",
+            "placeholder": "\"\"",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "diagnostics": {
+              "hasDiagnostics": true,
+              "diagnostics": [
+                {
+                  "severity": "ERROR",
+                  "message": "a type compatible with mapping constructor expressions not found in type 'string'"
+                }
+              ]
+            },
+            "codedata": {
+              "kind": "REQUIRED",
+              "originalName": "dataName"
+            }
+          },
+          "data": {
+            "metadata": {
+              "label": "Data",
+              "description": "The data payload"
+            },
+            "types": [
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "anydata",
+                "selected": false
+              }
+            ],
+            "value": "\"approve\"",
+            "placeholder": "{}",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "REQUIRED",
+              "originalName": "data"
+            }
+          },
+          "checkError": {
+            "metadata": {
+              "label": "Check Error",
+              "description": "Trigger error flow"
+            },
+            "types": [
+              {
+                "fieldType": "FLAG",
+                "selected": true
+              }
+            ],
+            "value": true,
+            "optional": false,
+            "editable": true,
+            "advanced": true,
+            "hidden": true
+          }
+        },
+        "diagnostics": {
+          "hasDiagnostics": true
+        },
+        "flags": 1
+      }
+    ],
+    "connections": []
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "filePath": "proj",
+  "codedata": {
+    "org": "ballerinax",
+    "module": "docusign.dsesign",
+    "packageName": "docusign.dsesign",
+    "version": "1.0.1"
+  },
+  "typeConstraint": "EnvelopeDefinition",
+  "output": "Record config is too large to send. The record type has too many nested fields."
+}

@@ -86,6 +86,9 @@ public class ModelToJsonConverter {
             if (library.getInstructions() != null) {
                 json.addProperty("instructions", library.getInstructions());
             }
+            if (library.getReadme() != null) {
+                json.addProperty("readme", library.getReadme());
+            }
 
             // Always include collections (empty array if null or empty)
             json.add("typeDefs", library.getTypeDefs() != null
@@ -96,6 +99,8 @@ public class ModelToJsonConverter {
                     ? context.serialize(library.getFunctions()) : new JsonArray());
             json.add("services", library.getServices() != null
                     ? context.serialize(library.getServices()) : new JsonArray());
+            json.add("annotations", library.getAnnotations() != null
+                    ? context.serialize(library.getAnnotations()) : new JsonArray());
 
             return json;
         }
