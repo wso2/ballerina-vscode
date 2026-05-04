@@ -418,8 +418,9 @@ export function DataMapperView(props: DataMapperViewProps) {
                     filePath,
                     codedata: importsCodedata || { symbol: type }
                 });
-            const defaultValue = visualizableResponse.visualizableProperties?.defaultValue ?? "()";
+            console.log(">>> [Data Mapper] getVisualizableFields response:", visualizableResponse);
 
+            const defaultValue = visualizableResponse.visualizableProperties.defaultValue;
             const request = createAddSubMappingRequest(
                 filePath,
                 viewState.codedata,
