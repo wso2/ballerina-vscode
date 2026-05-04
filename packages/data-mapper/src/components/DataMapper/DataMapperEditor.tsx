@@ -18,7 +18,7 @@
 // tslint:disable: jsx-no-multiline-js
 import React, { useCallback, useEffect, useReducer, useState } from "react";
 import { css, keyframes } from "@emotion/css";
-import { CodeData, ExpandedDMModel } from "@wso2/ballerina-core";
+import { CodeData, DMFormImports, ExpandedDMModel } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { useShallow } from "zustand/react/shallow";
 
@@ -341,9 +341,10 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         type: string,
         index: number,
         targetField: string,
+        formImports?: DMFormImports,
         importsCodedata?: CodeData
     ) => {
-        await addSubMapping(subMappingName, type, index, targetField, importsCodedata);
+        await addSubMapping(subMappingName, type, index, targetField, formImports, importsCodedata);
         resetSubMappingConfig();
     }
 
