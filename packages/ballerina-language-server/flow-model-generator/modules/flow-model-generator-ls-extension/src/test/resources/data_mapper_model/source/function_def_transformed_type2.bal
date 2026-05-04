@@ -35,3 +35,10 @@ function transformJsonXml2(json customerDetails, json customerDetails1) returns 
 
 function transformJsonXml3(CustomerDetails customerDetails) returns xml|error =>
     let CreateOrders transformJsonXml3 = {} in check xmldata:toXml(transformJsonXml3);
+
+public type NewOrders CreateOrder[];
+
+function transformJsonXml4(json customerDetails, json customerDetails1) returns xml|error =>
+    let CreateOrder[] customerDetailsConverted = check jsondata:parseAsType(customerDetails),
+        NewOrders transformJsonXml4 = from var ordersItem in customerDetailsConverted select {OrderId: "", CustomerName: ""} in
+        xmldata:toXml(transformJsonXml4);

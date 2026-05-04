@@ -154,7 +154,8 @@
             "packageName": "logoraisr",
             "object": "Client",
             "symbol": "init",
-            "version": "1.5.1"
+            "version": "1.5.1",
+            "isGenerated": false
           },
           "enabled": true
         },
@@ -171,7 +172,8 @@
             "packageName": "ebay.logistics",
             "object": "Client",
             "symbol": "init",
-            "version": "1.5.1"
+            "version": "1.5.1",
+            "isGenerated": false
           },
           "enabled": true
         },
@@ -188,7 +190,8 @@
             "packageName": "commercetools.auditlog",
             "object": "Client",
             "symbol": "init",
-            "version": "1.4.1"
+            "version": "1.4.1",
+            "isGenerated": false
           },
           "enabled": true
         },
@@ -205,7 +208,8 @@
             "packageName": "onepassword",
             "object": "Client",
             "symbol": "init",
-            "version": "1.5.1"
+            "version": "1.5.1",
+            "isGenerated": false
           },
           "enabled": true
         },
@@ -222,7 +226,8 @@
             "packageName": "googleapis.vision",
             "object": "Client",
             "symbol": "init",
-            "version": "1.6.1"
+            "version": "1.6.1",
+            "isGenerated": false
           },
           "enabled": true
         }

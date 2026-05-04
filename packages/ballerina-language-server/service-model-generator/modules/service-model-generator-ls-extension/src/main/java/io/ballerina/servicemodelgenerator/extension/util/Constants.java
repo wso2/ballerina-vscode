@@ -119,6 +119,7 @@ public class Constants {
     public static final String ARG_TYPE_LISTENER_PARAM_CONFIG_FIELD = "LISTENER_PARAM_CONFIG_FIELD";
     public static final String ARG_TYPE_SERVICE_BASE_PATH = "SERVICE_BASE_PATH";
     public static final String ARG_TYPE_SERVICE_TYPE_DESCRIPTOR = "SERVICE_TYPE_DESCRIPTOR";
+    public static final String ARG_TYPE_CDC_OPERATION_ENABLE = "CDC_OPERATION_ENABLE";
 
     public static final String TYPE_SERVICE = "Service";
 

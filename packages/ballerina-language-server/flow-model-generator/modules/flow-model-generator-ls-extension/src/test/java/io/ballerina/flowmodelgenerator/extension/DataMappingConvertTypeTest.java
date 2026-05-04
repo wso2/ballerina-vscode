@@ -68,6 +68,7 @@ public class DataMappingConvertTypeTest extends AbstractLSTest {
                 {Path.of("variable15.json")},
                 {Path.of("variable16.json")},
                 {Path.of("variable17.json")},
+                {Path.of("variable18.json")},
         };
     }
 
@@ -80,7 +81,7 @@ public class DataMappingConvertTypeTest extends AbstractLSTest {
         DataMapperConvertTypeRequest request =
                 new DataMapperConvertTypeRequest(sourceDir.resolve(testConfig.source()).toAbsolutePath().toString(),
                         testConfig.codedata(), testConfig.typeName(), testConfig.parentTypeName(),
-                        testConfig.variableName(), testConfig.isInput(), testConfig.imports());
+                        testConfig.variableName(), testConfig.isInput(), testConfig.isArray(), testConfig.imports());
         JsonObject jsonMap =
                 getResponseAndCloseFile(request, testConfig.source()).getAsJsonObject("textEdits");
 
@@ -112,7 +113,8 @@ public class DataMappingConvertTypeTest extends AbstractLSTest {
         if (assertFailure) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(),
                     testConfig.codedata(), testConfig.typeName(), testConfig.parentTypeName(),
-                    testConfig.variableName(), testConfig.isInput(), testConfig.imports(), newMap);
+                    testConfig.variableName(), testConfig.isInput(), testConfig.isArray(), testConfig.imports(),
+                    newMap);
 //            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
@@ -148,12 +150,13 @@ public class DataMappingConvertTypeTest extends AbstractLSTest {
      * @param parentTypeName The name of the parent type of the converted type
      * @param variableName The name of the converting variable
      * @param isInput      Whether the variable is an input variable or not
+     * @param isArray      Whether the variable type is an array or not
      * @param imports      The imports to be added for the conversion
      * @param output       Generated source expression
      */
     private record TestConfig(String source, String description, JsonElement codedata, String typeName,
-                              String parentTypeName, String variableName, boolean isInput, Map<String, String> imports,
-                              Map<String, List<TextEdit>> output) {
+                              String parentTypeName, String variableName, boolean isInput, boolean isArray,
+                              Map<String, String> imports, Map<String, List<TextEdit>> output) {
 
         public String description() {
             return description == null ? "" : description;

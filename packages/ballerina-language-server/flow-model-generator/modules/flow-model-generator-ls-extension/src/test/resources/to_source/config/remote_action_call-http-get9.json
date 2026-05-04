@@ -6,7 +6,7 @@
     "metadata": {
       "label": "get",
       "description": "Retrieve a representation of a specified resource from an HTTP endpoint.\n",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.1.png"
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.2.png"
     },
     "codedata": {
       "node": "REMOTE_ACTION_CALL",
@@ -15,7 +15,7 @@
       "packageName": "http",
       "object": "Client",
       "symbol": "get",
-      "version": "2.16.1",
+      "version": "2.16.2",
       "isNew": true,
       "inferredReturnType": "targetType",
       "lineRange": {

@@ -44,13 +44,16 @@
             "selected": true
           }
         ],
-        "value": "StreamingClient",
+        "value": "grpc:StreamingClient",
         "placeholder": "var",
         "optional": false,
         "editable": false,
         "advanced": false,
         "hidden": true,
-        "codedata": {}
+        "codedata": {},
+        "imports": {
+          "grpc": "ballerina/grpc"
+        }
       },
       "variable": {
         "metadata": {
@@ -63,7 +66,7 @@
             "selected": true
           }
         ],
-        "value": "streamingClient",
+        "value": "grpcStreamingclient",
         "optional": false,
         "editable": true,
         "advanced": false,

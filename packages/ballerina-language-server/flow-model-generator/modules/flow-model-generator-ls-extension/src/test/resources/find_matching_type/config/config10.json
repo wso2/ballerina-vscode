@@ -1,0 +1,86 @@
+{
+  "filePath": "proj",
+  "typeMembers": [
+    {
+      "type": "Pet",
+      "packageInfo": "org:source:0.3.0",
+      "packageName": "source",
+      "kind": "RECORD_TYPE",
+      "selected": false
+    }
+  ],
+  "expr": "{photoUrls: [], name: \"\"}",
+  "output": {
+    "recordConfig": {
+      "members": [
+        {
+          "typeName": "readonly",
+          "optional": false,
+          "defaultable": false,
+          "isRestType": false,
+          "selected": false
+        },
+        {
+          "fields": [
+            {
+              "memberType": {
+                "typeName": "string",
+                "optional": false,
+                "defaultable": false,
+                "isRestType": false,
+                "selected": false
+              },
+              "elements": [],
+              "name": "photoUrls",
+              "typeName": "array",
+              "optional": false,
+              "defaultable": false,
+              "documentation": "",
+              "isRestType": false,
+              "selected": true
+            },
+            {
+              "name": "name",
+              "typeName": "string",
+              "optional": false,
+              "defaultable": false,
+              "documentation": "",
+              "isRestType": false,
+              "value": "\"\"",
+              "selected": true
+            },
+            {
+              "name": "id",
+              "typeName": "int",
+              "optional": true,
+              "defaultable": false,
+              "documentation": "",
+              "isRestType": false,
+              "selected": false
+            }
+          ],
+          "hasRestType": true,
+          "restType": {
+            "typeName": "anydata",
+            "optional": false,
+            "defaultable": false,
+            "isRestType": false,
+            "selected": false
+          },
+          "typeName": "record",
+          "optional": false,
+          "defaultable": false,
+          "isRestType": false,
+          "selected": true
+        }
+      ],
+      "name": "Pet",
+      "typeName": "intersection",
+      "optional": false,
+      "defaultable": false,
+      "isRestType": false,
+      "selected": true
+    },
+    "typeName": "Pet"
+  }
+}
