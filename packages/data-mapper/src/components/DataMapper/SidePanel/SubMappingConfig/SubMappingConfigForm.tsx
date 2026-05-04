@@ -25,7 +25,7 @@ import {
     ThemeColors
 } from "@wso2/ui-toolkit";
 
-import { useDMSubMappingConfigPanelStore, SubMappingConfigFormData } from "../../../../store/store";
+import { useDMSubMappingConfigPanelStore } from "../../../../store/store";
 import { View } from "../../Views/DataMapperView";
 
 import { CodeData, DMFormField, DMFormFieldValues, DMFormProps} from "@wso2/ballerina-core";
@@ -84,13 +84,13 @@ export function SubMappingConfigForm(props: SubMappingConfigFormProps) {
 
     const isEdit = nextSubMappingIndex === -1 && !suggestedNextSubMappingName;
 
-    const onAdd = async (data: SubMappingConfigFormData, importsCodedata?: CodeData) => {
+    const onAdd = async (data: DMFormFieldValues, importsCodedata?: CodeData) => {
         setFormValues({
             name: data.name,
             type: data.type
         });
         setIsAddingNewSubMapping(true);
-        
+
         try {
             const targetField = views[views.length - 1].targetField;
             await addSubMapping(data.name, data.type, nextSubMappingIndex, targetField, importsCodedata);
@@ -99,7 +99,7 @@ export function SubMappingConfigForm(props: SubMappingConfigFormProps) {
         }
     };
 
-    const onEdit = async (data: SubMappingConfigFormData, importsCodedata?: CodeData) => {
+    const onEdit = async (data: DMFormFieldValues, importsCodedata?: CodeData) => {
         // TODO: Implement onEdit
     };
 
@@ -107,7 +107,7 @@ export function SubMappingConfigForm(props: SubMappingConfigFormProps) {
         resetSubMappingConfig();
     };
 
-    const onSubmit = (data: SubMappingConfigFormData, formImports?: DMFormFieldValues, importsCodedata?: CodeData) => {
+    const onSubmit = (data: DMFormFieldValues, formImports?: DMFormFieldValues, importsCodedata?: CodeData) => {
         if (isEdit) {
             onEdit(data, importsCodedata);
         } else {
