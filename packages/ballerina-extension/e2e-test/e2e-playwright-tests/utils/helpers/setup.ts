@@ -449,14 +449,17 @@ export async function createProject(page: ExtendedPage, projectName?: string) {
 export function initTest(newProject: boolean = true, skipProjectCreation: boolean = true, cleanupAfter?: boolean, projectName?: string) {
     test.beforeAll(async ({ }, testInfo) => {
         console.log(`\n▶️  STARTING TEST: ${testInfo.title} (Attempt ${testInfo.retry + 1})`);
-        // Delete the data folder
-        if (fs.existsSync(dataFolder)) {
-            fs.rmSync(dataFolder, { recursive: true, force: true });
-        }
-        // Set permissions to read write execute for all files and folders in the data folder
-        fs.mkdirSync(dataFolder, { recursive: true, mode: 0o777 });
+
+        const wipeAndRecreateDataFolder = (): void => {
+            if (fs.existsSync(dataFolder)) {
+                fs.rmSync(dataFolder, { recursive: true, force: true });
+            }
+            // Read/write/execute for all files and folders in the data folder
+            fs.mkdirSync(dataFolder, { recursive: true, mode: 0o777 });
+        };
 
         if (!vscode || !page) {
+            wipeAndRecreateDataFolder();
             if (newProject) {
                 console.log('  🧹 Resetting test project from template');
                 resetTestProjectFromTemplate();
@@ -479,6 +482,8 @@ export function initTest(newProject: boolean = true, skipProjectCreation: boolea
                 console.warn('  ⚠️  Failed to fully close editors before reset:', err);
                 await dismissBlockingModalDialog(page);
             }
+
+            wipeAndRecreateDataFolder();
 
             if (newProject) {
                 console.log('  🧹 Resetting test project from template');
