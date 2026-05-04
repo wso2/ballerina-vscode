@@ -44,7 +44,10 @@ export function isIntegrationRunningAt(targetPath: string): boolean {
     if (!isIntegrationRunning() || !lastRunPath) {
         return false;
     }
-    return path.resolve(lastRunPath) === path.resolve(targetPath);
+    const runningPath = path.resolve(lastRunPath);
+    const selectedPath = path.resolve(targetPath);
+    const relative = path.relative(selectedPath, runningPath);
+    return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
 }
 
 export async function restartIntegration(targetPath: string): Promise<void> {
