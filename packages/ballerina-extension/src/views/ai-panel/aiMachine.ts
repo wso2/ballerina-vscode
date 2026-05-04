@@ -28,6 +28,7 @@ import {
     getPlatformStsToken,
     exchangeStsToCopilotToken,
     storeAuthCredentials,
+    getAuthCredentials,
     getPlatformExtensionAPI
 } from '../../utils/ai/auth';
 import * as vscode from 'vscode';
@@ -404,6 +405,16 @@ const aiMachine = createMachine<AIMachineContext, AIMachineSendableEvent>({
     }
 });
 
+const completeSsoSignIn = async (): Promise<void> => {
+    const stsToken = await getPlatformStsToken();
+    if (!stsToken) {
+        throw new Error('Failed to get STS token from platform extension');
+    }
+    const secrets = await exchangeStsToCopilotToken(stsToken);
+    await storeAuthCredentials({ loginMethod: LoginMethod.BI_INTEL, secrets });
+    aiStateService.send(AIMachineEventType.COMPLETE_AUTH);
+};
+
 const openLogin = async () => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -411,17 +422,7 @@ const openLogin = async () => {
             const isLoggedIn = await isDevantUserLoggedIn();
             if (isLoggedIn) {
                 // Already logged in, exchange token
-                const stsToken = await getPlatformStsToken();
-                if (!stsToken) {
-                    throw new Error('Failed to get STS token from platform extension');
-                }
-
-                const secrets = await exchangeStsToCopilotToken(stsToken);
-                await storeAuthCredentials({
-                    loginMethod: LoginMethod.BI_INTEL,
-                    secrets
-                });
-                aiStateService.send(AIMachineEventType.COMPLETE_AUTH);
+                await completeSsoSignIn();
                 resolve(true);
                 return;
             }
@@ -551,27 +552,37 @@ const setupPlatformExtensionListener = () => {
             }
 
             disposePlatformLoginListener?.();
-            const dispose = api.subscribeIsLoggedIn(async (isLoggedIn: boolean) => {
-                const currentState = aiStateService.getSnapshot().value;
+            const dispose = api.subscribeIsLoggedIn(async (wiLoggedIn: boolean) => {
+                const copilotState = aiStateService.getSnapshot().value;
 
-                // Only handle login events when we're in the SSO authentication flow
-                if (isLoggedIn && typeof currentState === 'object' && 'Authenticating' in currentState) {
-                    try {
-                        const stsToken = await getPlatformStsToken();
-                        if (!stsToken) {
-                            console.error('Failed to get STS token after platform login');
-                            return;
+                if (wiLoggedIn) {
+                    // Don't override an explicit non-BI_INTEL choice (Anthropic/AWS/Vertex).
+                    const copilotCreds = await getAuthCredentials();
+                    if (copilotCreds && copilotCreds.loginMethod !== LoginMethod.BI_INTEL) return;
+
+                    const copilotUnauthenticated = copilotState === 'Unauthenticated';
+                    const copilotInSsoFlow =
+                        typeof copilotState === 'object' &&
+                        'Authenticating' in copilotState &&
+                        (copilotState as any).Authenticating === 'ssoFlow';
+                    if (!copilotUnauthenticated && !copilotInSsoFlow) return;
+
+                    if (copilotUnauthenticated) {
+                        // COMPLETE_AUTH is only valid in ssoFlow; drive through LOGIN instead
+                        aiStateService.send(AIMachineEventType.LOGIN);
+                    } else {
+                        try {
+                            await completeSsoSignIn();
+                        } catch (error) {
+                            console.error('Failed to complete SSO sign-in:', error);
+                            aiStateService.send(AIMachineEventType.CANCEL_LOGIN);
                         }
-
-                        const secrets = await exchangeStsToCopilotToken(stsToken);
-                        await storeAuthCredentials({
-                            loginMethod: LoginMethod.BI_INTEL,
-                            secrets
-                        });
-                        aiStateService.send(AIMachineEventType.COMPLETE_AUTH);
-                    } catch (error) {
-                        console.error('Failed to exchange token after platform login:', error);
-                        aiStateService.send(AIMachineEventType.CANCEL_LOGIN);
+                    }
+                } else {
+                    // Integrator signed out — only react if Copilot is using BI_INTEL.
+                    const copilotCreds = await getAuthCredentials();
+                    if (copilotCreds?.loginMethod === LoginMethod.BI_INTEL) {
+                        aiStateService.send(AIMachineEventType.LOGOUT);
                     }
                 }
             });

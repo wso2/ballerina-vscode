@@ -38,7 +38,6 @@ export const onWizardChatNotify = _wizardChatEmitter.event;
 import {
     AI_ENHANCE_TOML_FILENAME,
     AI_MIGRATION_DIR,
-    AI_SUMMARY_FILENAME,
     ActiveMigrationSessionLocal,
     EnhanceTomlData,
     MIGRATION_PROJECT_ROOT_KEY,
@@ -318,19 +317,12 @@ export async function checkAndRunPendingEnhancement(): Promise<void> {
         // Set session state so other parts of the extension know about the migration
         _activeSession = { isActive: false, aiFeatureUsed: true, fullyEnhanced: false };
 
-        const hasSummary = fs.existsSync(
-            path.join(stored.projectRoot, AI_MIGRATION_DIR, AI_SUMMARY_FILENAME),
-        );
-        const message = hasSummary
-            ? "Migration AI enhancement was paused. You can resume it from AI Chat."
-            : "Migration project created. You can start AI enhancement from AI Chat.";
-
         const action = await window.showInformationMessage(
-            message,
-            "Open AI Chat"
+            "Migration AI enhancement was paused. You can resume it from 'WSO2 Integrator Copilot'.",
+            "Open Copilot"
         );
 
-        if (action === "Open AI Chat") {
+        if (action === "Open Copilot") {
             openAIPanelWithPrompt();
         }
     } else {
@@ -339,10 +331,10 @@ export async function checkAndRunPendingEnhancement(): Promise<void> {
         _activeSession = { isActive: false, aiFeatureUsed: false, fullyEnhanced: false };
         console.log("[MigrationEnhancement] AI not enabled at wizard – notification shown.");
         const action = await window.showInformationMessage(
-            "Your migrated project is ready. Open AI Chat to run AI enhancement — it can resolve TODOs, fix build errors, and refine tests.",
-            "Open AI Chat"
+            "Your migrated project is ready. Open 'WSO2 Integrator Copilot' to run AI enhancement — it can resolve TODOs, fix build errors, and refine tests.",
+            "Open Copilot"
         );
-        if (action === "Open AI Chat") {
+        if (action === "Open Copilot") {
             openAIPanelWithPrompt();
         }
     }
