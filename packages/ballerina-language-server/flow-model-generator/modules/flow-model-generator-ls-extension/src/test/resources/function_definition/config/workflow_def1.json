@@ -1,11 +1,10 @@
 {
-  "source": "empty.bal",
-  "description": "Workflow process function template",
-  "codedata": {
-    "node": "WORKFLOW"
-  },
+  "filePath": "workflow_def",
+  "fileName": "functions.bal",
+  "functionName": "simpleWorkflow",
+  "description": "Workflow function with no parameters",
   "output": {
-    "id": "31",
+    "id": "42728",
     "metadata": {
       "label": "Workflow Process Function",
       "description": "Define a workflow process function"
@@ -14,7 +13,17 @@
       "node": "WORKFLOW",
       "org": "ballerina",
       "module": "workflow",
-      "isNew": true
+      "lineRange": {
+        "fileName": "functions.bal",
+        "startLine": {
+          "line": 11,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 12,
+          "offset": 41
+        }
+      }
     },
     "returning": false,
     "properties": {
@@ -30,11 +39,24 @@
             "selected": true
           }
         ],
-        "value": "workflow",
+        "value": "simpleWorkflow",
         "optional": false,
-        "editable": true,
+        "editable": false,
         "advanced": false,
-        "hidden": false
+        "hidden": false,
+        "codedata": {
+          "lineRange": {
+            "fileName": "functions.bal",
+            "startLine": {
+              "line": 12,
+              "offset": 9
+            },
+            "endLine": {
+              "line": 12,
+              "offset": 23
+            }
+          }
+        }
       },
       "functionNameDescription": {
         "metadata": {
@@ -121,6 +143,23 @@
         "editable": true,
         "advanced": false,
         "hidden": false
+      },
+      "annotations": {
+        "metadata": {
+          "label": "Annotations",
+          "description": "Annotations of the function"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "\n@workflow:Workflow\n\n",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true
       }
     },
     "flags": 0

@@ -1,11 +1,10 @@
 {
-  "source": "empty.bal",
-  "description": "Workflow process function template",
-  "codedata": {
-    "node": "WORKFLOW"
-  },
+  "filePath": "workflow_def",
+  "fileName": "functions.bal",
+  "functionName": "contextWorkflow",
+  "description": "Workflow function with context and input — context param must be skipped",
   "output": {
-    "id": "31",
+    "id": "50703",
     "metadata": {
       "label": "Workflow Process Function",
       "description": "Define a workflow process function"
@@ -14,7 +13,17 @@
       "node": "WORKFLOW",
       "org": "ballerina",
       "module": "workflow",
-      "isNew": true
+      "lineRange": {
+        "fileName": "functions.bal",
+        "startLine": {
+          "line": 19,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 20,
+          "offset": 80
+        }
+      }
     },
     "returning": false,
     "properties": {
@@ -30,11 +39,24 @@
             "selected": true
           }
         ],
-        "value": "workflow",
+        "value": "contextWorkflow",
         "optional": false,
-        "editable": true,
+        "editable": false,
         "advanced": false,
-        "hidden": false
+        "hidden": false,
+        "codedata": {
+          "lineRange": {
+            "fileName": "functions.bal",
+            "startLine": {
+              "line": 20,
+              "offset": 9
+            },
+            "endLine": {
+              "line": 20,
+              "offset": 24
+            }
+          }
+        }
       },
       "functionNameDescription": {
         "metadata": {
@@ -116,11 +138,28 @@
             "selected": false
           }
         ],
-        "value": "",
+        "value": "OrderInput",
         "optional": true,
         "editable": true,
         "advanced": false,
         "hidden": false
+      },
+      "annotations": {
+        "metadata": {
+          "label": "Annotations",
+          "description": "Annotations of the function"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "\n@workflow:Workflow\n\n",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true
       }
     },
     "flags": 0

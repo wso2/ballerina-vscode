@@ -298,7 +298,10 @@ public class CodeAnalyzer extends NodeVisitor {
         this.forceAssign = forceAssign;
         this.flowNodeList = new ArrayList<>();
         this.flowNodeBuilderStack = new Stack<>();
-        this.diagnosticHandler = new DiagnosticHandler(semanticModel);
+        // Source diagnostics from the package compilation (superset of the semantic model) so that compiler plugin
+        // diagnostics are surfaced alongside semantic-phase ones.
+        this.diagnosticHandler = new DiagnosticHandler(
+                project.currentPackage().getCompilation().diagnosticResult().diagnostics());
         this.workspaceManager = workspaceManager;
         this.filePath = filePath;
     }
@@ -453,7 +456,10 @@ public class CodeAnalyzer extends NodeVisitor {
         } else if (isWorkflowCtxOperation(remoteMethodCallActionNode, classSymbol, CALL_ACTIVITY_METHOD_NAME)) {
             startNode(NodeKind.ACTIVITY_CALL, expressionNode.parent());
         } else if (isWorkflowCtxOperation(remoteMethodCallActionNode, classSymbol, AWAIT_METHOD_NAME)) {
-            startNode(NodeKind.WAIT_DATA, expressionNode.parent());
+            // Use the enclosing variable declaration's line range when present so workflow compiler
+            // plugin diagnostics on the typed binding pattern (e.g. WORKFLOW_123 on non-nilable tuple
+            // members) attach to the WAIT_DATA flow node.
+            startNode(NodeKind.WAIT_DATA, remoteMethodCallActionNode.parent());
         } else {
             startNode(NodeKind.REMOTE_ACTION_CALL, expressionNode.parent());
         }
@@ -913,14 +919,14 @@ public class CodeAnalyzer extends NodeVisitor {
         FieldAccessExpressionNode fieldAccess = (FieldAccessExpressionNode) waitFutureExpr;
         String dataName = fieldAccess.fieldName().toSourceCode().strip();
 
-        String variableName = "";
-        String dataType = "";
         if (typedBindingPatternNode != null) {
-            variableName = typedBindingPatternNode.bindingPattern().toSourceCode().strip();
-            dataType = typedBindingPatternNode.typeDescriptor().toSourceCode().strip();
+            String variableName = typedBindingPatternNode.bindingPattern().toSourceCode().strip();
+            Node typeDesc = typedBindingPatternNode.typeDescriptor();
+            String dataType = typeDesc.toSourceCode().strip();
+            LineRange dataTypeRange = typeDesc.lineRange();
+            buildDataWaitsProperty(List.of(new DataWaitEntry(variableName, dataType, dataName, dataTypeRange)));
         }
 
-        buildDataWaitsProperty(List.of(new DataWaitEntry(variableName, dataType, dataName)));
         ((WaitDataBuilder) nodeBuilder).addAdvancedProperties(workspaceManager.module(filePath)
                 .orElse(project.currentPackage().getDefaultModule()), workspaceManager, filePath);
     }
@@ -946,7 +952,8 @@ public class CodeAnalyzer extends NodeVisitor {
                 for (Node member : listNode.expressions()) {
                     if (member.kind() == SyntaxKind.FIELD_ACCESS) {
                         FieldAccessExpressionNode fieldAccess = (FieldAccessExpressionNode) member;
-                        entries.add(new DataWaitEntry("", "", fieldAccess.fieldName().toSourceCode().strip()));
+                        entries.add(new DataWaitEntry("", "",
+                                fieldAccess.fieldName().toSourceCode().strip(), null));
                     }
                 }
             }
@@ -954,14 +961,14 @@ public class CodeAnalyzer extends NodeVisitor {
 
         // Extract variable names and types from typedBindingPatternNode
         // Tuple: [Type1, Type2] [var1, var2] = check ctx->await([data.f1, data.f2]);
-        populateTupleEntries(entries);
+        populateDataEntries(entries);
         buildDataWaitsProperty(entries);
     }
 
     /**
      * Extracts variable names and types from a tuple binding pattern and updates the entries.
      */
-    private void populateTupleEntries(List<DataWaitEntry> entries) {
+    private void populateDataEntries(List<DataWaitEntry> entries) {
         if (typedBindingPatternNode == null) {
             return;
         }
@@ -969,11 +976,13 @@ public class CodeAnalyzer extends NodeVisitor {
         // Extract types from tuple type descriptor: [Type1, Type2]
         Node typeDesc = typedBindingPatternNode.typeDescriptor();
         List<String> types = new ArrayList<>();
+        List<LineRange> typeRanges = new ArrayList<>();
         if (typeDesc.kind() == SyntaxKind.TUPLE_TYPE_DESC) {
             TupleTypeDescriptorNode tupleType = (TupleTypeDescriptorNode) typeDesc;
             for (Node memberType : tupleType.memberTypeDesc()) {
                 if (memberType.kind() != SyntaxKind.COMMA_TOKEN) {
                     types.add(memberType.toSourceCode().strip());
+                    typeRanges.add(memberType.lineRange());
                 }
             }
         }
@@ -988,11 +997,12 @@ public class CodeAnalyzer extends NodeVisitor {
             }
         }
 
-        // Update entries with types and variable names
+        // Update entries with types, variable names, and line ranges
         for (int i = 0; i < entries.size(); i++) {
             String type = i < types.size() ? types.get(i) : "";
             String varName = i < varNames.size() ? varNames.get(i) : "";
-            entries.set(i, entries.get(i).withVarAndType(varName, type));
+            LineRange typeRange = i < typeRanges.size() ? typeRanges.get(i) : null;
+            entries.set(i, entries.get(i).withVarAndType(varName, type, typeRange));
         }
     }
 
@@ -1019,7 +1029,7 @@ public class CodeAnalyzer extends NodeVisitor {
                     .value(entry.dataType)
                     .editable(true)
                     .stepOut()
-                    .addProperty(WaitDataBuilder.DATA_TYPE_KEY);
+                    .addProperty(WaitDataBuilder.DATA_TYPE_KEY, entry.dataTypeRange);
 
             nodeBuilder.properties().custom()
                     .metadata().label(WaitDataBuilder.DATA_NAME_LABEL)
@@ -1037,9 +1047,9 @@ public class CodeAnalyzer extends NodeVisitor {
                 WaitDataBuilder.getDataWaitSchema(), false, false);
     }
 
-    private record DataWaitEntry(String variableName, String dataType, String dataName) {
-        DataWaitEntry withVarAndType(String variableName, String dataType) {
-            return new DataWaitEntry(variableName, dataType, this.dataName);
+    private record DataWaitEntry(String variableName, String dataType, String dataName, LineRange dataTypeRange) {
+        DataWaitEntry withVarAndType(String variableName, String dataType, LineRange dataTypeRange) {
+            return new DataWaitEntry(variableName, dataType, this.dataName, dataTypeRange);
         }
     }
 
@@ -2810,7 +2820,7 @@ public class CodeAnalyzer extends NodeVisitor {
             // custom node
             // Check if this is a workflow wait for data (wait events.dataName)
             if (isWorkflowWaitData(waitActionNode)) {
-                startNode(NodeKind.WAIT_DATA, waitActionNode);
+                startNode(NodeKind.WAIT_DATA, waitActionNode.parent());
                 populateSimpleWaitDataProperties(waitActionNode);
             } else {
                 startNode(NodeKind.EXPRESSION, waitActionNode)
