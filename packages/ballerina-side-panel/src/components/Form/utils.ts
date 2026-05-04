@@ -55,18 +55,21 @@ export function hasIncompleteRequiredFormFields(
     values: Record<string, unknown> = {}
 ): boolean {
     const checkField = (field: FormField): boolean => {
-        if (field.optional || field.hidden || field.enabled === false) {
+        if (field.hidden || field.enabled === false) {
             return false;
         }
 
         const value = values[field.key];
-        if (value === undefined || value === null) {
+        const hasValue = value !== undefined && value !== null && !(typeof value === "string" && value.trim() === "");
+
+        if (field.optional && !hasValue) {
+            return false;
+        }
+
+        if (!hasValue) {
             return true;
         }
         if (typeof value === "string") {
-            if (value.trim() === "") {
-                return true;
-            }
             if (field.dynamicFormFields?.[value]) {
                 if (field.dynamicFormFields[value].some(checkField)) {
                     return true;

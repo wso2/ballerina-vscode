@@ -336,3 +336,57 @@ test("hasIncompleteRequiredFormFields returns false when nested dynamic child fi
         false
     );
 });
+
+test("hasIncompleteRequiredFormFields validates dynamic child fields when optional parent has a value", () => {
+    assert.equal(
+        hasIncompleteRequiredFormFields(
+            [
+                {
+                    key: "optionalSelector",
+                    optional: true,
+                    hidden: false,
+                    enabled: true,
+                    dynamicFormFields: {
+                        selected: [
+                            {
+                                key: "requiredChild",
+                                optional: false,
+                                hidden: false,
+                                enabled: true,
+                            },
+                        ],
+                    },
+                },
+            ],
+            { optionalSelector: "selected", requiredChild: "" }
+        ),
+        true
+    );
+});
+
+test("hasIncompleteRequiredFormFields skips optional parent with no value even if dynamic child fields exist", () => {
+    assert.equal(
+        hasIncompleteRequiredFormFields(
+            [
+                {
+                    key: "optionalSelector",
+                    optional: true,
+                    hidden: false,
+                    enabled: true,
+                    dynamicFormFields: {
+                        selected: [
+                            {
+                                key: "requiredChild",
+                                optional: false,
+                                hidden: false,
+                                enabled: true,
+                            },
+                        ],
+                    },
+                },
+            ],
+            { optionalSelector: "", requiredChild: "" }
+        ),
+        false
+    );
+});
