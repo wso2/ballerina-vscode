@@ -43,6 +43,8 @@ const ActionButton = styled(Button)`
     gap: 4px;
 `;
 
+const TRACING_LABEL_BREAKPOINT = 600;
+
 const SubTitleWrapper = styled.div`
     display: flex;
     align-items: center;
@@ -138,6 +140,9 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     const [isSaving, setIsSaving] = useState(false);
     const [isTracingEnabled, setIsTracingEnabled] = useState(false);
     const [isToggling, setIsToggling] = useState(false);
+    const [isNarrowViewport, setIsNarrowViewport] = useState(
+        typeof window !== "undefined" && window.innerWidth < TRACING_LABEL_BREAKPOINT
+    );
     const [selectedTryItOption, setSelectedTryItOption] = useState<TryItOptionValue>(TryItOptionValue.TRY_IT);
     const [isTryItInProgress, setIsTryItInProgress] = useState(false);
     const isMountedRef = useRef(true);
@@ -147,6 +152,14 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
         return () => {
             isMountedRef.current = false;
         };
+    }, []);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsNarrowViewport(window.innerWidth < TRACING_LABEL_BREAKPOINT);
+        };
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
     }, []);
 
     useEffect(() => {
@@ -512,13 +525,14 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                 appearance={isTracingEnabled ? "primary" : "secondary"}
                 onClick={handleToggleTracing}
                 disabled={isToggling}
+                tooltip={isTracingEnabled ? "Tracing is on. Click to disable." : "Tracing is off. Click to enable."}
             >
                 <Icon
                     name={isTracingEnabled ? "telescope" : "circle-slash"}
                     isCodicon={true}
                     sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }}
                 />
-                {isTracingEnabled ? "Tracing: On" : "Tracing: Off"}
+                {isNarrowViewport ? "Tracing" : isTracingEnabled ? "Tracing: On" : "Tracing: Off"}
             </ActionButton>
         );
 
