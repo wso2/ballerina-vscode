@@ -458,7 +458,7 @@ const handleComponentDeletion = async (componentType: string, itemLabel: string,
     }
 
     for (const component of componentCategory) {
-        if (component.name === itemLabel && component.position.startLine === position.startLine && component.position.startColumn === position.startColumn) {
+        if (component.name === itemLabel && component?.position?.startLine === position.startLine && component?.position?.startColumn === position.startColumn) {
             if (component.name.startsWith("AI Agent Services")) {
                 await handleAIAgentServiceDeletion(component, rpcClient, filePath, deleteComponent);
                 return;
@@ -476,6 +476,8 @@ const handleComponentDeletion = async (componentType: string, itemLabel: string,
             await deleteComponent(componentInfo, rpcClient, filePath);
             return;
         }
+        console.error(`Component ${itemLabel} not found in project structure`);
+        return;
     }
 };
 
