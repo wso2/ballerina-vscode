@@ -790,6 +790,9 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     onToggleHelperPane={toggleHelperPaneState}
                                     onOpenExpandedMode={onOpenExpandedMode}
                                     isInExpandedMode={isExpandedModalOpen}
+                                    onNormalizeValue={(normalizedValue: string) => {
+                                        setValue(key, normalizedValue, { shouldDirty: false });
+                                    }}
                                 />
                                     </div>
                                     {onRemove && (
