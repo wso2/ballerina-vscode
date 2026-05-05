@@ -52,11 +52,23 @@ export function isIntegrationRunningAt(targetPath: string): boolean {
 
 export async function restartIntegration(targetPath: string): Promise<void> {
     if (runDebugSession) {
-        await debug.stopDebugging(runDebugSession);
+        const session = runDebugSession;
+        // Preserve original mode so debug restarts keep breakpoints.
+        const wasNoDebug = session.configuration.noDebug ?? true;
+        // Wait for actual terminate; stopDebugging only sends the request.
+        await new Promise<void>((resolve) => {
+            const sub = debug.onDidTerminateDebugSession((ended) => {
+                if (ended === session) {
+                    sub.dispose();
+                    resolve();
+                }
+            });
+            debug.stopDebugging(session);
+        });
         runDebugSession = undefined;
         TracerMachine.startServer();
         // Direct re-launch skips the BI run flow's Try-It suggestion.
-        await startDebugging(Uri.file(targetPath), false, false, true);
+        await startDebugging(Uri.file(targetPath), false, false, wasNoDebug);
         return;
     }
     if (runTerminal) {
