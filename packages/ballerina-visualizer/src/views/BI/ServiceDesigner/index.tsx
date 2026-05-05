@@ -240,7 +240,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         const res = await rpcClient
             .getServiceDesignerRpcClient()
             .updateResourceSourceCode({ filePath, codedata: { lineRange }, function: value, artifactType: DIRECTORY_MAP.SERVICE });
-        const serviceArtifact = res.artifacts.find(res => res.name === serviceIdentifier);
+        const serviceArtifact = res.artifacts.find(res => res.name === serviceIdentifier && res.position.startLine === position.startLine && res.position.startColumn === position.startColumn);
         if (serviceArtifact) {
             fetchService(serviceArtifact.position);
             await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { documentUri: serviceArtifact.path, position: serviceArtifact.position } });
@@ -330,7 +330,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         } catch (error) {
             console.log("Error fetching service model: ", error);
         }
-        getProjectListeners();
+        getProjectListeners(targetPosition);
     };
 
     const setServiceMetaInfo = (service: ServiceModel) => {
@@ -420,7 +420,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         setDropdownOptions(options);
     }
 
-    const getProjectListeners = () => {
+    const getProjectListeners = (targetPosition: NodePosition) => {
         rpcClient.getVisualizerLocation().then((location) => {
             const projectPath = location.projectPath;
             rpcClient.getBIDiagramRpcClient().getProjectStructure().then((res) => {
@@ -431,7 +431,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                 }
                 const services = project.directoryMap[DIRECTORY_MAP.SERVICE];
                 if (services.length > 0) {
-                    const selectedService = services.find((service) => service.name === serviceIdentifier);
+                    const selectedService = services.find((service) => service.name === serviceIdentifier && service.position.startLine === targetPosition.startLine && service.position.startColumn === targetPosition.startColumn);
                     if (selectedService.moduleName === "mcp") {
                         const updatedResources = selectedService.resources.map(resource => ({
                             ...resource,
@@ -627,7 +627,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         const projectStructure = await rpcClient.getBIDiagramRpcClient().getProjectStructure();
         const project = projectStructure.projects.find(project => project.projectPath === projectPath);
 
-        const serviceArtifact = project.directoryMap[DIRECTORY_MAP.SERVICE].find(res => res.name === serviceIdentifier);
+        const serviceArtifact = project.directoryMap[DIRECTORY_MAP.SERVICE].find(res => res.name === serviceIdentifier && res.position.startLine === position.startLine && res.position.startColumn === position.startColumn);
         if (serviceArtifact) {
             await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { documentUri: serviceArtifact.path, position: serviceArtifact.position } });
             fetchService(serviceArtifact.position);
@@ -645,7 +645,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             res = await rpcClient
                 .getServiceDesignerRpcClient()
                 .addResourceSourceCode({ filePath, codedata: { lineRange }, function: value, artifactType: DIRECTORY_MAP.SERVICE });
-            const serviceArtifact = res.artifacts.find(res => res.isNew && res.name === serviceIdentifier);
+            const serviceArtifact = res.artifacts.find(res => res.name === serviceIdentifier && res.position.startLine === position.startLine && res.position.startColumn === position.startColumn);
             if (serviceArtifact) {
                 if (openDiagram) {
                     const accessor = value.accessor.value.toLowerCase();
@@ -671,7 +671,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             res = await rpcClient
                 .getServiceDesignerRpcClient()
                 .updateResourceSourceCode({ filePath, codedata: { lineRange }, function: value, artifactType: DIRECTORY_MAP.SERVICE });
-            const serviceArtifact = res.artifacts.find(res => res.name === serviceIdentifier);
+            const serviceArtifact = res.artifacts.find(res => res.name === serviceIdentifier && res.position.startLine === position.startLine && res.position.startColumn === position.startColumn);
             if (serviceArtifact) {
                 fetchService(serviceArtifact.position);
                 await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { documentUri: serviceArtifact.path, position: serviceArtifact.position } });
@@ -699,7 +699,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             res = await rpcClient
                 .getServiceDesignerRpcClient()
                 .addFunctionSourceCode({ filePath, codedata: { lineRange }, function: value, artifactType: DIRECTORY_MAP.SERVICE });
-            const serviceArtifact = res.artifacts.find(res => res.name === serviceIdentifier);
+            const serviceArtifact = res.artifacts.find(res => res.name === serviceIdentifier && res.position.startLine === position.startLine && res.position.startColumn === position.startColumn);
             if (serviceArtifact) {
                 if (openDiagram) {
                     // Navigate to flow diagram for the newly created handler
@@ -725,7 +725,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             res = await rpcClient
                 .getServiceDesignerRpcClient()
                 .updateResourceSourceCode({ filePath, codedata: { lineRange }, function: value, artifactType: DIRECTORY_MAP.SERVICE });
-            const serviceArtifact = res.artifacts.find(res => res.name === serviceIdentifier);
+            const serviceArtifact = res.artifacts.find(res => res.name === serviceIdentifier && res.position.startLine === position.startLine && res.position.startColumn === position.startColumn);
             if (serviceArtifact) {
                 fetchService(serviceArtifact.position);
                 await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { documentUri: serviceArtifact.path, position: serviceArtifact.position } });
