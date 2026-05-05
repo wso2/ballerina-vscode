@@ -36,3 +36,4 @@ export { InputMode } from "./MultiModeExpressionEditor/ChipExpressionEditor/type
 export { HelperPaneMenuItem } from "./MultiModeExpressionEditor/ChipExpressionEditor/ChipExpressionDefaultConfig";
 export { getEditorConfiguration } from "./ExpressionField";
 export { ExpandedEditor } from "./ExpandedEditor";
+export { getInputModeFromTypes } from "./MultiModeExpressionEditor/ChipExpressionEditor/utils";

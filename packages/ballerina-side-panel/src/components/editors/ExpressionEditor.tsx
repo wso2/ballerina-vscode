@@ -52,6 +52,7 @@ import { ExpressionField } from './ExpressionField';
 import { InputMode } from './MultiModeExpressionEditor/ChipExpressionEditor/types';
 import { getInputModeFromTypes } from './MultiModeExpressionEditor/ChipExpressionEditor/utils';
 import { ExpandedEditor } from './ExpandedEditor';
+import { SkeletonBase } from '../Skeletons/styles';
 
 export type ContextAwareExpressionEditorProps = {
     id?: string;
@@ -94,6 +95,7 @@ export namespace S {
         flexDirection: 'column',
         gap: '4px',
         fontFamily: 'var(--font-family)',
+        position: 'relative',
     });
 
     export const Ribbon = styled.div({
@@ -435,6 +437,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     }
 
     const [isHelperPaneOpen, setIsHelperPaneOpen] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     /* Define state to retrieve helper pane data */
 
     const exprRef = useRef<FormExpressionEditorRef>(null);
@@ -601,33 +604,45 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                     <S.Header>
                         {field.label && (
                             <S.HeaderContainer>
-                                <S.LabelContainer>
-                                    <S.Label>{field.label}</S.Label>
-                                    {(field.defaultValue && field.defaultValue?.trim() !== "()") && <S.DefaultValue style={{ marginLeft: '8px' }}>{`(Default: ${field.defaultValue}) `}</S.DefaultValue>}
-                                    {(required ?? !field.optional) && <RequiredFormInput />}
-                                    {getPrimaryInputType(field.types)?.ballerinaType && (
-                                        <S.Type style={{ marginLeft: '5px' }} isVisible={focused} title={getPrimaryInputType(field.types)?.ballerinaType}>
-                                            {sanitizeType(getPrimaryInputType(field.types)?.ballerinaType)}
-                                        </S.Type>
-                                    )}
-                                </S.LabelContainer>
+                                {isLoading ? (
+                                    <SkeletonBase height="14px" width="40%" />
+                                ) : (
+                                    <S.LabelContainer>
+                                        <S.Label>{field.label}</S.Label>
+                                        {(field.defaultValue && field.defaultValue?.trim() !== "()") && <S.DefaultValue style={{ marginLeft: '8px' }}>{`(Default: ${field.defaultValue}) `}</S.DefaultValue>}
+                                        {(required ?? !field.optional) && <RequiredFormInput />}
+                                        {getPrimaryInputType(field.types)?.ballerinaType && (
+                                            <S.Type style={{ marginLeft: '5px' }} isVisible={focused} title={getPrimaryInputType(field.types)?.ballerinaType}>
+                                                {sanitizeType(getPrimaryInputType(field.types)?.ballerinaType)}
+                                            </S.Type>
+                                        )}
+                                    </S.LabelContainer>
+                                )}
                             </S.HeaderContainer>
                         )}
                         <S.HeaderRow>
                             <S.HeaderMain>
-                                <S.EditorMdContainer>
-                                    {documentation && <ReactMarkdown>{documentation}</ReactMarkdown>}
-                                </S.EditorMdContainer>
+                                {isLoading ? (
+                                    documentation ? <SkeletonBase height="13px" width="80%" /> : null
+                                ) : (
+                                    <S.EditorMdContainer>
+                                        {documentation && <ReactMarkdown>{documentation}</ReactMarkdown>}
+                                    </S.EditorMdContainer>
+                                )}
                             </S.HeaderMain>
                             {modeSwitcherContext?.isModeSwitcherEnabled && (
                                 <S.FieldInfoSection>
-                                    <ModeSwitcher
-                                        fieldKey={field.key}
-                                        value={modeSwitcherContext.inputMode}
-                                        isRecordTypeField={modeSwitcherContext.isRecordTypeField}
-                                        onChange={modeSwitcherContext.onModeChange}
-                                        types={modeSwitcherContext.types}
-                                    />
+                                    {isLoading ? (
+                                        <SkeletonBase height="24px" width="112px" style={{ borderRadius: '2px', marginTop: '2px' }} />
+                                    ) : (
+                                        <ModeSwitcher
+                                            fieldKey={field.key}
+                                            value={modeSwitcherContext.inputMode}
+                                            isRecordTypeField={modeSwitcherContext.isRecordTypeField}
+                                            onChange={modeSwitcherContext.onModeChange}
+                                            types={modeSwitcherContext.types}
+                                        />
+                                    )}
                                 </S.FieldInfoSection>
                             )}
                         </S.HeaderRow>
@@ -716,7 +731,9 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                         return (
                             <div>
                                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
-                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ flex: 1, minWidth: 0, position: 'relative' }}>
+                                        {isLoading && <SkeletonBase height="28px" style={{ position: 'absolute', top: 0, left: 0, zIndex: 1, borderRadius: '2px' }} />}
+                                        <div style={{ visibility: isLoading ? 'hidden' : 'visible' }}>
                                 <ExpressionField
                                     field={field}
                                     inputMode={inputMode}
@@ -790,7 +807,9 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     onToggleHelperPane={toggleHelperPaneState}
                                     onOpenExpandedMode={onOpenExpandedMode}
                                     isInExpandedMode={isExpandedModalOpen}
+                                    onLoadingStateChange={setIsLoading}
                                 />
+                                        </div>
                                     </div>
                                     {onRemove && (
                                         <Button
