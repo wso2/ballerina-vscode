@@ -499,8 +499,12 @@ const stateMachine = createMachine<MachineContext>(
                     AIStateMachine.initialize();
                     StateMachinePopup.initialize();
                     commands.executeCommand('setContext', 'BI.status', 'loadingDone');
-                    if (!ls.biSupported) {
-                        commands.executeCommand('setContext', 'BI.status', 'updateNeed');
+                    if (ls.langClient) {
+                        if (!ls.biSupported) {
+                            commands.executeCommand('setContext', 'BI.status', 'updateNeed');
+                        }
+                    } else {
+                        commands.executeCommand('setContext', 'BI.status', 'noLS');
                     }
                     activateDevantFeatures(ls);
                     resolve({ langClient: ls.langClient, isBISupported: ls.biSupported });
