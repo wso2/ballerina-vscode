@@ -213,7 +213,11 @@ export function activate(context: BallerinaExtension) {
         } else if (item.contextValue === DIRECTORY_MAP.LOCAL_CONNECTORS) {
             await handleLocalModuleDeletion(item.label as string, item.info);
         } else {
-            await handleComponentDeletion(item.contextValue as string, item.label as string, item.info, item.position);
+            if (!item.position) {
+                window.showErrorMessage('Position is required to delete a component.');
+                return;
+            }
+            await handleComponentDeletion(item.contextValue as string, item.label as string, item.info, item.position as NodePosition);
         }
     });
 
