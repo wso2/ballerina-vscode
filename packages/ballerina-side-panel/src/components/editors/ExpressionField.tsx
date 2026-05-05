@@ -319,6 +319,7 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
                 onRemove={onRemove}
                 isInExpandedMode={isInExpandedMode}
                 placeholder={field.placeholder}
+                onLoadingStateChange={onLoadingStateChange}
             />
 
         );
@@ -340,6 +341,7 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
                 onRemove={onRemove}
                 isInExpandedMode={isInExpandedMode}
                 placeholder={field.placeholder}
+                onLoadingStateChange={onLoadingStateChange}
             />
         );
     }
