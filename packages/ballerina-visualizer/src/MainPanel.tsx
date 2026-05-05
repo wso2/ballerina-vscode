@@ -343,7 +343,7 @@ const MainPanel = () => {
                         case MACHINE_VIEW.WorkspaceOverview: {
                             const { WorkspaceOverview } = await import("./views/BI/WorkspaceOverview");
                             if (isStaleNavigation()) return;
-                            setViewComponent(<WorkspaceOverview />);
+                            setViewComponent(<WorkspaceOverview isInDevant={value.isInDevant} />);
                             break;
                         }
                         case MACHINE_VIEW.ServiceDesigner: {
