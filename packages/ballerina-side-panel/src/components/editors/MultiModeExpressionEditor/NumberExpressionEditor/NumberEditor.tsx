@@ -40,6 +40,7 @@ export const NumberExpressionEditor: React.FC<ChipExpressionEditorComponentProps
             isInExpandedMode={props.isInExpandedMode}
             configuration={new NumberExpressionEditorConfig()}
             placeholder={props.placeholder}
+            onNormalizeValue={props.onNormalizeValue}
         />
     );
 };

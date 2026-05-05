@@ -57,6 +57,7 @@ export const TextModeEditor: React.FC<ChipExpressionEditorComponentProps> = (pro
                 isInExpandedMode={props.isInExpandedMode}
                 configuration={props.configuration}
                 placeholder={props.placeholder}
+                onNormalizeValue={props.onNormalizeValue}
             />
         </EditorContainer>
     );

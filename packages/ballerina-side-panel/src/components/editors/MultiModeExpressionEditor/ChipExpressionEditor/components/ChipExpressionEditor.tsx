@@ -102,6 +102,7 @@ export type ChipExpressionEditorComponentProps = {
     hideFxButton?: boolean;
     disabled?: boolean;
     placeholder?: string;
+    onNormalizeValue?: (value: string) => void;
 }
 
 function resolveInitialValueResolving(
@@ -398,7 +399,11 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         const serializedValue = configuration.serializeValue(props.value);
         const deserializeValue = configuration.deserializeValue(props.value);
         if (normalizeEditorValue(deserializeValue) !== normalizeEditorValue(props.value)) {
-            props.onChange(deserializeValue, deserializeValue.length);
+            if (props.onNormalizeValue) {
+                props.onNormalizeValue(deserializeValue);
+            } else {
+                props.onChange(deserializeValue, deserializeValue.length);
+            }
             return;
         }
         const updateEditorState = async () => {
