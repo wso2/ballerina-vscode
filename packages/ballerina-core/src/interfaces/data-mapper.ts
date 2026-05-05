@@ -17,7 +17,7 @@
  */
 
 import { TypeInfo } from "./ballerina";
-import { CodeData, InputType } from "./bi";
+import { CodeData, Imports, InputType } from "./bi";
 import { LineRange } from "./common";
 
 export enum TypeKind {
@@ -254,7 +254,7 @@ export interface DMFormProps {
     submitText?: string;
     cancelText?: string;
     nestedForm?: boolean;
-    onSubmit: (data: DMFormFieldValues, formImports?: DMFormFieldValues, importsCodedata?: CodeData) => void;
+    onSubmit: (data: DMFormFieldValues, formImports?: DMFormImports, importsCodedata?: CodeData) => void;
     onCancel?: () => void;
     isSaving?: boolean;
 }
@@ -274,6 +274,10 @@ export interface DMFormField {
 
 export interface DMFormFieldValues {
     [key: string]: any;
+}
+
+export interface DMFormImports {
+    [fieldKey: string]: Imports;
 }
 
 export interface DMViewState {
