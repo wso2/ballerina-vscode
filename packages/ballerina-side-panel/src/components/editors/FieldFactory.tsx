@@ -50,6 +50,7 @@ type FieldFactoryProps = {
     handleFormValidation?: (formData?: FormValues) => Promise<boolean>;
     openFormTypeEditor?: (open: boolean, newType?: string) => void;
     updateImports?: (key: string, imports: Imports) => void;
+    onFieldModeChange?: (fieldKey: string, mode: InputMode) => void;
 }
 
 
@@ -201,7 +202,6 @@ export const FieldFactory = (props: FieldFactoryProps) => {
                 initialInputMode = currentInputModeRef.current;
             }
         }
-        updateFieldTypesSelection(initialInputMode);
     }, [props.field, props.recordTypeFields]);
 
     const isModeSwitcherEnabled = useMemo(() => {
@@ -212,18 +212,11 @@ export const FieldFactory = (props: FieldFactoryProps) => {
         return !!props.recordTypeFields?.find(recordField => recordField.key === props.field.key);
     }, [props.recordTypeFields, props.field.key]);
 
-    const updateFieldTypesSelection = (targetMode: InputMode) => {
-        props.field.types?.forEach(type => {
-            if (type.fieldType !== "GROUP_SECTION") {
-                type.selected = getInputModeFromTypes(type) === targetMode;
-            }
-        });
-    };
 
     const handleModeChange = useCallback((mode: InputMode) => {
         currentInputModeRef.current = mode;
         setInputMode(mode);
-        updateFieldTypesSelection(mode);
+        props.onFieldModeChange?.(props.field.key, mode);
 
         if (!form) {
             props.handleFormValidation?.();

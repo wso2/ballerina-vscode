@@ -24,6 +24,8 @@ import { Codicon } from "@wso2/ui-toolkit/lib/components/Codicon/Codicon";
 import { ScrollableList, ScrollableListRef } from "@wso2/ui-toolkit/lib/components/ScrollableList/ScrollableList";
 import ModeSwitcher from "../ModeSwitcher";
 import { getMapSubFormFieldFromTypes, buildStringMap, stringToRawObjectEntries, getRecordTypeFields, mapDiagnosticsServerityToFormSeverity, getPropertyFromFormField } from "./utils";
+import { InputMode } from "./MultiModeExpressionEditor/ChipExpressionEditor/types";
+import { getInputModeFromTypes } from "./MultiModeExpressionEditor/ChipExpressionEditor/utils";
 
 export const FormMapEditorNew = (props: FormFieldEditorProps & {
     onChange: (value: any) => void;
@@ -149,6 +151,24 @@ export const FormMapEditorNew = (props: FormFieldEditorProps & {
         if (!valueField) return true;
         handleFormDiagnosticsChange(true, value, valueFieldKey, getPropertyFromFormField(valueField), () => { }, false, (props.field.types[0] as any).name);
         return true;
+    };
+
+    const handleElementFieldModeChange = (fieldKey: string, mode: InputMode) => {
+        const updated = repeatableFields.map(fieldPair => {
+            const fieldIdx = fieldPair.findIndex(f => f.key === fieldKey);
+            if (fieldIdx === -1) return fieldPair;
+            const updatedPair = [...fieldPair];
+            updatedPair[fieldIdx] = {
+                ...updatedPair[fieldIdx],
+                types: updatedPair[fieldIdx].types.map(t => ({
+                    ...t,
+                    selected: getInputModeFromTypes(t) === mode,
+                })),
+            };
+            return updatedPair;
+        });
+        setRepeatableFields(updated);
+        props.onChange(processToOutputFormat(updated));
     };
 
     const handleAddNewItem = () => {
@@ -341,6 +361,7 @@ export const FormMapEditorNew = (props: FormFieldEditorProps & {
                                         handleFormOnChange(fieldKey, value, allValues, formField[0].key);
                                     }}
                                     onFormValidation={handleElementFormValidation}
+                                    onFieldModeChange={handleElementFieldModeChange}
                                     expressionEditor={{
                                         ...expressionEditor,
                                         onCompletionItemSelect: expressionEditor?.onCompletionItemSelect,
