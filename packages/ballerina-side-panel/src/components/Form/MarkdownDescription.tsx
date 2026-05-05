@@ -19,6 +19,7 @@
 import React from "react";
 import styled from "@emotion/styled";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { ThemeColors } from "@wso2/ui-toolkit";
 import { stripHtmlTags } from "./utils";
 
@@ -50,11 +51,15 @@ const MarkdownContainer = styled.div`
     }
 
     pre {
-        display: none;
+        margin: 8px 0;
+        padding: 8px;
+        overflow-x: auto;
+        background: var(--vscode-editor-inactiveSelectionBackground);
+        border-radius: 4px;
     }
 
     code {
-        display: inline;
+        font-family: var(--vscode-editor-font-family);
     }
 
     ul, ol {
@@ -111,7 +116,7 @@ export const MarkdownDescription: React.FC<MarkdownDescriptionProps> = ({ descri
 
     return (
         <MarkdownContainer className={className}>
-            <ReactMarkdown>{stripHtmlTags(description)}</ReactMarkdown>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{stripHtmlTags(description)}</ReactMarkdown>
         </MarkdownContainer>
     );
 };
