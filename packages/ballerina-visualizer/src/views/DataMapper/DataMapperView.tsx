@@ -48,7 +48,8 @@ import {
     TriggerKind,
     TypeKind,
     Type,
-    Imports
+    Imports,
+    DMFormImports
 } from "@wso2/ballerina-core";
 import { CompletionItem, ProgressIndicator } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -407,6 +408,7 @@ export function DataMapperView(props: DataMapperViewProps) {
         type: string,
         index: number,
         targetField: string,
+        formImports?: DMFormImports,
         importsCodedata?: CodeData
     ) => {
         try {
@@ -427,7 +429,8 @@ export function DataMapperView(props: DataMapperViewProps) {
                 subMappingName,
                 type,
                 name,
-                defaultValue
+                defaultValue,
+                formImports?.type
             );
 
             console.log(">>> [Data Mapper] addSubMapping request:", request);

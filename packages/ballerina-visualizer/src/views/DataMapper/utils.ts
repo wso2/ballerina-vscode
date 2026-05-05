@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { AddSubMappingRequest, CodeData } from "@wso2/ballerina-core";
+import { AddSubMappingRequest, CodeData, Imports } from "@wso2/ballerina-core";
 
 // Constants for default values related to the sub mapping form
 const EMPTY_LABEL = "";
@@ -29,29 +29,30 @@ const createMetadata = (label: string = EMPTY_LABEL, description: string = EMPTY
 });
 
 // Helper function to create property object
-const createProperty = (valueType: string, value: string, optional: boolean, editable: boolean) => ({
+const createProperty = (valueType: string, value: string, optional: boolean, editable: boolean, imports?: Imports) => ({
     metadata: createMetadata(),
     valueType,
     value,
     optional,
-    editable
+    editable,
+    imports
 });
 
 // Helper function to create flowNode properties
-const createFlowNodeProperties = (subMappingName: string, type: string, defaultValue: string) => ({
+const createFlowNodeProperties = (subMappingName: string, type: string, defaultValue: string, typeImports?: Imports) => ({
     expression: createProperty("EXPRESSION", defaultValue, true, true),
     variable: createProperty("IDENTIFIER", subMappingName, false, true),
-    type: createProperty("TYPE", type, false, true)
+    type: createProperty("TYPE", type, false, true, typeImports)
 });
 
 // Helper function to create flowNode
-const createFlowNode = (subMappingName: string, type: string, codedata: CodeData, defaultValue: string) => ({
+const createFlowNode = (subMappingName: string, type: string, codedata: CodeData, defaultValue: string, typeImports?: Imports) => ({
     id: subMappingName,
     returning: false,
     metadata: createMetadata(),
     codedata: codedata,
     branches: [] as any[],
-    properties: createFlowNodeProperties(subMappingName, type, defaultValue)
+    properties: createFlowNodeProperties(subMappingName, type, defaultValue, typeImports)
 });
 
 // Helper function to create AddSubMappingRequest
@@ -63,12 +64,13 @@ export const createAddSubMappingRequest = (
     subMappingName: string,
     type: string,
     varName: string,
-    defaultValue: string
+    defaultValue: string,
+    typeImports?: Imports
 ): AddSubMappingRequest => ({
     filePath,
     codedata,
     index,
     targetField,
-    flowNode: createFlowNode(subMappingName, type, codedata, defaultValue),
+    flowNode: createFlowNode(subMappingName, type, codedata, defaultValue, typeImports),
     varName
 });
