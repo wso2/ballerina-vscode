@@ -178,6 +178,7 @@ export class BallerinaExtension {
     private ballerinaUpdateToolUserAgent: string;
     private readonly _downloadProgressEmitter = new EventEmitter<DownloadProgress>();
     public readonly onDownloadProgress: Event<DownloadProgress> = this._downloadProgressEmitter.event;
+    private _wiCommandAvailable: boolean | undefined = undefined;
 
     constructor() {
         debug("[EXTENSION] Starting constructor initialization...");
@@ -2555,8 +2556,12 @@ export class BallerinaExtension {
     public notifyDownloadProgress(res: DownloadProgress): void {
         RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
         this._downloadProgressEmitter.fire(res);
-        // Forward to WI extension without requiring it to have activated Ballerina Extension.
-        commands.executeCommand('wso2.integrator.onDownloadProgress', res).then(undefined, () => {});
+        if (this._wiCommandAvailable !== false) {
+            commands.executeCommand('wso2.integrator.onDownloadProgress', res).then(
+                () => { this._wiCommandAvailable = true; },
+                () => { this._wiCommandAvailable = false; }
+            );
+        }
     }
 
     /**
