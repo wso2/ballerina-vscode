@@ -478,6 +478,7 @@ const handleComponentDeletion = async (componentType: string, itemLabel: string,
         }
     }
     console.error(`Component ${itemLabel} not found in project structure`);
+    window.showErrorMessage(`Component '${itemLabel}' not found — deletion failed`);
 };
 
 const handleLocalModuleDeletion = async (moduleName: string, filePath: string) => {
