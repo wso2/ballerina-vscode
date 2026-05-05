@@ -2555,6 +2555,8 @@ export class BallerinaExtension {
     public notifyDownloadProgress(res: DownloadProgress): void {
         RPCLayer._messenger.sendNotification(onDownloadProgress, { type: 'webview', webviewType: VisualizerWebview.viewType }, res);
         this._downloadProgressEmitter.fire(res);
+        // Forward to WI extension without requiring it to have activated Ballerina Extension.
+        commands.executeCommand('wso2.integrator.onDownloadProgress', res).then(undefined, () => {});
     }
 
     /**
