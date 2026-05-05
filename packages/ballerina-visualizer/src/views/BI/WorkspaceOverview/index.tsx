@@ -534,9 +534,11 @@ function DeploymentOptions({
 function WorkspaceDevantDashboard({
     handleDeploy,
     hasDeployableIntegration,
+    hasUndeployedIntegrations,
 }: {
     handleDeploy: () => void;
     hasDeployableIntegration: boolean;
+    hasUndeployedIntegrations: boolean;
 }) {
     return (
         <React.Fragment>
@@ -548,10 +550,13 @@ function WorkspaceDevantDashboard({
             ) : (
                 <>
                     <Typography sx={{ color: "var(--vscode-descriptionForeground)" }}>
-                        Deploy your integration in WSO2 Cloud.
+                        {hasUndeployedIntegrations
+                            ? "Deploy your integration in WSO2 Cloud."
+                            : "All integrations are deployed in WSO2 Cloud."}
                     </Typography>
                     <Button
                         appearance="primary"
+                        disabled={!hasUndeployedIntegrations}
                         onClick={handleDeploy}
                         sx={{
                             display: "flex",
@@ -1140,6 +1145,7 @@ export function WorkspaceOverview({ isInDevant }: WorkspaceOverviewProps) {
                             <WorkspaceDevantDashboard
                                 handleDeploy={handleDeploy}
                                 hasDeployableIntegration={hasDeployableIntegration}
+                                hasUndeployedIntegrations={undeployedProjectScopes.length > 0}
                             />
                         )}
                     </SidePanel>
