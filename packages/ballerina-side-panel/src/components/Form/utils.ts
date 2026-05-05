@@ -60,7 +60,9 @@ export function hasIncompleteRequiredFormFields(
         }
 
         const value = values[field.key];
-        const hasValue = value !== undefined && value !== null && !(typeof value === "string" && value.trim() === "");
+        const isEmptyString = typeof value === "string" && value.trim() === "";
+        const isEmptyArray = Array.isArray(value) && value.length === 0;
+        const hasValue = value !== undefined && value !== null && !isEmptyString && !isEmptyArray;
 
         if (field.optional && !hasValue) {
             return false;
@@ -75,9 +77,6 @@ export function hasIncompleteRequiredFormFields(
                     return true;
                 }
             }
-        }
-        if (Array.isArray(value)) {
-            return value.length === 0;
         }
         return false;
     };

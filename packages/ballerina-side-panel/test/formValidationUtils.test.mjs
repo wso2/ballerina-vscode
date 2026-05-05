@@ -105,6 +105,23 @@ test("hasIncompleteRequiredFormFields returns true when a required array field i
     );
 });
 
+test("hasIncompleteRequiredFormFields ignores optional empty array fields", () => {
+    assert.equal(
+        hasIncompleteRequiredFormFields(
+            [
+                {
+                    key: "items",
+                    optional: true,
+                    hidden: false,
+                    enabled: true,
+                },
+            ],
+            { items: [] }
+        ),
+        false
+    );
+});
+
 test("hasIncompleteRequiredFormFields ignores optional, hidden, and disabled empty fields", () => {
     assert.equal(
         hasIncompleteRequiredFormFields(
