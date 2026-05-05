@@ -19,7 +19,6 @@
 import React, { forwardRef, useCallback, useMemo, useEffect, useState, useRef } from "react";
 import isEqual from "lodash/isEqual";
 import { useForm } from "react-hook-form";
-import ReactMarkdown from "react-markdown";
 import {
     Button,
     Codicon,
@@ -60,13 +59,13 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { FormContext, Provider } from "../../context";
 import {
     formatJSONLikeString,
-    stripHtmlTags,
     updateFormFieldWithImports,
     isPrioritizedField,
     hasRequiredParameters,
     hasOptionalParameters,
 } from "./utils";
 import FormDescription from "./FormDescription";
+import MarkdownDescription from "./MarkdownDescription";
 import TypeHelperText from "./TypeHelperText";
 
 namespace S {
@@ -278,83 +277,7 @@ namespace S {
             max-height: 200px;
             mask-image: linear-gradient(to bottom, black 160px, transparent 200px);
         `}
-        font-size: 13px;
-        font-family: var(--vscode-font-family);
-        color: ${ThemeColors.ON_SURFACE_VARIANT};
-        border-radius: 4px;
         transition: max-height 0.3s ease-in-out;
-
-        h1,
-        h2,
-        h3,
-        h4,
-        h5,
-        h6 {
-            margin: 16px 0 8px 0;
-            font-family: var(--vscode-font-family);
-            font-weight: normal;
-            font-size: 13px;
-            color: var(--vscode-editor-foreground);
-        }
-
-        p {
-            font-size: 13px;
-            margin: 0;
-            line-height: 1.5;
-            margin-bottom: 8px;
-            font-family: var(--vscode-font-family);
-        }
-
-        pre {
-            display: none;
-        }
-
-        code {
-            display: inline;
-        }
-
-        ul,
-        ol {
-            margin: 8px 0;
-            padding-left: 24px;
-            font-size: 13px;
-            font-family: var(--vscode-font-family);
-        }
-
-        li {
-            margin: 4px 0;
-            font-size: 13px;
-            font-family: var(--vscode-font-family);
-        }
-
-        blockquote {
-            margin: 8px 0;
-            padding-left: 8px;
-            border-left: 4px solid ${ThemeColors.PRIMARY};
-            font-size: 13px;
-            font-family: var(--vscode-font-family);
-        }
-
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            margin: 8px 0;
-            font-size: 13px;
-            font-family: var(--vscode-font-family);
-        }
-
-        th,
-        td {
-            border: 1px solid var(--vscode-editor-inactiveSelectionBackground);
-            padding: 8px;
-            text-align: left;
-            font-size: 13px;
-            font-family: var(--vscode-font-family);
-        }
-
-        th {
-            background-color: var(--vscode-editor-inactiveSelectionBackground);
-        }
     `;
 
     export const ConcertContainer = styled.div`
@@ -1024,7 +947,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
             {infoLabel && !compact && (
                 <S.MarkdownWrapper>
                     <S.MarkdownContainer ref={markdownRef} isExpanded={isMarkdownExpanded}>
-                        <ReactMarkdown>{stripHtmlTags(infoLabel)}</ReactMarkdown>
+                        <MarkdownDescription description={infoLabel} />
                     </S.MarkdownContainer>
                     {markdownRef.current && markdownRef.current.scrollHeight > 200 && (
                         <S.ButtonContainer>
