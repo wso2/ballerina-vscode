@@ -476,9 +476,8 @@ const handleComponentDeletion = async (componentType: string, itemLabel: string,
             await deleteComponent(componentInfo, rpcClient, filePath);
             return;
         }
-        console.error(`Component ${itemLabel} not found in project structure`);
-        return;
     }
+    console.error(`Component ${itemLabel} not found in project structure`);
 };
 
 const handleLocalModuleDeletion = async (moduleName: string, filePath: string) => {
