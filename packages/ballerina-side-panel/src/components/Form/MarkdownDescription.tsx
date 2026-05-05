@@ -21,7 +21,6 @@ import styled from "@emotion/styled";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ThemeColors } from "@wso2/ui-toolkit";
-import { stripHtmlTags } from "./utils";
 
 const MarkdownContainer = styled.div`
     width: 100%;
@@ -116,7 +115,7 @@ export const MarkdownDescription: React.FC<MarkdownDescriptionProps> = ({ descri
 
     return (
         <MarkdownContainer className={className}>
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{stripHtmlTags(description)}</ReactMarkdown>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{description}</ReactMarkdown>
         </MarkdownContainer>
     );
 };

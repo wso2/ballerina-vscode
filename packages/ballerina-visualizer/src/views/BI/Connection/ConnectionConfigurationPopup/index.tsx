@@ -120,10 +120,16 @@ const ConnectorInfoDescription = styled(MarkdownDescription)`
     font-size: 12px;
     color: ${ThemeColors.ON_SURFACE_VARIANT};
     margin: 0;
+    overflow: hidden;
+    max-height: 3em;
 
     p {
         font-size: 12px;
         margin: 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
 
     li {
