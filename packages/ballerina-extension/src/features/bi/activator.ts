@@ -24,6 +24,7 @@ import {
     EVENT_TYPE,
     FlowNode,
     MACHINE_VIEW,
+    NodePosition,
     ProjectInfo
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "../../core";
@@ -198,7 +199,7 @@ export function activate(context: BallerinaExtension) {
         return createBIProjectFromMigration(params);
     });
 
-    commands.registerCommand(BI_COMMANDS.DELETE_COMPONENT, async (item?: TreeItem & { info?: string }) => {
+    commands.registerCommand(BI_COMMANDS.DELETE_COMPONENT, async (item?: TreeItem & { info?: string, position?: NodePosition }) => {
         // Guard: DELETE requires a tree item context
         if (!item) {
             window.showErrorMessage('This command must be invoked from the project explorer.');
@@ -212,7 +213,7 @@ export function activate(context: BallerinaExtension) {
         } else if (item.contextValue === DIRECTORY_MAP.LOCAL_CONNECTORS) {
             await handleLocalModuleDeletion(item.label as string, item.info);
         } else {
-            await handleComponentDeletion(item.contextValue as string, item.label as string, item.info);
+            await handleComponentDeletion(item.contextValue as string, item.label as string, item.info, item.position);
         }
     });
 
@@ -436,7 +437,7 @@ const findBallerinaFiles = (dir: string, fileList: string[] = []): string[] => {
     return fileList;
 };
 
-const handleComponentDeletion = async (componentType: string, itemLabel: string, filePath: string) => {
+const handleComponentDeletion = async (componentType: string, itemLabel: string, filePath: string, position: NodePosition) => {
     const rpcClient = new BiDiagramRpcManager();
     const { projectPath, projectInfo } = StateMachine.context();
     const projectRoot = await findBallerinaPackageRoot(filePath);
@@ -453,7 +454,7 @@ const handleComponentDeletion = async (componentType: string, itemLabel: string,
     }
 
     for (const component of componentCategory) {
-        if (component.name === itemLabel) {
+        if (component.name === itemLabel && component.position.startLine === position.startLine && component.position.startColumn === position.startColumn) {
             if (component.name.startsWith("AI Agent Services")) {
                 await handleAIAgentServiceDeletion(component, rpcClient, filePath, deleteComponent);
                 return;
