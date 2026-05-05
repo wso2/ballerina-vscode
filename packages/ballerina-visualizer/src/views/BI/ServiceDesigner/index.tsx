@@ -231,11 +231,14 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         setInitFunction(undefined);
     };
 
-    const findServiceArtifact = (artifacts: ProjectStructureArtifactResponse[]): ProjectStructureArtifactResponse | undefined => {
+    const findServiceArtifact = (
+        artifacts: ProjectStructureArtifactResponse[],
+        targetPosition: NodePosition = position
+    ): ProjectStructureArtifactResponse | undefined => {
         const exactMatch = artifacts.find(artifact =>
             artifact.name === serviceIdentifier &&
-            artifact.position.startLine === position.startLine &&
-            artifact.position.startColumn === position.startColumn
+            artifact.position.startLine === targetPosition.startLine &&
+            artifact.position.startColumn === targetPosition.startColumn
         );
 
         if (exactMatch) {
@@ -244,14 +247,14 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
 
         // Resource/function updates can introduce imports above a service and shift its start position.
         // Fall back to same service in the same file and pick the nearest start position.
-        const serviceInSameFile = artifacts.filter(artifact => artifact.name === serviceIdentifier);
+        const serviceInSameFile = artifacts.filter(artifact => artifact.name === serviceIdentifier && artifact.path === filePath);
         if (serviceInSameFile.length === 0) {
             return undefined;
         }
 
         const closestService = serviceInSameFile.reduce((closest, current) => {
-            const closestDistance = Math.abs(closest.position.startLine - position.startLine);
-            const currentDistance = Math.abs(current.position.startLine - position.startLine);
+            const closestDistance = Math.abs(closest.position.startLine - targetPosition.startLine);
+            const currentDistance = Math.abs(current.position.startLine - targetPosition.startLine);
             return currentDistance < closestDistance ? current : closest;
         });
         return closestService;
@@ -457,7 +460,10 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                 }
                 const services = project.directoryMap[DIRECTORY_MAP.SERVICE];
                 if (services.length > 0) {
-                    const selectedService = services.find((service) => service.name === serviceIdentifier && service.position.startLine === targetPosition.startLine && service.position.startColumn === targetPosition.startColumn);
+                    const selectedService = findServiceArtifact(services, targetPosition);
+                    if (!selectedService) {
+                        return;
+                    }
                     if (selectedService.moduleName === "mcp") {
                         const updatedResources = selectedService.resources.map(resource => ({
                             ...resource,
