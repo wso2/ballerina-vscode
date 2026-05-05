@@ -655,7 +655,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
 
     const handleOnBlur = async () => {
         const values = getValues();
-        if (!canRunExternalFormValidation(values)) {
+        if (onFormValidation && !canRunExternalFormValidation(values)) {
             return;
         }
         onBlur?.(values, dirtyFields);
@@ -894,7 +894,8 @@ export const Form = forwardRef((props: FormProps, _ref) => {
 
     const prevValuesRef = useRef<FormValues>({});
     const watchedValues = watch();
-    const hasIncompleteRequiredFields = hasIncompleteRequiredFormFields(formFields, watchedValues);
+    const hasIncompleteRequiredFields = !!onFormValidation &&
+        hasIncompleteRequiredFormFields(formFields, watchedValues);
 
     // Call onValidityChange when form validity changes
     useEffect(() => {
