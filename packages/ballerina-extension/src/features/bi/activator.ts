@@ -52,6 +52,7 @@ import { handleAIAgentServiceDeletion } from "../../utils/ai-service-utils";
 import { findWorkspaceTypeFromWorkspaceFolders } from "../../rpc-managers/common/utils";
 import { MESSAGES } from "../project";
 import { ensureICPServerRunning } from "../icp";
+import { TracerMachine } from "../tracing";
 
 const FOCUS_DEBUG_CONSOLE_COMMAND = 'workbench.debug.action.focusRepl';
 const TRACE_SERVER_OFF = "off";
@@ -295,6 +296,7 @@ async function handleCommandWithContext(
 
 /** Handles the debug command based on current workspace context. */
 async function handleDebugCommandWithContext() {
+    TracerMachine.startServer();
     const { workspacePath, view, projectPath, projectInfo } = StateMachine.context();
     const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
     const hasActiveTextEditor = !!window.activeTextEditor;
