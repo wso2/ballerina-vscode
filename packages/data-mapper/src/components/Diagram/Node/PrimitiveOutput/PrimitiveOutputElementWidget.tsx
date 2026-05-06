@@ -16,7 +16,7 @@
  * under the License.
  */
 // tslint:disable: jsx-no-multiline-js
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { DiagramEngine } from "@projectstorm/react-diagrams-core";
 import classnames from "classnames";
@@ -25,7 +25,6 @@ import { Button, Icon, ProgressRing, TruncatedLabel, TruncatedLabelGroup } from 
 import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
 import { DataMapperPortWidget, PortState, InputOutputPortModel } from "../../Port";
 import { getDefaultValue } from "../../utils/common-utils";
-import { OutputSearchHighlight } from "../commons/Search";
 import { ValueConfigMenu, ValueConfigOption } from "../commons/ValueConfigButton";
 import { useIONodesStyles } from "../../../styles";
 import { useDMExpressionBarStore } from "../../../../store/store";
@@ -34,7 +33,6 @@ import FieldActionWrapper from "../commons/FieldActionWrapper";
 import { IOType, TypeKind } from "@wso2/ballerina-core";
 import { removeMapping } from "../../utils/modification-utils";
 import { useShallow } from "zustand/react/shallow";
-import { PrimitiveOutputNode } from ".";
 import { getTypeName } from "../../utils/type-utils";
 
 export interface PrimitiveOutputElementWidgetWidgetProps {
