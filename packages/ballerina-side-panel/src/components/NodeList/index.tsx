@@ -555,6 +555,8 @@ export function NodeList(props: NodeListProps) {
                             <Tooltip 
                                 key={node.id + index}
                                 content={renderTooltipContent(node.description)}
+                                position="bottom"
+                                offset={{top: 16, left: 20}}
                                 sx={{ 
                                     maxWidth: "280px",
                                     whiteSpace: "normal",
@@ -613,7 +615,7 @@ export function NodeList(props: NodeListProps) {
                         return (
                             <S.CategoryRow key={subcategory.title + index} showBorder={false}>
                                 <S.Row>
-                                    <Tooltip content={subcategory.description}>
+                                    <Tooltip offset={{top: 15, left: 0}} content={subcategory.description}>
                                         <S.SubTitle>{subcategory.title}</S.SubTitle>
                                     </Tooltip>
                                 </S.Row>
@@ -739,7 +741,7 @@ export function NodeList(props: NodeListProps) {
                                                         const tooltipText = action.tooltip || addButtonLabel || "";
                                                         
                                                         return (
-                                                            <Tooltip key={`${group.title}-${actionIndex}`} content={tooltipText}>
+                                                            <Tooltip offset={{top: 15, left: 0}} key={`${group.title}-${actionIndex}`} content={tooltipText}>
                                                                 <Button
                                                                     appearance="icon"
                                                                     onClick={(e) => {
@@ -753,7 +755,7 @@ export function NodeList(props: NodeListProps) {
                                                         );
                                                     })}
                                                     {!isFixed && (
-                                                        <Tooltip content={isCategoryExpanded ? "Collapse" : "Expand"}>
+                                                        <Tooltip offset={{top: 15, left: 0}} content={isCategoryExpanded ? "Collapse" : "Expand"}>
                                                             <S.ChevronIcon isExpanded={isCategoryExpanded}>
                                                                 <Codicon name="chevron-right" />
                                                             </S.ChevronIcon>
@@ -766,7 +768,7 @@ export function NodeList(props: NodeListProps) {
                                         })()
                                     ) : (
                                         <S.Row>
-                                            <Tooltip content={group.description}>
+                                            <Tooltip offset={{top: 15, left: 0}} content={group.description}>
                                                 <S.SubTitle>{group.title}</S.SubTitle>
                                             </Tooltip>
                                         </S.Row>
