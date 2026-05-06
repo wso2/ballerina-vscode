@@ -490,6 +490,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
         setValue,
         setError,
         clearErrors,
+        trigger,
         formState: { isValidating, isValid: formStateIsValid, errors, dirtyFields, isDirty },
     } = useForm<FormValues>();
 
@@ -860,6 +861,9 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                     // not errors set by other validators (e.g., PathEditor)
                     if (errors[key]?.type === "expression_diagnostic") {
                         clearErrors(key);
+                        // clearErrors removes the entry but does not refresh formState.isValid;
+                        // trigger a revalidation so Save re-enables once diagnostics go clean.
+                        trigger(key);
                     }
                     continue;
                 } else {
