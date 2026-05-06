@@ -558,14 +558,14 @@ const setupPlatformExtensionListener = () => {
                 if (wiLoggedIn) {
                     // Don't override an explicit non-BI_INTEL choice (Anthropic/AWS/Vertex).
                     const copilotCreds = await getAuthCredentials();
-                    if (copilotCreds && copilotCreds.loginMethod !== LoginMethod.BI_INTEL) return;
+                    if (copilotCreds && copilotCreds.loginMethod !== LoginMethod.BI_INTEL) { return; }
 
                     const copilotUnauthenticated = copilotState === 'Unauthenticated';
                     const copilotInSsoFlow =
                         typeof copilotState === 'object' &&
                         'Authenticating' in copilotState &&
                         (copilotState as any).Authenticating === 'ssoFlow';
-                    if (!copilotUnauthenticated && !copilotInSsoFlow) return;
+                    if (!copilotUnauthenticated && !copilotInSsoFlow) { return; }
 
                     if (copilotUnauthenticated) {
                         // COMPLETE_AUTH is only valid in ssoFlow; drive through LOGIN instead

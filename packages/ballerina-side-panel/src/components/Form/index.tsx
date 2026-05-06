@@ -508,7 +508,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                     const isFieldDirty = dirtyFields?.[field.key];
                     if (isValueChanged) {
                         const newValue = isFieldDirty ? existingType : newType;
-                        setValue(field.key, newValue, { shouldValidate: true });
+                        setValue(field.key, newValue, { shouldValidate: true, shouldDirty: false });
                         defaultValues[field.key] = newValue;
                         getVisualiableFields();
                     } else if (newType === undefined) {
@@ -525,7 +525,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                     const newName = typeof field.value === "string" ? (formatJSONLikeString(field.value) ?? field.value) : String(field.value);
                     // Only sync from field when: form is stale (external update) or user hasn't edited the name field
                     if (existingName !== newName && !dirtyFields?.[field.key]) {
-                        setValue(field.key, newName);
+                        setValue(field.key, newName, { shouldDirty: false });
                         defaultValues[field.key] = newName;
                     }
                 }
