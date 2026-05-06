@@ -760,13 +760,13 @@
                 "command": "ballerina.icp.start",
                 "title": "Start ICP",
                 "category": "Ballerina",
-                "enablement": "isSupportedProject && !ballerina.icpRunning"
+                "enablement": "isSupportedProject && !ballerina.icpRunning && !devant.editor"
             },
             {
                 "command": "ballerina.icp.stop",
                 "title": "Stop ICP",
                 "category": "Ballerina",
-                "enablement": "isSupportedProject && ballerina.icpRunning"
+                "enablement": "isSupportedProject && ballerina.icpRunning && !devant.editor"
             },
             {
                 "command": "ballerina.showTraceWindow",
@@ -1430,7 +1430,7 @@
         "build": "pnpm run compile && pnpm run lint && pnpm run postbuild",
         "rebuild": "pnpm run clean && pnpm run compile && pnpm run postbuild",
         "postbuild": "pnpm run download-ls && pnpm run copyFonts && pnpm run copyJSLibs && pnpm run package && pnpm run copyVSIX",
-        "copyJSLibs": "copyfiles -f ../ballerina-visualizer/build/*.js resources/jslibs && copyfiles -f ../ballerina-visualizer/build/images/* resources/jslibs/images && copyfiles -f ../trace-visualizer/build/*.js resources/jslibs"
+        "copyJSLibs": "copyfiles -f ../ballerina-visualizer/build/*.js resources/jslibs && copyfiles -f ../ballerina-visualizer/build/images/* resources/jslibs/images && copyfiles -f ../trace-visualizer/build/*.js resources/jslibs && copyfiles -f ../graphql/build/*.js resources/jslibs"
     },
     "dependencies": {
         "@ai-sdk/amazon-bedrock": "4.0.83",
@@ -1446,6 +1446,7 @@
         "@wso2/font-wso2-vscode": "workspace:*",
         "@wso2/syntax-tree": "workspace:*",
         "@wso2/trace-visualizer": "workspace:*",
+        "graphqlview-lib": "workspace:*",
         "@wso2/wso2-platform-core": "workspace:*",
         "ai": "6.0.103",
         "cors-anywhere": "0.4.4",
@@ -1489,7 +1490,7 @@
         "@types/vscode": "1.100.0",
         "@types/vscode-notebook-renderer": "1.72.2",
         "adm-zip": "0.5.16",
-        "axios": "1.15.0",
+        "axios": "1.15.2",
         "chai": "4.3.10",
         "copyfiles": "2.4.1",
         "cross-env": "7.0.3",

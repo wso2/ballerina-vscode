@@ -233,6 +233,10 @@ export function isInWI(): boolean {
     return !!extensions.getExtension(WI_EXTENSION_ID);
 }
 
+export function isInDevant(): boolean {
+    return !!process.env.CLOUD_STS_TOKEN;
+}
+
 export async function checkIsBallerinaPackage(uri: Uri): Promise<boolean> {
     const ballerinaTomlPath = path.join(uri.fsPath, 'Ballerina.toml');
 

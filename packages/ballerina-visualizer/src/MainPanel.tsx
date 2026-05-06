@@ -38,7 +38,8 @@ import { LoadingRing } from "./components/Loader";
 import { WebviewErrorState } from "./components/WebviewErrorState";
 import { handleRedo, handleUndo } from "./utils/utils";
 import { STKindChecker } from "@wso2/syntax-tree";
-import { URI } from "vscode-uri";
+import { URI, Utils } from "vscode-uri";
+import { CONNECTIONS_FILE } from "./constants";
 import { ErrorBoundary, ThemeColors, Typography } from "@wso2/ui-toolkit";
 import { PanelType, useModalStack, useVisualizerContext } from "./Context";
 import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react";
@@ -342,7 +343,7 @@ const MainPanel = () => {
                         case MACHINE_VIEW.WorkspaceOverview: {
                             const { WorkspaceOverview } = await import("./views/BI/WorkspaceOverview");
                             if (isStaleNavigation()) return;
-                            setViewComponent(<WorkspaceOverview />);
+                            setViewComponent(<WorkspaceOverview isInDevant={value.isInDevant} />);
                             break;
                         }
                         case MACHINE_VIEW.ServiceDesigner: {
@@ -658,7 +659,7 @@ const MainPanel = () => {
                                 <AddConnectionPopup
                                     key={remountKey}
                                     projectPath={value.projectPath}
-                                    fileName={value.documentUri || value.projectPath}
+                                    fileName={value.documentUri || Utils.joinPath(URI.file(value.projectPath), CONNECTIONS_FILE).fsPath}
                                     onNavigateToOverview={handleNavigateToOverview}
                                 />
                             );
@@ -681,7 +682,7 @@ const MainPanel = () => {
                             setViewComponent(
                                 <AddConnectionWizard
                                     projectPath={value.projectPath}
-                                    fileName={value.documentUri || value.projectPath}
+                                    fileName={value.documentUri || Utils.joinPath(URI.file(value.projectPath), CONNECTIONS_FILE).fsPath}
                                     openCustomConnectorView={true}
                                 />
                             );

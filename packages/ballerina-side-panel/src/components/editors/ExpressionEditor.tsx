@@ -823,6 +823,9 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                                 onOpenExpandedMode={onOpenExpandedMode}
                                                 isInExpandedMode={isExpandedModalOpen}
                                                 onLoadingStateChange={setIsLoading}
+                                                onNormalizeValue={(normalizedValue: string) => {
+                                                    setValue(key, normalizedValue, { shouldDirty: false, shouldValidate: true });
+                                                }}
                                             />
                                         </div>
                                     </div>

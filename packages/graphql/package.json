@@ -5,10 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "webpack-dev-server --open",
-    "build": "webpack && pnpm run postbuild",
+    "build": "webpack",
     "storybook": "start-storybook -p 6006",
-    "build-storybook": "build-storybook",
-    "postbuild": "copyfiles -f build/*.js ../ballerina-extension/resources/jslibs"
+    "build-storybook": "build-storybook"
   },
   "keywords": [],
   "author": "",
@@ -38,8 +37,7 @@
     "graphiql": "3.7.0",
     "graphiql-explorer": "0.9.0",
     "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "copyfiles": "2.4.1"
+    "react-dom": "18.2.0"
   },
   "resolutions": {
   }

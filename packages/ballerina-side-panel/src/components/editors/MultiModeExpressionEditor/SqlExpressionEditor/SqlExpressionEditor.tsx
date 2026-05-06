@@ -41,6 +41,7 @@ export const SQLExpressionEditor: React.FC<ChipExpressionEditorComponentProps> =
             configuration={new SQLExpressionEditorConfig()}
             placeholder={props.placeholder}
             onLoadingStateChange={props.onLoadingStateChange}
+            onNormalizeValue={props.onNormalizeValue}
         />
     );
 };
