@@ -79,7 +79,7 @@ import { sendGenerationDiscardTelemetry, sendGenerationKeptTelemetry } from "../
 import { getLLMDiagnosticArrayAsString } from "../../features/natural-programming/utils";
 import { enhancePrompt as enhancePromptService } from "../../features/ai/service/prompt-enhancement/promptEnhancement";
 import { StateMachine, updateView } from "../../stateMachine";
-import { isInWI } from "../../utils";
+import { isInDevant, isInWI } from "../../utils";
 import { getLoginMethod, isPlatformExtensionAvailable, loginGithubCopilot } from "../../utils/ai/auth";
 import { normalizeCodeContext } from "../../views/ai-panel/codeContextUtils";
 import { refreshDataMapper } from "../data-mapper/utils";
@@ -194,8 +194,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
         }
 
         // Don't show alert in Devant environment
-        const isInDevant = !!process.env.CLOUD_STS_TOKEN;
-        if (isInDevant) {
+        if (isInDevant()) {
             return false;
         }
 

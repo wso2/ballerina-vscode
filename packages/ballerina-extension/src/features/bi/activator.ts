@@ -34,6 +34,7 @@ import { StateMachine } from "../../stateMachine";
 import { BiDiagramRpcManager } from "../../rpc-managers/bi-diagram/rpc-manager";
 import { readFileSync, readdirSync, statSync } from "fs";
 import path from "path";
+import { isInDevant } from "../../utils";
 import { isPositionEqual, isPositionWithinDeletedComponent } from "../../utils/history/util";
 import { startDebugging } from "../editor-support/activator";
 import {
@@ -69,8 +70,8 @@ export function activate(context: BallerinaExtension) {
         const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
         const hasActiveTextEditor = !!window.activeTextEditor;
 
-        // Check if ICP is enabled for this project
-        if (projectPath && stateMachineContext.langClient) {
+        // Check if ICP is enabled for this project (skip entirely in Devant)
+        if (!isInDevant() && projectPath && stateMachineContext.langClient) {
             try {
                 const icpStatus = await stateMachineContext.langClient.isIcpEnabled({ projectPath });
                 if (icpStatus && 'enabled' in icpStatus && icpStatus.enabled) {

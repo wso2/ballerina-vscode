@@ -27,12 +27,11 @@ import { openView, StateMachine } from "../../stateMachine";
 import { commands, window } from "vscode";
 import * as path from "path";
 import * as fs from "fs";
-import { debug } from "../../utils";
+import { debug, isInDevant } from "../../utils";
 import { getPlatformExtensionAPI } from "../../utils/ai/auth";
 
 export function activateDevantFeatures(_ballerinaExtInstance: BallerinaExtension) {
-    const cloudToken = process.env.CLOUD_STS_TOKEN;
-    if (cloudToken) {
+    if (isInDevant()) {
         // Set the connection token context for Devant UI features
         commands.executeCommand("setContext", "devant.editor", true);
     }

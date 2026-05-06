@@ -39,7 +39,7 @@ import * as path from 'path';
 import { extension } from './BalExtensionContext';
 import { AIStateMachine, openAIPanelWithPrompt } from './views/ai-panel/aiMachine';
 import { StateMachinePopup } from './stateMachinePopup';
-import { checkIsBallerinaPackage, checkIsBI, fetchScope, getOrgPackageName, UndoRedoManager, getProjectTomlValues, getOrgAndPackageName, checkIsBallerinaWorkspace, isInWI } from './utils';
+import { checkIsBallerinaPackage, checkIsBI, fetchScope, getOrgPackageName, UndoRedoManager, getProjectTomlValues, getOrgAndPackageName, checkIsBallerinaWorkspace, isInWI, isInDevant } from './utils';
 import { activateDevantFeatures } from './features/devant/activator';
 import { buildProjectsStructure } from './utils/project-artifacts';
 import { runCommandWithOutput } from './utils/runCommand';
@@ -80,7 +80,7 @@ const stateMachine = createMachine<MachineContext>(
             isBISupported: false,
             view: MACHINE_VIEW.PackageOverview,
             dependenciesResolved: false,
-            isInDevant: !!process.env.CLOUD_STS_TOKEN
+            isInDevant: isInDevant()
         },
         on: {
             RESET_TO_EXTENSION_READY: {
@@ -499,10 +499,14 @@ const stateMachine = createMachine<MachineContext>(
                     AIStateMachine.initialize();
                     StateMachinePopup.initialize();
                     commands.executeCommand('setContext', 'BI.status', 'loadingDone');
-                    if (!ls.biSupported) {
-                        commands.executeCommand('setContext', 'BI.status', 'updateNeed');
-                    }
                     activateDevantFeatures(ls);
+                    if (ls.langClient) {
+                        if (!ls.biSupported) {
+                            commands.executeCommand('setContext', 'BI.status', 'updateNeed');
+                        }
+                    } else {
+                        commands.executeCommand('setContext', 'BI.status', 'noLS');
+                    }
                     resolve({ langClient: ls.langClient, isBISupported: ls.biSupported });
                 } catch (error) {
                     throw new Error("LS Activation failed", error);

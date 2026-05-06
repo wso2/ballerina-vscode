@@ -41,6 +41,7 @@ export const NumberExpressionEditor: React.FC<ChipExpressionEditorComponentProps
             configuration={new NumberExpressionEditorConfig()}
             placeholder={props.placeholder}
             onLoadingStateChange={props.onLoadingStateChange}
+            onNormalizeValue={props.onNormalizeValue}
         />
     );
 };
