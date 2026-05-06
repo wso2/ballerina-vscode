@@ -794,7 +794,8 @@ User reverted the last made changes. The files have been restored to the state b
         AiPanelRpcManager.diffContentMap.clear();
 
         // Read original content from checkpoint snapshot — workspace already has generated code
-        const originalContent = generation?.checkpoint?.workspaceSnapshot?.[params.relativePath] ?? '';
+        const snapshotKey = params.relativePath.split(path.sep).join('/');
+        const originalContent = generation?.checkpoint?.workspaceSnapshot?.[snapshotKey] ?? '';
 
         let modifiedContent = '';
         try {
