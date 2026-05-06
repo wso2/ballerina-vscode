@@ -75,7 +75,7 @@ export function PrimitiveOutputWidget(props: PrimitiveOutputWidgetProps) {
 	}
 
 	const isDisabled = portIn?.attributes.descendantHasValue;
-	const indentation = (portIn && !expanded) ? 0 : 24;
+	const indentation = (portIn && !expanded) ? 0 : 15;
 
 	const handleExpand = () => {
 		const collapsedFields = collapsedFieldsStore.fields;
@@ -99,16 +99,9 @@ export function PrimitiveOutputWidget(props: PrimitiveOutputWidgetProps) {
 	};
 
 	const label = (
-		<TruncatedLabelGroup style={{ marginRight: "auto", alignItems: "baseline" }}>
-			{valueLabel && (
-				<TruncatedLabel className={classes.valueLabelHeader}>
-					<OutputSearchHighlight>{valueLabel}</OutputSearchHighlight>
-				</TruncatedLabel>
-			)}
-			<TruncatedLabel className={isUnknownType ? classes.unknownTypeLabel : classes.typeLabel}>
-				{typeName || ''}
-			</TruncatedLabel>
-		</TruncatedLabelGroup>
+		<TruncatedLabel className={classes.valueLabelHeader} style={{ marginRight: "auto", alignItems: "baseline" }}>
+			<OutputSearchHighlight>{valueLabel}</OutputSearchHighlight>
+		</TruncatedLabel>
 	);
 
 	const onRightClick = (event: React.MouseEvent) => {
