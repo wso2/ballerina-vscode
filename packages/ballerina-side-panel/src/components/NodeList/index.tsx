@@ -555,6 +555,8 @@ export function NodeList(props: NodeListProps) {
                             <Tooltip 
                                 key={node.id + index}
                                 content={renderTooltipContent(node.description)}
+                                position="bottom"
+                                offset={{top: 16, left: 20}}
                                 sx={{ 
                                     maxWidth: "280px",
                                     whiteSpace: "normal",
