@@ -34,7 +34,6 @@ import { useShallow } from 'zustand/react/shallow';
 export interface PrimitiveOutputWidgetProps {
 	id: string;
 	outputType: IOType;
-	typeName: string;
 	engine: DiagramEngine;
 	getPort: (portId: string) => InputOutputPortModel;
 	context: IDataMapperContext;
@@ -45,7 +44,6 @@ export function PrimitiveOutputWidget(props: PrimitiveOutputWidgetProps) {
 	const {
 		id,
 		outputType,
-		typeName,
 		engine,
 		getPort,
 		context,
