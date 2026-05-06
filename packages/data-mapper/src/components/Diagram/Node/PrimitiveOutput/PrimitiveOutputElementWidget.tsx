@@ -16,7 +16,7 @@
  * under the License.
  */
 // tslint:disable: jsx-no-multiline-js
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 
 import { DiagramEngine } from "@projectstorm/react-diagrams-core";
 import classnames from "classnames";
