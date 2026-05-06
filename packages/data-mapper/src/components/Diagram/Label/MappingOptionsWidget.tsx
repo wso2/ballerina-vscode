@@ -308,8 +308,11 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
         };
 
         const menuItems = genMenuItems();
-       
-        return menuItems;
+
+        return context.reusable || context.views.length !== 1
+            ? menuItems
+            : menuItems.filter(item => item.id !== "custom-func" && item.id !== "transform-func");
+
     }, [pendingMappingType, inProgressOption, link, context]);
 
     return (
