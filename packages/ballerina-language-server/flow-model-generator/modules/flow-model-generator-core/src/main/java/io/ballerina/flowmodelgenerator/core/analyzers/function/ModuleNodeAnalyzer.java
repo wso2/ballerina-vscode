@@ -227,7 +227,7 @@ public class ModuleNodeAnalyzer extends NodeVisitor {
             if (token.text().equals("isolated")) {
                 nodeBuilder.properties().isIsolated(true, true, false, false);
             }
-            if (token.text().equals("public")) {
+            if (token.text().equals("public") && nodeKind != NodeKind.AUTOMATION) {
                 nodeBuilder.properties().isPublic(true, false, true, false);
             }
         }
