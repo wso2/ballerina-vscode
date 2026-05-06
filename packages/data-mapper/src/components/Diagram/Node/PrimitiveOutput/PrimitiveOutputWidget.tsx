@@ -65,7 +65,6 @@ export function PrimitiveOutputWidget(props: PrimitiveOutputWidgetProps) {
 	);
 
 	const portIn = getPort(`${id}.IN`);
-	const isUnknownType = outputType.kind === TypeKind.Unknown;
 
 	let expanded = true;
 	if ((portIn && portIn.attributes.collapsed)) {
