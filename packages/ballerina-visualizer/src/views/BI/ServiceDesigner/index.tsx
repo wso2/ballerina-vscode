@@ -462,6 +462,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                 if (services.length > 0) {
                     const selectedService = findServiceArtifact(services, targetPosition);
                     if (!selectedService) {
+                        setResources([]);
                         return;
                     }
                     if (selectedService.moduleName === "mcp") {
