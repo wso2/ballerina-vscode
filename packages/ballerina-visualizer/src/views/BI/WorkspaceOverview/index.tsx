@@ -531,6 +531,49 @@ function DeploymentOptions({
     );
 }
 
+function WorkspaceDevantDashboard({
+    handleDeploy,
+    hasDeployableIntegration,
+    hasUndeployedIntegrations,
+}: {
+    handleDeploy: () => void;
+    hasDeployableIntegration: boolean;
+    hasUndeployedIntegrations: boolean;
+}) {
+    return (
+        <React.Fragment>
+            <Title variant="h3">Deploy to WSO2 Cloud</Title>
+            {!hasDeployableIntegration ? (
+                <Typography sx={{ color: "var(--vscode-descriptionForeground)" }}>
+                    Before you can deploy your integration to WSO2 Cloud, please add an artifact (such as a Service or Automation) to your integration.
+                </Typography>
+            ) : (
+                <>
+                    <Typography sx={{ color: "var(--vscode-descriptionForeground)" }}>
+                        {hasUndeployedIntegrations
+                            ? "Deploy your integration in WSO2 Cloud."
+                            : "All integrations are deployed in WSO2 Cloud."}
+                    </Typography>
+                    <Button
+                        appearance="primary"
+                        disabled={!hasUndeployedIntegrations}
+                        onClick={handleDeploy}
+                        sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            marginTop: "10px",
+                            mx: "auto",
+                        }}
+                    >
+                        <Codicon name="save" sx={{ marginRight: 8 }} /> Save and Deploy
+                    </Button>
+                </>
+            )}
+        </React.Fragment>
+    );
+}
+
 const ICPButtonContent = styled.div`
     display: flex;
     align-items: center;
@@ -629,7 +672,11 @@ function IntegrationControlPlane({
     );
 }
 
-export function WorkspaceOverview() {
+interface WorkspaceOverviewProps {
+    isInDevant: boolean;
+}
+
+export function WorkspaceOverview({ isInDevant }: WorkspaceOverviewProps) {
     const { rpcClient } = useRpcContext();
     const [readmeContent, setReadmeContent] = React.useState<string>("");
     const [projectCollection, setProjectCollection] = React.useState<ProjectStructureResponse>();
@@ -1069,27 +1116,38 @@ export function WorkspaceOverview() {
                 </LeftContent>
                 {hasStandardIntegrations && (
                     <SidePanel>
-                        <DeploymentOptions
-                            handleDockerBuild={handleDockerBuild}
-                            handleJarBuild={handleJarBuild}
-                            handleDeploy={handleDeploy}
-                            goToDevant={goToDevant}
-                            devantMetadata={devantMetadata}
-                            hasDeployableIntegration={hasDeployableIntegration}
-                            hasUndeployedIntegrations={undeployedProjectScopes.length > 0}
-                            deployableProjectPaths={deployableProjectPaths}
-                            libraryProjectPaths={libraryProjectPaths}
-                        />
-                        <Divider sx={{ margin: "16px 0" }} />
-                        <IntegrationControlPlane
-                            icpState={icpState}
-                            enabledCount={icpEnabledCount}
-                            totalCount={icpProjectPaths.length}
-                            onEnableAll={handleEnableAllICP}
-                            onDisableAll={handleDisableAllICP}
-                            onEnableRemaining={handleEnableRemainingICP}
-                            icpActionLoading={icpActionLoading}
-                        />
+                        {!isInDevant && (
+                            <>
+                                <DeploymentOptions
+                                    handleDockerBuild={handleDockerBuild}
+                                    handleJarBuild={handleJarBuild}
+                                    handleDeploy={handleDeploy}
+                                    goToDevant={goToDevant}
+                                    devantMetadata={devantMetadata}
+                                    hasDeployableIntegration={hasDeployableIntegration}
+                                    hasUndeployedIntegrations={undeployedProjectScopes.length > 0}
+                                    deployableProjectPaths={deployableProjectPaths}
+                                    libraryProjectPaths={libraryProjectPaths}
+                                />
+                                <Divider sx={{ margin: "16px 0" }} />
+                                <IntegrationControlPlane
+                                    icpState={icpState}
+                                    enabledCount={icpEnabledCount}
+                                    totalCount={icpProjectPaths.length}
+                                    onEnableAll={handleEnableAllICP}
+                                    onDisableAll={handleDisableAllICP}
+                                    onEnableRemaining={handleEnableRemainingICP}
+                                    icpActionLoading={icpActionLoading}
+                                />
+                            </>
+                        )}
+                        {isInDevant && (
+                            <WorkspaceDevantDashboard
+                                handleDeploy={handleDeploy}
+                                hasDeployableIntegration={hasDeployableIntegration}
+                                hasUndeployedIntegrations={undeployedProjectScopes.length > 0}
+                            />
+                        )}
                     </SidePanel>
                 )}
             </MainContent>
