@@ -34,7 +34,6 @@ import { useShallow } from 'zustand/react/shallow';
 export interface PrimitiveOutputWidgetProps {
 	id: string;
 	outputType: IOType;
-	typeName: string;
 	engine: DiagramEngine;
 	getPort: (portId: string) => InputOutputPortModel;
 	context: IDataMapperContext;
@@ -45,7 +44,6 @@ export function PrimitiveOutputWidget(props: PrimitiveOutputWidgetProps) {
 	const {
 		id,
 		outputType,
-		typeName,
 		engine,
 		getPort,
 		context,
@@ -67,7 +65,6 @@ export function PrimitiveOutputWidget(props: PrimitiveOutputWidgetProps) {
 	);
 
 	const portIn = getPort(`${id}.IN`);
-	const isUnknownType = outputType.kind === TypeKind.Unknown;
 
 	let expanded = true;
 	if ((portIn && portIn.attributes.collapsed)) {
@@ -75,7 +72,7 @@ export function PrimitiveOutputWidget(props: PrimitiveOutputWidgetProps) {
 	}
 
 	const isDisabled = portIn?.attributes.descendantHasValue;
-	const indentation = (portIn && !expanded) ? 0 : 24;
+	const indentation = (portIn && !expanded) ? 0 : 15;
 
 	const handleExpand = () => {
 		const collapsedFields = collapsedFieldsStore.fields;
@@ -99,16 +96,9 @@ export function PrimitiveOutputWidget(props: PrimitiveOutputWidgetProps) {
 	};
 
 	const label = (
-		<TruncatedLabelGroup style={{ marginRight: "auto", alignItems: "baseline" }}>
-			{valueLabel && (
-				<TruncatedLabel className={classes.valueLabelHeader}>
-					<OutputSearchHighlight>{valueLabel}</OutputSearchHighlight>
-				</TruncatedLabel>
-			)}
-			<TruncatedLabel className={isUnknownType ? classes.unknownTypeLabel : classes.typeLabel}>
-				{typeName || ''}
-			</TruncatedLabel>
-		</TruncatedLabelGroup>
+		<TruncatedLabel className={classes.valueLabelHeader} style={{ marginRight: "auto", alignItems: "baseline" }}>
+			<OutputSearchHighlight>{valueLabel}</OutputSearchHighlight>
+		</TruncatedLabel>
 	);
 
 	const onRightClick = (event: React.MouseEvent) => {
