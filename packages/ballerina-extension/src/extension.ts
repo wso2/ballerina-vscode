@@ -37,7 +37,7 @@ import { activate as activateBIFeatures } from './features/bi';
 import { activate as activateERDiagram } from './views/persist-layer-diagram';
 import { activateAiPanel } from './views/ai-panel';
 import { activateMigrationPanel } from './views/migration-panel';
-import { debug, handleResolveMissingDependencies, log } from './utils';
+import { debug, handleResolveMissingDependencies, isInDevant, log } from './utils';
 import { activateUriHandlers } from './utils/uri-handlers';
 import { StateMachine } from './stateMachine';
 import { activateSubscriptions } from './views/visualizer/activate';
@@ -239,8 +239,10 @@ export async function activateBallerina(): Promise<BallerinaExtension> {
         // Activate Tracing Feature
         activateTracing(ballerinaExtInstance);
 
-        // Activate ICP (Integration Control Plane)
-        activateICP(ballerinaExtInstance);
+        // Activate ICP (Integration Control Plane) — skip in Devant
+        if (!isInDevant()) {
+            activateICP(ballerinaExtInstance);
+        }
 
         langClient = <ExtendedLangClient>ballerinaExtInstance.langClient;
         // Register showTextDocument listener
@@ -305,7 +307,7 @@ export async function activateBallerina(): Promise<BallerinaExtension> {
 }
 
 async function updateCodeServerConfig() {
-    if (!('CLOUD_STS_TOKEN' in process.env)) {
+    if (!isInDevant()) {
         return;
     }
     log("Code server environment detected");
