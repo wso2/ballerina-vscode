@@ -169,6 +169,12 @@ export const FieldFactory = (props: FieldFactoryProps) => {
         return getInputModeFromTypes(getPrimaryInputType(props.field.types));
     }
 
+    const notifyModeChange = useCallback((mode: InputMode) => {
+        currentInputModeRef.current = mode;
+        setInputMode(mode);
+        props.onFieldModeChange?.(props.field.key, mode);
+    }, [props.onFieldModeChange, props.field.key]);
+
     useEffect(() => {
         if (!props.field.types || props.field.types.length === 0) {
             throw new Error("Field types are not defined");
@@ -186,8 +192,7 @@ export const FieldFactory = (props: FieldFactoryProps) => {
         let initialInputMode: InputMode;
         if (isNewField) {
             initialInputMode = checkAndReturnCompatibleInputMode(selectedInputType) || InputMode.EXP;
-            currentInputModeRef.current = initialInputMode;
-            setInputMode(initialInputMode);
+            notifyModeChange(initialInputMode);
         } else {
             // Preserve the user's current mode selection when the same field is updated,
             // but reset if the current mode is no longer available in the new types.
@@ -196,13 +201,12 @@ export const FieldFactory = (props: FieldFactoryProps) => {
             );
             if (!isCurrentModeAvailable) {
                 initialInputMode = checkAndReturnCompatibleInputMode(selectedInputType) || InputMode.EXP;
-                currentInputModeRef.current = initialInputMode;
-                setInputMode(initialInputMode);
+                notifyModeChange(initialInputMode);
             } else {
                 initialInputMode = currentInputModeRef.current;
             }
         }
-    }, [props.field, props.recordTypeFields]);
+    }, [props.field, props.recordTypeFields, notifyModeChange]);
 
     const isModeSwitcherEnabled = useMemo(() => {
         return renderingEditors && renderingEditors.length > 1;
@@ -214,9 +218,7 @@ export const FieldFactory = (props: FieldFactoryProps) => {
 
 
     const handleModeChange = useCallback((mode: InputMode) => {
-        currentInputModeRef.current = mode;
-        setInputMode(mode);
-        props.onFieldModeChange?.(props.field.key, mode);
+        notifyModeChange(mode);
 
         if (!form) {
             props.handleFormValidation?.();
@@ -237,7 +239,7 @@ export const FieldFactory = (props: FieldFactoryProps) => {
         } else {
             props.handleFormValidation?.({ ...currentValues, [props.field.key]: "" });
         }
-    }, [props.handleFormValidation, form, props.field.key]);
+    }, [notifyModeChange, props.handleFormValidation, form, props.field.key]);
 
     const editorElements = useMemo(() => {
         if (!renderingEditors) return null;
