@@ -53,10 +53,10 @@ function activateRunCmdCommand() {
             );
             
             if (needsPackageSelection && projectInfo?.children.length === 0) {
-                window.showErrorMessage("No packages found in the workspace.");
+                window.showErrorMessage("No integrations found in the project.");
                 return;
             } else if (!needsPackageSelection && !projectPath) {
-                window.showErrorMessage("No project found.");
+                window.showErrorMessage("No integration found.");
                 return;
             }
 

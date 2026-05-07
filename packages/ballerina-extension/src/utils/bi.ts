@@ -153,7 +153,7 @@ export function validateProjectPath(projectPath: string, projectName: string, cr
 
         // For workspace projects, validate workspace name specifically
         if (createAsWorkspace && createDirectory && (!projectName || projectName.trim() === '')) {
-            return { isValid: false, errorMessage: 'Workspace name is required', errorField: ValidateProjectFormErrorField.NAME };
+            return { isValid: false, errorMessage: 'Project name is required', errorField: ValidateProjectFormErrorField.NAME };
         }
 
         // Check if the base directory exists
@@ -357,7 +357,7 @@ packages = []
     // create settings.json file
     createVSCodeSettings(workspaceRoot);
 
-    console.log(`BI workspace created successfully at ${workspaceRoot}`);
+    console.log(`Project(default profile) created successfully at ${workspaceRoot}`);
     return workspaceRoot;
 }
 
@@ -385,7 +385,7 @@ packages = ["${sanitizeName(projectRequest.packageName)}"]
     // create settings.json file
     createVSCodeSettings(workspaceRoot);
 
-    console.log(`BI workspace with project created successfully at ${workspaceRoot}`);
+    console.log(`Project(default profile) with integration created successfully at ${workspaceRoot}`);
     return workspaceRoot;
 }
 
@@ -476,7 +476,7 @@ sticky = true
     const gitignorePath = path.join(projectRoot, '.gitignore');
     fs.writeFileSync(gitignorePath, gitignoreContent.trim());
 
-    console.log(`BI project created successfully at ${projectRoot}`);
+    console.log(`Integration(default profile) created successfully at ${projectRoot}`);
     return projectRoot;
 }
 
@@ -554,7 +554,7 @@ function addToWorkspaceToml(workspacePath: string, packageName: string) {
         const updatedContent = addPackageToToml(ballerinaTomlContent, packageName);
         fs.writeFileSync(ballerinaTomlPath, updatedContent);
     } catch (error) {
-        console.error('Failed to update workspace Ballerina.toml:', error);
+        console.error('Failed to update project Ballerina.toml:', error);
     }
 }
 
@@ -596,7 +596,7 @@ export function deleteProjectFromWorkspace(workspacePath: string, packagePath: s
         // delete the project directory
         fs.rmdirSync(packagePath, { recursive: true });
     } catch (error) {
-        console.error(">>> error deleting project from workspace", error);
+        console.error(">>> error deleting integration from project", error);
     }
 }
 

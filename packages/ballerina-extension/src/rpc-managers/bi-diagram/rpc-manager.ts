@@ -784,8 +784,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 // Refresh project info to update UI with newly added project
                 StateMachine.refreshProjectInfo();
             } catch (error) {
-                window.showErrorMessage("Error converting integration to workspace");
-                console.error("Error converting integration to workspace:", error);
+                window.showErrorMessage("Error converting integration to project");
+                console.error("Error converting integration to project:", error);
                 return;
             }
         } else {
@@ -794,8 +794,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 // Refresh project info to update UI with newly added project
                 StateMachine.refreshProjectInfo();
             } catch (error) {
-                window.showErrorMessage("Error adding integration to existing workspace");
-                console.error("Error adding integration to existing workspace:", error);
+                window.showErrorMessage("Error adding integration to existing project");
+                console.error("Error adding integration to existing project:", error);
             }
         }
     }
@@ -1178,7 +1178,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
             if (params.isWorkspaceReadme) {
                 const workspaceName = projectInfo?.title || projectInfo?.name;
-                content = `# ${workspaceName} Workspace\n\nAdd your workspace description here.`;
+                content = `# ${workspaceName} Project\n\nAdd your project description here.`;
             } else {
                 const project = projectInfo?.children && projectInfo?.children.length > 0
                     ? projectInfo?.children.find((child) => child.projectPath === params.projectPath)
@@ -1233,7 +1233,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         const projectInfo = StateMachine.context().projectInfo;
         const projectScopes = params.projectScopes;
         if (!projectScopes?.length) {
-            window.showWarningMessage("No deployable projects found in the workspace.");
+            window.showWarningMessage("No deployable integrations found in the project.");
             return { isCompleted: true };
         }
         const integrations: ICreateNewIntegrationCmdIntegrations[] = [];
