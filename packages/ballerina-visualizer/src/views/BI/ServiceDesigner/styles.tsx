@@ -104,7 +104,6 @@ export const headerLabelStyles = cx(css`
     align-items: center;
     cursor: pointer;
     margin-left: 12px;
-    line-height: 14px;
 `);
 
 export const OptionLabel = styled.div<CSSObject>`
