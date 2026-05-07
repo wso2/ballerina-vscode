@@ -136,6 +136,7 @@ export type HelperPaneState = {
   isOpen: boolean;
   top: number;
   left: number;
+  isFlipped?: boolean;
   clickedChipPos?: number;
   clickedChipNode?: any;
 };

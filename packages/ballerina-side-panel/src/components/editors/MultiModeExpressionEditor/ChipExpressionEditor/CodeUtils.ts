@@ -45,6 +45,7 @@ export type CursorInfo = {
     top: number;
     left: number;
     position: SelectionRange;
+    isFlipped?: boolean;
 }
 
 export const ProgrammerticSelectionChange = Annotation.define<boolean>();
@@ -434,9 +435,14 @@ export const expressionEditorKeymap = [
     ...historyKeymap
 ];
 
+export const AVEARGE_HELPER_PANE_HEIGHT = 250;
+
 // this always returns the cursor position with correction for helper pane width overflow
 // make sure all the dropdowns that use this handle has the same width
-export const buildOnFocusListner = (onTrigger: (cursor: CursorInfo) => void) => {
+export const buildOnFocusListner = (
+    onTrigger: (cursor: CursorInfo) => void,
+    containerRef?: React.RefObject<HTMLElement>
+) => {
     const shouldOpenHelperPaneListner = EditorView.updateListener.of((update) => {
         if (update.focusChanged) {
             if (!update.view.hasFocus) {
@@ -448,9 +454,20 @@ export const buildOnFocusListner = (onTrigger: (cursor: CursorInfo) => void) => 
 
             if (coords && coords.top && coords.left) {
                 const editorRect = update.view.dom.getBoundingClientRect();
+
+                // Check if helper pane would overflow the container's bottom
+                let isFlipped = false;
+                if (containerRef?.current) {
+                    const containerRect = containerRef.current.getBoundingClientRect();
+                    if (coords.bottom + AVEARGE_HELPER_PANE_HEIGHT > containerRect.bottom) {
+                        isFlipped = true;
+                    }
+                }
+
                 //+5 is to position a little be below the cursor
                 //otherwise it overlaps with the cursor
-                let relativeTop = coords.bottom - editorRect.top + 5;
+                const anchorY = isFlipped ? coords.top : coords.bottom + 5;
+                let relativeTop = anchorY - editorRect.top;
                 let relativeLeft = coords.left - editorRect.left;
 
                 const HELPER_PANE_WIDTH = 300;
@@ -462,7 +479,7 @@ export const buildOnFocusListner = (onTrigger: (cursor: CursorInfo) => void) => 
                     relativeLeft -= overflow;
                 }
 
-                onTrigger({ top: relativeTop, left: relativeLeft, position: cursorPosition });
+                onTrigger({ top: relativeTop, left: relativeLeft, position: cursorPosition, isFlipped });
             }
         }
     });
@@ -471,7 +488,10 @@ export const buildOnFocusListner = (onTrigger: (cursor: CursorInfo) => void) => 
 
 // this always returns the cursor position with correction for helper pane width overflow
 // make sure all the dropdowns that use this handle has the same width
-export const buildOnSelectionChange = (onTrigger: (cursor: CursorInfo) => void) => {
+export const buildOnSelectionChange = (
+    onTrigger: (cursor: CursorInfo) => void,
+    containerRef?: React.RefObject<HTMLElement>
+) => {
     const selectionListener = EditorView.updateListener.of((update) => {
         if (!update.selectionSet) return;
         if (update.docChanged) return;
@@ -482,9 +502,20 @@ export const buildOnSelectionChange = (onTrigger: (cursor: CursorInfo) => void) 
 
         if (coords && coords.top && coords.left) {
             const editorRect = update.view.dom.getBoundingClientRect();
+
+            // Check if helper pane would overflow the container's bottom
+            let isFlipped = false;
+            if (containerRef?.current) {
+                const containerRect = containerRef.current.getBoundingClientRect();
+                if (coords.bottom + AVEARGE_HELPER_PANE_HEIGHT > containerRect.bottom) {
+                    isFlipped = true;
+                }
+            }
+
             //+5 is to position a little be below the cursor
             //otherwise it overlaps with the cursor
-            let relativeTop = coords.bottom - editorRect.top + 5;
+            const anchorY = isFlipped ? coords.top : coords.bottom + 5;
+            let relativeTop = anchorY - editorRect.top;
             let relativeLeft = coords.left - editorRect.left;
 
             const HELPER_PANE_WIDTH = 300;
@@ -496,7 +527,7 @@ export const buildOnSelectionChange = (onTrigger: (cursor: CursorInfo) => void) 
                 relativeLeft -= overflow;
             }
 
-            onTrigger({ top: relativeTop, left: relativeLeft, position: cursorPosition });
+            onTrigger({ top: relativeTop, left: relativeLeft, position: cursorPosition, isFlipped });
         }
     });
     return selectionListener;
@@ -539,7 +570,10 @@ export const buildNeedTokenRefetchListner = (onTrigger: () => void) => {
     return needTokenRefetchListner;
 }
 
-export const buildOnChangeListner = (onTrigeer: (newValue: string, cursor: CursorInfo) => void) => {
+export const buildOnChangeListner = (
+    onTrigeer: (newValue: string, cursor: CursorInfo) => void,
+    containerRef?: React.RefObject<HTMLElement>
+) => {
     const onChangeListner = EditorView.updateListener.of((update) => {
         const cursorPos = update.view.state.selection.main;
         const coords = update.view.coordsAtPos(cursorPos.to);
@@ -553,9 +587,20 @@ export const buildOnChangeListner = (onTrigeer: (newValue: string, cursor: Curso
         }
         if (update.docChanged) {
             const editorRect = update.view.dom.getBoundingClientRect();
+
+            // Check if helper pane would overflow the container's bottom
+            let isFlipped = false;
+            if (containerRef?.current) {
+                const containerRect = containerRef.current.getBoundingClientRect();
+                if (coords.bottom + AVEARGE_HELPER_PANE_HEIGHT > containerRect.bottom) {
+                    isFlipped = true;
+                }
+            }
+
             //+5 is to position a little be below the cursor
             //otherwise it overlaps with the cursor
-            let relativeTop = coords.bottom - editorRect.top + 5;
+            const anchorY = isFlipped ? coords.top : coords.bottom + 5;
+            let relativeTop = anchorY - editorRect.top;
             let relativeLeft = coords.left - editorRect.left;
 
             const HELPER_PANE_WIDTH = 300;
@@ -571,7 +616,8 @@ export const buildOnChangeListner = (onTrigeer: (newValue: string, cursor: Curso
             const cursorInfo = {
                 top: relativeTop,
                 left: relativeLeft,
-                position: cursorPos
+                position: cursorPos,
+                isFlipped
             };
             onTrigeer(newValue, cursorInfo);
         }

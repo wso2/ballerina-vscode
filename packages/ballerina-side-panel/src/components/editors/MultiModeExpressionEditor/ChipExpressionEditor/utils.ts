@@ -20,6 +20,7 @@ import { CompletionItem } from "@wso2/ui-toolkit";
 import { INPUT_MODE_MAP, InputMode, TokenType, CompoundTokenSequence, TokenMetadata, DocumentType, TokenPattern } from "./types";
 import { getPrimaryInputType, getSecondaryInputType, InputType } from "@wso2/ballerina-core";
 import { FnSignatureDocumentation } from "@wso2/ui-toolkit";
+import { AVEARGE_HELPER_PANE_HEIGHT } from "./CodeUtils";
 
 export const TOKEN_LINE_OFFSET_INDEX = 0;
 export const TOKEN_START_CHAR_OFFSET_INDEX = 1;
@@ -411,15 +412,32 @@ export const detectTokenPatterns = (
     return compounds;
 };
 
-// Calculates helper pane position with editor right boundary overflow correction
+
+
+// Calculates helper pane position with editor right boundary overflow correction.
+// When containerRect is provided and the pane would overflow the container's bottom,
+// the pane is flipped upward (isFlipped=true) and top is anchored to the trigger's top edge.
+// The ContextMenuContainer applies transform: translateY(-100%) when isFlipped to push it above.
 export const calculateHelperPanePosition = (
-    targetCoords: { bottom: number; left: number },
+    targetCoords: { bottom: number; left: number; top?: number },
     editorRect: DOMRect,
     helperPaneWidth: number,
-    scrollTop: number = 0
-): { top: number; left: number } => {
+    scrollTop: number = 0,
+    containerRect?: DOMRect
+): { top: number; left: number; isFlipped?: boolean } => {
+    // Detect if the pane would overflow the container's bottom boundary
+    const isFlipped = !!(
+        containerRect &&
+        (containerRect.bottom - targetCoords.bottom) < AVEARGE_HELPER_PANE_HEIGHT
+    );
+
+    // When flipped, anchor top to the trigger's top edge so translateY(-100%) places pane above it
+    const anchorY = isFlipped && targetCoords.top !== undefined
+        ? targetCoords.top
+        : targetCoords.bottom;
+
     // Position relative to the editor container, accounting for scroll
-    let top = targetCoords.bottom - editorRect.top + scrollTop;
+    let top = anchorY - editorRect.top + scrollTop;
     let left = targetCoords.left - editorRect.left;
 
     // Add overflow correction for editor right boundary
@@ -431,7 +449,7 @@ export const calculateHelperPanePosition = (
         left -= overflow;
     }
 
-    return { top, left };
+    return { top, left, isFlipped: isFlipped || undefined };
 };
 
 export interface FunctionExtractionResult {
