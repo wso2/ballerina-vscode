@@ -41,6 +41,7 @@ import { TitleBar } from "../../../components/TitleBar";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { applyModifications, isPositionChanged } from "../../../utils/utils";
 import { AddServiceElementDropdown, DropdownOptionProps } from "./components/AddServiceElementDropdown";
+import { MoreOptionsDropdown } from "./components/MoreOptionsDropdown";
 import { ResourceAccordion } from "./components/ResourceAccordion";
 import { ResourceAccordionV2 } from "./components/ResourceAccordionV2";
 import { FunctionConfigForm } from "./Forms/FunctionConfigForm";
@@ -441,7 +442,6 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         if (service.moduleName === "http") {
             options.push({
                 title: "Export OpenAPI Spec",
-                description: "Export the OpenAPI spec for the service",
                 value: EXPORT_OAS
             });
         }
@@ -1033,9 +1033,8 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         )
                                     }
                                     {serviceModel && !isMcpService && dropdownOptions.length > 0 && (
-                                        <AddServiceElementDropdown
-                                            buttonTitle="More"
-                                            toolTip="More options"
+                                        <MoreOptionsDropdown
+                                            tooltip="More Options"
                                             defaultOption="reusable-function"
                                             onOptionChange={handleAddDropdownOption}
                                             options={dropdownOptions}

@@ -51,7 +51,7 @@ export function AddServiceElementDropdown(props: AddServiceElementDropdownProps)
         onOptionChange,
         options
     } = props;
-    const enablePrimaryAction = !!onPrimaryAction
+    const enablePrimaryAction = !!onPrimaryAction;
     const dropdownOptions = options.map((option) => (
         {
             content: <DropdownOption
@@ -74,7 +74,7 @@ export function AddServiceElementDropdown(props: AddServiceElementDropdownProps)
                                 <Icon
                                     name={buttonIconName}
                                     isCodicon={buttonIconIsCodicon}
-                                    sx={{ marginRight: 8, fontSize: "16px", width:"16px" }}
+                                    sx={{ marginRight: buttonTitle ? 8 : 0, fontSize: "16px", width:"16px" }}
                                 />
                             )
                         )}
@@ -121,20 +121,22 @@ export function AddServiceElementDropdown(props: AddServiceElementDropdownProps)
 
 export interface DropdownOptionProps {
     title: string;
-    description: string;
-    value?: string;
+    description?: string;
+    value: string;
     iconName?: string; // Used to be shown in the main panel when selected
     iconIsCodicon?: boolean;
 }
 
-function DropdownOption({ title, description }: DropdownOptionProps) {
+function DropdownOption({ title, description }: Pick<DropdownOptionProps, 'title' | 'description'>) {
     return (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div>
                 <Typography variant="body2" sx={{ fontWeight: 'medium', lineHeight: 1 }}>{title}</Typography>
-                <Typography variant="body3" sx={{ color: 'var(--vscode-descriptionForeground)' }}>
-                    {description}
-                </Typography>
+                {description && (
+                    <Typography variant="body3" sx={{ color: 'var(--vscode-descriptionForeground)' }}>
+                        {description}
+                    </Typography>
+                )}
             </div>
         </div>
     );
