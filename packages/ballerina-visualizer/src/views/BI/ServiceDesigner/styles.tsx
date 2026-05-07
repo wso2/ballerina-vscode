@@ -104,7 +104,6 @@ export const headerLabelStyles = cx(css`
     align-items: center;
     cursor: pointer;
     margin-left: 12px;
-    line-height: 14px;
 `);
 
 export const OptionLabel = styled.div<CSSObject>`
@@ -118,7 +117,6 @@ export const disabledHeaderLabel = cx(css`
     display: flex;
     align-items: center;
     margin-left: 12px;
-    line-height: 14px;
 `);
 
 export const HeaderLabel = styled.div<CSSObject>`
@@ -136,7 +134,7 @@ export const ActionIconWrapper = styled.div<CSSObject>`
     display: flex;
     align-items: center;
     cursor: pointer;
-    height: 14px;
+    height: 16px;
     margin-right: 10px;
 `;
 
