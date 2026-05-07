@@ -1184,7 +1184,11 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     ? projectInfo?.children.find((child) => child.projectPath === params.projectPath)
                     : projectInfo;
                 const projectName = project?.title || project?.name;
-                content = `# ${projectName} Integration\n\nAdd your integration description here.`;
+                const isLibrary = StateMachine.context().projectStructure?.projects?.find(
+                    p => p.projectPath === params.projectPath
+                )?.isLibrary ?? false;
+                const kind = isLibrary ? "Library" : "Integration";
+                content = `# ${projectName} ${kind}\n\nAdd your ${kind.toLowerCase()} description here.`;
             }
 
             fs.writeFileSync(readmePath, content);
@@ -1230,7 +1234,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async deployWorkspace(params: WorkspaceDeploymentRequest): Promise<DeploymentResponse> {
-        const projectInfo = StateMachine.context().projectInfo;
         const projectScopes = params.projectScopes;
         if (!projectScopes?.length) {
             window.showWarningMessage("No deployable integrations found in the project.");
