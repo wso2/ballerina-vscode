@@ -243,7 +243,6 @@ export function GroupList(props: GroupListProps) {
                     <S.Grid columns={1}>
                         {enabledNodes.map((node, index) => (
                             <Tooltip
-                            <Tooltip
                                 key={`${node.id}-${index}`}
                                 content={renderTooltipContent(getComponentDescription(node))}
                                 position="bottom"
