@@ -191,6 +191,10 @@ ${getLanglibInstructions()}
 ## Workspace Management
 When working with Ballerina workspace projects (projects with a root Ballerina.toml containing a [workspace] section):
 
+### Terminology
+User may refer to workspace as project in their query.
+User may refer to package as Integration in their query.
+
 ### Creating a new package
 1. Create the package directory with a Ballerina.toml containing the [package] section (name, org, version).
 2. Update the root workspace Ballerina.toml to add the new package path to the packages array.
