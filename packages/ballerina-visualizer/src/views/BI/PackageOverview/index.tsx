@@ -17,6 +17,7 @@
  */
 
 import React, { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { EditableTitle } from "../../../components/EditableTitle";
 import {
     ProjectStructure,
@@ -414,6 +415,7 @@ interface DeploymentOptionsProps {
     handleDeploy: () => Promise<void>;
     goToDevant: () => void;
     hasDeployableIntegration: boolean;
+    projectPath: string;
 }
 
 function DeploymentOptions({
@@ -421,7 +423,8 @@ function DeploymentOptions({
     handleJarBuild,
     handleDeploy,
     goToDevant,
-    hasDeployableIntegration
+    hasDeployableIntegration,
+    projectPath
 }: DeploymentOptionsProps) {
     const [expandedOptions, setExpandedOptions] = useState<Set<string>>(new Set(['cloud', 'devant']));
     const { rpcClient } = useRpcContext();
@@ -439,7 +442,14 @@ function DeploymentOptions({
         });
     };
 
-    const isDeployed = platformExtState?.isLoggedIn ? !!platformExtState?.selectedComponent : platformExtState?.hasPossibleComponent;
+    const { data: devantMetadata } = useQuery({
+        queryKey: ["project-devant-metadata"],
+        queryFn: () => rpcClient.getBIDiagramRpcClient().getWorkspaceDevantMetadata(),
+    });
+    const currentProjectMeta = devantMetadata?.projectsMetadata?.find(p => p.projectPath === projectPath);
+    const isDeployed = devantMetadata?.isLoggedIn
+        ? currentProjectMeta?.hasComponent ?? false
+        : devantMetadata?.hasAnyComponent ?? false;
 
     return (
         <>
@@ -1149,6 +1159,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                                         handleDeploy={handleDeploy}
                                         goToDevant={goToDevant}
                                         hasDeployableIntegration={deployableIntegrationTypes.length > 0}
+                                        projectPath={projectPath}
                                     />
                                     <Divider sx={{ margin: "16px 0" }} />
                                     <IntegrationControlPlane enabled={enabled} handleICP={handleICP} />
