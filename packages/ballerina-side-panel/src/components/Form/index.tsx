@@ -1300,88 +1300,91 @@ export const Form = forwardRef((props: FormProps, _ref) => {
             registerLoading={registerLoading}
             unregisterLoading={unregisterLoading}
         >
-        <Provider {...contextValue}>
-            <S.Container nestedForm={nestedForm} compact={compact} footerActionButton={footerActionButton} className="side-panel-body">
-                {isFormLoading && (
-                    <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: "12px", flex: 1 }}>
-                        <ProgressRing color={ThemeColors.PRIMARY} />
-                        <span style={{ fontSize: "12px", color: ThemeColors.ON_SURFACE_VARIANT }}>Loading form data...</span>
+            <Provider {...contextValue}>
+                <S.Container nestedForm={nestedForm} compact={compact} footerActionButton={footerActionButton} className="side-panel-body">
+                    {isFormLoading && (
+                        <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: "12px", flex: 1 }}>
+                            <ProgressRing color={ThemeColors.PRIMARY} />
+                            <span style={{ fontSize: "12px", color: ThemeColors.ON_SURFACE_VARIANT }}>Loading form data...</span>
+                        </div>
+                    )}
+                    {/* NOTE: isFormLoading is only expected to be true during initial field value
+    resolution on form open. If this ever becomes true during user interaction,
+    it will drop focus — treat that as a bug in the loading registration logic. */}
+                    <div style={{ display: isFormLoading ? "none" : "contents" }}>
+                        {footerActionButton ? (
+                            <S.ScrollableContent>
+                                {formContent}
+                            </S.ScrollableContent>
+                        ) : (
+                            formContent
+                        )}
+                        {onSubmit && !hideSaveButton && !footerActionButton && (
+                            <S.Footer>
+                                {onCancelForm && (
+                                    <Button appearance="secondary" onClick={onCancelForm}>
+                                        {" "}
+                                        {cancelText || "Cancel"}{" "}
+                                    </Button>
+                                )}
+                                {canOpenInDataMapper &&
+                                    <Button
+                                        appearance="secondary"
+                                        onClick={handleOnOpenInDataMapper}
+                                        disabled={isSaving}
+                                    >
+                                        {isSaving && savingButton === 'dataMapper' ? (
+                                            <Typography variant="progress">{submitText || "Opening in Data Mapper..."}</Typography>
+                                        ) : submitText || "Open in Data Mapper"}
+                                    </Button>
+                                }
+                                {canOpenInFunctionEditor && (
+                                    <Button
+                                        appearance="secondary"
+                                        onClick={handleOnOpenInFunctionEditor}
+                                        disabled={isSaving}
+                                    >
+                                        {isSaving && savingButton === 'functionEditor' ? (
+                                            <Typography variant="progress">{submitText || "Opening in Function Editor..."}</Typography>
+                                        ) : submitText || "Open in Function Editor"}
+                                    </Button>
+                                )}
+                                <Button
+                                    appearance="primary"
+                                    onClick={handleOnSaveClick}
+                                    disabled={disableSaveButton || isSaving}
+                                >
+                                    {isValidatingForm ? (
+                                        <Typography variant="progress">Validating...</Typography>
+                                    ) : isSaving && savingButton === 'save' ? (
+                                        <Typography variant="progress">{submitText || "Saving..."}</Typography>
+                                    ) : (
+                                        submitText || "Save"
+                                    )}
+                                </Button>
+                            </S.Footer>
+                        )}
+                        {onSubmit && !hideSaveButton && footerActionButton && (
+                            <S.FooterActionButtonContainer>
+                                <S.FooterActionButton
+                                    appearance="primary"
+                                    onClick={handleOnSaveClick}
+                                    disabled={disableSaveButton || isSaving}
+                                    buttonSx={{ width: "100%", height: "35px" }}
+                                >
+                                    {isValidatingForm ? (
+                                        <Typography variant="progress">Validating...</Typography>
+                                    ) : isSaving && savingButton === 'save' ? (
+                                        <Typography variant="progress">{submitText || "Saving..."}</Typography>
+                                    ) : (
+                                        submitText || "Save"
+                                    )}
+                                </S.FooterActionButton>
+                            </S.FooterActionButtonContainer>
+                        )}
                     </div>
-                )}
-                <div style={{ display: isFormLoading ? "none" : "contents" }}>
-                    {footerActionButton ? (
-                        <S.ScrollableContent>
-                            {formContent}
-                        </S.ScrollableContent>
-                    ) : (
-                        formContent
-                    )}
-                    {onSubmit && !hideSaveButton && !footerActionButton && (
-                        <S.Footer>
-                            {onCancelForm && (
-                                <Button appearance="secondary" onClick={onCancelForm}>
-                                    {" "}
-                                    {cancelText || "Cancel"}{" "}
-                                </Button>
-                            )}
-                            {canOpenInDataMapper &&
-                                <Button
-                                    appearance="secondary"
-                                    onClick={handleOnOpenInDataMapper}
-                                    disabled={isSaving}
-                                >
-                                    {isSaving && savingButton === 'dataMapper' ? (
-                                        <Typography variant="progress">{submitText || "Opening in Data Mapper..."}</Typography>
-                                    ) : submitText || "Open in Data Mapper"}
-                                </Button>
-                            }
-                            {canOpenInFunctionEditor && (
-                                <Button
-                                    appearance="secondary"
-                                    onClick={handleOnOpenInFunctionEditor}
-                                    disabled={isSaving}
-                                >
-                                    {isSaving && savingButton === 'functionEditor' ? (
-                                        <Typography variant="progress">{submitText || "Opening in Function Editor..."}</Typography>
-                                    ) : submitText || "Open in Function Editor"}
-                                </Button>
-                            )}
-                            <Button
-                                appearance="primary"
-                                onClick={handleOnSaveClick}
-                                disabled={disableSaveButton || isSaving}
-                            >
-                                {isValidatingForm ? (
-                                    <Typography variant="progress">Validating...</Typography>
-                                ) : isSaving && savingButton === 'save' ? (
-                                    <Typography variant="progress">{submitText || "Saving..."}</Typography>
-                                ) : (
-                                    submitText || "Save"
-                                )}
-                            </Button>
-                        </S.Footer>
-                    )}
-                    {onSubmit && !hideSaveButton && footerActionButton && (
-                        <S.FooterActionButtonContainer>
-                            <S.FooterActionButton
-                                appearance="primary"
-                                onClick={handleOnSaveClick}
-                                disabled={disableSaveButton || isSaving}
-                                buttonSx={{ width: "100%", height: "35px" }}
-                            >
-                                {isValidatingForm ? (
-                                    <Typography variant="progress">Validating...</Typography>
-                                ) : isSaving && savingButton === 'save' ? (
-                                    <Typography variant="progress">{submitText || "Saving..."}</Typography>
-                                ) : (
-                                    submitText || "Save"
-                                )}
-                            </S.FooterActionButton>
-                        </S.FooterActionButtonContainer>
-                    )}
-                </div>
-            </S.Container>
-        </Provider>
+                </S.Container>
+            </Provider>
         </FormFieldLoadingProvider>
     );
 });
