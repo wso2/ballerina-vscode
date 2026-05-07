@@ -491,7 +491,7 @@ function DeploymentOptions({
                         learnMoreLink={"https://wso2.com/devant/docs/"}
                         hasDeployableIntegration={hasDeployableIntegration}
                         secondaryAction={
-                            isDeployed && platformExtState?.hasLocalChanges
+                            isDeployed && currentProjectMeta?.hasLocalChanges
                                 ? {
                                     description: "To redeploy in WSO2 Cloud, please commit and push your changes.",
                                     buttonText: "Open Source Control",
