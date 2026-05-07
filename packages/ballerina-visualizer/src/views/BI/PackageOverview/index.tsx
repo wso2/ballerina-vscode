@@ -443,8 +443,9 @@ function DeploymentOptions({
     };
 
     const { data: devantMetadata, isLoading: isDevantLoading } = useQuery({
-        queryKey: ["project-devant-metadata"],
+        queryKey: ["project-devant-metadata", projectPath],
         queryFn: () => rpcClient.getBIDiagramRpcClient().getWorkspaceDevantMetadata(),
+        enabled: platformExtState.isExtInstalled,
         refetchInterval: 5000,
     });
     const currentProjectMeta = devantMetadata?.projectsMetadata?.find(p => p.projectPath === projectPath);
