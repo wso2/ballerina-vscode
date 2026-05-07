@@ -27,7 +27,7 @@ export enum HTTP_METHOD {
     "PATCH" = "PATCH"
 }
 
-export const HTTP_HEADER_TYPES = [
+export const HTTP_ENUM_TYPES = [
     "string",
     "int",
     "boolean",
