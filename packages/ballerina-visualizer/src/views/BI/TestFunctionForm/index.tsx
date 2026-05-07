@@ -173,29 +173,11 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
         if (testFunction.annotations) {
             const configAnnotation = getTestConfigAnnotation(testFunction.annotations);
             if (configAnnotation && configAnnotation.fields) {
-                const minPassRateField = configAnnotation.fields.find(f => f.originalName === 'minPassRate');
-                if (minPassRateField) {
-                    const generatedField = generateFieldFromProperty('minPassRate', minPassRateField);
-                    fields.push({
-                        ...generatedField,
-                        type: 'SLIDER',
-                        types: [{ fieldType: 'SLIDER', selected: false }],
-                        advanced: true,
-                        sliderProps: {
-                            min: 0,
-                            max: 100,
-                            step: 1,
-                            showValue: true,
-                            showMarkers: true,
-                            valueFormatter: (value: number) => `${value}%`
-                        }
-                    });
-                }
-
                 for (const field of configAnnotation.fields) {
-                    // Skip fields already processed
+                    // Skip fields already processed or pushed last
                     if (field.originalName === 'dataProviderMode' ||
                         field.originalName === 'minPassRate' ||
+                        field.originalName === 'runs' ||
                         field.originalName === 'evalSetFile') {
                         continue;
                     }
@@ -213,7 +195,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
 
                     // Special handling for expression fields - ensure they use EXPRESSION type
                     if (field.originalName === 'before' || field.originalName === 'after' ||
-                        field.originalName === 'runs' || field.originalName === 'dataProvider') {
+                        field.originalName === 'dataProvider') {
                         fields.push({
                             ...generateFieldFromProperty(field.originalName, field),
                             type: 'EXPRESSION',
@@ -234,6 +216,35 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                     }
 
                     fields.push(generateFieldFromProperty(field.originalName, field));
+                }
+
+                const minPassRateField = configAnnotation.fields.find(f => f.originalName === 'minPassRate');
+                if (minPassRateField) {
+                    const generatedField = generateFieldFromProperty('minPassRate', minPassRateField);
+                    fields.push({
+                        ...generatedField,
+                        type: 'SLIDER',
+                        types: [{ fieldType: 'SLIDER', selected: false }],
+                        advanced: true,
+                        sliderProps: {
+                            min: 0,
+                            max: 100,
+                            step: 1,
+                            showValue: true,
+                            showMarkers: true,
+                            valueFormatter: (value: number) => `${value}%`
+                        }
+                    });
+                }
+
+                const runsField = configAnnotation.fields.find(f => f.originalName === 'runs');
+                if (runsField) {
+                    fields.push({
+                        ...generateFieldFromProperty('runs', runsField),
+                        type: 'EXPRESSION',
+                        advanced: true,
+                        types: [{ fieldType: 'EXPRESSION', selected: false }]
+                    });
                 }
             }
         }
