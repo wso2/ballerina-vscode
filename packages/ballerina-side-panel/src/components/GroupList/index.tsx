@@ -178,18 +178,19 @@ namespace S {
 interface GroupListProps {
     category: Category;
     expand?: boolean;
+    onToggle?: (isOpen: boolean) => void;
     onSelect: (node: Node, category: string) => void;
     enableSingleNodeDirectNav?: boolean;
     onImportDevantConn?: (devantConn: ConnectionListItem) => void;
 }
 
 export function GroupList(props: GroupListProps) {
-    const { category, expand, onSelect, enableSingleNodeDirectNav, onImportDevantConn } = props;
+    const { category, expand, onToggle, onSelect, enableSingleNodeDirectNav, onImportDevantConn } = props;
 
     const [showList, setShowList] = useState(expand ?? false);
 
     const nodes = category.items as Node[];
-    const openList = expand || showList;
+    const openList = expand !== undefined ? expand : showList;
     const enabledNodes = nodes.filter((node) => node.enabled);
     const isSingleNode = enabledNodes.length === 1 && enableSingleNodeDirectNav;
 
@@ -197,7 +198,11 @@ export function GroupList(props: GroupListProps) {
         if (isSingleNode) {
             onSelect(enabledNodes[0], category.title);
         } else {
-            setShowList(!showList);
+            if (expand !== undefined) {
+                onToggle?.(!expand);
+            } else {
+                setShowList(!showList);
+            }
         }
     };
 
