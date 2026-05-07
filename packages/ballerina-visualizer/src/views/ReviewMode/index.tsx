@@ -206,7 +206,7 @@ function convertToReviewView(diff: SemanticDiff, projectPath: string, packageNam
 
 // Helper to extract package name from path
 function getPackageName(path: string): string {
-    const parts = path.split("/");
+    const parts = path.replace(/\\/g, "/").split("/");
     const lastPart = parts[parts.length - 1];
 
     // If the last part is a .bal file, the package name is the directory before it
