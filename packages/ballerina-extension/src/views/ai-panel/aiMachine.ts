@@ -33,10 +33,12 @@ import {
 } from '../../utils/ai/auth';
 import * as vscode from 'vscode';
 import { notifyAiPromptUpdated } from '../../RPCLayer';
+import { closeOrphanWebviewTabs } from '../closeOrphanWebviewTabs';
 
-export const openAIWebview = (defaultprompt?: AIPanelPrompt) => {
+export const openAIWebview = async (defaultprompt?: AIPanelPrompt) => {
     extension.aiChatDefaultPrompt = defaultprompt;
     if (!AiPanelWebview.currentPanel) {
+        await closeOrphanWebviewTabs([AiPanelWebview.viewType]);
         AiPanelWebview.currentPanel = new AiPanelWebview();
     } else {
         AiPanelWebview.currentPanel!.getWebview()?.reveal();
