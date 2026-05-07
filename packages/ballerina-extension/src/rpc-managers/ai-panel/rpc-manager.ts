@@ -775,11 +775,11 @@ User reverted the last made changes. The files have been restored to the state b
         const context = StateMachine.context();
         const workspaceId = context.workspacePath || context.projectPath;
         const threadId = 'default';
-        const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
-        const tempProjectPath = pendingReview?.reviewState.tempProjectPath;
+        const generation = chatStateStorage.getGeneration(workspaceId, threadId, params.generationId);
+        const tempProjectPath = generation?.reviewState.tempProjectPath;
 
         if (!tempProjectPath) {
-            console.error("[openFileDiff] No active review with temp project path");
+            console.error("[openFileDiff] No generation or temp project path for generationId:", params.generationId);
             return;
         }
 
@@ -794,7 +794,8 @@ User reverted the last made changes. The files have been restored to the state b
         AiPanelRpcManager.diffContentMap.clear();
 
         // Read original content from checkpoint snapshot — workspace already has generated code
-        const originalContent = pendingReview?.checkpoint?.workspaceSnapshot[params.relativePath] ?? '';
+        const snapshotKey = params.relativePath.split(path.sep).join('/');
+        const originalContent = generation?.checkpoint?.workspaceSnapshot?.[snapshotKey] ?? '';
 
         let modifiedContent = '';
         try {

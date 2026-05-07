@@ -46,9 +46,10 @@ import {
 import { correctTokenStreamPositions, normalizeEditorValue } from "../utils";
 import { history } from "@codemirror/commands";
 import { autocompletion } from "@codemirror/autocomplete";
-import { FloatingButtonContainer, FloatingToggleButton, ChipEditorContainer, LoadingOverlay, LoadingPlaceholder } from "../styles";
+import { FloatingButtonContainer, FloatingToggleButton, ChipEditorContainer } from "../styles";
+import { CHIP_EXPRESSION_EDITOR_HEIGHT } from "../constants";
 import { HelperpaneOnChangeOptions } from "../../../../Form/types";
-import { CompletionItem, FnSignatureDocumentation, HelperPaneHeight, ProgressRing } from "@wso2/ui-toolkit";
+import { CompletionItem, FnSignatureDocumentation, HelperPaneHeight } from "@wso2/ui-toolkit";
 import { CloseHelperIcon, ExpandIcon, MinimizeIcon, OpenHelperIcon } from "./FloatingButtonIcons";
 import { LineRange } from "@wso2/ballerina-core";
 import { HelperPaneToggleButton } from "./HelperPaneToggleButton";
@@ -103,15 +104,7 @@ export type ChipExpressionEditorComponentProps = {
     disabled?: boolean;
     placeholder?: string;
     onNormalizeValue?: (value: string) => void;
-}
-
-function resolveInitialValueResolving(
-    value: string | undefined,
-    configuration: ChipExpressionEditorDefaultConfiguration
-): boolean {
-    if (!value) return false;
-    const deserialized = configuration.deserializeValue(value);
-    return normalizeEditorValue(deserialized) !== normalizeEditorValue(value);
+    onLoadingStateChange?: (isLoading: boolean) => void;
 }
 
 export const ChipExpressionEditorComponent = (props: ChipExpressionEditorComponentProps) => {
@@ -121,9 +114,11 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
     const fieldContainerRef = useRef<HTMLDivElement>(null);
     const viewRef = useRef<EditorView | null>(null);
     const [isTokenUpdateScheduled, setIsTokenUpdateScheduled] = useState(true);
-    const [isValueResolving, setIsValueResolving] = useState(
-        () => resolveInitialValueResolving(props.value, configuration)
-    );
+    const [isValueResolving, setIsValueResolving] = useState(() => !!props.value);
+
+    useEffect(() => {
+        props.onLoadingStateChange?.(isValueResolving);
+    }, [isValueResolving]);
     const completionsRef = useRef<CompletionItem[]>(props.completions);
     const helperPaneToggleButtonRef = useRef<HTMLButtonElement>(null);
     const completionsFetchScheduledRef = useRef<boolean>(false);
@@ -500,19 +495,15 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                 <div style={{
                     position: 'relative',
                     width: '100%',
+                    minHeight: `${CHIP_EXPRESSION_EDITOR_HEIGHT}px`,
                     ...(props.isInExpandedMode || props.hideFxButton || (props.sx && 'height' in props.sx) ? { height: '100%' } : {})
                 }}>
                     <div ref={editorRef} style={{
                         border: '1px solid var(--vscode-dropdown-border)',
                         width: '100%',
-                        height: '100%'
+                        height: '100%',
+                        visibility: isValueResolving ? 'hidden' : 'visible'
                     }} />
-                    {isValueResolving && (
-                        <LoadingOverlay>
-                            <ProgressRing sx={{ height: 16, width: 16 }} color="var(--vscode-input-placeholderForeground)" />
-                            <LoadingPlaceholder>Loading...</LoadingPlaceholder>
-                        </LoadingOverlay>
-                    )}
                     {helperPaneState.isOpen && configuration.showHelperPane() &&
                         <HelperPane
                             ref={helperPaneRef}
