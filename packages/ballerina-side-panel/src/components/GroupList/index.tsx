@@ -17,7 +17,8 @@
  */
 
 import React, { useState } from "react";
-import { Button, Codicon, ThemeColors } from "@wso2/ui-toolkit";
+import { Button, Codicon, ThemeColors, Tooltip } from "@wso2/ui-toolkit";
+import ReactMarkdown from "react-markdown";
 import styled from "@emotion/styled";
 import { CallIcon, LogIcon } from "../../resources";
 import { Category, Node } from "./../NodeList/types";
@@ -88,28 +89,17 @@ namespace S {
         margin-left: auto;
     `;
 
-    export const Component = styled.div<{ enabled?: boolean; expanded?: boolean }>`
+    export const Component = styled.div<{ enabled?: boolean }>`
         display: flex;
         flex-direction: row;
         gap: 5px;
         padding: 7px 5px;
         border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
         border-radius: 5px;
-        height: ${({ expanded }) => (expanded ? "auto" : "36px")};
-        min-height: 36px;
+        height: 36px;
         cursor: ${({ enabled }) => (enabled ? "pointer" : "not-allowed")};
         font-size: 14px;
-        transition: all 0.3s ease;
         ${({ enabled }) => !enabled && "opacity: 0.5;"}
-        ${({ expanded }) =>
-            expanded &&
-            `
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            border: 1px solid ${ThemeColors.PRIMARY};
-            background-color: ${ThemeColors.PRIMARY_CONTAINER};
-            z-index: 10;
-            position: relative;
-        `}
         &:hover {
             ${({ enabled }) =>
                 enabled &&
@@ -120,20 +110,50 @@ namespace S {
         }
     `;
 
-    export const ComponentContent = styled.div<{ expanded?: boolean }>`
+    export const ComponentContent = styled.div`
         text-overflow: ellipsis;
         overflow: hidden;
-        white-space: ${({ expanded }) => (expanded ? "normal" : "nowrap")};
+        white-space: nowrap;
         width: 280px;
-        word-break: ${({ expanded }) => (expanded ? "normal" : "break-all")};
         overflow-wrap: break-word;
-        transition: all 0.3s ease;
         display: flex;
         flex-direction: column;
         gap: 2px;
     `;
 
-    export const CardIcon = styled.div<{ expanded?: boolean }>`
+    export const TooltipMarkdown = styled.div`
+        font-size: 12px;
+        line-height: 1.4;
+        font-family: var(--vscode-font-family);
+
+        p {
+            margin: 0 0 6px 0;
+        }
+
+        p:last-of-type {
+            margin-bottom: 0;
+        }
+
+        pre {
+            display: none;
+        }
+
+        code {
+            display: inline;
+        }
+
+        ul,
+        ol {
+            margin: 6px 0;
+            padding-left: 18px;
+        }
+
+        li {
+            margin: 2px 0;
+        }
+    `;
+
+    export const CardIcon = styled.div`
         padding: 0 8px;
         display: flex;
         justify-content: center;
@@ -153,10 +173,6 @@ namespace S {
     export const ComponentTitle = styled.div<{}>`
         color: ${ThemeColors.ON_SURFACE};
     `;
-
-    export const ComponentDescription = styled.div<{}>`
-        color: ${ThemeColors.ON_SURFACE_VARIANT};
-    `;
 }
 
 interface GroupListProps {
@@ -171,7 +187,6 @@ export function GroupList(props: GroupListProps) {
     const { category, expand, onSelect, enableSingleNodeDirectNav, onImportDevantConn } = props;
 
     const [showList, setShowList] = useState(expand ?? false);
-    const [expandedTitleIndex, setExpandedTitleIndex] = useState<number | null>(null);
 
     const nodes = category.items as Node[];
     const openList = expand || showList;
@@ -180,19 +195,10 @@ export function GroupList(props: GroupListProps) {
 
     const handleToggleList = () => {
         if (isSingleNode) {
-            // Navigate directly to the single node
             onSelect(enabledNodes[0], category.title);
         } else {
             setShowList(!showList);
         }
-    };
-
-    const handleComponentMouseEnter = (index: number) => {
-        setExpandedTitleIndex(index);
-    };
-
-    const handleComponentMouseLeave = () => {
-        setExpandedTitleIndex(null);
     };
 
     if (category.devant && category.unusedDevantConn) {
@@ -236,26 +242,25 @@ export function GroupList(props: GroupListProps) {
                     <S.BodyText>{category.description}</S.BodyText>
                     <S.Grid columns={1}>
                         {enabledNodes.map((node, index) => (
-                            <S.Component
+                            <Tooltip
                                 key={node.id + index}
-                                enabled={node.enabled}
-                                expanded={expandedTitleIndex === index}
-                                onClick={() => onSelect(node, category.title)}
-                                onMouseEnter={() => handleComponentMouseEnter(index)}
-                                onMouseLeave={handleComponentMouseLeave}
+                                content={renderTooltipContent(getComponentDescription(node))}
+                                position="bottom"
+                                offset={{ top: 16, left: 20 }}
+                                sx={{ maxWidth: "280px", whiteSpace: "normal", wordWrap: "break-word", overflowWrap: "break-word" }}
                             >
-                                <S.ComponentIcon expanded={expandedTitleIndex === index}>
-                                    {node.icon || <CallIcon />}
-                                </S.ComponentIcon>
-                                <S.ComponentContent expanded={expandedTitleIndex === index}>
-                                    <S.ComponentTitle>{getComponentTitle(node)}</S.ComponentTitle>
-                                    {expandedTitleIndex === index && (
-                                        <S.ComponentDescription>
-                                            {getComponentDescription(node)}
-                                        </S.ComponentDescription>
-                                    )}
-                                </S.ComponentContent>
-                            </S.Component>
+                                <S.Component
+                                    enabled={node.enabled}
+                                    onClick={() => onSelect(node, category.title)}
+                                >
+                                    <S.ComponentIcon>
+                                        {node.icon || <CallIcon />}
+                                    </S.ComponentIcon>
+                                    <S.ComponentContent>
+                                        <S.ComponentTitle>{getComponentTitle(node)}</S.ComponentTitle>
+                                    </S.ComponentContent>
+                                </S.Component>
+                            </Tooltip>
                         ))}
                     </S.Grid>
                 </>
@@ -291,6 +296,18 @@ const UnusedDevantCard = (props: {
 };
 
 export default GroupList;
+
+function renderTooltipContent(description?: string): React.ReactNode | undefined {
+    const cleaned = stripHtmlTags(description || "").trim();
+    if (!cleaned) {
+        return undefined;
+    }
+    return (
+        <S.TooltipMarkdown>
+            <ReactMarkdown>{cleaned}</ReactMarkdown>
+        </S.TooltipMarkdown>
+    );
+}
 
 function getComponentTitle(node: Node) {
     if (node.id === "RESOURCE_ACTION_CALL" && node.description) {
