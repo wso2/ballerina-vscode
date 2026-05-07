@@ -59,6 +59,7 @@ import {
     InputMode,
     ExpressionEditorDevantProps,
     getTypeCompletionSearchText,
+    getInputModeFromTypes,
 } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import {
@@ -286,6 +287,7 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
     const [formDiagnostics, setFormDiagnostics] = useState<DiagnosticMessage[]>([]);
     const [isAiUserAuthenticated, setIsAiUserAuthenticated] = useState(false);
     const formImportsRef = useRef<FormImports>({});
+    const fieldModesRef = useRef<Record<string, InputMode>>({});
     const [typeEditorState, setTypeEditorState] = useState<FlowNodeTypeEditorState>({ isOpen: false, newTypeValue: "" });
     const [visualizableField, setVisualizableField] = useState<VisualizableField>();
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
@@ -750,6 +752,10 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
         [onChange]
     );
 
+    const handleFieldModeChange = useCallback((fieldKey: string, mode: InputMode) => {
+        fieldModesRef.current = { ...fieldModesRef.current, [fieldKey]: mode };
+    }, []);
+
     const mergeFormDataWithFlowNode = (data: FormValues, targetLineRange: LineRange, dirtyFields?: any): FlowNode => {
         const clonedNode = cloneDeep(node);
         // Create updated node with new line range
@@ -760,6 +766,24 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
 
         // Update node properties
         const nodeWithUpdatedProps = updateNodeWithProperties(clonedNode, updatedNode, processedData, formImportsRef.current, dirtyFields);
+
+        // Sync types[].selected from the tracked field modes so the diagnostics request
+        // reflects the user's currently active input mode for each property.
+        const trackedModes = fieldModesRef.current;
+        if (Object.keys(trackedModes).length > 0) {
+            const nodeProps = nodeWithUpdatedProps.properties ?? (nodeWithUpdatedProps.branches?.[0]?.properties);
+            if (nodeProps) {
+                for (const [fieldKey, mode] of Object.entries(trackedModes)) {
+                    const nodeProp = (nodeProps as Record<string, any>)[fieldKey];
+                    if (nodeProp?.types) {
+                        nodeProp.types = nodeProp.types.map((t: InputType) => ({
+                            ...t,
+                            selected: getInputModeFromTypes(t) === mode,
+                        }));
+                    }
+                }
+            }
+        }
 
         // check all nodes and remove empty nodes
         return removeEmptyNodes(nodeWithUpdatedProps);
@@ -1029,15 +1053,32 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
     };
 
     const getFormWithDiagnostics = async (node: FlowNode): Promise<FlowNode | null> => {
-        try {
-            // Update node with new line range only for creation forms (not edit forms)
-            const nodeToProcess = props.editForm
-                ? node
-                : createNodeWithUpdatedLineRange(node, targetLineRange);
-            const response = await rpcClient.getBIDiagramRpcClient().getFormDiagnostics({
+        // Update node with new line range only for creation forms (not edit forms)
+        const nodeToProcess = props.editForm
+            ? node
+            : createNodeWithUpdatedLineRange(node, targetLineRange);
+
+        const issueRequest = () =>
+            rpcClient.getBIDiagramRpcClient().getFormDiagnostics({
                 flowNode: nodeToProcess,
                 filePath: fileName
             });
+
+        const isDebounceCancellation = (resp: any) =>
+            !resp?.flowNode &&
+            typeof resp?.errorMsg === "string" &&
+            resp.errorMsg.includes("Debounced");
+
+        try {
+            let response = await issueRequest();
+            // The backend debounces concurrent diagnostics requests; the older one resolves
+            // with a cancellation envelope. Retry past the debounce window so save sees the
+            // real verdict instead of treating cancellation as "no diagnostics".
+            let retries = 2;
+            while (isDebounceCancellation(response) && retries-- > 0) {
+                await new Promise(resolve => setTimeout(resolve, 300));
+                response = await issueRequest();
+            }
 
             if (response.flowNode) {
                 return response.flowNode as FlowNode;
@@ -1119,18 +1160,6 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                     : { ...property, types: property.types.map(t => ({ ...t })) };
 
                 try {
-                    const propertyPrimaryFieldType = getPrimaryInputType(updatedProperty.types);
-                    if (updatedProperty.types.length > 1 && propertyPrimaryFieldType.fieldType !== "REPEATABLE_LIST" && propertyPrimaryFieldType.fieldType !== "REPEATABLE_MAP") {
-                        updatedProperty.types.forEach(t => {
-                            if (t.fieldType === "EXPRESSION") {
-                                t.selected = true;
-                            }
-                            else {
-                                t.selected = false;
-                            }
-                        });
-                    }
-
                     const response = await rpcClient.getBIDiagramRpcClient().getExpressionDiagnostics({
                         filePath: fileName,
                         context: {
@@ -1843,6 +1872,7 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                     formImports={formImportsRef.current}
                     handleSelectedTypeChange={handleSelectedTypeChange}
                     preserveOrder={node.codedata.node === "VARIABLE" as NodeKind || node.codedata.node === "CONFIG_VARIABLE" as NodeKind}
+                    onFieldModeChange={handleFieldModeChange}
                 />
                 {
                     stack.map((item, i) => <DynamicModal
@@ -1988,6 +2018,7 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                     derivedFields={props.derivedFields}
                     updateImports={handleUpdateImports}
                     defaultExpandAdvanced={props.defaultExpandAdvanced}
+                    onFieldModeChange={handleFieldModeChange}
                 />
             )}
             {stack.map((item, i) => (

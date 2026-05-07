@@ -22,7 +22,6 @@ import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore, useDMSearchStore }
 import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
 import { DataMapperNodeModel } from "../commons/DataMapperNode";
 import { getFilteredMappings, getSearchFilteredOutput, hasNoOutputMatchFound } from "../../utils/search-utils";
-import { getTypeName } from "../../utils/type-utils";
 import { PRIMITIVE_OUTPUT_TARGET_PORT_PREFIX } from "../../utils/constants";
 import { findInputNode } from "../../utils/node-utils";
 import { InputOutputPortModel } from "../../Port";
@@ -37,7 +36,6 @@ const NODE_ID = "primitive-output-node";
 
 export class PrimitiveOutputNode extends DataMapperNodeModel {
     public filteredMappings: Mapping[];
-    public typeName: string;
     public rootName: string;
     public hasNoMatchingFields: boolean;
     public x: number;
@@ -59,7 +57,6 @@ export class PrimitiveOutputNode extends DataMapperNodeModel {
         if (this.outputType) {
             const collapsedFields = useDMCollapsedFieldsStore.getState().fields;
             const expandedFields = useDMExpandedFieldsStore.getState().fields;
-            this.typeName = getTypeName(this.outputType);
             this.rootName = this.outputType.id;
 
             const searchValue = useDMSearchStore.getState().outputSearch;

@@ -903,17 +903,11 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         const workspaceId = context.ctx.workspacePath || context.ctx.projectPath;
         const threadId = 'default';
 
-        // Union modifiedFiles and affectedPackagePaths across all under-review generations at read
-        // time — each generation stores only its own files, the cumulative view is derived here.
-        const underReviewGenerations = chatStateStorage
-            .getOrCreateThread(workspaceId, threadId)
-            .generations.filter(g => g.reviewState.status === 'under_review');
-        const accumulatedModifiedFiles = Array.from(
-            new Set(underReviewGenerations.flatMap(g => g.reviewState.modifiedFiles ?? []))
-        );
-        const cachedAffectedPackages = Array.from(
-            new Set(underReviewGenerations.flatMap(g => g.reviewState.affectedPackagePaths ?? []))
-        );
+        // Show review for the current generation only; older under-review ones are treated as accepted.
+        // TODO: refactor generation review state so older generations are explicitly marked accepted.
+        const currentGeneration = chatStateStorage.getGeneration(workspaceId, threadId, context.messageId);
+        const accumulatedModifiedFiles = currentGeneration?.reviewState.modifiedFiles ?? [];
+        const cachedAffectedPackages = currentGeneration?.reviewState.affectedPackagePaths ?? [];
 
         if (accumulatedModifiedFiles.length > 0) {
             const semanticDiffs: SemanticDiff[] = [];
@@ -962,7 +956,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             context.eventHandler({
                 type: "chat_component",
                 componentType: "review",
-                data: { modifiedFiles: accumulatedModifiedFiles, semanticDiffs, loadDesignDiagrams, affectedPackages, isWorkspace, diffPackageMap }
+                data: { modifiedFiles: accumulatedModifiedFiles, semanticDiffs, loadDesignDiagrams, affectedPackages, isWorkspace, diffPackageMap, generationId: context.messageId }
             });
         }
 

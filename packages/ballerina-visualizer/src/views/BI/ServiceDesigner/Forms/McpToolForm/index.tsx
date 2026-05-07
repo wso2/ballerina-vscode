@@ -47,35 +47,27 @@ export function McpToolForm(props: McpToolFormProps) {
     const { model: initialModel, onSave, onClose, filePath, lineRange, isServiceClass, isSaving } = props;
     const [fields, setFields] = useState<FormField[]>([]);
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
-    const [model, setModel] = useState<FunctionModel>(() => structuredClone(initialModel));
-
-    useEffect(() => {
-        setModel((prevModel) => {
-            const properties = prevModel.properties ? { ...prevModel.properties } : {};
-
-            if (!properties.toolDescription) {
-                properties.toolDescription = {
-                    metadata: {
-                        label: "Tool Description",
-                        description: "Description of what this MCP tool does",
-                    },
-                    placeholder: "Describe what this tool does...",
-                    types: [{ fieldType: "STRING", ballerinaType: "string", selected: false }],
-                    value: "",
-                    enabled: true,
-                    editable: true,
-                    optional: true,
-                    advanced: false,
-                };
-            }
-
-            // Return a new FunctionModel object (immutably updated)
-            return {
-                ...prevModel,
-                properties,
+    const [model] = useState<FunctionModel>(() => {
+        const cloned = structuredClone(initialModel);
+        const properties = cloned.properties ?? {};
+        if (!properties.toolDescription) {
+            properties.toolDescription = {
+                metadata: {
+                    label: "Tool Description",
+                    description: "Description of what this MCP tool does",
+                },
+                placeholder: "Describe what this tool does...",
+                types: [{ fieldType: "STRING", ballerinaType: "string", selected: false }],
+                value: "",
+                enabled: true,
+                editable: true,
+                optional: true,
+                advanced: false,
             };
-        });
-    }, []); // Runs only once after mount
+        }
+        cloned.properties = properties;
+        return cloned;
+    });
 
     const handleParamChange = (param: Parameter) => {
         const name = `${param.formValues["variable"]}`;

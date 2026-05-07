@@ -331,6 +331,7 @@ interface ReviewBarProps {
     rpcClient?: any;
     isActive?: boolean;
     onDiscarded?: () => void;
+    generationId: string;
 }
 
 function getFileName(filePath: string): string {
@@ -674,6 +675,7 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
     rpcClient,
     isActive = false,
     onDiscarded,
+    generationId,
 }) => {
     const status = isDiscarded ? "discarded" : isActive ? "pending" : "accepted";
     const [isProcessing, setIsProcessing] = useState(false);
@@ -723,7 +725,7 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
 
     const openFileDiff = (relativePath: string) => {
         if (!rpcClient) return;
-        rpcClient.getAiPanelRpcClient().openFileDiff({ relativePath });
+        rpcClient.getAiPanelRpcClient().openFileDiff({ relativePath, generationId });
     };
 
     const handleDiscard = async () => {
