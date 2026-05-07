@@ -135,7 +135,7 @@ export const ActionIconWrapper = styled.div<CSSObject>`
     display: flex;
     align-items: center;
     cursor: pointer;
-    height: 14px;
+    height: 16px;
     margin-right: 10px;
 `;
 
