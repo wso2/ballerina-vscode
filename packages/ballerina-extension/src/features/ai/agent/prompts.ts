@@ -192,9 +192,9 @@ ${getLanglibInstructions()}
 When working with Ballerina workspace projects (projects with a root Ballerina.toml containing a [workspace] section):
 
 ### Terminology
-User may refer to workspace as project in their query.
-User may refer to package as Integration in their query.
-When communicating with the user, always use the terms "project" and "integration" instead of "workspace" and "package".
+In WSO2 Integrator, a Ballerina workspace is called a **project** and a Ballerina package is called an **integration**.
+- User will always use "project" and "integration" — never "workspace" or "package".
+- You MUST always use "project" and "integration" in all responses and clarifying questions. Never use "workspace" or "package" when communicating with the user.
 
 ### Creating a new package
 1. Create the package directory with a Ballerina.toml containing the [package] section (name, org, version).
