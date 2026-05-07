@@ -117,7 +117,6 @@ export const disabledHeaderLabel = cx(css`
     display: flex;
     align-items: center;
     margin-left: 12px;
-    line-height: 14px;
 `);
 
 export const HeaderLabel = styled.div<CSSObject>`
