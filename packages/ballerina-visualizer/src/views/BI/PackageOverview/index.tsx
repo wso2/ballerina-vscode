@@ -449,9 +449,8 @@ function DeploymentOptions({
     });
     const currentProjectMeta = devantMetadata?.projectsMetadata?.find(p => p.projectPath === projectPath);
     const isDeployed = devantMetadata?.isLoggedIn
-        ? currentProjectMeta?.hasComponent ?? false
-        : devantMetadata?.hasAnyComponent ?? false;
-
+        ? (currentProjectMeta?.hasComponent ?? false)
+        : false;
     return (
         <>
             <div>
