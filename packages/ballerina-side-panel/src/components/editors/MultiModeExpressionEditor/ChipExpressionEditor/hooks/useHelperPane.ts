@@ -79,6 +79,7 @@ export interface UseHelperPaneConfig {
     editorRef: React.RefObject<HTMLDivElement>;
     toggleButtonRef: React.RefObject<HTMLButtonElement>;
     helperPaneWidth: number;
+    containerRef?: React.RefObject<HTMLElement>;
     onStateChange?: (state: HelperPaneStateChangeCallback) => void;
     customManualToggle?: (setHelperPaneState: React.Dispatch<React.SetStateAction<HelperPaneState>>) => void;
 }
@@ -98,7 +99,7 @@ export const useHelperPane = (
     config: UseHelperPaneConfig,
     getCursorCoords: GetCursorCoords
 ): UseHelperPaneReturn => {
-    const { editorRef, toggleButtonRef, helperPaneWidth, onStateChange, customManualToggle } = config;
+    const { editorRef, toggleButtonRef, helperPaneWidth, containerRef, onStateChange, customManualToggle } = config;
 
     const [helperPaneState, setHelperPaneState] = useState<HelperPaneState>({
         isOpen: false,
@@ -121,12 +122,13 @@ export const useHelperPane = (
 
             const buttonRect = toggleButtonRef.current!.getBoundingClientRect();
             const editorRect = editorRef.current!.getBoundingClientRect();
+            const containerRect = containerRef?.current?.getBoundingClientRect();
             const scrollTop = editorRef.current!.scrollTop || 0;
-            const position = calculateHelperPanePosition(buttonRect, editorRect, helperPaneWidth, scrollTop);
+            const position = calculateHelperPanePosition(buttonRect, editorRect, helperPaneWidth, scrollTop, containerRect);
 
             return { ...prev, ...position, isOpen: true };
         });
-    }, [customManualToggle, toggleButtonRef, editorRef, helperPaneWidth]);
+    }, [customManualToggle, toggleButtonRef, editorRef, containerRef, helperPaneWidth]);
 
     const handleKeyboardToggle = useCallback((): boolean => {
         if (!editorRef?.current) return false;
@@ -139,8 +141,9 @@ export const useHelperPane = (
             const cursorCoords = getCursorCoords();
             if (cursorCoords) {
                 const editorRect = editorRef.current!.getBoundingClientRect();
+                const containerRectValue = containerRef?.current?.getBoundingClientRect();
                 const scrollTop = editorRef.current!.scrollTop || 0;
-                const position = calculateHelperPanePosition(cursorCoords, editorRect, helperPaneWidth, scrollTop);
+                const position = calculateHelperPanePosition(cursorCoords, editorRect, helperPaneWidth, scrollTop, containerRectValue);
                 return { isOpen: true, ...position };
             }
 
@@ -149,7 +152,7 @@ export const useHelperPane = (
         });
 
         return true;
-    }, [editorRef, getCursorCoords, helperPaneWidth]);
+    }, [editorRef, getCursorCoords, containerRef, helperPaneWidth]);
 
     useEffect(() => {
         if (onStateChange) {
