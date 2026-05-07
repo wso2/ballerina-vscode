@@ -23,6 +23,8 @@ import { Codicon } from "@wso2/ui-toolkit/lib/components/Codicon/Codicon";
 import { ScrollableList, ScrollableListRef } from "@wso2/ui-toolkit/lib/components/ScrollableList/ScrollableList";
 import ModeSwitcher from "../ModeSwitcher";
 import { getArraySubFormFieldFromTypes, stringToRawArrayElements, buildStringArray, getRecordTypeFields, mapDiagnosticsServerityToFormSeverity, getPropertyFromFormField } from "./utils";
+import { InputMode } from "./MultiModeExpressionEditor/ChipExpressionEditor/types";
+import { getInputModeFromTypes } from "./MultiModeExpressionEditor/ChipExpressionEditor/utils";
 
 export const FormArrayEditor = (props: FormFieldEditorProps & {
     onChange: (value: any) => void;
@@ -96,6 +98,21 @@ export const FormArrayEditor = (props: FormFieldEditorProps & {
             },
             shouldUpdateNode,
             variableType);
+    };
+
+    const handleElementFieldModeChange = (fieldKey: string, mode: InputMode) => {
+        const updated = repeatableFields.map(formField => {
+            if (formField.key !== fieldKey) return formField;
+            return {
+                ...formField,
+                types: formField.types.map(t => ({
+                    ...t,
+                    selected: getInputModeFromTypes(t) === mode,
+                })),
+            };
+        });
+        setRepeatableFields(updated);
+        props.onChange(updated);
     };
 
     const handleElementFormValidation = async (data: FormValues, dirtyFields?: any): Promise<boolean> => {
@@ -255,6 +272,7 @@ export const FormArrayEditor = (props: FormFieldEditorProps & {
                                     handleFormOnChange(fieldKey, value, allValues, formField.key);
                                 }}
                                 onFormValidation={handleElementFormValidation}
+                                onFieldModeChange={handleElementFieldModeChange}
                                 expressionEditor={{
                                     ...expressionEditor,
                                     onCompletionItemSelect: expressionEditor?.onCompletionItemSelect,

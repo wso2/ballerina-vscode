@@ -83,6 +83,9 @@ export class StringTemplateEditorConfig extends ChipExpressionEditorDefaultConfi
         if (value.trim().startsWith(prefix) && value.trim().endsWith(suffix)) {
             return value.trim().slice(prefix.length, value.trim().length - suffix.length);
         }
+        if (value.trim().startsWith("\"") && value.trim().endsWith("\"")) {
+            return value.trim().slice(1, -1);
+        }
         return value;
     }
     deserializeValue(value: string): string {
