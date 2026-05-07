@@ -60,6 +60,8 @@ import { FormContext, Provider } from "../../context";
 import {
     formatJSONLikeString,
     updateFormFieldWithImports,
+    hasIncompleteRequiredFormFields,
+    shouldRunExternalFormValidation,
     isPrioritizedField,
     hasRequiredParameters,
     hasOptionalParameters,
@@ -411,6 +413,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
         setValue,
         setError,
         clearErrors,
+        trigger,
         formState: { isValidating, isValid: formStateIsValid, errors, dirtyFields, isDirty },
     } = useForm<FormValues>();
 
@@ -508,7 +511,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                     const isFieldDirty = dirtyFields?.[field.key];
                     if (isValueChanged) {
                         const newValue = isFieldDirty ? existingType : newType;
-                        setValue(field.key, newValue, { shouldValidate: true });
+                        setValue(field.key, newValue, { shouldValidate: true, shouldDirty: false });
                         defaultValues[field.key] = newValue;
                         getVisualiableFields();
                     } else if (newType === undefined) {
@@ -525,7 +528,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                     const newName = typeof field.value === "string" ? (formatJSONLikeString(field.value) ?? field.value) : String(field.value);
                     // Only sync from field when: form is stale (external update) or user hasn't edited the name field
                     if (existingName !== newName && !dirtyFields?.[field.key]) {
-                        setValue(field.key, newName);
+                        setValue(field.key, newName, { shouldDirty: false });
                         defaultValues[field.key] = newName;
                     }
                 }
@@ -544,13 +547,18 @@ export const Form = forwardRef((props: FormProps, _ref) => {
         onSubmit && onSubmit(data, dirtyFields);
     };
 
-    const handleFormValidation = async (formData?: FormValues): Promise<boolean> => {
+    const canRunExternalFormValidation = (values: FormValues) => shouldRunExternalFormValidation({
+        formStateIsValid,
+        errors,
+        hasIncompleteRequiredFields: hasIncompleteRequiredFormFields(formFields, values),
+    });
+
+    const runExternalFormValidation = async (data: FormValues): Promise<boolean> => {
         if (!onFormValidation) {
             return true;
         }
 
         setIsValidatingForm(true);
-        const data = formData ?? getValues();
 
         try {
             const validationResult = await onFormValidation(data, dirtyFields);
@@ -560,8 +568,21 @@ export const Form = forwardRef((props: FormProps, _ref) => {
         }
     }
 
+    const handleFormValidation = async (formData?: FormValues): Promise<boolean> => {
+        const data = formData ?? getValues();
+        if (!onFormValidation || !canRunExternalFormValidation(data)) {
+            return true;
+        }
+
+        return runExternalFormValidation(data);
+    }
+
     const handleOnBlur = async () => {
-        onBlur?.(getValues(), dirtyFields);
+        const values = getValues();
+        if (onFormValidation && !canRunExternalFormValidation(values)) {
+            return;
+        }
+        onBlur?.(values, dirtyFields);
     };
 
     const handleOpenRecordEditor = (open: boolean, typeField?: FormField, newType?: string | NodeProperties) => {
@@ -763,6 +784,9 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                     // not errors set by other validators (e.g., PathEditor)
                     if (errors[key]?.type === "expression_diagnostic") {
                         clearErrors(key);
+                        // clearErrors removes the entry but does not refresh formState.isValid;
+                        // trigger a revalidation so Save re-enables once diagnostics go clean.
+                        trigger(key);
                     }
                     continue;
                 } else {
@@ -795,15 +819,20 @@ export const Form = forwardRef((props: FormProps, _ref) => {
         return !hasDiagnostics;
     }, [diagnosticsInfo, formFields]);
 
+    const prevValuesRef = useRef<FormValues>({});
+    const watchedValues = watch();
+    const hasIncompleteRequiredFields = !!onFormValidation &&
+        hasIncompleteRequiredFormFields(formFields, watchedValues);
+
     // Call onValidityChange when form validity changes
     useEffect(() => {
         if (onValidityChange) {
             // formStateIsValid captures errors from PathEditor and other validators (setError)
-            const formIsValid = isValid && formStateIsValid && !isValidating && Object.keys(errors).length === 0 &&
+            const formIsValid = isValid && formStateIsValid && !isValidating && Object.keys(errors).length === 0 && !hasIncompleteRequiredFields &&
                 (!concertMessage || !concertRequired || isUserConcert) && !isIdentifierEditing && !isSubComponentEnabled;
             onValidityChange(formIsValid);
         }
-    }, [isValid, formStateIsValid, isValidating, errors, concertMessage, concertRequired, isUserConcert, isIdentifierEditing, isSubComponentEnabled, onValidityChange]);
+    }, [isValid, formStateIsValid, isValidating, errors, hasIncompleteRequiredFields, concertMessage, concertRequired, isUserConcert, isIdentifierEditing, isSubComponentEnabled, onValidityChange]);
 
     const handleIdentifierEditingStateChange = (isEditing: boolean) => {
         setIsIdentifierEditing(isEditing);
@@ -815,7 +844,8 @@ export const Form = forwardRef((props: FormProps, _ref) => {
 
     const disableSaveButton =
         isValidating || props.disableSaveButton || (concertMessage && concertRequired && !isUserConcert) ||
-        isIdentifierEditing || isSubComponentEnabled || isValidatingForm || !formStateIsValid || Object.keys(errors).length > 0;
+        isIdentifierEditing || isSubComponentEnabled || isValidatingForm || hasIncompleteRequiredFields ||
+        !formStateIsValid || Object.keys(errors).length > 0;
 
     const handleShowMoreClick = () => {
         setIsMarkdownExpanded(!isMarkdownExpanded);
@@ -826,8 +856,6 @@ export const Form = forwardRef((props: FormProps, _ref) => {
         }
     };
 
-    const prevValuesRef = useRef<FormValues>({});
-    const watchedValues = watch();
     useEffect(() => {
         if (props.onChange) {
             const prevValues = prevValuesRef.current;
@@ -924,7 +952,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
         handleSubmit(
             async (data) => {
                 try {
-                    const isValidForm = await handleFormValidation(data);
+                    const isValidForm = await runExternalFormValidation(data);
                     if (!isValidForm) {
                         setSavingButton(null);
                         return;

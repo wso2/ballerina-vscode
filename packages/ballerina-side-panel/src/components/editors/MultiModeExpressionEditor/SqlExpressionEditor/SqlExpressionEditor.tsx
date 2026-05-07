@@ -40,6 +40,7 @@ export const SQLExpressionEditor: React.FC<ChipExpressionEditorComponentProps> =
             isInExpandedMode={props.isInExpandedMode}
             configuration={new SQLExpressionEditorConfig()}
             placeholder={props.placeholder}
+            onNormalizeValue={props.onNormalizeValue}
         />
     );
 };
