@@ -667,6 +667,7 @@ export function PanelManager(props: PanelManagerProps) {
             case SidePanelView.FORM:
                 return (
                     <FlowNodeForm
+                        key={selectedNode?.id ?? 'no-node'}
                         fileName={fileName}
                         node={selectedNode}
                         nodeFormTemplate={nodeFormTemplate}

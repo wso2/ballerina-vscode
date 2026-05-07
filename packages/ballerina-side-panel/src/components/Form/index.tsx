@@ -28,12 +28,14 @@ import {
     SidePanelBody,
     CheckBox,
     Typography,
-    CompletionItem
+    CompletionItem,
+    ProgressRing
 } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 
 import { ExpressionFormField, FieldDerivation, FormExpressionEditorProps, FormField, FormImports, FormValues } from "./types";
 import { FieldFactory } from "../editors/FieldFactory";
+import { InputMode } from "../editors/MultiModeExpressionEditor/ChipExpressionEditor/types";
 import { getValueForDropdown, isDropdownField } from "../editors/utils";
 import {
     Diagnostic,
@@ -56,7 +58,7 @@ import {
     DIRECTORY_MAP,
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { FormContext, Provider } from "../../context";
+import { FormContext, Provider, FormFieldLoadingProvider, useFormFieldLoadingContext } from "../../context";
 import {
     formatJSONLikeString,
     updateFormFieldWithImports,
@@ -353,6 +355,7 @@ export interface FormProps {
     derivedFields?: FieldDerivation[]; // Configuration for auto-deriving field values from other fields
     updateImports?: (key: string, imports: Imports) => void;
     defaultExpandAdvanced?: boolean;
+    onFieldModeChange?: (fieldKey: string, mode: InputMode) => void;
 }
 
 export const Form = forwardRef((props: FormProps, _ref) => {
@@ -398,6 +401,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
         openFormTypeEditor,
         derivedFields = [],
         updateImports,
+        onFieldModeChange,
     } = props;
 
     const { rpcClient } = useRpcContext();
@@ -438,6 +442,42 @@ export const Form = forwardRef((props: FormProps, _ref) => {
     const [isUserConcert, setIsUserConcert] = useState(false);
     const [savingButton, setSavingButton] = useState<string | null>(null);
     const [isValidatingForm, setIsValidatingForm] = useState(false);
+
+    // Read parent form's loading context (present when this is a nested form)
+    const parentLoadingContext = useFormFieldLoadingContext();
+    const nestedFormIdRef = useRef(`nested-form-${Math.random().toString(36).slice(2)}`);
+
+    const [loadingFields, setLoadingFields] = useState<Set<string>>(new Set());
+    const registerLoading = useCallback((fieldId: string) => {
+        setLoadingFields(prev => {
+            const next = new Set(prev);
+            next.add(fieldId);
+            return next;
+        });
+    }, []);
+    const unregisterLoading = useCallback((fieldId: string) => {
+        setLoadingFields(prev => {
+            if (!prev.has(fieldId)) return prev;
+            const next = new Set(prev);
+            next.delete(fieldId);
+            return next;
+        });
+    }, []);
+    const isFormLoading = loadingFields.size > 0;
+
+    // Bubble loading state up to the parent form when this is a nested form
+    useEffect(() => {
+        if (!nestedForm) return;
+        const id = nestedFormIdRef.current;
+        if (isFormLoading) {
+            parentLoadingContext.registerLoading(id);
+        } else {
+            parentLoadingContext.unregisterLoading(id);
+        }
+        return () => {
+            parentLoadingContext.unregisterLoading(id);
+        };
+    }, [isFormLoading, nestedForm]);
 
 
     useEffect(() => {
@@ -1076,6 +1116,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                                         ((open: boolean, newType?: string) => openFormTypeEditor(open, newType, updatedField))
                                     }
                                     updateImports={updateImports}
+                                    onFieldModeChange={onFieldModeChange}
                                 />
                                 {updatedField.key === "scope" && scopeFieldAddon}
                             </S.Row>
@@ -1170,6 +1211,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                                             onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                                             handleOnTypeChange={handleOnTypeChange}
                                             onBlur={handleOnBlur}
+                                            onFieldModeChange={onFieldModeChange}
                                         />
                                     </S.Row>
                                 );
@@ -1211,6 +1253,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                                     handleOnTypeChange={handleOnTypeChange}
                                     onBlur={handleOnBlur}
                                     handleFormValidation={handleFormValidation}
+                                    onFieldModeChange={onFieldModeChange}
                                 />
                             </S.Row>
                         );
@@ -1227,7 +1270,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                             onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                             onBlur={handleOnBlur}
                             handleFormValidation={handleFormValidation}
-
+                            onFieldModeChange={onFieldModeChange}
                         />
                     )}
                     {typeField && !isInferredReturnType && (
@@ -1244,6 +1287,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                             handleNewTypeSelected={handleNewTypeSelected}
                             onBlur={handleOnBlur}
                             handleFormValidation={handleFormValidation}
+                            onFieldModeChange={onFieldModeChange}
                         />
                     )}
                     {targetTypeField && !targetTypeField.advanced && (
@@ -1257,6 +1301,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                                 handleOnTypeChange={handleOnTypeChange}
                                 onBlur={handleOnBlur}
                                 handleFormValidation={handleFormValidation}
+                                onFieldModeChange={onFieldModeChange}
                             />
                             {typeField && (
                                 <TypeHelperText
@@ -1278,80 +1323,97 @@ export const Form = forwardRef((props: FormProps, _ref) => {
     );
 
     return (
-        <Provider {...contextValue}>
-            <S.Container nestedForm={nestedForm} compact={compact} footerActionButton={footerActionButton} className="side-panel-body">
-                {footerActionButton ? (
-                    <S.ScrollableContent>
-                        {formContent}
-                    </S.ScrollableContent>
-                ) : (
-                    formContent
-                )}
-                {onSubmit && !hideSaveButton && !footerActionButton && (
-                    <S.Footer>
-                        {onCancelForm && (
-                            <Button appearance="secondary" onClick={onCancelForm}>
-                                {" "}
-                                {cancelText || "Cancel"}{" "}
-                            </Button>
+        <FormFieldLoadingProvider
+            loadingFields={loadingFields}
+            registerLoading={registerLoading}
+            unregisterLoading={unregisterLoading}
+        >
+            <Provider {...contextValue}>
+                <S.Container nestedForm={nestedForm} compact={compact} footerActionButton={footerActionButton} className="side-panel-body">
+                    {isFormLoading && (
+                        <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: "12px", flex: 1 }}>
+                            <ProgressRing color={ThemeColors.PRIMARY} />
+                            <span style={{ fontSize: "12px", color: ThemeColors.ON_SURFACE_VARIANT }}>Loading form data...</span>
+                        </div>
+                    )}
+                    {/* NOTE: isFormLoading is only expected to be true during initial field value
+    resolution on form open. If this ever becomes true during user interaction,
+    it will drop focus — treat that as a bug in the loading registration logic. */}
+                    <div style={{ display: isFormLoading ? "none" : "contents" }}>
+                        {footerActionButton ? (
+                            <S.ScrollableContent>
+                                {formContent}
+                            </S.ScrollableContent>
+                        ) : (
+                            formContent
                         )}
-                        {canOpenInDataMapper &&
-                            <Button
-                                appearance="secondary"
-                                onClick={handleOnOpenInDataMapper}
-                                disabled={isSaving}
-                            >
-                                {isSaving && savingButton === 'dataMapper' ? (
-                                    <Typography variant="progress">{submitText || "Opening in Data Mapper..."}</Typography>
-                                ) : submitText || "Open in Data Mapper"}
-                            </Button>
-                        }
-                        {canOpenInFunctionEditor && (
-                            <Button
-                                appearance="secondary"
-                                onClick={handleOnOpenInFunctionEditor}
-                                disabled={isSaving}
-                            >
-                                {isSaving && savingButton === 'functionEditor' ? (
-                                    <Typography variant="progress">{submitText || "Opening in Function Editor..."}</Typography>
-                                ) : submitText || "Open in Function Editor"}
-                            </Button>
+                        {onSubmit && !hideSaveButton && !footerActionButton && (
+                            <S.Footer>
+                                {onCancelForm && (
+                                    <Button appearance="secondary" onClick={onCancelForm}>
+                                        {" "}
+                                        {cancelText || "Cancel"}{" "}
+                                    </Button>
+                                )}
+                                {canOpenInDataMapper &&
+                                    <Button
+                                        appearance="secondary"
+                                        onClick={handleOnOpenInDataMapper}
+                                        disabled={isSaving}
+                                    >
+                                        {isSaving && savingButton === 'dataMapper' ? (
+                                            <Typography variant="progress">{submitText || "Opening in Data Mapper..."}</Typography>
+                                        ) : submitText || "Open in Data Mapper"}
+                                    </Button>
+                                }
+                                {canOpenInFunctionEditor && (
+                                    <Button
+                                        appearance="secondary"
+                                        onClick={handleOnOpenInFunctionEditor}
+                                        disabled={isSaving}
+                                    >
+                                        {isSaving && savingButton === 'functionEditor' ? (
+                                            <Typography variant="progress">{submitText || "Opening in Function Editor..."}</Typography>
+                                        ) : submitText || "Open in Function Editor"}
+                                    </Button>
+                                )}
+                                <Button
+                                    appearance="primary"
+                                    onClick={handleOnSaveClick}
+                                    disabled={disableSaveButton || isSaving}
+                                >
+                                    {isValidatingForm ? (
+                                        <Typography variant="progress">Validating...</Typography>
+                                    ) : isSaving && savingButton === 'save' ? (
+                                        <Typography variant="progress">{submitText || "Saving..."}</Typography>
+                                    ) : (
+                                        submitText || "Save"
+                                    )}
+                                </Button>
+                            </S.Footer>
                         )}
-                        <Button
-                            appearance="primary"
-                            onClick={handleOnSaveClick}
-                            disabled={disableSaveButton || isSaving}
-                        >
-                            {isValidatingForm ? (
-                                <Typography variant="progress">Validating...</Typography>
-                            ) : isSaving && savingButton === 'save' ? (
-                                <Typography variant="progress">{submitText || "Saving..."}</Typography>
-                            ) : (
-                                submitText || "Save"
-                            )}
-                        </Button>
-                    </S.Footer>
-                )}
-                {onSubmit && !hideSaveButton && footerActionButton && (
-                    <S.FooterActionButtonContainer>
-                        <S.FooterActionButton
-                            appearance="primary"
-                            onClick={handleOnSaveClick}
-                            disabled={disableSaveButton || isSaving}
-                            buttonSx={{ width: "100%", height: "35px" }}
-                        >
-                            {isValidatingForm ? (
-                                <Typography variant="progress">Validating...</Typography>
-                            ) : isSaving && savingButton === 'save' ? (
-                                <Typography variant="progress">{submitText || "Saving..."}</Typography>
-                            ) : (
-                                submitText || "Save"
-                            )}
-                        </S.FooterActionButton>
-                    </S.FooterActionButtonContainer>
-                )}
-            </S.Container>
-        </Provider>
+                        {onSubmit && !hideSaveButton && footerActionButton && (
+                            <S.FooterActionButtonContainer>
+                                <S.FooterActionButton
+                                    appearance="primary"
+                                    onClick={handleOnSaveClick}
+                                    disabled={disableSaveButton || isSaving}
+                                    buttonSx={{ width: "100%", height: "35px" }}
+                                >
+                                    {isValidatingForm ? (
+                                        <Typography variant="progress">Validating...</Typography>
+                                    ) : isSaving && savingButton === 'save' ? (
+                                        <Typography variant="progress">{submitText || "Saving..."}</Typography>
+                                    ) : (
+                                        submitText || "Save"
+                                    )}
+                                </S.FooterActionButton>
+                            </S.FooterActionButtonContainer>
+                        )}
+                    </div>
+                </S.Container>
+            </Provider>
+        </FormFieldLoadingProvider>
     );
 });
 
