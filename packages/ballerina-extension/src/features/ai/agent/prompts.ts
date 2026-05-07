@@ -194,6 +194,7 @@ When working with Ballerina workspace projects (projects with a root Ballerina.t
 ### Terminology
 User may refer to workspace as project in their query.
 User may refer to package as Integration in their query.
+When communicating with the user, always use the terms "project" and "integration" instead of "workspace" and "package".
 
 ### Creating a new package
 1. Create the package directory with a Ballerina.toml containing the [package] section (name, org, version).
