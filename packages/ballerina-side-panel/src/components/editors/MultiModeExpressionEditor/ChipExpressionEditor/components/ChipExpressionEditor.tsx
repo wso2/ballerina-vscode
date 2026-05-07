@@ -41,7 +41,8 @@ import {
     createParametersSection,
     createDocumentationSection,
     createTooltipContainer,
-    createTooltipPositioningHandlers
+    createTooltipPositioningHandlers,
+    AVERAGE_HELPER_PANE_HEIGHT
 } from "../CodeUtils";
 import { correctTokenStreamPositions, normalizeEditorValue } from "../utils";
 import { history } from "@codemirror/commands";
@@ -104,6 +105,7 @@ export type ChipExpressionEditorComponentProps = {
     disabled?: boolean;
     placeholder?: string;
     onNormalizeValue?: (value: string) => void;
+    containerRef?: React.RefObject<HTMLElement>;
     onLoadingStateChange?: (isLoading: boolean) => void;
 }
 
@@ -173,6 +175,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
             editorRef,
             toggleButtonRef: helperPaneToggleButtonRef,
             helperPaneWidth: HELPER_PANE_WIDTH,
+            containerRef: props.containerRef,
             onStateChange: props.onHelperPaneStateChange,
             customManualToggle: props.inputMode === InputMode.PROMPT && props.isInExpandedMode ? (setHelperPaneState) => {
                 if (!editorRef?.current) return;
@@ -200,19 +203,19 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         const isRangeSelection = cursor.position.to !== cursor.position.from;
 
         if (newValue === '' || isTrigger || isRangeSelection) {
-            setHelperPaneState({ isOpen: true, top: cursor.top, left: cursor.left });
+            setHelperPaneState({ isOpen: true, top: cursor.top, left: cursor.left, isFlipped: cursor.isFlipped });
         } else {
             setHelperPaneState({ isOpen: false, top: 0, left: 0 });
         }
-    });
+    }, props.containerRef);
 
     const handleFocusListner = buildOnFocusListner((cursor: CursorInfo) => {
-        setHelperPaneState({ isOpen: true, top: cursor.top, left: cursor.left });
-    });
+        setHelperPaneState({ isOpen: true, top: cursor.top, left: cursor.left, isFlipped: cursor.isFlipped });
+    }, props.containerRef);
 
     const handleSelectionChange = buildOnSelectionChange((cursor: CursorInfo) => {
-        setHelperPaneState({ isOpen: true, top: cursor.top, left: cursor.left });
-    });
+        setHelperPaneState({ isOpen: true, top: cursor.top, left: cursor.left, isFlipped: cursor.isFlipped });
+    }, props.containerRef);
 
     const handleFocusOutListner = buildOnFocusOutListner(() => {
         setIsTokenUpdateScheduled(true);
@@ -286,39 +289,6 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         if (options.closeHelperPane) {
             setIsTokenUpdateScheduled(true);
         }
-    }
-
-    const handleHelperPaneManualToggle = () => {
-        if (
-            !helperPaneToggleButtonRef?.current ||
-            !editorRef?.current
-        ) return;
-
-        // Save current cursor position before toggling
-        if (viewRef.current) {
-            const selection = viewRef.current.state.selection.main;
-        }
-
-        const buttonRect = helperPaneToggleButtonRef.current.getBoundingClientRect();
-        const editorRect = editorRef.current?.getBoundingClientRect();
-        let top = buttonRect.bottom - editorRect.top;
-        let left = buttonRect.left - editorRect.left;
-
-        // Add overflow correction for editor boundaries
-        const editorWidth = editorRect.width;
-        const relativeRight = left + HELPER_PANE_WIDTH;
-        const overflow = relativeRight - editorWidth;
-
-        if (overflow > 0) {
-            left -= overflow;
-        }
-
-        setHelperPaneState(prev => ({
-            ...prev,
-            top,
-            left,
-            isOpen: !prev.isOpen
-        }));
     }
 
     useEffect(() => {
@@ -509,6 +479,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                             ref={helperPaneRef}
                             top={helperPaneState.top}
                             left={helperPaneState.left}
+                            isFlipped={helperPaneState.isFlipped}
                             getHelperPane={props.getHelperPane}
                             value={props.value}
                             onChange={onHelperItemSelect}
