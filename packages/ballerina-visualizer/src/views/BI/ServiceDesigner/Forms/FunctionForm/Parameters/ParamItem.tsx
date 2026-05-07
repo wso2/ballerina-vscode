@@ -51,7 +51,7 @@ export function ParamItem(props: ParamItemProps) {
     }
 
     return (
-        <HeaderLabel haveErrors={haveErrors()} data-testid={`${label}-item`}>
+        <HeaderLabel data-testid={`${label}-item`}>
             <IconTextWrapper onClick={handleEdit}>
                 <IconWrapper>
                     <ParamIcon option={param?.httpParamType?.toLowerCase()} />
