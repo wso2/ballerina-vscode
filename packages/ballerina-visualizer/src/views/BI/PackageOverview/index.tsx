@@ -442,7 +442,7 @@ function DeploymentOptions({
         });
     };
 
-    const { data: devantMetadata } = useQuery({
+    const { data: devantMetadata, isLoading: isDevantLoading } = useQuery({
         queryKey: ["project-devant-metadata"],
         queryFn: () => rpcClient.getBIDiagramRpcClient().getWorkspaceDevantMetadata(),
         refetchInterval: 5000,
@@ -457,7 +457,7 @@ function DeploymentOptions({
             <div>
                 <Title variant="h3">Deployment Options</Title>
 
-                {platformExtState.isExtInstalled && (
+                {platformExtState.isExtInstalled && !isDevantLoading && (
                     <DeploymentOption
                         title={
                             isDeployed ? (
