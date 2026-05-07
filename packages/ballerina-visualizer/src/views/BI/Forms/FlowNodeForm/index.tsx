@@ -948,7 +948,14 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                     const seenKeys = new Set<string>();
                     const allItems = rawAllItems.filter(item => {
                         const cd = (item as { codedata?: CodeData }).codedata;
-                        const key = cd ? `${cd.org}:${cd.module}:${cd.symbol}` : item.metadata.label;
+                        const key =
+                            cd?.org && cd?.module && cd?.symbol
+                                ? `${cd.org}:${cd.module}:${cd.symbol}`
+                                : item.metadata?.label;
+
+                        if (!key) {
+                            return true;
+                        }
                         if (seenKeys.has(key)) return false;
                         seenKeys.add(key);
                         return true;
