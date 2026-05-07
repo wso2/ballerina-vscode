@@ -265,10 +265,26 @@ export function ReviewMode(): JSX.Element {
             setSemanticDiffData({ semanticDiffs, loadDesignDiagrams });
 
             const packagesToReview = isWorkspaceProject ? affectedPackages : [tempDirPath];
+            const normalizedTempDir = tempDirPath.replace(/\\/g, "/");
+            const filteredPackages = isWorkspaceProject
+                ? packagesToReview.filter((p: string) => p.replace(/\\/g, "/") !== normalizedTempDir)
+                : packagesToReview;
             const allViews: ReviewView[] = [];
 
             if (loadDesignDiagrams && semanticDiffs.length > 0) {
-                packagesToReview.forEach((packagePath: string) => {
+                const pkgsWithDiffs = new Set<string>();
+                for (const diff of semanticDiffs) {
+                    const uriPath = diff.uri.replace(/^[a-z][a-z0-9+.-]*:\/\//, "").replace(/\\/g, "/");
+                    for (const pkgPath of filteredPackages) {
+                        const normalizedPkgPath = pkgPath.replace(/\\/g, "/");
+                        if (uriPath.startsWith(normalizedPkgPath + "/") || uriPath === normalizedPkgPath) {
+                            pkgsWithDiffs.add(pkgPath);
+                            break;
+                        }
+                    }
+                }
+                filteredPackages.forEach((packagePath: string) => {
+                    if (!pkgsWithDiffs.has(packagePath)) return;
                     const packageName = getPackageName(packagePath);
                     allViews.push({
                         type: DiagramType.COMPONENT,
@@ -286,7 +302,7 @@ export function ReviewMode(): JSX.Element {
                 let belongsToPackage = tempDirPath;
                 let packageName: string | undefined;
                 if (isWorkspaceProject) {
-                    for (const pkgPath of packagesToReview) {
+                    for (const pkgPath of filteredPackages) {
                         const normalizedUri = diff.uri.replace(/\\/g, "/");
                         const normalizedPkgPath = pkgPath.replace(/\\/g, "/");
                         if (normalizedUri.startsWith(normalizedPkgPath + "/") || normalizedUri === normalizedPkgPath) {
