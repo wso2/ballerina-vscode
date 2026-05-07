@@ -129,7 +129,7 @@ export const DocumentChipText = styled.span`
 
 export const COMPLETIONS_WIDTH = 300;
 
-export const ContextMenuContainer = styled.div<{ top: number; left: number }>`
+export const ContextMenuContainer = styled.div<{ top: number; left: number; isFlipped?: boolean }>`
     position: absolute;
     top: ${props => props.top}px;
     left: ${props => props.left}px;
@@ -140,6 +140,7 @@ export const ContextMenuContainer = styled.div<{ top: number; left: number }>`
     min-width: 120px;
     width: ${COMPLETIONS_WIDTH}px;
     overflow: hidden;
+    ${props => props.isFlipped ? 'transform: translateY(-100%);' : ''}
 `;
 
 export const ChipMenuItem = styled.div`

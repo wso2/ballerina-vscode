@@ -63,6 +63,7 @@ export function SliderEditor(props: SliderEditorProps) {
                 onChange: handleChange
             })}
             label={field.label}
+            description={field.documentation}
             value={currentValue}
             min={min}
             max={max}

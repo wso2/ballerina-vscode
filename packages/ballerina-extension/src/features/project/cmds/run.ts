@@ -52,11 +52,11 @@ function activateRunCmdCommand() {
                 workspacePath, view, projectPath, isWebviewOpen, !!isActiveTextEditor
             );
             
-            if (needsPackageSelection && projectInfo?.children.length === 0) {
-                window.showErrorMessage("No packages found in the workspace.");
+            if (needsPackageSelection && projectInfo?.children?.length === 0) {
+                window.showErrorMessage("No integrations found in the project.");
                 return;
             } else if (!needsPackageSelection && !projectPath) {
-                window.showErrorMessage("No project found.");
+                window.showErrorMessage("No integration found.");
                 return;
             }
 

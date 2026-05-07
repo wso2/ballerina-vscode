@@ -24,7 +24,9 @@ import { CopilotEventHandler } from './utils/events';
 import { addConfigFile, getConfigFilePath } from './utils';
 import {
     CONFIGURE_DEFAULT_MODEL_COMMAND,
+    DEFAULT_EMBEDDING_PROVIDER_ADDED,
     DEFAULT_PROVIDER_ADDED,
+    LOGIN_REQUIRED_WARNING_FOR_DEFAULT_EMBEDDING,
     LOGIN_REQUIRED_WARNING_FOR_DEFAULT_MODEL,
     SIGN_IN_BI_COPILOT
 } from './constants';
@@ -34,7 +36,7 @@ import {
     TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL
 } from '../..//utils/ai/auth';
 import { AIStateMachine } from '../../views/ai-panel/aiMachine';
-import { AIMachineEventType, GenerateAgentCodeRequest, ExecutionContext } from '@wso2/ballerina-core';
+import { AIMachineEventType, DefaultProviderKind, GenerateAgentCodeRequest, ExecutionContext } from '@wso2/ballerina-core';
 import { generateMappingCodeCore } from './data-mapper';
 import { resolveProjectPath } from '../../utils/project-utils';
 import { MESSAGES } from '../project';
@@ -155,8 +157,16 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
         });
     }
 
-    commands.registerCommand(CONFIGURE_DEFAULT_MODEL_COMMAND, async () => {
-        const targetPath = await resolveProjectPath("Select an integration to configure default model");
+    commands.registerCommand(CONFIGURE_DEFAULT_MODEL_COMMAND, async (kind: DefaultProviderKind = "model") => {
+        const isEmbedding = kind === "embedding";
+        const promptTitle = isEmbedding
+            ? "Select an integration to configure default embedding provider"
+            : "Select an integration to configure default model provider";
+        const loginWarning = isEmbedding ? LOGIN_REQUIRED_WARNING_FOR_DEFAULT_EMBEDDING : LOGIN_REQUIRED_WARNING_FOR_DEFAULT_MODEL;
+        const successMessage = isEmbedding ? DEFAULT_EMBEDDING_PROVIDER_ADDED : DEFAULT_PROVIDER_ADDED;
+        const retryFailureLabel = isEmbedding ? "default embedding" : "default model";
+
+        const targetPath = await resolveProjectPath(promptTitle);
         if (!targetPath) {
             window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
             return;
@@ -165,13 +175,13 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
         const configPath = await getConfigFilePath(ballerinaExternalInstance, targetPath);
         if (configPath !== null) {
             try {
-                const result = await addConfigFile(configPath);
+                const result = await addConfigFile(configPath, kind);
                 if (result) {
-                    window.showInformationMessage(DEFAULT_PROVIDER_ADDED);
+                    window.showInformationMessage(successMessage);
                 }
             } catch (error) {
                 if ((error as Error).message === TOKEN_NOT_AVAILABLE_ERROR_MESSAGE || (error as Error).message === TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL || (error as Error).message === NO_AUTH_CREDENTIALS_FOUND) {
-                    window.showWarningMessage(LOGIN_REQUIRED_WARNING_FOR_DEFAULT_MODEL, SIGN_IN_BI_COPILOT).then(selection => {
+                    window.showWarningMessage(loginWarning, SIGN_IN_BI_COPILOT).then(selection => {
                         if (selection === SIGN_IN_BI_COPILOT) {
                             // Dispose any previous subscription before creating a new one
                             if (lastAuthSubscription) {
@@ -192,12 +202,12 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
                                     lastAuthSubscription = null;
                                     subscription.unsubscribe();
                                     // Retry the configuration automatically
-                                    addConfigFile(configPath).then(result => {
+                                    addConfigFile(configPath, kind).then(result => {
                                         if (result) {
-                                            window.showInformationMessage(DEFAULT_PROVIDER_ADDED);
+                                            window.showInformationMessage(successMessage);
                                         }
                                     }).catch(retryError => {
-                                        window.showErrorMessage(`Failed to configure default model: ${(retryError as Error).message}`);
+                                        window.showErrorMessage(`Failed to configure ${retryFailureLabel}: ${(retryError as Error).message}`);
                                     });
                                 }
                             });

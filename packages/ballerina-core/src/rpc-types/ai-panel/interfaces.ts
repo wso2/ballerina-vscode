@@ -519,6 +519,7 @@ export interface UsageResponse {
 
 export interface OpenFileDiffRequest {
     relativePath: string;
+    generationId: string;
 }
 
 // ==================================

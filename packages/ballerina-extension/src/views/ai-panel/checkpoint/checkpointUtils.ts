@@ -57,7 +57,7 @@ export async function captureWorkspaceSnapshot(messageId: string): Promise<Check
             try {
                 const fileContent = await vscode.workspace.fs.readFile(fileUri);
                 const content = Buffer.from(fileContent).toString('utf8');
-                const relativePath = path.relative(workspaceRoot.fsPath, fileUri.fsPath);
+                const relativePath = path.relative(workspaceRoot.fsPath, fileUri.fsPath).split(path.sep).join('/');
 
                 workspaceSnapshot[relativePath] = content;
                 fileList.push(relativePath);
@@ -112,7 +112,7 @@ export async function restoreWorkspaceSnapshot(checkpoint: Checkpoint, skipArtif
             const config = getCheckpointConfig();
             const currentFiles = await getAllWorkspaceFiles(workspaceRoot, config.ignorePatterns);
             const currentFilePaths = new Set(
-                currentFiles.map(uri => path.relative(workspaceRoot.fsPath, uri.fsPath))
+                currentFiles.map(uri => path.relative(workspaceRoot.fsPath, uri.fsPath).split(path.sep).join('/'))
             );
 
             const snapshotFilePaths = new Set(checkpoint.fileList);

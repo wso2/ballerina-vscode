@@ -41,14 +41,16 @@ import {
     createParametersSection,
     createDocumentationSection,
     createTooltipContainer,
-    createTooltipPositioningHandlers
+    createTooltipPositioningHandlers,
+    AVERAGE_HELPER_PANE_HEIGHT
 } from "../CodeUtils";
 import { correctTokenStreamPositions, normalizeEditorValue } from "../utils";
 import { history } from "@codemirror/commands";
 import { autocompletion } from "@codemirror/autocomplete";
-import { FloatingButtonContainer, FloatingToggleButton, ChipEditorContainer, LoadingOverlay, LoadingPlaceholder } from "../styles";
+import { FloatingButtonContainer, FloatingToggleButton, ChipEditorContainer } from "../styles";
+import { CHIP_EXPRESSION_EDITOR_HEIGHT } from "../constants";
 import { HelperpaneOnChangeOptions } from "../../../../Form/types";
-import { CompletionItem, FnSignatureDocumentation, HelperPaneHeight, ProgressRing } from "@wso2/ui-toolkit";
+import { CompletionItem, FnSignatureDocumentation, HelperPaneHeight } from "@wso2/ui-toolkit";
 import { CloseHelperIcon, ExpandIcon, MinimizeIcon, OpenHelperIcon } from "./FloatingButtonIcons";
 import { LineRange } from "@wso2/ballerina-core";
 import { HelperPaneToggleButton } from "./HelperPaneToggleButton";
@@ -102,15 +104,9 @@ export type ChipExpressionEditorComponentProps = {
     hideFxButton?: boolean;
     disabled?: boolean;
     placeholder?: string;
-}
-
-function resolveInitialValueResolving(
-    value: string | undefined,
-    configuration: ChipExpressionEditorDefaultConfiguration
-): boolean {
-    if (!value) return false;
-    const deserialized = configuration.deserializeValue(value);
-    return normalizeEditorValue(deserialized) !== normalizeEditorValue(value);
+    onNormalizeValue?: (value: string) => void;
+    containerRef?: React.RefObject<HTMLElement>;
+    onLoadingStateChange?: (isLoading: boolean) => void;
 }
 
 export const ChipExpressionEditorComponent = (props: ChipExpressionEditorComponentProps) => {
@@ -120,9 +116,11 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
     const fieldContainerRef = useRef<HTMLDivElement>(null);
     const viewRef = useRef<EditorView | null>(null);
     const [isTokenUpdateScheduled, setIsTokenUpdateScheduled] = useState(true);
-    const [isValueResolving, setIsValueResolving] = useState(
-        () => resolveInitialValueResolving(props.value, configuration)
-    );
+    const [isValueResolving, setIsValueResolving] = useState(() => !!props.value);
+
+    useEffect(() => {
+        props.onLoadingStateChange?.(isValueResolving);
+    }, [isValueResolving]);
     const completionsRef = useRef<CompletionItem[]>(props.completions);
     const helperPaneToggleButtonRef = useRef<HTMLButtonElement>(null);
     const completionsFetchScheduledRef = useRef<boolean>(false);
@@ -177,6 +175,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
             editorRef,
             toggleButtonRef: helperPaneToggleButtonRef,
             helperPaneWidth: HELPER_PANE_WIDTH,
+            containerRef: props.containerRef,
             onStateChange: props.onHelperPaneStateChange,
             customManualToggle: props.inputMode === InputMode.PROMPT && props.isInExpandedMode ? (setHelperPaneState) => {
                 if (!editorRef?.current) return;
@@ -204,19 +203,19 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         const isRangeSelection = cursor.position.to !== cursor.position.from;
 
         if (newValue === '' || isTrigger || isRangeSelection) {
-            setHelperPaneState({ isOpen: true, top: cursor.top, left: cursor.left });
+            setHelperPaneState({ isOpen: true, top: cursor.top, left: cursor.left, isFlipped: cursor.isFlipped });
         } else {
             setHelperPaneState({ isOpen: false, top: 0, left: 0 });
         }
-    });
+    }, props.containerRef);
 
     const handleFocusListner = buildOnFocusListner((cursor: CursorInfo) => {
-        setHelperPaneState({ isOpen: true, top: cursor.top, left: cursor.left });
-    });
+        setHelperPaneState({ isOpen: true, top: cursor.top, left: cursor.left, isFlipped: cursor.isFlipped });
+    }, props.containerRef);
 
     const handleSelectionChange = buildOnSelectionChange((cursor: CursorInfo) => {
-        setHelperPaneState({ isOpen: true, top: cursor.top, left: cursor.left });
-    });
+        setHelperPaneState({ isOpen: true, top: cursor.top, left: cursor.left, isFlipped: cursor.isFlipped });
+    }, props.containerRef);
 
     const handleFocusOutListner = buildOnFocusOutListner(() => {
         setIsTokenUpdateScheduled(true);
@@ -292,39 +291,6 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         }
     }
 
-    const handleHelperPaneManualToggle = () => {
-        if (
-            !helperPaneToggleButtonRef?.current ||
-            !editorRef?.current
-        ) return;
-
-        // Save current cursor position before toggling
-        if (viewRef.current) {
-            const selection = viewRef.current.state.selection.main;
-        }
-
-        const buttonRect = helperPaneToggleButtonRef.current.getBoundingClientRect();
-        const editorRect = editorRef.current?.getBoundingClientRect();
-        let top = buttonRect.bottom - editorRect.top;
-        let left = buttonRect.left - editorRect.left;
-
-        // Add overflow correction for editor boundaries
-        const editorWidth = editorRect.width;
-        const relativeRight = left + HELPER_PANE_WIDTH;
-        const overflow = relativeRight - editorWidth;
-
-        if (overflow > 0) {
-            left -= overflow;
-        }
-
-        setHelperPaneState(prev => ({
-            ...prev,
-            top,
-            left,
-            isOpen: !prev.isOpen
-        }));
-    }
-
     useEffect(() => {
         if (!editorRef.current) return;
         const startState = EditorState.create({
@@ -398,7 +364,11 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         const serializedValue = configuration.serializeValue(props.value);
         const deserializeValue = configuration.deserializeValue(props.value);
         if (normalizeEditorValue(deserializeValue) !== normalizeEditorValue(props.value)) {
-            props.onChange(deserializeValue, deserializeValue.length);
+            if (props.onNormalizeValue) {
+                props.onNormalizeValue(deserializeValue);
+            } else {
+                props.onChange(deserializeValue, deserializeValue.length);
+            }
             return;
         }
         const updateEditorState = async () => {
@@ -495,24 +465,21 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                 <div style={{
                     position: 'relative',
                     width: '100%',
+                    minHeight: `${CHIP_EXPRESSION_EDITOR_HEIGHT}px`,
                     ...(props.isInExpandedMode || props.hideFxButton || (props.sx && 'height' in props.sx) ? { height: '100%' } : {})
                 }}>
                     <div ref={editorRef} style={{
                         border: '1px solid var(--vscode-dropdown-border)',
                         width: '100%',
-                        height: '100%'
+                        height: '100%',
+                        visibility: isValueResolving ? 'hidden' : 'visible'
                     }} />
-                    {isValueResolving && (
-                        <LoadingOverlay>
-                            <ProgressRing sx={{ height: 16, width: 16 }} color="var(--vscode-input-placeholderForeground)" />
-                            <LoadingPlaceholder>Loading...</LoadingPlaceholder>
-                        </LoadingOverlay>
-                    )}
                     {helperPaneState.isOpen && configuration.showHelperPane() &&
                         <HelperPane
                             ref={helperPaneRef}
                             top={helperPaneState.top}
                             left={helperPaneState.left}
+                            isFlipped={helperPaneState.isFlipped}
                             getHelperPane={props.getHelperPane}
                             value={props.value}
                             onChange={onHelperItemSelect}

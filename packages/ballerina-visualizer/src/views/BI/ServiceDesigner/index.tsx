@@ -41,6 +41,7 @@ import { TitleBar } from "../../../components/TitleBar";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { applyModifications, isPositionChanged } from "../../../utils/utils";
 import { AddServiceElementDropdown, DropdownOptionProps } from "./components/AddServiceElementDropdown";
+import { MoreOptionsDropdown } from "./components/MoreOptionsDropdown";
 import { ResourceAccordion } from "./components/ResourceAccordion";
 import { ResourceAccordionV2 } from "./components/ResourceAccordionV2";
 import { FunctionConfigForm } from "./Forms/FunctionConfigForm";
@@ -231,6 +232,35 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         setInitFunction(undefined);
     };
 
+    const findServiceArtifact = (
+        artifacts: ProjectStructureArtifactResponse[],
+        targetPosition: NodePosition = position
+    ): ProjectStructureArtifactResponse | undefined => {
+        const exactMatch = artifacts.find(artifact =>
+            artifact.name === serviceIdentifier &&
+            artifact.position.startLine === targetPosition.startLine &&
+            artifact.position.startColumn === targetPosition.startColumn
+        );
+
+        if (exactMatch) {
+            return exactMatch;
+        }
+
+        // Resource/function updates can introduce imports above a service and shift its start position.
+        // Fall back to same service in the same file and pick the nearest start position.
+        const serviceInSameFile = artifacts.filter(artifact => artifact.name === serviceIdentifier && artifact.path === filePath);
+        if (serviceInSameFile.length === 0) {
+            return undefined;
+        }
+
+        const closestService = serviceInSameFile.reduce((closest, current) => {
+            const closestDistance = Math.abs(closest.position.startLine - targetPosition.startLine);
+            const currentDistance = Math.abs(current.position.startLine - targetPosition.startLine);
+            return currentDistance < closestDistance ? current : closest;
+        });
+        return closestService;
+    };
+
     const handleInitFunctionSave = async (value: FunctionModel) => {
         setIsSaving(true);
         const lineRange: LineRange = {
@@ -240,7 +270,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         const res = await rpcClient
             .getServiceDesignerRpcClient()
             .updateResourceSourceCode({ filePath, codedata: { lineRange }, function: value, artifactType: DIRECTORY_MAP.SERVICE });
-        const serviceArtifact = res.artifacts.find(res => res.name === serviceIdentifier);
+        const serviceArtifact = findServiceArtifact(res.artifacts);
         if (serviceArtifact) {
             fetchService(serviceArtifact.position);
             await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { documentUri: serviceArtifact.path, position: serviceArtifact.position } });
@@ -330,7 +360,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         } catch (error) {
             console.log("Error fetching service model: ", error);
         }
-        getProjectListeners();
+        getProjectListeners(targetPosition);
     };
 
     const setServiceMetaInfo = (service: ServiceModel) => {
@@ -412,7 +442,6 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         if (service.moduleName === "http") {
             options.push({
                 title: "Export OpenAPI Spec",
-                description: "Export the OpenAPI spec for the service",
                 value: EXPORT_OAS
             });
         }
@@ -420,7 +449,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         setDropdownOptions(options);
     }
 
-    const getProjectListeners = () => {
+    const getProjectListeners = (targetPosition: NodePosition) => {
         rpcClient.getVisualizerLocation().then((location) => {
             const projectPath = location.projectPath;
             rpcClient.getBIDiagramRpcClient().getProjectStructure().then((res) => {
@@ -431,7 +460,11 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                 }
                 const services = project.directoryMap[DIRECTORY_MAP.SERVICE];
                 if (services.length > 0) {
-                    const selectedService = services.find((service) => service.name === serviceIdentifier);
+                    const selectedService = findServiceArtifact(services, targetPosition);
+                    if (!selectedService) {
+                        setResources([]);
+                        return;
+                    }
                     if (selectedService.moduleName === "mcp") {
                         const updatedResources = selectedService.resources.map(resource => ({
                             ...resource,
@@ -627,7 +660,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         const projectStructure = await rpcClient.getBIDiagramRpcClient().getProjectStructure();
         const project = projectStructure.projects.find(project => project.projectPath === projectPath);
 
-        const serviceArtifact = project.directoryMap[DIRECTORY_MAP.SERVICE].find(res => res.name === serviceIdentifier);
+        const serviceArtifact = findServiceArtifact(project.directoryMap[DIRECTORY_MAP.SERVICE]);
         if (serviceArtifact) {
             await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { documentUri: serviceArtifact.path, position: serviceArtifact.position } });
             fetchService(serviceArtifact.position);
@@ -645,7 +678,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             res = await rpcClient
                 .getServiceDesignerRpcClient()
                 .addResourceSourceCode({ filePath, codedata: { lineRange }, function: value, artifactType: DIRECTORY_MAP.SERVICE });
-            const serviceArtifact = res.artifacts.find(res => res.isNew && res.name === serviceIdentifier);
+            const serviceArtifact = findServiceArtifact(res.artifacts);
             if (serviceArtifact) {
                 if (openDiagram) {
                     const accessor = value.accessor.value.toLowerCase();
@@ -671,7 +704,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             res = await rpcClient
                 .getServiceDesignerRpcClient()
                 .updateResourceSourceCode({ filePath, codedata: { lineRange }, function: value, artifactType: DIRECTORY_MAP.SERVICE });
-            const serviceArtifact = res.artifacts.find(res => res.name === serviceIdentifier);
+            const serviceArtifact = findServiceArtifact(res.artifacts);
             if (serviceArtifact) {
                 fetchService(serviceArtifact.position);
                 await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { documentUri: serviceArtifact.path, position: serviceArtifact.position } });
@@ -699,7 +732,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             res = await rpcClient
                 .getServiceDesignerRpcClient()
                 .addFunctionSourceCode({ filePath, codedata: { lineRange }, function: value, artifactType: DIRECTORY_MAP.SERVICE });
-            const serviceArtifact = res.artifacts.find(res => res.name === serviceIdentifier);
+            const serviceArtifact = findServiceArtifact(res.artifacts);
             if (serviceArtifact) {
                 if (openDiagram) {
                     // Navigate to flow diagram for the newly created handler
@@ -725,7 +758,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             res = await rpcClient
                 .getServiceDesignerRpcClient()
                 .updateResourceSourceCode({ filePath, codedata: { lineRange }, function: value, artifactType: DIRECTORY_MAP.SERVICE });
-            const serviceArtifact = res.artifacts.find(res => res.name === serviceIdentifier);
+            const serviceArtifact = findServiceArtifact(res.artifacts);
             if (serviceArtifact) {
                 fetchService(serviceArtifact.position);
                 await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.UPDATE_PROJECT_LOCATION, location: { documentUri: serviceArtifact.path, position: serviceArtifact.position } });
@@ -1000,9 +1033,8 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         )
                                     }
                                     {serviceModel && !isMcpService && dropdownOptions.length > 0 && (
-                                        <AddServiceElementDropdown
-                                            buttonTitle="More"
-                                            toolTip="More options"
+                                        <MoreOptionsDropdown
+                                            tooltip="More Options"
                                             defaultOption="reusable-function"
                                             onOptionChange={handleAddDropdownOption}
                                             options={dropdownOptions}

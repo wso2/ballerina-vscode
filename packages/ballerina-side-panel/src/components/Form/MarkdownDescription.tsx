@@ -50,14 +50,11 @@ const MarkdownContainer = styled.div`
     }
 
     pre {
-        margin: 8px 0;
-        padding: 8px;
-        overflow-x: auto;
-        background: var(--vscode-editor-inactiveSelectionBackground);
-        border-radius: 4px;
+        display: none;
     }
 
     code {
+        display: inline;
         font-family: var(--vscode-editor-font-family);
     }
 

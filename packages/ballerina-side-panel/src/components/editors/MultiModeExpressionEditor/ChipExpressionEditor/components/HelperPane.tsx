@@ -24,6 +24,7 @@ import { HelperPaneHeight } from "@wso2/ui-toolkit";
 export type HelperPaneProps = {
     top: number;
     left: number;
+    isFlipped?: boolean;
     getHelperPane: (
         value: string,
         onChange: (value: string, options?: HelperpaneOnChangeOptions) => void,
@@ -39,6 +40,7 @@ export const HelperPane = React.forwardRef<HTMLDivElement, HelperPaneProps>((pro
             ref={ref}
             top={props.top}
             left={props.left}
+            isFlipped={props.isFlipped}
             onMouseDown={(e: React.MouseEvent) => e.stopPropagation()}
         >
             {props.getHelperPane(

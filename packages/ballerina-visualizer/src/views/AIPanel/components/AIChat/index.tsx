@@ -1890,6 +1890,7 @@ const AIChat: React.FC = () => {
                                                                 loadDesignDiagrams={(reviewItem as any).data.loadDesignDiagrams}
                                                                 isWorkspace={(reviewItem as any).data.isWorkspace}
                                                                 diffPackageMap={(reviewItem as any).data.diffPackageMap}
+                                                                generationId={(reviewItem as any).data.generationId}
                                                                 isDiscarded={(reviewItem as any)?.data?.status === "discarded"}
                                                                 rpcClient={isLatestAssistantMessage ? rpcClient : undefined}
                                                                 isActive={isLatestAssistantMessage && !isLoading && hasActiveReview}

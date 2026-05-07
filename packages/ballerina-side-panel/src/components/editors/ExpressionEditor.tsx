@@ -32,7 +32,7 @@ import {
 import { LinkButton } from "@wso2/ui-toolkit/lib/components/LinkButton/LinkButton";
 import { buildRequiredRule, getPropertyFromFormField, isExpandableMode, sanitizeType, toEditorMode } from './utils';
 import { FormField, FormExpressionEditorProps, HelperpaneOnChangeOptions } from '../Form/types';
-import { useFormContext } from '../../context';
+import { useFormContext, useFormFieldLoadingContext } from '../../context';
 import {
     ExpressionProperty,
     FormDiagnostics,
@@ -52,6 +52,7 @@ import { ExpressionField } from './ExpressionField';
 import { InputMode } from './MultiModeExpressionEditor/ChipExpressionEditor/types';
 import { getInputModeFromTypes } from './MultiModeExpressionEditor/ChipExpressionEditor/utils';
 import { ExpandedEditor } from './ExpandedEditor';
+import { SkeletonBase } from '../Skeletons/styles';
 
 export type ContextAwareExpressionEditorProps = {
     id?: string;
@@ -94,6 +95,7 @@ export namespace S {
         flexDirection: 'column',
         gap: '4px',
         fontFamily: 'var(--font-family)',
+        position: 'relative',
     });
 
     export const Ribbon = styled.div({
@@ -435,7 +437,23 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     }
 
     const [isHelperPaneOpen, setIsHelperPaneOpen] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     /* Define state to retrieve helper pane data */
+
+    const { registerLoading, unregisterLoading } = useFormFieldLoadingContext();
+    const loadingIdRef = useRef<string>(`expr-${key}-${Math.random().toString(36).slice(2, 8)}`);
+
+    useEffect(() => {
+        const id = loadingIdRef.current;
+        if (isLoading) {
+            registerLoading(id);
+        } else {
+            unregisterLoading(id);
+        }
+        return () => {
+            unregisterLoading(id);
+        };
+    }, [isLoading, registerLoading, unregisterLoading]);
 
     const exprRef = useRef<FormExpressionEditorRef>(null);
     const anchorRef = useRef<HTMLDivElement>(null);
@@ -601,33 +619,45 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                     <S.Header>
                         {field.label && (
                             <S.HeaderContainer>
-                                <S.LabelContainer>
-                                    <S.Label>{field.label}</S.Label>
-                                    {(field.defaultValue && field.defaultValue?.trim() !== "()") && <S.DefaultValue style={{ marginLeft: '8px' }}>{`(Default: ${field.defaultValue}) `}</S.DefaultValue>}
-                                    {(required ?? !field.optional) && <RequiredFormInput />}
-                                    {getPrimaryInputType(field.types)?.ballerinaType && (
-                                        <S.Type style={{ marginLeft: '5px' }} isVisible={focused} title={getPrimaryInputType(field.types)?.ballerinaType}>
-                                            {sanitizeType(getPrimaryInputType(field.types)?.ballerinaType)}
-                                        </S.Type>
-                                    )}
-                                </S.LabelContainer>
+                                {isLoading ? (
+                                    <SkeletonBase height="14px" width="40%" />
+                                ) : (
+                                    <S.LabelContainer>
+                                        <S.Label>{field.label}</S.Label>
+                                        {(field.defaultValue && field.defaultValue?.trim() !== "()") && <S.DefaultValue style={{ marginLeft: '8px' }}>{`(Default: ${field.defaultValue}) `}</S.DefaultValue>}
+                                        {(required ?? !field.optional) && <RequiredFormInput />}
+                                        {getPrimaryInputType(field.types)?.ballerinaType && (
+                                            <S.Type style={{ marginLeft: '5px' }} isVisible={focused} title={getPrimaryInputType(field.types)?.ballerinaType}>
+                                                {sanitizeType(getPrimaryInputType(field.types)?.ballerinaType)}
+                                            </S.Type>
+                                        )}
+                                    </S.LabelContainer>
+                                )}
                             </S.HeaderContainer>
                         )}
                         <S.HeaderRow>
                             <S.HeaderMain>
-                                <S.EditorMdContainer>
-                                    {documentation && <ReactMarkdown>{documentation}</ReactMarkdown>}
-                                </S.EditorMdContainer>
+                                {isLoading ? (
+                                    documentation ? <SkeletonBase height="13px" width="80%" /> : null
+                                ) : (
+                                    <S.EditorMdContainer>
+                                        {documentation && <ReactMarkdown>{documentation}</ReactMarkdown>}
+                                    </S.EditorMdContainer>
+                                )}
                             </S.HeaderMain>
                             {modeSwitcherContext?.isModeSwitcherEnabled && (
                                 <S.FieldInfoSection>
-                                    <ModeSwitcher
-                                        fieldKey={field.key}
-                                        value={modeSwitcherContext.inputMode}
-                                        isRecordTypeField={modeSwitcherContext.isRecordTypeField}
-                                        onChange={modeSwitcherContext.onModeChange}
-                                        types={modeSwitcherContext.types}
-                                    />
+                                    {isLoading ? (
+                                        <SkeletonBase height="24px" width="112px" style={{ borderRadius: '2px', marginTop: '2px' }} />
+                                    ) : (
+                                        <ModeSwitcher
+                                            fieldKey={field.key}
+                                            value={modeSwitcherContext.inputMode}
+                                            isRecordTypeField={modeSwitcherContext.isRecordTypeField}
+                                            onChange={modeSwitcherContext.onModeChange}
+                                            types={modeSwitcherContext.types}
+                                        />
+                                    )}
                                 </S.FieldInfoSection>
                             )}
                         </S.HeaderRow>
@@ -716,81 +746,88 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                         return (
                             <div>
                                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
-                                    <div style={{ flex: 1, minWidth: 0 }}>
-                                <ExpressionField
-                                    field={field}
-                                    inputMode={inputMode}
-                                    primaryMode={getInputModeFromTypes(getPrimaryInputType(field.types))}
-                                    name={name}
-                                    value={value}
-                                    completions={completions}
-                                    fileName={effectiveFileName}
-                                    targetLineRange={effectiveTargetLineRange}
-                                    autoFocus={recordTypeField ? false : autoFocus}
-                                    sanitizedExpression={(inputMode === InputMode.PROMPT || inputMode === InputMode.TEMPLATE) ? sanitizedExpression : undefined}
-                                    rawExpression={(inputMode === InputMode.PROMPT || inputMode === InputMode.TEMPLATE) ? rawExpression : undefined}
-                                    ariaLabel={field.label}
-                                    placeholder={placeholder}
-                                    onChange={async (updatedValue: string | any[] | Record<string, unknown>, updatedCursorPosition: number) => {
+                                    <div style={{ flex: 1, minWidth: 0, position: 'relative' }}>
+                                        {isLoading && <SkeletonBase height="28px" style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1, borderRadius: '2px' }} />}
+                                        <div style={{ visibility: isLoading ? 'hidden' : 'visible' }}>
+                                            <ExpressionField
+                                                field={field}
+                                                inputMode={inputMode}
+                                                primaryMode={getInputModeFromTypes(getPrimaryInputType(field.types))}
+                                                name={name}
+                                                value={value}
+                                                completions={completions}
+                                                fileName={effectiveFileName}
+                                                targetLineRange={effectiveTargetLineRange}
+                                                autoFocus={recordTypeField ? false : autoFocus}
+                                                sanitizedExpression={(inputMode === InputMode.PROMPT || inputMode === InputMode.TEMPLATE) ? sanitizedExpression : undefined}
+                                                rawExpression={(inputMode === InputMode.PROMPT || inputMode === InputMode.TEMPLATE) ? rawExpression : undefined}
+                                                ariaLabel={field.label}
+                                                placeholder={placeholder}
+                                                onChange={async (updatedValue: string | any[] | Record<string, unknown>, updatedCursorPosition: number) => {
 
-                                        // clear field diagnostics
-                                        setFormDiagnostics([]);
-                                        // Use ref to get current mode (not stale closure value)
-                                        const currentMode = inputMode;
-                                        const rawValue = (currentMode === InputMode.PROMPT || currentMode === InputMode.TEMPLATE) &&
-                                            rawExpression ? rawExpression(typeof updatedValue === 'string' ? updatedValue : JSON.stringify(updatedValue)) : updatedValue;
+                                                    // clear field diagnostics
+                                                    setFormDiagnostics([]);
+                                                    // Use ref to get current mode (not stale closure value)
+                                                    const currentMode = inputMode;
+                                                    const rawValue = (currentMode === InputMode.PROMPT || currentMode === InputMode.TEMPLATE) &&
+                                                        rawExpression ? rawExpression(typeof updatedValue === 'string' ? updatedValue : JSON.stringify(updatedValue)) : updatedValue;
 
-                                        onChange(rawValue);
-                                        if (getExpressionEditorDiagnostics && (currentMode === InputMode.EXP || currentMode === InputMode.TEMPLATE || isPromptWithDiagnostics)) {
-                                            getExpressionEditorDiagnostics(
-                                                (required ?? !field.optional) || updatedValue !== '',
-                                                typeof rawValue === 'string' ? rawValue : JSON.stringify(rawValue),
-                                                key,
-                                                getPropertyFromFormField(field)
-                                            );
-                                        }
+                                                    onChange(rawValue);
+                                                    if (getExpressionEditorDiagnostics && (currentMode === InputMode.EXP || currentMode === InputMode.TEMPLATE || isPromptWithDiagnostics)) {
+                                                        getExpressionEditorDiagnostics(
+                                                            (required ?? !field.optional) || updatedValue !== '',
+                                                            typeof rawValue === 'string' ? rawValue : JSON.stringify(rawValue),
+                                                            key,
+                                                            getPropertyFromFormField(field)
+                                                        );
+                                                    }
 
-                                        // Check if the current character is a trigger character
-                                        const triggerCharacter =
-                                            updatedCursorPosition > 0
-                                                ? triggerCharacters.find((char) => updatedValue[updatedCursorPosition - 1] === char)
-                                                : undefined;
-                                        if (triggerCharacter) {
-                                            await retrieveCompletions(
-                                                typeof updatedValue === 'string' ? updatedValue : JSON.stringify(updatedValue),
-                                                getPropertyFromFormField(field),
-                                                updatedCursorPosition,
-                                                triggerCharacter
-                                            );
-                                        } else {
-                                            await retrieveCompletions(
-                                                typeof updatedValue === 'string' ? updatedValue : JSON.stringify(updatedValue),
-                                                getPropertyFromFormField(field),
-                                                updatedCursorPosition
-                                            );
-                                        }
-                                    }}
-                                    extractArgsFromFunction={handleExtractArgsFromFunction}
-                                    onCompletionSelect={handleCompletionSelect}
-                                    onFocus={async () => {
-                                        handleFocus(onChange);
-                                    }}
-                                    onBlur={handleBlur}
-                                    onSave={handleSave}
-                                    onCancel={onCancel}
-                                    isHelperPaneOpen={isHelperPaneOpen}
-                                    changeHelperPaneState={handleChangeHelperPaneState}
-                                    getHelperPane={handleGetHelperPane}
-                                    helperPaneHeight={helperPaneHeight}
-                                    helperPaneWidth={recordTypeField ? 400 : undefined}
-                                    growRange={growRange}
-                                    helperPaneZIndex={helperPaneZIndex}
-                                    exprRef={exprRef}
-                                    anchorRef={anchorRef}
-                                    onToggleHelperPane={toggleHelperPaneState}
-                                    onOpenExpandedMode={onOpenExpandedMode}
-                                    isInExpandedMode={isExpandedModalOpen}
-                                />
+                                                    // Check if the current character is a trigger character
+                                                    const triggerCharacter =
+                                                        updatedCursorPosition > 0
+                                                            ? triggerCharacters.find((char) => updatedValue[updatedCursorPosition - 1] === char)
+                                                            : undefined;
+                                                    if (triggerCharacter) {
+                                                        await retrieveCompletions(
+                                                            typeof updatedValue === 'string' ? updatedValue : JSON.stringify(updatedValue),
+                                                            getPropertyFromFormField(field),
+                                                            updatedCursorPosition,
+                                                            triggerCharacter
+                                                        );
+                                                    } else {
+                                                        await retrieveCompletions(
+                                                            typeof updatedValue === 'string' ? updatedValue : JSON.stringify(updatedValue),
+                                                            getPropertyFromFormField(field),
+                                                            updatedCursorPosition
+                                                        );
+                                                    }
+                                                }}
+                                                extractArgsFromFunction={handleExtractArgsFromFunction}
+                                                onCompletionSelect={handleCompletionSelect}
+                                                onFocus={async () => {
+                                                    handleFocus(onChange);
+                                                }}
+                                                onBlur={handleBlur}
+                                                onSave={handleSave}
+                                                onCancel={onCancel}
+                                                isHelperPaneOpen={isHelperPaneOpen}
+                                                changeHelperPaneState={handleChangeHelperPaneState}
+                                                getHelperPane={handleGetHelperPane}
+                                                helperPaneHeight={helperPaneHeight}
+                                                helperPaneWidth={recordTypeField ? 400 : undefined}
+                                                growRange={growRange}
+                                                helperPaneZIndex={helperPaneZIndex}
+                                                exprRef={exprRef}
+                                                anchorRef={anchorRef}
+                                                onToggleHelperPane={toggleHelperPaneState}
+                                                onOpenExpandedMode={onOpenExpandedMode}
+                                                isInExpandedMode={isExpandedModalOpen}
+                                                onLoadingStateChange={setIsLoading}
+                                                onNormalizeValue={(normalizedValue: string) => {
+                                                    setValue(key, normalizedValue, { shouldDirty: false, shouldValidate: true });
+                                                }}
+                                            />
+                                        </div>
                                     </div>
                                     {onRemove && (
                                         <Button
