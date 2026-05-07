@@ -499,10 +499,14 @@ const stateMachine = createMachine<MachineContext>(
                     AIStateMachine.initialize();
                     StateMachinePopup.initialize();
                     commands.executeCommand('setContext', 'BI.status', 'loadingDone');
-                    if (!ls.biSupported) {
-                        commands.executeCommand('setContext', 'BI.status', 'updateNeed');
-                    }
                     activateDevantFeatures(ls);
+                    if (ls.langClient) {
+                        if (!ls.biSupported) {
+                            commands.executeCommand('setContext', 'BI.status', 'updateNeed');
+                        }
+                    } else {
+                        commands.executeCommand('setContext', 'BI.status', 'noLS');
+                    }
                     resolve({ langClient: ls.langClient, isBISupported: ls.biSupported });
                 } catch (error) {
                     throw new Error("LS Activation failed", error);

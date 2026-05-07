@@ -1008,15 +1008,32 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
     };
 
     const getFormWithDiagnostics = async (node: FlowNode): Promise<FlowNode | null> => {
-        try {
-            // Update node with new line range only for creation forms (not edit forms)
-            const nodeToProcess = props.editForm
-                ? node
-                : createNodeWithUpdatedLineRange(node, targetLineRange);
-            const response = await rpcClient.getBIDiagramRpcClient().getFormDiagnostics({
+        // Update node with new line range only for creation forms (not edit forms)
+        const nodeToProcess = props.editForm
+            ? node
+            : createNodeWithUpdatedLineRange(node, targetLineRange);
+
+        const issueRequest = () =>
+            rpcClient.getBIDiagramRpcClient().getFormDiagnostics({
                 flowNode: nodeToProcess,
                 filePath: fileName
             });
+
+        const isDebounceCancellation = (resp: any) =>
+            !resp?.flowNode &&
+            typeof resp?.errorMsg === "string" &&
+            resp.errorMsg.includes("Debounced");
+
+        try {
+            let response = await issueRequest();
+            // The backend debounces concurrent diagnostics requests; the older one resolves
+            // with a cancellation envelope. Retry past the debounce window so save sees the
+            // real verdict instead of treating cancellation as "no diagnostics".
+            let retries = 2;
+            while (isDebounceCancellation(response) && retries-- > 0) {
+                await new Promise(resolve => setTimeout(resolve, 300));
+                response = await issueRequest();
+            }
 
             if (response.flowNode) {
                 return response.flowNode as FlowNode;
