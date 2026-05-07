@@ -357,13 +357,20 @@ public class CodeAnalyzer extends NodeVisitor {
             // No inline expression - try to find initialization in init method
             Optional<Symbol> fieldSymbol = semanticModel.symbol(objectFieldNode.fieldName());
             if (fieldSymbol.isPresent() && fieldSymbol.get().kind() == SymbolKind.CLASS_FIELD) {
-                Optional<ExpressionNode> initExpr = findFieldInitExpression(fieldSymbol.get());
-                if (initExpr.isPresent()) {
-                    initExpr.get().accept(this);
-                    nodeBuilder.properties()
-                            .type(objectFieldNode.typeName(), true)
-                            .data(objectFieldNode.fieldName(), false, new HashSet<>());
-                    endNode(objectFieldNode);
+                Optional<AssignmentStatementNode> initAssignment = findFieldInitAssignment(fieldSymbol.get());
+                if (initAssignment.isPresent()) {
+                    AssignmentStatementNode assignmentStatementNode = initAssignment.get();
+                    ExpressionNode initExpr = assignmentStatementNode.expression();
+                    initExpr.accept(this);
+                    if (isNodeUnidentified()) {
+                        buildDefaultAssignNode(assignmentStatementNode, initExpr);
+                        endNode(assignmentStatementNode);
+                    } else {
+                        nodeBuilder.properties()
+                                .type(objectFieldNode.typeName(), true)
+                                .data(objectFieldNode.fieldName(), false, new HashSet<>());
+                        endNode(objectFieldNode);
+                    }
                 }
             }
         }
@@ -446,9 +453,9 @@ public class CodeAnalyzer extends NodeVisitor {
             }
 
             // Find the initialization expression for the field
-            Optional<ExpressionNode> initExpr = findFieldInitExpression(fieldSymbol.get());
-            if (initExpr.isPresent()) {
-                Optional<ImplicitNewExpressionNode> newExprOpt = getNewExpr(initExpr.get());
+            Optional<AssignmentStatementNode> initAssignment = findFieldInitAssignment(fieldSymbol.get());
+            if (initAssignment.isPresent()) {
+                Optional<ImplicitNewExpressionNode> newExprOpt = getNewExpr(initAssignment.get().expression());
                 if (newExprOpt.isPresent()) {
                     agentData.put(Property.SCOPE_KEY,
                             new AiUtils.AgentPropertyValue(Property.SERVICE_INIT_SCOPE, Property.ValueType.EXPRESSION));
@@ -522,9 +529,9 @@ public class CodeAnalyzer extends NodeVisitor {
      * assignments in the init method.
      *
      * @param fieldSymbol The field symbol to find initialization for
-     * @return Optional containing the initialization expression if found, empty otherwise
+     * @return Optional containing the initialization assignment if found, empty otherwise
      */
-    private Optional<ExpressionNode> findFieldInitExpression(Symbol fieldSymbol) {
+    private Optional<AssignmentStatementNode> findFieldInitAssignment(Symbol fieldSymbol) {
         // Get all references to this field
         List<Location> references = semanticModel.references(fieldSymbol);
 
@@ -537,7 +544,7 @@ public class CodeAnalyzer extends NodeVisitor {
             if (node.parent() instanceof AssignmentStatementNode assignmentStmt) {
                 FunctionDefinitionNode parentFunc = getParentFunction(assignmentStmt);
                 if (parentFunc != null && parentFunc.functionName().text().equals("init")) {
-                    return Optional.of(assignmentStmt.expression());
+                    return Optional.of(assignmentStmt);
                 }
             }
         }
@@ -1927,23 +1934,7 @@ public class CodeAnalyzer extends NodeVisitor {
         expression.accept(this);
 
         if (isNodeUnidentified()) {
-            startNode(NodeKind.ASSIGN, assignmentStatementNode)
-                    .metadata()
-                    .description(AssignBuilder.DESCRIPTION)
-                    .stepOut()
-                    .properties()
-                    .expressionOrAction(expression, AssignBuilder.EXPRESSION_DOC, false);
-
-            nodeBuilder.properties().custom()
-                    .metadata()
-                        .label(AssignBuilder.VARIABLE_LABEL)
-                        .description(AssignBuilder.VARIABLE_DOC)
-                        .stepOut()
-                    .type(Property.ValueType.LV_EXPRESSION)
-                    .value(CommonUtils.getVariableName(assignmentStatementNode.varRef()))
-                    .editable()
-                    .stepOut()
-                    .addProperty(Property.VARIABLE_KEY, assignmentStatementNode.varRef());
+            buildDefaultAssignNode(assignmentStatementNode, expression);
         } else if (nodeBuilder instanceof AgentBuilder
                 || nodeBuilder instanceof ModelProviderBuilder
                 || nodeBuilder instanceof EmbeddingProviderBuilder
@@ -1968,6 +1959,26 @@ public class CodeAnalyzer extends NodeVisitor {
                     .addProperty(Property.VARIABLE_KEY);
         }
         endNode(assignmentStatementNode);
+    }
+
+    private void buildDefaultAssignNode(AssignmentStatementNode assignmentStatementNode, ExpressionNode expression) {
+        startNode(NodeKind.ASSIGN, assignmentStatementNode)
+                .metadata()
+                .description(AssignBuilder.DESCRIPTION)
+                .stepOut()
+                .properties()
+                .expressionOrAction(expression, AssignBuilder.EXPRESSION_DOC, false);
+
+        nodeBuilder.properties().custom()
+                .metadata()
+                    .label(AssignBuilder.VARIABLE_LABEL)
+                    .description(AssignBuilder.VARIABLE_DOC)
+                    .stepOut()
+                .type(Property.ValueType.LV_EXPRESSION)
+                .value(CommonUtils.getVariableName(assignmentStatementNode.varRef()))
+                .editable()
+                .stepOut()
+                .addProperty(Property.VARIABLE_KEY, assignmentStatementNode.varRef());
     }
 
     @Override
