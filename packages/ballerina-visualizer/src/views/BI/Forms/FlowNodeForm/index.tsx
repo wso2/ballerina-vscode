@@ -932,7 +932,7 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                         searchKind: 'TYPE'
                     });
 
-                    const allItems = searchResponse.categories.flatMap(category =>
+                    const rawAllItems = searchResponse.categories.flatMap(category =>
                         category.items.flatMap(item => {
                             if ('codedata' in item) {
                                 return [item];
@@ -943,6 +943,17 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                         })
                     );
 
+                    // Deduplicate search items by org+module+symbol to avoid showing the same
+                    // type multiple times when it appears in both "Current Integration" and "Imported" categories
+                    const seenKeys = new Set<string>();
+                    const allItems = rawAllItems.filter(item => {
+                        const cd = (item as { codedata?: CodeData }).codedata;
+                        const key = cd ? `${cd.org}:${cd.module}:${cd.symbol}` : item.metadata.label;
+                        if (seenKeys.has(key)) return false;
+                        seenKeys.add(key);
+                        return true;
+                    });
+
                     const basicTypes = await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
                         filePath: fileName,
                         position: updateLineRange(targetLineRange, expressionOffsetRef.current).startLine,
@@ -951,7 +962,10 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
 
                     const isFetchingTypesForDM = valueTypeConstraint === "json";
                     const visibleSearchTypes = convertItemsToCompletionItems(allItems);
-                    const visibleBasicTypes = convertToVisibleTypes(basicTypes, isFetchingTypesForDM);
+                    // Filter out basic types already covered by search results to avoid duplicates
+                    const searchLabels = new Set(visibleSearchTypes.map(t => t.label));
+                    const visibleBasicTypes = convertToVisibleTypes(basicTypes, isFetchingTypesForDM)
+                        .filter(t => !searchLabels.has(t.label));
                     visibleTypes = [...visibleSearchTypes, ...visibleBasicTypes];
                     setTypes(visibleTypes);
                 }
