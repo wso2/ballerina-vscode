@@ -196,36 +196,37 @@ export function sendAgentDidOpenForFreshProjects(tempProjectPath: string, projec
 
   projects.forEach(project => {
     const pkgPath = project.packagePath || ""; // Empty for single package, relative path for workspace
-    
+
     // Add root-level source files
     project.sourceFiles.forEach(f => {
       const relativePath = pkgPath ? path.join(pkgPath, f.filePath) : f.filePath;
       allFiles.push(relativePath);
     });
-    
+
     // Add module files
     project.projectModules?.forEach(module => {
       module.sourceFiles.forEach(f => {
-        const relativePath = pkgPath 
+        const relativePath = pkgPath
           ? path.join(pkgPath, 'modules', module.moduleName, f.filePath)
           : path.join('modules', module.moduleName, f.filePath);
         allFiles.push(relativePath);
       });
     });
-    
+
     // Add test files
     if (project.projectTests) {
       project.projectTests.forEach(f => {
-        const relativePath = pkgPath 
+        const relativePath = pkgPath
           ? path.join(pkgPath, 'tests', f.filePath)
           : path.join('tests', f.filePath);
         allFiles.push(relativePath);
       });
     }
   });
-  
-  console.log(`[AgentNotification] Sending didOpen for ${allFiles.length} files across ${projects.length} project(s)`);
-  allFiles.forEach(file => sendBothSchemaDidOpen(tempProjectPath, file));
+
+  const tomlFiles = allFiles.filter(f => f.endsWith('Ballerina.toml'));
+  console.log(`[AgentNotification] Sending didOpen for ${tomlFiles.length} Ballerina.toml(s) across ${projects.length} project(s)`);
+  tomlFiles.forEach(file => sendBothSchemaDidOpen(tempProjectPath, file));
 }
 
 /**
