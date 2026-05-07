@@ -122,12 +122,12 @@ export function AddServiceElementDropdown(props: AddServiceElementDropdownProps)
 export interface DropdownOptionProps {
     title: string;
     description?: string;
-    value?: string;
+    value: string;
     iconName?: string; // Used to be shown in the main panel when selected
     iconIsCodicon?: boolean;
 }
 
-function DropdownOption({ title, description }: DropdownOptionProps) {
+function DropdownOption({ title, description }: Pick<DropdownOptionProps, 'title' | 'description'>) {
     return (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div>
