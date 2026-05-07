@@ -193,7 +193,6 @@ When working with Ballerina workspace projects (projects with a root Ballerina.t
 
 ### Terminology
 In WSO2 Integrator, a Ballerina workspace is called a **project** and a Ballerina package is called an **integration**.
-- User will always use "project" and "integration" — never "workspace" or "package".
 - You MUST always use "project" and "integration" in all responses and clarifying questions. Never use "workspace" or "package" when communicating with the user.
 
 ### Creating a new package
