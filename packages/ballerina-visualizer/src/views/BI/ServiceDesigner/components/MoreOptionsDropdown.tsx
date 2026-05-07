@@ -39,16 +39,17 @@ export function MoreOptionsDropdown(props: MoreOptionsDropdownProps) {
             <DropdownButton
                 buttonContent={null}
                 selecteOption={defaultOption ?? ""}
-                tooltip={tooltip ?? "More options"}
                 dropDownAlign="bottom"
                 iconName="kebab-vertical"
+                optionButtonTooltip={tooltip ?? "More Options"}
                 buttonSx={{ display: 'none' }}
                 optionButtonSx={{
                     borderLeft: 'none',
                     borderTopLeftRadius: '4px',
                     borderBottomLeftRadius: '4px',
                     height: '28px',
-                    minHeight: '28px'
+                    minHeight: '28px',
+                    cursor: 'pointer',
                 }}
                 dropdownSx={{
                     zIndex: 9999,
@@ -61,14 +62,13 @@ export function MoreOptionsDropdown(props: MoreOptionsDropdownProps) {
                     left: 'auto'
                 }}
                 onOptionChange={onOptionChange}
-                onClick={() => {}}
                 options={dropdownOptions}
             />
         </div>
     );
 }
 
-function MoreDropdownOption({ title, description }: DropdownOptionProps) {
+function MoreDropdownOption({ title, description }: Pick<DropdownOptionProps, 'title' | 'description'>) {
     return (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div>

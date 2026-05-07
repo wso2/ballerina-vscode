@@ -1034,7 +1034,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                     }
                                     {serviceModel && !isMcpService && dropdownOptions.length > 0 && (
                                         <MoreOptionsDropdown
-                                            tooltip="More options"
+                                            tooltip="More Options"
                                             defaultOption="reusable-function"
                                             onOptionChange={handleAddDropdownOption}
                                             options={dropdownOptions}
