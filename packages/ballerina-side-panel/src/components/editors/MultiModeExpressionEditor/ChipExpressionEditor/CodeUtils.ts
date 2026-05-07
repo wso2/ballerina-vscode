@@ -19,6 +19,7 @@
 import { StateEffect, StateField, RangeSet, Transaction, SelectionRange, Annotation } from "@codemirror/state";
 import { WidgetType, Decoration, ViewPlugin, EditorView, ViewUpdate } from "@codemirror/view";
 import { filterCompletionsByPrefixAndType, getParsedExpressionTokens, detectTokenPatterns, ParsedToken } from "./utils";
+import { HELPER_PANE_WIDTH } from "./constants";
 import { defaultKeymap, historyKeymap } from "@codemirror/commands";
 import { CompletionItem, FnSignatureDocumentation } from "@wso2/ui-toolkit";
 import { ThemeColors } from "@wso2/ui-toolkit";
@@ -435,7 +436,38 @@ export const expressionEditorKeymap = [
     ...historyKeymap
 ];
 
-export const AVEARGE_HELPER_PANE_HEIGHT = 250;
+export const AVERAGE_HELPER_PANE_HEIGHT = 250;
+
+// Offset applied to coords.bottom so the helper pane opens just below the cursor line
+const CURSOR_BOTTOM_OFFSET = 5;
+
+/**
+ * Shared position computation for all CodeMirror update listeners.
+ * Detects whether the pane should flip above the cursor (when it would overflow the container
+ * bottom) and applies right-edge overflow correction for the pane width.
+ * All coordinates are viewport-relative (as returned by coordsAtPos), so no scrollTop needed.
+ */
+const computeCursorPositionInfo = (
+    coords: { top: number; bottom: number; left: number },
+    editorRect: DOMRect,
+    containerRef?: React.RefObject<HTMLElement>
+): { top: number; left: number; isFlipped: boolean } => {
+    const isFlipped = !!(
+        containerRef?.current &&
+        coords.bottom + AVERAGE_HELPER_PANE_HEIGHT > containerRef.current.getBoundingClientRect().bottom
+    );
+
+    const anchorY = isFlipped ? coords.top : coords.bottom + CURSOR_BOTTOM_OFFSET;
+    let relativeTop = anchorY - editorRect.top;
+    let relativeLeft = coords.left - editorRect.left;
+
+    const overflow = relativeLeft + HELPER_PANE_WIDTH - editorRect.width;
+    if (overflow > 0) {
+        relativeLeft -= overflow;
+    }
+
+    return { top: relativeTop, left: relativeLeft, isFlipped };
+};
 
 // this always returns the cursor position with correction for helper pane width overflow
 // make sure all the dropdowns that use this handle has the same width
@@ -452,32 +484,17 @@ export const buildOnFocusListner = (
             const cursorPosition = update.view.state.selection.main;
             const coords = update.view.coordsAtPos(cursorPosition.to);
 
-            if (coords && coords.top && coords.left) {
+            if (
+                coords &&
+                coords.top !== null &&
+                coords.top !== undefined &&
+                coords.left !== null &&
+                coords.left !== undefined &&
+                coords.bottom !== null &&
+                coords.bottom !== undefined
+            ) {
                 const editorRect = update.view.dom.getBoundingClientRect();
-
-                // Check if helper pane would overflow the container's bottom
-                let isFlipped = false;
-                if (containerRef?.current) {
-                    const containerRect = containerRef.current.getBoundingClientRect();
-                    if (coords.bottom + AVEARGE_HELPER_PANE_HEIGHT > containerRect.bottom) {
-                        isFlipped = true;
-                    }
-                }
-
-                //+5 is to position a little be below the cursor
-                //otherwise it overlaps with the cursor
-                const anchorY = isFlipped ? coords.top : coords.bottom + 5;
-                let relativeTop = anchorY - editorRect.top;
-                let relativeLeft = coords.left - editorRect.left;
-
-                const HELPER_PANE_WIDTH = 300;
-                const editorWidth = editorRect.width;
-                const relativeRight = relativeLeft + HELPER_PANE_WIDTH;
-                const overflow = relativeRight - editorWidth;
-
-                if (overflow > 0) {
-                    relativeLeft -= overflow;
-                }
+                const { top: relativeTop, left: relativeLeft, isFlipped } = computeCursorPositionInfo(coords, editorRect, containerRef);
 
                 onTrigger({ top: relativeTop, left: relativeLeft, position: cursorPosition, isFlipped });
             }
@@ -500,32 +517,9 @@ export const buildOnSelectionChange = (
         const cursorPosition = update.state.selection.main;
         const coords = update.view.coordsAtPos(cursorPosition.to);
 
-        if (coords && coords.top && coords.left) {
+        if (coords && coords.top != null && coords.left != null) {
             const editorRect = update.view.dom.getBoundingClientRect();
-
-            // Check if helper pane would overflow the container's bottom
-            let isFlipped = false;
-            if (containerRef?.current) {
-                const containerRect = containerRef.current.getBoundingClientRect();
-                if (coords.bottom + AVEARGE_HELPER_PANE_HEIGHT > containerRect.bottom) {
-                    isFlipped = true;
-                }
-            }
-
-            //+5 is to position a little be below the cursor
-            //otherwise it overlaps with the cursor
-            const anchorY = isFlipped ? coords.top : coords.bottom + 5;
-            let relativeTop = anchorY - editorRect.top;
-            let relativeLeft = coords.left - editorRect.left;
-
-            const HELPER_PANE_WIDTH = 300;
-            const editorWidth = editorRect.width;
-            const relativeRight = relativeLeft + HELPER_PANE_WIDTH;
-            const overflow = relativeRight - editorWidth;
-
-            if (overflow > 0) {
-                relativeLeft -= overflow;
-            }
+            const { top: relativeTop, left: relativeLeft, isFlipped } = computeCursorPositionInfo(coords, editorRect, containerRef);
 
             onTrigger({ top: relativeTop, left: relativeLeft, position: cursorPosition, isFlipped });
         }
@@ -587,30 +581,7 @@ export const buildOnChangeListner = (
         }
         if (update.docChanged) {
             const editorRect = update.view.dom.getBoundingClientRect();
-
-            // Check if helper pane would overflow the container's bottom
-            let isFlipped = false;
-            if (containerRef?.current) {
-                const containerRect = containerRef.current.getBoundingClientRect();
-                if (coords.bottom + AVEARGE_HELPER_PANE_HEIGHT > containerRect.bottom) {
-                    isFlipped = true;
-                }
-            }
-
-            //+5 is to position a little be below the cursor
-            //otherwise it overlaps with the cursor
-            const anchorY = isFlipped ? coords.top : coords.bottom + 5;
-            let relativeTop = anchorY - editorRect.top;
-            let relativeLeft = coords.left - editorRect.left;
-
-            const HELPER_PANE_WIDTH = 300;
-            const editorWidth = editorRect.width;
-            const relativeRight = relativeLeft + HELPER_PANE_WIDTH;
-            const overflow = relativeRight - editorWidth;
-
-            if (overflow > 0) {
-                relativeLeft -= overflow;
-            }
+            const { top: relativeTop, left: relativeLeft, isFlipped } = computeCursorPositionInfo(coords, editorRect, containerRef);
 
             const newValue = update.view.state.doc.toString();
             const cursorInfo = {

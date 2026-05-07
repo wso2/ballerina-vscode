@@ -42,7 +42,7 @@ import {
     createDocumentationSection,
     createTooltipContainer,
     createTooltipPositioningHandlers,
-    AVEARGE_HELPER_PANE_HEIGHT
+    AVERAGE_HELPER_PANE_HEIGHT
 } from "../CodeUtils";
 import { correctTokenStreamPositions, normalizeEditorValue } from "../utils";
 import { history } from "@codemirror/commands";

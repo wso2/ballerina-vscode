@@ -20,7 +20,7 @@ import { CompletionItem } from "@wso2/ui-toolkit";
 import { INPUT_MODE_MAP, InputMode, TokenType, CompoundTokenSequence, TokenMetadata, DocumentType, TokenPattern } from "./types";
 import { getPrimaryInputType, getSecondaryInputType, InputType } from "@wso2/ballerina-core";
 import { FnSignatureDocumentation } from "@wso2/ui-toolkit";
-import { AVEARGE_HELPER_PANE_HEIGHT } from "./CodeUtils";
+import { AVERAGE_HELPER_PANE_HEIGHT } from "./CodeUtils";
 
 export const TOKEN_LINE_OFFSET_INDEX = 0;
 export const TOKEN_START_CHAR_OFFSET_INDEX = 1;
@@ -428,7 +428,7 @@ export const calculateHelperPanePosition = (
     // Detect if the pane would overflow the container's bottom boundary
     const isFlipped = !!(
         containerRect &&
-        (containerRect.bottom - targetCoords.bottom) < AVEARGE_HELPER_PANE_HEIGHT
+        (containerRect.bottom - targetCoords.bottom) < AVERAGE_HELPER_PANE_HEIGHT
     );
 
     // When flipped, anchor top to the trigger's top edge so translateY(-100%) places pane above it
