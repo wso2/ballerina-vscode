@@ -362,6 +362,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                     const generatedField = generateFieldFromProperty('minPassRate', minPassRateField);
                     fields.push({
                         ...generatedField,
+                        documentation: generatedField.documentation || 'Minimum percentage of runs that must pass for the evaluation to succeed',
                         type: 'SLIDER',
                         types: [{ fieldType: 'SLIDER', selected: false }],
                         sliderProps: {

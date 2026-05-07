@@ -158,6 +158,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
     // Refs for helper pane
     const exprRef = useRef<FormExpressionEditorRef>(null);
     const anchorRef = useRef<HTMLDivElement>(null);
+    const modalContainerRef = useRef<HTMLDivElement>(null);
 
     // Ref to track the latest expression value that should be synced
     // This prevents intermediate values from overwriting the final value
@@ -719,7 +720,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                         ) : null}
                     </LeftColumn>
                     <RightColumn>
-                        <ExpressionEditorContainer>
+                        <ExpressionEditorContainer ref={modalContainerRef}>
                             <div>
                                 <ExpressionEditorLabel>
                                     {field?.label || "Expression"}
@@ -774,6 +775,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                             configuration={new RecordConfigExpressionEditorConfig()}
                                             isExpandedVersion={false}
                                             hideFxButton={true}
+                                            containerRef={modalContainerRef}
                                         />
                                         {formDiagnostics && formDiagnostics.length > 0 && (
                                             <ErrorBanner errorMsg={formDiagnostics.map((d: any) => d.message).join(', ')} />

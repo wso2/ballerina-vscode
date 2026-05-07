@@ -193,10 +193,13 @@ export function ConnectionConfig(props: ConnectionConfigProps): JSX.Element {
         if (!specialConfig?.shouldShowInfo?.(symbol)) {
             return undefined;
         }
+        const isMac = typeof navigator !== "undefined" && /Mac/i.test(navigator.userAgent);
+        const shortcut = isMac ? "Cmd+Shift+P" : "Ctrl+Shift+P";
         return [{
             component: (
                 <InfoBox
-                    text="Configure this model provider using the VS Code command palette command:"
+                    text="Configure this model provider using the command palette command:"
+                    description={`Open the command palette with ${shortcut}, then run:`}
                     codeCommand="> Ballerina: Configure default WSO2 model provider"
                 />
             ),

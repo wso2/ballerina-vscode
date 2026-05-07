@@ -42,7 +42,8 @@ import {
     MemoryManagersResponse,
     NodePosition,
     AIGetPackageVersionRequest,
-    AIGetPackageVersionResponse
+    AIGetPackageVersionResponse,
+    DefaultProviderKind
 } from "@wso2/ballerina-core";
 import { existsSync } from "fs";
 import vscode from "vscode";
@@ -587,7 +588,7 @@ export class AiAgentRpcManager implements AIAgentAPI {
         });
     }
 
-    async configureDefaultModelProvider(): Promise<void> {
-        await vscode.commands.executeCommand(CONFIGURE_DEFAULT_MODEL_COMMAND);
+    async configureDefaultModelProvider(kind: DefaultProviderKind): Promise<void> {
+        await vscode.commands.executeCommand(CONFIGURE_DEFAULT_MODEL_COMMAND, kind);
     }
 }

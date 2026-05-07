@@ -82,7 +82,7 @@ import {
     removeToolFromAgentNode,
 } from "../AIChatAgent/utils";
 import { DiagramSkeleton } from "../../../components/Skeletons";
-import { AI_COMPONENT_PROGRESS_MESSAGE, AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT, GET_DEFAULT_MODEL_PROVIDER, LOADING_MESSAGE } from "../../../constants";
+import { AI_COMPONENT_PROGRESS_MESSAGE, AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT, GET_DEFAULT_EMBEDDING_PROVIDER, GET_DEFAULT_MODEL_PROVIDER, LOADING_MESSAGE } from "../../../constants";
 import { ConnectionListItem } from "@wso2/wso2-platform-core";
 import { usePlatformExtContext } from "../../../providers/platform-ext-ctx-provider";
 
@@ -1681,9 +1681,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                         }
                     }
 
-                    if (updatedNode?.codedata?.symbol === GET_DEFAULT_MODEL_PROVIDER
+                    if (updatedNode?.codedata?.symbol === GET_DEFAULT_MODEL_PROVIDER || updatedNode?.codedata?.symbol === GET_DEFAULT_EMBEDDING_PROVIDER
                         || (updatedNode?.codedata?.node === "AGENT_CALL" && (updatedNode?.properties?.model?.value === "" || updatedNode?.properties?.model?.value === undefined))) {
-                        await rpcClient.getAIAgentRpcClient().configureDefaultModelProvider();
+                        const providerKind = updatedNode?.codedata?.symbol === GET_DEFAULT_EMBEDDING_PROVIDER ? "embedding" : "model";
+                        await rpcClient.getAIAgentRpcClient().configureDefaultModelProvider(providerKind);
                     }
                     if (noFormSubmitOptions) {
                         selectedNodeRef.current = undefined;

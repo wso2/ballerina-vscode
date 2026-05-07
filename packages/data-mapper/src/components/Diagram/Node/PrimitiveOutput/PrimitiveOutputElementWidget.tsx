@@ -20,21 +20,20 @@ import React, { useMemo, useState } from "react";
 
 import { DiagramEngine } from "@projectstorm/react-diagrams-core";
 import classnames from "classnames";
-import { Button, Icon, ProgressRing, TruncatedLabel } from "@wso2/ui-toolkit";
+import { Button, Icon, ProgressRing, TruncatedLabel, TruncatedLabelGroup } from "@wso2/ui-toolkit";
 
 import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
 import { DataMapperPortWidget, PortState, InputOutputPortModel } from "../../Port";
 import { getDefaultValue } from "../../utils/common-utils";
-import { OutputSearchHighlight } from "../commons/Search";
 import { ValueConfigMenu, ValueConfigOption } from "../commons/ValueConfigButton";
 import { useIONodesStyles } from "../../../styles";
 import { useDMExpressionBarStore } from "../../../../store/store";
 import { DiagnosticTooltip } from "../../Diagnostic/DiagnosticTooltip";
 import FieldActionWrapper from "../commons/FieldActionWrapper";
-import { IOType } from "@wso2/ballerina-core";
+import { IOType, TypeKind } from "@wso2/ballerina-core";
 import { removeMapping } from "../../utils/modification-utils";
 import { useShallow } from "zustand/react/shallow";
-import { PrimitiveOutputNode } from ".";
+import { getTypeName } from "../../utils/type-utils";
 
 export interface PrimitiveOutputElementWidgetWidgetProps {
     parentId: string;
@@ -72,6 +71,8 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
     const [isLoading, setLoading] = useState(false);
     const [portState, setPortState] = useState<PortState>(PortState.Unselected);
 
+    const typeName = getTypeName(field);
+    
     const fieldName = field?.name || '';
 
     let portName = parentId;
@@ -85,8 +86,11 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
   
     const portIn = getPort(`${portName}.IN`);
     const isExprBarFocused = exprBarFocusedPort?.getName() === portIn?.getName();
+    const isUnknownType = field.kind === TypeKind.Unknown;
     const mapping = portIn && portIn.attributes.value;
     let { expression, diagnostics } = mapping || {};
+    const connectedViaLink = Object.values(portIn?.getLinks() || {}).length > 0;
+
 
     const handleEditValue = () => {
         if (portIn)
@@ -128,38 +132,43 @@ export function PrimitiveOutputElementWidget(props: PrimitiveOutputElementWidget
     };
 
     const label = (
-        <TruncatedLabel style={{ marginRight: "auto" }}>
-            <span className={classes.valueLabel} style={{ marginLeft: "24px" }}>
-                {diagnostics?.length > 0 ? (
-                    <DiagnosticTooltip
-                        diagnostic={diagnostics[0].message}
-                        value={expression}
-                        onClick={handleEditValue}
-                    >
-                        <Button
-                            appearance="icon"
-                            data-testid={`object-output-field-${portIn?.getName()}`}
+        <TruncatedLabelGroup style={{ marginRight: "auto", alignItems: "baseline" }}>
+            <TruncatedLabel className={isUnknownType ? classes.unknownTypeLabel : classes.typeLabel}>
+                {typeName || ''}
+            </TruncatedLabel>
+            {!connectedViaLink && expression && (
+                <TruncatedLabel className={classes.outputNodeValueBase}>
+                    {diagnostics?.length > 0 ? (
+                        <DiagnosticTooltip
+                            placement="right"
+                            diagnostic={diagnostics[0].message}
+                            value={expression}
+                            onClick={handleEditValue}
+                        >
+                            <Button
+                                appearance="icon"
+                                data-testid={`primitive-widget-field-${portIn?.getName()}`}
+                            >
+                                {expression}
+                                <Icon
+                                    name="error-icon"
+                                    sx={{ height: "14px", width: "14px", marginLeft: "4px" }}
+                                    iconSx={{ fontSize: "14px", color: "var(--vscode-errorForeground)" }}
+                                />
+                            </Button>
+                        </DiagnosticTooltip>
+                    ) : (
+                        <span
+                            className={classes.outputNodeValue}
+                            onClick={handleEditValue}
+                            data-testid={`primitive-widget-field-${portIn?.getName()}`}
                         >
                             {expression}
-                            <Icon
-                                name="error-icon"
-                                sx={{ height: "14px", width: "14px", marginLeft: "4px" }}
-                                iconSx={{ fontSize: "14px", color: "var(--vscode-errorForeground)" }}
-                            />
-                        </Button>
-                    </DiagnosticTooltip>
-                ) : (
-                    <span
-                        className={classes.outputNodeValue}
-                        onClick={handleEditValue}
-                        data-testid={`object-output-field-${portIn?.getName()}`}
-                    >
-                        <OutputSearchHighlight>{expression}</OutputSearchHighlight>
-                    </span>
-                )
-                }
-            </span>
-        </TruncatedLabel>
+                        </span>
+                    )}
+                </TruncatedLabel>
+            )}
+        </TruncatedLabelGroup>
     );
 
     return (
