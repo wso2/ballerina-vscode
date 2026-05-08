@@ -42,6 +42,7 @@ import { activateUriHandlers } from './utils/uri-handlers';
 import { StateMachine } from './stateMachine';
 import { activateSubscriptions } from './views/visualizer/activate';
 import { VisualizerWebview } from './views/visualizer/webview';
+import { AiPanelWebview } from './views/ai-panel/webview';
 import { extension } from './BalExtensionContext';
 import { ExtendedClientCapabilities } from '@wso2/ballerina-core';
 import { RPCLayer } from './RPCLayer';
@@ -132,6 +133,16 @@ export async function activate(context: ExtensionContext) {
     extension.context = context;
     // Init RPC Layer methods
     RPCLayer.init();
+
+    // Register serializers that dispose orphaned webview tabs restored by VS Code after a restart.
+    // Without this, previously open panels leave behind empty placeholder tabs on reload.
+    const disposeOnRestore: vscode.WebviewPanelSerializer = {
+        deserializeWebviewPanel: async (panel) => { panel.dispose(); }
+    };
+    context.subscriptions.push(
+        vscode.window.registerWebviewPanelSerializer(VisualizerWebview.viewType, disposeOnRestore),
+        vscode.window.registerWebviewPanelSerializer(AiPanelWebview.viewType, disposeOnRestore),
+    );
 
     // Wait for the ballerina extension to be ready
     await StateMachine.initialize();
