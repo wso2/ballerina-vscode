@@ -32,7 +32,7 @@ import { LineRange } from '@wso2/ballerina-core/lib/interfaces/common';
 import { FormField, HelperpaneOnChangeOptions } from '../Form/types';
 import { ChipExpressionEditorComponent } from './MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor';
 import RecordConfigPreviewEditor from './MultiModeExpressionEditor/RecordConfigPreviewEditor/RecordConfigPreviewEditor';
-import { ArrayEditorConfig, BooleanEditorConfig, NumberExpressionEditorConfig, RawTemplateEditorConfig, SQLExpressionEditorConfig, StringTemplateEditorConfig } from './MultiModeExpressionEditor/Configurations';
+import { ArrayEditorConfig, BooleanEditorConfig, MapEditorConfig, NumberExpressionEditorConfig, RawTemplateEditorConfig, SQLExpressionEditorConfig, StringTemplateEditorConfig } from './MultiModeExpressionEditor/Configurations';
 import NumberExpressionEditor from './MultiModeExpressionEditor/NumberExpressionEditor/NumberEditor';
 import { EnumEditor } from './MultiModeExpressionEditor/EnumEditor/EnumEditor';
 import { SQLExpressionEditor } from './MultiModeExpressionEditor/SqlExpressionEditor/SqlExpressionEditor';
@@ -125,6 +125,8 @@ export const getEditorConfiguration = (inputMode: InputMode) => {
             return new ArrayEditorConfig();
         case InputMode.TEXT_ARRAY:
             return new ArrayEditorConfig();
+        case InputMode.MAP:
+            return new MapEditorConfig();
         default:
             return new ChipExpressionEditorDefaultConfiguration();
     }
