@@ -266,12 +266,16 @@ export function ConnectionConfigurationForm(props: ConnectionConfigurationFormPr
 
     useEffect(() => {
         // Fetch node template when component mounts
+
+        let clearPullingStatusTimer: ReturnType<typeof setTimeout> | null = null;
+
         const fetchNodeTemplate = async () => {
             if (!selectedConnector.codedata) {
                 console.error(">>> Error selecting connector. No codedata found");
                 return;
             }
 
+            let shouldClearPullingStatus = true;
             try {
                 let timer: ReturnType<typeof setTimeout> | null = null;
                 let didTimeout = false;
@@ -328,16 +332,25 @@ export function ConnectionConfigurationForm(props: ConnectionConfigurationFormPr
                 }
             } catch (error) {
                 console.error(">>> Error selecting connector", error);
+                shouldClearPullingStatus = false;
                 setPullingStatus(PullingStatus.ERROR);
             } finally {
                 // After few seconds, set status to undefined
-                setTimeout(() => {
-                    setPullingStatus(undefined);
-                }, 2000);
+                if (shouldClearPullingStatus) {
+                    clearPullingStatusTimer = setTimeout(() => {
+                        setPullingStatus(undefined);
+                    }, 2000);
+                }
             }
         };
 
         fetchNodeTemplate();
+
+        return () => {
+            if (clearPullingStatusTimer) {
+                clearTimeout(clearPullingStatusTimer);
+            }
+        }
     }, [selectedConnector, fileName, target, rpcClient]);
 
     const handleOnFormSubmit = async (node: FlowNode, _editorConfig?: EditorConfig, options?: FormSubmitOptions) => {
