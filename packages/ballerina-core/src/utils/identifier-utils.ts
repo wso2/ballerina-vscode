@@ -26,7 +26,18 @@ const INTEGRATION_API_MODULES: ReadonlySet<string> = new Set(["http", "graphql",
 
 /** Modules that map to the EVENT_INTEGRATION scope. */
 const EVENT_INTEGRATION_MODULES: ReadonlySet<string> = new Set([
-    "kafka", "rabbitmq", "salesforce", "trigger.github", "mqtt", "asb", "mssql", "mysql", "postgresql",
+    "kafka",
+    "rabbitmq",
+    "salesforce",
+    "trigger.github",
+    "mqtt",
+    "asb",
+    "mssql",
+    "mysql",
+    "postgresql",
+    "trigger.shopify",
+    "trigger.twilio",
+    "solace"
 ]);
 
 /** Modules that map to the FILE_INTEGRATION scope. */
