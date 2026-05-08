@@ -21,7 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ### Fixed
 
-- **Form and Validation Stability** — Fixed many form re-render, diagnostics, mode-switch, and field validation issues across editors.
+- **Form and Validation Stability** — Fixed inconsistencies in form behavior, diagnostics, and validation across editors.
 - **Copilot & Agent Reliability** — Fixed multi-turn context, review-mode behavior, login/config edge cases, and tool-form related issues.
 - **Service/Designer Reliability** — Resolved service designer, migration, resource-path, and artifact navigation issues.
 - **Security & Dependencies** — Applied dependency upgrades and vulnerability fixes across extension components.
