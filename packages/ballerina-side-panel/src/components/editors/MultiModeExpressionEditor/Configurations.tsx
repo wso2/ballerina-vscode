@@ -275,3 +275,17 @@ export class ArrayEditorConfig extends ChipExpressionEditorDefaultConfiguration 
         return expValue.trim().startsWith("[") && expValue.trim().endsWith("]");
     }
 }
+
+export class MapEditorConfig extends ChipExpressionEditorDefaultConfiguration {
+    deserializeValue(value: string): string {
+        if (this.getIsValueCompatible(value)) {
+            return value;
+        }
+        return "";
+    }
+
+    getIsValueCompatible(expValue: string) {
+        if (!expValue) return true;
+        return expValue.trim().startsWith("{") && expValue.trim().endsWith("}");
+    }
+}
