@@ -41,7 +41,7 @@ import {
 } from "@wso2/ballerina-core";
 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Button, Codicon, Icon } from "@wso2/ui-toolkit";
+import { Button, Codicon, Icon, Tooltip } from "@wso2/ui-toolkit";
 
 import { AIChatInputRef } from "../AIChatInput";
 import ToolCallSegment from "../ToolCallSegment";
@@ -1760,12 +1760,17 @@ const AIChat: React.FC = () => {
                         ) : (
                             <AuthProviderChip>
                                 Remaining Usage:
-                                <UsageBadge>
-                                    {!usage ? "N/A"
-                                        : usage.resetsIn === -1 ? "Unlimited"
-                                        : isUsageExceeded ? "Exceeded"
-                                        : `${Math.round(usage.remainingUsagePercentage)}%`}
-                                </UsageBadge>
+                                {usage?.resetsIn === -1 ? (
+                                    <Tooltip content="Subject to fair usage policy.">
+                                        <UsageBadge>Unlimited</UsageBadge>
+                                    </Tooltip>
+                                ) : (
+                                    <UsageBadge>
+                                        {!usage ? "N/A"
+                                            : isUsageExceeded ? "Exceeded"
+                                            : `${Math.round(usage.remainingUsagePercentage)}%`}
+                                    </UsageBadge>
+                                )}
                                 {usage && usage.resetsIn !== -1 && (
                                     <span style={{ fontSize: 10, opacity: 0.7 }} title={formatResetsInExact(usage.resetsIn)}>
                                         Resets in: {formatResetsIn(usage.resetsIn)}
