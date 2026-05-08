@@ -584,47 +584,6 @@
         },
         {
           "metadata": {
-            "label": "zendesk",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "Inline_response_200",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_zendesk_2.0.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "zendesk",
-                "packageName": "zendesk",
-                "symbol": "Inline_response_200",
-                "version": "2.0.0"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Inline_response_200_5",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_zendesk_2.0.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "zendesk",
-                "packageName": "zendesk",
-                "symbol": "Inline_response_200_5",
-                "version": "2.0.0"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
             "label": "stripe",
             "description": "",
             "keywords": []
@@ -643,6 +602,47 @@
                 "packageName": "stripe",
                 "symbol": "inline_response_200",
                 "version": "2.0.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "inline_response_200_5",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "inline_response_200_5",
+                "version": "2.0.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "zendesk",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "Inline_response_200",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_zendesk_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "zendesk",
+                "packageName": "zendesk",
+                "symbol": "Inline_response_200",
+                "version": "2.0.0"
               },
               "enabled": true
             }
