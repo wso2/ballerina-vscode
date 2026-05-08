@@ -460,20 +460,20 @@ function DeploymentOptions({
         ? (currentProjectMeta?.hasComponent ?? false)
         : false;
 
-    const stopRefreshing = () => {
+    const stopRefreshing = useCallback(() => {
         setIsRefreshing(false);
         deployedAtRefreshStart.current = null;
         waitForLastFetchRef.current = false;
         sawFetchingRef.current = false;
         if (pollIntervalRef.current !== null) { clearInterval(pollIntervalRef.current); pollIntervalRef.current = null; }
-    };
+    }, []);
 
     // Early exit: stop as soon as isDeployed changes from what it was at click time.
     useEffect(() => {
         if (isRefreshing && deployedAtRefreshStart.current !== null && isDeployed !== deployedAtRefreshStart.current) {
             stopRefreshing();
         }
-    }, [isDeployed, isRefreshing]);
+    }, [isDeployed, isRefreshing, stopRefreshing]);
 
     // Final-poll exit: called after the 5th poll. Waits for isFetching to go true→false,
     // which fires in a useEffect — meaning devantMetadata is already updated in React state
@@ -485,7 +485,7 @@ function DeploymentOptions({
         } else if (sawFetchingRef.current) {
             stopRefreshing();
         }
-    }, [isFetching]);
+    }, [isFetching, stopRefreshing]);
 
     useEffect(() => {
         return () => { if (pollIntervalRef.current !== null) clearInterval(pollIntervalRef.current); };
