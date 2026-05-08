@@ -171,7 +171,15 @@ export const FieldFactory = (props: FieldFactoryProps) => {
     const notifyModeChange = useCallback((mode: InputMode) => {
         currentInputModeRef.current = mode;
         setInputMode(mode);
-    }, [ props.field.key]);
+    }, [props.field.key]);
+
+    const updateFieldTypesSelection = (targetMode: InputMode) => {
+        props.field.types?.forEach(type => {
+            if (type.fieldType !== "GROUP_SECTION") {
+                type.selected = getInputModeFromTypes(type) === targetMode;
+            }
+        });
+    };
 
     useEffect(() => {
         if (!props.field.types || props.field.types.length === 0) {
@@ -241,13 +249,6 @@ export const FieldFactory = (props: FieldFactoryProps) => {
         }
     }, [notifyModeChange, props.handleFormValidation, form, props.field.key]);
 
-    const updateFieldTypesSelection = (targetMode: InputMode) => {
-        props.field.types?.forEach(type => {
-            if (type.fieldType !== "GROUP_SECTION") {
-                type.selected = getInputModeFromTypes(type) === targetMode;
-            }
-        });
-    };
 
     const editorElements = useMemo(() => {
         if (!renderingEditors) return null;
