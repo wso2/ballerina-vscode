@@ -287,7 +287,6 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
     const [formDiagnostics, setFormDiagnostics] = useState<DiagnosticMessage[]>([]);
     const [isAiUserAuthenticated, setIsAiUserAuthenticated] = useState(false);
     const formImportsRef = useRef<FormImports>({});
-    const fieldModesRef = useRef<Record<string, InputMode>>({});
     const [typeEditorState, setTypeEditorState] = useState<FlowNodeTypeEditorState>({ isOpen: false, newTypeValue: "" });
     const [visualizableField, setVisualizableField] = useState<VisualizableField>();
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
@@ -763,24 +762,6 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
 
         // Update node properties
         const nodeWithUpdatedProps = updateNodeWithProperties(clonedNode, updatedNode, processedData, formImportsRef.current, dirtyFields);
-
-        // Sync types[].selected from the tracked field modes so the diagnostics request
-        // reflects the user's currently active input mode for each property.
-        const trackedModes = fieldModesRef.current;
-        if (Object.keys(trackedModes).length > 0) {
-            const nodeProps = nodeWithUpdatedProps.properties ?? (nodeWithUpdatedProps.branches?.[0]?.properties);
-            if (nodeProps) {
-                for (const [fieldKey, mode] of Object.entries(trackedModes)) {
-                    const nodeProp = (nodeProps as Record<string, any>)[fieldKey];
-                    if (nodeProp?.types) {
-                        nodeProp.types = nodeProp.types.map((t: InputType) => ({
-                            ...t,
-                            selected: getInputModeFromTypes(t) === mode,
-                        }));
-                    }
-                }
-            }
-        }
 
         // check all nodes and remove empty nodes
         return removeEmptyNodes(nodeWithUpdatedProps);
