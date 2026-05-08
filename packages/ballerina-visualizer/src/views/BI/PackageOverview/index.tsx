@@ -17,7 +17,7 @@
  */
 
 import React, { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { EditableTitle } from "../../../components/EditableTitle";
 import {
     ProjectStructure,
@@ -427,8 +427,15 @@ function DeploymentOptions({
     projectPath
 }: DeploymentOptionsProps) {
     const [expandedOptions, setExpandedOptions] = useState<Set<string>>(new Set(['cloud', 'devant']));
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const deployedAtRefreshStart = useRef<boolean | null>(null);
+    const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    // Armed after the last poll fires. sawFetching ensures we wait for true→false transition.
+    const waitForLastFetchRef = useRef(false);
+    const sawFetchingRef = useRef(false);
     const { rpcClient } = useRpcContext();
     const { platformExtState } = usePlatformExtContext();
+    const queryClient = useQueryClient();
 
     const toggleOption = (option: string) => {
         setExpandedOptions(prev => {
@@ -442,7 +449,7 @@ function DeploymentOptions({
         });
     };
 
-    const { data: devantMetadata, isLoading: isDevantLoading } = useQuery({
+    const { data: devantMetadata, isLoading: isDevantLoading, isFetching } = useQuery({
         queryKey: ["project-devant-metadata", projectPath],
         queryFn: () => rpcClient.getBIDiagramRpcClient().getWorkspaceDevantMetadata(),
         enabled: platformExtState.isExtInstalled,
@@ -452,6 +459,61 @@ function DeploymentOptions({
     const isDeployed = devantMetadata?.isLoggedIn
         ? (currentProjectMeta?.hasComponent ?? false)
         : false;
+
+    const stopRefreshing = () => {
+        setIsRefreshing(false);
+        deployedAtRefreshStart.current = null;
+        waitForLastFetchRef.current = false;
+        sawFetchingRef.current = false;
+        if (pollIntervalRef.current !== null) { clearInterval(pollIntervalRef.current); pollIntervalRef.current = null; }
+    };
+
+    // Early exit: stop as soon as isDeployed changes from what it was at click time.
+    useEffect(() => {
+        if (isRefreshing && deployedAtRefreshStart.current !== null && isDeployed !== deployedAtRefreshStart.current) {
+            stopRefreshing();
+        }
+    }, [isDeployed, isRefreshing]);
+
+    // Final-poll exit: called after the 5th poll. Waits for isFetching to go true→false,
+    // which fires in a useEffect — meaning devantMetadata is already updated in React state
+    // before we clear the spinner, so the UI transition and spinner removal are atomic.
+    useEffect(() => {
+        if (!waitForLastFetchRef.current) return;
+        if (isFetching) {
+            sawFetchingRef.current = true;
+        } else if (sawFetchingRef.current) {
+            stopRefreshing();
+        }
+    }, [isFetching]);
+
+    useEffect(() => {
+        return () => { if (pollIntervalRef.current !== null) clearInterval(pollIntervalRef.current); };
+    }, []);
+
+    const handleRefreshDeploymentStatus = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        deployedAtRefreshStart.current = isDeployed;
+        waitForLastFetchRef.current = false;
+        sawFetchingRef.current = false;
+        setIsRefreshing(true);
+        rpcClient.getCommonRpcClient().executeCommand({
+            commands: [WICommandIds.RefreshDirectoryContext],
+        });
+        let pollCount = 0;
+        pollIntervalRef.current = setInterval(() => {
+            pollCount++;
+            queryClient.invalidateQueries({ queryKey: ["project-devant-metadata", projectPath] });
+            if (pollCount >= 5) {
+                // Stop scheduling more polls but keep the spinner alive until this fetch
+                // lands in React state (handled by the isFetching useEffect above).
+                clearInterval(pollIntervalRef.current!);
+                pollIntervalRef.current = null;
+                waitForLastFetchRef.current = true;
+                sawFetchingRef.current = false;
+            }
+        }, 1500);
+    };
     return (
         <>
             <div>
@@ -463,17 +525,13 @@ function DeploymentOptions({
                             isDeployed ? (
                                 <DevantHeaderWrap>
                                     <span>Deployed in WSO2 Cloud</span>
-                                    <Button
-                                        appearance="icon"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            rpcClient.getCommonRpcClient().executeCommand({
-                                                commands: [WICommandIds.RefreshDirectoryContext],
-                                            });
-                                        }}
-                                    >
-                                        <Codicon name="refresh" />
-                                    </Button>
+                                    {isRefreshing ? (
+                                        <ProgressRing sx={{ width: 16, height: 16 }} />
+                                    ) : (
+                                        <Button appearance="icon" onClick={handleRefreshDeploymentStatus}>
+                                            <Codicon name="refresh" />
+                                        </Button>
+                                    )}
                                 </DevantHeaderWrap>
                             ) : (
                                 "Deploy to WSO2 Cloud"
@@ -489,7 +547,7 @@ function DeploymentOptions({
                         onToggle={() => toggleOption("devant")}
                         onDeploy={isDeployed ? () => goToDevant() : handleDeploy}
                         learnMoreLink={"https://wso2.com/devant/docs/"}
-                        hasDeployableIntegration={hasDeployableIntegration}
+                        hasDeployableIntegration={hasDeployableIntegration && !isRefreshing}
                         secondaryAction={
                             isDeployed && currentProjectMeta?.hasLocalChanges
                                 ? {
@@ -904,13 +962,13 @@ export function PackageOverview(props: PackageOverviewProps) {
     const handleICP = (icpEnabled: boolean) => {
         if (icpEnabled) {
             rpcClient.getICPRpcClient().addICP({ projectPath: '' })
-                .then((res) => {
+                .then(() => {
                     setEnableICP(true);
                 }
                 );
         } else {
             rpcClient.getICPRpcClient().disableICP({ projectPath: '' })
-                .then((res) => {
+                .then(() => {
                     setEnableICP(false);
                 }
                 );
@@ -972,7 +1030,7 @@ export function PackageOverview(props: PackageOverviewProps) {
         })
     };
 
-    async function handleSettings() {
+    function handleSettings() {
         rpcClient.getAiPanelRpcClient().openAIPanel({
             type: 'text',
             planMode: false,
@@ -980,8 +1038,8 @@ export function PackageOverview(props: PackageOverviewProps) {
         });
     }
 
-    async function handleClose() {
-        await rpcClient.getAiPanelRpcClient().markAlertShown();
+    function handleClose() {
+        rpcClient.getAiPanelRpcClient().markAlertShown();
         setShowAlert(false);
     }
 

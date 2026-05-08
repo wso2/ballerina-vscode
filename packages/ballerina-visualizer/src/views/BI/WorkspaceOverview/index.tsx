@@ -26,7 +26,7 @@ import {
     WorkspaceDevantMetadata
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { IOpenInConsoleCmdParams, WICommandIds } from "@wso2/wso2-platform-core";
 import { Typography, Codicon, ProgressRing, Button, Icon, Divider } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
@@ -253,6 +253,13 @@ const DeploymentOptionContainer = styled.div<DeploymentOptionContainerProps>`
     }
 `;
 
+const DeploymentTitleWrap = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+`;
+
 const DeploymentHeader = styled.div`
     display: flex;
     align-items: center;
@@ -261,6 +268,7 @@ const DeploymentHeader = styled.div`
         font-size: 13px;
         font-weight: 600;
         margin: 0;
+        width: 100%;
     }
 `;
 
@@ -276,7 +284,7 @@ const DeploymentBody = styled.div<DeploymentBodyProps>`
 `;
 
 interface DeploymentOptionProps {
-    title: string;
+    title: React.ReactNode;
     description: string;
     buttonText: string;
     isExpanded: boolean;
@@ -393,8 +401,22 @@ function DeploymentOptions({
     libraryProjectPaths
 }: DeploymentOptionsProps) {
     const [expandedOptions, setExpandedOptions] = useState<Set<string>>(new Set(['cloud']));
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const deployedCountAtRefreshStart = useRef<number | null>(null);
+    const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const waitForLastFetchRef = useRef(false);
+    const sawFetchingRef = useRef(false);
     const { rpcClient } = useRpcContext();
     const { platformExtState } = usePlatformExtContext();
+    const queryClient = useQueryClient();
+
+    // Lightweight subscription to get isFetching for the same query key.
+    // TanStack Query deduplicates network requests, so no extra API calls are made.
+    const { isFetching: devantFetching } = useQuery({
+        queryKey: ["project-devant-metadata"],
+        queryFn: () => rpcClient.getBIDiagramRpcClient().getWorkspaceDevantMetadata(),
+        refetchInterval: 5000,
+    });
 
     const toggleOption = (option: string) => {
         setExpandedOptions(prev => {
@@ -416,13 +438,74 @@ function DeploymentOptions({
         p => !p.hasComponent && !libraryProjectPaths.has(p.projectPath)
     ) || [];
     const deployedWithChanges = deployedProjects.filter(p => p.hasLocalChanges);
-    
+
     const hasDeployedProjects = deployedProjects.length > 0;
     const hasUndeployedProjects = undeployedProjects.length > 0;
+
+    const stopRefreshing = () => {
+        setIsRefreshing(false);
+        deployedCountAtRefreshStart.current = null;
+        waitForLastFetchRef.current = false;
+        sawFetchingRef.current = false;
+        if (pollIntervalRef.current !== null) { clearInterval(pollIntervalRef.current); pollIntervalRef.current = null; }
+    };
+
+    // Early exit: stop as soon as deployedProjects.length changes from what it was at click time.
+    useEffect(() => {
+        if (isRefreshing && deployedCountAtRefreshStart.current !== null && deployedProjects.length !== deployedCountAtRefreshStart.current) {
+            stopRefreshing();
+        }
+    }, [deployedProjects.length, isRefreshing]);
+
+    // Final-poll exit: after the 5th poll, wait for devantFetching to go true→false.
+    // useEffect fires after the render, so devantMetadata (and deployedProjects) is already
+    // updated before the spinner is cleared — UI transition and spinner removal are atomic.
+    useEffect(() => {
+        if (!waitForLastFetchRef.current) return;
+        if (devantFetching) {
+            sawFetchingRef.current = true;
+        } else if (sawFetchingRef.current) {
+            stopRefreshing();
+        }
+    }, [devantFetching]);
+
+    useEffect(() => {
+        return () => { if (pollIntervalRef.current !== null) clearInterval(pollIntervalRef.current); };
+    }, []);
+
+    const handleRefreshDeploymentStatus = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        deployedCountAtRefreshStart.current = deployedProjects.length;
+        waitForLastFetchRef.current = false;
+        sawFetchingRef.current = false;
+        setIsRefreshing(true);
+        rpcClient.getCommonRpcClient().executeCommand({
+            commands: [WICommandIds.RefreshDirectoryContext],
+        });
+        let pollCount = 0;
+        pollIntervalRef.current = setInterval(() => {
+            pollCount++;
+            queryClient.invalidateQueries({ queryKey: ["project-devant-metadata"] });
+            if (pollCount >= 5) {
+                clearInterval(pollIntervalRef.current!);
+                pollIntervalRef.current = null;
+                waitForLastFetchRef.current = true;
+                sawFetchingRef.current = false;
+            }
+        }, 1500);
+    };
     const hasDeployedWithChanges = deployedWithChanges.length > 0;
 
+    const refreshButton = isRefreshing ? (
+        <ProgressRing sx={{ width: 16, height: 16 }} />
+    ) : (
+        <Button appearance="icon" onClick={handleRefreshDeploymentStatus}>
+            <Codicon name="refresh" />
+        </Button>
+    );
+
     // Determine title, description, button text, and whether deployment is allowed
-    let title = "Deploy to WSO2 Cloud";
+    let title: React.ReactNode = "Deploy to WSO2 Cloud";
     let description = "Deploy your integrations to WSO2 Cloud.";
     let buttonText = "Deploy";
     let primaryAction: () => void | Promise<void> = handleDeploy;
@@ -432,7 +515,12 @@ function DeploymentOptions({
 
     if (hasDeployedProjects && !hasUndeployedProjects) {
         // All projects are deployed - disable deployment button
-        title = "Deployed in WSO2 Cloud";
+        title = (
+            <DeploymentTitleWrap>
+                <span>Deployed in WSO2 Cloud</span>
+                {refreshButton}
+            </DeploymentTitleWrap>
+        );
         description = "All integrations are deployed in WSO2 Cloud.";
         buttonText = "View in Console";
         primaryAction = goToDevant;
@@ -447,7 +535,12 @@ function DeploymentOptions({
         }
     } else if (hasDeployedProjects && hasUndeployedProjects) {
         // Mixed state: some deployed, some not - show clear message about remaining
-        title = "Partially Deployed in WSO2 Cloud";
+        title = (
+            <DeploymentTitleWrap>
+                <span>Partially Deployed in WSO2 Cloud</span>
+                {refreshButton}
+            </DeploymentTitleWrap>
+        );
         
         // Separate deployable and non-deployable undeployed projects
         const deployableUndeployed = undeployedProjects.filter(p => deployableProjectPaths.has(p.projectPath));
@@ -501,8 +594,8 @@ function DeploymentOptions({
                         onToggle={() => toggleOption("cloud")}
                         onDeploy={primaryAction}
                         learnMoreLink={"https://wso2.com/devant/docs/"}
-                        hasDeployableIntegration={!isDeploymentDisabled}
-                        disabledTooltip={disabledTooltip}
+                        hasDeployableIntegration={!isDeploymentDisabled && !isRefreshing}
+                        disabledTooltip={isRefreshing ? "Refreshing deployment status…" : disabledTooltip}
                         secondaryAction={secondaryAction}
                     />
                 )}
