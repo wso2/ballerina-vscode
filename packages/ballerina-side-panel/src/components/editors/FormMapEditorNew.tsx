@@ -153,24 +153,6 @@ export const FormMapEditorNew = (props: FormFieldEditorProps & {
         return true;
     };
 
-    const handleElementFieldModeChange = (fieldKey: string, mode: InputMode) => {
-        const updated = repeatableFields.map(fieldPair => {
-            const fieldIdx = fieldPair.findIndex(f => f.key === fieldKey);
-            if (fieldIdx === -1) return fieldPair;
-            const updatedPair = [...fieldPair];
-            updatedPair[fieldIdx] = {
-                ...updatedPair[fieldIdx],
-                types: updatedPair[fieldIdx].types.map(t => ({
-                    ...t,
-                    selected: getInputModeFromTypes(t) === mode,
-                })),
-            };
-            return updatedPair;
-        });
-        setRepeatableFields(updated);
-        props.onChange(processToOutputFormat(updated));
-    };
-
     const handleAddNewItem = () => {
         const key = crypto.randomUUID();
         if (!(props.field.types[0] as any).template) return;
@@ -361,7 +343,6 @@ export const FormMapEditorNew = (props: FormFieldEditorProps & {
                                         handleFormOnChange(fieldKey, value, allValues, formField[0].key);
                                     }}
                                     onFormValidation={handleElementFormValidation}
-                                    onFieldModeChange={handleElementFieldModeChange}
                                     expressionEditor={{
                                         ...expressionEditor,
                                         onCompletionItemSelect: expressionEditor?.onCompletionItemSelect,
