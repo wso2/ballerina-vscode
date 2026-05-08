@@ -383,6 +383,7 @@ interface DeploymentOptionsProps {
     handleDeploy: () => Promise<void>;
     goToDevant: () => void;
     devantMetadata: WorkspaceDevantMetadata | undefined;
+    devantFetching: boolean;
     hasDeployableIntegration: boolean;
     hasUndeployedIntegrations: boolean;
     deployableProjectPaths: Set<string>;
@@ -395,6 +396,7 @@ function DeploymentOptions({
     handleDeploy,
     goToDevant,
     devantMetadata,
+    devantFetching,
     hasDeployableIntegration,
     hasUndeployedIntegrations,
     deployableProjectPaths,
@@ -409,14 +411,6 @@ function DeploymentOptions({
     const { rpcClient } = useRpcContext();
     const { platformExtState } = usePlatformExtContext();
     const queryClient = useQueryClient();
-
-    // Lightweight subscription to get isFetching for the same query key.
-    // TanStack Query deduplicates network requests, so no extra API calls are made.
-    const { isFetching: devantFetching } = useQuery({
-        queryKey: ["project-devant-metadata"],
-        queryFn: () => rpcClient.getBIDiagramRpcClient().getWorkspaceDevantMetadata(),
-        refetchInterval: 5000,
-    });
 
     const toggleOption = (option: string) => {
         setExpandedOptions(prev => {
@@ -442,20 +436,20 @@ function DeploymentOptions({
     const hasDeployedProjects = deployedProjects.length > 0;
     const hasUndeployedProjects = undeployedProjects.length > 0;
 
-    const stopRefreshing = () => {
+    const stopRefreshing = useCallback(() => {
         setIsRefreshing(false);
         deployedCountAtRefreshStart.current = null;
         waitForLastFetchRef.current = false;
         sawFetchingRef.current = false;
         if (pollIntervalRef.current !== null) { clearInterval(pollIntervalRef.current); pollIntervalRef.current = null; }
-    };
+    }, []);
 
     // Early exit: stop as soon as deployedProjects.length changes from what it was at click time.
     useEffect(() => {
         if (isRefreshing && deployedCountAtRefreshStart.current !== null && deployedProjects.length !== deployedCountAtRefreshStart.current) {
             stopRefreshing();
         }
-    }, [deployedProjects.length, isRefreshing]);
+    }, [deployedProjects.length, isRefreshing, stopRefreshing]);
 
     // Final-poll exit: after the 5th poll, wait for devantFetching to go true→false.
     // useEffect fires after the render, so devantMetadata (and deployedProjects) is already
@@ -467,7 +461,7 @@ function DeploymentOptions({
         } else if (sawFetchingRef.current) {
             stopRefreshing();
         }
-    }, [devantFetching]);
+    }, [devantFetching, stopRefreshing]);
 
     useEffect(() => {
         return () => { if (pollIntervalRef.current !== null) clearInterval(pollIntervalRef.current); };
@@ -780,7 +774,7 @@ export function WorkspaceOverview({ isInDevant }: WorkspaceOverviewProps) {
     const [showAlert, setShowAlert] = React.useState(false);
     const [icpActionLoading, setIcpActionLoading] = React.useState<IcpAction | null>(null);
 
-    const { data: devantMetadata } = useQuery({
+    const { data: devantMetadata, isFetching: devantFetching } = useQuery({
         queryKey: ["project-devant-metadata"],
         queryFn: () => rpcClient.getBIDiagramRpcClient().getWorkspaceDevantMetadata(),
         refetchInterval: 5000
@@ -1217,6 +1211,7 @@ export function WorkspaceOverview({ isInDevant }: WorkspaceOverviewProps) {
                                     handleDeploy={handleDeploy}
                                     goToDevant={goToDevant}
                                     devantMetadata={devantMetadata}
+                                    devantFetching={devantFetching}
                                     hasDeployableIntegration={hasDeployableIntegration}
                                     hasUndeployedIntegrations={undeployedProjectScopes.length > 0}
                                     deployableProjectPaths={deployableProjectPaths}
