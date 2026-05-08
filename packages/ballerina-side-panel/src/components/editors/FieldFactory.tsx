@@ -47,10 +47,9 @@ type FieldFactoryProps = {
     handleNewTypeSelected?: (type: string | CompletionItem) => void;
     scopeFieldAddon?: React.ReactNode;
     isContextTypeEditorSupported?: boolean;
-    handleFormValidation?: (formData?: FormValues) => Promise<boolean>;
+    handleFormValidation?: (formData?: FormValues, forceValidation?: boolean) => Promise<boolean>;
     openFormTypeEditor?: (open: boolean, newType?: string) => void;
     updateImports?: (key: string, imports: Imports) => void;
-    onFieldModeChange?: (fieldKey: string, mode: InputMode) => void;
 }
 
 
@@ -172,8 +171,15 @@ export const FieldFactory = (props: FieldFactoryProps) => {
     const notifyModeChange = useCallback((mode: InputMode) => {
         currentInputModeRef.current = mode;
         setInputMode(mode);
-        props.onFieldModeChange?.(props.field.key, mode);
-    }, [props.onFieldModeChange, props.field.key]);
+    }, [props.field.key]);
+
+    const updateFieldTypesSelection = (targetMode: InputMode) => {
+        props.field.types?.forEach(type => {
+            if (type.fieldType !== "GROUP_SECTION") {
+                type.selected = getInputModeFromTypes(type) === targetMode;
+            }
+        });
+    };
 
     useEffect(() => {
         if (!props.field.types || props.field.types.length === 0) {
@@ -206,6 +212,7 @@ export const FieldFactory = (props: FieldFactoryProps) => {
                 initialInputMode = currentInputModeRef.current;
             }
         }
+        updateFieldTypesSelection(initialInputMode);
     }, [props.field, props.recordTypeFields, notifyModeChange]);
 
     const isModeSwitcherEnabled = useMemo(() => {
@@ -219,9 +226,10 @@ export const FieldFactory = (props: FieldFactoryProps) => {
 
     const handleModeChange = useCallback((mode: InputMode) => {
         notifyModeChange(mode);
+        updateFieldTypesSelection(mode);
 
         if (!form) {
-            props.handleFormValidation?.();
+            props.handleFormValidation?.(undefined, true);
             return;
         }
 
@@ -231,15 +239,16 @@ export const FieldFactory = (props: FieldFactoryProps) => {
             try {
                 const config = getEditorConfiguration(mode);
                 const convertedValue = config.deserializeValue(currentFieldValue);
-                props.handleFormValidation?.({ ...currentValues, [props.field.key]: convertedValue });
+                props.handleFormValidation?.({ ...currentValues, [props.field.key]: convertedValue }, true);
             } catch (error) {
                 console.error("Error converting field value on mode change", error);
-                props.handleFormValidation?.(currentValues);
+                props.handleFormValidation?.(currentValues, true);
             }
         } else {
-            props.handleFormValidation?.({ ...currentValues, [props.field.key]: "" });
+            props.handleFormValidation?.(currentValues, true);
         }
     }, [notifyModeChange, props.handleFormValidation, form, props.field.key]);
+
 
     const editorElements = useMemo(() => {
         if (!renderingEditors) return null;

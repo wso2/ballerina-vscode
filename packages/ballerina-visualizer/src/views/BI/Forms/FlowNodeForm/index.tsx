@@ -287,7 +287,6 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
     const [formDiagnostics, setFormDiagnostics] = useState<DiagnosticMessage[]>([]);
     const [isAiUserAuthenticated, setIsAiUserAuthenticated] = useState(false);
     const formImportsRef = useRef<FormImports>({});
-    const fieldModesRef = useRef<Record<string, InputMode>>({});
     const [typeEditorState, setTypeEditorState] = useState<FlowNodeTypeEditorState>({ isOpen: false, newTypeValue: "" });
     const [visualizableField, setVisualizableField] = useState<VisualizableField>();
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
@@ -752,9 +751,6 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
         [onChange]
     );
 
-    const handleFieldModeChange = useCallback((fieldKey: string, mode: InputMode) => {
-        fieldModesRef.current = { ...fieldModesRef.current, [fieldKey]: mode };
-    }, []);
 
     const mergeFormDataWithFlowNode = (data: FormValues, targetLineRange: LineRange, dirtyFields?: any): FlowNode => {
         const clonedNode = cloneDeep(node);
@@ -766,24 +762,6 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
 
         // Update node properties
         const nodeWithUpdatedProps = updateNodeWithProperties(clonedNode, updatedNode, processedData, formImportsRef.current, dirtyFields);
-
-        // Sync types[].selected from the tracked field modes so the diagnostics request
-        // reflects the user's currently active input mode for each property.
-        const trackedModes = fieldModesRef.current;
-        if (Object.keys(trackedModes).length > 0) {
-            const nodeProps = nodeWithUpdatedProps.properties ?? (nodeWithUpdatedProps.branches?.[0]?.properties);
-            if (nodeProps) {
-                for (const [fieldKey, mode] of Object.entries(trackedModes)) {
-                    const nodeProp = (nodeProps as Record<string, any>)[fieldKey];
-                    if (nodeProp?.types) {
-                        nodeProp.types = nodeProp.types.map((t: InputType) => ({
-                            ...t,
-                            selected: getInputModeFromTypes(t) === mode,
-                        }));
-                    }
-                }
-            }
-        }
 
         // check all nodes and remove empty nodes
         return removeEmptyNodes(nodeWithUpdatedProps);
@@ -1872,7 +1850,6 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                     formImports={formImportsRef.current}
                     handleSelectedTypeChange={handleSelectedTypeChange}
                     preserveOrder={node.codedata.node === "VARIABLE" as NodeKind || node.codedata.node === "CONFIG_VARIABLE" as NodeKind}
-                    onFieldModeChange={handleFieldModeChange}
                 />
                 {
                     stack.map((item, i) => <DynamicModal
@@ -2018,7 +1995,6 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                     derivedFields={props.derivedFields}
                     updateImports={handleUpdateImports}
                     defaultExpandAdvanced={props.defaultExpandAdvanced}
-                    onFieldModeChange={handleFieldModeChange}
                 />
             )}
             {stack.map((item, i) => (
