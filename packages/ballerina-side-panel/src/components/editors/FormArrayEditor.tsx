@@ -100,21 +100,6 @@ export const FormArrayEditor = (props: FormFieldEditorProps & {
             variableType);
     };
 
-    const handleElementFieldModeChange = (fieldKey: string, mode: InputMode) => {
-        const updated = repeatableFields.map(formField => {
-            if (formField.key !== fieldKey) return formField;
-            return {
-                ...formField,
-                types: formField.types.map(t => ({
-                    ...t,
-                    selected: getInputModeFromTypes(t) === mode,
-                })),
-            };
-        });
-        setRepeatableFields(updated);
-        props.onChange(updated);
-    };
-
     const handleElementFormValidation = async (data: FormValues, dirtyFields?: any): Promise<boolean> => {
         const key = Object.keys(data)[0];
         if (!key) return true;
@@ -272,7 +257,6 @@ export const FormArrayEditor = (props: FormFieldEditorProps & {
                                     handleFormOnChange(fieldKey, value, allValues, formField.key);
                                 }}
                                 onFormValidation={handleElementFormValidation}
-                                onFieldModeChange={handleElementFieldModeChange}
                                 expressionEditor={{
                                     ...expressionEditor,
                                     onCompletionItemSelect: expressionEditor?.onCompletionItemSelect,
