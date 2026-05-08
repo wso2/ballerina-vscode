@@ -752,9 +752,6 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
         [onChange]
     );
 
-    const handleFieldModeChange = useCallback((fieldKey: string, mode: InputMode) => {
-        fieldModesRef.current = { ...fieldModesRef.current, [fieldKey]: mode };
-    }, []);
 
     const mergeFormDataWithFlowNode = (data: FormValues, targetLineRange: LineRange, dirtyFields?: any): FlowNode => {
         const clonedNode = cloneDeep(node);
@@ -1872,7 +1869,6 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                     formImports={formImportsRef.current}
                     handleSelectedTypeChange={handleSelectedTypeChange}
                     preserveOrder={node.codedata.node === "VARIABLE" as NodeKind || node.codedata.node === "CONFIG_VARIABLE" as NodeKind}
-                    onFieldModeChange={handleFieldModeChange}
                 />
                 {
                     stack.map((item, i) => <DynamicModal
@@ -2018,7 +2014,6 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                     derivedFields={props.derivedFields}
                     updateImports={handleUpdateImports}
                     defaultExpandAdvanced={props.defaultExpandAdvanced}
-                    onFieldModeChange={handleFieldModeChange}
                 />
             )}
             {stack.map((item, i) => (
