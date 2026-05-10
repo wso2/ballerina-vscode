@@ -19,7 +19,7 @@
 import React, { useState, useEffect, memo } from "react";
 import { DiagramEngine, DiagramModel } from "@projectstorm/react-diagrams";
 import { cloneDeep } from "lodash";
-import { NavigationWrapperCanvasWidget } from "@wso2/ui-toolkit";
+import { NavigationWrapperCanvasWidget } from "./DiagramNavigationWrapper/NavigationWrapperCanvasWidget";
 
 import {
     clearDiagramZoomAndPosition,
@@ -355,6 +355,12 @@ export function Diagram(props: DiagramProps) {
         return node;
     };
 
+    const getDraftNode = (nodes: NodeModel[]): NodeModel | undefined =>
+        nodes.find((node) => node.getType() === NodeTypes.DRAFT_NODE);
+
+    const getFocusedNode = (nodes: NodeModel[]): NodeModel | undefined =>
+        getActiveBreakpointNode(nodes) || getDraftNode(nodes);
+
     return (
         <>
             <Controls engine={diagramEngine} />
@@ -364,7 +370,7 @@ export function Diagram(props: DiagramProps) {
                     <DiagramCanvas>
                         <NavigationWrapperCanvasWidget
                             diagramEngine={diagramEngine}
-                            focusedNode={getActiveBreakpointNode(diagramModel.getNodes() as NodeModel[])}
+                            focusedNode={getFocusedNode(diagramModel.getNodes() as NodeModel[])}
                         />
                     </DiagramCanvas>
                 </DiagramContextProvider>
