@@ -40,6 +40,7 @@ async function withTimeout<T>(operation: Promise<T>, timeoutMs: number, timeoutM
 }
 
 import automation from './automation/automation.spec';
+import automationFlowNodes from './automation/flow-nodes.spec';
 import automationRun from './automation-run/automation-run.spec';
 import automationDebug from './automation-debug/automation-debug.spec';
 import expressionEditor from './expression-editor/expression-editor.spec';
@@ -110,6 +111,7 @@ test.describe('Ballerina E2E Group 1', { tag: '@group1' }, async () => {
 
     // <----Automation Test---->
     test.describe(automation);
+    test.describe(automationFlowNodes);
 
     // <----Automation Run Test---->
     test.describe(automationRun);
