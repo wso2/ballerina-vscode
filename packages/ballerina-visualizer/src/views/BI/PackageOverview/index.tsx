@@ -428,8 +428,6 @@ function DeploymentOptions({
 }: DeploymentOptionsProps) {
     const [expandedOptions, setExpandedOptions] = useState<Set<string>>(new Set(['cloud', 'devant']));
     const [isRefreshing, setIsRefreshing] = useState(false);
-    const deployedAtRefreshStart = useRef<boolean | null>(null);
-    const sawFetchingRef = useRef(false);
     const { rpcClient } = useRpcContext();
     const { platformExtState } = usePlatformExtContext();
 
@@ -445,7 +443,7 @@ function DeploymentOptions({
         });
     };
 
-    const { data: devantMetadata, isLoading: isDevantLoading, isFetching } = useQuery({
+    const { data: devantMetadata, isLoading: isDevantLoading, refetch: refetchDevantMetadata } = useQuery({
         queryKey: ["project-devant-metadata", projectPath],
         queryFn: () => rpcClient.getBIDiagramRpcClient().getWorkspaceDevantMetadata(),
         enabled: platformExtState.isExtInstalled,
@@ -458,33 +456,19 @@ function DeploymentOptions({
 
     const stopRefreshing = useCallback(() => {
         setIsRefreshing(false);
-        deployedAtRefreshStart.current = null;
-        sawFetchingRef.current = false;
     }, []);
-
-    // Early exit: stop as soon as isDeployed changes from what it was at click time.
-    useEffect(() => {
-        if (isRefreshing && deployedAtRefreshStart.current !== null && isDeployed !== deployedAtRefreshStart.current) {
-            stopRefreshing();
-        }
-    }, [isDeployed, isRefreshing, stopRefreshing]);
-
-    useEffect(() => {
-        if (isFetching) {
-            sawFetchingRef.current = true;
-        } else if (sawFetchingRef.current) {
-            stopRefreshing();
-        }
-    }, [isFetching, stopRefreshing]);
 
     const handleRefreshDeploymentStatus = async (e: React.MouseEvent) => {
         e.stopPropagation();
-        deployedAtRefreshStart.current = isDeployed;
-        sawFetchingRef.current = false;
         setIsRefreshing(true);
-        await rpcClient.getCommonRpcClient().executeCommand({
-            commands: [WICommandIds.RefreshDirectoryContext],
-        });
+        try {
+            await rpcClient.getCommonRpcClient().executeCommand({
+                commands: [WICommandIds.RefreshDirectoryContext],
+            });
+            await refetchDevantMetadata();
+        } finally {
+            stopRefreshing();
+        }
     };
 
     return (
@@ -501,7 +485,7 @@ function DeploymentOptions({
                                     {isRefreshing ? (
                                         <ProgressRing sx={{ width: 16, height: 16 }} />
                                     ) : (
-                                        <Button appearance="icon" onClick={async (e) => await handleRefreshDeploymentStatus(e)}>
+                                        <Button appearance="icon" tooltip="Refresh deployment status" onClick={handleRefreshDeploymentStatus}>
                                             <Codicon name="refresh" />
                                         </Button>
                                     )}

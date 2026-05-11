@@ -382,7 +382,7 @@ interface DeploymentOptionsProps {
     handleDeploy: () => Promise<void>;
     goToDevant: () => void;
     devantMetadata: WorkspaceDevantMetadata | undefined;
-    devantFetching: boolean;
+    refetchDevantMetadata: () => Promise<unknown>;
     hasDeployableIntegration: boolean;
     hasUndeployedIntegrations: boolean;
     deployableProjectPaths: Set<string>;
@@ -395,7 +395,7 @@ function DeploymentOptions({
     handleDeploy,
     goToDevant,
     devantMetadata,
-    devantFetching,
+    refetchDevantMetadata,
     hasDeployableIntegration,
     hasUndeployedIntegrations,
     deployableProjectPaths,
@@ -403,8 +403,6 @@ function DeploymentOptions({
 }: DeploymentOptionsProps) {
     const [expandedOptions, setExpandedOptions] = useState<Set<string>>(new Set(['cloud']));
     const [isRefreshing, setIsRefreshing] = useState(false);
-    const deployedCountAtRefreshStart = useRef<number | null>(null);
-    const sawFetchingRef = useRef(false);
     const { rpcClient } = useRpcContext();
     const { platformExtState } = usePlatformExtContext();
 
@@ -434,40 +432,26 @@ function DeploymentOptions({
 
     const stopRefreshing = useCallback(() => {
         setIsRefreshing(false);
-        deployedCountAtRefreshStart.current = null;
-        sawFetchingRef.current = false;
     }, []);
-
-    // Early exit: stop as soon as deployedProjects.length changes from what it was at click time.
-    useEffect(() => {
-        if (isRefreshing && deployedCountAtRefreshStart.current !== null && deployedProjects.length !== deployedCountAtRefreshStart.current) {
-            stopRefreshing();
-        }
-    }, [deployedProjects.length, isRefreshing, stopRefreshing]);
-
-    useEffect(() => {
-        if (devantFetching) {
-            sawFetchingRef.current = true;
-        } else if (sawFetchingRef.current) {
-            stopRefreshing();
-        }
-    }, [devantFetching, stopRefreshing]);
 
     const handleRefreshDeploymentStatus = async (e: React.MouseEvent) => {
         e.stopPropagation();
-        deployedCountAtRefreshStart.current = deployedProjects.length;
-        sawFetchingRef.current = false;
         setIsRefreshing(true);
-        await rpcClient.getCommonRpcClient().executeCommand({
-            commands: [WICommandIds.RefreshDirectoryContext],
-        });
+        try {
+            await rpcClient.getCommonRpcClient().executeCommand({
+                commands: [WICommandIds.RefreshDirectoryContext],
+            });
+            await refetchDevantMetadata();
+        } finally {
+            stopRefreshing();
+        }
     };
     const hasDeployedWithChanges = deployedWithChanges.length > 0;
 
     const refreshButton = isRefreshing ? (
         <ProgressRing sx={{ width: 16, height: 16 }} />
     ) : (
-        <Button appearance="icon" onClick={async (e) => await handleRefreshDeploymentStatus(e)}>
+        <Button appearance="icon" tooltip="Refresh deployment status" onClick={handleRefreshDeploymentStatus}>
             <Codicon name="refresh" />
         </Button>
     );
@@ -748,7 +732,7 @@ export function WorkspaceOverview({ isInDevant }: WorkspaceOverviewProps) {
     const [showAlert, setShowAlert] = React.useState(false);
     const [icpActionLoading, setIcpActionLoading] = React.useState<IcpAction | null>(null);
 
-    const { data: devantMetadata, isFetching: devantFetching } = useQuery({
+    const { data: devantMetadata, refetch: refetchDevantMetadata } = useQuery({
         queryKey: ["project-devant-metadata"],
         queryFn: () => rpcClient.getBIDiagramRpcClient().getWorkspaceDevantMetadata(),
         refetchInterval: 5000
@@ -1185,7 +1169,7 @@ export function WorkspaceOverview({ isInDevant }: WorkspaceOverviewProps) {
                                     handleDeploy={handleDeploy}
                                     goToDevant={goToDevant}
                                     devantMetadata={devantMetadata}
-                                    devantFetching={devantFetching}
+                                    refetchDevantMetadata={refetchDevantMetadata}
                                     hasDeployableIntegration={hasDeployableIntegration}
                                     hasUndeployedIntegrations={undeployedProjectScopes.length > 0}
                                     deployableProjectPaths={deployableProjectPaths}
