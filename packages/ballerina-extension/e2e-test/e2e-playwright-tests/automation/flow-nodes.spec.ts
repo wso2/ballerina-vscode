@@ -50,8 +50,15 @@ async function dismissHelperPanel() {
 async function saveForm(webview: Frame) {
     await dismissHelperPanel();
     await webview.getByRole('button', { name: 'Save' }).last().click({ force: true });
+    await webview.getByText(/Saving\.\.\./).waitFor({ state: 'hidden', timeout: 60000 }).catch(async (error) => {
+        const panelText = await webview.getByTestId('side-panel').innerText({ timeout: 1000 }).catch(() => '');
+        throw new Error(`Flow node form did not finish saving.\n${panelText}\n${error}`);
+    });
+    await webview.getByTestId('side-panel').waitFor({ state: 'hidden', timeout: 60000 }).catch(async (error) => {
+        const panelText = await webview.getByTestId('side-panel').innerText({ timeout: 1000 }).catch(() => '');
+        throw new Error(`Flow node form did not close after saving.\n${panelText}\n${error}`);
+    });
     await webview.locator('[data-testid="bi-diagram-canvas"]').waitFor({ state: 'visible', timeout: 60000 });
-    await webview.getByRole('button', { name: 'Save' }).waitFor({ state: 'hidden', timeout: 30000 }).catch(() => { });
     await page.page.waitForTimeout(1000);
 }
 
@@ -109,7 +116,7 @@ async function clickNextDiagramPlus(webview: Frame) {
 
         const candidates = elements.filter((element) => {
             const id = element.getAttribute('data-testid') || '';
-            return id.startsWith('link-add-button-') || id.startsWith('empty-node-add-button-');
+            return id.startsWith('link-add-button') || id.startsWith('empty-node-add-button');
         });
         const target = candidates.find((element) => (element.getAttribute('data-testid') || '').startsWith('empty-node-add-button'))
             || candidates[candidates.length - 2]
