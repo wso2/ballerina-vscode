@@ -86,7 +86,7 @@ async function addReturnNodeFromDiagram(locatorOwner: ReturnType<typeof switchTo
     logStep('Add Return node from diagram');
     for (let attempt = 0; attempt < 10; attempt++) {
         const addButton = locatorOwner.locator('[data-testid="empty-node-add-button-1"]').first();
-        if (await addButton.isVisible({ timeout: 1000 }).catch(() => false)) {
+        if (await addButton.waitFor({ state: 'visible', timeout: 1000 }).then(() => true, () => false)) {
             await addButton.hover({ force: true }).catch(() => {});
             await addButton.click({ force: true, timeout: 3000 }).catch(() => {});
         }
@@ -139,7 +139,7 @@ async function addReturnNodeFromDiagram(locatorOwner: ReturnType<typeof switchTo
     await locatorOwner.getByRole('button', { name: 'Close Helper Panel' }).click({ force: true }).catch(() => {});
     await locatorOwner.getByText('Return value.', { exact: true }).click({ force: true }).catch(() => {});
     await locatorOwner.getByRole('button', { name: 'Save' }).click({ force: true });
-    await expect(locatorOwner.getByText(/uploads\/\\$\\{name\\}|uploads/).first()).toBeVisible({ timeout: 60000 });
+    await expect(locatorOwner.getByText(/uploads\/\$\{name\}|uploads/).first()).toBeVisible({ timeout: 60000 });
     await expect.poll(() => FileUtils.readProjectFile('main.bal')).toContain('return {key: string `uploads/${name}`, size: payload.content.length()};');
 }
 

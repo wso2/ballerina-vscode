@@ -86,8 +86,8 @@ function resetAuthoringDataFolder() {
 }
 
 function resolveBallerinaVsixPath() {
-  const searchFolders = [extensionsFolder, repoRootExtensionsFolder].filter((folder) => fs.existsSync(folder));
-  const findFiles = () => searchFolders.flatMap((folder) => fs.readdirSync(folder)
+  const candidateFolders = [extensionsFolder, repoRootExtensionsFolder];
+  const findFiles = () => candidateFolders.filter((folder) => fs.existsSync(folder)).flatMap((folder) => fs.readdirSync(folder)
     .filter((file) => /^ballerina-.*\.vsix$/i.test(file))
     .filter((file) => !/^ballerina-integrator-/i.test(file))
     .map((file) => ({
@@ -109,7 +109,7 @@ function resolveBallerinaVsixPath() {
   }
 
   if (files.length === 0) {
-    throw new Error(`No local Ballerina VSIX found in: ${searchFolders.join(', ')} after running "rush build -t ballerina".`);
+    throw new Error(`No local Ballerina VSIX found in: ${candidateFolders.join(', ')} after running "rush build -t ballerina".`);
   }
   return files[0].fullPath;
 }
@@ -204,7 +204,7 @@ http.createServer((req, res) => {
     const preview = body.trim().slice(0, 120).replace(/\n/g, ' ');
     const run = async () => {
       log(`run: ${preview}`);
-      ctx.console = { log: (...args) => res.write(args.map(String).join(' ') + '\n') };
+      ctx.console = { log: (...args) => { if (!res.writableEnded) res.write(args.map(String).join(' ') + '\n'); } };
       const wrapped = `(async()=>{return(${body})})()`;
       let code;
       try {
@@ -213,8 +213,14 @@ http.createServer((req, res) => {
       } catch {
         code = `(async()=>{${body}})()`;
       }
-      const result = vm.runInContext(code, ctx, { timeout: 600000 });
-      return result instanceof Promise ? result : Promise.resolve(result);
+      const result = vm.runInContext(code, ctx);
+      if (!(result instanceof Promise)) return result;
+      const STEP_TIMEOUT_MS = 600000;
+      let timer;
+      const timeoutPromise = new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`step timed out after ${STEP_TIMEOUT_MS}ms`)), STEP_TIMEOUT_MS);
+      });
+      return Promise.race([result, timeoutPromise]).finally(() => clearTimeout(timer));
     };
     const next = tail.then(run);
     tail = next.then(() => {}, () => {});
@@ -226,6 +232,7 @@ http.createServer((req, res) => {
       },
       (error) => {
         log(`err: ${error.message}`);
+        res.writeHead(500);
         res.end((error.stack ?? error.message) + '\n');
       }
     );
@@ -234,7 +241,7 @@ http.createServer((req, res) => {
   const { port } = this.address();
   fs.writeFileSync(portFile, String(port));
   fs.writeFileSync(pidFile, String(process.pid));
-  fs.writeFileSync(execScript, `#!/bin/bash\nexec curl -s --max-time \${TIMEOUT:-900} -X POST http://127.0.0.1:${port} --data-binary @-\n`, { mode: 0o755 });
+  fs.writeFileSync(execScript, `#!/bin/bash\nexec curl -s --fail-with-body --max-time \${TIMEOUT:-900} -X POST http://127.0.0.1:${port} --data-binary @-\n`, { mode: 0o755 });
   log(`ready on :${port}`);
   console.error(`ballerina-e2e-writer daemon '${sessionName}' ready: ${execScript}`);
 });
