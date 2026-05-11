@@ -17,7 +17,7 @@
  */
 
 import React, { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { EditableTitle } from "../../../components/EditableTitle";
 import {
     ProjectStructure,
@@ -429,13 +429,9 @@ function DeploymentOptions({
     const [expandedOptions, setExpandedOptions] = useState<Set<string>>(new Set(['cloud', 'devant']));
     const [isRefreshing, setIsRefreshing] = useState(false);
     const deployedAtRefreshStart = useRef<boolean | null>(null);
-    const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-    // Armed after the last poll fires. sawFetching ensures we wait for true→false transition.
-    const waitForLastFetchRef = useRef(false);
     const sawFetchingRef = useRef(false);
     const { rpcClient } = useRpcContext();
     const { platformExtState } = usePlatformExtContext();
-    const queryClient = useQueryClient();
 
     const toggleOption = (option: string) => {
         setExpandedOptions(prev => {
@@ -463,9 +459,7 @@ function DeploymentOptions({
     const stopRefreshing = useCallback(() => {
         setIsRefreshing(false);
         deployedAtRefreshStart.current = null;
-        waitForLastFetchRef.current = false;
         sawFetchingRef.current = false;
-        if (pollIntervalRef.current !== null) { clearInterval(pollIntervalRef.current); pollIntervalRef.current = null; }
     }, []);
 
     // Early exit: stop as soon as isDeployed changes from what it was at click time.
@@ -475,11 +469,7 @@ function DeploymentOptions({
         }
     }, [isDeployed, isRefreshing, stopRefreshing]);
 
-    // Final-poll exit: called after the 5th poll. Waits for isFetching to go true→false,
-    // which fires in a useEffect — meaning devantMetadata is already updated in React state
-    // before we clear the spinner, so the UI transition and spinner removal are atomic.
     useEffect(() => {
-        if (!waitForLastFetchRef.current) return;
         if (isFetching) {
             sawFetchingRef.current = true;
         } else if (sawFetchingRef.current) {
@@ -487,33 +477,16 @@ function DeploymentOptions({
         }
     }, [isFetching, stopRefreshing]);
 
-    useEffect(() => {
-        return () => { if (pollIntervalRef.current !== null) clearInterval(pollIntervalRef.current); };
-    }, []);
-
-    const handleRefreshDeploymentStatus = (e: React.MouseEvent) => {
+    const handleRefreshDeploymentStatus = async (e: React.MouseEvent) => {
         e.stopPropagation();
         deployedAtRefreshStart.current = isDeployed;
-        waitForLastFetchRef.current = false;
         sawFetchingRef.current = false;
         setIsRefreshing(true);
-        rpcClient.getCommonRpcClient().executeCommand({
+        await rpcClient.getCommonRpcClient().executeCommand({
             commands: [WICommandIds.RefreshDirectoryContext],
         });
-        let pollCount = 0;
-        pollIntervalRef.current = setInterval(() => {
-            pollCount++;
-            queryClient.invalidateQueries({ queryKey: ["project-devant-metadata", projectPath] });
-            if (pollCount >= 5) {
-                // Stop scheduling more polls but keep the spinner alive until this fetch
-                // lands in React state (handled by the isFetching useEffect above).
-                clearInterval(pollIntervalRef.current!);
-                pollIntervalRef.current = null;
-                waitForLastFetchRef.current = true;
-                sawFetchingRef.current = false;
-            }
-        }, 1500);
     };
+
     return (
         <>
             <div>
@@ -528,7 +501,7 @@ function DeploymentOptions({
                                     {isRefreshing ? (
                                         <ProgressRing sx={{ width: 16, height: 16 }} />
                                     ) : (
-                                        <Button appearance="icon" onClick={handleRefreshDeploymentStatus}>
+                                        <Button appearance="icon" onClick={async (e) => await handleRefreshDeploymentStatus(e)}>
                                             <Codicon name="refresh" />
                                         </Button>
                                     )}
@@ -1038,8 +1011,8 @@ export function PackageOverview(props: PackageOverviewProps) {
         });
     }
 
-    function handleClose() {
-        rpcClient.getAiPanelRpcClient().markAlertShown();
+    async function handleClose() {
+        await rpcClient.getAiPanelRpcClient().markAlertShown();
         setShowAlert(false);
     }
 
