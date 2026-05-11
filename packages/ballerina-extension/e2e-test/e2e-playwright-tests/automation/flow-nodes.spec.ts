@@ -101,6 +101,9 @@ async function clickLinkButtonText(webview: Frame, text: string) {
     });
 }
 
+// Add buttons only appear on hover and are not stable Playwright targets; synthetic
+// mouse events via evaluateAll are used because standard hover()+click() does not
+// reliably trigger the diagram's React event handlers for these SVG overlay nodes.
 async function clickNextDiagramPlus(webview: Frame) {
     await webview.locator('[data-testid="bi-diagram-canvas"]').waitFor({ state: 'visible', timeout: 30000 });
     const clickedId = await webview.locator('[data-testid]').evaluateAll((elements) => {
