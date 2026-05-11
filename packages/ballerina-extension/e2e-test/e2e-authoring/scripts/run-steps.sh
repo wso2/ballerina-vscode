@@ -36,21 +36,17 @@ if [ -z "$PORT" ]; then
   [ -z "$PORT" ] && { echo "daemon '$NAME' failed to start (see $SESSION_DIR/daemon.log)" >&2; exit 1; }
 fi
 
-FILES="$(find "$STEPS_DIR" -maxdepth 1 -name '*.step.js' -type f | sort | while read -r file; do
+FILES=()
+while IFS= read -r file; do
   n="$(basename "$file" | grep -o '^[0-9]*')"
   if [ "$n" -ge "$FROM" ] 2>/dev/null && [ "$n" -le "$TO" ] 2>/dev/null; then
-    echo "$file"
+    FILES+=("$file")
   fi
-done)"
+done < <(find "$STEPS_DIR" -maxdepth 1 -name '*.step.js' -type f | sort)
 
-[ -n "$FILES" ] || { echo "no matching steps in $STEPS_DIR" >&2; exit 1; }
+[ "${#FILES[@]}" -gt 0 ] || { echo "no matching steps in $STEPS_DIR" >&2; exit 1; }
 
 echo "daemon '$NAME' on :$PORT" >&2
-echo "steps: $FILES" >&2
-OUTPUT="$(cat $FILES | "$EXEC")"
+printf 'steps: %s\n' "${FILES[@]}" >&2
+OUTPUT="$(cat "${FILES[@]}" | "$EXEC")" || { echo "step execution failed; see $SESSION_DIR/daemon.log" >&2; printf '%s\n' "$OUTPUT"; exit 1; }
 printf '%s\n' "$OUTPUT"
-
-if printf '%s\n' "$OUTPUT" | grep -Eq '(^|[[:space:]])(Error|SyntaxError|TimeoutError):|locator\.'; then
-  echo "step execution failed; see $SESSION_DIR/daemon.log" >&2
-  exit 1
-fi

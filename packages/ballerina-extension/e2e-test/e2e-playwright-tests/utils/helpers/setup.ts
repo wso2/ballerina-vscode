@@ -156,8 +156,8 @@ function getVsCodeProfileName(): string {
 }
 
 function resolveBallerinaVsixPath(): string {
-    const searchFolders = [extensionsFolder, repoRootExtensionsFolder].filter((folder) => fs.existsSync(folder));
-    const findVsixFiles = () => searchFolders.flatMap((folder) => fs.readdirSync(folder)
+    const candidateFolders = [extensionsFolder, repoRootExtensionsFolder];
+    const findVsixFiles = () => candidateFolders.filter((folder) => fs.existsSync(folder)).flatMap((folder) => fs.readdirSync(folder)
         .filter((file) => /^ballerina-.*\.vsix$/i.test(file) && !/^ballerina-integrator-/i.test(file))
         .map((file) => ({
             file,
@@ -178,7 +178,7 @@ function resolveBallerinaVsixPath(): string {
     }
 
     if (ballerinaVsixFiles.length === 0) {
-        throw new Error(`No local Ballerina VSIX found in: ${searchFolders.join(', ')} after running "rush build -t ballerina".`);
+        throw new Error(`No local Ballerina VSIX found in: ${candidateFolders.join(', ')} after running "rush build -t ballerina".`);
     }
 
     return ballerinaVsixFiles[0].fullPath;

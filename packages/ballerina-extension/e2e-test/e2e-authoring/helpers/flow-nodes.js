@@ -1,26 +1,26 @@
-const FLOW_NODES_BASE_SOURCE = [
+globalThis.FLOW_NODES_BASE_SOURCE = [
   'int count = 1',
   'string msg = "started"',
   'log:printInfo',
   'log:printDebug'
 ];
 
-const FLOW_NODES_IF_SOURCE = [
+globalThis.FLOW_NODES_IF_SOURCE = [
   'if count > 10',
   'else'
 ];
 
-const FLOW_NODES_LOGGING_SOURCE = [
+globalThis.FLOW_NODES_LOGGING_SOURCE = [
   'log:printError("sample error log")',
   'log:printWarn("sample warn log")'
 ];
 
-const FLOW_NODES_MATCH_SOURCE = [
+globalThis.FLOW_NODES_MATCH_SOURCE = [
   'match count',
   '1 =>'
 ];
 
-const FLOW_NODES_WHILE_SOURCE = [
+globalThis.FLOW_NODES_WHILE_SOURCE = [
   'while count < 3'
 ];
 
