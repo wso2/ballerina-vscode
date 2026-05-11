@@ -427,6 +427,7 @@ function DeploymentOptions({
     projectPath
 }: DeploymentOptionsProps) {
     const [expandedOptions, setExpandedOptions] = useState<Set<string>>(new Set(['cloud', 'devant']));
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const { rpcClient } = useRpcContext();
     const { platformExtState } = usePlatformExtContext();
 
@@ -442,7 +443,7 @@ function DeploymentOptions({
         });
     };
 
-    const { data: devantMetadata, isLoading: isDevantLoading } = useQuery({
+    const { data: devantMetadata, isLoading: isDevantLoading, refetch: refetchDevantMetadata } = useQuery({
         queryKey: ["project-devant-metadata", projectPath],
         queryFn: () => rpcClient.getBIDiagramRpcClient().getWorkspaceDevantMetadata(),
         enabled: platformExtState.isExtInstalled,
@@ -452,6 +453,24 @@ function DeploymentOptions({
     const isDeployed = devantMetadata?.isLoggedIn
         ? (currentProjectMeta?.hasComponent ?? false)
         : false;
+
+    const stopRefreshing = useCallback(() => {
+        setIsRefreshing(false);
+    }, []);
+
+    const handleRefreshDeploymentStatus = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsRefreshing(true);
+        try {
+            await rpcClient.getCommonRpcClient().executeCommand({
+                commands: [WICommandIds.RefreshDirectoryContext],
+            });
+            await refetchDevantMetadata();
+        } finally {
+            stopRefreshing();
+        }
+    };
+
     return (
         <>
             <div>
@@ -463,17 +482,13 @@ function DeploymentOptions({
                             isDeployed ? (
                                 <DevantHeaderWrap>
                                     <span>Deployed in WSO2 Cloud</span>
-                                    <Button
-                                        appearance="icon"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            rpcClient.getCommonRpcClient().executeCommand({
-                                                commands: [WICommandIds.RefreshDirectoryContext],
-                                            });
-                                        }}
-                                    >
-                                        <Codicon name="refresh" />
-                                    </Button>
+                                    {isRefreshing ? (
+                                        <ProgressRing sx={{ width: 16, height: 16 }} />
+                                    ) : (
+                                        <Button appearance="icon" tooltip="Refresh deployment status" onClick={handleRefreshDeploymentStatus}>
+                                            <Codicon name="refresh" />
+                                        </Button>
+                                    )}
                                 </DevantHeaderWrap>
                             ) : (
                                 "Deploy to WSO2 Cloud"
@@ -489,7 +504,7 @@ function DeploymentOptions({
                         onToggle={() => toggleOption("devant")}
                         onDeploy={isDeployed ? () => goToDevant() : handleDeploy}
                         learnMoreLink={"https://wso2.com/devant/docs/"}
-                        hasDeployableIntegration={hasDeployableIntegration}
+                        hasDeployableIntegration={hasDeployableIntegration && !isRefreshing}
                         secondaryAction={
                             isDeployed && currentProjectMeta?.hasLocalChanges
                                 ? {
@@ -904,13 +919,13 @@ export function PackageOverview(props: PackageOverviewProps) {
     const handleICP = (icpEnabled: boolean) => {
         if (icpEnabled) {
             rpcClient.getICPRpcClient().addICP({ projectPath: '' })
-                .then((res) => {
+                .then(() => {
                     setEnableICP(true);
                 }
                 );
         } else {
             rpcClient.getICPRpcClient().disableICP({ projectPath: '' })
-                .then((res) => {
+                .then(() => {
                     setEnableICP(false);
                 }
                 );
@@ -972,7 +987,7 @@ export function PackageOverview(props: PackageOverviewProps) {
         })
     };
 
-    async function handleSettings() {
+    function handleSettings() {
         rpcClient.getAiPanelRpcClient().openAIPanel({
             type: 'text',
             planMode: false,
