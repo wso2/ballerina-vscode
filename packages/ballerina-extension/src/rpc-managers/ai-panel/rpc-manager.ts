@@ -75,6 +75,11 @@ import {
     SetMcpToolsEnabledRequest,
     McpLoadErrorsDTO,
     AgentsMdFileInfoDTO,
+    ThreadSummary,
+    SwitchThreadRequest,
+    DeleteThreadRequest,
+    ClearMemoryRequest,
+    OpenMemoryRequest,
 } from "@wso2/ballerina-core";
 import {
     getAgentsMdFileInfo as getAgentsMdFileInfoImpl,
@@ -89,6 +94,12 @@ import path from "path";
 import * as vscode from 'vscode';
 import { window, workspace } from 'vscode';
 import { LOGIN_REQUIRED_WARNING, SIGN_IN_BI_COPILOT } from '../../features/ai/constants';
+import {
+    getGlobalMemoryDir,
+    getMemoryDir,
+    invalidateMemoryPromptCache,
+} from '@wso2/copilot-utilities/auto-memory';
+import { computeWorkspaceHash } from '@wso2/copilot-utilities/chat-persistence';
 
 import { isNumber } from "lodash";
 import { getServiceDeclarationNames } from "../../../src/features/ai/documentation/utils";
@@ -133,7 +144,7 @@ import { ContextTypesExecutor } from '../../features/ai/executors/datamapper/Con
 import { approvalManager } from '../../features/ai/state/ApprovalManager';
 import { clearPendingReviewRestore, getPendingReviewRestore } from '../../features/ai/state/reviewRestoreStore';
 import { cleanupTempProject } from "../../features/ai/utils/project/temp-project";
-import { chatStateStorage } from '../../views/ai-panel/chatStateStorage';
+import { chatStateStorage, resolveWorkspaceIdentity } from '../../views/ai-panel/chatStateStorage';
 import { restoreWorkspaceSnapshot } from '../../views/ai-panel/checkpoint/checkpointUtils';
 import { runningServicesManager } from '../../features/ai/agent/tools/running-service-manager';
 import { executeRun } from "../../features/ai/agent/tools/ballerina-run";
@@ -186,6 +197,10 @@ async function cleanupReviewTempProjects(generations: ReviewCleanupGeneration[])
             await clearPendingReviewRestore();
         }
     }
+}
+
+function getActiveThreadId(projectRootPath?: string): string {
+    return chatStateStorage.getActiveThread(projectRootPath ?? resolveProjectRootPath())?.id ?? 'default';
 }
 
 export class AiPanelRpcManager implements AIPanelAPI {
@@ -479,6 +494,19 @@ export class AiPanelRpcManager implements AIPanelAPI {
         }
     }
 
+    async getAffectedPackages(): Promise<string[]> {
+        const projectRootPath = resolveProjectRootPath();
+        const threadId = getActiveThreadId(projectRootPath);
+        const thread = chatStateStorage.getOrCreateThread(projectRootPath, threadId);
+        const underReviewGenerations = thread.generations.filter(
+            g => g.reviewState.status === 'under_review'
+        );
+        if (underReviewGenerations.length === 0) { return []; }
+        const latestReview = underReviewGenerations[underReviewGenerations.length - 1];
+        return latestReview.reviewState.affectedPackagePaths || [];
+    }
+
+
     async isWorkspaceProject(): Promise<boolean> {
         const context = StateMachine.context();
         const isWorkspace = context.projectInfo?.projectKind === 'WORKSPACE_PROJECT';
@@ -490,7 +518,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
         try {
             // Get project root path and thread ID
             const projectRootPath = resolveProjectRootPath();
-            const threadId = 'default';
+            const threadId = getActiveThreadId();
 
             // Get ALL under_review generations
             const thread = chatStateStorage.getOrCreateThread(projectRootPath, threadId);
@@ -531,7 +559,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
         try {
             // Get project root path and thread ID
             const projectRootPath = resolveProjectRootPath();
-            const threadId = 'default';
+            const threadId = getActiveThreadId();
 
             // Get ALL under_review generations
             const thread = chatStateStorage.getOrCreateThread(projectRootPath, threadId);
@@ -640,7 +668,7 @@ User reverted the last made changes. The files have been restored to the state b
     async restoreCheckpoint(params: RestoreCheckpointRequest): Promise<void> {
         // Get project root path and thread identifiers
         const projectRootPath = resolveProjectRootPath();
-        const threadId = 'default';
+        const threadId = chatStateStorage.getActiveThread(resolveProjectRootPath())?.id ?? 'default';
 
         // Find the checkpoint
         const found = chatStateStorage.findCheckpoint(projectRootPath, threadId, params.checkpointId);
@@ -673,19 +701,72 @@ User reverted the last made changes. The files have been restored to the state b
     }
 
     async clearChat(): Promise<void> {
-        // Get project root path
         const projectRootPath = resolveProjectRootPath();
+        // Create a new thread — preserves all existing history
+        const newThreadId = chatStateStorage.createNewThread(projectRootPath);
+        clearCompactionDisabledWarning(projectRootPath, newThreadId);
+        console.log(`[RPC] New chat started (thread: ${newThreadId}) for: ${projectRootPath}`);
+    }
 
-        // Clear the workspace (all threads)
-        await chatStateStorage.clearWorkspace(projectRootPath);
-        clearCompactionDisabledWarning(projectRootPath, 'default');
+    async listThreads(): Promise<ThreadSummary[]> {
+        const projectRootPath = resolveProjectRootPath();
+        return chatStateStorage.listThreadsSummary(projectRootPath);
+    }
 
-        console.log(`[RPC] Cleared chat for projectRootPath: ${projectRootPath}`);
+    async switchThread(params: SwitchThreadRequest): Promise<void> {
+        const projectRootPath = resolveProjectRootPath();
+        chatStateStorage.switchToThread(projectRootPath, params.threadId);
+    }
+
+    async deleteThread(params: DeleteThreadRequest): Promise<void> {
+        const projectRootPath = resolveProjectRootPath();
+        await chatStateStorage.deleteThread(projectRootPath, params.threadId);
+    }
+
+    async clearMemory(params: ClearMemoryRequest): Promise<void> {
+        const projectRootPath = resolveProjectRootPath();
+        const workspaceHash = computeWorkspaceHash(resolveWorkspaceIdentity(projectRootPath));
+        const wipeDir = (dir: string) => {
+            try {
+                for (const f of fs.readdirSync(dir)) {
+                    if (f.endsWith('.md') || f === '.consolidate-lock') {
+                        try { fs.unlinkSync(path.join(dir, f)); } catch { /* best-effort */ }
+                    }
+                }
+            } catch { /* dir may not exist yet */ }
+        };
+        if (params.scope === 'all') { wipeDir(getGlobalMemoryDir()); }
+        wipeDir(getMemoryDir(workspaceHash));
+        invalidateMemoryPromptCache(workspaceHash);
+    }
+
+    async openMemoryFiles(params: OpenMemoryRequest): Promise<void> {
+        const projectRootPath = resolveProjectRootPath();
+        const workspaceHash = computeWorkspaceHash(resolveWorkspaceIdentity(projectRootPath));
+        const dir = params.scope === 'global'
+            ? getGlobalMemoryDir()
+            : getMemoryDir(workspaceHash);
+        const indexPath = path.join(dir, 'MEMORY.md');
+        if (fs.existsSync(indexPath)) {
+            await vscode.commands.executeCommand('vscode.open', vscode.Uri.file(indexPath));
+            return;
+        }
+        // MEMORY.md is missing — fall back to opening any topic file so the user
+        let firstTopicFile: string | undefined;
+        try {
+            firstTopicFile = fs.readdirSync(dir)
+                .find(f => f.endsWith('.md') && f !== 'MEMORY.md' && !f.startsWith('.'));
+        } catch { /* dir may not exist yet */ }
+        if (firstTopicFile) {
+            await vscode.commands.executeCommand('vscode.open', vscode.Uri.file(path.join(dir, firstTopicFile)));
+            return;
+        }
+        vscode.window.showInformationMessage('No memories saved yet for this scope.');
     }
 
     async updateChatMessage(params: UpdateChatMessageRequest): Promise<void> {
         const projectRootPath = resolveProjectRootPath();
-        const threadId = 'default';
+        const threadId = chatStateStorage.getActiveThread(resolveProjectRootPath())?.id ?? 'default';
 
         // The messageId is actually a generation ID
         // This is called when streaming completes to save the final UI-formatted response
@@ -706,7 +787,7 @@ User reverted the last made changes. The files have been restored to the state b
 
     async getChatMessages(): Promise<UIChatMessage[]> {
         const projectRootPath = resolveProjectRootPath();
-        const threadId = 'default';
+        const threadId = chatStateStorage.getActiveThread(resolveProjectRootPath())?.id ?? 'default';
 
         // Get all generations from chat storage
         const generations = chatStateStorage.getGenerations(projectRootPath, threadId);
@@ -737,7 +818,7 @@ User reverted the last made changes. The files have been restored to the state b
 
     async getCheckpoints(): Promise<CheckpointInfo[]> {
         const projectRootPath = resolveProjectRootPath();
-        const threadId = 'default';
+        const threadId = chatStateStorage.getActiveThread(resolveProjectRootPath())?.id ?? 'default';
 
         // Get checkpoints from ChatStateStorage
         const checkpoints = chatStateStorage.getCheckpoints(projectRootPath, threadId);
@@ -753,7 +834,7 @@ User reverted the last made changes. The files have been restored to the state b
 
     async getActiveTempDir(): Promise<string> {
         const projectRootPath = resolveProjectRootPath();
-        const threadId = 'default';
+        const threadId = chatStateStorage.getActiveThread(resolveProjectRootPath())?.id ?? 'default';
 
         // Always get tempProjectPath from active generation in chatStateStorage
         const pendingReview = chatStateStorage.getPendingReviewGeneration(projectRootPath, threadId);
@@ -826,7 +907,7 @@ User reverted the last made changes. The files have been restored to the state b
 
         const context = StateMachine.context();
         const workspaceId = context.workspacePath || context.projectPath;
-        const threadId = 'default';
+        const threadId = chatStateStorage.getActiveThread(resolveProjectRootPath())?.id ?? 'default';
         const generation = chatStateStorage.getGeneration(workspaceId, threadId, params.generationId);
         const tempProjectPath = generation?.reviewState.tempProjectPath;
 

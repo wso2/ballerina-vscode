@@ -508,6 +508,35 @@ export interface CheckpointInfo {
 }
 
 /**
+ * Summary of a chat thread for session history display
+ */
+export interface ThreadSummary {
+    id: string;
+    /** Display name — auto-set from first user message */
+    name: string;
+    isActive: boolean;
+    createdAt: number;
+    updatedAt: number;
+    messageCount: number;
+}
+
+export interface SwitchThreadRequest {
+    threadId: string;
+}
+
+export interface DeleteThreadRequest {
+    threadId: string;
+}
+
+export interface ClearMemoryRequest {
+    scope: 'workspace' | 'all';
+}
+
+export interface OpenMemoryRequest {
+    scope: 'global' | 'workspace';
+}
+
+/**
  * Request to abort AI generation
  * Optional params default to current workspace and 'default' thread
  */

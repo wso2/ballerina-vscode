@@ -23,8 +23,9 @@ import { ModelMessage, stepCountIs, streamText, TextStreamPart } from 'ai';
 import { getAnthropicClient, getProviderCacheControl, addCacheControlToMessages, ANTHROPIC_SONNET_4 } from '../utils/ai-client';
 import { populateHistoryForAgent, getErrorMessage, buildChatError } from '../utils/ai-utils';
 import { sendAgentDidOpenForFreshProjects } from '../utils/project/ls-schema-notifications';
-import { getSystemPrompt, getUserPrompt } from './prompts';
+import { getSystemPromptWithMemory, getUserPrompt } from './prompts';
 import { prepareAgentsMdForTurn } from './agents-md';
+import { executeAutoDream, isMemoryEnabled } from '../memory/autoDream';
 import { GenerationType } from '../utils/libs/libraries';
 import { createToolRegistry } from './tool-registry';
 import { loadSkillsContext } from './skills/context';
@@ -258,7 +259,8 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             }
 
             const workspaceId = this.config.executionContext.workspacePath || this.config.executionContext.projectPath;
-            const threadId = (this.config.executionContext as any).threadId || 'default';
+            // Use chatStorage.threadId so onStepFinish writes to the same thread that addGeneration created.
+            const threadId = this.config.chatStorage?.threadId ?? 'default';
             const projectState = {
                 modifiedFiles: modifiedFiles,
                 tempProjectPath,
@@ -277,8 +279,10 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
 
             const userMessageContent = getUserPrompt(params, tempProjectPath, projects, projectSkills, agentsMd.text);
 
-            const systemPromptText = getSystemPrompt(projects, params.operationType, userSkills, allDisabled, disabledSkillMetas);
+            // Estimate fixed overhead (system prompt + codebase) to decide if compaction is viable
+            const systemPromptText = getSystemPromptWithMemory(projects, params.operationType, projectRootPath, userSkills, allDisabled, disabledSkillMetas);
             const floorTokens = estimateFloorTokens(systemPromptText, JSON.stringify(userMessageContent));
+
 
             const providerOptions = buildCompactionProviderOptions(loginMethod, floorTokens);
             if (supportsCompaction(loginMethod) && providerOptions === undefined) {
@@ -304,7 +308,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             const allMessages: ModelMessage[] = [
                 {
                     role: "system",
-                    content: getSystemPrompt(projects, params.operationType, userSkills, allDisabled, disabledSkillMetas),
+                    content: systemPromptText,
                     providerOptions: cacheOptions,
                 },
                 ...historyMessages,
@@ -332,11 +336,12 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 generationType: GenerationType.CODE_GENERATION,
                 projectRootPath: this.config.executionContext.workspacePath || this.config.executionContext.projectPath || '',
                 generationId: this.config.generationId,
-                threadId: 'default',
+                threadId,
                 migrationSourcePath: this.config.toolOptions?.migrationSourcePath,
                 runningServices: runningServicesManager,
                 webSearchEnabled: params.webSearchEnabled ?? false,
                 ctx: this.config.executionContext,
+                autoMemoryEnabled: isMemoryEnabled(),
             });
 
             // Accumulate tool call/result character counts across steps for breakdown estimation
@@ -469,6 +474,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                                 isCompactionBlock = false;
                                 const summary = extractCompactionSummary(compactionContent);
                                 cleanedCompactionSummary = summary || compactionContent;
+                                streamContext.wasCompactionTurn = true;
                                 this.config.eventHandler({ type: 'compaction_end', summary: summary ?? undefined });
                                 // Reset context widget to near-zero after compaction
                                 this.config.eventHandler({
@@ -543,7 +549,6 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                     }
 
                     const projectRootPath = this.config.executionContext.workspacePath || this.config.executionContext.projectPath || '';
-                    const threadId = 'default';
                     if (partialLLMMessages.length > 0) {
                         chatStateStorage.updateGeneration(projectRootPath, threadId, this.config.generationId, {
                             modelMessages: [
@@ -687,7 +692,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
 
         // Clear review state for this generation
         const projectRootPath = context.ctx.workspacePath || context.ctx.projectPath || '';
-        const threadId = 'default';
+        const threadId = this.config.chatStorage?.threadId ?? 'default';
         const pendingReview = chatStateStorage.getPendingReviewGeneration(projectRootPath, threadId);
 
         if (pendingReview && pendingReview.id === context.messageId) {
@@ -843,6 +848,12 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
 
         // Emit UI events
         await this.emitReviewActions(context);
+
+        // autoDream consolidation — skipped on compaction turns (no real user activity)
+        const workspacePath = context.ctx.workspacePath || context.ctx.projectPath || '';
+        if (workspacePath && !context.wasCompactionTurn) {
+            executeAutoDream({ workspacePath });
+        }
     }
 
     /**
@@ -854,7 +865,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         tempProjectPath: string
     ): Promise<void> {
         const projectRootPath = context.ctx.workspacePath || context.ctx.projectPath || '';
-        const threadId = 'default';
+        const threadId = this.config.chatStorage?.threadId ?? 'default';
 
         const generationModifiedFiles = Array.from(new Set([...context.allModifiedFiles, ...context.modifiedFiles]));
 
@@ -900,7 +911,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
      */
     private async emitReviewActions(context: StreamContext): Promise<void> {
         const workspaceId = context.ctx.workspacePath || context.ctx.projectPath;
-        const threadId = 'default';
+        const threadId = this.config.chatStorage?.threadId ?? 'default';
 
         // Show review for the current generation only; older under-review ones are treated as accepted.
         // TODO: refactor generation review state so older generations are explicitly marked accepted.

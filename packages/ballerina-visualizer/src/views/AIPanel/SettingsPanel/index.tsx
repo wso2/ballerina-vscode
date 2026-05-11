@@ -114,6 +114,92 @@ const EntryList = styled.div`
     gap: 8px;
 `;
 
+// ── Action buttons ────────────────────────────────────────────────────────────
+
+const DestructiveButton = styled.button`
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-family: var(--vscode-font-family);
+    transition: all 0.15s ease;
+    color: var(--vscode-errorForeground);
+    background: var(--vscode-inputValidation-errorBackground, transparent);
+    border: 1px solid var(--vscode-errorForeground);
+    &:hover { opacity: 0.85; }
+`;
+
+const CopilotButton = styled.button<{ authorized: boolean }>`
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-family: var(--vscode-font-family);
+    transition: all 0.15s ease;
+
+    ${(props: { authorized: boolean }) => props.authorized ? `
+        color: var(--vscode-charts-green, #388a34);
+        background: transparent;
+        border: 1px solid var(--vscode-charts-green, #388a34);
+        cursor: default;
+        opacity: 0.85;
+    ` : `
+        color: var(--vscode-button-foreground);
+        background: var(--vscode-button-background);
+        border: 1px solid transparent;
+        &:hover { background: var(--vscode-button-hoverBackground); }
+    `}
+`;
+
+const ActionButton = styled.button`
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-family: var(--vscode-font-family);
+    transition: all 0.15s ease;
+    color: var(--vscode-button-secondaryForeground, var(--vscode-foreground));
+    background: var(--vscode-button-secondaryBackground, transparent);
+    border: 1px solid var(--vscode-button-secondaryBackground, var(--vscode-panel-border));
+    &:hover { opacity: 0.85; }
+`;
+
+const ConfirmRow = styled.div`
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+`;
+
+const CancelLink = styled.button`
+    background: none;
+    border: none;
+    padding: 2px 4px;
+    font-size: 12px;
+    font-family: var(--vscode-font-family);
+    color: var(--vscode-descriptionForeground);
+    cursor: pointer;
+    &:hover { color: var(--vscode-foreground); }
+`;
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 interface SettingsPanelProps {
@@ -130,6 +216,7 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
     const [mcpServers, setMcpServers] = useState<McpServerStatusDTO[]>([]);
     const [skills, setSkills] = useState<SkillEntry[]>([]);
     const [agentsMdInfo, setAgentsMdInfo] = useState<AgentsMdFileInfoDTO | null>(null);
+    const [clearing, setClearing] = React.useState<'workspace' | 'all' | null>(null);
 
     useEffect(() => {
         isCopilotAuthorized().then(setCopilotAuthorized);
@@ -231,6 +318,20 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
         return await rpcClient.getAiPanelRpcClient().isCopilotSignedIn();
     };
 
+    const handleViewMemories = (scope: 'global' | 'workspace') => {
+        rpcClient.getAiPanelRpcClient().openMemoryFiles({ scope });
+    };
+
+    const handleClearConfirm = async (scope: 'workspace' | 'all') => {
+        try {
+            await rpcClient.getAiPanelRpcClient().clearMemory({ scope });
+        } catch (e: unknown) {
+            console.error('[SettingsPanel] clearMemory failed:', e instanceof Error ? e.message : String(e));
+        } finally {
+            setClearing(null);
+        }
+    };
+
     return (
         <AIChatView>
             <PanelHeader>
@@ -268,6 +369,69 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
                             <PrimaryActionButton type="button" onClick={handleAuthorizeCopilot}>
                                 Authorize
                             </PrimaryActionButton>
+                        )}
+                    </SettingRow>
+                </Section>
+
+                {/* Memory */}
+                <Section>
+                    <SectionHeader>Memory</SectionHeader>
+                    <SettingRow>
+                        <SettingInfo>
+                            <SettingLabel>Auto Memory</SettingLabel>
+                            <SettingDescription>
+                                Captures your preferences and integration patterns across sessions.
+                                Stored in <code style={{ fontSize: 10 }}>~/.ballerina/copilot/memory/</code>.
+                                Toggle via <em>ballerina.ai.autoMemory.enabled</em> in VS Code Settings.
+                            </SettingDescription>
+                        </SettingInfo>
+                    </SettingRow>
+                    <SettingRow>
+                        <SettingInfo>
+                            <SettingLabel>Global memories</SettingLabel>
+                            <SettingDescription>Open the global memory index in the editor</SettingDescription>
+                        </SettingInfo>
+                        <ActionButton onClick={() => handleViewMemories('global')}>
+                            <span className="codicon codicon-go-to-file" style={{ fontSize: 12 }} />
+                            Open
+                        </ActionButton>
+                    </SettingRow>
+                    <SettingRow>
+                        <SettingInfo>
+                            <SettingLabel>Workspace memories</SettingLabel>
+                            <SettingDescription>Open the workspace memory index in the editor</SettingDescription>
+                        </SettingInfo>
+                        <ActionButton onClick={() => handleViewMemories('workspace')}>
+                            <span className="codicon codicon-go-to-file" style={{ fontSize: 12 }} />
+                            Open
+                        </ActionButton>
+                    </SettingRow>
+                    <SettingRow>
+                        <SettingInfo>
+                            <SettingLabel>Clear workspace memories</SettingLabel>
+                            <SettingDescription>Remove all memory files for this project</SettingDescription>
+                        </SettingInfo>
+                        {clearing === 'workspace' ? (
+                            <ConfirmRow>
+                                <DestructiveButton onClick={() => handleClearConfirm('workspace')}>Confirm</DestructiveButton>
+                                <CancelLink onClick={() => setClearing(null)}>Cancel</CancelLink>
+                            </ConfirmRow>
+                        ) : (
+                            <DestructiveButton onClick={() => setClearing('workspace')}>Clear</DestructiveButton>
+                        )}
+                    </SettingRow>
+                    <SettingRow>
+                        <SettingInfo>
+                            <SettingLabel>Clear all memories</SettingLabel>
+                            <SettingDescription>Remove global and workspace memory files</SettingDescription>
+                        </SettingInfo>
+                        {clearing === 'all' ? (
+                            <ConfirmRow>
+                                <DestructiveButton onClick={() => handleClearConfirm('all')}>Confirm</DestructiveButton>
+                                <CancelLink onClick={() => setClearing(null)}>Cancel</CancelLink>
+                            </ConfirmRow>
+                        ) : (
+                            <DestructiveButton onClick={() => setClearing('all')}>Clear</DestructiveButton>
                         )}
                     </SettingRow>
                 </Section>

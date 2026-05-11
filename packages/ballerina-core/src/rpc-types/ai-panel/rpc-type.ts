@@ -75,6 +75,11 @@ import {
     AgentsMdFileInfoDTO,
     ParseSkillFileRequest,
     ParseSkillFileResponse,
+    ThreadSummary,
+    SwitchThreadRequest,
+    DeleteThreadRequest,
+    ClearMemoryRequest,
+    OpenMemoryRequest,
 } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
@@ -160,3 +165,8 @@ export const mcpLoadErrorsChanged: NotificationType<McpLoadErrorsDTO> = { method
 export const getAgentsMdFileInfo: RequestType<void, AgentsMdFileInfoDTO> = { method: `${_preFix}/getAgentsMdFileInfo` };
 export const openOrCreateAgentsMd: RequestType<void, void> = { method: `${_preFix}/openOrCreateAgentsMd` };
 export const agentsMdFileInfoChanged: NotificationType<AgentsMdFileInfoDTO> = { method: `${_preFix}/agentsMdFileInfoChanged` };
+export const listThreads: RequestType<void, ThreadSummary[]> = { method: `${_preFix}/listThreads` };
+export const switchThread: RequestType<SwitchThreadRequest, void> = { method: `${_preFix}/switchThread` };
+export const deleteThread: RequestType<DeleteThreadRequest, void> = { method: `${_preFix}/deleteThread` };
+export const clearMemory: RequestType<ClearMemoryRequest, void> = { method: `${_preFix}/clearMemory` };
+export const openMemoryFiles: NotificationType<OpenMemoryRequest> = { method: `${_preFix}/openMemoryFiles` };

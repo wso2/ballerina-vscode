@@ -51,6 +51,8 @@ export interface StreamContext {
 
     // Mid-stream compaction status
     compactionFailedMidStream?: boolean;
+    /** Set to true when a compaction block was detected in this turn's response. */
+    wasCompactionTurn?: boolean;
 
     // Accumulated token usage from tool-internal LLM calls, keyed by model name
     toolModelUsage: ToolModelUsage;

@@ -339,6 +339,16 @@
                     "default": false,
                     "scope": "resource",
                     "description": "Show context usage indicator in the AI chat input footer."
+                },
+                "ballerina.ai.autoMemory.enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable auto-memory: the Copilot automatically captures and persists facts from conversations so it remembers your preferences, integration patterns, and project context across sessions."
+                },
+                "ballerina.ai.autoDream.enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable auto-dream: periodically consolidates and organises accumulated memory files, and promotes completed project knowledge to your global memory."
                 }
             }
         },

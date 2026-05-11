@@ -58,6 +58,9 @@ import { createClarifyTool, CLARIFY_TOOL } from './tools/clarify';
 import { createSkillTool, SKILL_TOOL_NAME } from './tools/skill-tool';
 import { REGISTERED_SKILLS } from './skills';
 import { getMcpTools } from './mcp';
+import { createSaveMemoryTool, SAVE_MEMORY_TOOL_NAME } from './tools/save-memory';
+import { createDeleteMemoryTool, DELETE_MEMORY_TOOL_NAME } from './tools/delete-memory';
+import { createConsolidateMemoriesTool, CONSOLIDATE_MEMORIES_TOOL_NAME } from './tools/consolidate-memories';
 
 export interface ToolRegistryOptions {
     eventHandler: CopilotEventHandler;
@@ -75,10 +78,12 @@ export interface ToolRegistryOptions {
     runningServices: RunningServicesManager;
     webSearchEnabled: boolean;
     ctx: ExecutionContext;
+    /** When true, registers save_memory and consolidate_memories tools in the main agent registry. */
+    autoMemoryEnabled?: boolean;
 }
 
 export function createToolRegistry(opts: ToolRegistryOptions) {
-    const { eventHandler, toolModelUsage, tempProjectPath, modifiedFiles, allModifiedFiles, projects, generationType, projectRootPath, generationId, threadId, migrationSourcePath, webSearchEnabled, ctx } = opts;
+    const { eventHandler, toolModelUsage, tempProjectPath, modifiedFiles, allModifiedFiles, projects, generationType, projectRootPath, generationId, threadId, migrationSourcePath, webSearchEnabled, ctx, autoMemoryEnabled } = opts;
     return {
         [TASK_WRITE_TOOL_NAME]: createTaskWriteTool(
             eventHandler,
@@ -142,5 +147,11 @@ export function createToolRegistry(opts: ToolRegistryOptions) {
         [CLARIFY_TOOL]: createClarifyTool(eventHandler),
         [SKILL_TOOL_NAME]: createSkillTool(REGISTERED_SKILLS, projectRootPath, eventHandler),
         ...getMcpTools(eventHandler),
+        // Memory tools — registered only when auto-memory is enabled and a workspace root is known
+        ...(autoMemoryEnabled && projectRootPath ? {
+            [SAVE_MEMORY_TOOL_NAME]:          createSaveMemoryTool(projectRootPath, eventHandler),
+            [DELETE_MEMORY_TOOL_NAME]:        createDeleteMemoryTool(projectRootPath, eventHandler),
+            [CONSOLIDATE_MEMORIES_TOOL_NAME]: createConsolidateMemoriesTool(projectRootPath, eventHandler),
+        } : {}),
     };
 }
