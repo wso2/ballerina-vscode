@@ -73,21 +73,21 @@
     },
     {
       "metadata": {
-        "label": "Smb Caller",
-        "description": "SMB caller for interacting with SMB servers from within file handlers.\nProvides a convenience wrapper around the Client class with simplified method signatures.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_smb_1.0.2.png",
+        "label": "Pubsub Caller",
+        "description": "Provides functionality to acknowledge or reject messages received by the listener service.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_gcloud.pubsub_0.1.1.png",
         "data": {
           "isAgentSupport": false
         }
       },
       "codedata": {
         "node": "NEW_CONNECTION",
-        "org": "ballerina",
-        "module": "smb",
-        "packageName": "smb",
+        "org": "ballerinax",
+        "module": "gcloud.pubsub",
+        "packageName": "gcloud.pubsub",
         "object": "Caller",
         "symbol": "init",
-        "version": "1.0.2",
+        "version": "0.1.1",
         "isGenerated": false
       },
       "enabled": true

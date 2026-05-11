@@ -10,7 +10,7 @@
       "metadata": {
         "label": "HTTP",
         "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.1.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.2.png",
         "data": {
           "isAgentSupport": false
         }
@@ -22,7 +22,7 @@
         "packageName": "http",
         "object": "Client",
         "symbol": "init",
-        "version": "2.16.1",
+        "version": "2.16.2",
         "isGenerated": false
       },
       "enabled": true
@@ -149,6 +149,27 @@
         "object": "Client",
         "symbol": "init",
         "version": "1.5.1",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Admin",
+        "description": "As the primary way that apps interact with Shopify, the Admin API allows you to add your own features to the Shopify user experience. Considerations when using the Shopify Admin include:\n\n- The Admin API supports both [GraphQL](https://shopify.dev/docs/api/admin-graphql) and [REST](https://shopify.dev/docs/api/admin-rest).\n- This is a [versioned API](https://shopify.dev/docs/api/usage/versioning). Updates are released quarterly and supported API versions are listed in the [release notes](https://shopify.dev/docs/api/release-notes).\n- Apps must explicitly request the relevant [access scopes](https://shopify.dev/docs/api/usage/access-scopes) from the user during installation.\n- Apps must [authenticate](https://shopify.dev/docs/apps/auth) to interact with the Admin API.\n- The Admin API enforces [rate limits](https://shopify.dev/docs/api/usage/rate-limits) on all requests. Note that there are different rate-limiting methods for GraphQL and REST. All apps connecting to the Admin API are subject to [Shopify’s API Terms of Service](https://www.shopify.com/legal/api-terms).\n\n\n---",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_shopify.admin_3.0.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "shopify.admin",
+        "packageName": "shopify.admin",
+        "object": "Client",
+        "symbol": "init",
+        "version": "3.0.0",
         "isGenerated": false
       },
       "enabled": true
@@ -398,27 +419,6 @@
         "org": "ballerinax",
         "module": "box",
         "packageName": "box",
-        "object": "Client",
-        "symbol": "init",
-        "version": "1.5.1",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
-        "label": "Numbers",
-        "description": "This is a generated connector for [Numbers API v1.5](https://math.tools/api/numbers/) OpenAPI specification.  \nNumbers API of [Math Tools](https://math.tools/) provides the capability to access the operations that are all about numbers",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mathtools.numbers_1.5.1.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "mathtools.numbers",
-        "packageName": "mathtools.numbers",
         "object": "Client",
         "symbol": "init",
         "version": "1.5.1",

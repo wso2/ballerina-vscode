@@ -47,7 +47,7 @@
         "metadata": {
           "label": "get",
           "description": "The client resource function to send HTTP GET requests to HTTP endpoints.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.2.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.3.png"
         },
         "codedata": {
           "node": "RESOURCE_ACTION_CALL",
@@ -56,7 +56,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "get",
-          "version": "2.16.2",
+          "version": "2.16.3",
           "lineRange": {
             "fileName": "http_get_node.bal",
             "startLine": {
@@ -143,6 +143,30 @@
                 }
               }
             }
+          },
+          "targetType": {
+            "metadata": {
+              "label": "Target Type",
+              "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
+            },
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>",
+                "selected": false
+              }
+            ],
+            "value": "json",
+            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "PARAM_FOR_TYPE_INFER",
+              "originalName": "targetType"
+            },
+            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
           },
           "headers": {
             "metadata": {
@@ -314,30 +338,6 @@
             "advanced": true,
             "hidden": true
           },
-          "targetType": {
-            "metadata": {
-              "label": "Target Type",
-              "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
-            },
-            "types": [
-              {
-                "fieldType": "TYPE",
-                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>",
-                "selected": false
-              }
-            ],
-            "value": "json",
-            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
-            "optional": false,
-            "editable": true,
-            "advanced": false,
-            "hidden": false,
-            "codedata": {
-              "kind": "PARAM_FOR_TYPE_INFER",
-              "originalName": "targetType"
-            },
-            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
-          },
           "type": {
             "metadata": {
               "label": "Result Type",
@@ -365,7 +365,7 @@
         "metadata": {
           "label": "get",
           "description": "The client resource function to send HTTP GET requests to HTTP endpoints.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.2.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.3.png"
         },
         "codedata": {
           "node": "RESOURCE_ACTION_CALL",
@@ -374,7 +374,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "get",
-          "version": "2.16.2",
+          "version": "2.16.3",
           "lineRange": {
             "fileName": "http_get_node.bal",
             "startLine": {
@@ -461,6 +461,30 @@
                 }
               }
             }
+          },
+          "targetType": {
+            "metadata": {
+              "label": "Target Type",
+              "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
+            },
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>",
+                "selected": false
+              }
+            ],
+            "value": "json",
+            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "PARAM_FOR_TYPE_INFER",
+              "originalName": "targetType"
+            },
+            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
           },
           "headers": {
             "metadata": {
@@ -757,30 +781,6 @@
             "advanced": true,
             "hidden": true
           },
-          "targetType": {
-            "metadata": {
-              "label": "Target Type",
-              "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
-            },
-            "types": [
-              {
-                "fieldType": "TYPE",
-                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>",
-                "selected": false
-              }
-            ],
-            "value": "json",
-            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
-            "optional": false,
-            "editable": true,
-            "advanced": false,
-            "hidden": false,
-            "codedata": {
-              "kind": "PARAM_FOR_TYPE_INFER",
-              "originalName": "targetType"
-            },
-            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
-          },
           "type": {
             "metadata": {
               "label": "Result Type",
@@ -808,7 +808,7 @@
         "metadata": {
           "label": "get",
           "description": "The client resource function to send HTTP GET requests to HTTP endpoints.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.2.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.3.png"
         },
         "codedata": {
           "node": "RESOURCE_ACTION_CALL",
@@ -817,7 +817,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "get",
-          "version": "2.16.2",
+          "version": "2.16.3",
           "lineRange": {
             "fileName": "http_get_node.bal",
             "startLine": {
@@ -904,6 +904,30 @@
                 }
               }
             }
+          },
+          "targetType": {
+            "metadata": {
+              "label": "Target Type",
+              "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
+            },
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>",
+                "selected": false
+              }
+            ],
+            "value": "json",
+            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "PARAM_FOR_TYPE_INFER",
+              "originalName": "targetType"
+            },
+            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
           },
           "headers": {
             "metadata": {
@@ -1075,30 +1099,6 @@
             "advanced": true,
             "hidden": true
           },
-          "targetType": {
-            "metadata": {
-              "label": "Target Type",
-              "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
-            },
-            "types": [
-              {
-                "fieldType": "TYPE",
-                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>",
-                "selected": false
-              }
-            ],
-            "value": "json",
-            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
-            "optional": false,
-            "editable": true,
-            "advanced": false,
-            "hidden": false,
-            "codedata": {
-              "kind": "PARAM_FOR_TYPE_INFER",
-              "originalName": "targetType"
-            },
-            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
-          },
           "type": {
             "metadata": {
               "label": "Result Type",
@@ -1126,7 +1126,7 @@
         "metadata": {
           "label": "get",
           "description": "The client resource function to send HTTP GET requests to HTTP endpoints.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.2.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.3.png"
         },
         "codedata": {
           "node": "RESOURCE_ACTION_CALL",
@@ -1135,7 +1135,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "get",
-          "version": "2.16.2",
+          "version": "2.16.3",
           "lineRange": {
             "fileName": "http_get_node.bal",
             "startLine": {
@@ -1222,6 +1222,30 @@
                 }
               }
             }
+          },
+          "targetType": {
+            "metadata": {
+              "label": "Target Type",
+              "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
+            },
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>",
+                "selected": false
+              }
+            ],
+            "value": "json",
+            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "PARAM_FOR_TYPE_INFER",
+              "originalName": "targetType"
+            },
+            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
           },
           "headers": {
             "metadata": {
@@ -1456,30 +1480,6 @@
             "advanced": true,
             "hidden": true
           },
-          "targetType": {
-            "metadata": {
-              "label": "Target Type",
-              "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
-            },
-            "types": [
-              {
-                "fieldType": "TYPE",
-                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>",
-                "selected": false
-              }
-            ],
-            "value": "json",
-            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
-            "optional": false,
-            "editable": true,
-            "advanced": false,
-            "hidden": false,
-            "codedata": {
-              "kind": "PARAM_FOR_TYPE_INFER",
-              "originalName": "targetType"
-            },
-            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
-          },
           "type": {
             "metadata": {
               "label": "Result Type",
@@ -1507,7 +1507,7 @@
         "metadata": {
           "label": "get",
           "description": "The client resource function to send HTTP GET requests to HTTP endpoints.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.2.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.3.png"
         },
         "codedata": {
           "node": "RESOURCE_ACTION_CALL",
@@ -1516,7 +1516,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "get",
-          "version": "2.16.2",
+          "version": "2.16.3",
           "lineRange": {
             "fileName": "http_get_node.bal",
             "startLine": {
@@ -1603,6 +1603,30 @@
                 }
               }
             }
+          },
+          "targetType": {
+            "metadata": {
+              "label": "Target Type",
+              "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
+            },
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>",
+                "selected": false
+              }
+            ],
+            "value": "json",
+            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "PARAM_FOR_TYPE_INFER",
+              "originalName": "targetType"
+            },
+            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
           },
           "headers": {
             "metadata": {
@@ -1774,30 +1798,6 @@
             "advanced": true,
             "hidden": true
           },
-          "targetType": {
-            "metadata": {
-              "label": "Target Type",
-              "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
-            },
-            "types": [
-              {
-                "fieldType": "TYPE",
-                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>",
-                "selected": false
-              }
-            ],
-            "value": "json",
-            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
-            "optional": false,
-            "editable": true,
-            "advanced": false,
-            "hidden": false,
-            "codedata": {
-              "kind": "PARAM_FOR_TYPE_INFER",
-              "originalName": "targetType"
-            },
-            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
-          },
           "type": {
             "metadata": {
               "label": "Result Type",
@@ -1825,7 +1825,7 @@
         "metadata": {
           "label": "get",
           "description": "The client resource function to send HTTP GET requests to HTTP endpoints.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.2.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.3.png"
         },
         "codedata": {
           "node": "RESOURCE_ACTION_CALL",
@@ -1834,7 +1834,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "get",
-          "version": "2.16.2",
+          "version": "2.16.3",
           "lineRange": {
             "fileName": "http_get_node.bal",
             "startLine": {
@@ -1921,6 +1921,30 @@
                 }
               }
             }
+          },
+          "targetType": {
+            "metadata": {
+              "label": "Target Type",
+              "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
+            },
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>",
+                "selected": false
+              }
+            ],
+            "value": "json",
+            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "PARAM_FOR_TYPE_INFER",
+              "originalName": "targetType"
+            },
+            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
           },
           "headers": {
             "metadata": {
@@ -2178,30 +2202,6 @@
             "advanced": true,
             "hidden": true
           },
-          "targetType": {
-            "metadata": {
-              "label": "Target Type",
-              "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
-            },
-            "types": [
-              {
-                "fieldType": "TYPE",
-                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>",
-                "selected": false
-              }
-            ],
-            "value": "json",
-            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
-            "optional": false,
-            "editable": true,
-            "advanced": false,
-            "hidden": false,
-            "codedata": {
-              "kind": "PARAM_FOR_TYPE_INFER",
-              "originalName": "targetType"
-            },
-            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
-          },
           "type": {
             "metadata": {
               "label": "Result Type",
@@ -2229,7 +2229,7 @@
         "metadata": {
           "label": "get",
           "description": "The client resource function to send HTTP GET requests to HTTP endpoints.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.2.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.3.png"
         },
         "codedata": {
           "node": "RESOURCE_ACTION_CALL",
@@ -2238,7 +2238,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "get",
-          "version": "2.16.2",
+          "version": "2.16.3",
           "lineRange": {
             "fileName": "http_get_node.bal",
             "startLine": {
@@ -2326,6 +2326,30 @@
               }
             }
           },
+          "targetType": {
+            "metadata": {
+              "label": "Target Type",
+              "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
+            },
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>",
+                "selected": false
+              }
+            ],
+            "value": "Food",
+            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "PARAM_FOR_TYPE_INFER",
+              "originalName": "targetType"
+            },
+            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
+          },
           "headers": {
             "metadata": {
               "label": "Headers",
@@ -2496,30 +2520,6 @@
             "advanced": true,
             "hidden": true
           },
-          "targetType": {
-            "metadata": {
-              "label": "Target Type",
-              "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
-            },
-            "types": [
-              {
-                "fieldType": "TYPE",
-                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>",
-                "selected": false
-              }
-            ],
-            "value": "Food",
-            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
-            "optional": false,
-            "editable": true,
-            "advanced": false,
-            "hidden": false,
-            "codedata": {
-              "kind": "PARAM_FOR_TYPE_INFER",
-              "originalName": "targetType"
-            },
-            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
-          },
           "type": {
             "metadata": {
               "label": "Result Type",
@@ -2547,7 +2547,7 @@
         "metadata": {
           "label": "get",
           "description": "The client resource function to send HTTP GET requests to HTTP endpoints.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.2.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.3.png"
         },
         "codedata": {
           "node": "RESOURCE_ACTION_CALL",
@@ -2556,7 +2556,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "get",
-          "version": "2.16.2",
+          "version": "2.16.3",
           "lineRange": {
             "fileName": "http_get_node.bal",
             "startLine": {
@@ -2644,6 +2644,30 @@
               }
             }
           },
+          "targetType": {
+            "metadata": {
+              "label": "Target Type",
+              "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
+            },
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>",
+                "selected": false
+              }
+            ],
+            "value": "json",
+            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "PARAM_FOR_TYPE_INFER",
+              "originalName": "targetType"
+            },
+            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
+          },
           "headers": {
             "metadata": {
               "label": "Headers",
@@ -2814,30 +2838,6 @@
             "advanced": true,
             "hidden": true
           },
-          "targetType": {
-            "metadata": {
-              "label": "Target Type",
-              "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
-            },
-            "types": [
-              {
-                "fieldType": "TYPE",
-                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>",
-                "selected": false
-              }
-            ],
-            "value": "json",
-            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
-            "optional": false,
-            "editable": true,
-            "advanced": false,
-            "hidden": false,
-            "codedata": {
-              "kind": "PARAM_FOR_TYPE_INFER",
-              "originalName": "targetType"
-            },
-            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
-          },
           "type": {
             "metadata": {
               "label": "Result Type",
@@ -2865,7 +2865,7 @@
         "metadata": {
           "label": "get",
           "description": "The client resource function to send HTTP GET requests to HTTP endpoints.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.2.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.3.png"
         },
         "codedata": {
           "node": "RESOURCE_ACTION_CALL",
@@ -2874,7 +2874,7 @@
           "packageName": "http",
           "object": "Client",
           "symbol": "get",
-          "version": "2.16.2",
+          "version": "2.16.3",
           "lineRange": {
             "fileName": "http_get_node.bal",
             "startLine": {
@@ -2961,6 +2961,30 @@
                 }
               }
             }
+          },
+          "targetType": {
+            "metadata": {
+              "label": "Target Type",
+              "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
+            },
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>",
+                "selected": false
+              }
+            ],
+            "value": "Food",
+            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "PARAM_FOR_TYPE_INFER",
+              "originalName": "targetType"
+            },
+            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
           },
           "headers": {
             "metadata": {
@@ -3131,30 +3155,6 @@
             "advanced": true,
             "hidden": true
           },
-          "targetType": {
-            "metadata": {
-              "label": "Target Type",
-              "description": "Expected return type (to be used for automatic data binding).\nSupported types:\n- Built-in subtypes of `anydata` (`string`, `byte[]`, `json|xml`, etc.)\n- Custom types (e.g., `User`, `Student?`, `Person[]`, etc.)\n- Full HTTP response with headers and status (`http:Response`)\n- Stream of Server-Sent Events (`stream<http:SseEvent, error?>`)"
-            },
-            "types": [
-              {
-                "fieldType": "TYPE",
-                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>",
-                "selected": false
-              }
-            ],
-            "value": "Food",
-            "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
-            "optional": false,
-            "editable": true,
-            "advanced": false,
-            "hidden": false,
-            "codedata": {
-              "kind": "PARAM_FOR_TYPE_INFER",
-              "originalName": "targetType"
-            },
-            "defaultValue": "http:Response|anydata|stream<http:SseEvent, error?>"
-          },
           "type": {
             "metadata": {
               "label": "Result Type",
@@ -3184,7 +3184,7 @@
         "metadata": {
           "label": "HTTP",
           "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.2.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.16.3.png"
         },
         "codedata": {
           "node": "NEW_CONNECTION",
@@ -3288,7 +3288,7 @@
                 "typeMembers": [
                   {
                     "type": "ClientHttp1Settings",
-                    "packageInfo": "ballerina:http:2.16.2",
+                    "packageInfo": "ballerina:http:2.16.3",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -3325,7 +3325,7 @@
                 "typeMembers": [
                   {
                     "type": "ClientHttp2Settings",
-                    "packageInfo": "ballerina:http:2.16.2",
+                    "packageInfo": "ballerina:http:2.16.3",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -3418,7 +3418,7 @@
                 "typeMembers": [
                   {
                     "type": "FollowRedirects",
-                    "packageInfo": "ballerina:http:2.16.2",
+                    "packageInfo": "ballerina:http:2.16.3",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -3455,7 +3455,7 @@
                 "typeMembers": [
                   {
                     "type": "PoolConfiguration",
-                    "packageInfo": "ballerina:http:2.16.2",
+                    "packageInfo": "ballerina:http:2.16.3",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -3492,7 +3492,7 @@
                 "typeMembers": [
                   {
                     "type": "CacheConfig",
-                    "packageInfo": "ballerina:http:2.16.2",
+                    "packageInfo": "ballerina:http:2.16.3",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -3570,49 +3570,49 @@
                 "typeMembers": [
                   {
                     "type": "CredentialsConfig",
-                    "packageInfo": "ballerina:http:2.16.2",
+                    "packageInfo": "ballerina:http:2.16.3",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
                   },
                   {
                     "type": "BearerTokenConfig",
-                    "packageInfo": "ballerina:http:2.16.2",
+                    "packageInfo": "ballerina:http:2.16.3",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
                   },
                   {
                     "type": "JwtIssuerConfig",
-                    "packageInfo": "ballerina:http:2.16.2",
+                    "packageInfo": "ballerina:http:2.16.3",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
                   },
                   {
                     "type": "OAuth2ClientCredentialsGrantConfig",
-                    "packageInfo": "ballerina:http:2.16.2",
+                    "packageInfo": "ballerina:http:2.16.3",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
                   },
                   {
                     "type": "OAuth2PasswordGrantConfig",
-                    "packageInfo": "ballerina:http:2.16.2",
+                    "packageInfo": "ballerina:http:2.16.3",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
                   },
                   {
                     "type": "OAuth2RefreshTokenGrantConfig",
-                    "packageInfo": "ballerina:http:2.16.2",
+                    "packageInfo": "ballerina:http:2.16.3",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
                   },
                   {
                     "type": "OAuth2JwtBearerGrantConfig",
-                    "packageInfo": "ballerina:http:2.16.2",
+                    "packageInfo": "ballerina:http:2.16.3",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -3649,7 +3649,7 @@
                 "typeMembers": [
                   {
                     "type": "CircuitBreakerConfig",
-                    "packageInfo": "ballerina:http:2.16.2",
+                    "packageInfo": "ballerina:http:2.16.3",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -3686,7 +3686,7 @@
                 "typeMembers": [
                   {
                     "type": "RetryConfig",
-                    "packageInfo": "ballerina:http:2.16.2",
+                    "packageInfo": "ballerina:http:2.16.3",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -3723,7 +3723,7 @@
                 "typeMembers": [
                   {
                     "type": "CookieConfig",
-                    "packageInfo": "ballerina:http:2.16.2",
+                    "packageInfo": "ballerina:http:2.16.3",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -3760,7 +3760,7 @@
                 "typeMembers": [
                   {
                     "type": "ResponseLimitConfigs",
-                    "packageInfo": "ballerina:http:2.16.2",
+                    "packageInfo": "ballerina:http:2.16.3",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -3797,7 +3797,7 @@
                 "typeMembers": [
                   {
                     "type": "ProxyConfig",
-                    "packageInfo": "ballerina:http:2.16.2",
+                    "packageInfo": "ballerina:http:2.16.3",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -3862,7 +3862,7 @@
                 "typeMembers": [
                   {
                     "type": "ClientSocketConfig",
-                    "packageInfo": "ballerina:http:2.16.2",
+                    "packageInfo": "ballerina:http:2.16.3",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -3927,7 +3927,7 @@
                 "typeMembers": [
                   {
                     "type": "ClientSecureSocket",
-                    "packageInfo": "ballerina:http:2.16.2",
+                    "packageInfo": "ballerina:http:2.16.3",
                     "packageName": "http",
                     "kind": "RECORD_TYPE",
                     "selected": false

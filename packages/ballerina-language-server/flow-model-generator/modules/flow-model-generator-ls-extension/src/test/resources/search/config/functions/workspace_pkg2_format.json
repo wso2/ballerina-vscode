@@ -129,7 +129,7 @@
               "metadata": {
                 "label": "encode",
                 "description": "Encodes HL7 message model to encoded wire format.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.hl7v2_3.0.8.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.hl7v2_3.0.9.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -137,7 +137,7 @@
                 "module": "health.hl7v2",
                 "packageName": "health.hl7v2",
                 "symbol": "encode",
-                "version": "3.0.8"
+                "version": "3.0.9"
               },
               "enabled": true
             }
@@ -204,7 +204,7 @@
               "metadata": {
                 "label": "serialize",
                 "description": "Serializes the given data according to the Avro format and registers the schema into the schema registry.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_confluent.cavroserdes_1.0.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_confluent.cavroserdes_1.0.3.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
@@ -212,7 +212,7 @@
                 "module": "confluent.cavroserdes",
                 "packageName": "confluent.cavroserdes",
                 "symbol": "serialize",
-                "version": "1.0.2"
+                "version": "1.0.3"
               },
               "enabled": true
             }
