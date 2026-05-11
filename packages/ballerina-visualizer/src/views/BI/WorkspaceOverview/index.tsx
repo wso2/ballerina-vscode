@@ -26,7 +26,7 @@ import {
     WorkspaceDevantMetadata
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { IOpenInConsoleCmdParams, WICommandIds } from "@wso2/wso2-platform-core";
 import { Typography, Codicon, ProgressRing, Button, Icon, Divider } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
@@ -34,7 +34,6 @@ import { ThemeColors } from "@wso2/ui-toolkit";
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react";
 import ReactMarkdown from "react-markdown";
 import { AlertBoxWithClose } from "../../AIPanel/AlertBoxWithClose";
-import { UndoRedoGroup } from "../../../components/UndoRedoGroup";
 import { PackageListView } from "./PackageListView";
 import { getWorkspaceProjectScopes } from "../PackageOverview/utils";
 import { usePlatformExtContext } from "../../../providers/platform-ext-ctx-provider";
@@ -405,12 +404,9 @@ function DeploymentOptions({
     const [expandedOptions, setExpandedOptions] = useState<Set<string>>(new Set(['cloud']));
     const [isRefreshing, setIsRefreshing] = useState(false);
     const deployedCountAtRefreshStart = useRef<number | null>(null);
-    const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-    const waitForLastFetchRef = useRef(false);
     const sawFetchingRef = useRef(false);
     const { rpcClient } = useRpcContext();
     const { platformExtState } = usePlatformExtContext();
-    const queryClient = useQueryClient();
 
     const toggleOption = (option: string) => {
         setExpandedOptions(prev => {
@@ -439,9 +435,7 @@ function DeploymentOptions({
     const stopRefreshing = useCallback(() => {
         setIsRefreshing(false);
         deployedCountAtRefreshStart.current = null;
-        waitForLastFetchRef.current = false;
         sawFetchingRef.current = false;
-        if (pollIntervalRef.current !== null) { clearInterval(pollIntervalRef.current); pollIntervalRef.current = null; }
     }, []);
 
     // Early exit: stop as soon as deployedProjects.length changes from what it was at click time.
@@ -451,11 +445,7 @@ function DeploymentOptions({
         }
     }, [deployedProjects.length, isRefreshing, stopRefreshing]);
 
-    // Final-poll exit: after the 5th poll, wait for devantFetching to go true→false.
-    // useEffect fires after the render, so devantMetadata (and deployedProjects) is already
-    // updated before the spinner is cleared — UI transition and spinner removal are atomic.
     useEffect(() => {
-        if (!waitForLastFetchRef.current) return;
         if (devantFetching) {
             sawFetchingRef.current = true;
         } else if (sawFetchingRef.current) {
@@ -463,37 +453,21 @@ function DeploymentOptions({
         }
     }, [devantFetching, stopRefreshing]);
 
-    useEffect(() => {
-        return () => { if (pollIntervalRef.current !== null) clearInterval(pollIntervalRef.current); };
-    }, []);
-
-    const handleRefreshDeploymentStatus = (e: React.MouseEvent) => {
+    const handleRefreshDeploymentStatus = async (e: React.MouseEvent) => {
         e.stopPropagation();
         deployedCountAtRefreshStart.current = deployedProjects.length;
-        waitForLastFetchRef.current = false;
         sawFetchingRef.current = false;
         setIsRefreshing(true);
-        rpcClient.getCommonRpcClient().executeCommand({
+        await rpcClient.getCommonRpcClient().executeCommand({
             commands: [WICommandIds.RefreshDirectoryContext],
         });
-        let pollCount = 0;
-        pollIntervalRef.current = setInterval(() => {
-            pollCount++;
-            queryClient.invalidateQueries({ queryKey: ["project-devant-metadata"] });
-            if (pollCount >= 5) {
-                clearInterval(pollIntervalRef.current!);
-                pollIntervalRef.current = null;
-                waitForLastFetchRef.current = true;
-                sawFetchingRef.current = false;
-            }
-        }, 1500);
     };
     const hasDeployedWithChanges = deployedWithChanges.length > 0;
 
     const refreshButton = isRefreshing ? (
         <ProgressRing sx={{ width: 16, height: 16 }} />
     ) : (
-        <Button appearance="icon" onClick={handleRefreshDeploymentStatus}>
+        <Button appearance="icon" onClick={async (e) => await handleRefreshDeploymentStatus(e)}>
             <Codicon name="refresh" />
         </Button>
     );
