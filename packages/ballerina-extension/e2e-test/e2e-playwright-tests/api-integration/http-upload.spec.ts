@@ -189,10 +189,7 @@ export default function createTests() {
             logStep('Run integration');
             await FileUtils.openProjectFileInEditor('main.bal');
 
-            await page.page.keyboard.press(process.platform === 'darwin' ? 'Meta+Shift+P' : 'Control+Shift+P');
-            await page.page.waitForTimeout(500);
-            await page.page.keyboard.type('Run Integration');
-            await page.page.keyboard.press('Enter');
+            await page.executePaletteCommand('BI.project.run');
 
             logStep('Verify upload endpoint response');
             const result = await waitForEndpoint('http://localhost:9090/upload?name=probe.txt', 120000);

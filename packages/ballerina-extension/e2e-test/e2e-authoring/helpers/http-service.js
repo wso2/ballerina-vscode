@@ -144,11 +144,7 @@ globalThis.openProjectFileInEditor = async (fileName) => {
 
 globalThis.runIntegrationAndWaitForUpload = async () => {
   await openProjectFileInEditor('main.bal');
-  const modifier = process.platform === 'darwin' ? 'Meta' : 'Control';
-  await window.keyboard.press(`${modifier}+Shift+P`);
-  await window.waitForTimeout(500);
-  await window.keyboard.type('Run Integration');
-  await window.keyboard.press('Enter');
+  await extendedPage.executePaletteCommand('BI.project.run');
   return waitForEndpoint('http://localhost:9090/upload?name=probe.txt', 120000, {
     method: 'POST',
     body: '{"content":"hello"}',
