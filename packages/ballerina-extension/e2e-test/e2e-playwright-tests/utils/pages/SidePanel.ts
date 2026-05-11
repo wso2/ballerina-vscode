@@ -37,7 +37,16 @@ export class SidePanel {
      * @param nodeTitle - Title of the node to click. This can be found via the title attribute of the node.
      */
     public async clickNode(nodeTitle: string): Promise<void> {
-        const nodeContainer = this.getLocator().getByText(nodeTitle, { exact: true });
+        let nodeContainer = this.getLocator().getByText(nodeTitle, { exact: true }).last();
+        if (!await nodeContainer.isVisible({ timeout: 3000 }).catch(() => false)) {
+            const search = this.getLocator().locator('input[placeholder*="Search"], input[type="text"]').first();
+            if (await search.isVisible({ timeout: 5000 }).catch(() => false)) {
+                await search.fill(nodeTitle);
+                await this._page.waitForTimeout(1200);
+                nodeContainer = this.getLocator().getByText(nodeTitle, { exact: true }).last();
+            }
+        }
+        await nodeContainer.waitFor({ state: 'visible', timeout: 30000 });
         await nodeContainer.click();
     }
 

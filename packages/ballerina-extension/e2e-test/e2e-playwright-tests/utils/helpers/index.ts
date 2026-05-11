@@ -42,5 +42,8 @@ export { addArtifact, enableICP } from './artifacts';
 // Re-export from verification
 export { verifyGeneratedSource } from './verification';
 
+// Re-export from progress
+export { logStep } from './progress';
+
 // Re-export constants
 export { BI_INTEGRATOR_LABEL, BI_WEBVIEW_NOT_FOUND_ERROR, DEFAULT_PROJECT_NAME, DEFAULT_PROJECT_FOLDER_NAME, BI_SIDEBAR_VIEW_ID } from './constants';
