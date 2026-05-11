@@ -184,6 +184,31 @@ globalThis.addMatchNode = async (target, firstPattern = '1') => {
   await form.switchToFormView(false, frame);
   await cmFill(target, 0);
   await cmFill(firstPattern, 1);
+
+  const panel = frame.locator('[data-testid="side-panel"]').first();
+  await panel.evaluate((element) => element.scrollTo({ top: element.scrollHeight, behavior: 'instant' })).catch(() => {});
+  await frame.waitForTimeout(500);
+
+  // Add Case 2
+  const addCase = panel.getByText('Add Case', { exact: true }).first();
+  if (await addCase.isVisible({ timeout: 5000 }).catch(() => false)) {
+    await addCase.evaluate((element) => {
+      const clickable = element.closest('button, vscode-button, a, [role="button"]') || element;
+      clickable.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+    });
+    await frame.waitForTimeout(300);
+  }
+
+  // Add Default case
+  const addDefault = panel.getByText('Add Default', { exact: true }).first();
+  if (await addDefault.isVisible({ timeout: 5000 }).catch(() => false)) {
+    await addDefault.evaluate((element) => {
+      const clickable = element.closest('button, vscode-button, a, [role="button"]') || element;
+      clickable.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+    });
+    await frame.waitForTimeout(300);
+  }
+
   await saveOpenFlowNodeForm();
 };
 
