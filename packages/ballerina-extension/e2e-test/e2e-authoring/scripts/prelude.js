@@ -66,6 +66,7 @@ globalThis.hostSnapshot = async () => {
 };
 
 globalThis.waitForText = async (text, timeout = 30000) => {
+  await ensureWorkbench();
   const deadline = Date.now() + timeout;
   while (Date.now() < deadline) {
     const snap = await snapshot().catch(() => '');
@@ -118,11 +119,11 @@ globalThis.recordSelectorGap = (description, preferredTestId) => {
 
 globalThis.waitForEndpoint = async (url, timeout = 60000, opts = {}) => {
   const deadline = Date.now() + timeout;
+  const body = opts.bodyFile ? fs.readFileSync(opts.bodyFile) : opts.body;
   while (Date.now() < deadline) {
     const result = await new Promise((resolve) => {
       const u = new URL(url);
       const lib = u.protocol === 'https:' ? https : http;
-      const body = opts.bodyFile ? fs.readFileSync(opts.bodyFile) : opts.body;
       const req = lib.request(
         u,
         { method: opts.method || 'GET', headers: opts.headers || {}, timeout: 5000 },
