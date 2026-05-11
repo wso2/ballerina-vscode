@@ -8,6 +8,7 @@
  */
 import fs from 'fs';
 import http from 'http';
+import https from 'https';
 import path from 'path';
 import vm from 'vm';
 import { execSync } from 'child_process';
@@ -165,6 +166,8 @@ const ctx = vm.createContext({
   process,
   fs,
   path,
+  http,
+  https,
   execSync,
   Form,
   ExtendedPage,

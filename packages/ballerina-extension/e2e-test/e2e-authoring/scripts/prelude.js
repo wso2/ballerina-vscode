@@ -117,26 +117,27 @@ globalThis.recordSelectorGap = (description, preferredTestId) => {
 };
 
 globalThis.waitForEndpoint = async (url, timeout = 60000, opts = {}) => {
-  const method = opts.method || 'GET';
-  const headerArgs = Object.entries(opts.headers || {})
-    .map(([key, value]) => `-H '${key}: ${String(value).replace(/'/g, "'\\''")}'`)
-    .join(' ');
-  const bodyArg = opts.bodyFile
-    ? `--data-binary @${opts.bodyFile}`
-    : opts.body
-      ? `--data-raw '${String(opts.body).replace(/'/g, "'\\''")}'`
-      : '';
-  const cmd = `curl -s -o /dev/stdout -w '\\n%{http_code}' --max-time 5 -X ${method} ${headerArgs} ${bodyArg ? `${bodyArg} ` : ''}'${url}'`;
   const deadline = Date.now() + timeout;
   while (Date.now() < deadline) {
-    try {
-      const raw = execSync(cmd, { encoding: 'utf8', timeout: 10000 });
-      const lines = raw.split('\n');
-      const status = Number(lines.pop());
-      if (status > 0) return { status, body: lines.join('\n') };
-    } catch {
-      // Retry until timeout.
-    }
+    const result = await new Promise((resolve) => {
+      const u = new URL(url);
+      const lib = u.protocol === 'https:' ? https : http;
+      const body = opts.bodyFile ? fs.readFileSync(opts.bodyFile) : opts.body;
+      const req = lib.request(
+        u,
+        { method: opts.method || 'GET', headers: opts.headers || {}, timeout: 5000 },
+        (res) => {
+          const chunks = [];
+          res.on('data', (c) => chunks.push(c));
+          res.on('end', () => resolve({ status: res.statusCode, body: Buffer.concat(chunks).toString('utf8') }));
+        }
+      );
+      req.on('error', () => resolve(null));
+      req.on('timeout', () => { req.destroy(); resolve(null); });
+      if (body !== undefined) req.write(body);
+      req.end();
+    });
+    if (result && result.status > 0) return result;
     await window.waitForTimeout(1000);
   }
   throw new Error(`waitForEndpoint("${url}") timed out after ${timeout}ms`);
