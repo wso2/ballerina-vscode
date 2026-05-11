@@ -16,7 +16,7 @@
  * under the License.
  */
 import { expect, test } from '@playwright/test';
-import { addArtifact, BI_INTEGRATOR_LABEL, BI_WEBVIEW_NOT_FOUND_ERROR, initTest, page } from '../utils/helpers';
+import { addArtifact, BI_INTEGRATOR_LABEL, BI_WEBVIEW_NOT_FOUND_ERROR, initTest, logStep, page } from '../utils/helpers';
 import { switchToIFrame, Form } from '@wso2/playwright-vscode-tester';
 import { FileUtils } from '../utils/helpers/fileSystem';
 
@@ -59,6 +59,7 @@ async function clickButtonText(locatorOwner: ReturnType<typeof switchToIFrame> e
 }
 
 async function configureUploadResourceIO(locatorOwner: ReturnType<typeof switchToIFrame> extends Promise<infer T> ? NonNullable<T> : never) {
+    logStep('Configure upload resource query parameter and payload');
     await locatorOwner.getByRole('button', { name: /Configure/i }).click({ force: true });
     await expect(locatorOwner.getByText('Resource Configuration', { exact: true })).toBeVisible({ timeout: 30000 });
 
@@ -82,6 +83,7 @@ async function configureUploadResourceIO(locatorOwner: ReturnType<typeof switchT
 }
 
 async function addReturnNodeFromDiagram(locatorOwner: ReturnType<typeof switchToIFrame> extends Promise<infer T> ? NonNullable<T> : never) {
+    logStep('Add Return node from diagram');
     for (let attempt = 0; attempt < 10; attempt++) {
         const addButton = locatorOwner.locator('[data-testid="empty-node-add-button-1"]').first();
         if (await addButton.isVisible({ timeout: 1000 }).catch(() => false)) {
@@ -146,6 +148,7 @@ export default function createTests() {
         initTest();
 
         test('HTTP Upload creates POST resource and verifies endpoint', async () => {
+            logStep('Create HTTP Service artifact');
             await addArtifact('HTTP Service', 'http-service-card');
             const artifactWebView = await switchToIFrame(BI_INTEGRATOR_LABEL, page.page);
             if (!artifactWebView) {
@@ -164,6 +167,7 @@ export default function createTests() {
             });
             await form.submit('Create');
 
+            logStep('Add POST /upload resource');
             await artifactWebView.getByRole('button', { name: /Add Resource/i }).first().click({ force: true });
             await clickVisibleText(artifactWebView, 'POST');
 
@@ -181,6 +185,8 @@ export default function createTests() {
 
             await configureUploadResourceIO(artifactWebView);
             await addReturnNodeFromDiagram(artifactWebView);
+
+            logStep('Run integration');
             await FileUtils.openProjectFileInEditor('main.bal');
 
             await page.page.keyboard.press(process.platform === 'darwin' ? 'Meta+Shift+P' : 'Control+Shift+P');
@@ -188,6 +194,7 @@ export default function createTests() {
             await page.page.keyboard.type('Run Integration');
             await page.page.keyboard.press('Enter');
 
+            logStep('Verify upload endpoint response');
             const result = await waitForEndpoint('http://localhost:9090/upload?name=probe.txt', 120000);
             expect([200, 201]).toContain(result.status);
             expect(result.body).toContain('uploads/probe.txt');

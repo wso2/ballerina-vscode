@@ -10,6 +10,20 @@ const FLOW_NODES_IF_SOURCE = [
   'else'
 ];
 
+const FLOW_NODES_LOGGING_SOURCE = [
+  'log:printError("sample error log")',
+  'log:printWarn("sample warn log")'
+];
+
+const FLOW_NODES_MATCH_SOURCE = [
+  'match count',
+  '1 =>'
+];
+
+const FLOW_NODES_WHILE_SOURCE = [
+  'while count < 3'
+];
+
 globalThis.addAutomationArtifact = async () => {
   const frame = await getBIWebview();
   await frame.getByRole('button', { name: /Add Artifact/i }).click({ force: true });
@@ -37,7 +51,6 @@ globalThis.clickNextDiagramPlus = async () => {
     scrollable?.scrollTo?.({ top: 0, behavior: 'instant' });
     window.scrollTo(0, 0);
   }).catch(() => {});
-  await frame.mouse.wheel(0, -1200).catch(() => {});
   await frame.waitForTimeout(500);
 
   const clickedId = await frame.locator('[data-testid]').evaluateAll((elements) => {
@@ -70,20 +83,30 @@ globalThis.clickNextDiagramPlus = async () => {
 globalThis.selectFlowNode = async (nodeLabel, category) => {
   const frame = await getBIWebview();
   await clickNextDiagramPlus();
-  if (category) {
-    const categoryHeader = frame.getByText(category, { exact: true }).first();
+  const panel = frame.locator('[data-testid="side-panel"]').first();
+  await panel.waitFor({ state: 'visible', timeout: 30000 });
+
+  const search = panel.locator('input[placeholder*="Search"], input[type="text"]').first();
+  if (await search.isVisible({ timeout: 5000 }).catch(() => false)) {
+    await search.fill(nodeLabel);
+    await frame.waitForTimeout(1200);
+  } else if (category) {
+    const categoryHeader = panel.getByText(category, { exact: true }).first();
     if (await categoryHeader.isVisible({ timeout: 5000 }).catch(() => false)) {
       await categoryHeader.click({ force: true }).catch(() => {});
     }
   }
-  let node = frame.getByText(nodeLabel, { exact: true }).last();
+
+  let node = panel.getByText(nodeLabel, { exact: true }).last();
   if (!await node.isVisible({ timeout: 5000 }).catch(() => false)) {
-    const search = frame.locator('input[placeholder*="Search"], input[type="text"]').first();
-    if (await search.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await search.fill(nodeLabel);
-      await frame.waitForTimeout(1000);
+    if (category) {
+      const categoryHeader = panel.getByText(category, { exact: true }).first();
+      if (await categoryHeader.isVisible({ timeout: 5000 }).catch(() => false)) {
+        await categoryHeader.click({ force: true }).catch(() => {});
+        await frame.waitForTimeout(500);
+      }
     }
-    node = frame.getByText(nodeLabel, { exact: true }).last();
+    node = panel.getByText(nodeLabel, { exact: true }).last();
   }
   try {
     await node.waitFor({ state: 'visible', timeout: 30000 });
@@ -138,13 +161,38 @@ globalThis.addLogNode = async (nodeLabel, message) => {
 globalThis.addIfElseNode = async (condition) => {
   const frame = await getBIWebview();
   await selectFlowNode('If', 'Control');
-  await fillFlowNodeForm({
-    'branch-0': { type: 'cmEditor', value: condition, additionalProps: { clickLabel: true } }
+  const form = new Form(window, BI_INTEGRATOR_LABEL, frame);
+  await form.switchToFormView(false, frame);
+  await cmFill(condition, 0);
+  const panel = frame.locator('[data-testid="side-panel"]').first();
+  await panel.evaluate((element) => element.scrollTo({ top: element.scrollHeight, behavior: 'instant' })).catch(() => {});
+  await frame.waitForTimeout(500);
+  const addElse = panel.getByText('Add Else Block', { exact: true }).first();
+  await addElse.waitFor({ state: 'visible', timeout: 10000 });
+  await addElse.evaluate((element) => {
+    const clickable = element.closest('button, vscode-button, a, [role="button"]') || element;
+    clickable.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
   });
-  const addElse = frame.getByText('Add Else Block', { exact: true }).first();
-  if (await addElse.isVisible({ timeout: 5000 }).catch(() => false)) {
-    await addElse.click({ force: true });
-  }
+  await panel.getByText('Remove Else Block', { exact: true }).waitFor({ state: 'visible', timeout: 10000 });
+  await saveOpenFlowNodeForm();
+};
+
+globalThis.addMatchNode = async (target, firstPattern = '1') => {
+  const frame = await getBIWebview();
+  await selectFlowNode('Match', 'Control');
+  const form = new Form(window, BI_INTEGRATOR_LABEL, frame);
+  await form.switchToFormView(false, frame);
+  await cmFill(target, 0);
+  await cmFill(firstPattern, 1);
+  await saveOpenFlowNodeForm();
+};
+
+globalThis.addWhileNode = async (condition) => {
+  const frame = await getBIWebview();
+  await selectFlowNode('While', 'Control');
+  const form = new Form(window, BI_INTEGRATOR_LABEL, frame);
+  await form.switchToFormView(false, frame);
+  await cmFill(condition, 0);
   await saveOpenFlowNodeForm();
 };
 
@@ -168,3 +216,19 @@ globalThis.verifyFlowNodesSource = async (expected = FLOW_NODES_BASE_SOURCE) => 
 
 globalThis.verifyFlowNodesBaseSource = async () => verifyFlowNodesSource(FLOW_NODES_BASE_SOURCE);
 globalThis.verifyFlowNodesIfSource = async () => verifyFlowNodesSource([...FLOW_NODES_BASE_SOURCE, ...FLOW_NODES_IF_SOURCE]);
+globalThis.verifyFlowNodesLoggingSource = async () => verifyFlowNodesSource([
+  ...FLOW_NODES_BASE_SOURCE,
+  ...FLOW_NODES_IF_SOURCE,
+  ...FLOW_NODES_LOGGING_SOURCE
+]);
+globalThis.verifyFlowNodesMatchSource = async () => verifyFlowNodesSource([
+  ...FLOW_NODES_BASE_SOURCE,
+  ...FLOW_NODES_IF_SOURCE,
+  ...FLOW_NODES_MATCH_SOURCE
+]);
+globalThis.verifyFlowNodesWhileSource = async () => verifyFlowNodesSource([
+  ...FLOW_NODES_BASE_SOURCE,
+  ...FLOW_NODES_IF_SOURCE,
+  ...FLOW_NODES_LOGGING_SOURCE,
+  ...FLOW_NODES_WHILE_SOURCE
+]);
