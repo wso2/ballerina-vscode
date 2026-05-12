@@ -19,7 +19,7 @@
 // tslint:disable: jsx-no-multiline-js
 import React, { useMemo } from 'react';
 
-import { IntermediateClauseType, ResultClauseType, TypeKind } from '@wso2/ballerina-core';
+import { ResultClauseType, TypeKind } from '@wso2/ballerina-core';
 import { Icon, Item, Menu, MenuItem, ProgressRing } from '@wso2/ui-toolkit';
 import { css } from '@emotion/css';
 
