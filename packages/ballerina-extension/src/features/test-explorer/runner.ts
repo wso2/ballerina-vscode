@@ -29,6 +29,7 @@ import path from 'path';
 import { EvaluationReportWebview } from '../../views/evaluation-report/webview';
 import { captureGitState, createSnapshot, pinSnapshot, ensureEvalReportsGitignored } from '../../utils/git-utils';
 import { quoteShellPath } from '../../utils/config';
+import { cleanAndValidateProject } from '../config-generator/configGenerator';
 
 /**
  * Extract project path from a test item
@@ -288,6 +289,7 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 }
             });
 
+            const isEval = isAiEvaluations(test);
             command = buildTestCommand(test, executor, testCaseNames.length > 0 ? testCaseNames : undefined);
 
             const startTime = Date.now();
@@ -296,7 +298,7 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
                 const reportPathOverride = extractTestReportPath(stdout);
 
-                if (isAiEvaluations(test)) {
+                if (isEval) {
                     handleEvalReport(run, testItems, timeElapsed, projectPath).then((allPassed) => {
                         endGroup(test, allPassed, run);
                     }).catch(() => {
@@ -323,6 +325,7 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 run.started(child);
             });
 
+            const isEval = isAiEvaluations(test);
             command = buildTestCommand(test, executor, testCaseNames);
 
             const startTime = Date.now();
@@ -331,7 +334,7 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
                 const reportPathOverride = extractTestReportPath(stdout);
 
-                if (isAiEvaluations(test)) {
+                if (isEval) {
                     handleEvalReport(run, testItems, timeElapsed, projectPath).then((allPassed) => {
                         endGroup(test, allPassed, run);
                     }).catch(() => {
@@ -350,6 +353,7 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
             });
         } else if (isTestFunctionItem(test)) {
             command = buildTestCommand(test, executor, [test.label]);
+            const isEval = isAiEvaluations(test);
 
             const parentGroup = test.parent;
             let testItems: TestItem[] = [];
@@ -367,7 +371,7 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
                 const reportPathOverride = extractTestReportPath(stdout);
 
-                if (isAiEvaluations(test)) {
+                if (isEval) {
                     handleEvalReport(run, testItems, timeElapsed, projectPath, true).then((allPassed) => {
                         endGroup(test, allPassed, run);
                     }).catch(() => {
