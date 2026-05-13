@@ -262,7 +262,7 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
 
     const shouldFnsIncluded = context?.reusable ||
         context?.views.length !== 1 ||
-        (link?.getTargetPort() as InputOutputPortModel).attributes.fieldFQN.includes('.');
+        targetPort?.attributes.fieldFQN.includes('.');
 
     if (shouldFnsIncluded) {
         codeActions.push({
