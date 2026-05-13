@@ -266,7 +266,7 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
 
     if (shouldFnsIncluded) {
         codeActions.push({
-            title: "Map with Custom Function",
+            title: "Map Using Custom Function",
             icon: "function-icon",
             onClick: onClickMapWithCustomFn
         });
@@ -277,7 +277,7 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
         && mappingType !== MappingType.ConvertiblePrimitives
         && shouldFnsIncluded) {
         codeActions.push({
-            title: "Map with Transform Function",
+            title: "Map Using Transform Function",
             icon: "dataMapper",
             onClick: onClickMapWithTransformFn
         });
