@@ -226,6 +226,23 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
         return;
     }
 
+    // Match the run/debug flow: clean up unused imports before invoking `bal test`.
+    const projectPaths = new Set<string>();
+    include.forEach((test) => {
+        const projectPath = getProjectPathFromTestItem(test);
+        if (projectPath) {
+            projectPaths.add(projectPath);
+        }
+    });
+    const langClient = extension.ballerinaExtInstance.langClient;
+    for (const projectPath of projectPaths) {
+        try {
+            await cleanAndValidateProject(langClient, projectPath);
+        } catch (err) {
+            console.error(`Failed to clean project before test run: ${projectPath}`, err);
+        }
+    }
+
     // Handle Test Run
     include.forEach((test) => {
         if (token.isCancellationRequested) {
