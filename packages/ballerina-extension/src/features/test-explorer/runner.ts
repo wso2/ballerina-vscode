@@ -63,26 +63,6 @@ function getProjectPathFromTestItem(test: TestItem): string | undefined {
     return StateMachine.context().projectPath;
 }
 
-/**
- * Check if we're in a workspace context (multiple projects)
- * Returns the project name if in workspace, undefined otherwise
- */
-function getProjectNameIfWorkspace(projectPath: string): string | undefined {
-    const projectInfo = StateMachine.context().projectInfo;
-
-    // Check if this is a workspace with multiple child projects
-    if (projectInfo?.children?.length > 0) {
-        // Find the matching child project
-        for (const child of projectInfo.children) {
-            if (child.projectPath === projectPath) {
-                return path.basename(projectPath);
-            }
-        }
-    }
-
-    return undefined;
-}
-
 function isAiEvaluations(test: TestItem): boolean {
     // Check if the test item itself is the evaluations group
     if (isTestGroupItem(test) && test.label === EVALUATION_GROUP) {
@@ -113,20 +93,16 @@ function isAiEvaluations(test: TestItem): boolean {
     return false;
 }
 
-function buildTestCommand(test: TestItem, executor: string, projectName: string | undefined, testCaseNames?: string[]): string {
+// Always invoked with the package dir as CWD — workaround for workspace `bal test` CWD bug.
+function buildTestCommand(test: TestItem, executor: string, testCaseNames?: string[]): string {
     if (isAiEvaluations(test)) {
-        // Evaluations tests use group-based execution with test report
         const projectPath = getProjectPathFromTestItem(test);
         if (projectPath) { ensureEvalReportsGitignored(projectPath); }
         const testsPart = testCaseNames && testCaseNames.length > 0 ? ` --tests ${testCaseNames.join(',')}` : '';
-        const projectPart = projectName ? ` ${quoteShellPath(projectName)}` : '';
-        const reportDir = projectName ? `${projectName}/tests/evaluation-reports` : 'tests/evaluation-reports';
-        return `${quoteShellPath(executor)} test --groups ${EVALUATION_GROUP} --test-report --test-report-dir=${quoteShellPath(reportDir)}${testsPart}${projectPart}`;
+        return `${quoteShellPath(executor)} test --groups ${EVALUATION_GROUP} --test-report --test-report-dir=${quoteShellPath('tests/evaluation-reports')}${testsPart}`;
     } else {
-        // Standard tests use code coverage and optional test filtering
         const testsPart = testCaseNames && testCaseNames.length > 0 ? ` --tests ${testCaseNames.join(',')}` : '';
-        const projectPart = projectName ? ` ${quoteShellPath(projectName)}` : '';
-        return `${quoteShellPath(executor)} test --code-coverage${testsPart}${projectPart}`;
+        return `${quoteShellPath(executor)} test --code-coverage${testsPart}`;
     }
 }
 
@@ -267,9 +243,6 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
             return;
         }
 
-        // Check if we're in a workspace with multiple projects
-        const projectName = getProjectNameIfWorkspace(projectPath);
-
         let command: string;
         const executor = extension.ballerinaExtInstance.getBallerinaCmd();
 
@@ -298,14 +271,13 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 }
             });
 
-            command = buildTestCommand(test, executor, projectName, testCaseNames.length > 0 ? testCaseNames : undefined);
+            command = buildTestCommand(test, executor, testCaseNames.length > 0 ? testCaseNames : undefined);
 
             const startTime = Date.now();
-            // For workspace, run from workspace root; for single project, run from project path
-            const workingDirectory = projectName ? StateMachine.context().workspacePath || projectPath : projectPath;
-            runCommand(command, workingDirectory, run).then(async () => {
+            runCommand(command, projectPath, run).then(async ({ stdout }) => {
                 const endTime = Date.now();
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
+                const reportPathOverride = extractTestReportPath(stdout);
 
                 if (isAiEvaluations(test)) {
                     handleEvalReport(run, testItems, timeElapsed, projectPath).then((allPassed) => {
@@ -314,29 +286,15 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                         endGroup(test, false, run);
                     });
                 } else {
-                    reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
+                    reportTestResults(run, testItems, timeElapsed, projectPath, false, reportPathOverride).then(() => {
                         endGroup(test, true, run);
                     }).catch(() => {
                         endGroup(test, false, run);
                     });
                 }
-            }).catch(async () => {
-                const endTime = Date.now();
-                const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
-
-                if (isAiEvaluations(test)) {
-                    handleEvalReport(run, testItems, timeElapsed, projectPath).then((allPassed) => {
-                        endGroup(test, allPassed, run);
-                    }).catch(() => {
-                        endGroup(test, false, run);
-                    });
-                } else {
-                    reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
-                        endGroup(test, true, run);
-                    }).catch(() => {
-                        endGroup(test, false, run);
-                    });
-                }
+            }).catch(() => {
+                testItems.forEach((item) => run.failed(item, new TestMessage('Failed to run bal test')));
+                endGroup(test, false, run);
             });
         } else if (isTestGroupItem(test)) {
             let testCaseNames: string[] = [];
@@ -348,14 +306,13 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 run.started(child);
             });
 
-            command = buildTestCommand(test, executor, projectName, testCaseNames);
+            command = buildTestCommand(test, executor, testCaseNames);
 
             const startTime = Date.now();
-            // For workspace, run from workspace root; for single project, run from project path
-            const workingDirectory = projectName ? StateMachine.context().workspacePath || projectPath : projectPath;
-            runCommand(command, workingDirectory, run).then(async () => {
+            runCommand(command, projectPath, run).then(async ({ stdout }) => {
                 const endTime = Date.now();
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
+                const reportPathOverride = extractTestReportPath(stdout);
 
                 if (isAiEvaluations(test)) {
                     handleEvalReport(run, testItems, timeElapsed, projectPath).then((allPassed) => {
@@ -364,32 +321,18 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                         endGroup(test, false, run);
                     });
                 } else {
-                    reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
+                    reportTestResults(run, testItems, timeElapsed, projectPath, false, reportPathOverride).then(() => {
                         endGroup(test, true, run);
                     }).catch(() => {
                         endGroup(test, false, run);
                     });
                 }
-            }).catch(async () => {
-                const endTime = Date.now();
-                const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
-
-                if (isAiEvaluations(test)) {
-                    handleEvalReport(run, testItems, timeElapsed, projectPath).then((allPassed) => {
-                        endGroup(test, allPassed, run);
-                    }).catch(() => {
-                        endGroup(test, false, run);
-                    });
-                } else {
-                    reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
-                        endGroup(test, true, run);
-                    }).catch(() => {
-                        endGroup(test, false, run);
-                    });
-                }
+            }).catch(() => {
+                testItems.forEach((item) => run.failed(item, new TestMessage('Failed to run bal test')));
+                endGroup(test, false, run);
             });
         } else if (isTestFunctionItem(test)) {
-            command = buildTestCommand(test, executor, projectName, [test.label]);
+            command = buildTestCommand(test, executor, [test.label]);
 
             const parentGroup = test.parent;
             let testItems: TestItem[] = [];
@@ -402,11 +345,10 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
             }
 
             const startTime = Date.now();
-            // For workspace, run from workspace root; for single project, run from project path
-            const workingDirectory = projectName ? StateMachine.context().workspacePath || projectPath : projectPath;
-            runCommand(command, workingDirectory, run).then(async () => {
+            runCommand(command, projectPath, run).then(async ({ stdout }) => {
                 const endTime = Date.now();
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
+                const reportPathOverride = extractTestReportPath(stdout);
 
                 if (isAiEvaluations(test)) {
                     handleEvalReport(run, testItems, timeElapsed, projectPath, true).then((allPassed) => {
@@ -415,29 +357,15 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                         endGroup(test, false, run);
                     });
                 } else {
-                    reportTestResults(run, testItems, timeElapsed, projectPath, true).then(() => {
+                    reportTestResults(run, testItems, timeElapsed, projectPath, true, reportPathOverride).then(() => {
                         endGroup(test, true, run);
                     }).catch(() => {
                         endGroup(test, false, run);
                     });
                 }
-            }).catch(async () => {
-                const endTime = Date.now();
-                const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
-
-                if (isAiEvaluations(test)) {
-                    handleEvalReport(run, testItems, timeElapsed, projectPath, true).then((allPassed) => {
-                        endGroup(test, allPassed, run);
-                    }).catch(() => {
-                        endGroup(test, false, run);
-                    });
-                } else {
-                    reportTestResults(run, testItems, timeElapsed, projectPath, true).then(() => {
-                        endGroup(test, true, run);
-                    }).catch(() => {
-                        endGroup(test, false, run);
-                    });
-                }
+            }).catch(() => {
+                run.failed(test, new TestMessage('Failed to run bal test'));
+                endGroup(test, false, run);
             });
         }
     });
@@ -461,19 +389,16 @@ enum TEST_STATUS {
     SKIPPED = 'SKIPPED',
 }
 
-async function reportTestResults(run: TestRun, testItems: TestItem[], timeElapsed: number, projectPath: string, individualTest: boolean = false) {
-    // reading test results
-    // For workspace projects, results are in workspace/target, not project/target
-    const projectInfo = StateMachine.context().projectInfo;
-    const workspacePath = StateMachine.context().workspacePath;
-
+async function reportTestResults(run: TestRun, testItems: TestItem[], timeElapsed: number, projectPath: string, individualTest: boolean = false, reportPathOverride?: string) {
     let testResultsPath: string;
-    if (projectInfo?.children?.length > 0 && workspacePath) {
-        // Workspace with multiple projects - results are at workspace root
-        testResultsPath = path.join(workspacePath, TEST_RESULTS_PATH);
+    if (reportPathOverride) {
+        testResultsPath = reportPathOverride;
     } else {
-        // Single project - results are in project directory
-        testResultsPath = path.join(projectPath, TEST_RESULTS_PATH);
+        const projectInfo = StateMachine.context().projectInfo;
+        const workspacePath = StateMachine.context().workspacePath;
+        testResultsPath = projectInfo?.children?.length > 0 && workspacePath
+            ? path.join(workspacePath, TEST_RESULTS_PATH)
+            : path.join(projectPath, TEST_RESULTS_PATH);
     }
 
     let testsJson: JSON | undefined = undefined;
@@ -610,7 +535,7 @@ function endGroup(test: TestItem, allPassed: boolean, run: TestRun) {
     run.end();
 }
 
-async function runCommand(command: string, projectPath: string, run?: TestRun): Promise<{ stdout: string; stderr: string }> {
+async function runCommand(command: string, projectPath: string, run?: TestRun): Promise<{ stdout: string; stderr: string; exitCode: number | null }> {
     return new Promise((resolve, reject) => {
         let stdout = '';
         let stderr = '';
@@ -636,14 +561,18 @@ async function runCommand(command: string, projectPath: string, run?: TestRun): 
             reject(err);
         });
 
+        // Always resolve — `bal test` exits non-zero on test failures but still emits a report.
+        // We need stdout in both cases so the caller can locate the report file.
         proc.on('close', (code) => {
-            if (code !== 0) {
-                reject(new Error(stderr || 'Test failed!'));
-            } else {
-                resolve({ stdout, stderr });
-            }
+            resolve({ stdout, stderr, exitCode: code });
         });
     });
+}
+
+// Parses `bal test`'s "Generating Test Report\n\t<path>" line. Returns undefined if absent.
+function extractTestReportPath(stdout: string): string | undefined {
+    const match = stdout.match(/Generating Test Report\s+(\S.*?test_results\.json)/);
+    return match ? match[1].trim() : undefined;
 }
 
 /**
