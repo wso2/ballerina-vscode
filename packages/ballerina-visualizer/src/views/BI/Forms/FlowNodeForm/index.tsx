@@ -754,6 +754,23 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
 
     const mergeFormDataWithFlowNode = (data: FormValues, targetLineRange: LineRange, dirtyFields?: any): FlowNode => {
         const clonedNode = cloneDeep(node);
+
+        // When a template is available, enrich the cloned node's properties with the
+        // template's property structure before saving. This ensures that properties
+        // with null values (e.g. the expression on a bare `return;`) are replaced with
+        // fully-formed Property objects so that updateNodeProperties can set their values.
+        if (nodeFormTemplate) {
+            const formProperties = getFormProperties(clonedNode);
+            const formTemplateProperties = getFormProperties(nodeFormTemplate);
+            const enrichedProperties = enrichFormTemplatePropertiesWithValues(formProperties, formTemplateProperties);
+
+            if (clonedNode.branches?.at(0)?.properties) {
+                clonedNode.branches[0].properties = enrichedProperties;
+            } else {
+                clonedNode.properties = enrichedProperties;
+            }
+        }
+
         // Create updated node with new line range
         const updatedNode = createNodeWithUpdatedLineRange(clonedNode, targetLineRange);
 
