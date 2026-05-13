@@ -27,14 +27,16 @@ import java.util.Set;
  * @param name name of the function
  * @param location location of the function
  * @param connections dependent connections of the function
+ * @param workflows dependent workflows of the function (referenced via workflow:run())
  *
  * @since 1.0.0
  */
-public record Function(String name, Location location, Set<String> connections) {
+public record Function(String name, Location location, Set<String> connections, Set<String> workflows) {
 
     @Override
     public int hashCode() {
         int connections = connections() != null ? connections().size() : 0;
-        return Objects.hash(name().hashCode(), location().hashCode(), connections);
+        int workflows = workflows() != null ? workflows().size() : 0;
+        return Objects.hash(name().hashCode(), location().hashCode(), connections, workflows);
     }
 }

@@ -28,14 +28,17 @@ import java.util.Set;
  * @param path path of the resource function
  * @param location location of the resource function
  * @param connections dependent connections of the resource function
+ * @param workflows dependent workflows of the resource function (referenced via workflow:run())
  *
  * @since 1.0.0
  */
-public record ResourceFunction(String accessor, String path, Location location, Set<String> connections) {
+public record ResourceFunction(String accessor, String path, Location location, Set<String> connections,
+                               Set<String> workflows) {
 
     @Override
     public int hashCode() {
         int connections = connections() != null ? connections().size() : 0;
-        return Objects.hash(accessor().hashCode(), path().hashCode(), location().hashCode(), connections);
+        int workflows = workflows() != null ? workflows().size() : 0;
+        return Objects.hash(accessor().hashCode(), path().hashCode(), location().hashCode(), connections, workflows);
     }
 }

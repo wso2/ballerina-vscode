@@ -28,11 +28,13 @@ import java.util.List;
  * @param connections
  * @param listeners
  * @param services
+ * @param workflows
  *
  * @since 1.0.0
  */
 public record DesignModel(Automation automation, List<Connection> connections,
-                          List<Listener> listeners, List<Service> services) {
+                          List<Listener> listeners, List<Service> services,
+                          List<Workflow> workflows) {
 
     /**
      * Builder used to create a DesignModel instance.
@@ -41,6 +43,7 @@ public record DesignModel(Automation automation, List<Connection> connections,
         private Automation automation;
         private List<Connection> connections;
         private List<Listener> listeners;
+        private List<Workflow> workflows;
         private final List<Service> services = new ArrayList<>();
 
         public void setAutomation(Automation automation) {
@@ -57,12 +60,17 @@ public record DesignModel(Automation automation, List<Connection> connections,
             return this;
         }
 
+        public DesignModelBuilder setWorkflows(List<Workflow> workflows) {
+            this.workflows = workflows;
+            return this;
+        }
+
         public void addService(Service service) {
             this.services.add(service);
         }
 
         public DesignModel build() {
-            return new DesignModel(automation, connections, listeners, services);
+            return new DesignModel(automation, connections, listeners, services, workflows);
         }
     }
 }
