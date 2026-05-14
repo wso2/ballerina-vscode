@@ -52,6 +52,7 @@ import {
     MACHINE_VIEW,
     EditorDisplayMode,
     Imports,
+    AvailableNode,
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { FormContext, Provider } from "../../context";
@@ -427,6 +428,10 @@ export interface FormProps {
     derivedFields?: FieldDerivation[]; // Configuration for auto-deriving field values from other fields
     updateImports?: (key: string, imports: Imports) => void;
     defaultExpandAdvanced?: boolean;
+    onRequestCreateConnection?: (params: {
+        selectedConnector: AvailableNode;
+        onSaved: (variableName: string) => void;
+    }) => void;
 }
 
 export const Form = forwardRef((props: FormProps, _ref) => {
@@ -472,6 +477,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
         openFormTypeEditor,
         derivedFields = [],
         updateImports,
+        onRequestCreateConnection,
     } = props;
 
     const { rpcClient } = useRpcContext();
@@ -813,7 +819,8 @@ export const Form = forwardRef((props: FormProps, _ref) => {
         popupManager: popupManager,
         nodeInfo: {
             kind: selectedNode,
-        }
+        },
+        onRequestCreateConnection,
     };
 
     // Find the first editable field

@@ -18,14 +18,14 @@
 
 import React, { useEffect, useState } from "react";
 import styled from "@emotion/styled";
-import { Codicon, LinkButton } from "@wso2/ui-toolkit";
-import { AllowedConnector, CodeData } from "@wso2/ballerina-core";
+import { Codicon, LinkButton, ProgressRing } from "@wso2/ui-toolkit";
+import { AllowedConnector, AvailableNode, Category, CodeData, Item } from "@wso2/ballerina-core";
+import { useRpcContext } from "@wso2/ballerina-rpc-client";
 
 import { FormField } from "../../Form/types";
 import { useFormContext } from "../../../context";
 import { capitalize } from "../utils";
 import { ConnectionSelectEditor, ConnectorFilter } from "../MultiModeExpressionEditor/ConnectionSelectEditor/ConnectionSelectEditor";
-import { CreateConnectionOverlay } from "./CreateConnectionOverlay";
 
 interface ConnectionEditorProps {
     field: FormField;
@@ -60,10 +60,28 @@ const AddButtons = styled.div`
     margin-top: 6px;
 `;
 
+// Recursively flatten search categories (which may nest Categories within their
+// items) down to AvailableNodes.
+const flattenAvailableNodes = (items: Item[] | undefined): AvailableNode[] => {
+    const out: AvailableNode[] = [];
+    for (const item of items ?? []) {
+        if ((item as Category).items) {
+            out.push(...flattenAvailableNodes((item as Category).items));
+        } else if ((item as AvailableNode).codedata) {
+            out.push(item as AvailableNode);
+        }
+    }
+    return out;
+};
+
 export const ConnectionEditor: React.FC<ConnectionEditorProps> = ({ field }) => {
-    const { form } = useFormContext();
+    const { form, fileName, targetLineRange, onRequestCreateConnection } = useFormContext();
+    const { rpcClient } = useRpcContext();
     const { register, setValue, watch } = form;
-    const [activeConnector, setActiveConnector] = useState<AllowedConnector | null>(null);
+    const [loadingKey, setLoadingKey] = useState<string | null>(null);
+
+    const connectorKey = (c: AllowedConnector, i: number) =>
+        `${c.codedata?.module}-${c.codedata?.object}-${i}`;
 
     useEffect(() => {
         register(field.key, {
@@ -84,9 +102,47 @@ export const ConnectionEditor: React.FC<ConnectionEditorProps> = ({ field }) => 
     };
 
     const handleSaved = (variableName: string) => {
-        setActiveConnector(null);
         setValue(field.key, variableName, { shouldDirty: true, shouldValidate: true });
         field.onValueChange?.(variableName);
+    };
+
+    const resolveAvailableNode = async (codedata: CodeData, label: string): Promise<AvailableNode> => {
+        const fallback: AvailableNode = {
+            codedata,
+            metadata: { label },
+            enabled: true,
+        } as AvailableNode;
+        try {
+            const response = await rpcClient.getBIDiagramRpcClient().search({
+                position: targetLineRange
+                    ? { startLine: targetLineRange.startLine, endLine: targetLineRange.endLine }
+                    : undefined,
+                filePath: fileName,
+                queryMap: { q: codedata.module ?? "", limit: 60 },
+                searchKind: "CONNECTOR",
+            });
+            const all = flattenAvailableNodes(response.categories as Item[]);
+            const match = all.find((n) =>
+                n.codedata?.org === codedata.org &&
+                n.codedata?.module === codedata.module &&
+                n.codedata?.object === codedata.object
+            );
+            return match ?? fallback;
+        } catch (err) {
+            console.error(">>> Connector lookup failed for inline create", err);
+            return fallback;
+        }
+    };
+
+    const handleAddNewClick = async (c: AllowedConnector, key: string) => {
+        if (!onRequestCreateConnection || !c.codedata) return;
+        setLoadingKey(key);
+        try {
+            const selectedConnector = await resolveAvailableNode(c.codedata as CodeData, c.addNewConnectionLabel);
+            onRequestCreateConnection({ selectedConnector, onSaved: handleSaved });
+        } finally {
+            setLoadingKey(null);
+        }
     };
 
     return (
@@ -104,25 +160,21 @@ export const ConnectionEditor: React.FC<ConnectionEditorProps> = ({ field }) => 
             />
             {connectors.length > 0 && (
                 <AddButtons>
-                    {connectors.map((c, i) => (
-                        <LinkButton
-                            key={`${c.codedata?.module}-${c.codedata?.object}-${i}`}
-                            onClick={() => setActiveConnector(c)}
-                            sx={{ padding: "4px 6px", margin: 0, fontSize: "13px" }}
-                        >
-                            <Codicon name="add" />
-                            {c.addNewConnectionLabel}
-                        </LinkButton>
-                    ))}
+                    {connectors.map((c, i) => {
+                        const key = connectorKey(c, i);
+                        const isLoading = loadingKey === key;
+                        return (
+                            <LinkButton
+                                key={key}
+                                onClick={() => !isLoading && handleAddNewClick(c, key)}
+                                sx={{ padding: "4px 6px", margin: 0, fontSize: "13px", opacity: isLoading ? 0.7 : 1 }}
+                            >
+                                {isLoading ? <ProgressRing sx={{ width: 12, height: 12 }} /> : <Codicon name="add" />}
+                                {c.addNewConnectionLabel}
+                            </LinkButton>
+                        );
+                    })}
                 </AddButtons>
-            )}
-            {activeConnector && (
-                <CreateConnectionOverlay
-                    connector={activeConnector.codedata as CodeData}
-                    title={activeConnector.addNewConnectionLabel}
-                    onClose={() => setActiveConnector(null)}
-                    onSaved={handleSaved}
-                />
             )}
         </Container>
     );
