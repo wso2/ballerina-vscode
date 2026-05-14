@@ -44,7 +44,9 @@ import {
     getPrimaryInputType,
     functionKinds,
     NodeProperties,
-    DiagnosticMessage
+    DiagnosticMessage,
+    AvailableNode,
+    ParentPopupData,
 } from "@wso2/ballerina-core";
 import {
     FieldDerivation,
@@ -89,6 +91,8 @@ import {
     convertItemsToCompletionItems,
 } from "../../../../utils/bi";
 import IfForm from "../IfForm";
+import { ConnectionConfigurationPopup } from "../../Connection/ConnectionConfigurationPopup";
+import { createPortal } from "react-dom";
 import { cloneDeep, debounce } from "lodash";
 import {
     createNodeWithUpdatedLineRange,
@@ -334,6 +338,25 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
     const [types, setTypes] = useState<CompletionItem[]>([]);
     const [filteredTypes, setFilteredTypes] = useState<CompletionItem[]>([]);
     const expressionOffsetRef = useRef<number>(0); // To track the expression offset on adding import statements
+
+    const [pendingConnectionPopup, setPendingConnectionPopup] = useState<{
+        selectedConnector: AvailableNode;
+        onSaved: (variableName: string) => void;
+    } | null>(null);
+
+    const handleRequestCreateConnection = (params: {
+        selectedConnector: AvailableNode;
+        onSaved: (variableName: string) => void;
+    }) => {
+        setPendingConnectionPopup(params);
+    };
+
+    const handleCloseConnectionPopup = (parent?: ParentPopupData) => {
+        if (parent?.recentIdentifier && pendingConnectionPopup?.onSaved) {
+            pendingConnectionPopup.onSaved(parent.recentIdentifier);
+        }
+        setPendingConnectionPopup(null);
+    };
 
     const { addModal, closeModal, popModal } = useModalStack()
 
@@ -2087,7 +2110,18 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                     derivedFields={props.derivedFields}
                     updateImports={handleUpdateImports}
                     defaultExpandAdvanced={props.defaultExpandAdvanced}
+                    onRequestCreateConnection={handleRequestCreateConnection}
                 />
+            )}
+            {pendingConnectionPopup && createPortal(
+                <ConnectionConfigurationPopup
+                    selectedConnector={pendingConnectionPopup.selectedConnector}
+                    fileName={fileName}
+                    target={targetLineRange?.startLine}
+                    onClose={handleCloseConnectionPopup}
+                    onBack={() => setPendingConnectionPopup(null)}
+                />,
+                document.body
             )}
             <EntryPointTypeCreator
                 isOpen={isTypeEditorOpen}
