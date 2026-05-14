@@ -87,7 +87,7 @@ export const Inputs = (props: InputsPageProps) => {
     const [searchValue, setSearchValue] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [showContent, setShowContent] = useState<boolean>(false);
-    const { breadCrumbSteps, navigateToNext, navigateToNextArray, updateLastStepArrayIndex, navigateToBreadcrumb, isAtRoot, getCurrentNavigationPath } = useHelperPaneNavigation("Inputs");
+    const { breadCrumbSteps, navigateToNext, navigateToNextArray, updateLastStepArrayIndex, navigateToBreadcrumb, isAtRoot, getCurrentNavigationPath, getLeafSeparator } = useHelperPaneNavigation("Inputs");
 
     const currentStep = breadCrumbSteps[breadCrumbSteps.length - 1];
     const isInArrayContext = !isAtRoot() && currentStep?.isArrayAccess === true;
@@ -114,8 +114,8 @@ export const Inputs = (props: InputsPageProps) => {
     // Use navigation path for completions instead of currentValue
     const navigationPath = useMemo(() => getCurrentNavigationPath(), [breadCrumbSteps]);
     const completionContext = useMemo(() =>
-        navigationPath ? navigationPath + '.' : (currentValue || ''),
-        [navigationPath, currentValue]
+        navigationPath ? navigationPath + getLeafSeparator() : (currentValue || ''),
+        [navigationPath, currentValue, breadCrumbSteps]
     );
 
     useEffect(() => {
@@ -180,17 +180,17 @@ export const Inputs = (props: InputsPageProps) => {
     };
 
     const handleItemSelect = (value: string) => {
-        // Build full path from navigation
-        const fullPath = navigationPath ? `${navigationPath}.${value}` : value;
+        // Build full path from navigation; use ?. when the parent step is optional
+        const fullPath = navigationPath ? `${navigationPath}${getLeafSeparator()}${value}` : value;
         onChange(fullPath, false);
     }
 
     const handleInputsMoreIconClick = (item: CompletionItem) => {
         const typeDetail = item?.labelDetails?.detail || item?.description;
         if (isArrayOfObjectsType(typeDetail)) {
-            navigateToNextArray(item.label, navigationPath, 0);
+            navigateToNextArray(item.label, navigationPath, 0, typeDetail);
         } else {
-            navigateToNext(item.label, navigationPath);
+            navigateToNext(item.label, navigationPath, typeDetail);
         }
     }
 
