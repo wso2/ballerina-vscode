@@ -56,7 +56,7 @@ type VariablesPageProps = {
 export type VariableItemProps = {
     item: CompletionItem;
     onItemSelect: (value: string, item: CompletionItem) => void;
-    onMoreIconClick: (value: string) => void;
+    onMoreIconClick: (item: CompletionItem) => void;
     hideArrow?: boolean;
 }
 
@@ -86,7 +86,7 @@ export const VariableItem = ({ item, onItemSelect, onMoreIconClick, hideArrow }:
         <HelperPaneListItem
             onClick={() => onItemSelect(item.label, item)}
             endAction={endAction}
-            onClickEndAction={() => onMoreIconClick(item.label)}
+            onClickEndAction={() => onMoreIconClick(item)}
         >
             {mainContent}
         </HelperPaneListItem>
@@ -101,7 +101,7 @@ export const Variables = (props: VariablesPageProps) => {
     const [showContent, setShowContent] = useState<boolean>(false);
     const newNodeNameRef = useRef<string>("");
     const [projectPathUri, setProjectPathUri] = useState<string>();
-    const { breadCrumbSteps, navigateToNext, navigateToBreadcrumb, isAtRoot, getCurrentNavigationPath } = useHelperPaneNavigation("Variables");
+    const { breadCrumbSteps, navigateToNext, navigateToBreadcrumb, isAtRoot, getCurrentNavigationPath, getLeafSeparator } = useHelperPaneNavigation("Variables");
     const { addModal, closeModal } = useModalStack()
 
     const { field, triggerCharacters } = useFieldContext();
@@ -112,9 +112,9 @@ export const Variables = (props: VariablesPageProps) => {
         return path;
     }, [breadCrumbSteps]);
     const completionContext = useMemo(() => {
-        const context = navigationPath ? navigationPath + '.' : (currentValue ?? '');
+        const context = navigationPath ? navigationPath + getLeafSeparator() : (currentValue ?? '');
         return context;
-    }, [navigationPath, currentValue]);
+    }, [navigationPath, currentValue, breadCrumbSteps]);
 
     useEffect(() => {
         getProjectInfo()
@@ -206,8 +206,8 @@ export const Variables = (props: VariablesPageProps) => {
     };
 
     const handleItemSelect = (value: string, _item?: CompletionItem) => {
-        // Build full path from navigation
-        const fullPath = navigationPath ? `${navigationPath}.${value}` : value;
+        // Build full path from navigation; use ?. when the parent step is optional
+        const fullPath = navigationPath ? `${navigationPath}${getLeafSeparator()}${value}` : value;
         onChange(fullPath, false);
     }
 
@@ -227,8 +227,9 @@ export const Variables = (props: VariablesPageProps) => {
             />, POPUP_IDS.VARIABLE, "New Variable", 600);
         onClose && onClose();
     }
-    const handleVariablesMoreIconClick = (value: string) => {
-        navigateToNext(value, navigationPath);
+    const handleVariablesMoreIconClick = (item: CompletionItem) => {
+        const typeDetail = item?.labelDetails?.detail || item?.description;
+        navigateToNext(item.label, navigationPath, typeDetail);
     }
 
     const handleBreadCrumbItemClicked = (step: BreadCrumbStep) => {
