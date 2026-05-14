@@ -27,7 +27,15 @@ export type BreadCrumbStep = {
     stepType?: string;
 }
 
-const isOptionalType = (t?: string) => !!t && t.trim().endsWith('?');
+// Ballerina renders optionality either as a trailing `?` (e.g. `string?`,
+// `ChangeEventMetadata?`, `(A|B)?`) or as a union with nil written out
+// (e.g. `string|()`, `Foo | ( )`). Detect both forms.
+const NIL_UNION_RE = /\|\s*\(\s*\)$/;
+const isOptionalType = (t?: string) => {
+    if (!t) return false;
+    const s = t.trim();
+    return s.endsWith('?') || NIL_UNION_RE.test(s);
+};
 const joinSep = (prevStepType?: string) => (isOptionalType(prevStepType) ? '?.' : '.');
 
 export const useHelperPaneNavigation = (initialLabel: string) => {
