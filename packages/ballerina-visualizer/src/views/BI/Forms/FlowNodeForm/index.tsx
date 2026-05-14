@@ -307,10 +307,15 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
     /* Expression editor related state and ref variables */
     const prevCompletionFetchText = useRef<string>("");
     const [completions, setCompletions] = useState<CompletionItem[]>([]);
+    const completionsRef = useRef<CompletionItem[]>([]);
     const [filteredCompletions, setFilteredCompletions] = useState<CompletionItem[]>([]);
     const [types, setTypes] = useState<CompletionItem[]>([]);
+    const typesRef = useRef<CompletionItem[]>([]);
     const [filteredTypes, setFilteredTypes] = useState<CompletionItem[]>([]);
     const expressionOffsetRef = useRef<number>(0); // To track the expression offset on adding import statements
+
+    useEffect(() => { completionsRef.current = completions; }, [completions]);
+    useEffect(() => { typesRef.current = types; }, [types]);
 
     const { addModal, closeModal, popModal } = useModalStack()
 
@@ -833,12 +838,14 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                 const { parentContent, currentContent } = value
                     .slice(0, offset)
                     .match(EXPRESSION_EXTRACTION_REGEX)?.groups ?? {};
+                const cachedCompletions = completionsRef.current;
                 if (
-                    completions.length > 0 &&
+                    cachedCompletions.length > 0 &&
                     !triggerCharacter &&
+                    parentContent !== undefined &&
                     parentContent === prevCompletionFetchText.current
                 ) {
-                    expressionCompletions = completions
+                    expressionCompletions = cachedCompletions
                         .filter((completion) => {
                             const lowerCaseText = currentContent.toLowerCase();
                             const lowerCaseLabel = completion.label.toLowerCase();
@@ -894,7 +901,7 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
             },
             250
         ),
-        [rpcClient, completions, fileName, targetLineRange, node]
+        [rpcClient, fileName, targetLineRange, node]
     );
 
     const handleRetrieveCompletions = useCallback(
@@ -921,8 +928,8 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                 fetchReferenceTypes: boolean,
                 valueTypeConstraint?: string
             ) => {
-                let visibleTypes: CompletionItem[] = types;
-                if (!types.length) {
+                let visibleTypes: CompletionItem[] = typesRef.current;
+                if (!visibleTypes.length) {
                     const searchResponse = await rpcClient.getBIDiagramRpcClient().search({
                         filePath: fileName,
                         position: targetLineRange,
@@ -992,7 +999,7 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
             },
             250
         ),
-        [rpcClient, types, fileName, targetLineRange]
+        [rpcClient, fileName, targetLineRange]
     );
 
     const handleGetVisibleTypes = useCallback(
