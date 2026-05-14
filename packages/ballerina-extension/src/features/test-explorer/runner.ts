@@ -237,6 +237,9 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
     });
     const langClient = extension.ballerinaExtInstance.langClient;
     for (const projectPath of projectPaths) {
+        if (token.isCancellationRequested) {
+            break;
+        }
         try {
             await cleanAndValidateProject(langClient, projectPath);
         } catch (err) {
