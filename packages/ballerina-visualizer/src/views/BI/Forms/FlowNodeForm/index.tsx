@@ -1009,6 +1009,13 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
         [debouncedGetVisibleTypes]
     );
 
+    useEffect(() => {
+        return () => {
+            debouncedRetrieveCompletions.cancel();
+            debouncedGetVisibleTypes.cancel();
+        };
+    }, [debouncedRetrieveCompletions, debouncedGetVisibleTypes]);
+
     const extractArgsFromFunction = async (value: string, property: ExpressionProperty, cursorPosition: number) => {
         const { lineOffset, charOffset } = calculateExpressionOffsets(value, cursorPosition);
         // Merge the latest imports from formImportsRef to avoid stale field.imports when a
