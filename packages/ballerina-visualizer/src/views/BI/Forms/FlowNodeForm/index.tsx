@@ -1009,12 +1009,18 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
         [debouncedGetVisibleTypes]
     );
 
+    const debouncedRetrieveCompletionsRef = useRef(debouncedRetrieveCompletions);
+    const debouncedGetVisibleTypesRef = useRef(debouncedGetVisibleTypes);
     useEffect(() => {
-        return () => {
-            debouncedRetrieveCompletions.cancel();
-            debouncedGetVisibleTypes.cancel();
-        };
-    }, [debouncedRetrieveCompletions, debouncedGetVisibleTypes]);
+        debouncedRetrieveCompletionsRef.current = debouncedRetrieveCompletions;
+    }, [debouncedRetrieveCompletions]);
+    useEffect(() => {
+        debouncedGetVisibleTypesRef.current = debouncedGetVisibleTypes;
+    }, [debouncedGetVisibleTypes]);
+    useEffect(() => () => {
+        debouncedRetrieveCompletionsRef.current.cancel();
+        debouncedGetVisibleTypesRef.current.cancel();
+    }, []);
 
     const extractArgsFromFunction = async (value: string, property: ExpressionProperty, cursorPosition: number) => {
         const { lineOffset, charOffset } = calculateExpressionOffsets(value, cursorPosition);
