@@ -503,7 +503,7 @@ function DeploymentOptions({
                         isExpanded={expandedOptions.has("devant")}
                         onToggle={() => toggleOption("devant")}
                         onDeploy={isDeployed ? () => goToDevant() : handleDeploy}
-                        learnMoreLink={"https://wso2.com/devant/docs/"}
+                        learnMoreLink={"https://wso2.com/integration-platform/docs/deploy/cloud/push-from-ide/"}
                         hasDeployableIntegration={hasDeployableIntegration && !isRefreshing}
                         secondaryAction={
                             isDeployed && currentProjectMeta?.hasLocalChanges
