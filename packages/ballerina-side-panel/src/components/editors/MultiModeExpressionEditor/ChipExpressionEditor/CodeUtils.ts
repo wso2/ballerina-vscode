@@ -294,6 +294,24 @@ export const iterateTokenStream = (
         }
     }
 
+    // Tokens inside an unclosed ${ are orphans; the LSP treats following text as expression context
+    const insideClosedRange = new Set<number>();
+    let pending: number[] = [];
+    let isOpen = false;
+    for (let i = 0; i < tokens.length; i++) {
+        const type = tokens[i].type;
+        if (type === TokenType.START_EVENT) {
+            pending = [];
+            isOpen = true;
+        } else if (type === TokenType.END_EVENT && isOpen) {
+            pending.forEach(idx => insideClosedRange.add(idx));
+            pending = [];
+            isOpen = false;
+        } else if (isOpen) {
+            pending.push(i);
+        }
+    }
+
     for (let i = 0; i < tokens.length; i++) {
         const token = tokens[i];
 
@@ -313,6 +331,11 @@ export const iterateTokenStream = (
 
         // Skip START_EVENT and END_EVENT tokens
         if (token.type === TokenType.START_EVENT || token.type === TokenType.END_EVENT) {
+            continue;
+        }
+
+        // Skip orphan tokens sitting inside an unclosed ${
+        if (!insideClosedRange.has(i)) {
             continue;
         }
 
