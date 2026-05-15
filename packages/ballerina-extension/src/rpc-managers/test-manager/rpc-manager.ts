@@ -288,13 +288,15 @@ export class TestServiceManagerRpcManager implements TestManagerServiceAPI {
         }
         const [, year, month, day, hour, minute, second, ms] = match;
         return new Date(
-            parseInt(year),
-            parseInt(month) - 1,
-            parseInt(day),
-            parseInt(hour),
-            parseInt(minute),
-            parseInt(second),
-            parseInt(ms)
+            Date.UTC(
+                parseInt(year),
+                parseInt(month) - 1,
+                parseInt(day),
+                parseInt(hour),
+                parseInt(minute),
+                parseInt(second),
+                parseInt(ms)
+            )
         );
     }
 
