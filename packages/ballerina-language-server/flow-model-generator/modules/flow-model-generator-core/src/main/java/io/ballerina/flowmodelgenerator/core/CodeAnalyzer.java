@@ -960,6 +960,7 @@ public class CodeAnalyzer extends NodeVisitor {
         // Tuple: [Type1, Type2] [var1, var2] = check ctx->await([data.f1, data.f2]);
         populateDataEntries(entries);
         buildDataWaitsProperty(entries);
+        WaitDataBuilder.relocateOptionalMemberDiagnostic(nodeBuilder.properties().build());
     }
 
     /**
@@ -1052,16 +1053,23 @@ public class CodeAnalyzer extends NodeVisitor {
                 WaitDataBuilder.DATA_WAITS_KEY, WaitDataBuilder.DATA_WAITS_LABEL, WaitDataBuilder.DATA_WAITS_DOC,
                 WaitDataBuilder.getDataWaitSchema(), false, false);
 
-        // Top-level optional: true only when all tuple members are optional.
+        // Top-level optional: true only when all tuple members are optional. Sits in the advanced
+        // section right after minCount and before timeout.
         boolean allOptional = !entries.isEmpty() && entries.stream().allMatch(DataWaitEntry::optional);
+        Map<String, Property> built = nodeBuilder.properties().build();
+        Property timeoutProp = built.remove(WaitDataBuilder.TIMEOUT_KEY);
         nodeBuilder.properties().custom()
                 .metadata().label(WaitDataBuilder.OPTIONAL_LABEL)
                     .description(WaitDataBuilder.OPTIONAL_DOC).stepOut()
                 .value(allOptional)
                 .editable(true)
+                .advanced(true)
                 .type(Property.ValueType.FLAG)
                 .stepOut()
                 .addProperty(WaitDataBuilder.OPTIONAL_KEY);
+        if (timeoutProp != null) {
+            built.put(WaitDataBuilder.TIMEOUT_KEY, timeoutProp);
+        }
     }
 
     private record DataWaitEntry(String variableName, String dataType, String dataName,

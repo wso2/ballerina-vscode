@@ -104,23 +104,6 @@
         "advanced": false,
         "hidden": false
       },
-      "optional": {
-        "metadata": {
-          "label": "Optional",
-          "description": "When `minCount` is less than the number of data waits, all data wait types should be marked optional"
-        },
-        "types": [
-          {
-            "fieldType": "FLAG",
-            "selected": true
-          }
-        ],
-        "value": false,
-        "optional": false,
-        "editable": true,
-        "advanced": false,
-        "hidden": false
-      },
       "minCount": {
         "metadata": {
           "label": "Min Count",
@@ -148,6 +131,23 @@
           "originalName": "minCount"
         },
         "defaultValue": "<int:Unsigned32>futures.length()"
+      },
+      "optional": {
+        "metadata": {
+          "label": "Optional Data Types",
+          "description": "When `minCount` is less than the number of data waits, all data wait types should be marked optional"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": false,
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": false
       },
       "timeout": {
         "metadata": {

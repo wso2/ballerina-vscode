@@ -107,46 +107,6 @@
             },
             "defaultValue": "<int:Unsigned32>futures.length()"
           },
-          "timeout": {
-            "metadata": {
-              "label": "Timeout",
-              "description": "Maximum wait duration; returns error on timeout"
-            },
-            "types": [
-              {
-                "fieldType": "RECORD_MAP_EXPRESSION",
-                "ballerinaType": "time:Duration",
-                "typeMembers": [
-                  {
-                    "type": "Duration",
-                    "packageInfo": "ballerina:time:2.8.0",
-                    "packageName": "time",
-                    "kind": "RECORD_TYPE",
-                    "selected": false
-                  }
-                ],
-                "selected": false
-              },
-              {
-                "fieldType": "EXPRESSION",
-                "ballerinaType": "time:Duration?",
-                "selected": false
-              }
-            ],
-            "placeholder": "()",
-            "optional": true,
-            "editable": true,
-            "advanced": true,
-            "hidden": false,
-            "codedata": {
-              "kind": "DEFAULTABLE",
-              "originalName": "timeout"
-            },
-            "imports": {
-              "time": "ballerina/time"
-            },
-            "defaultValue": "()"
-          },
           "dataWaits": {
             "metadata": {
               "label": "Data Waits",
@@ -262,16 +222,7 @@
                     "optional": false,
                     "editable": true,
                     "advanced": false,
-                    "hidden": false,
-                    "diagnostics": {
-                      "hasDiagnostics": true,
-                      "diagnostics": [
-                        {
-                          "severity": "ERROR",
-                          "message": "Tuple member at position 0 must be nilable (e.g., string?) when minCount (1) is less than the number of futures (2). Not all futures are guaranteed to complete"
-                        }
-                      ]
-                    }
+                    "hidden": false
                   },
                   "dataName": {
                     "metadata": {
@@ -322,16 +273,7 @@
                     "optional": false,
                     "editable": true,
                     "advanced": false,
-                    "hidden": false,
-                    "diagnostics": {
-                      "hasDiagnostics": true,
-                      "diagnostics": [
-                        {
-                          "severity": "ERROR",
-                          "message": "Tuple member at position 1 must be nilable (e.g., boolean?) when minCount (1) is less than the number of futures (2). Not all futures are guaranteed to complete"
-                        }
-                      ]
-                    }
+                    "hidden": false
                   },
                   "dataName": {
                     "metadata": {
@@ -358,7 +300,7 @@
           },
           "optional": {
             "metadata": {
-              "label": "Optional",
+              "label": "Optional Data Types",
               "description": "When `minCount` is less than the number of data waits, all data wait types should be marked optional"
             },
             "types": [
@@ -370,8 +312,57 @@
             "value": false,
             "optional": false,
             "editable": true,
-            "advanced": false,
-            "hidden": false
+            "advanced": true,
+            "hidden": false,
+            "diagnostics": {
+              "hasDiagnostics": true,
+              "diagnostics": [
+                {
+                  "severity": "ERROR",
+                  "message": "When `minCount` is less than the number of data waits, all data wait types should be marked optional"
+                }
+              ]
+            }
+          },
+          "timeout": {
+            "metadata": {
+              "label": "Timeout",
+              "description": "Maximum wait duration; returns error on timeout"
+            },
+            "types": [
+              {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "time:Duration",
+                "typeMembers": [
+                  {
+                    "type": "Duration",
+                    "packageInfo": "ballerina:time:2.8.0",
+                    "packageName": "time",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "time:Duration?",
+                "selected": false
+              }
+            ],
+            "placeholder": "()",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "DEFAULTABLE",
+              "originalName": "timeout"
+            },
+            "imports": {
+              "time": "ballerina/time"
+            },
+            "defaultValue": "()"
           }
         },
         "diagnostics": {

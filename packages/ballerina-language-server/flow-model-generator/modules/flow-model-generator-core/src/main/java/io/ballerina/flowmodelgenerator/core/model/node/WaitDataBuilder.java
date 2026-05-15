@@ -53,6 +53,7 @@ import io.ballerina.compiler.syntax.tree.WaitActionNode;
 import io.ballerina.flowmodelgenerator.core.CodeAnalyzer;
 import io.ballerina.flowmodelgenerator.core.DeleteNodeHandler;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
+import io.ballerina.flowmodelgenerator.core.model.Diagnostics;
 import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
 import io.ballerina.flowmodelgenerator.core.model.Member;
 import io.ballerina.flowmodelgenerator.core.model.Metadata;
@@ -72,6 +73,7 @@ import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.Project;
+import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
@@ -122,6 +124,8 @@ public class WaitDataBuilder extends CallBuilder {
     public static final String DATA_WAITS_LABEL = "Data Waits";
     public static final String DATA_WAITS_DOC = "Data to wait for (one or more)";
     public static final String FUTURES_PARAM = "futures";
+    public static final String TIMEOUT_KEY = "timeout";
+    public static final String TUPLE_NILABILITY_MESSAGE_PREFIX = "Tuple member at position";
     public static final Set<String> EXCLUDED_AWAIT_PARAMS = Set.of(FUTURES_PARAM, "T");
     public static final Set<String> EXCLUDED_KEYS = Set.of(FUTURES_PARAM, "T", Property.VARIABLE_KEY,
             Property.TYPE_KEY, Property.CHECK_ERROR_KEY, Property.CONNECTION_KEY);
@@ -152,7 +156,13 @@ public class WaitDataBuilder extends CallBuilder {
                 .endNestedProperty(Property.ValueType.REPEATABLE_PROPERTY, DATA_WAITS_KEY, DATA_WAITS_LABEL,
                         DATA_WAITS_DOC, getDataWaitSchema(), false, false);
 
-        // Top-level optional flag — when true, all data wait types are generated as optional
+        addAdvancedProperties(context.workspaceManager().module(context.filePath()).orElse(null),
+                context.workspaceManager(), context.filePath());
+
+        // Insert the optional FLAG into the advanced section, right after minCount and before timeout.
+        // When true, all data wait types are generated as optional.
+        Map<String, Property> built = properties().build();
+        Property timeoutProp = built.remove(TIMEOUT_KEY);
         properties().custom()
                 .metadata()
                     .label(OPTIONAL_LABEL)
@@ -164,12 +174,12 @@ public class WaitDataBuilder extends CallBuilder {
                     .stepOut()
                 .value(false)
                 .editable(true)
+                .advanced(true)
                 .stepOut()
                 .addProperty(OPTIONAL_KEY);
-
-        addAdvancedProperties(context.workspaceManager().module(context.filePath()).orElse(null),
-                context.workspaceManager(), context.filePath());
-
+        if (timeoutProp != null) {
+            built.put(TIMEOUT_KEY, timeoutProp);
+        }
     }
 
     public void addAdvancedProperties(Module module, WorkspaceManager workspaceManager, Path filePath) {
@@ -193,6 +203,69 @@ public class WaitDataBuilder extends CallBuilder {
 
     public static Property getDataWaitSchema() {
         return DataWaitSchemaHolder.DATA_ENTRY_SCHEMA;
+    }
+
+    /**
+     * Move WORKFLOW_123 diagnostics from each entry's {@code dataType} property
+     * to the OPTIONAL property of the WAIT_DATA node.
+     *
+     * @param properties the built properties map of the WAIT_DATA flow node; mutated in place
+     */
+    public static void relocateOptionalMemberDiagnostic(Map<String, Property> properties) {
+        Property dataWaits = properties.get(DATA_WAITS_KEY);
+        if (dataWaits == null || !(dataWaits.value() instanceof Map<?, ?> entriesMap)) {
+            return;
+        }
+
+        boolean diagnosticFound = false;
+        for (Object entryObj : entriesMap.values()) {
+            if (!(entryObj instanceof Property entryProp)
+                    || !(entryProp.value() instanceof Map<?, ?> entryProps)) {
+                continue;
+            }
+            Object dataTypeObj = entryProps.get(DATA_TYPE_KEY);
+            if (!(dataTypeObj instanceof Property dataType)
+                    || dataType.diagnostics() == null
+                    || dataType.diagnostics().diagnostics() == null) {
+                continue;
+            }
+
+            List<Diagnostics.Info> kept = new ArrayList<>();
+            boolean changed = false;
+            for (Diagnostics.Info info : dataType.diagnostics().diagnostics()) {
+                if (info.message() != null && info.message().startsWith(TUPLE_NILABILITY_MESSAGE_PREFIX)) {
+                    changed = true;
+                } else {
+                    kept.add(info);
+                }
+            }
+            if (!changed) {
+                continue;
+            }
+            diagnosticFound = true;
+            Diagnostics newDiag = kept.isEmpty() ? null : new Diagnostics(true, kept);
+            @SuppressWarnings("unchecked")
+            Map<String, Property> mutableEntryProps = (Map<String, Property>) entryProps;
+            mutableEntryProps.put(DATA_TYPE_KEY, withDiagnostics(dataType, newDiag));
+        }
+
+        if (!diagnosticFound) {
+            return;
+        }
+        Property optional = properties.get(OPTIONAL_KEY);
+        if (optional == null) {
+            return;
+        }
+        // Optional property won't have any prior diagnostics
+        List<Diagnostics.Info> diag = List.of(new Diagnostics.Info(DiagnosticSeverity.ERROR, OPTIONAL_DOC));
+        properties.put(OPTIONAL_KEY, withDiagnostics(optional, new Diagnostics(true, diag)));
+    }
+
+    private static Property withDiagnostics(Property original, Diagnostics newDiag) {
+        return new Property(original.metadata(), original.types(), original.value(), original.oldValue(),
+                original.placeholder(), original.optional(), original.editable(), original.advanced(),
+                original.hidden(), original.modified(), newDiag, original.codedata(), original.advancedValue(),
+                original.imports(), original.defaultValue(), original.comment());
     }
 
     private static void setDataWaitProperties(FormBuilder<?> formBuilder) {
