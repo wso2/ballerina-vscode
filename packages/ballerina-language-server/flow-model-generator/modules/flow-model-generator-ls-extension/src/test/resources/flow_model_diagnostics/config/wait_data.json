@@ -636,6 +636,23 @@
         "editable": false,
         "advanced": false,
         "hidden": false
+      },
+      "optional": {
+        "metadata": {
+          "label": "Optional",
+          "description": "When `minCount` is less than the number of data waits, all data wait types should be marked optional"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": false
+          }
+        ],
+        "value": false,
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
       }
     },
     "diagnostics": {
