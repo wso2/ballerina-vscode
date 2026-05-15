@@ -20,3 +20,8 @@ function bookingWorkflow1(BookingInput input, BookingWorkflowEvents events) retu
     PaymentConfirmation paymentConfirm = check wait events.paymentConfirmed;
 
 }
+
+@workflow:Workflow
+function ctxDatasWorkflow(workflow:Context ctx, BookingWorkflowEvents events) returns error? {
+
+}

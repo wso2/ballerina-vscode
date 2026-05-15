@@ -24,6 +24,7 @@ import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.DefaultableParameterNode;
@@ -50,10 +51,14 @@ import io.ballerina.flowmodelgenerator.core.Constants;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
+import io.ballerina.flowmodelgenerator.core.model.node.ActivityBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AutomationBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.DataMapperDefinitionBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.FunctionDefinitionBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.NPFunctionDefinitionBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.WorkflowBuilder;
+import io.ballerina.flowmodelgenerator.core.utils.TypeUtils;
+import io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.ParameterData;
@@ -64,6 +69,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isActivityFunction;
+import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isWorkflowFunction;
 import static io.ballerina.modelgenerator.commons.ParameterData.Kind.REQUIRED;
 
 /**
@@ -112,7 +119,19 @@ public class ModuleNodeAnalyzer extends NodeVisitor {
         } else if (functionDefinitionNode.functionName().text().equals(AutomationBuilder.MAIN_FUNCTION_NAME)) {
             nodeKind = NodeKind.AUTOMATION;
         } else {
-            nodeKind = NodeKind.FUNCTION_DEFINITION;
+            Optional<Symbol> symbol = this.semanticModel.symbol(functionDefinitionNode);
+            if (symbol.isPresent()) {
+                Symbol sym = symbol.get();
+                if (isWorkflowFunction(sym)) {
+                    nodeKind = NodeKind.WORKFLOW;
+                } else if (isActivityFunction(sym)) {
+                    nodeKind = NodeKind.ACTIVITY;
+                } else {
+                    nodeKind = NodeKind.FUNCTION_DEFINITION;
+                }
+            } else {
+                nodeKind = NodeKind.FUNCTION_DEFINITION;
+            }
         }
 
         NodeBuilder nodeBuilder = NodeBuilder.getNodeFromKind(nodeKind)
@@ -142,12 +161,16 @@ public class ModuleNodeAnalyzer extends NodeVisitor {
             case DATA_MAPPER_DEFINITION -> DataMapperDefinitionBuilder.setMandatoryProperties(nodeBuilder, returnType);
             case AUTOMATION -> AutomationBuilder.sendMandatoryProperties(nodeBuilder);
             case NP_FUNCTION_DEFINITION -> NPFunctionDefinitionBuilder.setMandatoryProperties(nodeBuilder, returnType);
+            case WORKFLOW -> WorkflowBuilder.setMandatoryProperties(nodeBuilder, returnType,
+                    documentation == null ? "" : documentation.description(),
+                    documentation == null ? "" : documentation.returnDescription());
             default -> FunctionDefinitionBuilder.setMandatoryProperties(nodeBuilder, returnType,
                     documentation == null ? "" : documentation.description(),
                     documentation == null ? "" : documentation.returnDescription());
         }
 
         boolean isModelParamAvailable = false;
+        String workflowInputType = null;
 
         // Set the function parameters
         for (ParameterNode parameter : functionDefinitionNode.functionSignature().parameters()) {
@@ -185,6 +208,16 @@ public class ModuleNodeAnalyzer extends NodeVisitor {
                         paramToken);
                 case DATA_MAPPER_DEFINITION -> DataMapperDefinitionBuilder.setProperty(nodeBuilder.properties(),
                         paramType, paramNameText, paramToken);
+                case WORKFLOW -> {
+                    Optional<Symbol> symbol = semanticModel.symbol(parameter);
+                    if (symbol.isPresent() && symbol.get().kind() == SymbolKind.PARAMETER) {
+                        ParameterSymbol paramSymbol = (ParameterSymbol) symbol.get();
+                        if (!WorkflowUtil.isWorkflowContextParameter(paramSymbol) && !WorkflowUtil.isValidDataType(
+                                TypeUtils.resolveTypeReference(paramSymbol.typeDescriptor()))) {
+                            workflowInputType = paramType;
+                        }
+                    }
+                }
                 default -> {
                     String paramDescription = "";
                     if (documentation != null) {
@@ -209,6 +242,12 @@ public class ModuleNodeAnalyzer extends NodeVisitor {
                 processNaturalFunctionDefProperties(nodeBuilder,
                         ((NaturalExpressionNode) expressionFunctionBodyNode.expression()), isModelParamAvailable);
             }
+            case WORKFLOW -> WorkflowBuilder.setInputTypeProperty(nodeBuilder,
+                        workflowInputType != null ? workflowInputType : "");
+            case ACTIVITY -> nodeBuilder.properties()
+                    .endNestedProperty(Property.ValueType.REPEATABLE_PROPERTY, Property.PARAMETERS_KEY,
+                            FunctionDefinitionBuilder.PARAMETERS_LABEL, FunctionDefinitionBuilder.PARAMETERS_DOC,
+                            ActivityBuilder.getActivityParamSchema(), true, false);
             default -> FunctionDefinitionBuilder.setOptionalProperties(nodeBuilder);
         }
 

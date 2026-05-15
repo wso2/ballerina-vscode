@@ -1,16 +1,27 @@
 {
   "source": "workflow_function/functions.bal",
-  "description": "Create a new workflow function with input parameter",
+  "description": "Edit an existing workflow with no parameters - add an input type via the post-loop fallback path",
   "diagram": {
     "metadata": {
       "label": "Workflow Process Function",
       "description": "Define a workflow process function"
     },
     "codedata": {
-      "isNew": true,
+      "isNew": false,
       "node": "WORKFLOW",
       "org": "ballerina",
-      "module": "workflow"
+      "module": "workflow",
+      "lineRange": {
+        "fileName": "functions.bal",
+        "startLine": {
+          "line": 39,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 40,
+          "offset": 46
+        }
+      }
     },
     "returning": false,
     "properties": {
@@ -21,7 +32,7 @@
         },
         "valueType": "IDENTIFIER",
         "valueTypeConstraint": "Global",
-        "value": "orderWorkflow",
+        "value": "workflowWithNoInput",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -33,7 +44,7 @@
           "description": "Description of the function"
         },
         "valueType": "TEXT",
-        "value": "Process an order workflow",
+        "value": "",
         "optional": true,
         "editable": true,
         "advanced": false,
@@ -83,15 +94,15 @@
       {
         "range": {
           "start": {
-            "line": 47,
-            "character": 1
+            "line": 39,
+            "character": 0
           },
           "end": {
-            "line": 47,
-            "character": 1
+            "line": 40,
+            "character": 46
           }
         },
-        "newText": "\n# Process an order workflow\n@workflow:Workflow\nfunction orderWorkflow(OrderInput input) returns error? {\n}"
+        "newText": "@workflow:Workflow\nfunction workflowWithNoInput( OrderInput input) returns error?"
       }
     ]
   }

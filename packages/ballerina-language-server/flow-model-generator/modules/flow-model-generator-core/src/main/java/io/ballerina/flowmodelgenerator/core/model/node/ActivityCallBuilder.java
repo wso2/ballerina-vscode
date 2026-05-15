@@ -22,7 +22,6 @@ import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
-import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.FunctionSignatureNode;
 import io.ballerina.compiler.syntax.tree.ParameterNode;
@@ -34,7 +33,6 @@ import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
-import io.ballerina.flowmodelgenerator.core.utils.TypeUtils;
 import io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
@@ -59,7 +57,7 @@ import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.DEFAULT_CT
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_MODULE;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ORG;
 import static io.ballerina.flowmodelgenerator.core.model.Property.ADVANCED_PARAM_KEY;
-import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isWorkflowModule;
+import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isWorkflowContextParameter;
 
 /**
  * Represents a workflow activity call node.
@@ -281,9 +279,7 @@ public class ActivityCallBuilder extends CallBuilder {
         Optional<Symbol> symbol = semanticModel.symbol(parameters.get(0));
         if (symbol.isPresent() && symbol.get().kind() == SymbolKind.PARAMETER) {
             ParameterSymbol paramSymbol = (ParameterSymbol) symbol.get();
-            TypeSymbol typeSymbol = TypeUtils.resolveTypeReference((paramSymbol.typeDescriptor()));
-            if (typeSymbol.getName().orElse("").equals(CONTEXT_CLASS_NAME) &&
-                    isWorkflowModule(typeSymbol.getModule())) {
+            if (isWorkflowContextParameter(paramSymbol)) {
                 return paramSymbol.getName();
             }
         }

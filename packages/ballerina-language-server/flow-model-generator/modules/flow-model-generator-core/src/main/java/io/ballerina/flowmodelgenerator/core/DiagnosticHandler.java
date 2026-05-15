@@ -26,6 +26,7 @@ import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
 import org.ballerinalang.langserver.common.utils.PositionUtil;
 
+import java.util.Collection;
 import java.util.Iterator;
 
 /**
@@ -43,7 +44,11 @@ public class DiagnosticHandler {
 
     public DiagnosticHandler(SemanticModel semanticModel) {
         // TODO: Consider all the diagnostics once fixed: #256
-        iterator = semanticModel.diagnostics().parallelStream()
+        this(semanticModel.diagnostics());
+    }
+
+    public DiagnosticHandler(Collection<Diagnostic> diagnostics) {
+        iterator = diagnostics.stream()
                 .filter(diagnostic -> diagnostic.diagnosticInfo().severity() == DiagnosticSeverity.ERROR).iterator();
         hasNodeAnnotated = false;
         if (iterator.hasNext()) {

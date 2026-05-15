@@ -18,10 +18,21 @@
 
 package io.ballerina.flowmodelgenerator.core.model.node;
 
+import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.ParameterSymbol;
+import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.SymbolKind;
+import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.ParameterNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
+import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
+import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
+import io.ballerina.flowmodelgenerator.core.utils.TypeUtils;
+import io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil;
+import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.tools.text.LineRange;
@@ -60,19 +71,8 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
                 .module(WORKFLOW_MODULE);
     }
 
-    @Override
-    public void setConcreteTemplateData(TemplateContext context) {
-        ModuleInfo workflowModuleInfo = new ModuleInfo(WORKFLOW_ORG, WORKFLOW_MODULE, WORKFLOW_MODULE, null);
-        PackageUtil.pullModuleAndNotify(context.lsClientLogger(), workflowModuleInfo);
-
-        // Add function name
-        properties().functionNameTemplate("workflow", context.getAllVisibleSymbolNames());
-
-        // Add function description
-        properties().functionDescription("");
-
-        // Add input property with WORKFLOW_INPUT_TYPE
-        properties().custom()
+    public static void setInputTypeProperty(NodeBuilder nodeBuilder, String inputType) {
+        nodeBuilder.properties().custom()
                 .metadata()
                     .label(INPUT_LABEL)
                     .description(INPUT_DOC)
@@ -81,22 +81,37 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
                     .fieldType(Property.ValueType.TYPE)
                     .ballerinaType(ANYDATA_TYPE)
                 .stepOut()
-                .value("")
+                .value(inputType)
                 .editable(true)
                 .optional(true)
                 .stepOut()
                 .addProperty(INPUT_KEY);
+    }
 
-        // Return type
-        properties().returnType("error?", null, true);
-        properties().returnDescription("");
+    @Override
+    public void setConcreteTemplateData(TemplateContext context) {
+        ModuleInfo workflowModuleInfo = new ModuleInfo(WORKFLOW_ORG, WORKFLOW_MODULE, WORKFLOW_MODULE, null);
+        PackageUtil.pullModuleAndNotify(context.lsClientLogger(), workflowModuleInfo);
+        // Add function name
+        properties().functionNameTemplate("workflow", context.getAllVisibleSymbolNames());
+        setMandatoryProperties(this, "error?", "", "");
+        // Add input property with WORKFLOW_INPUT_TYPE
+        setInputTypeProperty(this, "");
+    }
+
+    public static void setMandatoryProperties(NodeBuilder nodeBuilder, String returnType, String description,
+                                              String returnDescription) {
+        nodeBuilder.properties()
+                .functionDescription(description)
+                .returnType(returnType, null, true)
+                .returnDescription(returnDescription)
+                .isPublic(false, false, true, false);
     }
 
     @Override
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
         Optional<Property> optDescription = sourceBuilder.getProperty(Property.FUNCTION_NAME_DESCRIPTION_KEY);
         String description = optDescription.map(property -> property.value().toString()).orElse("");
-
         Optional<Property> funcNameProperty = sourceBuilder.getProperty(Property.FUNCTION_NAME_KEY);
         if (funcNameProperty.isEmpty()) {
             throw new IllegalStateException("Function name is not present");
@@ -109,20 +124,89 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
 
         sourceBuilder.token()
                 .name("@workflow:Workflow")
-                .newLine()
+                .newLine();
+
+        Optional<Property> visibilityProperty = sourceBuilder.getProperty(Property.IS_PUBLIC_KEY);
+        if (visibilityProperty.isPresent() && Boolean.parseBoolean(visibilityProperty.get().value().toString())) {
+            sourceBuilder.token().keyword(SyntaxKind.PUBLIC_KEYWORD);
+        }
+
+        sourceBuilder.token()
                 .keyword(SyntaxKind.FUNCTION_KEYWORD)
                 .name(funcName)
                 .keyword(SyntaxKind.OPEN_PAREN_TOKEN);
 
+        LineRange lineRange = sourceBuilder.flowNode.codedata().lineRange();
+        boolean isNew = Boolean.TRUE.equals(sourceBuilder.flowNode.codedata().isNew());
         Optional<Property> inputProperty = sourceBuilder.getProperty(INPUT_KEY);
-        if (inputProperty.isPresent()) {
-            String typeName = inputProperty.get().value().toString();
-            if (!typeName.isEmpty()) {
-                sourceBuilder.token()
-                        .name(typeName)
-                        .whiteSpace()
-                        .name(DEFAULT_INPUT_PARAM_NAME);
+        String inputTypeName = inputProperty.map(p -> p.value().toString()).orElse("");
+        boolean hasPrevParam = false;
+        // New workflow nodes may still carry a line range from the insertion context (for example, diagram creation
+        // from main.bal). Treat `isNew` as the source of truth so new workflow declarations are generated fully in
+        // functions.bal with imports and an empty body.
+        if (!isNew && lineRange != null) {
+            FunctionDefinitionNode existingFn = WorkflowUtil.findEnclosingWorkflowFunction(sourceBuilder);
+            if (existingFn != null) {
+                SemanticModel semanticModel = FileSystemUtils.getSemanticModel(
+                        sourceBuilder.workspaceManager, sourceBuilder.filePath);
+                ModuleInfo moduleInfo = ModuleInfo.from(FileSystemUtils.getDocument(
+                        sourceBuilder.workspaceManager, sourceBuilder.filePath).module().descriptor());
+                boolean inputParamEmitted = false;
+                for (ParameterNode parameter : existingFn.functionSignature().parameters()) {
+                        Optional<Symbol> symbol = semanticModel.symbol(parameter);
+                        if (symbol.isEmpty() || symbol.get().kind() != SymbolKind.PARAMETER) {
+                            continue;
+                        }
+                        ParameterSymbol paramSymbol = (ParameterSymbol) symbol.get();
+                        boolean isCtx = WorkflowUtil.isWorkflowContextParameter(paramSymbol);
+                        boolean isData = !isCtx && WorkflowUtil.isValidDataType(
+                                TypeUtils.resolveTypeReference(paramSymbol.typeDescriptor()));
+                        boolean isInput = !isCtx && !isData;
+
+                        // Drop existing input param when the user cleared the input type.
+                        if (isInput && inputTypeName.isEmpty()) {
+                            continue;
+                        }
+
+                        // Inject new input param before the first data param to preserve
+                        // canonical order (ctx, input, datas) when the original function had none.
+                        if (isData && !inputParamEmitted && !inputTypeName.isEmpty()) {
+                            if (hasPrevParam) {
+                                sourceBuilder.token().keyword(SyntaxKind.COMMA_TOKEN);
+                            }
+                            generateParameter(sourceBuilder, inputTypeName, DEFAULT_INPUT_PARAM_NAME);
+                            hasPrevParam = inputParamEmitted = true;
+                        }
+
+                        Optional<String> paramName = paramSymbol.getName();
+                        // ctx/data params with no name cannot be emitted — skip.
+                        if (!isInput && paramName.isEmpty()) {
+                            continue;
+                        }
+                        if (hasPrevParam) {
+                            sourceBuilder.token().keyword(SyntaxKind.COMMA_TOKEN);
+                        }
+                        if (isInput) {
+                            generateParameter(sourceBuilder, inputTypeName, paramName.orElse(DEFAULT_INPUT_PARAM_NAME));
+                            inputParamEmitted = true;
+                        } else {
+                            generateParameter(sourceBuilder, CommonUtils.getTypeSignature(semanticModel,
+                                    paramSymbol.typeDescriptor(), false, moduleInfo), paramName.get());
+                        }
+                        hasPrevParam = true;
+                    }
+
+                // Fallback: no data param triggered pre-injection (e.g. ctx-only signature).
+                if (!inputParamEmitted && !inputTypeName.isEmpty()) {
+                    if (hasPrevParam) {
+                        sourceBuilder.token().keyword(SyntaxKind.COMMA_TOKEN);
+                    }
+                    generateParameter(sourceBuilder, inputTypeName, DEFAULT_INPUT_PARAM_NAME);
+                }
             }
+        } else if (!inputTypeName.isEmpty()) {
+            // New workflow — emit the input param from the property using the default name.
+            generateParameter(sourceBuilder, inputTypeName, DEFAULT_INPUT_PARAM_NAME);
         }
 
         sourceBuilder.token().keyword(SyntaxKind.CLOSE_PAREN_TOKEN);
@@ -138,11 +222,7 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
             }
         }
 
-        // New workflow nodes may still carry a line range from the insertion context (for example, diagram creation
-        // from main.bal). Treat `isNew` as the source of truth so new workflow declarations are generated fully in
-        // functions.bal with imports and an empty body.
-        LineRange lineRange = sourceBuilder.flowNode.codedata().lineRange();
-        if (Boolean.TRUE.equals(sourceBuilder.flowNode.codedata().isNew()) || lineRange == null) {
+        if (isNew || lineRange == null) {
             sourceBuilder
                     .token()
                         .openBrace()
@@ -157,5 +237,12 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
         }
 
         return sourceBuilder.build();
+    }
+
+    public static void generateParameter(SourceBuilder sourceBuilder, String typeName, String paramName) {
+        sourceBuilder.token()
+                .name(typeName)
+                .whiteSpace()
+                .name(paramName);
     }
 }
