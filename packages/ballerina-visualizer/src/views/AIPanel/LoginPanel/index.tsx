@@ -201,7 +201,7 @@ const LoginPanel: React.FC = () => {
             <FooterContent>
                 <LegalNotice />
                 {isPlatformAvailable ? (
-                    <StyledButton onClick={handleCopilotLogin}>Login using WSO2 Integration Platform</StyledButton>
+                    <StyledButton onClick={handleCopilotLogin}>Login using WSO2 Cloud</StyledButton>
                 ) : (
                     <InstallingContainer>  
                         Install WSO2 Integrator to sign in and use BI Copilot.
