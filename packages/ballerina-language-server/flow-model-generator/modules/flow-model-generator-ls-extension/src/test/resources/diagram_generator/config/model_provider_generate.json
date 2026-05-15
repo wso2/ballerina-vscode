@@ -45,7 +45,7 @@
         "metadata": {
           "label": "generate",
           "description": "Sends a chat request to the model and generates a value that belongs to the type\ncorresponding to the type descriptor argument.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.1.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
         },
         "codedata": {
           "node": "REMOTE_ACTION_CALL",
@@ -54,7 +54,7 @@
           "packageName": "ai",
           "object": "Wso2ModelProvider",
           "symbol": "generate",
-          "version": "1.11.1",
+          "version": "1.11.2",
           "lineRange": {
             "fileName": "model_provider_generate.bal",
             "startLine": {
@@ -91,6 +91,30 @@
             "advanced": false,
             "hidden": true
           },
+          "td": {
+            "metadata": {
+              "label": "Expected Type",
+              "description": "Type descriptor specifying the expected return type format"
+            },
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "ballerinaType": "anydata",
+                "selected": false
+              }
+            ],
+            "value": "string|error",
+            "placeholder": "anydata",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "PARAM_FOR_TYPE_INFER",
+              "originalName": "td"
+            },
+            "defaultValue": "anydata"
+          },
           "prompt": {
             "metadata": {
               "label": "Prompt",
@@ -118,30 +142,6 @@
               "kind": "REQUIRED",
               "originalName": "prompt"
             }
-          },
-          "td": {
-            "metadata": {
-              "label": "Expected Type",
-              "description": "Type descriptor specifying the expected return type format"
-            },
-            "types": [
-              {
-                "fieldType": "TYPE",
-                "ballerinaType": "anydata",
-                "selected": false
-              }
-            ],
-            "value": "string|error",
-            "placeholder": "anydata",
-            "optional": false,
-            "editable": true,
-            "advanced": false,
-            "hidden": false,
-            "codedata": {
-              "kind": "PARAM_FOR_TYPE_INFER",
-              "originalName": "td"
-            },
-            "defaultValue": "anydata"
           },
           "variable": {
             "metadata": {
@@ -202,7 +202,7 @@
         "metadata": {
           "label": "Model Provider",
           "description": "Creates a default model provider based on the provided `wso2ProviderConfig`.",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.1.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.2.png"
         },
         "codedata": {
           "node": "MODEL_PROVIDER",

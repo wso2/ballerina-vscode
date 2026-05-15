@@ -103,31 +103,6 @@
         },
         {
           "metadata": {
-            "label": "lang.xml",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "'map",
-                "description": "Applies a function to each item in an xml sequence, and returns an xml sequence of the results.\n\nEach item is represented as a singleton value.\n\n```ballerina\nxml x = xml `<book>Hamlet</book><book>Macbeth</book>`;\nx.map(function (xml xmlContent) returns xml => \n  xml `<book kind=\"play\">${xmlContent.children()}</book>`\n) ⇒ <book kind=\"play\">Hamlet</book><book kind=\"play\">Macbeth</book>\n```\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_lang.xml_0.0.0.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerina",
-                "module": "lang.xml",
-                "packageName": "lang.xml",
-                "symbol": "'map",
-                "version": "0.0.0"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
             "label": "lang.table",
             "description": "",
             "keywords": []
@@ -169,6 +144,31 @@
                 "org": "ballerina",
                 "module": "lang.stream",
                 "packageName": "lang.stream",
+                "symbol": "'map",
+                "version": "0.0.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "lang.xml",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "'map",
+                "description": "Applies a function to each item in an xml sequence, and returns an xml sequence of the results.\n\nEach item is represented as a singleton value.\n\n```ballerina\nxml x = xml `<book>Hamlet</book><book>Macbeth</book>`;\nx.map(function (xml xmlContent) returns xml => \n  xml `<book kind=\"play\">${xmlContent.children()}</book>`\n) ⇒ <book kind=\"play\">Hamlet</book><book kind=\"play\">Macbeth</book>\n```\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_lang.xml_0.0.0.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "lang.xml",
+                "packageName": "lang.xml",
                 "symbol": "'map",
                 "version": "0.0.0"
               },
@@ -244,7 +244,7 @@
         },
         {
           "metadata": {
-            "label": "lang.decimal",
+            "label": "lang.float",
             "description": "",
             "keywords": []
           },
@@ -252,14 +252,14 @@
             {
               "metadata": {
                 "label": "abs",
-                "description": "Returns the IEEE absolute value of a decimal value.\n\n```ballerina\ndecimal d = -3.21;\nd.abs() ⇒ 3.21\n```\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_lang.decimal_0.0.0.png"
+                "description": "Returns the IEEE absolute value of a float value.\n\n```ballerina\nfloat f = -3.21;\nf.abs() ⇒ 3.21\n```\n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_lang.float_0.0.0.png"
               },
               "codedata": {
                 "node": "FUNCTION_CALL",
                 "org": "ballerina",
-                "module": "lang.decimal",
-                "packageName": "lang.decimal",
+                "module": "lang.float",
+                "packageName": "lang.float",
                 "symbol": "abs",
                 "version": "0.0.0"
               },
@@ -330,18 +330,18 @@
         },
         {
           "metadata": {
-            "label": "Smb Caller",
-            "description": "SMB caller for interacting with SMB servers from within file handlers.\nProvides a convenience wrapper around the Client class with simplified method signatures.",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_smb_1.0.2.png"
+            "label": "Pubsub Caller",
+            "description": "Provides functionality to acknowledge or reject messages received by the listener service.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_gcloud.pubsub_0.1.1.png"
           },
           "codedata": {
             "node": "NEW_CONNECTION",
-            "org": "ballerina",
-            "module": "smb",
-            "packageName": "smb",
+            "org": "ballerinax",
+            "module": "gcloud.pubsub",
+            "packageName": "gcloud.pubsub",
             "object": "Caller",
             "symbol": "init",
-            "version": "1.0.2",
+            "version": "0.1.1",
             "isGenerated": false
           },
           "enabled": true
@@ -366,6 +366,24 @@
         },
         {
           "metadata": {
+            "label": "Solace Caller",
+            "description": "Represents a Solace caller, which can be used to mark Solace message as received.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_solace_0.3.1.png"
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "solace",
+            "packageName": "solace",
+            "object": "Caller",
+            "symbol": "init",
+            "version": "0.3.1",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
             "label": "Ibmmq Caller",
             "description": "Represents a IBM MQ caller, which can be used to mark IBM MQ message as received.",
             "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ibm.ibmmq_1.4.4.png"
@@ -384,18 +402,18 @@
         },
         {
           "metadata": {
-            "label": "Pubsub Caller",
-            "description": "Provides functionality to acknowledge or reject messages received by the listener service.",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_gcloud.pubsub_0.1.1.png"
+            "label": "Smb Caller",
+            "description": "SMB caller for interacting with SMB servers from within file handlers.\nProvides a convenience wrapper around the Client class with simplified method signatures.",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_smb_1.0.2.png"
           },
           "codedata": {
             "node": "NEW_CONNECTION",
-            "org": "ballerinax",
-            "module": "gcloud.pubsub",
-            "packageName": "gcloud.pubsub",
+            "org": "ballerina",
+            "module": "smb",
+            "packageName": "smb",
             "object": "Caller",
             "symbol": "init",
-            "version": "0.1.1",
+            "version": "1.0.2",
             "isGenerated": false
           },
           "enabled": true
@@ -404,7 +422,7 @@
           "metadata": {
             "label": "Ai Chat",
             "description": "A client class for interacting with a chat service.",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.0.png"
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.11.1.png"
           },
           "codedata": {
             "node": "NEW_CONNECTION",
@@ -413,43 +431,25 @@
             "packageName": "ai",
             "object": "ChatClient",
             "symbol": "init",
-            "version": "1.11.0",
+            "version": "1.11.1",
             "isGenerated": false
           },
           "enabled": true
         },
         {
           "metadata": {
-            "label": "UDP",
-            "description": "Initializes the UDP connectionless client based on the provided configurations.",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_udp_1.13.4.png"
+            "label": "Semp",
+            "description": "SEMP (starting in `v2`) is a RESTful API for configuring, monitoring, and administering a Solace PubSub+ broker. This specification defines the following API:\n\n\nAPI|Base Path|Purpose\n:---|:---|:---\nConfiguration|/SEMP/v2/config|Reading and writing configuration\n\n\n\nThe following APIs are also available:\n\n\nAPI|Base Path|Purpose\n:---|:---|:---\nAction|/SEMP/v2/action|Performing actions\nMonitoring|/SEMP/v2/monitor|Querying operational state\n\n\n\nFor tutorials, architectural and protocol design documentation, and other information about the SEMP API, consult the [SEMP documentation](https://docs.solace.com/Admin/SEMP/Using-SEMP.htm) on the Solace website. The SEMP API specifications are also [available for download](https://solace.com/downloads/).\n\nIf you need additional support, please contact us at [support@solace.com](mailto:support@solace.com).",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/xlibb_solace.semp_0.2.0.png"
           },
           "codedata": {
             "node": "NEW_CONNECTION",
-            "org": "ballerina",
-            "module": "udp",
-            "packageName": "udp",
+            "org": "xlibb",
+            "module": "solace.semp",
+            "packageName": "solace.semp",
             "object": "Client",
             "symbol": "init",
-            "version": "1.13.4",
-            "isGenerated": false
-          },
-          "enabled": true
-        },
-        {
-          "metadata": {
-            "label": "MQTT",
-            "description": "Represents the client that is used to publish messages to the server.",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_mqtt_1.4.0.png"
-          },
-          "codedata": {
-            "node": "NEW_CONNECTION",
-            "org": "ballerina",
-            "module": "mqtt",
-            "packageName": "mqtt",
-            "object": "Client",
-            "symbol": "init",
-            "version": "1.4.0",
+            "version": "0.2.0",
             "isGenerated": false
           },
           "enabled": true

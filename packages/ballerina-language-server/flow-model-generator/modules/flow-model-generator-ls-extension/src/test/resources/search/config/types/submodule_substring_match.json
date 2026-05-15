@@ -469,6 +469,56 @@
         },
         {
           "metadata": {
+            "label": "paypal.invoices",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConfigurationAllOf2",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_paypal.invoices_1.0.2.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "paypal.invoices",
+                "packageName": "paypal.invoices",
+                "symbol": "ConfigurationAllOf2",
+                "version": "1.0.2"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "beezup.merchant",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConfigureAutomaticTransitionRequest",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_beezup.merchant_1.6.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "beezup.merchant",
+                "packageName": "beezup.merchant",
+                "symbol": "ConfigureAutomaticTransitionRequest",
+                "version": "1.6.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
             "label": "github",
             "description": "",
             "keywords": []
@@ -526,49 +576,24 @@
         },
         {
           "metadata": {
-            "label": "beezup.merchant",
+            "label": "atspoke",
             "description": "",
             "keywords": []
           },
           "items": [
             {
               "metadata": {
-                "label": "ConfigureAutomaticTransitionRequest",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_beezup.merchant_1.6.0.png"
+                "label": "ConfigList",
+                "description": "Configuration Item List",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_atspoke_1.5.1.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
                 "org": "ballerinax",
-                "module": "beezup.merchant",
-                "packageName": "beezup.merchant",
-                "symbol": "ConfigureAutomaticTransitionRequest",
-                "version": "1.6.0"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "paypal.invoices",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConfigurationAllOf2",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_paypal.invoices_1.0.2.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "paypal.invoices",
-                "packageName": "paypal.invoices",
-                "symbol": "ConfigurationAllOf2",
-                "version": "1.0.2"
+                "module": "atspoke",
+                "packageName": "atspoke",
+                "symbol": "ConfigList",
+                "version": "1.5.1"
               },
               "enabled": true
             }
@@ -594,31 +619,6 @@
                 "packageName": "magento.cart",
                 "symbol": "ConfigurableProductDataConfigurableItemOptionValueInterface",
                 "version": "1.3.1"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
-            "label": "atspoke",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConfigList",
-                "description": "Configuration Item List",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_atspoke_1.5.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "atspoke",
-                "packageName": "atspoke",
-                "symbol": "ConfigList",
-                "version": "1.5.1"
               },
               "enabled": true
             }
