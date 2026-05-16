@@ -198,20 +198,35 @@ export function EvaluationHistory() {
 
     useEffect(() => {
         const container = document.getElementById("webview-container");
-        const projectPath = container?.getAttribute("data-project-path") ?? "";
-        setProjectPath(projectPath);
+        const resolvedProjectPath = container?.getAttribute("data-project-path") ?? "";
+        setProjectPath(resolvedProjectPath);
 
-        rpcClient
-            .getTestManagerRpcClient()
-            .getEvaluationHistory({ projectPath })
-            .then((response) => {
-                setData(response.data);
-                setLoading(false);
-            })
-            .catch(() => {
-                setData({ tests: [], totalRunFiles: 0, projectNames: [] });
-                setLoading(false);
-            });
+        let cancelled = false;
+        const fetchHistory = (isInitial: boolean) => {
+            rpcClient
+                .getTestManagerRpcClient()
+                .getEvaluationHistory({ projectPath: resolvedProjectPath })
+                .then((response) => {
+                    if (cancelled) { return; }
+                    setData(response.data);
+                    if (isInitial) { setLoading(false); }
+                })
+                .catch(() => {
+                    if (cancelled) { return; }
+                    if (isInitial) {
+                        setData({ tests: [], totalRunFiles: 0, projectNames: [] });
+                        setLoading(false);
+                    }
+                });
+        };
+
+        fetchHistory(true);
+        const unsubscribe = rpcClient.onEvaluationHistoryUpdated(() => fetchHistory(false));
+
+        return () => {
+            cancelled = true;
+            unsubscribe();
+        };
     }, []);
 
     if (loading) {
