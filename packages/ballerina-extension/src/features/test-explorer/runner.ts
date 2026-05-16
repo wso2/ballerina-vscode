@@ -37,10 +37,10 @@ import { cleanAndValidateProject } from '../config-generator/configGenerator';
  */
 function getProjectPathFromTestItem(test: TestItem): string | undefined {
     if (isTestFunctionItem(test)) {
-        // Extract from test ID: test:${projectPath}:${fileName}:${functionName}
+        // ID: test:${projectPath}:${fileName}:${functionName} — projectPath may contain ':' on Windows
         const parts = test.id.split(':');
-        if (parts.length >= 2 && parts[0] === 'test') {
-            return parts[1];
+        if (parts.length >= 4 && parts[0] === 'test') {
+            return parts.slice(1, -2).join(':');
         }
     } else if (isProjectGroupItem(test)) {
         // For project groups, we need to get a child test to extract the path
