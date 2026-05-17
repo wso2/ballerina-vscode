@@ -149,7 +149,7 @@ public class HeapPressureMonitor {
         MemoryUsage usage;
         try {
             usage = memoryUsageSupplier.get();
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             // Supplier failure — skip this poll
             return;
         }

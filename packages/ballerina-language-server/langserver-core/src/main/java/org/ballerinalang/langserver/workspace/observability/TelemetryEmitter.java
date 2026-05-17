@@ -124,7 +124,7 @@ public class TelemetryEmitter {
         for (TraceLogSink sink : sinks) {
             try {
                 sink.write(LEVEL, fields);
-            } catch (Exception ignored) {
+            } catch (RuntimeException ignored) {
                 // Best-effort — telemetry must never affect the caller.
             }
         }

@@ -146,7 +146,7 @@ public final class WorkspaceRunService {
             if (resolved != null) {
                 project = resolved;
             }
-        } catch (Exception ignored) {
+        } catch (RuntimeException ignored) {
             // Use the path argument as the execution root when the project is not available.
         }
         if (project.isPresent()) {

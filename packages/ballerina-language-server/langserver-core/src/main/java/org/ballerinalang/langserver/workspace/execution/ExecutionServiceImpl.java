@@ -185,7 +185,7 @@ public final class ExecutionServiceImpl implements ExecutionService {
         activeProcesses.values().forEach(p -> {
             try {
                 p.terminate(ExecutionProcess.TerminationReason.USER_REQUESTED);
-            } catch (Exception ignored) {
+            } catch (RuntimeException ignored) {
             }
         });
         activeProcesses.clear();
@@ -212,7 +212,7 @@ public final class ExecutionServiceImpl implements ExecutionService {
         try {
             DocumentUri sourceRoot = new DocumentUri.FileUri(pee.sourceRoot());
             processRegistry.cleanup(sourceRoot, ExecutionProcess.TerminationReason.EVICTION_CLEANUP);
-        } catch (Exception ignored) {
+        } catch (RuntimeException ignored) {
         }
     }
 
@@ -227,7 +227,7 @@ public final class ExecutionServiceImpl implements ExecutionService {
         try {
             DocumentUri sourceRoot = new DocumentUri.FileUri(pkte.sourceRoot());
             processRegistry.cleanup(sourceRoot, ExecutionProcess.TerminationReason.PROJECT_KIND_TRANSITIONED);
-        } catch (Exception ignored) {
+        } catch (RuntimeException ignored) {
         }
     }
 

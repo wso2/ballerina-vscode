@@ -139,7 +139,7 @@ public final class WorkspaceManagerFacadeImpl
         try {
             Path root = projectService.loadOrCreate(path, null).sourceRoot();
             return Optional.of(root.relativize(path).toString());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             return Optional.empty();
         }
     }
@@ -149,7 +149,7 @@ public final class WorkspaceManagerFacadeImpl
         try {
             Path root = projectService.loadOrCreate(path, cancelChecker).sourceRoot();
             return Optional.of(root.relativize(path).toString());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             return Optional.empty();
         }
     }
@@ -194,7 +194,7 @@ public final class WorkspaceManagerFacadeImpl
             Project project = projectService.loadOrCreate(filePath, null);
             DocumentId docId = project.documentId(filePath);
             return Optional.of(project.currentPackage().module(docId.moduleId()).document(docId));
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             return Optional.empty();
         }
     }
@@ -205,7 +205,7 @@ public final class WorkspaceManagerFacadeImpl
             Project project = projectService.loadOrCreate(filePath, cancelChecker);
             DocumentId docId = project.documentId(filePath);
             return Optional.of(project.currentPackage().module(docId.moduleId()).document(docId));
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             return Optional.empty();
         }
     }
@@ -216,7 +216,7 @@ public final class WorkspaceManagerFacadeImpl
             Project project = projectService.loadOrCreate(filePath, null);
             DocumentId docId = project.documentId(filePath);
             return Optional.of(project.currentPackage().module(docId.moduleId()).document(docId).syntaxTree());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             return Optional.empty();
         }
     }
@@ -227,7 +227,7 @@ public final class WorkspaceManagerFacadeImpl
             Project project = projectService.loadOrCreate(filePath, cancelChecker);
             DocumentId docId = project.documentId(filePath);
             return Optional.of(project.currentPackage().module(docId.moduleId()).document(docId).syntaxTree());
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             return Optional.empty();
         }
     }
@@ -243,7 +243,7 @@ public final class WorkspaceManagerFacadeImpl
             Project project = projectService.loadOrCreate(filePath, cancelChecker);
             Module module = projectService.module(filePath, cancelChecker);
             return semanticModel(project, module.moduleId(), filePath, cancelChecker);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             return Optional.empty();
         }
     }
@@ -272,14 +272,14 @@ public final class WorkspaceManagerFacadeImpl
             StableSnapshot snapshot = null;
             try {
                 snapshot = compilationService.stableSnapshot(project, descriptor, cancelChecker);
-            } catch (Exception ignored) {
+            } catch (RuntimeException ignored) {
                 // Fall back to the raw compiler result below for legacy diagnostics compatibility.
             }
             if (snapshot != null) {
                 return Optional.of(snapshot.compilation());
             }
             return Optional.of(CompilerCompilationGuard.getCompilation(project.currentPackage(), cancelChecker));
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             return Optional.empty();
         }
     }
@@ -364,7 +364,7 @@ public final class WorkspaceManagerFacadeImpl
     private Optional<Module> module(DocumentUri uri, CancelChecker cancelChecker) {
         try {
             return Optional.of(projectService.module(uri, cancelChecker));
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             return Optional.empty();
         }
     }
@@ -382,7 +382,7 @@ public final class WorkspaceManagerFacadeImpl
             Project project = projectService.loadOrCreate(uri, cancelChecker);
             Module module = projectService.module(uri, cancelChecker);
             return semanticModel(project, module.moduleId(), Path.of(uri.uri().getPath()), cancelChecker);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             return Optional.empty();
         }
     }
@@ -408,14 +408,14 @@ public final class WorkspaceManagerFacadeImpl
             StableSnapshot snapshot = null;
             try {
                 snapshot = compilationService.stableSnapshot(project, descriptor, cancelChecker);
-            } catch (Exception ignored) {
+            } catch (RuntimeException ignored) {
                 // Fall back to the raw compiler result below for legacy diagnostics compatibility.
             }
             if (snapshot != null) {
                 return Optional.of(snapshot.compilation());
             }
             return Optional.of(CompilerCompilationGuard.getCompilation(project.currentPackage(), cancelChecker));
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             return Optional.empty();
         }
     }

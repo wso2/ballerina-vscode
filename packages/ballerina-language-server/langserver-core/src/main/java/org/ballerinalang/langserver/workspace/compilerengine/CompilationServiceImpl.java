@@ -593,13 +593,9 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
     }
 
     private static String descriptorName(PackageDescriptor descriptor) {
-        try {
-            if (descriptor != null && descriptor.name() != null && descriptor.name().value() != null
-                    && !descriptor.name().value().isBlank()) {
-                return descriptor.name().value();
-            }
-        } catch (Exception ignored) {
-            // Fall through to the default name.
+        if (descriptor != null && descriptor.name() != null && descriptor.name().value() != null
+                && !descriptor.name().value().isBlank()) {
+            return descriptor.name().value();
         }
         return "unknown-package";
     }

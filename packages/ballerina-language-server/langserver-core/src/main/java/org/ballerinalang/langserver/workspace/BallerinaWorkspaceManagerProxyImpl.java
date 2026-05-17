@@ -204,7 +204,7 @@ public final class BallerinaWorkspaceManagerProxyImpl implements BallerinaWorksp
                 }
                 return java.nio.file.Paths.get(path);
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             // Fallback: strip scheme prefix and treat remainder as path
             int colonIndex = uri.indexOf(':');
             if (colonIndex != -1) {

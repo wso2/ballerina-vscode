@@ -443,13 +443,9 @@ public class CompilationPipeline implements AutoCloseable {
     }
 
     private static String descriptorName(PackageDescriptor descriptor) {
-        try {
-            if (descriptor != null && descriptor.name() != null && descriptor.name().value() != null
-                    && !descriptor.name().value().isBlank()) {
-                return descriptor.name().value();
-            }
-        } catch (Exception ignored) {
-            // Fall through to default name for test doubles and partial descriptors.
+        if (descriptor != null && descriptor.name() != null && descriptor.name().value() != null
+                && !descriptor.name().value().isBlank()) {
+            return descriptor.name().value();
         }
         return "unknown-package";
     }

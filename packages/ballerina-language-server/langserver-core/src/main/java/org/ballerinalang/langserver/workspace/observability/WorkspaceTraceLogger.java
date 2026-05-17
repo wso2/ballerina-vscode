@@ -169,7 +169,7 @@ public class WorkspaceTraceLogger implements AutoCloseable {
         for (TraceLogSink sink : sinks) {
             try {
                 sink.write(level, fields);
-            } catch (Exception ignored) {
+            } catch (RuntimeException ignored) {
                 // Best-effort logging must not affect event processing.
             }
         }
@@ -316,7 +316,7 @@ public class WorkspaceTraceLogger implements AutoCloseable {
         for (TraceLogSink sink : sinks) {
             try {
                 sink.close();
-            } catch (Exception ignored) {
+            } catch (RuntimeException ignored) {
                 // Best-effort cleanup.
             }
         }

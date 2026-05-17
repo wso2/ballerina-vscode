@@ -520,7 +520,7 @@ public final class UriResolver {
             DocumentId docId = project.documentId(filePath);
             Module module = project.currentPackage().module(docId.moduleId());
             return Optional.of(module.document(docId));
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             return Optional.empty();
         }
     }
@@ -542,7 +542,7 @@ public final class UriResolver {
             Path filePath = Path.of(uri.uri().getPath());
             DocumentId docId = project.documentId(filePath);
             return Optional.of(project.currentPackage().module(docId.moduleId()));
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             return Optional.empty();
         }
     }

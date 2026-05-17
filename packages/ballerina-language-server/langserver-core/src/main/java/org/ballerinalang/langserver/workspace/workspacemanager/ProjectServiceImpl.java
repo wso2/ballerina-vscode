@@ -298,7 +298,7 @@ public final class ProjectServiceImpl implements ProjectService {
             Project project = loadOrCreate(uri, cancelChecker);
             DocumentId docId = project.documentId(pathOf(uri));
             return Optional.of(project.currentPackage().module(docId.moduleId()).document(docId));
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             return Optional.empty();
         }
     }
@@ -454,7 +454,7 @@ public final class ProjectServiceImpl implements ProjectService {
         Path normalized = filePath.toAbsolutePath().normalize();
         try {
             evictProject(resolveSourceRoot(normalized), EvictionReason.DOCUMENT_CLOSED);
-        } catch (Exception ignored) {
+        } catch (RuntimeException ignored) {
             // Path not resolvable — no-op.
         }
     }
@@ -478,7 +478,7 @@ public final class ProjectServiceImpl implements ProjectService {
             Document document = project.currentPackage().module(docId.moduleId()).document(docId);
             Project updated = document.module().modify().removeDocument(docId).apply().project();
             uriResolver.registerProject(resolveSourceRoot(normalized), updated);
-        } catch (Exception ignored) {
+        } catch (RuntimeException ignored) {
             // Document may not be in project or project not loaded — skip.
         }
     }
@@ -506,7 +506,7 @@ public final class ProjectServiceImpl implements ProjectService {
             // Ballerina project API is immutable: apply() returns a new Document in a new Project.
             Document updated = document.modify().withContent(content).apply();
             uriResolver.registerProject(resolveSourceRoot(normalized), updated.module().project());
-        } catch (Exception ignored) {
+        } catch (RuntimeException ignored) {
             // File not yet in project or project not supporting this op — skip.
         }
     }
@@ -525,7 +525,7 @@ public final class ProjectServiceImpl implements ProjectService {
             refreshWorkspaceGraphAfterDocumentUpdate(uri, updated.module().project())
                     .forEach(root -> publishWm(EventKind.WORKSPACE_PROJECT_UPDATED, root));
             return true;
-        } catch (Exception ignored) {
+        } catch (RuntimeException ignored) {
             return false;
         }
     }
@@ -558,7 +558,7 @@ public final class ProjectServiceImpl implements ProjectService {
             refreshWorkspaceGraphAfterDocumentUpdate(uri, updatedProject)
                     .forEach(updatedRoot -> publishWm(EventKind.WORKSPACE_PROJECT_UPDATED, updatedRoot));
             return true;
-        } catch (Exception ignored) {
+        } catch (RuntimeException ignored) {
             return false;
         }
     }
@@ -669,7 +669,7 @@ public final class ProjectServiceImpl implements ProjectService {
                     routeSourceWatcherEvent(docUri, filePath, event);
                 }
                 applyBufferedChanges();
-            } catch (Exception ignored) {
+            } catch (RuntimeException ignored) {
                 // Malformed or non-file URI — skip this event
             }
         }
@@ -1074,7 +1074,7 @@ public final class ProjectServiceImpl implements ProjectService {
             Project target = refreshLoadedProject(root, refreshed);
             publishWm(EventKind.WORKSPACE_PROJECT_UPDATED, root);
             return Optional.of(target);
-        } catch (Exception ignored) {
+        } catch (RuntimeException ignored) {
             removeCachedProject(root);
             return Optional.empty();
         }
@@ -1294,7 +1294,7 @@ public final class ProjectServiceImpl implements ProjectService {
             if (project.isPresent()) {
                 return Optional.of(sourceRootLike(uri, project.get().sourceRoot()));
             }
-        } catch (Exception ignored) {
+        } catch (RuntimeException ignored) {
             // Fall back to path-based root resolution below.
         }
 
@@ -1302,7 +1302,7 @@ public final class ProjectServiceImpl implements ProjectService {
             Path path = pathOf(uri);
             DocumentUri root = resolveSourceRoot(path);
             return Optional.of(sourceRootLike(uri, Path.of(root.uri())));
-        } catch (Exception ignored) {
+        } catch (RuntimeException ignored) {
             return Optional.empty();
         }
     }
