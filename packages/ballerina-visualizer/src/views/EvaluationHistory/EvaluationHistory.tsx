@@ -202,21 +202,23 @@ export function EvaluationHistory() {
         setProjectPath(resolvedProjectPath);
 
         let cancelled = false;
+        let latestFetchId = 0;
         const fetchHistory = (isInitial: boolean) => {
+            const fetchId = ++latestFetchId;
             rpcClient
                 .getTestManagerRpcClient()
                 .getEvaluationHistory({ projectPath: resolvedProjectPath })
                 .then((response) => {
-                    if (cancelled) { return; }
+                    if (cancelled || fetchId !== latestFetchId) { return; }
                     setData(response.data);
-                    if (isInitial) { setLoading(false); }
+                    setLoading(false);
                 })
                 .catch(() => {
-                    if (cancelled) { return; }
+                    if (cancelled || fetchId !== latestFetchId) { return; }
                     if (isInitial) {
                         setData({ tests: [], totalRunFiles: 0, projectNames: [] });
-                        setLoading(false);
                     }
+                    setLoading(false);
                 });
         };
 
