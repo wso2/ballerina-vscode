@@ -150,7 +150,7 @@ public final class InitialWorkspaceLoader {
         progressTracker.begin(IWL_PROGRESS_TOKEN, "Indexing", "Scanning workspace...", 0);
 
         // Submit background task
-        iwlExecutor.submit(() -> executeIwl(session));
+        iwlExecutor.execute(() -> executeIwl(session));
     }
 
     /**

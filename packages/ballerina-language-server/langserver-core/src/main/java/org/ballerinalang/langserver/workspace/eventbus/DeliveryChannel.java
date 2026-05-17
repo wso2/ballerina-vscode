@@ -22,6 +22,7 @@ package org.ballerinalang.langserver.workspace.eventbus;
     import org.ballerinalang.langserver.workspace.observability.TelemetryEmitter;
 
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -98,7 +99,7 @@ final class DeliveryChannel {
                         threadFactory(subscriberId, subscriberTier));
                 DeliveryChannel channel = new DeliveryChannel(subscriberId, subscriberTier, immutableKinds, consumer,
                         queue, null, executor, null, telemetryEmitter);
-                executor.submit(channel::drainQueue);
+                executor.execute(channel::drainQueue);
                 yield channel;
             }
             case BEST_EFFORT -> {
@@ -107,7 +108,7 @@ final class DeliveryChannel {
                         threadFactory(subscriberId, subscriberTier));
                 DeliveryChannel channel = new DeliveryChannel(subscriberId, subscriberTier, immutableKinds, consumer,
                         queue, null, executor, null, telemetryEmitter);
-                executor.submit(channel::drainQueue);
+                executor.execute(channel::drainQueue);
                 yield channel;
             }
             case COALESCEABLE -> {
@@ -247,7 +248,7 @@ final class DeliveryChannel {
     private static ThreadFactory threadFactory(String subscriberId, SubscriberTier subscriberTier) {
         return runnable -> {
             Thread thread = new Thread(runnable);
-            thread.setName("eventbus-" + subscriberTier.name().toLowerCase() + "-" + subscriberId);
+            thread.setName("eventbus-" + subscriberTier.name().toLowerCase(Locale.ROOT) + "-" + subscriberId);
             thread.setDaemon(true);
             return thread;
         };

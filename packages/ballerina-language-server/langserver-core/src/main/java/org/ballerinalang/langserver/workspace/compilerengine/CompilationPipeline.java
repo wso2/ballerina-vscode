@@ -32,6 +32,7 @@ import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVer
 
 import java.net.URI;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -220,7 +221,7 @@ public class CompilationPipeline implements AutoCloseable {
             prev.cancel(false);
             ContentVersion latest = latestRequestedVersion.get();
             if (latest != null) {
-                compilationWorker.submit(() -> submitCompilation(latest));
+                compilationWorker.execute(() -> submitCompilation(latest));
             }
         }
     }
@@ -295,7 +296,7 @@ public class CompilationPipeline implements AutoCloseable {
         InProgressSnapshot inProgressSnapshot = snapshotStore.startCompilation(key);
         inflightTask.set(task);
 
-        compilationWorker.submit(() -> executeCompilation(task, inProgressSnapshot));
+        compilationWorker.execute(() -> executeCompilation(task, inProgressSnapshot));
     }
 
     private void executeCompilation(CompileTask task, InProgressSnapshot inProgressSnapshot) {
@@ -379,7 +380,7 @@ public class CompilationPipeline implements AutoCloseable {
     }
 
     private void scheduleRecovery(CompileTask task, Throwable cause) {
-        compilationWorker.submit(() -> executeRecovery(task, cause));
+        compilationWorker.execute(() -> executeRecovery(task, cause));
     }
 
     private void executeRecovery(CompileTask task, Throwable cause) {
@@ -405,7 +406,7 @@ public class CompilationPipeline implements AutoCloseable {
         }
         ContentVersion latest = latestRequestedVersion.get();
         if (latest != null && latest.compareTo(completedVersion) > 0 && inflightTask.get() == null) {
-            compilationWorker.submit(() -> {
+            compilationWorker.execute(() -> {
                 // Re-check to avoid duplicate work if debounce already fired
                 if (!closed.get() && inflightTask.get() == null) {
                     submitCompilation(latest);
@@ -458,7 +459,7 @@ public class CompilationPipeline implements AutoCloseable {
         if (message == null) {
             return false;
         }
-        String normalized = message.toLowerCase();
+        String normalized = message.toLowerCase(Locale.ROOT);
         return normalized.startsWith("failed to load the module")
                 || normalized.contains(".bir")
                 || normalized.contains(" bir ");

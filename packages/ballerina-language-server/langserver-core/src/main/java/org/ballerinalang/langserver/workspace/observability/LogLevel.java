@@ -19,6 +19,8 @@
 
 package org.ballerinalang.langserver.workspace.observability;
 
+import java.util.Locale;
+
 /**
  * Log levels for the trace logger.
  *
@@ -66,7 +68,7 @@ public enum LogLevel {
         if (level == null) {
             return INFO;
         }
-        return switch (level.toUpperCase()) {
+        return switch (level.toUpperCase(Locale.ROOT)) {
             case "TRACE" -> TRACE;
             case "DEBUG" -> DEBUG;
             case "INFO" -> INFO;

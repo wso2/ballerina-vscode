@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.Set;
@@ -235,17 +236,17 @@ public final class ExecutionServiceImpl implements ExecutionService {
     }
 
     private void startOutputStreaming(ProcessId processId, Process process, DocumentUri sourceRoot) {
-        virtualThreadExecutor.submit(() -> {
+        virtualThreadExecutor.execute(() -> {
             virtualThreadUsageTracker.accept(Thread.currentThread().isVirtual());
             streamOutput(processId, process, sourceRoot, process.getInputStream(), true);
         });
 
-        virtualThreadExecutor.submit(() -> {
+        virtualThreadExecutor.execute(() -> {
             virtualThreadUsageTracker.accept(Thread.currentThread().isVirtual());
             streamOutput(processId, process, sourceRoot, process.getErrorStream(), false);
         });
 
-        virtualThreadExecutor.submit(() -> {
+        virtualThreadExecutor.execute(() -> {
             virtualThreadUsageTracker.accept(Thread.currentThread().isVirtual());
             try {
                 process.waitFor();
@@ -266,7 +267,7 @@ public final class ExecutionServiceImpl implements ExecutionService {
 
     private void streamOutput(ProcessId processId, Process process, DocumentUri sourceRoot,
                               InputStream stream, boolean isStdout) {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 if (!process.isAlive()) {
