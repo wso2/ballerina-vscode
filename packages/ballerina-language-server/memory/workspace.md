@@ -1,0 +1,28 @@
+# Workspace Memory
+
+- `WorkspaceManager` API is frozen; do not modify method signatures or add routing/proxy behavior.
+- Facade methods should remain pure delegation with no domain logic.
+- `ChangeBuffer` stores LSP change deltas only; resolved content authority remains the compiler document model.
+- Use `@Nonnull` contracts for new Java API surfaces and do not use `Objects.requireNonNull`.
+- Legacy workspace run behavior depends on compiling the current project package, constructing a `JBallerinaBackend`, refreshing touched documents with compiler modify APIs, and stopping the spawned process tree.
+- Legacy semantic-model reads after workspace run must use the current compiler project compilation. CE stable snapshots can be stale after backend creation and can break semantic queries.
+- Single-file URI resolver updates/removals must index by the document URI instead of the compiler project `sourceRoot()` parent path.
+- Tracked generated fixture artifacts can cause project-kind misclassification. For this branch, the generated `BalTool.toml`, `Cloud.toml`, `CompilerPlugin.toml`, `Dependencies.toml`, `delete-file.bal`, `model.bal`, and single-file `Ballerina.toml` fixture files are intentionally deleted to match `feat14`.
+- `bala://` document lifecycle events are file-backed for workspace storage. Convert bala document URIs to `DocumentUri.FileUri` at the facade boundary; feature handlers can still convert readonly result locations back to `bala://`.
+- Workspace package loads must fan out all packages from the compiler workspace graph into `UriResolver`, matching legacy `BallerinaWorkspaceManager` behavior. After an in-memory edit to one workspace package, refresh and publish update events for dependent workspace package roots so diagnostics compile dependents against the updated graph.
+- `UriResolver.onDocumentUpdate` must refresh both the trie and the bounded `projectIndex`; explicit project removal must synchronously evict the trie subtree and invalidate the index.
+- Correctness-critical compilation reads must not return an older stable snapshot while a newer in-progress compilation exists for the same key. Wait for the in-progress publication first; if it is cancelled or fails, callers may fall back to the current compiler project.
+- `expr://` and `ai://` read paths must preserve URI scheme after `PathUtil` strips to `Path`. Bind document-service contexts to a URI-scoped workspace view, and back non-file lifecycle events with `project.duplicate()` overlay projects keyed by the matching scheme.
+- Non-file URI-scoped workspace views must keep descendant paths in the same overlay when the original request URI identifies a directory or project root; expression-editor contexts can resolve that request to a fallback `.bal` path before semantic reads.
+- Project-root semantic-model reads should resolve the `Module` through `ProjectService.module(...)` before requesting the semantic model. Project-root callers need the default module semantic model for module-symbol queries and cannot derive a document id first.
+- Compiler diagnostics must use `BallerinaCompilerApi.getDiagnostics(...)` rather than raw `DiagnosticResult.diagnostics(false)` when version-specific resolution diagnostics matter. For non-workspace diagnostic publication, compile a duplicate project so CE resolution-state mutations do not hide cyclic-module diagnostics.
+- Read-only model/artifact generation that needs stable semantic enrichment should compile a duplicate project instead of the cached workspace project when CE may be compiling the same project concurrently.
+- AI/expr overlay changes can target placeholder `.bal` files that are empty on disk and therefore absent from the compiler project. Treat those as document creates in the overlay module instead of dropping the change.
+- Language-server test modules can create many `BallerinaLanguageServer` instances. The unified workspace facade must close owned wiring, event-bus channels, CE pipelines, and resolver/project state on shutdown to avoid module-suite OOMs.
+- Workspace projects with `packages = []` do not have a current package descriptor for CE to track. Skip compilation pipeline creation for that no-package case instead of logging a warning stacktrace.
+- If a newly created `.bal` file exists on disk but is absent from the cached compiler project, refresh the cached project before failing document resolution. Legacy create-document behavior reloaded the project so generated source files became compiler documents.
+- File-generation utilities should check physical file existence before asking the workspace to load the path when the caller owns file creation. The unified workspace facade may wrap missing-source load failures differently from legacy `ProjectException` behavior.
+- Direct `Package.getCompilation()` calls in language-server/model-generator paths should go through the shared `CompilerCompilationGuard`; the compiler plugin user-data cache can race otherwise, producing `ballerina:http` `ctxData is null` stack traces.
+- Test harness language-server shutdown should wait for the JSON-RPC `shutdown` response before starting the next test class; fire-and-forget shutdown can leave workspace teardown overlapping later completion requests.
+- `ChangeBuffer.append` must add the buffered change inside the same per-layer `compute` that coordinates with `drain`. Adding to a queue after `computeIfAbsent` can race with drain swapping the queue and lose a document event.
+- Open source-document delete watcher events should make the open overlay empty, falling back to physical document removal only if applying empty content fails. Otherwise document-symbol style reads can continue seeing stale open content after a delete event.

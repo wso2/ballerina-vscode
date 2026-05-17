@@ -1,0 +1,8 @@
+# AGENTS.md is discovered by Codex by default. This adds the existing
+# INSTRUCTIONS.md as an alternate project-doc filename where no AGENTS.md
+# file is present in the same directory.
+project_doc_fallback_filenames = ["INSTRUCTIONS.md"]
+
+# Current discovered instruction files total about 20.6 KiB; keep headroom
+# above the default 32 KiB cap so root and scoped guidance are not truncated.
+project_doc_max_bytes = 65536
