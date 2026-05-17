@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -82,7 +83,8 @@ public class ArtifactsGenerator {
     }
 
     public static Map<String, Map<String, Artifact>> artifacts(Project project) {
-        Package currentPackage = project.currentPackage();
+        Project artifactProject = project.duplicate();
+        Package currentPackage = artifactProject.currentPackage();
         Module defaultModule = currentPackage.getDefaultModule();
         SemanticModel semanticModel =
                 PackageUtil.getCompilation(currentPackage).getSemanticModel(defaultModule.moduleId());
@@ -93,7 +95,7 @@ public class ArtifactsGenerator {
             Document document = defaultModule.document(documentId);
             Map<String, List<String>> idMap = new HashMap<>();
             SyntaxTree syntaxTree = document.syntaxTree();
-            String projectPath = project.sourceRoot().toAbsolutePath().toString();
+            String projectPath = artifactProject.sourceRoot().toAbsolutePath().toString();
             List<Artifact> artifacts = collectArtifactsFromSyntaxTree(projectPath, syntaxTree, semanticModel);
             artifacts.forEach(artifact -> {
                 String category = Artifact.getCategory(artifact.type());
@@ -104,7 +106,7 @@ public class ArtifactsGenerator {
             documentMap.put(document.name(), idMap);
         });
 
-        ArtifactsCache.getInstance().initializeProject(project.sourceRoot().toString(), documentMap);
+        ArtifactsCache.getInstance().initializeProject(artifactProject.sourceRoot().toString(), documentMap);
         return artifactMap;
     }
 
@@ -118,6 +120,7 @@ public class ArtifactsGenerator {
         // Process each document in parallel to calculate deltas
         Map<String, Map<String, List<String>>> cachedArtifactsByDocument =
                 ArtifactsCache.getInstance().getProjectDocuments(projectId);
+        Map<String, Set<String>> cachedArtifactsByCategory = cachedArtifactsByCategory(cachedArtifactsByDocument);
         ConcurrentMap<String, Map<String, Map<String, Artifact>>> combinedDeltas = new ConcurrentHashMap<>();
         ConcurrentMap<String, Map<String, List<String>>> newDocumentMap = new ConcurrentHashMap<>();
         defaultModule.documentIds().stream().parallel().forEach(documentId -> {
@@ -143,6 +146,10 @@ public class ArtifactsGenerator {
                 List<String> cachedIds = new ArrayList<>(
                         cachedArtifactsForDoc.getOrDefault(category, new ArrayList<>()));
                 String eventType = determineEventTypeAndRemove(cachedIds, artifactId);
+                if (ADDITIONS.equals(eventType) && containsCachedArtifact(cachedArtifactsByCategory,
+                        category, artifactId)) {
+                    eventType = UPDATES;
+                }
 
                 // Add to document deltas using helper
                 putArtifactInMap(documentDeltas, category, eventType, artifactId, artifact);
@@ -165,6 +172,21 @@ public class ArtifactsGenerator {
         // Update cache with new project artifacts
         ArtifactsCache.getInstance().initializeProject(projectId, newDocumentMap);
         return combinedDeltas;
+    }
+
+    private static Map<String, Set<String>> cachedArtifactsByCategory(
+            Map<String, Map<String, List<String>>> cachedArtifactsByDocument) {
+        Map<String, Set<String>> artifactIds = new ConcurrentHashMap<>();
+        cachedArtifactsByDocument.values().forEach(categoryMap ->
+                categoryMap.forEach((category, ids) ->
+                        artifactIds.computeIfAbsent(category, ignored -> ConcurrentHashMap.newKeySet()).addAll(ids)));
+        return artifactIds;
+    }
+
+    private static boolean containsCachedArtifact(Map<String, Set<String>> cachedArtifactsByCategory,
+                                                  String category, String artifactId) {
+        Set<String> artifactIds = cachedArtifactsByCategory.get(category);
+        return artifactIds != null && artifactIds.contains(artifactId);
     }
 
     private static List<Artifact> collectArtifactsFromSyntaxTree(String projectPath, SyntaxTree syntaxTree,
@@ -217,8 +239,45 @@ public class ArtifactsGenerator {
         documentDeltas.forEach((category, eventTypeMap) ->
                 eventTypeMap.forEach((eventType, artifactMap) ->
                         artifactMap.forEach((artifactId, artifact) ->
-                                combinedDeltas.computeIfAbsent(category, k -> new ConcurrentHashMap<>())
-                                        .computeIfAbsent(eventType, k -> new ConcurrentHashMap<>())
-                                        .put(artifactId, artifact))));
+                                putCombinedDelta(combinedDeltas, category, eventType, artifactId, artifact))));
+    }
+
+    private static void putCombinedDelta(ConcurrentMap<String, Map<String, Map<String, Artifact>>> combinedDeltas,
+                                         String category, String eventType, String artifactId, Artifact artifact) {
+        Map<String, Map<String, Artifact>> categoryDeltas =
+                combinedDeltas.computeIfAbsent(category, k -> new ConcurrentHashMap<>());
+        if (UPDATES.equals(eventType)) {
+            removeArtifact(categoryDeltas, ADDITIONS, artifactId);
+            removeArtifact(categoryDeltas, DELETIONS, artifactId);
+        } else if (ADDITIONS.equals(eventType)) {
+            if (containsArtifact(categoryDeltas, UPDATES, artifactId)) {
+                return;
+            }
+            removeArtifact(categoryDeltas, DELETIONS, artifactId);
+        } else if (DELETIONS.equals(eventType) &&
+                (containsArtifact(categoryDeltas, UPDATES, artifactId) ||
+                        containsArtifact(categoryDeltas, ADDITIONS, artifactId))) {
+            return;
+        }
+
+        categoryDeltas.computeIfAbsent(eventType, k -> new ConcurrentHashMap<>()).put(artifactId, artifact);
+    }
+
+    private static boolean containsArtifact(Map<String, Map<String, Artifact>> categoryDeltas,
+                                            String eventType, String artifactId) {
+        Map<String, Artifact> artifacts = categoryDeltas.get(eventType);
+        return artifacts != null && artifacts.containsKey(artifactId);
+    }
+
+    private static void removeArtifact(Map<String, Map<String, Artifact>> categoryDeltas,
+                                       String eventType, String artifactId) {
+        Map<String, Artifact> artifacts = categoryDeltas.get(eventType);
+        if (artifacts == null) {
+            return;
+        }
+        artifacts.remove(artifactId);
+        if (artifacts.isEmpty()) {
+            categoryDeltas.remove(eventType);
+        }
     }
 }
