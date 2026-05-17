@@ -22,6 +22,7 @@ import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.BuildOptions;
 import io.ballerina.projects.CompilationOptions;
+import io.ballerina.projects.PackageResolution;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.ModuleId;
@@ -31,6 +32,7 @@ import io.ballerina.projects.Project;
 import io.ballerina.projects.environment.PackageLockingMode;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
+import org.ballerinalang.langserver.commons.CompilerCompilationGuard;
 import org.ballerinalang.langserver.workspace.compilerengine.revovery.FailureType;
 import org.ballerinalang.langserver.workspace.compilerengine.revovery.RecoveryLadder;
 import org.ballerinalang.langserver.workspace.compilerengine.revovery.ResolutionResult;
@@ -38,6 +40,7 @@ import org.ballerinalang.langserver.workspace.compilerengine.snapshot.StableSnap
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
 import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectServiceImpl;
+import org.ballerinalang.util.diagnostic.DiagnosticErrorCode;
 
 import javax.annotation.Nonnull;
 import java.nio.file.Path;
@@ -71,8 +74,17 @@ public final class CompilationActionImpl implements CompilationPipeline.Compilat
         try {
             Project project = projectService.loadOrCreateFromIdentifier(sourceRootIdentifier, null);
             LockingMode lockingMode = projectService.getLockingMode(project);
-            project.currentPackage().getResolution(compilationOptions(lockingMode));
-            return new ResolutionResult(task.descriptor(), List.of(), true);
+            PackageResolution resolution = project.currentPackage().getResolution(compilationOptions(lockingMode));
+            List<ResolutionResult.ResolutionDiagnostic> diagnostics = BallerinaCompilerApi.getInstance()
+                    .getDiagnostics(resolution.diagnosticResult()).stream()
+                    .map(diagnostic -> new ResolutionResult.ResolutionDiagnostic(
+                            severityOf(diagnostic),
+                            diagnostic.message(),
+                            sourceRootIdentifier))
+                    .toList();
+            boolean success = diagnostics.stream()
+                    .noneMatch(diagnostic -> diagnostic.severity() == ResolutionResult.Severity.ERROR);
+            return new ResolutionResult(task.descriptor(), diagnostics, success);
         } catch (RuntimeException e) {
             String message = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
             return new ResolutionResult(task.descriptor(), List.of(
@@ -126,7 +138,7 @@ public final class CompilationActionImpl implements CompilationPipeline.Compilat
                     .loadProject(projectService.resolvePathFromIdentifier(task.sourceRootIdentifier()),
                             buildOptions(mode));
             transientProject.currentPackage().getResolution(compilationOptions(mode));
-            transientProject.currentPackage().getCompilation();
+            CompilerCompilationGuard.getCompilation(transientProject.currentPackage());
             return true;
         } catch (RuntimeException ignored) {
             return false;
@@ -134,22 +146,25 @@ public final class CompilationActionImpl implements CompilationPipeline.Compilat
     }
 
     private StableSnapshot snapshot(CompileTask task, Project project) {
-        if (task.isCancelled() || Thread.interrupted()) {
+        if (task.isCancelled() || Thread.currentThread().isInterrupted()) {
             throw new java.util.concurrent.CancellationException("Compilation task cancelled before PackageCompilation");
         }
-        PackageCompilation compilation = project.currentPackage().getCompilation();
-        if (task.isCancelled() || Thread.interrupted()) {
+        PackageCompilation compilation = CompilerCompilationGuard.getCompilation(project.currentPackage());
+        if (task.isCancelled() || Thread.currentThread().isInterrupted()) {
             throw new java.util.concurrent.CancellationException("Compilation task cancelled after PackageCompilation");
         }
         Map<DocumentId, SyntaxTree> syntaxTrees = new HashMap<>();
         Map<Path, DocumentId> pathToDocumentIds = new HashMap<>();
         Map<ModuleId, SemanticModel> semanticModels = new HashMap<>();
+        boolean semanticModelsAvailable = semanticModelsAvailable(compilation);
         project.currentPackage().moduleIds().forEach(moduleId -> {
-            if (task.isCancelled() || Thread.interrupted()) {
+            if (task.isCancelled() || Thread.currentThread().isInterrupted()) {
                 throw new java.util.concurrent.CancellationException("Compilation task cancelled before SemanticModel evaluation");
             }
             Module packageModule = project.currentPackage().module(moduleId);
-            semanticModels.put(moduleId, compilation.getSemanticModel(moduleId));
+            if (semanticModelsAvailable) {
+                semanticModels.put(moduleId, compilation.getSemanticModel(moduleId));
+            }
             packageModule.documentIds().forEach(docId -> project.documentPath(docId).ifPresent(path ->
             {
                 syntaxTrees.put(docId, packageModule.document(docId).syntaxTree());
@@ -161,11 +176,25 @@ public final class CompilationActionImpl implements CompilationPipeline.Compilat
                 pathToDocumentIds.put(path.toAbsolutePath().normalize(), docId);
             }));
         });
-        if (syntaxTrees.isEmpty() || semanticModels.isEmpty()) {
+        if (syntaxTrees.isEmpty() || (semanticModelsAvailable && semanticModels.isEmpty())) {
             throw new RuntimeException("No source documents in project: " + project.sourceRoot());
         }
         return new StableSnapshot(syntaxTrees, pathToDocumentIds, semanticModels,
                 compilation, task.contentVersion());
+    }
+
+    private boolean semanticModelsAvailable(PackageCompilation compilation) {
+        return BallerinaCompilerApi.getInstance().getDiagnostics(compilation.diagnosticResult()).stream()
+                .noneMatch(diagnostic -> DiagnosticErrorCode.CYCLIC_MODULE_IMPORTS_DETECTED.diagnosticId()
+                        .equals(diagnostic.diagnosticInfo().code()));
+    }
+
+    private ResolutionResult.Severity severityOf(io.ballerina.tools.diagnostics.Diagnostic diagnostic) {
+        return switch (diagnostic.diagnosticInfo().severity()) {
+            case ERROR -> ResolutionResult.Severity.ERROR;
+            case WARNING -> ResolutionResult.Severity.WARNING;
+            default -> ResolutionResult.Severity.INFO;
+        };
     }
 
     private CompilationOptions compilationOptions(LockingMode lockingMode) {

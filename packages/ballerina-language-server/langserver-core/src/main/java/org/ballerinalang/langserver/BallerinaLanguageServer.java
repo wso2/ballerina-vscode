@@ -37,6 +37,7 @@ import org.ballerinalang.langserver.extensions.AbstractExtendedLanguageServer;
 import org.ballerinalang.langserver.extensions.ExtendedLanguageServer;
 import org.ballerinalang.langserver.semantictokens.SemanticTokensUtils;
 import org.ballerinalang.langserver.util.LSClientUtil;
+import org.ballerinalang.langserver.workspace.BallerinaWorkspaceManagerProxyImpl;
 import org.eclipse.lsp4j.CodeActionKind;
 import org.eclipse.lsp4j.CodeActionOptions;
 import org.eclipse.lsp4j.CodeLensOptions;
@@ -112,7 +113,8 @@ public class BallerinaLanguageServer extends AbstractExtendedLanguageServer
     }
 
     public void setEvictProjectOnLastClose(boolean enabled) {
-        if (workspaceManagerProxy instanceof BallerinaWorkspaceManagerProxyImpl ballerinaWorkspaceManagerProxy) {
+        if (getWorkspaceManagerProxy()
+                instanceof BallerinaWorkspaceManagerProxyImpl ballerinaWorkspaceManagerProxy) {
             ballerinaWorkspaceManagerProxy.setEvictProjectOnLastClose(enabled);
         }
     }
@@ -366,6 +368,13 @@ public class BallerinaLanguageServer extends AbstractExtendedLanguageServer
         shutdown = 0;
         for (ExtendedLanguageServerService service : extendedServices) {
             service.shutdown();
+        }
+        if (workspaceManager instanceof AutoCloseable closeableWorkspaceManager) {
+            try {
+                closeableWorkspaceManager.close();
+            } catch (Exception ignored) {
+                // Shutdown is best-effort; individual services already swallow close-time sink failures.
+            }
         }
         return CompletableFuture.supplyAsync(Object::new);
     }

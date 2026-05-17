@@ -415,6 +415,9 @@ public class CompilationPipeline implements AutoCloseable {
     }
 
     private void emitEvent(EventKind kind) {
+        if (closed.get()) {
+            return;
+        }
         try {
             eventBus.publish(new CompilerEvent(kind, sourceRootUri, descriptorName));
         } catch (Exception e) {

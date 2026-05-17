@@ -259,6 +259,12 @@ public class WorkspaceDiagnosticsTest {
 
     @AfterClass
     public void cleanupLanguageServer() {
+        if (workspaceManager instanceof AutoCloseable closeableWorkspaceManager) {
+            try {
+                closeableWorkspaceManager.close();
+            } catch (Exception ignored) {
+            }
+        }
         TestUtil.shutdownLanguageServer(this.serviceEndpoint);
         this.serviceEndpoint = null;
     }

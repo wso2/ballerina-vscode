@@ -88,7 +88,7 @@ public class WorkspaceContextContractsTest {
     @Test
     public void projectService_matchesContractSignatures() throws ReflectiveOperationException {
         Assert.assertTrue(ProjectService.class.isInterface());
-        Assert.assertEquals(ProjectService.class.getMethods().length, 13);
+        Assert.assertEquals(ProjectService.class.getMethods().length, 17);
 
         Method loadOrCreate = ProjectService.class.getMethod("loadOrCreate", Path.class, CancelChecker.class);
         Assert.assertEquals(loadOrCreate.getReturnType(), Project.class);
@@ -96,11 +96,24 @@ public class WorkspaceContextContractsTest {
         Method project = ProjectService.class.getMethod("project", Path.class);
         Assert.assertEquals(project.getReturnType(), java.util.Optional.class);
 
+        Method projectByUri = ProjectService.class.getMethod("project", DocumentUri.class);
+        Assert.assertEquals(projectByUri.getReturnType(), java.util.Optional.class);
+
+        Method loadOrCreateByUri = ProjectService.class.getMethod("loadOrCreate", DocumentUri.class,
+                CancelChecker.class);
+        Assert.assertEquals(loadOrCreateByUri.getReturnType(), Project.class);
+
         Method allProjects = ProjectService.class.getMethod("allProjects");
         Assert.assertEquals(allProjects.getReturnType(), Collection.class);
 
         Method module = ProjectService.class.getMethod("module", Path.class, CancelChecker.class);
         Assert.assertEquals(module.getReturnType(), Module.class);
+
+        Method moduleByUri = ProjectService.class.getMethod("module", DocumentUri.class, CancelChecker.class);
+        Assert.assertEquals(moduleByUri.getReturnType(), Module.class);
+
+        Method documentByUri = ProjectService.class.getMethod("document", DocumentUri.class, CancelChecker.class);
+        Assert.assertEquals(documentByUri.getReturnType(), java.util.Optional.class);
 
         Method getLockingMode = ProjectService.class.getMethod("getLockingMode", Project.class);
         Assert.assertEquals(getLockingMode.getReturnType(), LockingMode.class);

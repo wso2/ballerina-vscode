@@ -67,9 +67,11 @@ public class ChangeBuffer {
     public void append(DocumentUri uri, BufferedChange change) {
         ConcurrentHashMap<ChangeLayer, ConcurrentLinkedQueue<BufferedChange>> layerMap =
                 layeredChanges.computeIfAbsent(uri, k -> new ConcurrentHashMap<>());
-        ConcurrentLinkedQueue<BufferedChange> queue =
-                layerMap.computeIfAbsent(change.layer(), k -> new ConcurrentLinkedQueue<>());
-        queue.add(change);
+        layerMap.compute(change.layer(), (layer, queue) -> {
+            ConcurrentLinkedQueue<BufferedChange> target = queue == null ? new ConcurrentLinkedQueue<>() : queue;
+            target.add(change);
+            return target;
+        });
     }
 
     /**
@@ -149,6 +151,19 @@ public class ChangeBuffer {
             }
         }
         return false;
+    }
+
+    /**
+     * Returns {@code true} if the given URI has an entry for the requested layer, even if
+     * that layer's queue was drained and is currently empty.
+     *
+     * @param uri document identity
+     * @param layer overlay layer
+     * @return {@code true} when the layer is present
+     */
+    public boolean hasLayer(DocumentUri uri, ChangeLayer layer) {
+        ConcurrentHashMap<ChangeLayer, ConcurrentLinkedQueue<BufferedChange>> layerMap = layeredChanges.get(uri);
+        return layerMap != null && layerMap.containsKey(layer);
     }
 
     /**

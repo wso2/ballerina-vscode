@@ -23,13 +23,16 @@ import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
+import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectException;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
+import org.ballerinalang.langserver.commons.CompilerCompilationGuard;
 import org.ballerinalang.langserver.commons.workspace.RunContext;
 import org.ballerinalang.langserver.commons.workspace.RunResult;
+import org.ballerinalang.langserver.commons.workspace.UriScopedWorkspaceManagerProvider;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationService;
@@ -47,13 +50,16 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 
 /**
  * Pure facade implementation that delegates all WorkspaceManager methods to bounded context services.
@@ -62,12 +68,15 @@ import java.util.stream.Collectors;
  *
  * @since 1.7.0
  */
-public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
+public final class WorkspaceManagerFacadeImpl
+        implements WorkspaceManager, UriScopedWorkspaceManagerProvider, AutoCloseable {
 
     private final ProjectService projectService;
     private final CompilationService compilationService;
     private final ExecutionService executionService;
     private final WorkspaceRunService workspaceRunService;
+    private final AutoCloseable closeAction;
+    private final AtomicBoolean closed = new AtomicBoolean(false);
 
     /**
      * Creates a new facade with all required service dependencies.
@@ -80,10 +89,50 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
             ProjectService projectService,
             CompilationService compilationService,
             ExecutionService executionService) {
+        this(projectService, compilationService, executionService, () -> { });
+    }
+
+    /**
+     * Creates a new facade with all required service dependencies and lifecycle cleanup.
+     *
+     * @param projectService project service
+     * @param compilationService compilation service
+     * @param executionService execution service
+     * @param closeAction close action for the owned workspace wiring; must not be null
+     */
+    public WorkspaceManagerFacadeImpl(
+            @Nonnull ProjectService projectService,
+            @Nonnull CompilationService compilationService,
+            @Nonnull ExecutionService executionService,
+            @Nonnull AutoCloseable closeAction) {
         this.projectService = projectService;
         this.compilationService = compilationService;
         this.executionService = executionService;
         this.workspaceRunService = new WorkspaceRunService(projectService);
+        this.closeAction = closeAction;
+    }
+
+    /**
+     * Closes the owned workspace wiring and releases background resources.
+     *
+     * @throws Exception if the close action fails
+     */
+    @Override
+    public void close() throws Exception {
+        if (closed.compareAndSet(false, true)) {
+            closeAction.close();
+        }
+    }
+
+    /**
+     * Returns a workspace manager view that preserves the request document URI for path-based read methods.
+     *
+     * @param uriString request document URI
+     * @return URI-scoped workspace manager view
+     */
+    @Override
+    public WorkspaceManager forDocumentUri(String uriString) {
+        return new UriScopedWorkspaceManager(this, toDocumentUri(uriString));
     }
 
     @Override
@@ -186,39 +235,34 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
 
     @Override
     public Optional<SemanticModel> semanticModel(Path filePath) {
-        try {
-            Project project = projectService.loadOrCreate(filePath, null);
-            DocumentId docId = project.documentId(filePath);
-            PackageCompilation compilation = project.currentPackage().getCompilation();
-            return Optional.of(compilation.getSemanticModel(docId.moduleId()));
-        } catch (Exception e) {
-            return Optional.empty();
-        }
+        return semanticModel(filePath, null);
     }
 
     @Override
     public Optional<SemanticModel> semanticModel(Path filePath, CancelChecker cancelChecker) {
         try {
             Project project = projectService.loadOrCreate(filePath, cancelChecker);
-            DocumentId docId = project.documentId(filePath);
-            PackageCompilation compilation = project.currentPackage().getCompilation();
-            return Optional.of(compilation.getSemanticModel(docId.moduleId()));
+            Module module = projectService.module(filePath, cancelChecker);
+            return semanticModel(project, module.moduleId(), filePath, cancelChecker);
         } catch (Exception e) {
             return Optional.empty();
         }
     }
 
+    private Optional<SemanticModel> semanticModel(Project project, ModuleId moduleId, Path filePath,
+                                                  CancelChecker cancelChecker) {
+        try {
+            PackageCompilation compilation = CompilerCompilationGuard.getCompilation(project.currentPackage(),
+                    cancelChecker);
+            return Optional.of(compilation.getSemanticModel(moduleId));
+        } catch (Exception e) {
+            return semanticModelFromCompilation(filePath, moduleId, cancelChecker);
+        }
+    }
+
     @Override
     public Optional<PackageCompilation> waitAndGetPackageCompilation(Path filePath) {
-        try {
-            Project project = projectService.loadOrCreate(filePath, null);
-            PackageDescriptor descriptor = project.currentPackage().descriptor();
-            StableSnapshot snapshot = compilationService.stableSnapshot(project, descriptor, null);
-            PackageCompilation compilation = snapshot == null ? null : snapshot.compilation();
-            return Optional.ofNullable(compilation);
-        } catch (Exception e) {
-            return Optional.empty();
-        }
+        return waitAndGetPackageCompilation(filePath, null);
     }
 
     @Override
@@ -226,9 +270,16 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
         try {
             Project project = projectService.loadOrCreate(filePath, cancelChecker);
             PackageDescriptor descriptor = project.currentPackage().descriptor();
-            StableSnapshot snapshot = compilationService.stableSnapshot(project, descriptor, cancelChecker);
-            PackageCompilation compilation = snapshot == null ? null : snapshot.compilation();
-            return Optional.ofNullable(compilation);
+            StableSnapshot snapshot = null;
+            try {
+                snapshot = compilationService.stableSnapshot(project, descriptor, cancelChecker);
+            } catch (Exception ignored) {
+                // Fall back to the raw compiler result below for legacy diagnostics compatibility.
+            }
+            if (snapshot != null) {
+                return Optional.of(snapshot.compilation());
+            }
+            return Optional.of(CompilerCompilationGuard.getCompilation(project.currentPackage(), cancelChecker));
         } catch (Exception e) {
             return Optional.empty();
         }
@@ -237,7 +288,7 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
     @Override
     public void didOpen(Path filePath, DidOpenTextDocumentParams params) throws WorkspaceDocumentException {
         try {
-            String uriString = params.getTextDocument().getUri();
+            String uriString = uriOrFilePath(params.getTextDocument().getUri(), filePath);
             String content = params.getTextDocument().getText();
             projectService.didOpen(toDocumentUri(uriString), content);
         } catch (RuntimeException e) {
@@ -249,14 +300,14 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
     @Override
     public void didChange(Path filePath, DidChangeTextDocumentParams params) throws WorkspaceDocumentException {
         projectService.loadOrCreate(filePath, null);
-        String uriString = params.getTextDocument().getUri();
+        String uriString = uriOrFilePath(params.getTextDocument().getUri(), filePath);
         projectService.didChange(toDocumentUri(uriString), params.getContentChanges());
     }
 
     @Override
     public void didClose(Path filePath, DidCloseTextDocumentParams params) {
         projectService.loadOrCreate(filePath, null);
-        String uriString = params.getTextDocument().getUri();
+        String uriString = uriOrFilePath(params.getTextDocument().getUri(), filePath);
         projectService.didClose(toDocumentUri(uriString));
     }
 
@@ -303,6 +354,261 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
         return CompletableFuture.completedFuture(projectMap);
     }
 
+    private Optional<Project> project(DocumentUri uri) {
+        return projectService.project(uri);
+    }
+
+    private Project loadProject(DocumentUri uri) {
+        return projectService.loadOrCreate(uri, null);
+    }
+
+    private Optional<Module> module(DocumentUri uri, CancelChecker cancelChecker) {
+        try {
+            return Optional.of(projectService.module(uri, cancelChecker));
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+    }
+
+    private Optional<Document> document(DocumentUri uri, CancelChecker cancelChecker) {
+        return projectService.document(uri, cancelChecker);
+    }
+
+    private Optional<SyntaxTree> syntaxTree(DocumentUri uri, CancelChecker cancelChecker) {
+        return document(uri, cancelChecker).map(Document::syntaxTree);
+    }
+
+    private Optional<SemanticModel> semanticModel(DocumentUri uri, CancelChecker cancelChecker) {
+        try {
+            Project project = projectService.loadOrCreate(uri, cancelChecker);
+            Module module = projectService.module(uri, cancelChecker);
+            return semanticModel(project, module.moduleId(), Path.of(uri.uri().getPath()), cancelChecker);
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+    }
+
+    private Optional<SemanticModel> semanticModelFromCompilation(Path filePath, ModuleId moduleId,
+                                                                CancelChecker cancelChecker) {
+        try {
+            return waitAndGetPackageCompilation(filePath, cancelChecker)
+                    .map(compilation -> compilation.getSemanticModel(moduleId));
+        } catch (Exception ignored) {
+            return Optional.empty();
+        }
+    }
+
+    private Optional<PackageCompilation> waitAndGetPackageCompilation(DocumentUri uri, CancelChecker cancelChecker) {
+        try {
+            Project project = projectService.loadOrCreate(uri, cancelChecker);
+            if (!(uri instanceof DocumentUri.FileUri)) {
+                return Optional.of(CompilerCompilationGuard.getCompilation(project.currentPackage(), cancelChecker));
+            }
+
+            PackageDescriptor descriptor = project.currentPackage().descriptor();
+            StableSnapshot snapshot = null;
+            try {
+                snapshot = compilationService.stableSnapshot(project, descriptor, cancelChecker);
+            } catch (Exception ignored) {
+                // Fall back to the raw compiler result below for legacy diagnostics compatibility.
+            }
+            if (snapshot != null) {
+                return Optional.of(snapshot.compilation());
+            }
+            return Optional.of(CompilerCompilationGuard.getCompilation(project.currentPackage(), cancelChecker));
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+    }
+
+    private DocumentUri documentUriLike(DocumentUri template, Path path) {
+        Path normalized = path.toAbsolutePath().normalize();
+        return switch (template) {
+            case DocumentUri.FileUri ignored -> new DocumentUri.FileUri(normalized.toUri());
+            case DocumentUri.ExprUri ignored -> new DocumentUri.ExprUri(URI.create("expr://"
+                    + normalized.toUri().getPath()));
+            case DocumentUri.AiUri ignored -> new DocumentUri.AiUri(URI.create("ai://"
+                    + normalized.toUri().getPath()));
+        };
+    }
+
+    private static final class UriScopedWorkspaceManager implements WorkspaceManager {
+
+        private final WorkspaceManagerFacadeImpl facade;
+        private final DocumentUri uri;
+        private final Path requestPath;
+        private final boolean routeAllPaths;
+        private final boolean routeDescendants;
+
+        private UriScopedWorkspaceManager(WorkspaceManagerFacadeImpl facade, DocumentUri uri) {
+            this.facade = facade;
+            this.uri = uri;
+            this.routeAllPaths = !(uri instanceof DocumentUri.FileUri)
+                    && (uri.uri().getPath() == null || uri.uri().getPath().isBlank());
+            this.requestPath = routeAllPaths ? null : Path.of(uri.uri().getPath()).toAbsolutePath().normalize();
+            this.routeDescendants = !(uri instanceof DocumentUri.FileUri) && requestPath != null
+                    && !isBallerinaSource(requestPath);
+        }
+
+        @Override
+        public Optional<String> relativePath(Path path) {
+            return facade.relativePath(path);
+        }
+
+        @Override
+        public Optional<String> relativePath(Path path, CancelChecker cancelChecker) {
+            return facade.relativePath(path, cancelChecker);
+        }
+
+        @Override
+        public Path projectRoot(Path path) {
+            return facade.projectRoot(path);
+        }
+
+        @Override
+        public Path projectRoot(Path path, CancelChecker cancelChecker) {
+            return facade.projectRoot(path, cancelChecker);
+        }
+
+        @Override
+        public Optional<Project> project(Path filePath) {
+            if (!shouldScope(filePath)) {
+                return facade.project(filePath);
+            }
+            try {
+                return Optional.of(facade.loadProject(uriFor(filePath)));
+            } catch (Exception e) {
+                return Optional.empty();
+            }
+        }
+
+        @Override
+        public Project loadProject(Path filePath)
+                throws ProjectException, WorkspaceDocumentException, EventSyncException {
+            return shouldScope(filePath) ? facade.loadProject(uriFor(filePath)) : facade.loadProject(filePath);
+        }
+
+        @Override
+        public Optional<Module> module(Path filePath) {
+            return shouldScope(filePath) ? facade.module(uriFor(filePath), null) : facade.module(filePath);
+        }
+
+        @Override
+        public Optional<Module> module(Path filePath, CancelChecker cancelChecker) {
+            return shouldScope(filePath) ? facade.module(uriFor(filePath), cancelChecker)
+                    : facade.module(filePath, cancelChecker);
+        }
+
+        @Override
+        public Optional<Document> document(Path filePath) {
+            return shouldScope(filePath) ? facade.document(uriFor(filePath), null) : facade.document(filePath);
+        }
+
+        @Override
+        public Optional<Document> document(Path filePath, CancelChecker cancelChecker) {
+            return shouldScope(filePath) ? facade.document(uriFor(filePath), cancelChecker)
+                    : facade.document(filePath, cancelChecker);
+        }
+
+        @Override
+        public Optional<SyntaxTree> syntaxTree(Path filePath) {
+            return shouldScope(filePath) ? facade.syntaxTree(uriFor(filePath), null) : facade.syntaxTree(filePath);
+        }
+
+        @Override
+        public Optional<SyntaxTree> syntaxTree(Path filePath, CancelChecker cancelChecker) {
+            return shouldScope(filePath) ? facade.syntaxTree(uriFor(filePath), cancelChecker)
+                    : facade.syntaxTree(filePath, cancelChecker);
+        }
+
+        @Override
+        public Optional<SemanticModel> semanticModel(Path filePath) {
+            return shouldScope(filePath) ? facade.semanticModel(uriFor(filePath), null) : facade.semanticModel(filePath);
+        }
+
+        @Override
+        public Optional<SemanticModel> semanticModel(Path filePath, CancelChecker cancelChecker) {
+            return shouldScope(filePath) ? facade.semanticModel(uriFor(filePath), cancelChecker)
+                    : facade.semanticModel(filePath, cancelChecker);
+        }
+
+        @Override
+        public Optional<PackageCompilation> waitAndGetPackageCompilation(Path filePath) {
+            return shouldScope(filePath) ? facade.waitAndGetPackageCompilation(uriFor(filePath), null)
+                    : facade.waitAndGetPackageCompilation(filePath);
+        }
+
+        @Override
+        public Optional<PackageCompilation> waitAndGetPackageCompilation(Path filePath, CancelChecker cancelChecker) {
+            return shouldScope(filePath) ? facade.waitAndGetPackageCompilation(uriFor(filePath), cancelChecker)
+                    : facade.waitAndGetPackageCompilation(filePath, cancelChecker);
+        }
+
+        @Override
+        public void didOpen(Path filePath, DidOpenTextDocumentParams params) throws WorkspaceDocumentException {
+            facade.didOpen(filePath, params);
+        }
+
+        @Override
+        public void didChange(Path filePath, DidChangeTextDocumentParams params) throws WorkspaceDocumentException {
+            facade.didChange(filePath, params);
+        }
+
+        @Override
+        public void didClose(Path filePath, DidCloseTextDocumentParams params) {
+            facade.didClose(filePath, params);
+        }
+
+        @Override
+        public void didChangeWatched(Path filePath, FileEvent fileEvent) throws WorkspaceDocumentException {
+            facade.didChangeWatched(filePath, fileEvent);
+        }
+
+        @Override
+        public List<Path> didChangeWatched(DidChangeWatchedFilesParams params) throws WorkspaceDocumentException {
+            return facade.didChangeWatched(params);
+        }
+
+        @Override
+        public String uriScheme() {
+            return uri.uri().getScheme();
+        }
+
+        @Override
+        public RunResult run(RunContext runContext) throws IOException {
+            return facade.run(runContext);
+        }
+
+        @Override
+        public boolean stop(Path filePath) {
+            return facade.stop(filePath);
+        }
+
+        @Override
+        public CompletableFuture<Map<Path, Project>> workspaceProjects() {
+            return facade.workspaceProjects();
+        }
+
+        private boolean shouldScope(Path path) {
+            if (path == null) {
+                return false;
+            }
+            Path normalized = path.toAbsolutePath().normalize();
+            return routeAllPaths || requestPath.equals(normalized)
+                    || (routeDescendants && normalized.startsWith(requestPath));
+        }
+
+        private DocumentUri uriFor(Path path) {
+            Path normalized = path.toAbsolutePath().normalize();
+            return (routeAllPaths || !requestPath.equals(normalized)) ? facade.documentUriLike(uri, normalized) : uri;
+        }
+
+        private static boolean isBallerinaSource(Path path) {
+            Path fileName = path.getFileName();
+            return fileName != null && fileName.toString().endsWith(".bal");
+        }
+    }
+
     /**
      * Converts a URI string to a typed {@link DocumentUri} based on its scheme.
      *
@@ -313,10 +619,27 @@ public final class WorkspaceManagerFacadeImpl implements WorkspaceManager {
         URI uri = URI.create(uriString);
         return switch (uri.getScheme()) {
             case "file" -> new DocumentUri.FileUri(uri);
+            case "bala" -> new DocumentUri.FileUri(toFileUri(uri));
             case "expr" -> new DocumentUri.ExprUri(uri);
             case "ai" -> new DocumentUri.AiUri(uri);
             default -> throw new IllegalArgumentException("Unknown URI scheme: " + uri.getScheme());
         };
+    }
+
+    private String uriOrFilePath(String uriString, Path filePath) {
+        if (uriString != null && !uriString.isBlank()) {
+            return uriString;
+        }
+        return filePath.toAbsolutePath().normalize().toUri().toString();
+    }
+
+    private URI toFileUri(URI uri) {
+        try {
+            return new URI("file", uri.getUserInfo(), uri.getHost(), uri.getPort(),
+                    uri.getPath(), uri.getQuery(), uri.getFragment());
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Invalid bala URI: " + uri, e);
+        }
     }
 
 }

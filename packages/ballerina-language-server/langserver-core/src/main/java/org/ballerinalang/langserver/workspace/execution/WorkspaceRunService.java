@@ -28,6 +28,7 @@ import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.Project;
 import io.ballerina.tools.diagnostics.Diagnostic;
 import io.ballerina.tools.diagnostics.DiagnosticSeverity;
+import org.ballerinalang.langserver.commons.CompilerCompilationGuard;
 import org.ballerinalang.langserver.commons.workspace.RunContext;
 import org.ballerinalang.langserver.commons.workspace.RunResult;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectService;
@@ -159,7 +160,7 @@ public final class WorkspaceRunService {
     }
 
     private PackageCompilation packageCompilation(Project project) {
-        return project.currentPackage().getCompilation();
+        return CompilerCompilationGuard.getCompilation(project.currentPackage());
     }
 
     private List<Diagnostic> executionDiagnostics(Project project, JBallerinaBackend backend) {

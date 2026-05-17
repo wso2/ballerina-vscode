@@ -188,7 +188,8 @@ public class ChangeApplier {
         for (ResolvedPendingChange pendingChange : resolvedChanges) {
             ResolvedEntry resolvedEntry = pendingChange.entry();
             if (resolvedEntry instanceof ResolvedEntry.DocumentEntry documentEntry) {
-                applyViaDocumentModify(pendingChange.uri(), documentEntry.document(), pendingChange.changes());
+                Document latestDocument = uriResolver.document(pendingChange.uri()).orElse(documentEntry.document());
+                applyViaDocumentModify(pendingChange.uri(), latestDocument, pendingChange.changes());
                 applied = true;
                 continue;
             }

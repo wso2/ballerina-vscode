@@ -128,7 +128,9 @@ public final class UriResolver {
         Optional<ResolvedEntry> exact = resolve(uri, scheme);
         if (exact.isPresent()) {
             return exact.flatMap(entry -> switch (entry) {
-                case ResolvedEntry.DocumentEntry documentEntry -> Optional.of(documentEntry.document());
+                case ResolvedEntry.DocumentEntry documentEntry ->
+                        latestDocumentFromIndex(uri, documentEntry.document())
+                                .or(() -> Optional.of(documentEntry.document()));
                 case ResolvedEntry.ProjectEntry projectEntry ->
                         deriveDocument(uri, projectEntry.project());
                 case ResolvedEntry.ModuleEntry ignored -> Optional.empty();
@@ -165,9 +167,13 @@ public final class UriResolver {
         Optional<ResolvedEntry> exact = resolve(uri, scheme);
         if (exact.isPresent()) {
             return exact.flatMap(entry -> switch (entry) {
-                case ResolvedEntry.ModuleEntry moduleEntry -> Optional.of(moduleEntry.module());
+                case ResolvedEntry.ModuleEntry moduleEntry ->
+                        latestModuleFromIndex(uri, moduleEntry.module())
+                                .or(() -> Optional.of(moduleEntry.module()));
                 case ResolvedEntry.DocumentEntry documentEntry ->
-                        Optional.of(documentEntry.document().module());
+                        latestDocumentFromIndex(uri, documentEntry.document())
+                                .map(Document::module)
+                                .or(() -> Optional.of(documentEntry.document().module()));
                 case ResolvedEntry.ProjectEntry projectEntry ->
                         deriveModule(uri, projectEntry.project());
                 case ResolvedEntry.ConfigEntry ignored -> Optional.empty();
@@ -204,10 +210,14 @@ public final class UriResolver {
         if (exact.isPresent()) {
             return exact.flatMap(entry -> switch (entry) {
                 case ResolvedEntry.ProjectEntry projectEntry -> Optional.of(projectEntry.project());
-                case ResolvedEntry.ModuleEntry moduleEntry -> Optional.of(moduleEntry.module().project());
+                case ResolvedEntry.ModuleEntry moduleEntry ->
+                        latestProjectFromIndex(uri, moduleEntry.module().project())
+                                .or(() -> Optional.of(moduleEntry.module().project()));
                 case ResolvedEntry.DocumentEntry documentEntry ->
-                        Optional.of(documentEntry.document().module().project());
-                case ResolvedEntry.ConfigEntry configEntry -> configEntry.project();
+                        latestProjectFromIndex(uri, documentEntry.document().module().project())
+                                .or(() -> Optional.of(documentEntry.document().module().project()));
+                case ResolvedEntry.ConfigEntry configEntry -> configEntry.project()
+                        .flatMap(project -> latestProjectFromIndex(uri, project).or(() -> Optional.of(project)));
             });
         }
         return resolveNearest(uri, scheme)
@@ -238,10 +248,7 @@ public final class UriResolver {
      * @param rootUri the source root URI
      */
     public void removeProject(@Nonnull DocumentUri rootUri) {
-        if (projectIndex.getIfPresent(rootUri) == null) {
-            evictSubtree(rootUri);
-            return;
-        }
+        evictSubtree(rootUri);
         projectIndex.invalidate(rootUri);
     }
 
@@ -281,6 +288,15 @@ public final class UriResolver {
      */
     public long projectCount() {
         return projectIndex.size();
+    }
+
+    /**
+     * Clears all resolver entries and indexed projects.
+     */
+    public void clear() {
+        root.set(new TrieNode<>());
+        projectIndex.invalidateAll();
+        projectIndex.cleanUp();
     }
 
     /**
@@ -369,10 +385,13 @@ public final class UriResolver {
         Module module = newDocument.module();
         Project project = module.project();
         Path sourceRoot = projectRootPath(uri, project);
+        DocumentUri projectRootUri = sourceRootLike(uri, sourceRoot);
+        ResolvedEntry.ProjectEntry projectEntry = new ResolvedEntry.ProjectEntry(project);
+        projectIndex.put(projectRootUri, projectEntry);
 
         TrieNode<ResolvedEntry> snapshot = root.get();
         TrieNode<ResolvedEntry> updated = snapshot
-                .insert(toSegments(sourceRoot), scheme, new ResolvedEntry.ProjectEntry(project))
+                .insert(toSegments(sourceRoot), scheme, projectEntry)
                 .insert(toSegments(modulePath(uri, project)), scheme, new ResolvedEntry.ModuleEntry(module))
                 .insert(toSegments(uri.uri()), scheme, new ResolvedEntry.DocumentEntry(newDocument));
         root.set(updated);
@@ -429,11 +448,11 @@ public final class UriResolver {
      */
     public void onProjectUpdate(@Nonnull DocumentUri projectRootUri, @Nonnull String scheme,
                                 @Nonnull Project newProject) {
+        projectIndex.put(projectRootUri, new ResolvedEntry.ProjectEntry(newProject));
         TrieNode<ResolvedEntry> updated = root.get()
                 .removeSubtree(toSegments(projectRootUri.uri()))
                 .insert(toSegments(projectRootUri.uri()), scheme, new ResolvedEntry.ProjectEntry(newProject));
         root.set(updated);
-        projectIndex.put(projectRootUri, new ResolvedEntry.ProjectEntry(newProject));
     }
 
     /**
@@ -507,6 +526,11 @@ public final class UriResolver {
         }
     }
 
+    private Optional<Document> latestDocumentFromIndex(DocumentUri uri, Document fallback) {
+        return latestProjectFromIndex(uri, fallback.module().project())
+                .flatMap(project -> deriveDocument(uri, project));
+    }
+
     /**
      * Derives a module from a project using the URI's file path.
      *
@@ -522,6 +546,16 @@ public final class UriResolver {
         } catch (Exception e) {
             return Optional.empty();
         }
+    }
+
+    private Optional<Module> latestModuleFromIndex(DocumentUri uri, Module fallback) {
+        return latestProjectFromIndex(uri, fallback.project())
+                .flatMap(project -> deriveModule(uri, project));
+    }
+
+    private Optional<Project> latestProjectFromIndex(DocumentUri uri, Project fallback) {
+        DocumentUri rootUri = sourceRootLike(uri, projectRootPath(uri, fallback));
+        return getProject(rootUri);
     }
 
     private Optional<Project> resolveProjectForConfig(TomlDocument config, String scheme, Path projectRootPath) {
@@ -572,6 +606,15 @@ public final class UriResolver {
         return project.sourceRoot().toAbsolutePath().normalize();
     }
 
+    private static DocumentUri sourceRootLike(DocumentUri template, Path sourceRoot) {
+        Path normalized = sourceRoot.toAbsolutePath().normalize();
+        return switch (template) {
+            case DocumentUri.FileUri ignored -> new DocumentUri.FileUri(normalized.toUri());
+            case DocumentUri.ExprUri ignored -> new DocumentUri.ExprUri(URI.create("expr://" + normalized.toUri().getPath()));
+            case DocumentUri.AiUri ignored -> new DocumentUri.AiUri(URI.create("ai://" + normalized.toUri().getPath()));
+        };
+    }
+
     /**
      * Extracts the normalized path string from a URI, stripping any trailing slash that
      * {@link java.nio.file.Path#toUri()} appends for directory paths.
@@ -611,7 +654,7 @@ public final class UriResolver {
             return;
         }
         evictSubtree(rootUri);
-        if (notification.getCause() != RemovalCause.EXPLICIT) {
+        if (notification.getCause() == RemovalCause.SIZE) {
             onEviction.accept(rootUri);
         }
     }

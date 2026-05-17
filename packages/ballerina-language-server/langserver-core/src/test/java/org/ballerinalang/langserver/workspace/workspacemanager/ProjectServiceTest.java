@@ -146,6 +146,23 @@ public class ProjectServiceTest {
     }
 
     @Test
+    public void criticalHeapPressureKeepsActiveProjects() throws Exception {
+        Path secondProject = Files.createTempDirectory("test-project-2");
+        Files.write(secondProject.resolve("Ballerina.toml"), new byte[0]);
+        service.loadOrCreate(tempDir, cancelChecker);
+        service.loadOrCreate(secondProject, cancelChecker);
+
+        DocumentUri activeRoot = new DocumentUri.FileUri(tempDir.toUri());
+        DocumentUri backgroundRoot = new DocumentUri.FileUri(secondProject.toUri());
+        service.workspaceProject(activeRoot).orElseThrow().openDocumentCount().increment();
+
+        eventBus.publish(new HeapPressureEvent(HeapPressureLevel.CRITICAL));
+
+        Assert.assertTrue(service.workspaceProject(activeRoot).isPresent());
+        Assert.assertTrue(awaitCondition(() -> service.workspaceProject(backgroundRoot).isEmpty()));
+    }
+
+    @Test
     public void evictProject_removesFromResolverAndPublishesEvent() throws Exception {
         service.loadOrCreate(tempDir, cancelChecker);
         publishedEvents.clear();

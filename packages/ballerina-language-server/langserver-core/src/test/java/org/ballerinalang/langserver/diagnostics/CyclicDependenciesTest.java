@@ -59,6 +59,12 @@ public class CyclicDependenciesTest {
 
     @AfterClass
     public void cleanup() {
+        if (workspaceManager instanceof AutoCloseable closeableWorkspaceManager) {
+            try {
+                closeableWorkspaceManager.close();
+            } catch (Exception ignored) {
+            }
+        }
         workspaceManager = null;
         serverContext = null;
     }

@@ -43,6 +43,7 @@ import org.ballerinalang.langserver.workspace.workspacemanager.ProjectServiceImp
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -247,10 +248,6 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
             if (cancelChecker != null) {
                 cancelChecker.checkCanceled();
             }
-            StableSnapshot stable = snapshotStore.getStable(key);
-            if (stable != null) {
-                return stable;
-            }
             InProgressSnapshot inProgress = snapshotStore.getInProgress(key);
             if (inProgress instanceof DualSnapshotStore.StoreInProgressSnapshot storeInProgress) {
                 CompilationPipeline pipeline = pipelines.get(key);
@@ -261,6 +258,11 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
                 if (awaited != null) {
                     return awaited;
                 }
+                return null;
+            }
+            StableSnapshot stable = snapshotStore.getStable(key);
+            if (stable != null) {
+                return stable;
             }
             if (!pipelines.containsKey(key)) {
                 if (!awaitOrBootstrapPipeline(key, project, cancelChecker)) {
@@ -500,6 +502,9 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
         PackageDescriptor descriptor;
         try {
             descriptor = baseAction.describe(sourceRootIdentifier);
+        } catch (NoSuchElementException e) {
+            LOG.fine(() -> "Skipping compilation pipeline for project without packages at " + sourceRootIdentifier);
+            return;
         } catch (Exception e) {
             LOG.log(Level.WARNING, "Failed to describe project at " + sourceRootIdentifier, e);
             return;
@@ -551,6 +556,8 @@ public class CompilationServiceImpl implements CompilationService, AutoCloseable
                 return storeInProgress.publishedStableSnapshot().get(10, TimeUnit.MILLISECONDS);
             } catch (TimeoutException e) {
                 // Keep waiting until the next stable snapshot is published.
+            } catch (CancellationException e) {
+                return null;
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 return null;

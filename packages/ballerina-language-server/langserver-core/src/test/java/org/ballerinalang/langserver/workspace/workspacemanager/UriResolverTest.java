@@ -396,6 +396,28 @@ public class UriResolverTest {
         Assert.assertEquals(resolver.document(documentUri), Optional.of(document));
         Assert.assertEquals(resolver.module(moduleUri), Optional.of(module));
         Assert.assertSame(resolver.project(projectRootUri).orElseThrow(), project);
+        Assert.assertSame(resolver.getProject(projectRootUri).orElseThrow(), project);
+    }
+
+    /**
+     * Verifies document update replaces the bounded project index without reporting an eviction.
+     */
+    @Test
+    public void onDocumentUpdate_existingBoundedProjectIndexRefreshesWithoutEviction() {
+        List<DocumentUri> evictedRoots = new ArrayList<>();
+        UriResolver boundedResolver = new UriResolver(2, evictedRoots::add);
+        DocumentUri projectRootUri = fileUri("/workspace/project");
+        DocumentUri documentUri = fileUri("/workspace/project/main.bal");
+        Project initialProject = projectAt("/workspace/project");
+        Project updatedProject = projectAt("/workspace/project");
+        Document updatedDocument = documentOf(moduleOf(updatedProject));
+
+        boundedResolver.registerProject(projectRootUri, initialProject);
+
+        boundedResolver.onDocumentUpdate(documentUri, FILE_SCHEME, updatedDocument);
+
+        Assert.assertSame(boundedResolver.getProject(projectRootUri).orElseThrow(), updatedProject);
+        Assert.assertTrue(evictedRoots.isEmpty());
     }
 
     /**
@@ -462,6 +484,7 @@ public class UriResolverTest {
         resolver.onDocumentUpdate(documentUri, FILE_SCHEME, mockDocument);
         resolver.onProjectRemove(projectRootUri);
 
+        Assert.assertEquals(resolver.getProject(projectRootUri), Optional.empty());
         Assert.assertEquals(resolver.project(projectRootUri), Optional.empty());
         Assert.assertEquals(resolver.document(documentUri), Optional.empty());
     }

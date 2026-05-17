@@ -109,7 +109,7 @@ public class WorkspaceManagerFacadeImplTest {
 
     @Test
     public void testRelativePath_ReturnsEmpty_WhenProjectNotFound() {
-        Mockito.when(mockProjectService.loadOrCreate(Mockito.any(), Mockito.any()))
+        Mockito.when(mockProjectService.loadOrCreate(Mockito.any(Path.class), Mockito.any()))
                 .thenThrow(new RuntimeException("not found"));
 
         Optional<String> result = facade.relativePath(testPath);
@@ -239,7 +239,7 @@ public class WorkspaceManagerFacadeImplTest {
 
     @Test
     public void testDocument_ReturnsEmpty_WhenProjectFails() {
-        Mockito.when(mockProjectService.loadOrCreate(Mockito.any(), Mockito.any()))
+        Mockito.when(mockProjectService.loadOrCreate(Mockito.any(Path.class), Mockito.any()))
                 .thenThrow(new RuntimeException("not found"));
 
         Optional<Document> result = facade.document(testPath);
@@ -328,12 +328,15 @@ public class WorkspaceManagerFacadeImplTest {
         SemanticModel mockModel = Mockito.mock(SemanticModel.class);
         DocumentId mockDocId = Mockito.mock(DocumentId.class);
         ModuleId mockModuleId = Mockito.mock(ModuleId.class);
+        Module mockModule = Mockito.mock(Module.class);
         Project mockProject = Mockito.mock(Project.class);
         Package mockPackage = Mockito.mock(Package.class);
         PackageCompilation mockCompilation = Mockito.mock(PackageCompilation.class);
         Mockito.when(mockProjectService.loadOrCreate(Mockito.eq(testPath), Mockito.isNull())).thenReturn(mockProject);
         Mockito.when(mockProject.documentId(testPath)).thenReturn(mockDocId);
         Mockito.when(mockDocId.moduleId()).thenReturn(mockModuleId);
+        Mockito.when(mockProjectService.module(testPath, null)).thenReturn(mockModule);
+        Mockito.when(mockModule.moduleId()).thenReturn(mockModuleId);
         Mockito.when(mockProject.currentPackage()).thenReturn(mockPackage);
         Mockito.when(mockPackage.getCompilation()).thenReturn(mockCompilation);
         Mockito.when(mockCompilation.getSemanticModel(mockModuleId)).thenReturn(mockModel);
@@ -351,12 +354,15 @@ public class WorkspaceManagerFacadeImplTest {
         SemanticModel mockModel = Mockito.mock(SemanticModel.class);
         DocumentId mockDocId = Mockito.mock(DocumentId.class);
         ModuleId mockModuleId = Mockito.mock(ModuleId.class);
+        Module mockModule = Mockito.mock(Module.class);
         Project mockProject = Mockito.mock(Project.class);
         Package mockPackage = Mockito.mock(Package.class);
         PackageCompilation mockCompilation = Mockito.mock(PackageCompilation.class);
         Mockito.when(mockProjectService.loadOrCreate(testPath, cancelChecker)).thenReturn(mockProject);
         Mockito.when(mockProject.documentId(testPath)).thenReturn(mockDocId);
         Mockito.when(mockDocId.moduleId()).thenReturn(mockModuleId);
+        Mockito.when(mockProjectService.module(testPath, cancelChecker)).thenReturn(mockModule);
+        Mockito.when(mockModule.moduleId()).thenReturn(mockModuleId);
         Mockito.when(mockProject.currentPackage()).thenReturn(mockPackage);
         Mockito.when(mockPackage.getCompilation()).thenReturn(mockCompilation);
         Mockito.when(mockCompilation.getSemanticModel(mockModuleId)).thenReturn(mockModel);

@@ -646,7 +646,7 @@ public final class TestUtil {
      * @param serviceEndpoint Language server Service Endpoint
      */
     public static void shutdownLanguageServer(Endpoint serviceEndpoint) {
-        serviceEndpoint.notify("shutdown", null);
+        getResponseString(serviceEndpoint.request("shutdown", null));
     }
 
     /**
@@ -810,8 +810,7 @@ public final class TestUtil {
                 workspaceManager,
                 LSContextOperation.TXT_DID_OPEN,
                 serverContext);
-        
-        // The language server endpoint already called didOpen. We just need to wait for the compilation to finish.
+
         Optional<io.ballerina.projects.PackageCompilation> compilation = context.workspace().waitAndGetPackageCompilation(context.filePath());
         if (compilation.isEmpty()) {
             return diagnostics;

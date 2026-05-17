@@ -131,6 +131,10 @@ public abstract class AbstractExtendedLanguageServer implements LanguageServer, 
         return this.workspaceManager;
     }
 
+    protected WorkspaceManagerProxy getWorkspaceManagerProxy() {
+        return this.workspaceManagerProxy;
+    }
+
     public LanguageServerContext getServerContext() {
         return serverContext;
     }

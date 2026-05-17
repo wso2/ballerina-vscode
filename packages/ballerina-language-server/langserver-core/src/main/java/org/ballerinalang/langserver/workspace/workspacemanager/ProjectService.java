@@ -59,6 +59,24 @@ public interface ProjectService {
     Optional<Project> project(Path path);
 
     /**
+     * Returns a currently cached project for the provided scheme-aware URI without loading from disk.
+     *
+     * @param uri URI to resolve
+     * @return cached project, if one is already registered for the URI scheme
+     */
+    @Nonnull
+    Optional<Project> project(DocumentUri uri);
+
+    /**
+     * Loads or creates a project for the provided scheme-aware URI.
+     *
+     * @param uri URI to resolve
+     * @param cancelChecker cancel checker
+     * @return resolved project for the URI scheme
+     */
+    Project loadOrCreate(DocumentUri uri, CancelChecker cancelChecker);
+
+    /**
      * Returns all known projects.
      *
      * @return projects collection
@@ -73,6 +91,25 @@ public interface ProjectService {
      * @return resolved module
      */
     Module module(Path path, CancelChecker cancelChecker);
+
+    /**
+     * Resolves the module for a scheme-aware URI.
+     *
+     * @param uri URI to resolve
+     * @param cancelChecker cancel checker
+     * @return resolved module for the URI scheme
+     */
+    Module module(DocumentUri uri, CancelChecker cancelChecker);
+
+    /**
+     * Resolves the document for a scheme-aware URI.
+     *
+     * @param uri URI to resolve
+     * @param cancelChecker cancel checker
+     * @return resolved document, if available
+     */
+    @Nonnull
+    Optional<io.ballerina.projects.Document> document(DocumentUri uri, CancelChecker cancelChecker);
 
     /**
      * Returns the current locking mode.

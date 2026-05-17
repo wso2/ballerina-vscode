@@ -125,11 +125,15 @@ public final class WiringConfiguration implements AutoCloseable {
 
     @Override
     public void close() throws Exception {
-        heapPressureMonitor.stop();
-        traceLogger.close();
-        compilationService.close();
-        executionService.shutdown();
-        projectService.shutdown();
+        try {
+            heapPressureMonitor.stop();
+            traceLogger.close();
+            compilationService.close();
+            executionService.shutdown();
+            projectService.shutdown();
+        } finally {
+            eventBus.close();
+        }
     }
 
     /**

@@ -57,6 +57,7 @@ public final class WorkspaceManagerFacadeFactory {
     public static WorkspaceManager create(LanguageServerContext serverContext) {
         BuildOptions buildOptions = BuildOptions.builder()
                 .setOffline(CommonUtil.COMPILE_OFFLINE)
+                .setSticky(false)
                 .build();
 
         EventSyncPubSubHolder eventBus = new EventSyncPubSubHolder();
@@ -78,7 +79,8 @@ public final class WorkspaceManagerFacadeFactory {
         return new WorkspaceManagerFacadeImpl(
                 config.projectService(),
                 config.compilationService(),
-                config.executionService()
+                config.executionService(),
+                config
         );
     }
 
