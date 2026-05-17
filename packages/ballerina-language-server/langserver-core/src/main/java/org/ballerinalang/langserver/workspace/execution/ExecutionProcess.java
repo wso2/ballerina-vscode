@@ -18,10 +18,8 @@
 
 package org.ballerinalang.langserver.workspace.execution;
 
-import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
 import org.ballerinalang.langserver.workspace.executionmanager.ProcessId;
-
-import javax.annotation.Nonnull;
+import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
 
 import java.nio.file.Path;
 import java.time.Instant;
@@ -33,6 +31,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
+import javax.annotation.Nonnull;
+
 /**
  * Aggregate root representing a single process execution.
  * Manages process lifecycle, FSM state transitions, and structured transition events.
@@ -43,7 +43,6 @@ import java.util.function.Consumer;
  * @since 1.7.0
  */
 public final class ExecutionProcess {
-
     private final ProcessId processId;
     private final DocumentUri sourceRoot;
     private final ExecutionMode executionMode;
@@ -56,7 +55,6 @@ public final class ExecutionProcess {
     private final ReentrantLock fsmLock = new ReentrantLock();
     private final AtomicReference<ProcessState> state;
     private final List<TransitionEvent> transitionEvents = new CopyOnWriteArrayList<>();
-
     /**
      * Enumeration of process lifecycle states for FSM.
      */
@@ -96,13 +94,20 @@ public final class ExecutionProcess {
 
     /**
      * Event emitted after a state transition.
+     *
+     * @param eventId unique event identifier
+     * @param timestamp event occurrence time
+     * @param processId process identifier
+     * @param fromState previous process state
+     * @param toState next process state
      */
     public record TransitionEvent(
             UUID eventId,
             Instant timestamp,
             ProcessId processId,
             ProcessState fromState,
-            ProcessState toState) {}
+            ProcessState toState) {
+    }
 
     /**
      * Creates a new process aggregate.

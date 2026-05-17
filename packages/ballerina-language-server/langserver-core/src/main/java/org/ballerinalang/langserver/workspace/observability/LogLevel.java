@@ -26,27 +26,27 @@ package org.ballerinalang.langserver.workspace.observability;
  */
 public enum LogLevel {
     /**
-     * Most verbose - logs everything including TRACE events
+     * Most verbose - logs everything including TRACE events.
      */
     TRACE(0),
     /**
-     * Debug level - logs DEBUG, INFO, WARN, ERROR
+     * Debug level - logs DEBUG, INFO, WARN, ERROR.
      */
     DEBUG(1),
     /**
-     * Default level - logs INFO, WARN, ERROR
+     * Default level - logs INFO, WARN, ERROR.
      */
     INFO(2),
     /**
-     * Warning level - logs WARN, ERROR
+     * Warning level - logs WARN, ERROR.
      */
     WARN(3),
     /**
-     * Error level - logs only ERROR
+     * Error level - logs only ERROR.
      */
     ERROR(4),
     /**
-     * Disables all logging
+     * Disables all logging.
      */
     OFF(5);
 

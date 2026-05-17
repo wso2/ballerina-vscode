@@ -18,11 +18,11 @@
 
 package org.ballerinalang.langserver.workspace.lspgateway;
 
-import org.ballerinalang.langserver.workspace.eventbus.event.CompilerEvent;
-import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
+import org.ballerinalang.langserver.workspace.eventbus.event.CompilerEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectService;
 import org.eclipse.lsp4j.ClientCapabilities;
 import org.mockito.Mockito;
@@ -40,6 +40,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
 
 /**
  * Tests for {@link InitialWorkspaceLoader} IWL orchestration.

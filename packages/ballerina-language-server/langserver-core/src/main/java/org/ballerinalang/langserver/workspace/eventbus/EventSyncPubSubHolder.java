@@ -21,8 +21,6 @@ package org.ballerinalang.langserver.workspace.eventbus;
 import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 import org.ballerinalang.langserver.workspace.observability.TelemetryEmitter;
 
-import javax.annotation.Nonnull;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,13 +28,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
+import javax.annotation.Nonnull;
+
 /**
  * Shared-kernel synchronous pub-sub holder with tiered per-subscriber delivery.
  *
  * @since 1.7.0
  */
 public class EventSyncPubSubHolder implements AutoCloseable {
-
     private final Map<String, DeliveryChannel> deliveryChannels;
     private final AtomicBoolean closed;
     private final TelemetryEmitter telemetryEmitter;

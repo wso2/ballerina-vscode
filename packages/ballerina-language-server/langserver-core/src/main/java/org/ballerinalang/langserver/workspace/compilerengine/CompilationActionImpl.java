@@ -22,12 +22,12 @@ import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.projects.BuildOptions;
 import io.ballerina.projects.CompilationOptions;
-import io.ballerina.projects.PackageResolution;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.PackageDescriptor;
+import io.ballerina.projects.PackageResolution;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.environment.PackageLockingMode;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
@@ -37,16 +37,16 @@ import org.ballerinalang.langserver.workspace.compilerengine.revovery.FailureTyp
 import org.ballerinalang.langserver.workspace.compilerengine.revovery.RecoveryLadder;
 import org.ballerinalang.langserver.workspace.compilerengine.revovery.ResolutionResult;
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.StableSnapshot;
-import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
 import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectServiceImpl;
 import org.ballerinalang.util.diagnostic.DiagnosticErrorCode;
 
-import javax.annotation.Nonnull;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.annotation.Nonnull;
 
 /**
  * Concrete implementation of {@link CompilationPipeline.CompilationAction} that delegates
@@ -55,9 +55,7 @@ import java.util.Map;
  * @since 1.7.0
  */
 public final class CompilationActionImpl implements CompilationPipeline.CompilationAction {
-
     private final ProjectServiceImpl projectService;
-
     public CompilationActionImpl(@Nonnull ProjectServiceImpl projectService) {
         this.projectService = projectService;
     }
@@ -147,7 +145,8 @@ public final class CompilationActionImpl implements CompilationPipeline.Compilat
 
     private StableSnapshot snapshot(CompileTask task, Project project) {
         if (task.isCancelled() || Thread.currentThread().isInterrupted()) {
-            throw new java.util.concurrent.CancellationException("Compilation task cancelled before PackageCompilation");
+            throw new java.util.concurrent.CancellationException(
+                    "Compilation task cancelled before PackageCompilation");
         }
         PackageCompilation compilation = CompilerCompilationGuard.getCompilation(project.currentPackage());
         if (task.isCancelled() || Thread.currentThread().isInterrupted()) {
@@ -159,19 +158,18 @@ public final class CompilationActionImpl implements CompilationPipeline.Compilat
         boolean semanticModelsAvailable = semanticModelsAvailable(compilation);
         project.currentPackage().moduleIds().forEach(moduleId -> {
             if (task.isCancelled() || Thread.currentThread().isInterrupted()) {
-                throw new java.util.concurrent.CancellationException("Compilation task cancelled before SemanticModel evaluation");
+                throw new java.util.concurrent.CancellationException(
+                        "Compilation task cancelled before SemanticModel evaluation");
             }
             Module packageModule = project.currentPackage().module(moduleId);
             if (semanticModelsAvailable) {
                 semanticModels.put(moduleId, compilation.getSemanticModel(moduleId));
             }
-            packageModule.documentIds().forEach(docId -> project.documentPath(docId).ifPresent(path ->
-            {
+            packageModule.documentIds().forEach(docId -> project.documentPath(docId).ifPresent(path -> {
                 syntaxTrees.put(docId, packageModule.document(docId).syntaxTree());
                 pathToDocumentIds.put(path.toAbsolutePath().normalize(), docId);
             }));
-            packageModule.testDocumentIds().forEach(docId -> project.documentPath(docId).ifPresent(path ->
-            {
+            packageModule.testDocumentIds().forEach(docId -> project.documentPath(docId).ifPresent(path -> {
                 syntaxTrees.put(docId, packageModule.document(docId).syntaxTree());
                 pathToDocumentIds.put(path.toAbsolutePath().normalize(), docId);
             }));

@@ -36,7 +36,6 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import javax.annotation.Nonnull;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.nio.file.Path;
@@ -51,8 +50,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nonnull;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
 
 /**
  * Tests for Compiler Engine value objects and stores.

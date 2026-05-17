@@ -20,12 +20,13 @@ package org.ballerinalang.langserver.workspace.eventbus.event;
 
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Base abstract domain event value routed through the event bus.
@@ -34,13 +35,11 @@ import java.util.UUID;
  * @since 1.7.0
  */
 public abstract class DomainEvent {
-
     private final UUID id;
     private final Instant timestamp;
     private final EventKind eventKind;
     @Nullable
     private final UUID causationId;
-
     /**
      * Creates a domain event with no causation link.
      *
@@ -104,7 +103,9 @@ public abstract class DomainEvent {
      *
      * @return event UUID
      */
-    public UUID id() { return id; }
+    public UUID id() {
+        return id;
+    }
 
     /**
      * Returns the event occurrence time.
@@ -112,7 +113,9 @@ public abstract class DomainEvent {
      * @return event timestamp
      */
     @Nonnull
-    public Instant timestamp() { return timestamp; }
+    public Instant timestamp() {
+        return timestamp;
+    }
 
     /**
      * Returns the domain event kind.
@@ -120,7 +123,9 @@ public abstract class DomainEvent {
      * @return event kind
      */
     @Nonnull
-    public EventKind eventKind() { return eventKind; }
+    public EventKind eventKind() {
+        return eventKind;
+    }
 
     /**
      * Returns the ID of the event that caused this one, or {@code null}.
@@ -128,5 +133,7 @@ public abstract class DomainEvent {
      * @return causation ID or null
      */
     @Nullable
-    public UUID causationId() { return causationId; }
+    public UUID causationId() {
+        return causationId;
+    }
 }

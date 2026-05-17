@@ -39,6 +39,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+
 /**
  * Tests for ChangeBuffer — per-URI per-layer delta queue.
  *
@@ -452,7 +453,9 @@ public class ChangeBufferTest {
                         buffer.append(mainUri, makeChange("c" + i, ChangeLayer.EDITOR, i));
                     }
                 } catch (Throwable e) {
-                    synchronized (errors) { errors.add(e); }
+                    synchronized (errors) {
+                        errors.add(e);
+                    }
                 } finally {
                     doneLatch.countDown();
                 }
@@ -468,7 +471,9 @@ public class ChangeBufferTest {
                         buffer.drain(mainUri, ChangeLayer.EDITOR);
                     }
                 } catch (Throwable e) {
-                    synchronized (errors) { errors.add(e); }
+                    synchronized (errors) {
+                        errors.add(e);
+                    }
                 } finally {
                     doneLatch.countDown();
                 }

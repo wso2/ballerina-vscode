@@ -18,10 +18,10 @@
 
 package org.ballerinalang.langserver.workspace.observability;
 
-import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
+import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -43,10 +43,8 @@ import java.util.function.Consumer;
  * @since 1.7.0
  */
 public class WorkspaceTraceLogger implements AutoCloseable {
-
     private static final String SUBSCRIBER_ID = "workspace-trace-logger";
     private static final Set<EventKind> ALL_EVENT_KINDS = EnumSet.allOf(EventKind.class);
-
     private final EventSyncPubSubHolder eventBus;
     private final AtomicReference<LogLevel> logLevel;
     private final List<TraceLogSink> sinks;
@@ -115,11 +113,11 @@ public class WorkspaceTraceLogger implements AutoCloseable {
         this.logLevel = new AtomicReference<>(initialLevel != null ? initialLevel : LogLevel.INFO);
         this.sinks = eventConsumer != null ? List.of() : defaultSinks();
         this.eventConsumer = eventConsumer;
-        
-        this.logConsumer = eventConsumer != null ? 
-            (level, fields) -> {} : // Consumer handles events directly
-            this::dispatchToSinks;
-        
+
+        this.logConsumer = eventConsumer != null ?
+                (level, fields) -> { } : // Consumer handles events directly
+                this::dispatchToSinks;
+
         subscribe();
     }
 

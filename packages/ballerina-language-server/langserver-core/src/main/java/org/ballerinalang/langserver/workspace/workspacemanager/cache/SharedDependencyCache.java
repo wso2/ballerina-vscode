@@ -18,12 +18,12 @@
 
 package org.ballerinalang.langserver.workspace.workspacemanager.cache;
 
-import javax.annotation.Nonnull;
-
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+
+import javax.annotation.Nonnull;
 
 /**
  * Reference-counted shared dependency cache backed by {@link ConcurrentHashMap}.
@@ -44,9 +44,8 @@ import java.util.concurrent.atomic.AtomicLong;
  * @since 1.7.0
  */
 public final class SharedDependencyCache {
-
-    private record Entry(Object value, AtomicInteger refCount, int weightMb) {}
-
+    private record Entry(Object value, AtomicInteger refCount, int weightMb) {
+    }
     private final ConcurrentHashMap<String, Entry> store = new ConcurrentHashMap<>();
     private final AtomicLong totalWeightMb = new AtomicLong(0);
     private final long budgetMb;

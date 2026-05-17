@@ -18,10 +18,10 @@
 
 package org.ballerinalang.langserver.workspace.lspgateway;
 
-import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
+import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectService;
 
 import java.io.IOException;
@@ -32,13 +32,13 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
-import javax.annotation.Nonnull;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
+
+import javax.annotation.Nonnull;
 
 /**
  * Orchestrates the Initial Workspace Load (IWL) sequence when a client connects.
@@ -52,12 +52,12 @@ import java.util.stream.Stream;
  * @since 1.7.0
  */
 public final class InitialWorkspaceLoader {
+    private static final java.io.PrintStream ERROR_STREAM = System.err;
 
     /**
      * LSP `$/progress` token for initial workspace indexing.
      */
     public static final String IWL_PROGRESS_TOKEN = "BallerinaLS/indexing";
-
     /**
      * Default retry-after delay when returning content-modified error (milliseconds).
      */
@@ -175,7 +175,7 @@ public final class InitialWorkspaceLoader {
                     progressTracker.report(IWL_PROGRESS_TOKEN,
                             "Scanned " + folder.getFileName(), percentage);
                 } catch (Exception e) {
-                    System.err.println("Warning: Failed to scan workspace folder " + uri + ": " + e);
+                    ERROR_STREAM.println("Warning: Failed to scan workspace folder " + uri + ": " + e);
                 }
             }
 
@@ -189,7 +189,7 @@ public final class InitialWorkspaceLoader {
             scanSucceeded = true;
 
         } catch (Exception e) {
-            System.err.println("Error during initial workspace load: " + e);
+            ERROR_STREAM.println("Error during initial workspace load: " + e);
         } finally {
             // Only send fallback progress end if scan failed; CE-E1 handles the success path
             if (!scanSucceeded && progressEndSent.compareAndSet(false, true)) {
@@ -214,10 +214,10 @@ public final class InitialWorkspaceLoader {
                     .filter(Files::isDirectory)
                     .toList();
         } catch (NoSuchFileException e) {
-            System.err.println("Warning: Workspace folder does not exist: " + folder);
+            ERROR_STREAM.println("Warning: Workspace folder does not exist: " + folder);
             return List.of();
         } catch (IOException e) {
-            System.err.println("Warning: Failed to scan folder " + folder + ": " + e);
+            ERROR_STREAM.println("Warning: Failed to scan folder " + folder + ": " + e);
             return List.of();
         }
     }

@@ -20,10 +20,8 @@ package org.ballerinalang.langserver.workspace.test.acceptance;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -39,6 +37,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+
 
 /**
  * Acceptance tests for event bus backpressure and recovery loop prevention.
@@ -513,10 +512,21 @@ public class EventBusBackpressureTest {
             this.timestamp = Instant.now();
         }
 
-        public String getId() { return id; }
-        public String getType() { return type; }
-        public String getDocumentUri() { return documentUri; }
-        public Instant getTimestamp() { return timestamp; }
+        public String getId() {
+            return id;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public String getDocumentUri() {
+            return documentUri;
+        }
+
+        public Instant getTimestamp() {
+            return timestamp;
+        }
     }
 
     /**
@@ -535,8 +545,12 @@ public class EventBusBackpressureTest {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
             CoalesceKey that = (CoalesceKey) o;
             return eventKind.equals(that.eventKind) && 
                    sourceRoot.equals(that.sourceRoot) &&
@@ -587,9 +601,17 @@ public class EventBusBackpressureTest {
             this.failureCode = failureCode;
         }
 
-        public String getProjectName() { return projectName; }
-        public FailureClass getFailureClass() { return failureClass; }
-        public String getFailureCode() { return failureCode; }
+        public String getProjectName() {
+            return projectName;
+        }
+
+        public FailureClass getFailureClass() {
+            return failureClass;
+        }
+
+        public String getFailureCode() {
+            return failureCode;
+        }
     }
 
     /**
@@ -624,8 +646,13 @@ public class EventBusBackpressureTest {
             };
         }
 
-        public int getDepth() { return depth; }
-        public boolean isWarningLogged() { return warningLogged; }
+        public int getDepth() {
+            return depth;
+        }
+
+        public boolean isWarningLogged() {
+            return warningLogged;
+        }
     }
 
     // Helper methods

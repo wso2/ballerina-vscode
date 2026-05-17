@@ -117,9 +117,7 @@ import java.util.concurrent.ExecutionException;
  * Common utils that are reused within test suits.
  */
 public final class TestUtil {
-
     private static final String HOVER = "textDocument/hover";
-
     private static final String CODELENS = "textDocument/codeLens";
 
     private static final String COMPLETION = "textDocument/completion";
@@ -811,7 +809,8 @@ public final class TestUtil {
                 LSContextOperation.TXT_DID_OPEN,
                 serverContext);
 
-        Optional<io.ballerina.projects.PackageCompilation> compilation = context.workspace().waitAndGetPackageCompilation(context.filePath());
+        Optional<io.ballerina.projects.PackageCompilation> compilation = context.workspace()
+                .waitAndGetPackageCompilation(context.filePath());
         if (compilation.isEmpty()) {
             return diagnostics;
         }

@@ -18,9 +18,9 @@
 
 package org.ballerinalang.langserver.workspace.compilerengine.revovery;
 
-import javax.annotation.Nonnull;
-
 import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
+
+import javax.annotation.Nonnull;
 
 /**
  * Stateless strategy for traversing the dependency locking recovery ladder.
@@ -28,7 +28,6 @@ import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
  * @since 1.7.0
  */
 public final class RecoveryLadder {
-
     private RecoveryLadder() {
     }
 

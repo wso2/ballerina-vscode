@@ -18,11 +18,11 @@
 
 package org.ballerinalang.langserver.workspace.execution;
 
+import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.JBallerinaBackend;
 import io.ballerina.projects.JarLibrary;
 import io.ballerina.projects.JarResolver;
 import io.ballerina.projects.JvmTarget;
-import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.Project;
@@ -56,7 +56,6 @@ import static io.ballerina.runtime.api.constants.RuntimeConstants.MODULE_INIT_CL
  * @since 1.7.0
  */
 public final class WorkspaceRunService {
-
     private static final String USER_DIR = System.getProperty("user.dir");
     private static final String HEAP_DUMP_FLAG = "-XX:+HeapDumpOnOutOfMemoryError";
     private static final String HEAP_DUMP_PATH_FLAG = "-XX:HeapDumpPath=";

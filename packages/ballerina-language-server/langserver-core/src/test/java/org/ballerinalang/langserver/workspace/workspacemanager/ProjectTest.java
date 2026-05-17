@@ -27,13 +27,15 @@ import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import javax.annotation.Nonnull;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import javax.annotation.Nonnull;
+
 
 /**
  * Tests for {@link Project} and {@link OpenDocumentCount}.

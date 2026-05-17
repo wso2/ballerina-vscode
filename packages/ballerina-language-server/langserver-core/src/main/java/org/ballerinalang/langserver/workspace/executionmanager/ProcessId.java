@@ -23,10 +23,10 @@ import javax.annotation.Nonnull;
 /**
  * Wraps execution process identifier.
  *
+ * @param value process identifier value
  * @since 1.7.0
  */
 public record ProcessId(@Nonnull String value) {
-
     public ProcessId {
         if (value.isBlank()) {
             throw new IllegalArgumentException("value must not be blank");

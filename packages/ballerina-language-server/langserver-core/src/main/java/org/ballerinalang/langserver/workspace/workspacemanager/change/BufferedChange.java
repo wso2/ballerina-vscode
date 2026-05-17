@@ -29,6 +29,9 @@ import javax.annotation.Nonnull;
  * It wraps the LSP {@link TextDocumentContentChangeEvent} with the source
  * {@link ChangeLayer} and the associated {@link ContentVersion}.
  *
+ * @param change the LSP text document content change
+ * @param layer the source layer for the change
+ * @param version content version associated with the change
  * @since 1.7.0
  */
 public record BufferedChange(

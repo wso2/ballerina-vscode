@@ -23,6 +23,7 @@ import io.ballerina.projects.Project;
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.SnapshotView;
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.StableSnapshot;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
+
 import javax.annotation.Nonnull;
 
 /**
@@ -31,7 +32,6 @@ import javax.annotation.Nonnull;
  * @since 1.7.0
  */
 public interface CompilationService {
-
     /**
      * Returns the stable snapshot for the given package, blocking until one is available.
      *

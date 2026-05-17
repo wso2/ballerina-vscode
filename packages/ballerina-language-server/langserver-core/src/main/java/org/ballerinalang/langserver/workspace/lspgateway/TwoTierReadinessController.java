@@ -18,9 +18,9 @@
 
 package org.ballerinalang.langserver.workspace.lspgateway;
 
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Controls two-tier readiness for the workspace: syntax-ready and semantic-ready.
@@ -32,7 +32,6 @@ import java.util.concurrent.TimeUnit;
  * @since 1.7.0
  */
 public final class TwoTierReadinessController {
-
     private final AtomicBoolean syntaxReady;
     private final AtomicBoolean semanticReady;
     private final CountDownLatch syntaxLatch;

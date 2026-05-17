@@ -18,16 +18,16 @@
 
 package org.ballerinalang.langserver.workspace.execution;
 
-import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
 import org.ballerinalang.langserver.workspace.executionmanager.ProcessId;
-
-import javax.annotation.Nonnull;
+import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.annotation.Nonnull;
 
 /**
  * Bounded registry for active processes.
@@ -36,7 +36,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @since 1.7.0
  */
 public final class ProcessRegistry {
-
     private final int maxActiveProcesses;
     private final ConcurrentHashMap<ProcessId, ExecutionProcess> processes = new ConcurrentHashMap<>();
     private final AtomicInteger activeCount = new AtomicInteger(0);

@@ -17,9 +17,9 @@
  */
 package org.ballerinalang.langserver.workspace.test.acceptance;
 
+import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.PackageName;
-import io.ballerina.projects.PackageCompilation;
 import org.awaitility.Awaitility;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationKey;
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.DualSnapshotStore;
@@ -41,6 +41,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+
 
 /**
  * Acceptance tests for the dual-snapshot access pattern (ADR-042).
@@ -135,7 +136,7 @@ public class DualSnapshotAcceptanceTest {
         InProgressSnapshot inProgress = store.startCompilation(TEST_ROOT);
         Assert.assertNotNull(inProgress, "startCompilation() must return an InProgressSnapshot");
 
-        CompletableFuture<PackageCompilation> compilationFuture = inProgress.compilation(() -> {});
+        CompletableFuture<PackageCompilation> compilationFuture = inProgress.compilation(() -> { });
 
         // Future should not be complete yet
         Assert.assertFalse(compilationFuture.isDone(), "Compilation future must not be complete before publishStable");
@@ -161,7 +162,7 @@ public class DualSnapshotAcceptanceTest {
         store.publishStable(TEST_ROOT, previousSnapshot);
 
         InProgressSnapshot inProgress = store.startCompilation(TEST_ROOT);
-        CompletableFuture<PackageCompilation> compilationFuture = inProgress.compilation(() -> {});
+        CompletableFuture<PackageCompilation> compilationFuture = inProgress.compilation(() -> { });
 
         // Do NOT publish stable - future should timeout
         Assert.assertThrows(TimeoutException.class,
@@ -180,7 +181,7 @@ public class DualSnapshotAcceptanceTest {
         InProgressSnapshot inProgress = store.startCompilation(TEST_ROOT);
 
         CompletableFuture<?> semanticFuture = inProgress.semanticModel(
-                Mockito.mock(io.ballerina.projects.ModuleId.class), () -> {});
+                Mockito.mock(io.ballerina.projects.ModuleId.class), () -> { });
 
         // Future should not be complete yet
         Assert.assertFalse(semanticFuture.isDone(), "Semantic model future must not be complete before publishStable");
@@ -208,7 +209,7 @@ public class DualSnapshotAcceptanceTest {
         store.publishStable(TEST_ROOT, previousSnapshot);
 
         InProgressSnapshot inProgress = store.startCompilation(TEST_ROOT);
-        CompletableFuture<PackageCompilation> compilationFuture = inProgress.compilation(() -> {});
+        CompletableFuture<PackageCompilation> compilationFuture = inProgress.compilation(() -> { });
 
         // Cancel the in-progress compilation
         store.cancelInProgress(TEST_ROOT);
@@ -233,7 +234,7 @@ public class DualSnapshotAcceptanceTest {
 
         InProgressSnapshot inProgress = store.startCompilation(TEST_ROOT);
         CompletableFuture<?> semanticFuture = inProgress.semanticModel(
-                Mockito.mock(io.ballerina.projects.ModuleId.class), () -> {});
+                Mockito.mock(io.ballerina.projects.ModuleId.class), () -> { });
 
         // Cancel the in-progress compilation
         store.cancelInProgress(TEST_ROOT);
@@ -255,7 +256,7 @@ public class DualSnapshotAcceptanceTest {
 
         // Start first compilation
         InProgressSnapshot firstInProgress = store.startCompilation(TEST_ROOT);
-        CompletableFuture<PackageCompilation> firstFuture = firstInProgress.compilation(() -> {});
+        CompletableFuture<PackageCompilation> firstFuture = firstInProgress.compilation(() -> { });
 
         // Start second compilation (should cancel the first)
         InProgressSnapshot secondInProgress = store.startCompilation(TEST_ROOT);
@@ -311,7 +312,7 @@ public class DualSnapshotAcceptanceTest {
                 "getInProgress() must return null after publishStable");
 
         // In-progress futures should be completed
-        CompletableFuture<PackageCompilation> compilationFuture = inProgress.compilation(() -> {});
+        CompletableFuture<PackageCompilation> compilationFuture = inProgress.compilation(() -> { });
         Assert.assertTrue(compilationFuture.isDone(), "Compilation future must be done after publishStable");
     }
 
@@ -340,8 +341,8 @@ public class DualSnapshotAcceptanceTest {
         Assert.assertSame(store.getStable(TEST_ROOT), snapshot3);
 
         // Verify all compilations completed
-        Assert.assertTrue(inProgress2.compilation(() -> {}).isDone());
-        Assert.assertTrue(inProgress3.compilation(() -> {}).isDone());
+        Assert.assertTrue(inProgress2.compilation(() -> { }).isDone());
+        Assert.assertTrue(inProgress3.compilation(() -> { }).isDone());
     }
 
     // ========================================================================

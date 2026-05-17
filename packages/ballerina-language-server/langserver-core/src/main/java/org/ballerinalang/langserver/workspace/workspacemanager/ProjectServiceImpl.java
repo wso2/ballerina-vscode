@@ -26,16 +26,16 @@ import io.ballerina.projects.ModuleId;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.util.ProjectConstants;
 import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
-import org.ballerinalang.langserver.workspace.eventbus.event.BatchEvent;
-import org.ballerinalang.langserver.workspace.eventbus.event.CompilerEvent;
-import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
-import org.ballerinalang.langserver.workspace.eventbus.event.HeapPressureEvent;
-import org.ballerinalang.langserver.workspace.eventbus.event.ProjectEvent;
 import org.ballerinalang.langserver.workspace.eventbus.ProjectEvictedEvent;
 import org.ballerinalang.langserver.workspace.eventbus.ProjectKindTransitionedEvent;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
+import org.ballerinalang.langserver.workspace.eventbus.event.BatchEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.CompilerEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.HeapPressureEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.ProjectEvent;
 import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureLevel;
 import org.ballerinalang.langserver.workspace.workspacemanager.change.BufferedChange;
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeApplier;
@@ -62,12 +62,12 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-
-import javax.annotation.Nonnull;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
+
+import javax.annotation.Nonnull;
 
 /**
  * Service layer implementation managing workspace projects.
@@ -85,7 +85,7 @@ import java.util.stream.Stream;
  * @since 1.7.0
  */
 public final class ProjectServiceImpl implements ProjectService {
-
+    private static final java.io.PrintStream ERROR_STREAM = System.err;
     private static final int DEFAULT_MAX_PROJECTS = 128;
     private static final String BALLERINA_TOML = ProjectConstants.BALLERINA_TOML;
     private static final String DEPENDENCIES_TOML = ProjectConstants.DEPENDENCIES_TOML;
@@ -95,7 +95,6 @@ public final class ProjectServiceImpl implements ProjectService {
             ProjectConstants.CLOUD_TOML,
             ProjectConstants.COMPILER_PLUGIN_TOML,
             ProjectConstants.BAL_TOOL_TOML);
-
     private final UriResolver uriResolver;
     private final EventSyncPubSubHolder eventBus;
     private final ProjectLoader loader;
@@ -330,7 +329,7 @@ public final class ProjectServiceImpl implements ProjectService {
                 registerLoadedProject(root, loader.load(root, wmProject.kind()));
                 registeredAny = true;
             } catch (Exception e) {
-                System.err.println("Warning: Failed to register workspace project at " + root + ": " + e);
+                ERROR_STREAM.println("Warning: Failed to register workspace project at " + root + ": " + e);
             }
         }
         if (registeredAny) {
@@ -644,7 +643,8 @@ public final class ProjectServiceImpl implements ProjectService {
 
     @Override
     public void didClose(@Nonnull DocumentUri uri) {
-        Optional<DocumentUri> overlayRoot = uri instanceof DocumentUri.FileUri ? Optional.empty() : resolveProjectRoot(uri);
+        Optional<DocumentUri> overlayRoot = uri instanceof DocumentUri.FileUri ? Optional.empty()
+                : resolveProjectRoot(uri);
         changeBuffer.clear(uri);
         versionCounters.remove(uri);
         decrementOpenDocumentCount(uri);
@@ -1311,8 +1311,10 @@ public final class ProjectServiceImpl implements ProjectService {
         Path normalized = rootPath.toAbsolutePath().normalize();
         return switch (uri) {
             case DocumentUri.FileUri ignored -> new DocumentUri.FileUri(normalized.toUri());
-            case DocumentUri.ExprUri ignored -> new DocumentUri.ExprUri(URI.create("expr://" + normalized.toUri().getPath()));
-            case DocumentUri.AiUri ignored -> new DocumentUri.AiUri(URI.create("ai://" + normalized.toUri().getPath()));
+            case DocumentUri.ExprUri ignored ->
+                    new DocumentUri.ExprUri(URI.create("expr://" + normalized.toUri().getPath()));
+            case DocumentUri.AiUri ignored ->
+                    new DocumentUri.AiUri(URI.create("ai://" + normalized.toUri().getPath()));
         };
     }
 

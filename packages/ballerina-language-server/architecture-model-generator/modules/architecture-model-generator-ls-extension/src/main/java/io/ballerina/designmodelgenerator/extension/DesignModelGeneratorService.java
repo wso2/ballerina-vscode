@@ -45,9 +45,7 @@ import java.util.concurrent.CompletableFuture;
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
 @JsonSegment("designModelService")
 public class DesignModelGeneratorService implements ExtendedLanguageServerService {
-
     private WorkspaceManagerProxy workspaceManagerProxy;
-
     @Override
     public void init(LanguageServer langServer,
                      WorkspaceManagerProxy workspaceManagerProxy,
@@ -69,7 +67,8 @@ public class DesignModelGeneratorService implements ExtendedLanguageServerServic
                 Path filePath = PathUtil.convertUriStringToPath(request.projectPath());
                 WorkspaceManager workspaceManager = workspaceManagerProxy.get(request.projectPath());
                 Project project = workspaceManager.loadProject(filePath);
-                DesignModelGenerator designModelGenerator = new DesignModelGenerator(project.duplicate().currentPackage());
+                DesignModelGenerator designModelGenerator = new DesignModelGenerator(
+                        project.duplicate().currentPackage());
                 DesignModel designModel = designModelGenerator.generate();
                 response.setDesignModel(designModel);
             } catch (Throwable e) {

@@ -23,8 +23,8 @@ import org.eclipse.lsp4j.FileEvent;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -43,7 +43,6 @@ import java.util.concurrent.atomic.AtomicReference;
  * @since 1.7.0
  */
 public class ChangeBuffer {
-
     /**
      * Per-URI, per-layer pending changes.
      * Outer key = DocumentUri. Inner key = ChangeLayer. Value = ordered queue of changes.

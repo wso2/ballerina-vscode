@@ -24,11 +24,11 @@ import org.ballerinalang.langserver.workspace.compilerengine.revovery.Resolution
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.InProgressSnapshot;
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.StableSnapshot;
-import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
-import org.ballerinalang.langserver.workspace.eventbus.event.CompilerEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
+import org.ballerinalang.langserver.workspace.eventbus.event.CompilerEvent;
 import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
 
 import java.net.URI;
 import java.util.List;
@@ -43,6 +43,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.annotation.Nonnull;
 
 /**
@@ -51,7 +52,6 @@ import javax.annotation.Nonnull;
  * @since 1.7.0
  */
 public class CompilationPipeline implements AutoCloseable {
-
     private static final long DEBOUNCE_MILLIS = 150;
     private static final long PERMIT_ACQUIRE_TIMEOUT_SECONDS = 30;
     private static final Logger LOG = Logger.getLogger(CompilationPipeline.class.getName());

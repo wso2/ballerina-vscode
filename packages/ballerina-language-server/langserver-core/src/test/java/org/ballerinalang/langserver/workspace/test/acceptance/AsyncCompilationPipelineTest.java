@@ -21,16 +21,16 @@ import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.PackageName;
 import org.awaitility.Awaitility;
-import org.ballerinalang.langserver.workspace.compilerengine.revovery.CancellationToken;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationKey;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationPhase;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationPipeline;
 import org.ballerinalang.langserver.workspace.compilerengine.CompileTask;
-import org.ballerinalang.langserver.workspace.compilerengine.snapshot.StableSnapshot;
+import org.ballerinalang.langserver.workspace.compilerengine.revovery.CancellationToken;
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.DualSnapshotStore;
-import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
+import org.ballerinalang.langserver.workspace.compilerengine.snapshot.StableSnapshot;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.lspgateway.TwoTierReadinessController;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -39,12 +39,13 @@ import org.testng.annotations.Test;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+
 
 /**
  * Acceptance tests translating async-compilation-pipeline.feature scenarios into executable assertions.
@@ -195,7 +196,8 @@ public class AsyncCompilationPipelineTest {
     }
 
     /**
-     * Verifies cold start waits only up to a bounded timeout and returns a content-modified hint when no snapshot exists.
+     * Verifies cold start waits only up to a bounded timeout and returns a content-modified hint when no snapshot
+     * exists.
      *
      * @throws InterruptedException if the waiting thread is interrupted
      */

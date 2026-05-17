@@ -42,7 +42,6 @@ import java.util.function.Consumer;
  * @since 1.7.0
  */
 final class DeliveryChannel {
-
     private static final int CRITICAL_CAPACITY = 1_000;
     private static final long CRITICAL_PUBLISH_TIMEOUT_MILLIS = 100L;
     private static final int BEST_EFFORT_CAPACITY = 200;
@@ -50,7 +49,6 @@ final class DeliveryChannel {
     private static final long COALESCE_DRAIN_INTERVAL_MILLIS = 10L;
     private static final int SAMPLE_EVERY_FIVE = 5;
     private static final int SAMPLE_EVERY_TEN = 10;
-
     private final String subscriberId;
     private final SubscriberTier subscriberTier;
     private final Set<EventKind> subscribedKinds;
@@ -96,7 +94,8 @@ final class DeliveryChannel {
         return switch (subscriberTier) {
             case CRITICAL -> {
                 ArrayBlockingQueue<DomainEvent> queue = new ArrayBlockingQueue<>(CRITICAL_CAPACITY);
-                ExecutorService executor = Executors.newSingleThreadExecutor(threadFactory(subscriberId, subscriberTier));
+                ExecutorService executor = Executors.newSingleThreadExecutor(
+                        threadFactory(subscriberId, subscriberTier));
                 DeliveryChannel channel = new DeliveryChannel(subscriberId, subscriberTier, immutableKinds, consumer,
                         queue, null, executor, null, telemetryEmitter);
                 executor.submit(channel::drainQueue);
@@ -104,7 +103,8 @@ final class DeliveryChannel {
             }
             case BEST_EFFORT -> {
                 ArrayBlockingQueue<DomainEvent> queue = new ArrayBlockingQueue<>(BEST_EFFORT_CAPACITY);
-                ExecutorService executor = Executors.newSingleThreadExecutor(threadFactory(subscriberId, subscriberTier));
+                ExecutorService executor = Executors.newSingleThreadExecutor(
+                        threadFactory(subscriberId, subscriberTier));
                 DeliveryChannel channel = new DeliveryChannel(subscriberId, subscriberTier, immutableKinds, consumer,
                         queue, null, executor, null, telemetryEmitter);
                 executor.submit(channel::drainQueue);

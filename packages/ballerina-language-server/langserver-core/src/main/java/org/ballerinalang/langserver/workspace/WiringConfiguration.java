@@ -28,13 +28,14 @@ import org.ballerinalang.langserver.workspace.execution.GracePeriod;
 import org.ballerinalang.langserver.workspace.observability.WorkspaceTraceLogger;
 import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureDetected;
 import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureMonitor;
-import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeApplier;
-import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeBuffer;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectLoader;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectServiceImpl;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeApplier;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeBuffer;
+
+import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
-import java.util.function.Consumer;
 
 /**
  * Central wiring configuration that constructs and connects all bounded context services
@@ -44,7 +45,6 @@ import java.util.function.Consumer;
  * @since 1.7.0
  */
 public final class WiringConfiguration implements AutoCloseable {
-
     private final EventSyncPubSubHolder eventBus;
     private final ChangeBuffer changeBuffer;
     private final ChangeApplier changeApplier;

@@ -26,6 +26,7 @@ import java.util.Map;
  * @since 1.7.0
  */
 public final class ConsoleTraceLogSink implements TraceLogSink {
+    private static final java.io.PrintStream OUTPUT_STREAM = System.out;
 
     /**
      * Writes the formatted trace entry to standard output.
@@ -35,7 +36,7 @@ public final class ConsoleTraceLogSink implements TraceLogSink {
      */
     @Override
     public void write(String level, Map<String, String> fields) {
-        System.out.println(WorkspaceTraceLogger.formatLogEntry(level, fields));
+        OUTPUT_STREAM.println(WorkspaceTraceLogger.formatLogEntry(level, fields));
     }
 
     /**

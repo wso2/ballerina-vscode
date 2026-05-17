@@ -20,9 +20,9 @@ package org.ballerinalang.langserver.workspace.compilerengine.revovery;
 
 import io.ballerina.projects.PackageDescriptor;
 
-import javax.annotation.Nonnull;
-
 import java.util.List;
+
+import javax.annotation.Nonnull;
 
 /**
  * Captures pre-compilation resolution diagnostics per ADR-008.
@@ -35,7 +35,6 @@ import java.util.List;
 public record ResolutionResult(@Nonnull PackageDescriptor descriptor,
                                  @Nonnull List<ResolutionDiagnostic> diagnostics,
                                  boolean success) {
-
     /**
      * Validates fields and creates a defensive copy of diagnostics.
      */

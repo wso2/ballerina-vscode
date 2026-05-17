@@ -39,7 +39,6 @@ public sealed interface ResolvedEntry
                 ResolvedEntry.ModuleEntry,
                 ResolvedEntry.DocumentEntry,
                 ResolvedEntry.ConfigEntry {
-
     /**
      * Returns the logical target type of this resolved entry.
      *
@@ -57,15 +56,29 @@ public sealed interface ResolvedEntry
         }
         return TargetType.CONFIG;
     }
+    /**
+     * A URI that resolves to a Ballerina project root.
+     *
+     * @param project resolved project
+     */
+    record ProjectEntry(Project project) implements ResolvedEntry {
+    }
 
-    /** A URI that resolves to a Ballerina project root. */
-    record ProjectEntry(Project project) implements ResolvedEntry {}
+    /**
+     * A URI that resolves to a Ballerina module.
+     *
+     * @param module resolved module
+     */
+    record ModuleEntry(Module module) implements ResolvedEntry {
+    }
 
-    /** A URI that resolves to a Ballerina module. */
-    record ModuleEntry(Module module) implements ResolvedEntry {}
-
-    /** A URI that resolves to a Ballerina source document. */
-    record DocumentEntry(Document document) implements ResolvedEntry {}
+    /**
+     * A URI that resolves to a Ballerina source document.
+     *
+     * @param document resolved source document
+     */
+    record DocumentEntry(Document document) implements ResolvedEntry {
+    }
 
     /**
      * A URI that resolves to a TOML config file

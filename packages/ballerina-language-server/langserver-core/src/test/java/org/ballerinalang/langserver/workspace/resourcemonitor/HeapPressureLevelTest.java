@@ -21,7 +21,6 @@ package org.ballerinalang.langserver.workspace.resourcemonitor;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.util.Arrays;
 
 /**
  * Tests for HeapPressureLevel enum.

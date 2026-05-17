@@ -41,18 +41,20 @@ import javax.annotation.Nonnull;
  * @since 1.7.0
  */
 public final class Project {
-
     private final DocumentUri sourceRoot;
     private final AtomicReference<ProjectKind> kind;
     private final AtomicReference<HealthState> healthState;
     private final OpenDocumentCount openDocumentCount;
     private final ReentrantLock fsmLock = new ReentrantLock();
-
     /**
      * Internal immutable snapshot of health state, bundling the FSM state and the
      * guard flag used to protect the COMPILATION_CRASHED → RECOVERING arc (ADR-033).
+     *
+     * @param state current project health state
+     * @param sourceChangedSinceLastCrash whether source changed after the last crash
      */
-    private record HealthState(ProjectHealthState state, boolean sourceChangedSinceLastCrash) {}
+    private record HealthState(ProjectHealthState state, boolean sourceChangedSinceLastCrash) {
+    }
 
     // -------------------------------------------------------------------------
     // Event records — pure domain data; no event-bus imports (ADR-037)
@@ -61,6 +63,13 @@ public final class Project {
     /**
      * Event emitted after a health-state transition.
      * Actual publishing is deferred to T-009.
+     *
+     * @param eventId unique event identifier
+     * @param timestamp event occurrence time
+     * @param sourceRoot project source root
+     * @param eventType event type name
+     * @param fromState previous health state
+     * @param toState next health state
      */
     public record HealthTransitionEvent(
             UUID eventId,
@@ -68,11 +77,19 @@ public final class Project {
             DocumentUri sourceRoot,
             String eventType,
             ProjectHealthState fromState,
-            ProjectHealthState toState) {}
+            ProjectHealthState toState) {
+    }
 
     /**
      * Event emitted after a kind transition.
      * Actual publishing is deferred to T-009.
+     *
+     * @param eventId unique event identifier
+     * @param timestamp event occurrence time
+     * @param sourceRoot project source root
+     * @param eventType event type name
+     * @param fromKind previous project kind
+     * @param toKind next project kind
      */
     public record KindTransitionEvent(
             UUID eventId,
@@ -80,7 +97,8 @@ public final class Project {
             DocumentUri sourceRoot,
             String eventType,
             ProjectKind fromKind,
-            ProjectKind toKind) {}
+            ProjectKind toKind) {
+    }
 
     // -------------------------------------------------------------------------
     // Constructor

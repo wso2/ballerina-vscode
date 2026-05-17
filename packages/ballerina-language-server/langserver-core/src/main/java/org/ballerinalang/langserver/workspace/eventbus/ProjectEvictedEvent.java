@@ -21,11 +21,12 @@ package org.ballerinalang.langserver.workspace.eventbus;
 import org.ballerinalang.langserver.workspace.eventbus.event.ProjectEvent;
 import org.ballerinalang.langserver.workspace.workspacemanager.project.EvictionReason;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.Map;
 import java.util.UUID;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Domain event emitted when a project is evicted from the registry.
@@ -35,7 +36,6 @@ import java.util.UUID;
  * @since 1.7.0
  */
 public final class ProjectEvictedEvent extends ProjectEvent {
-
     private final EvictionReason evictionReason;
 
     /**

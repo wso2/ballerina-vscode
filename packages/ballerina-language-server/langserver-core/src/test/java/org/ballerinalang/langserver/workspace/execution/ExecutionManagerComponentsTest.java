@@ -19,18 +19,16 @@
 package org.ballerinalang.langserver.workspace.execution;
 
 import org.ballerinalang.langserver.commons.workspace.RunContext;
-import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
-import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.ProjectEvictedEvent;
 import org.ballerinalang.langserver.workspace.eventbus.ProjectKindTransitionedEvent;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
+import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 import org.ballerinalang.langserver.workspace.executionmanager.ProcessId;
 import org.ballerinalang.langserver.workspace.workspacemanager.project.EvictionReason;
 import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectKind;
-import static org.ballerinalang.langserver.workspace.execution.ExecutionProcess.ExecutionMode;
-import static org.ballerinalang.langserver.workspace.execution.ExecutionProcess.ProcessState;
+import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -51,6 +49,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.ballerinalang.langserver.workspace.execution.ExecutionProcess.ExecutionMode;
+import static org.ballerinalang.langserver.workspace.execution.ExecutionProcess.ProcessState;
+
 
 /**
  * Tests execution manager aggregate/service behavior for T-013.
@@ -270,7 +272,8 @@ public class ExecutionManagerComponentsTest {
 
     private ExecutionProcess runningProcess(String id, DocumentUri sourceRoot) {
         ExecutionProcess process = new ExecutionProcess(new ProcessId(id), sourceRoot, ExecutionMode.RUN,
-                Path.of(sourceRoot.uri()), new GracePeriod(Duration.ofMillis(25)), new FakeProcess(true), streamSource -> {
+                Path.of(sourceRoot.uri()), new GracePeriod(Duration.ofMillis(25)), new FakeProcess(true),
+                streamSource -> {
         });
         process.markRunning();
         return process;

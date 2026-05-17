@@ -18,11 +18,11 @@
 
 package org.ballerinalang.langserver.workspace.test.acceptance;
 
-import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
-import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
 import org.ballerinalang.langserver.workspace.workspacemanager.change.BufferedChange;
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeBuffer;
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeLayer;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
+import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
 import org.eclipse.lsp4j.FileChangeType;
 import org.eclipse.lsp4j.FileEvent;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
@@ -39,6 +39,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
 
 /**
  * Acceptance tests for ChangeBuffer — per-URI per-layer delta queue (ADR-047).
@@ -602,7 +603,7 @@ public class ChangeBufferAcceptanceTest {
     @Test
     public void concurrentAppendAndDrain_noExceptions() throws InterruptedException {
         DocumentUri[] uris = new DocumentUri[10];
-        for (int i = 0; i <uris.length; i++) {
+        for (int i = 0; i < uris.length; i++) {
             uris[i] = fileUri("/workspace/doc" + i + ".bal");
         }
 

@@ -18,15 +18,15 @@
 
 package org.ballerinalang.langserver.workspace.observability;
 
+import org.ballerinalang.langserver.workspace.eventbus.EventKind;
+import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.event.BatchEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.CompilerEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
-import org.ballerinalang.langserver.workspace.eventbus.EventKind;
-import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.event.HeapPressureEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.ProcessEvent;
-import org.ballerinalang.langserver.workspace.eventbus.event.ProjectEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.ProcessOutputEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.ProjectEvent;
 import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureLevel;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -39,6 +39,7 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
 
 /**
  * Tests for observability components: TelemetryEmitter and WorkspaceTraceLogger.

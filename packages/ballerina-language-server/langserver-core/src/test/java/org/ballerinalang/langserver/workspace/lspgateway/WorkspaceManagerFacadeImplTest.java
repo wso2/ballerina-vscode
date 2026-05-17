@@ -32,18 +32,18 @@ import org.ballerinalang.langserver.commons.workspace.RunContext;
 import org.ballerinalang.langserver.commons.workspace.RunResult;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationService;
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.StableSnapshot;
-import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
-import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
 import org.ballerinalang.langserver.workspace.executionmanager.ExecutionService;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectService;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
+import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 import org.eclipse.lsp4j.FileChangeType;
 import org.eclipse.lsp4j.FileEvent;
-import org.eclipse.lsp4j.TextDocumentItem;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
+import org.eclipse.lsp4j.TextDocumentItem;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.mockito.Mockito;
 import org.testng.Assert;
@@ -60,6 +60,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+
 
 /**
  * Tests for WorkspaceManagerFacadeImpl pure delegation behavior.
@@ -377,7 +378,8 @@ public class WorkspaceManagerFacadeImplTest {
     @Test
     public void testWaitAndGetPackageCompilation_DelegatesToCompilationService() {
         PackageCompilation mockCompilation = Mockito.mock(PackageCompilation.class);
-        StableSnapshot snapshot = createStableSnapshot(Mockito.mock(SyntaxTree.class), Mockito.mock(SemanticModel.class),
+        StableSnapshot snapshot = createStableSnapshot(Mockito.mock(SyntaxTree.class),
+                Mockito.mock(SemanticModel.class),
                 mockCompilation);
         PackageDescriptor mockDescriptor = Mockito.mock(PackageDescriptor.class);
         Project mockProject = Mockito.mock(Project.class);
@@ -401,7 +403,8 @@ public class WorkspaceManagerFacadeImplTest {
     public void testWaitAndGetPackageCompilationWithCancelChecker_DelegatesToCompilationService() {
         CancelChecker cancelChecker = Mockito.mock(CancelChecker.class);
         PackageCompilation mockCompilation = Mockito.mock(PackageCompilation.class);
-        StableSnapshot snapshot = createStableSnapshot(Mockito.mock(SyntaxTree.class), Mockito.mock(SemanticModel.class),
+        StableSnapshot snapshot = createStableSnapshot(Mockito.mock(SyntaxTree.class),
+                Mockito.mock(SemanticModel.class),
                 mockCompilation);
         PackageDescriptor mockDescriptor = Mockito.mock(PackageDescriptor.class);
         Project mockProject = Mockito.mock(Project.class);

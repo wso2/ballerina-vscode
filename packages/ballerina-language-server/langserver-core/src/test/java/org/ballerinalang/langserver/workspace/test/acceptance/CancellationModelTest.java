@@ -21,18 +21,18 @@ import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.PackageName;
 import org.awaitility.Awaitility;
-import org.ballerinalang.langserver.workspace.compilerengine.revovery.CancellationToken;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationKey;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationPhase;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationPipeline;
 import org.ballerinalang.langserver.workspace.compilerengine.CompileTask;
+import org.ballerinalang.langserver.workspace.compilerengine.revovery.CancellationToken;
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.InProgressSnapshot;
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.StableSnapshot;
-import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -46,6 +46,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
 
 /**
  * Acceptance tests translating cancellation-model.feature scenarios into executable assertions.
@@ -248,7 +249,8 @@ public class CancellationModelTest {
         Assert.assertTrue(replacementStarted.await(3, TimeUnit.SECONDS), "Replacement compilation did not start");
 
         Assert.assertSame(snapshotStore.getStable(TEST_KEY), previousSnapshot,
-                "Consumers calling getStable() during replacement compilation must still see the last published snapshot");
+                "Consumers calling getStable() during replacement compilation must still see the last published "
+                        + "snapshot");
         InProgressSnapshot inProgressSnapshot = snapshotStore.getInProgress(TEST_KEY);
         Assert.assertNotNull(inProgressSnapshot,
                 "Replacement compilation must remain visible through getInProgress() until it publishes");
@@ -269,7 +271,8 @@ public class CancellationModelTest {
      */
     @Test(dataProvider = "phaseBoundaries")
     public void cancelledCompileTask_throwsAtEveryPhaseBoundary(CompilationPhase phase) {
-        CompileTask task = new CompileTask(TEST_DESCRIPTOR, TEST_ROOT_ID, new ContentVersion(5), new CancellationToken());
+        CompileTask task = new CompileTask(TEST_DESCRIPTOR, TEST_ROOT_ID, new ContentVersion(5),
+                new CancellationToken());
         task.cancel();
 
         Assert.assertThrows(CancellationException.class,

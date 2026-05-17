@@ -46,6 +46,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Mockito.mock;
 
+
 /**
  * Integration smoke tests for wiring after the project-cache consolidation.
  *
@@ -77,7 +78,8 @@ public class WiringConfigurationTest {
                 .compilationAction(new org.ballerinalang.langserver.workspace.compilerengine.CompilationPipeline
                         .CompilationAction() {
                     @Override
-                    public StableSnapshot compile(org.ballerinalang.langserver.workspace.compilerengine.CompileTask task) {
+                    public StableSnapshot compile(
+                            org.ballerinalang.langserver.workspace.compilerengine.CompileTask task) {
                         return mockSnapshot;
                     }
 

@@ -20,12 +20,13 @@ package org.ballerinalang.langserver.workspace.eventbus.event;
 
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Domain event representing a project-scoped workspace manager event.
@@ -34,7 +35,6 @@ import java.util.UUID;
  * @since 1.7.0
  */
 public class ProjectEvent extends DomainEvent {
-
     private final URI sourceRoot;
 
     /**

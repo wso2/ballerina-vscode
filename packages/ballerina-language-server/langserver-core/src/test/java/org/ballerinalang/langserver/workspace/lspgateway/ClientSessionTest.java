@@ -24,11 +24,13 @@ import org.eclipse.lsp4j.WindowClientCapabilities;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import javax.annotation.Nonnull;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.RecordComponent;
 import java.util.Arrays;
 import java.util.List;
+
+import javax.annotation.Nonnull;
+
 
 /**
  * Tests for {@link ClientSession}.

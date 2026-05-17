@@ -35,10 +35,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @since 1.7.0
  */
 public final class FileTraceLogSink implements TraceLogSink {
-
+    private static final java.io.PrintStream ERROR_STREAM = System.err;
     private static final DateTimeFormatter FILE_TIMESTAMP_FORMAT =
             DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss");
-
     private final Path logFilePath;
     private final Object writeLock;
     private final AtomicBoolean errorReported;
@@ -144,7 +143,7 @@ public final class FileTraceLogSink implements TraceLogSink {
 
     private void reportWriteFailure(IOException exception) {
         if (errorReported.compareAndSet(false, true)) {
-            System.err.println("[WARN] Failed to write workspace trace log to file '" + logFilePath + "': "
+            ERROR_STREAM.println("[WARN] Failed to write workspace trace log to file '" + logFilePath + "': "
                     + exception.getMessage());
         }
     }

@@ -18,30 +18,28 @@
 
 package org.ballerinalang.langserver.workspace.compilerengine;
 
+import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.PackageName;
-import io.ballerina.projects.PackageCompilation;
 import org.ballerinalang.langserver.workspace.compilerengine.revovery.CancellationToken;
 import org.ballerinalang.langserver.workspace.compilerengine.revovery.ResolutionResult;
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.StableSnapshot;
-import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
-import org.ballerinalang.langserver.workspace.eventbus.event.CompilerEvent;
-import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
+import org.ballerinalang.langserver.workspace.eventbus.event.CompilerEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
-import javax.annotation.Nonnull;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
-import java.util.Arrays;
-
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +53,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.annotation.Nonnull;
+
 import static org.mockito.Mockito.mock;
+
 
 /**
  * Tests for CancellationToken, CompileTask, and CompilationPipeline.
@@ -810,7 +811,10 @@ public class CompilationPipelineTest {
 
             // close() must complete without hanging
             CountDownLatch closeDone = new CountDownLatch(1);
-            Thread closer = new Thread(() -> { blocked.close(); closeDone.countDown(); });
+            Thread closer = new Thread(() -> {
+                blocked.close();
+                closeDone.countDown();
+            });
             closer.setDaemon(true);
             closer.start();
             Assert.assertTrue(closeDone.await(3, TimeUnit.SECONDS),
@@ -825,7 +829,10 @@ public class CompilationPipelineTest {
         // Existing 4-param constructor must still work — no Semaphore injected, no limit
         CountDownLatch done = new CountDownLatch(1);
         StableSnapshot snap = createMockSnapshot(new ContentVersion(1));
-        pipeline = createPipeline(task -> { done.countDown(); return snap; });
+        pipeline = createPipeline(task -> {
+            done.countDown();
+            return snap;
+        });
         pipeline.requestCompilation(new ContentVersion(1));
         Assert.assertTrue(done.await(3, TimeUnit.SECONDS),
                 "Pipeline created via default constructor must compile normally");

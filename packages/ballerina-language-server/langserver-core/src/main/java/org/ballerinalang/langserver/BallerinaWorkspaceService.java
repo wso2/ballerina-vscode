@@ -25,12 +25,12 @@ import org.ballerinalang.langserver.commons.command.CommandArgument;
 import org.ballerinalang.langserver.commons.command.LSCommandExecutorException;
 import org.ballerinalang.langserver.commons.command.spi.LSCommandExecutor;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.ballerinalang.langserver.config.LSClientConfigHolder;
 import org.ballerinalang.langserver.contexts.ContextBuilder;
 import org.ballerinalang.langserver.diagnostic.DiagnosticsHelper;
 import org.ballerinalang.langserver.exception.UserErrorException;
 import org.ballerinalang.langserver.telemetry.TelemetryUtil;
-import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.DidChangeConfigurationParams;
 import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
 import org.eclipse.lsp4j.ExecuteCommandParams;
@@ -46,7 +46,6 @@ import java.util.concurrent.CompletableFuture;
  * Workspace service implementation for Ballerina.
  */
 public class BallerinaWorkspaceService implements WorkspaceService {
-
     private final BallerinaLanguageServer languageServer;
     private final LSClientConfigHolder configHolder;
     private LSClientCapabilities clientCapabilities;

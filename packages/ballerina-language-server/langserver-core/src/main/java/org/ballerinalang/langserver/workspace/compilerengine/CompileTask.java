@@ -19,9 +19,6 @@
 package org.ballerinalang.langserver.workspace.compilerengine;
 
 import io.ballerina.projects.PackageDescriptor;
-
-import javax.annotation.Nonnull;
-
 import org.ballerinalang.langserver.workspace.compilerengine.revovery.CancellationToken;
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
 
@@ -29,6 +26,9 @@ import java.time.Instant;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.annotation.Nonnull;
+
+// CHECKSTYLE OFF: Unknown tag 'adr'.
 /**
  * Compilation unit of work binding a package descriptor, content version, and cancellation token.
  *
@@ -37,15 +37,14 @@ import java.util.concurrent.atomic.AtomicReference;
  * @adr ADR-018-cooperative-cancellation-model
  * @since 1.7.0
  */
+// CHECKSTYLE ON
 public final class CompileTask {
-
     private final PackageDescriptor descriptor;
     private final String sourceRootIdentifier;
     private final ContentVersion contentVersion;
     private final CancellationToken cancellationToken;
     private final Instant createdAt;
     private final AtomicReference<CompilationPhase> currentPhase;
-
     /**
      * Creates a compile task starting at {@link CompilationPhase#PRE_PARSE}.
      *

@@ -20,12 +20,13 @@ package org.ballerinalang.langserver.workspace.eventbus;
 
 import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Domain event emitted when a watched file changes on disk.
@@ -35,7 +36,6 @@ import java.util.UUID;
  * @since 1.7.0
  */
 public final class FileWatchedChangedEvent extends DomainEvent {
-
     @Nullable
     private final URI sourceRoot;
     private final URI documentUri;

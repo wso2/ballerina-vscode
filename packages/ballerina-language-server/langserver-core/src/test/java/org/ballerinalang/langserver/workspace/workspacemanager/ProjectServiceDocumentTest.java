@@ -46,6 +46,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+
 /**
  * Tests document lifecycle routing through {@link ProjectServiceImpl}.
  *
@@ -140,7 +141,8 @@ public class ProjectServiceDocumentTest {
                 .thenReturn(Set.of(firstRoot, secondRoot))
                 .thenReturn(Set.of());
 
-        FileEvent firstEvent = new FileEvent(tempDir.resolve("Dependencies.toml").toUri().toString(), FileChangeType.Changed);
+        FileEvent firstEvent = new FileEvent(tempDir.resolve("Dependencies.toml").toUri().toString(),
+                FileChangeType.Changed);
         FileEvent secondEvent = new FileEvent(secondProjectDir.resolve("Dependencies.toml").toUri().toString(),
                 FileChangeType.Changed);
 

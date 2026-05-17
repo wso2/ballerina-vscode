@@ -46,6 +46,7 @@ import org.ballerinalang.langserver.commons.SignatureContext;
 import org.ballerinalang.langserver.commons.capability.LSClientCapabilities;
 import org.ballerinalang.langserver.commons.codeaction.ResolvableCodeAction;
 import org.ballerinalang.langserver.commons.eventsync.EventKind;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.ballerinalang.langserver.contexts.ContextBuilder;
 import org.ballerinalang.langserver.definition.DefinitionUtil;
 import org.ballerinalang.langserver.documentsymbol.DocumentSymbolUtil;
@@ -58,7 +59,6 @@ import org.ballerinalang.langserver.references.ReferencesUtil;
 import org.ballerinalang.langserver.rename.RenameUtil;
 import org.ballerinalang.langserver.semantictokens.SemanticTokensUtils;
 import org.ballerinalang.langserver.signature.SignatureHelpUtil;
-import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeActionParams;
 import org.eclipse.lsp4j.CodeLens;
@@ -121,13 +121,11 @@ import static org.ballerinalang.formatter.core.FormatterUtils.buildFormattingOpt
  * Text document service implementation for ballerina.
  */
 class BallerinaTextDocumentService implements TextDocumentService {
-
     private final BallerinaLanguageServer languageServer;
     private LSClientCapabilities clientCapabilities;
     private final WorkspaceManager workspaceManager;
     private final LanguageServerContext serverContext;
     private final LSClientLogger clientLogger;
-
     BallerinaTextDocumentService(BallerinaLanguageServer languageServer,
                                  WorkspaceManager workspaceManager,
                                  LanguageServerContext serverContext) {

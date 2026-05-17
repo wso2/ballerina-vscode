@@ -27,17 +27,18 @@ import org.testng.annotations.Test;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+
 
 /**
  * Tests for trace log sinks and sink-based trace logger dispatch.
@@ -171,7 +172,8 @@ public class TraceLogSinkTest {
         EventSyncPubSubHolder eventBus = new EventSyncPubSubHolder();
         RecordingTraceLogSink firstSink = new RecordingTraceLogSink();
         RecordingTraceLogSink secondSink = new RecordingTraceLogSink();
-        WorkspaceTraceLogger traceLogger = new WorkspaceTraceLogger(eventBus, LogLevel.INFO, List.of(firstSink, secondSink));
+        WorkspaceTraceLogger traceLogger = new WorkspaceTraceLogger(eventBus, LogLevel.INFO,
+                List.of(firstSink, secondSink));
 
         eventBus.publish(new ProjectEvent(EventKind.WORKSPACE_PROJECT_REGISTERED, URI.create("file:///workspace-a")));
         Thread.sleep(300);
@@ -190,7 +192,8 @@ public class TraceLogSinkTest {
         EventSyncPubSubHolder eventBus = new EventSyncPubSubHolder();
         RecordingTraceLogSink firstSink = new RecordingTraceLogSink();
         RecordingTraceLogSink secondSink = new RecordingTraceLogSink();
-        WorkspaceTraceLogger traceLogger = new WorkspaceTraceLogger(eventBus, LogLevel.INFO, List.of(firstSink, secondSink));
+        WorkspaceTraceLogger traceLogger = new WorkspaceTraceLogger(eventBus, LogLevel.INFO,
+                List.of(firstSink, secondSink));
 
         traceLogger.close();
 

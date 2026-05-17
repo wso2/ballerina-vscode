@@ -24,6 +24,7 @@ import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.locks.ReentrantLock;
+
 import javax.annotation.Nonnull;
 
 /**
@@ -32,7 +33,6 @@ import javax.annotation.Nonnull;
  * @since 1.7.0
  */
 public final class CompilerCompilationGuard {
-
     private static final ReentrantLock COMPILATION_LOCK = new ReentrantLock();
 
     private CompilerCompilationGuard() {

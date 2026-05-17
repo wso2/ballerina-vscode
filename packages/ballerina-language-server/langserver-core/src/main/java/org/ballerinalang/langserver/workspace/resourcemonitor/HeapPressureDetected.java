@@ -26,6 +26,11 @@ package org.ballerinalang.langserver.workspace.resourcemonitor;
  * crosses a configured threshold. Consumers include Workspace Manager
  * ({@code UriResolver}) and Compiler Engine (CompilationPipeline).
  *
+ * @param level graduated pressure level at which this event was triggered
+ * @param usedBytes current used heap memory in bytes
+ * @param maxBytes maximum heap memory in bytes
+ * @param ratio heap usage ratio
+ * @param direction direction of the pressure transition
  * @since 1.7.0
  */
 public record HeapPressureDetected(

@@ -18,12 +18,12 @@
 
 package org.ballerinalang.langserver.workspace.observability;
 
-import javax.annotation.Nonnull;
-
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.annotation.Nonnull;
 
 /**
  * Fire-and-forget telemetry emitter that writes structured metric entries directly to {@link TraceLogSink}s.
@@ -39,7 +39,6 @@ import java.util.Map;
  * @since 1.7.0
  */
 public class TelemetryEmitter {
-
     private static final String LEVEL = "METRIC";
 
     private final List<TraceLogSink> sinks;

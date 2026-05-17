@@ -36,10 +36,8 @@ import java.util.concurrent.TimeUnit;
  * @since 1.0.0
  */
 public class Debouncer {
-
     // Time unit for the delay
     private static final TimeUnit TIME_UNIT = TimeUnit.MILLISECONDS;
-
     // Map to hold scheduled tasks
     private final ConcurrentHashMap<String, ScheduledTaskHolder<?>> delayedMap;
 
@@ -100,7 +98,6 @@ public class Debouncer {
      * Holder for scheduled task information.
      *
      * @param <T>     the type of result promised by the CompletableFuture.
-     * @param promise the CompletableFuture that will eventually complete with the result of the scheduled task.
      */
     private static final class ScheduledTaskHolder<T> {
 

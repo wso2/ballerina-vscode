@@ -243,7 +243,6 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.isPersistClient;
  * @since 1.0.0
  */
 public class CodeAnalyzer extends NodeVisitor {
-
     public static final String PARAMETERIZED_QUERY = "sql:ParameterizedQuery";
     public static final String PARAMETERIZED_CALL_QUERY = "sql:ParameterizedCallQuery";
     // Readonly fields
@@ -258,7 +257,6 @@ public class CodeAnalyzer extends NodeVisitor {
     private final String connectionScope;
     private final WorkspaceManager workspaceManager;
     private final Path filePath;
-
     // State fields
     private NodeBuilder nodeBuilder;
     private final List<FlowNode> flowNodeList;

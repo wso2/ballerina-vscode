@@ -19,15 +19,16 @@
 package org.ballerinalang.langserver.workspace.executionmanager;
 
 import java.time.Duration;
+
 import javax.annotation.Nonnull;
 
 /**
  * Wraps process termination grace-period duration.
  *
+ * @param duration process termination grace period
  * @since 1.7.0
  */
 public record GracePeriod(@Nonnull Duration duration) {
-
     public GracePeriod {
     }
 }

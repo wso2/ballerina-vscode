@@ -29,16 +29,16 @@ import io.ballerina.projects.Project;
 import io.ballerina.projects.TomlDocument;
 import io.ballerina.projects.util.ProjectConstants;
 
-import javax.annotation.Nonnull;
-
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.nio.file.Path;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+
+import javax.annotation.Nonnull;
 
 /**
  * Lock-free URI resolution cache backed by an immutable persistent trie.
@@ -53,11 +53,9 @@ import java.util.function.Consumer;
  * @since 1.7.0
  */
 public final class UriResolver {
-
     private final AtomicReference<TrieNode<ResolvedEntry>> root = new AtomicReference<>(new TrieNode<>());
     private final Cache<DocumentUri, ResolvedEntry> projectIndex;
     private final Consumer<DocumentUri> onEviction;
-
     /**
      * Creates an unbounded resolver with no implicit-eviction callback.
      */
@@ -493,7 +491,8 @@ public final class UriResolver {
     public void onConfigRemove(@Nonnull DocumentUri uri, @Nonnull String scheme, @Nonnull Project updatedProject) {
         TrieNode<ResolvedEntry> updated = root.get()
                 .remove(toSegments(uri.uri()), scheme)
-                .insert(toSegments(updatedProject.sourceRoot()), scheme, new ResolvedEntry.ProjectEntry(updatedProject));
+                .insert(toSegments(updatedProject.sourceRoot()), scheme,
+                        new ResolvedEntry.ProjectEntry(updatedProject));
         root.set(updated);
     }
 
@@ -610,8 +609,10 @@ public final class UriResolver {
         Path normalized = sourceRoot.toAbsolutePath().normalize();
         return switch (template) {
             case DocumentUri.FileUri ignored -> new DocumentUri.FileUri(normalized.toUri());
-            case DocumentUri.ExprUri ignored -> new DocumentUri.ExprUri(URI.create("expr://" + normalized.toUri().getPath()));
-            case DocumentUri.AiUri ignored -> new DocumentUri.AiUri(URI.create("ai://" + normalized.toUri().getPath()));
+            case DocumentUri.ExprUri ignored ->
+                    new DocumentUri.ExprUri(URI.create("expr://" + normalized.toUri().getPath()));
+            case DocumentUri.AiUri ignored ->
+                    new DocumentUri.AiUri(URI.create("ai://" + normalized.toUri().getPath()));
         };
     }
 

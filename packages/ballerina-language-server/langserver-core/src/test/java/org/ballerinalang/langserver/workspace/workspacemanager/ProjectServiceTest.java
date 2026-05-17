@@ -48,10 +48,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
+
 
 /**
  * Tests for {@link ProjectServiceImpl}.
@@ -170,7 +170,8 @@ public class ProjectServiceTest {
         service.evictProject(tempDir);
 
         Assert.assertTrue(uriResolver.getProject(new DocumentUri.FileUri(tempDir.toUri())).isEmpty());
-        Assert.assertTrue(awaitCondition(() -> publishedEvents.stream().anyMatch(event -> event instanceof ProjectEvictedEvent)));
+        Assert.assertTrue(awaitCondition(() -> publishedEvents.stream()
+                .anyMatch(event -> event instanceof ProjectEvictedEvent)));
     }
 
     @Test
@@ -206,7 +207,8 @@ public class ProjectServiceTest {
         workspaceProject.transitionTo(ProjectHealthState.COMPILATION_CRASHED);
         workspaceProject.transitionTo(ProjectHealthState.RECOVERING);
 
-        eventBus.publish(new CompilerEvent(EventKind.CE_E5B_COMPILATION_DIAGNOSTICS_READY, tempDir.toUri(), "test-pkg"));
+        eventBus.publish(new CompilerEvent(EventKind.CE_E5B_COMPILATION_DIAGNOSTICS_READY, tempDir.toUri(),
+                "test-pkg"));
 
         Assert.assertTrue(awaitCondition(() -> workspaceProject.healthState() == ProjectHealthState.HEALTHY));
     }

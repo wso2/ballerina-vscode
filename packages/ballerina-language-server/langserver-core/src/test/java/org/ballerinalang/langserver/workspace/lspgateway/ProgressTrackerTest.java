@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+
 /**
  * Tests for {@link LspProgressTracker}.
  *
@@ -96,7 +97,8 @@ public class ProgressTrackerTest {
     private static class MockLanguageClient implements LanguageClient {
         List<ProgressNotification> notifications = new ArrayList<>();
 
-        record ProgressNotification(String token, WorkDoneProgressNotification value) {}
+        record ProgressNotification(String token, WorkDoneProgressNotification value) {
+        }
 
         @Override
         public void notifyProgress(org.eclipse.lsp4j.ProgressParams params) {

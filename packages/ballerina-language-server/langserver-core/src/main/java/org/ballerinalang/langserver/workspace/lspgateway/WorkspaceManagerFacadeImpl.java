@@ -28,8 +28,8 @@ import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectException;
-import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.CompilerCompilationGuard;
+import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.workspace.RunContext;
 import org.ballerinalang.langserver.commons.workspace.RunResult;
 import org.ballerinalang.langserver.commons.workspace.UriScopedWorkspaceManagerProvider;
@@ -38,9 +38,9 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationService;
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.StableSnapshot;
 import org.ballerinalang.langserver.workspace.execution.WorkspaceRunService;
-import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
 import org.ballerinalang.langserver.workspace.executionmanager.ExecutionService;
 import org.ballerinalang.langserver.workspace.workspacemanager.ProjectService;
+import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
@@ -59,6 +59,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+
 import javax.annotation.Nonnull;
 
 /**
@@ -70,14 +71,12 @@ import javax.annotation.Nonnull;
  */
 public final class WorkspaceManagerFacadeImpl
         implements WorkspaceManager, UriScopedWorkspaceManagerProvider, AutoCloseable {
-
     private final ProjectService projectService;
     private final CompilationService compilationService;
     private final ExecutionService executionService;
     private final WorkspaceRunService workspaceRunService;
     private final AutoCloseable closeAction;
     private final AtomicBoolean closed = new AtomicBoolean(false);
-
     /**
      * Creates a new facade with all required service dependencies.
      *
@@ -523,7 +522,8 @@ public final class WorkspaceManagerFacadeImpl
 
         @Override
         public Optional<SemanticModel> semanticModel(Path filePath) {
-            return shouldScope(filePath) ? facade.semanticModel(uriFor(filePath), null) : facade.semanticModel(filePath);
+            return shouldScope(filePath) ? facade.semanticModel(uriFor(filePath), null)
+                    : facade.semanticModel(filePath);
         }
 
         @Override

@@ -33,7 +33,6 @@ import org.ballerinalang.langserver.workspace.workspacemanager.uri.UriResolver;
 import org.eclipse.lsp4j.FileChangeType;
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent;
 
-import javax.annotation.Nonnull;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -44,6 +43,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 /**
  * Drains buffered changes and applies them through the public compiler modify APIs.
  *
@@ -53,12 +54,10 @@ import java.util.Set;
  * @since 1.7.0
  */
 public class ChangeApplier {
-
     private static final Set<String> WATCHER_MARKERS = Set.of(
             FileChangeType.Created.name(),
             FileChangeType.Changed.name(),
             FileChangeType.Deleted.name());
-
     private final ChangeBuffer changeBuffer;
     private final UriResolver uriResolver;
     private final ContentChangeStrategy strategy;
@@ -234,7 +233,8 @@ public class ChangeApplier {
         };
     }
 
-    private String resolveConfigContent(ResolvedEntry.ConfigEntry configEntry, List<TextDocumentContentChangeEvent> changes) {
+    private String resolveConfigContent(ResolvedEntry.ConfigEntry configEntry,
+                                        List<TextDocumentContentChangeEvent> changes) {
         String baseContent = configEntry.config().textDocument().toString();
         if (changes.isEmpty()) {
             return baseContent;
@@ -247,10 +247,12 @@ public class ChangeApplier {
     }
 
     private boolean containsWatcherMarker(List<TextDocumentContentChangeEvent> changes) {
-        return changes.stream().allMatch(change -> change.getRange() == null && WATCHER_MARKERS.contains(change.getText()));
+        return changes.stream()
+                .allMatch(change -> change.getRange() == null && WATCHER_MARKERS.contains(change.getText()));
     }
 
-    private void applyViaDocumentModify(DocumentUri uri, Document document, List<TextDocumentContentChangeEvent> changes) {
+    private void applyViaDocumentModify(DocumentUri uri, Document document,
+                                        List<TextDocumentContentChangeEvent> changes) {
         Document updated = document.modify()
                 .withContent(strategy.computeContent(document, changes))
                 .apply();
@@ -295,14 +297,16 @@ public class ChangeApplier {
     private DocumentUri sourceRootLike(DocumentUri template, Path sourceRoot) {
         String normalizedPath = sourceRoot.toAbsolutePath().normalize().toUri().getPath();
         return switch (template) {
-            case DocumentUri.FileUri ignored -> new DocumentUri.FileUri(sourceRoot.toAbsolutePath().normalize().toUri());
+            case DocumentUri.FileUri ignored ->
+                    new DocumentUri.FileUri(sourceRoot.toAbsolutePath().normalize().toUri());
             case DocumentUri.ExprUri ignored -> new DocumentUri.ExprUri(URI.create("expr://" + normalizedPath));
             case DocumentUri.AiUri ignored -> new DocumentUri.AiUri(URI.create("ai://" + normalizedPath));
         };
     }
 
     /**
-     * Enumerates source documents in the given compiler project and returns the subset with buffered changes.
+     * Enumerates source documents in the given compiler project and returns the
+     * subset with buffered changes.
      *
      * @param project the compiler project to enumerate
      * @return pending document URIs for the project

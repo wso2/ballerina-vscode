@@ -34,6 +34,8 @@ import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
+
+// CHECKSTYLE OFF: Unknown tag 'adr'.
 /**
  * Thread-safe per-package store for stable and in-progress snapshots.
  *
@@ -57,12 +59,11 @@ import javax.annotation.Nonnull;
  *
  * @since 1.7.0
  */
+// CHECKSTYLE ON
 public class DualSnapshotStore {
-
     private static final ContentVersion INITIAL_CONTENT_VERSION = new ContentVersion(0);
     private static final int DEFAULT_MAX_STABLE_SNAPSHOTS = 16;
     private static final Logger LOG = Logger.getLogger(DualSnapshotStore.class.getName());
-
     private final ConcurrentHashMap<CompilationKey, SnapshotPair> snapshots;
     private final int maxStableSnapshots;
     private volatile Consumer<CompilationKey> evictionListener;
@@ -310,7 +311,8 @@ public class DualSnapshotStore {
         }
 
         @Override
-        public CompletableFuture<SemanticModel> semanticModel(@Nonnull ModuleId moduleId, @Nonnull CancelChecker checker) {
+        public CompletableFuture<SemanticModel> semanticModel(@Nonnull ModuleId moduleId,
+                                                              @Nonnull CancelChecker checker) {
             checker.checkCanceled();
             CompletableFuture<SemanticModel> result = publishedStableSnapshot.thenApply(snapshot -> {
                 checker.checkCanceled();

@@ -20,12 +20,13 @@ package org.ballerinalang.langserver.workspace.eventbus.event;
 
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Domain event representing a compilation engine event.
@@ -36,7 +37,6 @@ import java.util.UUID;
  * @since 1.7.0
  */
 public final class CompilerEvent extends DomainEvent {
-
     private final URI sourceRoot;
     private final String descriptorName;
 

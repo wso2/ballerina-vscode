@@ -22,19 +22,19 @@ import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.PackageName;
 import org.awaitility.Awaitility;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationKey;
-import org.ballerinalang.langserver.workspace.compilerengine.CompileTask;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationPipeline;
-import org.ballerinalang.langserver.workspace.compilerengine.snapshot.DualSnapshotStore;
+import org.ballerinalang.langserver.workspace.compilerengine.CompileTask;
 import org.ballerinalang.langserver.workspace.compilerengine.revovery.FailureType;
 import org.ballerinalang.langserver.workspace.compilerengine.revovery.RecoveryLadder;
+import org.ballerinalang.langserver.workspace.compilerengine.snapshot.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.StableSnapshot;
-import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
-import org.ballerinalang.langserver.workspace.eventbus.event.CompilerEvent;
-import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
+import org.ballerinalang.langserver.workspace.eventbus.event.CompilerEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -50,6 +50,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+
 
 /**
  * Acceptance tests for the Recovery Ladder driven by the CompilationPipeline (ADR-049).
@@ -127,7 +128,8 @@ public class RecoveryLadderAcceptanceTest {
             }
 
             @Override
-            public CompilationPipeline.RecoveryResult recover(CompileTask task, LockingMode initialMode, Throwable cause) {
+            public CompilationPipeline.RecoveryResult recover(CompileTask task, LockingMode initialMode,
+                    Throwable cause) {
                 recoveryCallCount.incrementAndGet();
                 // Simulate ladder walking through modes using RecoveryLadder
                 attemptedModes.add(initialMode);
@@ -185,7 +187,8 @@ public class RecoveryLadderAcceptanceTest {
             }
 
             @Override
-            public CompilationPipeline.RecoveryResult recover(CompileTask task, LockingMode initialMode, Throwable cause) {
+            public CompilationPipeline.RecoveryResult recover(CompileTask task, LockingMode initialMode,
+                    Throwable cause) {
                 return CompilationPipeline.RecoveryResult.success();
             }
         });
@@ -233,7 +236,8 @@ public class RecoveryLadderAcceptanceTest {
             }
 
             @Override
-            public CompilationPipeline.RecoveryResult recover(CompileTask task, LockingMode initialMode, Throwable cause) {
+            public CompilationPipeline.RecoveryResult recover(CompileTask task, LockingMode initialMode,
+                    Throwable cause) {
                 recoveryInvocations.incrementAndGet();
                 // Simulate successful recovery
                 return CompilationPipeline.RecoveryResult.success();
@@ -282,7 +286,8 @@ public class RecoveryLadderAcceptanceTest {
             }
 
             @Override
-            public CompilationPipeline.RecoveryResult recover(CompileTask task, LockingMode initialMode, Throwable cause) {
+            public CompilationPipeline.RecoveryResult recover(CompileTask task, LockingMode initialMode,
+                    Throwable cause) {
                 return CompilationPipeline.RecoveryResult.exhausted();
             }
         });
@@ -327,7 +332,8 @@ public class RecoveryLadderAcceptanceTest {
             }
 
             @Override
-            public CompilationPipeline.RecoveryResult recover(CompileTask task, LockingMode initialMode, Throwable cause) {
+            public CompilationPipeline.RecoveryResult recover(CompileTask task, LockingMode initialMode,
+                    Throwable cause) {
                 // Attempt to transition through ladder
                 LockingMode transitioned = RecoveryLadder.nextMode(initialMode, FailureType.RESOLUTION_FAILED);
                 Assert.assertNotEquals(transitioned, initialMode,
@@ -377,7 +383,8 @@ public class RecoveryLadderAcceptanceTest {
             }
 
             @Override
-            public CompilationPipeline.RecoveryResult recover(CompileTask task, LockingMode initialMode, Throwable cause) {
+            public CompilationPipeline.RecoveryResult recover(CompileTask task, LockingMode initialMode,
+                    Throwable cause) {
                 recoveryInvoked.set(true);
                 return CompilationPipeline.RecoveryResult.exhausted();
             }
@@ -494,7 +501,8 @@ public class RecoveryLadderAcceptanceTest {
             }
 
             @Override
-            public CompilationPipeline.RecoveryResult recover(CompileTask task, LockingMode initialMode, Throwable cause) {
+            public CompilationPipeline.RecoveryResult recover(CompileTask task, LockingMode initialMode,
+                    Throwable cause) {
                 capturedInitialMode.set(initialMode);
 
                 // Try to escalate
@@ -541,7 +549,8 @@ public class RecoveryLadderAcceptanceTest {
             }
 
             @Override
-            public CompilationPipeline.RecoveryResult recover(CompileTask task, LockingMode initialMode, Throwable cause) {
+            public CompilationPipeline.RecoveryResult recover(CompileTask task, LockingMode initialMode,
+                    Throwable cause) {
                 return CompilationPipeline.RecoveryResult.success();
             }
         });
@@ -593,7 +602,8 @@ public class RecoveryLadderAcceptanceTest {
             }
 
             @Override
-            public CompilationPipeline.RecoveryResult recover(CompileTask task, LockingMode initialMode, Throwable cause) {
+            public CompilationPipeline.RecoveryResult recover(CompileTask task, LockingMode initialMode,
+                    Throwable cause) {
                 recoveryInvoked.set(true);
                 return CompilationPipeline.RecoveryResult.exhausted();
             }

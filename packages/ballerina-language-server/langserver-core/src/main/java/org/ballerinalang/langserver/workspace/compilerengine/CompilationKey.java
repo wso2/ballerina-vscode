@@ -29,6 +29,8 @@ import javax.annotation.Nonnull;
  * values (same org/name/version). This compound key makes them distinct so their
  * snapshots and pipelines never collide in any shared store or index.
  *
+ * @param sourceRoot source root path for the compilation pipeline
+ * @param descriptor package descriptor for the compilation pipeline
  * @since 1.7.0
  */
 public record CompilationKey(@Nonnull String sourceRoot, @Nonnull PackageDescriptor descriptor) {

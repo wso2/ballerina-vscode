@@ -32,11 +32,11 @@ import org.ballerinalang.langserver.workspace.executionmanager.ExecutionService;
 import org.ballerinalang.langserver.workspace.executionmanager.GracePeriod;
 import org.ballerinalang.langserver.workspace.executionmanager.ProcessId;
 import org.ballerinalang.langserver.workspace.executionmanager.ProcessState;
-import org.ballerinalang.langserver.workspace.workspacemanager.project.EvictionReason;
 import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
+import org.ballerinalang.langserver.workspace.workspacemanager.ProjectService;
+import org.ballerinalang.langserver.workspace.workspacemanager.project.EvictionReason;
 import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectHealthState;
 import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectKind;
-import org.ballerinalang.langserver.workspace.workspacemanager.ProjectService;
 import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.testng.Assert;
@@ -48,6 +48,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
+
 
 /**
  * Verifies bounded-context API contracts and value objects.
@@ -132,11 +133,13 @@ public class WorkspaceContextContractsTest {
         Assert.assertTrue(CompilationService.class.isInterface());
         Assert.assertEquals(CompilationService.class.getMethods().length, 2);
 
-        Method stableSnapshot = CompilationService.class.getMethod("stableSnapshot", Project.class, PackageDescriptor.class,
+        Method stableSnapshot = CompilationService.class.getMethod("stableSnapshot", Project.class,
+                PackageDescriptor.class,
                 CancelChecker.class);
         Assert.assertEquals(stableSnapshot.getReturnType(), StableSnapshot.class);
 
-        Method latestSnapshot = CompilationService.class.getMethod("latestSnapshot", Project.class, PackageDescriptor.class,
+        Method latestSnapshot = CompilationService.class.getMethod("latestSnapshot", Project.class,
+                PackageDescriptor.class,
                 CancelChecker.class);
         Assert.assertEquals(latestSnapshot.getReturnType(), SnapshotView.class);
     }

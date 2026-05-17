@@ -18,13 +18,13 @@
 
 package org.ballerinalang.langserver.workspace.workspacemanager.uri;
 
-import javax.annotation.Nonnull;
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+
+import javax.annotation.Nonnull;
 
 /**
  * Immutable persistent trie node keyed by path segments.
@@ -36,7 +36,6 @@ import java.util.Optional;
  * @since 1.7.0
  */
 public final class TrieNode<V> {
-
     private static final String DEFAULT_SCHEME = "file";
     private static final String[] EMPTY_EDGE = new String[0];
     private static final TrieNode<?> EMPTY = new TrieNode<>(EMPTY_EDGE, Map.of(), null, null);

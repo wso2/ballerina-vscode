@@ -44,6 +44,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+
 /**
  * Tests for {@link UriResolver} lock-free URI resolution cache.
  *
@@ -223,7 +224,8 @@ public class UriResolverTest {
         DocumentUri inScope = fileUri("/workspace/project-a/main.bal");
         DocumentUri outScope = fileUri("/workspace/project-b/main.bal");
         ResolvedEntry inScopeEntry = new ResolvedEntry.DocumentEntry(mockDocument);
-        ResolvedEntry outScopeEntry = new ResolvedEntry.DocumentEntry(documentOf(moduleOf(projectAt("/workspace/project-b"))));
+        ResolvedEntry outScopeEntry = new ResolvedEntry.DocumentEntry(
+                documentOf(moduleOf(projectAt("/workspace/project-b"))));
 
         resolver.register(inScope, inScopeEntry);
         resolver.register(outScope, outScopeEntry);
@@ -244,7 +246,8 @@ public class UriResolverTest {
         DocumentUri testDoc = fileUri("/workspace/project/tests/main_test.bal");
         ResolvedEntry authEntry = new ResolvedEntry.DocumentEntry(mockDocument);
         ResolvedEntry dbEntry = new ResolvedEntry.DocumentEntry(documentOf(moduleOf(mockProject)));
-        ResolvedEntry testEntry = new ResolvedEntry.DocumentEntry(documentOf(moduleOf(projectAt("/workspace/project"))));
+        ResolvedEntry testEntry = new ResolvedEntry.DocumentEntry(
+                documentOf(moduleOf(projectAt("/workspace/project"))));
 
         resolver.register(authDoc, authEntry);
         resolver.register(dbDoc, dbEntry);

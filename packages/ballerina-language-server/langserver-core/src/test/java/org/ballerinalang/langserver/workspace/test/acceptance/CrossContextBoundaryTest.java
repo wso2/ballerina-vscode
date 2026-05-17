@@ -21,8 +21,8 @@ import io.ballerina.projects.PackageCompilation;
 import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.PackageName;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationPipeline;
-import org.ballerinalang.langserver.workspace.compilerengine.CompileTask;
 import org.ballerinalang.langserver.workspace.compilerengine.CompilationServiceImpl;
+import org.ballerinalang.langserver.workspace.compilerengine.CompileTask;
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.StableSnapshot;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
@@ -37,7 +37,6 @@ import org.ballerinalang.langserver.workspace.workspacemanager.change.ChangeBuff
 import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
 import org.ballerinalang.langserver.workspace.workspacemanager.project.Project;
 import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectHealthState;
-import org.ballerinalang.langserver.workspace.workspacemanager.project.ProjectKind;
 import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -54,6 +53,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
 
 /**
  * Acceptance tests for cross-context boundaries after project-cache consolidation.
@@ -135,7 +135,8 @@ public class CrossContextBoundaryTest {
         eventBus.publish(new CompilerEvent(EventKind.CE_E5A_RESOLUTION_DIAGNOSTICS_READY, root.uri(), "test-pkg"));
 
         Assert.assertTrue(awaitCondition(
-                () -> projectService.hasObservedCompilerSignal(root, EventKind.CE_E5A_RESOLUTION_DIAGNOSTICS_READY), 3));
+                () -> projectService.hasObservedCompilerSignal(root, EventKind.CE_E5A_RESOLUTION_DIAGNOSTICS_READY),
+                3));
     }
 
     @Test

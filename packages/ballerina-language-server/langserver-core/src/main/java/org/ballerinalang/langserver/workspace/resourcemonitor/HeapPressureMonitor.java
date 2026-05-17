@@ -18,8 +18,6 @@
 
 package org.ballerinalang.langserver.workspace.resourcemonitor;
 
-import javax.annotation.Nonnull;
-
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryType;
@@ -33,6 +31,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import javax.annotation.Nonnull;
+
 /**
  * Polls old-generation heap usage and publishes graduated {@link HeapPressureDetected} events
  * when pressure level transitions occur (ADR-041).
@@ -45,7 +45,6 @@ import java.util.function.Supplier;
  * @since 1.7.0
  */
 public class HeapPressureMonitor {
-
     // Escalation thresholds
     private static final double THRESHOLD_WARNING = 0.70;
     private static final double THRESHOLD_CRITICAL = 0.80;

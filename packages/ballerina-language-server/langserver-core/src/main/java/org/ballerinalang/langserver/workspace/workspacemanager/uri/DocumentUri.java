@@ -19,6 +19,7 @@
 package org.ballerinalang.langserver.workspace.workspacemanager.uri;
 
 import java.net.URI;
+
 import javax.annotation.Nonnull;
 
 /**
@@ -27,14 +28,12 @@ import javax.annotation.Nonnull;
  * @since 1.7.0
  */
 public sealed interface DocumentUri permits DocumentUri.FileUri, DocumentUri.ExprUri, DocumentUri.AiUri {
-
     /**
      * Returns the URI identity.
      *
      * @return URI value
      */
     URI uri();
-
     private static URI validateScheme(@Nonnull URI uri, String scheme) {
         if (!scheme.equals(uri.getScheme())) {
             throw new IllegalArgumentException("Expected URI scheme '" + scheme + "' but found '"
@@ -51,8 +50,6 @@ public sealed interface DocumentUri permits DocumentUri.FileUri, DocumentUri.Exp
     record FileUri(URI uri) implements DocumentUri {
         /**
          * Creates a file URI identity.
-         *
-         * @param uri file URI with {@code file} scheme
          */
         public FileUri {
             uri = validateScheme(uri, "file");
@@ -67,8 +64,6 @@ public sealed interface DocumentUri permits DocumentUri.FileUri, DocumentUri.Exp
     record ExprUri(URI uri) implements DocumentUri {
         /**
          * Creates an expr URI identity.
-         *
-         * @param uri expression URI with {@code expr} scheme
          */
         public ExprUri {
             uri = validateScheme(uri, "expr");
@@ -83,8 +78,6 @@ public sealed interface DocumentUri permits DocumentUri.FileUri, DocumentUri.Exp
     record AiUri(URI uri) implements DocumentUri {
         /**
          * Creates an AI URI identity.
-         *
-         * @param uri AI URI with {@code ai} scheme
          */
         public AiUri {
             uri = validateScheme(uri, "ai");

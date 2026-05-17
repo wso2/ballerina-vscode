@@ -20,9 +20,10 @@ package org.ballerinalang.langserver.workspace.eventbus.event;
 
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 
-import javax.annotation.Nullable;
 import java.time.Instant;
 import java.util.UUID;
+
+import javax.annotation.Nullable;
 
 /**
  * Domain event emitted when multiple projects are registered in batch.
@@ -31,7 +32,6 @@ import java.util.UUID;
  * @since 1.7.0
  */
 public final class BatchEvent extends DomainEvent {
-
     /**
      * Creates a batch event with no causation link.
      */

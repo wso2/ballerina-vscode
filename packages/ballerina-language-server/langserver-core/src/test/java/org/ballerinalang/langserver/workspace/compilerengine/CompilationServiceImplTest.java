@@ -31,22 +31,20 @@ import org.ballerinalang.langserver.workspace.compilerengine.snapshot.DualSnapsh
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.InProgressSnapshot;
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.SnapshotView;
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.StableSnapshot;
-import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
-import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
+import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.eventbus.event.HeapPressureEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.ProjectEvent;
-import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.resourcemonitor.HeapPressureLevel;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
+import org.ballerinalang.langserver.workspace.workspacemanager.uri.DocumentUri;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import javax.annotation.Nonnull;
 import java.lang.reflect.Constructor;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -59,8 +57,11 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.annotation.Nonnull;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
 
 /**
  * Tests for CompilationServiceImpl covering event routing, circuit breaker, and LSP query methods.

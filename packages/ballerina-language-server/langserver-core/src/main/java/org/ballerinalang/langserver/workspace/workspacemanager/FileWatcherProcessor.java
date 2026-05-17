@@ -28,8 +28,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.annotation.Nonnull;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -38,13 +36,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 
+import javax.annotation.Nonnull;
+
 /**
  * Debounced file watcher event processor with per-event fault tolerance.
  *
  * @since 1.7.0
  */
 public final class FileWatcherProcessor {
-
     /**
      * Functional callback for handling one resolved file watcher event.
      *

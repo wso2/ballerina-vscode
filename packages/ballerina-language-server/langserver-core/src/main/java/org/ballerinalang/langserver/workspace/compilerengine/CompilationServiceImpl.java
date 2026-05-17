@@ -26,19 +26,18 @@ import org.ballerinalang.langserver.workspace.compilerengine.snapshot.DualSnapsh
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.InProgressSnapshot;
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.SnapshotView;
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.StableSnapshot;
-import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
-import org.ballerinalang.langserver.workspace.eventbus.event.CompilerEvent;
-import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.EventKind;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
+import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
+import org.ballerinalang.langserver.workspace.eventbus.event.CompilerEvent;
+import org.ballerinalang.langserver.workspace.eventbus.event.DomainEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.HeapPressureEvent;
 import org.ballerinalang.langserver.workspace.eventbus.event.ProjectEvent;
-import org.ballerinalang.langserver.workspace.eventbus.SubscriberTier;
 import org.ballerinalang.langserver.workspace.workspacemanager.LockingMode;
+import org.ballerinalang.langserver.workspace.workspacemanager.ProjectServiceImpl;
+import org.ballerinalang.langserver.workspace.workspacemanager.change.ContentVersion;
 import org.ballerinalang.langserver.workspace.workspacemanager.uri.UriResolver;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
-
-import org.ballerinalang.langserver.workspace.workspacemanager.ProjectServiceImpl;
 
 import java.net.URI;
 import java.nio.file.Path;
@@ -72,7 +71,6 @@ import javax.annotation.Nonnull;
  * @since 1.7.0
  */
 public class CompilationServiceImpl implements CompilationService, AutoCloseable {
-
     private static final Logger LOG = Logger.getLogger(CompilationServiceImpl.class.getName());
     private static final int INITIAL_REQUEST_VERSION = 1;
 
