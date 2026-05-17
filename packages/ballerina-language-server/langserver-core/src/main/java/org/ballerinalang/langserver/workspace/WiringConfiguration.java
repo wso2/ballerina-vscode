@@ -141,30 +141,30 @@ public final class WiringConfiguration implements AutoCloseable {
      */
     public static final class Builder {
 
-        private @Nonnull EventSyncPubSubHolder eventBus;
-        private @Nonnull DualSnapshotStore snapshotStore;
-        private @Nonnull ProjectLoader projectLoader;
-        private @Nonnull GracePeriod gracePeriod;
+        private EventSyncPubSubHolder eventBus;
+        private DualSnapshotStore snapshotStore;
+        private ProjectLoader projectLoader;
+        private GracePeriod gracePeriod;
         private int maxActiveProcesses = 5;
         private long heapPressurePollIntervalMs = 5000L;
         private CompilationPipeline.CompilationAction compilationAction;
 
-        public Builder eventBus(EventSyncPubSubHolder eventBus) {
+        public Builder eventBus(@Nonnull EventSyncPubSubHolder eventBus) {
             this.eventBus = eventBus;
             return this;
         }
 
-        public Builder snapshotStore(DualSnapshotStore snapshotStore) {
+        public Builder snapshotStore(@Nonnull DualSnapshotStore snapshotStore) {
             this.snapshotStore = snapshotStore;
             return this;
         }
 
-        public Builder projectLoader(ProjectLoader projectLoader) {
+        public Builder projectLoader(@Nonnull ProjectLoader projectLoader) {
             this.projectLoader = projectLoader;
             return this;
         }
 
-        public Builder gracePeriod(GracePeriod gracePeriod) {
+        public Builder gracePeriod(@Nonnull GracePeriod gracePeriod) {
             this.gracePeriod = gracePeriod;
             return this;
         }
@@ -191,6 +191,9 @@ public final class WiringConfiguration implements AutoCloseable {
         }
 
         public WiringConfiguration build() {
+            if (eventBus == null || snapshotStore == null || projectLoader == null || gracePeriod == null) {
+                throw new IllegalStateException("eventBus, snapshotStore, projectLoader, and gracePeriod are required");
+            }
             return new WiringConfiguration(this);
         }
     }

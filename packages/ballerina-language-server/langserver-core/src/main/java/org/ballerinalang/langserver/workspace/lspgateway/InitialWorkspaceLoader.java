@@ -229,7 +229,8 @@ public final class InitialWorkspaceLoader {
      * @return true if path is hidden, false otherwise
      */
     private boolean isHidden(Path path) {
-        return path.getFileName().toString().startsWith(".");
+        Path fileName = path.getFileName();
+        return fileName != null && fileName.toString().startsWith(".");
     }
 
     /**

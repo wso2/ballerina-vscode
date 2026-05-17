@@ -196,11 +196,17 @@ final class DeliveryChannel {
         }
         if (!queue.offer(event)) {
             queue.poll();
-            queue.offer(event);
+            boolean enqueued = queue.offer(event);
             telemetryEmitter.emit("event_bus.dropped_count", Map.of(
                     "subscriber", subscriberId,
                     "eventKind", event.eventKind().name()
             ));
+            if (!enqueued) {
+                telemetryEmitter.emit("event_bus.best_effort_delivery_failed", Map.of(
+                        "subscriber", subscriberId,
+                        "eventKind", event.eventKind().name()
+                ));
+            }
         }
     }
 

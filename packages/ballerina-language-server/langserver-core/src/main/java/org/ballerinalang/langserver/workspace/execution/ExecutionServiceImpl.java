@@ -289,7 +289,9 @@ public final class ExecutionServiceImpl implements ExecutionService {
     }
 
     private DocumentUri resolveSourceUri(Path balSourcePath) {
-        return new DocumentUri.FileUri(balSourcePath.toAbsolutePath().normalize().getParent().toUri());
+        Path normalized = balSourcePath.toAbsolutePath().normalize();
+        Path sourceRoot = normalized.getParent();
+        return new DocumentUri.FileUri((sourceRoot != null ? sourceRoot : normalized).toUri());
     }
 
     private ExecutionProcess.ExecutionMode resolveExecutionMode(RunContext context) {
