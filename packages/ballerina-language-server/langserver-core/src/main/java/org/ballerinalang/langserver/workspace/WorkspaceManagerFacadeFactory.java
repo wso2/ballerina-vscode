@@ -29,12 +29,9 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.ballerinalang.langserver.workspace.compilerengine.snapshot.DualSnapshotStore;
 import org.ballerinalang.langserver.workspace.eventbus.EventSyncPubSubHolder;
 import org.ballerinalang.langserver.workspace.execution.GracePeriod;
-import org.ballerinalang.langserver.workspace.lspgateway.ClientSession;
 import org.ballerinalang.langserver.workspace.lspgateway.WorkspaceManagerFacadeImpl;
-import org.eclipse.lsp4j.ClientCapabilities;
 
 import java.nio.file.Path;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -70,11 +67,6 @@ public final class WorkspaceManagerFacadeFactory {
                 .projectLoader((requestUri, kind) -> loadProject(Path.of(requestUri.uri()), buildOptions))
                 .gracePeriod(gracePeriod)
                 .build();
-
-        ClientSession session = new ClientSession(
-                new ClientCapabilities(),
-                Collections.emptyList(),
-                "ls-file-session");
 
         return new WorkspaceManagerFacadeImpl(
                 config.projectService(),
@@ -129,8 +121,9 @@ public final class WorkspaceManagerFacadeFactory {
         }
 
         Path parentDir = path.getParent();
-        if (path.getFileName() != null
-                && path.getFileName().toString().equals(ProjectConstants.BALLERINA_TOML)
+        Path fileName = path.getFileName();
+        if (fileName != null
+                && fileName.toString().equals(ProjectConstants.BALLERINA_TOML)
                 && parentDir != null
                 && compilerApi.isWorkspaceProjectRoot(parentDir)) {
             return parentDir;

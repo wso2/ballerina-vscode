@@ -59,8 +59,7 @@ public record ClientSession(
      * @return true if client supports work-done progress, false otherwise
      */
     public boolean supportsWorkDoneProgress() {
-        return clientCapabilities != null
-                && clientCapabilities.getWindow() != null
+        return clientCapabilities.getWindow() != null
                 && Boolean.TRUE.equals(clientCapabilities.getWindow().getWorkDoneProgress());
     }
 

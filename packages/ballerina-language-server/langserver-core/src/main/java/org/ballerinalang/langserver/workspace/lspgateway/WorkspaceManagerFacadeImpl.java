@@ -353,10 +353,6 @@ public final class WorkspaceManagerFacadeImpl
         return CompletableFuture.completedFuture(projectMap);
     }
 
-    private Optional<Project> project(DocumentUri uri) {
-        return projectService.project(uri);
-    }
-
     private Project loadProject(DocumentUri uri) {
         return projectService.loadOrCreate(uri, null);
     }

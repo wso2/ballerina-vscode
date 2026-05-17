@@ -97,10 +97,6 @@ public final class WorkspaceRunService {
             }
 
             PackageCompilation compilation = packageCompilation(project);
-            if (compilation == null) {
-                return new RunResult(null, List.of());
-            }
-
             JBallerinaBackend backend = JBallerinaBackend.from(compilation, JvmTarget.JAVA_21, false);
             refreshProjectDocuments(project);
             List<Diagnostic> diagnostics = executionDiagnostics(project, backend);
@@ -142,10 +138,7 @@ public final class WorkspaceRunService {
         Path normalized = filePath.toAbsolutePath().normalize();
         Optional<Project> project = Optional.empty();
         try {
-            Optional<Project> resolved = projectService.project(normalized);
-            if (resolved != null) {
-                project = resolved;
-            }
+            project = projectService.project(normalized);
         } catch (RuntimeException ignored) {
             // Use the path argument as the execution root when the project is not available.
         }

@@ -852,10 +852,6 @@ public final class ProjectServiceImpl implements ProjectService {
         }
     }
 
-    private Optional<DocumentUri> sourceRootUri(Project project) {
-        return sourceRootUri(project, null);
-    }
-
     private Optional<DocumentUri> sourceRootUri(Project project, DocumentUri template) {
         try {
             Path sourceRoot = project.sourceRoot();

@@ -298,13 +298,15 @@ public final class Project {
         if (from == to) {
             return false;
         }
+        if (from == ProjectHealthState.PROJECT_CRASHED || from == ProjectHealthState.CANCELLED) {
+            return to == ProjectHealthState.RECOVERING;
+        }
         return switch (from) {
             case HEALTHY -> to == ProjectHealthState.COMPILATION_CRASHED
                     || to == ProjectHealthState.PROJECT_CRASHED
                     || to == ProjectHealthState.CANCELLED;
             case COMPILATION_CRASHED -> to == ProjectHealthState.RECOVERING && sourceChangedFlag;
-            case PROJECT_CRASHED -> to == ProjectHealthState.RECOVERING;
-            case CANCELLED -> to == ProjectHealthState.RECOVERING;
+            case PROJECT_CRASHED, CANCELLED -> false;
             case RECOVERING -> to == ProjectHealthState.HEALTHY
                     || to == ProjectHealthState.CIRCUIT_OPEN;
             case CIRCUIT_OPEN -> to == ProjectHealthState.RECOVERING;

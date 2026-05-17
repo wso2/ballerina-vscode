@@ -20,8 +20,6 @@ package org.ballerinalang.langserver.workspace.workspacemanager.uri;
 
 import java.net.URI;
 
-import javax.annotation.Nonnull;
-
 /**
  * Represents document identity using supported URI schemes.
  *
@@ -34,13 +32,6 @@ public sealed interface DocumentUri permits DocumentUri.FileUri, DocumentUri.Exp
      * @return URI value
      */
     URI uri();
-    private static URI validateScheme(@Nonnull URI uri, String scheme) {
-        if (!scheme.equals(uri.getScheme())) {
-            throw new IllegalArgumentException("Expected URI scheme '" + scheme + "' but found '"
-                    + uri.getScheme() + "'");
-        }
-        return uri;
-    }
 
     /**
      * Identity for {@code file://} documents.
@@ -52,7 +43,9 @@ public sealed interface DocumentUri permits DocumentUri.FileUri, DocumentUri.Exp
          * Creates a file URI identity.
          */
         public FileUri {
-            uri = validateScheme(uri, "file");
+            if (!"file".equals(uri.getScheme())) {
+                throw new IllegalArgumentException("Expected URI scheme 'file' but found '" + uri.getScheme() + "'");
+            }
         }
     }
 
@@ -66,7 +59,9 @@ public sealed interface DocumentUri permits DocumentUri.FileUri, DocumentUri.Exp
          * Creates an expr URI identity.
          */
         public ExprUri {
-            uri = validateScheme(uri, "expr");
+            if (!"expr".equals(uri.getScheme())) {
+                throw new IllegalArgumentException("Expected URI scheme 'expr' but found '" + uri.getScheme() + "'");
+            }
         }
     }
 
@@ -80,7 +75,9 @@ public sealed interface DocumentUri permits DocumentUri.FileUri, DocumentUri.Exp
          * Creates an AI URI identity.
          */
         public AiUri {
-            uri = validateScheme(uri, "ai");
+            if (!"ai".equals(uri.getScheme())) {
+                throw new IllegalArgumentException("Expected URI scheme 'ai' but found '" + uri.getScheme() + "'");
+            }
         }
     }
 }
