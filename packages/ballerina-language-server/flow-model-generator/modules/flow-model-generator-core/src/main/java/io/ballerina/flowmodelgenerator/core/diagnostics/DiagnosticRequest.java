@@ -30,6 +30,7 @@ import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
+import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Project;
 import io.ballerina.tools.text.LinePosition;
@@ -130,7 +131,7 @@ public class DiagnosticRequest implements Callable<JsonElement> {
 
         // Generate the flow node for the ST node with the respective diagnostics annotated. CodeAnalyzer's default
         // DiagnosticHandler already sources from the package compilation, which includes compiler plugin diagnostics.
-        SemanticModel semanticModel = project.currentPackage().getCompilation()
+        SemanticModel semanticModel = PackageUtil.getCompilation(project.currentPackage())
                 .getSemanticModel(project.currentPackage().getDefaultModule().moduleId());
         NodeKind flowKind = flowNodeObj.codedata().node();
         CodeAnalyzer codeAnalyzer = new CodeAnalyzer(project, semanticModel, Property.LOCAL_SCOPE, Map.of(),

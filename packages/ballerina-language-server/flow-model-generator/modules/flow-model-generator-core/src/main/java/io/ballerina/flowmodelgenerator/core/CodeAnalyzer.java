@@ -301,7 +301,7 @@ public class CodeAnalyzer extends NodeVisitor {
         // Source diagnostics from the package compilation (superset of the semantic model) so that compiler plugin
         // diagnostics are surfaced alongside semantic-phase ones.
         this.diagnosticHandler = new DiagnosticHandler(
-                project.currentPackage().getCompilation().diagnosticResult().diagnostics());
+                PackageUtil.getCompilation(project.currentPackage()).diagnosticResult().diagnostics());
         this.workspaceManager = workspaceManager;
         this.filePath = filePath;
     }

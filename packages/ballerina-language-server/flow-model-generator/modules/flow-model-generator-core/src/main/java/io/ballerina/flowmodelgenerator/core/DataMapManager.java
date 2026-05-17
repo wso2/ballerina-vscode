@@ -2522,7 +2522,7 @@ public class DataMapManager {
                 .withContent(String.join(System.lineSeparator(), newTextDocument.textLines()))
                 .apply();
 
-        SemanticModel semanticModel = project.currentPackage().getCompilation()
+        SemanticModel semanticModel = PackageUtil.getCompilation(project.currentPackage())
                 .getSemanticModel(project.currentPackage().getDefaultModule().moduleId());
         LineRange lineRange = queryExpr.lineRange();
         Node newNode = getQueryNode(updatedDoc, lineRange, isNewClause);
