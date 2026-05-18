@@ -61,7 +61,7 @@ export const TreeHeader = styled.div<{ isSelected?: boolean; isDisabled?: boolea
     borderRadius: '3px',
     width: '100%',
     display: 'flex',
-    cursor: isDisabled ? 'not-allowed' : 'pointer',
+    cursor: 'pointer',
     '&:hover': {
       backgroundColor: isDisabled
         ? 'var(--vscode-tab-inactiveBackground)'
@@ -70,7 +70,7 @@ export const TreeHeader = styled.div<{ isSelected?: boolean; isDisabled?: boolea
     color: 'var(--vscode-inputOption-activeForeground)',
     borderBottom: '1.8px solid var(--vscode-dropdown-border)',
     ...(isSelected && {
-      outline: "1px solid var(--vscode-list-focusAndSelectionOutline, var(--vscode-contrastActiveBorder, var(--vscode-editorLink-activeForeground, var(--vscode-list-focusOutline))))"
+      outline: "2px solid var(--vscode-list-focusAndSelectionOutline, var(--vscode-contrastActiveBorder, var(--vscode-editorLink-activeForeground, var(--vscode-list-focusOutline))))"
     })
 }));
 

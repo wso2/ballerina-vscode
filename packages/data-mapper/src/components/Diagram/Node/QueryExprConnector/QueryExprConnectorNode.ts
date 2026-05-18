@@ -28,7 +28,9 @@ import { getInputPort, getOutputPort, getTargetPortPrefix } from "../../utils/po
 import { OFFSETS } from "../../utils/constants";
 import { removeMapping } from "../../utils/modification-utils";
 import { QueryOutputNode } from "../QueryOutput";
+import { ConvertibleOutputNode } from "../ConvertibleOutput";
 import { useDMSearchStore } from "../../../../store/store";
+import { PrimitiveOutputNode } from "../PrimitiveOutput";
 
 export const QUERY_EXPR_CONNECTOR_NODE_TYPE = "query-expr-connector-node";
 const NODE_ID = "query-expr-connector-node";
@@ -97,7 +99,12 @@ export class QueryExprConnectorNode extends DataMapperNodeModel {
         if (matchedSearch && this.outPort) {
             this.getModel().getNodes().map((node) => {
     
-                if (node instanceof ObjectOutputNode || node instanceof ArrayOutputNode || node instanceof QueryOutputNode) {
+                if (node instanceof ObjectOutputNode ||
+                    node instanceof ArrayOutputNode ||
+                    node instanceof QueryOutputNode ||
+                    node instanceof PrimitiveOutputNode ||
+                    node instanceof ConvertibleOutputNode
+                ) {
                     const targetPortPrefix = getTargetPortPrefix(node);
 
                     this.targetPort = node.getPort(`${targetPortPrefix}.${this.mapping.output}.IN`) as InputOutputPortModel;

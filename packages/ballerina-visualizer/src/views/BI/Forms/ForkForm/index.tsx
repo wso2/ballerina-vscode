@@ -19,6 +19,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button, Codicon, FormExpressionEditorRef, LinkButton, ThemeColors, Typography } from "@wso2/ui-toolkit";
+import styled from "@emotion/styled";
 
 import {
     FlowNode,
@@ -29,14 +30,33 @@ import {
     FormDiagnostics,
     Diagnostic,
     ExpressionProperty,
+    Property,
+    NodeProperties
 } from "@wso2/ballerina-core";
 import {
     FormValues,
     ExpressionEditor,
     ExpressionFormField,
     FormExpressionEditorProps,
+    Form,
+    TypeEditor,
+    EditorFactory,
+    Provider,
+    FormField,
 } from "@wso2/ballerina-side-panel";
 import { FormStyles } from "../styles";
+
+const FieldGroup = styled.div`
+    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    border-radius: 6px;
+    position: relative;
+    padding-right: 10px;
+`;
 import { convertNodePropertyToFormField, removeDuplicateDiagnostics } from "../../../../utils/bi";
 import { cloneDeep, debounce } from "lodash";
 import { RemoveEmptyNodesVisitor, traverseNode } from "@wso2/bi-diagram";
@@ -45,6 +65,7 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 interface ForkFormProps {
     fileName: string;
     node: FlowNode;
+    openRecordEditor: (isOpen: boolean, f: FormValues, editingField?: FormField, newType?: string | NodeProperties) => void;
     targetLineRange: LineRange;
     expressionEditor: FormExpressionEditorProps;
     onSubmit: (node?: FlowNode) => void;
@@ -61,6 +82,7 @@ export function ForkForm(props: ForkFormProps) {
         node,
         targetLineRange,
         expressionEditor,
+        openRecordEditor,
         onSubmit,
         openSubPanel,
         updatedExpressionField,
@@ -76,7 +98,9 @@ export function ForkForm(props: ForkFormProps) {
         handleSubmit,
         setError,
         clearErrors,
-        formState: { isValidating },
+        register,
+        unregister,
+        formState: { isValidating, errors },
     } = useForm<FormValues>();
 
     const { rpcClient } = useRpcContext();
@@ -129,6 +153,10 @@ export function ForkForm(props: ForkFormProps) {
                 const variableValue = branch.properties.variable.value;
                 setValue(`branch-${index}`, variableValue || "");
             }
+            if (branch.properties?.type) {
+                const typeValue = branch.properties.type.value;
+                setValue(`branch-${index}-type`, typeValue || "");
+            }
         });
 
         return () => {
@@ -157,6 +185,10 @@ export function ForkForm(props: ForkFormProps) {
                 const variableValue = data[`branch-${index}`]?.trim();
                 if (variableValue) {
                     branch.properties.variable.value = variableValue;
+                }
+                const typeValue = data[`branch-${index}-type`]?.trim();
+                if (typeValue !== undefined) {
+                    branch.properties.type.value = typeValue;
                 }
             });
 
@@ -209,6 +241,7 @@ export function ForkForm(props: ForkFormProps) {
         };
 
         setValue(`branch-${branches.length}`, "worker" + (branches.length + 1));
+        setValue(`branch-${branches.length}-type`, "");
         // add new branch to end of the current branches
         setBranches([...branches, newBranch]);
     };
@@ -226,6 +259,8 @@ export function ForkForm(props: ForkFormProps) {
         for (let i = index + 1; i < branches.length; i++) {
             const value = getValues(`branch-${i}`);
             setValue(`branch-${i - 1}`, value);
+            const typeValue = getValues(`branch-${i}-type`);
+            setValue(`branch-${i - 1}-type`, typeValue);
         }
     };
 
@@ -299,56 +334,115 @@ export function ForkForm(props: ForkFormProps) {
         return hasDiagnostics;
     }, [diagnosticsInfo]);
 
+    const handleGetExpressionDiagnostics = async (
+        showDiagnostics: boolean,
+        expression: string,
+        key: string,
+        property: ExpressionProperty
+    ) => {
+        await expressionEditor?.getExpressionFormDiagnostics?.(
+            showDiagnostics,
+            expression,
+            key,
+            property,
+            handleSetDiagnosticsInfo
+        );
+    };
+
+    const getFormValues = useCallback(() => {
+        const formValues: FormValues = { ...getValues() };
+        branches.forEach((branch, index) => {
+            formValues[`branch-${index}`] = getValues(`branch-${index}`);
+            formValues[`branch-${index}-type`] = getValues(`branch-${index}-type`);
+        });
+        return formValues;
+    }, [getValues, branches]);
+
     const disableSaveButton = !isValid || isValidating || showProgressIndicator;
 
     // TODO: support multiple type fields
     return (
-        <FormStyles.Container>
-            {branches.map((branch, index) => {
-                if (branch.properties?.variable) {
-                    const field = convertNodePropertyToFormField(`branch-${index}`, branch.properties.variable);
-                    field.label = "Worker " + (index + 1); // TODO: remove this
-                    return (
-                        <FormStyles.Row key={field.key}>
-                            <ExpressionEditor
-                                {...expressionEditor}
-                                // ref={exprRef}
-                                control={control}
-                                field={field}
-                                watch={watch}
-                                setValue={setValue}
-                                openSubPanel={openSubPanel}
-                                targetLineRange={targetLineRange}
-                                fileName={fileName}
-                                onRemove={branches.length > 2 ? () => removeWorker(index) : undefined}
-                                completions={activeEditor === index ? expressionEditor.completions : []}
-                                triggerCharacters={expressionEditor.triggerCharacters}
-                                retrieveCompletions={expressionEditor.retrieveCompletions}
-                                extractArgsFromFunction={expressionEditor.extractArgsFromFunction}
-                                getExpressionEditorDiagnostics={handleExpressionEditorDiagnostics}
-                                onFocus={() => handleEditorFocus(index)}
-                                onCompletionItemSelect={expressionEditor.onCompletionItemSelect}
-                                onCancel={expressionEditor.onCancel}
-                                onBlur={expressionEditor.onBlur}
-                            />
-                        </FormStyles.Row>
-                    );
-                }
-            })}
+        <Provider
+            form={{
+                control,
+                getValues,
+                setValue,
+                watch,
+                register,
+                unregister,
+                setError,
+                clearErrors,
+                formState: { isValidating, errors },
+            }}
+            expressionEditor={{
+                ...expressionEditor,
+                getExpressionEditorDiagnostics: handleGetExpressionDiagnostics,
+            }}
+            targetLineRange={targetLineRange}
+            fileName={fileName}
+            popupManager={{
+                addPopup: () => { },
+                removeLastPopup: () => { },
+                closePopup: () => { },
+            }}
+            nodeInfo={{ kind: node.codedata.node }}
+        >
+            <FormStyles.Container>
+                {branches.map((branch, index) => {
+                    if (branch.properties?.variable) {
+                        const variableField = convertNodePropertyToFormField(`branch-${index}`, branch.properties.variable);
+                        variableField.types = [{ fieldType: "IDENTIFIER", selected: false }]
+                        const typeField = convertNodePropertyToFormField(`branch-${index}-type`, branch.properties.type);
+                        typeField.types = [{ fieldType: "TYPE", selected: false }]
+                        variableField.label = "Worker " + (index + 1);
+                        return (
+                            <FormStyles.Row key={variableField.key}>
+                                <FieldGroup>
+                                    <div>
+                                        <EditorFactory fieldInputType={{ fieldType: "IDENTIFIER", selected: false }} field={variableField} />
+                                    </div>
+                                    <div>
+                                        <TypeEditor
+                                            field={typeField}
+                                            openRecordEditor={(open: boolean, newType?: string | NodeProperties) =>
+                                                openRecordEditor && openRecordEditor(open, getFormValues(), typeField, newType)
+                                            }
+                                        />
+                                    </div>
 
-            <LinkButton onClick={addNewWorker} sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}>
-                <Codicon name={"add"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
-                Add Worker
-            </LinkButton>
+                                    <div style={{ position: 'absolute', top: 8, right: 8 }}>
+                                        {branches.length > 2 && (
+                                            <Codicon
+                                                name="close"
+                                                sx={{ cursor: 'pointer', opacity: 0.6, '&:hover': { opacity: 1 } }}
+                                                onClick={() => {
+                                                    if (branches.length > 2) {
+                                                        removeWorker(index);
+                                                    }
+                                                }}
+                                            />
+                                        )}
+                                    </div>
+                                </FieldGroup>
+                            </FormStyles.Row>
+                        );
+                    }
+                })}
 
-            {onSubmit && (
-                <FormStyles.Footer>
-                    <Button appearance="primary" onClick={handleSubmit(handleOnSave)} disabled={disableSaveButton}>
-                        {showProgressIndicator ? <Typography variant="progress">Saving...</Typography> : "Save"}
-                    </Button>
-                </FormStyles.Footer>
-            )}
-        </FormStyles.Container>
+                <LinkButton onClick={addNewWorker} sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}>
+                    <Codicon name={"add"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
+                    Add Worker
+                </LinkButton>
+
+                {onSubmit && (
+                    <FormStyles.Footer>
+                        <Button appearance="primary" onClick={handleSubmit(handleOnSave)} disabled={disableSaveButton}>
+                            {showProgressIndicator ? <Typography variant="progress">Saving...</Typography> : "Save"}
+                        </Button>
+                    </FormStyles.Footer>
+                )}
+            </FormStyles.Container>
+        </Provider>
     );
 }
 

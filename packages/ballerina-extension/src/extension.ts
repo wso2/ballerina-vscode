@@ -36,19 +36,24 @@ import { activate as activateLibraryBrowser } from './features/library-browser';
 import { activate as activateBIFeatures } from './features/bi';
 import { activate as activateERDiagram } from './views/persist-layer-diagram';
 import { activateAiPanel } from './views/ai-panel';
-import { debug, handleResolveMissingDependencies, log } from './utils';
+import { activateMigrationPanel } from './views/migration-panel';
+import { debug, handleResolveMissingDependencies, isInDevant, log } from './utils';
 import { activateUriHandlers } from './utils/uri-handlers';
 import { StateMachine } from './stateMachine';
 import { activateSubscriptions } from './views/visualizer/activate';
 import { VisualizerWebview } from './views/visualizer/webview';
+import { AiPanelWebview } from './views/ai-panel/webview';
 import { extension } from './BalExtensionContext';
 import { ExtendedClientCapabilities } from '@wso2/ballerina-core';
 import { RPCLayer } from './RPCLayer';
 import { activateAIFeatures } from './features/ai/activator';
+import { runningServicesManager } from './features/ai/agent/tools/running-service-manager';
 import { activateTryItCommand } from './features/tryit/activator';
 import { activate as activateNPFeatures } from './features/natural-programming/activator';
 import { activateAgentChatPanel } from './views/agent-chat/activate';
 import { activateTracing } from './features/tracing';
+import { activateICP } from './features/icp';
+import { onWizardChatNotify, setWizardProjectRoot, runWizardMigrationEnhancement, abortMigrationAgent, openMigratedProject, isAIAuthenticated, signInForAI, signInWithAnthropicKey, signInWithAwsBedrock, signInWithVertexAI } from './features/ai/migration/orchestrator';
 
 let langClient: ExtendedLangClient;
 export let isPluginStartup = true;
@@ -58,11 +63,14 @@ export let isPluginStartup = true;
  */
 export class BallerinaExtensionState {
     /**
-     * Check if a debug session is currently active
-     * @returns true if a debug session is active, false otherwise
+     * Check if a debug session is currently active.
+     * BI run mode also creates a VS Code debug session with noDebug enabled,
+     * so only sessions started in actual debug mode should return true.
+     * @returns true if a debug-mode session is active, false otherwise
      */
     public static isDebugSessionActive(): boolean {
-        return vscode.debug.activeDebugSession !== undefined;
+        const activeSession = vscode.debug.activeDebugSession;
+        return activeSession !== undefined && activeSession.configuration.noDebug !== true;
     }
 }
 
@@ -125,16 +133,39 @@ export async function activate(context: ExtensionContext) {
     extension.context = context;
     // Init RPC Layer methods
     RPCLayer.init();
-    
+
+    // Register serializers that dispose orphaned webview tabs restored by VS Code after a restart.
+    // Without this, previously open panels leave behind empty placeholder tabs on reload.
+    const disposeOnRestore: vscode.WebviewPanelSerializer = {
+        deserializeWebviewPanel: async (panel) => { panel.dispose(); }
+    };
+    context.subscriptions.push(
+        vscode.window.registerWebviewPanelSerializer(VisualizerWebview.viewType, disposeOnRestore),
+        vscode.window.registerWebviewPanelSerializer(AiPanelWebview.viewType, disposeOnRestore),
+    );
+
     // Wait for the ballerina extension to be ready
     await StateMachine.initialize();
-    
+
     // Then return the ballerina extension context
-    return { 
-        ballerinaExtInstance: extension.ballerinaExtInstance, 
+    return {
+        ballerinaExtInstance: extension.ballerinaExtInstance,
         projectPath: StateMachine.context().projectPath,
         VisualizerWebview,
-        BallerinaExtensionState
+        BallerinaExtensionState,
+        migration: {
+            setWizardProjectRoot,
+            wizardEnhancementReady: runWizardMigrationEnhancement,
+            abortAgent: abortMigrationAgent,
+            openMigratedProject,
+            onChatNotify: onWizardChatNotify,
+            isAIAuthenticated,
+            signInForAI,
+            signInWithAnthropicKey,
+            signInWithAwsBedrock,
+            signInWithVertexAI,
+        },
+        onDownloadProgress: extension.ballerinaExtInstance.onDownloadProgress,
     };
 }
 
@@ -201,6 +232,9 @@ export async function activateBallerina(): Promise<BallerinaExtension> {
         //activate ai panel
         activateAiPanel(ballerinaExtInstance);
 
+        // Activate migration enhancement panel
+        activateMigrationPanel(ballerinaExtInstance);
+
         // Activate AI features
         activateAIFeatures(ballerinaExtInstance);
 
@@ -215,6 +249,11 @@ export async function activateBallerina(): Promise<BallerinaExtension> {
 
         // Activate Tracing Feature
         activateTracing(ballerinaExtInstance);
+
+        // Activate ICP (Integration Control Plane) — skip in Devant
+        if (!isInDevant()) {
+            activateICP(ballerinaExtInstance);
+        }
 
         langClient = <ExtendedLangClient>ballerinaExtInstance.langClient;
         // Register showTextDocument listener
@@ -279,7 +318,7 @@ export async function activateBallerina(): Promise<BallerinaExtension> {
 }
 
 async function updateCodeServerConfig() {
-    if (!('CLOUD_STS_TOKEN' in process.env)) {
+    if (!isInDevant()) {
         return;
     }
     log("Code server environment detected");
@@ -287,12 +326,14 @@ async function updateCodeServerConfig() {
     await config.update('enableRunFast', true);
 }
 
-export function deactivate(): Thenable<void> | undefined {
+export async function deactivate(): Promise<void> {
     debug('Deactive the Ballerina VS Code extension.');
+
+    await runningServicesManager.dispose();
 
     if (!langClient) {
         return;
     }
     extension.ballerinaExtInstance.telemetryReporter.dispose();
-    return langClient.stop();
+    await langClient.stop();
 }

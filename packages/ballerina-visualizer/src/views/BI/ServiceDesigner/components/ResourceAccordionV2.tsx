@@ -151,10 +151,11 @@ export interface ResourceAccordionPropsV2 {
     readOnly?: boolean;
     methodName?: string;
     isMcpTool?: boolean;
+    deletionTypeLabel?: string;
 }
 
 export function ResourceAccordionV2(params: ResourceAccordionPropsV2) {
-    const { resource, onEditResource, onDeleteResource, onResourceImplement, readOnly, methodName, isMcpTool } = params;
+    const { resource, onEditResource, onDeleteResource, onResourceImplement, readOnly, methodName, isMcpTool, deletionTypeLabel } = params;
 
     const [isOpen, setIsOpen] = useState(false);
     const [isConfirmOpen, setConfirmOpen] = useState(false);
@@ -250,12 +251,12 @@ export function ResourceAccordionV2(params: ResourceAccordionPropsV2) {
                 </MethodSection>
                 <ButtonSection>
                     <>
-                        <ActionButton id="bi-edit" appearance="secondary" onClick={handleEditResource}>
+                        <ActionButton id="bi-edit" appearance="secondary" onClick={handleEditResource} disabled={!onEditResource}>
                             <Icon
                                 name="bi-settings"
                                 sx={{
-                                    cursor: "pointer",
-                                    opacity: 1,
+                                    cursor: !onEditResource ? "not-allowed" : "pointer",
+                                    opacity: !onEditResource ? 0.5 : 1,
                                     fontSize: "16px",
                                     width: "16px",
                                 }}
@@ -278,8 +279,8 @@ export function ResourceAccordionV2(params: ResourceAccordionPropsV2) {
             <Confirm
                 isOpen={isConfirmOpen}
                 onConfirm={handleConfirm}
-                confirmText="Okay"
-                message="Are you sure you want to delete this resource?"
+                confirmText="Delete"
+                message={`Are you sure you want to delete this ${deletionTypeLabel || "resource"}?`}
                 anchorEl={confirmEl}
                 anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
                 transformOrigin={{ vertical: "top", horizontal: "right" }}

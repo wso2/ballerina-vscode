@@ -33,13 +33,14 @@ const categoryIconMap: Record<InputCategory, string> = {
 
     [InputCategory.Variable]: "symbol-variable",
     [InputCategory.LocalVariable]: "symbol-variable",
-    [InputCategory.ModuleVariable]: "symbol-variable"
+    [InputCategory.ModuleVariable]: "symbol-variable",
+    [InputCategory.ConvertedVariable]: "symbol-variable"
 };
 
 export function InputCategoryIcon({ category }: InputCategoryIconProps) {
     return category && (
         <span title={category} style={{ padding: "3px" }}>
-            <Codicon name={categoryIconMap[category]} />
+            <Codicon name={categoryIconMap[category]} tooltip={category}/>
         </span>
     );
 }

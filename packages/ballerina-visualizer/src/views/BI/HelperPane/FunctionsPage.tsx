@@ -116,10 +116,12 @@ export const FunctionsPage = ({
         const response = await addFunction(item);
 
         if (response) {
-            const importStatement = {
-                [response.prefix]: response.moduleId
-            };
-            updateImports(fieldKey, importStatement);
+            if (response.prefix && response.moduleId) {
+                const importStatement = {
+                    [response.prefix]: response.moduleId
+                };
+                updateImports(fieldKey, importStatement);
+            }
             return extractFunctionInsertText(response.template);
         }
 
@@ -145,9 +147,11 @@ export const FunctionsPage = ({
     };
 
     const handleFunctionItemSelect = async (item: HelperPaneCompletionItem) => {
+        // Close helper pane immediately to prevent duplicate clicks
+        // while the async function template API call is in progress
+        onClose();
         const { value, cursorOffset } = await onFunctionItemSelect(item);
         onChange({ value, cursorOffset });
-        onClose();
     };
 
     return (

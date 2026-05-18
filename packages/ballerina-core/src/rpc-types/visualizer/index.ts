@@ -19,14 +19,14 @@
 import { HistoryEntry } from "../../history";
 import { ProjectStructureArtifactResponse, UpdatedArtifactsResponse } from "../../interfaces/bi";
 import { ColorThemeKind } from "../../state-machine-types";
-import { AddToUndoStackRequest, JoinProjectPathRequest, JoinProjectPathResponse, OpenViewRequest, UndoRedoStateResponse } from "./interfaces";
+import { AddToUndoStackRequest, HandleApprovalPopupCloseRequest, JoinProjectPathRequest, JoinProjectPathResponse, OpenViewRequest, ReopenApprovalViewRequest, UndoRedoStateResponse, SaveEvalThreadRequest, SaveEvalThreadResponse, GoBackRequest, GoHomeRequest } from "./interfaces";
 
 export interface VisualizerAPI {
     openView: (params: OpenViewRequest) => void;
     getHistory: () => Promise<HistoryEntry[]>;
     addToHistory: (entry: HistoryEntry) => void;
-    goBack: () => void;
-    goHome: () => void;
+    goBack: (params: GoBackRequest) => void;
+    goHome: (params: GoHomeRequest) => void;
     goSelected: (index: number) => void;
     undo: (count: number) => Promise<string>;
     redo: (count: number) => Promise<string>;
@@ -37,4 +37,8 @@ export interface VisualizerAPI {
     getThemeKind: () => Promise<ColorThemeKind>;
     updateCurrentArtifactLocation: (params: UpdatedArtifactsResponse) => Promise<ProjectStructureArtifactResponse>;
     reviewAccepted: () => void;
+    handleApprovalPopupClose: (params: HandleApprovalPopupCloseRequest) => void;
+    reopenApprovalView: (params: ReopenApprovalViewRequest) => void;
+    saveEvalThread: (params: SaveEvalThreadRequest) => Promise<SaveEvalThreadResponse>;
+    navigateReviewMode: (index: number) => void;
 }

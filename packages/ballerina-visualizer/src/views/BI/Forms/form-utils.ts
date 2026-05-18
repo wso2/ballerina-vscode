@@ -71,3 +71,34 @@ export function removeEmptyNodes(updatedNode: FlowNode): FlowNode {
     traverseNode(updatedNode, removeEmptyNodeVisitor);
     return removeEmptyNodeVisitor.getNode();
 }
+
+function extractInterpolations(backtickStr: string): string {
+    const inner = backtickStr.slice(1, -1); // strip surrounding backticks
+    let result = '`';
+    let i = 0;
+    while (i < inner.length) {
+        if (inner[i] === '$' && inner[i + 1] === '{') {
+            // depth-track to find the real matching }
+            let depth = 1, j = i + 2;
+            while (j < inner.length && depth > 0) {
+                if (inner[j] === '{') depth++;
+                else if (inner[j] === '}') depth--;
+                j++;
+            }
+            const interp = inner.slice(i + 2, j - 1);
+            result += '${' + deserializeForDiagnosticsAPI(interp) + '}';
+            i = j;
+        } else {
+            result += inner[i++];
+        }
+    }
+    return result + '`';
+}
+
+export const deserializeForDiagnosticsAPI = (expr: string): string => {
+    return expr.replace(/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`[^`]*`|\$\d+/g, (match) => {
+        if (match.startsWith('"') || match.startsWith("'")) return match;
+        if (match.startsWith('`')) return extractInterpolations(match);
+        return "";
+    });
+};

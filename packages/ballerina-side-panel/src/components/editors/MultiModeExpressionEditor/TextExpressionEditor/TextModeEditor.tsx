@@ -46,7 +46,7 @@ export const TextModeEditor: React.FC<ChipExpressionEditorComponentProps> = (pro
                 isExpandedVersion={false}
                 completions={props.completions}
                 onChange={props.onChange}
-                value={getValueForTextModeEditor(props.value)}
+                value={props.value}
                 sanitizedExpression={props.sanitizedExpression}
                 rawExpression={props.rawExpression}
                 fileName={props.fileName}
@@ -57,6 +57,8 @@ export const TextModeEditor: React.FC<ChipExpressionEditorComponentProps> = (pro
                 isInExpandedMode={props.isInExpandedMode}
                 configuration={props.configuration}
                 placeholder={props.placeholder}
+                onLoadingStateChange={props.onLoadingStateChange}
+                onNormalizeValue={props.onNormalizeValue}
             />
         </EditorContainer>
     );

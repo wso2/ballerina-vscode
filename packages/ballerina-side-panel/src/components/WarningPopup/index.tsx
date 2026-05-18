@@ -25,12 +25,15 @@ interface WarningPopupProps {
     isOpen: boolean;
     onContinue: () => void;
     onCancel: () => void;
+    message?: string;
 }
 
-const WarningPopup: React.FC<WarningPopupProps> = ({ isOpen, onContinue, onCancel }) => {
+const DEFAULT_MESSAGE = "If you continue, you will lose all structured information. Do you want to continue?";
+
+const WarningPopup: React.FC<WarningPopupProps> = ({ isOpen, onContinue, onCancel, message }) => {
     return (
         <Modal isOpen={isOpen} onClose={onCancel} maxWidth='90%'>
-            <p>If you continue, you will lose all structured information. Do you want to continue?</p>
+            <p>{message ?? DEFAULT_MESSAGE}</p>
             <ButtonContainer>
                 <Button 
                     appearance='primary'

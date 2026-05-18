@@ -18,53 +18,90 @@
 import { IOType, Mapping, TypeKind } from "@wso2/ballerina-core";
 import { useDMSearchStore } from "../../../store/store";
 
-export const getSearchFilteredInput = (dmType: IOType, varName?: string) => {
+export const getSearchFilteredInput = (dmType: IOType, varName: string) => {
 	const searchValue = useDMSearchStore.getState().inputSearch;
 	if (!searchValue) {
 		return dmType;
 	}
 
-	if (varName?.toLowerCase()?.includes(searchValue.toLowerCase())) {
+	if (varName.toLowerCase().includes(searchValue)) {
 		return dmType
 	} else if (dmType.kind === TypeKind.Record || dmType.kind === TypeKind.Array) {
 		const filteredType = getFilteredSubFields(dmType, searchValue);
 		if (filteredType) {
 			return filteredType
 		}
+	} else if (dmType.kind === TypeKind.Json || dmType.kind === TypeKind.Xml) {
+		if (dmType.convertedField) {
+			const filteredConvertedField = getFilteredSubFields(dmType.convertedField, searchValue);
+			if (filteredConvertedField) {
+				return { ...dmType, convertedField: filteredConvertedField };
+			}
+		} else {
+			const filteredType = getFilteredSubFields(dmType, searchValue);
+			if (filteredType) {
+				return filteredType
+			}
+		}
+
 	}
 }
 
-export const getSearchFilteredOutput = (outputType: IOType) => {
+export const getSearchFilteredOutput = (dmType: IOType) => {
 	const searchValue = useDMSearchStore.getState().outputSearch;
-	if (!outputType) {
-		return null
-	}
 	if (!searchValue) {
-		return outputType;
+		return dmType;
+	}
+	if (!dmType) {
+		return null;
 	}
 
-	let searchType: IOType = outputType;
-
-	if (searchType.kind === TypeKind.Array) {
-		const subFields = searchType.member?.fields
+	if (dmType.name?.toLowerCase().includes(searchValue)) {
+		return dmType;
+	} else if (dmType.kind === TypeKind.Array) {
+		const subFields = dmType.member?.fields
 			?.map(item => getFilteredSubFields(item, searchValue))
 			.filter(item => item);
 
 		return {
-			...searchType,
-			memberType: {
-				...searchType.member,
+			...dmType,
+			member: {
+				...dmType.member,
 				fields: subFields || []
 			}
 		}
-	} else if (searchType.kind === TypeKind.Record) {
-		const subFields = searchType.fields
+	} else if (dmType.kind === TypeKind.Record) {
+		const subFields = dmType.fields
 			?.map(item => getFilteredSubFields(item, searchValue))
 			.filter(item => item);
 
 		return {
-			...searchType,
+			...dmType,
 			fields: subFields || []
+		}
+	} else if (dmType.kind === TypeKind.Json || dmType.kind === TypeKind.Xml) {
+		if (dmType.convertedField) {
+			const filteredConvertedField = getFilteredSubFields(dmType.convertedField, searchValue);
+			if (filteredConvertedField) {
+				return { ...dmType, convertedField: filteredConvertedField };
+			}
+
+			const convertedField = dmType.convertedField;
+			if (convertedField.kind === TypeKind.Array) {
+				return { ...dmType, convertedField: { ...convertedField, member: { ...convertedField.member, fields: [] } } };
+			}
+
+			return { ...dmType, convertedField: { ...dmType.convertedField, fields: [] } };
+
+		} else {
+			const subFields = dmType.fields
+				?.map(item => getFilteredSubFields(item, searchValue))
+				.filter(item => item);
+
+			return {
+				...dmType,
+				fields: subFields || []
+			}
 		}
 	}
 	return  null;
@@ -79,35 +116,35 @@ export const getFilteredSubFields = (field: IOType, searchValue: string) => {
 		return field;
 	}
 
-	if (field?.kind === TypeKind.Record) {
-		const matchedSubFields: IOType[] = field?.fields
+	if (field.kind === TypeKind.Record || field.kind === TypeKind.Json || field.kind === TypeKind.Xml) {
+		const matchedSubFields: IOType[] = field.fields
 			?.map((fieldItem) => getFilteredSubFields(fieldItem, searchValue))
 			.filter((fieldItem): fieldItem is IOType => fieldItem !== null);
 
-		const matchingName = field?.name?.toLowerCase().includes(searchValue.toLowerCase());
+		const matchingName = field.name?.toLowerCase().includes(searchValue);
 		if (matchingName || matchedSubFields?.length > 0) {
 			return {
 				...field,
-				fields: matchingName ? field?.fields : matchedSubFields
+				fields: matchingName ? field.fields : matchedSubFields
 			}
 		}
-	} else if (field?.kind === TypeKind.Array) {
-		const matchedSubFields: IOType[] = field?.member?.fields
+	} else if (field.kind === TypeKind.Array) {
+		const matchedSubFields: IOType[] = field.member?.fields
 			?.map((fieldItem) => getFilteredSubFields(fieldItem, searchValue))
 			.filter((fieldItem): fieldItem is IOType => fieldItem !== null);
 
-		const matchingName = field?.name?.toLowerCase().includes(searchValue.toLowerCase());
+		const matchingName = field.name?.toLowerCase().includes(searchValue);
 		if (matchingName || matchedSubFields?.length > 0) {
 			return {
 				...field,
-				memberType: {
-					...field?.member,
-					fields: matchingName ? field?.member?.fields : matchedSubFields
+				member: {
+					...field.member,
+					fields: matchingName ? field.member?.fields : matchedSubFields
 				}
 			}
 		}
 	} else {
-		return field?.name?.toLowerCase()?.includes(searchValue.toLowerCase()) ? field : null
+		return field.name?.toLowerCase().includes(searchValue) ? field : null
 	}
 
 	return null;
@@ -121,7 +158,18 @@ export function hasNoOutputMatchFound(outputType: IOType, filteredOutputType: IO
 	} else if (outputType.kind === TypeKind.Record && filteredOutputType.kind === TypeKind.Record) {
 		return filteredOutputType?.fields.length === 0;
 	} else if (outputType.kind === TypeKind.Array && filteredOutputType.kind === TypeKind.Array) {
-		// Handle array output
+		return (filteredOutputType.member?.fields?.length ?? 0) === 0;
+	} else if (filteredOutputType.kind === TypeKind.Json || filteredOutputType.kind === TypeKind.Xml) {
+		const convertedField = filteredOutputType.convertedField;
+		if (convertedField) {
+			if (convertedField?.kind === TypeKind.Record) {
+				return (convertedField.fields?.length ?? 0) === 0;
+			} else if (convertedField?.kind === TypeKind.Array) {
+				return (convertedField.member?.fields?.length ?? 0) === 0;
+			}
+		} else {
+			return filteredOutputType?.fields?.length === 0;
+		}
 	}
 	return false;
 }
@@ -135,15 +183,12 @@ export function getFilteredMappings(
     return mappings.flatMap(mapping => {
 
 		const filteredInputs = mapping.inputs.filter(input => {
-			const inputField = input.toLowerCase();
-			return inputSearch === "" || 
-				inputField.includes(inputSearch.toLowerCase());
+			return inputSearch === "" || input.toLowerCase().includes(inputSearch);
 		});
 
-        const outputField = mapping.output.toLowerCase();
         const matchedWithOutputSearch = outputSearch === "" ||
 			isElement ||
-            outputField.includes(outputSearch.toLowerCase());
+            mapping.output.toLowerCase().includes(outputSearch);
 
         // Get nested mappings from elements
         const nestedMappings = mapping.elements?.flatMap(element => 

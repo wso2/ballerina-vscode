@@ -17,7 +17,7 @@
  */
 
 import { GetRecordConfigResponse, GetRecordConfigRequest, LineRange, RecordTypeField, TypeField, RecordSourceGenRequest, RecordSourceGenResponse, GetRecordModelFromSourceRequest, GetRecordModelFromSourceResponse, ExpressionProperty, NodeKind, getPrimaryInputType, InputType } from "@wso2/ballerina-core";
-import { Dropdown, HelperPane, Typography, Button, HelperPaneHeight, FormExpressionEditorRef, ErrorBanner, ProgressRing, ThemeColors } from "@wso2/ui-toolkit";
+import { Dropdown, HelperPane, Typography, HelperPaneHeight, FormExpressionEditorRef, ErrorBanner, ProgressRing, ThemeColors } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useEffect, useRef, useState, RefObject } from "react";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -27,6 +27,7 @@ import { useForm } from "react-hook-form";
 import { debounce } from "lodash";
 import ReactMarkdown from "react-markdown";
 import { updateFieldsSelection } from "../Components/RecordConstructView/utils";
+import { unwrapIntersectionRecord } from "../Components/RecordConstructView/utils/intersection";
 import { ChipExpressionEditorDefaultConfiguration } from "@wso2/ballerina-side-panel/lib/components/editors/MultiModeExpressionEditor/ChipExpressionEditor/ChipExpressionDefaultConfig";
 
 type ConfigureRecordPageProps = {
@@ -74,7 +75,8 @@ export const LabelContainer = styled.div({
 export const TwoColumnLayout = styled.div({
     display: 'flex',
     gap: '16px',
-    height: '500px'
+    height: '100%',
+    overflow: 'hidden'
 });
 
 export const LeftColumn = styled.div({
@@ -111,7 +113,9 @@ export const ExpressionEditorContainer = styled.div({
     flex: '1',
     display: 'flex',
     flexDirection: 'column',
-    gap: '8px'
+    gap: '8px',
+    minHeight: 0,
+    overflow: 'hidden'
 });
 
 export const ExpressionEditorLabel = styled.div({
@@ -132,13 +136,6 @@ export const ExpressionEditorDocumentation = styled.div({
     }
 });
 
-export const ButtonContainer = styled.div({
-    display: 'flex',
-    gap: '8px',
-    justifyContent: 'flex-end',
-    marginTop: '16px'
-});
-
 export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
     const { fileName, onChange, currentValue, recordTypeField, onClose, targetLineRange, getHelperPane, field, triggerCharacters, formContext } = props;
     const { rpcClient } = useRpcContext();
@@ -147,8 +144,12 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
     const recordModelRef = useRef<TypeField[]>([]);
     const [selectedMemberName, setSelectedMemberName] = useState<string>("");
     const firstRender = useRef<boolean>(true);
+    const initialMountRef = useRef<boolean>(true);
+    const onChangeRef = useRef(onChange);
     const sourceCode = useRef<string>(currentValue);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [hasTooManyFieldsError, setHasTooManyFieldsError] = useState<boolean>(false);
+    const TOO_MANY_FIELDS_ERROR = "Record config is too large to send. The record type has too many nested fields.";
     // Local state for expression value - only update form on save/close
     const [localExpressionValue, setLocalExpressionValue] = useState<string>(currentValue);
     // Diagnostics state
@@ -157,6 +158,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
     // Refs for helper pane
     const exprRef = useRef<FormExpressionEditorRef>(null);
     const anchorRef = useRef<HTMLDivElement>(null);
+    const modalContainerRef = useRef<HTMLDivElement>(null);
 
     // Ref to track the latest expression value that should be synced
     // This prevents intermediate values from overwriting the final value
@@ -223,55 +225,91 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
         }
     }, [currentValue]);
 
+    useEffect(() => {
+        onChangeRef.current = onChange;
+    }, [onChange]);
+
+    // Auto-propagate localExpressionValue changes to parent form (remove need for Save button)
+    useEffect(() => {
+        // Skip the first render to avoid calling onChange with initial value
+        if (initialMountRef.current) {
+            initialMountRef.current = false;
+            return;
+        }
+
+        onChangeRef.current(localExpressionValue, true);
+    }, [localExpressionValue]);
+
     const fetchRecordModelFromSource = async (currentValue: string) => {
         setIsLoading(true);
-        let org = "";
-        let module = "";
-        let version = "";
-        let packageInfo = "";
+        setHasTooManyFieldsError(false);
+        try {
+            let org = "";
+            let module = "";
+            let version = "";
+            let packageInfo = "";
 
-        if (recordTypeField.recordTypeMembers[0].packageInfo?.length > 0) {
-            const parts = recordTypeField.recordTypeMembers[0].packageInfo.split(':');
-            if (parts.length === 3) {
-                [org, module, version] = parts;
-                packageInfo = recordTypeField.recordTypeMembers[0].packageInfo;
+            if (recordTypeField.recordTypeMembers[0].packageInfo?.length > 0) {
+                const parts = recordTypeField.recordTypeMembers[0].packageInfo.split(':');
+                if (parts.length === 3) {
+                    [org, module, version] = parts;
+                    packageInfo = recordTypeField.recordTypeMembers[0].packageInfo;
+                }
+            } else {
+                const tomValues = await rpcClient.getCommonRpcClient().getCurrentProjectTomlValues();
+                org = tomValues?.package?.org || "";
+                module = tomValues?.package?.name || "";
+                version = tomValues?.package?.version || "";
             }
-        } else {
-            const tomValues = await rpcClient.getCommonRpcClient().getCurrentProjectTomlValues();
-            org = tomValues?.package?.org || "";
-            module = tomValues?.package?.name || "";
-            version = tomValues?.package?.version || "";
-        }
-        packageInfo = `${org}:${module}:${version}`;
-        recordTypeField.recordTypeMembers[0].packageInfo = packageInfo;
-        const getRecordModelFromSourceRequest: GetRecordModelFromSourceRequest = {
-            filePath: fileName,
-            typeMembers: recordTypeField.recordTypeMembers,
-            expr: currentValue
-        }
+            packageInfo = `${org}:${module}:${version}`;
+            recordTypeField.recordTypeMembers[0].packageInfo = packageInfo;
+            const getRecordModelFromSourceRequest: GetRecordModelFromSourceRequest = {
+                filePath: fileName,
+                typeMembers: recordTypeField.recordTypeMembers,
+                expr: currentValue
+            };
 
-        const getRecordModelFromSourceResponse: GetRecordModelFromSourceResponse =
-            await rpcClient.getBIDiagramRpcClient().getRecordModelFromSource(getRecordModelFromSourceRequest);
-        console.log(">>> getRecordModelFromSourceResponse", getRecordModelFromSourceResponse);
-        const newRecordModel = getRecordModelFromSourceResponse.recordConfig;
+            const getRecordModelFromSourceResponse: GetRecordModelFromSourceResponse =
+                await rpcClient.getBIDiagramRpcClient().getRecordModelFromSource(getRecordModelFromSourceRequest);
+            console.log(">>> getRecordModelFromSourceResponse", getRecordModelFromSourceResponse);
 
-        if (newRecordModel) {
-            const recordConfig: TypeField = {
-                name: newRecordModel.name,
-                ...newRecordModel
+            if (getRecordModelFromSourceResponse.errorMsg) {
+                setHasTooManyFieldsError(getRecordModelFromSourceResponse.errorMsg === TOO_MANY_FIELDS_ERROR);
+                setRecordModel([]);
+                recordModelRef.current = [];
+                return;
             }
 
-            setRecordModel([recordConfig]);
-            recordModelRef.current = [recordConfig];
-            setSelectedMemberName(newRecordModel.name);
-        }
+            const newRecordModel = getRecordModelFromSourceResponse.recordConfig;
 
-        setIsLoading(false);
+            if (newRecordModel) {
+                const recordConfig: TypeField = {
+                    name: newRecordModel.name,
+                    ...unwrapIntersectionRecord(newRecordModel)
+                };
+
+                setRecordModel([recordConfig]);
+                recordModelRef.current = [recordConfig];
+                setSelectedMemberName(newRecordModel.name);
+
+                recordTypeField.recordTypeMembers.forEach(m => {
+                    m.selected = m.type === newRecordModel.name;
+                });
+            }
+        } catch (error) {
+            setHasTooManyFieldsError(false);
+            setRecordModel([]);
+            recordModelRef.current = [];
+        } finally {
+            setIsLoading(false);
+        }
     }
+
 
     const getExistingRecordModel = async () => {
         await fetchRecordModelFromSource(currentValue);
     };
+
 
 
     // Helper function to auto-select the first record in the model.
@@ -292,65 +330,81 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
 
     const getNewRecordModel = async () => {
         setIsLoading(true);
+        setHasTooManyFieldsError(false);
         const defaultSelection = recordTypeField.recordTypeMembers[0];
         setSelectedMemberName(defaultSelection.type);
+        try {
+            let org = "";
+            let module = "";
+            let version = "";
+            let packageName = "";
 
-        let org = "";
-        let module = "";
-        let version = "";
-        let packageName = "";
-
-        if (defaultSelection?.packageInfo.length > 0) {
-            const parts = defaultSelection.packageInfo.split(':');
-            if (parts.length === 3) {
-                [org, module, version] = parts;
-                packageName = defaultSelection.packageName;
-            }
-        } else {
-            const tomValues = await rpcClient.getCommonRpcClient().getCurrentProjectTomlValues();
-            org = tomValues?.package?.org || "";
-            module = tomValues?.package?.name || "";
-            version = tomValues?.package?.version || "";
-            packageName = tomValues?.package?.name || "";
-        }
-
-        const request: GetRecordConfigRequest = {
-            filePath: fileName,
-            codedata: {
-                org: org,
-                module: module,
-                version: version,
-                packageName: packageName,
-            },
-            typeConstraint: defaultSelection.type,
-        }
-        const typeFieldResponse: GetRecordConfigResponse = await rpcClient.getBIDiagramRpcClient().getRecordConfig(request);
-        console.log(">>> GetRecordConfigResponse", typeFieldResponse);
-        if (typeFieldResponse.recordConfig) {
-            const recordConfig: TypeField = {
-                name: defaultSelection.type,
-                ...typeFieldResponse.recordConfig
+            if (defaultSelection?.packageInfo?.length > 0) {
+                const parts = defaultSelection.packageInfo.split(':');
+                if (parts.length === 3) {
+                    [org, module, version] = parts;
+                    packageName = defaultSelection.packageName;
+                }
+            } else {
+                const tomValues = await rpcClient.getCommonRpcClient().getCurrentProjectTomlValues();
+                org = tomValues?.package?.org || "";
+                module = tomValues?.package?.name || "";
+                version = tomValues?.package?.version || "";
+                packageName = tomValues?.package?.name || "";
             }
 
-            const newModel = [recordConfig];
-            setRecordModel(newModel);
-            recordModelRef.current = newModel;
+            const request: GetRecordConfigRequest = {
+                filePath: fileName,
+                codedata: {
+                    org: org,
+                    module: module,
+                    version: version,
+                    packageName: packageName,
+                },
+                typeConstraint: defaultSelection.type,
+            };
+            const typeFieldResponse: GetRecordConfigResponse = await rpcClient.getBIDiagramRpcClient().getRecordConfig(request);
+            console.log(">>> GetRecordConfigResponse", typeFieldResponse);
+            if (typeFieldResponse.errorMsg) {
+                setHasTooManyFieldsError(typeFieldResponse.errorMsg === TOO_MANY_FIELDS_ERROR);
+                return;
+            }
+            if (typeFieldResponse.recordConfig) {
+                const recordConfig: TypeField = {
+                    name: defaultSelection.type,
+                    ...unwrapIntersectionRecord(typeFieldResponse.recordConfig)
+                };
 
-            // Auto-select the first field for new models
-            autoSelectFirstRecord(newModel);
+                const newModel = [recordConfig];
+                setRecordModel(newModel);
+                recordModelRef.current = newModel;
 
-            // Generate source with the auto-selected field
-            await handleModelChange(newModel);
+                autoSelectFirstRecord(newModel);
+                await handleModelChange(newModel);
+            }
+        } catch (error) {
+            setHasTooManyFieldsError(false);
+            setRecordModel([]);
+            recordModelRef.current = [];
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
     }
 
     const handleMemberChange = async (value: string) => {
         const member = recordTypeField.recordTypeMembers.find(m => m.type === value);
-        if (member) {
-            setIsLoading(true);
-            setSelectedMemberName(member.type);
+        if (!member) {
+            return;
+        }
 
+        // Update selected flags so the backend receives the correct type on submit
+        recordTypeField.recordTypeMembers.forEach(m => {
+            m.selected = m.type === value;
+        });
+        setIsLoading(true);
+        setHasTooManyFieldsError(false);
+        setSelectedMemberName(member.type);
+        try {
             let org = "";
             let module = "";
             let version = "";
@@ -375,11 +429,16 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             }
 
             const typeFieldResponse: GetRecordConfigResponse = await rpcClient.getBIDiagramRpcClient().getRecordConfig(request);
+            if (typeFieldResponse.errorMsg) {
+                setHasTooManyFieldsError(typeFieldResponse.errorMsg === TOO_MANY_FIELDS_ERROR);
+                setRecordModel([]);
+                recordModelRef.current = [];
+                return;
+            }
             if (typeFieldResponse.recordConfig) {
-
                 const recordConfig: TypeField = {
                     name: member.type,
-                    ...typeFieldResponse.recordConfig
+                    ...unwrapIntersectionRecord(typeFieldResponse.recordConfig)
                 }
 
                 const newModel = [recordConfig];
@@ -392,9 +451,12 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                 // Generate source with the auto-selected field
                 await handleModelChange(newModel);
             }
+        } catch (error) {
+            setRecordModel([]);
+            recordModelRef.current = [];
+        } finally {
+            setIsLoading(false);
         }
-
-        setIsLoading(false);
     };
 
     const handleModelChange = async (updatedModel: TypeField[]) => {
@@ -415,12 +477,6 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
             // Fetch diagnostics for the updated expression
             fetchDiagnostics(content);
         }
-    }
-
-    const handleSave = () => {
-        // Update the form with the current local expression value
-        onChange(localExpressionValue, true);
-        onClose();
     }
 
     // Debounced function to fetch diagnostics
@@ -652,17 +708,19 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                 />
                             </LabelContainer>
                         )}
-                        {selectedMemberName && recordModel?.length > 0 ? (
+                        {hasTooManyFieldsError ? (
+                            <Typography variant="body3">Record construction assistance is unavailable due to too many fields in the record type. Please switch to Expression mode.</Typography>
+                        ) : selectedMemberName && recordModel?.length > 0 ? (
                             <RecordConfigView
                                 recordModel={recordModel}
                                 onModelChange={handleModelChange}
                             />
                         ) : !isLoading ? (
-                            <Typography variant="body3">Record construction assistance is unavailable.</Typography>
+                            <Typography variant="body3">Record construction assistance is unavailable. Please switch to Expression mode.</Typography>
                         ) : null}
                     </LeftColumn>
                     <RightColumn>
-                        <ExpressionEditorContainer>
+                        <ExpressionEditorContainer ref={modalContainerRef}>
                             <div>
                                 <ExpressionEditorLabel>
                                     {field?.label || "Expression"}
@@ -694,7 +752,13 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                     }}
                                     triggerCharacters={triggerCharacters}
                                 >
-                                    <div ref={anchorRef}>
+                                    <div ref={anchorRef} style={{
+                                        flex: 1,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        minHeight: 0,
+                                        gap: '8px'
+                                    }}>
                                         <ChipExpressionEditorComponent
                                             completions={formContext.expressionEditor.completions}
                                             onChange={handleExpressionChange}
@@ -703,9 +767,15 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                             targetLineRange={targetLineRange}
                                             extractArgsFromFunction={wrappedExtractArgsFromFunction}
                                             getHelperPane={wrappedGetHelperPane}
-                                            sx={{ height: "350px" }}
+                                            sx={{
+                                                height: "100%",
+                                                minHeight: 0,
+                                                flex: 1
+                                            }}
                                             configuration={new RecordConfigExpressionEditorConfig()}
                                             isExpandedVersion={false}
+                                            hideFxButton={true}
+                                            containerRef={modalContainerRef}
                                         />
                                         {formDiagnostics && formDiagnostics.length > 0 && (
                                             <ErrorBanner errorMsg={formDiagnostics.map((d: any) => d.message).join(', ')} />
@@ -714,11 +784,6 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                 </FieldProvider>
                             </FormContext.Provider>
                         </ExpressionEditorContainer>
-                        <ButtonContainer>
-                            <Button appearance="primary" onClick={handleSave}>
-                                Save
-                            </Button>
-                        </ButtonContainer>
                     </RightColumn>
                 </TwoColumnLayout>
 

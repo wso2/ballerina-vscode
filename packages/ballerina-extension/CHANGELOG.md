@@ -4,6 +4,28 @@ All notable changes to the **Ballerina** extension will be documented in this fi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
+
+## [5.12.0](https://github.com/wso2/vscode-extensions/compare/ballerina-5.8.2...ballerina-integrator-1.10.0) - 2026-05-18
+
+### Added
+
+- **Library Project Support** — Added stronger library-project workflows in workspaces, including improved classification, creation flow updates, and publishing support.
+- **BI Copilot Capabilities** — Added Copilot tools and UX features such as plan/review improvements, evaluation support, config collection, and usage insights.
+- **Data Mapper Coverage** — Expanded mapper capabilities with JSON/XML handling, richer type support, and improved submapping/importable-type flows.
+
+### Changed
+
+- **Cloud and Dev Environment Flow** — Improved integration flows for cloud/dev environments and related extension behavior.
+- **Editor & Forms UX** — Refined expression editor, type/form editors, and side-panel interactions for better consistency and usability.
+- **Project & Build Tooling** — Improved test coverage and build/tooling reliability across workspace and extension modules.
+
+### Fixed
+
+- **Form and Validation Stability** — Fixed inconsistencies in form behavior, diagnostics, and validation across editors.
+- **Copilot & Agent Reliability** — Fixed multi-turn context, review-mode behavior, login/config edge cases, and tool-form related issues.
+- **Service/Designer Reliability** — Resolved service designer, migration, resource-path, and artifact navigation issues.
+- **Security & Dependencies** — Applied dependency upgrades and vulnerability fixes across extension components.
+
 ## [5.8.3](https://github.com/wso2/vscode-extensions/compare/ballerina-5.8.2...ballerina-5.8.3) - 2026-04-21
 
 ### Fixed

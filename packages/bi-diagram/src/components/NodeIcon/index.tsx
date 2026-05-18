@@ -73,12 +73,14 @@ const NODE_COLOR_GROUPS = {
         "FUNCTION_CALL", 
         "DATA_MAPPER_CALL",
         "REMOTE_ACTION_CALL", 
-        "RESOURCE_ACTION_CALL"
+        "RESOURCE_ACTION_CALL",
+        "METHOD_CALL"
     ],
     
     // AI/NP function group - cyan variants
     CYAN_FUNCTION_GROUP: [
         "AGENT_CALL",
+        "AGENTS",
         "NP_FUNCTION",
         "NP_FUNCTION_CALL",
         "MODEL_PROVIDER",
@@ -94,7 +96,7 @@ const NODE_COLOR_GROUPS = {
         "DATA_LOADERS",
         "CHUNKER",
         "CHUNKERS",
-        "MEMORY_STORE"
+        "SHORT_TERM_MEMORY_STORE"
     ],
     // Data related - magenta variants
     MAGENTA_DATA_GROUP: ["VARIABLE", "NEW_DATA", "UPDATE_DATA", "ASSIGN"],
@@ -185,19 +187,32 @@ export const getNodeChartColor = (nodeType: NodeKind): string => {
     return CHART_COLORS.DEFAULT;
 };
 
-// Get AI-specific color (reusable across components)
+// Detect high contrast theme via body class set by VS Code
+export const isHighContrastTheme = (): boolean => {
+    return document.body.classList.contains("vscode-high-contrast") ||
+        document.body.classList.contains("vscode-high-contrast-light");
+};
+
+// Get AI-specific color
 export const getAIColor = (): string => {
+    if (isHighContrastTheme()) {
+        return "rgb(243, 133, 24)";
+    }
     const dark = isDarkTheme();
     return dark ? CHART_COLORS.BRIGHT_CYAN : CHART_COLORS.CYAN;
 };
 
 // Icon mapping by node type
-const NODE_ICONS: Record<NodeKind, React.FC<{ size: number; color: string }>> = {
+const NODE_ICONS: Record<NodeKind, React.FC<{ size: number; color: string; isDBConnection?: boolean }>> = {
     IF: ({ size, color }) => <BranchIcon />,
     MATCH: ({ size, color }) => <Icon name="bi-match" sx={{ fontSize: size, width: size, height: size, color }} />,
     EXPRESSION: ({ size, color }) => <CodeIcon />,
-    REMOTE_ACTION_CALL: ({ size, color }) => <CallIcon />,
-    RESOURCE_ACTION_CALL: ({ size, color }) => <CallIcon />,
+    REMOTE_ACTION_CALL: ({ size, color, isDBConnection }) =>
+        isDBConnection ? <Icon name="bi-db" sx={{ fontSize: size, width: size, height: size, color }} /> : <CallIcon />,
+    RESOURCE_ACTION_CALL: ({ size, color, isDBConnection }) =>
+        isDBConnection ? <Icon name="bi-db" sx={{ fontSize: size, width: size, height: size, color }} /> : <CallIcon />,
+    METHOD_CALL: ({ size, color, isDBConnection }) =>
+        isDBConnection ? <Icon name="bi-db" sx={{ fontSize: size, width: size, height: size, color }} /> : <CodeIcon />,
     RETURN: ({ size, color }) => <ReturnIcon />,
     VARIABLE: ({ size, color }) => <VarIcon />,
     NEW_DATA: ({ size, color }) => <VarIcon />,
@@ -227,6 +242,8 @@ const NODE_ICONS: Record<NodeKind, React.FC<{ size: number; color: string }>> = 
     FAIL: ({ size, color }) => <Icon name="bi-error" sx={{ fontSize: size, width: size, height: size, color }} />,
     RETRY: ({ size, color }) => <Icon name="bi-retry" sx={{ fontSize: size, width: size, height: size, color }} />,
     AGENT_CALL: ({ size, color }) => <Icon name="bi-ai-agent" sx={{ fontSize: size, width: size, height: size, color }} />,
+    AGENTS: ({ size, color }) => <Icon name="bi-ai-agent" sx={{ fontSize: size, width: size, height: size, color }} />,
+    AGENT_RUN: ({ size, color }) => <Icon name="bi-ai-agent" sx={{ fontSize: size, width: size, height: size, color }} />,
     MODEL_PROVIDER: ({ size, color }) => <Icon name="bi-ai-model" sx={{ fontSize: size, width: size, height: size, color }} />,
     MODEL_PROVIDERS: ({ size, color }) => <Icon name="bi-ai-model" sx={{ fontSize: size, width: size, height: size, color }} />,
     KNOWLEDGE_BASE: ({ size, color }) => <Icon name="bi-db-kb" sx={{ fontSize: size, width: size, height: size, color }} />,
@@ -240,9 +257,9 @@ const NODE_ICONS: Record<NodeKind, React.FC<{ size: number; color: string }>> = 
     DATA_LOADERS: ({ size, color }) => <Icon name="bi-data-table" sx={{ fontSize: size, width: size, height: size, color }} />,
     CHUNKER: ({ size, color }) => <Icon name="bi-cut" sx={{ fontSize: size, width: size, height: size, color }} />,
     CHUNKERS: ({ size, color }) => <Icon name="bi-cut" sx={{ fontSize: size, width: size, height: size, color }} />,
-    MEMORY_STORE: ({ size, color }) => <Icon name="bi-memory" sx={{ fontSize: size, width: size, height: size, color }} />
+    SHORT_TERM_MEMORY_STORE: ({ size, color }) => <Icon name="bi-memory" sx={{ fontSize: size, width: size, height: size, color }} />
     // Default case for any NodeKind not explicitly handled
-} as Record<NodeKind, React.FC<{ size: number; color: string }>>;
+} as Record<NodeKind, React.FC<{ size: number; color: string; isDBConnection?: boolean }>>;
 
 // Component to listen for theme changes
 export const ThemeListener = ({ onThemeChange }: { onThemeChange: () => void }): React.ReactElement => {
@@ -274,10 +291,11 @@ interface NodeIconProps {
     type: NodeKind;
     size?: number;
     color?: string; // Optional override color
+    isDBConnection?: boolean;
 }
 
 export function NodeIcon(props: NodeIconProps) {
-    const { type, size = 16, color } = props;
+    const { type, size = 16, color, isDBConnection } = props;
     const [themeAwareColor, setThemeAwareColor] = useState<string>(color || getNodeChartColor(type));
 
     // Update color when theme changes
@@ -296,12 +314,12 @@ export function NodeIcon(props: NodeIconProps) {
     }, [color, type]);
 
     // Get icon renderer from the mapping or use CodeIcon as default
-    const IconRenderer = NODE_ICONS[type] || (({ size, color }) => <CodeIcon />);
+    const IconRenderer = NODE_ICONS[type] || (({ size, color }: { size: number; color: string; isDBConnection?: boolean }) => <CodeIcon />);
     
     return (
         <>
             <IconWrapper color={themeAwareColor}>
-                <IconRenderer size={size} color={themeAwareColor} />
+                <IconRenderer size={size} color={themeAwareColor} isDBConnection={isDBConnection}/>
             </IconWrapper>
             <ThemeListener onThemeChange={handleThemeChange} />
         </>

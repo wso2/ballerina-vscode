@@ -20,6 +20,8 @@
 import { NodePosition } from "@wso2/syntax-tree";
 import { CodeData, FlowNode, InputType, Metadata } from "../../interfaces/bi";
 
+export type DefaultProviderKind = "model" | "embedding";
+
 export interface AgentTool {
     toolName: string;
     toolType: string;
@@ -97,6 +99,7 @@ export interface McpToolUpdateRequest {
     agentFlowNode: FlowNode;
     selectedTools: string[];
     updatedNode?: FlowNode;
+    toolScopes?: Record<string, string[]>;
 }
 
 export interface ToolParameters {

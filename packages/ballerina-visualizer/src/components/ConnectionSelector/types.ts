@@ -16,9 +16,9 @@
  * under the License.
  */
 
-import { FlowNode, InputType, SearchKind } from "@wso2/ballerina-core";
+import { FlowNode, InputType, ProjectStructureArtifactResponse, SearchKind } from "@wso2/ballerina-core";
 
-export type ConnectionKind = 'MODEL_PROVIDER' | 'VECTOR_STORE' | 'EMBEDDING_PROVIDER' | 'CHUNKER' | 'MEMORY_STORE';
+export type ConnectionKind = 'MODEL_PROVIDER' | 'VECTOR_STORE' | 'EMBEDDING_PROVIDER' | 'CHUNKER' | 'SHORT_TERM_MEMORY_STORE';
 
 export interface ConnectionKindConfig {
     displayName: string;
@@ -62,5 +62,5 @@ export interface ConnectionCreatorProps {
     connectionKind: ConnectionKind;
     selectedNode?: FlowNode;
     nodeFormTemplate?: FlowNode;
-    onSave?: (connectionNode: FlowNode) => void;
+    onSave?: (connectionNode: FlowNode, artifacts?: ProjectStructureArtifactResponse[]) => void;
 }

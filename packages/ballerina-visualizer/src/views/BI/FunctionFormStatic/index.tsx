@@ -22,11 +22,12 @@ import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { FormField, FormImports, FormValues } from "@wso2/ballerina-side-panel";
 import { URI, Utils } from "vscode-uri";
-import FormGeneratorNew from "../Forms/FormGeneratorNew";
+import ArtifactForm from "../Forms/ArtifactForm";
 import { FormHeader } from "../../../components/FormHeader";
 import { convertConfig, getImportsForProperty } from "../../../utils/bi";
 import { LoadingContainer } from "../../styles";
 import { LoadingRing } from "../../../components/Loader";
+
 
 type NodeProperties = OriginalNodeProperties & {
     [key: string]: any;
@@ -134,13 +135,12 @@ export function FunctionFormStatic(props: FunctionFormProps) {
 
     const getFunctionNode = async (kind: NodeKind) => {
         setIsLoading(true);
-        const res = await rpcClient
-            .getBIDiagramRpcClient()
-            .getNodeTemplate({
-                position: { line: 0, offset: 0 },
-                filePath: Utils.joinPath(URI.file(projectPath), fileName).fsPath,
-                id: { node: kind },
-            });
+
+        const res = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
+            position: { line: 0, offset: 0 },
+            filePath: Utils.joinPath(URI.file(projectPath), fileName).fsPath,
+            id: { node: kind },
+        });
         let flowNode = res.flowNode;
 
         let properties = flowNode.properties as NodeProperties;
@@ -379,7 +379,7 @@ export function FunctionFormStatic(props: FunctionFormProps) {
             )}
             <FormContainer>
                 {filePath && targetLineRange && functionFields.length > 0 &&
-                    <FormGeneratorNew
+                    <ArtifactForm
                         fileName={filePath}
                         targetLineRange={targetLineRange}
                         fields={functionFields}

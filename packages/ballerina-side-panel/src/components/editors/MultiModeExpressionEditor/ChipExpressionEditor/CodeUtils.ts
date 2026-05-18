@@ -19,6 +19,7 @@
 import { StateEffect, StateField, RangeSet, Transaction, SelectionRange, Annotation } from "@codemirror/state";
 import { WidgetType, Decoration, ViewPlugin, EditorView, ViewUpdate } from "@codemirror/view";
 import { filterCompletionsByPrefixAndType, getParsedExpressionTokens, detectTokenPatterns, ParsedToken } from "./utils";
+import { HELPER_PANE_WIDTH } from "./constants";
 import { defaultKeymap, historyKeymap } from "@codemirror/commands";
 import { CompletionItem, FnSignatureDocumentation } from "@wso2/ui-toolkit";
 import { ThemeColors } from "@wso2/ui-toolkit";
@@ -30,7 +31,8 @@ import {
     BASE_ICON_STYLES,
     getTokenIconClass,
     getTokenTypeColor,
-    getChipDisplayContent
+    getChipDisplayContent,
+    shouldRenderAsEmptySpace
 } from "./chipStyles";
 import React from "react";
 
@@ -44,6 +46,7 @@ export type CursorInfo = {
     top: number;
     left: number;
     position: SelectionRange;
+    isFlipped?: boolean;
 }
 
 export const ProgrammerticSelectionChange = Annotation.define<boolean>();
@@ -86,34 +89,41 @@ export function createChip(text: string, type: TokenType, start: number, end: nu
                 displayText = this.metadata?.content || this.text;
             }
 
+            if (this.metadata?.fullValue) {
+                span.title = this.metadata.fullValue;
+            }
+
             const colors = getTokenTypeColor(this.type);
+            const isPlaceholder = shouldRenderAsEmptySpace(this.type, this.text);
 
             // Apply base styles to the chip container
             Object.assign(span.style, {
                 ...BASE_CHIP_STYLES,
-                background: colors.background,
+                background: isPlaceholder ? "transparent" : colors.background,
                 border: `1px solid ${colors.border}`,
                 marginRight: "2px",
                 marginLeft: "2px",
             });
 
-            // Create icon element for standard chip
-            const icon = document.createElement("i");
-            let iconClass = getTokenIconClass(this.type, this.metadata?.documentType);
-            if (iconClass) {
-                icon.className = iconClass;
+            if (!isPlaceholder) {
+                // Create icon element for standard chip
+                const icon = document.createElement("i");
+                let iconClass = getTokenIconClass(this.type, this.metadata?.documentType);
+                if (iconClass) {
+                    icon.className = iconClass;
+                }
+                Object.assign(icon.style, {
+                    ...BASE_ICON_STYLES,
+                    color: colors.icon
+                });
+                span.appendChild(icon);
             }
-            Object.assign(icon.style, {
-                ...BASE_ICON_STYLES,
-                color: colors.icon
-            });
 
             // Create text span with ellipsis handling
             const textSpan = document.createElement("span");
             textSpan.textContent = displayText;
             Object.assign(textSpan.style, CHIP_TEXT_STYLES);
 
-            span.appendChild(icon);
             span.appendChild(textSpan);
         }
 
@@ -121,7 +131,11 @@ export function createChip(text: string, type: TokenType, start: number, end: nu
             return false;
         }
         eq(other: ChipWidget) {
-            return other.text === this.text && other.start === this.start && other.end === this.end;
+            return other.text === this.text
+                && other.start === this.start
+                && other.end === this.end
+                && other.type === this.type
+                && other.metadata?.fullValue === this.metadata?.fullValue;
         }
     }
     return Decoration.replace({
@@ -422,9 +436,45 @@ export const expressionEditorKeymap = [
     ...historyKeymap
 ];
 
+export const AVERAGE_HELPER_PANE_HEIGHT = 250;
+
+// Offset applied to coords.bottom so the helper pane opens just below the cursor line
+const CURSOR_BOTTOM_OFFSET = 5;
+
+/**
+ * Shared position computation for all CodeMirror update listeners.
+ * Detects whether the pane should flip above the cursor (when it would overflow the container
+ * bottom) and applies right-edge overflow correction for the pane width.
+ * All coordinates are viewport-relative (as returned by coordsAtPos), so no scrollTop needed.
+ */
+const computeCursorPositionInfo = (
+    coords: { top: number; bottom: number; left: number },
+    editorRect: DOMRect,
+    containerRef?: React.RefObject<HTMLElement>
+): { top: number; left: number; isFlipped: boolean } => {
+    const isFlipped = !!(
+        containerRef?.current &&
+        coords.bottom + AVERAGE_HELPER_PANE_HEIGHT > containerRef.current.getBoundingClientRect().bottom
+    );
+
+    const anchorY = isFlipped ? coords.top : coords.bottom + CURSOR_BOTTOM_OFFSET;
+    let relativeTop = anchorY - editorRect.top;
+    let relativeLeft = coords.left - editorRect.left;
+
+    const overflow = relativeLeft + HELPER_PANE_WIDTH - editorRect.width;
+    if (overflow > 0) {
+        relativeLeft -= overflow;
+    }
+
+    return { top: relativeTop, left: relativeLeft, isFlipped };
+};
+
 // this always returns the cursor position with correction for helper pane width overflow
 // make sure all the dropdowns that use this handle has the same width
-export const buildOnFocusListner = (onTrigger: (cursor: CursorInfo) => void) => {
+export const buildOnFocusListner = (
+    onTrigger: (cursor: CursorInfo) => void,
+    containerRef?: React.RefObject<HTMLElement>
+) => {
     const shouldOpenHelperPaneListner = EditorView.updateListener.of((update) => {
         if (update.focusChanged) {
             if (!update.view.hasFocus) {
@@ -434,23 +484,19 @@ export const buildOnFocusListner = (onTrigger: (cursor: CursorInfo) => void) => 
             const cursorPosition = update.view.state.selection.main;
             const coords = update.view.coordsAtPos(cursorPosition.to);
 
-            if (coords && coords.top && coords.left) {
+            if (
+                coords &&
+                coords.top !== null &&
+                coords.top !== undefined &&
+                coords.left !== null &&
+                coords.left !== undefined &&
+                coords.bottom !== null &&
+                coords.bottom !== undefined
+            ) {
                 const editorRect = update.view.dom.getBoundingClientRect();
-                //+5 is to position a little be below the cursor
-                //otherwise it overlaps with the cursor
-                let relativeTop = coords.bottom - editorRect.top + 5;
-                let relativeLeft = coords.left - editorRect.left;
+                const { top: relativeTop, left: relativeLeft, isFlipped } = computeCursorPositionInfo(coords, editorRect, containerRef);
 
-                const HELPER_PANE_WIDTH = 300;
-                const editorWidth = editorRect.width;
-                const relativeRight = relativeLeft + HELPER_PANE_WIDTH;
-                const overflow = relativeRight - editorWidth;
-
-                if (overflow > 0) {
-                    relativeLeft -= overflow;
-                }
-
-                onTrigger({ top: relativeTop, left: relativeLeft, position: cursorPosition });
+                onTrigger({ top: relativeTop, left: relativeLeft, position: cursorPosition, isFlipped });
             }
         }
     });
@@ -459,7 +505,10 @@ export const buildOnFocusListner = (onTrigger: (cursor: CursorInfo) => void) => 
 
 // this always returns the cursor position with correction for helper pane width overflow
 // make sure all the dropdowns that use this handle has the same width
-export const buildOnSelectionChange = (onTrigger: (cursor: CursorInfo) => void) => {
+export const buildOnSelectionChange = (
+    onTrigger: (cursor: CursorInfo) => void,
+    containerRef?: React.RefObject<HTMLElement>
+) => {
     const selectionListener = EditorView.updateListener.of((update) => {
         if (!update.selectionSet) return;
         if (update.docChanged) return;
@@ -468,23 +517,11 @@ export const buildOnSelectionChange = (onTrigger: (cursor: CursorInfo) => void) 
         const cursorPosition = update.state.selection.main;
         const coords = update.view.coordsAtPos(cursorPosition.to);
 
-        if (coords && coords.top && coords.left) {
+        if (coords && coords.top != null && coords.left != null) {
             const editorRect = update.view.dom.getBoundingClientRect();
-            //+5 is to position a little be below the cursor
-            //otherwise it overlaps with the cursor
-            let relativeTop = coords.bottom - editorRect.top + 5;
-            let relativeLeft = coords.left - editorRect.left;
+            const { top: relativeTop, left: relativeLeft, isFlipped } = computeCursorPositionInfo(coords, editorRect, containerRef);
 
-            const HELPER_PANE_WIDTH = 300;
-            const editorWidth = editorRect.width;
-            const relativeRight = relativeLeft + HELPER_PANE_WIDTH;
-            const overflow = relativeRight - editorWidth;
-
-            if (overflow > 0) {
-                relativeLeft -= overflow;
-            }
-
-            onTrigger({ top: relativeTop, left: relativeLeft, position: cursorPosition });
+            onTrigger({ top: relativeTop, left: relativeLeft, position: cursorPosition, isFlipped });
         }
     });
     return selectionListener;
@@ -527,7 +564,10 @@ export const buildNeedTokenRefetchListner = (onTrigger: () => void) => {
     return needTokenRefetchListner;
 }
 
-export const buildOnChangeListner = (onTrigeer: (newValue: string, cursor: CursorInfo) => void) => {
+export const buildOnChangeListner = (
+    onTrigeer: (newValue: string, cursor: CursorInfo) => void,
+    containerRef?: React.RefObject<HTMLElement>
+) => {
     const onChangeListner = EditorView.updateListener.of((update) => {
         const cursorPos = update.view.state.selection.main;
         const coords = update.view.coordsAtPos(cursorPos.to);
@@ -541,25 +581,14 @@ export const buildOnChangeListner = (onTrigeer: (newValue: string, cursor: Curso
         }
         if (update.docChanged) {
             const editorRect = update.view.dom.getBoundingClientRect();
-            //+5 is to position a little be below the cursor
-            //otherwise it overlaps with the cursor
-            let relativeTop = coords.bottom - editorRect.top + 5;
-            let relativeLeft = coords.left - editorRect.left;
-
-            const HELPER_PANE_WIDTH = 300;
-            const editorWidth = editorRect.width;
-            const relativeRight = relativeLeft + HELPER_PANE_WIDTH;
-            const overflow = relativeRight - editorWidth;
-
-            if (overflow > 0) {
-                relativeLeft -= overflow;
-            }
+            const { top: relativeTop, left: relativeLeft, isFlipped } = computeCursorPositionInfo(coords, editorRect, containerRef);
 
             const newValue = update.view.state.doc.toString();
             const cursorInfo = {
                 top: relativeTop,
                 left: relativeLeft,
-                position: cursorPos
+                position: cursorPos,
+                isFlipped
             };
             onTrigeer(newValue, cursorInfo);
         }
@@ -598,7 +627,8 @@ export const buildCompletionSource = (getCompletions: () => Promise<CompletionIt
                 label: item.label,
                 type: item.kind || "variable",
                 detail: item.description,
-                apply: item.value,
+                // Manipulating the value to handle the LSP snippet completions
+                apply: item.value.replace(/\$\{(\d+):([^}]+)\}/g, '$2').replace(/\$[0-9]+/g, '').trim(),
             }))
         };
     };
@@ -881,7 +911,7 @@ export const createTooltipPositioningHandlers = (view: EditorView) => {
     return { mount, destroy };
 };
 
-export const isSelectionOnToken = (from: number, to: number, view: EditorView): ParsedToken => {
+export const isSelectionOnToken = (from: number, to: number, view: EditorView): ParsedToken | undefined => {
     if (!view) return undefined;
     const { tokens, compounds } = view.state.field(tokenField);
 

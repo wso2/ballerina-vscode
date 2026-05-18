@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { isIcpEnabled, addICP, ICPEnabledRequest, disableICP } from "@wso2/ballerina-core";
+import { isIcpEnabled, addICP, ICPEnabledRequest, disableICP, viewInICP, isICPServerRunning } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { ICPServiceRpcManager } from "./rpc-manager";
 
@@ -25,4 +25,6 @@ export function registerIcpServiceRpcHandlers(messenger: Messenger) {
     messenger.onRequest(isIcpEnabled, (args: ICPEnabledRequest) => rpcManger.isIcpEnabled(args));
     messenger.onRequest(addICP, (args: ICPEnabledRequest) => rpcManger.addICP(args));
     messenger.onRequest(disableICP, (args: ICPEnabledRequest) => rpcManger.disableICP(args));
+    messenger.onRequest(viewInICP, (args: ICPEnabledRequest) => rpcManger.viewInICP(args));
+    messenger.onRequest(isICPServerRunning, (args: ICPEnabledRequest) => rpcManger.isICPServerRunning(args));
 }

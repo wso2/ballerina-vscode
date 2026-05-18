@@ -41,15 +41,18 @@ export class InputNodeFactory extends AbstractReactFactory<InputNode, DiagramEng
         } else if (event.model.filteredInputType &&
                 (event.model.filteredInputType.kind === TypeKind.Record ||
                     event.model.filteredInputType.kind === TypeKind.Array ||
-                    event.model.filteredInputType.kind === TypeKind.Enum
+                    event.model.filteredInputType.kind === TypeKind.Enum ||
+                    event.model.filteredInputType.kind === TypeKind.Json ||
+                    event.model.filteredInputType.kind === TypeKind.Xml
                 )
             ) {
             return (
                 <InputNodeWidget
                     engine={this.engine}
-                    id={event.model.filteredInputType?.id}
+                    id={event.model.filteredInputType.id}
                     dmType={event.model.filteredInputType}
                     getPort={(portId: string) => event.model.getPort(portId) as InputOutputPortModel}
+                    context={event.model.context}
                     focusedInputs={event.model.context.model.query ? event.model.context.model.query.inputs : []}
                 />
             );

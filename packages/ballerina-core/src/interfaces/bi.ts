@@ -20,6 +20,7 @@ import { NodePosition } from "@wso2/syntax-tree";
 import { LinePosition } from "./common";
 import { Diagnostic as VSCodeDiagnostic } from "vscode-languageserver-types";
 import { ValueTypeConstraint } from "../rpc-types/ai-agent/interfaces";
+import { Type } from "./extended-lang-client";
 
 export type { NodePosition };
 
@@ -126,6 +127,7 @@ export type Imports = {
 export type FormFieldInputType = "TEXT" |
     "BOOLEAN" |
     "IDENTIFIER" |
+    "AUTOCOMPLETE" |
     "SINGLE_SELECT" |
     "MULTIPLE_SELECT" |
     "TEXTAREA" |
@@ -148,13 +150,29 @@ export type FormFieldInputType = "TEXT" |
     "ai:Prompt" |
     "FIXED_PROPERTY" |
     "REPEATABLE_PROPERTY" |
-    "MAPPING_EXPRESSION_SET" |
-    "MAPPING_EXPRESSION" |
     "ENUM" |
     "DM_JOIN_CLAUSE_RHS_EXPRESSION" |
     "RECORD_MAP_EXPRESSION" |
+    "REPEATABLE_MAP" |
     "PROMPT" |
-    "SQL_QUERY";
+    "RECORD_FIELD_SELECTOR" |
+    "SQL_QUERY" |
+    "CLAUSE_EXPRESSION" |
+    "SLIDER" |
+    "HEADER_SET" |
+    "DROPDOWN_CHOICE" |
+    "CUSTOM_DROPDOWN" |
+    "ACTION_TYPE" |
+    "ACTION_EXPRESSION" |
+    "VIEW" |
+    "SERVICE_PATH" |
+    "ACTION_PATH" |
+    "NUMBER" |
+    "REPEATABLE_LIST" |
+    "CONDITIONAL_FIELDS" |
+    "DOC_TEXT" |
+    "GROUP_SECTION"
+    ;
 
 export interface BaseType {
     fieldType: FormFieldInputType;
@@ -186,11 +204,23 @@ export interface IdentifierType extends BaseType {
     scope: FieldScope;
 }
 
+export interface RecordFieldSelectorType extends BaseType {
+    fieldType: "RECORD_FIELD_SELECTOR";
+    recordSelectorType: RecordSelectorType;
+}
+
+export interface RecordSelectorType {
+    rootType: Type;
+    referencedTypes: Type[];
+}
+
+
 export type InputType =
     | BaseType
     | DropdownType
     | TemplateType
-    | IdentifierType;
+    | IdentifierType
+    | RecordFieldSelectorType;
 
 export type Property = {
     metadata: Metadata;
@@ -307,6 +337,7 @@ export enum DIRECTORY_MAP {
     CONNECTION = "CONNECTION",
     CONNECTOR = "CONNECTOR",
     DATA_MAPPER = "DATA_MAPPER",
+    AGENT_TOOL = "AGENT_TOOL",
     FUNCTION = "FUNCTION",
     LISTENER = "LISTENER",
     LOCAL_CONNECTORS = "localConnectors",
@@ -323,6 +354,12 @@ export enum FUNCTION_TYPE {
     REGULAR = "regular",
     EXPRESSION_BODIED = "expressionBodied",
     ALL = "all",
+}
+
+export enum VISIBILITY {
+    PUBLIC = "public",
+    PRIVATE = "private",
+    MODULE = "module",
 }
 
 /**
@@ -349,6 +386,7 @@ export interface ProjectStructure {
     projectName: string;
     projectPath?: string;
     projectTitle?: string;
+    isLibrary?: boolean;
     directoryMap: ProjectDirectoryMap;
 }
 
@@ -381,6 +419,7 @@ export interface ProjectStructureArtifactResponse {
     position?: NodePosition;
     resources?: ProjectStructureArtifactResponse[];
     isNew?: boolean;
+    visibility?: VISIBILITY;
 }
 
 export interface UpdatedArtifactsResponse {
@@ -405,6 +444,8 @@ export type DiagramLabel = "On Fail" | "Body";
 
 export type NodePropertyKey =
     | "agentType"
+    | "credential"
+    | "annotations"
     | "auth"
     | "checkError"
     | "client"
@@ -423,6 +464,7 @@ export type NodePropertyKey =
     | "functionNameDescription"
     | "instructions"
     | "isIsolated"
+    | "isPublic"
     | "maxIter"
     | "memory"
     | "method"
@@ -445,8 +487,10 @@ export type NodePropertyKey =
     | "store"
     | "systemPrompt"
     | "targetType"
+    | "testConfigValue"
     | "toolKitName"
     | "tools"
+    | "toolScopes"
     | "type"
     | "typeDescription"
     | "variable"
@@ -465,8 +509,11 @@ export type FieldScope = "Global" | "Local" | "Object";
 
 export type NodeKind =
     | "ACTION_OR_EXPRESSION"
+    | "AGENTS"
     | "AGENT"
     | "AGENT_CALL"
+    | "AGENT_ID_AUTH_CONFIG"
+    | "AGENT_RUN"
     | "ASSIGN"
     | "AUTOMATION"
     | "BODY"
@@ -480,6 +527,7 @@ export type NodeKind =
     | "CONTINUE"
     | "DATA_MAPPER_CALL"
     | "DATA_MAPPER_DEFINITION"
+    | "DATA_MAPPER_CREATION"
     | "DRAFT"
     | "ELSE"
     | "EMPTY"
@@ -492,6 +540,7 @@ export type NodeKind =
     | "FUNCTION"
     | "FUNCTION_CALL"
     | "FUNCTION_DEFINITION"
+    | "FUNCTION_CREATION"
     | "IF"
     | "INCLUDED_FIELD"
     | "LOCK"
@@ -499,7 +548,7 @@ export type NodeKind =
     | "MATCH"
     | "METHOD_CALL"
     | "MEMORY"
-    | "MEMORY_STORE"
+    | "SHORT_TERM_MEMORY_STORE"
     | "MODEL_PROVIDER"
     | "MODEL_PROVIDERS"
     | "VARIABLE"
@@ -536,6 +585,7 @@ export type NodeKind =
     | "WAIT"
     | "WHILE"
     | "WORKER"
+    | "RECORD"
     | "VARIABLE";
 
 export type OverviewFlow = {

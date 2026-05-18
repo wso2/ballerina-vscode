@@ -32,9 +32,10 @@ import {
 import { CopilotEventHandler } from "../../utils/events";
 import { langClient } from "../../activator";
 import { applyTextEdits } from "../utils";
-import { LIBRARY_PROVIDER_TOOL } from "../../utils/libs/libraries";
+import { LIBRARY_GET_TOOL } from "./library-get";
 import { approvalManager } from '../../state/ApprovalManager';
 import { sendAiSchemaDidOpen } from "../../utils/project/ls-schema-notifications";
+import { LIBRARY_SEARCH_TOOL } from "./library-search";
 
 export const CONNECTOR_GENERATOR_TOOL = "ConnectorGeneratorTool";
 
@@ -43,14 +44,21 @@ const SpecFetcherInputSchema = z.object({
     serviceDescription: z.string().optional().describe("Optional description of what the service is for"),
 });
 
+
+
 export function createConnectorGeneratorTool(eventHandler: CopilotEventHandler, tempProjectPath: string, projectName?: string, modifiedFiles?: string[]) {
     return tool({
+        // TODO: Verify that the agent invokes LIBRARY_SEARCH_TOOL before LIBRARY_GET_TOOL and only falls back to this tool when no suitable library is found; update the tool description or agent prompt if the ordering is incorrect
         description: `
-Generates a connector for an external service by deriving the service contract from user-provided specifications. Use this tool only when the service contract is unclear or missing, and the target service is not a well-established platform with an existing SDK or connector
+Generates a connector for an external service by deriving the service contract from user-provided OpenAPI specifications.
 
 Use this tool when:
-1. The target service is custom, internal, or niche, and unlikely to be covered by existing libraries.
-2. When the ${LIBRARY_PROVIDER_TOOL} does not have a connector for the target service.
+1. Target service is custom, internal, or niche
+2. User request is ambiguous and needs a SaaS connector
+3. User explicitly requests to create a SaaS connector
+4. After searching with ${LIBRARY_SEARCH_TOOL}, no suitable connector is found
+
+**CRITICAL: Do NOT call this tool again for the same service if the user has already skipped it (errorCode: USER_SKIPPED). Accept the skip and proceed without the connector.**
 
 The tool will:
 1. Request OpenAPI spec from user (supports JSON and YAML formats)
@@ -179,7 +187,7 @@ function handleUserSkip(
 
     return {
         success: false,
-        message: `User skipped providing OpenAPI specification for ${serviceName}. Proceed without generating connector or ask user to provide the spec later.`,
+        message: `User skipped providing OpenAPI specification for ${serviceName}. Do NOT call this tool again for ${serviceName} — proceed with the implementation without this connector.`,
         error: `User skipped providing spec for ${serviceName}${comment ? ": " + comment : ""}`,
         errorCode: "USER_SKIPPED",
         details: "User chose not to provide the OpenAPI specification",

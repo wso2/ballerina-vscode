@@ -56,12 +56,16 @@ export function PersistDiagram(props: PersistDiagramProps) {
             setSelectedNodeId(nodeId);
         }
         setFocusedNodeId(undefined);
-    }, [props]);
+    }, [selectedRecordName]);
 
     useEffect(() => {
         if (externalCollapsedMode !== undefined && externalCollapsedMode !== collapsedMode) {
             setIsCollapsedMode(externalCollapsedMode);
             if (diagramModel) {
+                // Add overlay to hide diagram during re-layout (prevents visible redistribution on expand/collapse)
+                diagramModel.addLayer(new OverlayLayerModel());
+                diagramEngine.setModel(diagramModel);
+                diagramEngine.repaintCanvas();
                 autoDistribute(diagramModel);
             }
         }
@@ -104,9 +108,9 @@ export function PersistDiagram(props: PersistDiagramProps) {
             if (diagramEngine.getCanvas()?.getBoundingClientRect) {
                 diagramEngine.zoomToFitNodes({ margin: 10, maxZoom: 1 });
             }
-            diagramEngine.repaintCanvas();
             diagramEngine.getModel().removeLayer(diagramEngine.getModel().getLayers().find(layer => layer instanceof OverlayLayerModel));
             diagramEngine.setModel(model);
+            diagramEngine.repaintCanvas();
         }, 300);
     };
 
@@ -147,7 +151,9 @@ export function PersistDiagram(props: PersistDiagramProps) {
                             userMessage={userMessage}
                             showProblemPanel={hasDiagnostics ? showProblemPanel : undefined}
                         /> :
-                        <ProgressRing sx={{ color: ThemeColors.PRIMARY }} />
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%' }}>
+                            <ProgressRing sx={{ color: ThemeColors.PRIMARY }} />
+                        </div>
                 }
             </DiagramContainer>
         </PersistDiagramContext>

@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ChipExpressionEditorDefaultConfiguration } from "./ChipExpressionEditor/ChipExpressionDefaultConfig";
+import { ChipExpressionEditorDefaultConfiguration, HelperPaneMenuItem } from "./ChipExpressionEditor/ChipExpressionDefaultConfig";
 import { TokenType } from "./ChipExpressionEditor/types";
 import { ParsedToken } from "./ChipExpressionEditor/utils";
 import { ThemeColors } from "@wso2/ui-toolkit/lib/styles/Theme";
@@ -77,18 +77,26 @@ export class StringTemplateEditorConfig extends ChipExpressionEditorDefaultConfi
         return () => null;
     }
     serializeValue(value: string): string {
+        if (!value) return value ?? "";
         const suffix = this.getSerializationSuffix();
         const prefix = this.getSerializationPrefix();
         if (value.trim().startsWith(prefix) && value.trim().endsWith(suffix)) {
             return value.trim().slice(prefix.length, value.trim().length - suffix.length);
         }
+        if (value.trim().startsWith("\"") && value.trim().endsWith("\"")) {
+            return value.trim().slice(1, -1);
+        }
         return value;
     }
     deserializeValue(value: string): string {
+        if (!value) return value ?? "";
         const suffix = this.getSerializationSuffix();
         const prefix = this.getSerializationPrefix();
         if (value === '') {
             return value;
+        }
+        if (value.trim().startsWith('"') && value.trim().endsWith('"')) {
+            return `${prefix}${value.trim().slice(1, -1)}${suffix}`;
         }
         if (value.trim().startsWith(prefix) && value.trim().endsWith(suffix)) {
             return value;
@@ -97,9 +105,17 @@ export class StringTemplateEditorConfig extends ChipExpressionEditorDefaultConfi
     }
 
     getIsValueCompatible(expValue: string) {
+        if (!expValue) return true;
         const suffix = this.getSerializationSuffix();
         const prefix = this.getSerializationPrefix();
-        return (expValue.trim().startsWith(prefix) && expValue.trim().endsWith(suffix))
+        return (
+            (expValue.trim().startsWith(prefix) && expValue.trim().endsWith(suffix)) ||
+            (expValue.trim().startsWith('"') && expValue.trim().endsWith('"')) 
+        )
+    }
+
+    getHelperPaneHiddenItems(): HelperPaneMenuItem[] {
+        return [HelperPaneMenuItem.FUNCTIONS];
     }
 }
 
@@ -118,6 +134,7 @@ export class RawTemplateEditorConfig extends ChipExpressionEditorDefaultConfigur
         return () => null;
     }
     serializeValue(value: string): string {
+        if (!value) return value ?? "";
         const suffix = this.getSerializationSuffix();
         const prefix = this.getSerializationPrefix();
         if (value.trim().startsWith(prefix) && value.trim().endsWith(suffix)) {
@@ -126,6 +143,7 @@ export class RawTemplateEditorConfig extends ChipExpressionEditorDefaultConfigur
         return value;
     }
     deserializeValue(value: string): string {
+        if (!value) return value ?? "";
         const suffix = this.getSerializationSuffix();
         const prefix = this.getSerializationPrefix();
         if (value === '') {
@@ -156,6 +174,7 @@ export class SQLExpressionEditorConfig extends ChipExpressionEditorDefaultConfig
         return "`";
     }
     serializeValue(value: string): string {
+        if (!value) return value ?? "";
         const suffix = this.getSerializationSuffix();
         const prefix = this.getSerializationPrefix();
         if (value.trim().startsWith(prefix) && value.trim().endsWith(suffix)) {
@@ -164,6 +183,7 @@ export class SQLExpressionEditorConfig extends ChipExpressionEditorDefaultConfig
         return value;
     }
     deserializeValue(value: string): string {
+        if (!value) return value ?? "";
         const suffix = this.getSerializationSuffix();
         const prefix = this.getSerializationPrefix();
         if (value === '') {
@@ -217,12 +237,55 @@ export class NumberExpressionEditorConfig extends ChipExpressionEditorDefaultCon
     }
 
     getIsValueCompatible(value: string): boolean {
+        if (!value) return true;
         return this.DECIMAL_INPUT_REGEX.test(value);
     }
 }
 
 export class RecordConfigExpressionEditorConfig extends ChipExpressionEditorDefaultConfiguration {
-   getIsToggleHelperAvailable(): boolean {
+    getIsToggleHelperAvailable(): boolean {
         return false;
-   }
+    }
+}
+
+export class BooleanEditorConfig extends ChipExpressionEditorDefaultConfiguration {
+    deserializeValue(value: string): string {
+        if (this.getIsValueCompatible(value)) {
+            return value;
+        }
+        return "";
+    }
+
+    getIsValueCompatible(expValue: string) {
+        if (!expValue) return true;
+        return expValue.toLocaleLowerCase() === "true" || expValue.toLocaleLowerCase() === "false";
+    }
+}
+
+export class ArrayEditorConfig extends ChipExpressionEditorDefaultConfiguration {
+    deserializeValue(value: string): string {
+        if (this.getIsValueCompatible(value)) {
+            return value;
+        }
+        return "";
+    }
+
+    getIsValueCompatible(expValue: string) {
+        if (!expValue) return true;
+        return expValue.trim().startsWith("[") && expValue.trim().endsWith("]");
+    }
+}
+
+export class MapEditorConfig extends ChipExpressionEditorDefaultConfiguration {
+    deserializeValue(value: string): string {
+        if (this.getIsValueCompatible(value)) {
+            return value;
+        }
+        return "";
+    }
+
+    getIsValueCompatible(expValue: string) {
+        if (!expValue) return true;
+        return expValue.trim().startsWith("{") && expValue.trim().endsWith("}");
+    }
 }

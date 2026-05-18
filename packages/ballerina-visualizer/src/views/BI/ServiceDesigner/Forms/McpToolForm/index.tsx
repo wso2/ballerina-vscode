@@ -30,7 +30,7 @@ import {
 } from "@wso2/ballerina-core";
 import { FormField, FormImports, FormValues, Parameter } from "@wso2/ballerina-side-panel";
 import { getImportsForProperty } from "../../../../../utils/bi";
-import FormGeneratorNew from "../../../Forms/FormGeneratorNew";
+import ArtifactForm from "../../../Forms/ArtifactForm";
 
 interface McpToolFormProps {
     model: FunctionModel;
@@ -47,35 +47,27 @@ export function McpToolForm(props: McpToolFormProps) {
     const { model: initialModel, onSave, onClose, filePath, lineRange, isServiceClass, isSaving } = props;
     const [fields, setFields] = useState<FormField[]>([]);
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
-    const [model, setModel] = useState<FunctionModel>(() => structuredClone(initialModel));
-
-    useEffect(() => {
-        setModel((prevModel) => {
-            const properties = prevModel.properties ? { ...prevModel.properties } : {};
-
-            if (!properties.toolDescription) {
-                properties.toolDescription = {
-                    metadata: {
-                        label: "Tool Description",
-                        description: "Description of what this MCP tool does",
-                    },
-                    placeholder: "Describe what this tool does...",
-                    types: [{ fieldType: "STRING", ballerinaType: "string", selected: false }],
-                    value: "",
-                    enabled: true,
-                    editable: true,
-                    optional: true,
-                    advanced: false,
-                };
-            }
-
-            // Return a new FunctionModel object (immutably updated)
-            return {
-                ...prevModel,
-                properties,
+    const [model] = useState<FunctionModel>(() => {
+        const cloned = structuredClone(initialModel);
+        const properties = cloned.properties ?? {};
+        if (!properties.toolDescription) {
+            properties.toolDescription = {
+                metadata: {
+                    label: "Tool Description",
+                    description: "Description of what this MCP tool does",
+                },
+                placeholder: "Describe what this tool does...",
+                types: [{ fieldType: "STRING", ballerinaType: "string", selected: false }],
+                value: "",
+                enabled: true,
+                editable: true,
+                optional: true,
+                advanced: false,
             };
-        });
-    }, []); // Runs only once after mount
+        }
+        cloned.properties = properties;
+        return cloned;
+    });
 
     const handleParamChange = (param: Parameter) => {
         const name = `${param.formValues["variable"]}`;
@@ -103,7 +95,7 @@ export function McpToolForm(props: McpToolFormProps) {
 
         params.forEach((param) => {
             // Find matching field configurations from schema
-            const typeField = paramFields.find((field) => field.key === "type");
+            const typeField = paramFields.find((field) => getPrimaryInputType(field.types)?.fieldType === "TYPE");
             const nameField = paramFields.find((field) => field.key === "variable");
             const defaultField = paramFields.find((field) => field.key === "defaultable");
             const documentationField = paramFields.find((field) => field.key === "documentation");
@@ -270,7 +262,7 @@ export function McpToolForm(props: McpToolFormProps) {
     return (
         <>
             {fields.length > 0 && (
-                <FormGeneratorNew
+                <ArtifactForm
                     fileName={filePath}
                     targetLineRange={lineRange}
                     fields={fields}

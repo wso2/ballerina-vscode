@@ -17,10 +17,10 @@
  */
 
 import React, { useEffect, useState } from "react";
+import ReactMarkdown from "react-markdown";
 import {
     Button,
     Codicon,
-    ProgressRing,
     SearchBox,
     SidePanelBody,
     Switch,
@@ -32,11 +32,13 @@ import styled from "@emotion/styled";
 import { BackIcon, CloseIcon, LogIcon } from "../../resources";
 import { Category, Item, Node } from "./types";
 import { cloneDeep, debounce } from "lodash";
-import { GroupListSkeleton } from "../Skeletons";
+import { GroupListSkeleton, NodeListSkeleton } from "../Skeletons";
 import GroupList from "../GroupList";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { getExpandedCategories, setExpandedCategories, getDefaultExpandedState } from "../../utils/localStorage";
+import { ConnectionListItem } from "@wso2/wso2-platform-core";
 import { shouldShowEmptyCategory, shouldUseConnectionContainer, getCategoryActions, isCategoryFixed } from "./categoryConfig";
+import { stripHtmlTags } from "../Form/utils";
 
 namespace S {
     export const Container = styled.div<{}>`
@@ -114,6 +116,38 @@ namespace S {
     export const BodyText = styled.div<{}>`
         font-size: 11px;
         opacity: 0.5;
+    `;
+
+    export const TooltipMarkdown = styled.div`
+        font-size: 12px;
+        line-height: 1.4;
+        font-family: var(--vscode-font-family);
+
+        p {
+            margin: 0 0 6px 0;
+        }
+
+        p:last-of-type {
+            margin-bottom: 0;
+        }
+
+        pre {
+            display: none;
+        }
+
+        code {
+            display: inline;
+        }
+
+        ul,
+        ol {
+            margin: 6px 0;
+            padding-left: 18px;
+        }
+
+        li {
+            margin: 2px 0;
+        }
     `;
 
     export const Component = styled.div<{ enabled?: boolean }>`
@@ -311,6 +345,7 @@ interface NodeListProps {
     showAiPanel?: boolean;
     title?: string;
     onSelect: (id: string, metadata?: any) => void;
+    onSelectConnector?: (id: string, metadata?: any) => void; // For connector routing
     onSearchTextChange?: (text: string) => void;
     onAddConnection?: () => void;
     onAddFunction?: () => void;
@@ -319,6 +354,13 @@ interface NodeListProps {
     onBack?: () => void;
     onClose?: () => void;
     searchPlaceholder?: string;
+    onImportDevantConn?: (devantConn: ConnectionListItem) => void;
+    onLinkDevantProject?: () => void;
+    onRefreshDevantConnections?: () => void;
+    searchText?: string;
+    panelBodySx?: React.CSSProperties;
+    alwaysCollapsedCategories?: string[];
+    loading?: boolean;
 }
 
 export function NodeList(props: NodeListProps) {
@@ -327,6 +369,7 @@ export function NodeList(props: NodeListProps) {
         showAiPanel,
         title,
         onSelect,
+        onSelectConnector,
         onSearchTextChange,
         onAddConnection,
         onAddFunction,
@@ -335,13 +378,28 @@ export function NodeList(props: NodeListProps) {
         onBack,
         onClose,
         searchPlaceholder,
+        onImportDevantConn,
+        onLinkDevantProject,
+        onRefreshDevantConnections,
+        panelBodySx,
+        alwaysCollapsedCategories,
+        loading
     } = props;
 
     const [searchText, setSearchText] = useState<string>("");
     const [showGeneratePanel, setShowGeneratePanel] = useState(false);
+
+    useEffect(() => {
+        if (props.searchText !== undefined) {
+            setSearchText(props.searchText);
+        }
+    }, [props.searchText]);
     const [isSearching, setIsSearching] = useState(false);
     const [expandedMoreSections, setExpandedMoreSections] = useState<Record<string, boolean>>({});
     const [expandedCategories, setExpandedCategoriesState] = useState<Record<string, boolean>>({});
+    const [searchCollapsedCategories, setSearchCollapsedCategories] = useState<Record<string, boolean>>({});
+    const [searchCollapsedMoreSections, setSearchCollapsedMoreSections] = useState<Record<string, boolean>>({});
+    const [searchCollapsedConnections, setSearchCollapsedConnections] = useState<Record<string, boolean>>({});
     const { rpcClient } = useRpcContext();
     const [isNPSupported, setIsNPSupported] = useState(false);
 
@@ -363,16 +421,36 @@ export function NodeList(props: NodeListProps) {
             
             // Merge stored state with defaults, prioritizing stored state
             const mergedState = { ...defaultState, ...storedState };
+
+            // Force specified categories to always start collapsed
+            if (alwaysCollapsedCategories) {
+                alwaysCollapsedCategories.forEach((cat) => {
+                    mergedState[cat] = false;
+                });
+            }
+
             setExpandedCategoriesState(mergedState);
         }
     }, [categories]);
 
     useEffect(() => {
         if (onSearchTextChange) {
+            if (!searchText.trim()) {
+                setIsSearching(false);
+                debouncedSearch.cancel();
+                onSearchTextChange("");
+                return;
+            }
             setIsSearching(true);
             debouncedSearch(searchText);
             return () => debouncedSearch.cancel();
         }
+    }, [searchText]);
+
+    useEffect(() => {
+        setSearchCollapsedCategories({});
+        setSearchCollapsedMoreSections({});
+        setSearchCollapsedConnections({});
     }, [searchText]);
 
     const handleSearch = (text: string) => {
@@ -395,6 +473,13 @@ export function NodeList(props: NodeListProps) {
     }, [categories]);
 
     const toggleMoreSection = (sectionKey: string) => {
+        if (searchText && searchText.length > 0) {
+            setSearchCollapsedMoreSections((prev) => ({
+                ...prev,
+                [sectionKey]: !prev[sectionKey],
+            }));
+            return;
+        }
         setExpandedMoreSections((prev) => ({
             ...prev,
             [sectionKey]: !prev[sectionKey],
@@ -402,17 +487,34 @@ export function NodeList(props: NodeListProps) {
     };
 
     const toggleCategory = (categoryTitle: string) => {
+        if (searchText && searchText.length > 0) {
+            setSearchCollapsedCategories((prev) => ({
+                ...prev,
+                [categoryTitle]: !prev[categoryTitle],
+            }));
+            return;
+        }
         const newExpandedState = {
             ...expandedCategories,
             [categoryTitle]: !expandedCategories[categoryTitle],
         };
         setExpandedCategoriesState(newExpandedState);
+
+        // Don't persist expanded state for always-collapsed categories
+        if (alwaysCollapsedCategories?.includes(categoryTitle)) {
+            return;
+        }
         setExpandedCategories(newExpandedState);
     };
 
     const handleAddNode = (node: Node, category?: string) => {
         if (node.enabled) {
-            onSelect(node.id, { node: node.metadata, category });
+            // Check if this item is from a "Connectors" category and should use connector routing
+            if (category === "Connectors" && onSelectConnector) {
+                onSelectConnector(node.id, { node: node.metadata, category });
+            } else {
+                onSelect(node.id, { node: node.metadata, category });
+            }
         }
     };
 
@@ -434,6 +536,31 @@ export function NodeList(props: NodeListProps) {
         }
     };
 
+    const handleOnLinkDevantProject = () => {
+        if (onLinkDevantProject){
+            onLinkDevantProject();
+        }
+    }
+
+    const handleOnRefreshDevantConnections = () => {
+        if (onRefreshDevantConnections){
+            onRefreshDevantConnections();
+        }
+    }
+    
+    const renderTooltipContent = (description?: string): React.ReactNode | undefined => {
+        const cleaned = stripHtmlTags(description || "").trim();
+        if (!cleaned) {
+            return undefined;
+        }
+
+        return (
+            <S.TooltipMarkdown>
+                <ReactMarkdown>{cleaned}</ReactMarkdown>
+            </S.TooltipMarkdown>
+        );
+    };
+
     const getNodesContainer = (items: (Node | Category)[], parentCategoryTitle?: string) => {
         const safeItems = items.filter((item) => item != null);
         const nodes = safeItems.filter((item): item is Node => "id" in item && !("title" in item));
@@ -450,7 +577,9 @@ export function NodeList(props: NodeListProps) {
                         return (
                             <Tooltip 
                                 key={node.id + index}
-                                content={node.description} 
+                                content={renderTooltipContent(node.description)}
+                                position="bottom"
+                                offset={{top: 16, left: 20}}
                                 sx={{ 
                                     maxWidth: "280px",
                                     whiteSpace: "normal",
@@ -460,7 +589,7 @@ export function NodeList(props: NodeListProps) {
                             >
                                 <S.Component
                                     enabled={node.enabled}
-                                    onClick={() => handleAddNode(node)}
+                                    onClick={() => handleAddNode(node, parentCategoryTitle)}
                                 >
                                     <S.IconContainer>{node.icon || <LogIcon />}</S.IconContainer>
                                     <S.ComponentTitle
@@ -484,7 +613,9 @@ export function NodeList(props: NodeListProps) {
 
                     if (isMoreSubcategory) {
                         const sectionKey = `${parentCategoryTitle}-${subcategory.title}`;
-                        const isExpanded = expandedMoreSections[sectionKey] || searchText?.length > 0;
+                        const isExpanded = searchText?.length > 0
+                            ? !searchCollapsedMoreSections[sectionKey]
+                            : expandedMoreSections[sectionKey];
 
                         return (
                             <S.AdvancedSubcategoryContainer key={subcategory.title + index}>
@@ -524,7 +655,7 @@ export function NodeList(props: NodeListProps) {
         );
     };
 
-    const getConnectionContainer = (categories: Category[]) => (
+    const getConnectionContainer = (categories: Category[], enableSingleNodeDirectNav?: boolean) => (
         <S.Grid columns={1}>
             {categories.map((category, index) =>
                 category.isLoading ? (
@@ -533,8 +664,15 @@ export function NodeList(props: NodeListProps) {
                     <GroupList
                         key={category.title + index + "tooltip"}
                         category={category}
-                        expand={searchText?.length > 0}
+                        expand={searchText?.length > 0 ? !searchCollapsedConnections[category.title] : undefined}
+                        onToggle={(isOpen) => {
+                            if (searchText?.length > 0) {
+                                setSearchCollapsedConnections((prev) => ({ ...prev, [category.title]: !isOpen }));
+                            }
+                        }}
                         onSelect={handleAddNode}
+                        onImportDevantConn={onImportDevantConn}
+                        enableSingleNodeDirectNav={enableSingleNodeDirectNav}
                     />
                 ))
             }
@@ -544,7 +682,8 @@ export function NodeList(props: NodeListProps) {
     const getCategoryContainer = (groups: Category[], isSubCategory = false, parentCategoryTitle?: string) => {
         // Configuration for special categories
         const categoryConfig = {
-            "Connections": { hasBackground: false },
+            "Connections": { hasBackground: false }, // Existing connections (already configured)
+            "Connectors": { hasBackground: true }, // Available connectors to be added
             "Statement": { hasBackground: true, showSeparatorBefore: true }, // Show separator before Statement
             "AI": { hasBackground: true, targetPosition: 3 }, // 4th position (0-indexed)
             "Control": { hasBackground: true },
@@ -570,14 +709,19 @@ export function NodeList(props: NodeListProps) {
         const content = (
             <>
                 {reorderedGroups.map((group, index) => {
-                    const categoryActions = getCategoryActions(group.title, title);
+                    // Map subcategories whose title ends with "(Current Integration)" to the
+                    // "Current Integration" config so their actions render correctly.
+                    const isCurrentIntegrationSubcategory = group.title?.toLowerCase().endsWith("(current integration)");
+                    const categoryActions = isCurrentIntegrationSubcategory
+                        ? getCategoryActions("Current Integration", title)
+                        : getCategoryActions(group.title, title);
                     const config = categoryConfig[group.title] || { hasBackground: true };
                     const shouldShowSeparator = config.showSeparatorBefore;
 
                     // Hide categories that don't have items, except for special categories that can add items
                     if (!group || !group.items || group.items.length === 0) {
                         // Only show empty categories if they have add functionality
-                        if (!shouldShowEmptyCategory(group.title)) {
+                        if (!shouldShowEmptyCategory(group.title, isSubCategory) && categoryActions.length === 0) {
                             return null;
                         }
                     }
@@ -589,7 +733,9 @@ export function NodeList(props: NodeListProps) {
                         return null;
                     }
 
-                    const isCategoryExpanded = shouldExpandAll || expandedCategories[group.title] !== false;
+                    const isCategoryExpanded = shouldExpandAll
+                        ? !searchCollapsedCategories[group.title]
+                        : expandedCategories[group.title] !== false;
 
                     return (
                         <React.Fragment key={group.title + index}>
@@ -613,7 +759,9 @@ export function NodeList(props: NodeListProps) {
                                                         const handlers = {
                                                             onAddConnection: handleAddConnection,
                                                             onAddFunction: handleAddFunction,
-                                                            onAdd: handleAdd
+                                                            onAdd: handleAdd,
+                                                            onLinkDevantProject: handleOnLinkDevantProject,
+                                                            onRefreshDevantConnections: handleOnRefreshDevantConnections
                                                         };
                                                         
                                                         const handler = handlers[action.handlerKey];
@@ -633,7 +781,7 @@ export function NodeList(props: NodeListProps) {
                                                                         handler();
                                                                     }}
                                                                 >
-                                                                    <Codicon name="add" />
+                                                                    <Codicon name={action?.codeIcon || "add"} />
                                                                 </Button>
                                                             </Tooltip>
                                                         );
@@ -657,32 +805,35 @@ export function NodeList(props: NodeListProps) {
                                             </Tooltip>
                                         </S.Row>
                                     )}
-                                    {(isCategoryExpanded || isCategoryFixed(group.title)) && (
+                                    {(isSubCategory || isCategoryExpanded || isCategoryFixed(group.title)) && (
                                         <>
-                                            {(!group.items || group.items.length === 0) &&
+                                            {(isSubCategory || (!group.items || group.items.length === 0)) &&
                                                 !searchText &&
                                                 !isSearching &&
                                                 categoryActions.map((action, actionIndex) => {
                                                     const handlers = {
                                                         onAddConnection: handleAddConnection,
                                                         onAddFunction: handleAddFunction,
-                                                        onAdd: handleAdd
+                                                        onAdd: handleAdd,
+                                                        onLinkDevantProject: handleOnLinkDevantProject,
+                                                        onRefreshDevantConnections: handleOnRefreshDevantConnections
                                                     };
                                                     
                                                     const handler = handlers[action.handlerKey];
                                                     const propsHandler = props[action.handlerKey];
                                                     
                                                     // Only render if the handler exists in props
-                                                    if (!propsHandler || !handler) return null;
+                                                    if (!propsHandler || !handler || action.hideOnEmptyState) return null;
                                                     
                                                     const buttonLabel = action.emptyStateLabel || addButtonLabel || "Add";
                                                     
                                                     return (
                                                         <S.HighlightedButton 
                                                             key={`empty-${group.title}-${actionIndex}`}
+                                                            style={{padding: '5px 10px', width: isSubCategory ? '160px' : '100%'}}
                                                             onClick={handler}
                                                         >
-                                                            <Codicon name="add" iconSx={{ fontSize: 12 }} />
+                                                            <Codicon name={action?.codeIcon || "add"} iconSx={{ fontSize: 12 }} />
                                                             {buttonLabel}
                                                         </S.HighlightedButton>
                                                     );
@@ -692,7 +843,7 @@ export function NodeList(props: NodeListProps) {
                                             // 1. If parent group uses connection container and ALL items don't have id, use getConnectionContainer
                                             shouldUseConnectionContainer(group.title) &&
                                             group.items.filter((item) => item != null).every((item) => !("id" in item))
-                                                ? getConnectionContainer(group.items as Category[])
+                                                ? getConnectionContainer(group.items as Category[], group.title === "Agent")
                                                 : // 2. If ALL items don't have id (all are categories), use getCategoryContainer
                                                 group.items.filter((item) => item != null).every((item) => !("id" in item))
                                                 ? getCategoryContainer(
@@ -824,15 +975,13 @@ export function NodeList(props: NodeListProps) {
                     </S.Row>
                 )}
             </S.HeaderContainer>
-            {isSearching && (
+            {(loading || isSearching) && (
                 <S.PanelBody>
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%" }}>
-                        <ProgressRing />
-                    </div>
+                    <NodeListSkeleton />
                 </S.PanelBody>
             )}
-            {!showGeneratePanel && !isSearching && (
-                <S.PanelBody>
+            {!showGeneratePanel && !isSearching && !loading && (
+                <S.PanelBody style={{ ...props.panelBodySx }}>
                     {getCategoryContainer(filteredCategories)}
                     {/* Show More Functions button - moved outside Logging category */}
                     {callFunctionNode && !searchText && (
@@ -855,8 +1004,8 @@ export function NodeList(props: NodeListProps) {
                     )}
                 </S.PanelBody>
             )}
-            {showAiPanel && showGeneratePanel && (
-                <S.PanelBody>
+            {showAiPanel && showGeneratePanel && !loading && (
+                <S.PanelBody style={{ ...props.panelBodySx }}>
                     <S.AiContainer>
                         <S.Title>Describe what you want you want to do</S.Title>
                         <TextArea

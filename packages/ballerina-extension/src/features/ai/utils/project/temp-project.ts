@@ -41,6 +41,7 @@ interface BallerinaProject {
     projectName: string;
     modules?: BallerinaModule[];
     sources: { [key: string]: string };
+    tests?: { [key: string]: string };
 }
 
 interface BallerinaModule {
@@ -240,6 +241,12 @@ async function getCurrentProjectSource(
         projectName: packageName
     };
 
+    // Include package Ballerina.toml in sources so the agent sees the package structure
+    if (fs.existsSync(ballerinaTomlPath)) {
+        const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
+        project.sources['Ballerina.toml'] = tomlContent;
+    }
+
     // Read root-level .bal files
     const rootFiles = fs.readdirSync(targetProjectPath);
     for (const file of rootFiles) {
@@ -275,6 +282,18 @@ async function getCurrentProjectSource(
     const generatedDir = path.join(targetProjectPath, 'generated');
     await populateModules(modulesDir, project);
     await populateModules(generatedDir, project);
+
+    // Read test files from tests/ directory (recursive, paths relative to testsDir)
+    const testsDir = path.join(targetProjectPath, 'tests');
+    if (fs.existsSync(testsDir)) {
+        project.tests = {};
+        const testFiles = findAllBalFiles(testsDir);
+        for (const relPath of testFiles) {
+            const filePath = path.join(testsDir, relPath);
+            project.tests[relPath] = await fs.promises.readFile(filePath, 'utf-8');
+        }
+    }
+
     return project;
 }
 
@@ -329,6 +348,14 @@ function convertToProjectSource(project: BallerinaProject, pkgPath: string, isAc
                 projectModule.sourceFiles.push({ filePath: fileName, content });
             }
             projectSource.projectModules.push(projectModule);
+        }
+    }
+
+    // Iterate through test sources
+    if (project.tests) {
+        projectSource.projectTests = [];
+        for (const [filePath, content] of Object.entries(project.tests)) {
+            projectSource.projectTests.push({ filePath, content });
         }
     }
 

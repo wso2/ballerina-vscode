@@ -384,11 +384,22 @@ function getServerOptionsUsingJava(extension: BallerinaExtension): ServerOptions
 
     // Find any JDK in the dependencies directory
     const dependenciesDir = join(baseHome, 'dependencies');
-    const jdkDir = findHighestVersionJdk(dependenciesDir);
+    let jdkDir = findHighestVersionJdk(dependenciesDir);
     debug(`JDK Directory: ${jdkDir}`);
+
+    // If no JDK found in dependencies directory, try to find in the parent dependencies directory
     if (!jdkDir) {
-        debug(`No JDK found in dependencies directory: ${dependenciesDir}`);
-        throw new Error(`JDK not found in ${dependenciesDir}`);
+        const baseHomeParentDir = path.dirname(baseHome);
+        const parentDependenciesDir = join(baseHomeParentDir, 'dependencies');
+        debug(`No JDK found in dependencies directory: ${dependenciesDir}. Retrying with parent dependencies directory: ${parentDependenciesDir}`);
+        jdkDir = findHighestVersionJdk(parentDependenciesDir);
+        debug(`JDK Directory from parent dependencies directory: ${jdkDir}`);
+    }
+
+    if (!jdkDir) {
+        const parentDependenciesDir = join(path.dirname(baseHome), 'dependencies');
+        debug(`No JDK found in dependencies directory: ${dependenciesDir} or parent dependencies directory: ${parentDependenciesDir}`);
+        throw new Error(`JDK not found in ${dependenciesDir} or ${parentDependenciesDir}`);
     }
 
     const javaExecutable = isWindows() ? 'java.exe' : 'java';

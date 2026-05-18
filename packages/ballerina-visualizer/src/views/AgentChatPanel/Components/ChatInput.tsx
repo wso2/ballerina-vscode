@@ -20,6 +20,7 @@
 
 import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle, KeyboardEvent, useCallback } from "react";
 import styled from "@emotion/styled";
+import { Icon } from "@wso2/ui-toolkit";
 
 const Container = styled.div`
     width: calc(100% - 40px);
@@ -246,7 +247,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ value = "", onSend, onStop, isLoa
                         disabled={!inputValue.trim() && !isLoading}
                         onClick={isLoading ? onStop : handleSend}
                     >
-                        <span className={`codicon ${isLoading ? "codicon-stop-circle" : "codicon-send"}`} />
+                        <Icon name={isLoading ? "bi-stop" : "bi-send"} sx={{ fontSize: "20px", width: "20px", height: "20px" }} />
                     </ActionButton>
                 </InputArea>
             </FlexRow>

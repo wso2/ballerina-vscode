@@ -21,7 +21,7 @@ import { AIMachineEventType, LoginMethod } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 
 import { AlertBox } from "../AlertBox";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Codicon } from "@wso2/ui-toolkit";
 import { VSCodeButton, VSCodeTextField } from "@vscode/webview-ui-toolkit/react";
 
@@ -189,6 +189,25 @@ const WaitingForLogin = ({ loginMethod, isValidating = false, errorMessage }: Wa
     const [showAccessKey, setShowAccessKey] = useState(false);
     const [showSecretKey, setShowSecretKey] = useState(false);
     const [showSessionToken, setShowSessionToken] = useState(false);
+    const [vertexAiCredentials, setVertexAiCredentials] = useState({
+        projectId: "",
+        location: "global",
+        keyFile: ""
+    });
+
+    useEffect(() => {
+        if (loginMethod !== LoginMethod.VERTEX_AI) {
+            return;
+        }
+        let cancelled = false;
+        rpcClient.getAiPanelRpcClient().getDefaultVertexCredsPath().then((keyFile) => {
+            if (cancelled || !keyFile) {
+                return;
+            }
+            setVertexAiCredentials((prev) => prev.keyFile ? prev : { ...prev, keyFile });
+        }).catch(() => { /* ignore */ });
+        return () => { cancelled = true; };
+    }, [loginMethod, rpcClient]);
 
     const cancelLogin = () => {
         rpcClient.sendAIStateEvent(AIMachineEventType.CANCEL_LOGIN);
@@ -245,13 +264,34 @@ const WaitingForLogin = ({ loginMethod, isValidating = false, errorMessage }: Wa
         setShowSessionToken(!showSessionToken);
     };
 
+    const connectWithVertexAi = () => {
+        if (vertexAiCredentials.projectId.trim() && vertexAiCredentials.location.trim() &&
+            vertexAiCredentials.keyFile.trim()) {
+            rpcClient.sendAIStateEvent({
+                type: AIMachineEventType.SUBMIT_VERTEX_AI_CREDENTIALS,
+                payload: {
+                    projectId: vertexAiCredentials.projectId.trim(),
+                    location: vertexAiCredentials.location.trim(),
+                    keyFile: vertexAiCredentials.keyFile.trim()
+                },
+            });
+        }
+    };
+
+    const handleVertexAiCredentialChange = (field: keyof typeof vertexAiCredentials) => (e: any) => {
+        setVertexAiCredentials(prev => ({
+            ...prev,
+            [field]: e.target.value
+        }));
+    };
+
     if (loginMethod === LoginMethod.ANTHROPIC_KEY) {
         return (
             <Container>
                 <AlertContainer variant="primary">
                     <Title>Connect with Anthropic API Key</Title>
                     <SubTitle>
-                        Enter your Anthropic API key to connect to BI Copilot. Your API key will be securely stored
+                        Enter your Anthropic API key to connect to WSO2 Integrator Copilot. Your API key will be securely stored
                         and used for authentication.
                     </SubTitle>
 
@@ -262,13 +302,13 @@ const WaitingForLogin = ({ loginMethod, isValidating = false, errorMessage }: Wa
                                 placeholder="Enter your Anthropic API key"
                                 value={apiKey}
                                 onInput={handleApiKeyChange}
-                                {...(isValidating ? { disabled: true } : {})}
+                                disabled={isValidating}
                             />
                             <EyeButton
                                 type="button"
                                 onClick={toggleApiKeyVisibility}
                                 title={showApiKey ? "Hide API key" : "Show API key"}
-                                {...(isValidating ? { disabled: true } : {})}
+                                disabled={isValidating}
                             >
                                 <Codicon name={showApiKey ? "eye-closed" : "eye"} />
                             </EyeButton>
@@ -286,14 +326,14 @@ const WaitingForLogin = ({ loginMethod, isValidating = false, errorMessage }: Wa
                         <VSCodeButton
                             appearance="primary"
                             onClick={connectWithKey}
-                            {...(isValidating || !apiKey || apiKey.trim().length === 0 ? { disabled: true } : {})}
+                            disabled={isValidating || !apiKey || apiKey.trim().length === 0}
                         >
                             {isValidating ? "Validating..." : "Connect with Key"}
                         </VSCodeButton>
                         <VSCodeButton
                             appearance="secondary"
                             onClick={cancelLogin}
-                            {...(isValidating ? { disabled: true } : {})}
+                            disabled={isValidating}
                         >
                             Cancel
                         </VSCodeButton>
@@ -313,7 +353,7 @@ const WaitingForLogin = ({ loginMethod, isValidating = false, errorMessage }: Wa
                 <AlertContainer variant="primary">
                     <Title>Connect with AWS Bedrock</Title>
                     <SubTitle>
-                        Enter your AWS credentials to connect to BI Copilot via AWS Bedrock. Your credentials will be securely stored
+                        Enter your AWS credentials to connect to WSO2 Integrator Copilot via AWS Bedrock. Your credentials will be securely stored
                         and used for authentication.
                     </SubTitle>
 
@@ -324,13 +364,13 @@ const WaitingForLogin = ({ loginMethod, isValidating = false, errorMessage }: Wa
                                 placeholder="AWS Access Key ID"
                                 value={awsCredentials.accessKeyId}
                                 onInput={handleAwsCredentialChange('accessKeyId')}
-                                {...(isValidating ? { disabled: true } : {})}
+                                disabled={isValidating}
                             />
                             <EyeButton
                                 type="button"
                                 onClick={toggleAccessKeyVisibility}
                                 title={showAccessKey ? "Hide access key" : "Show access key"}
-                                {...(isValidating ? { disabled: true } : {})}
+                                disabled={isValidating}
                             >
                                 <Codicon name={showAccessKey ? "eye-closed" : "eye"} />
                             </EyeButton>
@@ -344,13 +384,13 @@ const WaitingForLogin = ({ loginMethod, isValidating = false, errorMessage }: Wa
                                 placeholder="AWS Secret Access Key"
                                 value={awsCredentials.secretAccessKey}
                                 onInput={handleAwsCredentialChange('secretAccessKey')}
-                                {...(isValidating ? { disabled: true } : {})}
+                                disabled={isValidating}
                             />
                             <EyeButton
                                 type="button"
                                 onClick={toggleSecretKeyVisibility}
                                 title={showSecretKey ? "Hide secret key" : "Show secret key"}
-                                {...(isValidating ? { disabled: true } : {})}
+                                disabled={isValidating}
                             >
                                 <Codicon name={showSecretKey ? "eye-closed" : "eye"} />
                             </EyeButton>
@@ -364,7 +404,7 @@ const WaitingForLogin = ({ loginMethod, isValidating = false, errorMessage }: Wa
                                 placeholder="AWS Region (e.g., us-east-1)"
                                 value={awsCredentials.region}
                                 onInput={handleAwsCredentialChange('region')}
-                                {...(isValidating ? { disabled: true } : {})}
+                                disabled={isValidating}
                             />
                         </InputRow>
                     </InputContainer>
@@ -376,13 +416,13 @@ const WaitingForLogin = ({ loginMethod, isValidating = false, errorMessage }: Wa
                                 placeholder="Session Token (optional)"
                                 value={awsCredentials.sessionToken}
                                 onInput={handleAwsCredentialChange('sessionToken')}
-                                {...(isValidating ? { disabled: true } : {})}
+                                disabled={isValidating}
                             />
                             <EyeButton
                                 type="button"
                                 onClick={toggleSessionTokenVisibility}
                                 title={showSessionToken ? "Hide session token" : "Show session token"}
-                                {...(isValidating ? { disabled: true } : {})}
+                                disabled={isValidating}
                             >
                                 <Codicon name={showSessionToken ? "eye-closed" : "eye"} />
                             </EyeButton>
@@ -400,14 +440,93 @@ const WaitingForLogin = ({ loginMethod, isValidating = false, errorMessage }: Wa
                         <VSCodeButton
                             appearance="primary"
                             onClick={connectWithAwsCredentials}
-                            {...(isValidating || !isFormValid ? { disabled: true } : {})}
+                            disabled={isValidating || !isFormValid}
                         >
                             {isValidating ? "Validating..." : "Connect with AWS Bedrock"}
                         </VSCodeButton>
                         <VSCodeButton
                             appearance="secondary"
                             onClick={cancelLogin}
-                            {...(isValidating ? { disabled: true } : {})}
+                            disabled={isValidating}
+                        >
+                            Cancel
+                        </VSCodeButton>
+                    </ButtonContainer>
+                </AlertContainer>
+            </Container>
+        );
+    }
+
+    if (loginMethod === LoginMethod.VERTEX_AI) {
+        const isFormValid = !!(vertexAiCredentials.projectId.trim() &&
+                           vertexAiCredentials.location.trim() &&
+                           vertexAiCredentials.keyFile.trim());
+        const submitDisabled = isValidating || !isFormValid;
+
+        return (
+            <Container>
+                <AlertContainer variant="primary">
+                    <Title>Connect with Google Vertex AI</Title>
+                    <SubTitle>
+                        Select the GCP service account JSON key file to authenticate WSO2 Integrator Copilot with Google Vertex AI.
+                        The path is stored locally and read on each request, so the file must remain accessible at this location.
+                    </SubTitle>
+
+                    <InputContainer>
+                        <InputRow>
+                            <StyledTextField
+                                type="text"
+                                placeholder="GCP Project ID"
+                                value={vertexAiCredentials.projectId}
+                                onInput={handleVertexAiCredentialChange('projectId')}
+                                disabled={isValidating}
+                            />
+                        </InputRow>
+                    </InputContainer>
+
+                    <InputContainer>
+                        <InputRow>
+                            <StyledTextField
+                                type="text"
+                                placeholder="Location (e.g., global)"
+                                value={vertexAiCredentials.location}
+                                onInput={handleVertexAiCredentialChange('location')}
+                                disabled={isValidating}
+                            />
+                        </InputRow>
+                    </InputContainer>
+
+                    <InputContainer>
+                        <InputRow>
+                            <StyledTextField
+                                type="text"
+                                placeholder="Path to service account JSON"
+                                value={vertexAiCredentials.keyFile}
+                                onInput={handleVertexAiCredentialChange('keyFile')}
+                                disabled={isValidating}
+                            />
+                        </InputRow>
+                    </InputContainer>
+
+                    {errorMessage && (
+                        <ErrorMessage>
+                            <Codicon name="error" />
+                            <span>{errorMessage}</span>
+                        </ErrorMessage>
+                    )}
+
+                    <ButtonContainer>
+                        <VSCodeButton
+                            appearance="primary"
+                            onClick={connectWithVertexAi}
+                            disabled={submitDisabled}
+                        >
+                            {isValidating ? "Validating..." : "Validate & Connect"}
+                        </VSCodeButton>
+                        <VSCodeButton
+                            appearance="secondary"
+                            onClick={cancelLogin}
+                            disabled={isValidating}
                         >
                             Cancel
                         </VSCodeButton>
@@ -425,7 +544,7 @@ const WaitingForLogin = ({ loginMethod, isValidating = false, errorMessage }: Wa
                 buttonTitle="Cancel"
                 onClick={cancelLogin}
                 subTitle={
-                    "Waiting for the login credentials. Please sign in to your BI Copilot account in the browser window to continue."
+                    "Waiting for the login credentials. Please sign in to your WSO2 Integrator Copilot account in the browser window to continue."
                 }
                 title={"Waiting for Login"}
             />

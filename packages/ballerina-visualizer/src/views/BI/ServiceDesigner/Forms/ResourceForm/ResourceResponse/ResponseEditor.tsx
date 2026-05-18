@@ -23,9 +23,9 @@ import { Divider, OptionProps, Typography } from '@wso2/ui-toolkit';
 import { EditorContainer, EditorContent } from '../../../styles';
 import { getPrimaryInputType, LineRange, PropertyModel, StatusCodeResponse, VisibleTypeItem, VisibleTypesResponse } from '@wso2/ballerina-core';
 import { TypeHelperContext } from '../../../../../../constants';
-import { getDefaultResponse, getTitleFromStatusCodeAndType, HTTP_METHOD } from '../../../utils';
+import { getDefaultResponse, getTitleFromStatusCodeAndType, HTTP_ENUM_TYPES, HTTP_METHOD } from '../../../utils';
 import { FormField, FormImports, FormValues } from '@wso2/ballerina-side-panel';
-import FormGeneratorNew from '../../../../Forms/FormGeneratorNew';
+import ArtifactForm from '../../../../Forms/ArtifactForm';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { getImportsForProperty } from '../../../../../../utils/bi';
 
@@ -85,15 +85,7 @@ export function ResponseEditor(props: ParamProps) {
 
     const updateNewFields = (res: StatusCodeResponse, hasBody: boolean = true) => {
         const NO_BODY_TYPES = ["http:Response", "http:NoContent", "error"];
-        const defaultItems = [
-            "",
-            "string",
-            "int",
-            "boolean",
-            "string[]",
-            "int[]",
-            "boolean[]"
-        ];
+        const defaultItems = HTTP_ENUM_TYPES;
 
         // Special Condition to check http:Response to re-direct to Dynamic Status code
         if (NO_BODY_TYPES.includes(res.type.value)) {
@@ -169,6 +161,7 @@ export function ResponseEditor(props: ParamProps) {
                     type: "AUTOCOMPLETE",
                     items: ["application/json", "application/xml", "application/x-www-form-urlencoded", "multipart/form-data", "text/plain"],
                     key: `mediaType`,
+                    types: [{ fieldType: "AUTOCOMPLETE", selected: true }],
                     defaultValue: res.mediaType.value,
                 });
             }
@@ -183,6 +176,8 @@ export function ResponseEditor(props: ParamProps) {
                     ...convertPropertyToFormField(res.name),
                     key: `check`,
                     type: "FLAG",
+                    optional: true,
+                    types: [{ fieldType: "FLAG", selected: false }],
                     label: "Make this response reusable",
                     documentation: "Check this option to make this response reusable",
                     onValueChange: (value: string | boolean) => {
@@ -386,7 +381,7 @@ export function ResponseEditor(props: ParamProps) {
             </EditorContent>
             <Divider />
             {filePath && targetLineRange &&
-                <FormGeneratorNew
+                <ArtifactForm
                     fileName={filePath}
                     targetLineRange={targetLineRange}
                     fields={newFields}

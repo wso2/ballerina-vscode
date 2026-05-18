@@ -17,12 +17,13 @@
  */
 // tslint:disable: no-empty-interface
 import { DiagramModel, NodeModel, NodeModelGenerics } from '@projectstorm/react-diagrams';
-import { IOType, Mapping, MappingElement, TypeKind } from '@wso2/ballerina-core';
+import { InputCategory, IOType, Mapping, MappingElement, TypeKind } from '@wso2/ballerina-core';
 
 import { IDataMapperContext } from '../../../../utils/DataMapperContext/DataMapperContext';
 import { MappingMetadata } from '../../Mappings/MappingMetadata';
 import { InputOutputPortModel } from "../../Port";
 import { findMappingByOutput, hasChildMappingsForInput, hasChildMappingsForOutput } from '../../utils/common-utils';
+import { useDMSearchStore } from '../../../../store/store';
 
 export interface DataMapperNodeModelGenerics {
 	PORT: InputOutputPortModel;
@@ -113,11 +114,13 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 
 		const fieldName = field?.name;
 		const isArray = this.isArrayTypedField(field);
-		const fieldFQN = this.getInputFieldFQN(field?.isFocused ? "" : parentId, fieldName, isOptional);
-		const unsafeFieldFQN = this.getUnsafeFieldFQN(field?.isFocused ? "" : unsafeParentId, fieldName);
+		const skipParentId = field?.isFocused || field?.category;
+		const fieldFQN = this.getInputFieldFQN(skipParentId ? "" : parentId, fieldName, isOptional);
+		const unsafeFieldFQN = this.getUnsafeFieldFQN(skipParentId ? "" : unsafeParentId, fieldName);
 		const portName = this.getPortName(portPrefix, unsafeFieldFQN);
 		const isFocused = this.isFocusedField(focusedFieldFQNs, portName);
 		const isPreview = parent.attributes.isPreview || this.isPreviewPort(focusedFieldFQNs, parent.attributes.field);
+		const isConvertedField = field.category === InputCategory.ConvertedVariable;
 
 		let collapseByDefault = false;
 		let isEnrichRequired = false;
@@ -128,7 +131,7 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		}
 
 		const isCollapsed = this.isInputPortCollapsed(hidden, collapsedFields, expandedFields, 
-			portName, isArray, isFocused, collapseByDefault);
+			portName, isArray, field.isDeepNested, isFocused, isConvertedField, collapseByDefault);
 
 		if (isEnrichRequired || (!isCollapsed && !hidden && field.isDeepNested)) {
 			await this.context.enrichChildFields(field);
@@ -176,10 +179,11 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		const newParentId = this.getNewParentId(parentId, elementIndex);
 		let fieldFQN = this.getOutputFieldFQN(newParentId, field, elementIndex);
 		const portName = this.getPortName(portPrefix, fieldFQN);
+		const isConvertedField = field.category === InputCategory.ConvertedVariable;
 		
 		const mapping = findMappingByOutput(mappings, fieldFQN);
 		const isCollapsed = this.isOutputPortCollapsed(hidden, collapsedFields, expandedFields, 
-			portName, isArray, field.isDeepNested, mapping, mappings, fieldFQN);
+			portName, isArray, field.isDeepNested, isConvertedField, mapping, mappings, fieldFQN);
 
 		if (field.isDeepNested && !isCollapsed && !hidden) {
 			await this.context.enrichChildFields(field);
@@ -299,12 +303,27 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		expandedFields: string[],
 		isFocused: boolean
 	): boolean {
-		// In Inline Data Mapper, the inputs are always collapsed by default except focused view.
+		const { inputSearch, outputSearch } = useDMSearchStore.getState();
+		// In Data Mapper, the inputs are always collapsed by default except focused view or when only one input is present.
 		// Hence we explicitly check expandedFields for input header ports. 
 		if (portType === "IN" || isFocused) {
+			if (isFocused) {
+				// Auto-expand focused input node headers when input search is active
+				if (inputSearch) {return false;}
+			} else {
+				// Auto-expand output node headers when output search is active
+				if (outputSearch) {return false;}
+			}
 			return collapsedFields?.includes(portName);
 		} else {
-			return !expandedFields?.includes(portName);
+			// Auto-expand input node headers when input search is active
+			if (inputSearch) {return false;}
+
+			// Collapse by default only if more than 1 input nodes
+			if(this.context.model.inputs.length > 1) {
+				return !expandedFields?.includes(portName);
+			}
+			return collapsedFields?.includes(portName);
 		}
 	}
 	
@@ -314,9 +333,16 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		expandedFields: string[],
 		portName: string,
 		isArray: boolean,
+		isDeepNested: boolean,
 		isFocused: boolean,
+		isConvertedField: boolean,
 		collapseByDefault: boolean
 	) {
+		// Auto-expand all input fields when input search is active
+		if (!isDeepNested && useDMSearchStore.getState().inputSearch) {return false;}
+
+		if (isConvertedField) { return false; }
+
 		if ((isArray && !isFocused) || collapseByDefault ){
 			return expandedFields && !expandedFields.includes(portName);
 		}
@@ -330,10 +356,16 @@ export abstract class DataMapperNodeModel extends NodeModel<NodeModelGenerics & 
 		portName: string,
 		isArray: boolean,
 		isDeepNested: boolean,
+		isConvertedField: boolean,
 		mapping: Mapping,
 		mappings: Mapping[],
 		outputId: string
 	): boolean {
+		// Auto-expand all output fields when output search is active
+		if (!isDeepNested && useDMSearchStore.getState().outputSearch) {return false;}
+
+		if (isConvertedField) { return false; }
+
 		if ((isArray && !mapping?.elements?.length) ||
 			(isDeepNested && !hasChildMappingsForOutput(mappings, outputId))) {
 			return expandedFields && !expandedFields.includes(portName);

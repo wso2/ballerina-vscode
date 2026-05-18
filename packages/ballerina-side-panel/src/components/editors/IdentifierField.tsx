@@ -21,7 +21,7 @@ import React, { useState, useCallback, useEffect } from "react";
 import { debounce } from "lodash";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { useFormContext } from "../../context";
-import { buildRequiredRule, capitalize, getPropertyFromFormField } from "./utils";
+import { buildRequiredRule, capitalize, getPropertyFromFormField, mapDiagnosticsServerityToFormSeverity } from "./utils";
 import { FormField } from "../Form/types";
 export interface IdentifierFieldProps {
     field: FormField;
@@ -33,34 +33,67 @@ export interface IdentifierFieldProps {
 export function IdentifierField(props: IdentifierFieldProps) {
     const { field, handleOnFieldFocus, autoFocus, onBlur } = props;
     const { rpcClient } = useRpcContext();
-    const { expressionEditor, form } = useFormContext();
-    const { getExpressionEditorDiagnostics } = expressionEditor;
-    const [formDiagnostics, setFormDiagnostics] = useState(field.diagnostics);
-    const { watch, formState, register } = form;
+    const { form, targetLineRange, fileName } = useFormContext();
+    const { watch, formState, register, setValue, setError, clearErrors } = form;
     const { errors } = formState;
+    const [formDiagnostics, setFormDiagnostics] = useState(field.diagnostics);
 
     useEffect(() => {
         setFormDiagnostics(field.diagnostics);
     }, [field.diagnostics]);
 
+    // Sync external field value changes to the form (e.g., when a sibling field's onValueChange updates the value)
+    useEffect(() => {
+        setValue(field.key, field.value ?? '');
+    }, [field.key, field.value, setValue]);
+
     const validateIdentifierName = useCallback(debounce(async (value: string) => {
-        const fieldValue = watch(field.key);
+        try {
+            const response = await rpcClient.getBIDiagramRpcClient().getExpressionDiagnostics({
+                filePath: fileName,
+                context: {
+                    expression: value,
+                    startLine: targetLineRange?.startLine,
+                    offset: 0,
+                    lineOffset: 0,
+                    codedata: field.codedata,
+                    property: getPropertyFromFormField(field)
+                }
+            });
+            if (response.diagnostics.length > 0) {
+                const rawDiagnostic = response.diagnostics[0];
+                setFormDiagnostics([{ message: rawDiagnostic.message, severity: mapDiagnosticsServerityToFormSeverity(rawDiagnostic.severity) }]);
+                const errorDiagnostic = response.diagnostics.find((d) => d.severity === 1);
+                if (errorDiagnostic) {
+                    setError(field.key, { type: "identifier_diagnostic", message: errorDiagnostic.message });
+                } else {
+                    clearErrors(field.key);
+                }
+            } else {
+                setFormDiagnostics([]);
+                clearErrors(field.key);
+            }
+        } catch (error) {
+            console.error('Failed to fetch expression diagnostics:', error);
+            setFormDiagnostics([]);
+            clearErrors(field.key);
+        }
+    }, 250), [rpcClient, field.key, field.codedata, targetLineRange, fileName, setError, clearErrors]);
 
-        const response = await getExpressionEditorDiagnostics(!field.optional || fieldValue !== '',
-            fieldValue,
-            field.key,
-            getPropertyFromFormField(field));
-    }, 250), [rpcClient, field]);
+    // Validate on value change (covers initial load, paste, programmatic updates, typing)
+    const fieldValue = watch(field.key);
+    useEffect(() => {
+        if (fieldValue !== undefined && fieldValue !== null) {
+            validateIdentifierName(String(fieldValue));
+        }
+        return () => validateIdentifierName.cancel();
+    }, [fieldValue, validateIdentifierName]);
 
-    const handleOnBlur = (e: React.ChangeEvent<HTMLInputElement>) => {
-        validateIdentifierName(e.target.value);
-        onBlur?.();
-    }
-
-    const handleOnFocus = (e: React.ChangeEvent<HTMLInputElement>) => {
-        validateIdentifierName(e.target.value);
-        handleOnFieldFocus?.(field.key);
-    }
+    // Clear error on unmount so it doesn't persist and block save after the field is gone
+    useEffect(() => {
+        const key = field.key;
+        return () => clearErrors(key);
+    }, [field.key, clearErrors]);
 
     const registerField = register(field.key, {
         required: buildRequiredRule({ isRequired: !field.optional, label: field.label }),
@@ -72,7 +105,6 @@ export function IdentifierField(props: IdentifierFieldProps) {
     const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormDiagnostics([]);
         onChange(e);
-        validateIdentifierName(e.target.value);
         field.onValueChange?.(e.target.value as string);
     }
 
@@ -88,13 +120,13 @@ export function IdentifierField(props: IdentifierFieldProps) {
                 placeholder={field.placeholder}
                 readOnly={!field.editable}
                 errorMsg={errors[field.key]?.message.toString()}
-                onBlur={(e) => handleOnBlur(e)}
-                onFocus={(e) => handleOnFocus(e)}
+                onBlur={() => onBlur?.()}
+                onFocus={() => handleOnFieldFocus?.(field.key)}
                 autoFocus={autoFocus}
                 sx={{ width: "100%" }}
             />
             {(!errors[field.key]?.message) && formDiagnostics && formDiagnostics.length > 0 && (
-                <ErrorBanner errorMsg={formDiagnostics.map(d => d.message).join(', ')} />
+                <ErrorBanner errorMsg={formDiagnostics.map(d => d.message).join('\n')} />
             )}
         </div>
     );

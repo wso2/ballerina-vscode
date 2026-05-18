@@ -14,19 +14,26 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { jsonSchema } from 'ai';
+import { z } from 'zod';
 
 export interface GetFunctionsRequest {
     name: string;
     description: string;
     clients: MinifiedClient[];
     functions?: MinifiedRemoteFunction[];
+    services?: MinifiedService[];
 }
 
 export interface MinifiedClient {
     name: string;
     description?: string;
     functions: (MinifiedRemoteFunction | MinifiedResourceFunction)[];
+}
+
+export interface MinifiedService {
+    listener: string;
+    name?: string;
+    methods?: string[];
 }
 
 export interface MinifiedRemoteFunction extends MiniFunction {
@@ -52,6 +59,7 @@ export interface GetFunctionResponse {
     name: string;
     clients?: MinifiedClient[];
     functions?: MinifiedRemoteFunction[];
+    services?: MinifiedService[];
 }
 
 export interface PathParameter {
@@ -59,94 +67,50 @@ export interface PathParameter {
     type: string;
 }
 
-export const getFunctionsResponseSchema = jsonSchema<GetFunctionsResponse>({
-  type: 'object',
-  properties: {
-    libraries: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          name: { type: 'string' },
-          clients: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                name: { type: 'string' },
-                description: { type: 'string' },
-                functions: {
-                  type: 'array',
-                  items: {
-                    oneOf: [
-                      {
-                        type: 'object',
-                        properties: {
-                          name: { type: 'string' },
-                          parameters: {
-                            type: 'array',
-                            items: { type: 'string' }
-                          },
-                          returnType: { type: 'string' }
-                        },
-                        required: ['name']
-                      },
-                      {
-                        type: 'object',
-                        properties: {
-                          accessor: { type: 'string' },
-                          paths: {
-                            type: 'array',
-                            items: {
-                              oneOf: [
-                                { type: 'string' },
-                                {
-                                  type: 'object',
-                                  properties: {
-                                    name: { type: 'string' },
-                                    type: { type: 'string' }
-                                  },
-                                  required: ['name', 'type']
-                                }
-                              ]
-                            }
-                          },
-                          parameters: {
-                            type: 'array',
-                            items: { type: 'string' }
-                          },
-                          returnType: { type: 'string' }
-                        },
-                        required: ['accessor', 'paths']
-                      }
-                    ]
-                  }
-                }
-              },
-              required: ['name', 'functions']
-            }
-          },
-          functions: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                name: { type: 'string' },
-                parameters: {
-                  type: 'array',
-                  items: { type: 'string' }
-                },
-                returnType: { type: 'string' }
-              },
-              required: ['name']
-            }
-          }
-        },
-        required: ['name']
-      }
-    }
-  },
-  required: ['libraries']
+const pathItemSchema = z.union([
+    z.string(),
+    z.object({
+        name: z.string(),
+        type: z.string(),
+    }),
+]);
+
+const remoteFunctionSchema = z.object({
+    name: z.string(),
+    parameters: z.array(z.string()).optional(),
+    returnType: z.string().optional(),
+    description: z.string().optional(),
+});
+
+const resourceFunctionSchema = z.object({
+    accessor: z.string(),
+    paths: z.array(pathItemSchema),
+    parameters: z.array(z.string()).optional(),
+    returnType: z.string().optional(),
+    description: z.string().optional(),
+});
+
+const clientSchema = z.object({
+    name: z.string(),
+    description: z.string().optional(),
+    functions: z.array(z.union([resourceFunctionSchema, remoteFunctionSchema])),
+});
+
+const minifiedServiceSchema = z.object({
+    listener: z.string(),
+    name: z.string().optional(),
+    methods: z.array(z.string()).optional(),
+});
+
+const libraryResponseSchema = z.object({
+    name: z.string(),
+    clients: z.array(clientSchema).optional(),
+    functions: z.array(remoteFunctionSchema).optional(),
+    services: z.array(minifiedServiceSchema).optional(),
+});
+
+export const getFunctionsResponseSchema = z.object({
+    libraries: z.array(libraryResponseSchema),
 });
 
 

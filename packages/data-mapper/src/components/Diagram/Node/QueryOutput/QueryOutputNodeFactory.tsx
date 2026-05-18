@@ -36,20 +36,20 @@ export class QueryOutputNodeFactory extends AbstractReactFactory<QueryOutputNode
 	generateReactWidget(event: { model: QueryOutputNode; }): JSX.Element {
 		return (
 			<>
-				{event.model.hasNoMatchingFields ? (
+				{(event.model.hasNoMatchingFields || !event.model.filteredOutputType) ? (
 					<OutputSearchNoResultFound kind={SearchNoResultFoundKind.OutputField}/>
 				) : (
 					<QueryOutputWidget
 						engine={this.engine}
 						id={`${QUERY_OUTPUT_TARGET_PORT_PREFIX}.${event.model.rootName}`}
-						outputType={event.model.outputType}
+						outputType={event.model.filteredOutputType}
 						typeName={event.model.typeName}
 						value={undefined}
 						getPort={(portId: string) => event.model.getPort(portId) as InputOutputPortModel}
 						context={event.model.context}
 						mappings={event.model.filteredMappings}
-						valueLabel={event.model.outputType.displayName || event.model.outputType.name}
-						originalTypeName={event.model.filteredOutputType?.name}
+						valueLabel={event.model.filteredOutputType.displayName || event.model.filteredOutputType.name}
+						originalTypeName={event.model.filteredOutputType.name}
 					/>
 				)}
 			</>

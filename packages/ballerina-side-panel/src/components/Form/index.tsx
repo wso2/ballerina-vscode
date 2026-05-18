@@ -16,51 +16,60 @@
  * under the License.
  */
 
-import React, { forwardRef, useMemo, useEffect, useState, useRef } from "react";
+import React, { forwardRef, useCallback, useMemo, useEffect, useState, useRef } from "react";
+import isEqual from "lodash/isEqual";
 import { useForm } from "react-hook-form";
-import ReactMarkdown from "react-markdown";
 import {
     Button,
     Codicon,
+    ErrorBanner,
     LinkButton,
     ThemeColors,
     SidePanelBody,
     CheckBox,
     Typography,
-    CompletionItem
+    CompletionItem,
+    ProgressRing
 } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 
 import { ExpressionFormField, FieldDerivation, FormExpressionEditorProps, FormField, FormImports, FormValues } from "./types";
-import { EditorFactory } from "../editors/EditorFactory";
+import { FieldFactory } from "../editors/FieldFactory";
+import { InputMode } from "../editors/MultiModeExpressionEditor/ChipExpressionEditor/types";
 import { getValueForDropdown, isDropdownField } from "../editors/utils";
 import {
     Diagnostic,
     LineRange,
     NodeKind,
-    NodePosition,
     SubPanel,
     SubPanelView,
     FormDiagnostics,
     FlowNode,
     ExpressionProperty,
     RecordTypeField,
-    Type,
     VisualizableField,
     NodeProperties,
     VisualizerLocation,
     getPrimaryInputType,
+    MACHINE_VIEW,
+    EditorDisplayMode,
+    Imports,
+    getSecondaryInputType,
+    DIRECTORY_MAP,
 } from "@wso2/ballerina-core";
-import { FormContext, Provider } from "../../context";
+import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import { FormContext, Provider, FormFieldLoadingProvider, useFormFieldLoadingContext } from "../../context";
 import {
     formatJSONLikeString,
-    stripHtmlTags,
     updateFormFieldWithImports,
+    hasIncompleteRequiredFormFields,
+    shouldRunExternalFormValidation,
     isPrioritizedField,
     hasRequiredParameters,
     hasOptionalParameters,
 } from "./utils";
 import FormDescription from "./FormDescription";
+import MarkdownDescription from "./MarkdownDescription";
 import TypeHelperText from "./TypeHelperText";
 
 namespace S {
@@ -68,6 +77,7 @@ namespace S {
         display: flex;
         flex-direction: column;
         gap: ${({ compact }) => (compact ? "8px" : "20px")};
+        padding: ${({ nestedForm }) => (nestedForm ? "16px 5px" : "16px")};
         height: ${({ nestedForm, footerActionButton }) => {
             if (nestedForm) return "unset";
             if (footerActionButton) return "100%";
@@ -250,6 +260,19 @@ namespace S {
         margin-bottom: -12px;
     `;
 
+    export const FormDiagnosticsContainer = styled.div`
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: 100%;
+    `;
+
+    export const FormDiagnosticsActionContainer = styled.div`
+        display: flex;
+        justify-content: flex-end;
+        width: 100%;
+    `;
+
     export const MarkdownContainer = styled.div<{ isExpanded: boolean }>`
         width: 100%;
         ${({ isExpanded }) =>
@@ -258,83 +281,7 @@ namespace S {
             max-height: 200px;
             mask-image: linear-gradient(to bottom, black 160px, transparent 200px);
         `}
-        font-size: 13px;
-        font-family: var(--vscode-font-family);
-        color: ${ThemeColors.ON_SURFACE_VARIANT};
-        border-radius: 4px;
         transition: max-height 0.3s ease-in-out;
-
-        h1,
-        h2,
-        h3,
-        h4,
-        h5,
-        h6 {
-            margin: 16px 0 8px 0;
-            font-family: var(--vscode-font-family);
-            font-weight: normal;
-            font-size: 13px;
-            color: var(--vscode-editor-foreground);
-        }
-
-        p {
-            font-size: 13px;
-            margin: 0;
-            line-height: 1.5;
-            margin-bottom: 8px;
-            font-family: var(--vscode-font-family);
-        }
-
-        pre {
-            display: none;
-        }
-
-        code {
-            display: inline;
-        }
-
-        ul,
-        ol {
-            margin: 8px 0;
-            padding-left: 24px;
-            font-size: 13px;
-            font-family: var(--vscode-font-family);
-        }
-
-        li {
-            margin: 4px 0;
-            font-size: 13px;
-            font-family: var(--vscode-font-family);
-        }
-
-        blockquote {
-            margin: 8px 0;
-            padding-left: 8px;
-            border-left: 4px solid ${ThemeColors.PRIMARY};
-            font-size: 13px;
-            font-family: var(--vscode-font-family);
-        }
-
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            margin: 8px 0;
-            font-size: 13px;
-            font-family: var(--vscode-font-family);
-        }
-
-        th,
-        td {
-            border: 1px solid var(--vscode-editor-inactiveSelectionBackground);
-            padding: 8px;
-            text-align: left;
-            font-size: 13px;
-            font-family: var(--vscode-font-family);
-        }
-
-        th {
-            background-color: var(--vscode-editor-inactiveSelectionBackground);
-        }
     `;
 
     export const ConcertContainer = styled.div`
@@ -389,6 +336,8 @@ export interface FormProps {
         removeLastPopup: () => void;
         closePopup: (id: string) => void;
     }
+    formDiagnostics?: { message: string; severity: "ERROR" | "WARNING" | "INFO" }[];
+    formDiagnosticsAction?: React.ReactNode;
     preserveOrder?: boolean;
     handleSelectedTypeChange?: (type: string | CompletionItem) => void;
     scopeFieldAddon?: React.ReactNode;
@@ -396,6 +345,7 @@ export interface FormProps {
     injectedComponents?: {
         component: React.ReactNode;
         index: number;
+        advanced?: boolean;
     }[];
     hideSaveButton?: boolean; // Option to hide the save button
     footerActionButton?: boolean; // Render save button as footer action button
@@ -403,9 +353,11 @@ export interface FormProps {
     changeOptionalFieldTitle?: string; // Option to change the title of optional fields
     openFormTypeEditor?: (open: boolean, newType?: string, editingField?: FormField) => void;
     derivedFields?: FieldDerivation[]; // Configuration for auto-deriving field values from other fields
+    updateImports?: (key: string, imports: Imports) => void;
+    defaultExpandAdvanced?: boolean;
 }
 
-export const Form = forwardRef((props: FormProps) => {
+export const Form = forwardRef((props: FormProps, _ref) => {
     const {
         infoLabel,
         formFields,
@@ -430,6 +382,8 @@ export const Form = forwardRef((props: FormProps) => {
         recordTypeFields,
         nestedForm,
         popupManager,
+        formDiagnostics,
+        formDiagnosticsAction,
         compact = false,
         isInferredReturnType,
         concertRequired = true,
@@ -444,8 +398,11 @@ export const Form = forwardRef((props: FormProps) => {
         onValidityChange,
         changeOptionalFieldTitle = undefined,
         openFormTypeEditor,
-        derivedFields = []
+        derivedFields = [],
+        updateImports,
     } = props;
+
+    const { rpcClient } = useRpcContext();
 
     const {
         control,
@@ -458,10 +415,18 @@ export const Form = forwardRef((props: FormProps) => {
         setValue,
         setError,
         clearErrors,
-        formState: { isValidating, errors, dirtyFields },
+        trigger,
+        formState: { isValidating, isValid: formStateIsValid, errors, dirtyFields, isDirty },
     } = useForm<FormValues>();
 
-    const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
+    useEffect(() => {
+        if (!fileName || !rpcClient) {
+            return;
+        }
+        rpcClient.getBIDiagramRpcClient().formDirtyDidChange({ filePath: fileName, isDirty });
+    }, [isDirty, fileName, rpcClient]);
+
+    const [showAdvancedOptions, setShowAdvancedOptions] = useState(props.defaultExpandAdvanced ?? false);
     const [activeFormField, setActiveFormField] = useState<string | undefined>(undefined);
     const [diagnosticsInfo, setDiagnosticsInfo] = useState<FormDiagnostics[] | undefined>(undefined);
     const [isMarkdownExpanded, setIsMarkdownExpanded] = useState(false);
@@ -475,6 +440,42 @@ export const Form = forwardRef((props: FormProps) => {
     const [isUserConcert, setIsUserConcert] = useState(false);
     const [savingButton, setSavingButton] = useState<string | null>(null);
     const [isValidatingForm, setIsValidatingForm] = useState(false);
+
+    // Read parent form's loading context (present when this is a nested form)
+    const parentLoadingContext = useFormFieldLoadingContext();
+    const nestedFormIdRef = useRef(`nested-form-${Math.random().toString(36).slice(2)}`);
+
+    const [loadingFields, setLoadingFields] = useState<Set<string>>(new Set());
+    const registerLoading = useCallback((fieldId: string) => {
+        setLoadingFields(prev => {
+            const next = new Set(prev);
+            next.add(fieldId);
+            return next;
+        });
+    }, []);
+    const unregisterLoading = useCallback((fieldId: string) => {
+        setLoadingFields(prev => {
+            if (!prev.has(fieldId)) return prev;
+            const next = new Set(prev);
+            next.delete(fieldId);
+            return next;
+        });
+    }, []);
+    const isFormLoading = loadingFields.size > 0;
+
+    // Bubble loading state up to the parent form when this is a nested form
+    useEffect(() => {
+        if (!nestedForm) return;
+        const id = nestedFormIdRef.current;
+        if (isFormLoading) {
+            parentLoadingContext.registerLoading(id);
+        } else {
+            parentLoadingContext.unregisterLoading(id);
+        }
+        return () => {
+            parentLoadingContext.unregisterLoading(id);
+        };
+    }, [isFormLoading, nestedForm]);
 
 
     useEffect(() => {
@@ -500,36 +501,18 @@ export const Form = forwardRef((props: FormProps) => {
                         defaultValues[field.key] = field.value;
                     } else if (isDropdownField(field)) {
                         defaultValues[field.key] = getValueForDropdown(field) ?? "";
-                    } else if (field.type === "FLAG" && field.types?.length > 1) {
-                        if (field.value && typeof field.value === "boolean") {
-                            defaultValues[field.key] = String(field.value);
-                        }
-                        else {
-                            defaultValues[field.key] = field.value;
-                        }
                     } else if (field.type === "FLAG") {
-                        defaultValues[field.key] = field.value || "true";
+                        defaultValues[field.key] = field.value;
                     } else if (typeof field.value === "string") {
                         defaultValues[field.key] = formatJSONLikeString(field.value) ?? "";
                     } else {
-                        defaultValues[field.key] = field.value ?? "";
+                        defaultValues[field.key] = field.value;
                     }
                     if (field.key === "variable") {
                         defaultValues[field.key] = formValues[field.key] ?? defaultValues[field.key] ?? "";
                     }
-                    if (field.key === "parameters" && field.value.length === 0) {
+                    if (field.key === "parameters" && field.value?.length && field.value.length === 0) {
                         defaultValues[field.key] = formValues[field.key] ?? [];
-                    }
-
-                    if (field.key === "type") {
-                        // Handle the case where the type is changed via 'Add Type'
-                        const existingType = formValues[field.key];
-                        const newType = field.value;
-
-                        if (existingType !== newType) {
-                            setValue(field.key, newType);
-                            getVisualiableFields();
-                        }
                     }
 
                     // Handle choice fields and their properties
@@ -553,11 +536,43 @@ export const Form = forwardRef((props: FormProps) => {
                         }
                     }
 
-                    diagnosticsMap.push({ key: field.key, diagnostics: [] });
+                    const rawDiag = (field.diagnostics as any);
+                    const diagArray = Array.isArray(rawDiag) ? rawDiag : (rawDiag?.diagnostics ?? []);
+                    diagnosticsMap.push({ key: field.key, diagnostics: diagArray });
+                }
+
+                const primaryInputType = getPrimaryInputType(field.types)?.fieldType;
+                if (primaryInputType === "TYPE" || primaryInputType === "ACTION_TYPE") {
+                    const existingType = formValues[field.key];
+                    const newType = field.value;
+                    const isValueChanged = existingType !== newType;
+                    const isFieldDirty = dirtyFields?.[field.key];
+                    if (isValueChanged) {
+                        const newValue = isFieldDirty ? existingType : newType;
+                        setValue(field.key, newValue, { shouldValidate: true, shouldDirty: false });
+                        defaultValues[field.key] = newValue;
+                        getVisualiableFields();
+                    } else if (newType === undefined) {
+                        defaultValues[field.key] = "";
+                    } else {
+                        defaultValues[field.key] = newType;
+                    }
+                }
+
+                // Handle the case where the name is updated dynamically (e.g., from a sibling field's onValueChange like headerName)
+                // Sync from field.value when it differs from form - but preserve user edits (when field was manually touched)
+                if (field.key === "name" && field.value !== undefined && field.value !== null) {
+                    const existingName = formValues[field.key];
+                    const newName = typeof field.value === "string" ? (formatJSONLikeString(field.value) ?? field.value) : String(field.value);
+                    // Only sync from field when: form is stale (external update) or user hasn't edited the name field
+                    if (existingName !== newName && !dirtyFields?.[field.key]) {
+                        setValue(field.key, newName, { shouldDirty: false });
+                        defaultValues[field.key] = newName;
+                    }
                 }
             });
             setDiagnosticsInfo(diagnosticsMap);
-            reset(defaultValues);
+            reset(defaultValues, { keepDirtyValues: true });
 
             if (changeOptionalFieldTitle) {
                 setOptionalFieldsTitle("Advanced Configurations");
@@ -570,13 +585,18 @@ export const Form = forwardRef((props: FormProps) => {
         onSubmit && onSubmit(data, dirtyFields);
     };
 
-    const handleFormValidation = async (formData?: FormValues): Promise<boolean> => {
+    const canRunExternalFormValidation = (values: FormValues) => shouldRunExternalFormValidation({
+        formStateIsValid,
+        errors,
+        hasIncompleteRequiredFields: hasIncompleteRequiredFormFields(formFields, values),
+    });
+
+    const runExternalFormValidation = async (data: FormValues): Promise<boolean> => {
         if (!onFormValidation) {
             return true;
         }
 
         setIsValidatingForm(true);
-        const data = formData ?? getValues();
 
         try {
             const validationResult = await onFormValidation(data, dirtyFields);
@@ -586,8 +606,21 @@ export const Form = forwardRef((props: FormProps) => {
         }
     }
 
+    const handleFormValidation = async (formData?: FormValues, forceValidation?: boolean): Promise<boolean> => {
+        const data = formData ?? getValues();
+        if (!onFormValidation || (!forceValidation && !canRunExternalFormValidation(data))) {
+            return true;
+        }
+
+        return runExternalFormValidation(data);
+    }
+
     const handleOnBlur = async () => {
-        onBlur?.(getValues(), dirtyFields);
+        const values = getValues();
+        if (onFormValidation && !canRunExternalFormValidation(values)) {
+            return;
+        }
+        onBlur?.(values, dirtyFields);
     };
 
     const handleOpenRecordEditor = (open: boolean, typeField?: FormField, newType?: string | NodeProperties) => {
@@ -611,10 +644,12 @@ export const Form = forwardRef((props: FormProps) => {
         setActiveFormField(key);
     };
 
-    const handleSetDiagnosticsInfo = (diagnostics: FormDiagnostics) => {
-        const otherDiagnostics = diagnosticsInfo?.filter((item) => item.key !== diagnostics.key) || [];
-        setDiagnosticsInfo([...otherDiagnostics, diagnostics]);
-    };
+    const handleSetDiagnosticsInfo = useCallback((diagnostics: FormDiagnostics) => {
+        setDiagnosticsInfo(prev => {
+            const otherDiagnostics = prev?.filter((item) => item.key !== diagnostics.key) || [];
+            return [...otherDiagnostics, diagnostics];
+        });
+    }, []);
 
     const handleOpenSubPanel = (subPanel: SubPanel) => {
         let updatedSubPanel = subPanel;
@@ -673,6 +708,10 @@ export const Form = forwardRef((props: FormProps) => {
                         collectAdvancedFields(selectedChoice.properties);
                     }
                 }
+                // Skip GROUP_SECTION properties - they handle their own advanced fields internally
+                else if (propValue?.properties && !propValue.advanced && getPrimaryInputType(propValue?.types)?.fieldType === "GROUP_SECTION") {
+                    // Do not traverse into GROUP_SECTION; its ChoiceForm renders advanced fields within the group
+                }
                 // If this property is advanced, add it to the list
                 else if (propValue.advanced && propValue.enabled && !propValue.hidden && !propValue.choices) {
                     const choiceFormField: FormField = {
@@ -725,13 +764,17 @@ export const Form = forwardRef((props: FormProps) => {
     // has advance fields
     const hasAdvanceFields = formFields.some((field) => field.advanced && field.enabled && !field.hidden) || advancedChoiceFields.length > 0;
     const variableField = formFields.find((field) => field.key === "variable");
-    const typeField = formFields.find((field) => field.key === "type");
-    const expressionField = formFields.find((field) => field.key === "expression");
+    const typeField = formFields.find((field) => !field.advanced && !field.hidden && getPrimaryInputType(field.types)?.fieldType === "TYPE");
+    const expressionField = formFields.find((field) => getSecondaryInputType(field.types)?.fieldType === "EXPRESSION" || getPrimaryInputType(field.types)?.fieldType === "ACTION_OR_EXPRESSION");
     const targetTypeField = formFields.find((field) => field.codedata?.kind === "PARAM_FOR_TYPE_INFER");
     const hasParameters = hasRequiredParameters(formFields, selectedNode) || hasOptionalParameters(formFields);
-    const canOpenInDataMapper = selectedNode === "VARIABLE" &&
+
+    const canOpenInDataMapper = (selectedNode === "VARIABLE" &&
         expressionField &&
-        visualizableField?.isDataMapped;
+        visualizableField?.isDataMapped) ||
+        selectedNode === "DATA_MAPPER_CREATION";
+
+    const canOpenInFunctionEditor = selectedNode === "FUNCTION_CREATION";
 
     const contextValue: FormContext = {
         form: {
@@ -757,9 +800,9 @@ export const Form = forwardRef((props: FormProps) => {
         }
     };
 
-    // Find the first editable field
+    // Find the first editable identifier field
     const firstEditableFieldIndex = formFields.findIndex(
-        (field) => field.editable !== false && (field.value == null || field.value === '')
+        (field) => field.editable !== false && getPrimaryInputType(field.types)?.fieldType === "IDENTIFIER"
     );
 
     const isValid = useMemo(() => {
@@ -773,9 +816,16 @@ export const Form = forwardRef((props: FormProps) => {
                     continue;
                 }
 
-                let diagnostics: Diagnostic[] = diagnosticsInfoItem.diagnostics || [];
+                let diagnostics: Diagnostic[] = Array.isArray(diagnosticsInfoItem.diagnostics) ? diagnosticsInfoItem.diagnostics : [];
                 if (diagnostics.length === 0) {
-                    clearErrors(key);
+                    // Only clear errors that were set by the expression diagnostics system,
+                    // not errors set by other validators (e.g., PathEditor)
+                    if (errors[key]?.type === "expression_diagnostic") {
+                        clearErrors(key);
+                        // clearErrors removes the entry but does not refresh formState.isValid;
+                        // trigger a revalidation so Save re-enables once diagnostics go clean.
+                        trigger(key);
+                    }
                     continue;
                 } else {
                     // Filter the BCE2066 diagnostics
@@ -784,7 +834,7 @@ export const Form = forwardRef((props: FormProps) => {
                     );
 
                     const diagnosticsMessage = diagnostics.map((d) => d.message).join("\n");
-                    setError(key, { type: "validate", message: diagnosticsMessage });
+                    setError(key, { type: "expression_diagnostic", message: diagnosticsMessage });
 
                     // If the severity is not ERROR, don't invalidate
                     const hasErrorDiagnostics = diagnostics.some((d) => d.severity === 1);
@@ -807,14 +857,20 @@ export const Form = forwardRef((props: FormProps) => {
         return !hasDiagnostics;
     }, [diagnosticsInfo, formFields]);
 
+    const prevValuesRef = useRef<FormValues>({});
+    const watchedValues = watch();
+    const hasIncompleteRequiredFields = !!onFormValidation &&
+        hasIncompleteRequiredFormFields(formFields, watchedValues);
+
     // Call onValidityChange when form validity changes
     useEffect(() => {
         if (onValidityChange) {
-            const formIsValid = isValid && !isValidating && Object.keys(errors).length === 0 &&
+            // formStateIsValid captures errors from PathEditor and other validators (setError)
+            const formIsValid = isValid && formStateIsValid && !isValidating && Object.keys(errors).length === 0 && !hasIncompleteRequiredFields &&
                 (!concertMessage || !concertRequired || isUserConcert) && !isIdentifierEditing && !isSubComponentEnabled;
             onValidityChange(formIsValid);
         }
-    }, [isValid, isValidating, errors, concertMessage, concertRequired, isUserConcert, isIdentifierEditing, isSubComponentEnabled, onValidityChange]);
+    }, [isValid, formStateIsValid, isValidating, errors, hasIncompleteRequiredFields, concertMessage, concertRequired, isUserConcert, isIdentifierEditing, isSubComponentEnabled, onValidityChange]);
 
     const handleIdentifierEditingStateChange = (isEditing: boolean) => {
         setIsIdentifierEditing(isEditing);
@@ -826,7 +882,8 @@ export const Form = forwardRef((props: FormProps) => {
 
     const disableSaveButton =
         isValidating || props.disableSaveButton || (concertMessage && concertRequired && !isUserConcert) ||
-        isIdentifierEditing || isSubComponentEnabled || isValidatingForm || Object.keys(errors).length > 0;
+        isIdentifierEditing || isSubComponentEnabled || isValidatingForm || hasIncompleteRequiredFields ||
+        !formStateIsValid || Object.keys(errors).length > 0;
 
     const handleShowMoreClick = () => {
         setIsMarkdownExpanded(!isMarkdownExpanded);
@@ -837,13 +894,11 @@ export const Form = forwardRef((props: FormProps) => {
         }
     };
 
-    const prevValuesRef = useRef<FormValues>({});
-    const watchedValues = watch();
     useEffect(() => {
         if (props.onChange) {
             const prevValues = prevValuesRef.current;
             Object.entries(watchedValues).forEach(([key, value]) => {
-                if (prevValues[key] !== value) {
+                if (!isEqual(prevValues[key], value)) {
                     props.onChange?.(key, value, watchedValues);
                 }
             });
@@ -905,7 +960,27 @@ export const Form = forwardRef((props: FormProps) => {
             if (data.expression === '' && visualizableField?.defaultValue) {
                 data.expression = visualizableField.defaultValue;
             }
-            return handleOnSave({ ...data, openInDataMapper: true });
+            return handleOnSave({
+                ...data,
+                editorConfig: {
+                    view: selectedNode === "VARIABLE" ? MACHINE_VIEW.InlineDataMapper : MACHINE_VIEW.DataMapper,
+                    displayMode: EditorDisplayMode.VIEW,
+                },
+            });
+        })();
+    };
+
+    const handleOnOpenInFunctionEditor = () => {
+        setSavingButton('functionEditor');
+        handleSubmit((data) => {
+            return handleOnSave({
+                ...data,
+                editorConfig: {
+                    view: MACHINE_VIEW.BIDiagram,
+                    displayMode: EditorDisplayMode.VIEW,
+                    artifactType: DIRECTORY_MAP.FUNCTION,
+                },
+            });
         })();
     };
 
@@ -915,7 +990,7 @@ export const Form = forwardRef((props: FormProps) => {
         handleSubmit(
             async (data) => {
                 try {
-                    const isValidForm = await handleFormValidation(data);
+                    const isValidForm = await runExternalFormValidation(data);
                     if (!isValidForm) {
                         setSavingButton(null);
                         return;
@@ -938,7 +1013,7 @@ export const Form = forwardRef((props: FormProps) => {
             {infoLabel && !compact && (
                 <S.MarkdownWrapper>
                     <S.MarkdownContainer ref={markdownRef} isExpanded={isMarkdownExpanded}>
-                        <ReactMarkdown>{stripHtmlTags(infoLabel)}</ReactMarkdown>
+                        <MarkdownDescription description={infoLabel} />
                     </S.MarkdownContainer>
                     {markdownRef.current && markdownRef.current.scrollHeight > 200 && (
                         <S.ButtonContainer>
@@ -960,6 +1035,16 @@ export const Form = forwardRef((props: FormProps) => {
             {!preserveOrder && !compact && (
                 <FormDescription formFields={formFields} selectedNode={selectedNode} />
             )}
+            {formDiagnostics && formDiagnostics.length > 0 && (
+                <S.FormDiagnosticsContainer>
+                    <ErrorBanner errorMsg={formDiagnostics.map((diagnostic) => diagnostic.message).join("\n")} />
+                    {formDiagnosticsAction && (
+                        <S.FormDiagnosticsActionContainer>
+                            {formDiagnosticsAction}
+                        </S.FormDiagnosticsActionContainer>
+                    )}
+                </S.FormDiagnosticsContainer>
+            )}
 
             {/*
                  * Two rendering modes based on preserveOrder prop:
@@ -969,18 +1054,20 @@ export const Form = forwardRef((props: FormProps) => {
                  */}
             <S.CategoryRow bottomBorder={false}>
                 {(() => {
-                    const fieldsToRender = formFields
-                        .sort((a, b) => b.groupNo - a.groupNo)
+                    const fieldsToRender = [...formFields]
+                        .sort((a, b) => (b.groupNo ?? 0) - (a.groupNo ?? 0))
                         .filter((field) => field.type !== "VIEW");
 
                     const renderedComponents: React.ReactNode[] = [];
                     let renderedFieldCount = 0;
                     const injectedIndices = new Set<number>(); // Track which injections have been added
 
+                    const nonAdvancedInjections = injectedComponents?.filter((ic) => !ic.advanced);
+
                     fieldsToRender.forEach((field) => {
                         // Check if we need to inject components before this field
-                        if (injectedComponents) {
-                            injectedComponents.forEach((injected) => {
+                        if (nonAdvancedInjections) {
+                            nonAdvancedInjections.forEach((injected) => {
                                 if (injected.index === renderedFieldCount && !injectedIndices.has(injected.index)) {
                                     renderedComponents.push(
                                         <React.Fragment key={`injected-${injected.index}`}>
@@ -1003,7 +1090,7 @@ export const Form = forwardRef((props: FormProps) => {
                         const updatedField = updateFormFieldWithImports(field, formImports);
                         renderedComponents.push(
                             <S.Row key={updatedField.key}>
-                                <EditorFactory
+                                <FieldFactory
                                     field={updatedField}
                                     selectedNode={selectedNode}
                                     openRecordEditor={
@@ -1012,6 +1099,7 @@ export const Form = forwardRef((props: FormProps) => {
                                     }
                                     openSubPanel={handleOpenSubPanel}
                                     subPanelView={subPanelView}
+                                    handleFormValidation={handleFormValidation}
                                     handleOnFieldFocus={handleOnFieldFocus}
                                     autoFocus={firstEditableFieldIndex === formFields.indexOf(updatedField) && !hideSaveButton}
                                     recordTypeFields={recordTypeFields}
@@ -1025,6 +1113,7 @@ export const Form = forwardRef((props: FormProps) => {
                                         openFormTypeEditor &&
                                         ((open: boolean, newType?: string) => openFormTypeEditor(open, newType, updatedField))
                                     }
+                                    updateImports={updateImports}
                                 />
                                 {updatedField.key === "scope" && scopeFieldAddon}
                             </S.Row>
@@ -1033,8 +1122,8 @@ export const Form = forwardRef((props: FormProps) => {
                     });
 
                     // Check if we need to inject components after all fields
-                    if (injectedComponents) {
-                        injectedComponents.forEach((injected) => {
+                    if (nonAdvancedInjections) {
+                        nonAdvancedInjections.forEach((injected) => {
                             if (injected.index >= renderedFieldCount && !injectedIndices.has(injected.index)) {
                                 renderedComponents.push(
                                     <React.Fragment key={`injected-${injected.index}`}>
@@ -1074,7 +1163,7 @@ export const Form = forwardRef((props: FormProps) => {
                                         name={"chevron-up"}
                                         iconSx={{ fontSize: 12 }}
                                         sx={{ height: 12 }}
-                                    />Collapsed
+                                    />Collapse
                                 </LinkButton>
                             )}
                         </S.ButtonContainer>
@@ -1082,36 +1171,72 @@ export const Form = forwardRef((props: FormProps) => {
                 )}
                 {hasAdvanceFields &&
                     showAdvancedOptions &&
-                    formFields.map((field) => {
-                        if (field.advanced && !field.hidden) {
-                            const updatedField = updateFormFieldWithImports(field, formImports);
-                            return (
-                                <S.Row key={updatedField.key}>
-                                    <EditorFactory
-                                        field={updatedField}
-                                        openRecordEditor={
-                                            openRecordEditor &&
-                                            ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
+                    (() => {
+                        const advancedComponents: React.ReactNode[] = [];
+                        let advancedFieldCount = 0;
+                        const advancedInjectedIndices = new Set<number>();
+                        const advancedInjections = injectedComponents?.filter((ic) => ic.advanced);
+
+                        formFields.forEach((field) => {
+                            if (field.advanced && !field.hidden) {
+                                if (advancedInjections) {
+                                    advancedInjections.forEach((injected) => {
+                                        if (injected.index === advancedFieldCount && !advancedInjectedIndices.has(injected.index)) {
+                                            advancedComponents.push(
+                                                <React.Fragment key={`injected-advanced-${injected.index}`}>
+                                                    {injected.component}
+                                                </React.Fragment>
+                                            );
+                                            advancedInjectedIndices.add(injected.index);
                                         }
-                                        subPanelView={subPanelView}
-                                        handleOnFieldFocus={handleOnFieldFocus}
-                                        recordTypeFields={recordTypeFields}
-                                        onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
-                                        handleOnTypeChange={handleOnTypeChange}
-                                        onBlur={handleOnBlur}
-                                    />
-                                </S.Row>
-                            );
+                                    });
+                                }
+
+                                const updatedField = updateFormFieldWithImports(field, formImports);
+                                advancedComponents.push(
+                                    <S.Row key={updatedField.key}>
+                                        <FieldFactory
+                                            field={updatedField}
+                                            handleFormValidation={handleFormValidation}
+                                            openRecordEditor={
+                                                openRecordEditor &&
+                                                ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
+                                            }
+                                            subPanelView={subPanelView}
+                                            handleOnFieldFocus={handleOnFieldFocus}
+                                            recordTypeFields={recordTypeFields}
+                                            onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                            handleOnTypeChange={handleOnTypeChange}
+                                            onBlur={handleOnBlur}
+                                        />
+                                    </S.Row>
+                                );
+                                advancedFieldCount++;
+                            }
+                        });
+
+                        if (advancedInjections) {
+                            advancedInjections.forEach((injected) => {
+                                if (injected.index >= advancedFieldCount && !advancedInjectedIndices.has(injected.index)) {
+                                    advancedComponents.push(
+                                        <React.Fragment key={`injected-advanced-${injected.index}`}>
+                                            {injected.component}
+                                        </React.Fragment>
+                                    );
+                                    advancedInjectedIndices.add(injected.index);
+                                }
+                            });
                         }
-                        return null;
-                    })}
+
+                        return advancedComponents;
+                    })()}
                 {hasAdvanceFields &&
                     showAdvancedOptions &&
                     advancedChoiceFields.map((field) => {
                         const updatedField = updateFormFieldWithImports(field, formImports);
                         return (
                             <S.Row key={updatedField.key}>
-                                <EditorFactory
+                                <FieldFactory
                                     field={updatedField}
                                     openRecordEditor={
                                         openRecordEditor &&
@@ -1123,7 +1248,8 @@ export const Form = forwardRef((props: FormProps) => {
                                     onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                                     handleOnTypeChange={handleOnTypeChange}
                                     onBlur={handleOnBlur}
-                                />
+                                    handleFormValidation={handleFormValidation}
+                                    />
                             </S.Row>
                         );
                     })}
@@ -1132,16 +1258,17 @@ export const Form = forwardRef((props: FormProps) => {
             {!preserveOrder && (variableField || typeField || targetTypeField) && (
                 <S.CategoryRow topBorder={!compact && hasParameters}>
                     {variableField && (
-                        <EditorFactory
+                        <FieldFactory
                             field={variableField}
                             handleOnFieldFocus={handleOnFieldFocus}
                             recordTypeFields={recordTypeFields}
                             onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                             onBlur={handleOnBlur}
+                            handleFormValidation={handleFormValidation}
                         />
                     )}
                     {typeField && !isInferredReturnType && (
-                        <EditorFactory
+                        <FieldFactory
                             field={typeField}
                             openRecordEditor={
                                 openRecordEditor &&
@@ -1153,12 +1280,12 @@ export const Form = forwardRef((props: FormProps) => {
                             onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                             handleNewTypeSelected={handleNewTypeSelected}
                             onBlur={handleOnBlur}
-
+                            handleFormValidation={handleFormValidation}
                         />
                     )}
                     {targetTypeField && !targetTypeField.advanced && (
                         <>
-                            <EditorFactory
+                            <FieldFactory
                                 field={targetTypeField}
                                 handleOnFieldFocus={handleOnFieldFocus}
                                 recordTypeFields={recordTypeFields}
@@ -1166,6 +1293,7 @@ export const Form = forwardRef((props: FormProps) => {
                                 handleNewTypeSelected={handleNewTypeSelected}
                                 handleOnTypeChange={handleOnTypeChange}
                                 onBlur={handleOnBlur}
+                                handleFormValidation={handleFormValidation}
                             />
                             {typeField && (
                                 <TypeHelperText
@@ -1187,70 +1315,101 @@ export const Form = forwardRef((props: FormProps) => {
     );
 
     return (
-        <Provider {...contextValue}>
-            <S.Container nestedForm={nestedForm} compact={compact} footerActionButton={footerActionButton} className="side-panel-body">
-                {footerActionButton ? (
-                    <S.ScrollableContent>
-                        {formContent}
-                    </S.ScrollableContent>
-                ) : (
-                    formContent
-                )}
-                {onSubmit && !hideSaveButton && !footerActionButton && (
-                    <S.Footer>
-                        {onCancelForm && (
-                            <Button appearance="secondary" onClick={onCancelForm}>
-                                {" "}
-                                {cancelText || "Cancel"}{" "}
-                            </Button>
+        <FormFieldLoadingProvider
+            loadingFields={loadingFields}
+            registerLoading={registerLoading}
+            unregisterLoading={unregisterLoading}
+        >
+            <Provider {...contextValue}>
+                <S.Container nestedForm={nestedForm} compact={compact} footerActionButton={footerActionButton} className="side-panel-body">
+                    {isFormLoading && (
+                        <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: "12px", flex: 1 }}>
+                            <ProgressRing color={ThemeColors.PRIMARY} />
+                            <span style={{ fontSize: "12px", color: ThemeColors.ON_SURFACE_VARIANT }}>Loading form data...</span>
+                        </div>
+                    )}
+                    {/* NOTE: isFormLoading is only expected to be true during initial field value
+    resolution on form open. If this ever becomes true during user interaction,
+    it will drop focus — treat that as a bug in the loading registration logic. */}
+                    <div style={{ display: isFormLoading ? "none" : "contents" }}>
+                        {footerActionButton ? (
+                            <S.ScrollableContent>
+                                {formContent}
+                            </S.ScrollableContent>
+                        ) : (
+                            formContent
                         )}
-                        {canOpenInDataMapper &&
-                            <Button
-                                appearance="secondary"
-                                onClick={handleOnOpenInDataMapper}
-                                disabled={isSaving}
-                            >
-                                {isSaving && savingButton === 'dataMapper' ? (
-                                    <Typography variant="progress">{submitText || "Opening in Data Mapper..."}</Typography>
-                                ) : submitText || "Open in Data Mapper"}
-                            </Button>
-                        }
-                        <Button
-                            appearance="primary"
-                            onClick={handleOnSaveClick}
-                            disabled={disableSaveButton || isSaving}
-                        >
-                            {isValidatingForm ? (
-                                <Typography variant="progress">Validating...</Typography>
-                            ) : isSaving && savingButton === 'save' ? (
-                                <Typography variant="progress">{submitText || "Saving..."}</Typography>
-                            ) : (
-                                submitText || "Save"
-                            )}
-                        </Button>
-                    </S.Footer>
-                )}
-                {onSubmit && !hideSaveButton && footerActionButton && (
-                    <S.FooterActionButtonContainer>
-                        <S.FooterActionButton
-                            appearance="primary"
-                            onClick={handleOnSaveClick}
-                            disabled={disableSaveButton || isSaving}
-                            buttonSx={{ width: "100%", height: "35px" }}
-                        >
-                            {isValidatingForm ? (
-                                <Typography variant="progress">Validating...</Typography>
-                            ) : isSaving && savingButton === 'save' ? (
-                                <Typography variant="progress">{submitText || "Saving..."}</Typography>
-                            ) : (
-                                submitText || "Save"
-                            )}
-                        </S.FooterActionButton>
-                    </S.FooterActionButtonContainer>
-                )}
-            </S.Container>
-        </Provider>
+                        {onSubmit && !hideSaveButton && !footerActionButton && (
+                            <S.Footer>
+                                {onCancelForm && (
+                                    <Button appearance="secondary" onClick={onCancelForm}>
+                                        {" "}
+                                        {cancelText || "Cancel"}{" "}
+                                    </Button>
+                                )}
+                                {canOpenInDataMapper &&
+                                    <Button
+                                        appearance="secondary"
+                                        onClick={handleOnOpenInDataMapper}
+                                        disabled={isSaving}
+                                    >
+                                        {isSaving && savingButton === 'dataMapper' ? (
+                                            <Typography variant="progress">{submitText || "Opening in Data Mapper..."}</Typography>
+                                        ) : submitText || "Open in Data Mapper"}
+                                    </Button>
+                                }
+                                {canOpenInFunctionEditor && (
+                                    <Button
+                                        appearance="secondary"
+                                        onClick={handleOnOpenInFunctionEditor}
+                                        disabled={isSaving}
+                                    >
+                                        {isSaving && savingButton === 'functionEditor' ? (
+                                            <Typography variant="progress">{submitText || "Opening in Function Editor..."}</Typography>
+                                        ) : submitText || "Open in Function Editor"}
+                                    </Button>
+                                )}
+                                <Button
+                                    appearance="primary"
+                                    onClick={handleOnSaveClick}
+                                    disabled={disableSaveButton || isSaving}
+                                >
+                                    {isValidatingForm ? (
+                                        <Typography variant="progress">Validating...</Typography>
+                                    ) : isSaving && savingButton === 'save' ? (
+                                        <Typography variant="progress">{submitText || "Saving..."}</Typography>
+                                    ) : (
+                                        submitText || "Save"
+                                    )}
+                                </Button>
+                            </S.Footer>
+                        )}
+                        {onSubmit && !hideSaveButton && footerActionButton && (
+                            <S.FooterActionButtonContainer>
+                                <S.FooterActionButton
+                                    appearance="primary"
+                                    onClick={handleOnSaveClick}
+                                    disabled={disableSaveButton || isSaving}
+                                    buttonSx={{ width: "100%", height: "35px" }}
+                                >
+                                    {isValidatingForm ? (
+                                        <Typography variant="progress">Validating...</Typography>
+                                    ) : isSaving && savingButton === 'save' ? (
+                                        <Typography variant="progress">{submitText || "Saving..."}</Typography>
+                                    ) : (
+                                        submitText || "Save"
+                                    )}
+                                </S.FooterActionButton>
+                            </S.FooterActionButtonContainer>
+                        )}
+                    </div>
+                </S.Container>
+            </Provider>
+        </FormFieldLoadingProvider>
     );
 });
 
 export default Form;
+
+export const FormRow = S.Row;
+export const FormButtonContainer = S.ButtonContainer;

@@ -23,7 +23,7 @@ import { ResourcePath, verbs } from './ResourcePath/ResourcePath';
 import { ResourceResponse } from './ResourceResponse/ResourceResponse';
 import styled from '@emotion/styled';
 import { getDefaultResponse, HTTP_METHOD, removeForwardSlashes, sanitizedHttpPath } from '../../utils';
-import { ConfigProperties, FunctionModel, ParameterModel, HttpPayloadContext, PropertyModel, ReturnTypeModel } from '@wso2/ballerina-core';
+import { ConfigProperties, FunctionModel, ParameterModel, HttpPayloadContext, PropertyModel, ReturnTypeModel, ProjectStructureArtifactResponse } from '@wso2/ballerina-core';
 import { Parameters } from './Parameters/Parameters';
 import { PanelContainer } from '@wso2/ballerina-side-panel';
 import { ResourceConfig } from './ResourceConfig/ResourceConfig';
@@ -90,10 +90,11 @@ export interface ResourceFormProps {
 	isNew?: boolean;
 	payloadContext?: HttpPayloadContext;
 	filePath?: string;
+	existingResources?: ProjectStructureArtifactResponse[];
 }
 
 export function ResourceForm(props: ResourceFormProps) {
-	const { model, isSaving, onSave, onClose, isNew, payloadContext, filePath } = props;
+	const { model, isSaving, onSave, onClose, isNew, payloadContext, filePath, existingResources } = props;
 
 	const [functionModel, setFunctionModel] = useState<FunctionModel>(model);
 	const [isPathValid, setIsPathValid] = useState<boolean>(false);
@@ -118,10 +119,12 @@ export function ResourceForm(props: ResourceFormProps) {
 			statusCode: { ...model.returnType.responses[0].statusCode, value: defaultStatusCode }
 		}
 
+		const updatedResponses = [updatedResponse, ...model.returnType.responses.slice(1)];
+
 		const updatedFunctionModel = {
 			...model,
 			accessor: { ...model.accessor, value: method },
-			returnType: { ...model.returnType, responses: [updatedResponse] },
+			returnType: { ...model.returnType, responses: updatedResponses },
 		};
 		setFunctionModel(updatedFunctionModel as FunctionModel);
 	}
@@ -173,7 +176,9 @@ export function ResourceForm(props: ResourceFormProps) {
 		if (createMore) {
 			closeMethod();
 		}
-		functionModel.name.value = sanitizedHttpPath(functionModel.name.value as string);
+		if (functionModel.name.value !== ".") {
+			functionModel.name.value = sanitizedHttpPath(functionModel.name.value as string);
+		}
 		onSave(functionModel, !createMore);
 	}
 
@@ -183,7 +188,7 @@ export function ResourceForm(props: ResourceFormProps) {
 				{isSaving && <ProgressIndicator id="resource-loading-bar" />}
 				<SidePanelBody>
 					<ResourcePath method={functionModel.accessor} path={functionModel.name} onChange={onPathChange}
-						onError={onResourcePathError} readonly={!functionModel.editable} />
+						onError={onResourcePathError} readonly={!functionModel.editable} existingResources={existingResources} />
 					<Divider />
 					<Parameters
 						readonly={!functionModel.editable}
@@ -244,7 +249,7 @@ export function ResourceForm(props: ResourceFormProps) {
 					<>
 						{isSaving && <ProgressIndicator id="resource-loading-bar" />}
 						<SidePanelBody>
-							<ResourcePath method={functionModel.accessor} path={functionModel.name} onChange={onPathChange} isNew={true} onError={onResourcePathError} />
+							<ResourcePath method={functionModel.accessor} path={functionModel.name} onChange={onPathChange} isNew={true} onError={onResourcePathError} existingResources={existingResources} />
 							<Divider />
 							<Parameters
 								isNewResource={true}

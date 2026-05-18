@@ -24,6 +24,7 @@ import {
     EVENT_TYPE,
     FlowNode,
     MACHINE_VIEW,
+    NodePosition,
     ProjectInfo
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "../../core";
@@ -34,16 +35,25 @@ import { StateMachine } from "../../stateMachine";
 import { BiDiagramRpcManager } from "../../rpc-managers/bi-diagram/rpc-manager";
 import { readFileSync, readdirSync, statSync } from "fs";
 import path from "path";
+import { isInDevant } from "../../utils";
 import { isPositionEqual, isPositionWithinDeletedComponent } from "../../utils/history/util";
 import { startDebugging } from "../editor-support/activator";
-import { createBIProjectFromMigration, createBIProjectPure, createBIWorkspace, openInVSCode } from "../../utils/bi";
+import {
+    createBIProjectFromMigration,
+    createBIProjectPure,
+    createBIWorkspaceWithProject,
+    createEmptyBIWorkspace
+} from "../../utils/bi";
+import { checkAndRunPendingEnhancement } from "../ai/migration/orchestrator";
 import { createVersionNumber, findBallerinaPackageRoot, isSupportedSLVersion } from ".././../utils";
 import { extension } from "../../BalExtensionContext";
 import { VisualizerWebview } from "../../views/visualizer/webview";
 import { getCurrentProjectRoot, tryGetCurrentBallerinaFile } from "../../utils/project-utils";
 import { selectPackageOrPrompt, needsProjectDiscovery, requiresPackageSelection } from "../../utils/command-utils";
+import { handleAIAgentServiceDeletion } from "../../utils/ai-service-utils";
 import { findWorkspaceTypeFromWorkspaceFolders } from "../../rpc-managers/common/utils";
 import { MESSAGES } from "../project";
+import { ensureICPServerRunning } from "../icp";
 
 const FOCUS_DEBUG_CONSOLE_COMMAND = 'workbench.debug.action.focusRepl';
 const TRACE_SERVER_OFF = "off";
@@ -55,11 +65,27 @@ export function activate(context: BallerinaExtension) {
     // Set context for command visibility
     commands.executeCommand('setContext', 'ballerina.bi.workspaceSupported', isWorkspaceSupported);
 
-    commands.registerCommand(BI_COMMANDS.BI_RUN_PROJECT, () => {
+    commands.registerCommand(BI_COMMANDS.BI_RUN_PROJECT, async () => {
         const stateMachineContext = StateMachine.context();
         const { workspacePath, view, projectPath, projectInfo } = stateMachineContext;
         const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
         const hasActiveTextEditor = !!window.activeTextEditor;
+
+        // Check if ICP is enabled for this project (skip entirely in Devant)
+        if (!isInDevant() && projectPath && stateMachineContext.langClient) {
+            try {
+                const icpStatus = await stateMachineContext.langClient.isIcpEnabled({ projectPath });
+                if (icpStatus && 'enabled' in icpStatus && icpStatus.enabled) {
+                    const proceed = await ensureICPServerRunning(projectPath);
+                    if (!proceed) {
+                        return;
+                    }
+                }
+            } catch (error) {
+                // ICP check failed, continue with run
+                console.error('[ICP] Error checking ICP status:', error);
+            }
+        }
 
         const needsPackageSelection = requiresPackageSelection(
             workspacePath, view, projectPath, isWebviewOpen, hasActiveTextEditor
@@ -156,12 +182,16 @@ export function activate(context: BallerinaExtension) {
 
     commands.registerCommand(BI_COMMANDS.TOGGLE_TRACE_LOGS, toggleTraceLogs);
 
-    commands.registerCommand(BI_COMMANDS.CREATE_BI_PROJECT, (params) => {
+    commands.registerCommand(BI_COMMANDS.CREATE_BI_PROJECT, async (params) => {
         let path: string;
         if (params.createAsWorkspace) {
-            path = createBIWorkspace(params);
+            if (params.projectName) {
+                path = await createBIWorkspaceWithProject(params);
+            } else {
+                path = await createEmptyBIWorkspace(params);
+            }
         } else {
-            path = createBIProjectPure(params);
+            path = await createBIProjectPure(params);
         }
         return path;
     });
@@ -170,7 +200,7 @@ export function activate(context: BallerinaExtension) {
         return createBIProjectFromMigration(params);
     });
 
-    commands.registerCommand(BI_COMMANDS.DELETE_COMPONENT, async (item?: TreeItem & { info?: string }) => {
+    commands.registerCommand(BI_COMMANDS.DELETE_COMPONENT, async (item?: TreeItem & { info?: string, position?: NodePosition }) => {
         // Guard: DELETE requires a tree item context
         if (!item) {
             window.showErrorMessage('This command must be invoked from the project explorer.');
@@ -184,12 +214,28 @@ export function activate(context: BallerinaExtension) {
         } else if (item.contextValue === DIRECTORY_MAP.LOCAL_CONNECTORS) {
             await handleLocalModuleDeletion(item.label as string, item.info);
         } else {
-            await handleComponentDeletion(item.contextValue as string, item.label as string, item.info);
+            if (!item.position) {
+                window.showErrorMessage('Position is required to delete a component.');
+                return;
+            }
+            await handleComponentDeletion(item.contextValue as string, item.label as string, item.info, item.position as NodePosition);
         }
     });
 
     // Open the ballerina toml file as the first file for LS to trigger the project loading
     openBallerinaTomlFile(context);
+
+    // After the language server and project are fully ready, check whether a
+    // migration AI enhancement was scheduled before the last folder reload.
+    const service = StateMachine.service();
+    const subscription = service.subscribe((state) => {
+        if (state.value === "extensionReady" && state.changed) {
+            subscription.unsubscribe();
+            checkAndRunPendingEnhancement().catch((err) =>
+                console.error("[MigrationEnhancement] Unexpected error:", err)
+            );
+        }
+    });
 }
 
 
@@ -236,7 +282,7 @@ async function handleCommandWithContext(
             view,
             projectPath,
             ...additionalViewParams
-        });
+        }, true);
     }
     // Scenario 2: Invoked from tree view with item context
     else if (item?.resourceUri) {
@@ -245,11 +291,11 @@ async function handleCommandWithContext(
             view,
             projectPath,
             ...additionalViewParams
-        });
+        }, true);
     }
     // Scenario 3: Default - no specific context
     else {
-        openView(EVENT_TYPE.OPEN_VIEW, { view, ...additionalViewParams });
+        openView(EVENT_TYPE.OPEN_VIEW, { view, ...additionalViewParams }, true);
     }
 }
 
@@ -285,14 +331,14 @@ async function handleDebugCommandWithContext() {
 }
 
 /**
- * Prompts user to select a package and starts debugging.
+ * Prompts user to select an integration and starts debugging.
  * @param projectInfo - The project info
  * @returns void
  */
 async function handleDebugCommandWithPackageSelection(projectInfo: ProjectInfo) {
     const availablePackages = projectInfo?.children.map((child: ProjectInfo) => child.projectPath) ?? [];
 
-    const selectedPackage = await selectPackageOrPrompt(availablePackages, "Select a package to debug");
+    const selectedPackage = await selectPackageOrPrompt(availablePackages, "Select an integration to debug");
     if (!selectedPackage) {
         return;
     }
@@ -396,7 +442,7 @@ const findBallerinaFiles = (dir: string, fileList: string[] = []): string[] => {
     return fileList;
 };
 
-const handleComponentDeletion = async (componentType: string, itemLabel: string, filePath: string) => {
+const handleComponentDeletion = async (componentType: string, itemLabel: string, filePath: string, position: NodePosition) => {
     const rpcClient = new BiDiagramRpcManager();
     const { projectPath, projectInfo } = StateMachine.context();
     const projectRoot = await findBallerinaPackageRoot(filePath);
@@ -413,7 +459,11 @@ const handleComponentDeletion = async (componentType: string, itemLabel: string,
     }
 
     for (const component of componentCategory) {
-        if (component.name === itemLabel) {
+        if (component.name === itemLabel && component?.position?.startLine === position.startLine && component?.position?.startColumn === position.startColumn) {
+            if (component.name.startsWith("AI Agent Services")) {
+                await handleAIAgentServiceDeletion(component, rpcClient, filePath, deleteComponent);
+                return;
+            }
             const componentInfo: ComponentInfo = {
                 name: component.name,
                 filePath: component.path,
@@ -428,6 +478,8 @@ const handleComponentDeletion = async (componentType: string, itemLabel: string,
             return;
         }
     }
+    console.error(`Component ${itemLabel} not found in project structure`);
+    window.showErrorMessage(`Component '${itemLabel}' not found — deletion failed`);
 };
 
 const handleLocalModuleDeletion = async (moduleName: string, filePath: string) => {

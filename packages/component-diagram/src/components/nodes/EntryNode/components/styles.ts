@@ -99,10 +99,8 @@ export const Description = styled(StyledText)`
     max-width: ${ENTRY_NODE_WIDTH - 80}px;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
     font-family: monospace;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
     color: ${ThemeColors.ON_SURFACE};
     opacity: 0.7;
 `;

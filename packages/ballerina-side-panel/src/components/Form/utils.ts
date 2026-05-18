@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { NodeKind } from "@wso2/ballerina-core";
+import { NodeKind, getPrimaryInputType } from "@wso2/ballerina-core";
 import { FormField, FormImports } from "../..";
 
 // This function allows us to format strings by adding indentation as tabs to the lines
@@ -50,8 +50,54 @@ export function updateFormFieldWithImports(formField: FormField, fieldImports: F
     return formField;
 }
 
+export function hasIncompleteRequiredFormFields(
+    formFields: FormField[] = [],
+    values: Record<string, unknown> = {}
+): boolean {
+    const checkField = (field: FormField): boolean => {
+        if (field.hidden || field.enabled === false) {
+            return false;
+        }
+
+        const value = values[field.key];
+        const isEmptyString = typeof value === "string" && value.trim() === "";
+        const isEmptyArray = Array.isArray(value) && value.length === 0;
+        const hasValue = value !== undefined && value !== null && !isEmptyString && !isEmptyArray;
+
+        if (field.optional && !hasValue) {
+            return false;
+        }
+
+        if (!hasValue) {
+            return true;
+        }
+        if (typeof value === "string") {
+            if (field.dynamicFormFields?.[value]) {
+                if (field.dynamicFormFields[value].some(checkField)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+
+    return formFields.some(checkField);
+}
+
+export function shouldRunExternalFormValidation({
+    formStateIsValid,
+    errors,
+    hasIncompleteRequiredFields = false,
+}: {
+    formStateIsValid: boolean;
+    errors?: Record<string, unknown>;
+    hasIncompleteRequiredFields?: boolean;
+}): boolean {
+    return formStateIsValid && Object.keys(errors ?? {}).length === 0 && !hasIncompleteRequiredFields;
+}
+
 export function isPrioritizedField(field: FormField): boolean {
-    return field.key === "variable" || field.key === "type" || field.codedata?.kind === "PARAM_FOR_TYPE_INFER";
+    return field.key === "variable" || getPrimaryInputType(field.types)?.fieldType === "TYPE" || field.codedata?.kind === "PARAM_FOR_TYPE_INFER";
 }
 
 export function hasRequiredParameters(formFields: FormField[], selectedNode?: NodeKind): boolean {
@@ -76,7 +122,7 @@ export function hasOptionalParameters(formFields: FormField[]): boolean {
 
 export function hasReturnType(formFields: FormField[]): boolean {
     return formFields.some(field => 
-        field.key === "variable" || field.key === "type" || field.codedata?.kind === "PARAM_FOR_TYPE_INFER"
+        field.key === "variable" || getPrimaryInputType(field.types)?.fieldType === "TYPE" || field.codedata?.kind === "PARAM_FOR_TYPE_INFER"
     );
 }
 

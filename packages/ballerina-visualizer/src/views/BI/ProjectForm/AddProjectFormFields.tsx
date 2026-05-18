@@ -16,75 +16,73 @@
  * under the License.
  */
 
-import { useEffect, useState } from "react";
-import { TextField, CheckBox, LinkButton, ThemeColors, Codicon } from "@wso2/ui-toolkit";
-import styled from "@emotion/styled";
-import { sanitizePackageName, validatePackageName } from "./utils";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { TextField } from "@wso2/ui-toolkit";
+import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import { usePlatformExtContext } from "../../../providers/platform-ext-ctx-provider";
+import {
+    FieldGroup,
+    ProjectSection,
+    SectionDivider,
+} from "./styles";
+import { ProjectTypeSelector, AdvancedConfigurationSection } from "./components";
+import { AddProjectFormData } from "./types";
+import {
+    sanitizePackageName,
+    sanitizeProjectHandle,
+    validateComponentName,
+    validatePackageName,
+    validateOrgName,
+    validateProjectHandle
+} from "./utils";
 
-const FieldGroup = styled.div`
-    margin-bottom: 20px;
-`;
-
-const CheckboxContainer = styled.div`
-    margin: 16px 0;
-`;
-
-const OptionalConfigRow = styled.div`
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    margin-bottom: 8px;
-`;
-
-const OptionalConfigButtonContainer = styled.div`
-    display: flex;
-    flex-direction: row;
-    flex-grow: 1;
-    justify-content: flex-end;
-`;
-
-const OptionalConfigContent = styled.div`
-    margin-top: 16px;
-`;
-
-const Description = styled.div`
-    color: var(--vscode-list-deemphasizedForeground);
-    margin-top: 4px;
-    text-align: left;
-`;
-
-const WorkspaceSection = styled.div`
-    margin-bottom: 24px;
-    padding-bottom: 24px;
-    border-bottom: 1px solid var(--vscode-panel-border);
-`;
-
-export interface AddProjectFormData {
-    integrationName: string;
-    packageName: string;
-    workspaceName?: string;
-    orgName: string;
-    version: string;
-}
+// Re-export for backwards compatibility
+export type { AddProjectFormData } from "./types";
 
 export interface AddProjectFormFieldsProps {
     formData: AddProjectFormData;
     onFormDataChange: (data: Partial<AddProjectFormData>) => void;
-    isInWorkspace: boolean; // true if already in a workspace, false if in a package
+    isInProject: boolean;
     packageNameValidationError?: string;
+    projectNameValidationError?: string;
+    projectHandlePathError?: string;
 }
 
-export function AddProjectFormFields({ 
-    formData, 
+export function AddProjectFormFields({
+    formData,
     onFormDataChange,
-    isInWorkspace,
-    packageNameValidationError
+    isInProject,
+    packageNameValidationError,
+    projectNameValidationError,
+    projectHandlePathError,
 }: AddProjectFormFieldsProps) {
+    const { rpcClient } = useRpcContext();
+    const { platformExtState } = usePlatformExtContext();
+    const isLoggedIn = !!platformExtState?.isLoggedIn;
+    const orgsSource = platformExtState?.userInfo?.organizations;
+    const organizations = useMemo(
+        () => isLoggedIn ? (orgsSource ?? []) : undefined,
+        [isLoggedIn, orgsSource]
+    );
     const [packageNameTouched, setPackageNameTouched] = useState(false);
-    const [showOptionalConfigurations, setShowOptionalConfigurations] = useState(false);
+    const [projectHandleTouched, setProjectHandleTouched] = useState(false);
+    const isOrgTouched = useRef(false);
+    const [isPackageInfoExpanded, setIsPackageInfoExpanded] = useState(false);
+    const [integrationNameError, setIntegrationNameError] = useState<string | null>(null);
     const [packageNameError, setPackageNameError] = useState<string | null>(null);
+    const [projectHandleError, setProjectHandleError] = useState<string | null>(null);
+    const [isOrgLocked, setIsOrgLocked] = useState(false);
+    const [isOrgDataLoaded, setIsOrgDataLoaded] = useState(false);
+    const resourceTypeLabel = formData.isLibrary ? "Library" : "Integration";
+    const resourceTypeLabelLower = resourceTypeLabel.toLowerCase();
+
+    const handleProjectName = (value: string) => {
+        const updates: Partial<AddProjectFormData> = { workspaceName: value };
+        if (!projectHandleTouched) {
+            updates.projectHandle = sanitizeProjectHandle(value, { trimTrailing: false });
+        }
+        onFormDataChange(updates);
+    };
 
     const handleIntegrationName = (value: string) => {
         onFormDataChange({ integrationName: value });
@@ -94,23 +92,64 @@ export function AddProjectFormFields({
         }
     };
 
-    const handlePackageName = (value: string) => {
-        const sanitized = sanitizePackageName(value);
-        onFormDataChange({ packageName: sanitized });
-        setPackageNameTouched(value.length > 0);
-        // Clear error while typing
-        if (packageNameError) {
-            setPackageNameError(null);
-        }
-    };
+    useEffect(() => {
+        if (isOrgTouched.current) return;
 
-    const handleShowOptionalConfigurations = () => {
-        setShowOptionalConfigurations(true);
-    };
+        const controller = new AbortController();
 
-    const handleHideOptionalConfigurations = () => {
-        setShowOptionalConfigurations(false);
-    };
+        const pickOrg = (rpcOrg: string) => {
+            const match = organizations?.find((o) => o.handle === rpcOrg);
+            if (match) return match.handle;
+            if (organizations && organizations.length > 0) return organizations[0].handle;
+            return rpcOrg;
+        };
+
+        (async () => {
+            try {
+                const { orgName: rpcOrg, isLocked } = await rpcClient.getCommonRpcClient().getDefaultOrgName();
+                if (controller.signal.aborted) return;
+                if (isOrgTouched.current) {
+                    setIsOrgDataLoaded(true);
+                    return;
+                }
+
+                if (isInProject && isLocked) {
+                    setIsOrgLocked(true);
+                    setIsOrgDataLoaded(true);
+                    onFormDataChange({ orgName: rpcOrg });
+                    return;
+                }
+
+                setIsOrgLocked(false);
+                setIsOrgDataLoaded(true);
+                onFormDataChange({ orgName: pickOrg(rpcOrg) });
+            } catch (error) {
+                if (controller.signal.aborted) return;
+                if (isOrgTouched.current) {
+                    setIsOrgDataLoaded(true);
+                    return;
+                }
+
+                console.error("Failed to fetch default org name:", error);
+                setIsOrgLocked(false);
+                setIsOrgDataLoaded(true);
+
+                if (organizations && organizations.length > 0) {
+                    onFormDataChange({ orgName: organizations[0].handle });
+                }
+            }
+        })();
+
+        return () => {
+            controller.abort();
+        };
+    }, [isInProject, organizations, onFormDataChange, rpcClient]);
+
+    // Real-time validation for integration/library name
+    useEffect(() => {
+        const error = validateComponentName(formData.integrationName, formData.isLibrary);
+        setIntegrationNameError(error);
+    }, [formData.integrationName, formData.isLibrary]);
 
     // Effect to trigger validation when requested by parent
     useEffect(() => {
@@ -118,87 +157,97 @@ export function AddProjectFormFields({
         setPackageNameError(error);
     }, [formData.packageName]);
 
+    // Real-time validation for project handle
+    useEffect(() => {
+        if (formData.projectHandle !== undefined) {
+            setProjectHandleError(validateProjectHandle(formData.projectHandle));
+        }
+    }, [formData.projectHandle]);
+
+    // Computed inline — avoids a one-render lag from a useState/useEffect pair which would
+    // cause hasAdvancedConfigError to briefly read a stale error while orgName is updating.
+    const orgNameError = (!isOrgLocked && isOrgDataLoaded) ? validateOrgName(formData.orgName) : null;
+
+    const hasAdvancedConfigError = !!(
+        projectHandlePathError ||
+        projectHandleError ||
+        packageNameError ||
+        packageNameValidationError ||
+        orgNameError
+    );
+
+    // Auto-expand Advanced Configurations when any field inside it has an error
+    useEffect(() => {
+        if (hasAdvancedConfigError) {
+            setIsPackageInfoExpanded(true);
+        }
+    }, [hasAdvancedConfigError]);
+
     return (
         <>
-            {!isInWorkspace && (
-                <WorkspaceSection>
+            {!isInProject && (
+                <ProjectSection>
                     <TextField
-                        onTextChange={(value) => onFormDataChange({ workspaceName: value })}
+                        onTextChange={handleProjectName}
                         value={formData.workspaceName}
-                        label="Workspace Name"
-                        placeholder="Enter workspace name"
+                        label="Project Name"
+                        placeholder="Enter project name"
                         autoFocus={true}
                         required={true}
+                        errorMsg={projectNameValidationError || ""}
                     />
-                </WorkspaceSection>
+                </ProjectSection>
             )}
+
+            <ProjectTypeSelector
+                value={formData.isLibrary}
+                onChange={(isLibrary) => onFormDataChange({ isLibrary })}
+            />
 
             <FieldGroup>
                 <TextField
                     onTextChange={handleIntegrationName}
                     value={formData.integrationName}
-                    label="Integration Name"
-                    placeholder="Enter an integration name"
-                    autoFocus={isInWorkspace}
+                    label={`${resourceTypeLabel} Name`}
+                    placeholder={`Enter a ${resourceTypeLabelLower} name`}
+                    autoFocus={isInProject}
+                    onFocus={(e) => (e.target as HTMLInputElement).select()}
                     required={true}
+                    errorMsg={integrationNameError || ""}
                 />
             </FieldGroup>
 
-            <FieldGroup>
-                <TextField
-                    onTextChange={handlePackageName}
-                    value={formData.packageName}
-                    label="Package Name"
-                    description="This will be used as the Ballerina package name for the integration."
-                    errorMsg={packageNameValidationError || packageNameError || ""}
-                />
-            </FieldGroup>
+            <SectionDivider />
 
-            <OptionalConfigRow>
-                Optional Configurations
-                <OptionalConfigButtonContainer>
-                    {!showOptionalConfigurations && (
-                        <LinkButton
-                            onClick={handleShowOptionalConfigurations}
-                            sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4, userSelect: "none" }}
-                        >
-                            <Codicon name={"chevron-down"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
-                            Expand
-                        </LinkButton>
-                    )}
-                    {showOptionalConfigurations && (
-                        <LinkButton
-                            onClick={handleHideOptionalConfigurations}
-                            sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4, userSelect: "none" }}
-                        >
-                            <Codicon name={"chevron-up"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
-                            Collapse
-                        </LinkButton>
-                    )}
-                </OptionalConfigButtonContainer>
-            </OptionalConfigRow>
-
-            {showOptionalConfigurations && (
-                <OptionalConfigContent>
-                    <FieldGroup>
-                        <TextField
-                            onTextChange={(value) => onFormDataChange({ orgName: value })}
-                            value={formData.orgName}
-                            label="Organization Name"
-                            description="The organization that owns this Ballerina package."
-                        />
-                    </FieldGroup>
-                    <FieldGroup>
-                        <TextField
-                            onTextChange={(value) => onFormDataChange({ version: value })}
-                            value={formData.version}
-                            label="Package Version"
-                            placeholder="0.1.0"
-                            description="Version of the Ballerina package."
-                        />
-                    </FieldGroup>
-                </OptionalConfigContent>
-            )}
+            <AdvancedConfigurationSection
+                isExpanded={isPackageInfoExpanded}
+                onToggle={() => setIsPackageInfoExpanded(!isPackageInfoExpanded)}
+                data={{
+                    packageName: formData.packageName,
+                    orgName: formData.orgName,
+                    version: formData.version,
+                    projectHandle: !isInProject ? formData.projectHandle : undefined
+                }}
+                onChange={(data) => {
+                    onFormDataChange(data);
+                    if (data.packageName !== undefined) {
+                        setPackageNameTouched(true);
+                    }
+                    if (data.projectHandle !== undefined) {
+                        setProjectHandleTouched(true);
+                    }
+                    if (data.orgName !== undefined) {
+                        isOrgTouched.current = true;
+                    }
+                }}
+                isLibrary={formData.isLibrary}
+                packageNameError={packageNameValidationError || packageNameError}
+                orgNameError={orgNameError || undefined}
+                projectHandleError={projectHandlePathError || projectHandleError}
+                organizations={organizations}
+                hasError={hasAdvancedConfigError}
+                isOrgLocked={isOrgLocked}
+            />
         </>
     );
 }

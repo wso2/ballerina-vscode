@@ -36,11 +36,11 @@ export function ActionIconButton({ onClick, iconName, tooltip }: ActionIconButto
     
     return (
         <Button appearance="icon" onClick={handleOnClick} disabled={inProgress} tooltip={tooltip}>
-            <span style={{ pointerEvents: "none" }}>
+            <span title={tooltip}>
                 {inProgress ? (
                     <ProgressRing sx={{ width: 16, height: 16 }} />
                 ) : (
-                    <Codicon name={iconName} />
+                    <Codicon name={iconName} tooltip={tooltip} />
                 )}
             </span>
         </Button>

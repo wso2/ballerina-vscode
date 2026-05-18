@@ -26,7 +26,9 @@ import {
     PersistClientGenerateResponse,
     IntrospectDatabaseRequest,
     WSDLApiClientGenerationRequest,
-    WSDLApiClientGenerationResponse
+    WSDLApiClientGenerationResponse,
+    IntrospectCredentialsRequest,
+    IntrospectCredentialsResponse
 } from "./interfaces";
 
 export interface ConnectorWizardAPI {
@@ -35,4 +37,5 @@ export interface ConnectorWizardAPI {
     introspectDatabase: (params: IntrospectDatabaseRequest) => Promise<IntrospectDatabaseResponse>;
     persistClientGenerate: (params: PersistClientGenerateRequest) => Promise<PersistClientGenerateResponse>;
     generateWSDLApiClient: (params: WSDLApiClientGenerationRequest) => Promise<WSDLApiClientGenerationResponse>;
+    introspectCredentials: (params: IntrospectCredentialsRequest) => Promise<IntrospectCredentialsResponse>;
 }

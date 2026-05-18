@@ -20,12 +20,13 @@ import React, { useMemo, useState } from "react";
 
 import { DiagramEngine } from "@projectstorm/react-diagrams-core";
 import { Button, Codicon, Icon, ProgressRing, TruncatedLabel, TruncatedLabelGroup } from "@wso2/ui-toolkit";
-import { IOType, TypeKind } from "@wso2/ballerina-core";
+import { InputCategory, IOType, TypeKind } from "@wso2/ballerina-core";
 import classnames from "classnames";
 
 import { useIONodesStyles } from "../../../styles";
 import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore, useDMExpressionBarStore } from '../../../../store/store';
 import { useDMSearchStore } from "../../../../store/store";
+import { useShallow } from "zustand/react/shallow";
 import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
 import { DataMapperPortWidget, PortState, InputOutputPortModel } from "../../Port";
 import { OutputSearchHighlight } from "../commons/Search";
@@ -76,7 +77,12 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
     const [isAddingElement, setIsAddingElement] = useState(false);
     const collapsedFieldsStore = useDMCollapsedFieldsStore();
     const expandedFieldsStore = useDMExpandedFieldsStore();
-    const setExprBarFocusedPort = useDMExpressionBarStore(state => state.setFocusedPort);
+    const { exprBarFocusedPort, setExprBarFocusedPort } = useDMExpressionBarStore(
+        useShallow(state => ({
+            exprBarFocusedPort: state.focusedPort,
+            setExprBarFocusedPort: state.setFocusedPort
+        }))
+    );
 
     const arrayField = field?.member;
     const typeName = getTypeName(field);
@@ -88,14 +94,16 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
     const fieldName = field?.displayName || field?.name || '';
 
     const portIn = getPort(`${portName}.IN`);
+    const isExprBarFocused = exprBarFocusedPort?.getName() === portIn?.getName();
     const mapping = portIn && portIn.attributes.value;
     const { expression, elements, diagnostics } = mapping || {};
     const searchValue = useDMSearchStore.getState().outputSearch;
     const hasElements = elements?.length > 0 && elements.some((element) => element.mappings.length > 0);
     const connectedViaLink = Object.values(portIn?.getLinks() || {}).length > 0;
+    const isConvertedVariable = field?.category === InputCategory.ConvertedVariable;
 
     let expanded = true;
-    if (portIn && portIn.attributes.collapsed) {
+    if (portIn && portIn.attributes.collapsed && !isConvertedVariable) {
         expanded = false;
     }
 
@@ -351,7 +359,8 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
                     className={classnames(classes.ArrayFieldRow,
                         isDisabled ? classes.ArrayFieldRowDisabled : "",
                         (portState !== PortState.Unselected) ? classes.treeLabelPortSelected : "",
-                        hasHoveredParent ? classes.treeLabelParentHovered : ""
+                        hasHoveredParent ? classes.treeLabelParentHovered : "",
+                        isExprBarFocused ? classes.treeLabelPortExprFocused : ""
                     )}
                     onMouseEnter={onMouseEnter}
                     onMouseLeave={onMouseLeave}

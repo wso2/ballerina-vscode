@@ -16,11 +16,41 @@
  * under the License.
  */
 
-import { CodeData, ConfigVariable, FlowNode, LinePosition, LineRange, NodeKind, SearchNodesQueryParams } from "@wso2/ballerina-core";
+import { CodeData, ConfigVariable, FlowNode, LinePosition, LineRange, NodeKind, Property, SearchNodesQueryParams } from "@wso2/ballerina-core";
 import { BallerinaRpcClient } from "@wso2/ballerina-rpc-client";
 import { cloneDeep } from "lodash";
 import { URI, Utils } from "vscode-uri";
 import { BALLERINA } from "../../../constants";
+
+export const AGENT_ID_AUTH_CONFIG_ID: CodeData = {
+    node: "AGENT_ID_AUTH_CONFIG" as any,
+    org: "ballerina",
+    module: "ai",
+    packageName: "ai",
+    symbol: "AgentIdAuthConfig",
+};
+
+export const fetchOAuthConfigProperties = async (
+    rpcClient: BallerinaRpcClient,
+    filePath: string,
+    position: LinePosition = { line: 0, offset: 0 }
+): Promise<{ key: string; property: Property }[]> => {
+    try {
+        const response = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
+            position,
+            filePath,
+            id: AGENT_ID_AUTH_CONFIG_ID,
+        });
+        if (!response?.flowNode?.properties) return [];
+        return Object.entries(response.flowNode.properties).map(([key, property]) => ({
+            key,
+            property: { ...property, optional: true, advanced: true } as Property,
+        }));
+    } catch (error) {
+        console.error("Error fetching OAuth config properties:", error);
+        return [];
+    }
+};
 
 export const getNodeTemplate = async (
     rpcClient: BallerinaRpcClient,
@@ -37,6 +67,30 @@ export const getNodeTemplate = async (
     return response?.flowNode;
 };
 
+export const checkAiPackageVersionSupport = async (
+    rpcClient: BallerinaRpcClient,
+    projectPath: string,
+    minVersion: string = "1.11.0"
+): Promise<boolean> => {
+    try {
+        const response = await rpcClient.getAIAgentRpcClient().getPackageVersion({
+            projectPath,
+            org: "ballerina",
+            packageName: "ai",
+        });
+        if (!response?.version) return false;
+        const parts = response.version.split(".").map(Number);
+        const minParts = minVersion.split(".").map(Number);
+        for (let i = 0; i < Math.max(parts.length, minParts.length); i++) {
+            if ((parts[i] || 0) > (minParts[i] || 0)) return true;
+            if ((parts[i] || 0) < (minParts[i] || 0)) return false;
+        }
+        return true;
+    } catch {
+        return false;
+    }
+};
+
 export const getAiModuleOrg = async (rpcClient: BallerinaRpcClient, nodeKind?: NodeKind) => {
     if (nodeKind && (nodeKind === "NP_FUNCTION" || nodeKind === "NP_FUNCTION_DEFINITION")) return BALLERINA;
     const visualizerContext = await rpcClient.getVisualizerLocation();
@@ -46,12 +100,6 @@ export const getAiModuleOrg = async (rpcClient: BallerinaRpcClient, nodeKind?: N
     console.log(">>> agent org", aiModuleOrgResponse.orgName);
     return aiModuleOrgResponse.orgName;
 }
-
-export const getAgentFilePath = async (rpcClient: BallerinaRpcClient) => {
-    // Create the agent file path
-    const agentFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['agents.bal'] })).filePath;
-    return agentFilePath;
-};
 
 export const getNPFilePath = async (rpcClient: BallerinaRpcClient) => {
     const visualizerContext = await rpcClient.getVisualizerLocation();
@@ -177,7 +225,9 @@ export const removeToolFromAgentNode = async (agentNode: FlowNode, toolName: str
     const updatedAgentNode = cloneDeep(agentNode);
     let toolsValue = updatedAgentNode.properties.tools.value;
     // remove new lines from the tools value
-    toolsValue = toolsValue.toString().replace(/\n/g, "");
+    if (typeof toolsValue === "string") {
+        toolsValue = toolsValue.replace(/\n/g, "");
+    }
     // Remove the tools from the tools array
     if (typeof toolsValue === "string") {
         const toolsArray = parseToolsString(toolsValue);
@@ -189,8 +239,10 @@ export const removeToolFromAgentNode = async (agentNode: FlowNode, toolName: str
         } else {
             toolsValue = `[]`;
         }
+    } else if (Array.isArray(toolsValue)) {
+        toolsValue = (toolsValue as Property[]).filter((tool: any) => tool.value !== toolName);
     } else {
-        console.error("Tools value is not a string", toolsValue);
+        console.error("Tools value is not a string or array", toolsValue);
         return agentNode;
     }
     // update the node
@@ -204,10 +256,8 @@ export const addToolToAgentNode = async (agentNode: FlowNode, toolName: string) 
     // clone the node to avoid modifying the original
     const updatedAgentNode = cloneDeep(agentNode);
     let toolsValue = updatedAgentNode.properties.tools.value;
-    // remove new lines and normalize whitespace from the tools value
-    // toolsValue = toolsValue.toString().replace(/\s+/g, "");
     if (toolsValue == undefined) {
-        toolsValue = `[]`;
+        toolsValue = [];
     }
     if (typeof toolsValue === "string") {
         const toolsArray = parseToolsString(toolsValue);
@@ -221,8 +271,22 @@ export const addToolToAgentNode = async (agentNode: FlowNode, toolName: string) 
         } else {
             toolsValue = `[${toolName}]`;
         }
+    } else if (Array.isArray(toolsValue)) {
+        // Check if the tool already exists in the array
+        const toolExists = toolsValue.some((tool: any) => tool.value === toolName);
+        if (!toolExists) {
+            (toolsValue as Property[]).push({
+                metadata: {
+                    label: toolName,
+                    description: "",
+                },
+                value: toolName,
+                optional: false,
+                editable: false
+            });
+        }
     } else {
-        console.error("Tools value is not a string", toolsValue);
+        console.error("Tools value is not a string or array", toolsValue);
         return agentNode;
     }
     updatedAgentNode.properties.tools.value = toolsValue;
@@ -248,34 +312,24 @@ export const updateMcpServerToAgentNode = async (
     const updatedAgentNode = cloneDeep(agentNode);
     let toolsValue = updatedAgentNode.properties.tools.value;
 
+    // Prepare the new tool string based on tool selection
+    let newToolString;
+    if (toolConfig.toolSelection.includes("Selected")) {
+        const toolsString = toolConfig.selectedTools.map(tool => `"${tool}"`).join(", ");
+        newToolString = `check new ai:McpToolKit("${toolConfig.serviceUrl}", permittedTools = [${toolsString}], info = {name: "${toolConfig.name}", version: ""})`;
+    } else {
+        newToolString = `check new ai:McpToolKit("${toolConfig.serviceUrl}", permittedTools = (), info = {name: "${toolConfig.name}", version: ""})`;
+    }
+
     if (typeof toolsValue === "string") {
-        console.log(">>> Current tools string", toolsValue);
-
-        // Prepare the new tool string based on tool selection
-        let newToolString;
-        if (toolConfig.toolSelection.includes("Selected")) {
-            const toolsString = toolConfig.selectedTools.map(tool => `"${tool}"`).join(", ");
-            newToolString = `check new ai:McpToolKit("${toolConfig.serviceUrl}", permittedTools = [${toolsString}], info = {name: "${toolConfig.name}", version: ""})`;
-        } else {
-            newToolString = `check new ai:McpToolKit("${toolConfig.serviceUrl}", permittedTools = (), info = {name: "${toolConfig.name}", version: ""})`;
-        }
-
         // Fixed regex pattern that matches only the specific McpToolKit with the target name
-        // Uses negated character classes to prevent crossing boundaries
         const pattern = new RegExp(
             `check new ai:McpToolKit\\([^}]*name:\\s*"${originalToolName}"[^}]*\\}\\)`,
             'g'
         );
 
-        console.log(">>> Regex pattern:", pattern);
-        console.log(">>> Testing pattern against toolsValue:", pattern.test(toolsValue));
-
-        // Reset the regex lastIndex since test() modifies it
-        pattern.lastIndex = 0;
-
         if (pattern.test(toolsValue)) {
-            console.log(">>> Found existing tool to replace");
-            // Reset lastIndex again before replace
+            // Reset lastIndex before replace
             pattern.lastIndex = 0;
             toolsValue = toolsValue.replace(pattern, newToolString);
         } else {
@@ -288,8 +342,27 @@ export const updateMcpServerToAgentNode = async (
                 ? `[${innerContent}, ${newToolString}]`
                 : `[${newToolString}]`;
         }
+    } else if (Array.isArray(toolsValue)) {
+        const pattern = new RegExp(`name:\\s*"${originalToolName}"`);
+        const index = (toolsValue as Property[]).findIndex((tool: any) => pattern.test(tool.value));
+        if (index !== -1) {
+            (toolsValue as Property[])[index] = {
+                ...(toolsValue as Property[])[index],
+                value: newToolString,
+            };
+        } else {
+            (toolsValue as Property[]).push({
+                metadata: {
+                    label: toolConfig.name,
+                    description: "",
+                },
+                value: newToolString,
+                optional: false,
+                editable: false,
+            });
+        }
     } else {
-        console.error("Tools value is not a string", toolsValue);
+        console.error("Tools value is not a string or array", toolsValue);
         return agentNode;
     }
 
@@ -325,8 +398,21 @@ export const addMcpServerToAgentNode = async (agentNode: FlowNode, toolConfig: M
         } else {
             toolsValue = `[${toolString}]`;
         }
+    } else if (Array.isArray(toolsValue)) {
+        const toolExists = (toolsValue as Property[]).some((tool: any) => tool.value === toolString);
+        if (!toolExists) {
+            (toolsValue as Property[]).push({
+                metadata: {
+                    label: toolConfig.name,
+                    description: "",
+                },
+                value: toolString,
+                optional: false,
+                editable: false,
+            });
+        }
     } else {
-        console.error("Tools value is not a string", toolsValue);
+        console.error("Tools value is not a string or array", toolsValue);
         return agentNode;
     }
     // update the node
@@ -344,136 +430,128 @@ export const removeMcpServerFromAgentNode = (
     const updatedAgentNode = cloneDeep(agentNode);
     let toolsValue = updatedAgentNode.properties.tools.value;
 
-    if (typeof toolsValue !== "string") {
-        console.error("Tools value is not a string", toolsValue);
-        return agentNode;
-    }
+    if (typeof toolsValue === "string") {
+        const startPattern = 'check new ai:McpToolKit(';
+        let startIndex = 0;
+        let found = false;
 
-    const startPattern = 'check new ai:McpToolKit(';
-    let startIndex = 0;
-    let found = false;
+        while (!found && startIndex < toolsValue.length) {
+            startIndex = toolsValue.indexOf(startPattern, startIndex);
+            if (startIndex === -1) break;
 
-    while (!found && startIndex < toolsValue.length) {
-        startIndex = toolsValue.indexOf(startPattern, startIndex);
-        if (startIndex === -1) break;
+            let endIndex = toolsValue.indexOf('})', startIndex);
+            if (endIndex === -1) break;
+            endIndex += 2; // Include the '})'
 
-        let endIndex = toolsValue.indexOf('})', startIndex);
-        if (endIndex === -1) break;
-        endIndex += 2; // Include the '})'
-
-        const declaration = toolsValue.substring(startIndex, endIndex);
-        if (declaration.includes(`name: "${toolkitNameToRemove}"`)) {
-            let hasCommaAfter = false;
-            if (toolsValue[endIndex] === ',') {
-                endIndex++;
-                hasCommaAfter = true;
-            }
-            let hasCommaBefore = false;
-            let newStartIndex = startIndex;
-            if (startIndex > 0 && toolsValue[startIndex - 1] === ',') {
-                newStartIndex--;
-                hasCommaBefore = true;
-            }
-
-            let isLastItem = !hasCommaAfter;
-
-            let before = toolsValue.substring(0, newStartIndex);
-            let after = toolsValue.substring(endIndex);
-
-            if (hasCommaBefore && hasCommaAfter) {
-                after = after.trim();
-            } else if (isLastItem) {
-                before = before.trim();
-                if (before.endsWith(',')) {
-                    before = before.substring(0, before.length - 1).trim();
+            const declaration = toolsValue.substring(startIndex, endIndex);
+            if (declaration.includes(`name: "${toolkitNameToRemove}"`)) {
+                let hasCommaAfter = false;
+                if (toolsValue[endIndex] === ',') {
+                    endIndex++;
+                    hasCommaAfter = true;
                 }
+                let hasCommaBefore = false;
+                let newStartIndex = startIndex;
+                if (startIndex > 0 && toolsValue[startIndex - 1] === ',') {
+                    newStartIndex--;
+                    hasCommaBefore = true;
+                }
+
+                let isLastItem = !hasCommaAfter;
+
+                let before: string = toolsValue.substring(0, newStartIndex);
+                let after: string = toolsValue.substring(endIndex);
+
+                if (hasCommaBefore && hasCommaAfter) {
+                    after = after.trim();
+                } else if (isLastItem) {
+                    before = before.trim();
+                    if (before.endsWith(',')) {
+                        before = before.substring(0, before.length - 1).trim();
+                    }
+                }
+
+                toolsValue = before + after;
+                found = true;
+            } else {
+                startIndex = endIndex;
             }
-
-            toolsValue = before + after;
-            found = true;
-        } else {
-            startIndex = endIndex;
         }
-    }
 
-    toolsValue = toolsValue
-        .replace(/,+/g, ',')
-        .replace(/, ,/g, ', ')
-        .replace(/\s*,\s*/g, ', ')
-        .replace(/, $/, '')
-        .replace(/^, /, '')
-        .replace(/\s+/g, ' ')
-        .trim();
+        toolsValue = toolsValue
+            .replace(/,+/g, ',')
+            .replace(/, ,/g, ', ')
+            .replace(/\s*,\s*/g, ', ')
+            .replace(/, $/, '')
+            .replace(/^, /, '')
+            .replace(/\s+/g, ' ')
+            .trim();
 
-    if (toolsValue === '[' || toolsValue === '[]') {
-        toolsValue = '[]';
+        if (toolsValue === '[' || toolsValue === '[]') {
+            toolsValue = '[]';
+        }
+    } else if (Array.isArray(toolsValue)) {
+        const pattern = new RegExp(`name:\\s*"${toolkitNameToRemove}"`);
+        toolsValue = (toolsValue as Property[]).filter(
+            (tool: any) => !pattern.test(tool.value) && tool.value !== toolkitNameToRemove
+        );
+    } else {
+        console.error("Tools value is not a string or array", toolsValue);
+        return agentNode;
     }
 
     updatedAgentNode.properties.tools.value = toolsValue;
     return updatedAgentNode;
 };
 
+// Prompts the user to choose between deleting only the agent call node or also the agent itself.
+// Returns null if the user cancels the modal.
+export const confirmAgentCallDeletion = async (
+    rpcClient: BallerinaRpcClient
+): Promise<{ shouldDeleteAgent: boolean } | null> => {
+    const REMOVE_NODE_ONLY = "Remove This Node Only";
+    const DELETE_AGENT = "Delete Agent";
+
+    const userChoice = await rpcClient.getCommonRpcClient().showInformationModal({
+        message: "Delete Agent Node?",
+        detail:
+            "Remove this node from the current diagram, or delete the agent entirely from the project.\n\nDeleting the agent will remove its initialization and make it unavailable for reuse.",
+        items: [REMOVE_NODE_ONLY, DELETE_AGENT],
+    });
+
+    if (!userChoice) {
+        return null;
+    }
+
+    return { shouldDeleteAgent: userChoice === DELETE_AGENT };
+};
+
 // remove agent node, model node when removing ag
 export const removeAgentNode = async (agentCallNode: FlowNode, rpcClient: BallerinaRpcClient): Promise<boolean> => {
     if (!agentCallNode || agentCallNode.codedata?.node !== "AGENT_CALL") return false;
-    // get agent node
-    const agentNode = await findAgentNodeFromAgentCallNode(agentCallNode, rpcClient);
-    console.log(">>> agent node", agentNode);
-    if (!agentNode) {
-        console.error("Agent node not found", agentCallNode);
-        return false;
-    }
-
-    // get file path
-    const agentFileName = agentNode.codedata.lineRange.fileName;
-    const agentFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [agentFileName] })).filePath;
-
-    // delete the agent node
-    await rpcClient.getBIDiagramRpcClient().deleteFlowNode({
-        filePath: agentFilePath,
-        flowNode: agentNode,
-    });
-
-    // get model name
-    const modelName = agentNode?.properties.model.value;
-    console.log(">>> model name", modelName);
-
-    if (typeof modelName !== "string") {
-        console.error("Model name is not a string");
-        return false;
-    }
-
-    // get model node
-    const startLine = agentNode.codedata?.lineRange?.startLine;
-    const linePosition: LinePosition | undefined = startLine
-        ? {
-            line: startLine.line,
-            offset: startLine.offset
+    try {
+        // get agent node
+        const agentNode = await findAgentNodeFromAgentCallNode(agentCallNode, rpcClient);
+        if (!agentNode) {
+            console.error("Agent node not found", agentCallNode);
+            return false;
         }
-        : undefined;
 
-    const queryMap: SearchNodesQueryParams = {
-        kind: "MODEL_PROVIDER",
-        exactMatch: modelName
-    };
-    const modelNodes = await findFlowNode(rpcClient, agentFilePath, linePosition, queryMap);
-    const modelNode = modelNodes && modelNodes.length > 0 ? modelNodes[0] : null;
-    console.log(">>> model node", modelNode);
-    if (!modelNode) {
-        console.error("Model node not found", agentCallNode);
+        // get file path
+        const agentFileName = agentNode.codedata.lineRange.fileName;
+        const agentFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [agentFileName] })).filePath;
+
+        // delete the agent node
+        await rpcClient.getBIDiagramRpcClient().deleteFlowNode({
+            filePath: agentFilePath,
+            flowNode: agentNode,
+        });
+
+        return true;
+    } catch (error) {
+        console.error("Failed to remove agent node", error);
         return false;
     }
-
-    // get file path
-    const modelFileName = modelNode.codedata?.lineRange?.fileName;
-    const modelFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [modelFileName] })).filePath;
-
-    // delete the model node
-    await rpcClient.getBIDiagramRpcClient().deleteFlowNode({
-        filePath: modelFilePath,
-        flowNode: modelNode,
-    });
-    return true;
 };
 
 export const updateFlowNodePropertyValuesWithKeys = (flowNode: FlowNode) => {
@@ -546,7 +624,7 @@ export const getEndOfFileLineRange = async (
 
         // Return a LineRange object with both start and end at the file's end position
         return {
-            fileName: fileName,
+            fileName: filePath,
             startLine: endPosition,
             endLine: endPosition
         };

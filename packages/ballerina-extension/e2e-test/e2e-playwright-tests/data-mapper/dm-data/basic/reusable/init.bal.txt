@@ -1,0 +1,9 @@
+function output(InRoot input) returns OutRoot => {
+    oManyOneErr: 0,
+    oPrimDirect: "",
+    oObjDirect: {d1: "", d2: 0},
+    oManyOne: "",
+    oPrimDirectErr: 0,
+    oObjDirectErr: {d1: "", d2: ""},
+    oObjProp: {p1: "", p2: 0}
+};

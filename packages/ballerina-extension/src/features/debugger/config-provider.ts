@@ -48,6 +48,7 @@ import {
     createVersionNumber
 } from "../../utils";
 import { getProjectWorkingDirectory } from "../../utils/file-utils";
+import { quoteShellPath } from "../../utils/config";
 import { decimal, ExecutableOptions } from 'vscode-languageclient/node';
 import { BAL_NOTEBOOK, getTempFile, NOTEBOOK_CELL_SCHEME } from '../../views/notebook';
 import fileUriToPath from 'file-uri-to-path';
@@ -69,6 +70,7 @@ import { prepareAndGenerateConfig, cleanAndValidateProject } from '../config-gen
 import { extension } from '../../BalExtensionContext';
 import * as fs from 'fs';
 import { findHighestVersionJdk } from '../../utils/server/server';
+import { PlatformExtRpcManager } from '../../rpc-managers/platform-ext/rpc-manager';
 
 const BALLERINA_COMMAND = "ballerina.command";
 const EXTENDED_CLIENT_CAPABILITIES = "capabilities";
@@ -85,16 +87,26 @@ export enum DEBUG_CONFIG {
 
 class DebugConfigProvider implements DebugConfigurationProvider {
     async resolveDebugConfiguration(_folder: WorkspaceFolder, config: DebugConfiguration)
-        : Promise<DebugConfiguration> {
+        : Promise<DebugConfiguration | null | undefined> {
         if (!config.type) {
             commands.executeCommand('workbench.action.debug.configure');
-            return Promise.resolve({ request: '', type: '', name: '' });
-
+            return undefined;
         }
+
         if (config.noDebug && (extension.ballerinaExtInstance.enabledRunFast() || StateMachine.context().isBI)) {
             await handleMainFunctionParams(config);
         }
-        return getModifiedConfigs(_folder, config);
+        const configs = await getModifiedConfigs(_folder, config);
+
+        // Check if config generation is required before starting the debug session
+        const shouldProceed = await prepareAndGenerateConfig(extension.ballerinaExtInstance, configs.script, false, StateMachine.context().isBI, false);
+        if (!shouldProceed) {
+            return undefined;
+        }
+
+        // connect to Devant if applicable
+        await new PlatformExtRpcManager().setupDevantProxyForDebugging(configs);
+        return configs;
     }
 }
 
@@ -271,6 +283,8 @@ async function getModifiedConfigs(workspaceFolder: WorkspaceFolder, config: Debu
             config.script = await selectBallerinaProjectForDebugging(workspaceFolder);
         }
     }
+
+    config.name = path.basename(config.script);
 
     // To make compatible with 1.2.x which supports scriptArguments
     if (config.programArgs) {
@@ -532,9 +546,6 @@ class BallerinaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFa
         const projectRoot = await getCurrentProjectRoot();
         await cleanAndValidateProject(langClient, projectRoot);
 
-        // Check if config generation is required before starting the debug session
-        await prepareAndGenerateConfig(extension.ballerinaExtInstance, session.configuration.script, false, StateMachine.context().isBI, false);
-
         if (session.configuration.noDebug && extension.ballerinaExtInstance.enabledRunFast()) {
             return new Promise((resolve) => {
                 resolve(new DebugAdapterInlineImplementation(new FastRunDebugAdapter()));
@@ -543,7 +554,7 @@ class BallerinaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFa
 
         if (session.configuration.noDebug) {
             return new Promise((resolve) => {
-                resolve(new DebugAdapterInlineImplementation(new BIRunAdapter()));
+                resolve(new DebugAdapterInlineImplementation(new BIRunAdapter(session)));
             });
         }
 
@@ -598,7 +609,8 @@ class BallerinaDebugAdapterDescriptorFactory implements DebugAdapterDescriptorFa
     }
     getScriptPath(args: string[]): string {
         args.push('start-debugger-adapter');
-        return extension.ballerinaExtInstance.getBallerinaCmd();
+        // Quote the path to handle spaces in directory names (used with shell: true)
+        return quoteShellPath(extension.ballerinaExtInstance.getBallerinaCmd());
     }
     getCurrentWorkingDir(): string {
         return path.join(extension.ballerinaExtInstance.ballerinaHome, "bin");
@@ -650,14 +662,101 @@ class BIRunAdapter extends LoggingDebugSession {
     task: TaskExecution | null = null;
     taskTerminationListener: Disposable | null = null;
 
+    private session: DebugSession;
+    private disconnected = false;
+    private static activeAdapter: BIRunAdapter | null = null;
+
+    constructor(session: DebugSession) {
+        super();
+        this.session = session;
+    }
+
     protected launchRequest(response: DebugProtocol.LaunchResponse, args: DebugProtocol.LaunchRequestArguments, request?: DebugProtocol.Request): void {
-        getCurrentProjectRoot().then((projectRoot) => {
+        // Capture and claim the slot synchronously before any await — serializes concurrent
+        // launchRequests so neither can read null and race past the conflict check.
+        const existingAdapter = BIRunAdapter.activeAdapter;
+        BIRunAdapter.activeAdapter = this;
+
+        getCurrentProjectRoot().then(async (projectRoot) => {
+            // Treat any non-null existingAdapter as a conflict, even if its task hasn't
+            // started yet (adapter claimed slot but still launching).
+            if (existingAdapter) {
+                const existingTask = existingAdapter.task;
+                const choice = await window.showInformationMessage(
+                    'There is already a running integration. Do you want to stop it and start this integration?',
+                    'Yes', 'No'
+                );
+                if (choice !== 'Yes') {
+                    // Prevent the debug tracker from triggering the Try It view for this cancelled session.
+                    (this.session.configuration as any).suggestTryit = false;
+                    // Restore the previous adapter so the next launch still detects it.
+                    if (BIRunAdapter.activeAdapter === this) {
+                        BIRunAdapter.activeAdapter = existingAdapter;
+                    }
+                    response.success = true;
+                    this.sendResponse(response);
+                    this.sendEvent(new TerminatedEvent());
+                    return;
+                }
+
+                // Slot is already ours. Only wait for termination if the task has actually
+                // started — if existingTask is null the previous launch hadn't begun yet.
+                if (existingTask) {
+                    // Await full termination before starting the new task to avoid port conflicts.
+                    // The old adapter's taskTerminationListener uses an identity-guarded clear
+                    // and will not clobber our reference.
+                    const shouldProceed = await new Promise<boolean>((resolve) => {
+                        let listener: { dispose(): void };
+                        const timeout = setTimeout(async () => {
+                            listener.dispose();
+                            const forceChoice = await window.showWarningMessage(
+                                'The previous run has not stopped yet (terminate was already sent). Force start anyway?',
+                                'Force Start', 'Cancel new launch'
+                            );
+                            if (forceChoice === 'Force Start') {
+                                resolve(true);
+                            } else {
+                                // Process is still running — restore the previous adapter so
+                                // subsequent launches still detect it as a conflict.
+                                if (BIRunAdapter.activeAdapter === this) {
+                                    BIRunAdapter.activeAdapter = existingAdapter;
+                                }
+                                resolve(false);
+                            }
+                        }, 10000);
+                        listener = tasks.onDidEndTaskProcess(e => {
+                            if (e.execution === existingTask) {
+                                clearTimeout(timeout);
+                                listener.dispose();
+                                resolve(true);
+                            }
+                        });
+                        // Task may have already ended while the confirmation dialog was open.
+                        if (!tasks.taskExecutions.some(e => e === existingTask)) {
+                            clearTimeout(timeout);
+                            listener.dispose();
+                            resolve(true);
+                            return;
+                        }
+                        existingTask.terminate();
+                    });
+
+                    if (!shouldProceed) {
+                        (this.session.configuration as any).suggestTryit = false;
+                        response.success = true;
+                        this.sendResponse(response);
+                        this.sendEvent(new TerminatedEvent());
+                        return;
+                    }
+                }
+            }
+
             const taskDefinition: TaskDefinition = {
                 type: 'shell',
                 task: 'run'
             };
 
-            let runCommand: string = `${extension.ballerinaExtInstance.getBallerinaCmd()} run`;
+            let runCommand: string = `${quoteShellPath(extension.ballerinaExtInstance.getBallerinaCmd())} run`;
 
             const programArgs = (args as any).programArgs;
             if (programArgs && programArgs.length > 0) {
@@ -669,7 +768,7 @@ class BIRunAdapter extends LoggingDebugSession {
             }
 
             // Use the current process environment which should have the updated PATH
-            const env = process.env;
+            const env = { ...process.env, ...((args as any)?.env || {}) };
             debugLog(`[BIRunAdapter] Creating shell execution with env. PATH length: ${env.PATH?.length || 0}`);
 
             // Determine the correct working directory for the task
@@ -679,9 +778,13 @@ class BIRunAdapter extends LoggingDebugSession {
                 debugLog(`[BIRunAdapter] Setting cwd to project root: ${cwd}`);
             } catch (error) {
                 window.showErrorMessage(`Failed to determine working directory`);
+                if (BIRunAdapter.activeAdapter === this) {
+                    BIRunAdapter.activeAdapter = null;
+                }
                 response.success = false;
                 this.sendResponse(response);
-                throw error;
+                this.sendEvent(new TerminatedEvent());
+                return;
             }
 
             const execution = new ShellExecution(runCommand, {
@@ -696,49 +799,74 @@ class BIRunAdapter extends LoggingDebugSession {
                 execution
             );
 
-            try {
-                tasks.executeTask(task).then((taskExecution) => {
-                    this.task = taskExecution;
+            // Guard against being superseded while awaiting getCurrentProjectRoot() or the
+            // termination wait above — the other adapter already owns the slot.
+            if (BIRunAdapter.activeAdapter !== this) {
+                (this.session.configuration as any).suggestTryit = false;
+                response.success = true;
+                this.sendResponse(response);
+                this.sendEvent(new TerminatedEvent());
+                return;
+            }
 
-                    // Add task termination listener
-                    this.taskTerminationListener = tasks.onDidEndTaskProcess(e => {
-                        if (e.execution === this.task) {
+            try {
+                const taskExecution = await tasks.executeTask(task);
+                this.task = taskExecution;
+
+                this.taskTerminationListener = tasks.onDidEndTaskProcess(e => {
+                    if (e.execution === this.task) {
+                        this.taskTerminationListener?.dispose();
+                        this.taskTerminationListener = null;
+                        if (BIRunAdapter.activeAdapter === this) {
+                            BIRunAdapter.activeAdapter = null;
+                        }
+                        // Skip TerminatedEvent if disconnectRequest already fired —
+                        // the session is already being torn down by VS Code.
+                        if (!this.disconnected) {
                             this.sendEvent(new TerminatedEvent());
                         }
-                    });
-
-                    response.success = true;
-                    this.sendResponse(response);
+                    }
                 });
+
+                response.success = true;
+                this.sendResponse(response);
             } catch (error) {
                 window.showErrorMessage(`Failed to run Ballerina package: ${error}`);
+                if (BIRunAdapter.activeAdapter === this) {
+                    BIRunAdapter.activeAdapter = null;
+                }
+                response.success = false;
+                this.sendResponse(response);
+                this.sendEvent(new TerminatedEvent());
             }
         }).catch((error) => {
             window.showErrorMessage(`Failed to determine project root: ${error}`);
+            if (BIRunAdapter.activeAdapter === this) {
+                BIRunAdapter.activeAdapter = null;
+            }
             response.success = false;
             this.sendResponse(response);
+            this.sendEvent(new TerminatedEvent());
         });
     }
 
     protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): void {
+        this.disconnected = true;
         if (this.task) {
             this.task.terminate();
-        }
-        this.cleanupListeners();
-        response.success = true;
-        this.sendResponse(response);
-    }
-
-    private cleanupListeners(): void {
-        if (this.taskTerminationListener) {
-            this.taskTerminationListener.dispose();
-            this.taskTerminationListener = null;
+            // Don't clear activeAdapter here — the process is still shutting down.
+            // taskTerminationListener will clear it once onDidEndTaskProcess fires.
+        } else if (BIRunAdapter.activeAdapter === this) {
+            BIRunAdapter.activeAdapter = null;
         }
         if (this.notificationHandler) {
             this.notificationHandler.dispose();
             this.notificationHandler = null;
         }
+        response.success = true;
+        this.sendResponse(response);
     }
+
 }
 
 async function runFast(root: string, options: { debugPort?: number; env?: Map<string, string>; programArgs?: string[]; } = {}): Promise<boolean> {

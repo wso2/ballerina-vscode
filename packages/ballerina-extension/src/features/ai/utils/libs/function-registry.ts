@@ -24,34 +24,56 @@ import {
     MinifiedClient,
     MinifiedRemoteFunction,
     MinifiedResourceFunction,
+    MinifiedService,
     PathParameter,
 } from "./function-types";
-import { Client, GetTypeResponse, GetTypesRequest, GetTypesResponse, getTypesResponseSchema, Library, MiniType, RemoteFunction, ResourceFunction } from "./library-types";
-import { TypeDefinition, AbstractFunction, Type, RecordTypeDefinition } from "./library-types";
+import { Client, GetTypeResponse, GetTypesRequest, GetTypesResponse, getTypesResponseSchema, Library, MiniType, RemoteFunction, ResourceFunction, Service, FixedService, Annotation } from "./library-types";
+import { TypeDefinition, AbstractFunction, Type, RecordTypeDefinition, UnionTypeDefinition } from "./library-types";
 import { getAnthropicClient, ANTHROPIC_HAIKU } from "../ai-client";
 import { GenerationType } from "./libraries";
 // import { getRequiredTypesFromLibJson } from "../healthcare/healthcare";
 import { langClient } from "../../activator";
-import { getGenerationMode } from "../ai-utils";
+
+export interface ModelUsage {
+    model: string;
+    inputTokens: number;
+    outputTokens: number;
+}
+
+export function mergeUsage(...usages: ModelUsage[]): ModelUsage[] {
+    const map = new Map<string, ModelUsage>();
+    for (const u of usages) {
+        const existing = map.get(u.model);
+        if (existing) {
+            existing.inputTokens += u.inputTokens;
+            existing.outputTokens += u.outputTokens;
+        } else {
+            map.set(u.model, { ...u });
+        }
+    }
+    return Array.from(map.values());
+}
 
 // Constants for type definitions
 const TYPE_RECORD = 'Record';
+const TYPE_UNION = 'Union';
 const TYPE_CONSTRUCTOR = 'Constructor';
 
-export async function selectRequiredFunctions(prompt: string, selectedLibNames: string[], generationType: GenerationType): Promise<Library[]> {
-    const selectedLibs: Library[] = await getMaximizedSelectedLibs(selectedLibNames, generationType);
-    const functionsResponse: GetFunctionResponse[] = await getRequiredFunctions(selectedLibNames, prompt, selectedLibs, generationType);
+export async function selectRequiredFunctions(prompt: string, selectedLibNames: string[], generationType: GenerationType): Promise<{ libraries: Library[], usage: ModelUsage[] }> {
+    const selectedLibs: Library[] = await getMaximizedSelectedLibs(selectedLibNames);
+    const { functionsResponse, usage: functionsUsage } = await getRequiredFunctions(selectedLibNames, prompt, selectedLibs, generationType);
     let typeLibraries: Library[] = [];
+    const allUsages: ModelUsage[] = [...functionsUsage];
     if (generationType === GenerationType.HEALTHCARE_GENERATION) {
-        const resp: GetTypeResponse[] = await getRequiredTypesFromLibJson(selectedLibNames, prompt, selectedLibs);
+        const { types: resp, usage } = await getRequiredTypesFromLibJson(selectedLibNames, prompt, selectedLibs);
         typeLibraries = toTypesToLibraries(resp, selectedLibs);
+        allUsages.push(usage);
     }
     const maximizedLibraries: Library[] = await toMaximizedLibrariesFromLibJson(functionsResponse, selectedLibs);
-
-    // Merge typeLibraries and maximizedLibraries without duplicates
     const mergedLibraries = mergeLibrariesWithoutDuplicates(maximizedLibraries, typeLibraries);
 
-    return mergedLibraries;
+    const result = { libraries: mergedLibraries, usage: mergeUsage(...allUsages) };
+    return result;
 }
 
 function getClientFunctionCount(clients: MinifiedClient[]): number {
@@ -75,6 +97,7 @@ function toTypesToLibraries(types: GetTypeResponse[], fullLibs: Library[]): Libr
                 description: fullDefOfSelectedLib.description,
                 typeDefs: filteredTypes,
                 services: fullDefOfSelectedLib.services,
+                annotations: fullDefOfSelectedLib.annotations,
                 clients: [],
             });
         } catch (error) {
@@ -120,9 +143,9 @@ async function getRequiredFunctions(
     prompt: string,
     librariesJson: Library[],
     generationType: GenerationType
-): Promise<GetFunctionResponse[]> {
+): Promise<{ functionsResponse: GetFunctionResponse[], usage: ModelUsage[] }> {
     if (librariesJson.length === 0) {
-        return [];
+        return { functionsResponse: [], usage: [] };
     }
     const startTime = Date.now();
 
@@ -133,6 +156,7 @@ async function getRequiredFunctions(
             description: lib.description,
             clients: filteredClients(lib.clients),
             functions: filteredNormalFunctions(lib.functions, generationType),
+            services: filteredServicesForRequest(lib.services),
         }));
 
     const largeLibs = libraryList.filter((lib) => getClientFunctionCount(lib.clients) >= 100);
@@ -145,13 +169,13 @@ async function getRequiredFunctions(
     );
 
     // Create promises for large libraries (each processed individually)
-    const largeLiberiesPromises: Promise<GetFunctionResponse[]>[] = largeLibs.map((funcItem) =>
+    const largeLiberiesPromises = largeLibs.map((funcItem) =>
         getSuggestedFunctions(prompt, [funcItem])
     );
 
     // Create promise for small libraries (processed in bulk)
     const smallLibrariesPromise =
-        smallLibs.length !== 0 ? getSuggestedFunctions(prompt, smallLibs) : Promise.resolve([]);
+        smallLibs.length !== 0 ? getSuggestedFunctions(prompt, smallLibs) : Promise.resolve({ libraries: [] as GetFunctionResponse[], usage: { model: ANTHROPIC_HAIKU, inputTokens: 0, outputTokens: 0 } });
 
     console.log(
         `[Parallel Execution Start] Starting ${largeLiberiesPromises.length} large library requests + 1 small libraries bulk request`
@@ -159,7 +183,8 @@ async function getRequiredFunctions(
     const parallelStartTime = Date.now();
 
     // Wait for all promises to complete
-    const [smallLibResults, ...largeLibResults] = await Promise.all([smallLibrariesPromise, ...largeLiberiesPromises]);
+    const allResults = await Promise.all([smallLibrariesPromise, ...largeLiberiesPromises]);
+    const [smallLibResult, ...largeLibResults] = allResults;
 
     const parallelEndTime = Date.now();
     const parallelDuration = (parallelEndTime - parallelStartTime) / 1000;
@@ -167,9 +192,11 @@ async function getRequiredFunctions(
     console.log(`[Parallel Execution Complete] Total parallel execution time: ${parallelDuration}s`);
 
     // Flatten the results
-    const collectiveResp: GetFunctionResponse[] = [...smallLibResults, ...largeLibResults.flat()];
+    const collectiveResp: GetFunctionResponse[] = [...smallLibResult.libraries, ...largeLibResults.flatMap(r => r.libraries)];
     const endTime = Date.now();
     const totalDuration = (endTime - startTime) / 1000;
+
+    const aggregatedUsage = mergeUsage(...allResults.map(r => r.usage));
 
     console.log(
         `[getRequiredFunctions Complete] Total function count: ${collectiveResp.reduce(
@@ -180,16 +207,17 @@ async function getRequiredFunctions(
             0
         )}, Total duration: ${totalDuration}s, Preparation time: ${
             (parallelStartTime - startTime) / 1000
-        }s, Parallel time: ${parallelDuration}s`
+        }s, Parallel time: ${parallelDuration}s, Usage:`, aggregatedUsage
     );
 
-    return collectiveResp;
+    return { functionsResponse: collectiveResp, usage: aggregatedUsage };
 }
+
 
 async function getSuggestedFunctions(
     prompt: string,
     libraryList: GetFunctionsRequest[]
-): Promise<GetFunctionResponse[]> {
+): Promise<{ libraries: GetFunctionResponse[], usage: ModelUsage }> {
     const startTime = Date.now();
     const libraryNames = libraryList.map((lib) => lib.name).join(", ");
     const functionCount = libraryList.reduce(
@@ -199,11 +227,14 @@ async function getSuggestedFunctions(
 
     console.log(`[AI Request Start] Libraries: [${libraryNames}], Function Count: ${functionCount}`);
 
-    const getLibSystemPrompt = `You are an AI assistant tasked with filtering and removing unwanted functions and clients from a provided set of libraries and clients based on a user query. The provided libraries are a subset of the full requirements for the query. Your goal is to return ONLY the relevant libraries, clients, and functions from the provided context that match the user's needs.
+    const getLibSystemPrompt = `You are an AI assistant tasked with filtering and removing unwanted functions, clients, and services from a provided set of libraries based on a user query. The provided libraries are a subset of the full requirements for the query. Your goal is to return ONLY the relevant libraries, clients, functions, and services from the provided context that match the user's needs.
 
-Rules:
-1. Use ONLY the libraries listed in Library_Context_JSON.
-2. Do NOT create or infer new libraries or functions.`;
+CRITICAL RULES:
+1. Use ONLY items from Library_Context_JSON - do not create or infer new ones.
+2. Your ONLY task is selection - include or exclude items, NEVER modify field values.
+3. Copy all field values EXACTLY as provided - preserve every character including backslashes and special characters.
+4. For resource functions: "accessor" and "paths" are SEPARATE fields - NEVER combine them.
+5. A library is relevant if ANY of its clients, functions, or services match the query. Echo matching services under the library's "services" field (copy listener, name, and methods verbatim). If a library matches ONLY via its services, still include the library in the output with empty/omitted clients and functions.`;
 
     const getLibUserPrompt = `You will be provided with a list of libraries, clients, and their functions, and a user query.
 
@@ -215,16 +246,23 @@ ${prompt}
 ${JSON.stringify(libraryList)}
 </Library_Context_JSON>
 
-To process the user query and filter the libraries, clients, and functions, follow these steps:
+To process the user query and filter the libraries, clients, services and functions, follow these steps:
 
 1. Analyze the user query to understand the specific requirements or needs.
-2. Review the provided libraries, clients, and functions in Library_Context_JSON.
-3. Select only the libraries, clients, and functions that directly match the query's needs.
-4. Exclude any irrelevant libraries, clients, or functions.
-5. If no relevant functions are found, return an empty array for the libraries.
+2. Review the provided libraries, clients, services and functions in Library_Context_JSON.
+3. Select only the libraries, clients, services and functions that directly match the query's needs.
+4. Exclude any irrelevant libraries, clients, services or functions.
+5. If no relevant functions and services are found, return an empty array for libraries.
 6. Organize the remaining relevant information.
 
-Now, based on the provided libraries, clients, and functions, and the user query, please filter and return the relevant information.
+CRITICAL - Field Preservation:
+- For resource functions: "accessor" contains ONLY the HTTP method (e.g., "post", "get") - do NOT put path info in it.
+- The "paths" field is separate - do NOT merge with accessor.
+- Copy all values exactly - preserve backslashes, dots, and special characters.
+
+Return the filtered subset with IDENTICAL field values.
+
+Now, based on the provided libraries and the user query, please filter and return the relevant information.
 `;
 
     const messages: ModelMessage[] = [
@@ -232,16 +270,13 @@ Now, based on the provided libraries, clients, and functions, and the user query
         { role: "user", content: getLibUserPrompt },
     ];
     try {
-        const { object } = await generateObject({
+        const { object, usage } = await generateObject({
             model: await getAnthropicClient(ANTHROPIC_HAIKU),
             maxOutputTokens: 8192,
             temperature: 0,
             messages: messages,
             schema: getFunctionsResponseSchema,
             abortSignal: new AbortController().signal,
-            providerOptions: {
-                anthropic: { structuredOutputMode: 'jsonTool' },
-            },
         });
 
         const libList = object as GetFunctionsResponse;
@@ -253,6 +288,7 @@ Now, based on the provided libraries, clients, and functions, and the user query
             libraryList.some((inputLib) => inputLib.name === lib.name)
         );
 
+        const callUsage: ModelUsage = { model: ANTHROPIC_HAIKU, inputTokens: usage.inputTokens || 0, outputTokens: usage.outputTokens || 0 };
         console.log(
             `[AI Request Complete] Libraries: [${libraryNames}], Duration: ${duration}s, Selected Functions: ${libList.libraries.reduce(
                 (total, lib) =>
@@ -260,11 +296,11 @@ Now, based on the provided libraries, clients, and functions, and the user query
                     (lib.clients?.reduce((clientTotal, client) => clientTotal + client.functions.length, 0) || 0) +
                     (lib.functions?.length || 0),
                 0
-            )}`
+            )}, Usage:`, callUsage
         );
 
         printSelectedFunctions(filteredLibList);
-        return filteredLibList;
+        return { libraries: filteredLibList, usage: callUsage };
     } catch (error) {
         const endTime = Date.now();
         const duration = (endTime - startTime) / 1000;
@@ -319,6 +355,27 @@ function filteredFunctions(
     return output;
 }
 
+function filteredServicesForRequest(services?: Service[]): MinifiedService[] | undefined {
+    if (!services || services.length === 0) {
+        return undefined;
+    }
+    return services.map((svc) => {
+        const result: MinifiedService = {
+            listener: svc.listener.name,
+        };
+        if (svc.name) {
+            result.name = svc.name;
+        }
+        if (svc.type === "fixed") {
+            const methodNames = (svc as FixedService).methods.map((m) => m.name);
+            if (methodNames.length > 0) {
+                result.methods = methodNames;
+            }
+        }
+        return result;
+    });
+}
+
 function filteredNormalFunctions(functions?: RemoteFunction[], generationType?: GenerationType): MinifiedRemoteFunction[] | undefined {
     if (!functions) {
         return undefined;
@@ -332,12 +389,25 @@ function filteredNormalFunctions(functions?: RemoteFunction[], generationType?: 
     }));
 }
 
-export async function getMaximizedSelectedLibs(libNames: string[], generationType: GenerationType): Promise<Library[]> {
+export async function getMaximizedSelectedLibs(libNames: string[]): Promise<Library[]> {
     const result = (await langClient.getCopilotFilteredLibraries({
-        libNames: libNames,
-        mode: getGenerationMode(generationType),
+        libNames: libNames
     })) as { libraries: Library[] };
-    return result.libraries as Library[];
+    const normalizedLibraries: Library[] = result.libraries.map(lib => {
+            return {
+                name: lib.name,
+                description: lib.description,
+                clients: lib.clients ? lib.clients : [],
+                functions: lib.functions ? lib.functions : [],
+                typeDefs: lib.typeDefs ? lib.typeDefs : [],
+                services: lib.services ? lib.services : [],
+                annotations: lib.annotations ? lib.annotations : [],
+                instructions: lib.instructions ? lib.instructions : null,
+                readme: lib.readme ? lib.readme : null,
+            };
+        });
+
+    return normalizedLibraries;
 }
 
 export async function toMaximizedLibrariesFromLibJson(
@@ -362,9 +432,12 @@ export async function toMaximizedLibrariesFromLibJson(
             description: originalLib.description,
             clients: filteredClients,
             functions: filteredFunctions ? filteredFunctions : null,
-            // Get only the type definitions that are actually used by the selected functions and clients
-            typeDefs: getOwnTypeDefsForLib(filteredClients, filteredFunctions, originalLib.typeDefs),
+            // Get only the type definitions that are actually used by the selected functions, clients, services, and annotations
+            typeDefs: getOwnTypeDefsForLib(filteredClients, filteredFunctions, originalLib.typeDefs, originalLib.services, originalLib.annotations),
             services: originalLib.services ? originalLib.services : null,
+            annotations: originalLib.annotations ? originalLib.annotations : null,
+            instructions: originalLib.instructions ? originalLib.instructions : null,
+            readme: originalLib.readme ? originalLib.readme : null,
         };
 
         minifiedLibrariesWithoutRecords.push(maximizedLib);
@@ -501,7 +574,9 @@ function getCompleteFuncForMiniFunc(
 function getOwnTypeDefsForLib(
     clients: Client[],
     functions: RemoteFunction[] | undefined,
-    allTypeDefs: TypeDefinition[]
+    allTypeDefs: TypeDefinition[],
+    services?: Service[],
+    annotations?: Annotation[]
 ): TypeDefinition[] {
     const allFunctions: AbstractFunction[] = [];
 
@@ -515,10 +590,10 @@ function getOwnTypeDefsForLib(
         allFunctions.push(...functions);
     }
 
-    return getOwnRecordRefs(allFunctions, allTypeDefs);
+    return getOwnRecordRefs(allFunctions, allTypeDefs, services, annotations);
 }
 
-function getOwnRecordRefs(functions: AbstractFunction[], allTypeDefs: TypeDefinition[]): TypeDefinition[] {
+function getOwnRecordRefs(functions: AbstractFunction[], allTypeDefs: TypeDefinition[], services?: Service[], annotations?: Annotation[]): TypeDefinition[] {
     const ownRecords = new Map<string, TypeDefinition>();
 
     // Process all functions to find type references
@@ -530,6 +605,35 @@ function getOwnRecordRefs(functions: AbstractFunction[], allTypeDefs: TypeDefini
 
         // Check return type
         addInternalRecord(func.return.type, ownRecords, allTypeDefs);
+    }
+
+    // Process service listener parameters and fixed service method parameters
+    if (services) {
+        for (const service of services) {
+            for (const param of service.listener.parameters) {
+                addInternalRecord(param.type, ownRecords, allTypeDefs);
+            }
+            if (service.type === "fixed") {
+                const fixedService = service as FixedService;
+                for (const method of fixedService.methods) {
+                    for (const param of method.parameters) {
+                        addInternalRecord(param.type, ownRecords, allTypeDefs);
+                    }
+                    if (method.return?.type) {
+                        addInternalRecord(method.return.type, ownRecords, allTypeDefs);
+                    }
+                }
+            }
+        }
+    }
+
+    // Process annotation type constraints
+    if (annotations) {
+        for (const annotation of annotations) {
+            if (annotation.typeConstraint) {
+                addInternalRecord(annotation.typeConstraint, ownRecords, allTypeDefs);
+            }
+        }
     }
 
     // Recursively process found type definitions to include dependent types
@@ -551,8 +655,13 @@ function getOwnRecordRefs(functions: AbstractFunction[], allTypeDefs: TypeDefini
                 const foundTypes = addInternalRecord(field.type, ownRecords, allTypeDefs);
                 typesToProcess.push(...foundTypes);
             }
+        } else if (typeDef.type === TYPE_UNION) {
+            const unionDef = typeDef as UnionTypeDefinition;
+            for (const member of unionDef.members) {
+                const foundTypes = addInternalRecord(member.type, ownRecords, allTypeDefs);
+                typesToProcess.push(...foundTypes);
+            }
         }
-        // TODO: Handle EnumTypeDefinition and UnionTypeDefinition
     }
 
     return Array.from(ownRecords.values());
@@ -642,7 +751,7 @@ function getExternalTypeDefsRefs(libraries: Library[]): Map<string, string[]> {
             allFunctions.push(...lib.functions);
         }
 
-        getExternalTypeDefRefs(externalRecords, allFunctions, lib.typeDefs);
+        getExternalTypeDefRefs(externalRecords, allFunctions, lib.typeDefs, lib.services, lib.annotations);
     }
 
     return externalRecords;
@@ -651,7 +760,9 @@ function getExternalTypeDefsRefs(libraries: Library[]): Map<string, string[]> {
 function getExternalTypeDefRefs(
     externalRecords: Map<string, string[]>,
     functions: AbstractFunction[],
-    allTypeDefs: TypeDefinition[]
+    allTypeDefs: TypeDefinition[],
+    services?: Service[],
+    annotations?: Annotation[]
 ): void {
     // Check function parameters and return types
     for (const func of functions) {
@@ -661,6 +772,35 @@ function getExternalTypeDefRefs(
         addExternalRecord(func.return.type, externalRecords);
     }
 
+    // Check service listener parameters and fixed service method parameters
+    if (services) {
+        for (const service of services) {
+            for (const param of service.listener.parameters) {
+                addExternalRecord(param.type, externalRecords);
+            }
+            if (service.type === "fixed") {
+                const fixedService = service as FixedService;
+                for (const method of fixedService.methods) {
+                    for (const param of method.parameters) {
+                        addExternalRecord(param.type, externalRecords);
+                    }
+                    if (method.return?.type) {
+                        addExternalRecord(method.return.type, externalRecords);
+                    }
+                }
+            }
+        }
+    }
+
+    // Check annotation type constraints
+    if (annotations) {
+        for (const annotation of annotations) {
+            if (annotation.typeConstraint) {
+                addExternalRecord(annotation.typeConstraint, externalRecords);
+            }
+        }
+    }
+
     // Check type definition fields
     for (const typeDef of allTypeDefs) {
         if (typeDef.type === TYPE_RECORD) {
@@ -668,8 +808,12 @@ function getExternalTypeDefRefs(
             for (const field of recordDef.fields) {
                 addExternalRecord(field.type, externalRecords);
             }
+        } else if (typeDef.type === TYPE_UNION) {
+            const unionDef = typeDef as UnionTypeDefinition;
+            for (const member of unionDef.members) {
+                addExternalRecord(member.type, externalRecords);
+            }
         }
-        // TODO: Handle EnumTypeDefinition and UnionTypeDefinition
     }
 }
 
@@ -699,7 +843,7 @@ function addLibraryRecords(externalRecords: Map<string, string[]>, libraryName: 
 async function getExternalRecords(
     newLibraries: Library[],
     libRefs: Map<string, string[]>,
-    originalLibraries: Library[]
+    cachedLibraries: Library[]
 ): Promise<void> {
     for (const [libName, recordNames] of libRefs.entries()) {
         if (libName.startsWith("ballerina/lang.int")) {
@@ -707,17 +851,15 @@ async function getExternalRecords(
             continue;
         }
 
-        let library = originalLibraries.find((lib) => lib.name === libName);
+        let library = cachedLibraries.find((lib) => lib.name === libName);
         if (!library) {
-            console.warn(`Library ${libName} is not found in the context. Fetching library details.`);
             const result = (await langClient.getCopilotFilteredLibraries({
-                libNames: [libName],
-                mode: getGenerationMode(GenerationType.CODE_GENERATION),
+                libNames: [libName]
             })) as { libraries: Library[] };
             if (result.libraries && result.libraries.length > 0) {
                 library = result.libraries[0];
             } else {
-                console.warn(`Library ${libName} could not be fetched. Skipping the library.`);
+                console.warn(`Library ${libName} could not be fetched. Skipping.`);
                 continue;
             }
             console.log(`[getExternalRecords] Fetched library ${libName}:`, library);
@@ -739,6 +881,7 @@ async function getExternalRecords(
                     functions: null,
                     typeDefs: [typeDef],
                     services: library.services ? library.services : null,
+                    annotations: library.annotations ? library.annotations : null,
                 };
                 newLibraries.push(newLibrary);
             } else {
@@ -756,9 +899,10 @@ export async function getRequiredTypesFromLibJson(
     libraries: string[],
     prompt: string,
     librariesJson: Library[]
-): Promise<GetTypeResponse[]> {
+): Promise<{ types: GetTypeResponse[], usage: ModelUsage }> {
+    const emptyUsage: ModelUsage = { model: ANTHROPIC_HAIKU, inputTokens: 0, outputTokens: 0 };
     if (librariesJson.length === 0) {
-        return [];
+        return { types: [], usage: emptyUsage };
     }
 
     const typeDefs: GetTypesRequest[] = librariesJson
@@ -770,7 +914,7 @@ export async function getRequiredTypesFromLibJson(
         }));
 
     if (typeDefs.length === 0) {
-        return [];
+        return { types: [], usage: emptyUsage };
     }
 
     const getLibSystemPrompt = `You are an assistant tasked with selecting the Ballerina types needed to solve a given question based on a set of Ballerina libraries given in the context as a JSON.
@@ -815,20 +959,20 @@ Think step-by-step to choose the required types in order to solve the given ques
         { role: "user", content: getLibUserPrompt },
     ];
     try {
-        const { object } = await generateObject({
+        const { object, usage } = await generateObject({
             model: await getAnthropicClient(ANTHROPIC_HAIKU),
             maxOutputTokens: 8192,
             temperature: 0,
             messages: messages,
             schema: getTypesResponseSchema,
             abortSignal: new AbortController().signal,
-            providerOptions: {
-                anthropic: { structuredOutputMode: 'jsonTool' },
-            },
         });
 
+        const callUsage: ModelUsage = { model: ANTHROPIC_HAIKU, inputTokens: usage.inputTokens || 0, outputTokens: usage.outputTokens || 0 };
+        console.log(`[getRequiredTypesFromLibJson] Usage:`, callUsage);
+
         const libList = object as GetTypesResponse;
-        return libList.libraries;
+        return { types: libList.libraries, usage: callUsage };
     } catch (error) {
         throw new Error(`Failed to parse bulk functions response: ${error}`);
     }

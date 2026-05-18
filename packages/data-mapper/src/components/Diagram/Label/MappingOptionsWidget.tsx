@@ -308,8 +308,15 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
         };
 
         const menuItems = genMenuItems();
-       
-        return menuItems;
+
+        const shouldFnsIncluded = context.reusable ||
+            context.views.length !== 1 ||
+            (link.getTargetPort() as InputOutputPortModel).attributes.fieldFQN.includes('.');
+
+        return shouldFnsIncluded
+            ? menuItems
+            : menuItems.filter(item => item.id !== "custom-func" && item.id !== "transform-func");
+
     }, [pendingMappingType, inProgressOption, link, context]);
 
     return (

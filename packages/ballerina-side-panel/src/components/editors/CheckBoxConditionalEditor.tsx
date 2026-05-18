@@ -20,7 +20,7 @@ import React, { useEffect, useState } from "react";
 import { FormField } from "../Form/types";
 import { CheckBoxGroup, FormCheckBox } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
-import { EditorFactory } from "./EditorFactory";
+import { FieldFactory } from "./FieldFactory";
 import { useFormContext } from "../../context";
 import { getPrimaryInputType, PropertyModel } from "@wso2/ballerina-core";
 
@@ -128,7 +128,7 @@ export function CheckBoxConditionalEditor(props: CheckBoxConditionalEditorProps)
                 {checked && checkedStateFields.length > 0 && (
                     <>
                         {checkedStateFields.map((dfield, index) => (
-                            <EditorFactory
+                            <FieldFactory
                                 key={dfield.key}
                                 field={dfield}
                                 autoFocus={index === 0 ? true : false}
@@ -139,7 +139,7 @@ export function CheckBoxConditionalEditor(props: CheckBoxConditionalEditorProps)
                 {!checked && uncheckedStateFields.length > 0 && (
                     <>
                         {uncheckedStateFields.map((dfield, index) => (
-                            <EditorFactory
+                            <FieldFactory
                                 key={dfield.key}
                                 field={dfield}
                                 autoFocus={index === 0 ? true : false}
