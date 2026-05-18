@@ -23,6 +23,7 @@ import { tableNodes } from 'prosemirror-tables';
 import {
     getParsedExpressionTokens,
     detectTokenPatterns,
+    getTokenIndicesInClosedExpressionRanges,
     ParsedToken
 } from '../../ChipExpressionEditor/utils';
 import {
@@ -303,23 +304,7 @@ function replaceTextWithChips(
         }
     }
 
-    // Tokens inside an unclosed ${ are orphans; the LSP treats following text as expression context
-    const insideClosedRange = new Set<number>();
-    let pending: number[] = [];
-    let isOpen = false;
-    for (let i = 0; i < tokens.length; i++) {
-        const type = tokens[i].type;
-        if (type === TokenType.START_EVENT) {
-            pending = [];
-            isOpen = true;
-        } else if (type === TokenType.END_EVENT && isOpen) {
-            pending.forEach(idx => insideClosedRange.add(idx));
-            pending = [];
-            isOpen = false;
-        } else if (isOpen) {
-            pending.push(i);
-        }
-    }
+    const insideClosedRange = getTokenIndicesInClosedExpressionRanges(tokens);
 
     // Collect individual token chip nodes
     for (let i = 0; i < tokens.length; i++) {

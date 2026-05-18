@@ -18,7 +18,13 @@
 
 import { StateEffect, StateField, RangeSet, Transaction, SelectionRange, Annotation } from "@codemirror/state";
 import { WidgetType, Decoration, ViewPlugin, EditorView, ViewUpdate } from "@codemirror/view";
-import { filterCompletionsByPrefixAndType, getParsedExpressionTokens, detectTokenPatterns, ParsedToken } from "./utils";
+import {
+    filterCompletionsByPrefixAndType,
+    getParsedExpressionTokens,
+    detectTokenPatterns,
+    getTokenIndicesInClosedExpressionRanges,
+    ParsedToken
+} from "./utils";
 import { HELPER_PANE_WIDTH } from "./constants";
 import { defaultKeymap, historyKeymap } from "@codemirror/commands";
 import { CompletionItem, FnSignatureDocumentation } from "@wso2/ui-toolkit";
@@ -294,23 +300,7 @@ export const iterateTokenStream = (
         }
     }
 
-    // Tokens inside an unclosed ${ are orphans; the LSP treats following text as expression context
-    const insideClosedRange = new Set<number>();
-    let pending: number[] = [];
-    let isOpen = false;
-    for (let i = 0; i < tokens.length; i++) {
-        const type = tokens[i].type;
-        if (type === TokenType.START_EVENT) {
-            pending = [];
-            isOpen = true;
-        } else if (type === TokenType.END_EVENT && isOpen) {
-            pending.forEach(idx => insideClosedRange.add(idx));
-            pending = [];
-            isOpen = false;
-        } else if (isOpen) {
-            pending.push(i);
-        }
-    }
+    const insideClosedRange = getTokenIndicesInClosedExpressionRanges(tokens);
 
     for (let i = 0; i < tokens.length; i++) {
         const token = tokens[i];
