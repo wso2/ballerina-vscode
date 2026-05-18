@@ -197,14 +197,20 @@ export interface ConfigKeyRename {
     to: string;
 }
 
+function isPlainSection(value: any): value is Record<string, any> {
+    return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
 export function removeConfigKeys(
     configPath: string,
     keys: string[],
     orgName: string,
     packageName: string
 ): { removed: string[]; notFound: string[] } {
+    const uniqueKeys = Array.from(new Set(keys));
+
     if (!fs.existsSync(configPath)) {
-        return { removed: [], notFound: [...keys] };
+        return { removed: [], notFound: uniqueKeys };
     }
 
     let config: Record<string, any>;
@@ -216,14 +222,14 @@ export function removeConfigKeys(
     }
 
     const section = config[orgName]?.[packageName];
-    if (!section || typeof section !== "object") {
-        return { removed: [], notFound: [...keys] };
+    if (!isPlainSection(section)) {
+        return { removed: [], notFound: uniqueKeys };
     }
 
     const removed: string[] = [];
     const notFound: string[] = [];
-    for (const key of keys) {
-        if (key in section && typeof section[key] !== "object") {
+    for (const key of uniqueKeys) {
+        if (Object.prototype.hasOwnProperty.call(section, key)) {
             delete section[key];
             removed.push(key);
         } else {
@@ -260,29 +266,54 @@ export function renameConfigKeys(
     }
 
     const section = config[orgName]?.[packageName];
-    if (!section || typeof section !== "object") {
+    if (!isPlainSection(section)) {
         return {
             renamed: [],
             skipped: renames.map(r => ({ ...r, reason: `[${orgName}.${packageName}] section not found` })),
         };
     }
 
+    // Snapshot initial state so multi-pair renames don't chain (a→b, b→c).
+    const initialKeys = new Set(Object.keys(section));
+    const initialValues: Record<string, any> = {};
+    for (const key of initialKeys) {
+        initialValues[key] = section[key];
+    }
+
     const renamed: ConfigKeyRename[] = [];
     const skipped: { from: string; to: string; reason: string }[] = [];
+    const sourcesUsed = new Set<string>();
+    const targetsUsed = new Set<string>();
+    const toApply: ConfigKeyRename[] = [];
+
     for (const { from, to } of renames) {
         if (from === to) {
             skipped.push({ from, to, reason: "'from' and 'to' are the same" });
             continue;
         }
-        if (!(from in section) || typeof section[from] === "object") {
+        if (!initialKeys.has(from)) {
             skipped.push({ from, to, reason: `'${from}' not found in Config.toml` });
             continue;
         }
-        if (to in section) {
+        if (initialKeys.has(to)) {
             skipped.push({ from, to, reason: `target key '${to}' already exists` });
             continue;
         }
-        section[to] = section[from];
+        if (sourcesUsed.has(from)) {
+            skipped.push({ from, to, reason: `duplicate rename of '${from}'` });
+            continue;
+        }
+        if (targetsUsed.has(to)) {
+            skipped.push({ from, to, reason: `duplicate target '${to}'` });
+            continue;
+        }
+        sourcesUsed.add(from);
+        targetsUsed.add(to);
+        toApply.push({ from, to });
+    }
+
+    for (const { from, to } of toApply) {
+        section[to] = initialValues[from];
         delete section[from];
         renamed.push({ from, to });
     }
