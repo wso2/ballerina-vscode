@@ -168,7 +168,7 @@
     "metadata": {
       "label": "poll",
       "description": "Polls the external broker to retrieve messages.\n```ballerina\nkafka:AnydataConsumerRecord[] result = check consumer->poll(10);\n```\n",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.6.4.png"
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.6.5.png"
     },
     "codedata": {
       "node": "REMOTE_ACTION_CALL",
@@ -177,7 +177,7 @@
       "packageName": "kafka",
       "object": "Consumer",
       "symbol": "poll",
-      "version": "4.6.4",
+      "version": "4.6.5",
       "lineRange": {
         "fileName": "automation.bal",
         "startLine": {
@@ -214,6 +214,30 @@
         "advanced": false,
         "hidden": true
       },
+      "T": {
+        "metadata": {
+          "label": "T",
+          "description": "Optional type description of the required data type"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "ballerinaType": "kafka:AnydataConsumerRecord[]",
+            "selected": false
+          }
+        ],
+        "value": "News",
+        "placeholder": "kafka:AnydataConsumerRecord[]",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "PARAM_FOR_TYPE_INFER",
+          "originalName": "T"
+        },
+        "defaultValue": "kafka:AnydataConsumerRecord[]"
+      },
       "timeout": {
         "metadata": {
           "label": "Timeout",
@@ -242,7 +266,7 @@
           "diagnostics": [
             {
               "severity": "ERROR",
-              "message": "incompatible type for parameter 'T' with inferred typedesc value: expected 'typedesc<ballerinax/kafka:4.6.4:AnydataConsumerRecord[]>', found 'typedesc<wso2/kafka_action:0.1.0:News>'"
+              "message": "incompatible type for parameter 'T' with inferred typedesc value: expected 'typedesc<ballerinax/kafka:4.6.5:AnydataConsumerRecord[]>', found 'typedesc<wso2/kafka_action:0.1.0:News>'"
             }
           ]
         },
@@ -267,30 +291,6 @@
         "editable": true,
         "advanced": true,
         "hidden": true
-      },
-      "T": {
-        "metadata": {
-          "label": "T",
-          "description": "Optional type description of the required data type"
-        },
-        "types": [
-          {
-            "fieldType": "TYPE",
-            "ballerinaType": "kafka:AnydataConsumerRecord[]",
-            "selected": false
-          }
-        ],
-        "value": "News",
-        "placeholder": "kafka:AnydataConsumerRecord[]",
-        "optional": false,
-        "editable": true,
-        "advanced": false,
-        "hidden": false,
-        "codedata": {
-          "kind": "PARAM_FOR_TYPE_INFER",
-          "originalName": "T"
-        },
-        "defaultValue": "kafka:AnydataConsumerRecord[]"
       },
       "variable": {
         "metadata": {
