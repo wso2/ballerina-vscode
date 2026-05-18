@@ -191,3 +191,105 @@ export function createStatusMetadata(
     }
     return status;
 }
+
+export interface ConfigKeyRename {
+    from: string;
+    to: string;
+}
+
+export function removeConfigKeys(
+    configPath: string,
+    keys: string[],
+    orgName: string,
+    packageName: string
+): { removed: string[]; notFound: string[] } {
+    if (!fs.existsSync(configPath)) {
+        return { removed: [], notFound: [...keys] };
+    }
+
+    let config: Record<string, any>;
+    try {
+        config = parse(fs.readFileSync(configPath, "utf-8")) as Record<string, any>;
+    } catch (error) {
+        console.error(`[TOML Utils] Error reading config for key removal:`, error);
+        throw error;
+    }
+
+    const section = config[orgName]?.[packageName];
+    if (!section || typeof section !== "object") {
+        return { removed: [], notFound: [...keys] };
+    }
+
+    const removed: string[] = [];
+    const notFound: string[] = [];
+    for (const key of keys) {
+        if (key in section && typeof section[key] !== "object") {
+            delete section[key];
+            removed.push(key);
+        } else {
+            notFound.push(key);
+        }
+    }
+
+    if (removed.length > 0) {
+        fs.writeFileSync(configPath, stringify(config), "utf-8");
+        console.log(`[TOML Utils] Removed ${removed.length} key(s) from Config.toml`);
+    }
+    return { removed, notFound };
+}
+
+export function renameConfigKeys(
+    configPath: string,
+    renames: ConfigKeyRename[],
+    orgName: string,
+    packageName: string
+): { renamed: ConfigKeyRename[]; skipped: { from: string; to: string; reason: string }[] } {
+    if (!fs.existsSync(configPath)) {
+        return {
+            renamed: [],
+            skipped: renames.map(r => ({ ...r, reason: "Config.toml not found" })),
+        };
+    }
+
+    let config: Record<string, any>;
+    try {
+        config = parse(fs.readFileSync(configPath, "utf-8")) as Record<string, any>;
+    } catch (error) {
+        console.error(`[TOML Utils] Error reading config for key rename:`, error);
+        throw error;
+    }
+
+    const section = config[orgName]?.[packageName];
+    if (!section || typeof section !== "object") {
+        return {
+            renamed: [],
+            skipped: renames.map(r => ({ ...r, reason: `[${orgName}.${packageName}] section not found` })),
+        };
+    }
+
+    const renamed: ConfigKeyRename[] = [];
+    const skipped: { from: string; to: string; reason: string }[] = [];
+    for (const { from, to } of renames) {
+        if (from === to) {
+            skipped.push({ from, to, reason: "'from' and 'to' are the same" });
+            continue;
+        }
+        if (!(from in section) || typeof section[from] === "object") {
+            skipped.push({ from, to, reason: `'${from}' not found in Config.toml` });
+            continue;
+        }
+        if (to in section) {
+            skipped.push({ from, to, reason: `target key '${to}' already exists` });
+            continue;
+        }
+        section[to] = section[from];
+        delete section[from];
+        renamed.push({ from, to });
+    }
+
+    if (renamed.length > 0) {
+        fs.writeFileSync(configPath, stringify(config), "utf-8");
+        console.log(`[TOML Utils] Renamed ${renamed.length} key(s) in Config.toml`);
+    }
+    return { renamed, skipped };
+}
