@@ -46,6 +46,8 @@ export const BI_COMMANDS = {
     ADD_PROJECT: 'BI.project-explorer.add',
     SHOW_OVERVIEW: 'BI.project-explorer.overview',
     ADD_DATA_MAPPER: 'BI.project-explorer.add-data-mapper',
+    ADD_WORKFLOW: 'BI.project-explorer.add-workflow',
+    ADD_WORKFLOW_ACTIVITY: 'BI.project-explorer.add-workflow-activity',
     BI_EDIT_TEST_FUNCTION: 'BI.test.edit.function',
     BI_ADD_TEST_FUNCTION: 'BI.test.add.function',
     BI_ADD_AI_EVALUATION: 'BI.test.add.ai.evaluation',

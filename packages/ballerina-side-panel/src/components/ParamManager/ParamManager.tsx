@@ -217,6 +217,14 @@ export function ParamManager(props: ParamManagerProps) {
     const [parameters, setParameters] = useState<Parameter[]>(paramConfigs.paramValues);
     const [paramComponents, setParamComponents] = useState<React.ReactElement[]>([]);
     const [isGraphql, setIsGraphql] = useState<boolean>(false);
+    const [autoOpenedWaitDataEditor, setAutoOpenedWaitDataEditor] = useState<boolean>(false);
+    const addButtonLabel = selectedNode === "DATA_MAPPER_DEFINITION"
+        ? "Input"
+        : selectedNode === "WAIT_DATA"
+            ? "Data Waits"
+            : isGraphql
+                ? "Argument"
+                : "Parameter";
 
     const onEdit = (param: Parameter) => {
         setEditingSegmentId(param.id);
@@ -298,6 +306,19 @@ export function ParamManager(props: ParamManagerProps) {
         renderParams();
     }, [parameters, editingSegmentId, paramConfigs]);
 
+    useEffect(() => {
+        if (
+            selectedNode === "WAIT_DATA" &&
+            !readonly &&
+            !autoOpenedWaitDataEditor &&
+            parameters.length === 0 &&
+            editingSegmentId === -1
+        ) {
+            onAddClick();
+            setAutoOpenedWaitDataEditor(true);
+        }
+    }, [selectedNode, readonly, autoOpenedWaitDataEditor, parameters.length, editingSegmentId]);
+
     const renderParams = () => {
         const render: React.ReactElement[] = [];
         parameters
@@ -352,7 +373,7 @@ export function ParamManager(props: ParamManagerProps) {
                 <AddButtonWrapper>
                     <LinkButton sx={readonly && { color: "var(--vscode-badge-background)" }} onClick={!readonly && onAddClick} >
                         <Codicon name="add" />
-                        <>{`Add ${selectedNode === "DATA_MAPPER_DEFINITION" ? "Input" : isGraphql ? "Argument" : "Parameter"}`}</>
+                        <>{`Add ${addButtonLabel}`}</>
                     </LinkButton>
                 </AddButtonWrapper>
             )}

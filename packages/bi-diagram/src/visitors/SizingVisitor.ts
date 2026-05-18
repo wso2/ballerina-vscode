@@ -22,7 +22,6 @@ import {
     AGENT_NODE_ADD_TOOL_BUTTON_WIDTH,
     AGENT_NODE_TOOL_GAP,
     AGENT_NODE_TOOL_SECTION_GAP,
-    COMMENT_NODE_WIDTH,
     EMPTY_NODE_CONTAINER_WIDTH,
     END_NODE_WIDTH,
     IF_NODE_WIDTH,
@@ -36,6 +35,11 @@ import {
     NODE_WIDTH,
     PROMPT_NODE_HEIGHT,
     PROMPT_NODE_WIDTH,
+    WAIT_DATA_CORE_HEIGHT,
+    WAIT_DATA_CORE_WIDTH,
+    WAIT_DATA_ARROW_WIDTH,
+    WAIT_DATA_DETAILS_GAP,
+    WAIT_DATA_DETAILS_WIDTH,
     WHILE_NODE_WIDTH,
 } from "../resources/constants";
 import { reverseCustomNodeId } from "../utils/node";
@@ -98,6 +102,35 @@ export class SizingVisitor implements BaseVisitor {
         }
 
         this.setNodeSize(node, containerLeftWidth, containerRightWidth, containerHeight);
+    }
+
+    private createSendDataNode(node: FlowNode): void {
+        const nodeWidth = NODE_WIDTH;
+        const halfNodeWidth = nodeWidth / 2;
+        const containerLeftWidth = halfNodeWidth;
+        const containerRightWidth = halfNodeWidth + NODE_GAP_X + NODE_HEIGHT + LABEL_HEIGHT;
+
+        // Send data nodes always render the right-side workflow square with label-space SVG height.
+        const containerHeight = NODE_HEIGHT + LABEL_HEIGHT;
+
+        this.setNodeSize(node, containerLeftWidth, containerRightWidth, containerHeight);
+    }
+
+    private createWaitDataNode(node: FlowNode): void {
+        const halfCircle = WAIT_DATA_CORE_WIDTH / 2;
+        const leftWidth = halfCircle + WAIT_DATA_ARROW_WIDTH;
+        const containerLeftWidth = leftWidth;
+        const containerRightWidth = halfCircle + WAIT_DATA_DETAILS_GAP + WAIT_DATA_DETAILS_WIDTH;
+        const containerHeight = WAIT_DATA_CORE_HEIGHT;
+        this.setNodeSize(
+            node,
+            leftWidth,
+            halfCircle,
+            containerHeight,
+            containerLeftWidth,
+            containerRightWidth,
+            containerHeight
+        );
     }
 
     private createBlockNode(node: Branch): void {
@@ -245,6 +278,21 @@ export class SizingVisitor implements BaseVisitor {
         this.createApiCallNode(node);
     }
 
+    endVisitWorkflowRun(node: FlowNode, parent?: FlowNode): void {
+        if (!this.validateNode(node)) return;
+        this.createBaseNode(node);
+    }
+
+    endVisitActivityCall(node: FlowNode, parent?: FlowNode): void {
+        if (!this.validateNode(node)) return;
+        this.createBaseNode(node);
+    }
+
+    endVisitSendData(node: FlowNode, parent?: FlowNode): void {
+        if (!this.validateNode(node)) return;
+        this.createSendDataNode(node);
+    }
+
     endVisitAgentCall(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
         const nodeWidth = NODE_WIDTH;
@@ -294,9 +342,9 @@ export class SizingVisitor implements BaseVisitor {
 
     endVisitComment(node: FlowNode, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
-        const width = COMMENT_NODE_WIDTH;
-        const height = NODE_HEIGHT + NODE_GAP_Y;
-        this.setNodeSize(node, 0, width, height);
+        // Comment nodes are not rendered; their content is shown as a note chip on the next node.
+        // Setting size to 0 ensures no layout gap is created.
+        this.setNodeSize(node, 0, 0, 0);
     }
 
     private visitContainerNode(node: FlowNode, topElementWidth: number) {
@@ -452,6 +500,11 @@ export class SizingVisitor implements BaseVisitor {
     endVisitWorker(node: Branch, parent?: FlowNode): void {
         if (!this.validateNode(node)) return;
         this.createBlockNode(node);
+    }
+
+    endVisitWaitData(node: FlowNode, parent?: FlowNode): void {
+        if (!this.validateNode(node)) return;
+        this.createWaitDataNode(node);
     }
 
     endVisitNpFunction(node: FlowNode, parent?: FlowNode): void {

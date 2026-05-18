@@ -388,6 +388,8 @@ function findViewByArtifact(
                 };
             case DIRECTORY_MAP.AUTOMATION:
             case DIRECTORY_MAP.FUNCTION:
+            case DIRECTORY_MAP.WORKFLOW:
+            case DIRECTORY_MAP.ACTIVITY:
             case DIRECTORY_MAP.REMOTE:
                 return {
                     location: {

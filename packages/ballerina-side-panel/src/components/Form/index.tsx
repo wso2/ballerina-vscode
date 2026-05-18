@@ -270,7 +270,9 @@ namespace S {
     export const FormDiagnosticsActionContainer = styled.div`
         display: flex;
         justify-content: flex-end;
-        width: 100%;
+        align-items: center;
+        width: fit-content;
+        align-self: flex-end;
     `;
 
     export const MarkdownContainer = styled.div<{ isExpanded: boolean }>`
@@ -992,6 +994,7 @@ export const Form = forwardRef((props: FormProps, _ref) => {
                 try {
                     const isValidForm = await runExternalFormValidation(data);
                     if (!isValidForm) {
+                        console.error(">>> Form validation failed, not saving", { data: props, formData: data });
                         setSavingButton(null);
                         return;
                     }
@@ -1037,7 +1040,10 @@ export const Form = forwardRef((props: FormProps, _ref) => {
             )}
             {formDiagnostics && formDiagnostics.length > 0 && (
                 <S.FormDiagnosticsContainer>
-                    <ErrorBanner errorMsg={formDiagnostics.map((diagnostic) => diagnostic.message).join("\n")} />
+                    <ErrorBanner
+                        errorMsg={formDiagnostics.map((diagnostic) => diagnostic.message).join("\n")}
+                        sx={{ alignItems: "flex-start" }}
+                    />
                     {formDiagnosticsAction && (
                         <S.FormDiagnosticsActionContainer>
                             {formDiagnosticsAction}

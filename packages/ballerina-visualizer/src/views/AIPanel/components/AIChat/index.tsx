@@ -1458,6 +1458,7 @@ const AIChat: React.FC = () => {
         const fileAttatchments = attachments.map((file) => ({
             fileName: file.name,
             content: file.content,
+            mimeType: file?.mimeType,
         }));
 
         const currentCodeContext = codeContextRef.current;
