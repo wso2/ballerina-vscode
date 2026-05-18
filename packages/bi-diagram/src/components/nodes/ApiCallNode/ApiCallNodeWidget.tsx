@@ -39,7 +39,7 @@ import {
     NODE_TEXT_COLOR,
     NODE_WIDTH,
 } from "../../../resources/constants";
-import { Button, Item, Menu, MenuItem } from "@wso2/ui-toolkit";
+import { Button, Item, Menu, MenuItem, ThemeColors } from "@wso2/ui-toolkit";
 import { MoreVertIcon } from "../../../resources";
 import { FlowNode } from "../../../utils/types";
 import NodeIcon from "../../NodeIcon";
@@ -219,7 +219,7 @@ interface ApiCallNodeWidgetProps {
     onClick?: (node: FlowNode) => void;
 }
 
-export interface NodeWidgetProps extends Omit<ApiCallNodeWidgetProps, "children"> { }
+export interface NodeWidgetProps extends Omit<ApiCallNodeWidgetProps, "children"> {}
 
 export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
     const { model, engine, onClick } = props;
@@ -378,7 +378,6 @@ export function ApiCallNodeWidget(props: ApiCallNodeWidgetProps) {
             >
                 {hasBreakpoint && (
                     <div
-                        data-testid={isActiveBreakpoint ? "breakpoint-indicator-diagram-active" : "breakpoint-indicator-diagram"}
                         style={{
                             position: "absolute",
                             left: -5,
