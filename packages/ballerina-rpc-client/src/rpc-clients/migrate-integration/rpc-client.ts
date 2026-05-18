@@ -40,6 +40,23 @@ import {
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
 
+// Defined locally to avoid depending on a rebuilt @wso2/ballerina-core
+const _getActiveMigrationSession = { method: "migrate-integration/getActiveMigrationSession" } as const;
+const _markEnhancementComplete = { method: "migrate-integration/markEnhancementComplete" } as const;
+const _startMigrationEnhancement = { method: "migrate-integration/startMigrationEnhancement" } as const;
+const _wizardEnhancementReady = { method: "migrate-integration/wizardEnhancementReady" } as const;
+const _openMigratedProject = { method: "migrate-integration/openMigratedProject" } as const;
+const _abortMigrationAgent = { method: "migrate-integration/abortMigrationAgent" } as const;
+const _seedMigrationHistory = { method: "migrate-integration/seedMigrationHistory" } as const;
+const _getMigrationHistoryMessages = { method: "migrate-integration/getMigrationHistoryMessages" } as const;
+
+/** Local mirror until @wso2/ballerina-core is rebuilt. */
+export interface ActiveMigrationSession {
+    isActive: boolean;
+    aiFeatureUsed: boolean;
+    fullyEnhanced: boolean;
+}
+
 export class MigrateIntegrationRpcClient implements MigrateIntegrationAPI {
     private _messenger: Messenger;
 
@@ -77,5 +94,56 @@ export class MigrateIntegrationRpcClient implements MigrateIntegrationAPI {
 
     migrateProject(params: MigrateRequest): void {
         return this._messenger.sendNotification(migrateProject, HOST_EXTENSION, params);
+    }
+
+    getActiveMigrationSession(): Promise<ActiveMigrationSession> {
+        return this._messenger.sendRequest(_getActiveMigrationSession as any, HOST_EXTENSION);
+    }
+
+    markEnhancementComplete(): Promise<void> {
+        return this._messenger.sendRequest(_markEnhancementComplete as any, HOST_EXTENSION);
+    }
+
+    startMigrationEnhancement(): Promise<void> {
+        return this._messenger.sendRequest(_startMigrationEnhancement as any, HOST_EXTENSION);
+    }
+
+    /**
+     * Tells the extension backend that the wizard AI enhancement view is
+     * visible and ready to receive streaming events.  Triggers the
+     * wizard-level migration agent.
+     */
+    wizardEnhancementReady(): Promise<void> {
+        return this._messenger.sendRequest(_wizardEnhancementReady as any, HOST_EXTENSION);
+    }
+
+    /**
+     * Opens the migrated project in VS Code.
+     * Called after wizard-level AI enhancement completes or the user skips it.
+     */
+    openMigratedProject(): Promise<void> {
+        return this._messenger.sendRequest(_openMigratedProject as any, HOST_EXTENSION);
+    }
+
+    /**
+     * Aborts the currently running migration AI agent.
+     */
+    abortMigrationAgent(): Promise<void> {
+        return this._messenger.sendRequest(_abortMigrationAgent as any, HOST_EXTENSION);
+    }
+
+    /**
+     * Seeds saved migration conversation history into the AI chat state.
+     * Returns true if history was found and seeded, false otherwise.
+     */
+    seedMigrationHistory(): Promise<boolean> {
+        return this._messenger.sendRequest(_seedMigrationHistory as any, HOST_EXTENSION);
+    }
+
+    /**
+     * Retrieves the persisted migration conversation history messages.
+     */
+    getMigrationHistoryMessages(): Promise<Array<{ role: string; content: string }>> {
+        return this._messenger.sendRequest(_getMigrationHistoryMessages as any, HOST_EXTENSION);
     }
 }

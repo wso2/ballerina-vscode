@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { SemanticDiffResponse, SemanticDiff, ChangeTypeEnum } from "@wso2/ballerina-core";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -203,41 +203,6 @@ function convertToReviewView(diff: SemanticDiff, projectPath: string, packageNam
     };
 }
 
-// Utility function to fetch semantic diff data for a single project
-async function fetchSemanticDiff(rpcClient: any, projectPath: string): Promise<SemanticDiffResponse> {
-    return await rpcClient.getAiPanelRpcClient().getSemanticDiff({ projectPath });
-}
-
-// Utility function to fetch semantic diffs for multiple packages
-async function fetchSemanticDiffForMultiplePackages(
-    rpcClient: any,
-    packagePaths: string[],
-): Promise<SemanticDiffResponse> {
-    console.log(`[ReviewMode] Fetching semantic diffs for ${packagePaths.length} packages:`, packagePaths);
-
-    const allDiffs: SemanticDiff[] = [];
-    let loadDesignDiagrams = false;
-
-    // Fetch semantic diff for each affected package
-    for (const packagePath of packagePaths) {
-        try {
-            const response = await rpcClient.getAiPanelRpcClient().getSemanticDiff({ projectPath: packagePath });
-            if (response) {
-                allDiffs.push(...response.semanticDiffs);
-                loadDesignDiagrams = loadDesignDiagrams || response.loadDesignDiagrams;
-                console.log(`[ReviewMode] Fetched ${response.semanticDiffs.length} diffs from package: ${packagePath}`);
-            }
-        } catch (error) {
-            console.error(`[ReviewMode] Error fetching semantic diff for package ${packagePath}:`, error);
-        }
-    }
-
-    console.log(`[ReviewMode] Total diffs collected: ${allDiffs.length}`);
-    return {
-        semanticDiffs: allDiffs,
-        loadDesignDiagrams,
-    };
-}
 
 // Helper to extract package name from path
 function getPackageName(path: string): string {
@@ -270,102 +235,58 @@ export function ReviewMode(): JSX.Element {
     const [currentItemMetadata, setCurrentItemMetadata] = useState<ItemMetadata | null>(null);
     const [isWorkspace, setIsWorkspace] = useState(false);
     const [showOldVersion, setShowOldVersion] = useState(false);
+    const pendingIndexRef = useRef<number | null>(null);
+    const viewsLengthRef = useRef<number>(0);
+
+    useEffect(() => {
+        viewsLengthRef.current = views.length;
+    }, [views.length]);
 
     // Derive current view from views array and currentIndex - no separate state needed
     const currentView =
         views.length > 0 && currentIndex >= 0 && currentIndex < views.length ? views[currentIndex] : null;
 
-    // Extracted reusable function to load semantic diff data
-    const loadSemanticDiff = useCallback(async () => {
+    // Load review data pushed via OPEN_VIEW reviewData field — no separate RPC calls needed
+    const loadFromReviewData = useCallback(async () => {
         try {
             setIsLoading(true);
+            const location = await rpcClient.getVisualizerLocation();
+            const data = location?.reviewData;
+            if (!data?.semanticDiffs || !data?.tempProjectPath) return;
 
-            // First fetch the active temp directory path
-            const tempDirPath = await rpcClient.getAiPanelRpcClient().getActiveTempDir();
-            if (!tempDirPath) {
-                console.error("[ReviewMode] No active temp directory found");
-                setIsLoading(false);
-                return;
-            }
+            const tempDirPath = data.tempProjectPath;
+            const isWorkspaceProject = data.isWorkspace ?? false;
+            const affectedPackages = data.affectedPackages ?? [tempDirPath];
+            const semanticDiffs = data.semanticDiffs as SemanticDiff[];
+            const loadDesignDiagrams = data.loadDesignDiagrams ?? false;
+
             setProjectPath(tempDirPath);
+            setIsWorkspace(isWorkspaceProject);
+            setSemanticDiffData({ semanticDiffs, loadDesignDiagrams });
 
-            // Check if the project is a workspace (multi-package)
-            let isWorkspaceProject = false;
-            try {
-                isWorkspaceProject = await rpcClient.getAiPanelRpcClient().isWorkspaceProject();
-                console.log("[ReviewMode] Is workspace project:", isWorkspaceProject);
-                setIsWorkspace(isWorkspaceProject);
-            } catch (error) {
-                console.warn("[ReviewMode] Could not determine if workspace, assuming single package:", error);
-            }
-
-            // Fetch affected packages from review context
-            let fetchedPackages: string[] = [];
-            try {
-                fetchedPackages = await rpcClient.getAiPanelRpcClient().getAffectedPackages();
-                console.log("[ReviewMode] Affected packages from review context:", fetchedPackages);
-            } catch (error) {
-                console.warn("[ReviewMode] Could not fetch affected packages, using temp directory:", error);
-            }
-
-            // Use affected packages if available, otherwise fallback to temp directory
-            const packagesToReview = isWorkspaceProject ? fetchedPackages : [tempDirPath];
-
-            console.log(
-                `[ReviewMode] Reviewing ${packagesToReview.length} package(s) in ${isWorkspaceProject ? "workspace" : "single"} project:`,
-                packagesToReview,
-            );
-
-            // Fetch semantic diffs for all affected packages
-            // For workspace projects, always fetch for each package even if only one is affected
-            // For single package projects, just fetch once
-            const semanticDiffResponse = isWorkspaceProject
-                ? await fetchSemanticDiffForMultiplePackages(rpcClient, packagesToReview)
-                : await fetchSemanticDiff(rpcClient, tempDirPath);
-
-            console.log("[ReviewMode] Combined semanticDiff Response:", JSON.stringify(semanticDiffResponse, null, 2));
-            setSemanticDiffData(semanticDiffResponse);
-
+            const packagesToReview = isWorkspaceProject ? affectedPackages : [tempDirPath];
             const allViews: ReviewView[] = [];
 
-            // If loadDesignDiagrams is true, add component diagram(s)
-            if (semanticDiffResponse.loadDesignDiagrams && semanticDiffResponse.semanticDiffs.length > 0) {
-                // For workspace projects, create a component diagram for each affected package
-                // For single package projects, create one component diagram
-                packagesToReview.forEach((packagePath) => {
+            if (loadDesignDiagrams && semanticDiffs.length > 0) {
+                packagesToReview.forEach((packagePath: string) => {
                     const packageName = getPackageName(packagePath);
-                    const label = isWorkspaceProject ? `Design Diagram - ${packageName}` : "Design Diagram";
-
                     allViews.push({
                         type: DiagramType.COMPONENT,
                         filePath: packagePath,
-                        position: {
-                            startLine: 0,
-                            endLine: 0,
-                            startColumn: 0,
-                            endColumn: 0,
-                        },
+                        position: { startLine: 0, endLine: 0, startColumn: 0, endColumn: 0 },
                         projectPath: packagePath,
-                        label: label,
+                        label: isWorkspaceProject ? `Design Diagram - ${packageName}` : "Design Diagram",
                         changeType: ChangeTypeEnum.MODIFICATION,
                     });
                 });
             }
 
-            // Convert semantic diffs to diagram views
-            // For type diagrams, only show one view since the diagram shows all types across all files
-            let hasTypeView = false;
-            const diagramViews: ReviewView[] = [];
-
-            for (const diff of semanticDiffResponse.semanticDiffs) {
-                // Determine which package this diff belongs to
+            const seenTypeViews = new Set<string>();
+            for (const diff of semanticDiffs) {
                 let belongsToPackage = tempDirPath;
                 let packageName: string | undefined;
-
                 if (isWorkspaceProject) {
-                    // Find the package that contains this file
                     for (const pkgPath of packagesToReview) {
-                        // Normalize paths and check if diff.uri starts with package path
                         const normalizedUri = diff.uri.replace(/\\/g, "/");
                         const normalizedPkgPath = pkgPath.replace(/\\/g, "/");
                         if (normalizedUri.startsWith(normalizedPkgPath + "/") || normalizedUri === normalizedPkgPath) {
@@ -375,45 +296,41 @@ export function ReviewMode(): JSX.Element {
                         }
                     }
                 }
-
                 const diagramType = getDiagramType(diff.nodeKind);
-
-                // For type diagrams, only add one view total since the diagram shows all types
                 if (diagramType === DiagramType.TYPE) {
-                    if (hasTypeView) {
-                        continue; // Skip - already have a type view
-                    }
-                    hasTypeView = true;
+                    if (seenTypeViews.has(belongsToPackage)) continue;
+                    seenTypeViews.add(belongsToPackage);
                 }
-
-                diagramViews.push(convertToReviewView(diff, belongsToPackage, packageName));
+                allViews.push(convertToReviewView(diff, belongsToPackage, packageName));
             }
 
-            allViews.push(...diagramViews);
-
             setViews(allViews);
-            setCurrentIndex(0);
+            const idx = pendingIndexRef.current ?? data.currentIndex ?? 0;
+            pendingIndexRef.current = null;
+            setCurrentIndex(idx >= 0 && idx < allViews.length ? idx : 0);
         } catch (error) {
-            console.error("[Review Mode] Error fetching semantic diff:", error);
+            console.error("[Reviewing Changes] Error loading review data:", error);
         } finally {
             setIsLoading(false);
         }
     }, [rpcClient]);
 
-    // Fetch semantic diff data on mount
+    // Load data on mount
     useEffect(() => {
-        loadSemanticDiff();
-    }, [loadSemanticDiff]);
+        loadFromReviewData();
+    }, [loadFromReviewData]);
 
-    // Listen for refresh notifications from the extension and reload data
+    // Listen for direct index navigation from chip clicks (bypasses state machine)
     useEffect(() => {
-        const handleRefresh = () => {
-            console.log("[ReviewMode] Received refresh notification from extension - reloading semantic diff");
-            loadSemanticDiff();
-        };
-
-        rpcClient.onRefreshReviewMode(handleRefresh);
-    }, [rpcClient, loadSemanticDiff]);
+        rpcClient.onNavigateReviewIndex((index: number) => {
+            if (viewsLengthRef.current === 0) {
+                pendingIndexRef.current = index;
+            } else {
+                setCurrentIndex(index >= 0 && index < viewsLengthRef.current ? index : 0);
+                setShowOldVersion(false);
+            }
+        });
+    }, [rpcClient]);
 
     // Set metadata for component diagram when view changes
     useEffect(() => {
@@ -432,7 +349,7 @@ export function ReviewMode(): JSX.Element {
             setCurrentItemMetadata(null); // Clear metadata when navigating
             setShowOldVersion(false); // Reset toggle when navigating
         } else {
-            console.log("[Review Mode] Already at first view");
+            console.log("[Reviewing Changes] Already at first view");
         }
     };
 
@@ -443,7 +360,7 @@ export function ReviewMode(): JSX.Element {
             setCurrentItemMetadata(null); // Clear metadata when navigating
             setShowOldVersion(false); // Reset toggle when navigating
         } else {
-            console.log("[Review Mode] Already at last view");
+            console.log("[Reviewing Changes] Already at last view");
         }
     };
 
@@ -457,28 +374,20 @@ export function ReviewMode(): JSX.Element {
 
     const handleAccept = async () => {
         try {
-            // Accept the changes (integrate code to workspace and hide review actions)
             await rpcClient.getAiPanelRpcClient().acceptChanges();
-
-            // Navigate back to previous view
             rpcClient.getVisualizerRpcClient().reviewAccepted();
         } catch (error) {
-            console.error("[Review Mode] Error accepting changes:", error);
-            // Still navigate back even if there's an error
+            console.error("[Reviewing Changes] Error accepting changes:", error);
             rpcClient.getVisualizerRpcClient().reviewAccepted();
         }
     };
 
     const handleReject = async () => {
         try {
-            // Decline the changes (cleanup without integrating and hide review actions)
             await rpcClient.getAiPanelRpcClient().declineChanges();
-
-            // Navigate back to previous view
             rpcClient.getVisualizerRpcClient().goBack();
         } catch (error) {
-            console.error("[Review Mode] Error declining changes:", error);
-            // Still navigate back even if there's an error
+            console.error("[Reviewing Changes] Error declining changes:", error);
             rpcClient.getVisualizerRpcClient().goBack();
         }
     };
@@ -536,7 +445,7 @@ export function ReviewMode(): JSX.Element {
             <ReviewContainer>
                 <TitleBar
                     title="Loading..."
-                    actions={<ReviewModeBadge>Review Mode</ReviewModeBadge>}
+                    actions={<ReviewModeBadge>Reviewing Changes</ReviewModeBadge>}
                     hideBack={true}
                     hideUndoRedo={true}
                 />
@@ -554,8 +463,8 @@ export function ReviewMode(): JSX.Element {
                     title="No Changes"
                     actions={
                         <>
-                            <ReviewModeBadge>Review Mode</ReviewModeBadge>
-                            <CloseButton onClick={handleClose} title="Close Review Mode">
+                            <ReviewModeBadge>Reviewing Changes</ReviewModeBadge>
+                            <CloseButton onClick={handleClose} title="Close Reviewing Changes">
                                 <Icon name="bi-close" />
                             </CloseButton>
                         </>
@@ -621,8 +530,8 @@ export function ReviewMode(): JSX.Element {
                     {currentPackageName}
                 </CurrentPackageBadge>
             )}
-            <ReviewModeBadge>Review Mode</ReviewModeBadge>
-            <CloseButton onClick={handleClose} title="Close Review Mode">
+            <ReviewModeBadge>Reviewing Changes</ReviewModeBadge>
+            <CloseButton onClick={handleClose} title="Close Reviewing Changes">
                 <Icon name="bi-close" />
             </CloseButton>
         </>

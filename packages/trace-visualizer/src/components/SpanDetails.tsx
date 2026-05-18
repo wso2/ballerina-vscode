@@ -85,6 +85,10 @@ const SpanIcon = styled.span<{ type: string; spanKind?: string }>`
             case 'invoke': return 'var(--vscode-terminal-ansiCyan)';
             case 'chat': return 'var(--vscode-terminalSymbolIcon-optionForeground)';
             case 'tool': return 'var(--vscode-terminal-ansiBrightMagenta)';
+            case 'kb_retrieve': return 'var(--vscode-charts-purple)';
+            case 'kb_ingest': return 'var(--vscode-charts-purple)';
+            case 'embeddings': return 'var(--vscode-terminalSymbolIcon-optionForeground)';
+            case 'generate_content': return 'var(--vscode-charts-green)';
             case 'other':
                 // Use span kind colors for non-AI spans (matching TraceDetails)
                 switch (props.spanKind?.toLowerCase()) {
@@ -103,6 +107,9 @@ const SpanTitle = styled.h2`
     font-weight: 600;
     color: var(--vscode-foreground);
     flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 `;
 
 const IdButton = styled.button`
@@ -245,6 +252,18 @@ const SubSectionTitle = styled.h4`
     display: flex;
     align-items: center;
     gap: 6px;
+`;
+
+const InputContentBlock = styled.div`
+    background-color: var(--vscode-input-background);
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 4px;
+    padding: 12px;
+    font-size: 13px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--vscode-editor-foreground);
 `;
 
 const ErrorContent = styled.div`
@@ -442,6 +461,10 @@ const EXCLUDED_ATTRIBUTE_KEYS = [
     'gen_ai.tool.output',
     'gen_ai.system_instructions',
     'gen_ai.input.tools',
+    'gen_ai.input.content',
+    'gen_ai.knowledge_base.ingest.input.chunks',
+    'gen_ai.knowledge_base.retrieve.input.query',
+    'gen_ai.knowledge_base.retrieve.output',
     'error.message'
 ];
 
@@ -458,6 +481,10 @@ export function SpanDetails({ spanData, spanName, totalInputTokens, totalOutputT
         if (operationName.startsWith('invoke_agent')) return 'invoke';
         if (operationName.startsWith('chat') || spanName?.toLowerCase().startsWith('chat')) return 'chat';
         if (operationName.startsWith('execute_tool') || spanName?.toLowerCase().startsWith('execute_tool')) return 'tool';
+        if (operationName.startsWith('knowledge_base_retrieve') || spanName?.toLowerCase().startsWith('knowledge_base_retrieve')) return 'kb_retrieve';
+        if (operationName.startsWith('knowledge_base_ingest') || spanName?.toLowerCase().startsWith('knowledge_base_ingest')) return 'kb_ingest';
+        if (operationName.startsWith('embeddings') || spanName?.toLowerCase().startsWith('embeddings')) return 'embeddings';
+        if (operationName.startsWith('generate_content') || spanName?.toLowerCase().startsWith('generate_content')) return 'generate_content';
         return 'other';
     }, [operationName, spanName]);
 
@@ -513,12 +540,18 @@ export function SpanDetails({ spanData, spanName, totalInputTokens, totalOutputT
         const inputMessages = getAttributeValue(spanData.attributes, 'gen_ai.input.messages');
         const toolArguments = getAttributeValue(spanData.attributes, 'gen_ai.tool.arguments');
         const inputTools = getAttributeValue(spanData.attributes, 'gen_ai.input.tools');
+        const inputContent = getAttributeValue(spanData.attributes, 'gen_ai.input.content');
+        const kbIngestChunks = getAttributeValue(spanData.attributes, 'gen_ai.knowledge_base.ingest.input.chunks');
+        const kbRetrieveQuery = getAttributeValue(spanData.attributes, 'gen_ai.knowledge_base.retrieve.input.query');
 
         return {
             systemInstructions,
             messages: inputMessages || toolArguments,
             messagesLabel: toolArguments ? 'Tool Arguments' : (operationName?.includes('invoke_agent') ? 'User' : 'Messages'),
-            tools: inputTools
+            tools: inputTools,
+            inputContent,
+            kbIngestChunks,
+            kbRetrieveQuery
         };
     }, [spanData.attributes, operationName]);
 
@@ -526,11 +559,13 @@ export function SpanDetails({ spanData, spanName, totalInputTokens, totalOutputT
         const outputMessages = getAttributeValue(spanData.attributes, 'gen_ai.output.messages');
         const toolOutput = getAttributeValue(spanData.attributes, 'gen_ai.tool.output');
         const errorMessage = getAttributeValue(spanData.attributes, 'error.message');
+        const kbRetrieveOutput = getAttributeValue(spanData.attributes, 'gen_ai.knowledge_base.retrieve.output');
 
         return {
             messages: outputMessages || toolOutput,
             messagesLabel: toolOutput ? 'Tool Output' : 'Messages',
-            error: errorMessage
+            error: errorMessage,
+            kbRetrieveOutput
         };
     }, [spanData.attributes]);
 
@@ -539,13 +574,17 @@ export function SpanDetails({ spanData, spanName, totalInputTokens, totalOutputT
         if (!searchQuery) return true;
         return textContainsSearch(inputData.systemInstructions, searchQuery) ||
             textContainsSearch(inputData.messages, searchQuery) ||
-            textContainsSearch(inputData.tools, searchQuery);
+            textContainsSearch(inputData.tools, searchQuery) ||
+            textContainsSearch(inputData.inputContent, searchQuery) ||
+            textContainsSearch(inputData.kbIngestChunks, searchQuery) ||
+            textContainsSearch(inputData.kbRetrieveQuery, searchQuery);
     }, [searchQuery, inputData]);
 
     const outputMatches = useMemo(() => {
         if (!searchQuery) return true;
         return textContainsSearch(outputData.messages, searchQuery) ||
-            textContainsSearch(outputData.error, searchQuery);
+            textContainsSearch(outputData.error, searchQuery) ||
+            textContainsSearch(outputData.kbRetrieveOutput, searchQuery);
     }, [searchQuery, outputData]);
 
     const metricsMatch = useMemo(() => {
@@ -609,8 +648,8 @@ export function SpanDetails({ spanData, spanName, totalInputTokens, totalOutputT
         return technicalIdsMatch || filteredAdvancedAttributes.length > 0;
     }, [searchQuery, technicalIdsMatch, filteredAdvancedAttributes]);
 
-    const hasInput = inputData.systemInstructions || inputData.messages || inputData.tools;
-    const hasOutput = outputData.messages || outputData.error;
+    const hasInput = inputData.systemInstructions || inputData.messages || inputData.tools || inputData.inputContent || inputData.kbIngestChunks || inputData.kbRetrieveQuery;
+    const hasOutput = outputData.messages || outputData.error || outputData.kbRetrieveOutput;
     const hasError = !!outputData.error;
     const noMatches = searchQuery && !inputMatches && !outputMatches && !metricsMatch && !advancedMatches;
 
@@ -662,6 +701,10 @@ export function SpanDetails({ spanData, spanName, totalInputTokens, totalOutputT
                             {spanType === 'invoke' && 'Invoke Agent - '}
                             {spanType === 'chat' && 'Chat - '}
                             {spanType === 'tool' && 'Execute Tool - '}
+                            {spanType === 'kb_retrieve' && 'Knowledge Base Retrieve - '}
+                            {spanType === 'kb_ingest' && 'Knowledge Base Ingest - '}
+                            {spanType === 'embeddings' && 'Embeddings - '}
+                            {spanType === 'generate_content' && 'Generate Content - '}
                             {spanType === 'other' && spanKind.toLowerCase() === 'server' && 'Server - '}
                             {spanType === 'other' && spanKind.toLowerCase() === 'client' && 'Client - '}
                         </span>
@@ -849,6 +892,31 @@ export function SpanDetails({ spanData, spanName, totalInputTokens, totalOutputT
                                         />
                                     </SubSection>
                                 )}
+                                {inputData.inputContent && textContainsSearch(inputData.inputContent, searchQuery) && (
+                                    <SubSection>
+                                        <SubSectionTitle>Input Content</SubSectionTitle>
+                                        <InputContentBlock>
+                                            {highlightText(inputData.inputContent, searchQuery)}
+                                        </InputContentBlock>
+                                    </SubSection>
+                                )}
+                                {inputData.kbRetrieveQuery && textContainsSearch(inputData.kbRetrieveQuery, searchQuery) && (
+                                    <SubSection>
+                                        <SubSectionTitle>Query</SubSectionTitle>
+                                        <InputContentBlock>
+                                            {highlightText(inputData.kbRetrieveQuery, searchQuery)}
+                                        </InputContentBlock>
+                                    </SubSection>
+                                )}
+                                {inputData.kbIngestChunks && textContainsSearch(inputData.kbIngestChunks, searchQuery) && (
+                                    <SubSection>
+                                        <JsonViewer
+                                            value={inputData.kbIngestChunks}
+                                            title="Input Chunks"
+                                            searchQuery={searchQuery}
+                                        />
+                                    </SubSection>
+                                )}
                             </SectionContent>
                         </CollapsibleSection>
                     )}
@@ -903,6 +971,15 @@ export function SpanDetails({ spanData, spanName, totalInputTokens, totalOutputT
                                             title={outputData.messagesLabel}
                                             searchQuery={searchQuery}
                                             expandLastOnly={true}
+                                        />
+                                    </SubSection>
+                                )}
+                                {outputData.kbRetrieveOutput && textContainsSearch(outputData.kbRetrieveOutput, searchQuery) && (
+                                    <SubSection>
+                                        <JsonViewer
+                                            value={outputData.kbRetrieveOutput}
+                                            title="Retrieved Results"
+                                            searchQuery={searchQuery}
                                         />
                                     </SubSection>
                                 )}

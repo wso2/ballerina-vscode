@@ -28,8 +28,10 @@ import {
     CDListener,
     CDResourceFunction,
     CDFunction,
+    FlowNode,
     ProjectStructure,
 } from "@wso2/ballerina-core";
+import { removeAgentNode } from "../AIChatAgent/utils";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Diagram } from "@wso2/component-diagram";
 import { ProgressRing, ThemeColors } from "@wso2/ui-toolkit";
@@ -139,36 +141,82 @@ export function ComponentDiagram(props: ComponentDiagramProps) {
         });
     };
 
-    const handleDeleteComponent = async (component: CDListener | CDService | CDAutomation | CDConnection) => {
+    const findAgentCallNodes = (nodes: FlowNode[]): FlowNode[] => {
+        const result: FlowNode[] = [];
+        for (const node of nodes) {
+            if (node.codedata?.node === "AGENT_CALL") {
+                result.push(node);
+            }
+            if (node.branches) {
+                for (const branch of node.branches) {
+                    if (branch.children) {
+                        result.push(...findAgentCallNodes(branch.children));
+                    }
+                }
+            }
+        }
+        return result;
+    };
+
+    const removeAgentNodesForService = async (service: CDService) => {
+        const allFunctions = [...(service.remoteFunctions || []), ...(service.resourceFunctions || [])];
+        for (const func of allFunctions) {
+            if (!func.location) continue;
+            try {
+                const response = await rpcClient.getBIDiagramRpcClient().getFlowModel({
+                    filePath: func.location.filePath,
+                    startLine: func.location.startLine,
+                    endLine: func.location.endLine,
+                });
+                if (response.flowModel?.nodes) {
+                    const agentCallNodes = findAgentCallNodes(response.flowModel.nodes);
+                    for (const agentCallNode of agentCallNodes) {
+                        await removeAgentNode(agentCallNode, rpcClient);
+                    }
+                }
+            } catch (error) {
+                console.error(">>> Error removing agent nodes for function", func, error);
+            }
+        }
+    };
+
+    const handleDeleteComponent = async (component: CDListener | CDService | CDAutomation | CDConnection, nodeType?: string) => {
         console.log(">>> delete component", component);
         setIsDeleting(true);
-        rpcClient
-            .getBIDiagramRpcClient()
-            .deleteByComponentInfo({
-                filePath: component.location.filePath,
-                component: {
-                    name: (component as any).name || (component as any).symbol || "",
+        try {
+            // If deleting an AI service, remove associated agent nodes first
+            // Skip for test chat services (_agent_chat.bal) — they wrap existing agents that shouldn't be deleted
+            const isTestChatService = (component as CDService).location?.filePath?.endsWith('_agent_chat.bal');
+            if ((component as CDService).type === "ai:Service" && !isTestChatService) {
+                await removeAgentNodesForService(component as CDService);
+            }
+
+            const response = await rpcClient
+                .getBIDiagramRpcClient()
+                .deleteByComponentInfo({
                     filePath: component.location.filePath,
-                    startLine: component.location.startLine.line,
-                    startColumn: component.location.startLine.offset,
-                    endLine: component.location.endLine.line,
-                    endColumn: component.location.endLine.offset,
-                },
-            })
-            .then((response) => {
-                console.log(">>> Updated source code after delete", response);
-                if (!response.textEdits) {
-                    console.error(">>> Error updating source code", response);
-                } else {
-                    fetchProject();
-                }
-            })
-            .catch((error) => {
-                console.error(">>> Error deleting component", error?.message);
-            })
-            .finally(() => {
-                setIsDeleting(false);
-            });
+                    component: {
+                        name: (component as any).name || (component as any).symbol || "",
+                        filePath: component.location.filePath,
+                        startLine: component.location.startLine.line,
+                        startColumn: component.location.startLine.offset,
+                        endLine: component.location.endLine.line,
+                        endColumn: component.location.endLine.offset,
+                    },
+                    nodeType
+                });
+
+            console.log(">>> Updated source code after delete", response);
+            if (!response.textEdits) {
+                console.error(">>> Error updating source code", response);
+            } else {
+                fetchProject();
+            }
+        } catch (error: any) {
+            console.error(">>> Error deleting component", error?.message);
+        } finally {
+            setIsDeleting(false);
+        }
     };
 
     if (!projectStructure) {
@@ -196,6 +244,14 @@ export function ComponentDiagram(props: ComponentDiagramProps) {
                             onAutomationSelect={handleGoToAutomation}
                             onConnectionSelect={handleGoToConnection}
                             onDeleteComponent={handleDeleteComponent}
+                            onCleanupTestServices={
+                                project.services?.some(s => s.location?.filePath?.endsWith('_agent_chat.bal'))
+                                    ? async () => {
+                                        const deleted = await rpcClient.getBIDiagramRpcClient().cleanupAgentChatServices();
+                                        if (deleted) { fetchProject(); }
+                                    }
+                                    : undefined
+                            }
                         />
                     )}
                 </>

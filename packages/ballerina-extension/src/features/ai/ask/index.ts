@@ -94,7 +94,7 @@ async function extractLearnPages(query: string): Promise<Document[]> {
 
 async function fetchDocumentationFromVectorStore(query: string): Promise<Document[]> {
     try {
-        const response = await fetchWithAuth(`${BACKEND_URL}/learn-docs-api/v1.0/topK`, {
+        const response = await fetchWithAuth(`${BACKEND_URL}/ask-api/v1.0/topK`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -121,8 +121,8 @@ async function fetchDocumentationFromVectorStore(query: string): Promise<Documen
 }
 
 async function extractCentralApiDocs(query: string): Promise<LibraryWithUrl[]> {
-    const selectedLibs: string[] = await getSelectedLibraries(query, GenerationType.CODE_GENERATION);
-    const relevantTrimmedFuncs: Library[] = await selectRequiredFunctions(query, selectedLibs, GenerationType.CODE_GENERATION);
+    const { libraries: selectedLibs } = await getSelectedLibraries(query, GenerationType.CODE_GENERATION);
+    const { libraries: relevantTrimmedFuncs } = await selectRequiredFunctions(query, selectedLibs, GenerationType.CODE_GENERATION);
     const apiDocs: LibraryWithUrl[] = relevantTrimmedFuncs.map(lib => {
         return {
             ...lib,

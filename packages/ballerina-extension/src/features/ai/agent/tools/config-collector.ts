@@ -23,13 +23,13 @@ import { CopilotEventHandler } from "../../utils/events";
 import { approvalManager } from "../../state/ApprovalManager";
 import {
     ConfigVariable,
-    createConfigWithPlaceholders,
     getAllConfigStatus,
     validateVariableName,
     writeConfigValuesToConfig,
     createStatusMetadata,
     readExistingConfigValues,
 } from "../../../../utils/toml-utils";
+import { resolveContained, resolvePackageBasePath } from "./path-utils";
 
 export const CONFIG_COLLECTOR_TOOL = "ConfigCollector";
 
@@ -38,25 +38,32 @@ const CONFIG_FILE_PATH = "Config.toml";
 const TEST_CONFIG_FILE_PATH = "tests/Config.toml";
 
 const ConfigVariableSchema = z.object({
-    name: z.string().describe("Variable name (e.g., API_KEY)"),
+    name: z.string().describe("Variable name in camelCase — must match the Ballerina configurable identifier exactly"),
     description: z.string().describe("Human-readable description"),
     type: z.enum(["string", "int"]).optional().describe("Data type: string (default) or int"),
+    secret: z.boolean().optional().describe("Mark as true for sensitive values (API keys, passwords, tokens) to render as a masked input"),
 });
 
 const ConfigCollectorSchema = z.object({
-    mode: z.enum(["create", "create_and_collect", "collect", "check"]).describe("Operation mode"),
+    mode: z.enum(["collect", "check"]).describe("Operation mode"),
     filePath: z.string().optional().describe("Path to config file (for check mode)"),
     variables: z.array(ConfigVariableSchema).optional().describe("Configuration variables"),
     variableNames: z.array(z.string()).optional().describe("Variable names for check mode"),
     isTestConfig: z.boolean().optional().describe("Set to true when collecting configuration for tests. Tool will automatically read from Config.toml and write to tests/Config.toml"),
+    packagePath: z.string().optional().describe(
+        "Relative path to the target package within the workspace project (e.g., \"pkg1\"). " +
+        "Required for workspace projects so Config.toml is written inside the correct package, not the workspace root. " +
+        "Omit for single-package (non-workspace) projects."
+    ),
 });
 
 interface ConfigCollectorInput {
-    mode: "create" | "create_and_collect" | "collect" | "check";
+    mode: "collect" | "check";
     filePath?: string;
     variables?: ConfigVariable[];
     variableNames?: string[];
     isTestConfig?: boolean;
+    packagePath?: string;
 }
 
 export interface ConfigCollectorResult {
@@ -90,7 +97,7 @@ function validateConfigVariables(
         if (!validateVariableName(variable.name)) {
             return createErrorResult(
                 "INVALID_VARIABLE_NAME",
-                `Invalid variable name: ${variable.name}. Use uppercase with underscores (e.g., API_KEY)`
+                `Invalid variable name: ${variable.name}. Use camelCase alphanumeric names (e.g., apiKey)`
             );
         }
     }
@@ -113,68 +120,34 @@ export function createConfigCollectorTool(
 ) {
     return tool({
         description: `
-Manages configuration values in Config.toml for Ballerina integrations securely. Use this tool when user requirements involve API keys, passwords, database credentials, or other sensitive configuration.
+Manages configuration values in Config.toml for Ballerina integrations securely.
 
-IMPORTANT: Before calling COLLECT or CREATE_AND_COLLECT modes, briefly tell the user what configuration values you need and why.
+IMPORTANT: Only call COLLECT mode immediately before executing the project (running or testing). Do NOT call it during code writing or implementation — even if the code has sensitive configurables. Write the code first, then collect config only when you are about to run or test.
 
 Operation Modes:
-1. CREATE: Create Config.toml with placeholder variables only
-   - If file already exists, returns current variable status (same as check mode) instead of overwriting
-   - Use when you need to set up config structure before collecting configuration values
-   - Example: { mode: "create", variables: [{ name: "API_KEY", description: "Stripe API key", type: "string" }] }
+1. COLLECT: Collect configuration values from the user
+   - Call ONLY immediately before running or testing the project — never during code writing
+   - Shows a form; nothing is written until the user confirms. If skipped, no file is created or modified
+   - Pre-populates from existing Config.toml if it exists
+   - When running tests, use isTestConfig: true — this is the only collect call needed; writes to tests/Config.toml after user confirms
+   - For workspace projects, you MUST pass packagePath so the file is written inside the target package (not the workspace root)
+   - Example: { mode: "collect", variables: [{ name: "stripeApiKey", description: "Stripe API key", secret: true }] }
+   - Example (test): { mode: "collect", variables: [...], isTestConfig: true }
+   - Example (workspace): { mode: "collect", variables: [...], packagePath: "pkg1" }
 
-2. CREATE_AND_COLLECT: Create config AND immediately request configuration values (most efficient)
-   - If file already exists, skips create and goes straight to collect
-   - Use for new integrations that need configuration values right away
-   - Tell user first what you need
-   - Example: { mode: "create_and_collect", variables: [{ name: "API_KEY", description: "Stripe API key", type: "string" }] }
+2. CHECK: Inspect which values are filled or missing — can be called at any time
+   - Returns status only, never actual values
+   - For workspace projects, pass packagePath to inspect the Config.toml of a specific package
+   - Example: { mode: "check", variableNames: ["dbPassword", "apiKey"], filePath: "Config.toml" }
+   - Example (workspace): { mode: "check", variableNames: ["dbPassword"], packagePath: "pkg1" }
+   - Returns: { status: { dbPassword: "filled", apiKey: "missing" } }
 
-3. COLLECT: Request configuration values from user
-   - Creates Config.toml if it doesn't exist
-   - Pre-populates existing values for easy editing
-   - Use when Config.toml already exists and needs configuration values
-   - Tell user first what you need
-   - Example: { mode: "collect", variables: [{ name: "API_KEY", description: "Stripe API key", type: "string" }] }
-
-4. CHECK: Check which configuration values are filled/missing
-   - Returns status metadata only, NEVER actual configuration values
-   - Example: { mode: "check", variableNames: ["API_KEY", "DB_PASSWORD"], filePath: "Config.toml" }
-   - Returns: { success: true, status: { API_KEY: "filled", DB_PASSWORD: "missing" } }
-
-5. COLLECT with isTestConfig: Request configuration values for test Config.toml
-   - Use when generating tests that need configuration values
-   - Set isTestConfig: true
-   - Tool automatically:
-     * Reads existing configuration from Config.toml (if exists)
-     * Writes to tests/Config.toml
-     * Creates tests/ directory if needed
-   - UI behavior depends on what's in main config:
-     * If placeholders found: Shows "Configuration values needed"
-     * If actual values found: Shows "Found existing values. You can reuse or update them for testing."
-     * If mixed: Shows "Complete the remaining configuration values"
-   - Works even if main Config.toml doesn't exist (shows empty form)
-   - Example: { mode: "collect", variables: [{ name: "API_KEY", description: "Stripe API key", type: "string" }], isTestConfig: true }
-
-IMPORTANT: When generating tests that use configurables, ALWAYS use isTestConfig: true.
-This ensures tests have their own Config.toml in the tests/ directory.
-
-VARIABLE NAMING (CRITICAL):
-Variable names are converted: API_KEY → apikey, DB_HOST → dbhost (lowercase, no underscores).
-You MUST use identical names in Config.toml and Ballerina code.
-
-Correct:
-  Tool: { name: "DB_HOST" }
-  Config.toml: dbhost = "localhost"
-  Code: configurable string dbhost = ?;
-
-Incorrect (DO NOT DO):
-  Tool: { name: "DB_HOST" }
-  Config.toml: dbhost = "localhost"
-  Code: configurable string dbHost = ?;  // WRONG - mismatch causes runtime error
+VARIABLE NAMING:
+Use camelCase names that match exactly the Ballerina configurable identifier. The name is written as-is to Config.toml.
 
 SECURITY:
 - You NEVER see actual configuration values
-- Tool returns only status: { API_KEY: "filled" }
+- Tool returns only status: { dbPassword: "filled" }
 - NEVER hardcode configuration values in code`,
         inputSchema: ConfigCollectorSchema,
         execute: async (input) => {
@@ -243,26 +216,6 @@ export async function ConfigCollectorTool(
 
     try {
         switch (input.mode) {
-            case "create":
-                return await handleCreateMode(
-                    input.variables,
-                    paths,
-                    eventHandler,
-                    requestId,
-                    input.isTestConfig,
-                    modifiedFiles
-                );
-
-            case "create_and_collect":
-                return await handleCreateAndCollectMode(
-                    input.variables,
-                    paths,
-                    eventHandler,
-                    requestId,
-                    input.isTestConfig,
-                    modifiedFiles
-                );
-
             case "collect":
                 return await handleCollectMode(
                     input.variables,
@@ -270,7 +223,8 @@ export async function ConfigCollectorTool(
                     eventHandler,
                     requestId,
                     input.isTestConfig,
-                    modifiedFiles
+                    modifiedFiles,
+                    input.packagePath
                 );
 
             case "check":
@@ -278,7 +232,8 @@ export async function ConfigCollectorTool(
                     input.variableNames,
                     input.filePath,
                     paths,
-                    input.isTestConfig
+                    input.isTestConfig,
+                    input.packagePath
                 );
 
             default:
@@ -290,152 +245,35 @@ export async function ConfigCollectorTool(
     }
 }
 
-async function handleCreateMode(
-    variables: ConfigVariable[],
-    paths: ConfigCollectorPaths,
-    eventHandler: CopilotEventHandler,
-    requestId: string,
-    isTestConfig?: boolean,
-    modifiedFiles?: string[]
-): Promise<ConfigCollectorResult> {
-    // Validate variable names
-    const validationError = validateConfigVariables(variables);
-    if (validationError) { return validationError; }
-
-    const configPath = getConfigPath(paths.tempPath, isTestConfig);
-    const configFileName = getConfigFileName(isTestConfig);
-
-    // If file already exists, delegate to check mode to inform the agent of current status
-    if (fs.existsSync(configPath)) {
-        console.log(`[ConfigCollector] CREATE mode - ${configFileName} already exists, delegating to check mode`);
-        const variableNames = variables.map((v) => v.name);
-        const checkResult = await handleCheckMode(variableNames, undefined, paths, isTestConfig);
-        return {
-            ...checkResult,
-            message: `${configFileName} already exists. ${checkResult.message}. Use collect mode to update values.`,
-        };
-    }
-
-    console.log(`[ConfigCollector] CREATE mode - Creating ${configFileName} with placeholders`);
-
-    eventHandler({
-        type: "configuration_collection_event",
-        requestId,
-        stage: "creating_file",
-        message: isTestConfig
-            ? "Creating configuration file for tests..."
-            : "Creating configuration file...",
-        isTestConfig,
-    });
-
-    createConfigWithPlaceholders(configPath, variables, false);
-
-    if (modifiedFiles && !modifiedFiles.includes(configFileName)) {
-        modifiedFiles.push(configFileName);
-    }
-
-    eventHandler({
-        type: "configuration_collection_event",
-        requestId,
-        stage: "done",
-        message: isTestConfig
-            ? "Configuration file for tests created"
-            : "Configuration file created",
-        isTestConfig,
-    });
-
-    return {
-        success: true,
-        message: `Created ${configFileName} with ${variables.length} placeholder variable(s). Use collect mode to request configuration values from user.`,
-    };
-}
-
-async function handleCreateAndCollectMode(
-    variables: ConfigVariable[],
-    paths: ConfigCollectorPaths,
-    eventHandler: CopilotEventHandler,
-    requestId: string,
-    isTestConfig?: boolean,
-    modifiedFiles?: string[]
-): Promise<ConfigCollectorResult> {
-    const configPath = getConfigPath(paths.tempPath, isTestConfig);
-
-    // If file already exists, skip create and go straight to collect
-    if (!fs.existsSync(configPath)) {
-        const createResult = await handleCreateMode(
-            variables,
-            paths,
-            eventHandler,
-            requestId,
-            isTestConfig,
-            modifiedFiles
-        );
-        if (!createResult.success) {
-            return createResult;
-        }
-    }
-
-    return await handleCollectMode(
-        variables,
-        paths,
-        eventHandler,
-        requestId,
-        isTestConfig,
-        modifiedFiles
-    );
-}
-
 async function handleCollectMode(
     variables: ConfigVariable[],
     paths: ConfigCollectorPaths,
     eventHandler: CopilotEventHandler,
     requestId: string,
     isTestConfig?: boolean,
-    modifiedFiles?: string[]
+    modifiedFiles?: string[],
+    packagePath?: string
 ): Promise<ConfigCollectorResult> {
     // Validate variable names
     const validationError = validateConfigVariables(variables);
     if (validationError) { return validationError; }
 
+    // Resolve and validate the package base path. For workspace projects, the
+    // agent must pass packagePath so Config.toml lands inside the target
+    // package rather than the workspace root. The helper rejects directory
+    // traversal attempts and missing-but-required values.
+    const packageBasePath = resolvePackageBasePath(paths.tempPath, packagePath);
+
     // Determine paths based on isTestConfig flag
-    const configPath = getConfigPath(paths.tempPath, isTestConfig);
+    const configPath = getConfigPath(packageBasePath, isTestConfig);
 
     // Priority: tests/Config.toml → Config.toml → empty
-    const mainConfigPath = path.join(paths.tempPath, "Config.toml");
+    const mainConfigPath = path.join(packageBasePath, "Config.toml");
     const sourceConfigPath = isTestConfig
         ? (fs.existsSync(configPath) ? configPath : mainConfigPath)
         : configPath;
 
-    // Capture whether the test config already existed
-    const testConfigPreExisted = isTestConfig && fs.existsSync(configPath);
-
-    // Create config file if it doesn't exist
-    if (!fs.existsSync(configPath)) {
-        console.log(`[ConfigCollector] Creating ${getConfigFileName(isTestConfig)}`);
-
-        // Emit creating_file stage
-        eventHandler({
-            type: "configuration_collection_event",
-            requestId,
-            stage: "creating_file",
-            message: isTestConfig
-                ? "Setting up tests/Config.toml..."
-                : "Setting up Config.toml...",
-            isTestConfig,
-        });
-
-        createConfigWithPlaceholders(configPath, variables, false);
-
-        // Track modified file
-        if (modifiedFiles) {
-            const configFileName = getConfigFileName(isTestConfig);
-            if (!modifiedFiles.includes(configFileName)) {
-                modifiedFiles.push(configFileName);
-            }
-        }
-    }
-
-    // Read existing configuration values from source config (if they exist)
+    // Read existing configuration values from source config (if they exist) for pre-populating the form
     const existingValues = readExistingConfigValues(
         sourceConfigPath,
         variables.map(v => v.name)
@@ -452,9 +290,7 @@ async function handleCollectMode(
     // Determine the message to show to user
     const userMessage = isTestConfig
         ? (analysis.hasActualValues
-            ? (testConfigPreExisted
-                ? "Found existing test values. You can update them."
-                : "Found values from main config. You can reuse or update them for testing.")
+            ? "Found values from main config. You can reuse or update them for testing."
             : "Test configuration values needed")
         : (analysis.hasActualValues
             ? "Update configuration values"
@@ -472,8 +308,6 @@ async function handleCollectMode(
     );
 
     if (!userResponse.provided) {
-        // User cancelled
-        const configFileName = getConfigFileName(isTestConfig);
         eventHandler({
             type: "configuration_collection_event",
             requestId,
@@ -484,8 +318,8 @@ async function handleCollectMode(
 
         return {
             success: false,
-            message: `User cancelled configuration collection${userResponse.comment ? ": " + userResponse.comment : ""}. ${configFileName} has placeholder values. You can ask user to provide values later using collect mode.`,
-            error: `User cancelled${userResponse.comment ? ": " + userResponse.comment : ""}`,
+            message: `User skipped configuration collection${userResponse.comment ? ": " + userResponse.comment : ""}. You can ask user to provide values later using collect mode.`,
+            error: `User skipped${userResponse.comment ? ": " + userResponse.comment : ""}`,
             errorCode: "USER_CANCELLED",
         };
     }
@@ -493,11 +327,15 @@ async function handleCollectMode(
     // Write actual configuration values to determined config path
     writeConfigValuesToConfig(configPath, userResponse.configValues!, variables);
 
-    // Track modified file for syncing to workspace
+    // Track modified file for syncing to workspace.
+    // Path is relative to tempProjectPath, so prefix with packagePath for workspace projects.
     if (modifiedFiles) {
         const configFileName = getConfigFileName(isTestConfig);
-        if (!modifiedFiles.includes(configFileName)) {
-            modifiedFiles.push(configFileName);
+        const relativeConfigPath = packagePath
+            ? path.join(packagePath, configFileName)
+            : configFileName;
+        if (!modifiedFiles.includes(relativeConfigPath)) {
+            modifiedFiles.push(relativeConfigPath);
         }
     }
 
@@ -530,22 +368,29 @@ async function handleCheckMode(
     variableNames: string[],
     filePath: string | undefined,
     paths: ConfigCollectorPaths,
-    isTestConfig?: boolean
+    isTestConfig?: boolean,
+    packagePath?: string
 ): Promise<ConfigCollectorResult> {
+    // Resolve and validate the package base path. For workspace projects the
+    // agent must pass packagePath to inspect a specific package's Config.toml.
+    const packageBasePath = resolvePackageBasePath(paths.tempPath, packagePath);
+
     let configPath: string;
     let configFileName: string;
     if (filePath) {
-        configPath = path.join(paths.tempPath, filePath);
+        // filePath is also untrusted agent input — validate containment so
+        // it cannot escape the package directory via `..` segments.
+        configPath = resolveContained(packageBasePath, filePath);
         configFileName = path.basename(filePath);
     } else {
-        configPath = getConfigPath(paths.tempPath, isTestConfig);
+        configPath = getConfigPath(packageBasePath, isTestConfig);
         configFileName = getConfigFileName(isTestConfig);
     }
 
     if (!fs.existsSync(configPath)) {
         return {
             success: false,
-            message: `${configFileName} not found. Use create or collect mode to create it.`,
+            message: `${configFileName} not found. Use collect mode to create it.`,
             error: "FILE_NOT_FOUND",
             errorCode: "FILE_NOT_FOUND",
         };

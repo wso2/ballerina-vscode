@@ -598,7 +598,8 @@ export const buildCompletionSource = (getCompletions: () => Promise<CompletionIt
                 label: item.label,
                 type: item.kind || "variable",
                 detail: item.description,
-                apply: item.value,
+                // Manipulating the value to handle the LSP snippet completions
+                apply: item.value.replace(/\$\{(\d+):([^}]+)\}/g, '$2').replace(/\$[0-9]+/g, '').trim(),
             }))
         };
     };
@@ -881,7 +882,7 @@ export const createTooltipPositioningHandlers = (view: EditorView) => {
     return { mount, destroy };
 };
 
-export const isSelectionOnToken = (from: number, to: number, view: EditorView): ParsedToken => {
+export const isSelectionOnToken = (from: number, to: number, view: EditorView): ParsedToken | undefined => {
     if (!view) return undefined;
     const { tokens, compounds } = view.state.field(tokenField);
 

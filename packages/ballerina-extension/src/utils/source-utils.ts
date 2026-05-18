@@ -28,6 +28,13 @@ import * as path from 'path';
 import { notifyCurrentWebview } from '../RPCLayer';
 import { applyBallerinaTomlEdit } from '../rpc-managers/bi-diagram/utils';
 
+/** True while any migration AI enhancement is actively running. */
+let _migrationEnhancementActive = false;
+/** Called by the migration orchestrator to suppress disruptive UI side-effects during enhancement. */
+export function setMigrationEnhancementActive(active: boolean): void {
+    _migrationEnhancementActive = active;
+}
+
 export interface UpdateSourceCodeRequest {
     textEdits: {
         [key: string]: TextEdit[];
@@ -41,11 +48,14 @@ export interface UpdateSourceCodeRequest {
     skipUpdateViewOnTomlUpdate?: boolean; // This is used to skip updating the view on toml updates in certain scenarios.
 }
 
-export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCodeRequest, isChangeFromHelperPane?: boolean, skipFormatting?: boolean): Promise<ProjectStructureArtifactResponse[]> {
+export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCodeRequest, isChangeFromHelperPane?: boolean): Promise<ProjectStructureArtifactResponse[]> {
+    const skipUndoRedoStack = updateSourceCodeRequest.artifactData?.artifactType === "CONFIGURABLE";
     try {
         let tomlFilesUpdated = false;
         StateMachine.setEditMode();
-        undoRedoManager?.startBatchOperation();
+        if (!skipUndoRedoStack) {
+            undoRedoManager?.startBatchOperation();
+        }
         const modificationRequests: Record<string, { filePath: string; modifications: STModification[] }> = {};
         for (const [key, value] of Object.entries(updateSourceCodeRequest.textEdits)) {
             const fileUri = key.startsWith("file:") ? Uri.parse(key) : Uri.file(key);
@@ -81,7 +91,9 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
             // Get the before content of the file by using the workspace api
             const document = await workspace.openTextDocument(fileUri);
             const beforeContent = document.getText();
-            undoRedoManager?.addFileToBatch(fileUri.fsPath, beforeContent, beforeContent);
+            if (!skipUndoRedoStack) {
+                undoRedoManager?.addFileToBatch(fileUri.fsPath, beforeContent, beforeContent);
+            }
 
             if (edits && edits.length > 0) {
                 const modificationList: STModification[] = [];
@@ -108,9 +120,21 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                 }
             }
             if (edits.length === 0) {
+                if (!skipUndoRedoStack) {
+                    undoRedoManager?.cancelBatchOperation();
+                }
                 StateMachine.setReadyMode();
                 return [];
             }
+        }
+
+        // If modificationRequests is empty, return empty array
+        if (Object.keys(modificationRequests).length === 0) {
+            if (!skipUndoRedoStack) {
+                undoRedoManager?.cancelBatchOperation();
+            }
+            StateMachine.setReadyMode();
+            return [];
         }
 
         // Iterate through modificationRequests and apply modifications
@@ -131,8 +155,29 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                     );
                 }
             }
+            // Set up a listener to consume the LS notification triggered by the raw edit,
+            // so the final subscriber only sees the notification from the formatted edit.
+            // Capture IDs of newly added artifacts so we can re-apply isNew on the formatted edit notification.
+            const handler = ArtifactNotificationHandler.getInstance();
+            let newArtifactIds: Set<string> | undefined;
+            const rawEditNotification = new Promise<void>((resolve) => {
+                let timeoutId: ReturnType<typeof setTimeout>;
+                const unsub = handler.subscribe(
+                    ArtifactsUpdated.method, updateSourceCodeRequest.artifactData,
+                    (payload) => {
+                        newArtifactIds = new Set(
+                            payload.data.filter(a => a.isNew).map(a => a.id)
+                        );
+                        clearTimeout(timeoutId); unsub(); resolve();
+                    }
+                );
+                timeoutId = setTimeout(() => { unsub(); resolve(); }, 10000);
+            });
+
             // Apply all changes at once
             await workspace.applyEdit(workspaceEdit);
+
+            await rawEditNotification;
 
             // <-------- Format the document after applying all changes using the native formatting API-------->
             const formattedWorkspaceEdit = new vscode.WorkspaceEdit();
@@ -155,16 +200,17 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                         ),
                         formattedSource.newText
                     );
-                    undoRedoManager?.addFileToBatch(fileUri.fsPath, formattedSource.newText, formattedSource.newText);
+                    if (!skipUndoRedoStack) {
+                        undoRedoManager?.addFileToBatch(fileUri.fsPath, formattedSource.newText, formattedSource.newText);
+                    }
                 }
             }
 
-            undoRedoManager?.commitBatchOperation(updateSourceCodeRequest.description ? updateSourceCodeRequest.description : (updateSourceCodeRequest.artifactData ? `Change in ${updateSourceCodeRequest.artifactData?.artifactType} ${updateSourceCodeRequest.artifactData?.identifier}` : "Update Source Code"));
-
-            if (!skipFormatting) { //TODO: Remove the skipFormatting flag once LS APIs are updated to give already formatted text edits
-                // Apply all formatted changes at once
-                await workspace.applyEdit(formattedWorkspaceEdit);
+            if (!skipUndoRedoStack) {
+                undoRedoManager?.commitBatchOperation(updateSourceCodeRequest.description ? updateSourceCodeRequest.description : (updateSourceCodeRequest.artifactData ? `Change in ${updateSourceCodeRequest.artifactData?.artifactType} ${updateSourceCodeRequest.artifactData?.identifier}` : "Update Source Code"));
             }
+
+            await workspace.applyEdit(formattedWorkspaceEdit);
 
             // Handle missing dependencies after all changes are applied
             if (updateSourceCodeRequest.resolveMissingDependencies) {
@@ -187,6 +233,13 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                 let unsubscribe = notificationHandler.subscribe(ArtifactsUpdated.method, updateSourceCodeRequest.artifactData, async (payload) => {
                     if ((payload.data && payload.data.length > 0) || updateSourceCodeRequest.skipPayloadCheck) {
                         console.log("Received notification:", payload);
+                        if (newArtifactIds?.size) {
+                            payload.data.forEach(entry => {
+                                if (newArtifactIds.has(entry.id)) {
+                                    entry.isNew = true;
+                                }
+                            });
+                        }
                         clearTimeout(timeoutId);
                         resolve(payload.data);
                         StateMachine.setReadyMode();
@@ -200,7 +253,11 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                     console.log("No artifact update notification received within 10 seconds");
                     unsubscribe();
                     StateMachine.setReadyMode();
-                    openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
+                    // Don't navigate away while migration enhancement is running — it would
+                    // disrupt the agent pipeline and cause repeated "no project found" errors.
+                    if (!_migrationEnhancementActive) {
+                        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
+                    }
                     reject(new Error("Operation timed out. Please try again."));
                 }, 10000);
 
@@ -218,7 +275,9 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
         }
     } catch (error) {
         StateMachine.setReadyMode();
-        undoRedoManager?.cancelBatchOperation();
+        if (!skipUndoRedoStack) {
+            undoRedoManager?.cancelBatchOperation();
+        }
         console.log(">>> error updating source", error);
         throw error;
     }

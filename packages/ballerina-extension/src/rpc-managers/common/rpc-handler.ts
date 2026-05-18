@@ -19,30 +19,43 @@
  */
 import {
     BallerinaDiagnosticsRequest,
+    ClearWebviewCache,
     CommandsRequest,
+    FileOrDirRequest,
+    GoToSourceRequest,
+    OpenExternalUrlRequest,
+    RestoreWebviewCache,
+    RunExternalCommandRequest,
+    SetWebviewCache,
+    SetWebviewCacheRequestParam,
+    ShowErrorMessageRequest,
+    showInformationModal,
+    WorkspaceFileRequest,
     downloadSelectedSampleFromGithub,
     executeCommand,
     experimentalEnabled,
-    FileOrDirRequest,
     getBallerinaDiagnostics,
     getCurrentProjectTomlValues,
+    getDefaultOrgName,
+    getPreferredTryItOption,
     getTypeCompletions,
     getWorkspaceFiles,
     getWorkspaceRoot,
     getWorkspaceType,
     goToSource,
-    GoToSourceRequest,
+    hasCentralPATConfigured,
     isNPSupported,
     openExternalUrl,
-    OpenExternalUrlRequest,
+    publishToCentral,
     runBackgroundTerminalCommand,
-    RunExternalCommandRequest,
     SampleDownloadRequest,
     selectFileOrDirPath,
     selectFileOrFolderPath,
+    setPreferredTryItOption,
     showErrorMessage,
-    ShowErrorMessageRequest,
-    WorkspaceFileRequest
+    ShowInfoModalRequest,
+    showQuickPick,
+    ShowQuickPickRequest
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { CommonRpcManager } from "./rpc-manager";
@@ -62,7 +75,17 @@ export function registerCommonRpcHandlers(messenger: Messenger) {
     messenger.onRequest(isNPSupported, () => rpcManger.isNPSupported());
     messenger.onRequest(getWorkspaceRoot, () => rpcManger.getWorkspaceRoot());
     messenger.onNotification(showErrorMessage, (args: ShowErrorMessageRequest) => rpcManger.showErrorMessage(args));
+    messenger.onRequest(showInformationModal, (params: ShowInfoModalRequest) => rpcManger.showInformationModal(params));
+    messenger.onRequest(showQuickPick, (params: ShowQuickPickRequest) => rpcManger.showQuickPick(params));
     messenger.onRequest(getCurrentProjectTomlValues, () => rpcManger.getCurrentProjectTomlValues());
     messenger.onRequest(getWorkspaceType, () => rpcManger.getWorkspaceType());
+    messenger.onRequest(SetWebviewCache, (params: SetWebviewCacheRequestParam) => rpcManger.setWebviewCache(params));
+    messenger.onRequest(RestoreWebviewCache, (params: string) => rpcManger.restoreWebviewCache(params));
+    messenger.onRequest(ClearWebviewCache, (params: string) => rpcManger.clearWebviewCache(params));
     messenger.onRequest(downloadSelectedSampleFromGithub, (args: SampleDownloadRequest) => rpcManger.downloadSelectedSampleFromGithub(args));
+    messenger.onRequest(getDefaultOrgName, () => rpcManger.getDefaultOrgName());
+    messenger.onRequest(publishToCentral, () => rpcManger.publishToCentral());
+    messenger.onRequest(hasCentralPATConfigured, () => rpcManger.hasCentralPATConfigured());
+    messenger.onRequest(getPreferredTryItOption, () => rpcManger.getPreferredTryItOption());
+    messenger.onRequest(setPreferredTryItOption, (option: string) => rpcManger.setPreferredTryItOption(option));
 }

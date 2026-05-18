@@ -39,13 +39,14 @@ import {
 import { isNumber } from 'lodash';
 import { HttpStatusCode } from 'axios';
 import { AIMachineEventType, BallerinaProject, BIIntelSecrets, LoginMethod } from '@wso2/ballerina-core';
-import { isBallerinaProjectAsync, OLD_BACKEND_URL } from '../ai/utils';
+import { BACKEND_URL, isBallerinaProjectAsync } from '../ai/utils';
 import { getCurrentBallerinaProjectFromContext } from '../config-generator/configGenerator';
 import { BallerinaExtension } from 'src/core';
-import { getAccessToken as getAccesstokenFromUtils, getLoginMethod, getRefreshedAccessToken, REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE, TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL } from '../../utils/ai/auth';
+import { getAccessToken as getAccesstokenFromUtils, getLoginMethod, getRefreshedAccessToken, TOKEN_NOT_AVAILABLE_ERROR_MESSAGE, TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL } from '../../utils/ai/auth';
 import { AIStateMachine } from '../../views/ai-panel/aiMachine';
 import { performApiDocsDriftCheck, performDocumentationDriftCheck } from './drift-check';
 import { ApiDocsDriftResponse, DocumentationDriftResponse } from './drift-check/schemas';
+import { LLM_API_BASE_PATH } from '../ai/constants';
 
 export async function getLLMDiagnostics(projectPath: string, diagnosticCollection
     : vscode.DiagnosticCollection): Promise<number | null> {
@@ -463,12 +464,6 @@ export function getPluginConfig(): BallerinaPluginConfig {
     return vscode.workspace.getConfiguration('ballerina');
 }
 
-export async function getBackendURL(): Promise<string> {
-    return new Promise(async (resolve) => {
-        resolve(OLD_BACKEND_URL);
-    });
-}
-
 export async function getAccessToken(): Promise<string> {
     return new Promise(async (resolve) => {
         let token: string;
@@ -586,7 +581,7 @@ export async function getTokenForNaturalFunction() {
         }
         return token;
     } catch (error) {
-        if ((error as Error).message === REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE || (error as Error).message === TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL) {
+        if ((error as Error).message === TOKEN_NOT_AVAILABLE_ERROR_MESSAGE || (error as Error).message === TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL) {
             vscode.window.showWarningMessage(LOGIN_REQUIRED_WARNING);
         }
         throw error;
@@ -675,8 +670,8 @@ export async function addConfigFile(configPath: string, isNaturalFunctionsAvaila
                     AIStateMachine.service().send(AIMachineEventType.LOGOUT);
                     return;
                 }
-
-                addDefaultModelConfigForNaturalFunctions(configPath, token, await getBackendURL(), isNaturalFunctionsAvailableInBallerinaOrg);
+                const openAiEpUrl = BACKEND_URL + LLM_API_BASE_PATH + "/openai";
+                addDefaultModelConfigForNaturalFunctions(configPath, token, openAiEpUrl, isNaturalFunctionsAvailableInBallerinaOrg);
             } catch (error) {
                 AIStateMachine.service().send(AIMachineEventType.LOGOUT);
                 return;

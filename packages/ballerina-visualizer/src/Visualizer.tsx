@@ -16,17 +16,32 @@
  * under the License.
  */
 
-import React, { useEffect } from "react";
+import React, { Suspense, useEffect } from "react";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { AIMachineStateValue, MachineStateValue } from "@wso2/ballerina-core";
-import MainPanel from "./MainPanel";
 import styled from '@emotion/styled';
-import AIPanel from "./views/AIPanel/AIPanel";
-import { AgentChat } from "./views/AgentChatPanel/AgentChat";
+
 import { VSCodeProgressRing } from "@vscode/webview-ui-toolkit/react";
 import { Global, css } from '@emotion/react';
 import { DownloadIcon } from "./components/DownloadIcon";
+import { WebviewErrorBoundary } from "./components/WebviewErrorBoundary";
 import { ThemeColors } from "@wso2/ui-toolkit";
+import { LoadingRing } from "./components/Loader";
+
+const MainPanel = React.lazy(() => import("./MainPanel"));
+const AIPanel = React.lazy(() => import("./views/AIPanel/AIPanel"));
+const AgentChat = React.lazy(() =>
+    import("./views/AgentChatPanel/AgentChat").then((module) => ({ default: module.AgentChat }))
+);
+const EvaluationHistory = React.lazy(() =>
+    import("./views/EvaluationHistory/EvaluationHistory").then((module) => ({ default: module.EvaluationHistory }))
+);
+const EvaluationReport = React.lazy(() =>
+    import("./views/EvaluationReport/EvaluationReport").then((module) => ({ default: module.EvaluationReport }))
+);
+const MigrationPanel = React.lazy(() =>
+    import("./views/MigrationPanel/MigrationPanel").then((module) => ({ default: module.MigrationPanel }))
+);
 
 const ProgressRing = styled(VSCodeProgressRing)`
     height: 36px;
@@ -88,7 +103,10 @@ const MODES = {
     VISUALIZER: "visualizer",
     AI: "ai",
     RUNTIME_SERVICES: "runtime-services",
-    AGENT_CHAT: "agent-chat"
+    AGENT_CHAT: "agent-chat",
+    MIGRATION: "migration",
+    EVALUATION_HISTORY: "evaluation-history",
+    EVALUATION_REPORT: "evaluation-report",
 };
 
 export function Visualizer({ mode }: { mode: string }) {
@@ -115,18 +133,34 @@ export function Visualizer({ mode }: { mode: string }) {
     }, []);
 
     return (
-        <>
-            {(() => {
-                switch (mode) {
-                    case MODES.VISUALIZER:
-                        return <VisualizerComponent state={state} />
-                    case MODES.AI:
-                        return <AIPanel state={aiState} />
-                    case MODES.AGENT_CHAT:
-                        return <AgentChat />
-                }
-            })()}
-        </>
+        <WebviewErrorBoundary
+            title="Unable to load the visualizer"
+            message="A required webview chunk failed to load. Retry to reload the webview."
+            onRetry={() => window.location.reload()}
+        >
+            <Suspense fallback={<LanguageServerLoadingView />}>
+                {(() => {
+                    switch (mode) {
+                        case MODES.VISUALIZER:
+                            return <VisualizerComponent state={state} />
+                        case MODES.RUNTIME_SERVICES:
+                            return <MainPanel />
+                        case MODES.AI:
+                            return <Suspense fallback={<LoadingRing />}><AIPanel state={aiState} /></Suspense>
+                        case MODES.AGENT_CHAT:
+                            return <AgentChat />
+                        case MODES.MIGRATION:
+                            return <MigrationPanel />
+                        case MODES.EVALUATION_HISTORY:
+                            return <EvaluationHistory />
+                        case MODES.EVALUATION_REPORT:
+                            return <EvaluationReport />
+                        default:
+                            return <MainPanel />
+                    }
+                })()}
+            </Suspense>
+        </WebviewErrorBoundary>
     );
 };
 
@@ -135,7 +169,7 @@ const VisualizerComponent = React.memo(({ state }: { state: MachineStateValue })
         case typeof state === 'object' && 'viewActive' in state && state.viewActive === "viewReady":
             return <MainPanel />;
         case typeof state === 'object' && 'viewActive' in state && state.viewActive === "resolveMissingDependencies":
-            return <PullingDependenciesView />; 
+            return <PullingDependenciesView />;
         default:
             return <LanguageServerLoadingView />;
     }

@@ -22,6 +22,6 @@ export type { CollapsibleSectionProps } from "./CollapsibleSection";
 export { ProjectTypeSelector } from "./ProjectTypeSelector";
 export type { ProjectTypeSelectorProps, ProjectTypeOption } from "./ProjectTypeSelector";
 
-export { PackageInfoSection } from "./PackageInfoSection";
-export type { PackageInfoSectionProps, PackageInfoData } from "./PackageInfoSection";
+export { AdvancedConfigurationSection } from "./AdvancedConfigurationSection";
+export type { AdvancedConfigurationSectionProps, ConfigurationData } from "./AdvancedConfigurationSection";
 

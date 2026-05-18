@@ -26,7 +26,7 @@ import { EVENT_TYPE } from "@wso2/ballerina-core";
 import { TitleBar } from "../../../components/TitleBar";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { FormHeader } from "../../../components/FormHeader";
-import FormGeneratorNew from "../Forms/FormGeneratorNew";
+import ArtifactForm from "../Forms/ArtifactForm";
 import { getImportsForProperty } from "../../../utils/bi";
 import { CardSelector } from "./CardSelector";
 
@@ -38,7 +38,6 @@ const FormContainer = styled.div`
 
     .side-panel-body {
         overflow: visible;
-        overflow-y: hidden;
     }
 
     .radio-button-group {
@@ -113,6 +112,8 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
     const [dataProviderMode, setDataProviderMode] = useState<string>('evalSet');
     const [evalsetOptions, setEvalsetOptions] = useState<Array<{ value: string; content: string }>>([]);
+    const [isSaving, setIsSaving] = useState<boolean>(false);
+    const [selectedEvalsetFile, setSelectedEvalsetFile] = useState<string>('');
 
     // Helper function to apply field visibility rules based on data provider mode
     const applyFieldVisibility = (fields: FormField[], mode: string): FormField[] => {
@@ -124,7 +125,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                 return { ...field, hidden: mode !== 'evalSet' };
             }
             if (field.key === 'runs') {
-                return { ...field, hidden: mode === 'evalSet' };
+                return { ...field };
             }
             return field;
         });
@@ -134,6 +135,9 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
         if (fieldKey === 'dataProviderMode') {
             setDataProviderMode(value);
             updateFieldVisibility(value);
+        }
+        if (fieldKey === 'evalSetFile') {
+            setSelectedEvalsetFile(value || '');
         }
     };
 
@@ -212,6 +216,10 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
         const mode = String(modeField?.value || 'evalSet');
         setDataProviderMode(mode);
 
+        // Initialize evalset file selection from loaded data
+        const evalSetFileField = formFields.find(f => f.key === 'evalSetFile');
+        setSelectedEvalsetFile(String(evalSetFileField?.value || ''));
+
         // Set initial field visibility
         formFields = applyFieldVisibility(formFields, mode);
 
@@ -219,6 +227,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
     }
 
     const loadEmptyForm = async () => {
+        setSelectedEvalsetFile('');
         const emptyTestFunction = getEmptyTestFunctionModel();
         setTestFunction(emptyTestFunction);
         let formFields = generateFormFields(emptyTestFunction);
@@ -235,7 +244,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
     }
 
     const onFormSubmit = async (data: FormValues, formImports: FormImports) => {
-        // Include the dataProviderMode from CardSelector state
+        setIsSaving(true);
         const formData = {
             ...data,
             dataProviderMode: dataProviderMode
@@ -246,16 +255,22 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
         } else {
             await rpcClient.getTestManagerRpcClient().addTestFunction({ function: updatedTestFunction, filePath });
         }
-        const res = await rpcClient.getTestManagerRpcClient().getTestFunction(
-            { functionName: updatedTestFunction.functionName.value, filePath });
-        const nodePosition = {
-            startLine: res.function.codedata.lineRange.startLine.line,
-            startColumn: res.function.codedata.lineRange.startLine.offset,
-            endLine: res.function.codedata.lineRange.endLine.line,
-            endColumn: res.function.codedata.lineRange.endLine.offset
-        };
-        rpcClient.getVisualizerRpcClient().openView(
-            { type: EVENT_TYPE.OPEN_VIEW, location: { position: nodePosition, documentUri: filePath } })
+        try {
+            const res = await rpcClient.getTestManagerRpcClient().getTestFunction(
+                { functionName: updatedTestFunction.functionName.value, filePath });
+            const nodePosition = {
+                startLine: res.function.codedata.lineRange.startLine.line,
+                startColumn: res.function.codedata.lineRange.startLine.offset,
+                endLine: res.function.codedata.lineRange.endLine.line,
+                endColumn: res.function.codedata.lineRange.endLine.offset
+            };
+            rpcClient.getVisualizerRpcClient().openView(
+                { type: EVENT_TYPE.OPEN_VIEW, location: { position: nodePosition, documentUri: filePath } })
+        }
+        catch (error) {
+            console.error('Failed to open function in diagram:', error);
+            setIsSaving(false);
+        }
     };
 
     // Helper function to modify and set the visual information
@@ -308,6 +323,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                     fields.push({
                         ...generatedField,
                         type: 'SLIDER',
+                        types: [{ fieldType: 'SLIDER', selected: false }],
                         sliderProps: {
                             min: 0,
                             max: 100,
@@ -324,6 +340,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                     fields.push({
                         ...generateFieldFromProperty('evalSetFile', evalSetFileField),
                         type: 'SINGLE_SELECT',
+                        types: [{ fieldType: 'SINGLE_SELECT', selected: false }],
                         itemOptions: evalsetOptions
                     });
                 }
@@ -814,13 +831,15 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                     <FormContainer>
 
                         {targetLineRange && (
-                            <FormGeneratorNew
+                            <ArtifactForm
                                 fileName={filePath}
                                 fields={formFields}
                                 targetLineRange={targetLineRange}
                                 onSubmit={onFormSubmit}
                                 preserveFieldOrder={true}
                                 onChange={handleFieldChange}
+                                isSaving={isSaving}
+                                disableSaveButton={dataProviderMode === 'evalSet' && !selectedEvalsetFile}
                                 injectedComponents={[
                                     {
                                         component: <CardSelector

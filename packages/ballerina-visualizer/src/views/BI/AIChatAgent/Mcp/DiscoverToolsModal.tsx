@@ -19,8 +19,9 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
 import styled from "@emotion/styled";
-import { Button, ThemeColors, SearchBox, Codicon, Divider, Typography, TextField, Stepper, Dropdown } from "@wso2/ui-toolkit";
+import { Button, ThemeColors, SearchBox, Codicon, Divider, Typography, TextField, Stepper, Dropdown, CheckBox, DirectorySelector, LinkButton } from "@wso2/ui-toolkit";
 import type { OptionProps } from "@wso2/ui-toolkit";
+import type { SecureSocketConfig } from "@wso2/ballerina-core";
 import type { BallerinaRpcClient } from "@wso2/ballerina-rpc-client";
 import {
     ToolsList,
@@ -68,6 +69,62 @@ const ButtonContainer = styled.div`
     gap: 8px;
 `;
 
+const AdvancedRow = styled.div`
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+`;
+
+const AdvancedToggleContainer = styled.div`
+    display: flex;
+    flex-direction: row;
+    flex-grow: 1;
+    justify-content: flex-end;
+`;
+
+const AdvancedContent = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 4px 0;
+`;
+
+const FieldGroup = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 4px;
+`;
+
+const FieldGroupLabel = styled(Typography)`
+    font-weight: 600;
+    margin: 0;
+`;
+
+const PasswordFieldWrapper = styled.div`
+    position: relative;
+`;
+
+const PasswordToggle = styled.button`
+    position: absolute;
+    right: 8px;
+    bottom: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    opacity: 0.7;
+    background: none;
+    border: none;
+    padding: 2px;
+    color: inherit;
+    &:hover,
+    &:focus-visible {
+        opacity: 1;
+    }
+`;
+
 const BackArrow = styled.div`
     cursor: pointer;
     display: flex;
@@ -106,12 +163,23 @@ export const DiscoverToolsModal: React.FC<DiscoverToolsModalProps> = ({
     const [manualServerUrl, setManualServerUrl] = useState("");
     const [authType, setAuthType] = useState<"none" | "bearer">("none");
     const [authToken, setAuthToken] = useState("");
+    const [showAuthToken, setShowAuthToken] = useState(false);
     const [discoveredTools, setDiscoveredTools] = useState<McpTool[]>([]);
     const [selectedDiscoveredTools, setSelectedDiscoveredTools] = useState<Set<string>>(new Set());
     const [loadingDiscovery, setLoadingDiscovery] = useState(false);
     const [discoveryError, setDiscoveryError] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
     const [urlError, setUrlError] = useState("");
+
+    // Advanced SSL configuration
+    const [showAdvanced, setShowAdvanced] = useState(false);
+    const [insecure, setInsecure] = useState(false);
+    const [certPath, setCertPath] = useState("");
+    const [certPassword, setCertPassword] = useState("");
+    const [keyPath, setKeyPath] = useState("");
+    const [keyPassword, setKeyPassword] = useState("");
+    const [showCertPassword, setShowCertPassword] = useState(false);
+    const [showKeyPassword, setShowKeyPassword] = useState(false);
 
     const formattedError = useMemo(() => formatErrorMessage(discoveryError), [discoveryError]);
 
@@ -146,10 +214,25 @@ export const DiscoverToolsModal: React.FC<DiscoverToolsModalProps> = ({
                 ? authToken.trim()
                 : "";
 
+            // Build secure socket config if any SSL fields are set
+            let secureSocket: SecureSocketConfig | undefined;
+            if (insecure || certPath.trim() || keyPath.trim()) {
+                secureSocket = {
+                    insecure,
+                    ...(certPath.trim() && {
+                        cert: { path: certPath.trim(), password: certPassword || undefined }
+                    }),
+                    ...(keyPath.trim() && {
+                        key: { path: keyPath.trim(), password: keyPassword || undefined }
+                    }),
+                };
+            }
+
             // Fetch tools from MCP server
             const response = await rpcClient.getAIAgentRpcClient().getMcpTools({
                 serviceUrl: cleanUrl,
-                accessToken
+                accessToken,
+                secureSocket
             });
 
             if (response.errorMsg) {
@@ -180,7 +263,7 @@ export const DiscoverToolsModal: React.FC<DiscoverToolsModalProps> = ({
         } finally {
             setLoadingDiscovery(false);
         }
-    }, [manualServerUrl, authToken, authType, rpcClient, existingToolNames]);
+    }, [manualServerUrl, authToken, authType, rpcClient, existingToolNames, insecure, certPath, certPassword, keyPath, keyPassword]);
 
     const handleToolSelectionChange = useCallback((toolName: string, isSelected: boolean) => {
         setSelectedDiscoveredTools(prev => {
@@ -221,11 +304,20 @@ export const DiscoverToolsModal: React.FC<DiscoverToolsModalProps> = ({
         setManualServerUrl("");
         setAuthType("none");
         setAuthToken("");
+        setShowAuthToken(false);
         setDiscoveredTools([]);
         setSelectedDiscoveredTools(new Set());
         setDiscoveryError("");
         setSearchQuery("");
         setUrlError("");
+        setShowAdvanced(false);
+        setInsecure(false);
+        setCertPath("");
+        setCertPassword("");
+        setKeyPath("");
+        setKeyPassword("");
+        setShowCertPassword(false);
+        setShowKeyPassword(false);
     }, [discoveredTools, selectedDiscoveredTools, onToolsSelected]);
 
     const handleClose = useCallback(() => {
@@ -234,11 +326,20 @@ export const DiscoverToolsModal: React.FC<DiscoverToolsModalProps> = ({
         setManualServerUrl("");
         setAuthType("none");
         setAuthToken("");
+        setShowAuthToken(false);
         setDiscoveredTools([]);
         setSelectedDiscoveredTools(new Set());
         setDiscoveryError("");
         setSearchQuery("");
         setUrlError("");
+        setShowAdvanced(false);
+        setInsecure(false);
+        setCertPath("");
+        setCertPassword("");
+        setKeyPath("");
+        setKeyPassword("");
+        setShowCertPassword(false);
+        setShowKeyPassword(false);
         onClose();
     }, [onClose]);
 
@@ -301,6 +402,7 @@ export const DiscoverToolsModal: React.FC<DiscoverToolsModalProps> = ({
                                         setAuthType(newAuthType);
                                         if (newAuthType === "none") {
                                             setAuthToken("");
+                                            setShowAuthToken(false);
                                         }
                                     }}
                                     disabled={loadingDiscovery}
@@ -308,27 +410,141 @@ export const DiscoverToolsModal: React.FC<DiscoverToolsModalProps> = ({
                                 />
 
                                 {authType === "bearer" && (
-                                    <TextField
-                                        label="Token"
-                                        value={authToken}
-                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAuthToken(e.target.value)}
-                                        disabled={loadingDiscovery}
-                                        description="Enter your bearer token for authentication"
-                                        type="password"
-                                    />
+                                    <PasswordFieldWrapper>
+                                        <TextField
+                                            label="Token"
+                                            value={authToken}
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAuthToken(e.target.value)}
+                                            disabled={loadingDiscovery}
+                                            description="Enter your bearer token for authentication"
+                                            type={showAuthToken ? "text" : "password"}
+                                        />
+                                        {authToken && (
+                                            <PasswordToggle
+                                                onClick={() => setShowAuthToken(prev => !prev)}
+                                                aria-label={showAuthToken ? "Hide token" : "Show token"}
+                                                title={showAuthToken ? "Hide token" : "Show token"}
+                                            >
+                                                <Codicon name={showAuthToken ? "eye-closed" : "eye"} />
+                                            </PasswordToggle>
+                                        )}
+                                    </PasswordFieldWrapper>
+                                )}
+
+                                <AdvancedRow>
+                                    <Typography variant="body2">Advanced Configurations</Typography>
+                                    <AdvancedToggleContainer>
+                                        <LinkButton
+                                            onClick={() => setShowAdvanced(prev => !prev)}
+                                            sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
+                                        >
+                                            <Codicon
+                                                name={showAdvanced ? "chevron-up" : "chevron-down"}
+                                                iconSx={{ fontSize: 12 }}
+                                                sx={{ height: 12 }}
+                                            />
+                                            {showAdvanced ? "Collapse" : "Expand"}
+                                        </LinkButton>
+                                    </AdvancedToggleContainer>
+                                </AdvancedRow>
+
+                                {showAdvanced && (
+                                    <AdvancedContent>
+                                        <CheckBox
+                                            label="Allow Insecure Connection"
+                                            checked={insecure}
+                                            onChange={() => setInsecure(prev => !prev)}
+                                            disabled={loadingDiscovery}
+                                        />
+
+                                        <Divider sx={{ margin: '4px 0' }} />
+                                        <FieldGroup>
+                                            <FieldGroupLabel variant="body2">Certificate</FieldGroupLabel>
+                                            <DirectorySelector
+                                                id="ssl-cert-path"
+                                                label="Path"
+                                                placeholder="Enter path or browse to select a certificate file..."
+                                                selectedPath={certPath}
+                                                onChange={(value: string) => { if (!insecure) setCertPath(value); }}
+                                                onSelect={async () => {
+                                                    if (insecure) return;
+                                                    const result = await rpcClient.getCommonRpcClient()
+                                                        .selectFileOrDirPath({
+                                                            isFile: true,
+                                                            filters: { 'Certificates': ['pem', 'crt', 'p12', 'pfx', 'jks'] },
+                                                            allowOutsideProject: true
+                                                        });
+                                                    if (result?.path) setCertPath(result.path);
+                                                }}
+                                                sx={{ opacity: insecure ? 0.5 : 1, pointerEvents: insecure ? 'none' : 'auto' }}
+                                            />
+                                            <PasswordFieldWrapper style={{ opacity: insecure ? 0.5 : 1 }}>
+                                                <TextField
+                                                    label="Password"
+                                                    value={certPassword}
+                                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                                        setCertPassword(e.target.value)}
+                                                    disabled={loadingDiscovery || insecure}
+                                                    type={showCertPassword ? "text" : "password"}
+                                                    description="Required for .p12/.jks files, optional for .pem/.crt"
+                                                />
+                                                {certPassword && (
+                                                    <PasswordToggle
+                                                        onClick={() => setShowCertPassword(prev => !prev)}
+                                                        aria-label={showCertPassword ? "Hide password" : "Show password"}
+                                                        title={showCertPassword ? "Hide password" : "Show password"}
+                                                    >
+                                                        <Codicon name={showCertPassword ? "eye-closed" : "eye"} />
+                                                    </PasswordToggle>
+                                                )}
+                                            </PasswordFieldWrapper>
+                                        </FieldGroup>
+
+                                        <Divider sx={{ margin: '4px 0' }} />
+                                        <FieldGroup>
+                                            <FieldGroupLabel variant="body2">Key</FieldGroupLabel>
+                                            <DirectorySelector
+                                                id="ssl-key-path"
+                                                label="Path"
+                                                placeholder="Enter path or browse to select a key file..."
+                                                selectedPath={keyPath}
+                                                onChange={(value: string) => { if (!insecure) setKeyPath(value); }}
+                                                onSelect={async () => {
+                                                    if (insecure) return;
+                                                    const result = await rpcClient.getCommonRpcClient()
+                                                        .selectFileOrDirPath({
+                                                            isFile: true,
+                                                            filters: { 'Keystores': ['p12', 'pfx', 'jks'] },
+                                                            allowOutsideProject: true
+                                                        });
+                                                    if (result?.path) setKeyPath(result.path);
+                                                }}
+                                                sx={{ opacity: insecure ? 0.5 : 1, pointerEvents: insecure ? 'none' : 'auto' }}
+                                            />
+                                            <PasswordFieldWrapper style={{ opacity: insecure ? 0.5 : 1 }}>
+                                                <TextField
+                                                    label="Password"
+                                                    value={keyPassword}
+                                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                                        setKeyPassword(e.target.value)}
+                                                    disabled={loadingDiscovery || insecure}
+                                                    type={showKeyPassword ? "text" : "password"}
+                                                    description="Passphrase for the private key or keystore"
+                                                />
+                                                {keyPassword && (
+                                                    <PasswordToggle
+                                                        onClick={() => setShowKeyPassword(prev => !prev)}
+                                                        aria-label={showKeyPassword ? "Hide password" : "Show password"}
+                                                        title={showKeyPassword ? "Hide password" : "Show password"}
+                                                    >
+                                                        <Codicon name={showKeyPassword ? "eye-closed" : "eye"} />
+                                                    </PasswordToggle>
+                                                )}
+                                            </PasswordFieldWrapper>
+                                        </FieldGroup>
+                                    </AdvancedContent>
                                 )}
                             </FormSection>
-
-                            {loadingDiscovery && (
-                                <LoadingMessage padding="12px 0">
-                                    <InlineSpinner />
-                                    Fetching tools from MCP server...
-                                </LoadingMessage>
-                            )}
-
-                            {discoveryError && !loadingDiscovery && (
-                                <ErrorMessage padding="8px 0">{formattedError}</ErrorMessage>
-                            )}
                         </>
                     ) : (
                         <>
@@ -374,6 +590,17 @@ export const DiscoverToolsModal: React.FC<DiscoverToolsModalProps> = ({
                         </>
                     )}
                 </StyledModalContent>
+
+                {currentStep === 1 && loadingDiscovery && (
+                    <LoadingMessage padding="4px 16px">
+                        <InlineSpinner />
+                        Fetching tools from MCP server...
+                    </LoadingMessage>
+                )}
+
+                {currentStep === 1 && discoveryError && !loadingDiscovery && (
+                    <ErrorMessage padding="4px 16px">{formattedError}</ErrorMessage>
+                )}
 
                 <ButtonContainer>
                     {currentStep === 1 ? (

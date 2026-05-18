@@ -75,6 +75,7 @@ export class TraceDetailsWebview {
     private _isAgentChat: boolean = false;
     private _focusSpanId: string | undefined;
     private _sessionId: string | undefined;
+    private _showSidebar: boolean | undefined;
     private _traceUpdateUnsubscribe: (() => void) | undefined;
 
     private constructor() {
@@ -100,6 +101,14 @@ export class TraceDetailsWebview {
                                 data: traceData,
                                 isAgentChat: this._isAgentChat,
                                 focusSpanId: this._focusSpanId,
+                                sessionId: this._sessionId,
+                                showSidebar: this._showSidebar,
+                            });
+                        } else if (this._sessionId) {
+                            this._panel!.webview.postMessage({
+                                command: 'traceData',
+                                data: null,
+                                isAgentChat: this._isAgentChat,
                                 sessionId: this._sessionId,
                             });
                         }
@@ -187,7 +196,7 @@ export class TraceDetailsWebview {
         return panel;
     }
 
-    public static show(trace: Trace, isAgentChat: boolean = false, focusSpanId?: string, sessionId?: string): void {
+    public static show(trace: Trace, isAgentChat: boolean = false, focusSpanId?: string, sessionId?: string, showSidebar?: boolean): void {
         if (!TraceDetailsWebview.instance || !TraceDetailsWebview.instance._panel) {
             // Create new instance if it doesn't exist or was disposed
             TraceDetailsWebview.instance = new TraceDetailsWebview();
@@ -199,6 +208,7 @@ export class TraceDetailsWebview {
         instance._isAgentChat = isAgentChat;
         instance._focusSpanId = focusSpanId;
         instance._sessionId = sessionId;
+        instance._showSidebar = showSidebar;
 
         // Update title based on isAgentChat flag
         if (instance._panel) {
@@ -226,6 +236,8 @@ export class TraceDetailsWebview {
 
         instance._panel!.reveal(ViewColumn.One);
         instance.updateWebview();
+
+        await instance.handleSessionTracesRequest(sessionId);
     }
 
     private updateWebview(): void {
@@ -243,7 +255,8 @@ export class TraceDetailsWebview {
             data: traceData,
             isAgentChat: this._isAgentChat,
             focusSpanId: this._focusSpanId,
-            sessionId: this._sessionId
+            sessionId: this._sessionId,
+            showSidebar: this._showSidebar
         });
     }
 
@@ -306,7 +319,7 @@ export class TraceDetailsWebview {
 
             if (fileUri) {
                 const jsonContent = JSON.stringify(traceData, null, 2);
-                await vscode.workspace.fs.writeFile(fileUri, Buffer.from(jsonContent, 'utf8'));
+                await vscode.workspace.fs.writeFile(fileUri, new TextEncoder().encode(jsonContent));
                 vscode.window.showInformationMessage(`Trace exported to ${fileUri.fsPath}`);
             }
         } catch (error) {
@@ -365,7 +378,7 @@ export class TraceDetailsWebview {
                     sessionId,
                     traces: sessionTraces
                 }, null, 2);
-                await vscode.workspace.fs.writeFile(fileUri, Buffer.from(jsonContent, 'utf8'));
+                await vscode.workspace.fs.writeFile(fileUri, new TextEncoder().encode(jsonContent));
                 vscode.window.showInformationMessage(`Session exported to ${fileUri.fsPath}`);
             }
         } catch (error) {
@@ -395,8 +408,8 @@ export class TraceDetailsWebview {
         const evalsetTraces = convertTracesToEvalset(sessionTraces);
 
         return {
-            id: crypto.randomUUID(),
-            name: threadName || `Thread - ${sessionId.substring(0, 8)}`,
+            id: threadName || `thread-${sessionId.substring(0, 8)}`,
+            description: '',
             traces: evalsetTraces,
             created_on: new Date().toISOString()
         };
@@ -412,8 +425,8 @@ export class TraceDetailsWebview {
         const evalsetTrace = convertTraceToEvalset(traceData);
 
         return {
-            id: crypto.randomUUID(),
-            name: threadName || `Thread - ${traceData.traceId.substring(0, 8)}`,
+            id: threadName || `thread-${traceData.traceId.substring(0, 8)}`,
+            description: '',
             traces: [evalsetTrace],
             created_on: new Date().toISOString()
         };
@@ -443,6 +456,7 @@ export class TraceDetailsWebview {
         try {
             // 1. Ensure evalsets directory exists
             const evalsetsDir = await ensureEvalsetsDirectory();
+            if (!evalsetsDir) { return; } // User cancelled project selection
 
             // 2. Prompt for name
             const name = await vscode.window.showInputBox({
@@ -469,7 +483,7 @@ export class TraceDetailsWebview {
             const jsonContent = JSON.stringify(evalset, null, 2);
             const fileUri = vscode.Uri.file(filePath);
 
-            await vscode.workspace.fs.writeFile(fileUri, Buffer.from(jsonContent, 'utf8'));
+            await vscode.workspace.fs.writeFile(fileUri, new TextEncoder().encode(jsonContent));
 
             // 5. Success message with View option
             const action = await vscode.window.showInformationMessage(
@@ -496,6 +510,7 @@ export class TraceDetailsWebview {
         try {
             // 1. Ensure evalsets directory exists
             const evalsetsDir = await ensureEvalsetsDirectory();
+            if (!evalsetsDir) { return; } // User cancelled project selection
 
             // 2. Prompt for name
             const name = await vscode.window.showInputBox({
@@ -522,7 +537,7 @@ export class TraceDetailsWebview {
             const jsonContent = JSON.stringify(evalset, null, 2);
             const fileUri = vscode.Uri.file(filePath);
 
-            await vscode.workspace.fs.writeFile(fileUri, Buffer.from(jsonContent, 'utf8'));
+            await vscode.workspace.fs.writeFile(fileUri, new TextEncoder().encode(jsonContent));
 
             // 5. Success message with View option
             const action = await vscode.window.showInformationMessage(
@@ -549,6 +564,7 @@ export class TraceDetailsWebview {
         try {
             // 1. Ensure evalsets directory and find files
             const evalsetsDir = await ensureEvalsetsDirectory();
+            if (!evalsetsDir) { return; } // User cancelled project selection
             const existingEvalsets = await findExistingEvalsets(evalsetsDir);
 
             if (existingEvalsets.length === 0) {
@@ -577,8 +593,8 @@ export class TraceDetailsWebview {
             if (nameChoice.value === 'custom') {
                 threadName = await vscode.window.showInputBox({
                     prompt: 'Enter thread name',
-                    value: `Thread - ${traceData.traceId.substring(0, 8)}`,
-                    placeHolder: `Thread - ${traceData.traceId.substring(0, 8)}`
+                    value: `thread-${traceData.traceId.substring(0, 8)}`,
+                    placeHolder: `thread-${traceData.traceId.substring(0, 8)}`
                 });
 
                 if (!threadName) { return; } // User cancelled
@@ -606,7 +622,7 @@ export class TraceDetailsWebview {
 
             // 6. Write back
             const jsonContent = JSON.stringify(evalset, null, 2);
-            await vscode.workspace.fs.writeFile(fileUri, Buffer.from(jsonContent, 'utf8'));
+            await vscode.workspace.fs.writeFile(fileUri, new TextEncoder().encode(jsonContent));
 
             // 7. Success message with View option
             const action = await vscode.window.showInformationMessage(
@@ -634,6 +650,7 @@ export class TraceDetailsWebview {
         try {
             // 1. Ensure evalsets directory and find files
             const evalsetsDir = await ensureEvalsetsDirectory();
+            if (!evalsetsDir) { return; } // User cancelled project selection
             const existingEvalsets = await findExistingEvalsets(evalsetsDir);
 
             if (existingEvalsets.length === 0) {
@@ -662,8 +679,8 @@ export class TraceDetailsWebview {
             if (nameChoice.value === 'custom') {
                 threadName = await vscode.window.showInputBox({
                     prompt: 'Enter thread name',
-                    value: `Thread - ${sessionId.substring(0, 8)}`,
-                    placeHolder: `Thread - ${sessionId.substring(0, 8)}`
+                    value: `thread-${sessionId.substring(0, 8)}`,
+                    placeHolder: `thread-${sessionId.substring(0, 8)}`
                 });
 
                 if (!threadName) { return; } // User cancelled
@@ -691,7 +708,7 @@ export class TraceDetailsWebview {
 
             // 6. Write back
             const jsonContent = JSON.stringify(evalset, null, 2);
-            await vscode.workspace.fs.writeFile(fileUri, Buffer.from(jsonContent, 'utf8'));
+            await vscode.workspace.fs.writeFile(fileUri, new TextEncoder().encode(jsonContent));
 
             // 7. Success message with View option
             const action = await vscode.window.showInformationMessage(
@@ -737,6 +754,7 @@ export class TraceDetailsWebview {
             let isAgentChat = false;
             let focusSpanId = undefined;
             let sessionId = false;
+            let showSidebar = undefined;
 
             // Expose API for React components to communicate with extension
             window.traceVisualizerAPI = {
@@ -776,7 +794,7 @@ export class TraceDetailsWebview {
                 if (window.traceVisualizer && window.traceVisualizer.renderWebview) {
                     const container = document.getElementById("webview-container");
                     if (container) {
-                        window.traceVisualizer.renderWebview(traceData, isAgentChat, container, focusSpanId, sessionId);
+                        window.traceVisualizer.renderWebview(traceData, isAgentChat, container, focusSpanId, sessionId, showSidebar);
                     }
                 } else if (!traceData && !sessionId) {
                     // Request trace data from extension only if we don't have sessionId
@@ -796,6 +814,7 @@ export class TraceDetailsWebview {
                         isAgentChat = message.isAgentChat || false;
                         focusSpanId = message.focusSpanId;
                         sessionId = message.sessionId || false;
+                        showSidebar = message.showSidebar;
                         renderTraceDetails();
                         break;
                 }

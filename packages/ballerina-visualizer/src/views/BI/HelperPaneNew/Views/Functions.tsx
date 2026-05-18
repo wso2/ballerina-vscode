@@ -36,6 +36,7 @@ import { FunctionFormStatic } from "../../FunctionFormStatic";
 import { POPUP_IDS, useModalStack } from "../../../../Context";
 import { HelperPaneIconType, getHelperPaneIcon } from "../utils/iconUtils";
 import { HelperPaneListItem } from "../Components/HelperPaneListItem";
+import { ResolvedType } from "../../Forms/FlowNodeForm";
 
 type FunctionsPageProps = {
     fieldKey: string;
@@ -45,7 +46,7 @@ type FunctionsPageProps = {
     onClose: () => void;
     onChange: (insertText: CompletionInsertText | string) => void;
     updateImports: (key: string, imports: { [key: string]: string }) => void;
-    selectedType?: CompletionItem;
+    selectedType?: ResolvedType;
     inputMode?: InputMode;
 };
 
@@ -139,10 +140,12 @@ export const FunctionsPage = ({
 
         setIsLoading(false)
         if (response) {
-            const importStatement = {
-                [response.prefix]: response.moduleId
-            };
-            updateImports(fieldKey, importStatement);
+            if (response.prefix && response.moduleId) {
+                const importStatement = {
+                    [response.prefix]: response.moduleId
+                };
+                updateImports(fieldKey, importStatement);
+            }
             return extractFunctionInsertText(response.template);
         }
 
@@ -189,7 +192,7 @@ export const FunctionsPage = ({
                 handleSubmit={handleFunctionSave}
                 functionName={undefined}
                 isDataMapper={false}
-                defaultType={selectedType?.label}
+                defaultType={selectedType?.value}
             />, POPUP_IDS.FUNCTION, "New Function", 500, 400);
         onClose();
     }
@@ -270,27 +273,32 @@ export const FunctionsPage = ({
                                             }
 
                                             //if sub category is empty
-                                            if (category.subCategory.length === 0) {
+                                            const nonEmptySubCategories = category.subCategory.filter(
+                                                sub => sub.items && sub.items.length > 0
+                                            );
+                                            if (nonEmptySubCategories.length === 0) {
                                                 return null;
                                             }
 
                                             return (
-                                                <ExpandableList>
-                                                    {category.subCategory.map((subCategory) => (
-                                                        <ExpandableList.Section key={subCategory.label} title={subCategory.label} level={0}>
-                                                            <div style={{ marginTop: '10px' }}>
-                                                                {subCategory.items.map((item) => (
-                                                                    <HelperPaneListItem
-                                                                        key={item.label}
-                                                                        onClick={async () => await handleFunctionItemSelect(item)}
-                                                                    >
-                                                                        {getHelperPaneIcon(HelperPaneIconType.FUNCTION)}
-                                                                        <FunctionItemLabel>{`${item.label}()`}</FunctionItemLabel>
-                                                                    </HelperPaneListItem>
-                                                                ))}
-                                                            </div>
-                                                        </ExpandableList.Section>
-                                                    ))}
+                                                <ExpandableList key={category.label}>
+                                                    <ExpandableList.Section title={category.label} level={0}>
+                                                        {nonEmptySubCategories.map((subCategory) => (
+                                                            <ExpandableList.Section key={subCategory.label} title={subCategory.label} level={1}>
+                                                                <div style={{ marginTop: '10px' }}>
+                                                                    {subCategory.items.map((item) => (
+                                                                        <HelperPaneListItem
+                                                                            key={item.label}
+                                                                            onClick={async () => await handleFunctionItemSelect(item)}
+                                                                        >
+                                                                            {getHelperPaneIcon(HelperPaneIconType.FUNCTION)}
+                                                                            <FunctionItemLabel>{`${item.label}()`}</FunctionItemLabel>
+                                                                        </HelperPaneListItem>
+                                                                    ))}
+                                                                </div>
+                                                            </ExpandableList.Section>
+                                                        ))}
+                                                    </ExpandableList.Section>
                                                 </ExpandableList>
                                             )
                                         })}

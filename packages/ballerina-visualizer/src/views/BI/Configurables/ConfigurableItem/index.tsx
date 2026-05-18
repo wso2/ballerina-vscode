@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { ReactNode, useState, useEffect } from "react";
+import React, { ReactNode, useState, useEffect, useRef, useCallback } from "react";
 import styled from "@emotion/styled";
 import { ConfigVariable, getPrimaryInputType } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -95,9 +95,10 @@ interface ConfigurableItemProps {
     moduleName: string;
     index: number;
     fileName: string;
+    isTestsContext?: boolean;
     onDeleteConfigVariable?: (index: number) => void;
     onFormSubmit: () => void;
-    updateErrorMessage?: (message: string) => void;
+    updateErrorMessage: (message: string) => void;
 }
 
 export function ConfigurableItem(props: ConfigurableItemProps) {
@@ -115,20 +116,51 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
     const { rpcClient } = useRpcContext();
     const [configVariable, setConfigVariable] = useState<ConfigVariable>(variable);
     const [isEditConfigVariableFormOpen, setEditConfigVariableFormOpen] = useState<boolean>(false);
+    const [isUpdating, setIsUpdating] = useState<boolean>(false);
+    const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         setConfigVariable(variable);
     }, [variable]);
 
+    useEffect(() => {
+        return () => {
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+            }
+        };
+    }, []);
+
     const handleEditConfigVariableFormOpen = () => {
         setEditConfigVariableFormOpen(true);
     };
+
+    const activeValueKey = props.isTestsContext ? 'testConfigValue' : 'configValue';
 
     const handleTextAreaChange = (value: any) => {
         if (configVariable.properties?.type?.value === 'string' && !/^".*"$/.test(value)) {
             value = `"${value}"`;
         }
-        handleUpdateConfigValue(value, configVariable);
+
+        // Update local state immediately for responsive typing
+        setConfigVariable(prevState => ({
+            ...prevState,
+            properties: {
+                ...prevState.properties,
+                [activeValueKey]: {
+                    ...prevState.properties[activeValueKey],
+                    value: value
+                }
+            }
+        }));
+
+        // Debounce the RPC call
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
+        }
+        debounceTimerRef.current = setTimeout(() => {
+            sendConfigUpdate(value, configVariable);
+        }, 1000);
     }
 
     const getPlainValue = (value: string) => {
@@ -138,41 +170,48 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
         return value;
     }
 
-    const handleUpdateConfigValue = async (newValue: string, prevNode: ConfigVariable) => {
-        const newConfigVarNode: ConfigVariable = {
-            ...prevNode,
-            properties: {
-                ...prevNode.properties,
-                configValue: {
-                    ...prevNode.properties.configValue,
-                    value: newValue,
-                    modified: true
-                }
-            }
-        };
-
-        const response = await rpcClient.getBIDiagramRpcClient().updateConfigVariablesV2({
-            configFilePath: fileName,
-            configVariable: newConfigVarNode,
-            packageName: packageName,
-            moduleName: moduleName,
-        });
-
-        updateErrorMessage(response?.errorMsg || '');
-
-        // Update the configVariables state with the new value
-        setConfigVariable(prevState => {
-            return {
-                ...prevState,
+    const sendConfigUpdate = useCallback(async (newValue: string, prevNode: ConfigVariable) => {
+        setIsUpdating(true);
+        try {
+            const newConfigVarNode: ConfigVariable = {
+                ...prevNode,
                 properties: {
-                    ...prevState.properties,
-                    configValue: {
-                        ...prevState.properties.configValue,
-                        value: newValue
+                    ...prevNode.properties,
+                    [activeValueKey]: {
+                        ...prevNode.properties[activeValueKey],
+                        value: newValue,
+                        modified: true
                     }
                 }
             };
-        });
+
+            const response = await rpcClient.getBIDiagramRpcClient().updateConfigVariablesV2({
+                configFilePath: fileName,
+                configVariable: newConfigVarNode,
+                packageName: packageName,
+                moduleName: moduleName,
+            });
+
+            updateErrorMessage(response?.errorMsg || '');
+        } finally {
+            setIsUpdating(false);
+        }
+    }, [activeValueKey, fileName, packageName, moduleName, rpcClient, updateErrorMessage]);
+
+    const handleUpdateConfigValue = async (newValue: string, prevNode: ConfigVariable) => {
+        // Update local state immediately
+        setConfigVariable(prevState => ({
+            ...prevState,
+            properties: {
+                ...prevState.properties,
+                [activeValueKey]: {
+                    ...prevState.properties[activeValueKey],
+                    value: newValue
+                }
+            }
+        }));
+
+        await sendConfigUpdate(newValue, prevNode);
     }
 
     const handleFormClose = () => {
@@ -234,7 +273,7 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
                             ` (Defaults to: ${String(configVariable?.properties?.defaultValue?.value)})`}
                     </span>}
                     {(!configVariable?.properties?.defaultValue?.value &&
-                        !configVariable?.properties?.configValue?.value) && (
+                        !configVariable?.properties?.[activeValueKey]?.value) && (
                             // Warning icon if no value is configured
                             <ButtonWrapper>
                                 <Button
@@ -307,32 +346,51 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
                     configValue={sanitizeConfigValue()}
                     typeValue={configVariable?.properties?.type}
                     onChange={(newValue: string) => handleUpdateConfigValue(newValue, configVariable)}
+                    disabled={isUpdating}
                 />}
-                {!isRecordType() && <VSCodeTextArea
-                    name={`${String(variable?.properties?.variable?.value)}-config-value`}
-                    rows={(() => {
-                        const value = configVariable?.properties?.configValue?.value
-                            ? String(configVariable?.properties?.configValue?.value)
-                            : '';
-                        if (!value) return 1;
-                        return Math.min(5, Math.ceil(value.length / 100));
-                    })()}
-                    resize="vertical"
-                    value={configVariable?.properties?.configValue?.value ? getPlainValue(String(configVariable?.properties?.configValue?.value)) : ''}
-                    style={{
-                        width: '100%',
-                        maxWidth: '350px',
-                        minHeight: '20px'
-                    }}
-                    onChange={(e: any) => handleTextAreaChange(e.target.value)}
-                >
-                    <style>{`
-                        vscode-text-area::part(control) {
-                            padding: 5px !important;
-                            min-height: 20px !important;
-                    }
-                    `}</style>
-                </VSCodeTextArea>}
+                {!isRecordType() && <div style={{ position: 'relative', width: '100%', maxWidth: '350px' }}>
+                    <VSCodeTextArea
+                        name={`${String(variable?.properties?.variable?.value)}-config-value`}
+                        rows={(() => {
+                            const value = configVariable?.properties?.[activeValueKey]?.value
+                                ? String(configVariable?.properties?.[activeValueKey]?.value)
+                                : '';
+                            if (!value) return 1;
+                            return Math.min(5, Math.ceil(value.length / 100));
+                        })()}
+                        resize="vertical"
+                        disabled={isUpdating}
+                        value={configVariable?.properties?.[activeValueKey]?.value ? getPlainValue(String(configVariable?.properties?.[activeValueKey]?.value)) : ''}
+                        style={{
+                            width: '100%',
+                            minHeight: '20px',
+                            opacity: isUpdating ? 0.6 : 1
+                        }}
+                        onInput={(e: Event) => handleTextAreaChange((e.currentTarget as HTMLTextAreaElement).value)}
+                    >
+                        <style>{`
+                            vscode-text-area::part(control) {
+                                padding: 5px !important;
+                                min-height: 20px !important;
+                        }
+                        `}</style>
+                    </VSCodeTextArea>
+                    {isUpdating && (
+                        <span style={{
+                            position: 'absolute',
+                            right: '8px',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            display: 'flex',
+                            alignItems: 'center'
+                        }}>
+                            <span
+                                className="codicon codicon-loading codicon-modifier-spin"
+                                style={{ fontSize: '14px', color: 'var(--vscode-descriptionForeground)' }}
+                            />
+                        </span>
+                    )}
+                </div>}
             </ConfigValueField>
             {isEditConfigVariableFormOpen &&
                 <EditForm

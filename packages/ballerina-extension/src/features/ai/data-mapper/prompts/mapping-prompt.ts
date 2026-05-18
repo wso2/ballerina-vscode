@@ -17,7 +17,7 @@
 /**
  * Generates the main data mapping prompt for AI
  */
-export function getDataMappingPrompt(DM_MODEL: string, userMappings: string, mappingTips: string, subMappings: string): string {
+export function getDataMappingPrompt(DM_MODEL: string, userMappings: string, mappingTips: string, subMappings: string, reservedKeywords: string[]): string {
   return `You are a specialized code generation assistant for the Ballerina programming language. Your task is to generate syntactically correct Ballerina expressions that transform input data fields into output data fields based on provided specifications.
 
 Here is the data model schema that defines the structure and types:
@@ -78,6 +78,11 @@ When generating mapping expressions, follow this strict order of priority:
 - Use Ballerina's \`lang.regexp\` library for all regex operations: \`import ballerina/lang.regexp;\`
 - Use the \`re\` template expression to create RegExp values: \`string:RegExp pattern = re \`[0-9]+\`;\`
 - Common functions: \`regexp:isFullMatch()\`, \`regexp:find()\`, \`regexp:findAll()\`, \`regexp:replace()\`, \`regexp:replaceAll()\`, \`regexp:split()\`
+
+### Reserved Keywords
+Ballerina has reserved keywords that **cannot be used as plain identifiers**. When a field name, variable name, or loop element variable coincides with a reserved keyword, you **MUST** prefix it with a single quote (\`'\`).
+
+Reserved keywords: ${reservedKeywords.map(k => `\`${k}\``).join(", ")}
 
 ### Ballerina Syntax Requirements
 1. Write syntactically correct Ballerina code without compilation errors

@@ -27,6 +27,7 @@ import {
     ConvertExpressionRequest,
     ConvertExpressionResponse,
     ConvertToQueryRequest,
+    CreateConvertedVariableRequest,
     DataMapperAPI,
     DataMapperModelRequest,
     DataMapperModelResponse,
@@ -49,6 +50,7 @@ import {
     ProcessTypeReferenceResponse,
     PropertyRequest,
     PropertyResponse,
+    ResolveOutputRequest,
     VisualizableFieldsRequest,
     VisualizableFieldsResponse
 } from "@wso2/ballerina-core";
@@ -324,6 +326,28 @@ export class DataMapperRpcManager implements DataMapperAPI {
         });
     }
 
+    async resolveOutput(params: ResolveOutputRequest): Promise<DataMapperSourceResponse> {
+        return new Promise(async (resolve) => {
+            await StateMachine
+                .langClient()
+                .resolveOutput(params)
+                .then((resp) => {
+                    console.log(">>> Data mapper resolve output response", resp);
+                    updateAndRefreshDataMapper(
+                        resp.textEdits,
+                        params.filePath,
+                        params.codedata,
+                        params.varName,
+                        params.targetField,
+                        params.subMappingName
+                    )
+                    .then(() => {
+                        resolve({ textEdits: resp.textEdits });
+                    });
+                });
+        });
+    }
+
     async getExpandedDMFromDMModel(params: DMModelRequest): Promise<ExpandedDMModelResponse> {
         try {
             // Transform the model using the existing expansion logic
@@ -425,6 +449,28 @@ export class DataMapperRpcManager implements DataMapperAPI {
                 .clearTypeCache()
                 .then((resp) => {
                     resolve(resp);
+                });
+        });
+    }
+
+    async createConvertedVariable(params: CreateConvertedVariableRequest): Promise<DataMapperSourceResponse> {
+        return new Promise(async (resolve) => {
+            await StateMachine
+                .langClient()
+                .createConvertedVariable(params)
+                .then((resp) => {
+                    console.log(">>> Data mapper create converted variable response", resp);
+                    updateAndRefreshDataMapper(
+                        resp.textEdits,
+                        params.filePath,
+                        params.codedata,
+                        params.varName,
+                        params.targetField,
+                        params.subMappingName
+                    )
+                    .then(() => {
+                        resolve({ textEdits: resp.textEdits });
+                    });
                 });
         });
     }

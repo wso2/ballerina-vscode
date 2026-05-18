@@ -25,6 +25,8 @@ export interface CheckpointConfig {
     maxSnapshotSize: number;
 }
 
+export const MAX_SNAPSHOT_SIZE_MB = 50;
+
 export const DEFAULT_CHECKPOINT_CONFIG: CheckpointConfig = {
     enabled: true,
     maxCount: 3,
@@ -36,9 +38,17 @@ export const DEFAULT_CHECKPOINT_CONFIG: CheckpointConfig = {
         'dist/**',
         '.vscode/**',
         '*.log',
-        '.DS_Store'
+        '.DS_Store',
+        '**/*.jar',
+        '**/*.class',
+        '**/*.bala',
+        '**/*.zip',
+        '**/*.rar',
+        '**/*.war',
+        '**/*.tar',
+        '**/*.gz'
     ],
-    maxSnapshotSize: 52428800
+    maxSnapshotSize: MAX_SNAPSHOT_SIZE_MB * 1024 * 1024
 };
 
 export function getCheckpointConfig(): CheckpointConfig {

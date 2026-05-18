@@ -16,12 +16,15 @@
  * under the License.
  */
 
-import { NodeProperties } from "@wso2/ballerina-core";
+import { NodeProperties, ReadmeContentRequest, ReadmeContentResponse } from "@wso2/ballerina-core";
 import { NodePosition, STNode, traversNode } from "@wso2/syntax-tree";
+import { TextEdit } from "@wso2/ballerina-core";
+import { Position, Range, Uri, workspace, WorkspaceEdit } from "vscode";
+import * as fs from "fs";
+import * as path from 'path';
 
 import { FunctionFindingVisitor } from "../../utils/function-finding-visitor";
-import { Position, Range, Uri, workspace, WorkspaceEdit } from "vscode";
-import { TextEdit } from "@wso2/ballerina-core";
+import { README_FILE } from "../../utils/bi";
 
 export const DATA_MAPPING_FILE_NAME = "data_mappings.bal";
 
@@ -114,4 +117,58 @@ function findHeaderCommentEndLine(content: string): number {
     }
     
     return headerEndLine;
+}
+
+/**
+ * Resolves the path to the project's README file using case-insensitive matching.
+ * On case-sensitive filesystems, finds "readme.md", "Readme.md", "README.md", etc.
+ * @param projectPath - Absolute path to the project directory
+ * @returns Full path to the existing README file, or undefined if not found
+ */
+export function resolveReadmePath(projectPath: string): string | undefined {
+    try {
+        const entries = fs.readdirSync(projectPath, { withFileTypes: true });
+        const match = entries.find(
+            (e) => e.isFile() && e.name.toLowerCase() === README_FILE.toLowerCase()
+        );
+        return match ? path.join(projectPath, match.name) : undefined;
+    } catch {
+        return undefined;
+    }
+}
+
+/**
+ * Reads or writes the project's README.md file.
+ * When `params.read` is true, reads the file at `{projectPath}/README.md` (or any case variant
+ * such as readme.md) and returns its content. If the file does not exist, returns an empty string.
+ * When `params.read` is false, writes `params.content` to the README file (creating it if missing
+ * as README.md) and returns the written content.
+ * @param params - Request containing `projectPath`, and either `read: true` for read mode
+ *                 or `content` for write mode.
+ * @returns A promise that resolves with `{ content: string }` — the read or written content.
+ */
+export async function readOrWriteReadmeContent(params: ReadmeContentRequest): Promise<ReadmeContentResponse> {
+    const projectPath = params.projectPath;
+    if (!projectPath) {
+        return { content: "" };
+    }
+    const canonicalPath = path.join(projectPath, README_FILE);
+    const existingReadmePath = resolveReadmePath(projectPath);
+    const readmePath = existingReadmePath ?? canonicalPath;
+
+    if (params.read) {
+        if (!existingReadmePath) {
+            return { content: "" };
+        }
+        const content = fs.readFileSync(readmePath, "utf8");
+        return { content };
+    }
+
+    const contentToWrite = params.content ?? "";
+    if (!existingReadmePath) {
+        fs.writeFileSync(canonicalPath, contentToWrite);
+    } else {
+        fs.writeFileSync(readmePath, contentToWrite);
+    }
+    return { content: contentToWrite };
 }

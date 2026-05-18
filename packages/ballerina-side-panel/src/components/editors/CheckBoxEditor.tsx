@@ -56,7 +56,7 @@ export function CheckBoxEditor(props: TextEditorProps) {
     const { register, control, setValue } = form;
 
     useEffect(() => {
-        if (field.value) {
+        if (getBooleanValue(field.value)) {
             setValue(field.key, true);
         } else {
             setValue(field.key, false);

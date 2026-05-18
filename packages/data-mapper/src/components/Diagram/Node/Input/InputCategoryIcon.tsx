@@ -33,7 +33,8 @@ const categoryIconMap: Record<InputCategory, string> = {
 
     [InputCategory.Variable]: "symbol-variable",
     [InputCategory.LocalVariable]: "symbol-variable",
-    [InputCategory.ModuleVariable]: "symbol-variable"
+    [InputCategory.ModuleVariable]: "symbol-variable",
+    [InputCategory.ConvertedVariable]: "symbol-variable"
 };
 
 export function InputCategoryIcon({ category }: InputCategoryIconProps) {

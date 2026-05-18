@@ -1,0 +1,92 @@
+/**
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+export type ParsedHTTPRequest = {
+    method: string;
+    url: string;
+    headers: Record<string, string>;
+    data: unknown;
+};
+
+export type HTTPResponse = {
+    data: unknown;
+    status: number;
+    statusText: string;
+    headers: Record<string, string>;
+};
+
+export type HTTPErrorResponse = {
+    error: true;
+    message: string;
+    code?: string;
+    response?: HTTPResponse;
+};
+
+export type TestCase = {
+    isResult: boolean;
+    request: ParsedHTTPRequest;
+    output?: HTTPResponse | HTTPErrorResponse;
+};
+
+export type HTTPToolEventInput = {
+    request: ParsedHTTPRequest;
+    scenario?: string;
+};
+
+export type HTTPToolEventOutput = {
+    request: ParsedHTTPRequest;
+    scenario?: string;
+    output: HTTPResponse | HTTPErrorResponse;
+};
+
+export type HurlToolOutput = {
+    input: {
+        requests: Array<{
+            name: string;
+            method: string;
+            url: string;
+            headers: Array<{ key: string; value: string }>;
+            queryParameters: Array<{ key: string; value: string }>;
+            body?: string;
+            assertions?: string[];
+        }>;
+    };
+    output: {
+        status: string;
+        durationMs: number;
+        entries: Array<{
+            name: string;
+            method?: string;
+            url?: string;
+            statusCode?: number;
+            responseHeaders?: Array<{ name: string; value: string }>;
+            responseBody?: string;
+            status: string;
+            durationMs?: number;
+            assertions: Array<{
+                expression: string;
+                status: string;
+                expected?: string;
+                actual?: string;
+                message?: string;
+            }>;
+            errorMessage?: string;
+        }>;
+        warnings: string[];
+    };
+};

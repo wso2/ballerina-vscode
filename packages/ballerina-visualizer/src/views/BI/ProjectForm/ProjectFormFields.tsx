@@ -17,8 +17,9 @@
  */
 
 import { useEffect, useState } from "react";
-import { LocationSelector, TextField, CheckBox, DirectorySelector } from "@wso2/ui-toolkit";
+import { TextField, CheckBox, DirectorySelector } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import { usePlatformExtContext } from "../../../providers/platform-ext-ctx-provider";
 import {
     FieldGroup,
     CheckboxContainer,
@@ -26,9 +27,9 @@ import {
     SectionDivider,
     OptionalSectionsLabel,
 } from "./styles";
-import { CollapsibleSection, ProjectTypeSelector, PackageInfoSection } from "./components";
+import { CollapsibleSection, ProjectTypeSelector, AdvancedConfigurationSection } from "./components";
 import { ProjectFormData } from "./types";
-import { sanitizePackageName, validatePackageName } from "./utils";
+import { sanitizePackageName, validatePackageName, validateOrgName } from "./utils";
 
 // Re-export for backwards compatibility
 export type { ProjectFormData } from "./types";
@@ -38,16 +39,29 @@ export interface ProjectFormFieldsProps {
     onFormDataChange: (data: Partial<ProjectFormData>) => void;
     integrationNameError?: string;
     pathError?: string;
+    projectNameError?: string;
     packageNameValidationError?: string;
 }
 
-export function ProjectFormFields({ formData, onFormDataChange, integrationNameError, pathError, packageNameValidationError }: ProjectFormFieldsProps) {
+export function ProjectFormFields({
+    formData,
+    onFormDataChange,
+    integrationNameError,
+    pathError,
+    projectNameError,
+    packageNameValidationError,
+}: ProjectFormFieldsProps) {
     const { rpcClient } = useRpcContext();
+    const { platformExtState } = usePlatformExtContext();
+    const organizations = platformExtState?.userInfo?.organizations ?? [];
     const [packageNameTouched, setPackageNameTouched] = useState(false);
     const [packageNameError, setPackageNameError] = useState<string | null>(null);
-    const [isWorkspaceSupported, setIsWorkspaceSupported] = useState(false);
-    const [isProjectStructureExpanded, setIsProjectStructureExpanded] = useState(false);
+    const [orgNameError, setOrgNameError] = useState<string | null>(null);
+    const [isProjectModeSupported, setIsProjectModeSupported] = useState(false);
+    const [isProjectSettingsExpanded, setIsProjectSettingsExpanded] = useState(false);
     const [isPackageInfoExpanded, setIsPackageInfoExpanded] = useState(false);
+    const resourceTypeLabel = formData.isLibrary ? "Library" : "Integration";
+    const resourceTypeLabelLower = resourceTypeLabel.toLowerCase();
 
     const handleIntegrationName = (value: string) => {
         onFormDataChange({ integrationName: value });
@@ -57,38 +71,66 @@ export function ProjectFormFields({ formData, onFormDataChange, integrationNameE
         }
     };
 
-    const handlePackageName = (value: string) => {
-        // Allow dots and other characters while typing
-        const sanitized = sanitizePackageName(value);
-        onFormDataChange({ packageName: sanitized });
-        setPackageNameTouched(value.length > 0);
-    };
-
     const handleProjectDirSelection = async () => {
-        const projectDirectory = await rpcClient.getCommonRpcClient().selectFileOrDirPath({});
-        onFormDataChange({ path: projectDirectory.path });
+        const selectedDirectory = await rpcClient.getCommonRpcClient().selectFileOrDirPath({});
+        onFormDataChange({ path: selectedDirectory.path });
     };
 
-    const handleProjectStructureToggle = () => {
-        setIsProjectStructureExpanded(!isProjectStructureExpanded);
+    const handleProjectSettingsToggle = () => {
+        setIsProjectSettingsExpanded(!isProjectSettingsExpanded);
     };
+
+    const projectTypeNote = formData.createAsWorkspace
+        ? `This sets the type for your first ${resourceTypeLabelLower}. You can add more integrations or libraries to this project later.`
+        : undefined;
 
     useEffect(() => {
         (async () => {
+            const commonRpcClient = rpcClient.getCommonRpcClient();
+
+            // Set default path if not already set
             if (!formData.path) {
-                const currentDir = await rpcClient.getCommonRpcClient().getWorkspaceRoot();
+                const currentDir = await commonRpcClient.getWorkspaceRoot();
                 onFormDataChange({ path: currentDir.path });
             }
-            const isWorkspaceSupported = await rpcClient
+
+            // Set default org name if not already set and no orgs from platform
+            if (!formData.orgName && organizations.length === 0) {
+                try {
+                    const { orgName } = await commonRpcClient.getDefaultOrgName();
+                    onFormDataChange({ orgName });
+                } catch (error) {
+                    console.error("Failed to fetch default org name:", error);
+                }
+            }
+
+            const projectModeSupported = await rpcClient
                 .getLangClientRpcClient()
                 .isSupportedSLVersion({ major: 2201, minor: 13, patch: 0 })
                 .catch((err) => {
-                    console.error("Failed to check workspace support:", err);
+                    console.error("Failed to check project mode support:", err);
                     return false;
                 });
-            setIsWorkspaceSupported(isWorkspaceSupported);
+            setIsProjectModeSupported(projectModeSupported);
         })();
     }, []);
+
+    useEffect(() => {
+        if (organizations.length > 0 && !formData.orgName) {
+            onFormDataChange({ orgName: organizations[0].handle });
+        }
+    }, [organizations]);
+
+    useEffect(() => {
+        const error = validatePackageName(formData.packageName, formData.integrationName);
+        setPackageNameError(error);
+    }, [formData.packageName, formData.integrationName]);
+
+    // Validation effect for org name
+    useEffect(() => {
+        const orgError = validateOrgName(formData.orgName);
+        setOrgNameError(orgError);
+    }, [formData.orgName]);
 
     return (
         <>
@@ -97,21 +139,11 @@ export function ProjectFormFields({ formData, onFormDataChange, integrationNameE
                 <TextField
                     onTextChange={handleIntegrationName}
                     value={formData.integrationName}
-                    label="Integration Name"
-                    placeholder="Enter an integration name"
+                    label={`${resourceTypeLabel} Name`}
+                    placeholder={`Enter a ${resourceTypeLabelLower} name`}
                     autoFocus={true}
                     required={true}
                     errorMsg={integrationNameError || ""}
-                />
-            </FieldGroup>
-
-            <FieldGroup>
-                <TextField
-                    onTextChange={handlePackageName}
-                    value={formData.packageName}
-                    label="Package Name"
-                    description="This will be used as the Ballerina package name for the integration."
-                    errorMsg={packageNameValidationError || ""}
                 />
             </FieldGroup>
 
@@ -129,62 +161,72 @@ export function ProjectFormFields({ formData, onFormDataChange, integrationNameE
 
                 <CheckboxContainer>
                     <CheckBox
-                        label={`Create a new folder using the ${formData.createAsWorkspace ? "workspace name" : "package name"}`}
+                        label={`Create a new directory using the ${formData.createAsWorkspace ? "project name" : `${resourceTypeLabel.toLowerCase()} name`}`}
                         checked={formData.createDirectory}
                         onChange={(checked) => onFormDataChange({ createDirectory: checked })}
                     />
                 </CheckboxContainer>
             </FieldGroup>
 
+            <FieldGroup>
+                <ProjectTypeSelector
+                    value={formData.isLibrary}
+                    onChange={(isLibrary) => onFormDataChange({ isLibrary })}
+                    note={projectTypeNote}
+                />
+            </FieldGroup>
+
             <SectionDivider />
             <OptionalSectionsLabel>Optional Configurations</OptionalSectionsLabel>
 
-            {/* Project Structure Section */}
-            {isWorkspaceSupported && (
+            {/* Project Section */}
+            {isProjectModeSupported && (
                 <CollapsibleSection
-                    isExpanded={isProjectStructureExpanded}
-                    onToggle={handleProjectStructureToggle}
+                    isExpanded={isProjectSettingsExpanded}
+                    onToggle={handleProjectSettingsToggle}
                     icon="folder"
-                    title="Project Structure"
+                    title="Project"
                 >
                     <CheckboxContainer>
                         <CheckBox
-                            label="Create as workspace"
+                            label="Create as project"
                             checked={formData.createAsWorkspace}
                             onChange={(checked) => onFormDataChange({ createAsWorkspace: checked })}
                         />
                         <Description>
-                            Include this integration in a new workspace for multi-project management.
+                            Enable project mode to manage multiple integrations and libraries within a single repository.
                         </Description>
                     </CheckboxContainer>
                     {formData.createAsWorkspace && (
-                        <>
-                            <FieldGroup>
-                                <TextField
-                                    onTextChange={(value) => onFormDataChange({ workspaceName: value })}
-                                    value={formData.workspaceName}
-                                    label="Workspace Name"
-                                    placeholder="Enter workspace name"
-                                    required={true}
-                                />
-                            </FieldGroup>
-
-                            <ProjectTypeSelector
-                                value={formData.isLibrary}
-                                onChange={(isLibrary) => onFormDataChange({ isLibrary })}
-                                note="This sets the type for your first project. You can add more projects or libraries to this workspace later."
+                        <FieldGroup>
+                            <TextField
+                                onTextChange={(value) => onFormDataChange({ workspaceName: value })}
+                                value={formData.workspaceName}
+                                label="Project Name"
+                                placeholder="Enter project name"
+                                required={true}
+                                errorMsg={projectNameError || ""}
                             />
-                        </>
+                        </FieldGroup>
                     )}
                 </CollapsibleSection>
             )}
 
-            {/* Package Information Section */}
-            <PackageInfoSection
+            {/* Ballerina Package Section */}
+            <AdvancedConfigurationSection
                 isExpanded={isPackageInfoExpanded}
                 onToggle={() => setIsPackageInfoExpanded(!isPackageInfoExpanded)}
-                data={{ orgName: formData.orgName, version: formData.version }}
-                onChange={(data) => onFormDataChange(data)}
+                data={{ packageName: formData.packageName, orgName: formData.orgName, version: formData.version }}
+                onChange={(data) => {
+                    onFormDataChange(data);
+                    if (data.packageName !== undefined) {
+                        setPackageNameTouched(true);
+                    }
+                }}
+                isLibrary={formData.isLibrary}
+                orgNameError={orgNameError}
+                packageNameError={packageNameValidationError || packageNameError}
+                organizations={organizations}
             />
         </>
     );

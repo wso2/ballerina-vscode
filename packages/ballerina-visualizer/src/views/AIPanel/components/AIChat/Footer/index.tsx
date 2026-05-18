@@ -20,23 +20,48 @@ import React, { useState, useEffect } from "react";
 import styled from "@emotion/styled";
 import { keyframes } from "@emotion/css";
 import AIChatInput, { AIChatInputRef, TagOptions } from "../../AIChatInput";
+import { RunningServicesPanel } from "../../AIChatInput/RunningServicesChip";
 import { Input } from "../../AIChatInput/utils/inputUtils";
 import { AIPanelPrompt, Attachment, TemplateId, CodeContext } from "@wso2/ballerina-core";
-import { commandTemplates, suggestedCommandTemplates } from "../../../commandTemplates/data/commandTemplates.const";
+import { commandTemplates, suggestedCommandTemplates as defaultSuggestedCommandTemplates } from "../../../commandTemplates/data/commandTemplates.const";
 import { AttachmentOptions } from "../../AIChatInput/hooks/useAttachments";
 import { getTemplateTextById } from "../../../commandTemplates/utils/utils";
 import CodeContextCard from "../../CodeContextCard";
+import { AgentMode } from "../../AIChatInput/ModeToggle";
 
 export const FooterContainer = styled.footer({
-    padding: "20px",
+    padding: "20px 20px 12px",
 });
 
-const SuggestedCommandsWrapper = styled.div({
-    marginTop: "16px",
-    marginBottom: "6px",
-    marginLeft: "2px",
-    color: "var(--vscode-descriptionForeground)",
-});
+const SuggestedCommandsWrapper = styled.div`
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    margin-bottom: 12px;
+`;
+
+const SuggestionChip = styled.button`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-family: var(--vscode-font-family);
+    background: var(--vscode-editor-background);
+    color: var(--vscode-descriptionForeground);
+    border: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
+    border-radius: 8px;
+    cursor: pointer !important;
+    transition: all 0.15s ease;
+    text-align: left;
+
+    &:hover {
+        background: var(--vscode-list-hoverBackground);
+        border-color: var(--vscode-focusBorder, var(--vscode-widget-border));
+        color: var(--vscode-foreground);
+    }
+`;
 
 const bubbleAnimation = keyframes`
     0% {
@@ -103,66 +128,100 @@ const renderPrompt = (item: AIPanelPrompt, index: number, aiChatInputRef: React.
     }
 
     return (
-        <div key={index} style={{ marginBottom: "2px" }}>
-            <a
-                href="#"
-                style={{ textDecoration: "none", cursor: "pointer", outline: "none", boxShadow: "none" }}
-                onClick={(e) => {
-                    e.preventDefault();
-                    aiChatInputRef.current?.setInputContent(item);
-                }}
-            >
-                {text}
-            </a>
-        </div>
+        <SuggestionChip key={index} onClick={() => aiChatInputRef.current?.setInputContent(item)}>
+            <span className="codicon codicon-arrow-right" style={{ fontSize: "11px", opacity: 0.6 }} />
+            {text}
+        </SuggestionChip>
     );
 };
+
+const DisclaimerText = styled.p<{ visible: boolean }>`
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    text-align: center;
+    margin: 6px 0 0;
+    opacity: ${(props: { visible: boolean }) => props.visible ? 0.7 : 0};
+    max-height: ${(props: { visible: boolean }) => props.visible ? '20px' : '0'};
+    overflow: hidden;
+    transition: opacity 0.2s ease, max-height 0.2s ease;
+`;
 
 type FooterProps = {
     aiChatInputRef: React.RefObject<AIChatInputRef>;
     tagOptions: TagOptions;
     attachmentOptions: AttachmentOptions;
+    suggestedCommandTemplates?: AIPanelPrompt[];
     inputPlaceholder: string;
     onSend: (content: { input: Input[]; attachments: Attachment[]; metadata?: Record<string, any> }) => Promise<void>;
     onStop: () => void;
     isLoading: boolean;
+    loadingLabel?: string;
     showSuggestedCommands: boolean;
     codeContext?: CodeContext;
     onRemoveCodeContext?: () => void;
+    agentMode?: AgentMode;
+    onChangeAgentMode?: (mode: AgentMode) => void;
+    isAutoApproveEnabled?: boolean;
+    onDisableAutoApprove?: () => void;
+    isWebToolsEnabled?: boolean;
+    onToggleWebSearch?: () => void;
+    disabled?: boolean;
+    contextUsage?: { inputTokens: number; percentage: number; breakdown?: { systemInstructions: number; toolDefinitions: number; reservedOutput: number; files: number; messages: number; toolResults: number } } | null;
+    runningServicesPanel?: RunningServicesPanel;
 };
 
 const Footer: React.FC<FooterProps> = ({
     aiChatInputRef,
     tagOptions,
     attachmentOptions,
+    suggestedCommandTemplates,
     inputPlaceholder,
     onSend,
     onStop,
     isLoading,
+    loadingLabel,
     showSuggestedCommands,
     codeContext,
     onRemoveCodeContext,
+    agentMode,
+    onChangeAgentMode,
+    isAutoApproveEnabled,
+    onDisableAutoApprove,
+    isWebToolsEnabled,
+    onToggleWebSearch,
+    disabled,
+    contextUsage,
+    runningServicesPanel,
 }) => {
-    const [generatingText, setGeneratingText] = useState("Generating.");
+    const footerSuggestedCommandTemplates = suggestedCommandTemplates ?? defaultSuggestedCommandTemplates;
+    const [animatedText, setAnimatedText] = useState("Generating.");
 
     useEffect(() => {
         if (isLoading) {
+            const baseText = loadingLabel || "Generating";
+            setAnimatedText(baseText + ".");
+
             const interval = setInterval(() => {
-                setGeneratingText((prev) => {
-                    if (prev === "Generating...") return "Generating.";
+                setAnimatedText((prev) => {
+                    // Extract the base text without dots
+                    const dots = prev.match(/\.+$/)?.[0] || "";
+                    const base = prev.slice(0, prev.length - dots.length);
+
+                    // Cycle through 1, 2, 3 dots
+                    if (dots.length >= 3) return base + ".";
                     return prev + ".";
                 });
             }, 500);
 
             return () => clearInterval(interval);
         }
-    }, [isLoading]);
+    }, [isLoading, loadingLabel]);
 
     return (
         <FooterContainer>
             {showSuggestedCommands && (
                 <SuggestedCommandsWrapper>
-                    {suggestedCommandTemplates.map((item, index) => renderPrompt(item, index, aiChatInputRef))}
+                    {footerSuggestedCommandTemplates.map((item, index) => renderPrompt(item, index, aiChatInputRef))}
                 </SuggestedCommandsWrapper>
             )}
             {codeContext && onRemoveCodeContext && (
@@ -175,7 +234,7 @@ const Footer: React.FC<FooterProps> = ({
                         <span />
                         <span />
                     </Bubbles>
-                    <span>{generatingText}</span>
+                    <span>{animatedText}</span>
                 </LoadingIndicatorContainer>
             )}
             <AIChatInput
@@ -187,7 +246,19 @@ const Footer: React.FC<FooterProps> = ({
                 onSend={onSend}
                 onStop={onStop}
                 isLoading={isLoading}
+                agentMode={agentMode}
+                onChangeAgentMode={onChangeAgentMode}
+                isAutoApproveEnabled={isAutoApproveEnabled}
+                onDisableAutoApprove={onDisableAutoApprove}
+                isWebToolsEnabled={isWebToolsEnabled}
+                onToggleWebSearch={onToggleWebSearch}
+                disabled={disabled}
+                contextUsage={contextUsage}
+                runningServicesPanel={runningServicesPanel}
             />
+            <DisclaimerText visible={!showSuggestedCommands}>
+                AI-generated content may contain mistakes. Always review changes.
+            </DisclaimerText>
         </FooterContainer>
     );
 };

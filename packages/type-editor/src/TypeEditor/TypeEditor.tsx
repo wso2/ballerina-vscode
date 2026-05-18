@@ -36,6 +36,7 @@ namespace S {
 
 interface TypeEditorProps {
     type?: Type;
+    filePath: string;
     imports?: Imports;
     rpcClient: BallerinaRpcClient;
     onTypeChange: (type: Type, rename?: boolean) => void;
@@ -51,6 +52,7 @@ interface TypeEditorProps {
         referenceTypes: TypeHelperCategory[];
         basicTypes: TypeHelperCategory[];
         importedTypes: TypeHelperCategory[];
+        workspaceTypes: TypeHelperCategory[];
         operators: TypeHelperOperator[];
         typeBrowserTypes: TypeHelperCategory[];
         onSearchTypeHelper: (searchText: string, isType?: boolean) => void;
@@ -172,6 +174,7 @@ export function TypeEditor(props: TypeEditorProps) {
                                 isGraphql={isGraphql}
                                 initialTypeKind={initialTypeKind}
                                 onTypeSave={onTypeSave}
+                                filePath={props.filePath}
                                 isSaving={isSaving}
                                 setIsSaving={setIsSaving}
                             />
@@ -191,6 +194,7 @@ export function TypeEditor(props: TypeEditorProps) {
                         <TypeCreatorTab
                             onTypeChange={props.onTypeChange}
                             editingType={type}
+                            filePath={props.filePath}
                             newType={newType}
                             isGraphql={isGraphql}
                             initialTypeKind={initialTypeKind}

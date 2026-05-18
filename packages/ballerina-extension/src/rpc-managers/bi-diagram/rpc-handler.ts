@@ -26,6 +26,7 @@ import {
     addProjectToWorkspace,
     AddProjectToWorkspaceRequest,
     AIChatRequest,
+    InlineAgentChatRequest,
     BIAiSuggestionsRequest,
     BIAvailableNodesRequest,
     BIDeleteByComponentInfoRequest,
@@ -36,6 +37,7 @@ import {
     BINodeTemplateRequest,
     BISearchNodesRequest,
     BISearchRequest,
+    WorkflowDataRequest,
     BISourceCodeRequest,
     BreakpointRequest,
     BuildMode,
@@ -56,7 +58,9 @@ import {
     deleteType,
     DeleteTypeRequest,
     DeploymentRequest,
+    WorkspaceDeploymentRequest,
     deployProject,
+    deployWorkspace,
     EndOfFileRequest,
     ExpressionCompletionsRequest,
     ExpressionDiagnosticsRequest,
@@ -66,6 +70,8 @@ import {
     FormDidCloseParams,
     formDidOpen,
     FormDidOpenParams,
+    formDirtyDidChange,
+    FormDirtyDidChangeParams,
     FunctionNodeRequest,
     generateOpenApiClient,
     getAiSuggestions,
@@ -84,6 +90,7 @@ import {
     getDataMapperCompletions,
     getDesignModel,
     getDevantMetadata,
+    getWorkspaceDevantMetadata,
     getEnclosedFunction,
     getEndOfFile,
     getExpressionCompletions,
@@ -91,6 +98,7 @@ import {
     getExpressionTokens,
     getFlowModel,
     getFormDiagnostics,
+    getAllData,
     getFunctionNames,
     getFunctionNode,
     getModuleNodes,
@@ -107,6 +115,8 @@ import {
     getRecordSource,
     getServiceClassModel,
     getSignatureHelp,
+    getSimpleTypeOfExpression,
+    GetSimpleTypeOfExpressionRequest,
     getSourceCode,
     getType,
     getTypeFromJson,
@@ -121,6 +131,8 @@ import {
     ModelFromCodeRequest,
     openAIChat,
     OpenAPIClientDeleteRequest,
+    startInlineAgentChat,
+    cleanupAgentChatServices,
     OpenAPIClientGenerationRequest,
     OpenAPIGeneratedModulesRequest,
     openConfigToml,
@@ -154,7 +166,12 @@ import {
     VerifyTypeDeleteRequest,
     VisibleTypesRequest,
     ValidateProjectFormRequest,
-    validateProjectPath
+    validateProjectPath,
+    getSuggestedProjectDefaults,
+    UpdateProjectTitleRequest,
+    UpdatePackageTitleRequest,
+    updateProjectTitle,
+    updatePackageTitle
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { BiDiagramRpcManager } from "./rpc-manager";
@@ -198,7 +215,10 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onNotification(openReadme, (args: OpenReadmeRequest) => rpcManger.openReadme(args));
     messenger.onRequest(renameIdentifier, (args: RenameIdentifierRequest) => rpcManger.renameIdentifier(args));
     messenger.onRequest(deployProject, (args: DeploymentRequest) => rpcManger.deployProject(args));
+    messenger.onRequest(deployWorkspace, (args: WorkspaceDeploymentRequest) => rpcManger.deployWorkspace(args));
     messenger.onNotification(openAIChat, (args: AIChatRequest) => rpcManger.openAIChat(args));
+    messenger.onNotification(startInlineAgentChat, (args: InlineAgentChatRequest) => rpcManger.startInlineAgentChat(args));
+    messenger.onRequest(cleanupAgentChatServices, () => rpcManger.cleanupAgentChatServices());
     messenger.onRequest(getSignatureHelp, (args: SignatureHelpRequest) => rpcManger.getSignatureHelp(args));
     messenger.onNotification(buildProject, (args: BuildMode) => rpcManger.buildProject(args));
     messenger.onNotification(runProject, () => rpcManger.runProject());
@@ -211,9 +231,11 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getExpressionTokens, (args: ExpressionTokensRequest) => rpcManger.getExpressionTokens(args));
     messenger.onNotification(formDidOpen, (args: FormDidOpenParams) => rpcManger.formDidOpen(args));
     messenger.onNotification(formDidClose, (args: FormDidCloseParams) => rpcManger.formDidClose(args));
+    messenger.onNotification(formDirtyDidChange, (args: FormDirtyDidChangeParams) => rpcManger.formDirtyDidChange(args));
     messenger.onRequest(getDesignModel, (args: BIDesignModelRequest) => rpcManger.getDesignModel(args));
     messenger.onRequest(getTypes, (args: GetTypesRequest) => rpcManger.getTypes(args));
     messenger.onRequest(getType, (args: GetTypeRequest) => rpcManger.getType(args));
+    messenger.onRequest(getSimpleTypeOfExpression, (args: GetSimpleTypeOfExpressionRequest) => rpcManger.getSimpleTypeOfExpression(args));
     messenger.onRequest(updateType, (args: UpdateTypeRequest) => rpcManger.updateType(args));
     messenger.onRequest(updateTypes, (args: UpdateTypesRequest) => rpcManger.updateTypes(args));
     messenger.onRequest(deleteType, (args: DeleteTypeRequest) => rpcManger.deleteType(args));
@@ -233,11 +255,16 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getFunctionNode, (args: FunctionNodeRequest) => rpcManger.getFunctionNode(args));
     messenger.onRequest(getEndOfFile, (args: EndOfFileRequest) => rpcManger.getEndOfFile(args));
     messenger.onRequest(search, (args: BISearchRequest) => rpcManger.search(args));
+    messenger.onRequest(getAllData, (args: WorkflowDataRequest) => rpcManger.getAllData(args));
     messenger.onRequest(searchNodes, (args: BISearchNodesRequest) => rpcManger.searchNodes(args));
     messenger.onRequest(getRecordNames, () => rpcManger.getRecordNames());
     messenger.onRequest(getFunctionNames, () => rpcManger.getFunctionNames());
     messenger.onRequest(getDevantMetadata, () => rpcManger.getDevantMetadata());
+    messenger.onRequest(getWorkspaceDevantMetadata, () => rpcManger.getWorkspaceDevantMetadata());
     messenger.onRequest(generateOpenApiClient, (args: OpenAPIClientGenerationRequest) => rpcManger.generateOpenApiClient(args));
     messenger.onRequest(getOpenApiGeneratedModules, (args: OpenAPIGeneratedModulesRequest) => rpcManger.getOpenApiGeneratedModules(args));
     messenger.onRequest(deleteOpenApiGeneratedModules, (args: OpenAPIClientDeleteRequest) => rpcManger.deleteOpenApiGeneratedModules(args));
+    messenger.onRequest(updateProjectTitle, (args: UpdateProjectTitleRequest) => rpcManger.updateProjectTitle(args));
+    messenger.onRequest(updatePackageTitle, (args: UpdatePackageTitleRequest) => rpcManger.updatePackageTitle(args));
+    messenger.onRequest(getSuggestedProjectDefaults, (args: { isInProject: boolean }) => rpcManger.getSuggestedProjectDefaults(args));
 }

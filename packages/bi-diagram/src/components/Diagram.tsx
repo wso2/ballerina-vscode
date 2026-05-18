@@ -34,7 +34,7 @@ import { Flow, NodeModel, FlowNode, Branch, LineRange, NodePosition, ToolData, D
 import { NodeFactoryVisitor } from "../visitors/NodeFactoryVisitor";
 import { NodeLinkModel } from "./NodeLink";
 import { OverlayLayerModel } from "./OverlayLayer";
-import { DiagramContextProvider, DiagramContextState, ExpressionContextProps } from "./DiagramContext";
+import { DiagramContextProvider, DiagramContextState, DiagramPromptOptions, ExpressionContextProps } from "./DiagramContext";
 import { SizingVisitor } from "../visitors/SizingVisitor";
 import { PositionVisitor } from "../visitors/PositionVisitor";
 import { InitVisitor } from "../visitors/InitVisitor";
@@ -49,7 +49,7 @@ import { PopupOverlay } from "./PopupOverlay";
 export interface DiagramProps {
     model: Flow;
     onAddNode?: (parent: FlowNode | Branch, target: LineRange) => void;
-    onAddNodePrompt?: (parent: FlowNode | Branch, target: LineRange, prompt: string) => void;
+    onAddNodePrompt?: (parent: FlowNode | Branch, target: LineRange, prompt: string, options?: DiagramPromptOptions) => void;
     onDeleteNode?: (node: FlowNode) => void;
     onAddComment?: (comment: string, target: LineRange) => void;
     onNodeSelect?: (node: FlowNode) => void;
@@ -87,6 +87,7 @@ export interface DiagramProps {
         org: string;
         path: string;
         getProjectPath?: (props: JoinProjectPathRequest) => Promise<JoinProjectPathResponse>;
+        getFunctionLocation?: (functionName: string) => Promise<VisualizerLocation | undefined>;
     };
     breakpointInfo?: BreakpointInfo;
     readOnly?: boolean;
@@ -96,6 +97,10 @@ export interface DiagramProps {
     }
     isUserAuthenticated?: boolean;
     expressionContext?: ExpressionContextProps;
+    entrypointContext?: {
+        serviceName?: string;
+        functionName?: string;
+    };
 }
 
 export function Diagram(props: DiagramProps) {
@@ -123,9 +128,11 @@ export function Diagram(props: DiagramProps) {
         overlay,
         isUserAuthenticated,
         expressionContext,
+        entrypointContext,
     } = props;
 
     const [showErrorFlow, setShowErrorFlow] = useState(false);
+    const [nodeComments, setNodeComments] = useState<Map<string, FlowNode>>(new Map());
     const [diagramEngine] = useState<DiagramEngine>(generateEngine());
     const [diagramModel, setDiagramModel] = useState<DiagramModel | null>(null);
     const [showComponentPanel, setShowComponentPanel] = useState(false);
@@ -133,7 +140,8 @@ export function Diagram(props: DiagramProps) {
 
     useEffect(() => {
         if (diagramEngine) {
-            const { nodes, links } = getDiagramData();
+            const { nodes, links, comments } = getDiagramData();
+            setNodeComments(comments);
             drawDiagram(nodes, links);
         }
     }, [model, showErrorFlow, expandedErrorHandler]);
@@ -174,10 +182,11 @@ export function Diagram(props: DiagramProps) {
 
         const nodes = nodeVisitor.getNodes();
         const links = nodeVisitor.getLinks();
+        const comments = nodeVisitor.getNodeComments();
 
         const addTargetVisitor = new LinkTargetVisitor(model, nodes);
         traverseFlow(flowModel, addTargetVisitor);
-        return { nodes, links };
+        return { nodes, links, comments };
     };
 
     // Helper function to find error handlers with active breakpoints in onFailure branches
@@ -328,12 +337,14 @@ export function Diagram(props: DiagramProps) {
         project: project,
         readOnly: onAddNode === undefined || onDeleteNode === undefined || onNodeSelect === undefined || readOnly,
         isUserAuthenticated: isUserAuthenticated,
+        nodeComments: nodeComments,
         expressionContext: expressionContext || {
             completions: [],
             triggerCharacters: [],
             retrieveCompletions: () => Promise.resolve(),
             getHelperPane: undefined,
         },
+        entrypointContext,
     };
 
     const getActiveBreakpointNode = (nodes: NodeModel[]): NodeModel => {
@@ -342,7 +353,11 @@ export function Diagram(props: DiagramProps) {
                 node.getType() === NodeTypes.BASE_NODE ||
                 node.getType() === NodeTypes.WHILE_NODE ||
                 node.getType() === NodeTypes.IF_NODE ||
-                node.getType() === NodeTypes.API_CALL_NODE;
+                node.getType() === NodeTypes.API_CALL_NODE ||
+                node.getType() === NodeTypes.WORKFLOW_RUN_NODE ||
+                node.getType() === NodeTypes.CALL_ACTIVITY_NODE ||
+                node.getType() === NodeTypes.SEND_DATA_NODE ||
+                node.getType() === NodeTypes.WAIT_DATA_NODE;
             return isValidType && (node as BaseNodeModel).isActiveBreakpoint();
         });
 

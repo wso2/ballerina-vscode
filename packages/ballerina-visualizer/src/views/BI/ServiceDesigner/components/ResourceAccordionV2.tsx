@@ -250,12 +250,12 @@ export function ResourceAccordionV2(params: ResourceAccordionPropsV2) {
                 </MethodSection>
                 <ButtonSection>
                     <>
-                        <ActionButton id="bi-edit" appearance="secondary" onClick={handleEditResource}>
+                        <ActionButton id="bi-edit" appearance="secondary" onClick={handleEditResource} disabled={!onEditResource}>
                             <Icon
                                 name="bi-settings"
                                 sx={{
-                                    cursor: "pointer",
-                                    opacity: 1,
+                                    cursor: !onEditResource ? "not-allowed" : "pointer",
+                                    opacity: !onEditResource ? 0.5 : 1,
                                     fontSize: "16px",
                                     width: "16px",
                                 }}

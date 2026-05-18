@@ -17,6 +17,7 @@
  */
 
 import { FunctionModel, ResponseCode, VisibleTypeItem, VisibleTypesResponse } from '@wso2/ballerina-core';
+import { StringTemplateEditorConfig } from '@wso2/ballerina-side-panel';
 
 export enum HTTP_METHOD {
     "GET" = "GET",
@@ -109,3 +110,54 @@ export function normalizeValueToArray(value: any): any[] {
     }
     return value ? [value] : [];
 }
+
+export function isValueEqual(currentValue: any, initialValue: any): boolean {
+    const serializeValue = new StringTemplateEditorConfig();
+
+    const normalizeForComparison = (value: any): any => {
+        if (value === null || value === undefined) return value;
+        if (Array.isArray(value) || (typeof value === "object" && value.constructor === Object)) {
+            return value;
+        }
+        if (typeof value === "string") {
+            const trimmed = value.trim();
+            if ((trimmed.startsWith("{") && trimmed.endsWith("}")) || (trimmed.startsWith("[") && trimmed.endsWith("]"))) {
+                try {
+                    return JSON.parse(trimmed);
+                } catch {
+                    // Not valid JSON, treat as plain string
+                }
+            }
+            const serialized = serializeValue.serializeValue(value).trim().replace(/^"|"$/g, "");
+            return serialized.replace(/\s+/g, " ").trim();
+        }
+        return value;
+    };
+
+    const stableStringify = (obj: any): string => {
+        if (obj === null || obj === undefined) return JSON.stringify(obj);
+        if (Array.isArray(obj)) {
+            return "[" + obj.map(stableStringify).join(",") + "]";
+        }
+        if (typeof obj === "object") {
+            const keys = Object.keys(obj).sort();
+            return "{" + keys.map((k) => JSON.stringify(k) + ":" + stableStringify(obj[k])).join(",") + "}";
+        }
+        return JSON.stringify(obj);
+    };
+
+    const normalizedCurrent = normalizeForComparison(currentValue);
+    const normalizedInitial = normalizeForComparison(initialValue);
+
+    const currentIsObj = typeof normalizedCurrent === "object" && normalizedCurrent !== null;
+    const initialIsObj = typeof normalizedInitial === "object" && normalizedInitial !== null;
+
+    if (currentIsObj && initialIsObj) {
+        return stableStringify(normalizedCurrent) === stableStringify(normalizedInitial);
+    }
+    if (currentIsObj !== initialIsObj) return false;
+
+    const strCurrent = String(normalizedCurrent).replace(/\s+/g, " ").trim();
+    const strInitial = String(normalizedInitial).replace(/\s+/g, " ").trim();
+    return strCurrent === strInitial;
+};

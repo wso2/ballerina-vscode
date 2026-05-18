@@ -80,7 +80,7 @@ const StyledButton = styled(Button)`
 
     & .codicon {
         opacity: 1 !important;
-        color: var(--vscode-input-foreground) !important;
+        color: var(--vscode-editor-foreground) !important;
     }
 `;
 

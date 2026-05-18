@@ -24,7 +24,7 @@ import { Codicon, CompletionItem, Divider, HelperPaneCustom, SearchBox, ThemeCol
 import { useEffect, useMemo, useRef, useState } from "react"
 import { getPropertyFromFormField, useFieldContext, InputMode } from "@wso2/ballerina-side-panel"
 import FooterButtons from "../Components/FooterButtons"
-import { FormGenerator } from "../../Forms/FormGenerator"
+import { FlowNodeForm, ResolvedType } from "../../Forms/FlowNodeForm"
 import { ScrollableContainer } from "../Components/ScrollableContainer"
 import { FormSubmitOptions } from "../../FlowDiagram"
 import { URI } from "vscode-uri"
@@ -43,7 +43,7 @@ type VariablesPageProps = {
     targetLineRange: LineRange;
     anchorRef: React.RefObject<HTMLDivElement>;
     handleOnFormSubmit?: (updatedNode?: FlowNode, editorConfig?: EditorConfig, options?: FormSubmitOptions, openDMInPopup?: boolean) => void;
-    selectedType?: CompletionItem;
+    selectedType?: ResolvedType;
     filteredCompletions: CompletionItem[];
     currentValue: string;
     recordTypeField?: RecordTypeField;
@@ -112,7 +112,7 @@ export const Variables = (props: VariablesPageProps) => {
         return path;
     }, [breadCrumbSteps]);
     const completionContext = useMemo(() => {
-        const context = navigationPath ? navigationPath + '.' : currentValue;
+        const context = navigationPath ? navigationPath + '.' : (currentValue ?? '');
         return context;
     }, [navigationPath, currentValue]);
 
@@ -176,7 +176,7 @@ export const Variables = (props: VariablesPageProps) => {
     const dropdownItems = useMemo(() => {
         const excludedDescriptions = ["Configurable", "Parameter", "Listener", "Client"];
 
-        return filteredCompletions.filter(
+        const fieldItems = filteredCompletions.filter(
             (completion) =>
                 (completion.kind === "field" || completion.kind === "variable") &&
                 completion.label !== "self" &&
@@ -184,6 +184,14 @@ export const Variables = (props: VariablesPageProps) => {
                     completion.labelDetails?.description?.includes(desc)
                 )
         );
+
+        // If there are no fields/variables (e.g. a primitive type), fall back to toString()
+        if (fieldItems.length === 0) {
+            const toStringItem = filteredCompletions.find(c => c.label === "toString()");
+            return toStringItem ? [toStringItem] : [];
+        }
+
+        return fieldItems;
     }, [filteredCompletions]);
 
     const filteredDropDownItems = useMemo(() => {
@@ -205,7 +213,7 @@ export const Variables = (props: VariablesPageProps) => {
 
     const handleAddNewVariable = () => {
         addModal(
-            <FormGenerator
+            <FlowNodeForm
                 fileName={fileName}
                 node={selectedNode}
                 connections={[]}
@@ -245,26 +253,6 @@ export const Variables = (props: VariablesPageProps) => {
     }
 
 
-    const getTypeDef = () => {
-        return (
-            {
-                metadata: {
-                    label: "Type",
-                    description: "Type of the variable",
-                },
-                valueType: "TYPE",
-                value: selectedType?.label,
-                placeholder: "var",
-                optional: false,
-                editable: true,
-                advanced: false,
-                hidden: false,
-            }
-        )
-
-    }
-
-
     const selectedNode: FlowNode = {
         codedata: {
             node: 'VARIABLE',
@@ -289,7 +277,19 @@ export const Variables = (props: VariablesPageProps) => {
                 advanced: false,
                 hidden: false,
             },
-            type: getTypeDef(),
+            type: {
+                metadata: {
+                    label: "Type",
+                    description: "Type of the variable",
+                },
+                types: [{ fieldType: "TYPE", selected: false }],
+                value: selectedType?.value,
+                placeholder: "var",
+                optional: false,
+                editable: true,
+                advanced: false,
+                hidden: false,
+            },
             expression: {
                 metadata: {
                     label: "Expression",

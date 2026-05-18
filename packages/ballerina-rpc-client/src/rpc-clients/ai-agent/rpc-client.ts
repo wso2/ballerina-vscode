@@ -51,7 +51,11 @@ import {
     MemoryManagersRequest,
     MemoryManagersResponse,
     updateAIAgentTools,
-    updateMCPToolKit
+    updateMCPToolKit,
+    getPackageVersion,
+    fixMissingImports,
+    AIGetPackageVersionResponse,
+    AIGetPackageVersionRequest
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -97,6 +101,14 @@ export class AiAgentRpcClient implements AIAgentAPI {
 
     genTool(params: AIGentToolsRequest): Promise<AIGentToolsResponse> {
         return this._messenger.sendRequest(genTool, HOST_EXTENSION, params);
+    }
+
+    fixMissingImports(): Promise<void> {
+        return this._messenger.sendRequest(fixMissingImports, HOST_EXTENSION);
+    }
+
+    getPackageVersion(params: AIGetPackageVersionRequest): Promise<AIGetPackageVersionResponse> {
+        return this._messenger.sendRequest(getPackageVersion, HOST_EXTENSION, params);
     }
 
     configureDefaultModelProvider(): Promise<void> {

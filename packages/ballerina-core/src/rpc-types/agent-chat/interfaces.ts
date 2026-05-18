@@ -72,3 +72,29 @@ export interface ClearChatResponse {
 export interface SessionInput {
     sessionId?: string;
 }
+
+export interface SessionInfoResponse {
+    sessionId: string;
+    chatEndpoint: string;
+}
+
+export interface AgentInfo {
+    name: string;
+    basePath: string;
+    chatEp: string;
+    chatSessionId: string;
+}
+
+export interface AvailableAgentsResponse {
+    agents: AgentInfo[];
+    activeAgentName: string;
+}
+
+export interface SwitchAgentRequest {
+    agentName: string;
+}
+
+export interface SwitchAgentResponse {
+    agent: AgentInfo;
+    chatHistory: ChatHistoryMessage[];
+}

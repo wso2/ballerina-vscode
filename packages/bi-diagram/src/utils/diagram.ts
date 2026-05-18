@@ -35,6 +35,10 @@ import { EndNodeFactory } from "../components/nodes/EndNode";
 import { ErrorNodeFactory } from "../components/nodes/ErrorNode";
 import { AgentCallNodeFactory } from "../components/nodes/AgentCallNode/AgentCallNodeFactory";
 import { PromptNodeFactory } from "../components/nodes/PromptNode/PromptNodeFactory";
+import { CallActivityNodeFactory } from "../components/nodes/CallActivityNode";
+import { SendDataNodeFactory } from "../components/nodes/SendDataNode";
+import { WaitDataNodeFactory } from "../components/nodes/WaitDataNode";
+import { WorkflowRunNodeFactory } from "../components/nodes/WorkflowRunNode";
 
 export function generateEngine(): DiagramEngine {
     const engine = createEngine({
@@ -59,6 +63,10 @@ export function generateEngine(): DiagramEngine {
     engine.getNodeFactories().registerFactory(new EndNodeFactory());
     engine.getNodeFactories().registerFactory(new ErrorNodeFactory());
     engine.getNodeFactories().registerFactory(new AgentCallNodeFactory());
+    engine.getNodeFactories().registerFactory(new WorkflowRunNodeFactory());
+    engine.getNodeFactories().registerFactory(new CallActivityNodeFactory());
+    engine.getNodeFactories().registerFactory(new SendDataNodeFactory());
+    engine.getNodeFactories().registerFactory(new WaitDataNodeFactory());
 
     engine.getLayerFactories().registerFactory(new OverlayLayerFactory());
 

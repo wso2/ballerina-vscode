@@ -70,7 +70,7 @@ function activateDocCommand() {
                 const availablePackages = projectInfo?.children.map((child: any) => child.projectPath) ?? [];
                 const selectedPackage = await selectPackageOrPrompt(
                     availablePackages,
-                    "Select a package to build documentation"
+                    "Select an integration to build documentation"
                 );
                 if (!selectedPackage) {
                     return;

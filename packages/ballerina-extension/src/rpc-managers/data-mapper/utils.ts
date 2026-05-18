@@ -471,6 +471,7 @@ export function expandDMModel(
         query: model.query,
         source: "",
         rootViewId,
+        hasInvalidOutput: model.hasInvalidOutput,
         triggerRefresh: model.triggerRefresh,
         focusInputRootMap: model.focusInputRootMap
     };
@@ -526,7 +527,7 @@ function isModuleLevelInput(input: IORoot): boolean {
  */
 function buildModuleLevelInputsGroup(moduleLevelInputs: IORoot[], model: DMModel): IOType {
     
-    const id = "MODULE_LEVEL_INPUTS$"; // Suffix $ to avoid conflicts with user defined names and special case port handling
+    const id = "MODULE_LEVEL_INPUTS_G#"; // Suffix G# to avoid conflicts with user defined names and special case port handling
     model.traversingRoot = id;
     const fields = moduleLevelInputs.map(input => {
         model.focusInputRootMap[input.name] = model.traversingRoot;
@@ -581,6 +582,17 @@ function processTypeKind(
                 return processTypeReference(type.ref, parentId, model, visitedRefs);
             }
             break;
+        case TypeKind.Json:
+        case TypeKind.Xml:
+            if (type.convertedVariable) {
+                return {
+                    convertedField: processConvertedVariable(type.convertedVariable, model, visitedRefs)
+                };
+            } else if (type.fields) {
+                return {
+                    fields: processTypeFields(type as RecordType, parentId, model, visitedRefs)
+                };
+            }
     }
     return {};
 }
@@ -719,6 +731,34 @@ function processUnion(
             ...typeSpecificProps
         };
     });
+}
+
+/**
+ * Processes a converted variable for JSON/XML types
+ */
+function processConvertedVariable(
+    convertedVariable: IORoot,
+    model: DMModel,
+    visitedRefs: Set<string>
+): IOType {
+    const fieldId = convertedVariable.name;
+
+    if (model.traversingRoot) {
+        model.focusInputRootMap[fieldId] = model.traversingRoot;
+    }
+    
+    return {
+        id: fieldId,
+        name: fieldId,
+        displayName: convertedVariable.displayName,
+        typeName: convertedVariable.typeName,
+        kind: convertedVariable.kind,
+        category: convertedVariable.category,
+        isFocused: true,
+        ...(convertedVariable.optional && { optional: convertedVariable.optional }),
+        ...(convertedVariable.typeInfo && { typeInfo: convertedVariable.typeInfo }),
+        ...processTypeKind(convertedVariable, fieldId, model, visitedRefs)
+    };
 }
 
 /**

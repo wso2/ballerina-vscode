@@ -22,13 +22,11 @@ export interface ConfigVariable {
     name: string;
     description: string;
     type?: "string" | "int";
+    secret?: boolean;
 }
 
-// Cache regex for performance
-const PLACEHOLDER_REGEX = /^\$\{([A-Z_0-9]+)\}$/;
-
 /**
- * Read all keys from Config.toml and return their status — filled or placeholder.
+ * Read all keys from Config.toml and return their fill status.
  * Returns empty object if file doesn't exist.
  */
 export function getAllConfigStatus(
@@ -48,24 +46,18 @@ export function getAllConfigStatus(
             for (const [key, value] of Object.entries(obj)) {
                 const fullKey = prefix ? `${prefix}.${key}` : key;
                 if (Array.isArray(value)) {
-                    // Arrays of tables [[...]] or primitive arrays
                     value.forEach((item, index) => {
                         if (item !== null && typeof item === "object") {
                             collectStatus(item, `${fullKey}[${index}]`);
-                        } else if (typeof item === "string" && PLACEHOLDER_REGEX.test(item)) {
-                            status[`${fullKey}[${index}]`] = "missing";
                         } else {
                             status[`${fullKey}[${index}]`] = "filled";
                         }
                     });
-                    // Also mark the array key itself if empty
                     if (value.length === 0) {
                         status[fullKey] = "filled";
                     }
                 } else if (value !== null && typeof value === "object") {
                     collectStatus(value, fullKey);
-                } else if (typeof value === "string" && PLACEHOLDER_REGEX.test(value)) {
-                    status[fullKey] = "missing";
                 } else {
                     status[fullKey] = "filled";
                 }
@@ -75,95 +67,6 @@ export function getAllConfigStatus(
         collectStatus(config);
     } catch (error) {
         console.error(`[TOML Utils] Error reading config status:`, error);
-    }
-
-    return status;
-}
-
-/**
- * Create or update Config.toml with placeholder variables
- */
-export function createConfigWithPlaceholders(
-    configPath: string,
-    variables: ConfigVariable[],
-    overwrite: boolean = false
-): void {
-    let config: Record<string, any> = {};
-
-    // Read existing config if exists
-    if (fs.existsSync(configPath)) {
-        try {
-            const content = fs.readFileSync(configPath, "utf-8");
-            config = parse(content) as Record<string, any>;
-        } catch (error) {
-            console.error(`[TOML Utils] Error reading existing config:`, error);
-            throw error;
-        }
-    }
-
-    // Add placeholder variables (convert API_KEY to apikey)
-    for (const variable of variables) {
-        const tomlKey = toTomlKey(variable.name);
-
-        if (!Object.prototype.hasOwnProperty.call(config, tomlKey) || overwrite) {
-            config[tomlKey] = `\${${variable.name}}`;
-        }
-    }
-
-    // Write back to file
-    try {
-        const dirPath = path.dirname(configPath);
-        if (!fs.existsSync(dirPath)) {
-            fs.mkdirSync(dirPath, { recursive: true });
-        }
-
-        const tomlContent = stringify(config);
-        fs.writeFileSync(configPath, tomlContent, "utf-8");
-
-        console.log(`[TOML Utils] Created/updated Config.toml with ${variables.length} placeholder(s)`);
-    } catch (error) {
-        console.error(`[TOML Utils] Error writing config:`, error);
-        throw error;
-    }
-}
-
-/**
- * Check configuration value status - returns metadata only, never actual values
- */
-export function checkConfigurationStatus(
-    configPath: string,
-    variableNames: string[]
-): Record<string, "filled" | "missing"> {
-    const status: Record<string, "filled" | "missing"> = {};
-
-    if (!fs.existsSync(configPath)) {
-        for (const name of variableNames) {
-            status[name] = "missing";
-        }
-        return status;
-    }
-
-    try {
-        const content = fs.readFileSync(configPath, "utf-8");
-        const config = parse(content) as Record<string, any>;
-
-        for (const name of variableNames) {
-            const tomlKey = toTomlKey(name);
-            const value = getNestedValue(config, tomlKey);
-
-            if (value === undefined || value === null) {
-                status[name] = "missing";
-            } else if (typeof value === "string" && value.startsWith("${")) {
-                status[name] = "missing";
-            } else {
-                status[name] = "filled";
-            }
-        }
-    } catch (error) {
-        console.error(`[TOML Utils] Error checking configuration status:`, error);
-        for (const name of variableNames) {
-            status[name] = "missing";
-        }
     }
 
     return status;
@@ -197,10 +100,8 @@ export function writeConfigValuesToConfig(
         }
     }
 
-    // Replace placeholders with actual values (convert API_KEY to apikey)
     const intKeys = new Set<string>();
     for (const [variableName, value] of Object.entries(configValues)) {
-        const tomlKey = toTomlKey(variableName);
         const varType = typeMap.get(variableName) || "string";
 
         // Convert value based on type
@@ -209,10 +110,10 @@ export function writeConfigValuesToConfig(
             if (isNaN(intValue)) {
                 throw new Error(`Invalid integer value for ${variableName}`);
             }
-            config[tomlKey] = intValue;
-            intKeys.add(tomlKey);
+            config[variableName] = intValue;
+            intKeys.add(variableName);
         } else {
-            config[tomlKey] = value;
+            config[variableName] = value;
         }
     }
 
@@ -263,15 +164,7 @@ function getNestedValue(obj: any, key: string): any {
 }
 
 export function validateVariableName(name: string): boolean {
-    return /^[A-Z_0-9]+$/.test(name);
-}
-
-/**
- * Converts configuration variable name to TOML key format
- * Example: API_KEY -> apikey, DB_HOST -> dbhost
- */
-export function toTomlKey(variableName: string): string {
-    return variableName.toLowerCase().replace(/_/g, "");
+    return /^[a-zA-Z][a-zA-Z0-9]*$/.test(name);
 }
 
 /**
@@ -293,18 +186,12 @@ export function readExistingConfigValues(
         const config = parse(content) as Record<string, any>;
 
         for (const name of variableNames) {
-            const tomlKey = toTomlKey(name);
-            const value = getNestedValue(config, tomlKey);
+            const value = getNestedValue(config, name);
 
-            // Include the value if it exists and is not a placeholder
             if (value !== undefined && value !== null) {
                 if (typeof value === "string") {
-                    // Don't include placeholder values like ${VARIABLE_NAME}
-                    if (!value.startsWith("${")) {
-                        existingValues[name] = value;
-                    }
+                    existingValues[name] = value;
                 } else if (typeof value === "number") {
-                    // Convert number to string for UI display
                     existingValues[name] = value.toString();
                 }
             }
@@ -325,11 +212,7 @@ export function createStatusMetadata(
     const status: Record<string, "filled" | "missing"> = {};
 
     for (const [key, value] of Object.entries(configValues)) {
-        if (!value || value.trim() === "" || value.startsWith("${")) {
-            status[key] = "missing";
-        } else {
-            status[key] = "filled";
-        }
+        status[key] = value && value.trim() !== "" ? "filled" : "missing";
     }
 
     return status;

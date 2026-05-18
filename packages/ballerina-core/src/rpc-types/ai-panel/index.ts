@@ -44,6 +44,17 @@ import {
     UIChatMessage,
     CheckpointInfo,
     AbortAIGenerationRequest,
+    UsageResponse,
+    OpenFileDiffRequest,
+    WebToolApprovalRequest,
+    CompactConversationRequest,
+    CompactConversationResponse,
+    PromptEnhancementRequest,
+    PromptEnhancementResponse,
+    ClarifyAnswerRequest,
+    ClarifyCancelRequest,
+    RunningServiceInfo,
+    StopRunningServiceRequest,
 } from "./interfaces";
 
 export interface AIPanelAPI {
@@ -51,6 +62,7 @@ export interface AIPanelAPI {
     // General Functions
     // ==================================
     getLoginMethod: () => Promise<LoginMethod>;
+    isPlatformExtensionAvailable: () => Promise<boolean>;
     getDefaultPrompt: () => Promise<AIPanelPrompt>; //starting args
     getAIMachineSnapshot: () => Promise<AIMachineSnapshot>; //login state machine
     clearInitialPrompt: () => void; //starting args
@@ -79,7 +91,6 @@ export interface AIPanelAPI {
     addFilesToProject: (params: AddFilesToProjectRequest) => Promise<boolean>;
     isUserAuthenticated: () => Promise<boolean>;
     openAIPanel: (params: AIPanelPrompt) => Promise<void>;
-    isPlanModeFeatureEnabled: () => Promise<boolean>;
     // AI schema related functions
     getSemanticDiff: (params: SemanticDiffRequest) => Promise<SemanticDiffResponse>;
     getAffectedPackages: () => Promise<string[]>;
@@ -106,4 +117,22 @@ export interface AIPanelAPI {
     clearChat: () => Promise<void>;
     updateChatMessage: (params: UpdateChatMessageRequest) => Promise<void>;
     getActiveTempDir: () => Promise<string>;
+    getUsage: () => Promise<UsageResponse | undefined>;
+    openFileDiff: (params: OpenFileDiffRequest) => void;
+    approveWebTool: (params: WebToolApprovalRequest) => Promise<void>;
+    declineWebTool: (params: WebToolApprovalRequest) => Promise<void>;
+    compactConversation: (params: CompactConversationRequest) => Promise<CompactConversationResponse>;
+    getShowContextUsage: () => Promise<boolean>;
+    // ==================================
+    // Prompt Enhancement
+    // ==================================
+    enhancePrompt: (params: PromptEnhancementRequest) => Promise<PromptEnhancementResponse>;
+    promptForLogin: () => void;
+    submitClarifyAnswer: (params: ClarifyAnswerRequest) => Promise<void>;
+    cancelClarify: (params: ClarifyCancelRequest) => Promise<void>;
+    // ==================================
+    // Running Services (long-lived agent processes)
+    // ==================================
+    getRunningServices: () => Promise<RunningServiceInfo[]>;
+    stopRunningService: (params: StopRunningServiceRequest) => Promise<boolean>;
 }

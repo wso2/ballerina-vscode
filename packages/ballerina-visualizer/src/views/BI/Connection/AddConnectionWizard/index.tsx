@@ -42,7 +42,7 @@ import { RelativeLoader } from "../../../../components/RelativeLoader";
 import { HelperView } from "../../HelperView";
 import { BodyText } from "../../../styles";
 import { DownloadIcon } from "../../../../components/DownloadIcon";
-import FormGeneratorNew from "../../Forms/FormGeneratorNew";
+import ArtifactForm from "../../Forms/ArtifactForm";
 import { FormSubmitOptions } from "../../FlowDiagram";
 
 const Container = styled.div`
@@ -145,7 +145,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
             documentation: "Name of the connector",
             enabled: true,
             value: "",
-            types: [{fieldType: "STRING", selected: false}],
+            types: [{ fieldType: "STRING", selected: false }],
             diagnostics: [],
         },
         {
@@ -157,7 +157,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
             documentation: "",
             enabled: true,
             value: "",
-            types: [{fieldType: "FILE_SELECT", selected: false}],
+            types: [{ fieldType: "FILE_SELECT", selected: false }],
         },
     ]);
 
@@ -209,7 +209,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                 // If it timed out, set status to SUCCESS
                 setPullingStatus(PullingStatus.SUCCESS);
             }
-
+            
             console.log(">>> FlowNode template", response);
             selectedNodeRef.current = response.flowNode;
             const formProperties = getFormProperties(response.flowNode);
@@ -496,7 +496,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                         <BodyText style={{ padding: "20px 16px 0 16px" }}>
                             Provide the necessary details to generate the connector.
                         </BodyText>
-                        <FormGeneratorNew
+                        <ArtifactForm
                             fileName={fileName}
                             targetLineRange={targetLineRange}
                             fields={genConnectorFields}

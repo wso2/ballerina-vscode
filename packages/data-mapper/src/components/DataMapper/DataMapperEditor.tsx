@@ -140,10 +140,12 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         getClausePosition,
         mapWithCustomFn,
         mapWithTransformFn,
+        resolveOutput,
         goToFunction,
         enrichChildFields,
         genUniqueName,
         getConvertedExpression,
+        createConvertedVariable,
         undoRedoGroup
     } = props;
     const {
@@ -240,6 +242,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                 model, 
                 views, 
                 hasInputsOutputsChanged,
+                reusable,
                 addView, 
                 applyModifications, 
                 addArrayElement,
@@ -249,10 +252,12 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                 addClauses,
                 mapWithCustomFn,
                 mapWithTransformFn,
+                resolveOutput,
                 goToFunction,
                 enrichChildFields,
                 genUniqueName,
-                getConvertedExpression
+                getConvertedExpression,
+                createConvertedVariable
             );
 
             const ioNodeInitVisitor = new IONodeInitVisitor(context);

@@ -46,11 +46,23 @@ import {
     UIChatMessage,
     CheckpointInfo,
     AbortAIGenerationRequest,
+    UsageResponse,
+    OpenFileDiffRequest,
+    WebToolApprovalRequest,
+    CompactConversationRequest,
+    CompactConversationResponse,
+    PromptEnhancementRequest,
+    PromptEnhancementResponse,
+    ClarifyAnswerRequest,
+    ClarifyCancelRequest,
+    RunningServiceInfo,
+    StopRunningServiceRequest,
 } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
 const _preFix = "ai-panel";
 export const getLoginMethod: RequestType<void, LoginMethod> = { method: `${_preFix}/getLoginMethod` };
+export const isPlatformExtensionAvailable: RequestType<void, boolean> = { method: `${_preFix}/isPlatformExtensionAvailable` };
 export const getDefaultPrompt: RequestType<void, AIPanelPrompt> = { method: `${_preFix}/getDefaultPrompt` };
 export const getAIMachineSnapshot: RequestType<void, AIMachineSnapshot> = { method: `${_preFix}/getAIMachineSnapshot` };
 export const clearInitialPrompt: NotificationType<void> = { method: `${_preFix}/clearInitialPrompt` };
@@ -75,9 +87,8 @@ export const getGeneratedDocumentation: RequestType<DocGenerationRequest, void> 
 export const addFilesToProject: RequestType<AddFilesToProjectRequest, boolean> = { method: `${_preFix}/addFilesToProject` };
 export const isUserAuthenticated: RequestType<void, boolean> = { method: `${_preFix}/isUserAuthenticated` };
 export const openAIPanel: RequestType<AIPanelPrompt, void> = { method: `${_preFix}/openAIPanel` };
-export const isPlanModeFeatureEnabled: RequestType<void, boolean> = { method: `${_preFix}/isPlanModeFeatureEnabled` };
 export const getSemanticDiff: RequestType<SemanticDiffRequest, SemanticDiffResponse> = { method: `${_preFix}/getSemanticDiff` };
-export const getAffectedPackages: RequestType<void, string[]> = { method: `${_preFix}/getAffectedPackages` };
+export const getAffectedPackages: NotificationType<void> = { method: `${_preFix}/getAffectedPackages` };
 export const isWorkspaceProject: RequestType<void, boolean> = { method: `${_preFix}/isWorkspaceProject` };
 export const acceptChanges: RequestType<void, void> = { method: `${_preFix}/acceptChanges` };
 export const declineChanges: RequestType<void, void> = { method: `${_preFix}/declineChanges` };
@@ -95,3 +106,16 @@ export const restoreCheckpoint: RequestType<RestoreCheckpointRequest, void> = { 
 export const clearChat: RequestType<void, void> = { method: `${_preFix}/clearChat` };
 export const updateChatMessage: RequestType<UpdateChatMessageRequest, void> = { method: `${_preFix}/updateChatMessage` };
 export const getActiveTempDir: RequestType<void, string> = { method: `${_preFix}/getActiveTempDir` };
+export const getUsage: RequestType<void, UsageResponse | undefined> = { method: `${_preFix}/getUsage` };
+export const openFileDiff: NotificationType<OpenFileDiffRequest> = { method: `${_preFix}/openFileDiff` };
+export const approveWebTool: RequestType<WebToolApprovalRequest, void> = { method: `${_preFix}/approveWebTool` };
+export const declineWebTool: RequestType<WebToolApprovalRequest, void> = { method: `${_preFix}/declineWebTool` };
+export const compactConversation: RequestType<CompactConversationRequest, CompactConversationResponse> = { method: `${_preFix}/compactConversation` };
+export const getShowContextUsage: RequestType<void, boolean> = { method: `${_preFix}/getShowContextUsage` };
+export const enhancePrompt: RequestType<PromptEnhancementRequest, PromptEnhancementResponse> = { method: `${_preFix}/enhancePrompt` };
+export const promptForLogin: NotificationType<void> = { method: `${_preFix}/promptForLogin` };
+export const submitClarifyAnswer: RequestType<ClarifyAnswerRequest, void> = { method: `${_preFix}/submitClarifyAnswer` };
+export const cancelClarify: RequestType<ClarifyCancelRequest, void> = { method: `${_preFix}/cancelClarify` };
+export const getRunningServices: RequestType<void, RunningServiceInfo[]> = { method: `${_preFix}/getRunningServices` };
+export const stopRunningService: RequestType<StopRunningServiceRequest, boolean> = { method: `${_preFix}/stopRunningService` };
+export const runningServicesChanged: NotificationType<RunningServiceInfo[]> = { method: `${_preFix}/runningServicesChanged` };

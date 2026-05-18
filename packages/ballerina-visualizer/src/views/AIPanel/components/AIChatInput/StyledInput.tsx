@@ -121,10 +121,11 @@ interface StyledInputProps {
     onBlur: (e: React.FocusEvent<HTMLDivElement>) => void;
     placeholder: string;
     onPostDOMUpdate?: () => void;
+    disabled?: boolean;
 }
 
 export const StyledInputComponent = forwardRef<StyledInputRef, StyledInputProps>(
-    ({ value, onChange, onKeyDown, onBlur, placeholder, onPostDOMUpdate }, ref) => {
+    ({ value, onChange, onKeyDown, onBlur, placeholder, onPostDOMUpdate, disabled }, ref) => {
         const [internalContent, setInternalContent] = useState<string>(value.text);
         const divRef = useRef<HTMLDivElement>(null);
 
@@ -395,7 +396,7 @@ export const StyledInputComponent = forwardRef<StyledInputRef, StyledInputProps>
         return (
             <StyledInput
                 ref={divRef}
-                contentEditable
+                contentEditable={!disabled}
                 spellCheck="true"
                 onInput={handleInput}
                 onKeyDown={handleKeyDown}

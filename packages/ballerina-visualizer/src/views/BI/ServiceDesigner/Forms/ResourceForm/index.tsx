@@ -118,10 +118,12 @@ export function ResourceForm(props: ResourceFormProps) {
 			statusCode: { ...model.returnType.responses[0].statusCode, value: defaultStatusCode }
 		}
 
+		const updatedResponses = [updatedResponse, ...model.returnType.responses.slice(1)];
+
 		const updatedFunctionModel = {
 			...model,
 			accessor: { ...model.accessor, value: method },
-			returnType: { ...model.returnType, responses: [updatedResponse] },
+			returnType: { ...model.returnType, responses: updatedResponses },
 		};
 		setFunctionModel(updatedFunctionModel as FunctionModel);
 	}
@@ -173,7 +175,9 @@ export function ResourceForm(props: ResourceFormProps) {
 		if (createMore) {
 			closeMethod();
 		}
-		functionModel.name.value = sanitizedHttpPath(functionModel.name.value as string);
+		if (functionModel.name.value !== ".") {
+			functionModel.name.value = sanitizedHttpPath(functionModel.name.value as string);
+		}
 		onSave(functionModel, !createMore);
 	}
 
