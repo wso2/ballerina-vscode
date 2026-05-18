@@ -314,8 +314,8 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                         endGroup(test, false, run);
                     });
                 }
-            }).catch(() => {
-                testItems.forEach((item) => run.failed(item, new TestMessage('Failed to run bal test')));
+            }).catch((err) => {
+                testItems.forEach((item) => run.failed(item, new TestMessage(`Failed to run bal test: ${err.message}`)));
                 endGroup(test, false, run);
             });
         } else if (isTestGroupItem(test)) {
@@ -350,8 +350,8 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                         endGroup(test, false, run);
                     });
                 }
-            }).catch(() => {
-                testItems.forEach((item) => run.failed(item, new TestMessage('Failed to run bal test')));
+            }).catch((err) => {
+                testItems.forEach((item) => run.failed(item, new TestMessage(`Failed to run bal test: ${err.message}`)));
                 endGroup(test, false, run);
             });
         } else if (isTestFunctionItem(test)) {
@@ -387,8 +387,8 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                         endGroup(test, false, run);
                     });
                 }
-            }).catch(() => {
-                run.failed(test, new TestMessage('Failed to run bal test'));
+            }).catch((err) => {
+                run.failed(test, new TestMessage(`Failed to run bal test: ${err.message}`));
                 endGroup(test, false, run);
             });
         }
