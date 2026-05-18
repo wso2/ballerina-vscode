@@ -23,11 +23,14 @@ import { CopilotEventHandler } from "../../utils/events";
 import { approvalManager } from "../../state/ApprovalManager";
 import {
     ConfigVariable,
+    ConfigKeyRename,
     getAllConfigStatus,
     validateVariableName,
     writeConfigValuesToConfig,
     createStatusMetadata,
     readExistingConfigValues,
+    removeConfigKeys,
+    renameConfigKeys,
 } from "../../../../utils/toml-utils";
 import { resolveContained, resolvePackageBasePath } from "./path-utils";
 import { getOrgPackageName } from "../../../../utils/config";
@@ -45,13 +48,20 @@ const ConfigVariableSchema = z.object({
     secret: z.boolean().optional().describe("Mark as true for sensitive values (API keys, passwords, tokens) to render as a masked input"),
 });
 
+const ConfigKeyRenameSchema = z.object({
+    from: z.string().describe("Current variable name in Config.toml"),
+    to: z.string().describe("New variable name — must match the renamed configurable identifier in source"),
+});
+
 const ConfigCollectorSchema = z.object({
-    mode: z.enum(["collect", "check"]).describe("Operation mode"),
+    mode: z.enum(["collect", "check", "remove", "rename"]).describe("Operation mode"),
     filePath: z.string().optional().describe("Path to config file (for check mode)"),
-    variables: z.array(ConfigVariableSchema).optional().describe("Configuration variables"),
+    variables: z.array(ConfigVariableSchema).optional().describe("Configuration variables (collect mode)"),
     variableNames: z.array(z.string()).optional().describe(
-        "Variable names to verify in check mode. " +
-        "Omit to discover ALL existing variable names in the file — useful when you want to reuse names that are already there."
+        "Variable names — used by 'check' (verify; omit to list all) and 'remove' (keys to delete)."
+    ),
+    renames: z.array(ConfigKeyRenameSchema).optional().describe(
+        "Rename pairs for 'rename' mode. The 'to' name must already exist as a configurable in source."
     ),
     isTestConfig: z.boolean().optional().describe("Set to true when collecting configuration for tests. Tool will automatically read from Config.toml and write to tests/Config.toml"),
     packagePath: z.string().optional().describe(
@@ -62,10 +72,11 @@ const ConfigCollectorSchema = z.object({
 });
 
 interface ConfigCollectorInput {
-    mode: "collect" | "check";
+    mode: "collect" | "check" | "remove" | "rename";
     filePath?: string;
     variables?: ConfigVariable[];
     variableNames?: string[];
+    renames?: ConfigKeyRename[];
     isTestConfig?: boolean;
     packagePath?: string;
 }
@@ -166,6 +177,12 @@ Operation Modes:
    - Example (workspace): { mode: "check", packagePath: "pkg1" }
    - Returns: { status: { dbPassword: "filled", apiKey: "missing" } }
 
+3. REMOVE: Delete keys from Config.toml.
+
+4. RENAME: Rename keys in Config.toml, preserving values. Rename the configurable in source first — the 'to' name must already match a source declaration.
+
+Prefer REMOVE/RENAME over adding a dummy configurable to suppress unused-key errors.
+
 VARIABLE NAMING:
 Use camelCase names that match exactly the Ballerina configurable identifier. The name is written as-is to Config.toml.
 
@@ -257,6 +274,24 @@ export async function ConfigCollectorTool(
                     input.filePath,
                     paths,
                     input.isTestConfig,
+                    input.packagePath
+                );
+
+            case "remove":
+                return await handleRemoveMode(
+                    input.variableNames,
+                    paths,
+                    input.isTestConfig,
+                    modifiedFiles,
+                    input.packagePath
+                );
+
+            case "rename":
+                return await handleRenameMode(
+                    input.renames,
+                    paths,
+                    input.isTestConfig,
+                    modifiedFiles,
                     input.packagePath
                 );
 
@@ -526,6 +561,157 @@ async function handleCheckMode(
             `filled: [${filledNames.join(", ") || "none"}], ` +
             `missing: [${missingNames.join(", ") || "none"}]`,
         status,
+    };
+}
+
+async function handleRemoveMode(
+    variableNames: string[] | undefined,
+    paths: ConfigCollectorPaths,
+    isTestConfig: boolean | undefined,
+    modifiedFiles: string[] | undefined,
+    packagePath: string | undefined
+): Promise<ConfigCollectorResult> {
+    if (!variableNames || variableNames.length === 0) {
+        return createErrorResult(
+            "NO_VARIABLES",
+            "No variable names provided to remove. Pass 'variableNames' with the keys to delete from Config.toml."
+        );
+    }
+    for (const name of variableNames) {
+        if (!validateVariableName(name)) {
+            return createErrorResult(
+                "INVALID_VARIABLE_NAME",
+                `Invalid variable name: ${name}. Use camelCase alphanumeric names (e.g., apiKey).`
+            );
+        }
+    }
+
+    const packageBasePath = resolvePackageBasePath(paths.tempPath, packagePath);
+    const { orgName, packageName } = getOrgPackageName(packageBasePath);
+    if (!orgName || !packageName) {
+        return createErrorResult(
+            "MISSING_PACKAGE_INFO",
+            "Ballerina.toml is missing or does not declare both 'org' and 'name' under [package]. Cannot scope Config.toml to the correct section."
+        );
+    }
+
+    const configPath = getConfigPath(packageBasePath, isTestConfig);
+    const configFileName = getConfigFileName(isTestConfig);
+
+    if (!fs.existsSync(configPath)) {
+        return {
+            success: true,
+            message: `${configFileName} does not exist — nothing to remove.`,
+        };
+    }
+
+    const { removed, notFound } = removeConfigKeys(configPath, variableNames, orgName, packageName);
+
+    if (removed.length > 0 && modifiedFiles) {
+        const relativeConfigPath = packagePath
+            ? path.join(packagePath, configFileName)
+            : configFileName;
+        if (!modifiedFiles.includes(relativeConfigPath)) {
+            modifiedFiles.push(relativeConfigPath);
+        }
+    }
+
+    console.log(`[ConfigCollector] remove ${configFileName} — removed: [${removed.join(", ") || "none"}], not found: [${notFound.join(", ") || "none"}]`);
+
+    const parts: string[] = [];
+    if (removed.length > 0) { parts.push(`removed: [${removed.join(", ")}]`); }
+    if (notFound.length > 0) { parts.push(`not found: [${notFound.join(", ")}]`); }
+
+    return {
+        success: true,
+        message: `${configFileName} — ${parts.join(", ") || "no changes"}`,
+    };
+}
+
+async function handleRenameMode(
+    renames: ConfigKeyRename[] | undefined,
+    paths: ConfigCollectorPaths,
+    isTestConfig: boolean | undefined,
+    modifiedFiles: string[] | undefined,
+    packagePath: string | undefined
+): Promise<ConfigCollectorResult> {
+    if (!renames || renames.length === 0) {
+        return createErrorResult(
+            "NO_RENAMES",
+            "No rename pairs provided. Pass 'renames' as an array of { from, to } objects."
+        );
+    }
+    for (const { from, to } of renames) {
+        if (!validateVariableName(from) || !validateVariableName(to)) {
+            return createErrorResult(
+                "INVALID_VARIABLE_NAME",
+                `Invalid variable name in rename pair: ${from} → ${to}. Use camelCase alphanumeric names.`
+            );
+        }
+    }
+
+    const packageBasePath = resolvePackageBasePath(paths.tempPath, packagePath);
+    const { orgName, packageName } = getOrgPackageName(packageBasePath);
+    if (!orgName || !packageName) {
+        return createErrorResult(
+            "MISSING_PACKAGE_INFO",
+            "Ballerina.toml is missing or does not declare both 'org' and 'name' under [package]. Cannot scope Config.toml to the correct section."
+        );
+    }
+
+    // The target name must exist in source — the agent should have renamed the
+    // configurable declaration and saved before calling rename.
+    const sourceTypes = await getConfigurableTypesFromSource(packageBasePath, orgName, packageName);
+    if (sourceTypes === null) {
+        return createErrorResult(
+            "LS_UNAVAILABLE",
+            "Language server is unavailable or failed to respond. Wait a moment and retry."
+        );
+    }
+    const unknownTargets = renames.filter(r => !(r.to in sourceTypes));
+    if (unknownTargets.length > 0) {
+        return createErrorResult(
+            "UNKNOWN_CONFIGURABLE",
+            `Target names not declared in source: ${unknownTargets.map(r => r.to).join(", ")}. ` +
+            `Available in source: ${Object.keys(sourceTypes).join(", ") || "none"}. ` +
+            `Rename the configurable in your .bal files and save first, then retry.`
+        );
+    }
+
+    const configPath = getConfigPath(packageBasePath, isTestConfig);
+    const configFileName = getConfigFileName(isTestConfig);
+
+    if (!fs.existsSync(configPath)) {
+        return createErrorResult(
+            "FILE_NOT_FOUND",
+            `${configFileName} does not exist — nothing to rename. Use collect mode to create entries for the new names.`
+        );
+    }
+
+    const { renamed, skipped } = renameConfigKeys(configPath, renames, orgName, packageName);
+
+    if (renamed.length > 0 && modifiedFiles) {
+        const relativeConfigPath = packagePath
+            ? path.join(packagePath, configFileName)
+            : configFileName;
+        if (!modifiedFiles.includes(relativeConfigPath)) {
+            modifiedFiles.push(relativeConfigPath);
+        }
+    }
+
+    console.log(`[ConfigCollector] rename ${configFileName} — renamed: [${renamed.map(r => `${r.from}->${r.to}`).join(", ") || "none"}], skipped: [${skipped.map(s => `${s.from}->${s.to}`).join(", ") || "none"}]`);
+
+    const parts: string[] = [];
+    if (renamed.length > 0) {
+        parts.push(`renamed: [${renamed.map(r => `${r.from}→${r.to}`).join(", ")}]`);
+    }
+    if (skipped.length > 0) {
+        parts.push(`skipped: [${skipped.map(s => `${s.from}→${s.to} (${s.reason})`).join(", ")}]`);
+    }
+
+    return {
+        success: renamed.length > 0,
+        message: `${configFileName} — ${parts.join(", ") || "no changes"}`,
     };
 }
 
