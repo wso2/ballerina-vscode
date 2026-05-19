@@ -5,7 +5,7 @@ All notable changes to the **Ballerina** extension will be documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
 
-## [5.12.0](https://github.com/wso2/vscode-extensions/compare/ballerina-5.8.2...ballerina-integrator-1.10.0) - 2026-05-15
+## [5.12.0](https://github.com/wso2/vscode-extensions/compare/ballerina-5.8.2...ballerina-integrator-1.10.0) - 2026-05-18
 
 ### Added
 
