@@ -148,6 +148,25 @@ const ConfirmBarIcon = styled.span`
     align-items: center;
 `;
 
+const ErrorBar = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 20px;
+    background-color: ${ThemeColors.SURFACE_DIM};
+    border-top: 1px solid ${ThemeColors.ERROR};
+    color: ${ThemeColors.ERROR};
+    font-size: 12px;
+    line-height: 1.4;
+`;
+
+const ErrorBarIcon = styled.span`
+    flex-shrink: 0;
+    color: ${ThemeColors.ERROR};
+    display: inline-flex;
+    align-items: center;
+`;
+
 const FooterHint = styled.span`
     margin-right: auto;
     align-self: center;
@@ -348,12 +367,14 @@ export const ConfigurationCollector: React.FC<ConfigurationCollectorProps> = ({ 
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [mode, setMode] = useState<CollectorMode>("editing");
     const [visibleFields, setVisibleFields] = useState<Record<string, boolean>>({});
+    const [submitError, setSubmitError] = useState<string | null>(null);
 
     useEffect(() => {
         setConfigValues(buildInitialValues(data));
         setVisibleFields({});
         setErrors({});
         setMode("editing");
+        setSubmitError(null);
     }, [data]);
 
     const handleInputChange = (variableName: string, value: string) => {
@@ -365,6 +386,7 @@ export const ConfigurationCollector: React.FC<ConfigurationCollectorProps> = ({ 
         });
         // Any edit invalidates the empty-fields warning; re-evaluate on next Save.
         setMode((current) => (current === "confirming" ? "editing" : current));
+        setSubmitError(null);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -385,6 +407,7 @@ export const ConfigurationCollector: React.FC<ConfigurationCollectorProps> = ({ 
 
     const submitToBackend = async () => {
         if (!data) return;
+        setSubmitError(null);
         setMode("processing");
         try {
             await rpcClient.getAiPanelRpcClient().provideConfiguration({
@@ -394,6 +417,8 @@ export const ConfigurationCollector: React.FC<ConfigurationCollectorProps> = ({ 
             onClose();
         } catch (error: any) {
             console.error("[ConfigurationCollector] Error in submitToBackend:", error);
+            const message = (error && typeof error.message === "string" && error.message) || "Failed to save configuration. Please try again.";
+            setSubmitError(message);
             setMode("editing");
         }
     };
@@ -504,6 +529,14 @@ export const ConfigurationCollector: React.FC<ConfigurationCollectorProps> = ({ 
                             Empty fields will not be saved: <b>{emptyNames.join(", ")}</b>
                         </span>
                     </ConfirmBar>
+                )}
+                {submitError && (
+                    <ErrorBar>
+                        <ErrorBarIcon>
+                            <Codicon name="error" />
+                        </ErrorBarIcon>
+                        <span>{submitError}</span>
+                    </ErrorBar>
                 )}
                 <PopupFooter>
                     {mode === "confirming" ? (
