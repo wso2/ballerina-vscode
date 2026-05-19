@@ -371,6 +371,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
             }
             return;
         }
+        let cancelled = false;
         const updateEditorState = async () => {
             const currentDoc = viewRef.current!.state.doc.toString();
             const isExternalUpdate = serializedValue !== currentDoc;
@@ -386,6 +387,10 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                 props.fileName,
                 startLine !== undefined ? startLine : undefined
             );
+
+            // Drop stale responses where the value changed mid-await
+            if (cancelled) return;
+
             const prefixCorrectedTokenStream = tokenStream
                 ? correctTokenStreamPositions(
                     tokenStream,
@@ -411,6 +416,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
             setIsValueResolving(false);
         };
         updateEditorState();
+        return () => { cancelled = true; };
     }, [props.value, props.fileName, props.targetLineRange?.startLine, isTokenUpdateScheduled]);
 
     useEffect(() => {
