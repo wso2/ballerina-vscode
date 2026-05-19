@@ -128,7 +128,7 @@ const Overlay = styled.div`
     height: 100vh;
     background: ${ThemeColors.SURFACE_CONTAINER};
     opacity: 0.4;
-    z-index: 2001;
+    z-index: 2099;
     pointer-events: auto;
 `;
 

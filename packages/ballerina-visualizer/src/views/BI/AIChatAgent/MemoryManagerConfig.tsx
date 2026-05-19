@@ -77,7 +77,7 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
     const { agentNode, memoryNode: existingMemoryVariable, onSave } = props;
 
     const { rpcClient } = useRpcContext();
-    const { openOverlay, closeTopOverlay } = usePanelOverlay();
+    const { openOverlay, closeTopOverlay, updateOverlay } = usePanelOverlay();
 
     const [availableMemory, setAvailableMemory] = useState<CodeData[]>([]);
     const [memoryNodeTemplate, setMemoryNodeTemplate] = useState<FlowNode>();
@@ -92,7 +92,8 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
     const aiModuleOrg = useRef<string>("");
     const agentNodeRef = useRef<FlowNode>();
     const targetLineRange = useRef<any>();
-    const currentOverlayId = useRef<string | null>(null);
+    const selectionOverlayIdRef = useRef<string | null>(null);
+    const createOverlayIdRef = useRef<string | null>(null);
 
     useEffect(() => {
         initPanel();
@@ -325,11 +326,22 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
     };
 
 
+    const closeStoreOverlays = () => {
+        if (createOverlayIdRef.current) {
+            closeTopOverlay();
+            createOverlayIdRef.current = null;
+        }
+        if (selectionOverlayIdRef.current) {
+            closeTopOverlay();
+            selectionOverlayIdRef.current = null;
+        }
+    };
+
     const handleStoreCreated = (createdNode: FlowNode, artifacts?: ProjectStructureArtifactResponse[]) => {
         const storeProperty = createdNode.properties?.store;
         if (!storeProperty?.value) {
             console.error("No store reference found in created node");
-            closeTopOverlay();
+            closeStoreOverlays();
             return;
         }
 
@@ -371,13 +383,30 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
         setMemoryNode(prev => (prev ? applyMemoryUpdates(prev) : prev));
 
         setFormKey(prev => prev + 1);
-        closeTopOverlay();
+        closeStoreOverlays();
     };
 
     const handleSelectStore = async (nodeId: string, metadata?: any) => {
-        if (!currentOverlayId.current) {
+        if (!selectionOverlayIdRef.current || createOverlayIdRef.current) {
             return;
         }
+
+        // Push create on top of selection so back navigation just pops it
+        // and reveals the already-mounted selection panel (no slide-in).
+        const createId = openOverlay({
+            title: "Create Memory Store",
+            content: (
+                <LoaderContainer>
+                    <RelativeLoader />
+                </LoaderContainer>
+            ),
+            onBack: closeTopOverlay,
+            // Fires from closeTopOverlay, backdrop click, and X button — catches every close path
+            onClose: () => {
+                createOverlayIdRef.current = null;
+            },
+        });
+        createOverlayIdRef.current = createId;
 
         try {
             const { flowNode } = await getNodeTemplateForConnection(
@@ -388,12 +417,11 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
                 rpcClient
             );
 
-            // Close the selection overlay and open the creation overlay
-            closeTopOverlay();
+            if (createOverlayIdRef.current !== createId) {
+                return;
+            }
 
-            // Open the creation overlay
-            currentOverlayId.current = openOverlay({
-                title: "Create Memory Store",
+            updateOverlay(createId, {
                 content: (
                     <ConnectionCreator
                         connectionKind="SHORT_TERM_MEMORY_STORE"
@@ -402,22 +430,18 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
                         onSave={handleStoreCreated}
                     />
                 ),
-                onBack: handleBackToSelection,
             });
         } catch (error) {
             console.error("Error selecting memory store:", error);
+            if (createOverlayIdRef.current === createId) {
+                closeTopOverlay();
+                createOverlayIdRef.current = null;
+            }
         }
     };
 
-    const handleBackToSelection = () => {
-        // Close the current overlay (Create Memory Store) before opening the previous one
-        closeTopOverlay();
-        // Then open the selection overlay
-        handleOpenStoreSelection();
-    };
-
     const handleOpenStoreSelection = () => {
-        currentOverlayId.current = openOverlay({
+        const id = openOverlay({
             title: "Select Memory Store",
             content: (
                 <ConnectionSelectionList
@@ -426,7 +450,11 @@ export function MemoryManagerConfig(props: MemoryConfigProps): JSX.Element {
                 />
             ),
             onBack: closeTopOverlay,
+            onClose: () => {
+                selectionOverlayIdRef.current = null;
+            },
         });
+        selectionOverlayIdRef.current = id;
     };
 
     return (
