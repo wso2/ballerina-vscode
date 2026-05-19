@@ -446,7 +446,8 @@ async function handleCollectMode(
         variables.map(v => v.name)
     );
 
-    console.log(`[ConfigCollector] ${isTestConfig ? 'Test' : 'Main'} configuration: ${analysis.filledCount} filled`);
+    const configFileName = getConfigFileName(isTestConfig);
+    console.log(`[ConfigCollector] collect requested=${enrichedVariables.length} preFilled=${analysis.filledCount} file=${configFileName}`);
 
     // Determine the message to show to user
     const userMessage = isTestConfig
@@ -469,6 +470,7 @@ async function handleCollectMode(
     );
 
     if (!userResponse.provided) {
+        console.log(`[ConfigCollector] collect cancelled file=${configFileName}`);
         eventHandler({
             type: "configuration_collection_event",
             requestId,
@@ -494,12 +496,15 @@ async function handleCollectMode(
         name => !existingValues[name] || isPlaceholderValue(existingValues[name])
     );
 
+    const providedCount = Object.keys(provided).length;
+    const preservedCount = notProvided.length - skippedNew.length;
+    console.log(`[ConfigCollector] collect saved=${providedCount} skippedNew=${skippedNew.length} preserved=${preservedCount} requested=${enrichedVariables.length} file=${configFileName}`);
+
     writeConfigValuesToConfig(configPath, provided, enrichedVariables, orgName, packageName);
 
     // Track modified file for syncing to workspace.
     // Path is relative to tempProjectPath, so prefix with packagePath for workspace projects.
     if (modifiedFiles) {
-        const configFileName = getConfigFileName(isTestConfig);
         const relativeConfigPath = packagePath
             ? path.join(packagePath, configFileName)
             : configFileName;
@@ -514,8 +519,6 @@ async function handleCollectMode(
     // Clear values from memory; NEVER return actual values to agent
     userResponse.configValues = undefined;
 
-    // Success - configuration values were collected and written
-    const configFileName = getConfigFileName(isTestConfig);
     eventHandler({
         type: "configuration_collection_event",
         requestId,
@@ -528,8 +531,8 @@ async function handleCollectMode(
 
     const userNote = userResponse.comment ? ". User note: " + userResponse.comment : "";
     const message = skippedNew.length > 0
-        ? `Saved ${Object.keys(provided).length} value(s) to ${configFileName}. User skipped: [${skippedNew.join(", ")}]${userNote}`
-        : `Saved ${Object.keys(provided).length} configuration value(s) to ${configFileName}${userNote}`;
+        ? `Saved ${providedCount} value(s) to ${configFileName}. User skipped: [${skippedNew.join(", ")}]${userNote}`
+        : `Saved ${providedCount} configuration value(s) to ${configFileName}${userNote}`;
 
     return {
         success: true,
@@ -592,12 +595,12 @@ async function handleCheckMode(
     const filledNames = Object.entries(status).filter(([, s]) => s === "filled").map(([n]) => n);
     const missingNames = Object.entries(status).filter(([, s]) => s === "missing").map(([n]) => n);
 
-    console.log(`[ConfigCollector] check ${configFileName} — filled: [${filledNames.join(", ") || "none"}], missing: [${missingNames.join(", ") || "none"}]`);
+    console.log(`[ConfigCollector] check ${configFileName} filled=${filledNames.length} missing=${missingNames.length}`);
 
     return {
         success: true,
         message:
-            `${configFileName} — ` +
+            `${configFileName}: ` +
             `filled: [${filledNames.join(", ") || "none"}], ` +
             `missing: [${missingNames.join(", ") || "none"}]`,
         status,
@@ -641,7 +644,7 @@ async function handleRemoveMode(
     if (!fs.existsSync(configPath)) {
         return {
             success: true,
-            message: `${configFileName} does not exist — nothing to remove.`,
+            message: `${configFileName} does not exist; nothing to remove.`,
         };
     }
 
@@ -656,7 +659,7 @@ async function handleRemoveMode(
         }
     }
 
-    console.log(`[ConfigCollector] remove ${configFileName} — removed: [${removed.join(", ") || "none"}], not found: [${notFound.join(", ") || "none"}]`);
+    console.log(`[ConfigCollector] remove ${configFileName} removed=${removed.length} notFound=${notFound.length}`);
 
     const parts: string[] = [];
     if (removed.length > 0) { parts.push(`removed: [${removed.join(", ")}]`); }
@@ -664,7 +667,7 @@ async function handleRemoveMode(
 
     return {
         success: true,
-        message: `${configFileName} — ${parts.join(", ") || "no changes"}`,
+        message: `${configFileName}: ${parts.join(", ") || "no changes"}`,
     };
 }
 
@@ -724,7 +727,7 @@ async function handleRenameMode(
     if (!fs.existsSync(configPath)) {
         return createErrorResult(
             "FILE_NOT_FOUND",
-            `${configFileName} does not exist — nothing to rename. Use collect mode to create entries for the new names.`
+            `${configFileName} does not exist; nothing to rename. Use collect mode to create entries for the new names.`
         );
     }
 
@@ -739,19 +742,19 @@ async function handleRenameMode(
         }
     }
 
-    console.log(`[ConfigCollector] rename ${configFileName} — renamed: [${renamed.map(r => `${r.from}->${r.to}`).join(", ") || "none"}], skipped: [${skipped.map(s => `${s.from}->${s.to}`).join(", ") || "none"}]`);
+    console.log(`[ConfigCollector] rename ${configFileName} renamed=${renamed.length} skipped=${skipped.length}`);
 
     const parts: string[] = [];
     if (renamed.length > 0) {
-        parts.push(`renamed: [${renamed.map(r => `${r.from}→${r.to}`).join(", ")}]`);
+        parts.push(`renamed: [${renamed.map(r => `${r.from} -> ${r.to}`).join(", ")}]`);
     }
     if (skipped.length > 0) {
-        parts.push(`skipped: [${skipped.map(s => `${s.from}→${s.to} (${s.reason})`).join(", ")}]`);
+        parts.push(`skipped: [${skipped.map(s => `${s.from} -> ${s.to} (${s.reason})`).join(", ")}]`);
     }
 
     return {
         success: renamed.length > 0,
-        message: `${configFileName} — ${parts.join(", ") || "no changes"}`,
+        message: `${configFileName}: ${parts.join(", ") || "no changes"}`,
     };
 }
 
