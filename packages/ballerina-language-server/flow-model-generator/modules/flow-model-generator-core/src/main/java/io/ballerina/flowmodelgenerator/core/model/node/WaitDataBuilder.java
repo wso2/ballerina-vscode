@@ -117,7 +117,8 @@ public class WaitDataBuilder extends CallBuilder {
     public static final String DATA_TYPE_DOC = "Type of the data to be received on successful wait";
     public static final String OPTIONAL_KEY = "optional";
     public static final String OPTIONAL_LABEL = "Optional Data Types";
-    public static final String OPTIONAL_DOC = "When `minCount` is less than the number of data waits, all data wait types should be marked optional";
+    public static final String OPTIONAL_DOC = "When `minCount` is less than the number of data waits," +
+            " all data wait types should be marked optional";
     public static final String DATA_RECEIVE_VAR_NAME = "Data Receive Variable Name";
     public static final String DATA_RECEIVE_VAR_DOC = "Variable name to receive the data";
     public static final String DATA_WAITS_KEY = "dataWaits";
@@ -326,9 +327,10 @@ public class WaitDataBuilder extends CallBuilder {
         }
         validateUniqueDataNames(entries);
 
-        String dataParamName = addDataFieldsAndGetParam(sourceBuilder, entries);
+        boolean isCtxDataWait = entries.size() > 1 || hasNonEmptyAwaitParams(sourceBuilder);
+        String dataParamName = addDataFieldsAndGetParam(sourceBuilder, entries, isCtxDataWait);
 
-        if (entries.size() > 1 || hasNonEmptyAwaitParams(sourceBuilder)) {
+        if (isCtxDataWait) {
             generateAwaitCall(sourceBuilder, entries, dataParamName);
         } else {
             // Simple: type var = check wait data.dataName;
@@ -472,7 +474,8 @@ public class WaitDataBuilder extends CallBuilder {
         return entries;
     }
 
-    private String addDataFieldsAndGetParam(SourceBuilder sourceBuilder, List<DataWait> entries) {
+    private String addDataFieldsAndGetParam(SourceBuilder sourceBuilder, List<DataWait> entries,
+                                            boolean isCtxDataWait) {
         try {
             sourceBuilder.workspaceManager.loadProject(sourceBuilder.filePath);
         } catch (WorkspaceDocumentException | EventSyncException e) {
@@ -502,7 +505,7 @@ public class WaitDataBuilder extends CallBuilder {
                     + DATA_SUFFIX;
             String dataTypeName = generateUniqueDataTypeName(baseTypeName, semanticModel);
             createNewDataType(sourceBuilder, dataTypeName, entries);
-            addDataParameterToFunction(sourceBuilder, functionNode, dataTypeName);
+            addDataParameterToFunction(sourceBuilder, functionNode, dataTypeName, isCtxDataWait);
             return DEFAULT_DATA_PARAM_NAME;
         }
     }
@@ -591,15 +594,16 @@ public class WaitDataBuilder extends CallBuilder {
         sourceBuilder.acceptTypeGeneration(dataTypeData);
     }
 
-    private void addDataParameterToFunction(SourceBuilder sourceBuilder,
-                                            FunctionDefinitionNode functionNode,
-                                            String dataTypeName) {
+    private void addDataParameterToFunction(SourceBuilder sourceBuilder, FunctionDefinitionNode functionNode,
+                                            String dataTypeName, boolean isCtxDataWait) {
         FunctionSignatureNode signatureNode = functionNode.functionSignature();
         LineRange closeParenLineRange = signatureNode.closeParenToken().lineRange();
         Range insertRange = CommonUtils.toRange(closeParenLineRange.startLine());
-        // When adding data param, ctx param will always present
+        if (!signatureNode.parameters().isEmpty() || isCtxDataWait) {
+            sourceBuilder.token()
+                    .keyword(SyntaxKind.COMMA_TOKEN);
+        }
         sourceBuilder.token()
-                .keyword(SyntaxKind.COMMA_TOKEN)
                 .name(dataTypeName)
                 .whiteSpace()
                 .name(DEFAULT_DATA_PARAM_NAME)
