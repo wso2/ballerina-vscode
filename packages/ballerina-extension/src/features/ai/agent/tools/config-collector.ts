@@ -187,7 +187,7 @@ Operation Modes:
    - ALWAYS provide 'variables' — never call collect without them
    - Call ONLY immediately before running or testing the project — never during code writing
    - Shows a form; nothing is written until the user confirms. If the whole collection is cancelled, no file is created or modified
-   - User may skip individual fields. The result message and 'userSkipped' field list the names not provided; decide whether to call collect again or proceed
+   - User may skip individual fields ('userSkipped' lists them). Do not re-prompt immediately. Only ask once more later if a value is truly needed for the run; if the user skips again, stop calling collect and tell them in chat what is missing
    - Pre-populates from existing Config.toml if it exists
    - When running tests, use isTestConfig: true — this is the only collect call needed; writes to tests/Config.toml after user confirms
    - For workspace projects, you MUST pass packagePath so the file is written inside the target package (not the workspace root)
@@ -479,7 +479,7 @@ async function handleCollectMode(
 
         return {
             success: false,
-            message: `User skipped configuration collection${userResponse.comment ? ": " + userResponse.comment : ""}. You can ask user to provide values later using collect mode.`,
+            message: `User cancelled configuration collection${userResponse.comment ? ": " + userResponse.comment : ""}.`,
             error: `User skipped${userResponse.comment ? ": " + userResponse.comment : ""}`,
             errorCode: "USER_CANCELLED",
         };
@@ -528,8 +528,8 @@ async function handleCollectMode(
 
     const userNote = userResponse.comment ? ". User note: " + userResponse.comment : "";
     const message = skippedNew.length > 0
-        ? `Saved ${Object.keys(provided).length} configuration value(s) to ${configFileName}. User did not provide: [${skippedNew.join(", ")}]. These values are NOT in Config.toml. Ballerina will error at runtime until they are set. Call collect again to prompt the user, or proceed if the next step does not require them${userNote}`
-        : `Successfully collected ${Object.keys(provided).length} configuration value(s) and saved to ${configFileName}${userNote}`;
+        ? `Saved ${Object.keys(provided).length} value(s) to ${configFileName}. User skipped: [${skippedNew.join(", ")}]${userNote}`
+        : `Saved ${Object.keys(provided).length} configuration value(s) to ${configFileName}${userNote}`;
 
     return {
         success: true,
