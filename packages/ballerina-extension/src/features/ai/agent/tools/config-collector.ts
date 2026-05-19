@@ -31,6 +31,8 @@ import {
     readExistingConfigValues,
     removeConfigKeys,
     renameConfigKeys,
+    isPlaceholderValue,
+    computeCollectStatus,
 } from "../../../../utils/toml-utils";
 import { resolveContained, resolvePackageBasePath } from "./path-utils";
 import { getOrgPackageName } from "../../../../utils/config";
@@ -85,8 +87,31 @@ export interface ConfigCollectorResult {
     success: boolean;
     message: string;
     status?: Record<string, "filled" | "missing">;
+    userSkipped?: string[];
     error?: string;
     errorCode?: string;
+}
+
+interface SubmissionAnalysis {
+    provided: Record<string, string>;
+    notProvided: string[];
+}
+
+function classifySubmission(
+    variables: ConfigVariable[],
+    submitted: Record<string, string>
+): SubmissionAnalysis {
+    const provided: Record<string, string> = {};
+    const notProvided: string[] = [];
+    for (const variable of variables) {
+        const raw = submitted[variable.name];
+        if (raw && raw.trim()) {
+            provided[variable.name] = raw;
+        } else {
+            notProvided.push(variable.name);
+        }
+    }
+    return { provided, notProvided };
 }
 
 export interface ConfigCollectorPaths {
@@ -161,7 +186,8 @@ Operation Modes:
 1. COLLECT: Collect configuration values from the user
    - ALWAYS provide 'variables' — never call collect without them
    - Call ONLY immediately before running or testing the project — never during code writing
-   - Shows a form; nothing is written until the user confirms. If skipped, no file is created or modified
+   - Shows a form; nothing is written until the user confirms. If the whole collection is cancelled, no file is created or modified
+   - User may skip individual fields. The result message and 'userSkipped' field list the names not provided; decide whether to call collect again or proceed
    - Pre-populates from existing Config.toml if it exists
    - When running tests, use isTestConfig: true — this is the only collect call needed; writes to tests/Config.toml after user confirms
    - For workspace projects, you MUST pass packagePath so the file is written inside the target package (not the workspace root)
@@ -219,7 +245,7 @@ function analyzeExistingConfig(
 
     for (const name of variableNames) {
         const value = existingValues[name];
-        if (value && !value.startsWith('${')) {
+        if (value && !isPlaceholderValue(value)) {
             filledCount++;
         } else {
             placeholderCount++;
@@ -459,8 +485,16 @@ async function handleCollectMode(
         };
     }
 
-    // Write actual configuration values to determined config path
-    writeConfigValuesToConfig(configPath, userResponse.configValues!, enrichedVariables, orgName, packageName);
+    // Split provided values from skipped names; only write what the user actually filled.
+    const { provided, notProvided } = classifySubmission(enrichedVariables, userResponse.configValues!);
+
+    // Skipped names that had a non-placeholder existing value are preserved silently on disk;
+    // the agent only needs to know about the ones truly missing from Config.toml.
+    const skippedNew = notProvided.filter(
+        name => !existingValues[name] || isPlaceholderValue(existingValues[name])
+    );
+
+    writeConfigValuesToConfig(configPath, provided, enrichedVariables, orgName, packageName);
 
     // Track modified file for syncing to workspace.
     // Path is relative to tempProjectPath, so prefix with packagePath for workspace projects.
@@ -474,10 +508,10 @@ async function handleCollectMode(
         }
     }
 
-    // Convert to status metadata (filled/missing) - NEVER return actual values to agent
-    const statusMetadata = createStatusMetadata(userResponse.configValues!);
+    // Status reflects post-write Config.toml: "filled" includes preserved existing values.
+    const statusMetadata = computeCollectStatus(enrichedVariables, provided, existingValues);
 
-    // Clear values from memory
+    // Clear values from memory; NEVER return actual values to agent
     userResponse.configValues = undefined;
 
     // Success - configuration values were collected and written
@@ -492,10 +526,16 @@ async function handleCollectMode(
         isTestConfig,
     });
 
+    const userNote = userResponse.comment ? ". User note: " + userResponse.comment : "";
+    const message = skippedNew.length > 0
+        ? `Saved ${Object.keys(provided).length} configuration value(s) to ${configFileName}. User did not provide: [${skippedNew.join(", ")}]. These values are NOT in Config.toml. Ballerina will error at runtime until they are set. Call collect again to prompt the user, or proceed if the next step does not require them${userNote}`
+        : `Successfully collected ${Object.keys(provided).length} configuration value(s) and saved to ${configFileName}${userNote}`;
+
     return {
         success: true,
-        message: `Successfully collected ${enrichedVariables.length} configuration value(s) and saved to ${configFileName}${userResponse.comment ? ". User note: " + userResponse.comment : ""}`,
+        message,
         status: statusMetadata,
+        ...(skippedNew.length > 0 ? { userSkipped: skippedNew } : {}),
     };
 }
 
