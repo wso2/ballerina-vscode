@@ -243,8 +243,6 @@ const NoReport = styled.span`
 const CodeChangesCell = styled.td`
     white-space: nowrap;
     font-size: 11px;
-    display: flex;
-    align-items: center;
 `;
 
 const StateLabel = styled.span<{ isDirty: boolean }>`
@@ -346,7 +344,7 @@ export function RunHistoryTable({ runs, projectPath }: RunHistoryTableProps) {
                                         {hasGitData && (
                                             <CodeChangesCell>
                                                 {run.gitState?.commitSha ? (
-                                                    <>
+                                                    <div style={{ display: "flex", alignItems: "center" }}>
                                                         <StateLabel
                                                             isDirty={run.gitState.isDirty}
                                                             title={
@@ -363,7 +361,7 @@ export function RunHistoryTable({ runs, projectPath }: RunHistoryTableProps) {
                                                         >
                                                             View changes
                                                         </ViewBtn>
-                                                    </>
+                                                    </div>
                                                 ) : (
                                                     <NoReport>&mdash;</NoReport>
                                                 )}

@@ -26,7 +26,8 @@ const PopupFormContainer = styled.div`
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 2000;
+    z-index: 2100;
+    background-color: color-mix(in srgb, ${ThemeColors.SURFACE_CONTAINER} 40%, transparent);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -45,7 +46,7 @@ const PopupFormBox = styled.div<{ width?: number; height?: number }>`
   border-radius: 3px;
   background-color: ${ThemeColors.SURFACE_DIM};
   box-shadow: 0 3px 8px rgb(0 0 0 / 0.2);
-  z-index: 2001;
+  z-index: 2100;
 `;
 
 const PopupFormHeader = styled.header`

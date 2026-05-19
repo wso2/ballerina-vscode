@@ -174,6 +174,28 @@ export const getParsedExpressionTokens = (tokens: number[], value: string): Pars
     return tokenObjects;
 }
 
+// Returns the set of token indices that sit inside a properly closed ${...} range.
+// Tokens inside an unclosed ${ are orphans; the LSP treats following text as expression context.
+export const getTokenIndicesInClosedExpressionRanges = (tokens: ParsedToken[]): Set<number> => {
+    const insideClosedRange = new Set<number>();
+    let pending: number[] = [];
+    let isOpen = false;
+    for (let i = 0; i < tokens.length; i++) {
+        const type = tokens[i].type;
+        if (type === TokenType.START_EVENT) {
+            pending = [];
+            isOpen = true;
+        } else if (type === TokenType.END_EVENT && isOpen) {
+            pending.forEach(idx => insideClosedRange.add(idx));
+            pending = [];
+            isOpen = false;
+        } else if (isOpen) {
+            pending.push(i);
+        }
+    }
+    return insideClosedRange;
+}
+
 export const getWordBeforeCursorPosition = (textBeforeCursor: string): string => {
     const match = textBeforeCursor.match(/\b\w+$/);
     const lastMatch = match ? match[match.length - 1] : "";

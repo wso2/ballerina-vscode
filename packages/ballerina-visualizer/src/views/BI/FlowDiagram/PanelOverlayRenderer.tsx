@@ -45,8 +45,9 @@ export function PanelOverlayRenderer() {
         return null;
     }
 
-    // Base z-index for overlays (high enough to be above main panel)
-    const BASE_Z_INDEX = 2000;
+    // Above the ui-toolkit SidePanel (z-index 2000) but below DynamicModal (2100)
+    // so record-config and similar modals continue to render on top of overlays.
+    const BASE_Z_INDEX = 2010;
 
     return (
         <>
