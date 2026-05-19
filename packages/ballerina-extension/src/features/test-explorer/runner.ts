@@ -27,6 +27,7 @@ import { constructDebugConfig } from "../debugger";
 const fs = require('fs');
 import path from 'path';
 import { EvaluationReportWebview } from '../../views/evaluation-report/webview';
+import { notifyEvaluationHistoryUpdated } from '../../RPCLayer';
 import { captureGitState, createSnapshot, pinSnapshot, ensureEvalReportsGitignored } from '../../utils/git-utils';
 import { quoteShellPath } from '../../utils/config';
 import { cleanAndValidateProject } from '../config-generator/configGenerator';
@@ -170,6 +171,8 @@ async function handleEvalReport(run: TestRun, testItems: TestItem[], timeElapsed
     } catch (error) {
         console.error('Error processing evaluation report:', error);
     }
+
+    notifyEvaluationHistoryUpdated();
 
     try {
         await openEvaluationReport(reportPath);

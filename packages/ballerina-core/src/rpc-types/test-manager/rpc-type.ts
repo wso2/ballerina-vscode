@@ -16,7 +16,7 @@
  * under the License.
  */
 import { GetTestFunctionRequest, GetTestFunctionResponse, AddOrUpdateTestFunctionRequest } from "../../interfaces/extended-lang-client";
-import { RequestType } from "vscode-messenger-common";
+import { NotificationType, RequestType } from "vscode-messenger-common";
 import { SourceUpdateResponse } from "../service-designer/interfaces";
 
 const _preFix = "test-manager";
@@ -183,4 +183,9 @@ export interface RestoreGitSnapshotResponse {
 
 export const restoreGitSnapshot: RequestType<RestoreGitSnapshotRequest, RestoreGitSnapshotResponse> =
     { method: `${_preFix}/restoreGitSnapshot` };
+
+// Broadcast when a new evaluation report has been written to disk, so open
+// Evaluation History panels can re-fetch instead of requiring a reopen.
+export const evaluationHistoryUpdated: NotificationType<void> =
+    { method: `${_preFix}/evaluationHistoryUpdated` };
 
