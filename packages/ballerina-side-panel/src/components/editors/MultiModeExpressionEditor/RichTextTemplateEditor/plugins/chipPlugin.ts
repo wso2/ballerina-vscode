@@ -23,6 +23,7 @@ import { tableNodes } from 'prosemirror-tables';
 import {
     getParsedExpressionTokens,
     detectTokenPatterns,
+    getTokenIndicesInClosedExpressionRanges,
     ParsedToken
 } from '../../ChipExpressionEditor/utils';
 import {
@@ -303,6 +304,8 @@ function replaceTextWithChips(
         }
     }
 
+    const insideClosedRange = getTokenIndicesInClosedExpressionRanges(tokens);
+
     // Collect individual token chip nodes
     for (let i = 0; i < tokens.length; i++) {
         const token = tokens[i];
@@ -314,6 +317,11 @@ function replaceTextWithChips(
 
         // Skip START_EVENT and END_EVENT tokens
         if (token.type === TokenType.START_EVENT || token.type === TokenType.END_EVENT) {
+            continue;
+        }
+
+        // Skip orphan tokens sitting inside an unclosed ${
+        if (!insideClosedRange.has(i)) {
             continue;
         }
 

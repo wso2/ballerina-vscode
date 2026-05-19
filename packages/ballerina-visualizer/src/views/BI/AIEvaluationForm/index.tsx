@@ -741,7 +741,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                             },
                             types: [{ fieldType: "SLIDER", selected: false }],
                             originalName: "minPassRate",
-                            value: "1.0",
+                            value: "0.9",
                             optional: true,
                             editable: true,
                             advanced: false

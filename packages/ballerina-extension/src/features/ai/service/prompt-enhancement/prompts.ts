@@ -86,6 +86,13 @@ You are generating a **user query** to send to an AI agent.
 - Focus on: making the query specific, clear about what's expected, and providing necessary context.
 - Preserve a conversational/request tone.
 - Do NOT add persona definitions or behavioral rules.
+- Do NOT use backticks (\`) anywhere in the output — no inline code spans or code fences.
+`;
+      break;
+    case PromptMode.DEFAULT:
+      modeDirectives = `
+### MODE: DEFAULT
+- Do NOT use backticks (\`) anywhere in the output — no inline code spans or code fences.
 `;
       break;
   }
@@ -253,6 +260,13 @@ You are enhancing a **user query** that will be sent to an AI agent.
 - Focus on: making the query specific, clear about what's expected, and providing necessary context.
 - Preserve the conversational/request tone.
 - Do NOT add persona definitions or behavioral rules — this is a user message, not a system prompt.
+- Do NOT use backticks (\`) anywhere in the output — no inline code spans or code fences.
+`;
+      break;
+    case PromptMode.DEFAULT:
+      modeDirectives = `
+### MODE: DEFAULT
+- Do NOT use backticks (\`) anywhere in the output — no inline code spans or code fences.
 `;
       break;
   }

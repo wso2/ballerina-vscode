@@ -34,7 +34,6 @@ import { ThemeColors } from "@wso2/ui-toolkit";
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react";
 import ReactMarkdown from "react-markdown";
 import { AlertBoxWithClose } from "../../AIPanel/AlertBoxWithClose";
-import { UndoRedoGroup } from "../../../components/UndoRedoGroup";
 import { PackageListView } from "./PackageListView";
 import { getWorkspaceProjectScopes } from "../PackageOverview/utils";
 import { usePlatformExtContext } from "../../../providers/platform-ext-ctx-provider";
@@ -253,6 +252,13 @@ const DeploymentOptionContainer = styled.div<DeploymentOptionContainerProps>`
     }
 `;
 
+const DeploymentTitleWrap = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+`;
+
 const DeploymentHeader = styled.div`
     display: flex;
     align-items: center;
@@ -261,6 +267,7 @@ const DeploymentHeader = styled.div`
         font-size: 13px;
         font-weight: 600;
         margin: 0;
+        width: 100%;
     }
 `;
 
@@ -276,7 +283,7 @@ const DeploymentBody = styled.div<DeploymentBodyProps>`
 `;
 
 interface DeploymentOptionProps {
-    title: string;
+    title: React.ReactNode;
     description: string;
     buttonText: string;
     isExpanded: boolean;
@@ -375,6 +382,7 @@ interface DeploymentOptionsProps {
     handleDeploy: () => Promise<void>;
     goToDevant: () => void;
     devantMetadata: WorkspaceDevantMetadata | undefined;
+    refetchDevantMetadata: () => Promise<unknown>;
     hasDeployableIntegration: boolean;
     hasUndeployedIntegrations: boolean;
     deployableProjectPaths: Set<string>;
@@ -387,12 +395,14 @@ function DeploymentOptions({
     handleDeploy,
     goToDevant,
     devantMetadata,
+    refetchDevantMetadata,
     hasDeployableIntegration,
     hasUndeployedIntegrations,
     deployableProjectPaths,
     libraryProjectPaths
 }: DeploymentOptionsProps) {
     const [expandedOptions, setExpandedOptions] = useState<Set<string>>(new Set(['cloud']));
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const { rpcClient } = useRpcContext();
     const { platformExtState } = usePlatformExtContext();
 
@@ -416,13 +426,38 @@ function DeploymentOptions({
         p => !p.hasComponent && !libraryProjectPaths.has(p.projectPath)
     ) || [];
     const deployedWithChanges = deployedProjects.filter(p => p.hasLocalChanges);
-    
+
     const hasDeployedProjects = deployedProjects.length > 0;
     const hasUndeployedProjects = undeployedProjects.length > 0;
+
+    const stopRefreshing = useCallback(() => {
+        setIsRefreshing(false);
+    }, []);
+
+    const handleRefreshDeploymentStatus = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsRefreshing(true);
+        try {
+            await rpcClient.getCommonRpcClient().executeCommand({
+                commands: [WICommandIds.RefreshDirectoryContext],
+            });
+            await refetchDevantMetadata();
+        } finally {
+            stopRefreshing();
+        }
+    };
     const hasDeployedWithChanges = deployedWithChanges.length > 0;
 
+    const refreshButton = isRefreshing ? (
+        <ProgressRing sx={{ width: 16, height: 16 }} />
+    ) : (
+        <Button appearance="icon" tooltip="Refresh deployment status" onClick={handleRefreshDeploymentStatus}>
+            <Codicon name="refresh" />
+        </Button>
+    );
+
     // Determine title, description, button text, and whether deployment is allowed
-    let title = "Deploy to WSO2 Cloud";
+    let title: React.ReactNode = "Deploy to WSO2 Cloud";
     let description = "Deploy your integrations to WSO2 Cloud.";
     let buttonText = "Deploy";
     let primaryAction: () => void | Promise<void> = handleDeploy;
@@ -432,7 +467,12 @@ function DeploymentOptions({
 
     if (hasDeployedProjects && !hasUndeployedProjects) {
         // All projects are deployed - disable deployment button
-        title = "Deployed in WSO2 Cloud";
+        title = (
+            <DeploymentTitleWrap>
+                <span>Deployed in WSO2 Cloud</span>
+                {refreshButton}
+            </DeploymentTitleWrap>
+        );
         description = "All integrations are deployed in WSO2 Cloud.";
         buttonText = "View in Console";
         primaryAction = goToDevant;
@@ -447,7 +487,12 @@ function DeploymentOptions({
         }
     } else if (hasDeployedProjects && hasUndeployedProjects) {
         // Mixed state: some deployed, some not - show clear message about remaining
-        title = "Partially Deployed in WSO2 Cloud";
+        title = (
+            <DeploymentTitleWrap>
+                <span>Partially Deployed in WSO2 Cloud</span>
+                {refreshButton}
+            </DeploymentTitleWrap>
+        );
         
         // Separate deployable and non-deployable undeployed projects
         const deployableUndeployed = undeployedProjects.filter(p => deployableProjectPaths.has(p.projectPath));
@@ -500,9 +545,9 @@ function DeploymentOptions({
                         isExpanded={expandedOptions.has("cloud")}
                         onToggle={() => toggleOption("cloud")}
                         onDeploy={primaryAction}
-                        learnMoreLink={"https://wso2.com/devant/docs/"}
-                        hasDeployableIntegration={!isDeploymentDisabled}
-                        disabledTooltip={disabledTooltip}
+                        learnMoreLink={"https://wso2.com/integration-platform/docs/deploy/cloud/push-from-ide/"}
+                        hasDeployableIntegration={!isDeploymentDisabled && !isRefreshing}
+                        disabledTooltip={isRefreshing ? "Refreshing deployment status…" : disabledTooltip}
                         secondaryAction={secondaryAction}
                     />
                 )}
@@ -687,7 +732,7 @@ export function WorkspaceOverview({ isInDevant }: WorkspaceOverviewProps) {
     const [showAlert, setShowAlert] = React.useState(false);
     const [icpActionLoading, setIcpActionLoading] = React.useState<IcpAction | null>(null);
 
-    const { data: devantMetadata } = useQuery({
+    const { data: devantMetadata, refetch: refetchDevantMetadata } = useQuery({
         queryKey: ["project-devant-metadata"],
         queryFn: () => rpcClient.getBIDiagramRpcClient().getWorkspaceDevantMetadata(),
         refetchInterval: 5000
@@ -1124,6 +1169,7 @@ export function WorkspaceOverview({ isInDevant }: WorkspaceOverviewProps) {
                                     handleDeploy={handleDeploy}
                                     goToDevant={goToDevant}
                                     devantMetadata={devantMetadata}
+                                    refetchDevantMetadata={refetchDevantMetadata}
                                     hasDeployableIntegration={hasDeployableIntegration}
                                     hasUndeployedIntegrations={undeployedProjectScopes.length > 0}
                                     deployableProjectPaths={deployableProjectPaths}
