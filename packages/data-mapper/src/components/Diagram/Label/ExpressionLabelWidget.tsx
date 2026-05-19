@@ -260,17 +260,24 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
         });
     }
 
-    codeActions.push({
-        title: "Map with Custom Function",
-        icon: "function-icon",
-        onClick: onClickMapWithCustomFn
-    });
+    const shouldFnsIncluded = context?.reusable ||
+        context?.views.length !== 1 ||
+        targetPort?.attributes.fieldFQN.includes('.');
 
-    if (mappingType !== MappingType.Default 
-        && mappingType !== MappingType.ContainsUnions 
-        && mappingType !== MappingType.ConvertiblePrimitives) {   
+    if (shouldFnsIncluded) {
         codeActions.push({
-            title: "Map with Transform Function",
+            title: "Map Using Custom Function",
+            icon: "function-icon",
+            onClick: onClickMapWithCustomFn
+        });
+    }
+    
+    if (mappingType !== MappingType.Default
+        && mappingType !== MappingType.ContainsUnions
+        && mappingType !== MappingType.ConvertiblePrimitives
+        && shouldFnsIncluded) {
+        codeActions.push({
+            title: "Map Using Transform Function",
             icon: "dataMapper",
             onClick: onClickMapWithTransformFn
         });
