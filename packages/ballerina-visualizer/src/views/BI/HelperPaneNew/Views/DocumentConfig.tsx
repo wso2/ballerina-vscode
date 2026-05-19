@@ -120,7 +120,7 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
         }
         return mimeTypeVariable.trim();
     }, [mimeTypeMode, mimeTypeLiteral, mimeTypeVariable]);
-    const { breadCrumbSteps, navigateToNext, navigateToBreadcrumb, getCurrentNavigationPath } = useHelperPaneNavigation(`${documentType.charAt(0).toUpperCase() + documentType.slice(1)} Document`);
+    const { breadCrumbSteps, navigateToNext, navigateToBreadcrumb, getCurrentNavigationPath, getLeafSeparator } = useHelperPaneNavigation(`${documentType.charAt(0).toUpperCase() + documentType.slice(1)} Document`);
     const { addModal, closeModal } = useModalStack();
 
     const { field, triggerCharacters } = useFieldContext();
@@ -128,8 +128,8 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
     // Use navigation path for completions instead of currentValue
     const navigationPath = useMemo(() => getCurrentNavigationPath(), [breadCrumbSteps]);
     const completionContext = useMemo(() =>
-        navigationPath ? navigationPath + '.' : (currentValue ?? ''),
-        [navigationPath, currentValue]
+        navigationPath ? navigationPath + getLeafSeparator() : (currentValue ?? ''),
+        [navigationPath, currentValue, breadCrumbSteps]
     );
 
     useEffect(() => {
@@ -222,8 +222,8 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
         const labelDescription = item.labelDetails?.description || "";
         const typeInfo = description || labelDescription;
 
-        // Build full path from navigation
-        const fullPath = navigationPath ? `${navigationPath}.${value}` : value;
+        // Build full path from navigation; use ?. when the parent step is optional
+        const fullPath = navigationPath ? `${navigationPath}${getLeafSeparator()}${value}` : value;
 
         // Check if the variable is already an AI document type
         const isAIDocumentType = AI_DOCUMENT_TYPES.some(type => typeInfo.includes(type));
@@ -251,8 +251,9 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
         }
     };
 
-    const handleVariablesMoreIconClick = (value: string) => {
-        navigateToNext(value, navigationPath);
+    const handleVariablesMoreIconClick = (item: CompletionItem) => {
+        const typeDetail = item?.labelDetails?.detail || item?.description;
+        navigateToNext(item.label, navigationPath, typeDetail);
     };
 
     const handleBreadCrumbItemClicked = (step: BreadCrumbStep) => {
@@ -425,7 +426,7 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
                                                 <VariableItem
                                                     key={opt.label}
                                                     item={opt}
-                                                    onItemSelect={(val) => setMimeTypeVariable(navigationPath ? `${navigationPath}.${val}` : val)}
+                                                    onItemSelect={(val) => setMimeTypeVariable(navigationPath ? `${navigationPath}${getLeafSeparator()}${val}` : val)}
                                                     onMoreIconClick={() => { }}
                                                     hideArrow={true}
                                                 />
