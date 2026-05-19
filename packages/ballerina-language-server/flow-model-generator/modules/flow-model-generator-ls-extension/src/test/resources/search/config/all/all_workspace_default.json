@@ -28,47 +28,6 @@
       "items": [
         {
           "metadata": {
-            "label": "health.fhir.r5",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "fhirBundleJsonSerializer",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r5_1.0.1.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerinax",
-                "module": "health.fhir.r5",
-                "packageName": "health.fhir.r5",
-                "symbol": "fhirBundleJsonSerializer",
-                "version": "1.0.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "fhirBundleXmlSerializer",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r5_1.0.1.png"
-              },
-              "codedata": {
-                "node": "FUNCTION_CALL",
-                "org": "ballerinax",
-                "module": "health.fhir.r5",
-                "packageName": "health.fhir.r5",
-                "symbol": "fhirBundleXmlSerializer",
-                "version": "1.0.1"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
             "label": "health.fhir.r4",
             "description": "",
             "keywords": []
@@ -110,6 +69,47 @@
         },
         {
           "metadata": {
+            "label": "health.fhir.r5",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "fhirBundleJsonSerializer",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r5_1.0.1.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerinax",
+                "module": "health.fhir.r5",
+                "packageName": "health.fhir.r5",
+                "symbol": "fhirBundleJsonSerializer",
+                "version": "1.0.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "fhirBundleXmlSerializer",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.fhir.r5_1.0.1.png"
+              },
+              "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerinax",
+                "module": "health.fhir.r5",
+                "packageName": "health.fhir.r5",
+                "symbol": "fhirBundleXmlSerializer",
+                "version": "1.0.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
             "label": "edifact.d03a.finance",
             "description": "",
             "keywords": []
@@ -135,7 +135,7 @@
         },
         {
           "metadata": {
-            "label": "edifact.d03a.finance.mINVOIC",
+            "label": "edifact.d03a.finance.mAUTHOR",
             "description": "",
             "keywords": []
           },
@@ -149,7 +149,7 @@
               "codedata": {
                 "node": "FUNCTION_CALL",
                 "org": "ballerinax",
-                "module": "edifact.d03a.finance.mINVOIC",
+                "module": "edifact.d03a.finance.mAUTHOR",
                 "packageName": "edifact.d03a.finance",
                 "symbol": "fromEdiString",
                 "version": "0.9.0"
@@ -165,7 +165,7 @@
               "codedata": {
                 "node": "FUNCTION_CALL",
                 "org": "ballerinax",
-                "module": "edifact.d03a.finance.mINVOIC",
+                "module": "edifact.d03a.finance.mAUTHOR",
                 "packageName": "edifact.d03a.finance",
                 "symbol": "fromEdiStringWithSchema",
                 "version": "0.9.0"
@@ -217,7 +217,7 @@
         },
         {
           "metadata": {
-            "label": "edifact.d03a.finance.mBOPINF",
+            "label": "edifact.d03a.finance.mBOPCUS",
             "description": "",
             "keywords": []
           },
@@ -231,7 +231,7 @@
               "codedata": {
                 "node": "FUNCTION_CALL",
                 "org": "ballerinax",
-                "module": "edifact.d03a.finance.mBOPINF",
+                "module": "edifact.d03a.finance.mBOPCUS",
                 "packageName": "edifact.d03a.finance",
                 "symbol": "fromEdiString",
                 "version": "0.9.0"
@@ -375,24 +375,6 @@
         },
         {
           "metadata": {
-            "label": "Epic FHIRClientConnector",
-            "description": "This connector allows you to connect and interact with any FHIR server",
-            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.clients.fhir.epic_1.0.2.png"
-          },
-          "codedata": {
-            "node": "NEW_CONNECTION",
-            "org": "ballerinax",
-            "module": "health.clients.fhir.epic",
-            "packageName": "health.clients.fhir.epic",
-            "object": "FHIRClientConnector",
-            "symbol": "init",
-            "version": "1.0.2",
-            "isGenerated": false
-          },
-          "enabled": true
-        },
-        {
-          "metadata": {
             "label": "Cerner FHIRClientConnector",
             "description": "This connector allows you to connect and interact with any FHIR server",
             "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.clients.fhir.cerner_1.0.2.png"
@@ -420,6 +402,24 @@
             "org": "ballerinax",
             "module": "health.clients.fhir.athenahealth",
             "packageName": "health.clients.fhir.athenahealth",
+            "object": "FHIRClientConnector",
+            "symbol": "init",
+            "version": "1.0.2",
+            "isGenerated": false
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Epic FHIRClientConnector",
+            "description": "This connector allows you to connect and interact with any FHIR server",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_health.clients.fhir.epic_1.0.2.png"
+          },
+          "codedata": {
+            "node": "NEW_CONNECTION",
+            "org": "ballerinax",
+            "module": "health.clients.fhir.epic",
+            "packageName": "health.clients.fhir.epic",
             "object": "FHIRClientConnector",
             "symbol": "init",
             "version": "1.0.2",
