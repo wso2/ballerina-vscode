@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { createContext, useState, useCallback, ReactNode } from "react";
+import { createContext, useState, useCallback, ReactNode } from "react";
 
 export interface PanelOverlayConfig {
     id: string;
