@@ -8,6 +8,27 @@
   "categories": [
     {
       "metadata": {
+        "label": "Solace Caller",
+        "description": "Represents a Solace caller, which can be used to mark Solace message as received.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_solace_0.3.1.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "solace",
+        "packageName": "solace",
+        "object": "Caller",
+        "symbol": "init",
+        "version": "0.3.1",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
         "label": "SQS Caller",
         "description": "Provides control over message deletion from the queue after processing.",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_aws.sqs_4.1.3.png",
