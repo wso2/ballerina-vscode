@@ -25,6 +25,10 @@ export interface ConfigVariable {
     secret?: boolean;
 }
 
+export function isPlaceholderValue(value: string | undefined | null): boolean {
+    return typeof value === "string" && /^\$\{[^}]+\}$/.test(value);
+}
+
 function readTomlSection(
     configPath: string,
     orgName: string,
@@ -188,6 +192,21 @@ export function createStatusMetadata(
     const status: Record<string, "filled" | "missing"> = {};
     for (const [key, value] of Object.entries(configValues)) {
         status[key] = value && value.trim() !== "" ? "filled" : "missing";
+    }
+    return status;
+}
+
+// "filled" when we just wrote a value OR a non-placeholder existing value was preserved.
+export function computeCollectStatus(
+    variables: ConfigVariable[],
+    provided: Record<string, string>,
+    existingValues: Record<string, string>
+): Record<string, "filled" | "missing"> {
+    const status: Record<string, "filled" | "missing"> = {};
+    for (const { name } of variables) {
+        const wrote = name in provided && provided[name].trim() !== "";
+        const preserved = !wrote && !!existingValues[name] && !isPlaceholderValue(existingValues[name]);
+        status[name] = wrote || preserved ? "filled" : "missing";
     }
     return status;
 }
