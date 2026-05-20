@@ -55,6 +55,7 @@ import { RunningServicesManager } from './tools/running-service-manager';
 import { createHurlTool, HURL_TOOL_NAME } from './tools/hurl-tool';
 import { createWebSearchTool, WEB_SEARCH_TOOL_NAME, createWebFetchTool, WEB_FETCH_TOOL_NAME } from './tools/web-tools';
 import { createClarifyTool, CLARIFY_TOOL } from './tools/clarify';
+import { bridgeMcpTools, getMcpClientManager } from './mcp';
 
 export interface ToolRegistryOptions {
     eventHandler: CopilotEventHandler;
@@ -76,6 +77,8 @@ export interface ToolRegistryOptions {
 
 export function createToolRegistry(opts: ToolRegistryOptions) {
     const { eventHandler, toolModelUsage, tempProjectPath, modifiedFiles, allModifiedFiles, projects, generationType, projectRootPath, generationId, threadId, migrationSourcePath, webSearchEnabled, ctx } = opts;
+    const mcpManager = getMcpClientManager();
+    const mcpTools = mcpManager ? bridgeMcpTools({ manager: mcpManager, eventHandler }) : {};
     return {
         [TASK_WRITE_TOOL_NAME]: createTaskWriteTool(
             eventHandler,
@@ -137,5 +140,6 @@ export function createToolRegistry(opts: ToolRegistryOptions) {
         [WEB_SEARCH_TOOL_NAME]: createWebSearchTool(eventHandler, webSearchEnabled),
         [WEB_FETCH_TOOL_NAME]: createWebFetchTool(eventHandler, webSearchEnabled),
         [CLARIFY_TOOL]: createClarifyTool(eventHandler),
+        ...mcpTools,
     };
 }

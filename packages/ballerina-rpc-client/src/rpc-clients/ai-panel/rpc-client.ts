@@ -117,6 +117,11 @@ import {
     RunServiceRequest,
     runService,
     getDefaultVertexCredsPath,
+    listMcpServers,
+    setMcpServerEnabled,
+    openMcpConfig,
+    McpServerStatusDTO,
+    SetMcpServerEnabledRequest,
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -360,5 +365,17 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     getDefaultVertexCredsPath(): Promise<string> {
         return this._messenger.sendRequest(getDefaultVertexCredsPath, HOST_EXTENSION);
+    }
+
+    listMcpServers(): Promise<McpServerStatusDTO[]> {
+        return this._messenger.sendRequest(listMcpServers, HOST_EXTENSION);
+    }
+
+    setMcpServerEnabled(params: SetMcpServerEnabledRequest): Promise<void> {
+        return this._messenger.sendRequest(setMcpServerEnabled, HOST_EXTENSION, params);
+    }
+
+    openMcpConfig(): Promise<void> {
+        return this._messenger.sendRequest(openMcpConfig, HOST_EXTENSION);
     }
 }

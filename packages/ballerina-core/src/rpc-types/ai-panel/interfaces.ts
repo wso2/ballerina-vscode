@@ -595,3 +595,25 @@ export interface PromptEnhancementResponse {
     enhancedPrompt: string;
 }
 
+// ==================================
+// MCP (Model Context Protocol) tool support
+// ==================================
+export type McpTransportType = "stdio" | "http";
+export type McpConnectionStatus = "disconnected" | "connecting" | "connected" | "failed";
+export interface McpToolSummaryDTO {
+    name: string;
+    description?: string;
+}
+export interface McpServerStatusDTO {
+    name: string;
+    transport: McpTransportType;
+    enabled: boolean;
+    status: McpConnectionStatus;
+    error?: string;
+    tools: McpToolSummaryDTO[];
+}
+export interface SetMcpServerEnabledRequest {
+    name: string;
+    enabled: boolean;
+}
+

@@ -55,7 +55,11 @@ import {
     RunningServiceInfo,
     StopRunningServiceRequest,
     RunServiceRequest,
+    McpServerStatusDTO,
+    SetMcpServerEnabledRequest,
 } from "@wso2/ballerina-core";
+import { getMcpClientManager, ensureMcpConfigFileExists } from "../../features/ai/agent/mcp";
+import { notifyMcpServersChanged } from "../../RPCLayer";
 import * as os from "os";
 import * as fs from 'fs';
 import path from "path";
@@ -862,6 +866,34 @@ User reverted the last made changes. The files have been restored to the state b
             return adcPath;
         }
         return "";
+    }
+
+    async listMcpServers(): Promise<McpServerStatusDTO[]> {
+        const manager = getMcpClientManager();
+        if (!manager) {
+            return [];
+        }
+        try {
+            await manager.refresh();
+        } catch (err) {
+            console.warn('[mcp] listMcpServers refresh failed:', err);
+        }
+        return manager.listServers();
+    }
+
+    async setMcpServerEnabled(params: SetMcpServerEnabledRequest): Promise<void> {
+        const manager = getMcpClientManager();
+        if (!manager) {
+            return;
+        }
+        await manager.setEnabled(params.name, params.enabled);
+        notifyMcpServersChanged(manager.listServers());
+    }
+
+    async openMcpConfig(): Promise<void> {
+        const filePath = ensureMcpConfigFileExists();
+        const doc = await vscode.workspace.openTextDocument(filePath);
+        await vscode.window.showTextDocument(doc, { preview: false });
     }
 
 }

@@ -42,6 +42,9 @@ import { resolveProjectPath } from '../../utils/project-utils';
 import { MESSAGES } from '../project';
 import { AICommandConfig } from './executors/base/AICommandExecutor';
 import { AgentExecutor } from './agent/AgentExecutor';
+import { initMcpClientManager, watchMcpConfig, type EnabledOverrideStore } from './agent/mcp';
+import { extension } from '../../BalExtensionContext';
+import { notifyMcpServersChanged } from '../../RPCLayer';
 
 /**
  * Parameters for test-mode code generation
@@ -74,6 +77,7 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
     langClient = <ExtendedLangClient>ballerinaExternalInstance.langClient;
     activateCopilotLoginCommand();
     resetBIAuth();
+    activateMcp();
 
     // Register commands in test environment to test the AI features
     if (process.env.AI_TEST_ENV) {
@@ -238,4 +242,34 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
             }
         }
     });
+}
+
+const MCP_ENABLED_OVERRIDE_KEY = 'ballerina.copilot.mcp.enabledOverrides';
+
+function activateMcp(): void {
+    const overrides: EnabledOverrideStore = {
+        get(name) {
+            const map = extension.context?.globalState.get<Record<string, boolean>>(MCP_ENABLED_OVERRIDE_KEY) ?? {};
+            return Object.prototype.hasOwnProperty.call(map, name) ? map[name] : undefined;
+        },
+        async set(name, enabled) {
+            const map = { ...(extension.context?.globalState.get<Record<string, boolean>>(MCP_ENABLED_OVERRIDE_KEY) ?? {}) };
+            map[name] = enabled;
+            await extension.context?.globalState.update(MCP_ENABLED_OVERRIDE_KEY, map);
+        },
+    };
+    const manager = initMcpClientManager(overrides);
+    const pushUpdate = () => {
+        try {
+            notifyMcpServersChanged(manager.listServers());
+        } catch (err) {
+            console.warn('[mcp] Failed to push servers-changed notification:', err);
+        }
+    };
+    // Initial connect — fire and forget; failures are recorded per-server, not thrown.
+    manager.refresh().then(pushUpdate).catch(err => console.warn('[mcp] Initial refresh failed:', err));
+    const stopWatch = watchMcpConfig(() => {
+        manager.refresh().then(pushUpdate).catch(err => console.warn('[mcp] Watch-triggered refresh failed:', err));
+    });
+    extension.context?.subscriptions.push({ dispose: stopWatch });
 }

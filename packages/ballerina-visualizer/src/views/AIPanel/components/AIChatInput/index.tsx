@@ -37,6 +37,7 @@ import { getAllCommands, getTags, getTemplateDefinitionsByCommand } from "../../
 import { PlaceholderTagMap } from "../../commandTemplates/data/placeholderTags.const";
 import ContextUsageWidget from "../AIChat/compaction/ContextUsageWidget";
 import RunningServicesChip, { RunningServicesPanel } from "./RunningServicesChip";
+import McpToolsChip from "./McpToolsChip";
 
 // Styled Components
 const Container = styled.div`
@@ -592,6 +593,7 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
                                 )}
                             </div>
                             <div style={{ display: "flex", alignItems: "center" }}>
+                                <McpToolsChip />
                                 {runningServicesPanel && runningServicesPanel.services.length > 0 && (
                                     <RunningServicesChip {...runningServicesPanel} />
                                 )}

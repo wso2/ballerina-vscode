@@ -70,6 +70,8 @@ import {
     WebToolToggle,
     runningServicesChanged,
     RunningServiceInfo,
+    mcpServersChanged,
+    McpServerStatusDTO,
     evaluationHistoryUpdated
 } from "@wso2/ballerina-core";
 import { LangClientRpcClient } from "./rpc-clients/lang-client/rpc-client";
@@ -110,6 +112,7 @@ export class BallerinaRpcClient {
     private _platformExt: PlatformExtRpcClient;
     private _identifierUpdatedCallbacks = new Set<(response: ProjectStructureArtifactResponse[]) => void>();
     private _runningServicesChangedCallbacks = new Set<(services: RunningServiceInfo[]) => void>();
+    private _mcpServersChangedCallbacks = new Set<(servers: McpServerStatusDTO[]) => void>();
     private _projectContentUpdatedCallbacks = new Set<(state: boolean) => void>();
     private _evaluationHistoryUpdatedCallbacks = new Set<() => void>();
 
@@ -140,6 +143,9 @@ export class BallerinaRpcClient {
         });
         this.messenger.onNotification(runningServicesChanged, (services: RunningServiceInfo[]) => {
             this._runningServicesChangedCallbacks.forEach((callback) => callback(services));
+        });
+        this.messenger.onNotification(mcpServersChanged, (servers: McpServerStatusDTO[]) => {
+            this._mcpServersChangedCallbacks.forEach((callback) => callback(servers));
         });
         this.messenger.onNotification(projectContentUpdated, (state: boolean) => {
             this._projectContentUpdatedCallbacks.forEach((callback) => callback(state));
@@ -352,6 +358,13 @@ export class BallerinaRpcClient {
         this._runningServicesChangedCallbacks.add(callback);
         return () => {
             this._runningServicesChangedCallbacks.delete(callback);
+        };
+    }
+
+    onMcpServersChanged(callback: (servers: McpServerStatusDTO[]) => void): () => void {
+        this._mcpServersChangedCallbacks.add(callback);
+        return () => {
+            this._mcpServersChangedCallbacks.delete(callback);
         };
     }
 }

@@ -56,6 +56,8 @@ import {
     RunningServiceInfo,
     StopRunningServiceRequest,
     RunServiceRequest,
+    McpServerStatusDTO,
+    SetMcpServerEnabledRequest,
 } from "./interfaces";
 
 export interface AIPanelAPI {
@@ -140,4 +142,10 @@ export interface AIPanelAPI {
     // Vertex AI BYOK Helpers
     // ==================================
     getDefaultVertexCredsPath: () => Promise<string>;
+    // ==================================
+    // MCP tool support
+    // ==================================
+    listMcpServers: () => Promise<McpServerStatusDTO[]>;
+    setMcpServerEnabled: (params: SetMcpServerEnabledRequest) => Promise<void>;
+    openMcpConfig: () => Promise<void>;
 }

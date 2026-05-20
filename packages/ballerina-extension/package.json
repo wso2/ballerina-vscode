@@ -1437,6 +1437,7 @@
         "@ai-sdk/anthropic": "3.0.64",
         "@ai-sdk/google-vertex": "4.0.94",
         "@iarna/toml": "2.2.5",
+        "@modelcontextprotocol/sdk": "1.29.0",
         "@types/lodash": "4.14.200",
         "@vscode/test-electron": "2.5.2",
         "@vscode/vsce": "3.7.1",
