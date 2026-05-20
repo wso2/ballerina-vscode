@@ -40,11 +40,13 @@ async function withTimeout<T>(operation: Promise<T>, timeoutMs: number, timeoutM
 }
 
 import automation from './automation/automation.spec';
+import automationFlowNodes from './automation/flow-nodes.spec';
 import automationRun from './automation-run/automation-run.spec';
 import automationDebug from './automation-debug/automation-debug.spec';
 import expressionEditor from './expression-editor/expression-editor.spec';
 
 import httpService from './api-integration/http-service.spec';
+import httpUpload from './api-integration/http-upload.spec';
 import aiChatService from './api-integration/ai-chat-service.spec';
 import graphqlService from './api-integration/graphql-service.spec';
 import tcpService from './api-integration/tcp-service.spec';
@@ -109,6 +111,7 @@ test.describe('Ballerina E2E Group 1', { tag: '@group1' }, async () => {
 
     // <----Automation Test---->
     test.describe(automation);
+    test.describe(automationFlowNodes);
 
     // <----Automation Run Test---->
     test.describe(automationRun);
@@ -118,6 +121,7 @@ test.describe('Ballerina E2E Group 1', { tag: '@group1' }, async () => {
 
     // <----Integration as API Test---->
     test.describe(httpService);
+    test.describe(httpUpload);
 
     // <----Event Integration Test---->
     test.describe(kafkaIntegration);
