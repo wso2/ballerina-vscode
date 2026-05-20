@@ -60,6 +60,8 @@ import {
     RunServiceRequest,
     McpServerStatusDTO,
     SetMcpServerEnabledRequest,
+    AddMcpServerRequest,
+    AddMcpServerResponse,
 } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
@@ -126,4 +128,5 @@ export const getDefaultVertexCredsPath: RequestType<void, string> = { method: `$
 export const listMcpServers: RequestType<void, McpServerStatusDTO[]> = { method: `${_preFix}/listMcpServers` };
 export const setMcpServerEnabled: RequestType<SetMcpServerEnabledRequest, void> = { method: `${_preFix}/setMcpServerEnabled` };
 export const openMcpConfig: RequestType<void, void> = { method: `${_preFix}/openMcpConfig` };
+export const addMcpServer: RequestType<AddMcpServerRequest, AddMcpServerResponse> = { method: `${_preFix}/addMcpServer` };
 export const mcpServersChanged: NotificationType<McpServerStatusDTO[]> = { method: `${_preFix}/mcpServersChanged` };

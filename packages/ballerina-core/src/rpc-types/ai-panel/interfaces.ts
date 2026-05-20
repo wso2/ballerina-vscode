@@ -616,4 +616,15 @@ export interface SetMcpServerEnabledRequest {
     name: string;
     enabled: boolean;
 }
+export type McpServerConfigDTO =
+    | { type: "stdio"; command: string; args?: string[]; env?: Record<string, string> }
+    | { type: "http"; url: string; headers?: Record<string, string> };
+export interface AddMcpServerRequest {
+    name: string;
+    config: McpServerConfigDTO;
+}
+export interface AddMcpServerResponse {
+    success: boolean;
+    error?: string;
+}
 

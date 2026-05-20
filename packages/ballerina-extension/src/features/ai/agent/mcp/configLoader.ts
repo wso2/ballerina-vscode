@@ -97,6 +97,33 @@ export function ensureMcpConfigFileExists(): string {
 }
 
 /**
+ * Atomically adds a new server entry to the user mcp.json.
+ *
+ * Throws if a server with the same name already exists (case-sensitive).
+ * Reads the file fresh before mutating, so external edits made while a form
+ * was open are preserved.
+ */
+export function writeMcpServer(name: string, config: McpServerConfig): void {
+    ensureMcpConfigFileExists();
+    const raw = fs.readFileSync(USER_MCP_CONFIG_PATH, "utf8");
+    const parsed: McpConfigFile = raw.trim() ? JSON.parse(raw) : { mcpServers: {} };
+    const servers = parsed.mcpServers ?? {};
+    if (Object.prototype.hasOwnProperty.call(servers, name)) {
+        throw new Error(`Server '${name}' already exists in mcp.json.`);
+    }
+    servers[name] = config;
+    parsed.mcpServers = servers;
+    const tmpPath = `${USER_MCP_CONFIG_PATH}.tmp.${process.pid}.${Date.now()}`;
+    try {
+        fs.writeFileSync(tmpPath, JSON.stringify(parsed, null, 2), "utf8");
+        fs.renameSync(tmpPath, USER_MCP_CONFIG_PATH);
+    } catch (err) {
+        try { fs.unlinkSync(tmpPath); } catch { /* ignore */ }
+        throw err;
+    }
+}
+
+/**
  * Subscribes to user-level config changes and returns a disposer. Uses
  * `fs.watchFile` with a polling interval because some platforms drop
  * `fs.watch` events when the file is replaced atomically (the editor pattern

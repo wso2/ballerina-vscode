@@ -57,8 +57,10 @@ import {
     RunServiceRequest,
     McpServerStatusDTO,
     SetMcpServerEnabledRequest,
+    AddMcpServerRequest,
+    AddMcpServerResponse,
 } from "@wso2/ballerina-core";
-import { getMcpClientManager, ensureMcpConfigFileExists } from "../../features/ai/agent/mcp";
+import { getMcpClientManager, ensureMcpConfigFileExists, writeMcpServer } from "../../features/ai/agent/mcp";
 import { notifyMcpServersChanged } from "../../RPCLayer";
 import * as os from "os";
 import * as fs from 'fs';
@@ -894,6 +896,46 @@ User reverted the last made changes. The files have been restored to the state b
         const filePath = ensureMcpConfigFileExists();
         const doc = await vscode.workspace.openTextDocument(filePath);
         await vscode.window.showTextDocument(doc, { preview: false });
+    }
+
+    async addMcpServer(params: AddMcpServerRequest): Promise<AddMcpServerResponse> {
+        const name = (params?.name ?? "").trim();
+        if (!name) {
+            return { success: false, error: "Server name is required." };
+        }
+        if (!/^[a-zA-Z0-9_.-]{1,64}$/.test(name)) {
+            return { success: false, error: "Use letters, digits, _, ., or - only (max 64 chars)." };
+        }
+        const cfg = params?.config;
+        if (!cfg || (cfg.type !== "stdio" && cfg.type !== "http")) {
+            return { success: false, error: "Invalid server config." };
+        }
+        if (cfg.type === "stdio" && !cfg.command?.trim()) {
+            return { success: false, error: "Command is required for stdio servers." };
+        }
+        if (cfg.type === "http") {
+            if (!cfg.url?.trim()) {
+                return { success: false, error: "URL is required for HTTP servers." };
+            }
+            try { new URL(cfg.url); } catch {
+                return { success: false, error: "URL is not a valid URL." };
+            }
+        }
+        try {
+            writeMcpServer(name, cfg);
+        } catch (err: any) {
+            return { success: false, error: err?.message ?? String(err) };
+        }
+        const manager = getMcpClientManager();
+        if (manager) {
+            try {
+                await manager.refresh();
+                notifyMcpServersChanged(manager.listServers());
+            } catch (err) {
+                console.warn('[mcp] addMcpServer post-refresh failed:', err);
+            }
+        }
+        return { success: true };
     }
 
 }

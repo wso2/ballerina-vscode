@@ -20,6 +20,7 @@ import React, { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
 import { McpServerStatusDTO } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import AddMcpServerModal from "./AddMcpServerModal";
 
 const TOOLTIP_SHOW_MS = 150;
 const TOOLTIP_HIDE_MS = 200;
@@ -246,6 +247,7 @@ export const McpToolsChip: React.FC = () => {
     const [servers, setServers] = useState<McpServerStatusDTO[]>([]);
     const [visible, setVisible] = useState(false);
     const [reloading, setReloading] = useState(false);
+    const [showAddModal, setShowAddModal] = useState(false);
     const showTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -335,6 +337,9 @@ export const McpToolsChip: React.FC = () => {
                                     style={{ fontSize: 12 }}
                                 />
                             </IconAction>
+                            <HeaderAction type="button" onClick={() => setShowAddModal(true)}>
+                                + Add server
+                            </HeaderAction>
                             <HeaderAction type="button" onClick={handleOpenConfig}>
                                 Edit config
                             </HeaderAction>
@@ -343,7 +348,7 @@ export const McpToolsChip: React.FC = () => {
 
                     {servers.length === 0 ? (
                         <EmptyState>
-                            No servers configured. Click <b>Edit config</b> to add one.
+                            No servers configured. Click <b>+ Add server</b> to set one up.
                         </EmptyState>
                     ) : (
                         servers.map((s) => (
@@ -364,6 +369,12 @@ export const McpToolsChip: React.FC = () => {
                     )}
                 </Popup>
             )}
+            <AddMcpServerModal
+                isOpen={showAddModal}
+                existingNames={servers.map((s) => s.name)}
+                onClose={() => setShowAddModal(false)}
+                onAdded={() => { /* mcpServersChanged notification refreshes the list */ }}
+            />
         </ChipWrapper>
     );
 };

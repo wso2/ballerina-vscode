@@ -24,6 +24,7 @@ export {
     loadMcpConfig,
     USER_MCP_CONFIG_PATH,
     watchMcpConfig,
+    writeMcpServer,
 } from "./configLoader";
 export {
     McpClientManager,
