@@ -44,6 +44,7 @@ public class IntermediateModel {
     protected final Map<String, Connection> uuidToConnectionMap;
     protected final Map<String, ServiceClassModel> serviceClassModelMap;
     protected final Map<String, Workflow> workflowMap;
+    protected final Map<String, Workflow> uuidToWorkflowMap;
 
     public IntermediateModel() {
         this.functionModelMap = new HashMap<>();
@@ -53,6 +54,7 @@ public class IntermediateModel {
         this.uuidToConnectionMap = new HashMap<>();
         this.serviceClassModelMap = new HashMap<>();
         this.workflowMap = new HashMap<>();
+        this.uuidToWorkflowMap = new HashMap<>();
     }
 
     public static class ServiceModel {

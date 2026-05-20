@@ -62,8 +62,8 @@ public final class Workflow extends DesignGraphNode {
         this.attachedServices.add(serviceUuid);
     }
 
-    public void addAttachedFunction(String functionName) {
-        this.attachedFunctions.add(functionName);
+    public void addAttachedFunction(String functionUuid) {
+        this.attachedFunctions.add(functionUuid);
     }
 
     @Override

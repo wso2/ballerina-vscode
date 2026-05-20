@@ -873,7 +873,9 @@ public class WaitDataBuilder extends CallBuilder {
             CheckExpressionNode checkExpr = (CheckExpressionNode) expr;
             if (checkExpr.expression().kind() == SyntaxKind.WAIT_ACTION) {
                 Node waitFutureExpr = ((WaitActionNode) checkExpr.expression()).waitFutureExpr();
-                extractDataNameFromMember((ExpressionNode) waitFutureExpr, dataParamName, dataNames);
+                if (waitFutureExpr instanceof ExpressionNode waitExpr) {
+                    extractDataNameFromMember(waitExpr, dataParamName, dataNames);
+                }
             } else if (checkExpr.expression().kind() == SyntaxKind.REMOTE_METHOD_CALL_ACTION) {
                 RemoteMethodCallActionNode remoteCall = (RemoteMethodCallActionNode) checkExpr.expression();
                 Optional<ClassSymbol> optClassSymbol =
@@ -887,8 +889,7 @@ public class WaitDataBuilder extends CallBuilder {
                         || positionalArg.expression().kind() != SyntaxKind.LIST_CONSTRUCTOR) {
                     return;
                 }
-                ListConstructorExpressionNode listNode =
-                        (ListConstructorExpressionNode) positionalArg.expression();
+                ListConstructorExpressionNode listNode = (ListConstructorExpressionNode) positionalArg.expression();
                 for (Node member : listNode.expressions()) {
                     extractDataNameFromMember((ExpressionNode) member, dataParamName, dataNames);
                 }

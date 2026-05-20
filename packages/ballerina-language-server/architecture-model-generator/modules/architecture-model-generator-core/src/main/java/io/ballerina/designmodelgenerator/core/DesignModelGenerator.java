@@ -102,15 +102,16 @@ public class DesignModelGenerator {
         if (intermediateModel.functionModelMap.containsKey(MAIN_FUNCTION_NAME)) {
             IntermediateModel.FunctionModel main = intermediateModel.functionModelMap.get(MAIN_FUNCTION_NAME);
             buildConnectionAndWorkflowGraph(intermediateModel, main, null);
+            Automation automation = new Automation(AUTOMATION, main.displayName, "Z", main.location,
+                    main.allDependentConnections.stream().toList(),
+                    main.allDependentWorkflows.stream().toList());
             for (String workflowUuid : main.allDependentWorkflows) {
-                Workflow workflow = findWorkflowByUuid(intermediateModel, workflowUuid);
+                Workflow workflow = intermediateModel.uuidToWorkflowMap.get(workflowUuid);
                 if (workflow != null) {
-                    workflow.addAttachedFunction(main.name);
+                    workflow.addAttachedFunction(automation.getUuid());
                 }
             }
-            builder.setAutomation(new Automation(AUTOMATION, main.displayName, "Z", main.location,
-                    main.allDependentConnections.stream().toList(),
-                    main.allDependentWorkflows.stream().toList()));
+            builder.setAutomation(automation);
         }
 
         for (Map.Entry<String, IntermediateModel.ServiceModel> serviceEntry :
@@ -179,7 +180,7 @@ public class DesignModelGenerator {
                     connections.stream().toList(), functions, remoteFunctions, resourceFunctions,
                     workflows.stream().toList());
             for (String workflowUuid : workflows) {
-                Workflow workflow = findWorkflowByUuid(intermediateModel, workflowUuid);
+                Workflow workflow = intermediateModel.uuidToWorkflowMap.get(workflowUuid);
                 if (workflow != null) {
                     workflow.addAttachedService(service.getUuid());
                 }
@@ -217,16 +218,8 @@ public class DesignModelGenerator {
             String sortText = lineRange.fileName() + lineRange.startLine().line();
             Workflow workflow = new Workflow(symbol.getName().get(), sortText, getLocation(lineRange));
             intermediateModel.workflowMap.put(symbol.getName().get(), workflow);
+            intermediateModel.uuidToWorkflowMap.put(workflow.getUuid(), workflow);
         }
-    }
-
-    private Workflow findWorkflowByUuid(IntermediateModel intermediateModel, String uuid) {
-        for (Workflow workflow : intermediateModel.workflowMap.values()) {
-            if (workflow.getUuid().equals(uuid)) {
-                return workflow;
-            }
-        }
-        return null;
     }
 
     private void populateModuleLevelConnections(IntermediateModel intermediateModel) {
