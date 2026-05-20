@@ -121,6 +121,7 @@ import {
     setMcpServerEnabled,
     openMcpConfig,
     addMcpServer,
+    getMcpToolsEnabled,
     McpServerStatusDTO,
     SetMcpServerEnabledRequest,
     AddMcpServerRequest,
@@ -384,5 +385,9 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     addMcpServer(params: AddMcpServerRequest): Promise<AddMcpServerResponse> {
         return this._messenger.sendRequest(addMcpServer, HOST_EXTENSION, params);
+    }
+
+    getMcpToolsEnabled(): Promise<boolean> {
+        return this._messenger.sendRequest(getMcpToolsEnabled, HOST_EXTENSION);
     }
 }

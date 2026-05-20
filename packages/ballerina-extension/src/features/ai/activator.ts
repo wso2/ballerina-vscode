@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { commands, window } from 'vscode';
+import { commands, window, workspace as vscodeWorkspace } from 'vscode';
 import { BallerinaExtension, ExtendedLangClient } from '../../core';
 import { activateCopilotLoginCommand, resetBIAuth } from './completions';
 import { ProcessMappingParametersRequest } from '@wso2/ballerina-core';
@@ -42,9 +42,10 @@ import { resolveProjectPath } from '../../utils/project-utils';
 import { MESSAGES } from '../project';
 import { AICommandConfig } from './executors/base/AICommandExecutor';
 import { AgentExecutor } from './agent/AgentExecutor';
-import { initMcpClientManager, watchMcpConfig, type EnabledOverrideStore } from './agent/mcp';
+import { initMcpClientManager, disposeMcpClientManager, watchMcpConfig, getMcpClientManager, type EnabledOverrideStore } from './agent/mcp';
 import { extension } from '../../BalExtensionContext';
 import { notifyMcpServersChanged } from '../../RPCLayer';
+import { sendConfigChangeNotification } from './utils/ai-utils';
 
 /**
  * Parameters for test-mode code generation
@@ -245,8 +246,19 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
 }
 
 const MCP_ENABLED_OVERRIDE_KEY = 'ballerina.copilot.mcp.enabledOverrides';
+const MCP_ENABLE_SETTING = 'copilot.enableMcpTools';
 
-function activateMcp(): void {
+let mcpWatchDisposer: (() => void) | null = null;
+
+function isMcpEnabled(): boolean {
+    return vscodeWorkspace.getConfiguration('ballerina').get<boolean>(MCP_ENABLE_SETTING, false);
+}
+
+function setupMcp(): void {
+    if (getMcpClientManager()) {
+        // Already set up; nothing to do.
+        return;
+    }
     const overrides: EnabledOverrideStore = {
         get(name) {
             const map = extension.context?.globalState.get<Record<string, boolean>>(MCP_ENABLED_OVERRIDE_KEY) ?? {};
@@ -268,8 +280,39 @@ function activateMcp(): void {
     };
     // Initial connect — fire and forget; failures are recorded per-server, not thrown.
     manager.refresh().then(pushUpdate).catch(err => console.warn('[mcp] Initial refresh failed:', err));
-    const stopWatch = watchMcpConfig(() => {
+    mcpWatchDisposer = watchMcpConfig(() => {
         manager.refresh().then(pushUpdate).catch(err => console.warn('[mcp] Watch-triggered refresh failed:', err));
     });
-    extension.context?.subscriptions.push({ dispose: stopWatch });
+}
+
+async function teardownMcp(): Promise<void> {
+    if (mcpWatchDisposer) {
+        try { mcpWatchDisposer(); } catch { /* ignore */ }
+        mcpWatchDisposer = null;
+    }
+    await disposeMcpClientManager();
+    try {
+        notifyMcpServersChanged([]);
+    } catch (err) {
+        console.warn('[mcp] Failed to push empty servers list on teardown:', err);
+    }
+}
+
+function activateMcp(): void {
+    if (isMcpEnabled()) {
+        setupMcp();
+    }
+    const disposable = vscodeWorkspace.onDidChangeConfiguration((e) => {
+        if (!e.affectsConfiguration(`ballerina.${MCP_ENABLE_SETTING}`)) {
+            return;
+        }
+        const enabled = isMcpEnabled();
+        if (enabled) {
+            setupMcp();
+        } else {
+            teardownMcp().catch(err => console.warn('[mcp] teardown failed:', err));
+        }
+        sendConfigChangeNotification('mcpToolsEnabled', enabled);
+    });
+    extension.context?.subscriptions.push(disposable);
 }

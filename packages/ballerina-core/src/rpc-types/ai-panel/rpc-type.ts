@@ -129,4 +129,5 @@ export const listMcpServers: RequestType<void, McpServerStatusDTO[]> = { method:
 export const setMcpServerEnabled: RequestType<SetMcpServerEnabledRequest, void> = { method: `${_preFix}/setMcpServerEnabled` };
 export const openMcpConfig: RequestType<void, void> = { method: `${_preFix}/openMcpConfig` };
 export const addMcpServer: RequestType<AddMcpServerRequest, AddMcpServerResponse> = { method: `${_preFix}/addMcpServer` };
+export const getMcpToolsEnabled: RequestType<void, boolean> = { method: `${_preFix}/getMcpToolsEnabled` };
 export const mcpServersChanged: NotificationType<McpServerStatusDTO[]> = { method: `${_preFix}/mcpServersChanged` };

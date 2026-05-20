@@ -167,6 +167,7 @@ type FooterProps = {
     onToggleWebSearch?: () => void;
     disabled?: boolean;
     contextUsage?: { inputTokens: number; percentage: number; breakdown?: { systemInstructions: number; toolDefinitions: number; reservedOutput: number; files: number; messages: number; toolResults: number } } | null;
+    mcpToolsEnabled?: boolean;
     runningServicesPanel?: RunningServicesPanel;
 };
 
@@ -191,6 +192,7 @@ const Footer: React.FC<FooterProps> = ({
     onToggleWebSearch,
     disabled,
     contextUsage,
+    mcpToolsEnabled,
     runningServicesPanel,
 }) => {
     const footerSuggestedCommandTemplates = suggestedCommandTemplates ?? defaultSuggestedCommandTemplates;
@@ -254,6 +256,7 @@ const Footer: React.FC<FooterProps> = ({
                 onToggleWebSearch={onToggleWebSearch}
                 disabled={disabled}
                 contextUsage={contextUsage}
+                mcpToolsEnabled={mcpToolsEnabled}
                 runningServicesPanel={runningServicesPanel}
             />
             <DisclaimerText visible={!showSuggestedCommands}>

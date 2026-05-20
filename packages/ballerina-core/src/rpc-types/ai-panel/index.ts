@@ -151,4 +151,5 @@ export interface AIPanelAPI {
     setMcpServerEnabled: (params: SetMcpServerEnabledRequest) => Promise<void>;
     openMcpConfig: () => Promise<void>;
     addMcpServer: (params: AddMcpServerRequest) => Promise<AddMcpServerResponse>;
+    getMcpToolsEnabled: () => Promise<boolean>;
 }

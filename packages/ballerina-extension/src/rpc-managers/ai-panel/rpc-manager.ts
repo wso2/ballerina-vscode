@@ -898,6 +898,10 @@ User reverted the last made changes. The files have been restored to the state b
         await vscode.window.showTextDocument(doc, { preview: false });
     }
 
+    async getMcpToolsEnabled(): Promise<boolean> {
+        return workspace.getConfiguration('ballerina').get<boolean>('copilot.enableMcpTools', false);
+    }
+
     async addMcpServer(params: AddMcpServerRequest): Promise<AddMcpServerResponse> {
         const name = (params?.name ?? "").trim();
         if (!name) {

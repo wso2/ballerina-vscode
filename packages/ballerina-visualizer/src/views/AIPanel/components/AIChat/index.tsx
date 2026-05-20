@@ -239,6 +239,7 @@ const AIChat: React.FC = () => {
         breakdown?: { systemInstructions: number; toolDefinitions: number; reservedOutput: number; files: number; messages: number; toolResults: number };
     } | null>(null);
     const [showContextUsage, setShowContextUsage] = useState(false);
+    const [mcpToolsEnabled, setMcpToolsEnabled] = useState(false);
 
     const [runningServices, setRunningServices] = useState<RunningServiceInfo[]>([]);
 
@@ -383,6 +384,7 @@ const AIChat: React.FC = () => {
 
     useEffect(() => {
         rpcClient.getAiPanelRpcClient().getShowContextUsage().then(setShowContextUsage).catch(() => {});
+        rpcClient.getAiPanelRpcClient().getMcpToolsEnabled().then(setMcpToolsEnabled).catch(() => {});
     }, []);
 
     const handleCheckpointRestore = async (checkpointId: string) => {
@@ -866,6 +868,8 @@ const AIChat: React.FC = () => {
         } else if (type === "config_change") {
             if ((response as any).key === 'showContextUsage') {
                 setShowContextUsage((response as any).value);
+            } else if ((response as any).key === 'mcpToolsEnabled') {
+                setMcpToolsEnabled((response as any).value);
             }
 
         } else if (type === "stop") {
@@ -2211,6 +2215,7 @@ const AIChat: React.FC = () => {
                             onToggleWebSearch={handleToggleWebSearch}
                             disabled={isUsageExceeded}
                             contextUsage={showContextUsage ? contextUsage : null}
+                            mcpToolsEnabled={mcpToolsEnabled}
                             runningServicesPanel={{
                                 services: runningServices,
                                 onStopService: handleStopRunningService,
