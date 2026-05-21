@@ -45,6 +45,7 @@ import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Option;
 import io.ballerina.flowmodelgenerator.core.model.Property;
+import io.ballerina.flowmodelgenerator.core.model.PropertyType;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
@@ -224,9 +225,26 @@ public class AiUtils {
             throw new IllegalArgumentException("Original property cannot be null");
         }
 
-        return Property.Builder.copyFrom(originalProperty)
-                .value(newValue)
-                .build();
+        return new Property(
+                originalProperty.metadata(),
+                originalProperty.types(),
+                newValue,
+                originalProperty.oldValue(),
+                originalProperty.placeholder(),
+                originalProperty.optional(),
+                originalProperty.editable(),
+                originalProperty.advanced(),
+                originalProperty.hidden(),
+                originalProperty.modified(),
+                originalProperty.diagnostics(),
+                originalProperty.codedata(),
+                originalProperty.advancedValue(),
+                originalProperty.imports(),
+                originalProperty.defaultValue(),
+                originalProperty.comment(),
+                originalProperty.dynamicFormFields(),
+                originalProperty.itemOptions()
+        );
     }
 
     /**
@@ -240,10 +258,26 @@ public class AiUtils {
         if (original == null) {
             throw new IllegalArgumentException("Original property cannot be null");
         }
-        return Property.Builder.copyFrom(original)
-                .optional(true)
-                .advanced(true)
-                .build();
+        return new Property(
+                original.metadata(),
+                original.types(),
+                original.value(),
+                original.oldValue(),
+                original.placeholder(),
+                true,
+                original.editable(),
+                true,
+                original.hidden(),
+                original.modified(),
+                original.diagnostics(),
+                original.codedata(),
+                original.advancedValue(),
+                original.imports(),
+                original.defaultValue(),
+                original.comment(),
+                original.dynamicFormFields(),
+                original.itemOptions()
+        );
     }
 
     /**
@@ -261,12 +295,36 @@ public class AiUtils {
             throw new IllegalArgumentException("Original property metadata cannot be null");
         }
 
-        return Property.Builder.copyFrom(original)
-                .metadata()
-                    .label(newLabel)
-                    .description(original.metadata().description())
-                    .stepOut()
-                .build();
+        Metadata updatedMetadata = new Metadata(
+            newLabel,
+            original.metadata().description(),
+            original.metadata().keywords(),
+            original.metadata().icon(),
+            original.metadata().functionKind(),
+            original.metadata().data(),
+            original.metadata().connectors()
+        );
+
+        return new Property(
+            updatedMetadata,
+            original.types(),
+            original.value(),
+            original.oldValue(),
+            original.placeholder(),
+            original.optional(),
+            original.editable(),
+            original.advanced(),
+            original.hidden(),
+            original.modified(),
+            original.diagnostics(),
+            original.codedata(),
+            original.advancedValue(),
+            original.imports(),
+            original.defaultValue(),
+            original.comment(),
+            original.dynamicFormFields(),
+            original.itemOptions()
+        );
     }
 
     /**
@@ -278,14 +336,30 @@ public class AiUtils {
      * @return the new property with SINGLE_SELECT type
      */
     public static Property convertToSingleSelect(Property original, List<String> options) {
-        return Property.Builder.copyFrom(original)
-                .clearTypes()
-                .type()
-                    .fieldType(Property.ValueType.SINGLE_SELECT)
-                    .options(Option.of(options))
-                    .selected(true)
-                    .stepOut()
-                .build();
+        List<PropertyType> selectTypes = List.of(
+            new PropertyType(Property.ValueType.SINGLE_SELECT, null, null, Option.of(options),
+                null, null, null, true)
+        );
+        return new Property(
+            original.metadata(),
+            selectTypes,
+            original.value(),
+            original.oldValue(),
+            original.placeholder(),
+            original.optional(),
+            original.editable(),
+            original.advanced(),
+            original.hidden(),
+            original.modified(),
+            original.diagnostics(),
+            original.codedata(),
+            original.advancedValue(),
+            original.imports(),
+            original.defaultValue(),
+            original.comment(),
+            original.dynamicFormFields(),
+            original.itemOptions()
+        );
     }
 
     /**
@@ -311,10 +385,26 @@ public class AiUtils {
         Object valueToUse = customValue != null ? customValue : property.value();
         boolean hidden = isHidden || property.hidden();
 
-        Property copied = Property.Builder.copyFrom(property)
-                .value(valueToUse)
-                .hidden(hidden)
-                .build();
+        Property copied = new Property(
+            property.metadata(),
+            property.types(),
+            valueToUse,
+            property.oldValue(),
+            property.placeholder(),
+            property.optional(),
+            property.editable(),
+            property.advanced(),
+            hidden,
+            property.modified(),
+            property.diagnostics(),
+            property.codedata(),
+            property.advancedValue(),
+            property.imports(),
+            property.defaultValue(),
+            property.comment(),
+            property.dynamicFormFields(),
+            property.itemOptions()
+        );
         nodeBuilder.properties().build().put(key, copied);
     }
 
