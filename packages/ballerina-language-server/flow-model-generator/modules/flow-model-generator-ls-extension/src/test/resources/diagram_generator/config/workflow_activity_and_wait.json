@@ -94,7 +94,7 @@
         "metadata": {
           "label": "callActivity",
           "description": "Executes an activity function. The activity runs exactly once, even if the process crashes and restarts.\n\n```ballerina\nPaymentResult result = check ctx->callActivity(processPayment, args = {\"orderId\": orderId});\n```\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.3.4.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.4.0.png"
         },
         "codedata": {
           "node": "ACTIVITY_CALL",
@@ -639,23 +639,6 @@
             "optional": false,
             "editable": false,
             "advanced": false,
-            "hidden": false
-          },
-          "optional": {
-            "metadata": {
-              "label": "Optional Data Types",
-              "description": "When `minCount` is less than the number of data waits, all data wait types should be marked optional"
-            },
-            "types": [
-              {
-                "fieldType": "FLAG",
-                "selected": false
-              }
-            ],
-            "value": false,
-            "optional": false,
-            "editable": true,
-            "advanced": true,
             "hidden": false
           },
           "minCount": {

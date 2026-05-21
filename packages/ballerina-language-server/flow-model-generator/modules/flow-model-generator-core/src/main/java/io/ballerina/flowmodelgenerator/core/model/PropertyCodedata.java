@@ -28,9 +28,13 @@ import io.ballerina.tools.text.LineRange;
  * @param originalName      The original name of the property
  * @param dependentProperty The property that is dependent for this property to be enabled
  * @param lineRange         The line range of the property
+ * @param searchNodesKind   For {@link Property.ValueType#CONNECTION} properties, the connection
+ *                          category id (e.g., {@code "HTTP"}) used by the UI to filter the
+ *                          picker and to surface a "create new connection" shortcut.
  * @since 1.0.0
  */
-public record PropertyCodedata(String kind, String originalName, String dependentProperty, LineRange lineRange) {
+public record PropertyCodedata(String kind, String originalName, String dependentProperty, LineRange lineRange,
+                               String searchNodesKind) {
 
     public static class Builder<T> extends FacetedBuilder<T> {
 
@@ -38,6 +42,7 @@ public record PropertyCodedata(String kind, String originalName, String dependen
         private String originalName;
         private String dependentProperty;
         private LineRange lineRange;
+        private String searchNodesKind;
 
         public Builder(T parentBuilder) {
             super(parentBuilder);
@@ -63,8 +68,33 @@ public record PropertyCodedata(String kind, String originalName, String dependen
             return this;
         }
 
+        public Builder<T> searchNodesKind(String searchNodesKind) {
+            this.searchNodesKind = searchNodesKind;
+            return this;
+        }
+
+        /**
+         * Copies all fields from the given {@link PropertyCodedata} into this builder.
+         * Centralises field-by-field copy logic so callers don't need to update when new
+         * components are added to {@link PropertyCodedata}.
+         *
+         * @param source the source codedata to copy from (no-op when {@code null})
+         * @return this builder
+         */
+        public Builder<T> copyFrom(PropertyCodedata source) {
+            if (source == null) {
+                return this;
+            }
+            this.kind = source.kind();
+            this.originalName = source.originalName();
+            this.dependentProperty = source.dependentProperty();
+            this.lineRange = source.lineRange();
+            this.searchNodesKind = source.searchNodesKind();
+            return this;
+        }
+
         public PropertyCodedata build() {
-            return new PropertyCodedata(kind, originalName, dependentProperty, lineRange);
+            return new PropertyCodedata(kind, originalName, dependentProperty, lineRange, searchNodesKind);
         }
     }
 }

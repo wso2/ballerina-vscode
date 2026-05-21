@@ -22,6 +22,7 @@ package io.ballerina.flowmodelgenerator.core.model;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,10 +36,24 @@ import java.util.Map;
  * @param icon         The icon of the component
  * @param functionKind The kind of the function
  * @param data         The additional data
+ * @param connectors   For CONNECTION-typed properties: allowed target connectors. Each entry pairs a
+ *                     connector codedata with the label of its "Add new connection" button. When
+ *                     non-empty, the UI union-filters the dropdown by (module, object) across entries
+ *                     and renders one Add button per entry. When null/empty, the dropdown lists every
+ *                     connection in the project and no Add button is shown.
  * @since 1.0.0
  */
 public record Metadata(String label, String description, List<String> keywords, String icon, String functionKind,
-                       Map<String, Object> data) {
+                       Map<String, Object> data, List<AllowedConnector> connectors) {
+
+    /**
+     * A connector that the CONNECTION field accepts, along with the label for its Add-new button.
+     *
+     * @param codedata              Codedata identifying the connector type
+     * @param addNewConnectionLabel Label shown on the Add-new-connection button
+     */
+    public record AllowedConnector(Codedata codedata, String addNewConnectionLabel) {
+    }
 
     public static class Builder<T> extends FacetedBuilder<T> {
 
@@ -48,6 +63,7 @@ public record Metadata(String label, String description, List<String> keywords, 
         private String icon;
         private String functionKind;
         private Map<String, Object> data;
+        private List<AllowedConnector> connectors;
 
         public Builder(T parentBuilder) {
             super(parentBuilder);
@@ -109,8 +125,21 @@ public record Metadata(String label, String description, List<String> keywords, 
             return this;
         }
 
+        public Builder<T> connectors(List<AllowedConnector> connectors) {
+            this.connectors = connectors;
+            return this;
+        }
+
+        public Builder<T> addConnector(Codedata codedata, String addNewConnectionLabel) {
+            if (connectors == null) {
+                connectors = new ArrayList<>();
+            }
+            connectors.add(new AllowedConnector(codedata, addNewConnectionLabel));
+            return this;
+        }
+
         public Metadata build() {
-            return new Metadata(label, description, keywords, icon, functionKind, data);
+            return new Metadata(label, description, keywords, icon, functionKind, data, connectors);
         }
     }
 }
