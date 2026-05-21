@@ -99,6 +99,7 @@ import io.ballerina.compiler.syntax.tree.NodeVisitor;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.ObjectFieldNode;
 import io.ballerina.compiler.syntax.tree.OnFailClauseNode;
+import io.ballerina.compiler.syntax.tree.OptionalTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.PanicStatementNode;
 import io.ballerina.compiler.syntax.tree.ParameterNode;
 import io.ballerina.compiler.syntax.tree.ParenthesizedArgList;
@@ -121,7 +122,6 @@ import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.TemplateExpressionNode;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TransactionStatementNode;
-import io.ballerina.compiler.syntax.tree.OptionalTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.TupleTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
 import io.ballerina.compiler.syntax.tree.VariableDeclarationNode;
@@ -1460,8 +1460,7 @@ public class CodeAnalyzer extends NodeVisitor {
         if (addDiagnostic) {
             nodeBuilder.properties().custom()
                     .diagnostics()
-                        .diagnostic(DiagnosticSeverity.ERROR, WaitDataBuilder.OPTIONAL_DOC)
-                        .stepOut();
+                        .diagnostic(DiagnosticSeverity.ERROR, WaitDataBuilder.OPTIONAL_DOC);
         }
         nodeBuilder.properties().addProperty(WaitDataBuilder.OPTIONAL_KEY);
     }
