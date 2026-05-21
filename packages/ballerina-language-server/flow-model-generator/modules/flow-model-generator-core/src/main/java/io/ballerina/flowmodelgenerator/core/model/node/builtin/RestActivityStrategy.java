@@ -188,13 +188,6 @@ public class RestActivityStrategy implements BuiltinActivityStrategy {
 
         List<String> args = new ArrayList<>();
 
-        // method — always quoted (DROPDOWN_CHOICE values are bare strings).
-        // When the value was populated from source via Property.Builder, the STRING_LITERAL
-        // "GET" is stored with its Ballerina outer quotes included (e.g. value = "\"GET\"").
-        // Strip those delimiters before re-wrapping so we don't produce "\"GET\"".
-        if (BuiltinActivityStrategy.isBallerinaStringExpression(method)) {
-            method = method.substring(1, method.length() - 1);
-        }
         args.add("method: \"" + method + "\"");
 
         // path — quote if TEXT-typed; only emit when non-default

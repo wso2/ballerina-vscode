@@ -142,10 +142,12 @@ public interface BuiltinActivityStrategy {
      * (i.e., the user entered plain text, not an expression). Skips when the property is
      * missing or its value is empty.
      *
-     * <p>When the TEXT-typed value is already a Ballerina double-quoted string literal
-     * ({@code "..."}), it is emitted as-is. Plain string templates without interpolations
-     * (e.g. {@code string `/hello`}) are first normalised to double-quoted literals so that
-     * the generated source consistently uses {@code "..."} rather than {@code string `...`}.</p>
+     * <p>Plain string templates without interpolations (e.g. {@code string `/hello`}) are first
+     * normalised to double-quoted literals.  This is a temporary workaround: the form does not yet
+     * handle URL special characters, so users enter paths as string templates to avoid quoting
+     * issues.  The {@link #isBallerinaStringExpression} guard after normalisation prevents the
+     * already-quoted result from being wrapped a second time.  TODO: fix URL special-character
+     * handling in the form so string templates are no longer needed as a workaround.</p>
      */
     static void addQuotedArg(List<String> args, String paramName,
                              Map<String, Property> properties, String propKey) {
