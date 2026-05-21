@@ -905,7 +905,7 @@ User reverted the last made changes. The files have been restored to the state b
                 return;
             }
             if (!vscode.workspace.isTrusted) {
-                vscode.window.showWarningMessage("This project is not trusted. Use VS Code's workspace trust prompt to enable project-scope MCP servers.");
+                vscode.window.showWarningMessage("This project is not trusted. Trust this project from the workspace trust prompt to enable project-scope MCP servers.");
                 return;
             }
         }
@@ -953,7 +953,7 @@ User reverted the last made changes. The files have been restored to the state b
                 return { success: false, error: "No project is open — cannot add a project-scope server." };
             }
             if (!vscode.workspace.isTrusted) {
-                return { success: false, error: "This project is not trusted. Use VS Code's workspace trust prompt to enable project-scope MCP servers." };
+                return { success: false, error: "This project is not trusted. Trust this project from the workspace trust prompt to enable project-scope MCP servers." };
             }
         }
         try {
