@@ -121,6 +121,7 @@ import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.TemplateExpressionNode;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TransactionStatementNode;
+import io.ballerina.compiler.syntax.tree.OptionalTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.TupleTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
 import io.ballerina.compiler.syntax.tree.VariableDeclarationNode;
@@ -189,6 +190,7 @@ import io.ballerina.projects.Document;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
+import io.ballerina.tools.diagnostics.DiagnosticSeverity;
 import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
@@ -1344,9 +1346,12 @@ public class CodeAnalyzer extends NodeVisitor {
         if (typedBindingPatternNode != null) {
             String variableName = typedBindingPatternNode.bindingPattern().toSourceCode().strip();
             Node typeDesc = typedBindingPatternNode.typeDescriptor();
-            String dataType = typeDesc.toSourceCode().strip();
-            LineRange dataTypeRange = typeDesc.lineRange();
+            boolean isNilable = typeDesc.kind() == SyntaxKind.OPTIONAL_TYPE_DESC;
+            Node bareTypeDesc = isNilable ? ((OptionalTypeDescriptorNode) typeDesc).typeDescriptor() : typeDesc;
+            String dataType = bareTypeDesc.toSourceCode().strip();
+            LineRange dataTypeRange = bareTypeDesc.lineRange();
             buildDataWaitsProperty(List.of(new DataWaitEntry(variableName, dataType, dataName, dataTypeRange)));
+            addOptionalFlagProperty(isNilable, false);
         }
 
         ((WaitDataBuilder) nodeBuilder).addAdvancedProperties(workspaceManager.module(filePath)
@@ -1385,6 +1390,7 @@ public class CodeAnalyzer extends NodeVisitor {
         // Tuple: [Type1, Type2] [var1, var2] = check ctx->await([data.f1, data.f2]);
         populateDataEntries(entries);
         buildDataWaitsProperty(entries);
+        addOptionalFlagProperty(false, isMinCountLessThanEntries(entries.size()));
     }
 
     /**
@@ -1396,6 +1402,7 @@ public class CodeAnalyzer extends NodeVisitor {
         }
 
         // Extract types from tuple type descriptor: [Type1, Type2]
+        // Strip any trailing '?' (nilable/optional type) from each member — bare type is stored.
         Node typeDesc = typedBindingPatternNode.typeDescriptor();
         List<String> types = new ArrayList<>();
         List<LineRange> typeRanges = new ArrayList<>();
@@ -1403,8 +1410,10 @@ public class CodeAnalyzer extends NodeVisitor {
             TupleTypeDescriptorNode tupleType = (TupleTypeDescriptorNode) typeDesc;
             for (Node memberType : tupleType.memberTypeDesc()) {
                 if (memberType.kind() != SyntaxKind.COMMA_TOKEN) {
-                    types.add(memberType.toSourceCode().strip());
-                    typeRanges.add(memberType.lineRange());
+                    boolean isNilable = memberType.kind() == SyntaxKind.OPTIONAL_TYPE_DESC;
+                    Node bareType = isNilable ? ((OptionalTypeDescriptorNode) memberType).typeDescriptor() : memberType;
+                    types.add(bareType.toSourceCode().strip());
+                    typeRanges.add(bareType.lineRange());
                 }
             }
         }
@@ -1425,6 +1434,54 @@ public class CodeAnalyzer extends NodeVisitor {
             String varName = i < varNames.size() ? varNames.get(i) : "";
             LineRange typeRange = i < typeRanges.size() ? typeRanges.get(i) : null;
             entries.set(i, entries.get(i).withVarAndType(varName, type, typeRange));
+        }
+    }
+
+    /**
+     * Adds the optional FLAG property to the current WAIT_DATA node builder.
+     * For the simple-wait case the value reflects actual source nilability; for the tuple-await case
+     * the value is always false and a diagnostic is attached when minCount < entry count.
+     */
+    private void addOptionalFlagProperty(boolean isNilable, boolean addDiagnostic) {
+        nodeBuilder.properties().custom()
+                .metadata()
+                    .label(WaitDataBuilder.OPTIONAL_LABEL)
+                    .description(WaitDataBuilder.OPTIONAL_DOC)
+                    .stepOut()
+                .type()
+                    .fieldType(Property.ValueType.FLAG)
+                    .selected(false)
+                    .stepOut()
+                .value(isNilable)
+                .optional(false)
+                .editable(true)
+                .advanced(true)
+                .hidden(false);
+        if (addDiagnostic) {
+            nodeBuilder.properties().custom()
+                    .diagnostics()
+                        .diagnostic(DiagnosticSeverity.ERROR, WaitDataBuilder.OPTIONAL_DOC)
+                        .stepOut();
+        }
+        nodeBuilder.properties().addProperty(WaitDataBuilder.OPTIONAL_KEY);
+    }
+
+    /**
+     * Returns true when the minCount named-argument on the current await node is strictly less than
+     * the number of data-wait entries (meaning partial completion is allowed and all types should be
+     * nilable, but are not → diagnostic).
+     */
+    private boolean isMinCountLessThanEntries(int entryCount) {
+        Map<String, Property> props = nodeBuilder.properties().build();
+        Property minCountProp = props.get("minCount");
+        if (minCountProp == null || minCountProp.value() == null) {
+            return false;
+        }
+        try {
+            int minCount = Integer.parseInt(minCountProp.value().toString().strip());
+            return minCount < entryCount;
+        } catch (NumberFormatException e) {
+            return false;
         }
     }
 
@@ -2436,8 +2493,16 @@ public class CodeAnalyzer extends NodeVisitor {
      */
     private void updatePersistRelatedMetadata(FunctionData functionData, String packageName, ClassSymbol classSymbol) {
         String moduleName = functionData.moduleName();
-        getPersistClientLabel(packageName, moduleName)
-                .ifPresent(label -> nodeBuilder.metadata().label(label));
+        Optional<String> persistLabel = getPersistClientLabel(packageName, moduleName);
+        if (persistLabel.isPresent()) {
+            nodeBuilder.metadata().label(persistLabel.get());
+        } else {
+            // Single-level persist module (e.g. "new_connection1.db") — use the package name for
+            // the label and codedata.module so the UI shows the package, not the sub-module.
+            String className = classSymbol.getName().orElse("");
+            nodeBuilder.metadata().label(ConnectorUtil.getConnectorName(className, packageName));
+            nodeBuilder.codedata().module(packageName);
+        }
         nodeBuilder.metadata()
                 .addData(CONNECTOR_TYPE, PERSIST);
         getPersistModelFilePath(project.sourceRoot(), classSymbol)
@@ -2671,8 +2736,11 @@ public class CodeAnalyzer extends NodeVisitor {
                             Property.VARIABLE_DOC, true, new HashSet<>(), true);
         } else if (nodeBuilder instanceof WaitDataBuilder) {
             // Variable/type info is embedded in the dataWaits property — skip generic handling
-        } else if (nodeBuilder.properties().build().containsKey(Property.VARIABLE_KEY)) {
-            // VARIABLE_KEY already set (e.g. by populateBuiltinActivityProperties) — skip
+        } else if (nodeBuilder.properties().build().containsKey(Property.VARIABLE_KEY)
+                && !(nodeBuilder instanceof AgentCallBuilder)) {
+            // VARIABLE_KEY already set (e.g. by populateBuiltinActivityProperties) — skip.
+            // AgentCallBuilder is excluded: its template pre-sets a placeholder value, but we
+            // must overwrite it with the authoritative type/variable from the source.
         } else {
             nodeBuilder.properties().dataVariable(this.typedBindingPatternNode, implicit, new HashSet<>());
         }

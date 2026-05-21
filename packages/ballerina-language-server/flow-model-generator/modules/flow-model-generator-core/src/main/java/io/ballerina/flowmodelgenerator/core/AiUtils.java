@@ -382,17 +382,17 @@ public class AiUtils {
             throw new IllegalArgumentException("Property metadata cannot be null");
         }
 
+        Object valueToUse = customValue != null ? customValue : property.value();
+        boolean hidden = isHidden || property.hidden();
+
         // When a property from a template is flagged as hidden it is an internal default
         // that should not be user-visible.  If the node builder has already set this key
         // from its own authoritative data (e.g. AGENT_CALL sets type/variable from the
         // function's return type), do not replace those correct values with the template
         // defaults (e.g. ai:Agent / aiAgent from the AGENT template).
-        if (isHidden && nodeBuilder.properties().build().containsKey(key)) {
+        if (hidden && nodeBuilder.properties().build().containsKey(key)) {
             return;
         }
-
-        Object valueToUse = customValue != null ? customValue : property.value();
-        boolean hidden = isHidden || property.hidden();
 
         Property copied = new Property(
                 property.metadata(),

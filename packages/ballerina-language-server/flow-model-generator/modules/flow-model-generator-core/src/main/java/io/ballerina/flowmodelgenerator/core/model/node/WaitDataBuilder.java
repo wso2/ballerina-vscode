@@ -108,6 +108,10 @@ public class WaitDataBuilder extends CallBuilder {
     public static final String DATA_WAITS_KEY = "dataWaits";
     public static final String DATA_WAITS_LABEL = "Data Waits";
     public static final String DATA_WAITS_DOC = "Data to wait for (one or more)";
+    public static final String OPTIONAL_KEY = "optional";
+    public static final String OPTIONAL_LABEL = "Optional Data Types";
+    public static final String OPTIONAL_DOC =
+            "When `minCount` is less than the number of data waits, all data wait types should be marked optional";
     public static final String FUTURES_PARAM = "futures";
     public static final Set<String> EXCLUDED_AWAIT_PARAMS = Set.of(FUTURES_PARAM, "T");
     public static final Set<String> EXCLUDED_KEYS = Set.of(FUTURES_PARAM, "T", Property.VARIABLE_KEY,
