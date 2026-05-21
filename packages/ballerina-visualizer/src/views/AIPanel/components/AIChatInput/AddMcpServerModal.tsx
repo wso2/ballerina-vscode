@@ -262,7 +262,10 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
     const nameError = (() => {
         if (!trimmedName) return null; // empty: don't show error yet, but disable submit
         if (!NAME_REGEX.test(trimmedName)) return "Use letters, digits, _, ., or - only (max 64 chars).";
-        if (namesInScope.has(trimmedName)) return `A ${scope}-scope server with this name already exists.`;
+        if (namesInScope.has(trimmedName)) {
+            const label = scope === "workspace" ? "project" : "user";
+            return `A ${label}-scope server with this name already exists.`;
+        }
         return null;
     })();
 
@@ -332,12 +335,12 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
                                 disabled={!hasWorkspace}
                                 onClick={() => hasWorkspace && setScope("workspace")}
                             >
-                                Workspace
+                                Project
                             </Tab>
                             <Tab active={scope === "user"} onClick={() => setScope("user")}>User</Tab>
                         </TabRow>
                         {!hasWorkspace && (
-                            <Hint>No workspace is open — only user scope is available.</Hint>
+                            <Hint>No trusted project is open — only user scope is available.</Hint>
                         )}
                     </FieldGroup>
 

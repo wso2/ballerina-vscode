@@ -246,9 +246,13 @@ const ToggleSwitch = styled.button<{ on: boolean }>`
     }
 `;
 
+function scopeLabel(scope: McpServerStatusDTO["scope"]): string {
+    return scope === "workspace" ? "Project" : "User";
+}
+
 function transportLabel(s: McpServerStatusDTO): string {
     if (s.shadowed) {
-        return `${s.transport} · shadowed by workspace`;
+        return `${s.transport} · shadowed by project`;
     }
     if (s.status === "failed" && s.error) {
         return `Failed: ${s.error}`;
@@ -370,11 +374,11 @@ export const McpToolsChip: React.FC = () => {
                             </HeaderAction>
                             <HeaderAction
                                 type="button"
-                                title={hasWorkspace ? "Edit workspace mcp.json" : "No workspace open"}
+                                title={hasWorkspace ? "Edit project .mcp.json" : "No trusted project is open"}
                                 disabled={!hasWorkspace}
                                 onClick={() => handleOpenConfig("workspace")}
                             >
-                                Edit workspace
+                                Edit project
                             </HeaderAction>
                         </HeaderActions>
                     </PopupHeader>
@@ -390,7 +394,7 @@ export const McpToolsChip: React.FC = () => {
                                 <ServerMeta>
                                     <ServerName title={s.name}>
                                         <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</span>
-                                        <ScopeBadge scope={s.scope}>{s.scope}</ScopeBadge>
+                                        <ScopeBadge scope={s.scope}>{scopeLabel(s.scope)}</ScopeBadge>
                                     </ServerName>
                                     <ServerSubline title={transportLabel(s)}>{transportLabel(s)}</ServerSubline>
                                 </ServerMeta>

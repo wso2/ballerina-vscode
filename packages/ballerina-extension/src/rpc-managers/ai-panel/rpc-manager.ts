@@ -901,11 +901,11 @@ User reverted the last made changes. The files have been restored to the state b
         if (scope === "workspace") {
             workspacePath = resolveProjectRootPath() || undefined;
             if (!workspacePath) {
-                vscode.window.showWarningMessage("No workspace is open — cannot edit workspace MCP config.");
+                vscode.window.showWarningMessage("No project is open — cannot edit project MCP config.");
                 return;
             }
             if (!vscode.workspace.isTrusted) {
-                vscode.window.showWarningMessage("This workspace is not trusted. Trust the workspace to manage project-scope MCP servers.");
+                vscode.window.showWarningMessage("This project is not trusted. Use VS Code's workspace trust prompt to enable project-scope MCP servers.");
                 return;
             }
         }
@@ -950,10 +950,10 @@ User reverted the last made changes. The files have been restored to the state b
         if (scope === "workspace") {
             workspacePath = resolveProjectRootPath() || undefined;
             if (!workspacePath) {
-                return { success: false, error: "No workspace is open — cannot add workspace-scope server." };
+                return { success: false, error: "No project is open — cannot add a project-scope server." };
             }
             if (!vscode.workspace.isTrusted) {
-                return { success: false, error: "This workspace is not trusted. Trust the workspace to add project-scope MCP servers." };
+                return { success: false, error: "This project is not trusted. Use VS Code's workspace trust prompt to enable project-scope MCP servers." };
             }
         }
         try {
