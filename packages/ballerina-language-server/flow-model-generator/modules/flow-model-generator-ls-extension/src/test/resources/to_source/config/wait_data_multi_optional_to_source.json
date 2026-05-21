@@ -1,0 +1,200 @@
+{
+  "source": "workflow_data/functions.bal",
+  "description": "Wait for data - multi entries with top-level optional flag set; all tuple types and future fields are generated as Type?",
+  "diagram": {
+    "id": "1",
+    "metadata": {
+      "label": "Wait for Data",
+      "description": "Wait for workflow data to be received"
+    },
+    "codedata": {
+      "node": "WAIT_DATA",
+      "isNew": true,
+      "lineRange": {
+        "fileName": "functions.bal",
+        "startLine": {
+          "line": 6,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 6,
+          "offset": 0
+        }
+      }
+    },
+    "returning": false,
+    "properties": {
+      "dataWaits": {
+        "metadata": {
+          "label": "Data Entries",
+          "description": "Data entries to wait for (one or more)"
+        },
+        "valueType": "REPEATABLE_PROPERTY",
+        "value": {
+          "approval": {
+            "metadata": {
+              "label": "Data Entries",
+              "description": "Data entries to wait for (one or more)"
+            },
+            "valueType": "FIXED_PROPERTY",
+            "value": {
+              "variable": {
+                "metadata": {
+                  "label": "Data Receive Variable Name",
+                  "description": "Variable name to receive the data"
+                },
+                "valueType": "IDENTIFIER",
+                "value": "approvalResult",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "dataType": {
+                "metadata": {
+                  "label": "Data Type",
+                  "description": "Type of the data to be received"
+                },
+                "valueType": "EXPRESSION",
+                "valueTypeConstraint": "anydata",
+                "value": "ApprovalData",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "dataName": {
+                "metadata": {
+                  "label": "Data Name",
+                  "description": "Name of the data to reference when sending data to the workflow"
+                },
+                "valueType": "IDENTIFIER",
+                "value": "approval",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          },
+          "payment": {
+            "metadata": {
+              "label": "Data Entries",
+              "description": "Data entries to wait for (one or more)"
+            },
+            "valueType": "FIXED_PROPERTY",
+            "value": {
+              "variable": {
+                "metadata": {
+                  "label": "Data Receive Variable Name",
+                  "description": "Variable name to receive the data"
+                },
+                "valueType": "IDENTIFIER",
+                "value": "paymentResult",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "dataType": {
+                "metadata": {
+                  "label": "Data Type",
+                  "description": "Type of the data to be received"
+                },
+                "valueType": "EXPRESSION",
+                "valueTypeConstraint": "anydata",
+                "value": "PaymentConfirmation",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "dataName": {
+                "metadata": {
+                  "label": "Data Name",
+                  "description": "Name of the data to reference when sending data to the workflow"
+                },
+                "valueType": "IDENTIFIER",
+                "value": "payment",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "optional": {
+        "metadata": {
+          "label": "Optional",
+          "description": "When `minCount` is less than the number of data waits, all data wait types should be marked optional"
+        },
+        "valueType": "FLAG",
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  },
+  "output": {
+    "workflow_data/functions.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 6,
+            "character": 0
+          },
+          "end": {
+            "line": 6,
+            "character": 0
+          }
+        },
+        "newText": "\n[ApprovalData?, PaymentConfirmation?] [approvalResult, paymentResult] = check ctx->await([data.approval, data.payment]);"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 5,
+            "character": 61
+          },
+          "end": {
+            "line": 5,
+            "character": 61
+          }
+        },
+        "newText": ", OrderWorkflowData data"
+      }
+    ],
+    "workflow_data/types.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 23,
+            "character": 2
+          },
+          "end": {
+            "line": 23,
+            "character": 2
+          }
+        },
+        "newText": "\n\n\n# Data record for workflow function\ntype OrderWorkflowData record {|\n\tfuture<ApprovalData?> approval;\n\tfuture<PaymentConfirmation?> payment;\n|};"
+      }
+    ]
+  }
+}

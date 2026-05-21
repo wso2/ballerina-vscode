@@ -1,28 +1,28 @@
 {
   "start": {
-    "line": 10,
+    "line": 9,
     "offset": 0
   },
   "end": {
     "line": 12,
     "offset": 1
   },
-  "source": "workflow_wait_data_diagnostics.bal",
-  "description": "Verify WORKFLOW_123 plugin diagnostics attach to each dataType in WAIT_DATA when minCount < futures.length() and tuple members are non-nilable",
+  "source": "workflow_wait_data_optional.bal",
+  "description": "Round-trip: source contains a nilable `string?` simple wait. The CodeAnalyzer must surface the bare type `string` with the optional FLAG set to true",
   "diagram": {
-    "fileName": "workflow_wait_data_diagnostics.bal",
+    "fileName": "workflow_wait_data_optional.bal",
     "nodes": [
       {
-        "id": "44362",
+        "id": "44455",
         "metadata": {
           "label": "Start",
           "data": {
             "kind": "Workflow",
-            "label": "approvalProcess",
+            "label": "optionalSingleWait",
             "isServiceFunction": false,
             "parameters": [
               "workflow:Context ctx",
-              "ApprovalEvents events"
+              "OptionalEvents events"
             ],
             "return": "error?"
           }
@@ -30,83 +30,44 @@
         "codedata": {
           "node": "EVENT_START",
           "lineRange": {
-            "fileName": "workflow_wait_data_diagnostics.bal",
+            "fileName": "workflow_wait_data_optional.bal",
             "startLine": {
               "line": 10,
-              "offset": 85
+              "offset": 88
             },
             "endLine": {
               "line": 12,
               "offset": 1
             }
           },
-          "sourceCode": "# Approval process whose tuple binding pattern uses non-nilable members with minCount < length —\n# the workflow compiler plugin should report WORKFLOW_123 on each tuple member type.\n@workflow:Workflow\nfunction approvalProcess(workflow:Context ctx, ApprovalEvents events) returns error? {\n    [string, boolean] [note, pass] = check ctx->await([events.reviewerNote, events.compliancePass], minCount = 1);\n}"
+          "sourceCode": "# Optional wait — single nilable type. The CodeAnalyzer should detect `string?` and surface\n# the optional FLAG property as `true` with `dataType` set to the bare type `string`.\n@workflow:Workflow\nfunction optionalSingleWait(workflow:Context ctx, OptionalEvents events) returns error? {\n    string? note = check wait events.reviewerNote;\n}"
         },
         "returning": false,
-        "diagnostics": {
-          "hasDiagnostics": true
-        },
         "flags": 0
       },
       {
-        "id": "42894",
+        "id": "42830",
         "metadata": {
           "label": "Wait for Data",
-          "description": "Wait for workflow data to be received",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.3.4.png"
+          "description": "Wait for workflow data to be received"
         },
         "codedata": {
           "node": "WAIT_DATA",
-          "org": "ballerina",
-          "module": "workflow",
-          "packageName": "workflow",
-          "object": "Context",
-          "symbol": "await",
-          "version": "0.3.4",
           "lineRange": {
-            "fileName": "workflow_wait_data_diagnostics.bal",
+            "fileName": "workflow_wait_data_optional.bal",
             "startLine": {
               "line": 11,
               "offset": 4
             },
             "endLine": {
               "line": 11,
-              "offset": 114
+              "offset": 50
             }
           },
-          "sourceCode": "[string, boolean] [note, pass] = check ctx->await([events.reviewerNote, events.compliancePass], minCount = 1);"
+          "sourceCode": "string? note = check wait events.reviewerNote;"
         },
         "returning": false,
         "properties": {
-          "minCount": {
-            "metadata": {
-              "label": "Min Count",
-              "description": "Minimum completions required (default: all)"
-            },
-            "types": [
-              {
-                "fieldType": "NUMBER",
-                "ballerinaType": "int:Unsigned32",
-                "selected": true
-              },
-              {
-                "fieldType": "EXPRESSION",
-                "ballerinaType": "int:Unsigned32",
-                "selected": false
-              }
-            ],
-            "value": "1",
-            "placeholder": "0",
-            "optional": true,
-            "editable": true,
-            "advanced": true,
-            "hidden": false,
-            "codedata": {
-              "kind": "DEFAULTABLE",
-              "originalName": "minCount"
-            },
-            "defaultValue": "<int:Unsigned32>futures.length()"
-          },
           "dataWaits": {
             "metadata": {
               "label": "Data Waits",
@@ -240,57 +201,6 @@
                 "editable": false,
                 "advanced": false,
                 "hidden": false
-              },
-              "1": {
-                "metadata": {
-                  "label": "Data Waits",
-                  "description": "Data to wait for (one or more)"
-                },
-                "types": [
-                  {
-                    "fieldType": "FIXED_PROPERTY",
-                    "selected": false
-                  }
-                ],
-                "value": {
-                  "variable": {
-                    "metadata": {
-                      "label": "Data Receive Variable Name",
-                      "description": "Variable name to receive the data"
-                    },
-                    "value": "pass",
-                    "optional": false,
-                    "editable": true,
-                    "advanced": false,
-                    "hidden": false
-                  },
-                  "dataType": {
-                    "metadata": {
-                      "label": "Data Type",
-                      "description": "Type of the data to be received on successful wait"
-                    },
-                    "value": "boolean",
-                    "optional": false,
-                    "editable": true,
-                    "advanced": false,
-                    "hidden": false
-                  },
-                  "dataName": {
-                    "metadata": {
-                      "label": "Data Name",
-                      "description": "Name of the data to reference when sending data to the workflow"
-                    },
-                    "value": "compliancePass",
-                    "optional": false,
-                    "editable": true,
-                    "advanced": false,
-                    "hidden": false
-                  }
-                },
-                "optional": false,
-                "editable": false,
-                "advanced": false,
-                "hidden": false
               }
             },
             "optional": false,
@@ -309,20 +219,39 @@
                 "selected": false
               }
             ],
-            "value": false,
+            "value": true,
             "optional": false,
             "editable": true,
             "advanced": true,
+            "hidden": false
+          },
+          "minCount": {
+            "metadata": {
+              "label": "Min Count",
+              "description": "Minimum completions required (default: all)"
+            },
+            "types": [
+              {
+                "fieldType": "NUMBER",
+                "ballerinaType": "int:Unsigned32",
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "int:Unsigned32",
+                "selected": false
+              }
+            ],
+            "placeholder": "0",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
             "hidden": false,
-            "diagnostics": {
-              "hasDiagnostics": true,
-              "diagnostics": [
-                {
-                  "severity": "ERROR",
-                  "message": "When `minCount` is less than the number of data waits, all data wait types should be marked optional"
-                }
-              ]
-            }
+            "codedata": {
+              "kind": "DEFAULTABLE",
+              "originalName": "minCount"
+            },
+            "defaultValue": "<int:Unsigned32>futures.length()"
           },
           "timeout": {
             "metadata": {
@@ -364,9 +293,6 @@
             },
             "defaultValue": "()"
           }
-        },
-        "diagnostics": {
-          "hasDiagnostics": true
         },
         "flags": 1
       }

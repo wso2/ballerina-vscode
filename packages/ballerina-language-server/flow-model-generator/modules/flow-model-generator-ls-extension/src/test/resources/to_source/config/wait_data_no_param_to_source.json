@@ -1,0 +1,138 @@
+{
+  "source": "workflow_data/functions.bal",
+  "description": "Wait for data - single entry, creates new events type and adds parameter",
+  "diagram": {
+    "id": "1",
+    "metadata": {
+      "label": "Wait for Data",
+      "description": "Wait for workflow data to be received"
+    },
+    "codedata": {
+      "node": "WAIT_DATA",
+      "isNew": true,
+      "lineRange": {
+        "fileName": "functions.bal",
+        "startLine": {
+          "line": 30,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 30,
+          "offset": 0
+        }
+      }
+    },
+    "returning": false,
+    "properties": {
+      "dataWaits": {
+        "metadata": {
+          "label": "Data Entries",
+          "description": "Data entries to wait for (one or more)"
+        },
+        "valueType": "REPEATABLE_PROPERTY",
+        "value": {
+          "paymentConfirmed": {
+            "metadata": {
+              "label": "Data Entries",
+              "description": "Data entries to wait for (one or more)"
+            },
+            "valueType": "FIXED_PROPERTY",
+            "value": {
+              "variable": {
+                "metadata": {
+                  "label": "Data Receive Variable Name",
+                  "description": "Variable name to receive the data"
+                },
+                "valueType": "IDENTIFIER",
+                "value": "paymentConfirm",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "dataType": {
+                "metadata": {
+                  "label": "Data Type",
+                  "description": "Type of the data to be received"
+                },
+                "valueType": "EXPRESSION",
+                "valueTypeConstraint": "anydata",
+                "value": "PaymentConfirmation",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "dataName": {
+                "metadata": {
+                  "label": "Data Name",
+                  "description": "Name of the data to reference when sending data to the workflow"
+                },
+                "valueType": "IDENTIFIER",
+                "value": "paymentConfirmed",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "optional": false,
+            "editable": false,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  },
+  "output": {
+    "workflow_data/functions.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 30,
+            "character": 0
+          },
+          "end": {
+            "line": 30,
+            "character": 0
+          }
+        },
+        "newText": "\nPaymentConfirmation paymentConfirm = check wait data.paymentConfirmed;"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 29,
+            "character": 25
+          },
+          "end": {
+            "line": 29,
+            "character": 25
+          }
+        },
+        "newText": "NoParamWorkflowData data"
+      }
+    ],
+    "workflow_data/types.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 23,
+            "character": 2
+          },
+          "end": {
+            "line": 23,
+            "character": 2
+          }
+        },
+        "newText": "\n\n\n# Data record for workflow function\ntype NoParamWorkflowData record {|\n\tfuture<PaymentConfirmation> paymentConfirmed;\n|};"
+      }
+    ]
+  }
+}

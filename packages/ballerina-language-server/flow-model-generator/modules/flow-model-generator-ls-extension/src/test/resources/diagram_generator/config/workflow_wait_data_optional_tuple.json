@@ -1,28 +1,28 @@
 {
   "start": {
-    "line": 10,
+    "line": 16,
     "offset": 0
   },
   "end": {
-    "line": 12,
+    "line": 18,
     "offset": 1
   },
-  "source": "workflow_wait_data_diagnostics.bal",
-  "description": "Verify WORKFLOW_123 plugin diagnostics attach to each dataType in WAIT_DATA when minCount < futures.length() and tuple members are non-nilable",
+  "source": "workflow_wait_data_optional.bal",
+  "description": "Round-trip: source contains a mixed tuple `[string?, boolean]`. Each entry's optional flag must mirror per-member nilability and dataType strings must be bare",
   "diagram": {
-    "fileName": "workflow_wait_data_diagnostics.bal",
+    "fileName": "workflow_wait_data_optional.bal",
     "nodes": [
       {
-        "id": "44362",
+        "id": "51368",
         "metadata": {
           "label": "Start",
           "data": {
             "kind": "Workflow",
-            "label": "approvalProcess",
+            "label": "optionalTupleWait",
             "isServiceFunction": false,
             "parameters": [
               "workflow:Context ctx",
-              "ApprovalEvents events"
+              "OptionalEvents events"
             ],
             "return": "error?"
           }
@@ -30,17 +30,17 @@
         "codedata": {
           "node": "EVENT_START",
           "lineRange": {
-            "fileName": "workflow_wait_data_diagnostics.bal",
+            "fileName": "workflow_wait_data_optional.bal",
             "startLine": {
-              "line": 10,
-              "offset": 85
+              "line": 17,
+              "offset": 87
             },
             "endLine": {
-              "line": 12,
+              "line": 19,
               "offset": 1
             }
           },
-          "sourceCode": "# Approval process whose tuple binding pattern uses non-nilable members with minCount < length —\n# the workflow compiler plugin should report WORKFLOW_123 on each tuple member type.\n@workflow:Workflow\nfunction approvalProcess(workflow:Context ctx, ApprovalEvents events) returns error? {\n    [string, boolean] [note, pass] = check ctx->await([events.reviewerNote, events.compliancePass], minCount = 1);\n}"
+          "sourceCode": "# Optional wait — mixed tuple. The first member is nilable (`string?`); the second is non-nilable.\n# Each entry's `optional` flag must reflect that, and the `dataType` strings must be `string` / `boolean`.\n@workflow:Workflow\nfunction optionalTupleWait(workflow:Context ctx, OptionalEvents events) returns error? {\n    [string?, boolean] [note, pass] = check ctx->await([events.reviewerNote, events.compliancePass], minCount = 1);\n}"
         },
         "returning": false,
         "diagnostics": {
@@ -49,7 +49,7 @@
         "flags": 0
       },
       {
-        "id": "42894",
+        "id": "49839",
         "metadata": {
           "label": "Wait for Data",
           "description": "Wait for workflow data to be received",
@@ -64,17 +64,17 @@
           "symbol": "await",
           "version": "0.3.4",
           "lineRange": {
-            "fileName": "workflow_wait_data_diagnostics.bal",
+            "fileName": "workflow_wait_data_optional.bal",
             "startLine": {
-              "line": 11,
+              "line": 18,
               "offset": 4
             },
             "endLine": {
-              "line": 11,
-              "offset": 114
+              "line": 18,
+              "offset": 115
             }
           },
-          "sourceCode": "[string, boolean] [note, pass] = check ctx->await([events.reviewerNote, events.compliancePass], minCount = 1);"
+          "sourceCode": "[string?, boolean] [note, pass] = check ctx->await([events.reviewerNote, events.compliancePass], minCount = 1);"
         },
         "returning": false,
         "properties": {

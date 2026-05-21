@@ -89,6 +89,9 @@ import io.ballerina.compiler.syntax.tree.WhileStatementNode;
 import io.ballerina.designmodelgenerator.core.model.Connection;
 import io.ballerina.designmodelgenerator.core.model.Listener;
 import io.ballerina.designmodelgenerator.core.model.Location;
+import io.ballerina.designmodelgenerator.core.model.Workflow;
+import io.ballerina.flowmodelgenerator.core.Constants;
+import io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil;
 import io.ballerina.tools.text.LineRange;
 
 import java.nio.file.Path;
@@ -265,12 +268,51 @@ public class CodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(FunctionCallExpressionNode functionCallExpressionNode) {
-        if (!(functionCallExpressionNode.functionName() instanceof QualifiedNameReferenceNode)) {
-            if (this.currentFunctionModel != null) {
-                this.currentFunctionModel.dependentFuncs.add(functionCallExpressionNode.functionName()
-                        .toSourceCode().trim());
-            }
+        if (functionCallExpressionNode.functionName() instanceof QualifiedNameReferenceNode qualifiedName) {
+            handleWorkflowRunCall(qualifiedName, functionCallExpressionNode);
             functionCallExpressionNode.arguments().forEach(arg -> arg.accept(this));
+            return;
+        }
+        if (this.currentFunctionModel != null) {
+            this.currentFunctionModel.dependentFuncs.add(functionCallExpressionNode.functionName()
+                    .toSourceCode().trim());
+        }
+        functionCallExpressionNode.arguments().forEach(arg -> arg.accept(this));
+    }
+
+    private void handleWorkflowRunCall(QualifiedNameReferenceNode qualifiedName,
+                                       FunctionCallExpressionNode functionCallExpressionNode) {
+        if (this.currentFunctionModel == null) {
+            return;
+        }
+        if (!Constants.Workflow.RUN_METHOD_NAME.equals(qualifiedName.identifier().text())) {
+            return;
+        }
+        Optional<Symbol> calleeSymbol = semanticModel.symbol(qualifiedName);
+        if (calleeSymbol.isEmpty() || !WorkflowUtil.isWorkflowModule(calleeSymbol.get().getModule())) {
+            return;
+        }
+        SeparatedNodeList<FunctionArgumentNode> arguments = functionCallExpressionNode.arguments();
+        if (arguments.isEmpty()) {
+            return;
+        }
+        FunctionArgumentNode firstArg = arguments.get(0);
+        ExpressionNode workflowArg;
+        if (firstArg instanceof PositionalArgumentNode positionalArgumentNode) {
+            workflowArg = positionalArgumentNode.expression();
+        } else if (firstArg instanceof NamedArgumentNode namedArgumentNode) {
+            workflowArg = namedArgumentNode.expression();
+        } else {
+            return;
+        }
+        Optional<Symbol> workflowFnSymbol = semanticModel.symbol(workflowArg);
+        if (workflowFnSymbol.isEmpty() || workflowFnSymbol.get().getName().isEmpty()) {
+            return;
+        }
+        String workflowName = workflowFnSymbol.get().getName().get();
+        Workflow workflow = intermediateModel.workflowMap.get(workflowName);
+        if (workflow != null) {
+            this.currentFunctionModel.workflows.add(workflow.getUuid());
         }
     }
 

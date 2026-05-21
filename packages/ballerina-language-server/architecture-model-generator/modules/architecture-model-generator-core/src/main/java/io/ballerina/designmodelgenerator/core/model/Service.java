@@ -33,6 +33,7 @@ public class Service extends DesignGraphNode {
     private final Location location;
     private final List<String> attachedListeners;
     private final List<String> connections;
+    private final List<String> workflows;
     private final List<Function> functions;
     private final List<Function> remoteFunctions;
     private final List<ResourceFunction> resourceFunctions;
@@ -41,7 +42,8 @@ public class Service extends DesignGraphNode {
     private String icon;
 
     public Service(String name, String absolutePath, Location location, String sortText, List<String> connections,
-                   List<Function> functions, List<Function> remoteFunctions, List<ResourceFunction> resourceFunctions) {
+                   List<Function> functions, List<Function> remoteFunctions, List<ResourceFunction> resourceFunctions,
+                   List<String> workflows) {
         super(true, sortText);
         this.displayName = name;
         this.absolutePath = absolutePath;
@@ -50,6 +52,7 @@ public class Service extends DesignGraphNode {
         this.functions = functions;
         this.remoteFunctions = remoteFunctions;
         this.resourceFunctions = resourceFunctions;
+        this.workflows = workflows;
         this.attachedListeners = new ArrayList<>();
     }
 
@@ -89,6 +92,10 @@ public class Service extends DesignGraphNode {
         return connections;
     }
 
+    public List<String> getWorkflows() {
+        return workflows;
+    }
+
     public List<Function> getFunctions() {
         return functions;
     }
@@ -108,7 +115,7 @@ public class Service extends DesignGraphNode {
     @Override
     public int hashCode() {
         return Objects.hash(displayName, type, absolutePath, attachedListeners.size(),
-                connections.size(),
+                connections.size(), workflows == null ? 0 : workflows.size(),
                 functions.stream().map(Function::hashCode).reduce(0, Integer::sum),
                 remoteFunctions.stream().map(Function::hashCode).reduce(0, Integer::sum),
                 resourceFunctions.stream().map(ResourceFunction::hashCode).reduce(0, Integer::sum));
@@ -119,11 +126,14 @@ public class Service extends DesignGraphNode {
         if (!(obj instanceof Service service)) {
             return false;
         }
+        int thisWorkflows = this.workflows == null ? 0 : this.workflows.size();
+        int otherWorkflows = service.workflows == null ? 0 : service.workflows.size();
         return service.displayName != null && service.displayName.equals(this.displayName)
                 && Objects.equals(service.type, this.type)
                 && service.absolutePath.equals(this.absolutePath)
                 && service.attachedListeners.size() == this.attachedListeners.size()
                 && service.connections.size() == this.connections.size()
+                && otherWorkflows == thisWorkflows
                 && service.functions.size() == this.functions.size()
                 && service.remoteFunctions.size() == this.remoteFunctions.size()
                 && service.resourceFunctions.size() == this.resourceFunctions.size();

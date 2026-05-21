@@ -35,6 +35,8 @@ import io.ballerina.designmodelgenerator.core.model.Listener;
 import io.ballerina.designmodelgenerator.core.model.Location;
 import io.ballerina.designmodelgenerator.core.model.ResourceFunction;
 import io.ballerina.designmodelgenerator.core.model.Service;
+import io.ballerina.designmodelgenerator.core.model.Workflow;
+import io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Module;
@@ -86,6 +88,7 @@ public class DesignModelGenerator {
     public DesignModel generate() {
         IntermediateModel intermediateModel = new IntermediateModel();
         this.populateModuleLevelConnections(intermediateModel);
+        this.populateModuleLevelWorkflows(intermediateModel);
         ConnectionFinder connectionFinder = new ConnectionFinder(semanticModel, rootPath, documentMap,
                 intermediateModel);
         this.defaultModule.documentIds().forEach(d -> {
@@ -98,15 +101,24 @@ public class DesignModelGenerator {
 
         if (intermediateModel.functionModelMap.containsKey(MAIN_FUNCTION_NAME)) {
             IntermediateModel.FunctionModel main = intermediateModel.functionModelMap.get(MAIN_FUNCTION_NAME);
-            buildConnectionGraph(intermediateModel, main, null);
-            builder.setAutomation(new Automation(AUTOMATION, main.displayName, "Z", main.location,
-                    main.allDependentConnections.stream().toList()));
+            buildConnectionAndWorkflowGraph(intermediateModel, main, null);
+            Automation automation = new Automation(AUTOMATION, main.displayName, "Z", main.location,
+                    main.allDependentConnections.stream().toList(),
+                    main.allDependentWorkflows.stream().toList());
+            for (String workflowUuid : main.allDependentWorkflows) {
+                Workflow workflow = intermediateModel.uuidToWorkflowMap.get(workflowUuid);
+                if (workflow != null) {
+                    workflow.addAttachedFunction(automation.getUuid());
+                }
+            }
+            builder.setAutomation(automation);
         }
 
         for (Map.Entry<String, IntermediateModel.ServiceModel> serviceEntry :
                 intermediateModel.serviceModelMap.entrySet()) {
             IntermediateModel.ServiceModel serviceModel = serviceEntry.getValue();
             Set<String> connections = new HashSet<>();
+            Set<String> workflows = new HashSet<>();
             List<Function> functions = new ArrayList<>();
             serviceModel.otherFunctions.values().forEach(otherFunction -> {
                 otherFunction.connections.forEach(connection -> {
@@ -117,10 +129,11 @@ public class DesignModelGenerator {
                                 conn.getAllTransitiveDependentConnections(intermediateModel.uuidToConnectionMap));
                     }
                 });
-                buildConnectionGraph(intermediateModel, otherFunction, serviceModel);
+                buildConnectionAndWorkflowGraph(intermediateModel, otherFunction, serviceModel);
                 functions.add(new Function(otherFunction.name, otherFunction.location,
-                        otherFunction.allDependentConnections));
+                        otherFunction.allDependentConnections, otherFunction.allDependentWorkflows));
                 connections.addAll(otherFunction.allDependentConnections);
+                workflows.addAll(otherFunction.allDependentWorkflows);
             });
 
             List<Function> remoteFunctions = new ArrayList<>();
@@ -133,10 +146,11 @@ public class DesignModelGenerator {
                                 conn.getAllTransitiveDependentConnections(intermediateModel.uuidToConnectionMap));
                     }
                 });
-                buildConnectionGraph(intermediateModel, remoteFunction, serviceModel);
+                buildConnectionAndWorkflowGraph(intermediateModel, remoteFunction, serviceModel);
                 remoteFunctions.add(new Function(remoteFunction.name, remoteFunction.location,
-                        remoteFunction.allDependentConnections));
+                        remoteFunction.allDependentConnections, remoteFunction.allDependentWorkflows));
                 connections.addAll(remoteFunction.allDependentConnections);
+                workflows.addAll(remoteFunction.allDependentWorkflows);
             });
 
             List<ResourceFunction> resourceFunctions = new ArrayList<>();
@@ -149,10 +163,12 @@ public class DesignModelGenerator {
                                 conn.getAllTransitiveDependentConnections(intermediateModel.uuidToConnectionMap));
                     }
                 });
-                buildConnectionGraph(intermediateModel, resourceFunction, serviceModel);
+                buildConnectionAndWorkflowGraph(intermediateModel, resourceFunction, serviceModel);
                 resourceFunctions.add(new ResourceFunction(resourceFunction.name, resourceFunction.path,
-                        resourceFunction.location, resourceFunction.allDependentConnections));
+                        resourceFunction.location, resourceFunction.allDependentConnections,
+                        resourceFunction.allDependentWorkflows));
                 connections.addAll(resourceFunction.allDependentConnections);
+                workflows.addAll(resourceFunction.allDependentWorkflows);
             });
             List<Listener> allAttachedListeners = serviceModel.anonListeners;
             for (String listener : serviceModel.namedListeners) {
@@ -161,7 +177,14 @@ public class DesignModelGenerator {
 
             Service service = new Service(serviceModel.displayName, serviceModel.absolutePath, serviceModel.location,
                     serviceModel.sortText,
-                    connections.stream().toList(), functions, remoteFunctions, resourceFunctions);
+                    connections.stream().toList(), functions, remoteFunctions, resourceFunctions,
+                    workflows.stream().toList());
+            for (String workflowUuid : workflows) {
+                Workflow workflow = intermediateModel.uuidToWorkflowMap.get(workflowUuid);
+                if (workflow != null) {
+                    workflow.addAttachedService(service.getUuid());
+                }
+            }
             int size = allAttachedListeners.size();
             if (size > 0) {
                 Listener listener = allAttachedListeners.get(0);
@@ -178,7 +201,25 @@ public class DesignModelGenerator {
         return builder
                 .setListeners(intermediateModel.listeners.values().stream().toList())
                 .setConnections(intermediateModel.connectionMap.values().stream().toList())
+                .setWorkflows(intermediateModel.workflowMap.values().stream().toList())
                 .build();
+    }
+
+    private void populateModuleLevelWorkflows(IntermediateModel intermediateModel) {
+        for (Symbol symbol : this.semanticModel.moduleSymbols()) {
+            if (!WorkflowUtil.isWorkflowFunction(symbol)) {
+                continue;
+            }
+
+            if (symbol.getName().isEmpty() || symbol.getLocation().isEmpty()) {
+                continue;
+            }
+            LineRange lineRange = symbol.getLocation().get().lineRange();
+            String sortText = lineRange.fileName() + lineRange.startLine().line();
+            Workflow workflow = new Workflow(symbol.getName().get(), sortText, getLocation(lineRange));
+            intermediateModel.workflowMap.put(symbol.getName().get(), workflow);
+            intermediateModel.uuidToWorkflowMap.put(workflow.getUuid(), workflow);
+        }
     }
 
     private void populateModuleLevelConnections(IntermediateModel intermediateModel) {
@@ -215,10 +256,11 @@ public class DesignModelGenerator {
         }
     }
 
-    private void buildConnectionGraph(IntermediateModel intermediateModel,
-                                      IntermediateModel.FunctionModel functionModel,
-                                      IntermediateModel.ServiceModel serviceModel) {
+    private void buildConnectionAndWorkflowGraph(IntermediateModel intermediateModel,
+                                                 IntermediateModel.FunctionModel functionModel,
+                                                 IntermediateModel.ServiceModel serviceModel) {
         Set<String> connections = new HashSet<>();
+        Set<String> workflows = new HashSet<>();
         Set<String> dependentServiceClasses = new HashSet<>();
         if (!functionModel.visited && !functionModel.analyzed) {
             functionModel.visited = true;
@@ -228,11 +270,10 @@ public class DesignModelGenerator {
                 if (serviceClassModel != null) {
                     serviceClassModel.functionModels.forEach(serviceClassFunctionModel -> {
                         if (!serviceClassFunctionModel.analyzed) {
-                            buildConnectionGraph(intermediateModel, serviceClassFunctionModel, serviceModel);
+                            buildConnectionAndWorkflowGraph(intermediateModel, serviceClassFunctionModel, serviceModel);
                         }
-                        connections.addAll(serviceClassFunctionModel.allDependentConnections);
-                        connections.addAll(serviceClassFunctionModel.connections);
-                        dependentServiceClasses.addAll(serviceClassFunctionModel.usedClasses);
+                        extractFieldsFromFunctionModel(serviceClassFunctionModel, connections,
+                                workflows, dependentServiceClasses);
                     });
                 }
             });
@@ -243,11 +284,9 @@ public class DesignModelGenerator {
                     return;
                 }
                 if (!dependentFunctionModel.analyzed) {
-                    buildConnectionGraph(intermediateModel, dependentFunctionModel, serviceModel);
+                    buildConnectionAndWorkflowGraph(intermediateModel, dependentFunctionModel, serviceModel);
                 }
-                connections.addAll(dependentFunctionModel.allDependentConnections);
-                connections.addAll(dependentFunctionModel.connections);
-                dependentServiceClasses.addAll(dependentFunctionModel.usedClasses);
+                extractFieldsFromFunctionModel(dependentFunctionModel, connections, workflows, dependentServiceClasses);
             });
 
             functionModel.dependentObjFuncs.forEach(dependentObjFunc -> {
@@ -260,15 +299,14 @@ public class DesignModelGenerator {
                     return;
                 }
                 if (!dependentFunctionModel.analyzed) {
-                    buildConnectionGraph(intermediateModel, dependentFunctionModel, serviceModel);
+                    buildConnectionAndWorkflowGraph(intermediateModel, dependentFunctionModel, serviceModel);
                 }
-                connections.addAll(dependentFunctionModel.allDependentConnections);
-                connections.addAll(dependentFunctionModel.connections);
-                dependentServiceClasses.addAll(dependentFunctionModel.usedClasses);
+                extractFieldsFromFunctionModel(dependentFunctionModel, connections, workflows, dependentServiceClasses);
             });
         }
         functionModel.visited = true;
         functionModel.allDependentConnections.addAll(functionModel.connections);
+        functionModel.allDependentWorkflows.addAll(functionModel.workflows);
         functionModel.usedClasses.addAll(dependentServiceClasses);
         // Also add transitive dependent connections
         for (String connectionUuid : functionModel.connections) {
@@ -279,7 +317,18 @@ public class DesignModelGenerator {
             }
         }
         functionModel.allDependentConnections.addAll(connections);
+        functionModel.allDependentWorkflows.addAll(workflows);
         functionModel.analyzed = true;
+    }
+
+    private void extractFieldsFromFunctionModel(IntermediateModel.FunctionModel functionModel, Set<String> connections,
+                                                Set<String> workflows,
+                                                Set<String> dependentServiceClasses) {
+        connections.addAll(functionModel.allDependentConnections);
+        connections.addAll(functionModel.connections);
+        workflows.addAll(functionModel.allDependentWorkflows);
+        workflows.addAll(functionModel.workflows);
+        dependentServiceClasses.addAll(functionModel.usedClasses);
     }
 
     public Location getLocation(LineRange lineRange) {

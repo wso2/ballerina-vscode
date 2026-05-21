@@ -84,6 +84,7 @@ import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.MatchClauseNode;
 import io.ballerina.compiler.syntax.tree.MatchGuardNode;
 import io.ballerina.compiler.syntax.tree.MatchStatementNode;
+import io.ballerina.compiler.syntax.tree.MemberTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.MethodCallExpressionNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
@@ -99,6 +100,7 @@ import io.ballerina.compiler.syntax.tree.NodeVisitor;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.ObjectFieldNode;
 import io.ballerina.compiler.syntax.tree.OnFailClauseNode;
+import io.ballerina.compiler.syntax.tree.OptionalTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.PanicStatementNode;
 import io.ballerina.compiler.syntax.tree.ParameterNode;
 import io.ballerina.compiler.syntax.tree.ParenthesizedArgList;
@@ -209,12 +211,12 @@ import java.util.stream.Collectors;
 
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.AWAIT_METHOD_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CALL_ACTIVITY_METHOD_NAME;
-import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CONTEXT_CLASS_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.RUN_METHOD_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.SEND_DATA_METHOD_NAME;
 import static io.ballerina.flowmodelgenerator.core.model.node.ActivityCallBuilder.EXCLUDED_CALL_ACTIVITY_PARAMS;
 import static io.ballerina.flowmodelgenerator.core.model.node.WaitDataBuilder.EXCLUDED_KEYS;
 import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isActivityFunction;
+import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isWorkflowCtxOperation;
 import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isWorkflowFunction;
 import static io.ballerina.flowmodelgenerator.core.utils.WorkflowUtil.isWorkflowModule;
 import static io.ballerina.modelgenerator.commons.CommonUtils.BALLERINA_ORG_NAME;
@@ -804,14 +806,6 @@ public class CodeAnalyzer extends NodeVisitor {
         return operationName.equals(functionName) && isWorkflowModule(functionSymbol.getModule());
     }
 
-    private boolean isWorkflowCtxOperation(RemoteMethodCallActionNode remoteMethodCallActionNode,
-                                           ClassSymbol classSymbol, String operationName) {
-        String methodName = remoteMethodCallActionNode.methodName().name().text();
-        String className = classSymbol.getName().orElse("");
-        return methodName.equals(operationName) &&
-                className.equals(CONTEXT_CLASS_NAME) && isWorkflowModule(classSymbol.getModule());
-    }
-
     /**
      * Overrides the codedata symbol and org/module with the function reference from the first positional argument.
      * Used for workflow operations like callActivity and workflow:run where the first argument is a function reference
@@ -929,9 +923,12 @@ public class CodeAnalyzer extends NodeVisitor {
         if (typedBindingPatternNode != null) {
             String variableName = typedBindingPatternNode.bindingPattern().toSourceCode().strip();
             Node typeDesc = typedBindingPatternNode.typeDescriptor();
-            String dataType = typeDesc.toSourceCode().strip();
-            LineRange dataTypeRange = typeDesc.lineRange();
-            buildDataWaitsProperty(List.of(new DataWaitEntry(variableName, dataType, dataName, dataTypeRange)));
+            boolean optional = typeDesc.kind() == SyntaxKind.OPTIONAL_TYPE_DESC;
+            Node baseTypeNode = optional ? ((OptionalTypeDescriptorNode) typeDesc).typeDescriptor() : typeDesc;
+            String dataType = baseTypeNode.toSourceCode().strip();
+            LineRange dataTypeRange = baseTypeNode.lineRange();
+            buildDataWaitsProperty(
+                    List.of(new DataWaitEntry(variableName, dataType, dataName, dataTypeRange, optional)));
         }
 
         ((WaitDataBuilder) nodeBuilder).addAdvancedProperties(workspaceManager.module(filePath)
@@ -960,7 +957,7 @@ public class CodeAnalyzer extends NodeVisitor {
                     if (member.kind() == SyntaxKind.FIELD_ACCESS) {
                         FieldAccessExpressionNode fieldAccess = (FieldAccessExpressionNode) member;
                         entries.add(new DataWaitEntry("", "",
-                                fieldAccess.fieldName().toSourceCode().strip(), null));
+                                fieldAccess.fieldName().toSourceCode().strip(), null, false));
                     }
                 }
             }
@@ -970,6 +967,7 @@ public class CodeAnalyzer extends NodeVisitor {
         // Tuple: [Type1, Type2] [var1, var2] = check ctx->await([data.f1, data.f2]);
         populateDataEntries(entries);
         buildDataWaitsProperty(entries);
+        WaitDataBuilder.relocateOptionalMemberDiagnostic(nodeBuilder.properties().build());
     }
 
     /**
@@ -984,13 +982,21 @@ public class CodeAnalyzer extends NodeVisitor {
         Node typeDesc = typedBindingPatternNode.typeDescriptor();
         List<String> types = new ArrayList<>();
         List<LineRange> typeRanges = new ArrayList<>();
+        List<Boolean> optionals = new ArrayList<>();
         if (typeDesc.kind() == SyntaxKind.TUPLE_TYPE_DESC) {
             TupleTypeDescriptorNode tupleType = (TupleTypeDescriptorNode) typeDesc;
             for (Node memberType : tupleType.memberTypeDesc()) {
-                if (memberType.kind() != SyntaxKind.COMMA_TOKEN) {
-                    types.add(memberType.toSourceCode().strip());
-                    typeRanges.add(memberType.lineRange());
+                if (memberType.kind() == SyntaxKind.COMMA_TOKEN) {
+                    continue;
                 }
+                Node actualType = memberType.kind() == SyntaxKind.MEMBER_TYPE_DESC
+                        ? ((MemberTypeDescriptorNode) memberType).typeDescriptor() : memberType;
+                boolean optional = actualType.kind() == SyntaxKind.OPTIONAL_TYPE_DESC;
+                Node baseTypeNode = optional
+                        ? ((OptionalTypeDescriptorNode) actualType).typeDescriptor() : actualType;
+                types.add(baseTypeNode.toSourceCode().strip());
+                typeRanges.add(baseTypeNode.lineRange());
+                optionals.add(optional);
             }
         }
 
@@ -1009,7 +1015,8 @@ public class CodeAnalyzer extends NodeVisitor {
             String type = i < types.size() ? types.get(i) : "";
             String varName = i < varNames.size() ? varNames.get(i) : "";
             LineRange typeRange = i < typeRanges.size() ? typeRanges.get(i) : null;
-            entries.set(i, entries.get(i).withVarAndType(varName, type, typeRange));
+            boolean optional = i < optionals.size() && optionals.get(i);
+            entries.set(i, entries.get(i).withVarAndType(varName, type, typeRange, optional));
         }
     }
 
@@ -1052,11 +1059,31 @@ public class CodeAnalyzer extends NodeVisitor {
         nodeBuilder.properties().endNestedProperty(Property.ValueType.REPEATABLE_PROPERTY,
                 WaitDataBuilder.DATA_WAITS_KEY, WaitDataBuilder.DATA_WAITS_LABEL, WaitDataBuilder.DATA_WAITS_DOC,
                 WaitDataBuilder.getDataWaitSchema(), false, false);
+
+        // Top-level optional: true only when all tuple members are optional. Sits in the advanced
+        // section right after minCount and before timeout.
+        boolean allOptional = !entries.isEmpty() && entries.stream().allMatch(DataWaitEntry::optional);
+        Map<String, Property> built = nodeBuilder.properties().build();
+        Property timeoutProp = built.remove(WaitDataBuilder.TIMEOUT_KEY);
+        nodeBuilder.properties().custom()
+                .metadata().label(WaitDataBuilder.OPTIONAL_LABEL)
+                    .description(WaitDataBuilder.OPTIONAL_DOC).stepOut()
+                .value(allOptional)
+                .editable(true)
+                .advanced(true)
+                .type(Property.ValueType.FLAG)
+                .stepOut()
+                .addProperty(WaitDataBuilder.OPTIONAL_KEY);
+        if (timeoutProp != null) {
+            built.put(WaitDataBuilder.TIMEOUT_KEY, timeoutProp);
+        }
     }
 
-    private record DataWaitEntry(String variableName, String dataType, String dataName, LineRange dataTypeRange) {
-        DataWaitEntry withVarAndType(String variableName, String dataType, LineRange dataTypeRange) {
-            return new DataWaitEntry(variableName, dataType, this.dataName, dataTypeRange);
+    private record DataWaitEntry(String variableName, String dataType, String dataName,
+                                 LineRange dataTypeRange, boolean optional) {
+        DataWaitEntry withVarAndType(String variableName, String dataType, LineRange dataTypeRange,
+                                     boolean optional) {
+            return new DataWaitEntry(variableName, dataType, this.dataName, dataTypeRange, optional);
         }
     }
 
@@ -2129,6 +2156,10 @@ public class CodeAnalyzer extends NodeVisitor {
     }
 
     private Optional<ClassSymbol> getClassSymbol(ExpressionNode newExpressionNode) {
+        return getClassSymbol(newExpressionNode, semanticModel);
+    }
+
+    public static Optional<ClassSymbol> getClassSymbol(ExpressionNode newExpressionNode, SemanticModel semanticModel) {
         Optional<TypeSymbol> typeSymbol =
                 CommonUtils.getTypeSymbol(semanticModel, newExpressionNode).flatMap(symbol -> {
                     if (symbol.typeKind() == TypeDescKind.UNION) {
