@@ -1157,6 +1157,7 @@ export async function openChatWindowWithCommand(): Promise<void> {
     const model = await generateDataMapperModel({}, langClient, context);
 
     const { identifier, dataMapperMetadata } = context;
+    const mappingsModel = model.mappingsModel as DMModel;
 
     // Automatically close and open AI mapping chat window with the generated model
     commands.executeCommand(CLOSE_AI_PANEL_COMMAND);
@@ -1167,7 +1168,7 @@ export async function openChatWindowWithCommand(): Promise<void> {
         ...(identifier && { params: { functionName: identifier } }),
         metadata: {
             ...dataMapperMetadata,
-            mappingsModel: model.mappingsModel as DMModel
+            mappingsModel: mappingsModel
         }
     });
 }

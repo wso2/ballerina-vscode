@@ -26,6 +26,9 @@ import { sendAgentDidOpenForFreshProjects } from '../utils/project/ls-schema-not
 import { getSystemPrompt, getUserPrompt } from './prompts';
 import { GenerationType } from '../utils/libs/libraries';
 import { createToolRegistry } from './tool-registry';
+import { scanCustomSkills, scanUserSkills } from './tools/skill-tool/skill-reader';
+import { CustomSkillMeta } from './skills/types';
+
 import { getProjectSource, cleanupTempProject } from '../utils/project/temp-project';
 import { integrateCodeToWorkspace } from './utils';
 import { getWorkspaceTomlValues } from '../../../utils';
@@ -270,13 +273,18 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             const loginMethod = await getLoginMethod();
             const model = await getAnthropicClient(ANTHROPIC_SONNET_4);
 
-            const userMessageContent = getUserPrompt(params, tempProjectPath, projects);
+            const projectRootPath = this.config.executionContext.workspacePath || this.config.executionContext.projectPath || '';
 
-            // Estimate fixed overhead (system prompt + codebase) to decide if compaction is viable
-            const systemPromptText = getSystemPrompt(projects, params.operationType);
+            const customSkills: CustomSkillMeta[] = projectRootPath
+                ? scanCustomSkills(projectRootPath, projects)
+                : [];
+            const userSkills = scanUserSkills();
+
+            const userMessageContent = getUserPrompt(params, tempProjectPath, projects, customSkills);
+
+            const systemPromptText = getSystemPrompt(projects, params.operationType, userSkills);
             const floorTokens = estimateFloorTokens(systemPromptText, JSON.stringify(userMessageContent));
 
-            const projectRootPath = this.config.executionContext.workspacePath || this.config.executionContext.projectPath || '';
             const providerOptions = buildCompactionProviderOptions(loginMethod, floorTokens);
             if (supportsCompaction(loginMethod) && providerOptions === undefined) {
                 warnCompactionDisabledOnce(projectRootPath, this.config.eventHandler);
@@ -300,7 +308,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             const allMessages: ModelMessage[] = [
                 {
                     role: "system",
-                    content: getSystemPrompt(projects, params.operationType),
+                    content: getSystemPrompt(projects, params.operationType, userSkills),
                     providerOptions: cacheOptions,
                 },
                 ...historyMessages,

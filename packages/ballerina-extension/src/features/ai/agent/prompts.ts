@@ -30,11 +30,12 @@ import { getRequirementAnalysisCodeGenPrefix, getRequirementAnalysisTestGenPrefi
 import { extractResourceDocumentContent, flattenProjectToFiles } from "../utils/ai-utils";
 import { BALLERINA_RUN_TOOL_NAME } from "./tools/ballerina-run";
 import { BALLERINA_STOP_TOOL_NAME } from "./tools/ballerina-stop";
+import { getBuiltInSkillsSection, getCustomSkillsSection, getUserSkillsSection, CustomSkillMeta } from "./skills";
 
 /**
  * Generates the system prompt for the design agent
  */
-export function getSystemPrompt(projects: ProjectSource[], op: OperationType): string {
+export function getSystemPrompt(projects: ProjectSource[], op: OperationType, userSkills: CustomSkillMeta[]): string {
     return `You are WSO2 Integrator Copilot, an expert assistant specialized in Ballerina help with relavant integration usecases. You will be helping with designing a solution for user query in a step-by-step manner.
 
 Answer queries related to Ballerina and integrations. If a query is unrelated, politely decline.
@@ -218,6 +219,10 @@ When running tests:
 2. Use ${TEST_RUNNER_TOOL_NAME} to run the test suite. Note that you don't have to use ${BALLERINA_RUN_TOOL_NAME} prior to using ${TEST_RUNNER_TOOL_NAME} as the tool will automatically run the app and then run the tests.
 3. Only if there are failures or errors, briefly mention what failed and fix them, then re-run.
 
+${getUserSkillsSection(userSkills)}
+
+${getBuiltInSkillsSection()}
+
 # Web Tools
 You have access to web_search and web_fetch tools. Always prefer domain-specific tools first. Use web tools only when no suitable domain-specific tool can answer the query, or when the user provides a URL or asks for live/external information.
 
@@ -239,7 +244,7 @@ System context:
 </system-reminder>`;
 }
 
-export function getUserPrompt(params: GenerateAgentCodeRequest, tempProjectPath: string, projects: ProjectSource[]) {
+export function getUserPrompt(params: GenerateAgentCodeRequest, tempProjectPath: string, projects: ProjectSource[], customSkills: CustomSkillMeta[]) {
     const content = [];
 
     content.push({
@@ -293,6 +298,14 @@ ${queryParts.join('\n\n')}
         content.push({
             type: 'text' as const,
             text: getWebToolsHint()
+        });
+    }
+
+    const customSkillsSection = getCustomSkillsSection(customSkills);
+    if (customSkillsSection) {
+        content.push({
+            type: 'text' as const,
+            text: customSkillsSection
         });
     }
 
