@@ -43,6 +43,7 @@ import { MESSAGES } from '../project';
 import { AICommandConfig } from './executors/base/AICommandExecutor';
 import { AgentExecutor } from './agent/AgentExecutor';
 import { initMcpClientManager, disposeMcpClientManager, watchMcpConfig, getMcpClientManager, type EnabledOverrideStore } from './agent/mcp';
+import { resolveProjectRootPath } from './agent';
 import { extension } from '../../BalExtensionContext';
 import { notifyMcpServersChanged } from '../../RPCLayer';
 import { sendConfigChangeNotification } from './utils/ai-utils';
@@ -259,18 +260,20 @@ function setupMcp(): void {
         // Already set up; nothing to do.
         return;
     }
+    // Override store keys are `${scope}:${name}` (e.g. `workspace:foo`).
     const overrides: EnabledOverrideStore = {
-        get(name) {
+        get(scopedKey) {
             const map = extension.context?.globalState.get<Record<string, boolean>>(MCP_ENABLED_OVERRIDE_KEY) ?? {};
-            return Object.prototype.hasOwnProperty.call(map, name) ? map[name] : undefined;
+            return Object.prototype.hasOwnProperty.call(map, scopedKey) ? map[scopedKey] : undefined;
         },
-        async set(name, enabled) {
+        async set(scopedKey, enabled) {
             const map = { ...(extension.context?.globalState.get<Record<string, boolean>>(MCP_ENABLED_OVERRIDE_KEY) ?? {}) };
-            map[name] = enabled;
+            map[scopedKey] = enabled;
             await extension.context?.globalState.update(MCP_ENABLED_OVERRIDE_KEY, map);
         },
     };
-    const manager = initMcpClientManager(overrides);
+    const workspacePath = resolveProjectRootPath() || undefined;
+    const manager = initMcpClientManager(overrides, workspacePath);
     const pushUpdate = () => {
         try {
             notifyMcpServersChanged(manager.listServers());
@@ -280,7 +283,7 @@ function setupMcp(): void {
     };
     // Initial connect — fire and forget; failures are recorded per-server, not thrown.
     manager.refresh().then(pushUpdate).catch(err => console.warn('[mcp] Initial refresh failed:', err));
-    mcpWatchDisposer = watchMcpConfig(() => {
+    mcpWatchDisposer = watchMcpConfig(workspacePath, () => {
         manager.refresh().then(pushUpdate).catch(err => console.warn('[mcp] Watch-triggered refresh failed:', err));
     });
 }

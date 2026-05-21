@@ -60,6 +60,8 @@ import {
     SetMcpServerEnabledRequest,
     AddMcpServerRequest,
     AddMcpServerResponse,
+    OpenMcpConfigRequest,
+    McpWorkspaceContextResponse,
 } from "./interfaces";
 
 export interface AIPanelAPI {
@@ -149,7 +151,8 @@ export interface AIPanelAPI {
     // ==================================
     listMcpServers: () => Promise<McpServerStatusDTO[]>;
     setMcpServerEnabled: (params: SetMcpServerEnabledRequest) => Promise<void>;
-    openMcpConfig: () => Promise<void>;
+    openMcpConfig: (params: OpenMcpConfigRequest) => Promise<void>;
     addMcpServer: (params: AddMcpServerRequest) => Promise<AddMcpServerResponse>;
     getMcpToolsEnabled: () => Promise<boolean>;
+    getMcpWorkspaceContext: () => Promise<McpWorkspaceContextResponse>;
 }

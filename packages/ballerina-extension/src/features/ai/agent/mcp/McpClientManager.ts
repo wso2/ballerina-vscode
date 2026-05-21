@@ -19,6 +19,7 @@
 import { loadMcpConfig } from "./configLoader";
 import {
     McpConnectionStatus,
+    McpScope,
     McpServerConfig,
     McpServerStatus,
     McpToolSummary,
@@ -63,7 +64,8 @@ interface McpToolDescriptor {
     inputSchema: unknown;
 }
 
-interface ConnectedServer {
+export interface ConnectedServer {
+    scope: McpScope;
     name: string;
     config: McpServerConfig;
     transport: McpTransportType;
@@ -72,6 +74,7 @@ interface ConnectedServer {
 }
 
 interface ServerState {
+    scope: McpScope;
     name: string;
     config: McpServerConfig;
     transport: McpTransportType;
@@ -81,9 +84,10 @@ interface ServerState {
     client?: McpClient;
 }
 
+/** Override store is keyed by `${scope}:${name}` so user and workspace servers can share a name. */
 export type EnabledOverrideStore = {
-    get(name: string): boolean | undefined;
-    set(name: string, enabled: boolean): Promise<void>;
+    get(scopedKey: string): boolean | undefined;
+    set(scopedKey: string, enabled: boolean): Promise<void>;
 };
 
 function transportOf(cfg: McpServerConfig): McpTransportType {
@@ -97,15 +101,24 @@ function configKey(cfg: McpServerConfig): string {
     return JSON.stringify(cfg);
 }
 
+function keyOf(scope: McpScope, name: string): string {
+    return `${scope}:${name}`;
+}
+
 /**
  * Manages MCP client connections for the Copilot agent.
  *
+ * Two scopes — `user` and `workspace` — are loaded independently from
+ * `~/.ballerina/copilot/mcp.json` and `~/.ballerina/copilot/workspaces/<hash>/mcp.json`.
+ * The same name can live in both scopes and they're treated as independent
+ * servers internally. For the agent-facing tool registry (built by
+ * {@link ./toolBridge}) workspace-scope servers shadow user-scope ones with
+ * the same name to avoid duplicate `mcp__name__tool` entries.
+ *
  * Lifecycle:
- *  - {@link refresh} reads the user-level mcp.json, opens clients for enabled
- *    servers, and closes clients for servers that were removed or disabled.
- *  - {@link listServers} returns a per-server snapshot for the UI.
- *  - {@link bridgeTools} (see toolBridge) returns a Vercel `ai`-compatible
- *    tool map for merging into the agent's tool registry.
+ *  - {@link refresh} re-reads both files, opens new clients, closes removed
+ *    or disabled ones.
+ *  - {@link listServers} returns a per-server snapshot (with `shadowed`).
  *  - {@link dispose} closes all clients; safe to call multiple times.
  *
  * A broken server (bad command, unreachable URL, schema-mismatched tool) is
@@ -115,11 +128,18 @@ function configKey(cfg: McpServerConfig): string {
 export class McpClientManager {
     private servers = new Map<string, ServerState>();
     private enabledOverrides: EnabledOverrideStore;
+    private workspacePath: string | undefined;
     private refreshing?: Promise<void>;
     private disposed = false;
 
-    constructor(enabledOverrides: EnabledOverrideStore) {
+    constructor(enabledOverrides: EnabledOverrideStore, workspacePath?: string) {
         this.enabledOverrides = enabledOverrides;
+        this.workspacePath = workspacePath;
+    }
+
+    /** Whether a workspace is associated with this manager (controls whether workspace-scope config is loaded). */
+    hasWorkspace(): boolean {
+        return !!this.workspacePath;
     }
 
     async refresh(): Promise<void> {
@@ -136,29 +156,32 @@ export class McpClientManager {
     }
 
     private async doRefresh(): Promise<void> {
-        const desired = loadMcpConfig();
-        const desiredNames = new Set(Object.keys(desired));
+        const entries = loadMcpConfig(this.workspacePath);
+        const desiredKeys = new Set(entries.map(e => keyOf(e.scope, e.name)));
 
-        // Close servers that disappeared or whose effective enabled-state went off.
-        for (const [name, state] of [...this.servers.entries()]) {
-            const desiredCfg = desired[name];
-            const stillWanted = !!desiredCfg && this.isEffectivelyEnabled(name, desiredCfg);
-            const configChanged = desiredCfg && configKey(desiredCfg) !== configKey(state.config);
+        // Close servers that disappeared or whose effective enabled-state went off
+        // or whose config changed.
+        for (const [key, state] of [...this.servers.entries()]) {
+            const desired = entries.find(e => keyOf(e.scope, e.name) === key);
+            const stillWanted = !!desired && this.isEffectivelyEnabled(desired.scope, desired.name, desired.config);
+            const configChanged = desired && configKey(desired.config) !== configKey(state.config);
             if (!stillWanted || configChanged) {
                 await this.disconnect(state);
-                this.servers.delete(name);
+                this.servers.delete(key);
             }
         }
 
         // Open clients for newly-enabled or newly-added servers.
         const opens: Promise<void>[] = [];
-        for (const name of desiredNames) {
-            const cfg = desired[name];
-            if (!this.isEffectivelyEnabled(name, cfg)) {
-                this.servers.set(name, {
-                    name,
-                    config: cfg,
-                    transport: transportOf(cfg),
+        for (const entry of entries) {
+            const key = keyOf(entry.scope, entry.name);
+            const enabled = this.isEffectivelyEnabled(entry.scope, entry.name, entry.config);
+            if (!enabled) {
+                this.servers.set(key, {
+                    scope: entry.scope,
+                    name: entry.name,
+                    config: entry.config,
+                    transport: transportOf(entry.config),
                     status: "disconnected",
                     tools: [],
                 });
@@ -167,26 +190,34 @@ export class McpClientManager {
             // Skip only if already connected or a connect is in flight. Existing
             // `disconnected`/`failed` states fall through so re-enabling actually
             // reconnects instead of leaving the server in its prior status.
-            const existing = this.servers.get(name);
+            const existing = this.servers.get(key);
             if (existing && (existing.status === "connected" || existing.status === "connecting")) {
                 continue;
             }
             const state: ServerState = {
-                name,
-                config: cfg,
-                transport: transportOf(cfg),
+                scope: entry.scope,
+                name: entry.name,
+                config: entry.config,
+                transport: transportOf(entry.config),
                 status: "connecting",
                 tools: [],
             };
-            this.servers.set(name, state);
+            this.servers.set(key, state);
             opens.push(this.connect(state));
+        }
+
+        // Defensive: drop any stale entries no longer in `desiredKeys`.
+        for (const key of [...this.servers.keys()]) {
+            if (!desiredKeys.has(key)) {
+                this.servers.delete(key);
+            }
         }
 
         await Promise.allSettled(opens);
     }
 
-    private isEffectivelyEnabled(name: string, cfg: McpServerConfig): boolean {
-        const override = this.enabledOverrides.get(name);
+    private isEffectivelyEnabled(scope: McpScope, name: string, cfg: McpServerConfig): boolean {
+        const override = this.enabledOverrides.get(keyOf(scope, name));
         if (override !== undefined) {
             return override;
         }
@@ -205,7 +236,7 @@ export class McpClientManager {
                     continue;
                 }
                 if (!t.inputSchema || typeof t.inputSchema !== "object") {
-                    console.warn(`[mcp] Skipping tool '${state.name}/${t.name}': missing/invalid inputSchema`);
+                    console.warn(`[mcp] Skipping tool '${state.scope}:${state.name}/${t.name}': missing/invalid inputSchema`);
                     continue;
                 }
                 filtered.push({
@@ -223,7 +254,7 @@ export class McpClientManager {
             state.error = err?.message ?? String(err);
             state.client = undefined;
             state.tools = [];
-            console.warn(`[mcp] Failed to connect to '${state.name}':`, state.error);
+            console.warn(`[mcp] Failed to connect to '${state.scope}:${state.name}':`, state.error);
         }
     }
 
@@ -265,50 +296,73 @@ export class McpClientManager {
         try {
             await state.client.close();
         } catch (err) {
-            console.warn(`[mcp] Error closing client '${state.name}':`, err);
+            console.warn(`[mcp] Error closing client '${state.scope}:${state.name}':`, err);
         } finally {
             state.client = undefined;
         }
     }
 
-    /** Snapshot of all known servers (connected, disconnected, or failed). */
-    listServers(): McpServerStatus[] {
-        const out: McpServerStatus[] = [];
-        for (const state of this.servers.values()) {
-            out.push({
-                name: state.name,
-                transport: state.transport,
-                enabled: this.isEffectivelyEnabled(state.name, state.config),
-                status: state.status,
-                error: state.error,
-                tools: state.tools.map<McpToolSummary>(t => ({ name: t.name, description: t.description })),
-            });
-        }
-        return out;
-    }
-
-    /** Returns the connected servers and their tool descriptors for bridging. */
-    getConnectedTools(): ConnectedServer[] {
-        const out: ConnectedServer[] = [];
-        for (const state of this.servers.values()) {
-            if (state.status === "connected" && state.client) {
-                out.push({
-                    name: state.name,
-                    config: state.config,
-                    transport: state.transport,
-                    client: state.client,
-                    tools: state.tools,
-                });
+    private workspaceNames(): Set<string> {
+        const out = new Set<string>();
+        for (const s of this.servers.values()) {
+            if (s.scope === "workspace") {
+                out.add(s.name);
             }
         }
         return out;
     }
 
-    /** Invoke a tool on a specific server. */
-    async callTool(serverName: string, toolName: string, args: unknown): Promise<unknown> {
-        const state = this.servers.get(serverName);
+    /** Snapshot of all known servers. User-scope rows that share a name with a workspace-scope server get `shadowed: true`. */
+    listServers(): McpServerStatus[] {
+        const wsNames = this.workspaceNames();
+        const out: McpServerStatus[] = [];
+        for (const state of this.servers.values()) {
+            const shadowed = state.scope === "user" && wsNames.has(state.name);
+            out.push({
+                name: state.name,
+                scope: state.scope,
+                transport: state.transport,
+                enabled: this.isEffectivelyEnabled(state.scope, state.name, state.config),
+                status: state.status,
+                error: state.error,
+                tools: state.tools.map<McpToolSummary>(t => ({ name: t.name, description: t.description })),
+                shadowed,
+            });
+        }
+        return out;
+    }
+
+    /**
+     * Connected servers for the bridge. When a name collides across scopes,
+     * the workspace-scope server wins and the user-scope one is excluded.
+     */
+    getConnectedTools(): ConnectedServer[] {
+        const wsNames = this.workspaceNames();
+        const out: ConnectedServer[] = [];
+        for (const state of this.servers.values()) {
+            if (state.status !== "connected" || !state.client) {
+                continue;
+            }
+            if (state.scope === "user" && wsNames.has(state.name)) {
+                continue; // shadowed by workspace
+            }
+            out.push({
+                scope: state.scope,
+                name: state.name,
+                config: state.config,
+                transport: state.transport,
+                client: state.client,
+                tools: state.tools,
+            });
+        }
+        return out;
+    }
+
+    /** Invoke a tool on a specific server (scope + name disambiguates collisions). */
+    async callTool(scope: McpScope, serverName: string, toolName: string, args: unknown): Promise<unknown> {
+        const state = this.servers.get(keyOf(scope, serverName));
         if (!state || state.status !== "connected" || !state.client) {
-            throw new Error(`MCP server '${serverName}' is not connected`);
+            throw new Error(`MCP server '${scope}:${serverName}' is not connected`);
         }
         return state.client.callTool({
             name: toolName,
@@ -316,8 +370,8 @@ export class McpClientManager {
         });
     }
 
-    async setEnabled(name: string, enabled: boolean): Promise<void> {
-        await this.enabledOverrides.set(name, enabled);
+    async setEnabled(scope: McpScope, name: string, enabled: boolean): Promise<void> {
+        await this.enabledOverrides.set(keyOf(scope, name), enabled);
         await this.refresh();
     }
 
@@ -334,9 +388,9 @@ export class McpClientManager {
 
 let singleton: McpClientManager | undefined;
 
-export function initMcpClientManager(overrides: EnabledOverrideStore): McpClientManager {
+export function initMcpClientManager(overrides: EnabledOverrideStore, workspacePath?: string): McpClientManager {
     if (!singleton) {
-        singleton = new McpClientManager(overrides);
+        singleton = new McpClientManager(overrides, workspacePath);
     }
     return singleton;
 }

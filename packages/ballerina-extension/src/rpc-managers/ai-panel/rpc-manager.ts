@@ -59,6 +59,8 @@ import {
     SetMcpServerEnabledRequest,
     AddMcpServerRequest,
     AddMcpServerResponse,
+    OpenMcpConfigRequest,
+    McpWorkspaceContextResponse,
 } from "@wso2/ballerina-core";
 import { getMcpClientManager, ensureMcpConfigFileExists, writeMcpServer } from "../../features/ai/agent/mcp";
 import { notifyMcpServersChanged } from "../../RPCLayer";
@@ -888,18 +890,29 @@ User reverted the last made changes. The files have been restored to the state b
         if (!manager) {
             return;
         }
-        await manager.setEnabled(params.name, params.enabled);
+        const scope = params.scope ?? "user";
+        await manager.setEnabled(scope, params.name, params.enabled);
         notifyMcpServersChanged(manager.listServers());
     }
 
-    async openMcpConfig(): Promise<void> {
-        const filePath = ensureMcpConfigFileExists();
+    async openMcpConfig(params: OpenMcpConfigRequest): Promise<void> {
+        const scope = params?.scope ?? "user";
+        const workspacePath = scope === "workspace" ? (resolveProjectRootPath() || undefined) : undefined;
+        if (scope === "workspace" && !workspacePath) {
+            vscode.window.showWarningMessage("No workspace is open — cannot edit workspace MCP config.");
+            return;
+        }
+        const filePath = ensureMcpConfigFileExists(scope, workspacePath);
         const doc = await vscode.workspace.openTextDocument(filePath);
         await vscode.window.showTextDocument(doc, { preview: false });
     }
 
     async getMcpToolsEnabled(): Promise<boolean> {
         return workspace.getConfiguration('ballerina').get<boolean>('copilot.enableMcpTools', false);
+    }
+
+    async getMcpWorkspaceContext(): Promise<McpWorkspaceContextResponse> {
+        return { hasWorkspace: !!resolveProjectRootPath() };
     }
 
     async addMcpServer(params: AddMcpServerRequest): Promise<AddMcpServerResponse> {
@@ -925,8 +938,16 @@ User reverted the last made changes. The files have been restored to the state b
                 return { success: false, error: "URL is not a valid URL." };
             }
         }
+        const scope = params.scope ?? "user";
+        let workspacePath: string | undefined;
+        if (scope === "workspace") {
+            workspacePath = resolveProjectRootPath() || undefined;
+            if (!workspacePath) {
+                return { success: false, error: "No workspace is open — cannot add workspace-scope server." };
+            }
+        }
         try {
-            writeMcpServer(name, cfg);
+            writeMcpServer(name, cfg, scope, workspacePath);
         } catch (err: any) {
             return { success: false, error: err?.message ?? String(err) };
         }

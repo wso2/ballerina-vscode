@@ -18,6 +18,8 @@
 
 export type McpTransportType = "stdio" | "http";
 
+export type McpScope = "user" | "workspace";
+
 export interface McpStdioServerConfig {
     type?: "stdio";
     command: string;
@@ -48,9 +50,12 @@ export interface McpToolSummary {
 
 export interface McpServerStatus {
     name: string;
+    scope: McpScope;
     transport: McpTransportType;
     enabled: boolean;
     status: McpConnectionStatus;
     error?: string;
     tools: McpToolSummary[];
+    /** True when this server is shadowed by a same-named workspace-scope server. */
+    shadowed?: boolean;
 }

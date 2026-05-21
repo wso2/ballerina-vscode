@@ -193,6 +193,24 @@ const ServerName = styled.div`
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+`;
+
+const ScopeBadge = styled.span<{ scope: "user" | "workspace" }>`
+    font-size: 9px;
+    font-weight: 600;
+    line-height: 1;
+    padding: 2px 5px;
+    border-radius: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--vscode-badge-foreground);
+    background: ${(p: { scope: "user" | "workspace" }) => (p.scope === "workspace"
+        ? "var(--vscode-charts-blue, var(--vscode-badge-background))"
+        : "var(--vscode-badge-background)")};
+    flex-shrink: 0;
 `;
 
 const ServerSubline = styled.div`
@@ -229,6 +247,9 @@ const ToggleSwitch = styled.button<{ on: boolean }>`
 `;
 
 function transportLabel(s: McpServerStatusDTO): string {
+    if (s.shadowed) {
+        return `${s.transport} · shadowed by workspace`;
+    }
     if (s.status === "failed" && s.error) {
         return `Failed: ${s.error}`;
     }
@@ -245,6 +266,7 @@ function transportLabel(s: McpServerStatusDTO): string {
 export const McpToolsChip: React.FC = () => {
     const { rpcClient } = useRpcContext();
     const [servers, setServers] = useState<McpServerStatusDTO[]>([]);
+    const [hasWorkspace, setHasWorkspace] = useState<boolean>(false);
     const [visible, setVisible] = useState(false);
     const [reloading, setReloading] = useState(false);
     const [showAddModal, setShowAddModal] = useState(false);
@@ -256,6 +278,9 @@ export const McpToolsChip: React.FC = () => {
         rpcClient.getAiPanelRpcClient().listMcpServers().then((list) => {
             if (!cancelled) setServers(list);
         }).catch((err) => console.warn("[mcp] listMcpServers failed:", err));
+        rpcClient.getAiPanelRpcClient().getMcpWorkspaceContext().then((ctx) => {
+            if (!cancelled) setHasWorkspace(ctx.hasWorkspace);
+        }).catch((err) => console.warn("[mcp] getMcpWorkspaceContext failed:", err));
         const dispose = rpcClient.onMcpServersChanged((list: McpServerStatusDTO[]) => {
             if (!cancelled) setServers(list);
         });
@@ -299,12 +324,12 @@ export const McpToolsChip: React.FC = () => {
     };
     const toggleVisible = () => setVisible((v) => !v);
 
-    const handleToggle = async (name: string, currentEnabled: boolean) => {
-        await rpcClient.getAiPanelRpcClient().setMcpServerEnabled({ name, enabled: !currentEnabled });
+    const handleToggle = async (scope: McpServerStatusDTO["scope"], name: string, currentEnabled: boolean) => {
+        await rpcClient.getAiPanelRpcClient().setMcpServerEnabled({ scope, name, enabled: !currentEnabled });
     };
 
-    const handleOpenConfig = async () => {
-        await rpcClient.getAiPanelRpcClient().openMcpConfig();
+    const handleOpenConfig = async (scope: McpServerStatusDTO["scope"]) => {
+        await rpcClient.getAiPanelRpcClient().openMcpConfig({ scope });
     };
 
     return (
@@ -340,8 +365,16 @@ export const McpToolsChip: React.FC = () => {
                             <HeaderAction type="button" onClick={() => setShowAddModal(true)}>
                                 + Add server
                             </HeaderAction>
-                            <HeaderAction type="button" onClick={handleOpenConfig}>
-                                Edit config
+                            <HeaderAction type="button" title="Edit user mcp.json" onClick={() => handleOpenConfig("user")}>
+                                Edit user
+                            </HeaderAction>
+                            <HeaderAction
+                                type="button"
+                                title={hasWorkspace ? "Edit workspace mcp.json" : "No workspace open"}
+                                disabled={!hasWorkspace}
+                                onClick={() => handleOpenConfig("workspace")}
+                            >
+                                Edit workspace
                             </HeaderAction>
                         </HeaderActions>
                     </PopupHeader>
@@ -352,17 +385,20 @@ export const McpToolsChip: React.FC = () => {
                         </EmptyState>
                     ) : (
                         servers.map((s) => (
-                            <ServerRow key={s.name}>
+                            <ServerRow key={`${s.scope}:${s.name}`}>
                                 <StatusDot status={s.status} />
                                 <ServerMeta>
-                                    <ServerName title={s.name}>{s.name}</ServerName>
+                                    <ServerName title={s.name}>
+                                        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</span>
+                                        <ScopeBadge scope={s.scope}>{s.scope}</ScopeBadge>
+                                    </ServerName>
                                     <ServerSubline title={transportLabel(s)}>{transportLabel(s)}</ServerSubline>
                                 </ServerMeta>
                                 <ToggleSwitch
                                     type="button"
                                     on={s.enabled}
                                     title={s.enabled ? "Disable this server" : "Enable this server"}
-                                    onClick={() => handleToggle(s.name, s.enabled)}
+                                    onClick={() => handleToggle(s.scope, s.name, s.enabled)}
                                 />
                             </ServerRow>
                         ))
@@ -371,7 +407,8 @@ export const McpToolsChip: React.FC = () => {
             )}
             <AddMcpServerModal
                 isOpen={showAddModal}
-                existingNames={servers.map((s) => s.name)}
+                servers={servers}
+                hasWorkspace={hasWorkspace}
                 onClose={() => setShowAddModal(false)}
                 onAdded={() => { /* mcpServersChanged notification refreshes the list */ }}
             />

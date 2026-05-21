@@ -18,7 +18,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import styled from "@emotion/styled";
-import { McpServerConfigDTO } from "@wso2/ballerina-core";
+import { McpScope, McpServerConfigDTO, McpServerStatusDTO } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 
 const NAME_REGEX = /^[a-zA-Z0-9_.-]{1,64}$/;
@@ -27,7 +27,8 @@ type Transport = "stdio" | "http";
 
 interface Props {
     isOpen: boolean;
-    existingNames: string[];
+    servers: McpServerStatusDTO[];
+    hasWorkspace: boolean;
     onClose: () => void;
     onAdded: () => void;
 }
@@ -111,6 +112,11 @@ const Tab = styled.button<{ active: boolean }>`
     cursor: pointer;
     border-bottom: 2px solid ${(p: { active: boolean }) => p.active ? "var(--vscode-focusBorder, var(--vscode-button-background))" : "transparent"};
     margin-bottom: -1px;
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: default;
+    }
 `;
 
 const FieldGroup = styled.div`
@@ -213,8 +219,9 @@ function splitArgs(value: string): string[] {
     return trimmed.split(/\s+/);
 }
 
-export const AddMcpServerModal: React.FC<Props> = ({ isOpen, existingNames, onClose, onAdded }) => {
+export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspace, onClose, onAdded }) => {
     const { rpcClient } = useRpcContext();
+    const [scope, setScope] = useState<McpScope>("user");
     const [transport, setTransport] = useState<Transport>("stdio");
     const [name, setName] = useState("");
     const [command, setCommand] = useState("");
@@ -224,11 +231,16 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, existingNames, onCl
     const [submitting, setSubmitting] = useState(false);
     const [serverError, setServerError] = useState<string | null>(null);
 
-    const existingSet = useMemo(() => new Set(existingNames), [existingNames]);
+    // Uniqueness is scoped — `user:foo` and `workspace:foo` can coexist.
+    const namesInScope = useMemo(
+        () => new Set(servers.filter(s => s.scope === scope).map(s => s.name)),
+        [servers, scope],
+    );
 
     useEffect(() => {
         if (!isOpen) {
             // Reset on close so reopening shows a fresh form.
+            setScope(hasWorkspace ? "workspace" : "user");
             setTransport("stdio");
             setName("");
             setCommand("");
@@ -237,8 +249,12 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, existingNames, onCl
             setBearer("");
             setSubmitting(false);
             setServerError(null);
+        } else {
+            // Smart default on open: prefer workspace when available.
+            setScope(prev => (hasWorkspace && prev === "user" && !name && !command && !url ? "workspace" : prev));
         }
-    }, [isOpen]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOpen, hasWorkspace]);
 
     if (!isOpen) return null;
 
@@ -246,7 +262,7 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, existingNames, onCl
     const nameError = (() => {
         if (!trimmedName) return null; // empty: don't show error yet, but disable submit
         if (!NAME_REGEX.test(trimmedName)) return "Use letters, digits, _, ., or - only (max 64 chars).";
-        if (existingSet.has(trimmedName)) return "A server with this name already exists.";
+        if (namesInScope.has(trimmedName)) return `A ${scope}-scope server with this name already exists.`;
         return null;
     })();
 
@@ -280,7 +296,7 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, existingNames, onCl
                 ...(bearer.trim() ? { headers: { Authorization: `Bearer ${bearer.trim()}` } } : {}),
             };
         try {
-            const res = await rpcClient.getAiPanelRpcClient().addMcpServer({ name: trimmedName, config });
+            const res = await rpcClient.getAiPanelRpcClient().addMcpServer({ name: trimmedName, scope, config });
             if (!res.success) {
                 setServerError(res.error ?? "Failed to add server.");
                 setSubmitting(false);
@@ -307,6 +323,23 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, existingNames, onCl
                 </Header>
                 <Body>
                     {serverError && <Banner>{serverError}</Banner>}
+
+                    <FieldGroup>
+                        <Label>Scope</Label>
+                        <TabRow>
+                            <Tab
+                                active={scope === "workspace"}
+                                disabled={!hasWorkspace}
+                                onClick={() => hasWorkspace && setScope("workspace")}
+                            >
+                                Workspace
+                            </Tab>
+                            <Tab active={scope === "user"} onClick={() => setScope("user")}>User</Tab>
+                        </TabRow>
+                        {!hasWorkspace && (
+                            <Hint>No workspace is open — only user scope is available.</Hint>
+                        )}
+                    </FieldGroup>
 
                     <FieldGroup>
                         <Label htmlFor="mcp-name">Name</Label>

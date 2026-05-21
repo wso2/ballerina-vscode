@@ -23,6 +23,8 @@ export {
     ensureMcpConfigFileExists,
     loadMcpConfig,
     USER_MCP_CONFIG_PATH,
+    workspaceMcpConfigPath,
+    configFilePath,
     watchMcpConfig,
     writeMcpServer,
 } from "./configLoader";

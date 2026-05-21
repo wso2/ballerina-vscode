@@ -600,20 +600,25 @@ export interface PromptEnhancementResponse {
 // ==================================
 export type McpTransportType = "stdio" | "http";
 export type McpConnectionStatus = "disconnected" | "connecting" | "connected" | "failed";
+export type McpScope = "user" | "workspace";
 export interface McpToolSummaryDTO {
     name: string;
     description?: string;
 }
 export interface McpServerStatusDTO {
     name: string;
+    scope: McpScope;
     transport: McpTransportType;
     enabled: boolean;
     status: McpConnectionStatus;
     error?: string;
     tools: McpToolSummaryDTO[];
+    /** True when this user-scope server is shadowed by a same-named workspace-scope server. */
+    shadowed?: boolean;
 }
 export interface SetMcpServerEnabledRequest {
     name: string;
+    scope: McpScope;
     enabled: boolean;
 }
 export type McpServerConfigDTO =
@@ -621,10 +626,17 @@ export type McpServerConfigDTO =
     | { type: "http"; url: string; headers?: Record<string, string> };
 export interface AddMcpServerRequest {
     name: string;
+    scope: McpScope;
     config: McpServerConfigDTO;
 }
 export interface AddMcpServerResponse {
     success: boolean;
     error?: string;
+}
+export interface OpenMcpConfigRequest {
+    scope: McpScope;
+}
+export interface McpWorkspaceContextResponse {
+    hasWorkspace: boolean;
 }
 

@@ -94,7 +94,7 @@ export function bridgeMcpTools(opts: BridgeOptions): Record<string, Tool> {
                         toolCallId,
                     });
                     try {
-                        const result = await manager.callTool(server.name, mcpTool.name, input);
+                        const result = await manager.callTool(server.scope, server.name, mcpTool.name, input);
                         const text = flattenToolResult(result);
                         const isError = !!(result && typeof result === "object" && (result as { isError?: boolean }).isError);
                         eventHandler({
@@ -114,7 +114,7 @@ export function bridgeMcpTools(opts: BridgeOptions): Record<string, Tool> {
                             toolCallId,
                             failed: true,
                         });
-                        return `MCP tool '${server.name}/${mcpTool.name}' failed: ${message}`;
+                        return `MCP tool '${server.scope}:${server.name}/${mcpTool.name}' failed: ${message}`;
                     }
                 },
             });

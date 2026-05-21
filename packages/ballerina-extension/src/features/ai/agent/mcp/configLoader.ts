@@ -20,12 +20,32 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 
-import { McpConfigFile, McpServerConfig } from "./types";
+import { computeWorkspaceHash } from "@wso2/copilot-utilities/chat-persistence";
+
+import { McpConfigFile, McpScope, McpServerConfig } from "./types";
 
 const COPILOT_ROOT = path.join(os.homedir(), ".ballerina", "copilot");
 export const USER_MCP_CONFIG_PATH = path.join(COPILOT_ROOT, "mcp.json");
 
 export const EMPTY_CONFIG: McpConfigFile = { mcpServers: {} };
+
+/** Resolve the per-workspace mcp.json path using the same hash as chat-persistence. */
+export function workspaceMcpConfigPath(workspacePath: string): string {
+    const normalised = path.resolve(workspacePath);
+    const hash = computeWorkspaceHash(normalised);
+    return path.join(COPILOT_ROOT, "workspaces", hash, "mcp.json");
+}
+
+/** Returns the on-disk path for the given scope. Throws if scope=workspace without a workspace path. */
+export function configFilePath(scope: McpScope, workspacePath?: string): string {
+    if (scope === "user") {
+        return USER_MCP_CONFIG_PATH;
+    }
+    if (!workspacePath) {
+        throw new Error("Workspace path is required for workspace-scope config.");
+    }
+    return workspaceMcpConfigPath(workspacePath);
+}
 
 function readConfigFile(filePath: string): McpConfigFile {
     try {
@@ -61,62 +81,74 @@ function inferTransport(cfg: McpServerConfig): McpServerConfig {
     return cfg;
 }
 
-/**
- * Reads the user-global MCP config and returns a normalized record of servers.
- * Invalid entries are dropped with a console warning.
- */
-export function loadMcpConfig(): Record<string, McpServerConfig> {
-    const file = readConfigFile(USER_MCP_CONFIG_PATH);
+function normaliseEntries(scope: McpScope, file: McpConfigFile): Array<{ name: string; config: McpServerConfig; scope: McpScope }> {
     const servers = file.mcpServers ?? {};
-    const out: Record<string, McpServerConfig> = {};
+    const out: Array<{ name: string; config: McpServerConfig; scope: McpScope }> = [];
     for (const [name, cfg] of Object.entries(servers)) {
         if (!cfg || typeof cfg !== "object") {
-            console.warn(`[mcp] Ignoring server '${name}': entry is not an object`);
+            console.warn(`[mcp] Ignoring server '${name}' (${scope}): entry is not an object`);
             continue;
         }
         const normalized = inferTransport(cfg);
         const isStdio = normalized.type === "stdio" || ("command" in normalized && normalized.command);
         const isHttp = normalized.type === "http" || ("url" in normalized && normalized.url);
         if (!isStdio && !isHttp) {
-            console.warn(`[mcp] Ignoring server '${name}': must specify 'command' (stdio) or 'url' (http)`);
+            console.warn(`[mcp] Ignoring server '${name}' (${scope}): must specify 'command' (stdio) or 'url' (http)`);
             continue;
         }
-        out[name] = normalized;
+        out.push({ name, config: normalized, scope });
     }
     return out;
 }
 
-export function ensureMcpConfigFileExists(): string {
-    if (!fs.existsSync(COPILOT_ROOT)) {
-        fs.mkdirSync(COPILOT_ROOT, { recursive: true });
+/**
+ * Reads the user-global mcp.json plus, when a workspace path is provided, the
+ * per-workspace mcp.json. Returns a flat list tagged with scope. The two scopes
+ * are independent: `{user, foo}` and `{workspace, foo}` can coexist.
+ */
+export function loadMcpConfig(workspacePath?: string): Array<{ name: string; config: McpServerConfig; scope: McpScope }> {
+    const entries: Array<{ name: string; config: McpServerConfig; scope: McpScope }> = [];
+    entries.push(...normaliseEntries("user", readConfigFile(USER_MCP_CONFIG_PATH)));
+    if (workspacePath) {
+        const wsFile = workspaceMcpConfigPath(workspacePath);
+        entries.push(...normaliseEntries("workspace", readConfigFile(wsFile)));
     }
-    if (!fs.existsSync(USER_MCP_CONFIG_PATH)) {
-        fs.writeFileSync(USER_MCP_CONFIG_PATH, JSON.stringify({ mcpServers: {} }, null, 2), "utf8");
+    return entries;
+}
+
+export function ensureMcpConfigFileExists(scope: McpScope = "user", workspacePath?: string): string {
+    const filePath = configFilePath(scope, workspacePath);
+    const dir = path.dirname(filePath);
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
     }
-    return USER_MCP_CONFIG_PATH;
+    if (!fs.existsSync(filePath)) {
+        fs.writeFileSync(filePath, JSON.stringify({ mcpServers: {} }, null, 2), "utf8");
+    }
+    return filePath;
 }
 
 /**
- * Atomically adds a new server entry to the user mcp.json.
+ * Atomically adds a new server entry to the chosen scope's mcp.json.
  *
- * Throws if a server with the same name already exists (case-sensitive).
+ * Throws if a server with the same name already exists in that scope.
  * Reads the file fresh before mutating, so external edits made while a form
  * was open are preserved.
  */
-export function writeMcpServer(name: string, config: McpServerConfig): void {
-    ensureMcpConfigFileExists();
-    const raw = fs.readFileSync(USER_MCP_CONFIG_PATH, "utf8");
+export function writeMcpServer(name: string, config: McpServerConfig, scope: McpScope = "user", workspacePath?: string): void {
+    const filePath = ensureMcpConfigFileExists(scope, workspacePath);
+    const raw = fs.readFileSync(filePath, "utf8");
     const parsed: McpConfigFile = raw.trim() ? JSON.parse(raw) : { mcpServers: {} };
     const servers = parsed.mcpServers ?? {};
     if (Object.prototype.hasOwnProperty.call(servers, name)) {
-        throw new Error(`Server '${name}' already exists in mcp.json.`);
+        throw new Error(`Server '${name}' already exists in ${scope} mcp.json.`);
     }
     servers[name] = config;
     parsed.mcpServers = servers;
-    const tmpPath = `${USER_MCP_CONFIG_PATH}.tmp.${process.pid}.${Date.now()}`;
+    const tmpPath = `${filePath}.tmp.${process.pid}.${Date.now()}`;
     try {
         fs.writeFileSync(tmpPath, JSON.stringify(parsed, null, 2), "utf8");
-        fs.renameSync(tmpPath, USER_MCP_CONFIG_PATH);
+        fs.renameSync(tmpPath, filePath);
     } catch (err) {
         try { fs.unlinkSync(tmpPath); } catch { /* ignore */ }
         throw err;
@@ -124,16 +156,28 @@ export function writeMcpServer(name: string, config: McpServerConfig): void {
 }
 
 /**
- * Subscribes to user-level config changes and returns a disposer. Uses
- * `fs.watchFile` with a polling interval because some platforms drop
- * `fs.watch` events when the file is replaced atomically (the editor pattern
- * used by VS Code's `workspace.fs.writeFile`).
+ * Subscribes to config file changes for both the user-global and (if provided)
+ * the per-workspace file. Returns a single disposer that releases both watchers.
+ * Uses `fs.watchFile` polling because some platforms drop `fs.watch` events
+ * when the file is replaced atomically.
  */
-export function watchMcpConfig(onChange: () => void): () => void {
+export function watchMcpConfig(workspacePath: string | undefined, onChange: () => void): () => void {
     if (!fs.existsSync(COPILOT_ROOT)) {
         try { fs.mkdirSync(COPILOT_ROOT, { recursive: true }); } catch { /* ignore */ }
     }
     const listener = () => onChange();
+    const watched: string[] = [USER_MCP_CONFIG_PATH];
     fs.watchFile(USER_MCP_CONFIG_PATH, { interval: 1500 }, listener);
-    return () => fs.unwatchFile(USER_MCP_CONFIG_PATH, listener);
+    if (workspacePath) {
+        const wsFile = workspaceMcpConfigPath(workspacePath);
+        const wsDir = path.dirname(wsFile);
+        try { fs.mkdirSync(wsDir, { recursive: true }); } catch { /* ignore */ }
+        fs.watchFile(wsFile, { interval: 1500 }, listener);
+        watched.push(wsFile);
+    }
+    return () => {
+        for (const p of watched) {
+            try { fs.unwatchFile(p, listener); } catch { /* ignore */ }
+        }
+    };
 }

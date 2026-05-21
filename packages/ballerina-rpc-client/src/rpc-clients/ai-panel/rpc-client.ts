@@ -122,10 +122,13 @@ import {
     openMcpConfig,
     addMcpServer,
     getMcpToolsEnabled,
+    getMcpWorkspaceContext,
     McpServerStatusDTO,
     SetMcpServerEnabledRequest,
     AddMcpServerRequest,
     AddMcpServerResponse,
+    OpenMcpConfigRequest,
+    McpWorkspaceContextResponse,
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -379,8 +382,8 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendRequest(setMcpServerEnabled, HOST_EXTENSION, params);
     }
 
-    openMcpConfig(): Promise<void> {
-        return this._messenger.sendRequest(openMcpConfig, HOST_EXTENSION);
+    openMcpConfig(params: OpenMcpConfigRequest): Promise<void> {
+        return this._messenger.sendRequest(openMcpConfig, HOST_EXTENSION, params);
     }
 
     addMcpServer(params: AddMcpServerRequest): Promise<AddMcpServerResponse> {
@@ -389,5 +392,9 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     getMcpToolsEnabled(): Promise<boolean> {
         return this._messenger.sendRequest(getMcpToolsEnabled, HOST_EXTENSION);
+    }
+
+    getMcpWorkspaceContext(): Promise<McpWorkspaceContextResponse> {
+        return this._messenger.sendRequest(getMcpWorkspaceContext, HOST_EXTENSION);
     }
 }
