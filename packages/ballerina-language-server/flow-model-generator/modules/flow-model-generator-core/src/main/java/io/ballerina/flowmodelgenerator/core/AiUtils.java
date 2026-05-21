@@ -264,9 +264,9 @@ public class AiUtils {
                 original.value(),
                 original.oldValue(),
                 original.placeholder(),
-                true,
+                true,  // optional
                 original.editable(),
-                true,
+                true,  // advanced
                 original.hidden(),
                 original.modified(),
                 original.diagnostics(),
@@ -296,34 +296,34 @@ public class AiUtils {
         }
 
         Metadata updatedMetadata = new Metadata(
-            newLabel,
-            original.metadata().description(),
-            original.metadata().keywords(),
-            original.metadata().icon(),
-            original.metadata().functionKind(),
-            original.metadata().data(),
-            original.metadata().connectors()
+                newLabel,
+                original.metadata().description(),
+                original.metadata().keywords(),
+                original.metadata().icon(),
+                original.metadata().functionKind(),
+                original.metadata().data(),
+                original.metadata().connectors()
         );
 
         return new Property(
-            updatedMetadata,
-            original.types(),
-            original.value(),
-            original.oldValue(),
-            original.placeholder(),
-            original.optional(),
-            original.editable(),
-            original.advanced(),
-            original.hidden(),
-            original.modified(),
-            original.diagnostics(),
-            original.codedata(),
-            original.advancedValue(),
-            original.imports(),
-            original.defaultValue(),
-            original.comment(),
-            original.dynamicFormFields(),
-            original.itemOptions()
+                updatedMetadata,
+                original.types(),
+                original.value(),
+                original.oldValue(),
+                original.placeholder(),
+                original.optional(),
+                original.editable(),
+                original.advanced(),
+                original.hidden(),
+                original.modified(),
+                original.diagnostics(),
+                original.codedata(),
+                original.advancedValue(),
+                original.imports(),
+                original.defaultValue(),
+                original.comment(),
+                original.dynamicFormFields(),
+                original.itemOptions()
         );
     }
 
@@ -337,28 +337,28 @@ public class AiUtils {
      */
     public static Property convertToSingleSelect(Property original, List<String> options) {
         List<PropertyType> selectTypes = List.of(
-            new PropertyType(Property.ValueType.SINGLE_SELECT, null, null, Option.of(options),
-                null, null, null, true)
+                new PropertyType(Property.ValueType.SINGLE_SELECT, null, null, Option.of(options),
+                        null, null, null, true)
         );
         return new Property(
-            original.metadata(),
-            selectTypes,
-            original.value(),
-            original.oldValue(),
-            original.placeholder(),
-            original.optional(),
-            original.editable(),
-            original.advanced(),
-            original.hidden(),
-            original.modified(),
-            original.diagnostics(),
-            original.codedata(),
-            original.advancedValue(),
-            original.imports(),
-            original.defaultValue(),
-            original.comment(),
-            original.dynamicFormFields(),
-            original.itemOptions()
+                original.metadata(),
+                selectTypes,
+                original.value(),
+                original.oldValue(),
+                original.placeholder(),
+                original.optional(),
+                original.editable(),
+                original.advanced(),
+                original.hidden(),
+                original.modified(),
+                original.diagnostics(),
+                original.codedata(),
+                original.advancedValue(),
+                original.imports(),
+                original.defaultValue(),
+                original.comment(),
+                original.dynamicFormFields(),
+                original.itemOptions()
         );
     }
 
@@ -382,28 +382,37 @@ public class AiUtils {
             throw new IllegalArgumentException("Property metadata cannot be null");
         }
 
+        // When a property from a template is flagged as hidden it is an internal default
+        // that should not be user-visible.  If the node builder has already set this key
+        // from its own authoritative data (e.g. AGENT_CALL sets type/variable from the
+        // function's return type), do not replace those correct values with the template
+        // defaults (e.g. ai:Agent / aiAgent from the AGENT template).
+        if (isHidden && nodeBuilder.properties().build().containsKey(key)) {
+            return;
+        }
+
         Object valueToUse = customValue != null ? customValue : property.value();
         boolean hidden = isHidden || property.hidden();
 
         Property copied = new Property(
-            property.metadata(),
-            property.types(),
-            valueToUse,
-            property.oldValue(),
-            property.placeholder(),
-            property.optional(),
-            property.editable(),
-            property.advanced(),
-            hidden,
-            property.modified(),
-            property.diagnostics(),
-            property.codedata(),
-            property.advancedValue(),
-            property.imports(),
-            property.defaultValue(),
-            property.comment(),
-            property.dynamicFormFields(),
-            property.itemOptions()
+                property.metadata(),
+                property.types(),
+                valueToUse,
+                property.oldValue(),
+                property.placeholder(),
+                property.optional(),
+                property.editable(),
+                property.advanced(),
+                hidden,
+                property.modified(),
+                property.diagnostics(),
+                property.codedata(),
+                property.advancedValue(),
+                property.imports(),
+                property.defaultValue(),
+                property.comment(),
+                property.dynamicFormFields(),
+                property.itemOptions()
         );
         nodeBuilder.properties().build().put(key, copied);
     }
@@ -525,8 +534,7 @@ public class AiUtils {
     }
 
     public static String getBallerinaAiModuleVersion(Project project) {
-        return project.currentPackage().dependenciesToml()
-                .map(DependenciesToml::tomlDocument).map(TomlDocument::toml)
+        return project.currentPackage().dependenciesToml().map(DependenciesToml::tomlDocument).map(TomlDocument::toml)
                 .map(toml -> toml.getTables(PACKAGE)).orElse(List.of()).stream()
                 .filter(pkg -> BALLERINA.equals(pkg.get(ORG).map(Object::toString).orElse(""))
                         && AI.equals(pkg.get(NAME).map(Object::toString).orElse("")))
