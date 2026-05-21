@@ -1022,6 +1022,9 @@ public class CodeAnalyzer extends NodeVisitor {
         // on every reload/regeneration, causing toSourceBuiltin() to omit them.
         Map<String, Property> currentProps = nodeBuilder.properties().build();
         Property savedCheckError = currentProps.get(Property.CHECK_ERROR_KEY);
+        boolean uncheckedBuiltinInDoClause = callNode.parent().kind() != SyntaxKind.CHECK_ACTION
+                && callNode.parent().kind() != SyntaxKind.CHECK_EXPRESSION
+                && CommonUtils.withinDoClause(callNode);
         Map<String, Property> savedAdvancedProps = new LinkedHashMap<>();
         for (Map.Entry<String, Property> entry : currentProps.entrySet()) {
             if (!EXCLUDED_CALL_ACTIVITY_PARAMS.contains(entry.getKey())) {
@@ -1122,12 +1125,15 @@ public class CodeAnalyzer extends NodeVisitor {
                         .addProperty(Property.VARIABLE_KEY);
             }
         }
-        // Restore checkError only when it was explicitly set (e.g. false inside a do-clause).
-        // When absent, toSourceBuiltin() defaults to true (the normal `check` case).
+        // Restore checkError. If the original call was unchecked inside a do-clause and no explicit
+        // checkError property was captured, persist false explicitly so toSourceBuiltin() doesn't
+        // fall back to its default true.
         if (savedCheckError != null) {
             boolean checkError = savedCheckError.value() != null
                     && Boolean.parseBoolean(savedCheckError.value().toString());
             nodeBuilder.properties().checkError(checkError);
+        } else if (uncheckedBuiltinInDoClause) {
+            nodeBuilder.properties().checkError(false);
         }
 
         // Restore advanced callActivity params (retryOnError, maxRetries, etc.) as ADVANCED_PARAM_KEY
@@ -1155,6 +1161,24 @@ public class CodeAnalyzer extends NodeVisitor {
                 new Option("PUT", "PUT"), new Option("DELETE", "DELETE"),
                 new Option("PATCH", "PATCH"));
 
+        Property messageSubProp = new Property.Builder<Void>(null)
+                .metadata()
+                    .label("Message")
+                    .description("Request body payload (for POST, PUT, PATCH)")
+                    .stepOut()
+                .type().fieldType(Property.ValueType.EXPRESSION)
+                    .ballerinaType("http:RequestMessage").selected(true).stepOut()
+                .value(src.getOrDefault(RestActivityStrategy.MESSAGE_KEY, ""))
+                .editable(true)
+                .build();
+
+        Map<String, Map<String, Property>> methodDynamicFields = new LinkedHashMap<>();
+        methodDynamicFields.put("GET", Map.of());
+        methodDynamicFields.put("POST", Map.of(RestActivityStrategy.MESSAGE_KEY, messageSubProp));
+        methodDynamicFields.put("PUT", Map.of(RestActivityStrategy.MESSAGE_KEY, messageSubProp));
+        methodDynamicFields.put("DELETE", Map.of());
+        methodDynamicFields.put("PATCH", Map.of(RestActivityStrategy.MESSAGE_KEY, messageSubProp));
+
         nodeBuilder.properties().custom()
                 .metadata().label("Method").description("HTTP method to invoke").stepOut()
                 .type().fieldType(Property.ValueType.DROPDOWN_CHOICE)
@@ -1162,6 +1186,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 .codedata().kind(ParameterData.Kind.REQUIRED.name()).stepOut()
                 .value(method).editable(true)
                 .itemOptions(ItemOption.from(methodOptions))
+                .dynamicFormFields(methodDynamicFields)
                 .stepOut().addProperty(RestActivityStrategy.METHOD_KEY);
 
         // path — TEXT/EXPRESSION; detect existing string-literal to set mode correctly
@@ -1169,14 +1194,14 @@ public class CodeAnalyzer extends NodeVisitor {
                 "Path", "Resource path appended to the connection's base URL (e.g., \"/users/1\")",
                 "/users/1", false);
 
-        // message — optional body payload for POST/PUT/PATCH
+        // Hidden top-level message property — value store for method-driven dynamic sub-field.
         String message = src.getOrDefault(RestActivityStrategy.MESSAGE_KEY, "");
         nodeBuilder.properties().custom()
                 .metadata().label("Message")
                     .description("Request body payload (for POST, PUT, PATCH)").stepOut()
                 .type().fieldType(Property.ValueType.EXPRESSION)
                     .ballerinaType("http:RequestMessage").selected(true).stepOut()
-                .value(message).editable(true).optional(true)
+                .value(message).editable(true).optional(true).hidden(true)
                 .stepOut().addProperty(RestActivityStrategy.MESSAGE_KEY);
 
         // headers — advanced EXPRESSION

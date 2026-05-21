@@ -485,15 +485,18 @@ public class WaitDataBuilder extends CallBuilder {
                                             FunctionDefinitionNode functionNode,
                                             String dataTypeName) {
         FunctionSignatureNode signatureNode = functionNode.functionSignature();
+        boolean hasExistingParams = !signatureNode.parameters().isEmpty();
         LineRange closeParenLineRange = signatureNode.closeParenToken().lineRange();
         Range insertRange = CommonUtils.toRange(closeParenLineRange.startLine());
-        // When adding data param, ctx param will always present
-        sourceBuilder.token()
-                .keyword(SyntaxKind.COMMA_TOKEN)
-                .name(dataTypeName)
-                .whiteSpace()
-                .name(DEFAULT_DATA_PARAM_NAME)
-                .skipFormatting().stepOut().textEdit(null, sourceBuilder.filePath, insertRange);
+        SourceBuilder.TokenBuilder tokenBuilder = sourceBuilder.token();
+        if (hasExistingParams) {
+            tokenBuilder.keyword(SyntaxKind.COMMA_TOKEN);
+        }
+        tokenBuilder
+            .name(dataTypeName)
+            .whiteSpace()
+            .name(DEFAULT_DATA_PARAM_NAME)
+            .skipFormatting().stepOut().textEdit(null, sourceBuilder.filePath, insertRange);
     }
 
     private void modifyExistingDataType(SourceBuilder sourceBuilder, TypeSymbol dataTypeSymbol,

@@ -308,7 +308,7 @@
           {
             "fieldType": "EXPRESSION",
             "ballerinaType": "time:Duration?",
-            "selected": false
+            "selected": true
           }
         ],
         "placeholder": "()",
