@@ -20,20 +20,21 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 
-import { computeWorkspaceHash } from "@wso2/copilot-utilities/chat-persistence";
-
 import { McpConfigFile, McpScope, McpServerConfig } from "./types";
 
 const COPILOT_ROOT = path.join(os.homedir(), ".ballerina", "copilot");
 export const USER_MCP_CONFIG_PATH = path.join(COPILOT_ROOT, "mcp.json");
+/** Bare-name `.mcp.json` matches Claude Code / Cline convention for tool-agnostic config. */
+export const PROJECT_MCP_FILENAME = ".mcp.json";
 
 export const EMPTY_CONFIG: McpConfigFile = { mcpServers: {} };
 
-/** Resolve the per-workspace mcp.json path using the same hash as chat-persistence. */
+/**
+ * Project-scope MCP config lives in the user's workspace tree (versioned with
+ * the repo), at `<workspacePath>/.mcp.json`. Standard adopted from Claude Code.
+ */
 export function workspaceMcpConfigPath(workspacePath: string): string {
-    const normalised = path.resolve(workspacePath);
-    const hash = computeWorkspaceHash(normalised);
-    return path.join(COPILOT_ROOT, "workspaces", hash, "mcp.json");
+    return path.join(path.resolve(workspacePath), PROJECT_MCP_FILENAME);
 }
 
 /** Returns the on-disk path for the given scope. Throws if scope=workspace without a workspace path. */
@@ -102,14 +103,19 @@ function normaliseEntries(scope: McpScope, file: McpConfigFile): Array<{ name: s
 }
 
 /**
- * Reads the user-global mcp.json plus, when a workspace path is provided, the
- * per-workspace mcp.json. Returns a flat list tagged with scope. The two scopes
- * are independent: `{user, foo}` and `{workspace, foo}` can coexist.
+ * Reads the user-global mcp.json plus, when both a workspace path is provided
+ * and `allowWorkspace` is true, the project-tree `<workspacePath>/.mcp.json`.
+ * Returns a flat list tagged with scope. The two scopes are independent:
+ * `{user, foo}` and `{workspace, foo}` can coexist.
+ *
+ * `allowWorkspace` is the workspace-trust gate — callers pass `false` for
+ * untrusted workspaces so arbitrary `command` entries in a cloned `.mcp.json`
+ * don't auto-spawn processes.
  */
-export function loadMcpConfig(workspacePath?: string): Array<{ name: string; config: McpServerConfig; scope: McpScope }> {
+export function loadMcpConfig(workspacePath?: string, allowWorkspace: boolean = true): Array<{ name: string; config: McpServerConfig; scope: McpScope }> {
     const entries: Array<{ name: string; config: McpServerConfig; scope: McpScope }> = [];
     entries.push(...normaliseEntries("user", readConfigFile(USER_MCP_CONFIG_PATH)));
-    if (workspacePath) {
+    if (workspacePath && allowWorkspace) {
         const wsFile = workspaceMcpConfigPath(workspacePath);
         entries.push(...normaliseEntries("workspace", readConfigFile(wsFile)));
     }

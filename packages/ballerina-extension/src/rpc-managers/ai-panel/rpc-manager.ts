@@ -897,10 +897,17 @@ User reverted the last made changes. The files have been restored to the state b
 
     async openMcpConfig(params: OpenMcpConfigRequest): Promise<void> {
         const scope = params?.scope ?? "user";
-        const workspacePath = scope === "workspace" ? (resolveProjectRootPath() || undefined) : undefined;
-        if (scope === "workspace" && !workspacePath) {
-            vscode.window.showWarningMessage("No workspace is open — cannot edit workspace MCP config.");
-            return;
+        let workspacePath: string | undefined;
+        if (scope === "workspace") {
+            workspacePath = resolveProjectRootPath() || undefined;
+            if (!workspacePath) {
+                vscode.window.showWarningMessage("No workspace is open — cannot edit workspace MCP config.");
+                return;
+            }
+            if (!vscode.workspace.isTrusted) {
+                vscode.window.showWarningMessage("This workspace is not trusted. Trust the workspace to manage project-scope MCP servers.");
+                return;
+            }
         }
         const filePath = ensureMcpConfigFileExists(scope, workspacePath);
         const doc = await vscode.workspace.openTextDocument(filePath);
@@ -912,7 +919,7 @@ User reverted the last made changes. The files have been restored to the state b
     }
 
     async getMcpWorkspaceContext(): Promise<McpWorkspaceContextResponse> {
-        return { hasWorkspace: !!resolveProjectRootPath() };
+        return { hasWorkspace: !!resolveProjectRootPath() && vscode.workspace.isTrusted };
     }
 
     async addMcpServer(params: AddMcpServerRequest): Promise<AddMcpServerResponse> {
@@ -944,6 +951,9 @@ User reverted the last made changes. The files have been restored to the state b
             workspacePath = resolveProjectRootPath() || undefined;
             if (!workspacePath) {
                 return { success: false, error: "No workspace is open — cannot add workspace-scope server." };
+            }
+            if (!vscode.workspace.isTrusted) {
+                return { success: false, error: "This workspace is not trusted. Trust the workspace to add project-scope MCP servers." };
             }
         }
         try {

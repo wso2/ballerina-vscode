@@ -273,7 +273,8 @@ function setupMcp(): void {
         },
     };
     const workspacePath = resolveProjectRootPath() || undefined;
-    const manager = initMcpClientManager(overrides, workspacePath);
+    const workspaceTrusted = vscodeWorkspace.isTrusted;
+    const manager = initMcpClientManager(overrides, workspacePath, workspaceTrusted);
     const pushUpdate = () => {
         try {
             notifyMcpServersChanged(manager.listServers());
@@ -283,9 +284,18 @@ function setupMcp(): void {
     };
     // Initial connect — fire and forget; failures are recorded per-server, not thrown.
     manager.refresh().then(pushUpdate).catch(err => console.warn('[mcp] Initial refresh failed:', err));
+    // Project-tree .mcp.json is watched too; the watcher fires whether or not
+    // workspace trust has been granted, but loadMcpConfig will skip the file
+    // until trust + workspace path are both set.
     mcpWatchDisposer = watchMcpConfig(workspacePath, () => {
         manager.refresh().then(pushUpdate).catch(err => console.warn('[mcp] Watch-triggered refresh failed:', err));
     });
+    // React to workspace trust being granted mid-session — workspace-scope
+    // servers come online without a window reload.
+    const trustDisposable = vscodeWorkspace.onDidGrantWorkspaceTrust(() => {
+        manager.setWorkspaceTrusted(true).then(pushUpdate).catch(err => console.warn('[mcp] Trust-grant refresh failed:', err));
+    });
+    extension.context?.subscriptions.push(trustDisposable);
 }
 
 async function teardownMcp(): Promise<void> {

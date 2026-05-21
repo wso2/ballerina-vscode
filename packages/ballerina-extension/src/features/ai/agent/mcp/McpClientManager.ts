@@ -129,17 +129,28 @@ export class McpClientManager {
     private servers = new Map<string, ServerState>();
     private enabledOverrides: EnabledOverrideStore;
     private workspacePath: string | undefined;
+    private workspaceTrusted: boolean;
     private refreshing?: Promise<void>;
     private disposed = false;
 
-    constructor(enabledOverrides: EnabledOverrideStore, workspacePath?: string) {
+    constructor(enabledOverrides: EnabledOverrideStore, workspacePath?: string, workspaceTrusted: boolean = true) {
         this.enabledOverrides = enabledOverrides;
         this.workspacePath = workspacePath;
+        this.workspaceTrusted = workspaceTrusted;
     }
 
-    /** Whether a workspace is associated with this manager (controls whether workspace-scope config is loaded). */
+    /** Workspace-scope is available iff we have a workspace path AND VS Code trusts it. */
     hasWorkspace(): boolean {
-        return !!this.workspacePath;
+        return !!this.workspacePath && this.workspaceTrusted;
+    }
+
+    /** Called by the activator when VS Code's workspace trust is granted mid-session. */
+    async setWorkspaceTrusted(trusted: boolean): Promise<void> {
+        if (this.workspaceTrusted === trusted) {
+            return;
+        }
+        this.workspaceTrusted = trusted;
+        await this.refresh();
     }
 
     async refresh(): Promise<void> {
@@ -156,7 +167,7 @@ export class McpClientManager {
     }
 
     private async doRefresh(): Promise<void> {
-        const entries = loadMcpConfig(this.workspacePath);
+        const entries = loadMcpConfig(this.workspacePath, this.workspaceTrusted);
         const desiredKeys = new Set(entries.map(e => keyOf(e.scope, e.name)));
 
         // Close servers that disappeared or whose effective enabled-state went off
@@ -388,9 +399,9 @@ export class McpClientManager {
 
 let singleton: McpClientManager | undefined;
 
-export function initMcpClientManager(overrides: EnabledOverrideStore, workspacePath?: string): McpClientManager {
+export function initMcpClientManager(overrides: EnabledOverrideStore, workspacePath?: string, workspaceTrusted: boolean = true): McpClientManager {
     if (!singleton) {
-        singleton = new McpClientManager(overrides, workspacePath);
+        singleton = new McpClientManager(overrides, workspacePath, workspaceTrusted);
     }
     return singleton;
 }
