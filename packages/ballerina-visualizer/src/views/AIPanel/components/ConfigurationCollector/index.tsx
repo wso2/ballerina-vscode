@@ -129,6 +129,51 @@ const FieldError = styled.div`
     color: ${ThemeColors.ERROR};
 `;
 
+const ConfirmBar = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 20px;
+    background-color: ${ThemeColors.SURFACE_DIM};
+    border-top: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+    color: ${ThemeColors.ON_SURFACE_VARIANT};
+    font-size: 12px;
+    line-height: 1.4;
+`;
+
+const ConfirmBarIcon = styled.span`
+    flex-shrink: 0;
+    color: ${ThemeColors.ON_SURFACE_VARIANT};
+    display: inline-flex;
+    align-items: center;
+`;
+
+const ErrorBar = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 20px;
+    background-color: ${ThemeColors.SURFACE_DIM};
+    border-top: 1px solid ${ThemeColors.ERROR};
+    color: ${ThemeColors.ERROR};
+    font-size: 12px;
+    line-height: 1.4;
+`;
+
+const ErrorBarIcon = styled.span`
+    flex-shrink: 0;
+    color: ${ThemeColors.ERROR};
+    display: inline-flex;
+    align-items: center;
+`;
+
+const FooterHint = styled.span`
+    margin-right: auto;
+    align-self: center;
+    font-size: 12px;
+    color: ${ThemeColors.ON_SURFACE_VARIANT};
+`;
+
 const ActionButton = styled(Button)``;
 
 const LoadingContainer = styled.div`
@@ -167,7 +212,7 @@ function getFieldConfig(type: string | undefined): FieldConfig {
             inputKind: "number",
             placeholder: "Enter integer",
             validate: (v) => {
-                if (!v.trim()) return "This field is required";
+                if (!v.trim()) return null;
                 if (isNaN(parseInt(v, 10)) || !Number.isInteger(parseFloat(v))) return "Enter a valid integer";
                 return null;
             },
@@ -178,7 +223,7 @@ function getFieldConfig(type: string | undefined): FieldConfig {
             inputKind: "number",
             placeholder: "Enter number",
             validate: (v) => {
-                if (!v.trim()) return "This field is required";
+                if (!v.trim()) return null;
                 if (isNaN(parseFloat(v))) return "Enter a valid number";
                 return null;
             },
@@ -199,8 +244,20 @@ function getFieldConfig(type: string | undefined): FieldConfig {
     return {
         inputKind: "text",
         placeholder: "Enter value",
-        validate: (v) => (!v || !v.trim() ? "This field is required" : null),
+        validate: () => null,
     };
+}
+
+function isPlaceholderValue(value: string | undefined | null): boolean {
+    return typeof value === "string" && /^\$\{[^}]+\}$/.test(value);
+}
+
+function getEmptyFieldNames(
+    variables: { name: string }[] | undefined,
+    values: Record<string, string>
+): string[] {
+    if (!variables) return [];
+    return variables.filter(v => !values[v.name] || !values[v.name].trim()).map(v => v.name);
 }
 
 // ─── ConfigField sub-component ────────────────────────────────────────────────
@@ -287,6 +344,12 @@ interface ConfigurationCollectorProps {
 
 function buildInitialValues(data: ConfigurationCollectorMetadata | undefined): Record<string, string> {
     const values: Record<string, string> = { ...(data?.existingValues ?? {}) };
+    // Hide `${VAR}` env-var placeholders so the input renders blank; the user can re-enter or leave skipped.
+    for (const name of Object.keys(values)) {
+        if (isPlaceholderValue(values[name])) {
+            values[name] = "";
+        }
+    }
     data?.variables?.forEach((v) => {
         const config = getFieldConfig(v.type);
         if (!(v.name in values) && config.defaultValue !== undefined) {
@@ -296,16 +359,22 @@ function buildInitialValues(data: ConfigurationCollectorMetadata | undefined): R
     return values;
 }
 
+type CollectorMode = "editing" | "confirming" | "processing";
+
 export const ConfigurationCollector: React.FC<ConfigurationCollectorProps> = ({ data, onClose }) => {
     const { rpcClient } = useRpcContext();
     const [configValues, setConfigValues] = useState<Record<string, string>>(buildInitialValues(data));
     const [errors, setErrors] = useState<Record<string, string>>({});
-    const [isProcessing, setIsProcessing] = useState(false);
+    const [mode, setMode] = useState<CollectorMode>("editing");
     const [visibleFields, setVisibleFields] = useState<Record<string, boolean>>({});
+    const [submitError, setSubmitError] = useState<string | null>(null);
 
     useEffect(() => {
         setConfigValues(buildInitialValues(data));
         setVisibleFields({});
+        setErrors({});
+        setMode("editing");
+        setSubmitError(null);
     }, [data]);
 
     const handleInputChange = (variableName: string, value: string) => {
@@ -315,10 +384,13 @@ export const ConfigurationCollector: React.FC<ConfigurationCollectorProps> = ({ 
             delete next[variableName];
             return next;
         });
+        // Any edit invalidates the empty-fields warning; re-evaluate on next Save.
+        setMode((current) => (current === "confirming" ? "editing" : current));
+        setSubmitError(null);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === "Enter" && !isProcessing) {
+        if (e.key === "Enter" && mode !== "processing") {
             handleSubmit();
         }
     };
@@ -333,34 +405,45 @@ export const ConfigurationCollector: React.FC<ConfigurationCollectorProps> = ({ 
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = async () => {
+    const submitToBackend = async () => {
         if (!data) return;
-
-        console.log("[ConfigurationCollector] handleSubmit called", {
-            requestId: data.requestId,
-            configurationCount: Object.keys(configValues).length,
-        });
-
-        if (!validateConfiguration()) {
-            console.log("[ConfigurationCollector] Validation failed");
-            return;
-        }
-
-        setIsProcessing(true);
-
+        setSubmitError(null);
+        setMode("processing");
         try {
-            console.log("[ConfigurationCollector] Calling provideConfiguration RPC");
             await rpcClient.getAiPanelRpcClient().provideConfiguration({
                 requestId: data.requestId,
                 configValues: configValues,
             });
-            console.log("[ConfigurationCollector] RPC call successful");
             onClose();
         } catch (error: any) {
-            console.error("[ConfigurationCollector] Error in handleSubmit:", error);
-        } finally {
-            setIsProcessing(false);
+            console.error("[ConfigurationCollector] Error in submitToBackend:", error);
+            const message = (error && typeof error.message === "string" && error.message) || "Failed to save configuration. Please try again.";
+            setSubmitError(message);
+            setMode("editing");
         }
+    };
+
+    const handleSubmit = async () => {
+        if (!data || mode === "processing") return;
+
+        if (!validateConfiguration()) {
+            return;
+        }
+
+        // From confirming, Save anyway commits.
+        if (mode === "confirming") {
+            await submitToBackend();
+            return;
+        }
+
+        // From editing, show confirm step when any required-by-user value is blank.
+        const emptyNames = getEmptyFieldNames(data.variables, configValues);
+        if (emptyNames.length > 0) {
+            setMode("confirming");
+            return;
+        }
+
+        await submitToBackend();
     };
 
     const handleCancel = async () => {
@@ -377,6 +460,10 @@ export const ConfigurationCollector: React.FC<ConfigurationCollectorProps> = ({ 
         }
         onClose();
     };
+
+    const handleGoBack = () => setMode("editing");
+
+    const emptyNames = mode === "confirming" ? getEmptyFieldNames(data?.variables, configValues) : [];
 
     // Close button (X) just closes the popup without canceling configuration collection
     // User can reopen via the Configure button in the chat segment
@@ -433,17 +520,53 @@ export const ConfigurationCollector: React.FC<ConfigurationCollectorProps> = ({ 
                         ))}
                     </FormSection>
                 </PopupContent>
+                {mode === "confirming" && emptyNames.length > 0 && (
+                    <ConfirmBar>
+                        <ConfirmBarIcon>
+                            <Codicon name="warning" />
+                        </ConfirmBarIcon>
+                        <span>
+                            Empty fields will not be saved: <b>{emptyNames.join(", ")}</b>
+                        </span>
+                    </ConfirmBar>
+                )}
+                {submitError && (
+                    <ErrorBar>
+                        <ErrorBarIcon>
+                            <Codicon name="error" />
+                        </ErrorBarIcon>
+                        <span>{submitError}</span>
+                    </ErrorBar>
+                )}
                 <PopupFooter>
-                    <ActionButton appearance="secondary" onClick={handleCancel} disabled={isProcessing}>
-                        Skip
-                    </ActionButton>
-                    <ActionButton
-                        appearance="primary"
-                        onClick={handleSubmit}
-                        disabled={isProcessing || !data.variables || data.variables.length === 0}
-                    >
-                        {isProcessing ? "Saving..." : "Save Configuration"}
-                    </ActionButton>
+                    {mode === "confirming" ? (
+                        <>
+                            <ActionButton appearance="secondary" onClick={handleGoBack}>
+                                Go Back
+                            </ActionButton>
+                            <ActionButton
+                                appearance="primary"
+                                onClick={handleSubmit}
+                                disabled={!data.variables || data.variables.length === 0}
+                            >
+                                Save anyway
+                            </ActionButton>
+                        </>
+                    ) : (
+                        <>
+                            <FooterHint>Leave any field blank to skip. You can fill it later.</FooterHint>
+                            <ActionButton appearance="secondary" onClick={handleCancel} disabled={mode === "processing"}>
+                                Skip
+                            </ActionButton>
+                            <ActionButton
+                                appearance="primary"
+                                onClick={handleSubmit}
+                                disabled={mode === "processing" || !data.variables || data.variables.length === 0}
+                            >
+                                {mode === "processing" ? "Saving..." : "Save Configuration"}
+                            </ActionButton>
+                        </>
+                    )}
                 </PopupFooter>
             </PopupContainer>
         </>
