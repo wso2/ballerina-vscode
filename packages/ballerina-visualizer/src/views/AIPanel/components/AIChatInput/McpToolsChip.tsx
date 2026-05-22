@@ -544,7 +544,6 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
                             </IconAction>
                             <ManageButton
                                 type="button"
-                                disabled={!mcpToolsEnabled}
                                 onClick={() => { setVisible(false); onOpenMcpManager(); }}
                             >
                                 Manage
