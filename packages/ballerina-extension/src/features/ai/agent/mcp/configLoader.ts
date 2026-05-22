@@ -162,6 +162,60 @@ export function writeMcpServer(name: string, config: McpServerConfig, scope: Mcp
 }
 
 /**
+ * Atomically replaces an existing server entry in the chosen scope's mcp.json.
+ * Throws if no entry with `name` exists.
+ */
+export function updateMcpServer(name: string, config: McpServerConfig, scope: McpScope = "user", workspacePath?: string): void {
+    const filePath = configFilePath(scope, workspacePath);
+    if (!fs.existsSync(filePath)) {
+        throw new Error(`Server '${name}' not found — no ${scope} mcp.json exists.`);
+    }
+    const raw = fs.readFileSync(filePath, "utf8");
+    const parsed: McpConfigFile = raw.trim() ? JSON.parse(raw) : { mcpServers: {} };
+    const servers = parsed.mcpServers ?? {};
+    if (!Object.prototype.hasOwnProperty.call(servers, name)) {
+        throw new Error(`Server '${name}' not found in ${scope} mcp.json.`);
+    }
+    servers[name] = config;
+    parsed.mcpServers = servers;
+    const tmpPath = `${filePath}.tmp.${process.pid}.${Date.now()}`;
+    try {
+        fs.writeFileSync(tmpPath, JSON.stringify(parsed, null, 2), "utf8");
+        fs.renameSync(tmpPath, filePath);
+    } catch (err) {
+        try { fs.unlinkSync(tmpPath); } catch { /* ignore */ }
+        throw err;
+    }
+}
+
+/**
+ * Atomically removes a server entry from the chosen scope's mcp.json.
+ * No-op if the file or entry doesn't exist.
+ */
+export function deleteMcpServer(name: string, scope: McpScope = "user", workspacePath?: string): void {
+    const filePath = configFilePath(scope, workspacePath);
+    if (!fs.existsSync(filePath)) {
+        return;
+    }
+    const raw = fs.readFileSync(filePath, "utf8");
+    const parsed: McpConfigFile = raw.trim() ? JSON.parse(raw) : { mcpServers: {} };
+    const servers = parsed.mcpServers ?? {};
+    if (!Object.prototype.hasOwnProperty.call(servers, name)) {
+        return;
+    }
+    delete servers[name];
+    parsed.mcpServers = servers;
+    const tmpPath = `${filePath}.tmp.${process.pid}.${Date.now()}`;
+    try {
+        fs.writeFileSync(tmpPath, JSON.stringify(parsed, null, 2), "utf8");
+        fs.renameSync(tmpPath, filePath);
+    } catch (err) {
+        try { fs.unlinkSync(tmpPath); } catch { /* ignore */ }
+        throw err;
+    }
+}
+
+/**
  * Subscribes to config file changes for both the user-global and (if provided)
  * the per-workspace file. Returns a single disposer that releases both watchers.
  * Uses `fs.watchFile` polling because some platforms drop `fs.watch` events

@@ -112,6 +112,12 @@ import {
     openMcpConfig,
     addMcpServer,
     AddMcpServerRequest,
+    updateMcpServer,
+    UpdateMcpServerRequest,
+    deleteMcpServer,
+    DeleteMcpServerRequest,
+    setMcpToolsEnabled,
+    SetMcpToolsEnabledRequest,
     getMcpToolsEnabled,
     getMcpWorkspaceContext,
     OpenMcpConfigRequest,
@@ -195,6 +201,9 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(setMcpServerEnabled, (args: SetMcpServerEnabledRequest) => rpcManger.setMcpServerEnabled(args));
     messenger.onRequest(openMcpConfig, (args: OpenMcpConfigRequest) => rpcManger.openMcpConfig(args));
     messenger.onRequest(addMcpServer, (args: AddMcpServerRequest) => rpcManger.addMcpServer(args));
+    messenger.onRequest(updateMcpServer, (args: UpdateMcpServerRequest) => rpcManger.updateMcpServer(args));
+    messenger.onRequest(deleteMcpServer, (args: DeleteMcpServerRequest) => rpcManger.deleteMcpServer(args));
+    messenger.onRequest(setMcpToolsEnabled, (args: SetMcpToolsEnabledRequest) => rpcManger.setMcpToolsEnabled(args));
     messenger.onRequest(getMcpToolsEnabled, () => rpcManger.getMcpToolsEnabled());
     messenger.onRequest(getMcpWorkspaceContext, () => rpcManger.getMcpWorkspaceContext());
 

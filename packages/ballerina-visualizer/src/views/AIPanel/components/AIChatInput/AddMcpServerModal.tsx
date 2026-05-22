@@ -25,10 +25,17 @@ const NAME_REGEX = /^[a-zA-Z0-9_.-]{1,64}$/;
 
 type Transport = "stdio" | "http";
 
+export interface EditTarget {
+    name: string;
+    scope: McpScope;
+    config: McpServerConfigDTO;
+}
+
 interface Props {
     isOpen: boolean;
     servers: McpServerStatusDTO[];
     hasWorkspace: boolean;
+    editTarget?: EditTarget;
     onClose: () => void;
     onAdded: () => void;
 }
@@ -219,8 +226,9 @@ function splitArgs(value: string): string[] {
     return trimmed.split(/\s+/);
 }
 
-export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspace, onClose, onAdded }) => {
+export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspace, editTarget, onClose, onAdded }) => {
     const { rpcClient } = useRpcContext();
+    const isEdit = !!editTarget;
     const [scope, setScope] = useState<McpScope>("user");
     const [transport, setTransport] = useState<Transport>("stdio");
     const [name, setName] = useState("");
@@ -232,9 +240,15 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
     const [serverError, setServerError] = useState<string | null>(null);
 
     // Uniqueness is scoped — `user:foo` and `workspace:foo` can coexist.
+    // In edit mode, the existing entry doesn't count as a duplicate.
     const namesInScope = useMemo(
-        () => new Set(servers.filter(s => s.scope === scope).map(s => s.name)),
-        [servers, scope],
+        () => new Set(
+            servers
+                .filter(s => s.scope === scope)
+                .filter(s => !(isEdit && editTarget && s.scope === editTarget.scope && s.name === editTarget.name))
+                .map(s => s.name),
+        ),
+        [servers, scope, isEdit, editTarget],
     );
 
     useEffect(() => {
@@ -249,12 +263,32 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
             setBearer("");
             setSubmitting(false);
             setServerError(null);
-        } else {
-            // Smart default on open: prefer workspace when available.
-            setScope(prev => (hasWorkspace && prev === "user" && !name && !command && !url ? "workspace" : prev));
+            return;
         }
+        if (editTarget) {
+            // Pre-populate fields for edit mode. Name and scope are locked.
+            setScope(editTarget.scope);
+            setTransport(editTarget.config.type);
+            setName(editTarget.name);
+            if (editTarget.config.type === "stdio") {
+                setCommand(editTarget.config.command);
+                setArgsText((editTarget.config.args ?? []).join(" "));
+                setUrl("");
+                setBearer("");
+            } else {
+                setUrl(editTarget.config.url);
+                // Bearer is intentionally empty — user re-enters to change.
+                setBearer("");
+                setCommand("");
+                setArgsText("");
+            }
+            setServerError(null);
+            return;
+        }
+        // Smart default on open (Add mode): prefer workspace when available.
+        setScope(prev => (hasWorkspace && prev === "user" && !name && !command && !url ? "workspace" : prev));
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isOpen, hasWorkspace]);
+    }, [isOpen, hasWorkspace, editTarget]);
 
     if (!isOpen) return null;
 
@@ -299,7 +333,10 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
                 ...(bearer.trim() ? { headers: { Authorization: `Bearer ${bearer.trim()}` } } : {}),
             };
         try {
-            const res = await rpcClient.getAiPanelRpcClient().addMcpServer({ name: trimmedName, scope, config });
+            const api = rpcClient.getAiPanelRpcClient();
+            const res = isEdit
+                ? await api.updateMcpServer({ name: trimmedName, scope, config })
+                : await api.addMcpServer({ name: trimmedName, scope, config });
             if (!res.success) {
                 setServerError(res.error ?? "Failed to add server.");
                 setSubmitting(false);
@@ -319,7 +356,7 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
         <Overlay onClick={onClose}>
             <Dialog role="dialog" aria-modal="true" onClick={stopPropagation}>
                 <Header>
-                    <Title>Add MCP server</Title>
+                    <Title>{isEdit ? "Edit MCP server" : "Add MCP server"}</Title>
                     <CloseButton type="button" aria-label="Close" onClick={onClose}>
                         <span className="codicon codicon-close" style={{ fontSize: 14 }} />
                     </CloseButton>
@@ -332,14 +369,22 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
                         <TabRow>
                             <Tab
                                 active={scope === "workspace"}
-                                disabled={!hasWorkspace}
-                                onClick={() => hasWorkspace && setScope("workspace")}
+                                disabled={isEdit || !hasWorkspace}
+                                onClick={() => !isEdit && hasWorkspace && setScope("workspace")}
                             >
                                 Project
                             </Tab>
-                            <Tab active={scope === "user"} onClick={() => setScope("user")}>User</Tab>
+                            <Tab
+                                active={scope === "user"}
+                                disabled={isEdit}
+                                onClick={() => !isEdit && setScope("user")}
+                            >
+                                User
+                            </Tab>
                         </TabRow>
-                        {!hasWorkspace && (
+                        {isEdit ? (
+                            <Hint>Scope cannot be changed when editing. Delete and re-add to move scopes.</Hint>
+                        ) : !hasWorkspace && (
                             <Hint>No trusted project is open — only user scope is available.</Hint>
                         )}
                     </FieldGroup>
@@ -350,10 +395,11 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
                             id="mcp-name"
                             type="text"
                             value={name}
-                            onChange={(e) => setName(e.target.value)}
+                            onChange={(e) => !isEdit && setName(e.target.value)}
                             placeholder="my-server"
                             hasError={!!nameError}
-                            autoFocus
+                            readOnly={isEdit}
+                            autoFocus={!isEdit}
                         />
                         {nameError && <FieldError>{nameError}</FieldError>}
                     </FieldGroup>
@@ -421,7 +467,7 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
                 <Footer>
                     <SecondaryButton type="button" onClick={onClose} disabled={submitting}>Cancel</SecondaryButton>
                     <PrimaryButton type="button" onClick={handleSubmit} disabled={!canSubmit}>
-                        {submitting ? "Adding..." : "Add"}
+                        {submitting ? (isEdit ? "Saving..." : "Adding...") : (isEdit ? "Save" : "Add")}
                     </PrimaryButton>
                 </Footer>
             </Dialog>

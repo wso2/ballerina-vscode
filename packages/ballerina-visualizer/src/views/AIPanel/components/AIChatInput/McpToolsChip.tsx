@@ -16,14 +16,19 @@
  * under the License.
  */
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import styled from "@emotion/styled";
-import { McpServerStatusDTO } from "@wso2/ballerina-core";
+import { McpScope, McpServerStatusDTO } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import AddMcpServerModal from "./AddMcpServerModal";
 
 const TOOLTIP_SHOW_MS = 150;
 const TOOLTIP_HIDE_MS = 200;
+const POPUP_MAX_HEIGHT = 360;
+
+interface McpToolsChipProps {
+    mcpToolsEnabled: boolean;
+    onOpenMcpManager: () => void;
+}
 
 const ChipWrapper = styled.div`
     position: relative;
@@ -32,14 +37,14 @@ const ChipWrapper = styled.div`
     margin-right: 4px;
 `;
 
-const Chip = styled.button`
+const Chip = styled.button<{ disabled?: boolean }>`
     display: inline-flex;
     align-items: center;
     gap: 4px;
     height: 20px;
     padding: 0 8px;
     background: var(--vscode-editor-background);
-    color: var(--vscode-foreground);
+    color: ${(p: { disabled?: boolean }) => (p.disabled ? "var(--vscode-descriptionForeground)" : "var(--vscode-foreground)")};
     border: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
     border-radius: 10px;
     font-size: 11px;
@@ -49,6 +54,10 @@ const Chip = styled.button`
 
     &:hover {
         background: var(--vscode-toolbar-hoverBackground);
+    }
+
+    .codicon {
+        opacity: ${(p: { disabled?: boolean }) => (p.disabled ? 0.6 : 1)};
     }
 `;
 
@@ -72,15 +81,17 @@ const Popup = styled.div`
     bottom: calc(100% + 8px);
     right: 0;
     z-index: 1000;
-    min-width: 260px;
+    min-width: 280px;
     max-width: 340px;
-    padding: 8px;
     background: var(--vscode-editorHoverWidget-background);
     border: 1px solid var(--vscode-editorHoverWidget-border);
     border-radius: 4px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     color: var(--vscode-editorHoverWidget-foreground);
     font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 
     &::after {
         content: '';
@@ -92,26 +103,36 @@ const Popup = styled.div`
     }
 `;
 
-const PopupHeader = styled.div`
+const StickyHeader = styled.div`
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 4px 6px;
+    padding: 6px 8px;
     border-bottom: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
-    margin-bottom: 4px;
+    gap: 8px;
 `;
 
-const PopupTitle = styled.span`
-    font-weight: 600;
+const HeaderLeft = styled.div`
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
 `;
 
-const HeaderActions = styled.div`
+const HeaderRight = styled.div`
     display: inline-flex;
     align-items: center;
     gap: 4px;
+    flex-shrink: 0;
 `;
 
-const HeaderAction = styled.button`
+const HeaderTitle = styled.span`
+    font-weight: 600;
+    font-size: 12px;
+`;
+
+const ManageButton = styled.button`
     background: transparent;
     border: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
     color: var(--vscode-foreground);
@@ -121,7 +142,7 @@ const HeaderAction = styled.button`
     font-family: var(--vscode-font-family);
     cursor: pointer;
 
-    &:hover {
+    &:hover:not(:disabled) {
         background: var(--vscode-toolbar-hoverBackground);
     }
 
@@ -160,8 +181,22 @@ const IconAction = styled.button`
     }
 `;
 
+const ScrollBody = styled.div`
+    flex: 1;
+    overflow-y: auto;
+    max-height: ${POPUP_MAX_HEIGHT}px;
+    padding: 4px;
+`;
+
+const ScopeDivider = styled.div`
+    height: 1px;
+    background: var(--vscode-widget-border, var(--vscode-panel-border));
+    margin: 4px 0;
+    opacity: 0.7;
+`;
+
 const EmptyState = styled.div`
-    padding: 12px 4px;
+    padding: 16px 8px;
     text-align: center;
     color: var(--vscode-descriptionForeground);
     font-size: 11px;
@@ -193,24 +228,6 @@ const ServerName = styled.div`
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-`;
-
-const ScopeBadge = styled.span<{ scope: "user" | "workspace" }>`
-    font-size: 9px;
-    font-weight: 600;
-    line-height: 1;
-    padding: 2px 5px;
-    border-radius: 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-    color: var(--vscode-badge-foreground);
-    background: ${(p: { scope: "user" | "workspace" }) => (p.scope === "workspace"
-        ? "var(--vscode-charts-blue, var(--vscode-badge-background))"
-        : "var(--vscode-badge-background)")};
-    flex-shrink: 0;
 `;
 
 const ServerSubline = styled.div`
@@ -221,14 +238,15 @@ const ServerSubline = styled.div`
     white-space: nowrap;
 `;
 
-const ToggleSwitch = styled.button<{ on: boolean }>`
+const ToggleSwitch = styled.button<{ on: boolean; disabled?: boolean }>`
     width: 26px;
     height: 14px;
     border-radius: 7px;
     border: none;
-    cursor: pointer;
+    cursor: ${(p: { disabled?: boolean }) => (p.disabled ? "default" : "pointer")};
     position: relative;
     flex-shrink: 0;
+    opacity: ${(p: { disabled?: boolean }) => (p.disabled ? 0.5 : 1)};
     background: ${(p: { on: boolean }) => (p.on
         ? "var(--vscode-button-background)"
         : "var(--vscode-input-background)")};
@@ -246,9 +264,15 @@ const ToggleSwitch = styled.button<{ on: boolean }>`
     }
 `;
 
-function scopeLabel(scope: McpServerStatusDTO["scope"]): string {
-    return scope === "workspace" ? "Project" : "User";
-}
+const OffMessage = styled.div`
+    padding: 24px 12px;
+    text-align: center;
+    color: var(--vscode-descriptionForeground);
+    font-size: 11px;
+    line-height: 1.5;
+`;
+
+const SCOPE_ORDER: McpScope[] = ["workspace", "user"];
 
 function transportLabel(s: McpServerStatusDTO): string {
     if (s.shadowed) {
@@ -267,24 +291,24 @@ function transportLabel(s: McpServerStatusDTO): string {
     return `${s.transport} · ${n} tool${n === 1 ? "" : "s"}`;
 }
 
-export const McpToolsChip: React.FC = () => {
+export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onOpenMcpManager }) => {
     const { rpcClient } = useRpcContext();
     const [servers, setServers] = useState<McpServerStatusDTO[]>([]);
-    const [hasWorkspace, setHasWorkspace] = useState<boolean>(false);
     const [visible, setVisible] = useState(false);
     const [reloading, setReloading] = useState(false);
-    const [showAddModal, setShowAddModal] = useState(false);
     const showTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         let cancelled = false;
+        if (!mcpToolsEnabled) {
+            // Don't fetch when globally off; clear stale state.
+            setServers([]);
+            return;
+        }
         rpcClient.getAiPanelRpcClient().listMcpServers().then((list) => {
             if (!cancelled) setServers(list);
         }).catch((err) => console.warn("[mcp] listMcpServers failed:", err));
-        rpcClient.getAiPanelRpcClient().getMcpWorkspaceContext().then((ctx) => {
-            if (!cancelled) setHasWorkspace(ctx.hasWorkspace);
-        }).catch((err) => console.warn("[mcp] getMcpWorkspaceContext failed:", err));
         const dispose = rpcClient.onMcpServersChanged((list: McpServerStatusDTO[]) => {
             if (!cancelled) setServers(list);
         });
@@ -292,31 +316,31 @@ export const McpToolsChip: React.FC = () => {
             cancelled = true;
             dispose();
         };
-    }, [rpcClient]);
+    }, [rpcClient, mcpToolsEnabled]);
 
-    const handleReload = async () => {
-        setReloading(true);
-        try {
-            // listMcpServers calls manager.refresh() server-side, which re-reads
-            // mcp.json and retries any failed/disconnected servers.
-            const list = await rpcClient.getAiPanelRpcClient().listMcpServers();
-            setServers(list);
-        } catch (err) {
-            console.warn("[mcp] reload failed:", err);
-        } finally {
-            setReloading(false);
+    // Group + sort: scope groups in fixed order (Project → User). Built-in is reserved for future.
+    const grouped = useMemo(() => {
+        const byScope = new Map<McpScope, McpServerStatusDTO[]>();
+        for (const scope of SCOPE_ORDER) byScope.set(scope, []);
+        for (const s of servers) {
+            byScope.get(s.scope)?.push(s);
         }
-    };
+        return SCOPE_ORDER
+            .map(scope => byScope.get(scope) ?? [])
+            .filter(group => group.length > 0);
+    }, [servers]);
 
     const connectedCount = servers.filter((s) => s.status === "connected").length;
     const totalTools = servers.reduce((acc, s) => acc + s.tools.length, 0);
-    const headlineStatus: McpServerStatusDTO["status"] = servers.some((s) => s.status === "failed")
-        ? "failed"
-        : connectedCount > 0
-            ? "connected"
-            : servers.some((s) => s.status === "connecting")
-                ? "connecting"
-                : "disconnected";
+    const headlineStatus: McpServerStatusDTO["status"] = !mcpToolsEnabled
+        ? "disconnected"
+        : servers.some((s) => s.status === "failed")
+            ? "failed"
+            : connectedCount > 0
+                ? "connected"
+                : servers.some((s) => s.status === "connecting")
+                    ? "connecting"
+                    : "disconnected";
 
     const scheduleShow = () => {
         if (hideTimer.current) { clearTimeout(hideTimer.current); hideTimer.current = null; }
@@ -328,21 +352,43 @@ export const McpToolsChip: React.FC = () => {
     };
     const toggleVisible = () => setVisible((v) => !v);
 
-    const handleToggle = async (scope: McpServerStatusDTO["scope"], name: string, currentEnabled: boolean) => {
+    const handleReload = async () => {
+        setReloading(true);
+        try {
+            const list = await rpcClient.getAiPanelRpcClient().listMcpServers();
+            setServers(list);
+        } catch (err) {
+            console.warn("[mcp] reload failed:", err);
+        } finally {
+            setReloading(false);
+        }
+    };
+
+    const handleToggleServer = async (scope: McpScope, name: string, currentEnabled: boolean) => {
         await rpcClient.getAiPanelRpcClient().setMcpServerEnabled({ scope, name, enabled: !currentEnabled });
     };
 
-    const handleOpenConfig = async (scope: McpServerStatusDTO["scope"]) => {
-        await rpcClient.getAiPanelRpcClient().openMcpConfig({ scope });
+    const handleToggleGlobal = async () => {
+        try {
+            await rpcClient.getAiPanelRpcClient().setMcpToolsEnabled({ enabled: !mcpToolsEnabled });
+            // State update arrives via config_change('mcpToolsEnabled') flowing through AIChat down via props.
+        } catch (err) {
+            console.warn("[mcp] setMcpToolsEnabled failed:", err);
+        }
     };
+
+    const chipTitle = !mcpToolsEnabled
+        ? "MCP is off — click to manage"
+        : servers.length === 0
+            ? "No MCP servers configured"
+            : `${connectedCount}/${servers.length} MCP server${servers.length === 1 ? "" : "s"} connected · ${totalTools} tool${totalTools === 1 ? "" : "s"}`;
 
     return (
         <ChipWrapper onMouseEnter={scheduleShow} onMouseLeave={scheduleHide}>
             <Chip
                 type="button"
-                title={servers.length === 0
-                    ? "No MCP servers configured"
-                    : `${connectedCount}/${servers.length} MCP server${servers.length === 1 ? "" : "s"} connected · ${totalTools} tool${totalTools === 1 ? "" : "s"}`}
+                disabled={!mcpToolsEnabled}
+                title={chipTitle}
                 onClick={toggleVisible}
             >
                 <span className="codicon codicon-plug" style={{ fontSize: 11 }} />
@@ -352,13 +398,21 @@ export const McpToolsChip: React.FC = () => {
 
             {visible && (
                 <Popup onMouseEnter={scheduleShow} onMouseLeave={scheduleHide}>
-                    <PopupHeader>
-                        <PopupTitle>MCP servers</PopupTitle>
-                        <HeaderActions>
+                    <StickyHeader>
+                        <HeaderLeft>
+                            <ToggleSwitch
+                                type="button"
+                                on={mcpToolsEnabled}
+                                title={mcpToolsEnabled ? "Disable MCP" : "Enable MCP"}
+                                onClick={handleToggleGlobal}
+                            />
+                            <HeaderTitle>MCP</HeaderTitle>
+                        </HeaderLeft>
+                        <HeaderRight>
                             <IconAction
                                 type="button"
                                 title="Reload servers"
-                                disabled={reloading}
+                                disabled={reloading || !mcpToolsEnabled}
                                 onClick={handleReload}
                             >
                                 <span
@@ -366,56 +420,51 @@ export const McpToolsChip: React.FC = () => {
                                     style={{ fontSize: 12 }}
                                 />
                             </IconAction>
-                            <HeaderAction type="button" onClick={() => setShowAddModal(true)}>
-                                + Add server
-                            </HeaderAction>
-                            <HeaderAction type="button" title="Edit user mcp.json" onClick={() => handleOpenConfig("user")}>
-                                Edit user
-                            </HeaderAction>
-                            <HeaderAction
+                            <ManageButton
                                 type="button"
-                                title={hasWorkspace ? "Edit project .mcp.json" : "No trusted project is open"}
-                                disabled={!hasWorkspace}
-                                onClick={() => handleOpenConfig("workspace")}
+                                disabled={!mcpToolsEnabled}
+                                onClick={() => { setVisible(false); onOpenMcpManager(); }}
                             >
-                                Edit project
-                            </HeaderAction>
-                        </HeaderActions>
-                    </PopupHeader>
+                                Manage
+                            </ManageButton>
+                        </HeaderRight>
+                    </StickyHeader>
 
-                    {servers.length === 0 ? (
+                    {!mcpToolsEnabled ? (
+                        <OffMessage>
+                            MCP tool support is off.<br />
+                            Toggle it on to load servers.
+                        </OffMessage>
+                    ) : servers.length === 0 ? (
                         <EmptyState>
-                            No servers configured. Click <b>+ Add server</b> to set one up.
+                            No servers configured. Click <b>Manage</b> to add one.
                         </EmptyState>
                     ) : (
-                        servers.map((s) => (
-                            <ServerRow key={`${s.scope}:${s.name}`}>
-                                <StatusDot status={s.status} />
-                                <ServerMeta>
-                                    <ServerName title={s.name}>
-                                        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</span>
-                                        <ScopeBadge scope={s.scope}>{scopeLabel(s.scope)}</ScopeBadge>
-                                    </ServerName>
-                                    <ServerSubline title={transportLabel(s)}>{transportLabel(s)}</ServerSubline>
-                                </ServerMeta>
-                                <ToggleSwitch
-                                    type="button"
-                                    on={s.enabled}
-                                    title={s.enabled ? "Disable this server" : "Enable this server"}
-                                    onClick={() => handleToggle(s.scope, s.name, s.enabled)}
-                                />
-                            </ServerRow>
-                        ))
+                        <ScrollBody>
+                            {grouped.map((group, idx) => (
+                                <React.Fragment key={group[0].scope}>
+                                    {idx > 0 && <ScopeDivider />}
+                                    {group.map((s) => (
+                                        <ServerRow key={`${s.scope}:${s.name}`}>
+                                            <StatusDot status={s.status} />
+                                            <ServerMeta>
+                                                <ServerName title={s.name}>{s.name}</ServerName>
+                                                <ServerSubline title={transportLabel(s)}>{transportLabel(s)}</ServerSubline>
+                                            </ServerMeta>
+                                            <ToggleSwitch
+                                                type="button"
+                                                on={s.enabled}
+                                                title={s.enabled ? "Disable this server" : "Enable this server"}
+                                                onClick={() => handleToggleServer(s.scope, s.name, s.enabled)}
+                                            />
+                                        </ServerRow>
+                                    ))}
+                                </React.Fragment>
+                            ))}
+                        </ScrollBody>
                     )}
                 </Popup>
             )}
-            <AddMcpServerModal
-                isOpen={showAddModal}
-                servers={servers}
-                hasWorkspace={hasWorkspace}
-                onClose={() => setShowAddModal(false)}
-                onAdded={() => { /* mcpServersChanged notification refreshes the list */ }}
-            />
         </ChipWrapper>
     );
 };

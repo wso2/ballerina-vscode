@@ -141,6 +141,7 @@ interface AIChatInputProps {
     disabled?: boolean;
     contextUsage?: { inputTokens: number; percentage: number; breakdown?: { systemInstructions: number; toolDefinitions: number; reservedOutput: number; files: number; messages: number; toolResults: number } } | null;
     mcpToolsEnabled?: boolean;
+    onOpenMcpManager?: () => void;
     runningServicesPanel?: RunningServicesPanel;
 }
 
@@ -148,7 +149,7 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
     ({ initialCommandTemplate, tagOptions, attachmentOptions, placeholder, onSend, onStop, isLoading,
        agentMode = AgentMode.Edit, onChangeAgentMode, isAutoApproveEnabled = false, onDisableAutoApprove,
        isWebToolsEnabled = false, onToggleWebSearch, disabled,
-       contextUsage, mcpToolsEnabled = false, runningServicesPanel }, ref) => {        const [inputValue, setInputValue] = useState<{
+       contextUsage, mcpToolsEnabled = false, onOpenMcpManager, runningServicesPanel }, ref) => {        const [inputValue, setInputValue] = useState<{
             text: string;
             [key: string]: any;
         }>({
@@ -594,7 +595,7 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
                                 )}
                             </div>
                             <div style={{ display: "flex", alignItems: "center" }}>
-                                {mcpToolsEnabled && <McpToolsChip />}
+                                <McpToolsChip mcpToolsEnabled={mcpToolsEnabled} onOpenMcpManager={onOpenMcpManager ?? (() => {})} />
                                 {runningServicesPanel && runningServicesPanel.services.length > 0 && (
                                     <RunningServicesChip {...runningServicesPanel} />
                                 )}

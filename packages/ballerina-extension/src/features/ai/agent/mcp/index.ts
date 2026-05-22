@@ -27,6 +27,8 @@ export {
     configFilePath,
     watchMcpConfig,
     writeMcpServer,
+    updateMcpServer,
+    deleteMcpServer,
 } from "./configLoader";
 export {
     McpClientManager,

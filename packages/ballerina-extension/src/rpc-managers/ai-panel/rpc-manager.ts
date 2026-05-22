@@ -61,8 +61,12 @@ import {
     AddMcpServerResponse,
     OpenMcpConfigRequest,
     McpWorkspaceContextResponse,
+    UpdateMcpServerRequest,
+    DeleteMcpServerRequest,
+    SetMcpToolsEnabledRequest,
 } from "@wso2/ballerina-core";
-import { getMcpClientManager, ensureMcpConfigFileExists, writeMcpServer } from "../../features/ai/agent/mcp";
+import { ConfigurationTarget } from "vscode";
+import { getMcpClientManager, ensureMcpConfigFileExists, writeMcpServer, updateMcpServer, deleteMcpServer } from "../../features/ai/agent/mcp";
 import { notifyMcpServersChanged } from "../../RPCLayer";
 import * as os from "os";
 import * as fs from 'fs';
@@ -108,6 +112,25 @@ import { chatStateStorage } from '../../views/ai-panel/chatStateStorage';
 import { restoreWorkspaceSnapshot } from '../../views/ai-panel/checkpoint/checkpointUtils';
 import { runningServicesManager } from '../../features/ai/agent/tools/running-service-manager';
 import { executeRun } from "../../features/ai/agent/tools/ballerina-run";
+
+/** Validate an MCP server config DTO. Returns an error message or null on success. */
+function validateMcpServerConfig(cfg: any): string | null {
+    if (!cfg || (cfg.type !== "stdio" && cfg.type !== "http")) {
+        return "Invalid server config.";
+    }
+    if (cfg.type === "stdio" && !cfg.command?.trim()) {
+        return "Command is required for stdio servers.";
+    }
+    if (cfg.type === "http") {
+        if (!cfg.url?.trim()) {
+            return "URL is required for HTTP servers.";
+        }
+        try { new URL(cfg.url); } catch {
+            return "URL is not a valid URL.";
+        }
+    }
+    return null;
+}
 
 export class AiPanelRpcManager implements AIPanelAPI {
 
@@ -931,19 +954,9 @@ User reverted the last made changes. The files have been restored to the state b
             return { success: false, error: "Use letters, digits, _, ., or - only (max 64 chars)." };
         }
         const cfg = params?.config;
-        if (!cfg || (cfg.type !== "stdio" && cfg.type !== "http")) {
-            return { success: false, error: "Invalid server config." };
-        }
-        if (cfg.type === "stdio" && !cfg.command?.trim()) {
-            return { success: false, error: "Command is required for stdio servers." };
-        }
-        if (cfg.type === "http") {
-            if (!cfg.url?.trim()) {
-                return { success: false, error: "URL is required for HTTP servers." };
-            }
-            try { new URL(cfg.url); } catch {
-                return { success: false, error: "URL is not a valid URL." };
-            }
+        const cfgError = validateMcpServerConfig(cfg);
+        if (cfgError) {
+            return { success: false, error: cfgError };
         }
         const scope = params.scope ?? "user";
         let workspacePath: string | undefined;
@@ -961,16 +974,81 @@ User reverted the last made changes. The files have been restored to the state b
         } catch (err: any) {
             return { success: false, error: err?.message ?? String(err) };
         }
-        const manager = getMcpClientManager();
-        if (manager) {
-            try {
-                await manager.refresh();
-                notifyMcpServersChanged(manager.listServers());
-            } catch (err) {
-                console.warn('[mcp] addMcpServer post-refresh failed:', err);
+        await this.refreshAndNotify();
+        return { success: true };
+    }
+
+    async updateMcpServer(params: UpdateMcpServerRequest): Promise<AddMcpServerResponse> {
+        const name = (params?.name ?? "").trim();
+        if (!name) {
+            return { success: false, error: "Server name is required." };
+        }
+        const cfg = params?.config;
+        const cfgError = validateMcpServerConfig(cfg);
+        if (cfgError) {
+            return { success: false, error: cfgError };
+        }
+        const scope = params.scope ?? "user";
+        let workspacePath: string | undefined;
+        if (scope === "workspace") {
+            workspacePath = resolveProjectRootPath() || undefined;
+            if (!workspacePath) {
+                return { success: false, error: "No project is open — cannot update a project-scope server." };
+            }
+            if (!vscode.workspace.isTrusted) {
+                return { success: false, error: "This project is not trusted. Trust this project from the workspace trust prompt to enable project-scope MCP servers." };
             }
         }
+        try {
+            updateMcpServer(name, cfg, scope, workspacePath);
+        } catch (err: any) {
+            return { success: false, error: err?.message ?? String(err) };
+        }
+        await this.refreshAndNotify();
         return { success: true };
+    }
+
+    async deleteMcpServer(params: DeleteMcpServerRequest): Promise<AddMcpServerResponse> {
+        const name = (params?.name ?? "").trim();
+        if (!name) {
+            return { success: false, error: "Server name is required." };
+        }
+        const scope = params.scope ?? "user";
+        let workspacePath: string | undefined;
+        if (scope === "workspace") {
+            workspacePath = resolveProjectRootPath() || undefined;
+            if (!workspacePath) {
+                return { success: false, error: "No project is open." };
+            }
+            // Note: deleting an entry from an already-cloned untrusted .mcp.json is harmless,
+            // so we don't require trust here.
+        }
+        try {
+            deleteMcpServer(name, scope, workspacePath);
+        } catch (err: any) {
+            return { success: false, error: err?.message ?? String(err) };
+        }
+        await this.refreshAndNotify();
+        return { success: true };
+    }
+
+    async setMcpToolsEnabled(params: SetMcpToolsEnabledRequest): Promise<void> {
+        await workspace.getConfiguration('ballerina').update('copilot.enableMcpTools', !!params?.enabled, ConfigurationTarget.Global);
+        // The existing onDidChangeConfiguration listener in activator.ts handles
+        // setup/teardown of the manager and pushes config_change + mcpServersChanged.
+    }
+
+    private async refreshAndNotify(): Promise<void> {
+        const manager = getMcpClientManager();
+        if (!manager) {
+            return;
+        }
+        try {
+            await manager.refresh();
+            notifyMcpServersChanged(manager.listServers());
+        } catch (err) {
+            console.warn('[mcp] post-write refresh failed:', err);
+        }
     }
 
 }

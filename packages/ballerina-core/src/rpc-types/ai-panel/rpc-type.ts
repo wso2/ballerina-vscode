@@ -64,6 +64,9 @@ import {
     AddMcpServerResponse,
     OpenMcpConfigRequest,
     McpWorkspaceContextResponse,
+    UpdateMcpServerRequest,
+    DeleteMcpServerRequest,
+    SetMcpToolsEnabledRequest,
 } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
@@ -131,6 +134,9 @@ export const listMcpServers: RequestType<void, McpServerStatusDTO[]> = { method:
 export const setMcpServerEnabled: RequestType<SetMcpServerEnabledRequest, void> = { method: `${_preFix}/setMcpServerEnabled` };
 export const openMcpConfig: RequestType<OpenMcpConfigRequest, void> = { method: `${_preFix}/openMcpConfig` };
 export const addMcpServer: RequestType<AddMcpServerRequest, AddMcpServerResponse> = { method: `${_preFix}/addMcpServer` };
+export const updateMcpServer: RequestType<UpdateMcpServerRequest, AddMcpServerResponse> = { method: `${_preFix}/updateMcpServer` };
+export const deleteMcpServer: RequestType<DeleteMcpServerRequest, AddMcpServerResponse> = { method: `${_preFix}/deleteMcpServer` };
+export const setMcpToolsEnabled: RequestType<SetMcpToolsEnabledRequest, void> = { method: `${_preFix}/setMcpToolsEnabled` };
 export const getMcpToolsEnabled: RequestType<void, boolean> = { method: `${_preFix}/getMcpToolsEnabled` };
 export const getMcpWorkspaceContext: RequestType<void, McpWorkspaceContextResponse> = { method: `${_preFix}/getMcpWorkspaceContext` };
 export const mcpServersChanged: NotificationType<McpServerStatusDTO[]> = { method: `${_preFix}/mcpServersChanged` };

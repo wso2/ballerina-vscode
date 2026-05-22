@@ -80,6 +80,7 @@ import CommonApprovalFooter from "./Footer/CommonApprovalFooter";
 import ClarifyFooter from "./Footer/ClarifyFooter";
 import { useFooterLogic } from "./Footer/useFooterLogic";
 import { SettingsPanel } from "../../SettingsPanel";
+import { McpManagerPanel } from "../../McpManagerPanel";
 import WelcomeMessage from "./Welcome";
 import { getOnboardingOpens, incrementOnboardingOpens, convertToUIMessages, isContainsSyntaxError } from "./utils/utils";
 
@@ -200,6 +201,7 @@ const AIChat: React.FC = () => {
     const [isAddingToWorkspace, setIsAddingToWorkspace] = useState(false);
 
     const [showSettings, setShowSettings] = useState(false);
+    const [showMcpManager, setShowMcpManager] = useState(false);
     const [isAutoApproveEnabled, setIsAutoApproveEnabled] = useState(false);
     const [isWebToolsEnabled, setIsWebToolsEnabled] = useState(false);
     const userWebSearchPreferenceRef = useRef(false);
@@ -1729,7 +1731,7 @@ const AIChat: React.FC = () => {
     }
     return (
         <>
-            {!showSettings && (
+            {!showSettings && !showMcpManager && (
                 <AIChatView style={{ position: "relative" }}>
                     {approvalOverlay.show && (
                         <ApprovalOverlay>
@@ -2216,6 +2218,7 @@ const AIChat: React.FC = () => {
                             disabled={isUsageExceeded}
                             contextUsage={showContextUsage ? contextUsage : null}
                             mcpToolsEnabled={mcpToolsEnabled}
+                            onOpenMcpManager={() => setShowMcpManager(true)}
                             runningServicesPanel={{
                                 services: runningServices,
                                 onStopService: handleStopRunningService,
@@ -2227,6 +2230,7 @@ const AIChat: React.FC = () => {
                 </AIChatView>
             )}
             {showSettings && <SettingsPanel onClose={() => setShowSettings(false)}></SettingsPanel>}
+            {showMcpManager && <McpManagerPanel onClose={() => setShowMcpManager(false)} />}
         </>
     );
 };

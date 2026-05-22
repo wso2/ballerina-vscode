@@ -639,4 +639,16 @@ export interface OpenMcpConfigRequest {
 export interface McpWorkspaceContextResponse {
     hasWorkspace: boolean;
 }
+export interface UpdateMcpServerRequest {
+    name: string;
+    scope: McpScope;
+    config: McpServerConfigDTO;
+}
+export interface DeleteMcpServerRequest {
+    name: string;
+    scope: McpScope;
+}
+export interface SetMcpToolsEnabledRequest {
+    enabled: boolean;
+}
 
