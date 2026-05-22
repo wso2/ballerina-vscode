@@ -201,15 +201,24 @@ export class McpClientManager {
         this.lastErrors = errors;
         const desiredKeys = new Set(entries.map(e => keyOf(e.scope, e.name)));
 
-        // Close servers that disappeared or whose effective enabled-state went off
-        // or whose config changed.
+        // Only delete on disappear or config change. On a just-disabled toggle
+        // we disconnect but keep the Map entry so its insertion order survives.
         for (const [key, state] of [...this.servers.entries()]) {
             const desired = entries.find(e => keyOf(e.scope, e.name) === key);
-            const stillWanted = !!desired && this.isEffectivelyEnabled(desired.scope, desired.name, desired.config);
-            const configChanged = desired && configKey(desired.config) !== configKey(state.config);
-            if (!stillWanted || configChanged) {
+            if (!desired) {
                 await this.disconnect(state);
                 this.servers.delete(key);
+                continue;
+            }
+            const enabled = this.isEffectivelyEnabled(desired.scope, desired.name, desired.config);
+            const configChanged = configKey(desired.config) !== configKey(state.config);
+            if (configChanged) {
+                await this.disconnect(state);
+                this.servers.delete(key);
+                continue;
+            }
+            if (!enabled && state.status !== "disconnected") {
+                await this.disconnect(state);
             }
         }
 
