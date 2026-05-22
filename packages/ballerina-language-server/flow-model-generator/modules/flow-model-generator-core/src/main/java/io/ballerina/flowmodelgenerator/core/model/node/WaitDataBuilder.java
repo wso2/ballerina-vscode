@@ -226,9 +226,16 @@ public class WaitDataBuilder extends CallBuilder {
             throw new IllegalStateException("At least one data entry is required");
         }
 
-        String dataParamName = addDataFieldsAndGetParam(sourceBuilder, entries);
+        if (isOptionalFlagSet(sourceBuilder)) {
+            entries = entries.stream()
+                    .map(e -> new DataWait(e.variableName, e.dataType + "?", e.dataName))
+                    .toList();
+        }
 
-        if (entries.size() > 1 || hasNonEmptyAwaitParams(sourceBuilder)) {
+        boolean useAwaitForm = entries.size() > 1 || hasNonEmptyAwaitParams(sourceBuilder);
+        String dataParamName = addDataFieldsAndGetParam(sourceBuilder, entries, useAwaitForm);
+
+        if (useAwaitForm) {
             generateAwaitCall(sourceBuilder, entries, dataParamName);
         } else {
             // Simple: type var = check wait data.dataName;
@@ -297,13 +304,23 @@ public class WaitDataBuilder extends CallBuilder {
                 .endOfStatement();
     }
 
+    private boolean isOptionalFlagSet(SourceBuilder sourceBuilder) {
+        Map<String, Property> properties = sourceBuilder.flowNode.properties();
+        if (properties == null) {
+            return false;
+        }
+        Property optionalProp = properties.get(OPTIONAL_KEY);
+        return optionalProp != null && Boolean.TRUE.equals(optionalProp.value());
+    }
+
     private boolean hasNonEmptyAwaitParams(SourceBuilder sourceBuilder) {
         Map<String, Property> properties = sourceBuilder.flowNode.properties();
         if (properties == null) {
             return false;
         }
         for (Map.Entry<String, Property> entry : properties.entrySet()) {
-            if (entry.getKey().equals(DATA_WAITS_KEY)) {
+            String key = entry.getKey();
+            if (key.equals(DATA_WAITS_KEY) || key.equals(OPTIONAL_KEY)) {
                 continue;
             }
             Property prop = entry.getValue();
@@ -320,7 +337,8 @@ public class WaitDataBuilder extends CallBuilder {
             return;
         }
         for (Map.Entry<String, Property> entry : properties.entrySet()) {
-            if (entry.getKey().equals(DATA_WAITS_KEY)) {
+            String key = entry.getKey();
+            if (key.equals(DATA_WAITS_KEY) || key.equals(OPTIONAL_KEY)) {
                 continue;
             }
             Property prop = entry.getValue();
@@ -368,7 +386,8 @@ public class WaitDataBuilder extends CallBuilder {
         return entries;
     }
 
-    private String addDataFieldsAndGetParam(SourceBuilder sourceBuilder, List<DataWait> entries) {
+    private String addDataFieldsAndGetParam(SourceBuilder sourceBuilder, List<DataWait> entries,
+                                            boolean willNeedCtx) {
         try {
             sourceBuilder.workspaceManager.loadProject(sourceBuilder.filePath);
         } catch (WorkspaceDocumentException | EventSyncException e) {
@@ -396,7 +415,7 @@ public class WaitDataBuilder extends CallBuilder {
                     + DATA_SUFFIX;
             String dataTypeName = generateUniqueDataTypeName(baseTypeName, semanticModel);
             createNewDataType(sourceBuilder, dataTypeName, entries);
-            addDataParameterToFunction(sourceBuilder, functionNode, dataTypeName);
+            addDataParameterToFunction(sourceBuilder, functionNode, dataTypeName, willNeedCtx);
             return DEFAULT_DATA_PARAM_NAME;
         }
     }
@@ -487,13 +506,16 @@ public class WaitDataBuilder extends CallBuilder {
 
     private void addDataParameterToFunction(SourceBuilder sourceBuilder,
                                             FunctionDefinitionNode functionNode,
-                                            String dataTypeName) {
+                                            String dataTypeName, boolean willNeedCtx) {
         FunctionSignatureNode signatureNode = functionNode.functionSignature();
         boolean hasExistingParams = !signatureNode.parameters().isEmpty();
         LineRange closeParenLineRange = signatureNode.closeParenToken().lineRange();
         Range insertRange = CommonUtils.toRange(closeParenLineRange.startLine());
         SourceBuilder.TokenBuilder tokenBuilder = sourceBuilder.token();
-        if (hasExistingParams) {
+        // Add comma if there are existing params OR if a ctx param will be inserted first.
+        // When both ctx and data are added to a param-less function, both edits land at
+        // the same position; the leading comma on the data edit keeps them separated.
+        if (hasExistingParams || willNeedCtx) {
             tokenBuilder.keyword(SyntaxKind.COMMA_TOKEN);
         }
         tokenBuilder

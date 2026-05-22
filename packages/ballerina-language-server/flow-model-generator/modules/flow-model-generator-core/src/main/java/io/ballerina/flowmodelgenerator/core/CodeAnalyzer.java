@@ -2436,16 +2436,20 @@ public class CodeAnalyzer extends NodeVisitor {
         String packageName = functionData.packageName();
         String moduleName = functionData.moduleName();
         String name = classSymbol.getName().orElse("");
+        // For sub-modules (e.g. "new_connection1.db"), use the package name so the label/module
+        // reflects the top-level package rather than the internal sub-module segment.
+        String effectiveModule = (kind == NodeKind.NEW_CONNECTION && packageName != null
+                && moduleName.startsWith(packageName + ".")) ? packageName : moduleName;
         nodeBuilder
                 .metadata()
                     .label(kind == NodeKind.NEW_CONNECTION ?
-                        ConnectorUtil.getConnectorName(name, moduleName) : moduleName)
+                        ConnectorUtil.getConnectorName(name, effectiveModule) : moduleName)
                     .description(functionData.description())
                     .icon(CommonUtils.generateIcon(org, packageName, functionData.version()))
                     .stepOut()
                 .codedata()
                     .org(org)
-                    .module(moduleName)
+                    .module(effectiveModule)
                     .object(name)
                     .symbol(NewConnectionBuilder.INIT_SYMBOL);
 

@@ -25,3 +25,8 @@ function bookingWorkflow1(BookingInput input, BookingWorkflowEvents events) retu
 function ctxDatasWorkflow(workflow:Context ctx, BookingWorkflowEvents events) returns error? {
 
 }
+
+@workflow:Workflow
+function noParamWorkflow() returns error? {
+
+}
