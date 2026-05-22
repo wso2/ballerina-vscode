@@ -271,6 +271,16 @@ function setupMcp(): void {
             map[scopedKey] = enabled;
             await extension.context?.globalState.update(MCP_ENABLED_OVERRIDE_KEY, map);
         },
+        async delete(scopedKey) {
+            const current = extension.context?.globalState.get<Record<string, boolean>>(MCP_ENABLED_OVERRIDE_KEY) ?? {};
+            if (!Object.prototype.hasOwnProperty.call(current, scopedKey)) return;
+            const map = { ...current };
+            delete map[scopedKey];
+            await extension.context?.globalState.update(MCP_ENABLED_OVERRIDE_KEY, map);
+        },
+        keys() {
+            return Object.keys(extension.context?.globalState.get<Record<string, boolean>>(MCP_ENABLED_OVERRIDE_KEY) ?? {});
+        },
     };
     const workspacePath = resolveProjectRootPath() || undefined;
     const workspaceTrusted = vscodeWorkspace.isTrusted;
@@ -285,7 +295,10 @@ function setupMcp(): void {
         }
     };
     // Initial connect — fire and forget; failures are recorded per-server, not thrown.
-    manager.refresh().then(pushUpdate).catch(err => console.warn('[mcp] Initial refresh failed:', err));
+    manager.refresh()
+        .then(() => manager.pruneOrphanOverrides())
+        .then(pushUpdate)
+        .catch(err => console.warn('[mcp] Initial refresh failed:', err));
     // Project-tree .mcp.json is watched too; the watcher fires whether or not
     // workspace trust has been granted, but loadMcpConfig will skip the file
     // until trust + workspace path are both set.

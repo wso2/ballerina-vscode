@@ -89,6 +89,8 @@ interface ServerState {
 export type EnabledOverrideStore = {
     get(scopedKey: string): boolean | undefined;
     set(scopedKey: string, enabled: boolean): Promise<void>;
+    delete(scopedKey: string): Promise<void>;
+    keys(): string[];
 };
 
 function transportOf(cfg: McpServerConfig): McpTransportType {
@@ -293,6 +295,22 @@ export class McpClientManager {
     async setGroupEnabled(scope: McpScope, enabled: boolean): Promise<void> {
         await this.enabledOverrides.set(`group:${scope}`, enabled);
         await this.refresh();
+    }
+
+    async deleteServerOverride(scope: McpScope, name: string): Promise<void> {
+        await this.enabledOverrides.delete(keyOf(scope, name));
+    }
+
+    /** Drop any server-scoped override keys that no longer have a matching entry in the config files. */
+    async pruneOrphanOverrides(): Promise<void> {
+        const { entries } = loadMcpConfig(this.workspacePath, this.workspaceTrusted);
+        const liveKeys = new Set(entries.map(e => keyOf(e.scope, e.name)));
+        for (const key of this.enabledOverrides.keys()) {
+            if (key.startsWith("group:")) continue;
+            if (!liveKeys.has(key)) {
+                await this.enabledOverrides.delete(key);
+            }
+        }
     }
 
     private async connect(state: ServerState): Promise<void> {

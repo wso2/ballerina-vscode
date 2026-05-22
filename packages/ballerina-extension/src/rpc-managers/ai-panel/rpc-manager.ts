@@ -1057,6 +1057,10 @@ User reverted the last made changes. The files have been restored to the state b
         } catch (err: any) {
             return { success: false, error: err?.message ?? String(err) };
         }
+        const manager = getMcpClientManager();
+        if (manager) {
+            await manager.deleteServerOverride(scope, name);
+        }
         await this.refreshAndNotify();
         return { success: true };
     }
