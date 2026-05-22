@@ -267,12 +267,32 @@ export class McpClientManager {
         await Promise.allSettled(opens);
     }
 
-    private isEffectivelyEnabled(scope: McpScope, name: string, cfg: McpServerConfig): boolean {
+    private isServerEnabled(scope: McpScope, name: string, cfg: McpServerConfig): boolean {
         const override = this.enabledOverrides.get(keyOf(scope, name));
         if (override !== undefined) {
             return override;
         }
         return cfg.disabled !== true;
+    }
+
+    isGroupEnabled(scope: McpScope): boolean {
+        return this.enabledOverrides.get(`group:${scope}`) !== false;
+    }
+
+    private isEffectivelyEnabled(scope: McpScope, name: string, cfg: McpServerConfig): boolean {
+        return this.isGroupEnabled(scope) && this.isServerEnabled(scope, name, cfg);
+    }
+
+    getGroupStates(): { user: boolean; workspace: boolean } {
+        return {
+            user: this.isGroupEnabled("user"),
+            workspace: this.isGroupEnabled("workspace"),
+        };
+    }
+
+    async setGroupEnabled(scope: McpScope, enabled: boolean): Promise<void> {
+        await this.enabledOverrides.set(`group:${scope}`, enabled);
+        await this.refresh();
     }
 
     private async connect(state: ServerState): Promise<void> {
@@ -373,7 +393,7 @@ export class McpClientManager {
                 name: state.name,
                 scope: state.scope,
                 transport: state.transport,
-                enabled: this.isEffectivelyEnabled(state.scope, state.name, state.config),
+                enabled: this.isServerEnabled(state.scope, state.name, state.config),
                 status: state.status,
                 error: state.error,
                 tools: state.tools.map<McpToolSummary>(t => ({ name: t.name, description: t.description })),

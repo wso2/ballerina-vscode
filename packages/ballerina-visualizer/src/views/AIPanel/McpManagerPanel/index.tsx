@@ -20,7 +20,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import styled from "@emotion/styled";
 import { Button, Codicon } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { McpLoadErrorsDTO, McpScope, McpServerConfigDTO, McpServerStatusDTO } from "@wso2/ballerina-core";
+import { McpGroupStatesDTO, McpLoadErrorsDTO, McpScope, McpServerConfigDTO, McpServerStatusDTO } from "@wso2/ballerina-core";
 
 import { AIChatView, DangerActionButton, PrimaryActionButton, SecondaryActionButton } from "../styles";
 import AddMcpServerModal from "../components/AIChatInput/AddMcpServerModal";
@@ -382,10 +382,13 @@ const ToggleSwitch = styled.button<{ on: boolean }>`
         background: var(--vscode-foreground);
         transition: left 0.15s;
     }
+
+    &:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
 `;
 
-// Card-row action buttons reuse the shared AI-panel button system
-// (Secondary = Edit/Cancel, Danger = Delete). Aliased locally for readability.
 const ActionButton = SecondaryActionButton;
 const DeleteButton = DangerActionButton;
 
@@ -426,6 +429,8 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
     const [collapsedSections, setCollapsedSections] = useState<Set<McpScope>>(new Set());
     const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
     const [pendingToggle, setPendingToggle] = useState<Set<string>>(new Set());
+    const [groupStates, setGroupStates] = useState<McpGroupStatesDTO>({ user: true, workspace: true });
+    const [pendingGroups, setPendingGroups] = useState<Set<McpScope>>(new Set());
     const [showAddModal, setShowAddModal] = useState(false);
     const [editTarget, setEditTarget] = useState<EditTarget | null>(null);
     // True while we're waiting for the first server list after toggling MCP
@@ -442,6 +447,7 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
             .then(list => { if (!cancelled) { setServers(list); setTogglePending(false); } })
             .catch(() => { if (!cancelled) setTogglePending(false); });
         api.getMcpLoadErrors().then(errs => !cancelled && setLoadErrors(errs)).catch(() => { /* noop */ });
+        api.getMcpGroupStates().then(g => !cancelled && setGroupStates(g)).catch(() => { /* noop */ });
         const disposeServers = rpcClient.onMcpServersChanged((list: McpServerStatusDTO[]) => {
             if (cancelled) return;
             setServers(list);
@@ -451,10 +457,16 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
         const disposeErrors = rpcClient.onMcpLoadErrorsChanged((errs: McpLoadErrorsDTO) => {
             if (!cancelled) setLoadErrors(errs);
         });
+        const disposeGroups = rpcClient.onMcpGroupStatesChanged((g: McpGroupStatesDTO) => {
+            if (cancelled) return;
+            setGroupStates(g);
+            setPendingGroups(new Set());
+        });
         return () => {
             cancelled = true;
             disposeServers();
             disposeErrors();
+            disposeGroups();
         };
     }, [rpcClient]);
 
@@ -524,6 +536,28 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
         }
     };
 
+    const handleToggleGroup = async (scope: McpScope) => {
+        if (pendingGroups.has(scope)) return;
+        const next = !groupStates[scope];
+        setPendingGroups(prev => new Set(prev).add(scope));
+        window.setTimeout(() => setPendingGroups(prev => {
+            if (!prev.has(scope)) return prev;
+            const ns = new Set(prev);
+            ns.delete(scope);
+            return ns;
+        }), 8000);
+        try {
+            await rpcClient.getAiPanelRpcClient().setMcpGroupEnabled({ scope, enabled: next });
+        } catch (err) {
+            console.warn("[mcp] setMcpGroupEnabled failed:", err);
+            setPendingGroups(prev => {
+                const ns = new Set(prev);
+                ns.delete(scope);
+                return ns;
+            });
+        }
+    };
+
     const handleOpenJsonUser = () => rpcClient.getAiPanelRpcClient().openMcpConfig({ scope: "user" });
     const handleOpenJsonProject = () => rpcClient.getAiPanelRpcClient().openMcpConfig({ scope: "workspace" });
 
@@ -554,6 +588,7 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
         const isExpanded = expanded.has(key);
         const isConfirming = confirmDelete === key;
         const isTogglePending = pendingToggle.has(key);
+        const groupActive = groupStates[s.scope];
         const toolCount = s.tools.length;
         const subline = s.status === "connected"
             ? `${s.transport} · ${toolCount} tool${toolCount === 1 ? "" : "s"}`
@@ -576,8 +611,8 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
                         <ToggleSwitch
                             type="button"
                             on={s.enabled}
-                            disabled={isTogglePending}
-                            title={s.enabled ? "Disable this server" : "Enable this server"}
+                            disabled={isTogglePending || !groupActive}
+                            title={!groupActive ? `${scopeHeading(s.scope)} group is off — enable the group to change individual servers` : s.enabled ? "Disable this server" : "Enable this server"}
                             onClick={() => handleToggleServer(s)}
                         />
                     )}
@@ -647,6 +682,8 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
         }
         const jsonDisabled = scope === "workspace" && !hasWorkspace;
         const isCollapsed = collapsedSections.has(scope);
+        const groupOn = groupStates[scope];
+        const groupPending = pendingGroups.has(scope);
         return (
             <Section key={scope}>
                 <SectionHeader>
@@ -658,6 +695,18 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
                         <span className={`codicon codicon-${isCollapsed ? "chevron-right" : "chevron-down"}`} />
                         {scopeHeading(scope)} ({items.length})
                     </SectionTitleButton>
+                    {groupPending ? (
+                        <TogglePendingSlot title={groupOn ? "Disabling group…" : "Enabling group…"}>
+                            <span className="codicon codicon-loading codicon-modifier-spin" style={{ fontSize: 12 }} />
+                        </TogglePendingSlot>
+                    ) : (
+                        <ToggleSwitch
+                            type="button"
+                            on={groupOn}
+                            title={groupOn ? `Disable all ${scopeHeading(scope).toLowerCase()} servers` : `Enable all ${scopeHeading(scope).toLowerCase()} servers`}
+                            onClick={() => handleToggleGroup(scope)}
+                        />
+                    )}
                     <SectionDivider />
                     <Button
                         appearance="icon"

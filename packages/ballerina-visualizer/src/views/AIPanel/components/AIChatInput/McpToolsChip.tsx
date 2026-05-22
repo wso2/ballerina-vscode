@@ -18,7 +18,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import styled from "@emotion/styled";
-import { McpLoadErrorsDTO, McpScope, McpServerStatusDTO } from "@wso2/ballerina-core";
+import { McpGroupStatesDTO, McpLoadErrorsDTO, McpScope, McpServerStatusDTO } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ExperimentalTag } from "../ExperimentalTag";
 import { Loader } from "../Loader";
@@ -191,12 +191,32 @@ const ScrollBody = styled.div`
 `;
 
 const GroupLabel = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 6px;
     font-size: 9px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     color: var(--vscode-descriptionForeground);
     padding: 6px 4px 2px;
+`;
+
+const GroupOffBadge = styled.span`
+    display: inline-flex;
+    align-items: center;
+    padding: 0 5px;
+    height: 13px;
+    border-radius: 3px;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: var(--vscode-descriptionForeground);
+    background: transparent;
+    border: 1px solid var(--vscode-descriptionForeground);
+    opacity: 0.75;
+    text-transform: uppercase;
+    cursor: help;
 `;
 
 const WarningBanner = styled.button`
@@ -340,6 +360,7 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
     // from flashing while the backend is still spawning MCP clients.
     const [togglePending, setTogglePending] = useState(false);
     const [pendingToggle, setPendingToggle] = useState<Set<string>>(new Set());
+    const [groupStates, setGroupStates] = useState<McpGroupStatesDTO>({ user: true, workspace: true });
     const showTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -366,6 +387,9 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
         api.getMcpLoadErrors().then((errs) => {
             if (!cancelled) setLoadErrors(errs);
         }).catch((err) => console.warn("[mcp] getMcpLoadErrors failed:", err));
+        api.getMcpGroupStates().then((g) => {
+            if (!cancelled) setGroupStates(g);
+        }).catch((err) => console.warn("[mcp] getMcpGroupStates failed:", err));
         const disposeServers = rpcClient.onMcpServersChanged((list: McpServerStatusDTO[]) => {
             if (cancelled) return;
             setServers(list);
@@ -375,11 +399,15 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
         const disposeErrors = rpcClient.onMcpLoadErrorsChanged((errs: McpLoadErrorsDTO) => {
             if (!cancelled) setLoadErrors(errs);
         });
+        const disposeGroups = rpcClient.onMcpGroupStatesChanged((g: McpGroupStatesDTO) => {
+            if (!cancelled) setGroupStates(g);
+        });
         return () => {
             cancelled = true;
             window.clearTimeout(fallback);
             disposeServers();
             disposeErrors();
+            disposeGroups();
         };
     }, [rpcClient, mcpToolsEnabled]);
 
@@ -556,10 +584,18 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
                             ) : (
                                 grouped.map((group) => (
                                     <React.Fragment key={group[0].scope}>
-                                        <GroupLabel>{group[0].scope === "workspace" ? "Project" : "User"}</GroupLabel>
+                                        <GroupLabel>
+                                            <span>{group[0].scope === "workspace" ? "Project" : "User"}</span>
+                                            {!groupStates[group[0].scope] && (
+                                                <GroupOffBadge title="Open the Manage panel to enable this group">
+                                                    Disabled
+                                                </GroupOffBadge>
+                                            )}
+                                        </GroupLabel>
                                         {group.map((s) => {
                                             const rowKey = `${s.scope}:${s.name}`;
                                             const rowPending = pendingToggle.has(rowKey);
+                                            const groupActive = groupStates[s.scope];
                                             return (
                                             <ServerRow key={rowKey}>
                                                 <StatusDot status={s.status} />
@@ -575,8 +611,8 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
                                                 <ToggleSwitch
                                                     type="button"
                                                     on={s.enabled}
-                                                    disabled={rowPending}
-                                                    title={s.enabled ? "Disable this server" : "Enable this server"}
+                                                    disabled={rowPending || !groupActive}
+                                                    title={!groupActive ? `${s.scope === "workspace" ? "Project" : "User"} group is off — enable the group to change individual servers` : s.enabled ? "Disable this server" : "Enable this server"}
                                                     onClick={() => handleToggleServer(s.scope, s.name, s.enabled)}
                                                 />
                                                 )}

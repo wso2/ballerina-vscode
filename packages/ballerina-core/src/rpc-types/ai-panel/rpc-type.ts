@@ -68,6 +68,8 @@ import {
     DeleteMcpServerRequest,
     SetMcpToolsEnabledRequest,
     McpLoadErrorsDTO,
+    McpGroupStatesDTO,
+    SetMcpGroupEnabledRequest,
 } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
@@ -143,3 +145,6 @@ export const getMcpWorkspaceContext: RequestType<void, McpWorkspaceContextRespon
 export const getMcpLoadErrors: RequestType<void, McpLoadErrorsDTO> = { method: `${_preFix}/getMcpLoadErrors` };
 export const mcpServersChanged: NotificationType<McpServerStatusDTO[]> = { method: `${_preFix}/mcpServersChanged` };
 export const mcpLoadErrorsChanged: NotificationType<McpLoadErrorsDTO> = { method: `${_preFix}/mcpLoadErrorsChanged` };
+export const getMcpGroupStates: RequestType<void, McpGroupStatesDTO> = { method: `${_preFix}/getMcpGroupStates` };
+export const setMcpGroupEnabled: RequestType<SetMcpGroupEnabledRequest, void> = { method: `${_preFix}/setMcpGroupEnabled` };
+export const mcpGroupStatesChanged: NotificationType<McpGroupStatesDTO> = { method: `${_preFix}/mcpGroupStatesChanged` };

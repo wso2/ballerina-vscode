@@ -658,4 +658,13 @@ export interface McpLoadErrorsDTO {
     user?: string;
     workspace?: string;
 }
+/** Per-scope group enable state. ANDs with each server's own intent to decide the effective state. */
+export interface McpGroupStatesDTO {
+    user: boolean;
+    workspace: boolean;
+}
+export interface SetMcpGroupEnabledRequest {
+    scope: McpScope;
+    enabled: boolean;
+}
 

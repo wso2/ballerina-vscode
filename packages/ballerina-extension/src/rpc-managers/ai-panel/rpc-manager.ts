@@ -65,10 +65,12 @@ import {
     DeleteMcpServerRequest,
     SetMcpToolsEnabledRequest,
     McpLoadErrorsDTO,
+    McpGroupStatesDTO,
+    SetMcpGroupEnabledRequest,
 } from "@wso2/ballerina-core";
 import { ConfigurationTarget } from "vscode";
 import { getMcpClientManager, ensureMcpConfigFileExists, writeMcpServer, updateMcpServer, deleteMcpServer } from "../../features/ai/agent/mcp";
-import { notifyMcpServersChanged, notifyMcpLoadErrorsChanged } from "../../RPCLayer";
+import { notifyMcpServersChanged, notifyMcpLoadErrorsChanged, notifyMcpGroupStatesChanged } from "../../RPCLayer";
 import * as os from "os";
 import * as fs from 'fs';
 import path from "path";
@@ -952,6 +954,24 @@ User reverted the last made changes. The files have been restored to the state b
             return {};
         }
         return manager.getLoadErrors();
+    }
+
+    async getMcpGroupStates(): Promise<McpGroupStatesDTO> {
+        const manager = getMcpClientManager();
+        if (!manager) {
+            return { user: true, workspace: true };
+        }
+        return manager.getGroupStates();
+    }
+
+    async setMcpGroupEnabled(params: SetMcpGroupEnabledRequest): Promise<void> {
+        const manager = getMcpClientManager();
+        if (!manager) {
+            return;
+        }
+        await manager.setGroupEnabled(params.scope, params.enabled);
+        notifyMcpServersChanged(manager.listServers());
+        notifyMcpGroupStatesChanged(manager.getGroupStates());
     }
 
     async addMcpServer(params: AddMcpServerRequest): Promise<AddMcpServerResponse> {

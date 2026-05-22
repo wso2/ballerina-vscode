@@ -66,6 +66,8 @@ import {
     DeleteMcpServerRequest,
     SetMcpToolsEnabledRequest,
     McpLoadErrorsDTO,
+    McpGroupStatesDTO,
+    SetMcpGroupEnabledRequest,
 } from "./interfaces";
 
 export interface AIPanelAPI {
@@ -163,4 +165,6 @@ export interface AIPanelAPI {
     getMcpToolsEnabled: () => Promise<boolean>;
     getMcpWorkspaceContext: () => Promise<McpWorkspaceContextResponse>;
     getMcpLoadErrors: () => Promise<McpLoadErrorsDTO>;
+    getMcpGroupStates: () => Promise<McpGroupStatesDTO>;
+    setMcpGroupEnabled: (params: SetMcpGroupEnabledRequest) => Promise<void>;
 }
