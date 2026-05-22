@@ -225,7 +225,7 @@ const AIChat: React.FC = () => {
     const [currentFileArray, setCurrentFileArray] = useState<SourceFile[]>([]);
     const [codeContext, setCodeContext] = useState<CodeContext | undefined>(undefined);
     const [footerSuggestedCommandTemplates, setFooterSuggestedCommandTemplates] = useState<AIPanelPrompt[] | undefined>(undefined);
-    const [footerInputPlaceholder, setFooterInputPlaceholder] = useState("Describe your integration...");
+    const [footerInputPlaceholder, setFooterInputPlaceholder] = useState<string | null>(null);
 
     const [migrationSession, setMigrationSession] = useState<ActiveMigrationSession | null>(null);
     const [isMigrationEnhancementRunning, setIsMigrationEnhancementRunning] = useState(false);
@@ -296,7 +296,7 @@ const AIChat: React.FC = () => {
                             const textPrompt = defaultPrompt;
                             setAgentMode(defaultPrompt.planMode ? AgentMode.Plan : AgentMode.Edit);
                             setFooterSuggestedCommandTemplates(textPrompt.suggestedCommandTemplates);
-                            setFooterInputPlaceholder(textPrompt.inputPlaceholder ?? "Describe your integration...");
+                            setFooterInputPlaceholder(textPrompt.inputPlaceholder ?? null);
 
                             if (defaultPrompt.autoSubmit && defaultPrompt.text.trim().length > 0) {
                                 void handleSend({
@@ -307,7 +307,7 @@ const AIChat: React.FC = () => {
                             }
                         } else {
                             setFooterSuggestedCommandTemplates(undefined);
-                            setFooterInputPlaceholder("Describe your integration...");
+                            setFooterInputPlaceholder(null);
                         }
 
                         aiChatInputRef.current?.setInputContent(defaultPrompt);
@@ -2188,7 +2188,14 @@ const AIChat: React.FC = () => {
                                 handleAttachmentSelection: handleAttachmentSelection,
                             }}
                             suggestedCommandTemplates={footerSuggestedCommandTemplates}
-                            inputPlaceholder={footerInputPlaceholder}
+                            inputPlaceholder={
+                                footerInputPlaceholder ??
+                                (agentMode === AgentMode.Plan
+                                    ? "Describe what you'd like to plan and build…"
+                                    : messages.length === 0
+                                        ? "Describe the change you'd like to make…"
+                                        : "Describe what to change next…")
+                            }
                             onSend={handleSend}
                             onStop={handleStop}
                             isLoading={isLoading}
