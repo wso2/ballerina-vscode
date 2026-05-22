@@ -421,7 +421,7 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
                                     type="text"
                                     value={command}
                                     onChange={(e) => setCommand(e.target.value)}
-                                    placeholder="npx"
+                                    placeholder="e.g. npx, uvx, python"
                                 />
                             </FieldGroup>
                             <FieldGroup>
@@ -431,7 +431,7 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
                                     type="text"
                                     value={argsText}
                                     onChange={(e) => setArgsText(e.target.value)}
-                                    placeholder="-y @modelcontextprotocol/server-everything"
+                                    placeholder="e.g. -y your-mcp-package"
                                 />
                                 <Hint>Space-separated. Use Edit config for arguments containing spaces.</Hint>
                             </FieldGroup>
