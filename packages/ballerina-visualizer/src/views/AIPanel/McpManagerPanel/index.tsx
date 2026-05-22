@@ -22,7 +22,7 @@ import { Button, Codicon } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { McpLoadErrorsDTO, McpScope, McpServerConfigDTO, McpServerStatusDTO } from "@wso2/ballerina-core";
 
-import { AIChatView } from "../styles";
+import { AIChatView, DangerActionButton, PrimaryActionButton, SecondaryActionButton } from "../styles";
 import AddMcpServerModal from "../components/AIChatInput/AddMcpServerModal";
 import { ExperimentalTag } from "../components/ExperimentalTag";
 
@@ -60,6 +60,14 @@ const HeaderActions = styled.div`
     display: inline-flex;
     align-items: center;
     gap: 8px;
+`;
+
+const HeaderDivider = styled.div`
+    width: 1px;
+    height: 14px;
+    background: var(--vscode-widget-border, var(--vscode-panel-border));
+    opacity: 0.6;
+    flex-shrink: 0;
 `;
 
 const HeaderInlineToggle = styled.button<{ on: boolean }>`
@@ -316,34 +324,10 @@ const ToggleSwitch = styled.button<{ on: boolean }>`
     }
 `;
 
-const ActionButton = styled.button`
-    background: transparent;
-    color: var(--vscode-foreground);
-    border: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
-    border-radius: 3px;
-    padding: 3px 10px;
-    font-size: 11px;
-    font-family: var(--vscode-font-family);
-    cursor: pointer;
-
-    &:hover:not(:disabled) {
-        background: var(--vscode-toolbar-hoverBackground);
-    }
-
-    &:disabled {
-        opacity: 0.5;
-        cursor: default;
-    }
-`;
-
-const DeleteButton = styled(ActionButton)`
-    color: var(--vscode-errorForeground);
-    border-color: var(--vscode-errorForeground);
-
-    &:hover:not(:disabled) {
-        background: var(--vscode-inputValidation-errorBackground, rgba(255, 0, 0, 0.08));
-    }
-`;
+// Card-row action buttons reuse the shared AI-panel button system
+// (Secondary = Edit/Cancel, Danger = Delete). Aliased locally for readability.
+const ActionButton = SecondaryActionButton;
+const DeleteButton = DangerActionButton;
 
 const ConfirmRow = styled.div`
     display: flex;
@@ -416,6 +400,25 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
             setMcpToolsEnabled(prev => !prev);
         } catch (err) {
             console.warn("[mcp] setMcpToolsEnabled failed:", err);
+        }
+    };
+
+    const [reloading, setReloading] = useState(false);
+    const handleReload = async () => {
+        setReloading(true);
+        try {
+            const api = rpcClient.getAiPanelRpcClient();
+            const [list, errs] = await Promise.all([
+                api.listMcpServers(),
+                api.getMcpLoadErrors(),
+            ]);
+            setServers(list);
+            setLoadErrors(errs);
+        } catch (err) {
+            console.warn("[mcp] reload failed:", err);
+        } finally {
+            // Brief spin so the user sees the action happened even on fast networks.
+            setTimeout(() => setReloading(false), 300);
         }
     };
 
@@ -552,22 +555,32 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
                 <TitleGroup>
                     <PanelTitle>MCP Servers</PanelTitle>
                     <ExperimentalTag size="sm" tooltip="MCP tool support is experimental and may change." />
-                </TitleGroup>
-                <HeaderActions>
-                    <Button
-                        appearance="primary"
-                        disabled={!mcpToolsEnabled}
-                        onClick={() => setShowAddModal(true)}
-                        tooltip="Add a new MCP server"
-                    >
-                        + Add server
-                    </Button>
                     <HeaderInlineToggle
                         type="button"
                         on={mcpToolsEnabled}
                         title={mcpToolsEnabled ? "Disable MCP" : "Enable MCP"}
                         onClick={handleToggleGlobal}
                     />
+                </TitleGroup>
+                <HeaderDivider />
+                <HeaderActions>
+                    <Button
+                        appearance="icon"
+                        tooltip="Reload servers"
+                        disabled={!mcpToolsEnabled || reloading}
+                        onClick={handleReload}
+                    >
+                        <span className={`codicon codicon-refresh${reloading ? " codicon-modifier-spin" : ""}`} />
+                    </Button>
+                    <PrimaryActionButton
+                        type="button"
+                        disabled={!mcpToolsEnabled}
+                        onClick={() => setShowAddModal(true)}
+                        title="Add a new MCP server"
+                    >
+                        <span className="codicon codicon-add" style={{ fontSize: 12 }} />
+                        Add server
+                    </PrimaryActionButton>
                 </HeaderActions>
             </PanelHeader>
 
