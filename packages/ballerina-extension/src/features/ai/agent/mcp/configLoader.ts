@@ -291,6 +291,6 @@ export function watchMcpConfig(workspacePath: string | undefined, onChange: () =
     }
 
     return () => {
-        for (const d of disposers) d();
+        for (const d of disposers) { d(); }
     };
 }

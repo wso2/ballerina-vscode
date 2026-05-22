@@ -306,7 +306,7 @@ export class McpClientManager {
         const { entries } = loadMcpConfig(this.workspacePath, this.workspaceTrusted);
         const liveKeys = new Set(entries.map(e => keyOf(e.scope, e.name)));
         for (const key of this.enabledOverrides.keys()) {
-            if (key.startsWith("group:")) continue;
+            if (key.startsWith("group:")) { continue; }
             if (!liveKeys.has(key)) {
                 await this.enabledOverrides.delete(key);
             }

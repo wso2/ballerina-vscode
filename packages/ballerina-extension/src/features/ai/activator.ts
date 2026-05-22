@@ -273,7 +273,7 @@ function setupMcp(): void {
         },
         async delete(scopedKey) {
             const current = extension.context?.globalState.get<Record<string, boolean>>(MCP_ENABLED_OVERRIDE_KEY) ?? {};
-            if (!Object.prototype.hasOwnProperty.call(current, scopedKey)) return;
+            if (!Object.prototype.hasOwnProperty.call(current, scopedKey)) { return; }
             const map = { ...current };
             delete map[scopedKey];
             await extension.context?.globalState.update(MCP_ENABLED_OVERRIDE_KEY, map);
