@@ -263,6 +263,16 @@ const ServerSubline = styled.div`
     white-space: nowrap;
 `;
 
+const TogglePendingSlot = styled.span`
+    width: 30px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--vscode-descriptionForeground);
+    flex-shrink: 0;
+`;
+
 const ToggleSwitch = styled.button<{ on: boolean; disabled?: boolean }>`
     width: 26px;
     height: 14px;
@@ -329,6 +339,7 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
     // (on mount or after toggle on). Prevents the "No servers" empty-state
     // from flashing while the backend is still spawning MCP clients.
     const [togglePending, setTogglePending] = useState(false);
+    const [pendingToggle, setPendingToggle] = useState<Set<string>>(new Set());
     const showTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -359,6 +370,7 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
             if (cancelled) return;
             setServers(list);
             setTogglePending(false);
+            setPendingToggle(new Set());
         });
         const disposeErrors = rpcClient.onMcpLoadErrorsChanged((errs: McpLoadErrorsDTO) => {
             if (!cancelled) setLoadErrors(errs);
@@ -418,7 +430,25 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
     };
 
     const handleToggleServer = async (scope: McpScope, name: string, currentEnabled: boolean) => {
-        await rpcClient.getAiPanelRpcClient().setMcpServerEnabled({ scope, name, enabled: !currentEnabled });
+        const key = `${scope}:${name}`;
+        if (pendingToggle.has(key)) return;
+        setPendingToggle(prev => new Set(prev).add(key));
+        window.setTimeout(() => setPendingToggle(prev => {
+            if (!prev.has(key)) return prev;
+            const next = new Set(prev);
+            next.delete(key);
+            return next;
+        }), 8000);
+        try {
+            await rpcClient.getAiPanelRpcClient().setMcpServerEnabled({ scope, name, enabled: !currentEnabled });
+        } catch (err) {
+            console.warn("[mcp] setMcpServerEnabled failed:", err);
+            setPendingToggle(prev => {
+                const next = new Set(prev);
+                next.delete(key);
+                return next;
+            });
+        }
     };
 
     const handleToggleGlobal = async () => {
@@ -527,21 +557,32 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
                                 grouped.map((group) => (
                                     <React.Fragment key={group[0].scope}>
                                         <GroupLabel>{group[0].scope === "workspace" ? "Project" : "User"}</GroupLabel>
-                                        {group.map((s) => (
-                                            <ServerRow key={`${s.scope}:${s.name}`}>
+                                        {group.map((s) => {
+                                            const rowKey = `${s.scope}:${s.name}`;
+                                            const rowPending = pendingToggle.has(rowKey);
+                                            return (
+                                            <ServerRow key={rowKey}>
                                                 <StatusDot status={s.status} />
                                                 <ServerMeta>
                                                     <ServerName title={s.name}>{s.name}</ServerName>
                                                     <ServerSubline title={transportLabel(s)}>{transportLabel(s)}</ServerSubline>
                                                 </ServerMeta>
+                                                {rowPending ? (
+                                                    <TogglePendingSlot title={s.enabled ? "Disabling…" : "Enabling…"}>
+                                                        <span className="codicon codicon-loading codicon-modifier-spin" style={{ fontSize: 12 }} />
+                                                    </TogglePendingSlot>
+                                                ) : (
                                                 <ToggleSwitch
                                                     type="button"
                                                     on={s.enabled}
+                                                    disabled={rowPending}
                                                     title={s.enabled ? "Disable this server" : "Enable this server"}
                                                     onClick={() => handleToggleServer(s.scope, s.name, s.enabled)}
                                                 />
+                                                )}
                                             </ServerRow>
-                                        ))}
+                                            );
+                                        })}
                                     </React.Fragment>
                                 ))
                             )}

@@ -346,6 +346,16 @@ const ActionRow = styled.div`
     margin-top: 4px;
 `;
 
+const TogglePendingSlot = styled.span`
+    width: 30px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--vscode-descriptionForeground);
+    flex-shrink: 0;
+`;
+
 const ToggleSwitch = styled.button<{ on: boolean }>`
     width: 30px;
     height: 16px;
@@ -415,6 +425,7 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
     const [expanded, setExpanded] = useState<Set<string>>(new Set());
     const [collapsedSections, setCollapsedSections] = useState<Set<McpScope>>(new Set());
     const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+    const [pendingToggle, setPendingToggle] = useState<Set<string>>(new Set());
     const [showAddModal, setShowAddModal] = useState(false);
     const [editTarget, setEditTarget] = useState<EditTarget | null>(null);
     // True while we're waiting for the first server list after toggling MCP
@@ -435,6 +446,7 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
             if (cancelled) return;
             setServers(list);
             setTogglePending(false);
+            setPendingToggle(new Set());
         });
         const disposeErrors = rpcClient.onMcpLoadErrorsChanged((errs: McpLoadErrorsDTO) => {
             if (!cancelled) setLoadErrors(errs);
@@ -491,7 +503,25 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
     };
 
     const handleToggleServer = async (s: McpServerStatusDTO) => {
-        await rpcClient.getAiPanelRpcClient().setMcpServerEnabled({ scope: s.scope, name: s.name, enabled: !s.enabled });
+        const key = `${s.scope}:${s.name}`;
+        if (pendingToggle.has(key)) return;
+        setPendingToggle(prev => new Set(prev).add(key));
+        window.setTimeout(() => setPendingToggle(prev => {
+            if (!prev.has(key)) return prev;
+            const next = new Set(prev);
+            next.delete(key);
+            return next;
+        }), 8000);
+        try {
+            await rpcClient.getAiPanelRpcClient().setMcpServerEnabled({ scope: s.scope, name: s.name, enabled: !s.enabled });
+        } catch (err) {
+            console.warn("[mcp] setMcpServerEnabled failed:", err);
+            setPendingToggle(prev => {
+                const next = new Set(prev);
+                next.delete(key);
+                return next;
+            });
+        }
     };
 
     const handleOpenJsonUser = () => rpcClient.getAiPanelRpcClient().openMcpConfig({ scope: "user" });
@@ -523,6 +553,7 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
         const key = `${s.scope}:${s.name}`;
         const isExpanded = expanded.has(key);
         const isConfirming = confirmDelete === key;
+        const isTogglePending = pendingToggle.has(key);
         const toolCount = s.tools.length;
         const subline = s.status === "connected"
             ? `${s.transport} · ${toolCount} tool${toolCount === 1 ? "" : "s"}`
@@ -537,12 +568,19 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
                 <CardHeader>
                     <StatusDot status={s.status} />
                     <CardName title={s.name}>{s.name}</CardName>
-                    <ToggleSwitch
-                        type="button"
-                        on={s.enabled}
-                        title={s.enabled ? "Disable this server" : "Enable this server"}
-                        onClick={() => handleToggleServer(s)}
-                    />
+                    {isTogglePending ? (
+                        <TogglePendingSlot title={s.enabled ? "Disabling…" : "Enabling…"}>
+                            <span className="codicon codicon-loading codicon-modifier-spin" style={{ fontSize: 12 }} />
+                        </TogglePendingSlot>
+                    ) : (
+                        <ToggleSwitch
+                            type="button"
+                            on={s.enabled}
+                            disabled={isTogglePending}
+                            title={s.enabled ? "Disable this server" : "Enable this server"}
+                            onClick={() => handleToggleServer(s)}
+                        />
+                    )}
                 </CardHeader>
                 <CardSubline>{subline}{s.shadowed ? " · shadowed by project" : ""}</CardSubline>
                 {s.status === "failed" && s.error && <CardError>{s.error}</CardError>}
