@@ -117,18 +117,30 @@ const Section = styled.div`
 
 const SectionHeader = styled.div`
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: 8px;
     margin-bottom: 4px;
 `;
 
-const SectionTitle = styled.h3`
+const SectionTitleButton = styled.button`
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: transparent;
+    border: none;
+    padding: 2px 0;
+    margin: 0;
+    cursor: pointer;
+    color: var(--vscode-descriptionForeground);
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: var(--vscode-descriptionForeground);
-    margin: 0;
+    font-family: var(--vscode-font-family);
+
+    &:hover { color: var(--vscode-foreground); }
+
+    .codicon { font-size: 12px; }
 `;
 
 const SectionDivider = styled.div`
@@ -215,6 +227,8 @@ const CardName = styled.span`
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    /* Fill remaining space so the per-server toggle anchors to the card's
+       right edge — consistent x-position across rows for fast scanning. */
     flex: 1;
     min-width: 0;
 `;
@@ -399,6 +413,7 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
     const [mcpToolsEnabled, setMcpToolsEnabled] = useState(false);
     const [hasWorkspace, setHasWorkspace] = useState(false);
     const [expanded, setExpanded] = useState<Set<string>>(new Set());
+    const [collapsedSections, setCollapsedSections] = useState<Set<McpScope>>(new Set());
     const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
     const [showAddModal, setShowAddModal] = useState(false);
     const [editTarget, setEditTarget] = useState<EditTarget | null>(null);
@@ -522,6 +537,12 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
                 <CardHeader>
                     <StatusDot status={s.status} />
                     <CardName title={s.name}>{s.name}</CardName>
+                    <ToggleSwitch
+                        type="button"
+                        on={s.enabled}
+                        title={s.enabled ? "Disable this server" : "Enable this server"}
+                        onClick={() => handleToggleServer(s)}
+                    />
                 </CardHeader>
                 <CardSubline>{subline}{s.shadowed ? " · shadowed by project" : ""}</CardSubline>
                 {s.status === "failed" && s.error && <CardError>{s.error}</CardError>}
@@ -562,12 +583,6 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
                         </ConfirmRow>
                     ) : (
                         <>
-                            <ToggleSwitch
-                                type="button"
-                                on={s.enabled}
-                                title={s.enabled ? "Disable" : "Enable"}
-                                onClick={() => handleToggleServer(s)}
-                            />
                             <Spacer />
                             <ActionButton type="button" onClick={() => handleEdit(s)}>Edit</ActionButton>
                             <DeleteButton type="button" onClick={() => setConfirmDelete(key)}>Delete</DeleteButton>
@@ -578,6 +593,14 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
         );
     };
 
+    const toggleSectionCollapsed = (scope: McpScope) => {
+        setCollapsedSections(prev => {
+            const next = new Set(prev);
+            if (next.has(scope)) next.delete(scope); else next.add(scope);
+            return next;
+        });
+    };
+
     /** Render a section only when it has servers. Empty sections collapse to nothing. */
     const renderSection = (scope: McpScope) => {
         const items = grouped.get(scope) ?? [];
@@ -585,10 +608,18 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
             return null;
         }
         const jsonDisabled = scope === "workspace" && !hasWorkspace;
+        const isCollapsed = collapsedSections.has(scope);
         return (
             <Section key={scope}>
                 <SectionHeader>
-                    <SectionTitle>{scopeHeading(scope)} ({items.length})</SectionTitle>
+                    <SectionTitleButton
+                        type="button"
+                        onClick={() => toggleSectionCollapsed(scope)}
+                        title={isCollapsed ? "Expand section" : "Collapse section"}
+                    >
+                        <span className={`codicon codicon-${isCollapsed ? "chevron-right" : "chevron-down"}`} />
+                        {scopeHeading(scope)} ({items.length})
+                    </SectionTitleButton>
                     <SectionDivider />
                     <Button
                         appearance="icon"
@@ -599,7 +630,7 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
                         <Codicon name="go-to-file" />
                     </Button>
                 </SectionHeader>
-                {items.map(renderCard)}
+                {!isCollapsed && items.map(renderCard)}
             </Section>
         );
     };
