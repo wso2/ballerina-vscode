@@ -48,6 +48,11 @@ export interface McpToolSummary {
     description?: string;
 }
 
+/** DTO-shaped variant: `type` is required, internal `disabled` flag is dropped. */
+export type NormalisedMcpServerConfig =
+    | { type: "stdio"; command: string; args?: string[]; env?: Record<string, string> }
+    | { type: "http"; url: string; headers?: Record<string, string> };
+
 export interface McpServerStatus {
     name: string;
     scope: McpScope;
@@ -56,6 +61,8 @@ export interface McpServerStatus {
     status: McpConnectionStatus;
     error?: string;
     tools: McpToolSummary[];
+    /** Raw config as stored on disk — used by the Edit dialog to pre-fill fields. */
+    config: NormalisedMcpServerConfig;
     /** True when this server is shadowed by a same-named workspace-scope server. */
     shadowed?: boolean;
 }

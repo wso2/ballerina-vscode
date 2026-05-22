@@ -393,15 +393,7 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
     const handleOpenJsonProject = () => rpcClient.getAiPanelRpcClient().openMcpConfig({ scope: "workspace" });
 
     const handleEdit = (s: McpServerStatusDTO) => {
-        // We don't currently have the raw config in the DTO. For v1, pre-fill from
-        // the runtime info we have (transport + tool count is observable). The
-        // raw command/url/env/headers aren't on the DTO. So Edit reuses the
-        // dialog as-is — user re-enters command/url. This is a known v1 limitation;
-        // a later refinement will pipe raw config through `listMcpServers`.
-        const placeholder: McpServerConfigDTO = s.transport === "stdio"
-            ? { type: "stdio", command: "" }
-            : { type: "http", url: "" };
-        setEditTarget({ name: s.name, scope: s.scope, config: placeholder });
+        setEditTarget({ name: s.name, scope: s.scope, config: s.config });
     };
 
     const handleDelete = async (s: McpServerStatusDTO) => {

@@ -24,6 +24,7 @@ import {
     McpServerStatus,
     McpToolSummary,
     McpTransportType,
+    NormalisedMcpServerConfig,
 } from "./types";
 
 // The MCP SDK ships its public API via package `exports` (ESM `dist/esm/...`
@@ -99,6 +100,29 @@ function transportOf(cfg: McpServerConfig): McpTransportType {
 
 function configKey(cfg: McpServerConfig): string {
     return JSON.stringify(cfg);
+}
+
+/**
+ * Convert the internal McpServerConfig (which has optional `type` and an
+ * internal `disabled` flag) into the DTO shape: `type` required, `disabled`
+ * stripped. The DTO is what the Edit dialog round-trips through.
+ */
+function normaliseConfigForDto(cfg: McpServerConfig, transport: McpTransportType): NormalisedMcpServerConfig {
+    if (transport === "stdio") {
+        const stdio = cfg as { command?: string; args?: string[]; env?: Record<string, string> };
+        return {
+            type: "stdio",
+            command: stdio.command ?? "",
+            ...(stdio.args ? { args: stdio.args } : {}),
+            ...(stdio.env ? { env: stdio.env } : {}),
+        };
+    }
+    const http = cfg as { url?: string; headers?: Record<string, string> };
+    return {
+        type: "http",
+        url: http.url ?? "",
+        ...(http.headers ? { headers: http.headers } : {}),
+    };
 }
 
 function keyOf(scope: McpScope, name: string): string {
@@ -337,6 +361,7 @@ export class McpClientManager {
                 status: state.status,
                 error: state.error,
                 tools: state.tools.map<McpToolSummary>(t => ({ name: t.name, description: t.description })),
+                config: normaliseConfigForDto(state.config, state.transport),
                 shadowed,
             });
         }

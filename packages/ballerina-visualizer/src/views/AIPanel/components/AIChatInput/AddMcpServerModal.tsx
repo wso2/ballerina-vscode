@@ -159,6 +159,74 @@ const Input = styled.input<{ hasError?: boolean }>`
     }
 `;
 
+const Textarea = styled.textarea`
+    background: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    border: 1px solid var(--vscode-input-border, var(--vscode-widget-border, var(--vscode-panel-border)));
+    border-radius: 3px;
+    padding: 6px 8px;
+    font-size: 12px;
+    font-family: var(--vscode-editor-font-family, ui-monospace, monospace);
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 64px;
+    resize: vertical;
+
+    &:focus {
+        outline: none;
+        border-color: var(--vscode-focusBorder, var(--vscode-button-background));
+    }
+
+    &::placeholder {
+        color: var(--vscode-input-placeholderForeground, var(--vscode-descriptionForeground));
+    }
+`;
+
+const KvTable = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+`;
+
+const KvRowEl = styled.div`
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) 24px;
+    gap: 6px;
+    align-items: center;
+`;
+
+const KvRemove = styled.button`
+    background: transparent;
+    border: none;
+    color: var(--vscode-icon-foreground);
+    cursor: pointer;
+    border-radius: 3px;
+    height: 24px;
+    width: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover { background: var(--vscode-toolbar-hoverBackground); color: var(--vscode-errorForeground); }
+`;
+
+const KvAdd = styled.button`
+    align-self: flex-start;
+    background: transparent;
+    border: 1px dashed var(--vscode-widget-border, var(--vscode-panel-border));
+    color: var(--vscode-descriptionForeground);
+    border-radius: 3px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-family: var(--vscode-font-family);
+    cursor: pointer;
+
+    &:hover {
+        color: var(--vscode-foreground);
+        border-color: var(--vscode-focusBorder, var(--vscode-button-background));
+    }
+`;
+
 const Hint = styled.div`
     font-size: 11px;
     color: var(--vscode-descriptionForeground);
@@ -220,11 +288,78 @@ const SecondaryButton = styled(BaseButton)`
     }
 `;
 
-function splitArgs(value: string): string[] {
-    const trimmed = value.trim();
-    if (!trimmed) return [];
-    return trimmed.split(/\s+/);
+/** Split a multi-line args textarea into a list, dropping empty lines. */
+function splitArgLines(value: string): string[] {
+    return value
+        .split(/\r?\n/)
+        .map(s => s.trimEnd())
+        .filter(s => s.length > 0);
 }
+
+type KvRow = { key: string; value: string };
+
+function recordToRows(record?: Record<string, string>): KvRow[] {
+    if (!record) return [];
+    return Object.entries(record)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([key, value]) => ({ key, value }));
+}
+
+function rowsToRecord(rows: KvRow[]): Record<string, string> {
+    const out: Record<string, string> = {};
+    for (const row of rows) {
+        const k = row.key.trim();
+        if (!k) continue;
+        out[k] = row.value;
+    }
+    return out;
+}
+
+interface KvEditorProps {
+    rows: KvRow[];
+    onChange: (rows: KvRow[]) => void;
+    keyPlaceholder?: string;
+    valuePlaceholder?: string;
+}
+
+const KvEditor: React.FC<KvEditorProps> = ({ rows, onChange, keyPlaceholder, valuePlaceholder }) => {
+    const updateRow = (idx: number, patch: Partial<KvRow>) => {
+        const next = rows.slice();
+        next[idx] = { ...next[idx], ...patch };
+        onChange(next);
+    };
+    const removeRow = (idx: number) => {
+        const next = rows.slice();
+        next.splice(idx, 1);
+        onChange(next);
+    };
+    const addRow = () => onChange([...rows, { key: "", value: "" }]);
+
+    return (
+        <KvTable>
+            {rows.map((row, idx) => (
+                <KvRowEl key={idx}>
+                    <Input
+                        type="text"
+                        value={row.key}
+                        placeholder={keyPlaceholder ?? "Key"}
+                        onChange={(e) => updateRow(idx, { key: e.target.value })}
+                    />
+                    <Input
+                        type="text"
+                        value={row.value}
+                        placeholder={valuePlaceholder ?? "Value"}
+                        onChange={(e) => updateRow(idx, { value: e.target.value })}
+                    />
+                    <KvRemove type="button" title="Remove" onClick={() => removeRow(idx)}>
+                        <span className="codicon codicon-trash" style={{ fontSize: 12 }} />
+                    </KvRemove>
+                </KvRowEl>
+            ))}
+            <KvAdd type="button" onClick={addRow}>+ Add</KvAdd>
+        </KvTable>
+    );
+};
 
 export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspace, editTarget, onClose, onAdded }) => {
     const { rpcClient } = useRpcContext();
@@ -234,8 +369,9 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
     const [name, setName] = useState("");
     const [command, setCommand] = useState("");
     const [argsText, setArgsText] = useState("");
+    const [envRows, setEnvRows] = useState<KvRow[]>([]);
     const [url, setUrl] = useState("");
-    const [bearer, setBearer] = useState("");
+    const [headerRows, setHeaderRows] = useState<KvRow[]>([]);
     const [submitting, setSubmitting] = useState(false);
     const [serverError, setServerError] = useState<string | null>(null);
 
@@ -259,8 +395,9 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
             setName("");
             setCommand("");
             setArgsText("");
+            setEnvRows([]);
             setUrl("");
-            setBearer("");
+            setHeaderRows([]);
             setSubmitting(false);
             setServerError(null);
             return;
@@ -272,15 +409,16 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
             setName(editTarget.name);
             if (editTarget.config.type === "stdio") {
                 setCommand(editTarget.config.command);
-                setArgsText((editTarget.config.args ?? []).join(" "));
+                setArgsText((editTarget.config.args ?? []).join("\n"));
+                setEnvRows(recordToRows(editTarget.config.env));
                 setUrl("");
-                setBearer("");
+                setHeaderRows([]);
             } else {
                 setUrl(editTarget.config.url);
-                // Bearer is intentionally empty — user re-enters to change.
-                setBearer("");
+                setHeaderRows(recordToRows(editTarget.config.headers));
                 setCommand("");
                 setArgsText("");
+                setEnvRows([]);
             }
             setServerError(null);
             return;
@@ -321,17 +459,24 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
         if (!canSubmit) return;
         setSubmitting(true);
         setServerError(null);
-        const config: McpServerConfigDTO = transport === "stdio"
-            ? {
+        let config: McpServerConfigDTO;
+        if (transport === "stdio") {
+            const args = splitArgLines(argsText);
+            const env = rowsToRecord(envRows);
+            config = {
                 type: "stdio",
                 command: command.trim(),
-                ...(argsText.trim() ? { args: splitArgs(argsText) } : {}),
-            }
-            : {
+                ...(args.length > 0 ? { args } : {}),
+                ...(Object.keys(env).length > 0 ? { env } : {}),
+            };
+        } else {
+            const headers = rowsToRecord(headerRows);
+            config = {
                 type: "http",
                 url: url.trim(),
-                ...(bearer.trim() ? { headers: { Authorization: `Bearer ${bearer.trim()}` } } : {}),
+                ...(Object.keys(headers).length > 0 ? { headers } : {}),
             };
+        }
         try {
             const api = rpcClient.getAiPanelRpcClient();
             const res = isEdit
@@ -426,14 +571,18 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
                             </FieldGroup>
                             <FieldGroup>
                                 <Label htmlFor="mcp-args">Arguments</Label>
-                                <Input
+                                <Textarea
                                     id="mcp-args"
-                                    type="text"
                                     value={argsText}
-                                    onChange={(e) => setArgsText(e.target.value)}
-                                    placeholder="e.g. -y your-mcp-package"
+                                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setArgsText(e.target.value)}
+                                    placeholder={"-y\nyour-mcp-package"}
+                                    rows={3}
                                 />
-                                <Hint>Space-separated. Use Edit config for arguments containing spaces.</Hint>
+                                <Hint>One argument per line. Empty lines are ignored.</Hint>
+                            </FieldGroup>
+                            <FieldGroup>
+                                <Label>Environment variables</Label>
+                                <KvEditor rows={envRows} onChange={setEnvRows} keyPlaceholder="KEY" valuePlaceholder="value" />
                             </FieldGroup>
                         </>
                     ) : (
@@ -451,15 +600,9 @@ export const AddMcpServerModal: React.FC<Props> = ({ isOpen, servers, hasWorkspa
                                 {urlError && <FieldError>{urlError}</FieldError>}
                             </FieldGroup>
                             <FieldGroup>
-                                <Label htmlFor="mcp-bearer">Bearer token</Label>
-                                <Input
-                                    id="mcp-bearer"
-                                    type="password"
-                                    value={bearer}
-                                    onChange={(e) => setBearer(e.target.value)}
-                                    placeholder="Optional"
-                                />
-                                <Hint>Saved as <code>Authorization: Bearer …</code> header. Use Edit config for other headers.</Hint>
+                                <Label>Headers</Label>
+                                <KvEditor rows={headerRows} onChange={setHeaderRows} keyPlaceholder="Header-Name" valuePlaceholder="value" />
+                                <Hint>For Bearer tokens, add a row with key <code>Authorization</code> and value <code>Bearer your-token</code>.</Hint>
                             </FieldGroup>
                         </>
                     )}
