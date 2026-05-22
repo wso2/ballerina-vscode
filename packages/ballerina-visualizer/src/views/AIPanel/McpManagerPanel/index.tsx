@@ -58,17 +58,22 @@ const HeaderInlineToggle = styled.button<{ on: boolean }>`
     width: 30px;
     height: 16px;
     border-radius: 8px;
-    border: none;
     cursor: pointer;
     position: relative;
     flex-shrink: 0;
-    background: ${(p: { on: boolean }) => (p.on ? "var(--vscode-button-background)" : "var(--vscode-input-background)")};
+    background: ${(p: { on: boolean }) => (p.on
+        ? "var(--vscode-inputOption-activeBackground, var(--vscode-focusBorder))"
+        : "var(--vscode-input-background)")};
+    border: 1px solid ${(p: { on: boolean }) => (p.on
+        ? "var(--vscode-inputOption-activeBorder, var(--vscode-checkbox-border, transparent))"
+        : "var(--vscode-checkbox-border, var(--vscode-input-border, transparent))")};
+    transition: background 0.15s, border-color 0.15s;
 
     &::after {
         content: "";
         position: absolute;
-        top: 2px;
-        left: ${(p: { on: boolean }) => (p.on ? "16px" : "2px")};
+        top: 1px;
+        left: ${(p: { on: boolean }) => (p.on ? "15px" : "1px")};
         width: 12px;
         height: 12px;
         border-radius: 50%;
@@ -109,26 +114,6 @@ const SectionTitle = styled.h3`
     margin: 0;
 `;
 
-const SectionAction = styled.button`
-    background: transparent;
-    border: none;
-    color: var(--vscode-textLink-foreground, var(--vscode-button-background));
-    font-size: 11px;
-    cursor: pointer;
-    padding: 0;
-    text-decoration: underline;
-
-    &:hover:not(:disabled) {
-        opacity: 0.85;
-    }
-
-    &:disabled {
-        opacity: 0.4;
-        cursor: default;
-        text-decoration: none;
-    }
-`;
-
 const SectionDivider = styled.div`
     flex: 1;
     height: 1px;
@@ -144,6 +129,30 @@ const EmptyHint = styled.div`
     color: var(--vscode-descriptionForeground);
     font-size: 12px;
     text-align: center;
+`;
+
+const CenteredEmpty = styled.div`
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 48px 24px;
+    text-align: center;
+    color: var(--vscode-descriptionForeground);
+`;
+
+const CenteredEmptyTitle = styled.div`
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--vscode-foreground);
+`;
+
+const CenteredEmptyBody = styled.div`
+    font-size: 12px;
+    line-height: 1.5;
+    max-width: 360px;
 `;
 
 const ServerCard = styled.div`
@@ -171,21 +180,6 @@ const CardName = styled.span`
     white-space: nowrap;
     flex: 1;
     min-width: 0;
-`;
-
-const ScopeBadge = styled.span<{ scope: McpScope }>`
-    font-size: 9px;
-    font-weight: 600;
-    line-height: 1;
-    padding: 2px 6px;
-    border-radius: 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-    color: var(--vscode-badge-foreground);
-    background: ${(p: { scope: McpScope }) => (p.scope === "workspace"
-        ? "var(--vscode-charts-blue, var(--vscode-badge-background))"
-        : "var(--vscode-badge-background)")};
-    flex-shrink: 0;
 `;
 
 const StatusDot = styled.span<{ status: McpServerStatusDTO["status"] }>`
@@ -270,17 +264,22 @@ const ToggleSwitch = styled.button<{ on: boolean }>`
     width: 30px;
     height: 16px;
     border-radius: 8px;
-    border: none;
     cursor: pointer;
     position: relative;
     flex-shrink: 0;
-    background: ${(p: { on: boolean }) => (p.on ? "var(--vscode-button-background)" : "var(--vscode-input-background)")};
+    background: ${(p: { on: boolean }) => (p.on
+        ? "var(--vscode-inputOption-activeBackground, var(--vscode-focusBorder))"
+        : "var(--vscode-input-background)")};
+    border: 1px solid ${(p: { on: boolean }) => (p.on
+        ? "var(--vscode-inputOption-activeBorder, var(--vscode-checkbox-border, transparent))"
+        : "var(--vscode-checkbox-border, var(--vscode-input-border, transparent))")};
+    transition: background 0.15s, border-color 0.15s;
 
     &::after {
         content: "";
         position: absolute;
-        top: 2px;
-        left: ${(p: { on: boolean }) => (p.on ? "16px" : "2px")};
+        top: 1px;
+        left: ${(p: { on: boolean }) => (p.on ? "15px" : "1px")};
         width: 12px;
         height: 12px;
         border-radius: 50%;
@@ -439,7 +438,6 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
                 <CardHeader>
                     <StatusDot status={s.status} />
                     <CardName title={s.name}>{s.name}</CardName>
-                    <ScopeBadge scope={s.scope}>{s.scope === "workspace" ? "Project" : "User"}</ScopeBadge>
                 </CardHeader>
                 <CardSubline>{subline}{s.shadowed ? " · shadowed by project" : ""}</CardSubline>
                 {s.status === "failed" && s.error && <CardError>{s.error}</CardError>}
@@ -489,36 +487,33 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
         );
     };
 
+    /** Render a section only when it has servers. Empty sections collapse to nothing. */
     const renderSection = (scope: McpScope) => {
         const items = grouped.get(scope) ?? [];
+        if (items.length === 0) {
+            return null;
+        }
+        const jsonDisabled = scope === "workspace" && !hasWorkspace;
         return (
             <Section key={scope}>
                 <SectionHeader>
                     <SectionTitle>{scopeHeading(scope)} ({items.length})</SectionTitle>
                     <SectionDivider />
-                    <SectionAction
-                        type="button"
-                        disabled={scope === "workspace" && !hasWorkspace}
-                        title={scope === "workspace" && !hasWorkspace ? "No trusted project is open" : "Edit raw JSON"}
+                    <Button
+                        appearance="icon"
+                        tooltip={jsonDisabled ? "No trusted project is open" : "Edit raw JSON"}
+                        disabled={jsonDisabled}
                         onClick={scope === "user" ? handleOpenJsonUser : handleOpenJsonProject}
                     >
-                        Edit JSON
-                    </SectionAction>
+                        <Codicon name="go-to-file" />
+                    </Button>
                 </SectionHeader>
-                {items.length === 0 ? (
-                    <EmptyHint>
-                        {scope === "workspace"
-                            ? (hasWorkspace
-                                ? "No project servers yet. Use + Add server to attach one."
-                                : "Open and trust a project to add project-scope servers.")
-                            : "No user-scope servers yet. Use + Add server to attach one."}
-                    </EmptyHint>
-                ) : (
-                    items.map(renderCard)
-                )}
+                {items.map(renderCard)}
             </Section>
         );
     };
+
+    const hasAnyServers = servers.length > 0;
 
     return (
         <AIChatView>
@@ -550,18 +545,18 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
                     <EmptyHint>
                         MCP tool support is off. Toggle it on in the header to load servers.
                     </EmptyHint>
+                ) : !hasAnyServers ? (
+                    <CenteredEmpty>
+                        <CenteredEmptyTitle>No MCP servers yet</CenteredEmptyTitle>
+                        <CenteredEmptyBody>
+                            Click <b>+ Add server</b> at the top right to set up your first one.
+                            {!hasWorkspace && (
+                                <><br />Open and trust a project to add project-scope servers.</>
+                            )}
+                        </CenteredEmptyBody>
+                    </CenteredEmpty>
                 ) : (
-                    <>
-                        {/* Built-in section reserved for future WSO2-curated connectors. */}
-                        <Section>
-                            <SectionHeader>
-                                <SectionTitle>Built-in (0)</SectionTitle>
-                                <SectionDivider />
-                            </SectionHeader>
-                            <EmptyHint>Curated WSO2 connectors will appear here.</EmptyHint>
-                        </Section>
-                        {SCOPE_ORDER.map(renderSection)}
-                    </>
+                    <>{SCOPE_ORDER.map(renderSection)}</>
                 )}
             </PanelContent>
 

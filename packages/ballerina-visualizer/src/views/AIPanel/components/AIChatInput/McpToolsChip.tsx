@@ -188,11 +188,13 @@ const ScrollBody = styled.div`
     padding: 4px;
 `;
 
-const ScopeDivider = styled.div`
-    height: 1px;
-    background: var(--vscode-widget-border, var(--vscode-panel-border));
-    margin: 4px 0;
-    opacity: 0.7;
+const GroupLabel = styled.div`
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--vscode-descriptionForeground);
+    padding: 6px 4px 2px;
 `;
 
 const EmptyState = styled.div`
@@ -242,20 +244,23 @@ const ToggleSwitch = styled.button<{ on: boolean; disabled?: boolean }>`
     width: 26px;
     height: 14px;
     border-radius: 7px;
-    border: none;
     cursor: ${(p: { disabled?: boolean }) => (p.disabled ? "default" : "pointer")};
     position: relative;
     flex-shrink: 0;
     opacity: ${(p: { disabled?: boolean }) => (p.disabled ? 0.5 : 1)};
     background: ${(p: { on: boolean }) => (p.on
-        ? "var(--vscode-button-background)"
+        ? "var(--vscode-inputOption-activeBackground, var(--vscode-focusBorder))"
         : "var(--vscode-input-background)")};
+    border: 1px solid ${(p: { on: boolean }) => (p.on
+        ? "var(--vscode-inputOption-activeBorder, var(--vscode-checkbox-border, transparent))"
+        : "var(--vscode-checkbox-border, var(--vscode-input-border, transparent))")};
+    transition: background 0.15s, border-color 0.15s;
 
     &::after {
         content: "";
         position: absolute;
-        top: 2px;
-        left: ${(p: { on: boolean }) => (p.on ? "14px" : "2px")};
+        top: 1px;
+        left: ${(p: { on: boolean }) => (p.on ? "13px" : "1px")};
         width: 10px;
         height: 10px;
         border-radius: 50%;
@@ -441,9 +446,9 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
                         </EmptyState>
                     ) : (
                         <ScrollBody>
-                            {grouped.map((group, idx) => (
+                            {grouped.map((group) => (
                                 <React.Fragment key={group[0].scope}>
-                                    {idx > 0 && <ScopeDivider />}
+                                    <GroupLabel>{group[0].scope === "workspace" ? "Project" : "User"}</GroupLabel>
                                     {group.map((s) => (
                                         <ServerRow key={`${s.scope}:${s.name}`}>
                                             <StatusDot status={s.status} />
