@@ -24,6 +24,7 @@ import { McpScope, McpServerConfigDTO, McpServerStatusDTO } from "@wso2/ballerin
 
 import { AIChatView } from "../styles";
 import AddMcpServerModal from "../components/AIChatInput/AddMcpServerModal";
+import { ExperimentalTag } from "../components/ExperimentalTag";
 
 interface Props {
     onClose: () => void;
@@ -45,7 +46,14 @@ const PanelTitle = styled.span`
     font-weight: 600;
     color: var(--vscode-foreground);
     font-family: var(--vscode-font-family);
+`;
+
+const TitleGroup = styled.div`
     flex: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
 `;
 
 const HeaderActions = styled.div`
@@ -513,7 +521,10 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
                 <Button appearance="icon" onClick={onClose} tooltip="Back to chat">
                     <Codicon name="arrow-left" />
                 </Button>
-                <PanelTitle>MCP Servers</PanelTitle>
+                <TitleGroup>
+                    <PanelTitle>MCP Servers</PanelTitle>
+                    <ExperimentalTag size="sm" tooltip="MCP tool support is experimental and may change." />
+                </TitleGroup>
                 <HeaderActions>
                     <Button
                         appearance="primary"
