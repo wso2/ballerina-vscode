@@ -263,18 +263,44 @@ const ToolsExpand = styled.button`
 const ToolsList = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    padding: 6px 8px;
     margin-top: 4px;
-    background: var(--vscode-list-hoverBackground, transparent);
+    border: 1px solid var(--vscode-panel-border);
     border-radius: 4px;
-    max-height: 200px;
+    max-height: 240px;
     overflow-y: auto;
+    background: var(--vscode-editor-background);
 `;
 
 const ToolRow = styled.div`
-    font-size: 11px;
-    color: var(--vscode-foreground);
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 5px 8px;
+    border-bottom: 1px solid var(--vscode-panel-border);
+    transition: background 0.12s ease;
+
+    &:last-child { border-bottom: none; }
+    &:hover { background: var(--vscode-list-hoverBackground); }
+    &:hover .tool-desc {
+        -webkit-line-clamp: unset;
+        overflow: visible;
+    }
+`;
+
+const ToolIcon = styled.span`
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 16px;
+    color: var(--vscode-symbolIcon-methodForeground, var(--vscode-descriptionForeground));
+    opacity: 0.85;
+`;
+
+const ToolBody = styled.div`
+    flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 1px;
@@ -282,12 +308,21 @@ const ToolRow = styled.div`
 
 const ToolName = styled.span`
     font-family: var(--vscode-editor-font-family, monospace);
+    font-size: 11px;
     color: var(--vscode-textPreformat-foreground, var(--vscode-foreground));
+    line-height: 16px;
+    word-break: break-all;
 `;
 
 const ToolDesc = styled.span`
+    font-size: 11px;
     color: var(--vscode-descriptionForeground);
-    font-size: 10px;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
 `;
 
 const ActionRow = styled.div`
@@ -501,8 +536,15 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
                             <ToolsList>
                                 {s.tools.map(t => (
                                     <ToolRow key={t.name}>
-                                        <ToolName>{t.name}</ToolName>
-                                        {t.description && <ToolDesc>{t.description}</ToolDesc>}
+                                        <ToolIcon>
+                                            <span className="codicon codicon-symbol-method" style={{ fontSize: 12 }} />
+                                        </ToolIcon>
+                                        <ToolBody>
+                                            <ToolName title={t.name}>{t.name}</ToolName>
+                                            {t.description && (
+                                                <ToolDesc className="tool-desc" title={t.description}>{t.description}</ToolDesc>
+                                            )}
+                                        </ToolBody>
                                     </ToolRow>
                                 ))}
                             </ToolsList>
