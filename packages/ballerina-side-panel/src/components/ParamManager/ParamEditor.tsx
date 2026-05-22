@@ -116,7 +116,7 @@ export function ParamEditor(props: ParamProps) {
     }
 
     return (
-        <EditorContainer>
+        <EditorContainer data-testid="bi-param-editor">
             <Form
                 formFields={fields}
                 openRecordEditor={openRecordEditor}

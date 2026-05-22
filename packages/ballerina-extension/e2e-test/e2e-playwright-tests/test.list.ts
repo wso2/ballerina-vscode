@@ -63,6 +63,7 @@ import ftpIntegration from './file-integration/ftp.spec';
 import directoryIntegration from './file-integration/directory.spec';
 
 import functionArtifact from './other-artifacts/function.spec';
+import functionLifecycleArtifact from './other-artifacts/function-lifecycle.spec';
 import naturalFunctionArtifact from './other-artifacts/np.spec';
 import connectionArtifact from './other-artifacts/connection.spec';
 
@@ -149,6 +150,7 @@ test.describe('Ballerina E2E Group 2', { tag: '@group2' }, async () => {
 
     // <----Other Artifacts Test---->
     test.describe(functionArtifact);
+    test.describe(functionLifecycleArtifact);
 });
 
 test.describe('Ballerina E2E Group 3', { tag: '@group3' }, async () => {
