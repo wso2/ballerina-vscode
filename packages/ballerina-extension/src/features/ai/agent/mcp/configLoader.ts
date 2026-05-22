@@ -19,6 +19,7 @@
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
+import * as vscode from "vscode";
 
 import { McpConfigFile, McpScope, McpServerConfig } from "./types";
 
@@ -251,28 +252,45 @@ export function deleteMcpServer(name: string, scope: McpScope = "user", workspac
 }
 
 /**
- * Subscribes to config file changes for both the user-global and (if provided)
- * the per-workspace file. Returns a single disposer that releases both watchers.
- * Uses `fs.watchFile` polling because some platforms drop `fs.watch` events
- * when the file is replaced atomically.
+ * Subscribes to config file changes. Returns a single disposer.
+ *
+ * - **User-global file** (`~/.ballerina/copilot/mcp.json`) lives outside any
+ *   workspace, so the editor's `createFileSystemWatcher` can't see it. We use
+ *   `fs.watchFile` polling — reliable across atomic-save (rename) patterns
+ *   that `fs.watch` would miss.
+ * - **Project-tree file** (`<workspace>/.mcp.json`) lives inside the open
+ *   workspace, so we use the editor's OS-event-based watcher — no polling.
  */
 export function watchMcpConfig(workspacePath: string | undefined, onChange: () => void): () => void {
     if (!fs.existsSync(COPILOT_ROOT)) {
         try { fs.mkdirSync(COPILOT_ROOT, { recursive: true }); } catch { /* ignore */ }
     }
     const listener = () => onChange();
-    const watched: string[] = [USER_MCP_CONFIG_PATH];
-    fs.watchFile(USER_MCP_CONFIG_PATH, { interval: 1500 }, listener);
+
+    fs.watchFile(USER_MCP_CONFIG_PATH, { interval: 3000 }, listener);
+    const disposers: Array<() => void> = [
+        () => { try { fs.unwatchFile(USER_MCP_CONFIG_PATH, listener); } catch { /* ignore */ } },
+    ];
+
     if (workspacePath) {
         const wsFile = workspaceMcpConfigPath(workspacePath);
         const wsDir = path.dirname(wsFile);
         try { fs.mkdirSync(wsDir, { recursive: true }); } catch { /* ignore */ }
-        fs.watchFile(wsFile, { interval: 1500 }, listener);
-        watched.push(wsFile);
-    }
-    return () => {
-        for (const p of watched) {
-            try { fs.unwatchFile(p, listener); } catch { /* ignore */ }
+        try {
+            const pattern = new vscode.RelativePattern(vscode.Uri.file(workspacePath), PROJECT_MCP_FILENAME);
+            const watcher = vscode.workspace.createFileSystemWatcher(pattern);
+            watcher.onDidChange(listener);
+            watcher.onDidCreate(listener);
+            watcher.onDidDelete(listener);
+            disposers.push(() => watcher.dispose());
+        } catch (err) {
+            console.warn("[mcp] Failed to set up workspace .mcp.json watcher, falling back to polling:", err);
+            fs.watchFile(wsFile, { interval: 3000 }, listener);
+            disposers.push(() => { try { fs.unwatchFile(wsFile, listener); } catch { /* ignore */ } });
         }
+    }
+
+    return () => {
+        for (const d of disposers) d();
     };
 }
