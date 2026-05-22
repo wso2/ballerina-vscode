@@ -18,7 +18,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import styled from "@emotion/styled";
-import { McpScope, McpServerStatusDTO } from "@wso2/ballerina-core";
+import { McpLoadErrorsDTO, McpScope, McpServerStatusDTO } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ExperimentalTag } from "../ExperimentalTag";
 
@@ -198,6 +198,27 @@ const GroupLabel = styled.div`
     padding: 6px 4px 2px;
 `;
 
+const WarningBanner = styled.button`
+    width: 100%;
+    text-align: left;
+    background: var(--vscode-inputValidation-warningBackground, rgba(255, 200, 0, 0.1));
+    color: var(--vscode-inputValidation-warningForeground, var(--vscode-foreground));
+    border: 1px solid var(--vscode-inputValidation-warningBorder, var(--vscode-charts-orange));
+    border-radius: 3px;
+    padding: 6px 8px;
+    margin: 4px 0;
+    font-size: 11px;
+    font-family: var(--vscode-font-family);
+    cursor: pointer;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+
+    &:hover {
+        background: var(--vscode-inputValidation-warningBackground, rgba(255, 200, 0, 0.18));
+    }
+`;
+
 const EmptyState = styled.div`
     padding: 16px 8px;
     text-align: center;
@@ -300,6 +321,7 @@ function transportLabel(s: McpServerStatusDTO): string {
 export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onOpenMcpManager }) => {
     const { rpcClient } = useRpcContext();
     const [servers, setServers] = useState<McpServerStatusDTO[]>([]);
+    const [loadErrors, setLoadErrors] = useState<McpLoadErrorsDTO>({});
     const [visible, setVisible] = useState(false);
     const [reloading, setReloading] = useState(false);
     const showTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -310,17 +332,26 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
         if (!mcpToolsEnabled) {
             // Don't fetch when globally off; clear stale state.
             setServers([]);
+            setLoadErrors({});
             return;
         }
-        rpcClient.getAiPanelRpcClient().listMcpServers().then((list) => {
+        const api = rpcClient.getAiPanelRpcClient();
+        api.listMcpServers().then((list) => {
             if (!cancelled) setServers(list);
         }).catch((err) => console.warn("[mcp] listMcpServers failed:", err));
-        const dispose = rpcClient.onMcpServersChanged((list: McpServerStatusDTO[]) => {
+        api.getMcpLoadErrors().then((errs) => {
+            if (!cancelled) setLoadErrors(errs);
+        }).catch((err) => console.warn("[mcp] getMcpLoadErrors failed:", err));
+        const disposeServers = rpcClient.onMcpServersChanged((list: McpServerStatusDTO[]) => {
             if (!cancelled) setServers(list);
+        });
+        const disposeErrors = rpcClient.onMcpLoadErrorsChanged((errs: McpLoadErrorsDTO) => {
+            if (!cancelled) setLoadErrors(errs);
         });
         return () => {
             cancelled = true;
-            dispose();
+            disposeServers();
+            disposeErrors();
         };
     }, [rpcClient, mcpToolsEnabled]);
 
@@ -383,6 +414,16 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
         }
     };
 
+    const handleOpenJson = async (scope: "user" | "workspace") => {
+        try {
+            await rpcClient.getAiPanelRpcClient().openMcpConfig({ scope });
+        } catch (err) {
+            console.warn("[mcp] openMcpConfig failed:", err);
+        }
+    };
+
+    const hasErrors = !!loadErrors.user || !!loadErrors.workspace;
+
     const chipTitle = !mcpToolsEnabled
         ? "MCP is off — click to manage"
         : servers.length === 0
@@ -442,32 +483,50 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
                             MCP tool support is off.<br />
                             Toggle it on to load servers.
                         </OffMessage>
-                    ) : servers.length === 0 ? (
-                        <EmptyState>
-                            No servers configured. Click <b>Manage</b> to add one.
-                        </EmptyState>
                     ) : (
                         <ScrollBody>
-                            {grouped.map((group) => (
-                                <React.Fragment key={group[0].scope}>
-                                    <GroupLabel>{group[0].scope === "workspace" ? "Project" : "User"}</GroupLabel>
-                                    {group.map((s) => (
-                                        <ServerRow key={`${s.scope}:${s.name}`}>
-                                            <StatusDot status={s.status} />
-                                            <ServerMeta>
-                                                <ServerName title={s.name}>{s.name}</ServerName>
-                                                <ServerSubline title={transportLabel(s)}>{transportLabel(s)}</ServerSubline>
-                                            </ServerMeta>
-                                            <ToggleSwitch
-                                                type="button"
-                                                on={s.enabled}
-                                                title={s.enabled ? "Disable this server" : "Enable this server"}
-                                                onClick={() => handleToggleServer(s.scope, s.name, s.enabled)}
-                                            />
-                                        </ServerRow>
-                                    ))}
-                                </React.Fragment>
-                            ))}
+                            {hasErrors && (
+                                <>
+                                    {loadErrors.user && (
+                                        <WarningBanner type="button" onClick={() => handleOpenJson("user")} title={loadErrors.user}>
+                                            <span className="codicon codicon-warning" style={{ fontSize: 12, marginTop: 1 }} />
+                                            <span>Couldn't read user mcp.json — click to open in editor.</span>
+                                        </WarningBanner>
+                                    )}
+                                    {loadErrors.workspace && (
+                                        <WarningBanner type="button" onClick={() => handleOpenJson("workspace")} title={loadErrors.workspace}>
+                                            <span className="codicon codicon-warning" style={{ fontSize: 12, marginTop: 1 }} />
+                                            <span>Couldn't read project .mcp.json — click to open in editor.</span>
+                                        </WarningBanner>
+                                    )}
+                                </>
+                            )}
+                            {servers.length === 0 && !hasErrors ? (
+                                <EmptyState>
+                                    No servers configured. Click <b>Manage</b> to add one.
+                                </EmptyState>
+                            ) : (
+                                grouped.map((group) => (
+                                    <React.Fragment key={group[0].scope}>
+                                        <GroupLabel>{group[0].scope === "workspace" ? "Project" : "User"}</GroupLabel>
+                                        {group.map((s) => (
+                                            <ServerRow key={`${s.scope}:${s.name}`}>
+                                                <StatusDot status={s.status} />
+                                                <ServerMeta>
+                                                    <ServerName title={s.name}>{s.name}</ServerName>
+                                                    <ServerSubline title={transportLabel(s)}>{transportLabel(s)}</ServerSubline>
+                                                </ServerMeta>
+                                                <ToggleSwitch
+                                                    type="button"
+                                                    on={s.enabled}
+                                                    title={s.enabled ? "Disable this server" : "Enable this server"}
+                                                    onClick={() => handleToggleServer(s.scope, s.name, s.enabled)}
+                                                />
+                                            </ServerRow>
+                                        ))}
+                                    </React.Fragment>
+                                ))
+                            )}
                         </ScrollBody>
                     )}
                 </Popup>

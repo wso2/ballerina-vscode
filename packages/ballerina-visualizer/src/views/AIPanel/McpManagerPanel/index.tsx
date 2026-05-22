@@ -20,7 +20,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import styled from "@emotion/styled";
 import { Button, Codicon } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { McpScope, McpServerConfigDTO, McpServerStatusDTO } from "@wso2/ballerina-core";
+import { McpLoadErrorsDTO, McpScope, McpServerConfigDTO, McpServerStatusDTO } from "@wso2/ballerina-core";
 
 import { AIChatView } from "../styles";
 import AddMcpServerModal from "../components/AIChatInput/AddMcpServerModal";
@@ -137,6 +137,26 @@ const EmptyHint = styled.div`
     color: var(--vscode-descriptionForeground);
     font-size: 12px;
     text-align: center;
+`;
+
+const WarningBanner = styled.button`
+    width: 100%;
+    text-align: left;
+    background: var(--vscode-inputValidation-warningBackground, rgba(255, 200, 0, 0.1));
+    color: var(--vscode-inputValidation-warningForeground, var(--vscode-foreground));
+    border: 1px solid var(--vscode-inputValidation-warningBorder, var(--vscode-charts-orange));
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-family: var(--vscode-font-family);
+    cursor: pointer;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+
+    &:hover {
+        background: var(--vscode-inputValidation-warningBackground, rgba(255, 200, 0, 0.18));
+    }
 `;
 
 const CenteredEmpty = styled.div`
@@ -354,6 +374,7 @@ function scopeHeading(scope: McpScope): string {
 export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
     const { rpcClient } = useRpcContext();
     const [servers, setServers] = useState<McpServerStatusDTO[]>([]);
+    const [loadErrors, setLoadErrors] = useState<McpLoadErrorsDTO>({});
     const [mcpToolsEnabled, setMcpToolsEnabled] = useState(false);
     const [hasWorkspace, setHasWorkspace] = useState(false);
     const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -367,12 +388,17 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
         api.getMcpToolsEnabled().then(v => !cancelled && setMcpToolsEnabled(v)).catch(() => { /* noop */ });
         api.getMcpWorkspaceContext().then(ctx => !cancelled && setHasWorkspace(ctx.hasWorkspace)).catch(() => { /* noop */ });
         api.listMcpServers().then(list => !cancelled && setServers(list)).catch(() => { /* noop */ });
-        const dispose = rpcClient.onMcpServersChanged((list: McpServerStatusDTO[]) => {
+        api.getMcpLoadErrors().then(errs => !cancelled && setLoadErrors(errs)).catch(() => { /* noop */ });
+        const disposeServers = rpcClient.onMcpServersChanged((list: McpServerStatusDTO[]) => {
             if (!cancelled) setServers(list);
+        });
+        const disposeErrors = rpcClient.onMcpLoadErrorsChanged((errs: McpLoadErrorsDTO) => {
+            if (!cancelled) setLoadErrors(errs);
         });
         return () => {
             cancelled = true;
-            dispose();
+            disposeServers();
+            disposeErrors();
         };
     }, [rpcClient]);
 
@@ -399,6 +425,8 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
 
     const handleOpenJsonUser = () => rpcClient.getAiPanelRpcClient().openMcpConfig({ scope: "user" });
     const handleOpenJsonProject = () => rpcClient.getAiPanelRpcClient().openMcpConfig({ scope: "workspace" });
+
+    const hasErrors = !!loadErrors.user || !!loadErrors.workspace;
 
     const handleEdit = (s: McpServerStatusDTO) => {
         setEditTarget({ name: s.name, scope: s.scope, config: s.config });
@@ -544,6 +572,22 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
             </PanelHeader>
 
             <PanelContent>
+                {hasErrors && mcpToolsEnabled && (
+                    <>
+                        {loadErrors.user && (
+                            <WarningBanner type="button" onClick={handleOpenJsonUser} title={loadErrors.user}>
+                                <span className="codicon codicon-warning" style={{ fontSize: 14, marginTop: 1 }} />
+                                <span>Couldn't read user mcp.json — click to open in editor.</span>
+                            </WarningBanner>
+                        )}
+                        {loadErrors.workspace && (
+                            <WarningBanner type="button" onClick={handleOpenJsonProject} title={loadErrors.workspace}>
+                                <span className="codicon codicon-warning" style={{ fontSize: 14, marginTop: 1 }} />
+                                <span>Couldn't read project .mcp.json — click to open in editor.</span>
+                            </WarningBanner>
+                        )}
+                    </>
+                )}
                 {!mcpToolsEnabled ? (
                     <EmptyHint>
                         MCP tool support is off. Toggle it on in the header to load servers.
