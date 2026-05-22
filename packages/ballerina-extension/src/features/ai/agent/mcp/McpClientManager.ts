@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { loadMcpConfig } from "./configLoader";
+import { loadMcpConfig, McpLoadErrors } from "./configLoader";
 import {
     McpConnectionStatus,
     McpScope,
@@ -154,6 +154,7 @@ export class McpClientManager {
     private enabledOverrides: EnabledOverrideStore;
     private workspacePath: string | undefined;
     private workspaceTrusted: boolean;
+    private lastErrors: McpLoadErrors = {};
     private refreshing?: Promise<void>;
     private disposed = false;
 
@@ -190,8 +191,14 @@ export class McpClientManager {
         return this.refreshing;
     }
 
+    /** Latest parse / read errors per scope from the most recent refresh. */
+    getLoadErrors(): McpLoadErrors {
+        return { ...this.lastErrors };
+    }
+
     private async doRefresh(): Promise<void> {
-        const entries = loadMcpConfig(this.workspacePath, this.workspaceTrusted);
+        const { entries, errors } = loadMcpConfig(this.workspacePath, this.workspaceTrusted);
+        this.lastErrors = errors;
         const desiredKeys = new Set(entries.map(e => keyOf(e.scope, e.name)));
 
         // Close servers that disappeared or whose effective enabled-state went off

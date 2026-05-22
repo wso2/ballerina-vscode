@@ -120,6 +120,7 @@ import {
     SetMcpToolsEnabledRequest,
     getMcpToolsEnabled,
     getMcpWorkspaceContext,
+    getMcpLoadErrors,
     OpenMcpConfigRequest,
 } from "@wso2/ballerina-core";
 import { workspace } from 'vscode';
@@ -206,6 +207,7 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(setMcpToolsEnabled, (args: SetMcpToolsEnabledRequest) => rpcManger.setMcpToolsEnabled(args));
     messenger.onRequest(getMcpToolsEnabled, () => rpcManger.getMcpToolsEnabled());
     messenger.onRequest(getMcpWorkspaceContext, () => rpcManger.getMcpWorkspaceContext());
+    messenger.onRequest(getMcpLoadErrors, () => rpcManger.getMcpLoadErrors());
 
     // Push updates to the webview whenever the set of running services changes.
     runningServicesManager.onChange = (services) => {

@@ -67,6 +67,7 @@ import {
     UpdateMcpServerRequest,
     DeleteMcpServerRequest,
     SetMcpToolsEnabledRequest,
+    McpLoadErrorsDTO,
 } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
@@ -139,4 +140,6 @@ export const deleteMcpServer: RequestType<DeleteMcpServerRequest, AddMcpServerRe
 export const setMcpToolsEnabled: RequestType<SetMcpToolsEnabledRequest, void> = { method: `${_preFix}/setMcpToolsEnabled` };
 export const getMcpToolsEnabled: RequestType<void, boolean> = { method: `${_preFix}/getMcpToolsEnabled` };
 export const getMcpWorkspaceContext: RequestType<void, McpWorkspaceContextResponse> = { method: `${_preFix}/getMcpWorkspaceContext` };
+export const getMcpLoadErrors: RequestType<void, McpLoadErrorsDTO> = { method: `${_preFix}/getMcpLoadErrors` };
 export const mcpServersChanged: NotificationType<McpServerStatusDTO[]> = { method: `${_preFix}/mcpServersChanged` };
+export const mcpLoadErrorsChanged: NotificationType<McpLoadErrorsDTO> = { method: `${_preFix}/mcpLoadErrorsChanged` };

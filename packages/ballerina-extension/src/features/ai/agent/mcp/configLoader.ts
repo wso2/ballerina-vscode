@@ -48,24 +48,38 @@ export function configFilePath(scope: McpScope, workspacePath?: string): string 
     return workspaceMcpConfigPath(workspacePath);
 }
 
-function readConfigFile(filePath: string): McpConfigFile {
+interface ReadResult {
+    file: McpConfigFile;
+    error?: string;
+}
+
+function readConfigFile(filePath: string): ReadResult {
     try {
         if (!fs.existsSync(filePath)) {
-            return EMPTY_CONFIG;
+            return { file: EMPTY_CONFIG };
         }
         const raw = fs.readFileSync(filePath, "utf8");
         if (!raw.trim()) {
-            return EMPTY_CONFIG;
+            return { file: EMPTY_CONFIG };
         }
-        const parsed = JSON.parse(raw);
-        if (!parsed || typeof parsed !== "object" || !parsed.mcpServers || typeof parsed.mcpServers !== "object") {
-            console.warn(`[mcp] Ignoring invalid config at ${filePath}: missing or non-object 'mcpServers'`);
-            return EMPTY_CONFIG;
+        let parsed: unknown;
+        try {
+            parsed = JSON.parse(raw);
+        } catch (parseErr: any) {
+            const msg = parseErr?.message ?? String(parseErr);
+            console.warn(`[mcp] Invalid JSON at ${filePath}:`, msg);
+            return { file: EMPTY_CONFIG, error: `Invalid JSON: ${msg}` };
         }
-        return parsed as McpConfigFile;
-    } catch (err) {
-        console.warn(`[mcp] Failed to read config at ${filePath}:`, err);
-        return EMPTY_CONFIG;
+        if (!parsed || typeof parsed !== "object" || !(parsed as any).mcpServers || typeof (parsed as any).mcpServers !== "object") {
+            const msg = "Missing or non-object 'mcpServers' key.";
+            console.warn(`[mcp] Ignoring invalid config at ${filePath}: ${msg}`);
+            return { file: EMPTY_CONFIG, error: msg };
+        }
+        return { file: parsed as McpConfigFile };
+    } catch (err: any) {
+        const msg = err?.message ?? String(err);
+        console.warn(`[mcp] Failed to read config at ${filePath}:`, msg);
+        return { file: EMPTY_CONFIG, error: msg };
     }
 }
 
@@ -112,14 +126,35 @@ function normaliseEntries(scope: McpScope, file: McpConfigFile): Array<{ name: s
  * untrusted workspaces so arbitrary `command` entries in a cloned `.mcp.json`
  * don't auto-spawn processes.
  */
-export function loadMcpConfig(workspacePath?: string, allowWorkspace: boolean = true): Array<{ name: string; config: McpServerConfig; scope: McpScope }> {
+export interface McpLoadErrors {
+    user?: string;
+    workspace?: string;
+}
+
+export interface McpLoadResult {
+    entries: Array<{ name: string; config: McpServerConfig; scope: McpScope }>;
+    errors: McpLoadErrors;
+}
+
+export function loadMcpConfig(workspacePath?: string, allowWorkspace: boolean = true): McpLoadResult {
     const entries: Array<{ name: string; config: McpServerConfig; scope: McpScope }> = [];
-    entries.push(...normaliseEntries("user", readConfigFile(USER_MCP_CONFIG_PATH)));
+    const errors: McpLoadErrors = {};
+
+    const userRead = readConfigFile(USER_MCP_CONFIG_PATH);
+    if (userRead.error) {
+        errors.user = userRead.error;
+    }
+    entries.push(...normaliseEntries("user", userRead.file));
+
     if (workspacePath && allowWorkspace) {
         const wsFile = workspaceMcpConfigPath(workspacePath);
-        entries.push(...normaliseEntries("workspace", readConfigFile(wsFile)));
+        const wsRead = readConfigFile(wsFile);
+        if (wsRead.error) {
+            errors.workspace = wsRead.error;
+        }
+        entries.push(...normaliseEntries("workspace", wsRead.file));
     }
-    return entries;
+    return { entries, errors };
 }
 
 export function ensureMcpConfigFileExists(scope: McpScope = "user", workspacePath?: string): string {

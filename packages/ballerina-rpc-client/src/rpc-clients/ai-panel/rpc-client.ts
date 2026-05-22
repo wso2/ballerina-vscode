@@ -126,6 +126,7 @@ import {
     setMcpToolsEnabled,
     getMcpToolsEnabled,
     getMcpWorkspaceContext,
+    getMcpLoadErrors,
     McpServerStatusDTO,
     SetMcpServerEnabledRequest,
     AddMcpServerRequest,
@@ -135,6 +136,7 @@ import {
     UpdateMcpServerRequest,
     DeleteMcpServerRequest,
     SetMcpToolsEnabledRequest,
+    McpLoadErrorsDTO,
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -414,5 +416,9 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     getMcpWorkspaceContext(): Promise<McpWorkspaceContextResponse> {
         return this._messenger.sendRequest(getMcpWorkspaceContext, HOST_EXTENSION);
+    }
+
+    getMcpLoadErrors(): Promise<McpLoadErrorsDTO> {
+        return this._messenger.sendRequest(getMcpLoadErrors, HOST_EXTENSION);
     }
 }

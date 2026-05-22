@@ -64,10 +64,11 @@ import {
     UpdateMcpServerRequest,
     DeleteMcpServerRequest,
     SetMcpToolsEnabledRequest,
+    McpLoadErrorsDTO,
 } from "@wso2/ballerina-core";
 import { ConfigurationTarget } from "vscode";
 import { getMcpClientManager, ensureMcpConfigFileExists, writeMcpServer, updateMcpServer, deleteMcpServer } from "../../features/ai/agent/mcp";
-import { notifyMcpServersChanged } from "../../RPCLayer";
+import { notifyMcpServersChanged, notifyMcpLoadErrorsChanged } from "../../RPCLayer";
 import * as os from "os";
 import * as fs from 'fs';
 import path from "path";
@@ -945,6 +946,14 @@ User reverted the last made changes. The files have been restored to the state b
         return { hasWorkspace: !!resolveProjectRootPath() && vscode.workspace.isTrusted };
     }
 
+    async getMcpLoadErrors(): Promise<McpLoadErrorsDTO> {
+        const manager = getMcpClientManager();
+        if (!manager) {
+            return {};
+        }
+        return manager.getLoadErrors();
+    }
+
     async addMcpServer(params: AddMcpServerRequest): Promise<AddMcpServerResponse> {
         const name = (params?.name ?? "").trim();
         if (!name) {
@@ -1046,6 +1055,7 @@ User reverted the last made changes. The files have been restored to the state b
         try {
             await manager.refresh();
             notifyMcpServersChanged(manager.listServers());
+            notifyMcpLoadErrorsChanged(manager.getLoadErrors());
         } catch (err) {
             console.warn('[mcp] post-write refresh failed:', err);
         }
