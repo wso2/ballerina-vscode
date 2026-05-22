@@ -21,6 +21,7 @@ import styled from "@emotion/styled";
 import { McpLoadErrorsDTO, McpScope, McpServerStatusDTO } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ExperimentalTag } from "../ExperimentalTag";
+import { Loader } from "../Loader";
 
 const TOOLTIP_SHOW_MS = 150;
 const TOOLTIP_HIDE_MS = 200;
@@ -324,6 +325,10 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
     const [loadErrors, setLoadErrors] = useState<McpLoadErrorsDTO>({});
     const [visible, setVisible] = useState(false);
     const [reloading, setReloading] = useState(false);
+    // True while we're waiting for the first server list after MCP is enabled
+    // (on mount or after toggle on). Prevents the "No servers" empty-state
+    // from flashing while the backend is still spawning MCP clients.
+    const [togglePending, setTogglePending] = useState(false);
     const showTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -333,23 +338,34 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
             // Don't fetch when globally off; clear stale state.
             setServers([]);
             setLoadErrors({});
+            setTogglePending(false);
             return;
         }
+        setTogglePending(true);
+        // Safety net so we never spin forever if a notification is lost.
+        const fallback = window.setTimeout(() => {
+            if (!cancelled) setTogglePending(false);
+        }, 8000);
         const api = rpcClient.getAiPanelRpcClient();
         api.listMcpServers().then((list) => {
-            if (!cancelled) setServers(list);
+            if (cancelled) return;
+            setServers(list);
+            setTogglePending(false);
         }).catch((err) => console.warn("[mcp] listMcpServers failed:", err));
         api.getMcpLoadErrors().then((errs) => {
             if (!cancelled) setLoadErrors(errs);
         }).catch((err) => console.warn("[mcp] getMcpLoadErrors failed:", err));
         const disposeServers = rpcClient.onMcpServersChanged((list: McpServerStatusDTO[]) => {
-            if (!cancelled) setServers(list);
+            if (cancelled) return;
+            setServers(list);
+            setTogglePending(false);
         });
         const disposeErrors = rpcClient.onMcpLoadErrorsChanged((errs: McpLoadErrorsDTO) => {
             if (!cancelled) setLoadErrors(errs);
         });
         return () => {
             cancelled = true;
+            window.clearTimeout(fallback);
             disposeServers();
             disposeErrors();
         };
@@ -501,7 +517,9 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
                                     )}
                                 </>
                             )}
-                            {servers.length === 0 && !hasErrors ? (
+                            {togglePending ? (
+                                <Loader label="Loading MCP servers…" size="sm" />
+                            ) : servers.length === 0 && !hasErrors ? (
                                 <EmptyState>
                                     No servers configured. Click <b>Manage</b> to add one.
                                 </EmptyState>

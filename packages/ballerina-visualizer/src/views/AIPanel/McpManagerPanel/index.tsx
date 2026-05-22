@@ -25,6 +25,7 @@ import { McpLoadErrorsDTO, McpScope, McpServerConfigDTO, McpServerStatusDTO } fr
 import { AIChatView, DangerActionButton, PrimaryActionButton, SecondaryActionButton } from "../styles";
 import AddMcpServerModal from "../components/AIChatInput/AddMcpServerModal";
 import { ExperimentalTag } from "../components/ExperimentalTag";
+import { Loader } from "../components/Loader";
 
 interface Props {
     onClose: () => void;
@@ -330,6 +331,7 @@ const ActionButton = SecondaryActionButton;
 const DeleteButton = DangerActionButton;
 
 const ConfirmRow = styled.div`
+    flex: 1;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -365,16 +367,24 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
     const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
     const [showAddModal, setShowAddModal] = useState(false);
     const [editTarget, setEditTarget] = useState<EditTarget | null>(null);
+    // True while we're waiting for the first server list after toggling MCP
+    // on/off (or on initial mount). Prevents the "No servers" empty-state from
+    // flashing during boot/teardown.
+    const [togglePending, setTogglePending] = useState(true);
 
     useEffect(() => {
         let cancelled = false;
         const api = rpcClient.getAiPanelRpcClient();
         api.getMcpToolsEnabled().then(v => !cancelled && setMcpToolsEnabled(v)).catch(() => { /* noop */ });
         api.getMcpWorkspaceContext().then(ctx => !cancelled && setHasWorkspace(ctx.hasWorkspace)).catch(() => { /* noop */ });
-        api.listMcpServers().then(list => !cancelled && setServers(list)).catch(() => { /* noop */ });
+        api.listMcpServers()
+            .then(list => { if (!cancelled) { setServers(list); setTogglePending(false); } })
+            .catch(() => { if (!cancelled) setTogglePending(false); });
         api.getMcpLoadErrors().then(errs => !cancelled && setLoadErrors(errs)).catch(() => { /* noop */ });
         const disposeServers = rpcClient.onMcpServersChanged((list: McpServerStatusDTO[]) => {
-            if (!cancelled) setServers(list);
+            if (cancelled) return;
+            setServers(list);
+            setTogglePending(false);
         });
         const disposeErrors = rpcClient.onMcpLoadErrorsChanged((errs: McpLoadErrorsDTO) => {
             if (!cancelled) setLoadErrors(errs);
@@ -394,12 +404,20 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
     }, [servers]);
 
     const handleToggleGlobal = async () => {
+        const next = !mcpToolsEnabled;
+        // Optimistic UI; the config_change notification handled by AIChat keeps state in sync.
+        setMcpToolsEnabled(next);
+        // Backend will tear down or spawn MCP clients asynchronously after the
+        // setting update. Show the loader until onMcpServersChanged fires.
+        // The 8s safety net guards against a missed notification.
+        setTogglePending(true);
+        window.setTimeout(() => setTogglePending(false), 8000);
         try {
-            await rpcClient.getAiPanelRpcClient().setMcpToolsEnabled({ enabled: !mcpToolsEnabled });
-            // Optimistic; the actual config_change notification handled by AIChat will sync state on next open.
-            setMcpToolsEnabled(prev => !prev);
+            await rpcClient.getAiPanelRpcClient().setMcpToolsEnabled({ enabled: next });
         } catch (err) {
             console.warn("[mcp] setMcpToolsEnabled failed:", err);
+            setMcpToolsEnabled(prev => !prev);
+            setTogglePending(false);
         }
     };
 
@@ -605,6 +623,8 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
                     <EmptyHint>
                         MCP tool support is off. Toggle it on in the header to load servers.
                     </EmptyHint>
+                ) : togglePending ? (
+                    <Loader label="Loading MCP servers…" />
                 ) : !hasAnyServers ? (
                     <CenteredEmpty>
                         <CenteredEmptyTitle>No MCP servers yet</CenteredEmptyTitle>
