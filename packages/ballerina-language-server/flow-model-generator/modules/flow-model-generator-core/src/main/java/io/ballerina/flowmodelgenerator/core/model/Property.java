@@ -51,6 +51,7 @@ import org.ballerinalang.langserver.common.utils.CommonUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -384,6 +385,14 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
     }
 
     public static class Builder<T> extends FacetedBuilder<T> implements DiagnosticHandler.DiagnosticCapable {
+
+        /**
+         * Guards against infinite recursion when expanding self-referential union types
+         * (e.g., {@code ai:Cloneable = Cloneable[]|map<Cloneable>|...}).
+         * Tracks the fully-qualified type signatures currently being expanded on each thread.
+         */
+        private static final ThreadLocal<Set<String>> TYPE_EXPANSION_VISITED =
+                ThreadLocal.withInitial(HashSet::new);
 
         private List<PropertyType> types = new ArrayList<>();
         private Object value;
@@ -771,67 +780,77 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             TypeSymbol rawType = CommonUtil.getRawType(typeSymbol);
             // Handle union of singleton types as single-select options
             if (!success && rawType instanceof UnionTypeSymbol unionTypeSymbol) {
-                List<TypeSymbol> typeSymbols = unionTypeSymbol.memberTypeDescriptors();
-                List<Option> options = new ArrayList<>();
-                boolean allSingletons = true;
-                for (TypeSymbol symbol : typeSymbols) {
-                    if (CommonUtil.getRawType(symbol).typeKind() == TypeDescKind.SINGLETON) {
-                        String label = CommonUtils.removeQuotes(symbol.signature());
-                        Option option = new Option(label, symbol.signature());
-                        options.add(option);
-                    } else {
-                        allSingletons = false;
-                        break;
-                    }
-                }
+                // Guard against infinite recursion for self-referential types such as
+                // ai:Cloneable = Cloneable[]|map<Cloneable>|boolean|int|...
+                // When this type is already being expanded on the current call stack.
+                Set<String> visited = TYPE_EXPANSION_VISITED.get();
+                if (visited.add(ballerinaType)) {
+                    try {
+                        List<TypeSymbol> typeSymbols = unionTypeSymbol.memberTypeDescriptors();
+                        List<Option> options = new ArrayList<>();
+                        boolean allSingletons = true;
+                        for (TypeSymbol symbol : typeSymbols) {
+                            if (CommonUtil.getRawType(symbol).typeKind() == TypeDescKind.SINGLETON) {
+                                String label = CommonUtils.removeQuotes(symbol.signature());
+                                Option option = new Option(label, symbol.signature());
+                                options.add(option);
+                            } else {
+                                allSingletons = false;
+                                break;
+                            }
+                        }
 
-                // If all the member types are singletons, treat it as a single-select option
-                if (allSingletons) {
-                    // Reorder options so that the default value appears first
-                    if (defaultValue != null && !defaultValue.isEmpty()) {
-                        options = reorderOptionsByDefaultValue(options, defaultValue);
-                    }
-                    builder.type().fieldType(ValueType.SINGLE_SELECT).options(options).stepOut();
-                } else {
-                    // Handle union of primitive types by defining an input type for each primitive type
-                    for (TypeSymbol ts : typeSymbols) {
-                        handlePrimitiveType(ts, CommonUtils.getTypeSignature(ts, moduleInfo), semanticModel,
-                                moduleInfo, builder);
-                    }
-                    // group by the fieldType
-                    List<PropertyType> propTypes = builder.types;
-                    propTypes.stream()
-                            .filter(pt -> !(pt.fieldType() == ValueType.REPEATABLE_LIST
-                                    || pt.fieldType() == ValueType.REPEATABLE_MAP))
-                            .collect(java.util.stream.Collectors.groupingBy(PropertyType::fieldType))
-                            .forEach((fieldType, groupedTypes) -> {
-                                if (groupedTypes.size() > 1) {
-                                    // merge the ballerina types
-                                    String mergedBallerinaType = groupedTypes.stream()
-                                            .map(PropertyType::ballerinaType)
-                                            .distinct()
-                                            .reduce((a, b) -> a + "|" + b)
-                                            .orElse("");
-                                    // find the index of the first grouped type to preserve order
-                                    int insertIndex = builder.types.indexOf(groupedTypes.getFirst());
-                                    // remove the existing types
-                                    builder.types.removeIf(t -> t.fieldType() == fieldType);
+                        // If all the member types are singletons, treat it as a single-select option
+                        if (allSingletons) {
+                            // Reorder options so that the default value appears first
+                            if (defaultValue != null && !defaultValue.isEmpty()) {
+                                options = reorderOptionsByDefaultValue(options, defaultValue);
+                            }
+                            builder.type().fieldType(ValueType.SINGLE_SELECT).options(options).stepOut();
+                        } else {
+                            // Handle union of primitive types by defining an input type for each primitive type
+                            for (TypeSymbol ts : typeSymbols) {
+                                handlePrimitiveType(ts, CommonUtils.getTypeSignature(ts, moduleInfo), semanticModel,
+                                        moduleInfo, builder);
+                            }
+                            // group by the fieldType
+                            List<PropertyType> propTypes = builder.types;
+                            propTypes.stream()
+                                    .filter(pt -> !(pt.fieldType() == ValueType.REPEATABLE_LIST
+                                            || pt.fieldType() == ValueType.REPEATABLE_MAP))
+                                    .collect(java.util.stream.Collectors.groupingBy(PropertyType::fieldType))
+                                    .forEach((fieldType, groupedTypes) -> {
+                                        if (groupedTypes.size() > 1) {
+                                            // merge the ballerina types
+                                            String mergedBallerinaType = groupedTypes.stream()
+                                                    .map(PropertyType::ballerinaType)
+                                                    .distinct()
+                                                    .reduce((a, b) -> a + "|" + b)
+                                                    .orElse("");
+                                            // find the index of the first grouped type to preserve order
+                                            int insertIndex = builder.types.indexOf(groupedTypes.getFirst());
+                                            // remove the existing types
+                                            builder.types.removeIf(t -> t.fieldType() == fieldType);
 
-                                    List<PropertyTypeMemberInfo> distinctMembers = null;
-                                    if (fieldType == ValueType.RECORD_MAP_EXPRESSION) {
-                                        distinctMembers = new ArrayList<>(groupedTypes.stream()
-                                                .filter(t -> t.typeMembers() != null)
-                                                .flatMap(t -> t.typeMembers().stream())
-                                                .distinct()
-                                                .toList());
-                                    }
+                                            List<PropertyTypeMemberInfo> distinctMembers = null;
+                                            if (fieldType == ValueType.RECORD_MAP_EXPRESSION) {
+                                                distinctMembers = new ArrayList<>(groupedTypes.stream()
+                                                        .filter(t -> t.typeMembers() != null)
+                                                        .flatMap(t -> t.typeMembers().stream())
+                                                        .distinct()
+                                                        .toList());
+                                            }
 
-                                    // insert the merged type at the original position
-                                    builder.types.add(insertIndex, new PropertyType(fieldType,
-                                            mergedBallerinaType, null, null,
-                                            null, distinctMembers, null, false));
-                                }
-                            });
+                                            // insert the merged type at the original position
+                                            builder.types.add(insertIndex, new PropertyType(fieldType,
+                                                    mergedBallerinaType, null, null,
+                                                    null, distinctMembers, null, false));
+                                        }
+                                    });
+                        }
+                    } finally {
+                        visited.remove(ballerinaType);
+                    }
                 }
             }
 
