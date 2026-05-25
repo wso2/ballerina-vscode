@@ -77,6 +77,7 @@ import {
     McpLoadErrorsDTO,
     McpGroupStatesDTO,
     SetMcpGroupEnabledRequest,
+    AgentsMdStateDTO,
 } from "./interfaces";
 
 export interface AIPanelAPI {
@@ -187,4 +188,7 @@ export interface AIPanelAPI {
     getMcpLoadErrors: () => Promise<McpLoadErrorsDTO>;
     getMcpGroupStates: () => Promise<McpGroupStatesDTO>;
     setMcpGroupEnabled: (params: SetMcpGroupEnabledRequest) => Promise<void>;
+    getAgentsMdState: () => Promise<AgentsMdStateDTO>;
+    setAgentsMdEnabled: (enabled: boolean) => Promise<void>;
+    openOrCreateAgentsMd: () => Promise<void>;
 }

@@ -43,6 +43,7 @@ import { MESSAGES } from '../project';
 import { AICommandConfig } from './executors/base/AICommandExecutor';
 import { AgentExecutor } from './agent/AgentExecutor';
 import { initMcpClientManager, disposeMcpClientManager, watchMcpConfig, getMcpClientManager, type EnabledOverrideStore } from './agent/mcp';
+import { registerAgentsMdWatcher } from './agent/agentsMd';
 import { resolveProjectRootPath } from './agent';
 import { extension } from '../../BalExtensionContext';
 import { notifyMcpServersChanged, notifyMcpLoadErrorsChanged, notifyMcpGroupStatesChanged } from '../../RPCLayer';
@@ -80,6 +81,7 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
     activateCopilotLoginCommand();
     resetBIAuth();
     activateMcp();
+    extension.context?.subscriptions.push(registerAgentsMdWatcher());
 
     // Register commands in test environment to test the AI features
     if (process.env.AI_TEST_ENV) {
