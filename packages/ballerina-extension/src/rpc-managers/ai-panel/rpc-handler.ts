@@ -106,6 +106,13 @@ import {
     runService,
     RunServiceRequest,
     getDefaultVertexCredsPath,
+    getSkills,
+    addSkill,
+    toggleSkill,
+    deleteSkill,
+    AddSkillRequest,
+    ToggleSkillRequest,
+    DeleteSkillRequest,
 } from "@wso2/ballerina-core";
 import { workspace } from 'vscode';
 import { Messenger } from "vscode-messenger";
@@ -182,6 +189,10 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(stopRunningService, (args: StopRunningServiceRequest) => rpcManger.stopRunningService(args));
     messenger.onRequest(runService, (args: RunServiceRequest) => rpcManger.runService(args));
     messenger.onRequest(getDefaultVertexCredsPath, () => rpcManger.getDefaultVertexCredsPath());
+    messenger.onRequest(getSkills, () => rpcManger.getSkills());
+    messenger.onRequest(addSkill, (args: AddSkillRequest) => rpcManger.addSkill(args));
+    messenger.onRequest(toggleSkill, (args: ToggleSkillRequest) => rpcManger.toggleSkill(args));
+    messenger.onRequest(deleteSkill, (args: DeleteSkillRequest) => rpcManger.deleteSkill(args));
 
     // Push updates to the webview whenever the set of running services changes.
     runningServicesManager.onChange = (services) => {

@@ -35,15 +35,18 @@ const SKILL_USAGE_RULES = `**Rules for using skills**:
 - **One at a time**: Always invoke one skill per message. Never call \`invoke_skill\` for multiple skills in the same turn — load each skill, apply it, then decide if another is needed.
 - **Silent operation**: Never announce or narrate skill usage in text. Call \`invoke_skill\` directly and apply the rules silently.`;
 
-export function getBuiltInSkillsSection(): string {
-    if (REGISTERED_SKILLS.length === 0) { return ''; }
+export function getBuiltInSkillsSection(disabledSkills?: Set<string>): string {
+    const activeSkills = disabledSkills
+        ? REGISTERED_SKILLS.filter(s => !disabledSkills.has(s.name))
+        : REGISTERED_SKILLS;
+    if (activeSkills.length === 0) { return ''; }
     return `# Skills
 
 Skills are specialised rule sets for specific tasks. When a skill's trigger condition is met, call \`invoke_skill\` with the skill name to load the full rules, then apply them exactly.
 
 ${SKILL_USAGE_RULES}
 
-${REGISTERED_SKILLS.map(formatSkill).join('\n\n')}`;
+${activeSkills.map(formatSkill).join('\n\n')}`;
 }
 
 export function getCustomSkillsSection(customSkills: CustomSkillMeta[]): string {

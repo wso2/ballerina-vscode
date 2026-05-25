@@ -56,6 +56,10 @@ import {
     RunningServiceInfo,
     StopRunningServiceRequest,
     RunServiceRequest,
+    GetSkillsResponse,
+    AddSkillRequest,
+    ToggleSkillRequest,
+    DeleteSkillRequest,
 } from "./interfaces";
 
 export interface AIPanelAPI {
@@ -140,4 +144,11 @@ export interface AIPanelAPI {
     // Vertex AI BYOK Helpers
     // ==================================
     getDefaultVertexCredsPath: () => Promise<string>;
+    // ==================================
+    // Skills Management
+    // ==================================
+    getSkills: () => Promise<GetSkillsResponse>;
+    addSkill: (params: AddSkillRequest) => Promise<boolean>;
+    toggleSkill: (params: ToggleSkillRequest) => Promise<boolean>;
+    deleteSkill: (params: DeleteSkillRequest) => Promise<boolean>;
 }

@@ -89,6 +89,7 @@ import { SegmentType, splitContent } from "./segment";
 import { MigrationContextCard } from "../MigrationContextCard";
 import { ActiveMigrationSession } from "@wso2/ballerina-rpc-client";
 import { ReviewBar } from "../ReviewBar";
+import SkillsManager from "../SkillsManager";
 
 const NO_DRIFT_FOUND = "No drift identified between the code and the documentation.";
 const DRIFT_CHECK_ERROR = "Failed to check drift between the code and the documentation. Please try again.";
@@ -202,6 +203,7 @@ const AIChat: React.FC = () => {
     const [showSettings, setShowSettings] = useState(false);
     const [isAutoApproveEnabled, setIsAutoApproveEnabled] = useState(false);
     const [isWebToolsEnabled, setIsWebToolsEnabled] = useState(false);
+    const [isSkillsManagerOpen, setIsSkillsManagerOpen] = useState(false);
     const userWebSearchPreferenceRef = useRef(false);
     const [agentMode, _setAgentMode] = useState<AgentMode>(AgentMode.Edit);
     const agentModeRef = useRef<AgentMode>(AgentMode.Edit);
@@ -2202,6 +2204,7 @@ const AIChat: React.FC = () => {
                             onDisableAutoApprove={handleToggleAutoApprove}
                             isWebToolsEnabled={isWebToolsEnabled}
                             onToggleWebSearch={handleToggleWebSearch}
+                            onOpenSkillsManager={() => setIsSkillsManagerOpen(true)}
                             disabled={isUsageExceeded}
                             contextUsage={showContextUsage ? contextUsage : null}
                             runningServicesPanel={{
@@ -2215,6 +2218,7 @@ const AIChat: React.FC = () => {
                 </AIChatView>
             )}
             {showSettings && <SettingsPanel onClose={() => setShowSettings(false)}></SettingsPanel>}
+            <SkillsManager isOpen={isSkillsManagerOpen} onClose={() => setIsSkillsManagerOpen(false)} />
         </>
     );
 };

@@ -165,6 +165,7 @@ type FooterProps = {
     onDisableAutoApprove?: () => void;
     isWebToolsEnabled?: boolean;
     onToggleWebSearch?: () => void;
+    onOpenSkillsManager?: () => void;
     disabled?: boolean;
     contextUsage?: { inputTokens: number; percentage: number; breakdown?: { systemInstructions: number; toolDefinitions: number; reservedOutput: number; files: number; messages: number; toolResults: number } } | null;
     runningServicesPanel?: RunningServicesPanel;
@@ -189,6 +190,7 @@ const Footer: React.FC<FooterProps> = ({
     onDisableAutoApprove,
     isWebToolsEnabled,
     onToggleWebSearch,
+    onOpenSkillsManager,
     disabled,
     contextUsage,
     runningServicesPanel,
@@ -252,6 +254,7 @@ const Footer: React.FC<FooterProps> = ({
                 onDisableAutoApprove={onDisableAutoApprove}
                 isWebToolsEnabled={isWebToolsEnabled}
                 onToggleWebSearch={onToggleWebSearch}
+                onOpenSkillsManager={onOpenSkillsManager}
                 disabled={disabled}
                 contextUsage={contextUsage}
                 runningServicesPanel={runningServicesPanel}

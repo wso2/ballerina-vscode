@@ -58,6 +58,10 @@ import {
     RunningServiceInfo,
     StopRunningServiceRequest,
     RunServiceRequest,
+    GetSkillsResponse,
+    AddSkillRequest,
+    ToggleSkillRequest,
+    DeleteSkillRequest,
 } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
@@ -121,3 +125,7 @@ export const stopRunningService: RequestType<StopRunningServiceRequest, boolean>
 export const runService: RequestType<RunServiceRequest, boolean> = { method: `${_preFix}/runService` };
 export const runningServicesChanged: NotificationType<RunningServiceInfo[]> = { method: `${_preFix}/runningServicesChanged` };
 export const getDefaultVertexCredsPath: RequestType<void, string> = { method: `${_preFix}/getDefaultVertexCredsPath` };
+export const getSkills: RequestType<void, GetSkillsResponse> = { method: `${_preFix}/getSkills` };
+export const addSkill: RequestType<AddSkillRequest, boolean> = { method: `${_preFix}/addSkill` };
+export const toggleSkill: RequestType<ToggleSkillRequest, boolean> = { method: `${_preFix}/toggleSkill` };
+export const deleteSkill: RequestType<DeleteSkillRequest, boolean> = { method: `${_preFix}/deleteSkill` };

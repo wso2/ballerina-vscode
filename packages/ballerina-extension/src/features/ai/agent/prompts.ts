@@ -35,7 +35,7 @@ import { getBuiltInSkillsSection, getCustomSkillsSection, getUserSkillsSection, 
 /**
  * Generates the system prompt for the design agent
  */
-export function getSystemPrompt(projects: ProjectSource[], op: OperationType, userSkills: CustomSkillMeta[]): string {
+export function getSystemPrompt(projects: ProjectSource[], op: OperationType, userSkills: CustomSkillMeta[], disabledSkills?: Set<string>): string {
     return `You are WSO2 Integrator Copilot, an expert assistant specialized in Ballerina help with relavant integration usecases. You will be helping with designing a solution for user query in a step-by-step manner.
 
 Answer queries related to Ballerina and integrations. If a query is unrelated, politely decline.
@@ -221,7 +221,7 @@ When running tests:
 
 ${getUserSkillsSection(userSkills)}
 
-${getBuiltInSkillsSection()}
+${getBuiltInSkillsSection(disabledSkills)}
 
 # Web Tools
 You have access to web_search and web_fetch tools. Always prefer domain-specific tools first. Use web tools only when no suitable domain-specific tool can answer the query, or when the user provides a URL or asks for live/external information.

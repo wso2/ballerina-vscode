@@ -30,6 +30,7 @@ import SuggestionsList from "./SuggestionsList";
 import ModeToggle, { AgentMode } from "./ModeToggle";
 import AutoApproveChip from "./AutoApproveChip";
 import WebSearchToggle from "./WebSearchToggle";
+import SkillsButton from "../SkillsManager/SkillsButton";
 import { CommandTemplates } from "../../commandTemplates/data/commandTemplates.const";
 import { Tag } from "../../commandTemplates/models/tag.model";
 import { getFirstOccurringPlaceholder, matchCommandTemplate } from "./utils/utils";
@@ -137,6 +138,7 @@ interface AIChatInputProps {
     onDisableAutoApprove?: () => void;
     isWebToolsEnabled?: boolean;
     onToggleWebSearch?: () => void;
+    onOpenSkillsManager?: () => void;
     disabled?: boolean;
     contextUsage?: { inputTokens: number; percentage: number; breakdown?: { systemInstructions: number; toolDefinitions: number; reservedOutput: number; files: number; messages: number; toolResults: number } } | null;
     runningServicesPanel?: RunningServicesPanel;
@@ -145,7 +147,7 @@ interface AIChatInputProps {
 const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
     ({ initialCommandTemplate, tagOptions, attachmentOptions, placeholder, onSend, onStop, isLoading,
        agentMode = AgentMode.Edit, onChangeAgentMode, isAutoApproveEnabled = false, onDisableAutoApprove,
-       isWebToolsEnabled = false, onToggleWebSearch, disabled,
+       isWebToolsEnabled = false, onToggleWebSearch, onOpenSkillsManager, disabled,
        contextUsage, runningServicesPanel }, ref) => {        const [inputValue, setInputValue] = useState<{
             text: string;
             [key: string]: any;
@@ -582,6 +584,9 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
                                 )}
                                 {onToggleWebSearch && (
                                     <WebSearchToggle isActive={isWebToolsEnabled} onToggle={onToggleWebSearch} />
+                                )}
+                                {onOpenSkillsManager && (
+                                    <SkillsButton onClick={onOpenSkillsManager} />
                                 )}
                                 {contextUsage && (
                                     <ContextUsageWidget

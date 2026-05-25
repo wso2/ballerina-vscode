@@ -550,6 +550,51 @@ export interface RunServiceRequest {
     /** Absolute path to the temp directory containing the package. */
     tempProjectPath: string;
 }
+
+// ==================================
+// Skills Management Interfaces
+// ==================================
+
+export interface SkillEntry {
+    id: string;
+    name: string;
+    trigger: string;
+    body?: string;
+    tier: 'builtin' | 'custom' | 'user';
+    enabled: boolean;
+    scope?: 'project' | 'integration';
+    packagePath?: string;
+}
+
+export interface DeleteSkillRequest {
+    skillId: string;
+    tier: 'custom' | 'user';
+}
+
+export interface AvailableProject {
+    name: string;
+    packagePath: string;
+}
+
+export interface GetSkillsResponse {
+    skills: SkillEntry[];
+    availableProjects: AvailableProject[];
+}
+
+export interface AddSkillRequest {
+    tier: 'custom' | 'user';
+    name: string;
+    trigger: string;
+    body?: string;
+    scope?: 'project' | 'integration';
+    packagePath?: string;
+}
+
+export interface ToggleSkillRequest {
+    skillId: string;
+    enabled: boolean;
+    tier: 'builtin' | 'custom' | 'user';
+}
 // ==================================
 // Compaction Related Interfaces
 // ==================================
