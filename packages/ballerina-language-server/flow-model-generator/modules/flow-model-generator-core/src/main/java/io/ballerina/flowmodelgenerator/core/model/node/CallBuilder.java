@@ -276,6 +276,12 @@ public abstract class CallBuilder extends NodeBuilder {
                 continue;
             }
 
+            // Allow subclasses to handle a parameter specially (e.g. replace with CONNECTION type).
+            // If the override returns true the parameter has been fully handled; skip default processing.
+            if (processSpecialParameter(paramResult)) {
+                continue;
+            }
+
             String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
             Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder = properties().custom();
             String label = paramResult.label();
@@ -342,6 +348,18 @@ public abstract class CallBuilder extends NodeBuilder {
                     .stepOut()
                     .addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName));
         }
+    }
+
+    /**
+     * Hook for subclasses to intercept individual parameters during {@link #setParameterProperties}.
+     * If this method returns {@code true} the parameter has been fully handled and will be skipped
+     * in the default processing loop; returning {@code false} lets the default logic run.
+     *
+     * @param paramData the parameter to (optionally) process
+     * @return {@code true} if the parameter was handled by this override
+     */
+    protected boolean processSpecialParameter(ParameterData paramData) {
+        return false;
     }
 
     protected void setReturnTypeProperties(FunctionData functionData, TemplateContext context, String label, String doc,

@@ -51,6 +51,7 @@ import org.ballerinalang.langserver.common.utils.CommonUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,13 +76,17 @@ import java.util.Set;
  * @param codedata      codedata of the property
  * @param advancedValue advanced value of the property
  * @param imports       import statements of the dependent types in the format prefix -> moduleId
- * @param comment       leading and trailing comments of the property
+ * @param comment           leading and trailing comments of the property
+ * @param dynamicFormFields maps dropdown option values to their conditional sub-fields keyed by property name
+ *                          (for DropdownChoiceForm)
+ * @param itemOptions       dropdown item options for DROPDOWN_CHOICE fields (id, content, value)
  * @since 1.0.0
  */
 public record Property(Metadata metadata, List<PropertyType> types, Object value, Object oldValue,
                        String placeholder, boolean optional, boolean editable, boolean advanced, boolean hidden,
                        Boolean modified, Diagnostics diagnostics, PropertyCodedata codedata, Object advancedValue,
-                       Map<String, String> imports, String defaultValue, CommentProperty comment) {
+                       Map<String, String> imports, String defaultValue, CommentProperty comment,
+                       Map<String, Map<String, Property>> dynamicFormFields, List<ItemOption> itemOptions) {
 
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
 
@@ -367,14 +372,27 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
          * to choose from, generating a typed subset record on save.
          */
         RECORD_FIELD_SELECTOR,
-        ADVANCE_PARAM_LIST
+        ADVANCE_PARAM_LIST,
+        DROPDOWN_CHOICE,
+        /**
+         * A property type that renders a connection picker in the UI. The compatible
+         * connection kinds are advertised through {@link PropertyCodedata#searchNodesKind()}.
+         * The property value carries the picked connection variable name, or
+         * {@code "NEW_CONNECTION"} when the user has not yet picked one (which the UI
+         * surfaces as a shortcut to create a new connection).
+         */
+        CONNECTION
     }
 
     public static class Builder<T> extends FacetedBuilder<T> implements DiagnosticHandler.DiagnosticCapable {
 
-        // Tracks type signatures currently being expanded in typeWithExpression on this thread.
-        // Prevents infinite recursion for self-referential types.
-        private static final ThreadLocal<Set<String>> EXPANDING_TYPES = ThreadLocal.withInitial(java.util.HashSet::new);
+        /**
+         * Guards against infinite recursion when expanding self-referential union types
+         * (e.g., {@code ai:Cloneable = Cloneable[]|map<Cloneable>|...}).
+         * Tracks the fully-qualified type signatures currently being expanded on each thread.
+         */
+        private static final ThreadLocal<Set<String>> TYPE_EXPANSION_VISITED =
+                ThreadLocal.withInitial(HashSet::new);
 
         private List<PropertyType> types = new ArrayList<>();
         private Object value;
@@ -392,6 +410,72 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         private Map<String, String> imports;
         private String defaultValue;
         private CommentProperty commentProperty;
+        private Map<String, Map<String, Property>> dynamicFormFields;
+        private List<ItemOption> itemOptions;
+
+        /**
+         * Creates a builder pre-populated with all fields from an existing property.
+         * Use this instead of constructing a {@code new Property(...)} manually when only a subset
+         * of fields needs to be changed — avoids fragile positional {@code null} arguments when
+         * the record gains new components.
+         *
+         * @param original the property to copy all fields from
+         * @return a new {@code Builder<Object>} initialised from {@code original}
+         */
+        public static Builder<Object> copyFrom(Property original) {
+            Builder<Object> builder = new Builder<>(null);
+            if (original.types() != null) {
+                // Deep-copy each PropertyType so that mutating `selected` on the copy
+                // does not alias back to the original's type entries.
+                for (PropertyType t : original.types()) {
+                    builder.types.add(new PropertyType(t.fieldType(), t.ballerinaType(), t.scope(),
+                            t.options(), t.template(), t.typeMembers(), t.recordSelectorType(), t.selected()));
+                }
+            }
+            builder.value = original.value();
+            builder.oldValue = original.oldValue();
+            builder.placeholder = original.placeholder();
+            builder.optional = original.optional();
+            builder.editable = original.editable();
+            builder.advanced = original.advanced();
+            builder.hidden = original.hidden();
+            builder.modified = original.modified();
+            builder.advancedValue = original.advancedValue();
+            builder.imports = original.imports() != null ? new HashMap<>(original.imports()) : null;
+            builder.defaultValue = original.defaultValue();
+            builder.commentProperty = original.comment();
+            if (original.dynamicFormFields() != null) {
+                builder.dynamicFormFields = new LinkedHashMap<>();
+                for (Map.Entry<String, Map<String, Property>> e : original.dynamicFormFields().entrySet()) {
+                    builder.dynamicFormFields.put(e.getKey(), new LinkedHashMap<>(e.getValue()));
+                }
+            } else {
+                builder.dynamicFormFields = null;
+            }
+            builder.itemOptions = original.itemOptions() != null
+                    ? new ArrayList<>(original.itemOptions()) : null;
+            if (original.metadata() != null) {
+                builder.metadataBuilder = new Metadata.Builder<>(builder);
+                builder.metadataBuilder.label(original.metadata().label())
+                        .description(original.metadata().description())
+                        .keywords(original.metadata().keywords())
+                        .icon(original.metadata().icon())
+                        .functionKind(original.metadata().functionKind())
+                        .data(original.metadata().data())
+                        .connectors(original.metadata().connectors());
+            }
+            if (original.diagnostics() != null) {
+                builder.diagnosticsBuilder = new Diagnostics.Builder<>(builder);
+                if (original.diagnostics().diagnostics() != null) {
+                    builder.diagnosticsBuilder.diagnostics(original.diagnostics().diagnostics());
+                }
+            }
+            if (original.codedata() != null) {
+                builder.codedataBuilder = new PropertyCodedata.Builder<>(builder);
+                builder.codedataBuilder.copyFrom(original.codedata());
+            }
+            return builder;
+        }
 
         public Builder(T parentBuilder) {
             super(parentBuilder);
@@ -517,6 +601,25 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
         public Builder<T> comment(CommentProperty comment) {
             this.commentProperty = comment;
+            return this;
+        }
+
+        public Builder<T> dynamicFormFields(Map<String, Map<String, Property>> dynamicFormFields) {
+            this.dynamicFormFields = dynamicFormFields;
+            return this;
+        }
+
+        public Builder<T> itemOptions(List<ItemOption> itemOptions) {
+            this.itemOptions = itemOptions;
+            return this;
+        }
+
+        /**
+         * Discards all previously accumulated type entries so the caller can add
+         * a fresh set of types (e.g. to replace EXPRESSION with SINGLE_SELECT).
+         */
+        public Builder<T> clearTypes() {
+            this.types.clear();
             return this;
         }
 
@@ -671,94 +774,83 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             }
             String ballerinaType = CommonUtils.getTypeSignature(typeSymbol, moduleInfo);
 
-            // Short-circuit self-referential types
-            Set<String> expanding = EXPANDING_TYPES.get();
-            if (!expanding.add(ballerinaType)) {
-                builder.type().fieldType(ValueType.EXPRESSION).ballerinaType(ballerinaType).stepOut();
-                return this;
-            }
-            try {
-                return typeWithExpressionInner(typeSymbol, moduleInfo, value, semanticModel, defaultValue,
-                        builder, diagnosticHandler, ballerinaType);
-            } finally {
-                expanding.remove(ballerinaType);
-                if (expanding.isEmpty()) {
-                    EXPANDING_TYPES.remove();
-                }
-            }
-        }
-
-        private Builder<T> typeWithExpressionInner(TypeSymbol typeSymbol, ModuleInfo moduleInfo,
-                                                   Node value, SemanticModel semanticModel, String defaultValue,
-                                                   Property.Builder<?> builder,
-                                                   DiagnosticHandler diagnosticHandler, String ballerinaType) {
             // Handle the primitive input types
             boolean success = handlePrimitiveType(typeSymbol, ballerinaType, semanticModel, moduleInfo, builder);
 
             TypeSymbol rawType = CommonUtil.getRawType(typeSymbol);
             // Handle union of singleton types as single-select options
             if (!success && rawType instanceof UnionTypeSymbol unionTypeSymbol) {
-                List<TypeSymbol> typeSymbols = unionTypeSymbol.memberTypeDescriptors();
-                List<Option> options = new ArrayList<>();
-                boolean allSingletons = true;
-                for (TypeSymbol symbol : typeSymbols) {
-                    if (CommonUtil.getRawType(symbol).typeKind() == TypeDescKind.SINGLETON) {
-                        String label = CommonUtils.removeQuotes(symbol.signature());
-                        Option option = new Option(label, symbol.signature());
-                        options.add(option);
-                    } else {
-                        allSingletons = false;
-                        break;
-                    }
-                }
+                // Guard against infinite recursion for self-referential types such as
+                // ai:Cloneable = Cloneable[]|map<Cloneable>|boolean|int|...
+                // When this type is already being expanded on the current call stack.
+                Set<String> visited = TYPE_EXPANSION_VISITED.get();
+                if (visited.add(ballerinaType)) {
+                    try {
+                        List<TypeSymbol> typeSymbols = unionTypeSymbol.memberTypeDescriptors();
+                        List<Option> options = new ArrayList<>();
+                        boolean allSingletons = true;
+                        for (TypeSymbol symbol : typeSymbols) {
+                            if (CommonUtil.getRawType(symbol).typeKind() == TypeDescKind.SINGLETON) {
+                                String label = CommonUtils.removeQuotes(symbol.signature());
+                                Option option = new Option(label, symbol.signature());
+                                options.add(option);
+                            } else {
+                                allSingletons = false;
+                                break;
+                            }
+                        }
 
-                // If all the member types are singletons, treat it as a single-select option
-                if (allSingletons) {
-                    // Reorder options so that the default value appears first
-                    if (defaultValue != null && !defaultValue.isEmpty()) {
-                        options = reorderOptionsByDefaultValue(options, defaultValue);
-                    }
-                    builder.type().fieldType(ValueType.SINGLE_SELECT).options(options).stepOut();
-                } else {
-                    // Handle union of primitive types by defining an input type for each primitive type
-                    for (TypeSymbol ts : typeSymbols) {
-                        handlePrimitiveType(ts, CommonUtils.getTypeSignature(ts, moduleInfo), semanticModel,
-                                moduleInfo, builder);
-                    }
-                    // group by the fieldType
-                    List<PropertyType> propTypes = builder.types;
-                    propTypes.stream()
-                            .filter(pt -> !(pt.fieldType() == ValueType.REPEATABLE_LIST
-                                    || pt.fieldType() == ValueType.REPEATABLE_MAP))
-                            .collect(java.util.stream.Collectors.groupingBy(PropertyType::fieldType))
-                            .forEach((fieldType, groupedTypes) -> {
-                                if (groupedTypes.size() > 1) {
-                                    // merge the ballerina types
-                                    String mergedBallerinaType = groupedTypes.stream()
-                                            .map(PropertyType::ballerinaType)
-                                            .distinct()
-                                            .reduce((a, b) -> a + "|" + b)
-                                            .orElse("");
-                                    // find the index of the first grouped type to preserve order
-                                    int insertIndex = builder.types.indexOf(groupedTypes.getFirst());
-                                    // remove the existing types
-                                    builder.types.removeIf(t -> t.fieldType() == fieldType);
+                        // If all the member types are singletons, treat it as a single-select option
+                        if (allSingletons) {
+                            // Reorder options so that the default value appears first
+                            if (defaultValue != null && !defaultValue.isEmpty()) {
+                                options = reorderOptionsByDefaultValue(options, defaultValue);
+                            }
+                            builder.type().fieldType(ValueType.SINGLE_SELECT).options(options).stepOut();
+                        } else {
+                            // Handle union of primitive types by defining an input type for each primitive type
+                            for (TypeSymbol ts : typeSymbols) {
+                                handlePrimitiveType(ts, CommonUtils.getTypeSignature(ts, moduleInfo), semanticModel,
+                                        moduleInfo, builder);
+                            }
+                            // group by the fieldType
+                            List<PropertyType> propTypes = builder.types;
+                            propTypes.stream()
+                                    .filter(pt -> !(pt.fieldType() == ValueType.REPEATABLE_LIST
+                                            || pt.fieldType() == ValueType.REPEATABLE_MAP))
+                                    .collect(java.util.stream.Collectors.groupingBy(PropertyType::fieldType))
+                                    .forEach((fieldType, groupedTypes) -> {
+                                        if (groupedTypes.size() > 1) {
+                                            // merge the ballerina types
+                                            String mergedBallerinaType = groupedTypes.stream()
+                                                    .map(PropertyType::ballerinaType)
+                                                    .distinct()
+                                                    .reduce((a, b) -> a + "|" + b)
+                                                    .orElse("");
+                                            // find the index of the first grouped type to preserve order
+                                            int insertIndex = builder.types.indexOf(groupedTypes.getFirst());
+                                            // remove the existing types
+                                            builder.types.removeIf(t -> t.fieldType() == fieldType);
 
-                                    List<PropertyTypeMemberInfo> distinctMembers = null;
-                                    if (fieldType == ValueType.RECORD_MAP_EXPRESSION) {
-                                        distinctMembers = new ArrayList<>(groupedTypes.stream()
-                                                .filter(t -> t.typeMembers() != null)
-                                                .flatMap(t -> t.typeMembers().stream())
-                                                .distinct()
-                                                .toList());
-                                    }
+                                            List<PropertyTypeMemberInfo> distinctMembers = null;
+                                            if (fieldType == ValueType.RECORD_MAP_EXPRESSION) {
+                                                distinctMembers = new ArrayList<>(groupedTypes.stream()
+                                                        .filter(t -> t.typeMembers() != null)
+                                                        .flatMap(t -> t.typeMembers().stream())
+                                                        .distinct()
+                                                        .toList());
+                                            }
 
-                                    // insert the merged type at the original position
-                                    builder.types.add(insertIndex, new PropertyType(fieldType,
-                                            mergedBallerinaType, null, null,
-                                            null, distinctMembers, null, false));
-                                }
-                            });
+                                            // insert the merged type at the original position
+                                            builder.types.add(insertIndex, new PropertyType(fieldType,
+                                                    mergedBallerinaType, null, null,
+                                                    null, distinctMembers, null, false));
+                                        }
+                                    });
+                        }
+                    } finally {
+                        visited.remove(ballerinaType);
+                    }
                 }
             }
 
@@ -995,23 +1087,23 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             // Find the matching type symbol that is a subtype of the parameter type.
             // When the inferred type is unavailable or a compilation error, skip the subtype check
             // and use the declared type directly.
-            TypeSymbol matchedMapType = null;
+            TypeSymbol resolvedType = typeSymbol;
             if (paramType.isPresent()
                     && paramType.get().typeKind() != TypeDescKind.COMPILATION_ERROR) {
                 TypeSymbol actualParamType = paramType.get();
-                matchedMapType = candidateMapTypes.stream()
+                TypeSymbol matchingType = candidateMapTypes.stream()
                         .filter(candidate -> candidate.subtypeOf(actualParamType))
                         .findFirst()
                         .orElse(null);
-                if (matchedMapType == null) {
+                if (matchingType == null) {
                     return;
                 }
+                resolvedType = matchingType;
             } else if (candidateMapTypes.isEmpty()) {
                 return;
             }
 
-            String ballerinaType = CommonUtils.getTypeSignature(matchedMapType != null ? matchedMapType : typeSymbol
-                    , moduleInfo);
+            String ballerinaType = CommonUtils.getTypeSignature(resolvedType, moduleInfo);
 
             // Find and update the matching property type
             builder.types.stream()
@@ -1320,7 +1412,8 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                     value, oldValue, placeholder, optional, editable, advanced, hidden, modified,
                     diagnosticsBuilder == null ? null : diagnosticsBuilder.build(),
                     codedataBuilder == null ? null : codedataBuilder.build(), advancedValue,
-                    imports == null ? null : imports, defaultValue, commentProperty);
+                    imports == null ? null : imports, defaultValue, commentProperty, dynamicFormFields,
+                    itemOptions);
             this.metadataBuilder = null;
             this.types = new ArrayList<>();
             this.value = null;
@@ -1336,6 +1429,8 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             this.defaultValue = null;
             this.commentProperty = null;
             this.imports = null;
+            this.dynamicFormFields = null;
+            this.itemOptions = null;
             return property;
         }
     }

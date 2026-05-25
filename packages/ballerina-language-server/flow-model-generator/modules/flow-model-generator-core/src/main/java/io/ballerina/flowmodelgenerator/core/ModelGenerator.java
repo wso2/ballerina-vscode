@@ -73,6 +73,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -342,13 +343,29 @@ public class ModelGenerator {
 
         // Apply NodeKind filter if present
         if (kindFilter != null && !kindFilter.isEmpty()) {
-            try {
-                NodeKind requiredNodeKind = NodeKind.valueOf(kindFilter);
+            Optional<NodeKind> nodeKindOpt = Stream.of(NodeKind.values())
+                    .filter(n -> n.name().equalsIgnoreCase(kindFilter))
+                    .findFirst();
+            if (nodeKindOpt.isPresent()) {
+                NodeKind requiredNodeKind = nodeKindOpt.get();
                 flowNodesList = flowNodesList.stream()
                         .filter(node -> node.codedata().node() == requiredNodeKind)
                         .toList();
-            } catch (IllegalArgumentException e) {
-                flowNodesList.clear();
+            } else {
+                // kindFilter is not a NodeKind enum value — treat as a case-insensitive module
+                // prefix filter so that connection-kind strings like "HTTP", "SOAP", "EMAIL"
+                // can match nodes whose codedata.module starts with the same prefix.
+                // e.g. "HTTP"  → module="http"
+                //      "SOAP"  → module="soap.soap11" / "soap.soap12"
+                //      "EMAIL" → module="email"
+                String kindLower = kindFilter.toLowerCase(Locale.ROOT);
+                flowNodesList = flowNodesList.stream()
+                        .filter(node -> {
+                            String module = node.codedata() != null ? node.codedata().module() : null;
+                            return module != null
+                                    && module.toLowerCase(Locale.ROOT).startsWith(kindLower);
+                        })
+                        .toList();
             }
         }
         return flowNodesList;

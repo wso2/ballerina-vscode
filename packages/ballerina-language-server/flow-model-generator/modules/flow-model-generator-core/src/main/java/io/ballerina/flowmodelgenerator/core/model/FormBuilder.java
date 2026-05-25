@@ -459,6 +459,44 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
         return this;
     }
 
+    public FormBuilder<T> connectionSelector(String placeholder) {
+        return connectionSelector(placeholder, null, null);
+    }
+
+    public FormBuilder<T> connectionSelector(String placeholder, String searchNodesKind) {
+        return connectionSelector(placeholder, searchNodesKind, null);
+    }
+
+    public FormBuilder<T> connectionSelector(String placeholder, String searchNodesKind,
+                                             List<Metadata.AllowedConnector> connectors) {
+        return connectionSelector(Property.CONNECTION_KEY, Property.CONNECTION_LABEL, placeholder,
+                searchNodesKind, connectors);
+    }
+
+    public FormBuilder<T> connectionSelector(String key, String label, String placeholder, String searchNodesKind,
+                                             List<Metadata.AllowedConnector> connectors) {
+        propertyBuilder
+                .metadata()
+                    .label(label)
+                    .description(Property.CONNECTION_DOC)
+                    .stepOut()
+                .value(placeholder)
+                .placeholder(placeholder)
+                .type()
+                    .fieldType(Property.ValueType.CONNECTION)
+                    .selected(true)
+                    .stepOut()
+                .editable();
+        if (connectors != null && !connectors.isEmpty()) {
+            propertyBuilder.metadata().connectors(connectors);
+        }
+        if (searchNodesKind != null) {
+            propertyBuilder.codedata().searchNodesKind(searchNodesKind);
+        }
+        addProperty(key);
+        return this;
+    }
+
     public FormBuilder<T> callConnection(ExpressionNode expressionNode, String key, Map<String, Object> metadataData) {
         propertyBuilder
                 .metadata()

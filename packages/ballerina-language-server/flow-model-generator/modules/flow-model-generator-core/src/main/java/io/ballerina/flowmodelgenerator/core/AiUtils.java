@@ -241,7 +241,9 @@ public class AiUtils {
                 originalProperty.advancedValue(),
                 originalProperty.imports(),
                 originalProperty.defaultValue(),
-                originalProperty.comment()
+                originalProperty.comment(),
+                originalProperty.dynamicFormFields(),
+                originalProperty.itemOptions()
         );
     }
 
@@ -272,7 +274,9 @@ public class AiUtils {
                 original.advancedValue(),
                 original.imports(),
                 original.defaultValue(),
-                original.comment()
+                original.comment(),
+                original.dynamicFormFields(),
+                original.itemOptions()
         );
     }
 
@@ -297,7 +301,8 @@ public class AiUtils {
                 original.metadata().keywords(),
                 original.metadata().icon(),
                 original.metadata().functionKind(),
-                original.metadata().data()
+                original.metadata().data(),
+                original.metadata().connectors()
         );
 
         return new Property(
@@ -316,7 +321,9 @@ public class AiUtils {
                 original.advancedValue(),
                 original.imports(),
                 original.defaultValue(),
-                original.comment()
+                original.comment(),
+                original.dynamicFormFields(),
+                original.itemOptions()
         );
     }
 
@@ -349,7 +356,9 @@ public class AiUtils {
                 original.advancedValue(),
                 original.imports(),
                 original.defaultValue(),
-                original.comment()
+                original.comment(),
+                original.dynamicFormFields(),
+                original.itemOptions()
         );
     }
 
@@ -376,6 +385,15 @@ public class AiUtils {
         Object valueToUse = customValue != null ? customValue : property.value();
         boolean hidden = isHidden || property.hidden();
 
+        // When a property from a template is flagged as hidden it is an internal default
+        // that should not be user-visible.  If the node builder has already set this key
+        // from its own authoritative data (e.g. AGENT_CALL sets type/variable from the
+        // function's return type), do not replace those correct values with the template
+        // defaults (e.g. ai:Agent / aiAgent from the AGENT template).
+        if (hidden && nodeBuilder.properties().build().containsKey(key)) {
+            return;
+        }
+
         Property copied = new Property(
                 property.metadata(),
                 property.types(),
@@ -392,7 +410,9 @@ public class AiUtils {
                 property.advancedValue(),
                 property.imports(),
                 property.defaultValue(),
-                property.comment()
+                property.comment(),
+                property.dynamicFormFields(),
+                property.itemOptions()
         );
         nodeBuilder.properties().build().put(key, copied);
     }
@@ -514,8 +534,7 @@ public class AiUtils {
     }
 
     public static String getBallerinaAiModuleVersion(Project project) {
-        return project.currentPackage().dependenciesToml()
-                .map(DependenciesToml::tomlDocument).map(TomlDocument::toml)
+        return project.currentPackage().dependenciesToml().map(DependenciesToml::tomlDocument).map(TomlDocument::toml)
                 .map(toml -> toml.getTables(PACKAGE)).orElse(List.of()).stream()
                 .filter(pkg -> BALLERINA.equals(pkg.get(ORG).map(Object::toString).orElse(""))
                         && AI.equals(pkg.get(NAME).map(Object::toString).orElse("")))

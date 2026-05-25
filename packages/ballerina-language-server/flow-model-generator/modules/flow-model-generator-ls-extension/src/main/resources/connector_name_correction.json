@@ -23,5 +23,7 @@
   "persist.sql": "Persist",
   "persist.inmemory": "Persist",
   "persist.googlesheets": "Persist",
-  "persist.redis": "Persist"
+  "persist.redis": "Persist",
+  "soap.soap11": "SOAP 1.1",
+  "soap.soap12": "SOAP 1.2"
 }

@@ -94,7 +94,7 @@
         "metadata": {
           "label": "callActivity",
           "description": "Executes an activity function. The activity runs exactly once, even if the process crashes and restarts.\n\n```ballerina\nPaymentResult result = check ctx->callActivity(processPayment, args = {\"orderId\": orderId});\n```\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.3.4.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.4.0.png"
         },
         "codedata": {
           "node": "ACTIVITY_CALL",

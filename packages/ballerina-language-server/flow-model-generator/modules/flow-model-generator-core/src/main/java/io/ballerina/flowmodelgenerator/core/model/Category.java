@@ -79,6 +79,8 @@ public record Category(Metadata metadata, List<Item> items) implements Item {
         CHUNKER("Chunkers", "Document chunkers available in the integration", null),
         AI("AI", "AI components available in the flow", null),
         WORKFLOW("Workflow", "Workflow orchestration components", null),
+        BUILTIN_ACTIVITIES("Workflow Activities", "Pre-curated activities for common integrations",
+                List.of("REST", "SOAP", "Email", "Workflow", "Activity")),
         MORE("More", "Expandable section to view more content", null),
         DIRECT_LLM("Direct LLM", "AI components that connect directly with a large language model", null),
         RAG("RAG", "AI components specific to Retrieval-Augmented Generation workflows", null),

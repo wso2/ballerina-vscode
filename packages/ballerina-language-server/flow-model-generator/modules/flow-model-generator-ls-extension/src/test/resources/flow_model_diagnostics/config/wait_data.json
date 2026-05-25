@@ -308,7 +308,7 @@
           {
             "fieldType": "EXPRESSION",
             "ballerinaType": "time:Duration?",
-            "selected": false
+            "selected": true
           }
         ],
         "placeholder": "()",
@@ -334,7 +334,7 @@
     "metadata": {
       "label": "Wait for Data",
       "description": "Wait for workflow data to be received",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.3.4.png"
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_workflow_0.4.0.png"
     },
     "codedata": {
       "node": "WAIT_DATA",
@@ -343,7 +343,7 @@
       "packageName": "workflow",
       "object": "Context",
       "symbol": "await",
-      "version": "0.3.4",
+      "version": "0.4.0",
       "lineRange": {
         "fileName": "functions.bal",
         "startLine": {
@@ -387,6 +387,46 @@
           "originalName": "minCount"
         },
         "defaultValue": "<int:Unsigned32>futures.length()"
+      },
+      "timeout": {
+        "metadata": {
+          "label": "Timeout",
+          "description": "Maximum wait duration; returns error on timeout"
+        },
+        "types": [
+          {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "time:Duration",
+            "typeMembers": [
+              {
+                "type": "Duration",
+                "packageInfo": "ballerina:time:2.8.0",
+                "packageName": "time",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "time:Duration?",
+            "selected": false
+          }
+        ],
+        "placeholder": "()",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "timeout"
+        },
+        "imports": {
+          "time": "ballerina/time"
+        },
+        "defaultValue": "()"
       },
       "dataWaits": {
         "metadata": {
@@ -503,7 +543,16 @@
                 "optional": false,
                 "editable": true,
                 "advanced": false,
-                "hidden": false
+                "hidden": false,
+                "diagnostics": {
+                  "hasDiagnostics": true,
+                  "diagnostics": [
+                    {
+                      "severity": "ERROR",
+                      "message": "Tuple member at position 0 must be nilable (e.g., string?) when minCount (1) is less than the number of futures (2). Not all futures are guaranteed to complete"
+                    }
+                  ]
+                }
               },
               "dataName": {
                 "metadata": {
@@ -554,7 +603,16 @@
                 "optional": false,
                 "editable": true,
                 "advanced": false,
-                "hidden": false
+                "hidden": false,
+                "diagnostics": {
+                  "hasDiagnostics": true,
+                  "diagnostics": [
+                    {
+                      "severity": "ERROR",
+                      "message": "Tuple member at position 1 must be nilable (e.g., boolean?) when minCount (1) is less than the number of futures (2). Not all futures are guaranteed to complete"
+                    }
+                  ]
+                }
               },
               "dataName": {
                 "metadata": {
@@ -604,46 +662,6 @@
             }
           ]
         }
-      },
-      "timeout": {
-        "metadata": {
-          "label": "Timeout",
-          "description": "Maximum wait duration; returns error on timeout"
-        },
-        "types": [
-          {
-            "fieldType": "RECORD_MAP_EXPRESSION",
-            "ballerinaType": "time:Duration",
-            "typeMembers": [
-              {
-                "type": "Duration",
-                "packageInfo": "ballerina:time:2.8.0",
-                "packageName": "time",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              }
-            ],
-            "selected": false
-          },
-          {
-            "fieldType": "EXPRESSION",
-            "ballerinaType": "time:Duration?",
-            "selected": false
-          }
-        ],
-        "placeholder": "()",
-        "optional": true,
-        "editable": true,
-        "advanced": true,
-        "hidden": false,
-        "codedata": {
-          "kind": "DEFAULTABLE",
-          "originalName": "timeout"
-        },
-        "imports": {
-          "time": "ballerina/time"
-        },
-        "defaultValue": "()"
       }
     },
     "diagnostics": {
