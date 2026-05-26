@@ -1,0 +1,46 @@
+{
+  "source": "variable2.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable2.bal",
+      "startLine": {
+        "line": 19,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 19,
+        "offset": 122
+      }
+    },
+    "sourceCode": "Credentials[] credentials = from var item in userInfo select { password: item.password };",
+    "isNew": false
+  },
+  "propertyKey": "expression",
+  "index": 0,
+  "clause": {
+    "type": "where",
+    "properties": {
+      "expression": "userInfo.username == \"Alex\""
+    }
+  },
+  "targetField": "credentials.0",
+  "output": {
+    "variable2.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 19,
+            "character": 66
+          },
+          "end": {
+            "line": 19,
+            "character": 86
+          }
+        },
+        "newText": "where userInfo.username == \"Alex\""
+      }
+    ]
+  }
+}

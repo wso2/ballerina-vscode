@@ -1,0 +1,231 @@
+{
+  "id": 0,
+  "name": "HTTP Service",
+  "type": "http",
+  "diaplayName": "HTTP Service",
+  "displayAnnotation": {
+    "label": "HTTP Service",
+    "iconPath": "http://localhost:8080/icons/http.png"
+  },
+  "moduleName": "http",
+  "orgName": "ballerina",
+  "version": "2.14.0",
+  "packageName": "http",
+  "listenerProtocol": "http",
+  "icon": "http://localhost:8080/icons/http.png",
+  "documentation": {
+    "metadata": {
+      "label": "Description",
+      "description": "The description of the service"
+    },
+    "codedata": {
+      "type": "DOCUMENTATION"
+    },
+    "types": [
+      {
+        "fieldType": "TEXT",
+        "selected": true
+      }
+    ],
+    "enabled": true,
+    "editable": true,
+    "optional": true,
+    "advanced": false
+  },
+  "properties": {
+    "listener": {
+      "metadata": {
+        "label": "Listeners",
+        "description": ""
+      },
+      "codedata": {
+        "type": "LISTENER"
+      },
+      "enabled": true,
+      "editable": false,
+      "value": "",
+      "values": [],
+      "types": [
+        {
+          "fieldType": "MULTIPLE_SELECT_LISTENER",
+          "selected": true,
+          "options": []
+        }
+      ],
+      "isType": false,
+      "placeholder": "",
+      "optional": false,
+      "advanced": false,
+      "addNewButton": true
+    },
+    "designApproach": {
+      "metadata": {
+        "label": "Contract",
+        "description": "Service Contract"
+      },
+      "enabled": true,
+      "editable": true,
+      "value": "",
+      "types": [
+        {
+          "fieldType": "CHOICE",
+          "selected": true
+        }
+      ],
+      "isType": false,
+      "placeholder": "",
+      "optional": false,
+      "advanced": false,
+      "choices": [
+        {
+          "metadata": {
+            "label": "Design From Scratch",
+            "description": "Design the service from scratch"
+          },
+          "enabled": true,
+          "editable": true,
+          "value": "true",
+          "types": [
+            {
+              "fieldType": "FORM",
+              "selected": true
+            }
+          ],
+          "isType": false,
+          "placeholder": "true",
+          "optional": false,
+          "advanced": false,
+          "properties": {
+            "basePath": {
+              "metadata": {
+                "label": "Base Path",
+                "description": ""
+              },
+              "enabled": true,
+              "editable": true,
+              "value": "/",
+              "types": [
+                {
+                  "fieldType": "SERVICE_PATH",
+                  "ballerinaType": "string",
+                  "selected": true
+                }
+              ],
+              "isType": false,
+              "placeholder": "",
+              "optional": false,
+              "advanced": false,
+              "codedata": {
+                "type": "SERVICE_BASEPATH"
+              }
+            },
+            "annotServiceConfig": {
+              "metadata": {
+                "label": "Service Configuration",
+                "description": "Define advanced configurations like service level security, etc."
+              },
+              "enabled": true,
+              "editable": true,
+              "value": "",
+              "types": [
+                {
+                  "fieldType": "RECORD_MAP_EXPRESSION",
+                  "ballerinaType": "http:HttpServiceConfig",
+                  "selected": true,
+                  "typeMembers": [
+                    {
+                      "type": "HttpServiceConfig",
+                      "packageInfo": "ballerina:http:2.14.0",
+                      "packageName": "http",
+                      "kind": "RECORD_TYPE",
+                      "selected": true
+                    }
+                  ]
+                }
+              ],
+              "isType": false,
+              "placeholder": "{}",
+              "optional": true,
+              "advanced": true,
+              "codedata": {
+                "inListenerInit": false,
+                "isBasePath": false,
+                "inDisplayAnnotation": false,
+                "type": "ANNOTATION_ATTACHMENT",
+                "originalName": "ServiceConfig"
+              },
+              "addNewButton": false
+            }
+          }
+        },
+        {
+          "metadata": {
+            "label": "Import From OpenAPI Specification",
+            "description": "Implement the service from an OpenAPI specification"
+          },
+          "enabled": false,
+          "editable": true,
+          "value": "true",
+          "types": [
+            {
+              "fieldType": "FORM",
+              "selected": true
+            }
+          ],
+          "isType": false,
+          "placeholder": "true",
+          "optional": false,
+          "advanced": false,
+          "properties": {
+            "spec": {
+              "metadata": {
+                "label": "OpenAPI Specification",
+                "description": "Provide an OpenAPI specification to generate the resources"
+              },
+              "enabled": true,
+              "editable": true,
+              "value": "",
+              "types": [
+                {
+                  "fieldType": "FILE_SELECT",
+                  "ballerinaType": "string",
+                  "selected": true
+                }
+              ],
+              "isType": false,
+              "placeholder": "",
+              "optional": true,
+              "advanced": false,
+              "codedata": {
+                "type": "OPENAPI"
+              }
+            },
+            "serviceTypeName": {
+              "metadata": {
+                "label": "Service Type Name",
+                "description": "The name of the service contract type generated from the OpenAPI specification"
+              },
+              "enabled": true,
+              "editable": true,
+              "value": "",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
+              "isType": false,
+              "placeholder": "",
+              "optional": false,
+              "advanced": false,
+              "codedata": {
+                "type": "SERVICE_BASEPATH"
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "functions": []
+}

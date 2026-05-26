@@ -1,0 +1,47 @@
+{
+  "description": "OpenAI provider search test",
+  "kind": "CLASS_INIT",
+  "source": "empty.bal",
+  "queryMap": {
+    "q": "openai"
+  },
+  "categories": [
+    {
+      "metadata": {
+        "label": "Class Initializers"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "OpenAI Provider",
+            "description": "Initializes the OpenAI LLM provider."
+          },
+          "codedata": {
+            "node": "CLASS_INIT",
+            "org": "ballerinax",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "OpenAiProvider",
+            "symbol": "init"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Azure OpenAI Provider",
+            "description": "Initializes the Azure OpenAI LLM provider."
+          },
+          "codedata": {
+            "node": "CLASS_INIT",
+            "org": "ballerinax",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "AzureOpenAiProvider",
+            "symbol": "init"
+          },
+          "enabled": true
+        }
+      ]
+    }
+  ]
+}

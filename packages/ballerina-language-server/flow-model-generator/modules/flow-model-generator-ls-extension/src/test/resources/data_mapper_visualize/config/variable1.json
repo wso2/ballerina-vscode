@@ -1,0 +1,20 @@
+{
+  "source": "variable1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "TYPEDESC",
+    "org": "",
+    "module": "",
+    "packageName": "",
+    "symbol": "Student",
+    "version": ""
+  },
+  "position": {
+    "line": 17,
+    "offset": 12
+  },
+  "visualizableProperties": {
+    "isDataMapped": true,
+    "defaultValue": "{}"
+  }
+}

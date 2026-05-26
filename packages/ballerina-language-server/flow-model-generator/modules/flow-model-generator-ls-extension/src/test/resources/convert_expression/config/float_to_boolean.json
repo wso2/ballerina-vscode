@@ -1,0 +1,8 @@
+{
+  "description": "Convert float to boolean using type cast",
+  "output": "output.booleanField",
+  "outputType": "boolean",
+  "expression": "input.floatField",
+  "expressionType": "float",
+  "convertedExpression": "(input.floatField != 0.0f)"
+}

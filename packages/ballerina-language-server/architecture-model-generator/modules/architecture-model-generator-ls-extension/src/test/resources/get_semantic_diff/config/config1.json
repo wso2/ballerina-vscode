@@ -1,0 +1,171 @@
+{
+  "description": "Get diff from two non workspace projects",
+  "projectPath": "service_functions",
+  "output": {
+    "loadDesignDiagrams": true,
+    "semanticDiffs": [
+      {
+        "changeType": "DELETION",
+        "nodeKind": "OBJECT_FUNCTION",
+        "uri": "ai:///main.bal",
+        "lineRange": {
+          "fileName": "main.bal",
+          "startLine": {
+            "line": 29,
+            "offset": 4
+          },
+          "endLine": {
+            "line": 35,
+            "offset": 5
+          }
+        },
+        "metadata": {
+          "accessor": "delete",
+          "servicePath": "/api/v1/petsstore",
+          "resourcePath": "pets/[string petId]"
+        }
+      },
+      {
+        "changeType": "DELETION",
+        "nodeKind": "OBJECT_FUNCTION",
+        "uri": "ai:///main.bal",
+        "lineRange": {
+          "fileName": "main.bal",
+          "startLine": {
+            "line": 21,
+            "offset": 4
+          },
+          "endLine": {
+            "line": 27,
+            "offset": 5
+          }
+        },
+        "metadata": {
+          "accessor": "put",
+          "servicePath": "/api/v1/petsstore",
+          "resourcePath": "pets/[string petId]"
+        }
+      },
+      {
+        "changeType": "MODIFICATION",
+        "nodeKind": "OBJECT_FUNCTION",
+        "uri": "ai:///main.bal",
+        "lineRange": {
+          "fileName": "main.bal",
+          "startLine": {
+            "line": 48,
+            "offset": 4
+          },
+          "endLine": {
+            "line": 84,
+            "offset": 5
+          }
+        },
+        "metadata": {
+          "accessor": "post",
+          "servicePath": "/api/v1/petsstore",
+          "resourcePath": "pets"
+        }
+      },
+      {
+        "changeType": "ADDITION",
+        "nodeKind": "OBJECT_FUNCTION",
+        "uri": "ai:///main.bal",
+        "lineRange": {
+          "fileName": "main.bal",
+          "startLine": {
+            "line": 90,
+            "offset": 4
+          },
+          "endLine": {
+            "line": 92,
+            "offset": 5
+          }
+        },
+        "metadata": {
+          "accessor": "get",
+          "servicePath": "/api/v1/petsstore",
+          "resourcePath": "echo"
+        }
+      },
+      {
+        "changeType": "MODIFICATION",
+        "nodeKind": "OBJECT_FUNCTION",
+        "uri": "ai:///main.bal",
+        "lineRange": {
+          "fileName": "main.bal",
+          "startLine": {
+            "line": 9,
+            "offset": 4
+          },
+          "endLine": {
+            "line": 46,
+            "offset": 5
+          }
+        },
+        "metadata": {
+          "accessor": "get",
+          "servicePath": "/api/v1/petsstore",
+          "resourcePath": "pets/[string petId]"
+        }
+      },
+      {
+        "changeType": "ADDITION",
+        "nodeKind": "TYPE_DEFINITION",
+        "uri": "ai:///types.bal",
+        "lineRange": {
+          "fileName": "types.bal",
+          "startLine": {
+            "line": 11,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 15,
+            "offset": 2
+          }
+        },
+        "metadata": {
+          "name": "PetResponse"
+        }
+      },
+      {
+        "changeType": "ADDITION",
+        "nodeKind": "TYPE_DEFINITION",
+        "uri": "ai:///types.bal",
+        "lineRange": {
+          "fileName": "types.bal",
+          "startLine": {
+            "line": 1,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 8,
+            "offset": 2
+          }
+        },
+        "metadata": {
+          "name": "Pet"
+        }
+      },
+      {
+        "changeType": "ADDITION",
+        "nodeKind": "TYPE_DEFINITION",
+        "uri": "ai:///types.bal",
+        "lineRange": {
+          "fileName": "types.bal",
+          "startLine": {
+            "line": 17,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 21,
+            "offset": 2
+          }
+        },
+        "metadata": {
+          "name": "ErrorResponse"
+        }
+      }
+    ]
+  }
+}

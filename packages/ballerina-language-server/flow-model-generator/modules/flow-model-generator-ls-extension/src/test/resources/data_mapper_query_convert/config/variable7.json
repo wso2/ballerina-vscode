@@ -1,0 +1,45 @@
+{
+  "source": "variable6.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable5.bal",
+      "startLine": {
+        "line": 53,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 55,
+        "offset": 22
+      }
+    },
+    "sourceCode": ""
+  },
+  "mapping": {
+    "output": "v3.k",
+    "inputs": [],
+    "expression": "banks",
+    "diagnostics": []
+  },
+  "propertyKey": "expression",
+  "targetField": "v3",
+  "clauseType": "select",
+  "output": {
+    "variable6.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 54,
+            "character": 27
+          },
+          "end": {
+            "line": 54,
+            "character": 29
+          }
+        },
+        "newText": "from var banksItem in banks select \"\""
+      }
+    ]
+  }
+}

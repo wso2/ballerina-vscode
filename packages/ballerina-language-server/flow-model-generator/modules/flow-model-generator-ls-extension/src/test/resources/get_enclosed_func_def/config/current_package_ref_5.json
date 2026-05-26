@@ -1,0 +1,20 @@
+{
+  "description": "current package reference",
+  "filePath": "proj_1/services.bal",
+  "position": {
+    "line": 17,
+    "offset": 16
+  },
+  "findClass": false,
+  "response": {
+    "filePath": "proj_1/services.bal",
+    "startLine": {
+      "line": 12,
+      "offset": 4
+    },
+    "endLine": {
+      "line": 20,
+      "offset": 5
+    }
+  }
+}

@@ -1,0 +1,161 @@
+{
+  "description": "Get diff related to top level functions",
+  "projectPath": "function_change",
+  "output": {
+    "loadDesignDiagrams": false,
+    "semanticDiffs": [
+      {
+        "changeType": "DELETION",
+        "nodeKind": "MODULE_FUNCTION",
+        "uri": "ai:///functions.bal",
+        "lineRange": {
+          "fileName": "functions.bal",
+          "startLine": {
+            "line": 0,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 2,
+            "offset": 1
+          }
+        },
+        "metadata": {
+          "name": "add"
+        }
+      },
+      {
+        "changeType": "DELETION",
+        "nodeKind": "MODULE_FUNCTION",
+        "uri": "ai:///functions.bal",
+        "lineRange": {
+          "fileName": "functions.bal",
+          "startLine": {
+            "line": 4,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 6,
+            "offset": 1
+          }
+        },
+        "metadata": {
+          "name": "subtract"
+        }
+      },
+      {
+        "changeType": "DELETION",
+        "nodeKind": "MODULE_FUNCTION",
+        "uri": "ai:///functions.bal",
+        "lineRange": {
+          "fileName": "functions.bal",
+          "startLine": {
+            "line": 39,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 41,
+            "offset": 1
+          }
+        },
+        "metadata": {
+          "name": "foo"
+        }
+      },
+      {
+        "changeType": "MODIFICATION",
+        "nodeKind": "MODULE_FUNCTION",
+        "uri": "ai:///functions.bal",
+        "lineRange": {
+          "fileName": "functions.bal",
+          "startLine": {
+            "line": 10,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 12,
+            "offset": 1
+          }
+        },
+        "metadata": {
+          "name": "divide"
+        }
+      },
+      {
+        "changeType": "MODIFICATION",
+        "nodeKind": "MODULE_FUNCTION",
+        "uri": "ai:///functions.bal",
+        "lineRange": {
+          "fileName": "functions.bal",
+          "startLine": {
+            "line": 28,
+            "offset": 4
+          },
+          "endLine": {
+            "line": 30,
+            "offset": 5
+          }
+        },
+        "metadata": {
+          "name": "power"
+        }
+      },
+      {
+        "changeType": "MODIFICATION",
+        "nodeKind": "MODULE_FUNCTION",
+        "uri": "ai:///functions.bal",
+        "lineRange": {
+          "fileName": "functions.bal",
+          "startLine": {
+            "line": 7,
+            "offset": 4
+          },
+          "endLine": {
+            "line": 7,
+            "offset": 32
+          }
+        },
+        "metadata": {
+          "name": "multiply"
+        }
+      },
+      {
+        "changeType": "ADDITION",
+        "nodeKind": "MODULE_FUNCTION",
+        "uri": "ai:///functions.bal",
+        "lineRange": {
+          "fileName": "functions.bal",
+          "startLine": {
+            "line": 2,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 4,
+            "offset": 1
+          }
+        },
+        "metadata": {
+          "name": "addNumbers"
+        }
+      },
+      {
+        "changeType": "ADDITION",
+        "nodeKind": "MODULE_FUNCTION",
+        "uri": "ai:///functions.bal",
+        "lineRange": {
+          "fileName": "functions.bal",
+          "startLine": {
+            "line": 34,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 39,
+            "offset": 1
+          }
+        },
+        "metadata": {
+          "name": "modulo"
+        }
+      }
+    ]
+  }
+}

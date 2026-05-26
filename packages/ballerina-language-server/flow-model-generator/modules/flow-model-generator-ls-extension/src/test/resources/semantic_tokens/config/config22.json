@@ -1,0 +1,14 @@
+{
+  "description": "Function call with rest arguments",
+  "filePath": "main.bal",
+  "expression": "fn(...args)",
+  "expectedTokens": [
+    {
+      "line": 0,
+      "col": 3,
+      "length": 7,
+      "type": 2,
+      "modifiers": 0
+    }
+  ]
+}

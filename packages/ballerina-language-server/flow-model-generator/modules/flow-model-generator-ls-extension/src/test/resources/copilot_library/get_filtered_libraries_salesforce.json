@@ -1,0 +1,4108 @@
+{
+  "description": "Test that salesforce library includes ListenerConfig in typeDefs",
+  "libNames": [
+    "ballerinax/salesforce"
+  ],
+  "expectedLibraries": [
+    {
+      "name": "ballerinax/salesforce",
+      "description": "Salesforce Sales Cloud is one of the leading Customer Relationship Management(CRM) software, provided by Salesforce.Inc. Salesforce enable users to efficiently manage sales and customer relationships through its APIs, robust and secure databases, and analytics services. Sales cloud provides serveral API packages to make operations on sObjects and metadata, execute queries and searches, and listen to change events through API calls using REST, SOAP, and CometD protocols. ",
+      "typeDefs": [
+        {
+          "name": "API_VERSION",
+          "description": "Constant field `API_VERSION`. Holds the value for the Salesforce API version.",
+          "type": "Constant",
+          "value": "v59.0",
+          "varType": {
+            "name": "string"
+          }
+        },
+        {
+          "name": "EMPTY_STRING",
+          "description": "Constant field `EMPTY_STRING`. Holds the value of \"\".",
+          "type": "Constant",
+          "value": "",
+          "varType": {
+            "name": "string"
+          }
+        },
+        {
+          "name": "REPLAY_FROM_TIP",
+          "description": "To get all new events sent after subscription. This option is the default",
+          "type": "Constant",
+          "value": "REPLAY_FROM_TIP",
+          "varType": {
+            "name": "string"
+          }
+        },
+        {
+          "name": "REPLAY_FROM_EARLIEST",
+          "description": "To get all new events sent after subscription and all past events within the retention window",
+          "type": "Constant",
+          "value": "REPLAY_FROM_EARLIEST",
+          "varType": {
+            "name": "string"
+          }
+        },
+        {
+          "name": "HTTP_ERROR_MSG",
+          "description": "",
+          "type": "Constant",
+          "value": "Error occurred while getting the HTTP response.",
+          "varType": {
+            "name": "string"
+          }
+        },
+        {
+          "name": "ERR_EXTRACTING_ERROR_MSG",
+          "description": "",
+          "type": "Constant",
+          "value": "Error occured while extracting errors from payload.",
+          "varType": {
+            "name": "string"
+          }
+        },
+        {
+          "name": "INVALID_CLIENT_CONFIG",
+          "description": "",
+          "type": "Constant",
+          "value": "Invalid values provided for client configuration parameters.",
+          "varType": {
+            "name": "string"
+          }
+        },
+        {
+          "name": "SUCCESSFUL_RESULTS",
+          "description": "",
+          "type": "Constant",
+          "value": "successfulResults",
+          "varType": {
+            "name": "string"
+          }
+        },
+        {
+          "name": "FAILED_RESULTS",
+          "description": "",
+          "type": "Constant",
+          "value": "failedResults",
+          "varType": {
+            "name": "string"
+          }
+        },
+        {
+          "name": "OPEN",
+          "description": "",
+          "type": "Constant",
+          "value": "Open",
+          "varType": {
+            "name": "string"
+          }
+        },
+        {
+          "name": "UPLOAD_COMPLETE",
+          "description": "",
+          "type": "Constant",
+          "value": "UploadComplete",
+          "varType": {
+            "name": "string"
+          }
+        },
+        {
+          "name": "IN_PROGRESS",
+          "description": "",
+          "type": "Constant",
+          "value": "InProgress",
+          "varType": {
+            "name": "string"
+          }
+        },
+        {
+          "name": "JOB_COMPLETE",
+          "description": "",
+          "type": "Constant",
+          "value": "JobComplete",
+          "varType": {
+            "name": "string"
+          }
+        },
+        {
+          "name": "ABORTED",
+          "description": "",
+          "type": "Constant",
+          "value": "Aborted",
+          "varType": {
+            "name": "string"
+          }
+        },
+        {
+          "name": "FAILED",
+          "description": "",
+          "type": "Constant",
+          "value": "Failed",
+          "varType": {
+            "name": "string"
+          }
+        },
+        {
+          "name": "BIG_OBJECT_INGEST",
+          "description": "",
+          "type": "Constant",
+          "value": "BigObjectIngest",
+          "varType": {
+            "name": "string"
+          }
+        },
+        {
+          "name": "CLASSIC",
+          "description": "",
+          "type": "Constant",
+          "value": "Classic",
+          "varType": {
+            "name": "string"
+          }
+        },
+        {
+          "name": "V2_INGEST",
+          "description": "",
+          "type": "Constant",
+          "value": "V2Ingest",
+          "varType": {
+            "name": "string"
+          }
+        },
+        {
+          "name": "INSERT",
+          "description": "",
+          "type": "Constant",
+          "value": "insert",
+          "varType": {
+            "name": "string"
+          }
+        },
+        {
+          "name": "UPDATE",
+          "description": "",
+          "type": "Constant",
+          "value": "update",
+          "varType": {
+            "name": "string"
+          }
+        },
+        {
+          "name": "DELETE",
+          "description": "",
+          "type": "Constant",
+          "value": "delete",
+          "varType": {
+            "name": "string"
+          }
+        },
+        {
+          "name": "UPSERT",
+          "description": "",
+          "type": "Constant",
+          "value": "upsert",
+          "varType": {
+            "name": "string"
+          }
+        },
+        {
+          "name": "HARD_DELETE",
+          "description": "",
+          "type": "Constant",
+          "value": "hardDelete",
+          "varType": {
+            "name": "string"
+          }
+        },
+        {
+          "name": "LF",
+          "description": "",
+          "type": "Constant",
+          "value": "LF",
+          "varType": {
+            "name": "string"
+          }
+        },
+        {
+          "name": "CRLF",
+          "description": "",
+          "type": "Constant",
+          "value": "CRLF",
+          "varType": {
+            "name": "string"
+          }
+        },
+        {
+          "name": "BACKQUOTE",
+          "description": "",
+          "type": "Constant",
+          "value": "BACKQUOTE",
+          "varType": {
+            "name": "string"
+          }
+        },
+        {
+          "name": "CARET",
+          "description": "",
+          "type": "Constant",
+          "value": "CARET",
+          "varType": {
+            "name": "string"
+          }
+        },
+        {
+          "name": "COMMA",
+          "description": "",
+          "type": "Constant",
+          "value": "COMMA",
+          "varType": {
+            "name": "string"
+          }
+        },
+        {
+          "name": "PIPE",
+          "description": "",
+          "type": "Constant",
+          "value": "PIPE",
+          "varType": {
+            "name": "string"
+          }
+        },
+        {
+          "name": "SEMICOLON",
+          "description": "",
+          "type": "Constant",
+          "value": "SEMICOLON",
+          "varType": {
+            "name": "string"
+          }
+        },
+        {
+          "name": "TAB",
+          "description": "",
+          "type": "Constant",
+          "value": "TAB",
+          "varType": {
+            "name": "string"
+          }
+        },
+        {
+          "name": "CredentialsConfig",
+          "description": "Configurations related to username/password authentication.",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "username",
+              "description": "Salesforce login username",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "password",
+              "description": "Salesforce login password appended with the security token (<password><security token>)",
+              "type": {
+                "name": "string"
+              }
+            }
+          ]
+        },
+        {
+          "name": "CommonListenerConfig",
+          "description": "Common configuration for Salesforce listeners.",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "replayFrom",
+              "description": "The replay ID to change the point in time when events are read",
+              "type": {
+                "name": "int|ballerinax/salesforce:8.4.0:ReplayOptions"
+              },
+              "optional": true
+            },
+            {
+              "name": "connectionTimeout",
+              "description": "The maximum time in seconds to wait for establishing a connection to the Salesforce streaming API",
+              "type": {
+                "name": "decimal"
+              },
+              "optional": true
+            },
+            {
+              "name": "readTimeout",
+              "description": "The maximum time in seconds to wait for the long polling transport before considering a request failed",
+              "type": {
+                "name": "decimal"
+              },
+              "optional": true
+            },
+            {
+              "name": "keepAliveInterval",
+              "description": "The maximum duration in seconds that a connection is kept alive without activity",
+              "type": {
+                "name": "decimal"
+              },
+              "optional": true
+            },
+            {
+              "name": "apiVersion",
+              "description": "The Salesforce API version to use for Streaming API",
+              "type": {
+                "name": "string"
+              },
+              "optional": true
+            }
+          ]
+        },
+        {
+          "name": "ReplayOptions",
+          "description": "The replay options representing the point in time when events are read.",
+          "type": "Enum",
+          "members": [
+            {
+              "name": "REPLAY_FROM_EARLIEST",
+              "description": "To get all new events sent after subscription and all past events within the retention window"
+            },
+            {
+              "name": "REPLAY_FROM_TIP",
+              "description": "To get all new events sent after subscription. This option is the default"
+            }
+          ]
+        },
+        {
+          "name": "SoapBasedListenerConfig",
+          "description": "Salesforce listener configuration for password based authentication against the SOAP API endpoint.",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "auth",
+              "description": "Authentication configuration for the listener",
+              "type": {
+                "name": "CredentialsConfig",
+                "links": [
+                  {
+                    "category": "internal",
+                    "recordName": "CredentialsConfig"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "isSandBox",
+              "description": "The type of salesforce environment, if sandbox environment or not",
+              "type": {
+                "name": "boolean"
+              },
+              "optional": true
+            },
+            {
+              "name": "replayFrom",
+              "description": "",
+              "type": {
+                "name": "int|ballerinax/salesforce:8.4.0:ReplayOptions"
+              },
+              "optional": true
+            },
+            {
+              "name": "connectionTimeout",
+              "description": "",
+              "type": {
+                "name": "decimal"
+              },
+              "optional": true
+            },
+            {
+              "name": "readTimeout",
+              "description": "",
+              "type": {
+                "name": "decimal"
+              },
+              "optional": true
+            },
+            {
+              "name": "keepAliveInterval",
+              "description": "",
+              "type": {
+                "name": "decimal"
+              },
+              "optional": true
+            },
+            {
+              "name": "apiVersion",
+              "description": "",
+              "type": {
+                "name": "string"
+              },
+              "optional": true
+            }
+          ]
+        },
+        {
+          "name": "RestBasedListenerConfig",
+          "description": "Salesforce listener configuration for OAuth2 based authentication.",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "auth",
+              "description": "Authentication configuration for the listener",
+              "type": {
+                "name": "OAuth2Config",
+                "links": [
+                  {
+                    "category": "internal",
+                    "recordName": "OAuth2Config"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "baseUrl",
+              "description": "The base URL of the Salesforce instance",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "replayFrom",
+              "description": "",
+              "type": {
+                "name": "int|ballerinax/salesforce:8.4.0:ReplayOptions"
+              },
+              "optional": true
+            },
+            {
+              "name": "connectionTimeout",
+              "description": "",
+              "type": {
+                "name": "decimal"
+              },
+              "optional": true
+            },
+            {
+              "name": "readTimeout",
+              "description": "",
+              "type": {
+                "name": "decimal"
+              },
+              "optional": true
+            },
+            {
+              "name": "keepAliveInterval",
+              "description": "",
+              "type": {
+                "name": "decimal"
+              },
+              "optional": true
+            },
+            {
+              "name": "apiVersion",
+              "description": "",
+              "type": {
+                "name": "string"
+              },
+              "optional": true
+            }
+          ]
+        },
+        {
+          "name": "OAuth2Config",
+          "description": "OAuth2 authentication configuration type.",
+          "type": "Union",
+          "members": [
+            {
+              "name": "ballerina/http:2.13.8:BearerTokenConfig",
+              "type": {
+                "name": "BearerTokenConfig",
+                "links": [
+                  {
+                    "category": "external",
+                    "recordName": "BearerTokenConfig",
+                    "libraryName": "ballerina/http"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "ballerina/oauth2:2.13.0:PasswordGrantConfig",
+              "type": {
+                "name": "PasswordGrantConfig",
+                "links": [
+                  {
+                    "category": "external",
+                    "recordName": "PasswordGrantConfig",
+                    "libraryName": "ballerina/oauth2"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "ballerina/oauth2:2.13.0:RefreshTokenGrantConfig",
+              "type": {
+                "name": "RefreshTokenGrantConfig",
+                "links": [
+                  {
+                    "category": "external",
+                    "recordName": "RefreshTokenGrantConfig",
+                    "libraryName": "ballerina/oauth2"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "ballerina/oauth2:2.13.0:ClientCredentialsGrantConfig",
+              "type": {
+                "name": "ClientCredentialsGrantConfig",
+                "links": [
+                  {
+                    "category": "external",
+                    "recordName": "ClientCredentialsGrantConfig",
+                    "libraryName": "ballerina/oauth2"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ListenerConfig",
+          "description": "Salesforce listener configuration type.",
+          "type": "Union",
+          "members": [
+            {
+              "name": "ballerinax/salesforce:8.4.0:SoapBasedListenerConfig",
+              "type": {
+                "name": "SoapBasedListenerConfig",
+                "links": [
+                  {
+                    "category": "internal",
+                    "recordName": "SoapBasedListenerConfig"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "ballerinax/salesforce:8.4.0:RestBasedListenerConfig",
+              "type": {
+                "name": "RestBasedListenerConfig",
+                "links": [
+                  {
+                    "category": "internal",
+                    "recordName": "RestBasedListenerConfig"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "EventData",
+          "description": "Contains data returned from a Change Data Event.",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "changedData",
+              "description": "A JSON map which contains the changed data",
+              "type": {
+                "name": "map<json>"
+              }
+            },
+            {
+              "name": "metadata",
+              "description": "Header fields that contain information about the event",
+              "type": {
+                "name": "ChangeEventMetadata",
+                "links": [
+                  {
+                    "category": "internal",
+                    "recordName": "ChangeEventMetadata"
+                  }
+                ]
+              },
+              "optional": true
+            }
+          ]
+        },
+        {
+          "name": "ChangeEventMetadata",
+          "description": "Header fields that contain information about the event.",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "commitTimestamp",
+              "description": "The date and time when the change occurred, represented as the number of milliseconds since January 1, 1970 00:00:00 GMT",
+              "type": {
+                "name": "int"
+              },
+              "optional": true
+            },
+            {
+              "name": "transactionKey",
+              "description": "Uniquely identifies the transaction that the change is part of",
+              "type": {
+                "name": "string"
+              },
+              "optional": true
+            },
+            {
+              "name": "changeOrigin",
+              "description": "Origin of the change. Use this field to find out what caused the change.",
+              "type": {
+                "name": "string"
+              },
+              "optional": true
+            },
+            {
+              "name": "changeType",
+              "description": "The operation that caused the change",
+              "type": {
+                "name": "string"
+              },
+              "optional": true
+            },
+            {
+              "name": "entityName",
+              "description": "The name of the standard or custom object for this record change",
+              "type": {
+                "name": "string"
+              },
+              "optional": true
+            },
+            {
+              "name": "sequenceNumber",
+              "description": "Identifies the sequence of the change within a transaction",
+              "type": {
+                "name": "int"
+              },
+              "optional": true
+            },
+            {
+              "name": "commitUser",
+              "description": "The ID of the user that ran the change operation",
+              "type": {
+                "name": "string"
+              },
+              "optional": true
+            },
+            {
+              "name": "commitNumber",
+              "description": "The system change number (SCN) of a committed transaction",
+              "type": {
+                "name": "int"
+              },
+              "optional": true
+            },
+            {
+              "name": "recordId",
+              "description": "The record ID for the changed record",
+              "type": {
+                "name": "string"
+              },
+              "optional": true
+            }
+          ]
+        },
+        {
+          "name": "PlatformEventsMessage",
+          "description": "Contains data returned from a Platform Event",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "payload",
+              "description": "The fields published with the Platform Event, as a JSON map",
+              "type": {
+                "name": "map<json>"
+              }
+            },
+            {
+              "name": "replayId",
+              "description": "The replay ID of the event, used for durable subscriptions",
+              "type": {
+                "name": "int"
+              },
+              "optional": true
+            }
+          ]
+        },
+        {
+          "name": "ErrorDetails",
+          "description": "Additional details extracted from the Http error.\n",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "errorCode",
+              "description": "Error code from Salesforce",
+              "type": {
+                "name": "string?"
+              },
+              "optional": true
+            },
+            {
+              "name": "message",
+              "description": "Response body with extra information \n",
+              "type": {
+                "name": "string?"
+              },
+              "optional": true
+            }
+          ]
+        },
+        {
+          "name": "Error",
+          "description": "Salesforce connector error.",
+          "type": "Error"
+        },
+        {
+          "name": "CdcService",
+          "description": "Triggers when a new Change Data Capture event is received from Salesforce channels.\nAvailable actions: onCreate, onUpdate, onDelete, and onRestore",
+          "type": "Class"
+        },
+        {
+          "name": "PlatformEventsService",
+          "description": "Triggers when a new Platform Event is received from Salesforce channels.\nAvailable action: onMessage",
+          "type": "Class"
+        },
+        {
+          "name": "Service",
+          "description": "This includes the service types for both Change Data Capture and Platform Events.",
+          "type": "Union",
+          "members": [
+            {
+              "name": "ballerinax/salesforce:8.4.0:CdcService",
+              "type": {
+                "name": "CdcService",
+                "links": [
+                  {
+                    "category": "internal",
+                    "recordName": "CdcService"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "ballerinax/salesforce:8.4.0:PlatformEventsService",
+              "type": {
+                "name": "PlatformEventsService",
+                "links": [
+                  {
+                    "category": "internal",
+                    "recordName": "PlatformEventsService"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Attribute",
+          "description": "Defines the Attribute type.\nContains the attribute information of the resultant record.",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "'type",
+              "description": "Type of the resultant record",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "url",
+              "description": "URL of the resultant record",
+              "type": {
+                "name": "string"
+              },
+              "optional": true
+            }
+          ]
+        },
+        {
+          "name": "Status",
+          "description": "Represents status of the bulk jobs",
+          "type": "Enum",
+          "members": [
+            {
+              "name": "FAILED_RESULTS",
+              "description": ""
+            },
+            {
+              "name": "SUCCESSFUL_RESULTS",
+              "description": ""
+            }
+          ]
+        },
+        {
+          "name": "JobStateEnum",
+          "description": "",
+          "type": "Enum",
+          "members": [
+            {
+              "name": "FAILED",
+              "description": ""
+            },
+            {
+              "name": "ABORTED",
+              "description": ""
+            },
+            {
+              "name": "JOB_COMPLETE",
+              "description": ""
+            },
+            {
+              "name": "IN_PROGRESS",
+              "description": ""
+            },
+            {
+              "name": "UPLOAD_COMPLETE",
+              "description": ""
+            },
+            {
+              "name": "OPEN",
+              "description": ""
+            }
+          ]
+        },
+        {
+          "name": "JobType",
+          "description": "",
+          "type": "Enum",
+          "members": [
+            {
+              "name": "V2_INGEST",
+              "description": ""
+            },
+            {
+              "name": "CLASSIC",
+              "description": ""
+            },
+            {
+              "name": "BIG_OBJECT_INGEST",
+              "description": ""
+            }
+          ]
+        },
+        {
+          "name": "BulkOperation",
+          "description": "",
+          "type": "Enum",
+          "members": [
+            {
+              "name": "INGEST",
+              "description": "Constant field `INGEST`. Holds the value ingest for bulk resource prefix."
+            },
+            {
+              "name": "QUERY",
+              "description": ""
+            }
+          ]
+        },
+        {
+          "name": "Operation",
+          "description": "Operation type of the bulk job.",
+          "type": "Enum",
+          "members": [
+            {
+              "name": "QUERY",
+              "description": ""
+            },
+            {
+              "name": "HARD_DELETE",
+              "description": ""
+            },
+            {
+              "name": "UPSERT",
+              "description": ""
+            },
+            {
+              "name": "DELETE",
+              "description": ""
+            },
+            {
+              "name": "UPDATE",
+              "description": ""
+            },
+            {
+              "name": "INSERT",
+              "description": ""
+            }
+          ]
+        },
+        {
+          "name": "LineEndingEnum",
+          "description": "",
+          "type": "Enum",
+          "members": [
+            {
+              "name": "CRLF",
+              "description": ""
+            },
+            {
+              "name": "LF",
+              "description": ""
+            }
+          ]
+        },
+        {
+          "name": "ColumnDelimiterEnum",
+          "description": "",
+          "type": "Enum",
+          "members": [
+            {
+              "name": "TAB",
+              "description": ""
+            },
+            {
+              "name": "SEMICOLON",
+              "description": ""
+            },
+            {
+              "name": "PIPE",
+              "description": ""
+            },
+            {
+              "name": "COMMA",
+              "description": ""
+            },
+            {
+              "name": "CARET",
+              "description": ""
+            },
+            {
+              "name": "BACKQUOTE",
+              "description": ""
+            }
+          ]
+        },
+        {
+          "name": "ConnectionConfig",
+          "description": "Represents the Salesforce client configuration.",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "baseUrl",
+              "description": "The Salesforce endpoint URL",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "auth",
+              "description": "Configurations related to client authentication",
+              "type": {
+                "name": "BearerTokenConfig|OAuth2RefreshTokenGrantConfig|OAuth2PasswordGrantConfig|OAuth2ClientCredentialsGrantConfig",
+                "links": [
+                  {
+                    "category": "external",
+                    "recordName": "BearerTokenConfig",
+                    "libraryName": "ballerina/http"
+                  },
+                  {
+                    "category": "external",
+                    "recordName": "OAuth2RefreshTokenGrantConfig",
+                    "libraryName": "ballerinax/client.config"
+                  },
+                  {
+                    "category": "external",
+                    "recordName": "OAuth2PasswordGrantConfig",
+                    "libraryName": "ballerinax/client.config"
+                  },
+                  {
+                    "category": "external",
+                    "recordName": "OAuth2ClientCredentialsGrantConfig",
+                    "libraryName": "ballerinax/client.config"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "apiVersion",
+              "description": "The Salesforce API version",
+              "type": {
+                "name": "string"
+              },
+              "optional": true
+            },
+            {
+              "name": "httpVersion",
+              "description": "",
+              "type": {
+                "name": "HttpVersion",
+                "links": [
+                  {
+                    "category": "external",
+                    "recordName": "HttpVersion",
+                    "libraryName": "ballerina/http"
+                  }
+                ]
+              },
+              "optional": true
+            },
+            {
+              "name": "http1Settings",
+              "description": "",
+              "type": {
+                "name": "ClientHttp1Settings",
+                "links": [
+                  {
+                    "category": "external",
+                    "recordName": "ClientHttp1Settings",
+                    "libraryName": "ballerinax/client.config"
+                  }
+                ]
+              },
+              "optional": true
+            },
+            {
+              "name": "http2Settings",
+              "description": "",
+              "type": {
+                "name": "ClientHttp2Settings",
+                "links": [
+                  {
+                    "category": "external",
+                    "recordName": "ClientHttp2Settings",
+                    "libraryName": "ballerina/http"
+                  }
+                ]
+              },
+              "optional": true
+            },
+            {
+              "name": "timeout",
+              "description": "",
+              "type": {
+                "name": "decimal"
+              },
+              "optional": true
+            },
+            {
+              "name": "forwarded",
+              "description": "",
+              "type": {
+                "name": "string"
+              },
+              "optional": true
+            },
+            {
+              "name": "poolConfig",
+              "description": "",
+              "type": {
+                "name": "PoolConfiguration",
+                "links": [
+                  {
+                    "category": "external",
+                    "recordName": "PoolConfiguration",
+                    "libraryName": "ballerina/http"
+                  }
+                ]
+              },
+              "optional": true
+            },
+            {
+              "name": "cache",
+              "description": "",
+              "type": {
+                "name": "CacheConfig",
+                "links": [
+                  {
+                    "category": "external",
+                    "recordName": "CacheConfig",
+                    "libraryName": "ballerina/http"
+                  }
+                ]
+              },
+              "optional": true
+            },
+            {
+              "name": "compression",
+              "description": "",
+              "type": {
+                "name": "Compression",
+                "links": [
+                  {
+                    "category": "external",
+                    "recordName": "Compression",
+                    "libraryName": "ballerina/http"
+                  }
+                ]
+              },
+              "optional": true
+            },
+            {
+              "name": "circuitBreaker",
+              "description": "",
+              "type": {
+                "name": "CircuitBreakerConfig",
+                "links": [
+                  {
+                    "category": "external",
+                    "recordName": "CircuitBreakerConfig",
+                    "libraryName": "ballerina/http"
+                  }
+                ]
+              },
+              "optional": true
+            },
+            {
+              "name": "retryConfig",
+              "description": "",
+              "type": {
+                "name": "RetryConfig",
+                "links": [
+                  {
+                    "category": "external",
+                    "recordName": "RetryConfig",
+                    "libraryName": "ballerina/http"
+                  }
+                ]
+              },
+              "optional": true
+            },
+            {
+              "name": "responseLimits",
+              "description": "",
+              "type": {
+                "name": "ResponseLimitConfigs",
+                "links": [
+                  {
+                    "category": "external",
+                    "recordName": "ResponseLimitConfigs",
+                    "libraryName": "ballerina/http"
+                  }
+                ]
+              },
+              "optional": true
+            },
+            {
+              "name": "secureSocket",
+              "description": "",
+              "type": {
+                "name": "ClientSecureSocket",
+                "links": [
+                  {
+                    "category": "external",
+                    "recordName": "ClientSecureSocket",
+                    "libraryName": "ballerina/http"
+                  }
+                ]
+              },
+              "optional": true
+            },
+            {
+              "name": "proxy",
+              "description": "",
+              "type": {
+                "name": "ProxyConfig",
+                "links": [
+                  {
+                    "category": "external",
+                    "recordName": "ProxyConfig",
+                    "libraryName": "ballerina/http"
+                  }
+                ]
+              },
+              "optional": true
+            },
+            {
+              "name": "validation",
+              "description": "",
+              "type": {
+                "name": "boolean"
+              },
+              "optional": true
+            }
+          ]
+        },
+        {
+          "name": "Version",
+          "description": "Defines the Salesforce version type.",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "label",
+              "description": "Label of the Salesforce version",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "url",
+              "description": "URL of the Salesforce version",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "'version",
+              "description": "Salesforce version number",
+              "type": {
+                "name": "string"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Limit",
+          "description": "Defines the Limit type to list limits information for your org.",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "Max",
+              "description": "The limit total for the org",
+              "type": {
+                "name": "int"
+              }
+            },
+            {
+              "name": "Remaining",
+              "description": "The total number of calls or events left for the org",
+              "type": {
+                "name": "int"
+              }
+            },
+            {
+              "name": "",
+              "description": "Rest field",
+              "type": {
+                "name": "json"
+              }
+            }
+          ]
+        },
+        {
+          "name": "OrganizationMetadata",
+          "description": "Metadata for your organization and available to the logged-in user.",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "encoding",
+              "description": "Encoding",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "maxBatchSize",
+              "description": "Maximum batch size",
+              "type": {
+                "name": "int"
+              }
+            },
+            {
+              "name": "sobjects",
+              "description": "Available SObjects",
+              "type": {
+                "name": "SObjectMetaData[]",
+                "links": [
+                  {
+                    "category": "internal",
+                    "recordName": "SObjectMetaData"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "",
+              "description": "Rest field",
+              "type": {
+                "name": "json"
+              }
+            }
+          ]
+        },
+        {
+          "name": "SObjectMetaData",
+          "description": "Metadata for an SObject, including information about each field, URLs, and child relationships.",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "name",
+              "description": "SObject name",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "createable",
+              "description": "Is createable",
+              "type": {
+                "name": "boolean"
+              }
+            },
+            {
+              "name": "deletable",
+              "description": "Is deletable",
+              "type": {
+                "name": "boolean"
+              }
+            },
+            {
+              "name": "updateable",
+              "description": "Is updateable",
+              "type": {
+                "name": "boolean"
+              }
+            },
+            {
+              "name": "queryable",
+              "description": "Is queryable",
+              "type": {
+                "name": "boolean"
+              }
+            },
+            {
+              "name": "label",
+              "description": "SObject label",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "urls",
+              "description": "SObject URLs",
+              "type": {
+                "name": "map<string>"
+              }
+            },
+            {
+              "name": "",
+              "description": "Rest field",
+              "type": {
+                "name": "json"
+              }
+            }
+          ]
+        },
+        {
+          "name": "SObjectBasicInfo",
+          "description": "Basic info of a SObject.",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "objectDescribe",
+              "description": "Metadata related to the SObject",
+              "type": {
+                "name": "SObjectMetaData",
+                "links": [
+                  {
+                    "category": "internal",
+                    "recordName": "SObjectMetaData"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "",
+              "description": "Rest field",
+              "type": {
+                "name": "json"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Attributes",
+          "description": "Represent the Attributes at SObjectBasicInfo.",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "'type",
+              "description": "Type of the resultant record",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "url",
+              "description": "URL of the resultant record",
+              "type": {
+                "name": "string"
+              }
+            }
+          ]
+        },
+        {
+          "name": "CreationResponse",
+          "description": "Response of object creation.",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "id",
+              "description": "Created object ID",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "errors",
+              "description": "Array of errors",
+              "type": {
+                "name": "anydata[]"
+              }
+            },
+            {
+              "name": "success",
+              "description": "Success flag",
+              "type": {
+                "name": "boolean"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Report",
+          "description": "Represents a Report.",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "id",
+              "description": "Unique report ID",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "name",
+              "description": "Report display name",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "url",
+              "description": "URL that returns report data",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "describeUrl",
+              "description": "URL that retrieves report metadata",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "instancesUrl",
+              "description": "Information for each instance of the report that was run asynchronously.",
+              "type": {
+                "name": "string"
+              }
+            }
+          ]
+        },
+        {
+          "name": "ReportInstance",
+          "description": "Represents an instance of a Report.",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "id",
+              "description": "Unique ID for a report instance",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "status",
+              "description": "Status of the report run",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "requestDate",
+              "description": "Date and time when an instance of the report run was requested",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "completionDate",
+              "description": "Date, time when the instance of the report run finished",
+              "type": {
+                "name": "string?"
+              }
+            },
+            {
+              "name": "url",
+              "description": "URL where results of the report run for that instance are stored",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "ownerId",
+              "description": "API name of the user that created the instance",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "queryable",
+              "description": "Indicates if it is queryable",
+              "type": {
+                "name": "boolean"
+              }
+            },
+            {
+              "name": "hasDetailRows",
+              "description": "Indicates if it has detailed data",
+              "type": {
+                "name": "boolean"
+              }
+            }
+          ]
+        },
+        {
+          "name": "AsyncReportAttributes",
+          "description": "Represents attributes of instance of an asynchronous report run.",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "id",
+              "description": "Unique ID for an instance of a report that was run",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "reportId",
+              "description": "Unique report ID",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "reportName",
+              "description": "Display name of the report",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "status",
+              "description": "Status of the report run",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "ownerId",
+              "description": "API name of the user that created the instance",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "requestDate",
+              "description": "Date and time when an instance of the report run was requested",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "'type",
+              "description": "Format of the resource",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "completionDate",
+              "description": "Date, time when the instance of the report run finished",
+              "type": {
+                "name": "string?"
+              }
+            },
+            {
+              "name": "errorMessage",
+              "description": "Error message if the instance run failed",
+              "type": {
+                "name": "string?"
+              }
+            },
+            {
+              "name": "queryable",
+              "description": "Indicates if it is queryable",
+              "type": {
+                "name": "boolean"
+              }
+            }
+          ]
+        },
+        {
+          "name": "SyncReportAttributes",
+          "description": "Represents attributes of instance of synchronous report run.",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "reportId",
+              "description": "Unique report ID",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "reportName",
+              "description": "Display name of the report",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "'type",
+              "description": "Format of the resource",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "describeUrl",
+              "description": "Resource URL to get report metadata",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "instancesUrl",
+              "description": "Resource URL to run a report asynchronously",
+              "type": {
+                "name": "string"
+              }
+            }
+          ]
+        },
+        {
+          "name": "ReportInstanceResult",
+          "description": "Represents result of an asynchronous report run.",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "attributes",
+              "description": "Attributes for the instance of the report run",
+              "type": {
+                "name": "AsyncReportAttributes|SyncReportAttributes",
+                "links": [
+                  {
+                    "category": "internal",
+                    "recordName": "AsyncReportAttributes"
+                  },
+                  {
+                    "category": "internal",
+                    "recordName": "SyncReportAttributes"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "allData",
+              "description": "Indicates if all report results are returned",
+              "type": {
+                "name": "boolean"
+              }
+            },
+            {
+              "name": "factMap",
+              "description": "Collection of summary level data or both detailed and summary level data",
+              "type": {
+                "name": "map<json>?"
+              }
+            },
+            {
+              "name": "groupingsAcross",
+              "description": "Collection of column groupings",
+              "type": {
+                "name": "map<json>?"
+              }
+            },
+            {
+              "name": "groupingsDown",
+              "description": "Collection of row groupings",
+              "type": {
+                "name": "map<json>?"
+              }
+            },
+            {
+              "name": "reportMetadata",
+              "description": "Information about the fields used to build the report",
+              "type": {
+                "name": "map<json>?"
+              }
+            },
+            {
+              "name": "hasDetailRows",
+              "description": "Indicates if it has detailed data",
+              "type": {
+                "name": "boolean"
+              }
+            },
+            {
+              "name": "reportExtendedMetadata",
+              "description": "Information on report groupings, summary fields, and detailed data columns",
+              "type": {
+                "name": "map<json>?"
+              }
+            }
+          ]
+        },
+        {
+          "name": "DeletedRecordsResult",
+          "description": "Represent the metadata of deleted records.",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "deletedRecords",
+              "description": "Array of deleted records",
+              "type": {
+                "name": "record {|string deletedDate; string id;|}[]"
+              }
+            },
+            {
+              "name": "earliestDateAvailable",
+              "description": "The earliest date covered by the results",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "latestDateCovered",
+              "description": "The latest date covered by the results",
+              "type": {
+                "name": "string"
+              }
+            }
+          ]
+        },
+        {
+          "name": "UpdatedRecordsResults",
+          "description": "Represent the metadata of updated records.",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "ids",
+              "description": "Array of updated record IDs",
+              "type": {
+                "name": "string[]"
+              }
+            },
+            {
+              "name": "latestDateCovered",
+              "description": "The latest date covered by the results",
+              "type": {
+                "name": "string"
+              }
+            }
+          ]
+        },
+        {
+          "name": "PasswordStatus",
+          "description": "Represent the password status.",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "isExpired",
+              "description": "Indicates whether the password is expired",
+              "type": {
+                "name": "boolean"
+              }
+            }
+          ]
+        },
+        {
+          "name": "ErrorResponse",
+          "description": "Represent the Error response for password access.",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "message",
+              "description": "Error message",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "errorCode",
+              "description": "Error code",
+              "type": {
+                "name": "string"
+              }
+            }
+          ]
+        },
+        {
+          "name": "QuickAction",
+          "description": "Represent a quick action.",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "actionEnumOrId",
+              "description": "Action enum or ID",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "label",
+              "description": "Action label",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "name",
+              "description": "Action name",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "'type",
+              "description": "Action type",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "urls",
+              "description": "Action URLs",
+              "type": {
+                "name": "record {|string defaultValues?; string quickAction?; string describe?; string defaultValuesTemplate?; anydata...;|}"
+              }
+            }
+          ]
+        },
+        {
+          "name": "SubRequestResult",
+          "description": "Represent a batch execution result.",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "statusCode",
+              "description": "Status code of the batch execution",
+              "type": {
+                "name": "int"
+              }
+            },
+            {
+              "name": "result",
+              "description": "Result of the batch execution",
+              "type": {
+                "name": "json?"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Subrequest",
+          "description": "Represent Subrequest of a batch.",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "binaryPartName",
+              "description": "Subrequest of a batch",
+              "type": {
+                "name": "string"
+              },
+              "optional": true
+            },
+            {
+              "name": "binaryPartNameAlias",
+              "description": "Binary part name alias",
+              "type": {
+                "name": "string"
+              },
+              "optional": true
+            },
+            {
+              "name": "method",
+              "description": "Method of the subrequest",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "richInput",
+              "description": "Rich input of the subrequest",
+              "type": {
+                "name": "record {|anydata...;|}"
+              },
+              "optional": true
+            },
+            {
+              "name": "url",
+              "description": "URL of the subrequest",
+              "type": {
+                "name": "string"
+              }
+            }
+          ]
+        },
+        {
+          "name": "BatchResult",
+          "description": "Represent results of the batch request.",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "hasErrors",
+              "description": "Indicates whether the batch request has errors",
+              "type": {
+                "name": "boolean"
+              }
+            },
+            {
+              "name": "results",
+              "description": "Results of the batch request",
+              "type": {
+                "name": "SubRequestResult[]",
+                "links": [
+                  {
+                    "category": "internal",
+                    "recordName": "SubRequestResult"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BulkCreatePayload",
+          "description": "Represents the bulk job creation request payload. ",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "'object",
+              "description": "the sObject type of the bulk job",
+              "type": {
+                "name": "string"
+              },
+              "optional": true
+            },
+            {
+              "name": "operation",
+              "description": "the operation type of the bulk job",
+              "type": {
+                "name": "Operation",
+                "links": [
+                  {
+                    "category": "internal",
+                    "recordName": "Operation"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "columnDelimiter",
+              "description": "the column delimiter of the payload",
+              "type": {
+                "name": "ColumnDelimiterEnum",
+                "links": [
+                  {
+                    "category": "internal",
+                    "recordName": "ColumnDelimiterEnum"
+                  }
+                ]
+              },
+              "optional": true
+            },
+            {
+              "name": "contentType",
+              "description": "the content type of the payload",
+              "type": {
+                "name": "string"
+              },
+              "optional": true
+            },
+            {
+              "name": "lineEnding",
+              "description": "the line ending of the payload",
+              "type": {
+                "name": "LineEndingEnum",
+                "links": [
+                  {
+                    "category": "internal",
+                    "recordName": "LineEndingEnum"
+                  }
+                ]
+              },
+              "optional": true
+            },
+            {
+              "name": "externalIdFieldName",
+              "description": "the external ID field name for upsert operations",
+              "type": {
+                "name": "string"
+              },
+              "optional": true
+            },
+            {
+              "name": "query",
+              "description": "the SOQL query for query operations",
+              "type": {
+                "name": "string"
+              },
+              "optional": true
+            }
+          ]
+        },
+        {
+          "name": "BulkJobCloseInfo",
+          "description": "Represents bulk job related information when Closed. ",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "id",
+              "description": "The ID of the job.",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "operation",
+              "description": "The operation type of the job.",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "'object",
+              "description": "The sObject type of the job.",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "createdById",
+              "description": "The ID of the user who created the job.",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "createdDate",
+              "description": "The date and time when the job was created.",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "systemModstamp",
+              "description": "The date and time when the job was finished.",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "state",
+              "description": "The state of the job.",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "concurrencyMode",
+              "description": "The concurrency mode of the job.",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "contentType",
+              "description": "The content type of the payload.",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "apiVersion",
+              "description": "The API version.",
+              "type": {
+                "name": "float"
+              }
+            }
+          ]
+        },
+        {
+          "name": "BulkJob",
+          "description": "Represents the bulk job creation response.",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "contentUrl",
+              "description": "The URL to use for uploading the CSV data for the job.",
+              "type": {
+                "name": "string"
+              },
+              "optional": true
+            },
+            {
+              "name": "lineEnding",
+              "description": "The line ending of the payload.",
+              "type": {
+                "name": "string"
+              },
+              "optional": true
+            },
+            {
+              "name": "columnDelimiter",
+              "description": "The column delimiter of the payload.",
+              "type": {
+                "name": "string"
+              },
+              "optional": true
+            },
+            {
+              "name": "id",
+              "description": "",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "operation",
+              "description": "",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "object",
+              "description": "",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "createdById",
+              "description": "",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "createdDate",
+              "description": "",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "systemModstamp",
+              "description": "",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "state",
+              "description": "",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "concurrencyMode",
+              "description": "",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "contentType",
+              "description": "",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "apiVersion",
+              "description": "",
+              "type": {
+                "name": "float"
+              }
+            }
+          ]
+        },
+        {
+          "name": "BulkJobInfo",
+          "description": "Represents bulk job related information.",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "retries",
+              "description": "The number of times that Salesforce attempted to process the job.",
+              "type": {
+                "name": "int"
+              },
+              "optional": true
+            },
+            {
+              "name": "totalProcessingTime",
+              "description": "The total time spent processing the job.",
+              "type": {
+                "name": "int"
+              },
+              "optional": true
+            },
+            {
+              "name": "apiActiveProcessingTime",
+              "description": "The total time spent processing the job by API.",
+              "type": {
+                "name": "int"
+              },
+              "optional": true
+            },
+            {
+              "name": "apexProcessingTime",
+              "description": "The total time spent to process triggers and other processes related to the job data;",
+              "type": {
+                "name": "int"
+              },
+              "optional": true
+            },
+            {
+              "name": "numberRecordsProcessed",
+              "description": "The number of records already processed by the job.",
+              "type": {
+                "name": "int"
+              },
+              "optional": true
+            },
+            {
+              "name": "contentUrl",
+              "description": "",
+              "type": {
+                "name": "string"
+              },
+              "optional": true
+            },
+            {
+              "name": "lineEnding",
+              "description": "",
+              "type": {
+                "name": "string"
+              },
+              "optional": true
+            },
+            {
+              "name": "columnDelimiter",
+              "description": "",
+              "type": {
+                "name": "string"
+              },
+              "optional": true
+            },
+            {
+              "name": "id",
+              "description": "",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "operation",
+              "description": "",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "object",
+              "description": "",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "createdById",
+              "description": "",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "createdDate",
+              "description": "",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "systemModstamp",
+              "description": "",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "state",
+              "description": "",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "concurrencyMode",
+              "description": "",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "contentType",
+              "description": "",
+              "type": {
+                "name": "string"
+              }
+            },
+            {
+              "name": "apiVersion",
+              "description": "",
+              "type": {
+                "name": "float"
+              }
+            }
+          ]
+        },
+        {
+          "name": "AllJobs",
+          "description": "Represents output for get all jobs request",
+          "type": "Record",
+          "fields": [
+            {
+              "name": "done",
+              "description": "Indicates whether there are more records to retrieve.",
+              "type": {
+                "name": "boolean"
+              }
+            },
+            {
+              "name": "records",
+              "description": "Array of job records.",
+              "type": {
+                "name": "BulkJobInfo[]",
+                "links": [
+                  {
+                    "category": "internal",
+                    "recordName": "BulkJobInfo"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "nextRecordsUrl",
+              "description": "URL to retrieve the next set of records.",
+              "type": {
+                "name": "string"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listener",
+          "description": "Initializes the listener. During initialization you can set the credentials.\nCreate a Salesforce account and obtain tokens following [this guide](https://help.salesforce.com/articleView?id=remoteaccess_authenticate_overview.htm).\n",
+          "functions": [
+            {
+              "name": "init",
+              "type": "Constructor",
+              "description": "Initializes the listener. During initialization you can set the credentials.\nCreate a Salesforce account and obtain tokens following [this guide](https://help.salesforce.com/articleView?id=remoteaccess_authenticate_overview.htm).\n",
+              "parameters": [
+                {
+                  "name": "listenerConfig",
+                  "description": "Salesforce Listener configuration",
+                  "type": {
+                    "name": "ListenerConfig",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "ListenerConfig"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "return": {
+                "description": "An error if initialization fails",
+                "type": {
+                  "name": "error?"
+                }
+              }
+            },
+            {
+              "name": "attach",
+              "type": "Normal Function",
+              "description": "Attaches the service to the `salesforce:Listener` endpoint.\n",
+              "parameters": [
+                {
+                  "name": "s",
+                  "description": "Service object to attach. Use `CdcService` for CDC channels and `PlatformEventsService` for platform events.",
+                  "type": {
+                    "name": "Service",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "Service"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "name",
+                  "description": "Channel name to subscribe to (e.g. `/data/ChangeEvents` or `/event/MyEvent__e`)",
+                  "type": {
+                    "name": "string[]|string|()"
+                  }
+                }
+              ],
+              "return": {
+                "description": "`()` or else a `error` upon failure to register the service",
+                "type": {
+                  "name": "error?"
+                }
+              }
+            },
+            {
+              "name": "'start",
+              "type": "Normal Function",
+              "description": "Starts the subscription and listen to events on all the attached services.\n",
+              "parameters": [],
+              "return": {
+                "type": {
+                  "name": "error?"
+                }
+              }
+            },
+            {
+              "name": "detach",
+              "type": "Normal Function",
+              "description": "Stops subscription and detaches the service from the `salesforce:Listener` endpoint.\n",
+              "parameters": [
+                {
+                  "name": "s",
+                  "description": "Type descriptor of the service",
+                  "type": {
+                    "name": "Service",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "Service"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "return": {
+                "description": "`()` or else a `error` upon failure to detach the service",
+                "type": {
+                  "name": "error?"
+                }
+              }
+            },
+            {
+              "name": "gracefulStop",
+              "type": "Normal Function",
+              "description": "Stops subscription through all consumer services by terminating the connection and all its channels.\n",
+              "parameters": [],
+              "return": {
+                "description": "`()` or else a `error` upon failure to close the `salesforce:Listener`",
+                "type": {
+                  "name": "error?"
+                }
+              }
+            },
+            {
+              "name": "immediateStop",
+              "type": "Normal Function",
+              "description": "Stops subscriptions through all the consumer services and terminates the connection with the server.\n",
+              "parameters": [],
+              "return": {
+                "description": "`()` or else a `error` upon failure to close ChannelListener.",
+                "type": {
+                  "name": "error?"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "clients": [
+        {
+          "name": "Client",
+          "description": "Ballerina Salesforce connector provides the capability to access Salesforce REST API.\nThis connector lets you to perform operations for SObjects, query using SOQL, search using SOSL, and describe SObjects\nand organizational data.",
+          "functions": [
+            {
+              "name": "init",
+              "type": "Constructor",
+              "description": "Initializes the connector. During initialization you can pass either http:BearerTokenConfig if you have a bearer\ntoken or http:OAuth2RefreshTokenGrantConfig if you have Oauth tokens.\nCreate a Salesforce account and obtain tokens following \n[this guide](https://help.salesforce.com/articleView?id=remoteaccess_authenticate_overview.htm). \n",
+              "parameters": [
+                {
+                  "name": "config",
+                  "type": {
+                    "name": "ConnectionConfig",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "ConnectionConfig"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "return": {
+                "description": "`salesforce:Error` on failure of initialization or else `()`",
+                "type": {
+                  "name": "error?"
+                }
+              }
+            },
+            {
+              "name": "getOrganizationMetaData",
+              "type": "Remote Function",
+              "description": "Gets metadata of your organization.\n",
+              "parameters": [],
+              "return": {
+                "description": "`OrganizationMetadata` record if successful or else `error`",
+                "type": {
+                  "name": "OrganizationMetadata|error",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "OrganizationMetadata"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "getBasicInfo",
+              "type": "Remote Function",
+              "description": "Gets basic data of the specified object.\n",
+              "parameters": [
+                {
+                  "name": "sobjectName",
+                  "description": "sObject name",
+                  "type": {
+                    "name": "string"
+                  }
+                }
+              ],
+              "return": {
+                "description": "`SObjectBasicInfo` record if successful or else `error`",
+                "type": {
+                  "name": "SObjectBasicInfo|error",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "SObjectBasicInfo"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "describe",
+              "type": "Remote Function",
+              "description": "Completely describes the individual metadata at all levels of the specified object. Can be used to retrieve\nthe fields, URLs, and child relationships.\n",
+              "parameters": [
+                {
+                  "name": "sObjectName",
+                  "description": "sObject name value",
+                  "type": {
+                    "name": "string"
+                  }
+                }
+              ],
+              "return": {
+                "description": "`SObjectMetaData` record if successful or else `error`",
+                "type": {
+                  "name": "SObjectMetaData|error",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "SObjectMetaData"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "getPlatformAction",
+              "type": "Remote Function",
+              "description": "Query for actions displayed in the UI, given a user, a context, device format, and a record ID.\n",
+              "parameters": [],
+              "return": {
+                "description": "`SObjectBasicInfo` record if successful or else `error`",
+                "type": {
+                  "name": "SObjectBasicInfo|error",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "SObjectBasicInfo"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "getApiVersions",
+              "type": "Remote Function",
+              "description": "Lists summary details about each REST API version available.\n",
+              "parameters": [],
+              "return": {
+                "description": "List of `Version` if successful. Else, the occurred `error`",
+                "type": {
+                  "name": "Version[]|error",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "Version"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "getResources",
+              "type": "Remote Function",
+              "description": "Lists the resources available for the specified API version.\n",
+              "parameters": [
+                {
+                  "name": "apiVersion",
+                  "description": "API version (v37)",
+                  "type": {
+                    "name": "string"
+                  }
+                }
+              ],
+              "return": {
+                "description": "`Resources` as a map of string if successful. Else, the occurred `error`",
+                "type": {
+                  "name": "map<string>|error"
+                }
+              }
+            },
+            {
+              "name": "getLimits",
+              "type": "Remote Function",
+              "description": "Lists the Limits information for your organization.\n",
+              "parameters": [],
+              "return": {
+                "description": "`OrganizationLimits` as a map of `Limit` if successful. Else, the occurred `error`",
+                "type": {
+                  "name": "Limit>|error"
+                }
+              }
+            },
+            {
+              "name": "getById",
+              "type": "Remote Function",
+              "description": "Gets an object record by ID.\n",
+              "parameters": [
+                {
+                  "name": "sobjectName",
+                  "description": "sObject name",
+                  "type": {
+                    "name": "string"
+                  }
+                },
+                {
+                  "name": "id",
+                  "description": "sObject ID",
+                  "type": {
+                    "name": "string"
+                  }
+                },
+                {
+                  "name": "returnType",
+                  "description": "The payload, which is expected to be returned after data binding",
+                  "type": {
+                    "name": "record {|anydata...;|}"
+                  },
+                  "optional": true,
+                  "default": "record {|anydata...;|}"
+                }
+              ],
+              "return": {
+                "description": "`record` if successful or else `error`",
+                "type": {
+                  "name": "returnType|error",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "returnType"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "getByExternalId",
+              "type": "Remote Function",
+              "description": "Gets an object record by external ID.\n",
+              "parameters": [
+                {
+                  "name": "sobjectName",
+                  "description": "sObject name",
+                  "type": {
+                    "name": "string"
+                  }
+                },
+                {
+                  "name": "extIdField",
+                  "description": "External ID field name",
+                  "type": {
+                    "name": "string"
+                  }
+                },
+                {
+                  "name": "extId",
+                  "description": "External ID value",
+                  "type": {
+                    "name": "string"
+                  }
+                },
+                {
+                  "name": "returnType",
+                  "description": "The payload, which is expected to be returned after data binding",
+                  "type": {
+                    "name": "record {|anydata...;|}"
+                  },
+                  "optional": true,
+                  "default": "record {|anydata...;|}"
+                }
+              ],
+              "return": {
+                "description": "Record if successful or else `error`",
+                "type": {
+                  "name": "returnType|error",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "returnType"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "create",
+              "type": "Remote Function",
+              "description": "Creates records based on relevant object type sent with json record.\n",
+              "parameters": [
+                {
+                  "name": "sObjectName",
+                  "description": "sObject name value",
+                  "type": {
+                    "name": "string"
+                  }
+                },
+                {
+                  "name": "sObject",
+                  "description": "Record to be inserted",
+                  "type": {
+                    "name": "record {|anydata...;|}"
+                  }
+                }
+              ],
+              "return": {
+                "description": "`CreationResponse` if successful or else `error`",
+                "type": {
+                  "name": "CreationResponse|error",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "CreationResponse"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "update",
+              "type": "Remote Function",
+              "description": "Updates records based on relevant object ID.\n",
+              "parameters": [
+                {
+                  "name": "sObjectName",
+                  "description": "sObject name value",
+                  "type": {
+                    "name": "string"
+                  }
+                },
+                {
+                  "name": "id",
+                  "description": "sObject ID",
+                  "type": {
+                    "name": "string"
+                  }
+                },
+                {
+                  "name": "sObject",
+                  "description": "Record to be updated",
+                  "type": {
+                    "name": "record {|anydata...;|}"
+                  }
+                }
+              ],
+              "return": {
+                "description": "`Nil` if successful, else returns an error",
+                "type": {
+                  "name": "error?"
+                }
+              }
+            },
+            {
+              "name": "upsert",
+              "type": "Remote Function",
+              "description": "Upsert a record based on the value of a specified external ID field.\n",
+              "parameters": [
+                {
+                  "name": "sObjectName",
+                  "description": "sObject name value",
+                  "type": {
+                    "name": "string"
+                  }
+                },
+                {
+                  "name": "externalIdField",
+                  "description": "External ID field of an object",
+                  "type": {
+                    "name": "string"
+                  }
+                },
+                {
+                  "name": "externalId",
+                  "description": "External ID",
+                  "type": {
+                    "name": "string"
+                  }
+                },
+                {
+                  "name": "sObject",
+                  "description": "Record to be upserted",
+                  "type": {
+                    "name": "record {|anydata...;|}"
+                  }
+                }
+              ],
+              "return": {
+                "description": "`Nil` if successful or else `error`",
+                "type": {
+                  "name": "error?"
+                }
+              }
+            },
+            {
+              "name": "delete",
+              "type": "Remote Function",
+              "description": "Delete existing records based on relevant object ID.\n",
+              "parameters": [
+                {
+                  "name": "sObjectName",
+                  "description": "SObject name value",
+                  "type": {
+                    "name": "string"
+                  }
+                },
+                {
+                  "name": "id",
+                  "description": "SObject ID",
+                  "type": {
+                    "name": "string"
+                  }
+                }
+              ],
+              "return": {
+                "description": "`Nil` if successful or else `error`",
+                "type": {
+                  "name": "error?"
+                }
+              }
+            },
+            {
+              "name": "listReports",
+              "type": "Remote Function",
+              "description": "Lists reports.\n",
+              "parameters": [],
+              "return": {
+                "description": "Array of `Report` if successful or else `error`",
+                "type": {
+                  "name": "Report[]|error",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "Report"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "deleteReport",
+              "type": "Remote Function",
+              "description": "Deletes a report.\n",
+              "parameters": [
+                {
+                  "name": "reportId",
+                  "description": "Report Id",
+                  "type": {
+                    "name": "string"
+                  }
+                }
+              ],
+              "return": {
+                "description": "`Nil` if the report deletion is successful or else an error",
+                "type": {
+                  "name": "error?"
+                }
+              }
+            },
+            {
+              "name": "runReportSync",
+              "type": "Remote Function",
+              "description": "Runs an instance of a report synchronously.\n",
+              "parameters": [
+                {
+                  "name": "reportId",
+                  "description": "Report Id",
+                  "type": {
+                    "name": "string"
+                  }
+                }
+              ],
+              "return": {
+                "description": "`ReportInstanceResult` if successful or else `error`",
+                "type": {
+                  "name": "ReportInstanceResult|error",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "ReportInstanceResult"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "runReportAsync",
+              "type": "Remote Function",
+              "description": "Runs an instance of a report asynchronously.\n",
+              "parameters": [
+                {
+                  "name": "reportId",
+                  "description": "Report Id",
+                  "type": {
+                    "name": "string"
+                  }
+                }
+              ],
+              "return": {
+                "description": "`ReportInstance` if successful or else `error`",
+                "type": {
+                  "name": "ReportInstance|error",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "ReportInstance"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "listAsyncRunsOfReport",
+              "type": "Remote Function",
+              "description": "Lists asynchronous runs of a Report.\n",
+              "parameters": [
+                {
+                  "name": "reportId",
+                  "description": "Report Id",
+                  "type": {
+                    "name": "string"
+                  }
+                }
+              ],
+              "return": {
+                "description": "Array of `ReportInstance` if successful or else `error`",
+                "type": {
+                  "name": "ReportInstance[]|error",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "ReportInstance"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "getReportInstanceResult",
+              "type": "Remote Function",
+              "description": "Get report instance result.\n",
+              "parameters": [
+                {
+                  "name": "reportId",
+                  "description": "Report Id",
+                  "type": {
+                    "name": "string"
+                  }
+                },
+                {
+                  "name": "instanceId",
+                  "description": "Instance Id",
+                  "type": {
+                    "name": "string"
+                  }
+                }
+              ],
+              "return": {
+                "description": "`ReportInstanceResult` if successful or else `error`",
+                "type": {
+                  "name": "ReportInstanceResult|error",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "ReportInstanceResult"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "query",
+              "type": "Remote Function",
+              "description": "Executes the specified SOQL query.\n",
+              "parameters": [
+                {
+                  "name": "soql",
+                  "description": "SOQL query",
+                  "type": {
+                    "name": "string"
+                  }
+                },
+                {
+                  "name": "returnType",
+                  "description": "The payload, which is expected to be returned after data binding",
+                  "type": {
+                    "name": "record {|anydata...;|}"
+                  },
+                  "optional": true,
+                  "default": "record {|anydata...;|}"
+                }
+              ],
+              "return": {
+                "description": "`stream<{returnType}, error?>` if successful. Else, the occurred `error`",
+                "type": {
+                  "name": "stream<returnType, error?>|error"
+                }
+              }
+            },
+            {
+              "name": "search",
+              "type": "Remote Function",
+              "description": "Executes the specified SOSL search.\n",
+              "parameters": [
+                {
+                  "name": "sosl",
+                  "description": "SOSL search query",
+                  "type": {
+                    "name": "string"
+                  }
+                },
+                {
+                  "name": "returnType",
+                  "description": "The payload, which is expected to be returned after data binding",
+                  "type": {
+                    "name": "record {|anydata...;|}"
+                  },
+                  "optional": true,
+                  "default": "record {|anydata...;|}"
+                }
+              ],
+              "return": {
+                "description": "`stream<{returnType}, error?>` record if successful. Else, the occurred `error`",
+                "type": {
+                  "name": "stream<returnType, error?>|error"
+                }
+              }
+            },
+            {
+              "name": "getDeletedRecords",
+              "type": "Remote Function",
+              "description": "Retrieves the list of individual records that have been deleted within the given timespan.\n",
+              "parameters": [
+                {
+                  "name": "sObjectName",
+                  "description": "SObject reference",
+                  "type": {
+                    "name": "string"
+                  }
+                },
+                {
+                  "name": "startDate",
+                  "description": "Start date of the timespan",
+                  "type": {
+                    "name": "Civil",
+                    "links": [
+                      {
+                        "category": "external",
+                        "recordName": "Civil",
+                        "libraryName": "ballerina/time"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "endDate",
+                  "description": "End date of the timespan",
+                  "type": {
+                    "name": "Civil",
+                    "links": [
+                      {
+                        "category": "external",
+                        "recordName": "Civil",
+                        "libraryName": "ballerina/time"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "return": {
+                "description": "`DeletedRecordsResult` record if successful or else `error`",
+                "type": {
+                  "name": "DeletedRecordsResult|error",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "DeletedRecordsResult"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "getUpdatedRecords",
+              "type": "Remote Function",
+              "description": "Retrieves the list of individual records that have been updated within the given timespan.\n",
+              "parameters": [
+                {
+                  "name": "sObjectName",
+                  "description": "SObject reference",
+                  "type": {
+                    "name": "string"
+                  }
+                },
+                {
+                  "name": "startDate",
+                  "description": "Start date of the timespan",
+                  "type": {
+                    "name": "Civil",
+                    "links": [
+                      {
+                        "category": "external",
+                        "recordName": "Civil",
+                        "libraryName": "ballerina/time"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "endDate",
+                  "description": "End date of the timespan",
+                  "type": {
+                    "name": "Civil",
+                    "links": [
+                      {
+                        "category": "external",
+                        "recordName": "Civil",
+                        "libraryName": "ballerina/time"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "return": {
+                "description": "`UpdatedRecordsResults` record if successful or else `error`",
+                "type": {
+                  "name": "UpdatedRecordsResults|error",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "UpdatedRecordsResults"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "isPasswordExpired",
+              "type": "Remote Function",
+              "description": "Get the password information\n",
+              "parameters": [
+                {
+                  "name": "userId",
+                  "description": "User ID",
+                  "type": {
+                    "name": "string"
+                  }
+                }
+              ],
+              "return": {
+                "description": "`boolean` if successful or else `error`",
+                "type": {
+                  "name": "boolean|error"
+                }
+              }
+            },
+            {
+              "name": "resetPassword",
+              "type": "Remote Function",
+              "description": "Reset the user password.\n",
+              "parameters": [
+                {
+                  "name": "userId",
+                  "description": "User ID",
+                  "type": {
+                    "name": "string"
+                  }
+                }
+              ],
+              "return": {
+                "description": "`byte[]` if successful or else `error`",
+                "type": {
+                  "name": "byte[]|error"
+                }
+              }
+            },
+            {
+              "name": "changePassword",
+              "type": "Remote Function",
+              "description": "Change the user password\n",
+              "parameters": [
+                {
+                  "name": "userId",
+                  "description": "User ID",
+                  "type": {
+                    "name": "string"
+                  }
+                },
+                {
+                  "name": "newPassword",
+                  "description": "New user password as a string",
+                  "type": {
+                    "name": "string"
+                  }
+                }
+              ],
+              "return": {
+                "description": "`Nil` if successful or else `error`",
+                "type": {
+                  "name": "error?"
+                }
+              }
+            },
+            {
+              "name": "getQuickActions",
+              "type": "Remote Function",
+              "description": "Returns a list of actions and their details\n",
+              "parameters": [
+                {
+                  "name": "sObjectName",
+                  "description": "SObject reference",
+                  "type": {
+                    "name": "string"
+                  }
+                }
+              ],
+              "return": {
+                "description": "`QuickAction[]` if successful or else `error`",
+                "type": {
+                  "name": "QuickAction[]|error",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "QuickAction"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "batch",
+              "type": "Remote Function",
+              "description": "Executes up to 25 sub-requests in a single request.\n",
+              "parameters": [
+                {
+                  "name": "batchRequests",
+                  "description": "A record containing all the requests",
+                  "type": {
+                    "name": "Subrequest[]",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "Subrequest"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "haltOnError",
+                  "description": "If true, the request halts when an error occurs on an individual sub-request",
+                  "type": {
+                    "name": "boolean"
+                  },
+                  "optional": true,
+                  "default": "false"
+                }
+              ],
+              "return": {
+                "description": "`BatchResult` if successful or else `error`",
+                "type": {
+                  "name": "BatchResult|error",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "BatchResult"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "getNamedLayouts",
+              "type": "Remote Function",
+              "description": "Retrieves information about alternate named layouts for a given object.\n",
+              "parameters": [
+                {
+                  "name": "sObjectName",
+                  "description": "SObject reference",
+                  "type": {
+                    "name": "string"
+                  }
+                },
+                {
+                  "name": "layoutName",
+                  "description": "Name of the layout",
+                  "type": {
+                    "name": "string"
+                  }
+                },
+                {
+                  "name": "returnType",
+                  "description": "The payload type, which is expected to be returned after data binding",
+                  "type": {
+                    "name": "record {|anydata...;|}"
+                  },
+                  "optional": true,
+                  "default": "record {|anydata...;|}"
+                }
+              ],
+              "return": {
+                "description": "Record of `returnType` if successful or else `error`",
+                "type": {
+                  "name": "returnType|error",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "returnType"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "getInvocableActions",
+              "type": "Remote Function",
+              "description": "Retrieve a list of general action types for the current organization.\n",
+              "parameters": [
+                {
+                  "name": "subContext",
+                  "description": "Sub context",
+                  "type": {
+                    "name": "string"
+                  }
+                },
+                {
+                  "name": "returnType",
+                  "description": "The payload type, which is expected to be returned after data binding",
+                  "type": {
+                    "name": "record {|anydata...;|}"
+                  },
+                  "optional": true,
+                  "default": "record {|anydata...;|}"
+                }
+              ],
+              "return": {
+                "description": "Record of `returnType` if successful or else `error`",
+                "type": {
+                  "name": "returnType|error",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "returnType"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "invokeActions",
+              "type": "Remote Function",
+              "description": "Invoke Actions.\n",
+              "parameters": [
+                {
+                  "name": "subContext",
+                  "description": "Sub context",
+                  "type": {
+                    "name": "string"
+                  }
+                },
+                {
+                  "name": "payload",
+                  "description": "Payload for the action",
+                  "type": {
+                    "name": "record {|anydata...;|}"
+                  }
+                },
+                {
+                  "name": "returnType",
+                  "description": "The type of the returned variable",
+                  "type": {
+                    "name": "record {|anydata...;|}"
+                  },
+                  "optional": true,
+                  "default": "record {|anydata...;|}"
+                }
+              ],
+              "return": {
+                "description": "Record of `returnType` if successful or else `error`",
+                "type": {
+                  "name": "returnType|error",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "returnType"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "deleteRecordsUsingExtId",
+              "type": "Remote Function",
+              "description": "Delete record using external Id.\n",
+              "parameters": [
+                {
+                  "name": "sObjectName",
+                  "description": "Name of the sObject",
+                  "type": {
+                    "name": "string"
+                  }
+                },
+                {
+                  "name": "externalId",
+                  "description": "Name of the external id field",
+                  "type": {
+                    "name": "string"
+                  }
+                },
+                {
+                  "name": "value",
+                  "description": "Value of the external id field",
+                  "type": {
+                    "name": "string"
+                  }
+                }
+              ],
+              "return": {
+                "description": "`Nil` if successful or else `error`",
+                "type": {
+                  "name": "error?"
+                }
+              }
+            },
+            {
+              "name": "apexRestExecute",
+              "type": "Remote Function",
+              "description": "Access Salesforce APEX resource.\n",
+              "parameters": [
+                {
+                  "name": "urlPath",
+                  "description": "URI path",
+                  "type": {
+                    "name": "string"
+                  }
+                },
+                {
+                  "name": "methodType",
+                  "description": "HTTP method type",
+                  "type": {
+                    "name": "Method",
+                    "links": [
+                      {
+                        "category": "external",
+                        "recordName": "Method",
+                        "libraryName": "ballerina/http"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "name": "payload",
+                  "description": "Payload",
+                  "type": {
+                    "name": "record {|anydata...;|}"
+                  },
+                  "optional": true,
+                  "default": "{}"
+                },
+                {
+                  "name": "returnType",
+                  "description": "The payload type, which is expected to be returned after data binding",
+                  "type": {
+                    "name": "record {|anydata...;|}|string|int|()"
+                  },
+                  "optional": true,
+                  "default": "record {|anydata...;|}|string|int|()"
+                }
+              ],
+              "return": {
+                "description": "`string|int|record{}` type if successful or else `error`",
+                "type": {
+                  "name": "returnType|error",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "returnType"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "createIngestJob",
+              "type": "Remote Function",
+              "description": "Creates a bulkv2 ingest job.\n",
+              "parameters": [
+                {
+                  "name": "payload",
+                  "description": "The payload for the bulk job",
+                  "type": {
+                    "name": "BulkCreatePayload",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "BulkCreatePayload"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "return": {
+                "description": "`BulkJob` if successful or else `error`",
+                "type": {
+                  "name": "BulkJob|error",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "BulkJob"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "createQueryJob",
+              "type": "Remote Function",
+              "description": "Creates a bulkv2 query job.\n",
+              "parameters": [
+                {
+                  "name": "payload",
+                  "description": "The payload for the bulk job",
+                  "type": {
+                    "name": "BulkCreatePayload",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "BulkCreatePayload"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "return": {
+                "description": "`BulkJob` if successful or else `error`",
+                "type": {
+                  "name": "BulkJob|error",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "BulkJob"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "createQueryJobAndWait",
+              "type": "Remote Function",
+              "description": "Creates a bulkv2 query job and provide future value.\n",
+              "parameters": [
+                {
+                  "name": "payload",
+                  "description": "The payload for the bulk job",
+                  "type": {
+                    "name": "BulkCreatePayload",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "BulkCreatePayload"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "return": {
+                "description": "`future<BulkJobInfo>` if successful else `error`",
+                "type": {
+                  "name": "BulkJobInfo|error>|error"
+                }
+              }
+            },
+            {
+              "name": "getJobInfo",
+              "type": "Remote Function",
+              "description": "Retrieves detailed information about a job.\n",
+              "parameters": [
+                {
+                  "name": "bulkJobId",
+                  "description": "Id of the bulk job",
+                  "type": {
+                    "name": "string"
+                  }
+                },
+                {
+                  "name": "bulkOperation",
+                  "description": "The processing operation for the job",
+                  "type": {
+                    "name": "BulkOperation",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "BulkOperation"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "return": {
+                "description": "`BulkJobInfo` if successful or else `error`",
+                "type": {
+                  "name": "BulkJobInfo|error",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "BulkJobInfo"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "addBatch",
+              "type": "Remote Function",
+              "description": "Uploads data for a job using CSV data.\n",
+              "parameters": [
+                {
+                  "name": "bulkJobId",
+                  "description": "Id of the bulk job",
+                  "type": {
+                    "name": "string"
+                  }
+                },
+                {
+                  "name": "content",
+                  "description": "CSV data to be added",
+                  "type": {
+                    "name": "string|string[][]|stream<string[], error?>|io:ReadableByteChannel"
+                  }
+                }
+              ],
+              "return": {
+                "description": "`Nil` record if successful or `error` if unsuccessful",
+                "type": {
+                  "name": "error?"
+                }
+              }
+            },
+            {
+              "name": "getAllJobs",
+              "type": "Remote Function",
+              "description": "Get details of all the jobs.\n",
+              "parameters": [
+                {
+                  "name": "jobType",
+                  "description": "Type of the job",
+                  "type": {
+                    "name": "\"V2Ingest\"|\"Classic\"|\"BigObjectIngest\"|()"
+                  },
+                  "optional": true,
+                  "default": "()"
+                }
+              ],
+              "return": {
+                "description": "`AllJobs` record if successful or `error` if unsuccessful",
+                "type": {
+                  "name": "error|AllJobs",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "AllJobs"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "getAllQueryJobs",
+              "type": "Remote Function",
+              "description": "Get details of all query jobs.\n",
+              "parameters": [
+                {
+                  "name": "jobType",
+                  "description": "Type of the job",
+                  "type": {
+                    "name": "\"V2Ingest\"|\"Classic\"|\"BigObjectIngest\"|()"
+                  },
+                  "optional": true,
+                  "default": "()"
+                }
+              ],
+              "return": {
+                "description": "`AllJobs` if successful else `error`",
+                "type": {
+                  "name": "error|AllJobs",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "AllJobs"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "getJobStatus",
+              "type": "Remote Function",
+              "description": "Get job status information.\n",
+              "parameters": [
+                {
+                  "name": "bulkJobId",
+                  "description": "Id of the bulk job",
+                  "type": {
+                    "name": "string"
+                  }
+                },
+                {
+                  "name": "status",
+                  "description": "Status of the job",
+                  "type": {
+                    "name": "Status",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "Status"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "return": {
+                "description": "`string[][]` if successful else `error`",
+                "type": {
+                  "name": "string[][]|error"
+                }
+              }
+            },
+            {
+              "name": "getQueryResult",
+              "type": "Remote Function",
+              "description": "Get bulk query job results\n",
+              "parameters": [
+                {
+                  "name": "bulkJobId",
+                  "description": "Id of the bulk job",
+                  "type": {
+                    "name": "string"
+                  }
+                },
+                {
+                  "name": "maxRecords",
+                  "description": "The maximum number of records to retrieve per set of results for the query",
+                  "type": {
+                    "name": "int|()"
+                  },
+                  "optional": true,
+                  "default": "()"
+                }
+              ],
+              "return": {
+                "description": "The resulting string[][] if successful else `error`",
+                "type": {
+                  "name": "string[][]|error"
+                }
+              }
+            },
+            {
+              "name": "abortJob",
+              "type": "Remote Function",
+              "description": "Abort the bulkv2 job.\n",
+              "parameters": [
+                {
+                  "name": "bulkJobId",
+                  "description": "Id of the bulk job",
+                  "type": {
+                    "name": "string"
+                  }
+                },
+                {
+                  "name": "bulkOperation",
+                  "description": "The processing operation for the job",
+                  "type": {
+                    "name": "BulkOperation",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "BulkOperation"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "return": {
+                "description": "`()` if successful else `error`",
+                "type": {
+                  "name": "BulkJobInfo|error",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "BulkJobInfo"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "deleteJob",
+              "type": "Remote Function",
+              "description": "Delete a bulkv2 job.\n",
+              "parameters": [
+                {
+                  "name": "bulkJobId",
+                  "description": "Id of the bulk job",
+                  "type": {
+                    "name": "string"
+                  }
+                },
+                {
+                  "name": "bulkOperation",
+                  "description": "The processing operation for the job",
+                  "type": {
+                    "name": "BulkOperation",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "BulkOperation"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "return": {
+                "description": "`()` if successful else `error`",
+                "type": {
+                  "name": "error?"
+                }
+              }
+            },
+            {
+              "name": "closeIngestJobAndWait",
+              "type": "Remote Function",
+              "description": "Notifies Salesforce servers that the upload of job data is complete.\n",
+              "parameters": [
+                {
+                  "name": "bulkJobId",
+                  "description": "Id of the bulk job",
+                  "type": {
+                    "name": "string"
+                  }
+                }
+              ],
+              "return": {
+                "description": "future<BulkJobInfo> if successful else `error`",
+                "type": {
+                  "name": "BulkJobInfo|error>"
+                }
+              }
+            },
+            {
+              "name": "closeIngestJob",
+              "type": "Remote Function",
+              "description": "Notifies Salesforce servers that the upload of job data is complete.\n",
+              "parameters": [
+                {
+                  "name": "bulkJobId",
+                  "description": "Id of the bulk job",
+                  "type": {
+                    "name": "string"
+                  }
+                }
+              ],
+              "return": {
+                "description": "BulkJobInfo if successful else `error`",
+                "type": {
+                  "name": "error|BulkJobCloseInfo",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "BulkJobCloseInfo"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "functions": [],
+      "services": [
+        {
+          "type": "fixed",
+          "listener": {
+            "name": "salesforce:Listener",
+            "parameters": [
+              {
+                "name": "listenerConfig",
+                "description": "The configuration of Salesforce ASB listener.",
+                "type": {
+                  "name": "ListenerConfig",
+                  "links": [
+                    {
+                      "category": "internal",
+                      "recordName": "ListenerConfig"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "methods": [
+            {
+              "type": "remote",
+              "description": "The `onCreate` method is triggered when a new record create event is received from Salesforce.",
+              "parameters": [
+                {
+                  "name": "payload",
+                  "description": "The information about the triggered event.",
+                  "type": {
+                    "name": "EventData",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "EventData"
+                      }
+                    ]
+                  },
+                  "optional": false
+                }
+              ],
+              "return": {
+                "type": {
+                  "name": "error?"
+                }
+              },
+              "optional": false
+            },
+            {
+              "type": "remote",
+              "description": "The `onUpdate` method is triggered when a new record update event is received from Salesforce.",
+              "parameters": [
+                {
+                  "name": "payload",
+                  "description": "The information about the triggered event.",
+                  "type": {
+                    "name": "EventData",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "EventData"
+                      }
+                    ]
+                  },
+                  "optional": false
+                }
+              ],
+              "return": {
+                "type": {
+                  "name": "error?"
+                }
+              },
+              "optional": false
+            },
+            {
+              "type": "remote",
+              "description": "The `onDelete` method is triggered when a new record delete event is received from Salesforce.",
+              "parameters": [
+                {
+                  "name": "payload",
+                  "description": "The information about the triggered event.",
+                  "type": {
+                    "name": "EventData",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "EventData"
+                      }
+                    ]
+                  },
+                  "optional": false
+                }
+              ],
+              "return": {
+                "type": {
+                  "name": "error?"
+                }
+              },
+              "optional": false
+            },
+            {
+              "type": "remote",
+              "description": "The `onRestore` method is triggered when a new record restore event is received from Salesforce.",
+              "parameters": [
+                {
+                  "name": "payload",
+                  "description": "The information about the triggered event.",
+                  "type": {
+                    "name": "EventData",
+                    "links": [
+                      {
+                        "category": "internal",
+                        "recordName": "EventData"
+                      }
+                    ]
+                  },
+                  "optional": false
+                }
+              ],
+              "return": {
+                "type": {
+                  "name": "error?"
+                }
+              },
+              "optional": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

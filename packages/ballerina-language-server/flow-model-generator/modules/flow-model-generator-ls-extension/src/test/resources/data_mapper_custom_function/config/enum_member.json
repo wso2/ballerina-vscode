@@ -1,0 +1,70 @@
+{
+  "source": "proj4/main.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "proj4/main.bal",
+      "startLine": {
+        "line": 9,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 12,
+        "offset": 2
+      }
+    }
+  },
+  "mapping": {
+    "output": "transformTest.gender",
+    "expression": "patient.gender"
+  },
+  "functionMetadata": {
+    "returnType": {
+      "type": "unknown|male|female|other",
+      "kind": "union"
+    },
+    "parameters": [
+      {
+        "name": "gender",
+        "type": "string?",
+        "isOptional": true,
+        "isNullable": false,
+        "kind": "string"
+      }
+    ]
+  },
+  "targetField": "transformTest",
+  "output": {
+    "proj4/main.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 11,
+            "character": 12
+          },
+          "end": {
+            "line": 11,
+            "character": 12
+          }
+        },
+        "newText": ", gender: mapStringToUnion1(patient.gender)"
+      }
+    ],
+    "proj4/functions.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "\nfunction mapStringToUnion1(string? gender) returns unknown|male|female|other {}"
+      }
+    ]
+  }
+}

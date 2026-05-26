@@ -1,0 +1,203 @@
+{
+  "filePath": "add_function_for_class.bal",
+  "description": "Add remote function for a service class",
+  "codedata": {
+    "lineRange": {
+      "fileName": "add_function_for_class.bal.bal",
+      "startLine": {
+        "line": 0,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 5,
+        "offset": 0
+      }
+    }
+  },
+  "function": {
+    "metadata": {
+      "label": "Remote Method",
+      "description": "Remote Method"
+    },
+    "qualifiers": [],
+    "kind": "REMOTE",
+    "accessor": {
+      "metadata": {
+        "label": "Accessor",
+        "description": "The accessor of the function"
+      },
+      "enabled": false,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "name": {
+      "metadata": {
+        "label": "Function Name",
+        "description": "The name of the function"
+      },
+      "placeholder": "",
+      "valueType": "IDENTIFIER",
+      "valueTypeConstraint": "string",
+      "value": "addAuthor",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "documentation": {
+      "metadata": {
+        "label": "Description",
+        "description": "The description of the parameter"
+      },
+      "valueType": "STRING",
+      "value": "This is a remote method",
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
+    "parameters": [
+      {
+        "type": {
+          "metadata": {
+            "label": "Parameter Type",
+            "description": "The type of the parameter"
+          },
+          "valueType": "TYPE",
+          "value": "Author",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Parameter Name",
+            "description": "The name of the parameter"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "author",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value of the parameter"
+          },
+          "enabled": false,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "documentation": {
+          "metadata": {
+            "label": "Description",
+            "description": "The description of the parameter"
+          },
+          "valueType": "STRING",
+          "value": "The author to be added",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": false,
+        "optional": false,
+        "advanced": false,
+        "hidden": false
+      }
+    ],
+    "schema": {
+      "parameter": {
+        "type": {
+          "metadata": {
+            "label": "Parameter Type",
+            "description": "The type of the parameter"
+          },
+          "enabled": false,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Parameter Name",
+            "description": "The name of the parameter"
+          },
+          "enabled": false,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value of the parameter"
+          },
+          "enabled": false,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "enabled": false,
+        "editable": false,
+        "optional": false,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "returnType": {
+      "hasError": false,
+      "metadata": {
+        "label": "Return Type",
+        "description": "The return type of the function"
+      },
+      "valueType": "TYPE",
+      "value": "int",
+      "enabled": true,
+      "editable": false,
+      "optional": false,
+      "advanced": false
+    },
+    "enabled": true,
+    "optional": false,
+    "editable": true,
+    "canAddParameters": false,
+    "codedata": {
+      "lineRange": {
+        "fileName": "main.bal",
+        "startLine": {
+          "line": 30,
+          "offset": 4
+        },
+        "endLine": {
+          "line": 36,
+          "offset": 5
+        }
+      }
+    },
+    "properties": {}
+  },
+  "output": {
+    "add_function_for_class.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 3,
+            "character": 34
+          },
+          "end": {
+            "line": 3,
+            "character": 34
+          }
+        },
+        "newText": "\n\t# This is a remote method\n\t# + author - The author to be added\n\tremote function addAuthor(Author author) returns int {\n\t}"
+      }
+    ]
+  }
+}

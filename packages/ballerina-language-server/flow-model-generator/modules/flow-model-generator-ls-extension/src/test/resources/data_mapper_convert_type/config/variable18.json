@@ -1,0 +1,68 @@
+{
+  "source": "variable1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "main.bal",
+      "startLine": {
+        "line": 59,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 61,
+        "offset": 2
+      }
+    },
+    "isNew": true,
+    "sourceCode": ""
+  },
+  "typeName": "Students",
+  "parentTypeName": "json",
+  "variableName": "transform10",
+  "isInput": false,
+  "isArray": true,
+  "output": {
+    "variable1.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 59,
+            "character": 58
+          },
+          "end": {
+            "line": 59,
+            "character": 58
+          }
+        },
+        "newText": "|error"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "import ballerina/data.jsondata;\n"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 59,
+            "character": 62
+          },
+          "end": {
+            "line": 61,
+            "character": 1
+          }
+        },
+        "newText": "let Students transform10 = [] in check jsondata:toJson(transform10)"
+      }
+    ]
+  }
+}

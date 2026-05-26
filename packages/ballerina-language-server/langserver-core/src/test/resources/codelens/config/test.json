@@ -1,0 +1,170 @@
+{
+  "source": "test.bal",
+  "result": [
+    {
+      "range": {
+        "start": {
+          "line": 2,
+          "character": 0
+        },
+        "end": {
+          "line": 4,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Run",
+        "command": "ballerina.test",
+        "arguments": [
+          "--tests",
+          "testFunction1"
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 2,
+          "character": 0
+        },
+        "end": {
+          "line": 4,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Debug",
+        "command": "ballerina.test.debug",
+        "arguments": [
+          "testFunction1"
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 2,
+          "character": 0
+        },
+        "end": {
+          "line": 4,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Visualize",
+        "command": "ballerina.showVisualizer",
+        "arguments": [
+          "test.bal",
+          {
+            "start": {
+              "line": 2,
+              "character": 0
+            },
+            "end": {
+              "line": 4,
+              "character": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 6,
+          "character": 0
+        },
+        "end": {
+          "line": 8,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Run",
+        "command": "ballerina.test",
+        "arguments": [
+          "--tests",
+          "testFunction2"
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 6,
+          "character": 0
+        },
+        "end": {
+          "line": 8,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Debug",
+        "command": "ballerina.test.debug",
+        "arguments": [
+          "testFunction2"
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 6,
+          "character": 0
+        },
+        "end": {
+          "line": 8,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Visualize",
+        "command": "ballerina.showVisualizer",
+        "arguments": [
+          "test.bal",
+          {
+            "start": {
+              "line": 6,
+              "character": 0
+            },
+            "end": {
+              "line": 8,
+              "character": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "range": {
+        "start": {
+          "line": 10,
+          "character": 0
+        },
+        "end": {
+          "line": 11,
+          "character": 1
+        }
+      },
+      "command": {
+        "title": "Visualize",
+        "command": "ballerina.showVisualizer",
+        "arguments": [
+          "test.bal",
+          {
+            "start": {
+              "line": 10,
+              "character": 0
+            },
+            "end": {
+              "line": 11,
+              "character": 1
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

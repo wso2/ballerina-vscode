@@ -1,0 +1,189 @@
+{
+  "source": "function_def_transformed_type2.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "DATA_MAPPER_DEFINITION",
+    "lineRange": {
+      "fileName": "function_def_transformed_type2.bal",
+      "startLine": {
+        "line": 27,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 29,
+        "offset": 120
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 28,
+    "offset": 4
+  },
+  "targetField": "transformJsonXml1.CreateOrder",
+  "model": {
+    "inputs": [
+      {
+        "fields": [],
+        "name": "customerDetails1",
+        "displayName": "customerDetails1",
+        "typeName": "CustomerDetails",
+        "kind": "record",
+        "category": "local-variable",
+        "ref": "226293016"
+      },
+      {
+        "fields": [],
+        "name": "customerDetails2",
+        "displayName": "customerDetails2",
+        "typeName": "CustomerDetails",
+        "kind": "record",
+        "category": "local-variable",
+        "ref": "226293016"
+      },
+      {
+        "fields": [],
+        "name": "customerDetailsConverted",
+        "displayName": "customerDetailsConverted",
+        "typeName": "CustomerDetails",
+        "kind": "record",
+        "category": "parameter",
+        "ref": "226293016"
+      },
+      {
+        "fields": [],
+        "name": "ordersItem",
+        "displayName": "ordersItem",
+        "typeName": "OrdersItem",
+        "kind": "record",
+        "category": "local-variable",
+        "focusExpression": "customerDetailsConverted.orders",
+        "ref": "-1029019004",
+        "isIterationVariable": true
+      }
+    ],
+    "output": {
+      "member": {
+        "fields": [],
+        "name": "CreateOrder",
+        "displayName": "<CreateOrderItem>",
+        "typeName": "CreateOrder",
+        "kind": "record",
+        "ref": "-555319738"
+      },
+      "name": "CreateOrder",
+      "displayName": "CreateOrder",
+      "typeName": "CreateOrder[]",
+      "kind": "array",
+      "ref": "667729809"
+    },
+    "mappings": [
+      {
+        "output": "CreateOrder.OrderId",
+        "inputs": [],
+        "expression": "\"\"",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      },
+      {
+        "output": "CreateOrder.CustomerName",
+        "inputs": [],
+        "expression": "\"\"",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "query": {
+      "output": "CreateOrder",
+      "inputs": [
+        "customerDetailsConverted.orders"
+      ],
+      "fromClause": {
+        "type": "from",
+        "properties": {
+          "name": "ordersItem",
+          "type": "OrdersItem",
+          "expression": "customerDetailsConverted.orders",
+          "isOuter": false
+        }
+      },
+      "intermediateClauses": [],
+      "resultClause": {
+        "type": "select",
+        "properties": {
+          "expression": "{OrderId: \"\", CustomerName: \"\"}",
+          "isOuter": false
+        }
+      }
+    },
+    "refs": {
+      "-1029019004": {
+        "fields": [
+          {
+            "name": "orderId",
+            "displayName": "orderId",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "customerId",
+            "displayName": "customerId",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "OrdersItem",
+        "kind": "record"
+      },
+      "-555319738": {
+        "fields": [
+          {
+            "name": "OrderId",
+            "displayName": "OrderId",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "CustomerName",
+            "displayName": "CustomerName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "CreateOrder",
+        "kind": "record"
+      },
+      "226293016": {
+        "fields": [
+          {
+            "member": {
+              "fields": [],
+              "name": "orders",
+              "displayName": "<ordersItem>",
+              "typeName": "OrdersItem",
+              "kind": "record",
+              "ref": "-1029019004"
+            },
+            "name": "orders",
+            "displayName": "orders",
+            "typeName": "OrdersItem[]",
+            "kind": "array",
+            "optional": false,
+            "ref": "-1898371048"
+          }
+        ],
+        "typeName": "CustomerDetails",
+        "kind": "record"
+      }
+    },
+    "hasInvalidOutput": false
+  }
+}

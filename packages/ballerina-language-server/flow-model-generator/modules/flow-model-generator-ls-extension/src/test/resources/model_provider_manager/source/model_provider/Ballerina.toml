@@ -1,0 +1,44 @@
+[package]
+org = "admin"
+name = "model_provider"
+version = "0.1.0"
+distribution = "2201.12.0"
+
+[build-options]
+observabilityIncluded = true
+sticky = true
+
+[[dependency]]
+org="ballerina"
+name="ai"
+version="1.5.0"
+
+[[dependency]]
+org="ballerinax"
+name="ai.anthropic"
+version="1.0.1"
+
+[[dependency]]
+org="ballerinax"
+name="ai.azure"
+version="1.0.1"
+
+[[dependency]]
+org="ballerinax"
+name="ai.deepseek"
+version="1.0.1"
+
+[[dependency]]
+org="ballerinax"
+name="ai.mistral"
+version="1.0.1"
+
+[[dependency]]
+org="ballerinax"
+name="ai.ollama"
+version="1.0.1"
+
+[[dependency]]
+org="ballerinax"
+name="ai.openai"
+version="1.1.0"

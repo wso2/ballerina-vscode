@@ -1,0 +1,769 @@
+{
+  "kind": "RESOURCE",
+  "accessor": {
+    "metadata": {
+      "label": "Resource Accessor",
+      "description": "The resource accessor"
+    },
+    "enabled": true,
+    "editable": true,
+    "value": "GET",
+    "types": [
+      {
+        "fieldType": "SINGLE_SELECT",
+        "options": [
+          {
+            "label": "GET",
+            "value": "GET"
+          },
+          {
+            "label": "POST",
+            "value": "POST"
+          },
+          {
+            "label": "PUT",
+            "value": "PUT"
+          },
+          {
+            "label": "DELETE",
+            "value": "DELETE"
+          },
+          {
+            "label": "PATCH",
+            "value": "PATCH"
+          },
+          {
+            "label": "OPTIONS",
+            "value": "OPTIONS"
+          },
+          {
+            "label": "HEAD",
+            "value": "HEAD"
+          },
+          {
+            "label": "DEFAULT",
+            "value": "DEFAULT"
+          }
+        ],
+        "selected": true
+      }
+    ],
+    "isType": false,
+    "placeholder": "GET",
+    "optional": false,
+    "advanced": false
+  },
+  "name": {
+    "metadata": {
+      "label": "Resource Path",
+      "description": "The resource path"
+    },
+    "enabled": true,
+    "editable": true,
+    "value": "",
+    "types": [
+      {
+        "fieldType": "IDENTIFIER",
+        "selected": true
+      }
+    ],
+    "isType": false,
+    "placeholder": "",
+    "optional": false,
+    "advanced": false
+  },
+  "parameters": [
+    {
+      "metadata": {
+        "label": "Request",
+        "description": "The HTTP Request"
+      },
+      "kind": "REQUIRED",
+      "type": {
+        "enabled": true,
+        "editable": false,
+        "value": "http:Request",
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "isType": true,
+        "placeholder": "string",
+        "optional": false,
+        "advanced": false
+      },
+      "name": {
+        "enabled": true,
+        "editable": true,
+        "value": "",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "isType": false,
+        "placeholder": "request",
+        "optional": false,
+        "advanced": false
+      },
+      "enabled": false,
+      "editable": true,
+      "optional": true,
+      "advanced": true
+    },
+    {
+      "metadata": {
+        "label": "Caller",
+        "description": "The HTTP Caller"
+      },
+      "kind": "REQUIRED",
+      "type": {
+        "enabled": true,
+        "editable": false,
+        "value": "http:Caller",
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "isType": true,
+        "placeholder": "string",
+        "optional": false,
+        "advanced": false
+      },
+      "name": {
+        "enabled": true,
+        "editable": true,
+        "value": "",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "isType": false,
+        "placeholder": "caller",
+        "optional": false,
+        "advanced": false
+      },
+      "enabled": false,
+      "editable": true,
+      "optional": true,
+      "advanced": true
+    },
+    {
+      "metadata": {
+        "label": "Headers",
+        "description": "The HTTP Headers"
+      },
+      "kind": "REQUIRED",
+      "type": {
+        "enabled": true,
+        "editable": false,
+        "value": "http:Headers",
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "isType": true,
+        "placeholder": "string",
+        "optional": false,
+        "advanced": false
+      },
+      "name": {
+        "enabled": true,
+        "editable": true,
+        "value": "",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "isType": false,
+        "placeholder": "headers",
+        "optional": false,
+        "advanced": false
+      },
+      "enabled": false,
+      "editable": true,
+      "optional": true,
+      "advanced": true
+    }
+  ],
+  "schema": {
+    "query": {
+      "metadata": {
+        "label": "Query",
+        "description": "The Query Parameter"
+      },
+      "kind": "REQUIRED",
+      "type": {
+        "enabled": true,
+        "editable": true,
+        "value": "string",
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "isType": true,
+        "placeholder": "",
+        "optional": false,
+        "advanced": false
+      },
+      "name": {
+        "enabled": true,
+        "editable": true,
+        "value": "",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "isType": false,
+        "placeholder": "",
+        "optional": false,
+        "advanced": false
+      },
+      "defaultValue": {
+        "metadata": {
+          "label": "Default Value",
+          "description": "The default value"
+        },
+        "enabled": false,
+        "editable": true,
+        "value": "",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "selected": true
+          }
+        ],
+        "isType": false,
+        "placeholder": "",
+        "optional": true,
+        "advanced": false
+      },
+      "enabled": false,
+      "editable": true,
+      "optional": false,
+      "httpParamType": "QUERY"
+    },
+    "header": {
+      "metadata": {
+        "label": "Header",
+        "description": "The Header Parameter"
+      },
+      "kind": "REQUIRED",
+      "type": {
+        "enabled": true,
+        "editable": true,
+        "value": "string",
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "isType": true,
+        "placeholder": "string",
+        "optional": false,
+        "advanced": false
+      },
+      "name": {
+        "enabled": true,
+        "editable": true,
+        "value": "",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "isType": false,
+        "placeholder": "name",
+        "optional": true,
+        "advanced": false
+      },
+      "headerName": {
+        "enabled": true,
+        "editable": true,
+        "value": "",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "isType": false,
+        "placeholder": "",
+        "optional": false,
+        "advanced": false
+      },
+      "defaultValue": {
+        "metadata": {
+          "label": "Default Value",
+          "description": "The default value"
+        },
+        "enabled": false,
+        "editable": true,
+        "value": "",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "selected": true
+          }
+        ],
+        "isType": false,
+        "placeholder": "",
+        "optional": true,
+        "advanced": false
+      },
+      "enabled": false,
+      "editable": true,
+      "optional": false,
+      "httpParamType": "HEADER"
+    },
+    "payload": {
+      "metadata": {
+        "label": "Payload",
+        "description": "The Payload Parameter"
+      },
+      "kind": "REQUIRED",
+      "type": {
+        "enabled": true,
+        "editable": true,
+        "value": "",
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "isType": true,
+        "placeholder": "",
+        "optional": false,
+        "advanced": false
+      },
+      "name": {
+        "enabled": true,
+        "editable": true,
+        "value": "",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "isType": false,
+        "placeholder": "",
+        "optional": false,
+        "advanced": false
+      },
+      "enabled": false,
+      "editable": true,
+      "optional": false,
+      "httpParamType": "PAYLOAD"
+    }
+  },
+  "returnType": {
+    "metadata": {
+      "label": "Return type",
+      "description": "Return type of the function"
+    },
+    "enabled": true,
+    "editable": true,
+    "value": "",
+    "types": [
+      {
+        "fieldType": "TYPE",
+        "selected": true
+      }
+    ],
+    "isType": true,
+    "placeholder": "",
+    "optional": true,
+    "advanced": false,
+    "responses": [
+      {
+        "statusCode": {
+          "enabled": true,
+          "editable": true,
+          "value": "200",
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "options": [],
+              "selected": true
+            }
+          ],
+          "isType": false,
+          "placeholder": "",
+          "optional": false,
+          "advanced": false,
+          "items": []
+        },
+        "body": {
+          "enabled": true,
+          "editable": true,
+          "value": "json",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "isType": false,
+          "optional": true,
+          "advanced": true,
+          "addNewButton": false
+        },
+        "mediaType": {
+          "enabled": true,
+          "editable": true,
+          "value": "",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "isType": false,
+          "optional": true,
+          "advanced": true,
+          "addNewButton": false
+        },
+        "name": {
+          "enabled": true,
+          "editable": true,
+          "value": "",
+          "types": [
+            {
+              "fieldType": "OPTIONAL_IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "isType": false,
+          "optional": true,
+          "advanced": true,
+          "addNewButton": false
+        },
+        "type": {
+          "enabled": true,
+          "editable": true,
+          "value": "",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "isType": false,
+          "optional": true,
+          "advanced": true,
+          "addNewButton": false
+        },
+        "headers": {
+          "metadata": {
+            "label": "Headers",
+            "description": "Add mandatory or optional headers to the response"
+          },
+          "enabled": true,
+          "editable": true,
+          "value": "",
+          "types": [
+            {
+              "fieldType": "HEADER_SET",
+              "selected": true
+            }
+          ],
+          "isType": false,
+          "optional": true,
+          "advanced": true,
+          "addNewButton": false
+        },
+        "enabled": true,
+        "editable": true
+      },
+      {
+        "statusCode": {
+          "enabled": true,
+          "editable": false,
+          "value": "500",
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "options": [],
+              "selected": true
+            }
+          ],
+          "isType": false,
+          "placeholder": "",
+          "optional": false,
+          "advanced": false,
+          "items": []
+        },
+        "body": {
+          "enabled": true,
+          "editable": false,
+          "value": "error",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "isType": false,
+          "optional": true,
+          "advanced": true,
+          "addNewButton": false
+        },
+        "mediaType": {
+          "enabled": true,
+          "editable": true,
+          "value": "",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "isType": false,
+          "optional": true,
+          "advanced": true,
+          "addNewButton": false
+        },
+        "name": {
+          "enabled": true,
+          "editable": true,
+          "value": "",
+          "types": [
+            {
+              "fieldType": "OPTIONAL_IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "isType": false,
+          "optional": true,
+          "advanced": true,
+          "addNewButton": false
+        },
+        "type": {
+          "enabled": true,
+          "editable": true,
+          "value": "",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "isType": false,
+          "optional": true,
+          "advanced": true,
+          "addNewButton": false
+        },
+        "headers": {
+          "metadata": {
+            "label": "Headers",
+            "description": "Add mandatory or optional headers to the response"
+          },
+          "enabled": true,
+          "editable": true,
+          "value": "",
+          "types": [
+            {
+              "fieldType": "HEADER_SET",
+              "selected": true
+            }
+          ],
+          "isType": false,
+          "optional": true,
+          "advanced": true,
+          "addNewButton": false
+        },
+        "enabled": true,
+        "editable": false
+      }
+    ],
+    "schema": {
+      "statusCodeResponse": {
+        "statusCode": {
+          "metadata": {
+            "label": "Status Code",
+            "description": "HTTP status code for the response"
+          },
+          "enabled": true,
+          "editable": true,
+          "value": "",
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "selected": true
+            }
+          ],
+          "isType": false,
+          "placeholder": "",
+          "optional": false,
+          "advanced": false,
+          "items": []
+        },
+        "body": {
+          "metadata": {
+            "label": "Response Body Schema",
+            "description": "Schema of the response body or data type of the response body"
+          },
+          "enabled": true,
+          "editable": true,
+          "value": "",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "isType": false,
+          "optional": true,
+          "advanced": true,
+          "addNewButton": false
+        },
+        "mediaType": {
+          "metadata": {
+            "label": "Content Type",
+            "description": "Value for the Content-Type header in the response"
+          },
+          "enabled": true,
+          "editable": true,
+          "value": "",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "isType": false,
+          "optional": true,
+          "advanced": true,
+          "addNewButton": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Response Definition Name",
+            "description": "Define a name for the response definition"
+          },
+          "enabled": true,
+          "editable": true,
+          "value": "",
+          "types": [
+            {
+              "fieldType": "OPTIONAL_IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "isType": false,
+          "optional": true,
+          "advanced": true,
+          "addNewButton": false
+        },
+        "type": {
+          "metadata": {
+            "label": "Response Type",
+            "description": "Select a response type"
+          },
+          "enabled": true,
+          "editable": true,
+          "value": "",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "isType": false,
+          "optional": true,
+          "advanced": true,
+          "addNewButton": false
+        },
+        "headers": {
+          "metadata": {
+            "label": "Headers",
+            "description": "Add mandatory or optional headers to the response"
+          },
+          "enabled": true,
+          "editable": true,
+          "value": "",
+          "types": [
+            {
+              "fieldType": "HEADER_SET",
+              "selected": true
+            }
+          ],
+          "isType": false,
+          "optional": true,
+          "advanced": true,
+          "addNewButton": false
+        },
+        "enabled": true,
+        "editable": true,
+        "advanced": false
+      }
+    }
+  },
+  "annotations": {
+    "annotResourceConfig": {
+      "metadata": {
+        "label": "Resource Configuration",
+        "description": "Define advanced configurations like resource level media types, security, etc."
+      },
+      "enabled": true,
+      "editable": true,
+      "value": "",
+      "types": [
+        {
+          "fieldType": "RECORD_MAP_EXPRESSION",
+          "ballerinaType": "http:HttpResourceConfig",
+          "selected": true,
+          "typeMembers": [
+            {
+              "type": "HttpResourceConfig",
+              "packageInfo": "ballerina:http:2.14.0",
+              "packageName": "http",
+              "kind": "RECORD_TYPE",
+              "selected": true
+            }
+          ]
+        }
+      ],
+      "isType": false,
+      "placeholder": "{}",
+      "optional": true,
+      "advanced": true,
+      "codedata": {
+        "inListenerInit": false,
+        "isBasePath": false,
+        "inDisplayAnnotation": false,
+        "type": "ANNOTATION_ATTACHMENT",
+        "originalName": "ResourceConfig",
+        "orgName": "ballerina",
+        "moduleName": "http"
+      },
+      "addNewButton": false
+    }
+  },
+  "codedata": {
+    "orgName": "ballerina",
+    "packageName": "http",
+    "moduleName": "http"
+  },
+  "enabled": true,
+  "editable": true
+}

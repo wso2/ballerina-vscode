@@ -1,0 +1,58 @@
+{
+  "description": "A simple example of a map type",
+  "source": "RefTypeTest/BalProject6",
+  "typeSymbolName": "RecordWithMap",
+  "refType": {
+    "fields": [
+      {
+        "fieldName": "id",
+        "type": {
+          "dependentTypeKeys": [],
+          "name": "string",
+          "typeName": "string"
+        },
+        "optional": false,
+        "defaultValue": ""
+      },
+      {
+        "fieldName": "data",
+        "type": {
+          "valueType": {
+            "dependentTypeKeys": [],
+            "name": "string",
+            "typeName": "string"
+          },
+          "dependentTypeKeys": [],
+          "hashCode": "-1341610551",
+          "key": "1451807383",
+          "name": "SimpleMap",
+          "typeName": "map",
+          "moduleInfo": {
+            "orgName": "ballerinax",
+            "moduleName": "test.maps",
+            "packageName": "test.maps",
+            "version": "0.1.0",
+            "modulePrefix": "maps"
+          }
+        },
+        "optional": false,
+        "defaultValue": ""
+      }
+    ],
+    "dependentTypeKeys": [
+      "1451807383"
+    ],
+    "hashCode": "2088778025",
+    "key": "-932906254",
+    "name": "RecordWithMap",
+    "typeName": "record",
+    "dependentTypes": {},
+    "moduleInfo": {
+      "orgName": "ballerinax",
+      "moduleName": "test.maps",
+      "packageName": "test.maps",
+      "version": "0.1.0",
+      "modulePrefix": "maps"
+    }
+  }
+}

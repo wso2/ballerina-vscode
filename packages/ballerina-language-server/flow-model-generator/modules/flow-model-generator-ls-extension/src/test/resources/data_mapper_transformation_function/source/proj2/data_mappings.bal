@@ -1,0 +1,1 @@
+function mapRecordToRecord1(UserInfo user) returns Student => {}

@@ -1,0 +1,117 @@
+{
+  "source": "variable2_2.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable2_2.bal",
+      "startLine": {
+        "line": 19,
+        "offset": 34
+      },
+      "endLine": {
+        "line": 19,
+        "offset": 92
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 19,
+    "offset": 34
+  },
+  "propertyKey": "expression",
+  "model": {
+    "inputs": [
+      {
+        "name": "CONST",
+        "displayName": "CONST",
+        "typeName": "string",
+        "kind": "string",
+        "category": "constant"
+      },
+      {
+        "fields": [],
+        "name": "userInfo",
+        "displayName": "userInfo",
+        "typeName": "UserInfo",
+        "kind": "record",
+        "category": "local-variable",
+        "ref": "1889977605"
+      }
+    ],
+    "output": {
+      "fields": [],
+      "name": "s",
+      "displayName": "s",
+      "typeName": "Student",
+      "kind": "record",
+      "ref": "545732303"
+    },
+    "mappings": [
+      {
+        "output": "s.username",
+        "inputs": [
+          "userInfo.username"
+        ],
+        "expression": "userInfo.username",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      },
+      {
+        "output": "s.password",
+        "inputs": [],
+        "expression": "\"PWD\"",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "refs": {
+      "545732303": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Student",
+        "kind": "record"
+      },
+      "1889977605": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "UserInfo",
+        "kind": "record"
+      }
+    },
+    "hasInvalidOutput": false
+  }
+}

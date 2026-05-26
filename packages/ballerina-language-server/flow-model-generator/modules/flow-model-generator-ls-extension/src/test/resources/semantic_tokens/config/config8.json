@@ -1,0 +1,21 @@
+{
+  "description": "Variable with field access in addition expression",
+  "filePath": "main.bal",
+  "expression": "myVar + parent.field1",
+  "expectedTokens": [
+    {
+      "line": 0,
+      "col": 0,
+      "length": 5,
+      "type": 0,
+      "modifiers": 0
+    },
+    {
+      "line": 0,
+      "col": 8,
+      "length": 13,
+      "type": 0,
+      "modifiers": 0
+    }
+  ]
+}

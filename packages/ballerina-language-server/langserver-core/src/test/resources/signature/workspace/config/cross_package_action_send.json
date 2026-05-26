@@ -1,0 +1,69 @@
+{
+  "position": {
+    "line": 22,
+    "character": 34
+  },
+  "source": "workspace/test-workspace/pkgA/main.bal",
+  "expected": {
+    "result": {
+      "signatures": [
+        {
+          "label": "send(string payload, map<string> headers, int timeout)",
+          "documentation": {
+            "right": {
+              "kind": "markdown",
+              "value": "**Description**  \nSend data to the API"
+            }
+          },
+          "parameters": [
+            {
+              "label": {
+                "right": {
+                  "first": 12,
+                  "second": 19
+                }
+              },
+              "documentation": {
+                "right": {
+                  "kind": "markdown",
+                  "value": "**Parameter**  \n**`string`payload**: The data payload"
+                }
+              }
+            },
+            {
+              "label": {
+                "right": {
+                  "first": 33,
+                  "second": 40
+                }
+              },
+              "documentation": {
+                "right": {
+                  "kind": "markdown",
+                  "value": "**Parameter**  \n**`map<string>`headers**: Custom headers"
+                }
+              }
+            },
+            {
+              "label": {
+                "right": {
+                  "first": 46,
+                  "second": 53
+                }
+              },
+              "documentation": {
+                "right": {
+                  "kind": "markdown",
+                  "value": "**Parameter**  \n**`int`timeout**: Request timeout in seconds"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "activeSignature": 0,
+      "activeParameter": 0
+    },
+    "jsonrpc": "2.0"
+  }
+}

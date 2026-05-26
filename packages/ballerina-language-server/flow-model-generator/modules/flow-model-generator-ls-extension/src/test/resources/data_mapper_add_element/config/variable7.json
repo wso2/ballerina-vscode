@@ -1,0 +1,39 @@
+{
+  "source": "variable4_1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable4_1.bal",
+      "startLine": {
+        "line": 14,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 15,
+        "offset": 38
+      }
+    },
+    "sourceCode": ""
+  },
+  "propertyKey": "expression",
+  "targetField": "credentials",
+  "outputId": "credentials.0.ids",
+  "output": {
+    "variable4_1.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 15,
+            "character": 34
+          },
+          "end": {
+            "line": 15,
+            "character": 34
+          }
+        },
+        "newText": ", \"\""
+      }
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "description": "Convert string to decimal using decimal:fromString with error handling",
+  "output": "output.decimalField",
+  "outputType": "decimal",
+  "expression": "input.stringField",
+  "expressionType": "string",
+  "convertedExpression": "(let decimal|error tmp = decimal:fromString(input.stringField) in (tmp is error ? 0.0d : tmp))"
+}

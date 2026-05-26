@@ -1,0 +1,38 @@
+name: Trivy
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  ubuntu-build:
+    name: Build on Ubuntu
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          distribution: "temurin"
+          java-version: 21.0.3
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Generate SBOM
+        env:
+          packageUser: ${{ github.actor }}
+          packagePAT: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew cyclonedxBom
+
+      - name: Run Trivy vulnerability
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "sbom"
+          scan-ref: "build/sbom.json"
+          format: "table"
+          timeout: "10m0s"
+          exit-code: "1"

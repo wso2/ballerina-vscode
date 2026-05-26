@@ -1,0 +1,187 @@
+{
+  "source": "query2_4.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "query2_3.bal",
+      "startLine": {
+        "line": 32,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 37,
+        "offset": 9
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 32,
+    "offset": 4
+  },
+  "propertyKey": "expression",
+  "targetField": "p.contactDetails.phoneNumbers",
+  "model": {
+    "inputs": [
+      {
+        "fields": [],
+        "name": "info",
+        "displayName": "info",
+        "typeName": "Info",
+        "kind": "record",
+        "category": "local-variable",
+        "ref": "1372788890"
+      },
+      {
+        "member": {
+          "fields": [],
+          "name": "newSecondaryPhones",
+          "displayName": "<newSecondaryPhonesItem>",
+          "typeName": "SecondaryPhones",
+          "kind": "record",
+          "ref": "-782972947"
+        },
+        "name": "newSecondaryPhones",
+        "displayName": "newSecondaryPhones",
+        "typeName": "SecondaryPhones[]",
+        "kind": "array",
+        "category": "local-variable",
+        "ref": "-1392347127"
+      }
+    ],
+    "output": {
+      "member": {
+        "fields": [],
+        "name": "phoneNumbers",
+        "displayName": "<phoneNumbersItem>",
+        "typeName": "SecondaryPhonesX",
+        "kind": "record",
+        "ref": "1497642507"
+      },
+      "name": "phoneNumbers",
+      "displayName": "phoneNumbers",
+      "typeName": "SecondaryPhonesX[]",
+      "kind": "array",
+      "ref": "1040773059"
+    },
+    "subMappings": [
+      {
+        "name": "num",
+        "displayName": "num",
+        "typeName": "string",
+        "kind": "string"
+      }
+    ],
+    "mappings": [
+      {
+        "output": "phoneNumbers",
+        "inputs": [
+          "newSecondaryPhones"
+        ],
+        "expression": "from var secondaryPhonesItem in newSecondaryPhones\n                   select {code: secondaryPhonesItem.code, number: num}\n",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": true,
+        "isFunctionCall": false
+      }
+    ],
+    "refs": {
+      "1497642507": {
+        "fields": [
+          {
+            "name": "code",
+            "displayName": "code",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "number",
+            "displayName": "number",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "SecondaryPhonesX",
+        "kind": "record"
+      },
+      "-782972947": {
+        "fields": [
+          {
+            "name": "code",
+            "displayName": "code",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "number",
+            "displayName": "number",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "SecondaryPhones",
+        "kind": "record"
+      },
+      "1372788890": {
+        "fields": [
+          {
+            "member": {
+              "fields": [],
+              "name": "secondaryPhones",
+              "displayName": "<secondaryPhonesItem>",
+              "typeName": "SecondaryPhones",
+              "kind": "record",
+              "ref": "-782972947"
+            },
+            "name": "secondaryPhones",
+            "displayName": "secondaryPhones",
+            "typeName": "SecondaryPhones[]",
+            "kind": "array",
+            "optional": false,
+            "ref": "-1392347127"
+          },
+          {
+            "member": {
+              "name": "emails",
+              "displayName": "<emailsItem>",
+              "typeName": "string",
+              "kind": "string"
+            },
+            "name": "emails",
+            "displayName": "emails",
+            "typeName": "string[]",
+            "kind": "array",
+            "optional": false
+          },
+          {
+            "member": {
+              "member": {
+                "name": "addresses",
+                "displayName": "<addressesItemItem>",
+                "typeName": "string",
+                "kind": "string"
+              },
+              "name": "addresses",
+              "displayName": "<addressesItem>",
+              "typeName": "string[]",
+              "kind": "array"
+            },
+            "name": "addresses",
+            "displayName": "addresses",
+            "typeName": "string[][]",
+            "kind": "array",
+            "optional": false
+          }
+        ],
+        "typeName": "Info",
+        "kind": "record"
+      }
+    },
+    "hasInvalidOutput": false
+  }
+}

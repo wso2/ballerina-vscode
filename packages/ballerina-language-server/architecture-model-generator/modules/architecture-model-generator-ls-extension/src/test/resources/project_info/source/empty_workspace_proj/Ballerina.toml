@@ -1,0 +1,4 @@
+[workspace]
+name = "empty_workspace_proj"
+title = "Empty Workspace Project"
+packages = []

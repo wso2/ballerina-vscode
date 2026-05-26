@@ -1,0 +1,48 @@
+{
+  "source": "variable11.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable11.bal",
+      "startLine": {
+        "line": 41,
+        "offset": 14
+      },
+      "endLine": {
+        "line": 41,
+        "offset": 114
+      }
+    },
+    "sourceCode": ""
+  },
+  "propertyKey": "expression",
+  "position": {
+    "line": 40,
+    "offset": 12
+  },
+  "mapping": {
+    "output": "users4.0.users6.0.balance",
+    "inputs": [],
+    "expression": "223.0",
+    "diagnostics": [],
+    "elements": []
+  },
+  "output": {
+    "variable11.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 41,
+            "character": 50
+          },
+          "end": {
+            "line": 41,
+            "character": 53
+          }
+        },
+        "newText": "223.0"
+      }
+    ]
+  }
+}

@@ -1,0 +1,5 @@
+[package]
+org = "test"
+name = "simple_service"
+title = "Simple Service"
+version = "0.1.0"

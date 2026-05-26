@@ -1,0 +1,469 @@
+{
+  "source": "builtin_activity/functions.bal",
+  "position": {
+    "line": 5,
+    "offset": 0
+  },
+  "description": "Builtin activity - Call REST API node template",
+  "codedata": {
+    "node": "BUILTIN_ACTIVITY",
+    "org": "ballerina",
+    "module": "workflow.activity",
+    "symbol": "callRestAPI"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "Call REST API",
+      "description": "Call a REST API endpoint as a workflow activity using a configured http:Client connection."
+    },
+    "codedata": {
+      "node": "ACTIVITY_CALL",
+      "org": "ballerina",
+      "module": "workflow.activity",
+      "symbol": "callRestAPI",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "connection": {
+        "metadata": {
+          "label": "Connection",
+          "description": "Connection to use",
+          "connectors": [
+            {
+              "codedata": {
+                "node": "NEW_CONNECTION",
+                "org": "ballerina",
+                "module": "http",
+                "packageName": "http",
+                "object": "Client",
+                "symbol": "init"
+              },
+              "addNewConnectionLabel": "Add new HTTP connection"
+            }
+          ]
+        },
+        "types": [
+          {
+            "fieldType": "CONNECTION",
+            "selected": true
+          }
+        ],
+        "value": "NEW_CONNECTION",
+        "placeholder": "NEW_CONNECTION",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "searchNodesKind": "HTTP"
+        }
+      },
+      "method": {
+        "metadata": {
+          "label": "Method",
+          "description": "HTTP method to invoke"
+        },
+        "types": [
+          {
+            "fieldType": "DROPDOWN_CHOICE",
+            "options": [
+              {
+                "label": "GET",
+                "value": "GET"
+              },
+              {
+                "label": "POST",
+                "value": "POST"
+              },
+              {
+                "label": "PUT",
+                "value": "PUT"
+              },
+              {
+                "label": "DELETE",
+                "value": "DELETE"
+              },
+              {
+                "label": "PATCH",
+                "value": "PATCH"
+              }
+            ],
+            "selected": true
+          }
+        ],
+        "value": "GET",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED"
+        },
+        "itemOptions": [
+          {
+            "id": "GET",
+            "content": "GET",
+            "value": "GET"
+          },
+          {
+            "id": "POST",
+            "content": "POST",
+            "value": "POST"
+          },
+          {
+            "id": "PUT",
+            "content": "PUT",
+            "value": "PUT"
+          },
+          {
+            "id": "DELETE",
+            "content": "DELETE",
+            "value": "DELETE"
+          },
+          {
+            "id": "PATCH",
+            "content": "PATCH",
+            "value": "PATCH"
+          }
+        ],
+        "dynamicFormFields": {
+          "GET": {},
+          "POST": {
+            "message": {
+              "metadata": {
+                "label": "Message",
+                "description": "Request body payload (for POST, PUT, PATCH)"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "http:RequestMessage",
+                  "selected": true
+                }
+              ],
+              "value": "",
+              "optional": false,
+              "editable": true,
+              "advanced": false,
+              "hidden": false
+            }
+          },
+          "PUT": {
+            "message": {
+              "metadata": {
+                "label": "Message",
+                "description": "Request body payload (for POST, PUT, PATCH)"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "http:RequestMessage",
+                  "selected": true
+                }
+              ],
+              "value": "",
+              "optional": false,
+              "editable": true,
+              "advanced": false,
+              "hidden": false
+            }
+          },
+          "DELETE": {},
+          "PATCH": {
+            "message": {
+              "metadata": {
+                "label": "Message",
+                "description": "Request body payload (for POST, PUT, PATCH)"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "http:RequestMessage",
+                  "selected": true
+                }
+              ],
+              "value": "",
+              "optional": false,
+              "editable": true,
+              "advanced": false,
+              "hidden": false
+            }
+          }
+        }
+      },
+      "path": {
+        "metadata": {
+          "label": "Path",
+          "description": "Resource path appended to the connection's base URL (e.g., \"/users/1\")"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string",
+            "selected": true
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": false
+          }
+        ],
+        "value": "",
+        "placeholder": "/users/1",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "message": {
+        "metadata": {
+          "label": "Message",
+          "description": "Request body payload (for POST, PUT, PATCH)"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "http:RequestMessage",
+            "selected": true
+          }
+        ],
+        "value": "",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": true
+      },
+      "headers": {
+        "metadata": {
+          "label": "Headers",
+          "description": "Optional request headers"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "map<string|string[]>?",
+            "selected": true
+          }
+        ],
+        "value": "",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false
+      },
+      "type": {
+        "metadata": {
+          "label": "Databinding",
+          "description": "Response data binding type (e.g., json, xml, record type)"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "json",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result",
+          "description": "Name of the result variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "result",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Add 'check' to propagate errors. Uncheck to handle errors manually."
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "ballerinaType": "boolean",
+            "selected": true
+          }
+        ],
+        "value": "true",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "advanced": {
+        "metadata": {
+          "label": "Activity call configurations",
+          "description": "Activity call configurations"
+        },
+        "types": [
+          {
+            "fieldType": "ADVANCE_PARAM_LIST",
+            "selected": false
+          }
+        ],
+        "value": {
+          "retryOnError": {
+            "metadata": {
+              "label": "Retry On Error",
+              "description": "Enable automatic retries on failure (default: `false`)"
+            },
+            "types": [
+              {
+                "fieldType": "FLAG",
+                "ballerinaType": "boolean",
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "boolean",
+                "selected": false
+              }
+            ],
+            "placeholder": "false",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "retryOnError"
+            },
+            "defaultValue": "false"
+          },
+          "maxRetries": {
+            "metadata": {
+              "label": "Max Retries",
+              "description": "Maximum retry attempts (default: 0, no retries)"
+            },
+            "types": [
+              {
+                "fieldType": "NUMBER",
+                "ballerinaType": "int",
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "int",
+                "selected": false
+              }
+            ],
+            "placeholder": "0",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "maxRetries"
+            },
+            "defaultValue": "0"
+          },
+          "retryDelay": {
+            "metadata": {
+              "label": "Retry Delay",
+              "description": "Initial delay in seconds before the first retry (default: 1.0)"
+            },
+            "types": [
+              {
+                "fieldType": "NUMBER",
+                "ballerinaType": "decimal",
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "decimal",
+                "selected": false
+              }
+            ],
+            "placeholder": "0.0d",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "retryDelay"
+            },
+            "defaultValue": "1.0"
+          },
+          "retryBackoff": {
+            "metadata": {
+              "label": "Retry Backoff",
+              "description": "Multiplier applied to delay after each retry (default: 2.0)"
+            },
+            "types": [
+              {
+                "fieldType": "NUMBER",
+                "ballerinaType": "decimal",
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "decimal",
+                "selected": false
+              }
+            ],
+            "placeholder": "0.0d",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "retryBackoff"
+            },
+            "defaultValue": "2.0"
+          },
+          "maxRetryDelay": {
+            "metadata": {
+              "label": "Max Retry Delay",
+              "description": "Cap on the delay between retries, in seconds"
+            },
+            "types": [
+              {
+                "fieldType": "NUMBER",
+                "ballerinaType": "decimal",
+                "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "decimal",
+                "selected": false
+              }
+            ],
+            "placeholder": "0.0d",
+            "optional": true,
+            "editable": true,
+            "advanced": true,
+            "hidden": false,
+            "codedata": {
+              "kind": "INCLUDED_FIELD",
+              "originalName": "maxRetryDelay"
+            },
+            "defaultValue": "0.0d"
+          }
+        },
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "description": "Function call with multiline arguments",
+  "filePath": "main.bal",
+  "expression": "myFunc(\n    arg1,\n    arg2\n)",
+  "expectedTokens": [
+    {
+      "line": 1,
+      "col": 4,
+      "length": 4,
+      "type": 2,
+      "modifiers": 0
+    },
+    {
+      "line": 2,
+      "col": 4,
+      "length": 4,
+      "type": 2,
+      "modifiers": 0
+    }
+  ]
+}

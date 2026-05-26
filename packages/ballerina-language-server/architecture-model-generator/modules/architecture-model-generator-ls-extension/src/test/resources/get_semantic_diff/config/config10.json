@@ -1,0 +1,8 @@
+{
+  "description": "Get diff related to connection param change",
+  "projectPath": "connection_param_change",
+  "output": {
+    "loadDesignDiagrams": true,
+    "semanticDiffs": []
+  }
+}

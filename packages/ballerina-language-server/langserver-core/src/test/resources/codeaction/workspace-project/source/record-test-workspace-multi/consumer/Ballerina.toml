@@ -1,0 +1,9 @@
+[package]
+org = "lstest"
+name = "consumer"
+version = "0.1.0"
+
+[[dependency]]
+org = "lstest"
+name = "types"
+version = "0.1.0"

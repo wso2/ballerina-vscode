@@ -1,0 +1,352 @@
+{
+  "filePath": "update_graphql_method.bal",
+  "description": "Update graphql Mutation",
+  "function": {
+    "metadata": {
+      "label": "Graphql Query",
+      "description": "Graphql Query"
+    },
+    "qualifiers": [],
+    "kind": "QUERY",
+    "accessor": {
+      "metadata": {
+        "label": "Accessor",
+        "description": "The accessor of the function"
+      },
+      "valueType": "IDENTIFIER",
+      "value": "get",
+      "enabled": false,
+      "editable": false,
+      "optional": false,
+      "advanced": false
+    },
+    "name": {
+      "metadata": {
+        "label": "Field Name",
+        "description": "The name of the field"
+      },
+      "valueType": "IDENTIFIER",
+      "value": "field1",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "documentation": {
+      "valueType": "STRING",
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
+    "parameters": [
+      {
+        "kind": "REQUIRED",
+        "type": {
+          "valueType": "TYPE",
+          "value": "graphql:Context",
+          "imports": {
+            "graphql": "ballerina/graphql:1.16.0"
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "valueType": "IDENTIFIER",
+          "value": "context",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "valueType": "string",
+          "value": "",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": true
+        },
+        "documentation": {
+          "valueType": "STRING",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": false,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "hidden": false,
+        "isGraphqlId": false
+      },
+      {
+        "kind": "REQUIRED",
+        "type": {
+          "valueType": "TYPE",
+          "value": "graphql:Field",
+          "imports": {
+            "graphql": "ballerina/graphql:1.16.0"
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "valueType": "IDENTIFIER",
+          "value": "'field",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "valueType": "string",
+          "value": "",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": true
+        },
+        "documentation": {
+          "valueType": "STRING",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": false,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "hidden": false,
+        "isGraphqlId": false
+      },
+      {
+        "kind": "REQUIRED",
+        "type": {
+          "valueType": "TYPE",
+          "value": "int",
+          "imports": {},
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "valueType": "IDENTIFIER",
+          "value": "arg1",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "valueType": "string",
+          "value": "",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": true
+        },
+        "documentation": {
+          "valueType": "STRING",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "hidden": false,
+        "isGraphqlId": true
+      }
+    ],
+    "schema": {
+      "parameter": {
+        "type": {
+          "metadata": {
+            "label": "Argument Type",
+            "description": "The type of the argument"
+          },
+          "valueType": "TYPE",
+          "value": "",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Argument Name",
+            "description": "The name of the argument"
+          },
+          "valueType": "IDENTIFIER",
+          "value": "",
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value of the argument"
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": false,
+        "optional": false,
+        "advanced": false,
+        "hidden": false,
+        "isGraphqlId": false
+      }
+    },
+    "returnType": {
+      "hasError": false,
+      "isGraphqlId": true,
+      "metadata": {
+        "label": "Field Type",
+        "description": "The type of the field"
+      },
+      "valueType": "TYPE",
+      "value": "int",
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": false
+    },
+    "enabled": true,
+    "optional": false,
+    "editable": true,
+    "canAddParameters": false,
+    "codedata": {
+      "lineRange": {
+        "fileName": "main.bal",
+        "startLine": {
+          "line": 5,
+          "offset": 4
+        },
+        "endLine": {
+          "line": 6,
+          "offset": 5
+        }
+      },
+      "orgName": "ballerina",
+      "moduleName": "graphql"
+    },
+    "properties": {
+      "annotResourceConfig": {
+        "metadata": {
+          "label": "Field Configuration",
+          "description": "Define configurations such as field level cache."
+        },
+        "codedata": {
+          "type": "ANNOTATION_ATTACHMENT",
+          "originalName": "ResourceConfig",
+          "orgName": "ballerina",
+          "moduleName": "graphql"
+        },
+        "placeholder": "{}",
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "graphql:GraphqlResourceConfig",
+        "value": "",
+        "typeMembers": [
+          {
+            "type": "GraphqlResourceConfig",
+            "packageInfo": "ballerina:graphql:1.16.0",
+            "kind": "RECORD_TYPE",
+            "selected": false
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": true
+      },
+      "paramContext": {
+        "metadata": {
+          "label": "Request Context",
+          "description": "The context is used to pass meta-information of a request among the graphql resolvers."
+        },
+        "codedata": {
+          "type": "PARAMETER",
+          "originalName": "Context",
+          "orgName": "ballerina",
+          "moduleName": "graphql"
+        },
+        "placeholder": "{}",
+        "valueType": "FLAG",
+        "valueTypeConstraint": "graphql:Context",
+        "value": false,
+        "typeMembers": [
+          {
+            "type": "Context",
+            "packageInfo": "ballerina:graphql:1.16.0",
+            "kind": "OBJECT_TYPE",
+            "selected": false
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": true
+      },
+      "paramField": {
+        "metadata": {
+          "label": "Field Metadata",
+          "description": "The field metadata is used to access the meta-information of a field in a GraphQL document."
+        },
+        "codedata": {
+          "type": "PARAMETER",
+          "originalName": "Field",
+          "orgName": "ballerina",
+          "moduleName": "graphql"
+        },
+        "placeholder": "{}",
+        "valueType": "FLAG",
+        "valueTypeConstraint": "graphql:Field",
+        "value": false,
+        "typeMembers": [
+          {
+            "type": "Field",
+            "packageInfo": "ballerina:graphql:1.16.0",
+            "kind": "OBJECT_TYPE",
+            "selected": false
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": true
+      }
+    }
+  },
+  "output": {
+    "update_graphql_method.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 5,
+            "character": 32
+          },
+          "end": {
+            "line": 5,
+            "character": 54
+          }
+        },
+        "newText": "(@graphql:ID int arg1) returns @graphql:ID int "
+      }
+    ]
+  }
+}

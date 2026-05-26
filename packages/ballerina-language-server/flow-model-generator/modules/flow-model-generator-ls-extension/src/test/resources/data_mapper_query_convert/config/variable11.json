@@ -1,0 +1,45 @@
+{
+  "source": "variable8.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable8.bal",
+      "startLine": {
+        "line": 10,
+        "offset": 4
+      },
+      "endLine": {
+        "line": 10,
+        "offset": 65
+      }
+    },
+    "sourceCode": ""
+  },
+  "mapping": {
+    "output": "rec",
+    "inputs": [],
+    "expression": "recItem",
+    "diagnostics": []
+  },
+  "propertyKey": "expression",
+  "targetField": "arr2.rec",
+  "clauseType": "select",
+  "output": {
+    "variable8.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 10,
+            "character": 61
+          },
+          "end": {
+            "line": 10,
+            "character": 63
+          }
+        },
+        "newText": "from var recItemItem in recItem select {i: 0}"
+      }
+    ]
+  }
+}

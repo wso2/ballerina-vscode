@@ -1,0 +1,8 @@
+{
+  "description": "Convert float to int using type cast",
+  "output": "output.intField",
+  "outputType": "int",
+  "expression": "input.floatField",
+  "expressionType": "float",
+  "convertedExpression": "<int>input.floatField"
+}

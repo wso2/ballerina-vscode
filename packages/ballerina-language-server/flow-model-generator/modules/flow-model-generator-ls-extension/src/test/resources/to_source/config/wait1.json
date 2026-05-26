@@ -1,0 +1,113 @@
+{
+  "source": "function_call/wait.bal",
+  "description": "Sample diagram node",
+  "diagram": {
+    "id": "56717",
+    "metadata": {
+      "label": "Custom Expression",
+      "description": "Represents a custom Ballerina expression"
+    },
+    "codedata": {
+      "node": "EXPRESSION",
+      "lineRange": {
+        "fileName": "wait.bal",
+        "startLine": {
+          "line": 25,
+          "offset": 4
+        },
+        "endLine": {
+          "line": 25,
+          "offset": 49
+        }
+      },
+      "sourceCode": "MultiResult|error result = wait futureResult;"
+    },
+    "returning": false,
+    "properties": {
+      "statement": {
+        "metadata": {
+          "label": "Statement",
+          "description": "Ballerina statement"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "selected": true
+          }
+        ],
+        "value": "wait futureResult",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "variable": {
+        "metadata": {
+          "label": "Variable Name",
+          "description": "Name of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "result",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "lineRange": {
+            "fileName": "wait.bal",
+            "startLine": {
+              "line": 25,
+              "offset": 22
+            },
+            "endLine": {
+              "line": 25,
+              "offset": 28
+            }
+          }
+        }
+      },
+      "type": {
+        "metadata": {
+          "label": "Variable Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "MultiResult",
+        "placeholder": "var",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {}
+      }
+    },
+    "flags": 0
+  },
+  "output": {
+    "function_call/wait.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 25,
+            "character": 4
+          },
+          "end": {
+            "line": 25,
+            "character": 49
+          }
+        },
+        "newText": "MultiResult result = wait futureResult"
+      }
+    ]
+  }
+}

@@ -1,0 +1,537 @@
+{
+  "start": {
+    "line": 6,
+    "offset": 0
+  },
+  "end": {
+    "line": 12,
+    "offset": 1
+  },
+  "source": "log_source.bal",
+  "description": "Tests a simple diagram flow",
+  "diagram": {
+    "fileName": "log_source.bal",
+    "nodes": [
+      {
+        "id": "38011",
+        "metadata": {
+          "label": "ErrorHandler",
+          "description": "Catch and handle errors"
+        },
+        "codedata": {
+          "node": "ERROR_HANDLER",
+          "lineRange": {
+            "fileName": "log_source.bal",
+            "startLine": {
+              "line": 6,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 12,
+              "offset": 5
+            }
+          },
+          "sourceCode": "do {\n\n    } on fail error e {\n        log:printError(\"Error: \", 'error = e, key1=\"dadfa\", key2=123);\n        log:printError(\"Error: \", e, e.stackTrace());\n        return e;\n    }"
+        },
+        "returning": false,
+        "branches": [
+          {
+            "label": "Body",
+            "kind": "BLOCK",
+            "codedata": {
+              "node": "BODY",
+              "lineRange": {
+                "fileName": "log_source.bal",
+                "startLine": {
+                  "line": 6,
+                  "offset": 7
+                },
+                "endLine": {
+                  "line": 8,
+                  "offset": 5
+                }
+              },
+              "sourceCode": "{\n\n    }"
+            },
+            "repeatable": "ONE",
+            "children": []
+          },
+          {
+            "label": "On Failure",
+            "kind": "BLOCK",
+            "codedata": {
+              "node": "ON_FAILURE",
+              "lineRange": {
+                "fileName": "log_source.bal",
+                "startLine": {
+                  "line": 8,
+                  "offset": 22
+                },
+                "endLine": {
+                  "line": 12,
+                  "offset": 5
+                }
+              },
+              "sourceCode": "{\n        log:printError(\"Error: \", 'error = e, key1=\"dadfa\", key2=123);\n        log:printError(\"Error: \", e, e.stackTrace());\n        return e;\n    }"
+            },
+            "repeatable": "ZERO_OR_ONE",
+            "properties": {
+              "ignore": {
+                "metadata": {
+                  "label": "Ignore",
+                  "description": "Ignore the error value"
+                },
+                "types": [
+                  {
+                    "fieldType": "EXPRESSION",
+                    "selected": true
+                  }
+                ],
+                "value": "false",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "errorVariable": {
+                "metadata": {
+                  "label": "Error Variable",
+                  "description": "Name of the error variable"
+                },
+                "types": [
+                  {
+                    "fieldType": "IDENTIFIER",
+                    "selected": true
+                  }
+                ],
+                "value": "e ",
+                "placeholder": "err",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              },
+              "errorType": {
+                "metadata": {
+                  "label": "Error Type",
+                  "description": "Type of the error"
+                },
+                "types": [
+                  {
+                    "fieldType": "TYPE",
+                    "selected": true
+                  }
+                ],
+                "value": "error",
+                "placeholder": "error",
+                "optional": false,
+                "editable": true,
+                "advanced": false,
+                "hidden": false
+              }
+            },
+            "children": [
+              {
+                "id": "40990",
+                "metadata": {
+                  "label": "printError",
+                  "description": "Prints error logs.\n```ballerina\nerror e = error(\"error occurred\");\nlog:printError(\"error log with cause\", 'error = e, id = 845315);\n```\n",
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.17.0.png"
+                },
+                "codedata": {
+                  "node": "FUNCTION_CALL",
+                  "org": "ballerina",
+                  "module": "log",
+                  "packageName": "log",
+                  "symbol": "printError",
+                  "version": "2.17.0",
+                  "lineRange": {
+                    "fileName": "log_source.bal",
+                    "startLine": {
+                      "line": 9,
+                      "offset": 8
+                    },
+                    "endLine": {
+                      "line": 9,
+                      "offset": 70
+                    }
+                  },
+                  "sourceCode": "log:printError(\"Error: \", 'error = e, key1=\"dadfa\", key2=123);"
+                },
+                "returning": false,
+                "properties": {
+                  "msg": {
+                    "metadata": {
+                      "label": "Msg",
+                      "description": "The message to be logged"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "TEXT",
+                        "ballerinaType": "string",
+                        "selected": true
+                      },
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "string|log:PrintableRawTemplate",
+                        "selected": false
+                      }
+                    ],
+                    "value": "\"Error: \"",
+                    "placeholder": "\"\"",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false,
+                    "codedata": {
+                      "kind": "REQUIRED",
+                      "originalName": "msg"
+                    }
+                  },
+                  "error": {
+                    "metadata": {
+                      "label": "Error",
+                      "description": "The error struct to be logged"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "error?",
+                        "selected": true
+                      }
+                    ],
+                    "value": "e",
+                    "placeholder": "()",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false,
+                    "codedata": {
+                      "kind": "DEFAULTABLE",
+                      "originalName": "'error"
+                    },
+                    "defaultValue": "()"
+                  },
+                  "stackTrace": {
+                    "metadata": {
+                      "label": "Stack Trace",
+                      "description": "The error stack trace to be logged"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "REPEATABLE_LIST",
+                        "ballerinaType": "error:StackFrame[]",
+                        "template": {
+                          "types": [
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "error:StackFrame",
+                              "selected": false
+                            }
+                          ],
+                          "optional": false,
+                          "editable": false,
+                          "advanced": false,
+                          "hidden": false
+                        },
+                        "selected": false
+                      },
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "error:StackFrame[]?",
+                        "selected": false
+                      }
+                    ],
+                    "placeholder": "()",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false,
+                    "codedata": {
+                      "kind": "DEFAULTABLE",
+                      "originalName": "stackTrace"
+                    },
+                    "defaultValue": "()"
+                  },
+                  "additionalValues": {
+                    "metadata": {
+                      "label": "Additional Values",
+                      "description": "Capture key value pairs"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "REPEATABLE_MAP",
+                        "ballerinaType": "log:Value",
+                        "template": {
+                          "types": [
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "log:Value",
+                              "selected": false
+                            }
+                          ],
+                          "optional": false,
+                          "editable": false,
+                          "advanced": false,
+                          "hidden": false
+                        },
+                        "selected": true
+                      }
+                    ],
+                    "value": {
+                      "key1": {
+                        "types": [
+                          {
+                            "fieldType": "EXPRESSION",
+                            "ballerinaType": "log:Value",
+                            "selected": true
+                          }
+                        ],
+                        "value": "\"dadfa\"",
+                        "optional": false,
+                        "editable": false,
+                        "advanced": false,
+                        "hidden": false
+                      },
+                      "key2": {
+                        "types": [
+                          {
+                            "fieldType": "EXPRESSION",
+                            "ballerinaType": "log:Value",
+                            "selected": true
+                          }
+                        ],
+                        "value": "123",
+                        "optional": false,
+                        "editable": false,
+                        "advanced": false,
+                        "hidden": false
+                      }
+                    },
+                    "placeholder": "{}",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false,
+                    "codedata": {
+                      "kind": "INCLUDED_RECORD_REST",
+                      "originalName": "Additional Values"
+                    }
+                  }
+                },
+                "flags": 0
+              },
+              {
+                "id": "41965",
+                "metadata": {
+                  "label": "printError",
+                  "description": "Prints error logs.\n```ballerina\nerror e = error(\"error occurred\");\nlog:printError(\"error log with cause\", 'error = e, id = 845315);\n```\n",
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.17.0.png"
+                },
+                "codedata": {
+                  "node": "FUNCTION_CALL",
+                  "org": "ballerina",
+                  "module": "log",
+                  "packageName": "log",
+                  "symbol": "printError",
+                  "version": "2.17.0",
+                  "lineRange": {
+                    "fileName": "log_source.bal",
+                    "startLine": {
+                      "line": 10,
+                      "offset": 8
+                    },
+                    "endLine": {
+                      "line": 10,
+                      "offset": 53
+                    }
+                  },
+                  "sourceCode": "log:printError(\"Error: \", e, e.stackTrace());"
+                },
+                "returning": false,
+                "properties": {
+                  "msg": {
+                    "metadata": {
+                      "label": "Msg",
+                      "description": "The message to be logged"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "TEXT",
+                        "ballerinaType": "string",
+                        "selected": true
+                      },
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "string|log:PrintableRawTemplate",
+                        "selected": false
+                      }
+                    ],
+                    "value": "\"Error: \"",
+                    "placeholder": "\"\"",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false,
+                    "codedata": {
+                      "kind": "REQUIRED",
+                      "originalName": "msg"
+                    }
+                  },
+                  "error": {
+                    "metadata": {
+                      "label": "Error",
+                      "description": "The error struct to be logged"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "error?",
+                        "selected": true
+                      }
+                    ],
+                    "value": "e",
+                    "placeholder": "()",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false,
+                    "codedata": {
+                      "kind": "DEFAULTABLE",
+                      "originalName": "'error"
+                    },
+                    "defaultValue": "()"
+                  },
+                  "stackTrace": {
+                    "metadata": {
+                      "label": "Stack Trace",
+                      "description": "The error stack trace to be logged"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "REPEATABLE_LIST",
+                        "ballerinaType": "error:StackFrame[]",
+                        "template": {
+                          "types": [
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "error:StackFrame",
+                              "selected": false
+                            }
+                          ],
+                          "optional": false,
+                          "editable": false,
+                          "advanced": false,
+                          "hidden": false
+                        },
+                        "selected": false
+                      },
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "error:StackFrame[]?",
+                        "selected": true
+                      }
+                    ],
+                    "value": "e.stackTrace()",
+                    "placeholder": "()",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false,
+                    "codedata": {
+                      "kind": "DEFAULTABLE",
+                      "originalName": "stackTrace"
+                    },
+                    "defaultValue": "()"
+                  },
+                  "additionalValues": {
+                    "metadata": {
+                      "label": "Additional Values",
+                      "description": "Capture key value pairs"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "REPEATABLE_MAP",
+                        "ballerinaType": "log:Value",
+                        "template": {
+                          "types": [
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "log:Value",
+                              "selected": false
+                            }
+                          ],
+                          "optional": false,
+                          "editable": false,
+                          "advanced": false,
+                          "hidden": false
+                        },
+                        "selected": true
+                      }
+                    ],
+                    "value": {},
+                    "placeholder": "{}",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false,
+                    "codedata": {
+                      "kind": "INCLUDED_RECORD_REST",
+                      "originalName": "Additional Values"
+                    }
+                  }
+                },
+                "flags": 0
+              },
+              {
+                "id": "42921",
+                "metadata": {
+                  "label": "Return",
+                  "description": "Value of 'e'"
+                },
+                "codedata": {
+                  "node": "RETURN",
+                  "lineRange": {
+                    "fileName": "log_source.bal",
+                    "startLine": {
+                      "line": 11,
+                      "offset": 8
+                    },
+                    "endLine": {
+                      "line": 11,
+                      "offset": 17
+                    }
+                  },
+                  "sourceCode": "return e;"
+                },
+                "returning": true,
+                "properties": {
+                  "expression": {
+                    "metadata": {
+                      "label": "Expression",
+                      "description": "Return value"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
+                      }
+                    ],
+                    "value": "e",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false
+                  }
+                },
+                "flags": 0
+              }
+            ]
+          }
+        ],
+        "flags": 0
+      }
+    ],
+    "connections": []
+  }
+}

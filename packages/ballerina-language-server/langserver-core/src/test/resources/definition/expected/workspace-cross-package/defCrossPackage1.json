@@ -1,0 +1,25 @@
+{
+  "source": {
+    "file": "workspace-project/app/main.bal"
+  },
+  "position": {
+    "line": 4,
+    "character": 28
+  },
+  "comment": "Cursor on 'getGreeting' in 'core:getGreeting(\"World\")'",
+  "result": [
+    {
+      "uri": "workspace-project/core/services.bal",
+      "range": {
+        "start": {
+          "line": 3,
+          "character": 16
+        },
+        "end": {
+          "line": 3,
+          "character": 27
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "description": "Ballerinax AI agent search test",
+  "kind": "AGENT",
+  "source": "empty.bal",
+  "queryMap": {
+    "orgName": "ballerinax"
+  },
+  "categories": [
+    {
+      "metadata": {
+        "label": "Agents"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "AI Agent",
+            "description": "An AI agent that can interact, process inputs, and provide responses using various AI capabilities."
+          },
+          "codedata": {
+            "node": "AGENT",
+            "org": "ballerinax",
+            "module": "ai",
+            "packageName": "ai",
+            "object": "Agent",
+            "symbol": "init"
+          },
+          "enabled": true
+        }
+      ]
+    }
+  ]
+}

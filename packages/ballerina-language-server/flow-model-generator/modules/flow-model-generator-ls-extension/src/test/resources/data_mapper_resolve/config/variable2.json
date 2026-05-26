@@ -1,0 +1,35 @@
+{
+  "source": "variable1.bal",
+  "description": "",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable1.bal",
+      "startLine": {
+        "line": 28,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 28,
+        "offset": 71
+      }
+    }
+  },
+  "output": {
+    "variable1.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 28,
+            "character": 31
+          },
+          "end": {
+            "line": 28,
+            "character": 70
+          }
+        },
+        "newText": "{}"
+      }
+    ]
+  }
+}

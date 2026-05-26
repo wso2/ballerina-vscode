@@ -1,0 +1,148 @@
+{
+  "source": "loader.bal",
+  "codedata": {
+    "node": "DATA_LOADER",
+    "org": "ballerina",
+    "module": "ai",
+    "packageName": "ai",
+    "object": "TextDataLoader",
+    "symbol": "init",
+    "version": "1.5.0"
+  },
+  "expectedTemplate": {
+    "flowNode": {
+      "id": "31",
+      "metadata": {
+        "label": "Data Loader",
+        "description": "Initializes the data loader with the given paths.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.5.0.png"
+      },
+      "codedata": {
+        "node": "DATA_LOADER",
+        "org": "ballerina",
+        "module": "ai",
+        "packageName": "ai",
+        "object": "TextDataLoader",
+        "version": "1.5.0",
+        "isNew": true
+      },
+      "returning": false,
+      "properties": {
+        "type": {
+          "metadata": {
+            "label": "Result Type",
+            "description": "Type of the variable"
+          },
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "value": "ai:TextDataLoader",
+          "placeholder": "var",
+          "optional": false,
+          "editable": false,
+          "advanced": false,
+          "hidden": false,
+          "codedata": {},
+          "imports": {
+            "ai": "ballerina/ai"
+          }
+        },
+        "variable": {
+          "metadata": {
+            "label": "Data Loader Name",
+            "description": "Data loader instance name"
+          },
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "value": "aiTextdataloader",
+          "optional": false,
+          "editable": true,
+          "advanced": false,
+          "hidden": false
+        },
+        "paths": {
+          "metadata": {
+            "label": "Paths",
+            "description": "The paths to the files to load"
+          },
+          "types": [
+            {
+              "fieldType": "REPEATABLE_LIST",
+              "ballerinaType": "string",
+              "template": {
+                "types": [
+                  {
+                    "fieldType": "TEXT",
+                    "ballerinaType": "string",
+                    "selected": false
+                  },
+                  {
+                    "fieldType": "EXPRESSION",
+                    "ballerinaType": "string",
+                    "selected": false
+                  }
+                ],
+                "optional": false,
+                "editable": false,
+                "advanced": false,
+                "hidden": false
+              },
+              "selected": true
+            }
+          ],
+          "placeholder": "\"\"",
+          "optional": false,
+          "editable": true,
+          "advanced": false,
+          "hidden": false,
+          "codedata": {
+            "kind": "REST_PARAMETER",
+            "originalName": "paths"
+          }
+        },
+        "scope": {
+          "metadata": {
+            "label": "Connection Scope",
+            "description": "Scope of the connection, Global or Local"
+          },
+          "types": [
+            {
+              "fieldType": "ENUM",
+              "selected": true
+            }
+          ],
+          "value": "Global",
+          "optional": false,
+          "editable": true,
+          "advanced": true,
+          "hidden": true
+        },
+        "checkError": {
+          "metadata": {
+            "label": "Check Error",
+            "description": "Terminate on error"
+          },
+          "types": [
+            {
+              "fieldType": "FLAG",
+              "selected": true
+            }
+          ],
+          "value": true,
+          "optional": false,
+          "editable": false,
+          "advanced": true,
+          "hidden": true
+        }
+      },
+      "flags": 0
+    }
+  }
+}

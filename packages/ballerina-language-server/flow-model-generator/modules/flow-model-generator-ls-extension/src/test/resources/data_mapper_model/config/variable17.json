@@ -1,0 +1,214 @@
+{
+  "source": "variable8.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable8.bal",
+      "startLine": {
+        "line": 26,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 26,
+        "offset": 133
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 25,
+    "offset": 107
+  },
+  "propertyKey": "expression",
+  "model": {
+    "inputs": [
+      {
+        "name": "CONST",
+        "displayName": "CONST",
+        "typeName": "string",
+        "kind": "string",
+        "category": "constant"
+      },
+      {
+        "member": {
+          "fields": [],
+          "name": "credentials",
+          "displayName": "<credentialsItem>",
+          "typeName": "Credentials",
+          "kind": "record",
+          "ref": "242052496"
+        },
+        "name": "credentials",
+        "displayName": "credentials",
+        "typeName": "Credentials[]",
+        "kind": "array",
+        "category": "local-variable",
+        "ref": "1085256861"
+      },
+      {
+        "member": {
+          "fields": [],
+          "name": "userInfo",
+          "displayName": "<userInfoItem>",
+          "typeName": "UserInfo",
+          "kind": "record",
+          "ref": "1889977605"
+        },
+        "name": "userInfo",
+        "displayName": "userInfo",
+        "typeName": "UserInfo[]",
+        "kind": "array",
+        "category": "local-variable",
+        "ref": "-1418772512"
+      }
+    ],
+    "output": {
+      "fields": [],
+      "name": "student",
+      "displayName": "student",
+      "typeName": "Student",
+      "kind": "record",
+      "ref": "545732303"
+    },
+    "mappings": [
+      {
+        "output": "student.id",
+        "inputs": [],
+        "expression": "1234",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      },
+      {
+        "output": "student.credentials",
+        "inputs": [],
+        "expression": "[{username: userInfo[0].username, password: userInfo[1].password}]",
+        "diagnostics": [],
+        "elements": [
+          {
+            "mappings": [
+              {
+                "output": "student.credentials.0.username",
+                "inputs": [
+                  "userInfo"
+                ],
+                "expression": "userInfo[0].username",
+                "diagnostics": [],
+                "elements": [],
+                "isQueryExpression": false,
+                "isFunctionCall": false,
+                "elementAccessIndex": [
+                  "0"
+                ]
+              },
+              {
+                "output": "student.credentials.0.password",
+                "inputs": [
+                  "userInfo"
+                ],
+                "expression": "userInfo[1].password",
+                "diagnostics": [],
+                "elements": [],
+                "isQueryExpression": false,
+                "isFunctionCall": false,
+                "elementAccessIndex": [
+                  "1"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "output": "student.length",
+        "inputs": [],
+        "expression": "0",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "refs": {
+      "545732303": {
+        "fields": [
+          {
+            "name": "id",
+            "displayName": "id",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          },
+          {
+            "member": {
+              "fields": [],
+              "name": "credentials",
+              "displayName": "<credentialsItem>",
+              "typeName": "Credentials",
+              "kind": "record",
+              "ref": "242052496"
+            },
+            "name": "credentials",
+            "displayName": "credentials",
+            "typeName": "Credentials[]",
+            "kind": "array",
+            "optional": false,
+            "ref": "1085256861"
+          },
+          {
+            "name": "length",
+            "displayName": "length",
+            "typeName": "int",
+            "kind": "int",
+            "optional": false
+          }
+        ],
+        "typeName": "Student",
+        "kind": "record"
+      },
+      "242052496": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Credentials",
+        "kind": "record"
+      },
+      "1889977605": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "UserInfo",
+        "kind": "record"
+      }
+    },
+    "hasInvalidOutput": false
+  }
+}

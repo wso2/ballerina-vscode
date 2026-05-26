@@ -1,0 +1,5 @@
+[package]
+org = "wso2"
+name = "nested_editing"
+version = "0.1.0"
+distribution = "2201.12.8"

@@ -1,0 +1,44 @@
+{
+  "source": "array3.bal",
+  "description": "",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "array2.bal",
+      "startLine": {
+        "line": 33,
+        "offset": 8
+      },
+      "endLine": {
+        "line": 36,
+        "offset": 10
+      }
+    },
+    "sourceCode": "13pbecgwdue9md76536f"
+  },
+  "mapping": {
+    "output": "l2.l3Arr.0",
+    "inputs": [],
+    "expression": "[]",
+    "diagnostics": [],
+    "elements": []
+  },
+  "targetField": "v2.l1.l2",
+  "output": {
+    "array3.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 35,
+            "character": 43
+          },
+          "end": {
+            "line": 35,
+            "character": 73
+          }
+        },
+        "newText": ""
+      }
+    ]
+  }
+}

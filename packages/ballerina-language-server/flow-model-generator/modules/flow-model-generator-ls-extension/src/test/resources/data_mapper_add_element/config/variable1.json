@@ -1,0 +1,39 @@
+{
+  "source": "variable1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "main.bal",
+      "startLine": {
+        "line": 18,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 18,
+        "offset": 37
+      }
+    },
+    "sourceCode": "UserInfo[] userInfo = [];"
+  },
+  "propertyKey": "expression",
+  "targetField": "userInfo",
+  "outputId": "userInfo",
+  "output": {
+    "variable1.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 18,
+            "character": 35
+          },
+          "end": {
+            "line": 18,
+            "character": 35
+          }
+        },
+        "newText": "{username: \"\", password: \"\"}"
+      }
+    ]
+  }
+}

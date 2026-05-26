@@ -1,0 +1,47 @@
+{
+  "source": "variable17.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "main.bal",
+      "startLine": {
+        "line": 18,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 18,
+        "offset": 50
+      }
+    },
+    "sourceCode": "Student student = {};"
+  },
+  "propertyKey": "expression",
+  "position": {
+    "line": 17,
+    "offset": 12
+  },
+  "mapping": {
+    "output": "student.username",
+    "inputs": [],
+    "expression": "1234",
+    "diagnostics": []
+  },
+  "output": {
+    "variable17.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 18,
+            "character": 48
+          },
+          "end": {
+            "line": 18,
+            "character": 48
+          }
+        },
+        "newText": "username: 1234"
+      }
+    ]
+  }
+}

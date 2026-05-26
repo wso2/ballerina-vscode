@@ -1,0 +1,8 @@
+{
+  "description": "Convert int to byte using type casting",
+  "output": "output.byteField",
+  "outputType": "byte",
+  "expression": "input.intField",
+  "expressionType": "int",
+  "convertedExpression": "<byte>input.intField"
+}

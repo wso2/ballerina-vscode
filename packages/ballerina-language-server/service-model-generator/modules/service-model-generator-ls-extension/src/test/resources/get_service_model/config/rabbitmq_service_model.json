@@ -1,0 +1,138 @@
+{
+  "description": "Test getting rabbitmq service model",
+  "filePath": "sample3/main.bal",
+  "orgName": "ballerinax",
+  "pkgName": "rabbitmq",
+  "moduleName": "rabbitmq",
+  "response": {
+    "service": {
+      "id": "10",
+      "name": "RabbitMQ Event Integration",
+      "type": "rabbitmq",
+      "displayName": "RabbitMQ Event Integration",
+      "moduleName": "rabbitmq",
+      "orgName": "ballerinax",
+      "version": "3.2.0",
+      "packageName": "rabbitmq",
+      "listenerProtocol": "rabbitmq",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_rabbitmq_3.2.0.png",
+      "documentation": {
+        "metadata": {
+          "label": "Description",
+          "description": "The description of the class"
+        },
+        "codedata": {
+          "type": "DOCUMENTATION"
+        },
+        "valueType": "STRING",
+        "valueTypeConstraint": "string",
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": false
+      },
+      "properties": {
+        "listener": {
+          "metadata": {
+            "label": "Listeners",
+            "description": "The Listeners to be bound with the service"
+          },
+          "codedata": {
+            "type": "LISTENER"
+          },
+          "placeholder": "",
+          "valueType": "MULTIPLE_SELECT_LISTENER",
+          "valueTypeConstraint": "rabbitmq:Listener",
+          "value": "",
+          "values": [],
+          "items": [],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "serviceType": {
+          "metadata": {
+            "label": "Service Type",
+            "description": "The name of the service contract type"
+          },
+          "codedata": {
+            "type": "SERVICE_TYPE"
+          },
+          "placeholder": "Service",
+          "valueType": "SINGLE_SELECT",
+          "valueTypeConstraint": "string",
+          "value": "Service",
+          "items": [
+            "",
+            "Service"
+          ],
+          "enabled": false,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "stringLiteral": {
+          "metadata": {
+            "label": "Queue Name",
+            "description": "The name of the queue"
+          },
+          "codedata": {
+            "type": "STRING_LITERAL"
+          },
+          "placeholder": "\"\"",
+          "valueType": "SERVICE_PATH",
+          "valueTypeConstraint": "string",
+          "value": "",
+          "values": [],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "readOnlyMetadata": {
+          "codedata": {
+            "type": "READONLY"
+          },
+          "placeholder": "false",
+          "valueType": "SINGLE_SELECT",
+          "value": {
+            "Queue Name": []
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "annotServiceConfig": {
+          "metadata": {
+            "label": "Service Configuration",
+            "description": "Define advanced queue configurations "
+          },
+          "codedata": {
+            "type": "ANNOTATION_ATTACHMENT",
+            "originalName": "ServiceConfig"
+          },
+          "placeholder": "{}",
+          "valueType": "EXPRESSION",
+          "valueTypeConstraint": "rabbitmq:RabbitMQServiceConfig",
+          "value": "",
+          "values": [],
+          "typeMembers": [
+            {
+              "type": "RabbitMQServiceConfig",
+              "packageInfo": "ballerinax:rabbitmq:3.2.0",
+              "kind": "RECORD_TYPE",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": true
+        }
+      },
+      "functions": []
+    }
+  }
+}

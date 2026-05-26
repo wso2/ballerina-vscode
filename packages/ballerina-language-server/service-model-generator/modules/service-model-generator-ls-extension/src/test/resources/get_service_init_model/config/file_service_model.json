@@ -1,0 +1,96 @@
+{
+  "description": "Test getting file service init model",
+  "filePath": "sample1/main.bal",
+  "orgName": "ballerina",
+  "pkgName": "file",
+  "moduleName": "file",
+  "response": {
+    "serviceInitModel": {
+      "id": "4",
+      "displayName": "Local Files",
+      "description": "Create a service to monitor a directory for file events",
+      "orgName": "ballerina",
+      "packageName": "file",
+      "moduleName": "file",
+      "version": "1.13.0",
+      "type": "file",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_file_1.13.0.png",
+      "properties": {
+        "path": {
+          "metadata": {
+            "label": "Path",
+            "description": "Directory path to be monitored"
+          },
+          "codedata": {
+            "argType": "LISTENER_PARAM_INCLUDED_FIELD"
+          },
+          "placeholder": "/tmp",
+          "value": "/tmp",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
+              "selected": false
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "recursive": {
+          "metadata": {
+            "label": "Recursive",
+            "description": "Recursively monitor all sub-directories"
+          },
+          "codedata": {
+            "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
+          },
+          "placeholder": "false",
+          "value": "false",
+          "types": [
+            {
+              "fieldType": "FLAG",
+              "ballerinaType": "boolean",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "boolean",
+              "selected": false
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "listenerVarName": {
+          "metadata": {
+            "label": "Listener Name",
+            "description": "Provide a name for the listener being created"
+          },
+          "codedata": {
+            "type": "LISTENER_VAR_NAME"
+          },
+          "value": "fileListener",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": true
+        }
+      }
+    }
+  }
+}

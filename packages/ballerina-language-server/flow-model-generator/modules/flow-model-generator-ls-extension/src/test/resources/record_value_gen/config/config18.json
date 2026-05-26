@@ -1,0 +1,29 @@
+{
+  "description": "Record with array field having no value and no elements defaults to empty array",
+  "filePath": "proj",
+  "type": {
+    "fields": [
+      {
+        "name": "ids",
+        "typeName": "array",
+        "optional": false,
+        "defaultable": false,
+        "isRestType": false,
+        "selected": true,
+        "memberType": {
+          "typeName": "int",
+          "optional": false,
+          "defaultable": false,
+          "isRestType": false
+        }
+      }
+    ],
+    "hasRestType": false,
+    "typeName": "record",
+    "optional": false,
+    "defaultable": false,
+    "isRestType": false,
+    "selected": true
+  },
+  "output": "{\n    ids: []\n}"
+}

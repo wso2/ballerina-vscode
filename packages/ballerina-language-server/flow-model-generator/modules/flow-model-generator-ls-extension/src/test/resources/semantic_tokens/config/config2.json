@@ -1,0 +1,21 @@
+{
+  "description": "Function call with identifier and literal arguments",
+  "filePath": "main.bal",
+  "expression": "fn(x, 1)",
+  "expectedTokens": [
+    {
+      "line": 0,
+      "col": 3,
+      "length": 1,
+      "type": 2,
+      "modifiers": 0
+    },
+    {
+      "line": 0,
+      "col": 6,
+      "length": 1,
+      "type": 2,
+      "modifiers": 0
+    }
+  ]
+}

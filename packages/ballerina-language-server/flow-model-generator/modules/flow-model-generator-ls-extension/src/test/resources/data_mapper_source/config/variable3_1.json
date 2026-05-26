@@ -1,0 +1,46 @@
+{
+  "source": "variable2_new.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable2_new.bal",
+      "startLine": {
+        "line": 24,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 24,
+        "offset": 98
+      }
+    },
+    "sourceCode": ""
+  },
+  "propertyKey": "expression",
+  "position": {
+    "line": 23,
+    "offset": 65
+  },
+  "mapping": {
+    "output": "credentials.password",
+    "expression": "item.username.id"
+  },
+  "targetField": "credentials",
+  "output": {
+    "variable2_new.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 24,
+            "character": 96
+          },
+          "end": {
+            "line": 24,
+            "character": 96
+          }
+        },
+        "newText": ", password: item.username.id"
+      }
+    ]
+  }
+}

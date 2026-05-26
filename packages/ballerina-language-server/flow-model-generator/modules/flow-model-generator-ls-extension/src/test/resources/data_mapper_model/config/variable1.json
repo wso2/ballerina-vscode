@@ -1,0 +1,98 @@
+{
+  "source": "variable1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable1.bal",
+      "startLine": {
+        "line": 22,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 22,
+        "offset": 33
+      }
+    },
+    "sourceCode": "Student student = {};"
+  },
+  "position": {
+    "line": 21,
+    "offset": 12
+  },
+  "propertyKey": "expression",
+  "targetField": "student",
+  "model": {
+    "inputs": [
+      {
+        "name": "CONST",
+        "displayName": "CONST",
+        "typeName": "string",
+        "kind": "string",
+        "category": "constant"
+      },
+      {
+        "fields": [],
+        "name": "myStudent",
+        "displayName": "myStudent",
+        "typeName": "Student",
+        "kind": "record",
+        "category": "module-variable",
+        "ref": "545732303"
+      }
+    ],
+    "output": {
+      "fields": [],
+      "name": "student",
+      "displayName": "student",
+      "typeName": "Student",
+      "kind": "record",
+      "ref": "545732303"
+    },
+    "mappings": [],
+    "refs": {
+      "545732303": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "'record",
+            "displayName": "'record",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "data",
+            "displayName": "data",
+            "typeName": "json",
+            "kind": "json",
+            "optional": false
+          },
+          {
+            "name": "info",
+            "displayName": "info",
+            "typeName": "any",
+            "kind": "any",
+            "optional": false
+          }
+        ],
+        "typeName": "Student",
+        "kind": "record"
+      }
+    },
+    "hasInvalidOutput": false
+  }
+}

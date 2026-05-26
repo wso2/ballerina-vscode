@@ -1,0 +1,67 @@
+{
+  "source": "proj3/data_mappings.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "lineRange": {
+      "fileName": "proj3/data_mappings.bal",
+      "startLine": {
+        "line": 0,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 0,
+        "offset": 55
+      }
+    }
+  },
+  "mapping": {
+    "output": "transform.accountInfo",
+    "expression": "dmInput.account.accountNumber"
+  },
+  "functionMetadata": {
+    "returnType": {
+      "type": "AccountInfo",
+      "kind": "record"
+    },
+    "parameters": [
+      {
+        "name": "accountNumber",
+        "type": "string",
+        "isOptional": false,
+        "isNullable": false,
+        "kind": "string"
+      }
+    ]
+  },
+  "targetField": "transform",
+  "output": {
+    "proj3/data_mappings.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 55
+          },
+          "end": {
+            "line": 0,
+            "character": 55
+          }
+        },
+        "newText": "\nfunction mapStringToRecord1(string accountNumber) returns AccountInfo => {};"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 53
+          },
+          "end": {
+            "line": 0,
+            "character": 53
+          }
+        },
+        "newText": "accountInfo: mapStringToRecord1(dmInput.account.accountNumber)"
+      }
+    ]
+  }
+}

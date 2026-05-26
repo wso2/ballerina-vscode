@@ -1,0 +1,37 @@
+{
+  "description": "Uninitialized variable",
+  "filePath": "empty.bal",
+  "context": {
+    "expression": "var1",
+    "startLine": {
+      "line": 4,
+      "offset": 22
+    },
+    "offset": 0,
+    "lineOffset": 0,
+    "codedata": {
+      "node": "ASSIGN",
+      "isNew": true
+    },
+    "property": {
+      "metadata": {
+        "label": "Variable",
+        "description": "Name of the variable/field"
+      },
+      "optional": false,
+      "editable": true,
+      "advanced": false,
+      "types": [
+        {
+          "fieldType": "LV_EXPRESSION",
+          "selected": false
+        }
+      ],
+      "diagnostics": {
+        "hasDiagnostics": false,
+        "diagnostics": []
+      }
+    }
+  },
+  "diagnostics": []
+}

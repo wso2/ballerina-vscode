@@ -1,0 +1,2 @@
+[workspace]
+packages = ["pkg-provider", "pkg-consumer"]

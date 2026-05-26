@@ -1,0 +1,113 @@
+{
+  "source": "variable2_1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable2_1.bal",
+      "startLine": {
+        "line": 19,
+        "offset": 80
+      },
+      "endLine": {
+        "line": 19,
+        "offset": 89
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 19,
+    "offset": 80
+  },
+  "propertyKey": "expression",
+  "model": {
+    "inputs": [
+      {
+        "name": "CONST",
+        "displayName": "CONST",
+        "typeName": "string",
+        "kind": "string",
+        "category": "constant"
+      },
+      {
+        "fields": [],
+        "name": "s",
+        "displayName": "s",
+        "typeName": "Student",
+        "kind": "record",
+        "category": "local-variable",
+        "ref": "545732303"
+      },
+      {
+        "fields": [],
+        "name": "userInfo",
+        "displayName": "userInfo",
+        "typeName": "UserInfo",
+        "kind": "record",
+        "category": "local-variable",
+        "ref": "1889977605"
+      }
+    ],
+    "output": {
+      "name": "x",
+      "displayName": "x",
+      "typeName": "int",
+      "kind": "int"
+    },
+    "mappings": [
+      {
+        "output": "x",
+        "inputs": [],
+        "expression": "2 ",
+        "diagnostics": [],
+        "elements": [],
+        "isQueryExpression": false,
+        "isFunctionCall": false
+      }
+    ],
+    "refs": {
+      "545732303": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Student",
+        "kind": "record"
+      },
+      "1889977605": {
+        "fields": [
+          {
+            "name": "username",
+            "displayName": "username",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "password",
+            "displayName": "password",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "UserInfo",
+        "kind": "record"
+      }
+    },
+    "hasInvalidOutput": false
+  }
+}

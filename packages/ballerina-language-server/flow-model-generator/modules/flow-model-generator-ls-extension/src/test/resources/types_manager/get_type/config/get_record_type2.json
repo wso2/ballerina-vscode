@@ -1,0 +1,188 @@
+{
+  "filePath": "test_pack1/types.bal",
+  "position": {
+    "line": 2,
+    "offset": 5
+  },
+  "description": "Get a record type data",
+  "type": {
+    "name": "Address",
+    "editable": true,
+    "metadata": {
+      "label": "Address",
+      "description": ""
+    },
+    "codedata": {
+      "node": "RECORD",
+      "lineRange": {
+        "fileName": "types.bal",
+        "startLine": {
+          "line": 2,
+          "offset": 5
+        },
+        "endLine": {
+          "line": 2,
+          "offset": 12
+        }
+      }
+    },
+    "properties": {
+      "name": {
+        "metadata": {
+          "label": "Type name",
+          "description": "Unique name to identify the type"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "Address",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "isPublic": {
+        "metadata": {
+          "label": "public",
+          "description": "Make visible across the project"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "description": {
+        "metadata": {
+          "label": "Type description",
+          "description": "Detailed description about the type"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "selected": true
+          }
+        ],
+        "value": "",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "isArray": {
+        "metadata": {
+          "label": "Is array type",
+          "description": "Is this type an array or list value"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false
+      },
+      "arraySize": {
+        "metadata": {
+          "label": "Size of the array",
+          "description": "Array dimensions"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "selected": true
+          }
+        ],
+        "value": "",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false
+      }
+    },
+    "members": [
+      {
+        "kind": "FIELD",
+        "refs": [],
+        "type": "string",
+        "typeName": "string",
+        "name": "houseNo",
+        "optional": false,
+        "readonly": false,
+        "isGraphqlId": false,
+        "docs": "",
+        "annotationAttachments": [],
+        "selected": false
+      },
+      {
+        "kind": "FIELD",
+        "refs": [],
+        "type": "string",
+        "typeName": "string",
+        "name": "line1",
+        "optional": false,
+        "readonly": false,
+        "isGraphqlId": false,
+        "docs": "",
+        "annotationAttachments": [],
+        "selected": false
+      },
+      {
+        "kind": "FIELD",
+        "refs": [],
+        "type": "string",
+        "typeName": "string",
+        "name": "line2",
+        "optional": false,
+        "readonly": false,
+        "isGraphqlId": false,
+        "docs": "",
+        "annotationAttachments": [],
+        "selected": false
+      },
+      {
+        "kind": "FIELD",
+        "refs": [],
+        "type": "string",
+        "typeName": "string",
+        "name": "city",
+        "optional": false,
+        "readonly": false,
+        "isGraphqlId": false,
+        "docs": "",
+        "annotationAttachments": [],
+        "selected": false
+      },
+      {
+        "kind": "FIELD",
+        "refs": [],
+        "type": "string",
+        "typeName": "string",
+        "name": "country",
+        "optional": false,
+        "readonly": false,
+        "isGraphqlId": false,
+        "docs": "",
+        "annotationAttachments": [],
+        "selected": false
+      }
+    ],
+    "includes": [],
+    "annotationAttachments": [],
+    "allowAdditionalFields": false
+  },
+  "refs": []
+}

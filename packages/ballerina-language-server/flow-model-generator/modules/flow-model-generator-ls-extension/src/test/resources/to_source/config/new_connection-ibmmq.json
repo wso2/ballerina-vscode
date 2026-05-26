@@ -1,0 +1,99 @@
+{
+  "source": "new_connection-ibmmq/main.bal",
+  "description": "Generate source for a connector whose package name has a dotted module path (ibm.ibmmq) — the emitted type reference must use the default import prefix (ibmmq), not the full package path.",
+  "diagram": {
+    "id": "31",
+    "metadata": {
+      "label": "Ibmmq Topic",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ibm.ibmmq_1.4.4.png"
+    },
+    "codedata": {
+      "node": "NEW_CONNECTION",
+      "org": "ballerinax",
+      "module": "ibm.ibmmq",
+      "packageName": "ibm.ibmmq",
+      "object": "Topic",
+      "symbol": "init",
+      "version": "1.4.4",
+      "isNew": true,
+      "isGenerated": false
+    },
+    "returning": false,
+    "properties": {
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "valueType": "TYPE",
+        "value": "ibmmq:Topic",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true
+      },
+      "variable": {
+        "metadata": {
+          "label": "Connection Name",
+          "description": "Name of the connection"
+        },
+        "valueType": "IDENTIFIER",
+        "value": "ibmmqTopic",
+        "optional": false,
+        "editable": true
+      },
+      "scope": {
+        "metadata": {
+          "label": "Connection Scope",
+          "description": "Scope of the connection, Global or Local"
+        },
+        "valueType": "ENUM",
+        "value": "Global",
+        "optional": false,
+        "editable": true
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Terminate on error"
+        },
+        "valueType": "FLAG",
+        "value": true,
+        "optional": false,
+        "editable": false
+      }
+    },
+    "flags": 0
+  },
+  "output": {
+    "new_connection-ibmmq/connections.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "import ballerinax/ibm.ibmmq;"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "final ibmmq:Topic ibmmqTopic = check new ();"
+      }
+    ]
+  }
+}

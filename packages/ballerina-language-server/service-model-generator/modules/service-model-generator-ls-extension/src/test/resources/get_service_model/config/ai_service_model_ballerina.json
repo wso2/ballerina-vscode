@@ -1,0 +1,118 @@
+{
+  "description": "Test getting ballerina/ai service model",
+  "filePath": "sample1/main.bal",
+  "orgName": "ballerina",
+  "pkgName": "ai",
+  "response": {
+    "service": {
+      "id": "7",
+      "name": "AI Agent Service",
+      "type": "ai",
+      "displayName": "AI Agent Service",
+      "moduleName": "ai",
+      "orgName": "ballerina",
+      "version": "1.0.0",
+      "packageName": "ai",
+      "listenerProtocol": "ai",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.0.0.png",
+      "documentation": {
+        "metadata": {
+          "label": "Description",
+          "description": "The description of the class"
+        },
+        "codedata": {
+          "type": "DOCUMENTATION"
+        },
+        "valueType": "STRING",
+        "valueTypeConstraint": "string",
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": false
+      },
+      "properties": {
+        "listener": {
+          "metadata": {
+            "label": "Listeners",
+            "description": "The Listeners to be bound with the service"
+          },
+          "codedata": {
+            "type": "LISTENER"
+          },
+          "placeholder": "",
+          "valueType": "MULTIPLE_SELECT_LISTENER",
+          "valueTypeConstraint": "ai:Listener",
+          "value": "",
+          "values": [],
+          "items": [],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "serviceType": {
+          "metadata": {
+            "label": "Agent Service Type",
+            "description": "The service type descriptor"
+          },
+          "codedata": {
+            "type": "SERVICE_TYPE"
+          },
+          "placeholder": "",
+          "valueType": "SINGLE_SELECT",
+          "valueTypeConstraint": "string",
+          "value": "ChatService",
+          "items": [
+            "",
+            "ChatService"
+          ],
+          "enabled": false,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "basePath": {
+          "metadata": {
+            "label": "Service Base Path",
+            "description": ""
+          },
+          "codedata": {
+            "type": "SERVICE_BASE_PATH"
+          },
+          "placeholder": "/agentChat",
+          "valueType": "SERVICE_PATH",
+          "valueTypeConstraint": "string",
+          "value": "/agentChat",
+          "values": [],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "readOnlyMetadata": {
+          "codedata": {
+            "type": "READONLY"
+          },
+          "placeholder": "false",
+          "valueType": "SINGLE_SELECT",
+          "value": {},
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "agentName": {
+          "metadata": {
+            "label": "Agent Name",
+            "description": "The name of the agent variable"
+          },
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        }
+      },
+      "functions": []
+    }
+  }
+}

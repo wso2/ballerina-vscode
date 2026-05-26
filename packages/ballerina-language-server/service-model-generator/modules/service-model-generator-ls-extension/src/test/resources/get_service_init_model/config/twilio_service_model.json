@@ -1,0 +1,101 @@
+{
+  "description": "Test getting twilio service init model",
+  "filePath": "sample1/main.bal",
+  "orgName": "ballerinax",
+  "pkgName": "trigger.twilio",
+  "moduleName": "trigger.twilio",
+  "response": {
+    "serviceInitModel": {
+      "id": "15",
+      "displayName": "Twilio Event Integration",
+      "description": "Create a service to handle events from Twilio",
+      "orgName": "ballerinax",
+      "packageName": "trigger.twilio",
+      "moduleName": "trigger.twilio",
+      "version": "0.10.0",
+      "type": "trigger.twilio",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_trigger.twilio_0.10.0.png",
+      "properties": {
+        "basePath": {
+          "metadata": {
+            "label": "Event Channel",
+            "description": "The event channel name"
+          },
+          "codedata": {
+            "argType": "SERVICE_TYPE_DESCRIPTOR"
+          },
+          "placeholder": "\"CallStatusService\"",
+          "value": "",
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "ballerinaType": "twilio:GenericServiceType",
+              "options": [
+                {
+                  "label": "CallStatusService",
+                  "value": "CallStatusService"
+                },
+                {
+                  "label": "SmsStatusService",
+                  "value": "SmsStatusService"
+                }
+              ],
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "listenOn": {
+          "metadata": {
+            "label": "Webhook Listener Port",
+            "description": "The port on which the webhook listener accepts incoming requests"
+          },
+          "codedata": {
+            "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
+          },
+          "placeholder": "8090",
+          "value": "8090",
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
+              "selected": false
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "listenerVarName": {
+          "metadata": {
+            "label": "Listener Name",
+            "description": "Provide a name for the listener being created"
+          },
+          "codedata": {
+            "type": "LISTENER_VAR_NAME"
+          },
+          "value": "twilioListener",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": true
+        }
+      }
+    }
+  }
+}
