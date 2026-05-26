@@ -106,9 +106,18 @@ function normaliseEntries(scope: McpScope, file: McpConfigFile): Array<{ name: s
             continue;
         }
         const normalized = inferTransport(cfg);
-        const isStdio = normalized.type === "stdio" || ("command" in normalized && normalized.command);
-        const isHttp = normalized.type === "http" || ("url" in normalized && normalized.url);
-        if (!isStdio && !isHttp) {
+        // Explicit type is authoritative: require the field it implies.
+        if (normalized.type === "stdio") {
+            if (!("command" in normalized) || !normalized.command) {
+                console.warn(`[mcp] Ignoring server '${name}' (${scope}): stdio servers require 'command'`);
+                continue;
+            }
+        } else if (normalized.type === "http") {
+            if (!("url" in normalized) || !normalized.url) {
+                console.warn(`[mcp] Ignoring server '${name}' (${scope}): http servers require 'url'`);
+                continue;
+            }
+        } else {
             console.warn(`[mcp] Ignoring server '${name}' (${scope}): must specify 'command' (stdio) or 'url' (http)`);
             continue;
         }

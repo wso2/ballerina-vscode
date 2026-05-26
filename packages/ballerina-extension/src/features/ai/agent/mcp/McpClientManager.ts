@@ -319,6 +319,11 @@ export class McpClientManager {
             const transport = this.buildTransport(state.config);
             await client.connect(transport);
             const { tools } = await client.listTools();
+            // Disposed mid-connect: close the client instead of leaking it.
+            if (this.disposed) {
+                await client.close().catch(() => { /* ignore */ });
+                return;
+            }
             const filtered: McpToolDescriptor[] = [];
             for (const t of tools) {
                 if (!t || typeof t.name !== "string" || !t.name) {

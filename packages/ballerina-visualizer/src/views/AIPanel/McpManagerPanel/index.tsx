@@ -478,6 +478,7 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
     }, [servers]);
 
     const handleToggleGlobal = async () => {
+        if (togglePending) return;
         const next = !mcpToolsEnabled;
         // Optimistic UI; the config_change notification handled by AIChat keeps state in sync.
         setMcpToolsEnabled(next);
@@ -568,11 +569,16 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
     };
 
     const handleDelete = async (s: McpServerStatusDTO) => {
-        const res = await rpcClient.getAiPanelRpcClient().deleteMcpServer({ name: s.name, scope: s.scope });
-        if (!res.success && res.error) {
-            console.warn("[mcp] delete failed:", res.error);
+        try {
+            const res = await rpcClient.getAiPanelRpcClient().deleteMcpServer({ name: s.name, scope: s.scope });
+            if (!res.success && res.error) {
+                console.warn("[mcp] delete failed:", res.error);
+            }
+        } catch (err) {
+            console.warn("[mcp] delete request failed:", err);
+        } finally {
+            setConfirmDelete(null);
         }
-        setConfirmDelete(null);
     };
 
     const toggleExpanded = (key: string) => {

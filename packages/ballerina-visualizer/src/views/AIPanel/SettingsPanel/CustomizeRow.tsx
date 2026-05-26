@@ -150,11 +150,21 @@ const stop = (e: React.MouseEvent) => e.stopPropagation();
 
 export const CustomizeRow: React.FC<{ entry: CustomizeEntry }> = ({ entry }) => {
     const clickable = !!entry.onOpenPanel && !entry.disabled;
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (clickable && (e.key === "Enter" || e.key === " ")) {
+            e.preventDefault();
+            entry.onOpenPanel?.();
+        }
+    };
     return (
         <Row
             clickable={!!entry.onOpenPanel}
             disabled={entry.disabled}
             onClick={clickable ? entry.onOpenPanel : undefined}
+            onKeyDown={clickable ? handleKeyDown : undefined}
+            role={entry.onOpenPanel ? "button" : undefined}
+            tabIndex={clickable ? 0 : undefined}
+            aria-disabled={entry.disabled || undefined}
             title={entry.disabled ? "Coming soon" : undefined}
         >
             <IconWrap>{entry.icon}</IconWrap>
@@ -188,10 +198,10 @@ export const CustomizeRow: React.FC<{ entry: CustomizeEntry }> = ({ entry }) => 
                         <Codicon name="go-to-file" />
                     </Button>
                 )}
-                {entry.onOpenPanel && (
-                    <span className="codicon codicon-chevron-right" style={{ fontSize: 14, color: "var(--vscode-descriptionForeground)" }} />
-                )}
             </Actions>
+            {entry.onOpenPanel && (
+                <span className="codicon codicon-chevron-right" style={{ fontSize: 14, color: "var(--vscode-descriptionForeground)", flexShrink: 0 }} />
+            )}
         </Row>
     );
 };

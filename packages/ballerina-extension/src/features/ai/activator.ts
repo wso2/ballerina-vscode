@@ -250,6 +250,7 @@ const MCP_ENABLED_OVERRIDE_KEY = 'ballerina.copilot.mcp.enabledOverrides';
 const MCP_ENABLE_SETTING = 'copilot.enableMcpTools';
 
 let mcpWatchDisposer: (() => void) | null = null;
+let mcpTrustDisposable: { dispose(): void } | null = null;
 
 function isMcpEnabled(): boolean {
     return vscodeWorkspace.getConfiguration('ballerina').get<boolean>(MCP_ENABLE_SETTING, false);
@@ -307,16 +308,19 @@ function setupMcp(): void {
     });
     // React to workspace trust being granted mid-session — workspace-scope
     // servers come online without a window reload.
-    const trustDisposable = vscodeWorkspace.onDidGrantWorkspaceTrust(() => {
+    mcpTrustDisposable = vscodeWorkspace.onDidGrantWorkspaceTrust(() => {
         manager.setWorkspaceTrusted(true).then(pushUpdate).catch(err => console.warn('[mcp] Trust-grant refresh failed:', err));
     });
-    extension.context?.subscriptions.push(trustDisposable);
 }
 
 async function teardownMcp(): Promise<void> {
     if (mcpWatchDisposer) {
         try { mcpWatchDisposer(); } catch { /* ignore */ }
         mcpWatchDisposer = null;
+    }
+    if (mcpTrustDisposable) {
+        try { mcpTrustDisposable.dispose(); } catch { /* ignore */ }
+        mcpTrustDisposable = null;
     }
     await disposeMcpClientManager();
     try {

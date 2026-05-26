@@ -121,11 +121,11 @@ function validateMcpServerConfig(cfg: any): string | null {
     if (!cfg || (cfg.type !== "stdio" && cfg.type !== "http")) {
         return "Invalid server config.";
     }
-    if (cfg.type === "stdio" && !cfg.command?.trim()) {
+    if (cfg.type === "stdio" && (typeof cfg.command !== "string" || !cfg.command.trim())) {
         return "Command is required for stdio servers.";
     }
     if (cfg.type === "http") {
-        if (!cfg.url?.trim()) {
+        if (typeof cfg.url !== "string" || !cfg.url.trim()) {
             return "URL is required for HTTP servers.";
         }
         try { new URL(cfg.url); } catch {
