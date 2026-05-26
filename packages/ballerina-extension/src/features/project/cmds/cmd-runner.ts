@@ -21,6 +21,7 @@ import { Terminal, window, workspace } from "vscode";
 import { isSupportedSLVersion, isWindows, createVersionNumber, quoteShellPath } from "../../../utils";
 import { extension } from "../../../BalExtensionContext";
 import { TracerMachine } from "../../../features/tracing";
+import { markTerminalRunStarted } from "../integration-runner-state";
 
 
 export const PALETTE_COMMANDS = {
@@ -178,6 +179,15 @@ export function runCommandWithConf(file: BallerinaProject | string, executor: st
         terminal.sendText(isWindows() ? `echo $Env:${BAL_CONFIG_FILES}` : `echo $${BAL_CONFIG_FILES}`);
     }
     terminal.sendText(commandText, true);
+    if (isRunCommand(cmd)) {
+        markTerminalRunStarted(terminal, filePath);
+    }
+}
+
+function isRunCommand(cmd: BALLERINA_COMMANDS): boolean {
+    return cmd === BALLERINA_COMMANDS.RUN
+        || cmd === BALLERINA_COMMANDS.RUN_WITH_WATCH
+        || cmd === BALLERINA_COMMANDS.RUN_WITH_EXPERIMENTAL;
 }
 
 export function runTerminalCommand(executor: string, file?: BallerinaProject | string, env?: { [key: string]: string }) {

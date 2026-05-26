@@ -125,6 +125,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     const [showSequenceDiagram, setShowSequenceDiagram] = useState(false);
     const [enableSequenceDiagram, setEnableSequenceDiagram] = useState(false);
     const [loadingDiagram, setLoadingDiagram] = useState(true);
+    const [hasLoadedTitleBar, setHasLoadedTitleBar] = useState(false);
     const [fileName, setFileName] = useState("");
     const [serviceType, setServiceType] = useState("");
     const [serviceName, setServiceName] = useState("");
@@ -239,9 +240,17 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
         checkTracingStatus();
     }, []);
 
+    // Re-query on every change so the button reflects this project's file,
+    // not whatever project triggered the broadcast.
+    useEffect(() => {
+        rpcClient.getAgentChatRpcClient().onTracingStatusChanged(() => {
+            checkTracingStatus();
+        });
+    }, [rpcClient]);
+
     const checkTracingStatus = async () => {
         try {
-            const status = await rpcClient.getAgentChatRpcClient().getTracingStatus();
+            const status = await rpcClient.getAgentChatRpcClient().getTracingStatus({ projectPath });
             setIsTracingEnabled(status.enabled);
         } catch (error) {
             setIsTracingEnabled(false);
@@ -280,6 +289,7 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
 
     const handleReadyDiagram = (fileName?: string, parentMetadata?: ParentMetadata, position?: NodePosition, parentCodedata?: CodeData) => {
         setLoadingDiagram(false);
+        setHasLoadedTitleBar(true);
         if (fileName) {
             setFileName(fileName);
         }
@@ -609,10 +619,14 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     return (
         <View>
             <TopNavigationBar projectPath={projectPath} />
-            {loadingDiagram ? (
+            {loadingDiagram && !hasLoadedTitleBar ? (
                 <TitleBarSkeleton />
             ) : (
-                <TitleBar title={getTitle()} subtitleElement={getSubtitleElement} actions={getActions()} />
+                <TitleBar
+                    title={getTitle()}
+                    subtitleElement={getSubtitleElement}
+                    actions={loadingDiagram ? null : getActions()}
+                />
             )}
             {enableSequenceDiagram && !isAgent &&
                 (
