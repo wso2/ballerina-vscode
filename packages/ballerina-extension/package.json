@@ -1237,7 +1237,7 @@
                 "description": "start",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f247"
+                    "fontCharacter": "\\f248"
                 }
             },
             "ballerina-debug": {
