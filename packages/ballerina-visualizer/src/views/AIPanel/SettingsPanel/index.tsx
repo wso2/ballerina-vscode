@@ -146,17 +146,6 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
         return () => { cancelled = true; dispose(); };
     }, [rpcClient, props.mcpToolsEnabled]);
 
-    const handleToggleMcp = async () => {
-        const next = !mcpEnabled;
-        setMcpEnabled(next);
-        try {
-            await rpcClient.getAiPanelRpcClient().setMcpToolsEnabled({ enabled: next });
-        } catch (err) {
-            console.warn("[settings] setMcpToolsEnabled failed:", err);
-            setMcpEnabled(prev => !prev);
-        }
-    };
-
     const mcpSubtitle = (() => {
         if (!mcpEnabled) return "Off";
         if (mcpServers.length === 0) return "No servers configured";
@@ -171,11 +160,6 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
             icon: <Icon name="PowerPlug" sx={{ fontSize: "18px", display: "flex", alignItems: "center" }} />,
             label: "MCP servers",
             subtitle: mcpSubtitle,
-            toggle: {
-                on: mcpEnabled,
-                onToggle: handleToggleMcp,
-                title: mcpEnabled ? "Disable MCP tool support" : "Enable MCP tool support",
-            },
             onOpenPanel: () => props.onNavigate?.("mcp"),
         },
         {
