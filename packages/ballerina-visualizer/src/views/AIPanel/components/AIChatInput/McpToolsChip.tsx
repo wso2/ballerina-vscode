@@ -20,6 +20,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import styled from "@emotion/styled";
 import { McpGroupStatesDTO, McpLoadErrorsDTO, McpScope, McpServerStatusDTO } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import { Icon } from "@wso2/ui-toolkit";
 import { ExperimentalTag } from "../ExperimentalTag";
 import { Loader } from "../Loader";
 
@@ -58,7 +59,7 @@ const Chip = styled.button<{ disabled?: boolean }>`
         background: var(--vscode-toolbar-hoverBackground);
     }
 
-    .codicon {
+    .codicon, .fw {
         opacity: ${(p: { disabled?: boolean }) => (p.disabled ? 0.6 : 1)};
     }
 `;
@@ -512,9 +513,8 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
                 title={chipTitle}
                 onClick={toggleVisible}
             >
-                <span className="codicon codicon-plug" style={{ fontSize: 11 }} />
+                <Icon name="PowerPlug" sx={{ fontSize: "16px", display: "flex", alignItems: "center", height: "16px" }} iconSx={{ position: "relative", top: "1px" }} />
                 <StatusDot status={headlineStatus} />
-                <span>MCP</span>
             </Chip>
 
             {visible && (
