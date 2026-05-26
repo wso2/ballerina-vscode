@@ -1,0 +1,7 @@
+[package]
+org = "uitest"
+name = "sampleService"
+version = "0.1.0"
+
+[build-options]
+observabilityIncluded = true

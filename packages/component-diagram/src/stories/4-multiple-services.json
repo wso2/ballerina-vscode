@@ -1,0 +1,122 @@
+{
+    "connections": [],
+    "listeners": [
+        {
+            "symbol": "httpDefaultListener",
+            "location": {
+                "filePath": "/project/path/test_sample/main.bal",
+                "startLine": {
+                    "line": 2,
+                    "offset": 0
+                },
+                "endLine": {
+                    "line": 2,
+                    "offset": 71
+                }
+            },
+            "attachedServices": [
+                "ab76467f-1ff0-0ce8-4559-9e723a9a5a3b"
+            ],
+            "kind": 1,
+            "type": "http:Listener",
+            "args": [],
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.6.png",
+            "uuid": "76d64133-42f1-4317-77a0-12f443d4571d",
+            "enableFlowModel": true,
+            "sortText": "main.bal2"
+        }
+    ],
+    "services": [
+        {
+            "location": {
+                "filePath": "/project/path/test_sample/main.bal",
+                "startLine": {
+                    "line": 4,
+                    "offset": 0
+                },
+                "endLine": {
+                    "line": 36,
+                    "offset": 1
+                }
+            },
+            "attachedListeners": [
+                "76d64133-42f1-4317-77a0-12f443d4571d"
+            ],
+            "connections": [],
+            "functions": [],
+            "remoteFunctions": [],
+            "resourceFunctions": [
+                {
+                    "accessor": "get",
+                    "path": "greeting",
+                    "location": {
+                        "filePath": "/project/path/test_sample/main.bal",
+                        "startLine": {
+                            "line": 5,
+                            "offset": 4
+                        },
+                        "endLine": {
+                            "line": 11,
+                            "offset": 5
+                        }
+                    },
+                    "connections": []
+                },
+                {
+                    "accessor": "post",
+                    "path": "users",
+                    "location": {
+                        "filePath": "/project/path/test_sample/main.bal",
+                        "startLine": {
+                            "line": 13,
+                            "offset": 4
+                        },
+                        "endLine": {
+                            "line": 19,
+                            "offset": 5
+                        }
+                    },
+                    "connections": []
+                },
+                {
+                    "accessor": "put",
+                    "path": "users/[string id]",
+                    "location": {
+                        "filePath": "/project/path/test_sample/main.bal",
+                        "startLine": {
+                            "line": 21,
+                            "offset": 4
+                        },
+                        "endLine": {
+                            "line": 27,
+                            "offset": 5
+                        }
+                    },
+                    "connections": []
+                },
+                {
+                    "accessor": "delete",
+                    "path": "users/[string id]",
+                    "location": {
+                        "filePath": "/project/path/test_sample/main.bal",
+                        "startLine": {
+                            "line": 29,
+                            "offset": 4
+                        },
+                        "endLine": {
+                            "line": 35,
+                            "offset": 5
+                        }
+                    },
+                    "connections": []
+                }
+            ],
+            "absolutePath": "/ ",
+            "type": "http:Service",
+            "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.6.png",
+            "uuid": "ab76467f-1ff0-0ce8-4559-9e723a9a5a3b",
+            "enableFlowModel": true,
+            "sortText": "main.bal4"
+        }
+    ]
+}

@@ -1,0 +1,578 @@
+[
+    {
+        "name": "ballerina/http",
+        "description": "This module provides APIs for connecting and interacting with HTTP and HTTP2 endpoints.",
+        "typeDefs": [
+            {
+                "name": "CacheConfig",
+                "description": "Provides a set of configurations for controlling the caching behaviour of the endpoint.\n",
+                "type": "Record",
+                "fields": [
+                    {
+                        "name": "enabled",
+                        "description": "Specifies whether HTTP caching is enabled. Caching is enabled by default.",
+                        "type": { "name": "boolean" },
+                        "optional": true
+                    },
+                    {
+                        "name": "isShared",
+                        "description": "Specifies whether the HTTP caching layer should behave as a public cache or a private cache",
+                        "type": { "name": "boolean" },
+                        "optional": true
+                    },
+                    {
+                        "name": "capacity",
+                        "description": "The capacity of the cache",
+                        "type": { "name": "int" },
+                        "optional": true
+                    },
+                    {
+                        "name": "evictionFactor",
+                        "description": "The fraction of entries to be removed when the cache is full. The value should be between 0 (exclusive) and 1 (inclusive).",
+                        "type": { "name": "float" },
+                        "optional": true
+                    },
+                    {
+                        "name": "policy",
+                        "description": "Gives the user some control over the caching behaviour. By default, this is set to CACHE_CONTROL_AND_VALIDATORS.",
+                        "type": {
+                            "name": "CachingPolicy",
+                            "links": [{ "category": "internal", "recordName": "CachingPolicy" }]
+                        },
+                        "optional": true
+                    }
+                ]
+            },
+            {
+                "name": "HttpVersion",
+                "description": "Defines the supported HTTP protocols.",
+                "type": "Enum",
+                "members": [
+                    { "name": "HTTP_2_0", "description": "Represents HTTP/2.0 protocol" },
+                    { "name": "HTTP_1_1", "description": "Represents HTTP/1.1 protocol" },
+                    { "name": "HTTP_1_0", "description": "Represents HTTP/1.0 protocol" }
+                ]
+            },
+            {
+                "name": "Compression",
+                "description": "Options to compress using gzip or deflate.\nAUTO: When service behaves as a HTTP gateway...\nALWAYS: Always set accept-encoding...\nNEVER: Never set accept-encoding...",
+                "type": "Union",
+                "members": [
+                    { "name": "COMPRESSION_AUTO", "type": { "name": "string" } },
+                    { "name": "COMPRESSION_ALWAYS", "type": { "name": "string" } },
+                    { "name": "COMPRESSION_NEVER", "type": { "name": "string" } }
+                ]
+            },
+            {
+                "name": "StatusCode",
+                "description": "Represents an HTTP status code type.",
+                "type": "Union",
+                "members": []
+            },
+            {
+                "name": "AUTH_HEADER",
+                "description": "Represents the Authorization header name.",
+                "type": "Constant",
+                "value": "Authorization",
+                "varType": { "name": "string" }
+            },
+            {
+                "name": "DEFAULT_PORT",
+                "description": "Default HTTP listener port.",
+                "type": "Constant",
+                "value": "9090",
+                "varType": { "name": "int" }
+            },
+            {
+                "name": "PersistentCookieHandler",
+                "description": "Provides persistence for cookies.",
+                "type": "Class",
+                "functions": []
+            }
+        ],
+        "clients": [],
+        "functions": [
+            {
+                "name": "authenticateResource",
+                "type": "Normal Function",
+                "description": "Uses for declarative auth design.",
+                "parameters": [
+                    {
+                        "name": "serviceRef",
+                        "description": "",
+                        "type": { "name": "Service" }
+                    },
+                    {
+                        "name": "methodName",
+                        "description": "",
+                        "type": { "name": "string" }
+                    },
+                    {
+                        "name": "resourcePath",
+                        "description": "",
+                        "type": { "name": "string[]" }
+                    }
+                ],
+                "return": {
+                    "type": { "name": "()" }
+                }
+            }
+        ],
+        "services": [
+            {
+                "type": "generic",
+                "instructions": "# Service writing instructions\n\n- HTTP Service always requires a http listener to be attached to it.",
+                "listener": {
+                    "name": "Listener",
+                    "parameters": [
+                        {
+                            "name": "port",
+                            "description": "Listening port of the HTTP service listener",
+                            "type": { "name": "int" }
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    {
+        "name": "ballerinax/salesforce",
+        "description": "Salesforce Sales Cloud is one of the leading Customer Relationship Management(CRM) solutions.",
+        "typeDefs": [
+            {
+                "name": "ConnectionConfig",
+                "type": "Record",
+                "description": "",
+                "fields": [
+                    { "name": "baseUrl", "description": "", "type": { "name": "string" } },
+                    {
+                        "name": "auth",
+                        "description": "",
+                        "type": {
+                            "name": "BearerTokenConfig|OAuth2RefreshTokenGrantConfig|OAuth2PasswordGrantConfig|OAuth2ClientCredentialsGrantConfig",
+                            "links": [
+                                { "category": "external", "recordName": "BearerTokenConfig", "libraryName": "ballerina/http" },
+                                { "category": "external", "recordName": "OAuth2RefreshTokenGrantConfig", "libraryName": "ballerina/http" }
+                            ]
+                        }
+                    }
+                ]
+            }
+        ],
+        "clients": [
+            {
+                "name": "Client",
+                "description": "Ballerina Salesforce connector provides the capability to access Salesforce REST API.",
+                "functions": [
+                    {
+                        "name": "init",
+                        "type": "Constructor",
+                        "description": "Initializes the connector.",
+                        "parameters": [
+                            {
+                                "name": "config",
+                                "description": "",
+                                "type": {
+                                    "name": "ConnectionConfig",
+                                    "links": [{ "category": "internal", "recordName": "ConnectionConfig" }]
+                                }
+                            }
+                        ],
+                        "return": {
+                            "description": "`salesforce:Error` on failure of initialization or else `()`",
+                            "type": { "name": "error?" }
+                        }
+                    },
+                    {
+                        "name": "query",
+                        "type": "Remote Function",
+                        "description": "Executes the specified SOQL query.\n",
+                        "parameters": [
+                            {
+                                "name": "soql",
+                                "description": "SOQL query",
+                                "type": { "name": "string" }
+                            },
+                            {
+                                "name": "returnType",
+                                "description": "The payload, which is expected to be returned after data binding",
+                                "type": { "name": "record {|anydata...;|}" },
+                                "optional": true,
+                                "default": "record {|anydata...;|}"
+                            }
+                        ],
+                        "return": {
+                            "description": "`stream<{returnType}, error?>` if successful. Else, the occurred `error`",
+                            "type": { "name": "stream<returnType, error?>|error" }
+                        }
+                    }
+                ]
+            }
+        ],
+        "functions": [],
+        "services": [
+            {
+                "type": "fixed",
+                "listener": {
+                    "name": "salesforce:Listener",
+                    "parameters": [
+                        {
+                            "name": "listenerConfig",
+                            "description": "The configuration of Salesforce ASB listener.",
+                            "type": { "name": "salesforce:ListenerConfig" },
+                            "default": ""
+                        }
+                    ]
+                },
+                "methods": [
+                    {
+                        "type": "remote",
+                        "name": "onCreate",
+                        "description": "The `onCreate` method is triggered when a new record create event is received from Salesforce.",
+                        "parameters": [
+                            {
+                                "name": "payload",
+                                "description": "The information about the triggered event.",
+                                "type": { "name": "salesforce:EventData" },
+                                "optional": false
+                            }
+                        ],
+                        "return": { "type": { "name": "error?" } },
+                        "optional": false
+                    },
+                    {
+                        "type": "remote",
+                        "name": "onUpdate",
+                        "description": "The `onUpdate` method is triggered when a new record update event is received from Salesforce.",
+                        "parameters": [
+                            {
+                                "name": "payload",
+                                "description": "The information about the triggered event.",
+                                "type": { "name": "salesforce:EventData" },
+                                "optional": false
+                            }
+                        ],
+                        "return": { "type": { "name": "error?" } },
+                        "optional": false
+                    },
+                    {
+                        "type": "remote",
+                        "name": "onDelete",
+                        "description": "The `onDelete` method is triggered when a new record delete event is received from Salesforce.",
+                        "parameters": [
+                            {
+                                "name": "payload",
+                                "description": "The information about the triggered event.",
+                                "type": { "name": "salesforce:EventData" },
+                                "optional": false
+                            }
+                        ],
+                        "return": { "type": { "name": "error?" } },
+                        "optional": true
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "name": "ballerina/io",
+        "description": "This module provides file read/write APIs and console print/read APIs.",
+        "typeDefs": [],
+        "clients": [],
+        "functions": [
+            {
+                "name": "fileWriteBytes",
+                "type": "Normal Function",
+                "description": "Write a set of bytes to a file.",
+                "parameters": [
+                    {
+                        "name": "path",
+                        "description": "The path of the file",
+                        "type": { "name": "string" }
+                    },
+                    {
+                        "name": "content",
+                        "description": "Byte content to write",
+                        "type": { "name": "byte[]" }
+                    },
+                    {
+                        "name": "option",
+                        "description": "To indicate whether to overwrite or append the given content",
+                        "type": {
+                            "name": "FileWriteOption",
+                            "links": [{ "category": "internal", "recordName": "FileWriteOption" }]
+                        },
+                        "optional": true,
+                        "default": "OVERWRITE"
+                    }
+                ],
+                "return": {
+                    "description": "An `io:Error` or else `()`",
+                    "type": {
+                        "name": "Error|()",
+                        "links": [{ "category": "internal", "recordName": "Error" }]
+                    }
+                }
+            }
+        ],
+        "services": []
+    },
+    {
+        "name": "ballerinax/docusign.dsesign",
+        "description": "DocuSign is a digital transaction management platform that enables users to securely sign, send, and manage documents electronically.",
+        "typeDefs": [
+            {
+                "name": "ClientHttp1Settings",
+                "description": "",
+                "type": "Record",
+                "fields": [
+                    {
+                        "name": "keepAlive",
+                        "description": "",
+                        "type": {
+                            "name": "KeepAlive",
+                            "links": [{ "category": "external", "recordName": "KeepAlive", "libraryName": "ballerina/http" }]
+                        },
+                        "optional": true
+                    },
+                    {
+                        "name": "chunking",
+                        "description": "",
+                        "type": {
+                            "name": "Chunking",
+                            "links": [{ "category": "external", "recordName": "Chunking", "libraryName": "ballerina/http" }]
+                        },
+                        "optional": true
+                    },
+                    {
+                        "name": "proxy",
+                        "description": "",
+                        "type": {
+                            "name": "ProxyConfig",
+                            "links": [{ "category": "internal", "recordName": "ProxyConfig" }]
+                        },
+                        "optional": true
+                    }
+                ]
+            }
+        ],
+        "clients": [
+            {
+                "name": "Client",
+                "description": "The DocuSign REST API provides you with a powerful, convenient, and simple Web services API for interacting with DocuSign.",
+                "functions": [
+                    {
+                        "name": "init",
+                        "type": "Constructor",
+                        "description": "Initializes the connector.",
+                        "parameters": [
+                            {
+                                "name": "config",
+                                "description": "",
+                                "type": {
+                                    "name": "ConnectionConfig",
+                                    "links": [{ "category": "internal", "recordName": "ConnectionConfig" }]
+                                }
+                            }
+                        ],
+                        "return": {
+                            "type": { "name": "error?" }
+                        }
+                    },
+                    {
+                        "type": "Resource Function",
+                        "description": "Creates an envelope.\n",
+                        "accessor": "post",
+                        "paths": [
+                            "accounts",
+                            { "name": "accountId", "type": "string" },
+                            "envelopes"
+                        ],
+                        "parameters": [
+                            {
+                                "name": "accountId",
+                                "description": "The external account number (int) or account ID GUID.",
+                                "type": { "name": "string" }
+                            },
+                            {
+                                "name": "payload",
+                                "description": "",
+                                "type": {
+                                    "name": "EnvelopeDefinition",
+                                    "links": [{ "category": "internal", "recordName": "EnvelopeDefinition" }]
+                                }
+                            },
+                            {
+                                "name": "cdse_mode",
+                                "description": "Reserved for DocuSign.",
+                                "type": { "name": "string|()" },
+                                "optional": true,
+                                "default": "()"
+                            },
+                            {
+                                "name": "change_routing_order",
+                                "description": "When true, users can define the routing order of recipients while sending documents for signature.",
+                                "type": { "name": "string|()" },
+                                "optional": true,
+                                "default": "()"
+                            },
+                            {
+                                "name": "completed_documents_only",
+                                "description": "Reserved for DocuSign.",
+                                "type": { "name": "string|()" },
+                                "optional": true,
+                                "default": "()"
+                            },
+                            {
+                                "name": "merge_roles_on_draft",
+                                "description": "When true, template roles will be merged, and empty recipients will be removed.",
+                                "type": { "name": "string|()" },
+                                "optional": true,
+                                "default": "()"
+                            }
+                        ],
+                        "return": {
+                            "type": {
+                                "name": "EnvelopeSummary|error",
+                                "links": [{ "category": "internal", "recordName": "EnvelopeSummary" }]
+                            }
+                        }
+                    }
+                ]
+            }
+        ],
+        "functions": [],
+        "services": []
+    },
+    {
+        "name": "ballerinax/postgresql",
+        "description": "This module provides the functionality required to access and manipulate data stored in a PostgreSQL database.",
+        "typeDefs": [],
+        "clients": [
+            {
+                "name": "Client",
+                "description": "Represents a PostgreSQL database client.",
+                "functions": [
+                    {
+                        "name": "init",
+                        "type": "Constructor",
+                        "description": "Initializes the PostgreSQL Client.",
+                        "parameters": [
+                            { "name": "host", "description": "Hostname of the PostgreSQL server", "type": { "name": "string" }, "optional": true, "default": "\"localhost\"" },
+                            { "name": "username", "description": "", "type": { "name": "string|()" }, "optional": true, "default": "\"postgres\"" },
+                            { "name": "password", "description": "The password of the PostgreSQL server for the provided username", "type": { "name": "string|()" }, "optional": true, "default": "()" },
+                            { "name": "database", "description": "The name of the database", "type": { "name": "string|()" }, "optional": true, "default": "()" },
+                            { "name": "port", "description": "Port number of the PostgreSQL server", "type": { "name": "int" }, "optional": true, "default": "5432" },
+                            { "name": "options", "description": "The database specific PostgreSQL connection properties", "type": { "name": "Options|()", "links": [{ "category": "internal", "recordName": "Options" }] }, "optional": true, "default": "()" },
+                            {
+                                "name": "connectionPool",
+                                "description": "The `sql:ConnectionPool` object to be used within the client",
+                                "type": {
+                                    "name": "ConnectionPool|()",
+                                    "links": [{ "category": "external", "recordName": "ConnectionPool", "libraryName": "ballerina/sql" }]
+                                },
+                                "optional": true,
+                                "default": "()"
+                            }
+                        ],
+                        "return": {
+                            "description": "An `sql:Error` if the client creation fails",
+                            "type": { "name": "ballerina/sql:1.16.0:Error?" }
+                        }
+                    },
+                    {
+                        "name": "queryRow",
+                        "type": "Remote Function",
+                        "description": "Executes the query, which is expected to return at most one row of the result.\nIf the query does not return any results, an `sql:NoRowsError` is returned.",
+                        "parameters": [
+                            {
+                                "name": "sqlQuery",
+                                "description": "The SQL query such as `` `SELECT * from Album WHERE name=${albumName}` ``",
+                                "type": {
+                                    "name": "ParameterizedQuery",
+                                    "links": [{ "category": "external", "recordName": "ParameterizedQuery", "libraryName": "ballerina/sql" }]
+                                }
+                            },
+                            {
+                                "name": "returnType",
+                                "description": "The `typedesc` of the record to which the result needs to be returned",
+                                "type": { "name": "anydata" },
+                                "optional": true,
+                                "default": "anydata"
+                            }
+                        ],
+                        "return": {
+                            "description": "Result in the `returnType` type or an `sql:Error`",
+                            "type": {
+                                "name": "returnType|Error",
+                                "links": [
+                                    { "category": "internal", "recordName": "returnType" },
+                                    { "category": "external", "recordName": "Error", "libraryName": "ballerina/sql" }
+                                ]
+                            }
+                        }
+                    }
+                ]
+            }
+        ],
+        "functions": [],
+        "services": []
+    },
+    {
+        "name": "ballerinax/custom.integration",
+        "description": "A custom integration library with instructions.",
+        "instructions": "// Use this library for custom integrations.\n// Always initialize the client before calling any function.",
+        "typeDefs": [
+            {
+                "name": "RecordWithDefault",
+                "description": "A record with a field that has a default value.",
+                "type": "Record",
+                "fields": [
+                    {
+                        "name": "timeout",
+                        "description": "Connection timeout in seconds.",
+                        "type": { "name": "int" },
+                        "optional": true,
+                        "default": "60"
+                    },
+                    {
+                        "name": "retryCount",
+                        "description": "Number of retries.",
+                        "type": { "name": "int" },
+                        "optional": true
+                    }
+                ]
+            }
+        ],
+        "clients": [],
+        "functions": [
+            {
+                "name": "process",
+                "type": "Normal Function",
+                "description": "Processes a request with multi-package external dependencies.",
+                "parameters": [
+                    {
+                        "name": "req",
+                        "description": "The HTTP request",
+                        "type": {
+                            "name": "Request",
+                            "links": [{ "category": "external", "recordName": "Request", "libraryName": "ballerina/http" }]
+                        }
+                    },
+                    {
+                        "name": "msg",
+                        "description": "The Kafka message",
+                        "type": {
+                            "name": "Message",
+                            "links": [{ "category": "external", "recordName": "Message", "libraryName": "ballerinax/kafka" }]
+                        }
+                    }
+                ],
+                "return": {
+                    "type": { "name": "error?" }
+                }
+            }
+        ],
+        "services": []
+    }
+]

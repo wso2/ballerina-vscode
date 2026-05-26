@@ -1,0 +1,1228 @@
+{
+    "fileName": "/Users/gayanka/dev/wso2/test/test_24/functions.bal",
+    "nodes": [
+        {
+            "id": "36426",
+            "metadata": {
+                "label": "Start",
+                "data": {
+                    "kind": "Function",
+                    "label": "getName",
+                    "isServiceFunction": false,
+                    "return": "string?"
+                }
+            },
+            "codedata": {
+                "node": "EVENT_START",
+                "lineRange": {
+                    "fileName": "functions.bal",
+                    "startLine": {
+                        "line": 3,
+                        "offset": 44
+                    },
+                    "endLine": {
+                        "line": 14,
+                        "offset": 1
+                    }
+                },
+                "sourceCode": "# get randon name form this function each time\nisolated function getName() returns string? {\n    do {\n        string stringResult = check aiAgent.run(\"\");\n        if stringResult is string {\n            return stringResult;\n        } else {\n            log:printError(\"Failed to get a valid name from AI agent\", err = stringResult);\n        }\n\n    } on fail error err {\n    }\n}"
+            },
+            "returning": false,
+            "diagnostics": {
+                "hasDiagnostics": true
+            },
+            "flags": 0
+        },
+        {
+            "id": "36120",
+            "metadata": {
+                "label": "ErrorHandler",
+                "description": "Catch and handle errors"
+            },
+            "codedata": {
+                "node": "ERROR_HANDLER",
+                "lineRange": {
+                    "fileName": "functions.bal",
+                    "startLine": {
+                        "line": 4,
+                        "offset": 4
+                    },
+                    "endLine": {
+                        "line": 13,
+                        "offset": 5
+                    }
+                },
+                "sourceCode": "do {\n        string stringResult = check aiAgent.run(\"\");\n        if stringResult is string {\n            return stringResult;\n        } else {\n            log:printError(\"Failed to get a valid name from AI agent\", err = stringResult);\n        }\n\n    } on fail error err {\n    }"
+            },
+            "returning": false,
+            "branches": [
+                {
+                    "label": "Body",
+                    "kind": "BLOCK",
+                    "codedata": {
+                        "node": "BODY",
+                        "lineRange": {
+                            "fileName": "functions.bal",
+                            "startLine": {
+                                "line": 4,
+                                "offset": 7
+                            },
+                            "endLine": {
+                                "line": 12,
+                                "offset": 5
+                            }
+                        },
+                        "sourceCode": "{\n        string stringResult = check aiAgent.run(\"\");\n        if stringResult is string {\n            return stringResult;\n        } else {\n            log:printError(\"Failed to get a valid name from AI agent\", err = stringResult);\n        }\n\n    }"
+                    },
+                    "repeatable": "ONE",
+                    "children": [
+                        {
+                            "id": "37004",
+                            "metadata": {
+                                "label": "run",
+                                "description": "Executes the agent for a given user query.\n",
+                                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.5.3.png",
+                                "data": {
+                                    "tools": [
+                                        {
+                                            "name": "appendKey",
+                                            "path": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png",
+                                            "description": "Append a value to a key."
+                                        },
+                                        {
+                                            "name": "getNameTool",
+                                            "path": "",
+                                            "description": "Define a function"
+                                        },
+                                        {
+                                            "name": "mcpClient",
+                                            "path": "https://bcentral-packageicons.azureedge.net/images/ballerina_mcp_0.4.2.png",
+                                            "description": "",
+                                            "type": "MCP Server"
+                                        }
+                                    ],
+                                    "agent": {
+                                        "instructions": "string ``",
+                                        "role": "\"\""
+                                    },
+                                    "memory": {
+                                        "type": "ai:MessageWindowChatMemory",
+                                        "size": "10"
+                                    },
+                                    "model": {
+                                        "name": "aiWso2modelprovider",
+                                        "path": "https://bcentral-packageicons.azureedge.net/images/test_24_test_24_0.1.0.png",
+                                        "type": "Wso2ModelProvider"
+                                    }
+                                }
+                            },
+                            "codedata": {
+                                "node": "AGENT_CALL",
+                                "org": "ballerina",
+                                "module": "ai",
+                                "packageName": "ai",
+                                "object": "Agent",
+                                "symbol": "run",
+                                "version": "1.5.3",
+                                "lineRange": {
+                                    "fileName": "functions.bal",
+                                    "startLine": {
+                                        "line": 5,
+                                        "offset": 8
+                                    },
+                                    "endLine": {
+                                        "line": 5,
+                                        "offset": 52
+                                    }
+                                },
+                                "sourceCode": "string stringResult = check aiAgent.run(\"\");"
+                            },
+                            "returning": false,
+                            "properties": {
+                                "connection": {
+                                    "metadata": {
+                                        "label": "Object",
+                                        "description": "The object which you want to call the method on"
+                                    },
+                                    "valueType": "EXPRESSION",
+                                    "value": "aiAgent",
+                                    "optional": false,
+                                    "editable": false,
+                                    "advanced": false,
+                                    "hidden": false
+                                },
+                                "query": {
+                                    "metadata": {
+                                        "label": "Query",
+                                        "description": "The natural language input provided to the agent"
+                                    },
+                                    "valueType": "EXPRESSION",
+                                    "valueTypeConstraint": "string",
+                                    "value": "\"\"",
+                                    "placeholder": "\"\"",
+                                    "optional": false,
+                                    "editable": true,
+                                    "advanced": false,
+                                    "hidden": false,
+                                    "codedata": {
+                                        "kind": "REQUIRED",
+                                        "originalName": "query"
+                                    },
+                                    "typeMembers": [
+                                        {
+                                            "type": "string",
+                                            "packageInfo": "",
+                                            "packageName": "",
+                                            "kind": "BASIC_TYPE",
+                                            "selected": true
+                                        }
+                                    ]
+                                },
+                                "sessionId": {
+                                    "metadata": {
+                                        "label": "Session ID",
+                                        "description": "The ID associated with the agent memory"
+                                    },
+                                    "valueType": "EXPRESSION",
+                                    "valueTypeConstraint": "string",
+                                    "placeholder": "\"\"",
+                                    "optional": true,
+                                    "editable": true,
+                                    "advanced": true,
+                                    "hidden": false,
+                                    "codedata": {
+                                        "kind": "DEFAULTABLE",
+                                        "originalName": "sessionId"
+                                    },
+                                    "typeMembers": [
+                                        {
+                                            "type": "string",
+                                            "packageInfo": "",
+                                            "packageName": "",
+                                            "kind": "BASIC_TYPE",
+                                            "selected": false
+                                        }
+                                    ],
+                                    "defaultValue": "\"\""
+                                },
+                                "context": {
+                                    "metadata": {
+                                        "label": "Context",
+                                        "description": "The additional context that can be used during agent tool execution"
+                                    },
+                                    "valueType": "EXPRESSION",
+                                    "valueTypeConstraint": "ai:Context",
+                                    "placeholder": "new ()",
+                                    "optional": true,
+                                    "editable": true,
+                                    "advanced": true,
+                                    "hidden": false,
+                                    "codedata": {
+                                        "kind": "DEFAULTABLE",
+                                        "originalName": "context"
+                                    },
+                                    "typeMembers": [
+                                        {
+                                            "type": "Context",
+                                            "packageInfo": "ballerina:ai:1.5.3",
+                                            "packageName": "ai",
+                                            "kind": "OBJECT_TYPE",
+                                            "selected": false
+                                        }
+                                    ],
+                                    "defaultValue": "new ()"
+                                },
+                                "checkError": {
+                                    "metadata": {
+                                        "label": "Check Error",
+                                        "description": "Trigger error flow"
+                                    },
+                                    "valueType": "FLAG",
+                                    "value": true,
+                                    "optional": false,
+                                    "editable": true,
+                                    "advanced": true,
+                                    "hidden": true
+                                },
+                                "variable": {
+                                    "metadata": {
+                                        "label": "Variable Name",
+                                        "description": "Name of the variable"
+                                    },
+                                    "valueType": "IDENTIFIER",
+                                    "value": "stringResult",
+                                    "optional": false,
+                                    "editable": false,
+                                    "advanced": false,
+                                    "hidden": false,
+                                    "codedata": {
+                                        "lineRange": {
+                                            "fileName": "functions.bal",
+                                            "startLine": {
+                                                "line": 5,
+                                                "offset": 15
+                                            },
+                                            "endLine": {
+                                                "line": 5,
+                                                "offset": 27
+                                            }
+                                        }
+                                    }
+                                },
+                                "type": {
+                                    "metadata": {
+                                        "label": "Variable Type",
+                                        "description": "Type of the variable"
+                                    },
+                                    "valueType": "TYPE",
+                                    "value": "string",
+                                    "placeholder": "var",
+                                    "optional": false,
+                                    "editable": true,
+                                    "advanced": false,
+                                    "hidden": false,
+                                    "codedata": {}
+                                }
+                            },
+                            "flags": 1
+                        },
+                        {
+                            "id": "38077",
+                            "metadata": {
+                                "label": "If",
+                                "description": "Add conditional branch to the integration flow."
+                            },
+                            "codedata": {
+                                "node": "IF",
+                                "lineRange": {
+                                    "fileName": "functions.bal",
+                                    "startLine": {
+                                        "line": 6,
+                                        "offset": 8
+                                    },
+                                    "endLine": {
+                                        "line": 10,
+                                        "offset": 9
+                                    }
+                                },
+                                "sourceCode": "if stringResult is string {\n            return stringResult;\n        } else {\n            log:printError(\"Failed to get a valid name from AI agent\", err = stringResult);\n        }"
+                            },
+                            "returning": false,
+                            "branches": [
+                                {
+                                    "label": "Then",
+                                    "kind": "BLOCK",
+                                    "codedata": {
+                                        "node": "CONDITIONAL",
+                                        "lineRange": {
+                                            "fileName": "functions.bal",
+                                            "startLine": {
+                                                "line": 6,
+                                                "offset": 34
+                                            },
+                                            "endLine": {
+                                                "line": 8,
+                                                "offset": 9
+                                            }
+                                        },
+                                        "sourceCode": "{\n            return stringResult;\n        }"
+                                    },
+                                    "repeatable": "ONE_OR_MORE",
+                                    "properties": {
+                                        "condition": {
+                                            "metadata": {
+                                                "label": "Condition",
+                                                "description": "Boolean Condition"
+                                            },
+                                            "valueType": "EXPRESSION",
+                                            "valueTypeConstraint": "boolean",
+                                            "value": "stringResult is string ",
+                                            "placeholder": "true",
+                                            "optional": false,
+                                            "editable": true,
+                                            "advanced": false,
+                                            "hidden": false
+                                        }
+                                    },
+                                    "children": [
+                                        {
+                                            "id": "39092",
+                                            "metadata": {
+                                                "label": "Return",
+                                                "description": "Value of 'stringResult'"
+                                            },
+                                            "codedata": {
+                                                "node": "RETURN",
+                                                "lineRange": {
+                                                    "fileName": "functions.bal",
+                                                    "startLine": {
+                                                        "line": 7,
+                                                        "offset": 12
+                                                    },
+                                                    "endLine": {
+                                                        "line": 7,
+                                                        "offset": 32
+                                                    }
+                                                },
+                                                "sourceCode": "return stringResult;"
+                                            },
+                                            "returning": true,
+                                            "properties": {
+                                                "expression": {
+                                                    "metadata": {
+                                                        "label": "Expression",
+                                                        "description": "Return value"
+                                                    },
+                                                    "valueType": "ACTION_OR_EXPRESSION",
+                                                    "value": "stringResult",
+                                                    "optional": false,
+                                                    "editable": true,
+                                                    "advanced": false,
+                                                    "hidden": false
+                                                }
+                                            },
+                                            "flags": 0
+                                        }
+                                    ]
+                                },
+                                {
+                                    "label": "Else",
+                                    "kind": "BLOCK",
+                                    "codedata": {
+                                        "node": "ELSE",
+                                        "lineRange": {
+                                            "fileName": "functions.bal",
+                                            "startLine": {
+                                                "line": 8,
+                                                "offset": 15
+                                            },
+                                            "endLine": {
+                                                "line": 10,
+                                                "offset": 9
+                                            }
+                                        },
+                                        "sourceCode": "{\n            log:printError(\"Failed to get a valid name from AI agent\", err = stringResult);\n        }"
+                                    },
+                                    "repeatable": "ZERO_OR_ONE",
+                                    "children": [
+                                        {
+                                            "id": "41135",
+                                            "metadata": {
+                                                "label": "printError",
+                                                "description": "Prints error logs.\n```ballerina\nerror e = error(\"error occurred\");\nlog:printError(\"error log with cause\", 'error = e, id = 845315);\n```\n",
+                                                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.13.0.png"
+                                            },
+                                            "codedata": {
+                                                "node": "FUNCTION_CALL",
+                                                "org": "ballerina",
+                                                "module": "log",
+                                                "packageName": "log",
+                                                "symbol": "printError",
+                                                "version": "2.13.0",
+                                                "lineRange": {
+                                                    "fileName": "functions.bal",
+                                                    "startLine": {
+                                                        "line": 9,
+                                                        "offset": 12
+                                                    },
+                                                    "endLine": {
+                                                        "line": 9,
+                                                        "offset": 91
+                                                    }
+                                                },
+                                                "sourceCode": "log:printError(\"Failed to get a valid name from AI agent\", err = stringResult);"
+                                            },
+                                            "returning": false,
+                                            "properties": {
+                                                "msg": {
+                                                    "metadata": {
+                                                        "label": "Msg",
+                                                        "description": "The message to be logged"
+                                                    },
+                                                    "valueType": "EXPRESSION",
+                                                    "valueTypeConstraint": "string|log:PrintableRawTemplate",
+                                                    "value": "\"Failed to get a valid name from AI agent\"",
+                                                    "placeholder": "\"\"",
+                                                    "optional": false,
+                                                    "editable": true,
+                                                    "advanced": false,
+                                                    "hidden": false,
+                                                    "codedata": {
+                                                        "kind": "REQUIRED",
+                                                        "originalName": "msg"
+                                                    },
+                                                    "typeMembers": [
+                                                        {
+                                                            "type": "PrintableRawTemplate",
+                                                            "packageInfo": "ballerina:log:2.12.0",
+                                                            "packageName": "log",
+                                                            "kind": "OBJECT_TYPE",
+                                                            "selected": false
+                                                        },
+                                                        {
+                                                            "type": "string",
+                                                            "packageInfo": "",
+                                                            "packageName": "",
+                                                            "kind": "BASIC_TYPE",
+                                                            "selected": true
+                                                        }
+                                                    ]
+                                                },
+                                                "error": {
+                                                    "metadata": {
+                                                        "label": "Error",
+                                                        "description": "The error struct to be logged"
+                                                    },
+                                                    "valueType": "EXPRESSION",
+                                                    "valueTypeConstraint": "error|()",
+                                                    "placeholder": "()",
+                                                    "optional": true,
+                                                    "editable": true,
+                                                    "advanced": true,
+                                                    "hidden": false,
+                                                    "codedata": {
+                                                        "kind": "DEFAULTABLE",
+                                                        "originalName": "'error"
+                                                    },
+                                                    "typeMembers": [
+                                                        {
+                                                            "type": "()",
+                                                            "packageInfo": "",
+                                                            "packageName": "",
+                                                            "kind": "BASIC_TYPE",
+                                                            "selected": false
+                                                        },
+                                                        {
+                                                            "type": "error",
+                                                            "packageInfo": "ballerina:lang.annotations:0.0.0",
+                                                            "packageName": "lang.annotations",
+                                                            "kind": "ERROR_TYPE",
+                                                            "selected": false
+                                                        }
+                                                    ],
+                                                    "defaultValue": "()"
+                                                },
+                                                "stackTrace": {
+                                                    "metadata": {
+                                                        "label": "Stack Trace",
+                                                        "description": "The error stack trace to be logged"
+                                                    },
+                                                    "valueType": "EXPRESSION",
+                                                    "valueTypeConstraint": "error:StackFrame[]|()",
+                                                    "placeholder": "()",
+                                                    "optional": true,
+                                                    "editable": true,
+                                                    "advanced": true,
+                                                    "hidden": false,
+                                                    "codedata": {
+                                                        "kind": "DEFAULTABLE",
+                                                        "originalName": "stackTrace"
+                                                    },
+                                                    "typeMembers": [
+                                                        {
+                                                            "type": "()",
+                                                            "packageInfo": "",
+                                                            "packageName": "",
+                                                            "kind": "BASIC_TYPE",
+                                                            "selected": false
+                                                        },
+                                                        {
+                                                            "type": "StackFrame",
+                                                            "packageInfo": "ballerina:lang.error:0.0.0",
+                                                            "packageName": "lang.error",
+                                                            "kind": "ARRAY_TYPE",
+                                                            "selected": false
+                                                        }
+                                                    ],
+                                                    "defaultValue": "()"
+                                                },
+                                                "additionalValues": {
+                                                    "metadata": {
+                                                        "label": "Additional Values",
+                                                        "description": "Capture key value pairs"
+                                                    },
+                                                    "valueType": "MAPPING_EXPRESSION_SET",
+                                                    "valueTypeConstraint": "log:Value",
+                                                    "value": [
+                                                        {
+                                                            "err": "stringResult"
+                                                        }
+                                                    ],
+                                                    "placeholder": "{}",
+                                                    "optional": true,
+                                                    "editable": true,
+                                                    "advanced": true,
+                                                    "hidden": false,
+                                                    "codedata": {
+                                                        "kind": "INCLUDED_RECORD_REST",
+                                                        "originalName": "Additional Values"
+                                                    },
+                                                    "typeMembers": []
+                                                }
+                                            },
+                                            "diagnostics": {
+                                                "hasDiagnostics": true,
+                                                "diagnostics": [
+                                                    {
+                                                        "severity": "ERROR",
+                                                        "message": "unreachable code"
+                                                    }
+                                                ]
+                                            },
+                                            "flags": 0
+                                        }
+                                    ]
+                                }
+                            ],
+                            "diagnostics": {
+                                "hasDiagnostics": true
+                            },
+                            "flags": 0
+                        }
+                    ]
+                },
+                {
+                    "label": "On Failure",
+                    "kind": "BLOCK",
+                    "codedata": {
+                        "node": "ON_FAILURE",
+                        "lineRange": {
+                            "fileName": "functions.bal",
+                            "startLine": {
+                                "line": 12,
+                                "offset": 24
+                            },
+                            "endLine": {
+                                "line": 13,
+                                "offset": 5
+                            }
+                        },
+                        "sourceCode": "{\n    }"
+                    },
+                    "repeatable": "ZERO_OR_ONE",
+                    "properties": {
+                        "ignore": {
+                            "metadata": {
+                                "label": "Ignore",
+                                "description": "Ignore the error value"
+                            },
+                            "valueType": "EXPRESSION",
+                            "value": "false",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "errorVariable": {
+                            "metadata": {
+                                "label": "Error Variable",
+                                "description": "Name of the error variable"
+                            },
+                            "valueType": "IDENTIFIER",
+                            "value": "err ",
+                            "placeholder": "err",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        },
+                        "errorType": {
+                            "metadata": {
+                                "label": "Error Type",
+                                "description": "Type of the error"
+                            },
+                            "valueType": "TYPE",
+                            "value": "ai:error",
+                            "placeholder": "error",
+                            "optional": false,
+                            "editable": true,
+                            "advanced": false,
+                            "hidden": false
+                        }
+                    },
+                    "children": []
+                }
+            ],
+            "diagnostics": {
+                "hasDiagnostics": true
+            },
+            "flags": 0
+        }
+    ],
+    "connections": [
+        {
+            "id": "34784",
+            "metadata": {
+                "label": "Agent",
+                "description": "Represents an agent.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.5.3.png"
+            },
+            "codedata": {
+                "node": "AGENT",
+                "org": "ballerina",
+                "module": "ai",
+                "object": "Agent",
+                "symbol": "init",
+                "lineRange": {
+                    "fileName": "agents.bal",
+                    "startLine": {
+                        "line": 3,
+                        "offset": 0
+                    },
+                    "endLine": {
+                        "line": 5,
+                        "offset": 2
+                    }
+                },
+                "sourceCode": "final ai:Agent aiAgent = check new (\n    systemPrompt = {role: \"\", instructions: string ``}, model = aiWso2modelprovider, tools = [appendKey, getNameTool, mcpClient]\n);"
+            },
+            "returning": false,
+            "properties": {
+                "systemPrompt": {
+                    "metadata": {
+                        "label": "System Prompt",
+                        "description": "The system prompt assigned to the agent"
+                    },
+                    "valueType": "EXPRESSION",
+                    "valueTypeConstraint": "ai:SystemPrompt",
+                    "value": "{role: \"\", instructions: string ``}",
+                    "placeholder": "{role: \"\", instructions: \"\"}",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false,
+                    "codedata": {
+                        "kind": "INCLUDED_FIELD",
+                        "originalName": "systemPrompt"
+                    },
+                    "typeMembers": [
+                        {
+                            "type": "SystemPrompt",
+                            "packageInfo": "ballerina:ai:1.5.3",
+                            "packageName": "ai",
+                            "kind": "RECORD_TYPE",
+                            "selected": true
+                        }
+                    ],
+                    "defaultValue": "{role: \"\", instructions: \"\"}"
+                },
+                "model": {
+                    "metadata": {
+                        "label": "Model",
+                        "description": "The model used by the agent"
+                    },
+                    "valueType": "EXPRESSION",
+                    "valueTypeConstraint": "ai:ModelProvider",
+                    "value": "aiWso2modelprovider",
+                    "placeholder": "object {}",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false,
+                    "codedata": {
+                        "kind": "INCLUDED_FIELD",
+                        "originalName": "model"
+                    },
+                    "typeMembers": [
+                        {
+                            "type": "ModelProvider",
+                            "packageInfo": "ballerina:ai:1.5.3",
+                            "packageName": "ai",
+                            "kind": "OBJECT_TYPE",
+                            "selected": false
+                        }
+                    ],
+                    "defaultValue": "object {}"
+                },
+                "tools": {
+                    "metadata": {
+                        "label": "Tools",
+                        "description": "The tools available for the agent"
+                    },
+                    "valueType": "EXPRESSION",
+                    "valueTypeConstraint": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
+                    "value": "[appendKey, getNameTool, mcpClient]\n",
+                    "placeholder": "[]",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false,
+                    "codedata": {
+                        "kind": "INCLUDED_FIELD",
+                        "originalName": "tools"
+                    },
+                    "typeMembers": [
+                        {
+                            "type": "BaseToolKit|ai",
+                            "packageInfo": "",
+                            "packageName": "",
+                            "kind": "ARRAY_TYPE",
+                            "selected": false
+                        }
+                    ],
+                    "defaultValue": "[]"
+                },
+                "maxIter": {
+                    "metadata": {
+                        "label": "Maximum Iterations",
+                        "description": "The maximum number of iterations the agent performs to complete the task.\nBy default, it is set to the number of tools + 1."
+                    },
+                    "valueType": "EXPRESSION",
+                    "valueTypeConstraint": "\"INFER_TOOL_COUNT\"|int",
+                    "placeholder": "\"INFER_TOOL_COUNT\"",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false,
+                    "codedata": {
+                        "kind": "INCLUDED_FIELD",
+                        "originalName": "maxIter"
+                    },
+                    "typeMembers": [
+                        {
+                            "type": "\"INFER_TOOL_COUNT\"",
+                            "packageInfo": "",
+                            "packageName": "",
+                            "kind": "BASIC_TYPE",
+                            "selected": false
+                        },
+                        {
+                            "type": "int",
+                            "packageInfo": "",
+                            "packageName": "",
+                            "kind": "BASIC_TYPE",
+                            "selected": false
+                        }
+                    ],
+                    "defaultValue": "\"INFER_TOOL_COUNT\""
+                },
+                "verbose": {
+                    "metadata": {
+                        "label": "Verbose",
+                        "description": "Specifies whether verbose logging is enabled"
+                    },
+                    "valueType": "EXPRESSION",
+                    "valueTypeConstraint": "boolean",
+                    "placeholder": "false",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false,
+                    "codedata": {
+                        "kind": "INCLUDED_FIELD",
+                        "originalName": "verbose"
+                    },
+                    "typeMembers": [
+                        {
+                            "type": "boolean",
+                            "packageInfo": "",
+                            "packageName": "",
+                            "kind": "BASIC_TYPE",
+                            "selected": false
+                        }
+                    ],
+                    "defaultValue": "false"
+                },
+                "memory": {
+                    "metadata": {
+                        "label": "Memory",
+                        "description": "The memory used by the agent to store and manage conversation history"
+                    },
+                    "valueType": "EXPRESSION",
+                    "valueTypeConstraint": "ai:Memory|()",
+                    "placeholder": "()",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false,
+                    "codedata": {
+                        "kind": "INCLUDED_FIELD",
+                        "originalName": "memory"
+                    },
+                    "typeMembers": [
+                        {
+                            "type": "Memory",
+                            "packageInfo": "ballerina:ai:1.5.3",
+                            "packageName": "ai",
+                            "kind": "OBJECT_TYPE",
+                            "selected": false
+                        },
+                        {
+                            "type": "()",
+                            "packageInfo": "",
+                            "packageName": "",
+                            "kind": "BASIC_TYPE",
+                            "selected": false
+                        }
+                    ],
+                    "defaultValue": "()"
+                },
+                "checkError": {
+                    "metadata": {
+                        "label": "Check Error",
+                        "description": "Terminate on error"
+                    },
+                    "valueType": "FLAG",
+                    "value": true,
+                    "optional": false,
+                    "editable": false,
+                    "advanced": true,
+                    "hidden": true
+                },
+                "scope": {
+                    "metadata": {
+                        "label": "Connection Scope",
+                        "description": "Scope of the connection, Global or Local"
+                    },
+                    "valueType": "ENUM",
+                    "value": "Global",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": true
+                },
+                "variable": {
+                    "metadata": {
+                        "label": "Variable Name",
+                        "description": "Name of the variable"
+                    },
+                    "valueType": "IDENTIFIER",
+                    "value": "aiAgent",
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": false,
+                    "codedata": {
+                        "lineRange": {
+                            "fileName": "agents.bal",
+                            "startLine": {
+                                "line": 3,
+                                "offset": 15
+                            },
+                            "endLine": {
+                                "line": 3,
+                                "offset": 22
+                            }
+                        }
+                    }
+                },
+                "type": {
+                    "metadata": {
+                        "label": "Variable Type",
+                        "description": "Type of the variable"
+                    },
+                    "valueType": "TYPE",
+                    "value": "ai:Agent",
+                    "placeholder": "var",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false,
+                    "codedata": {}
+                }
+            },
+            "diagnostics": {
+                "hasDiagnostics": true,
+                "diagnostics": [
+                    {
+                        "severity": "ERROR",
+                        "message": "illegal cyclic reference '[aiAgent, getNameTool, getName]'"
+                    }
+                ]
+            },
+            "flags": 1
+        },
+        {
+            "id": "35796",
+            "metadata": {
+                "label": "getDefaultModelProvider",
+                "description": "Creates a default model provider based on the provided `wso2ProviderConfig`.",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.5.3.png"
+            },
+            "codedata": {
+                "node": "FUNCTION_CALL",
+                "org": "ballerina",
+                "module": "ai",
+                "packageName": "ai",
+                "symbol": "getDefaultModelProvider",
+                "version": "1.5.3",
+                "lineRange": {
+                    "fileName": "connections.bal",
+                    "startLine": {
+                        "line": 4,
+                        "offset": 0
+                    },
+                    "endLine": {
+                        "line": 4,
+                        "offset": 84
+                    }
+                },
+                "sourceCode": "final ai:Wso2ModelProvider aiWso2modelprovider = check ai:getDefaultModelProvider();"
+            },
+            "returning": false,
+            "properties": {
+                "checkError": {
+                    "metadata": {
+                        "label": "Check Error",
+                        "description": "Trigger error flow"
+                    },
+                    "valueType": "FLAG",
+                    "value": true,
+                    "optional": false,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": true
+                },
+                "variable": {
+                    "metadata": {
+                        "label": "Result",
+                        "description": "Name of the result variable"
+                    },
+                    "valueType": "IDENTIFIER",
+                    "value": "aiWso2modelprovider",
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": false,
+                    "codedata": {
+                        "lineRange": {
+                            "fileName": "connections.bal",
+                            "startLine": {
+                                "line": 4,
+                                "offset": 27
+                            },
+                            "endLine": {
+                                "line": 4,
+                                "offset": 46
+                            }
+                        }
+                    }
+                },
+                "type": {
+                    "metadata": {
+                        "label": "Result Type",
+                        "description": "Type of the variable"
+                    },
+                    "valueType": "TYPE",
+                    "value": "ai:Wso2ModelProvider",
+                    "placeholder": "var",
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": false,
+                    "codedata": {}
+                }
+            },
+            "flags": 1
+        },
+        {
+            "id": "34766",
+            "metadata": {
+                "label": "New Connection",
+                "description": "Ballerina Redis connector provides the capability to access Redis cache.\nThis connector lets you to perform operations to access and manipulate key-value data stored in a Redis database. \n",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
+            },
+            "codedata": {
+                "node": "NEW_CONNECTION",
+                "org": "ballerinax",
+                "module": "redis",
+                "object": "Client",
+                "symbol": "init",
+                "lineRange": {
+                    "fileName": "connections.bal",
+                    "startLine": {
+                        "line": 3,
+                        "offset": 0
+                    },
+                    "endLine": {
+                        "line": 3,
+                        "offset": 46
+                    }
+                },
+                "sourceCode": "final redis:Client redisClient = check new ();"
+            },
+            "returning": false,
+            "properties": {
+                "connection": {
+                    "metadata": {
+                        "label": "Connection Type",
+                        "description": "Connection configurations of the Redis server. This can be either a single URI or a set of parameters"
+                    },
+                    "valueType": "EXPRESSION",
+                    "valueTypeConstraint": "redis:ConnectionUri|redis:ConnectionParams",
+                    "placeholder": "\"\"",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false,
+                    "codedata": {
+                        "kind": "INCLUDED_FIELD",
+                        "originalName": "connection"
+                    },
+                    "typeMembers": [
+                        {
+                            "type": "ConnectionParams",
+                            "packageInfo": "ballerinax:redis:3.1.0",
+                            "packageName": "redis",
+                            "kind": "RECORD_TYPE",
+                            "selected": false
+                        },
+                        {
+                            "type": "ConnectionUri",
+                            "packageInfo": "ballerinax:redis:3.1.0",
+                            "packageName": "redis",
+                            "kind": "BASIC_TYPE",
+                            "selected": false
+                        }
+                    ],
+                    "defaultValue": "\"\""
+                },
+                "connectionPooling": {
+                    "metadata": {
+                        "label": "Connection Pooling Enabled",
+                        "description": "Flag to indicate whether connection pooling is enabled"
+                    },
+                    "valueType": "EXPRESSION",
+                    "valueTypeConstraint": "boolean",
+                    "placeholder": "false",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false,
+                    "codedata": {
+                        "kind": "INCLUDED_FIELD",
+                        "originalName": "connectionPooling"
+                    },
+                    "typeMembers": [
+                        {
+                            "type": "boolean",
+                            "packageInfo": "",
+                            "packageName": "",
+                            "kind": "BASIC_TYPE",
+                            "selected": false
+                        }
+                    ],
+                    "defaultValue": "false"
+                },
+                "isClusterConnection": {
+                    "metadata": {
+                        "label": "Cluster Mode Enabled",
+                        "description": "Flag to indicate whether the connection is a cluster connection"
+                    },
+                    "valueType": "EXPRESSION",
+                    "valueTypeConstraint": "boolean",
+                    "placeholder": "false",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false,
+                    "codedata": {
+                        "kind": "INCLUDED_FIELD",
+                        "originalName": "isClusterConnection"
+                    },
+                    "typeMembers": [
+                        {
+                            "type": "boolean",
+                            "packageInfo": "",
+                            "packageName": "",
+                            "kind": "BASIC_TYPE",
+                            "selected": false
+                        }
+                    ],
+                    "defaultValue": "false"
+                },
+                "secureSocket": {
+                    "metadata": {
+                        "label": "Secure Socket Configurations",
+                        "description": "Configurations related to SSL/TLS encryption"
+                    },
+                    "valueType": "EXPRESSION",
+                    "valueTypeConstraint": "redis:SecureSocket",
+                    "placeholder": "{}",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": false,
+                    "codedata": {
+                        "kind": "INCLUDED_FIELD",
+                        "originalName": "secureSocket"
+                    },
+                    "typeMembers": [
+                        {
+                            "type": "SecureSocket",
+                            "packageInfo": "ballerinax:redis:3.1.0",
+                            "packageName": "redis",
+                            "kind": "RECORD_TYPE",
+                            "selected": false
+                        }
+                    ],
+                    "defaultValue": "{}"
+                },
+                "checkError": {
+                    "metadata": {
+                        "label": "Check Error",
+                        "description": "Terminate on error"
+                    },
+                    "valueType": "FLAG",
+                    "value": true,
+                    "optional": false,
+                    "editable": false,
+                    "advanced": true,
+                    "hidden": true
+                },
+                "scope": {
+                    "metadata": {
+                        "label": "Connection Scope",
+                        "description": "Scope of the connection, Global or Local"
+                    },
+                    "valueType": "ENUM",
+                    "value": "Global",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": true,
+                    "hidden": true
+                },
+                "variable": {
+                    "metadata": {
+                        "label": "Connection Name",
+                        "description": "Name of the variable"
+                    },
+                    "valueType": "IDENTIFIER",
+                    "value": "redisClient",
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": false,
+                    "codedata": {
+                        "lineRange": {
+                            "fileName": "connections.bal",
+                            "startLine": {
+                                "line": 3,
+                                "offset": 19
+                            },
+                            "endLine": {
+                                "line": 3,
+                                "offset": 30
+                            }
+                        }
+                    }
+                },
+                "type": {
+                    "metadata": {
+                        "label": "Connection Type",
+                        "description": "Type of the variable"
+                    },
+                    "valueType": "TYPE",
+                    "value": "redis:Client",
+                    "placeholder": "var",
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": true,
+                    "codedata": {}
+                }
+            },
+            "flags": 1
+        }
+    ]
+}

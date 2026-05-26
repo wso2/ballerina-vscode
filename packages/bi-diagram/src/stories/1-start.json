@@ -1,0 +1,35 @@
+{
+    "fileName": "/Users/gayanka/dev/wso2/test/test_24/functions.bal",
+    "nodes": [
+        {
+            "id": "33915",
+            "metadata": {
+                "label": "Start",
+                "data": {
+                    "kind": "Function",
+                    "label": "getName",
+                    "isServiceFunction": false,
+                    "return": "string?"
+                }
+            },
+            "codedata": {
+                "node": "EVENT_START",
+                "lineRange": {
+                    "fileName": "functions.bal",
+                    "startLine": {
+                        "line": 1,
+                        "offset": 35
+                    },
+                    "endLine": {
+                        "line": 4,
+                        "offset": 1
+                    }
+                },
+                "sourceCode": "# get randon name form this function each time\nfunction getName() returns string? {\n\n\n}"
+            },
+            "returning": false,
+            "flags": 0
+        }
+    ],
+    "connections": []
+}

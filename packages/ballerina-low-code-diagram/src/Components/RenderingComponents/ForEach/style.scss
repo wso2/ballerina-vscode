@@ -1,0 +1,424 @@
+/**
+ * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+$default_color :#5567d5;
+$warning_color : #FF9D52;
+$error_color : #FE523C;
+$active_color : #c0ceff8a;
+$active-warning-color :#ffc1916c;
+$active_error_color : #e09f9667;
+
+.rectStyles{
+    stroke-miterlimit: 10;
+    stroke-width: 0.5;
+    fill: url(#ForeachLinearGradient) #fafafc;
+    filter: url(#ForeachFilterDefault) #fafafc;
+}
+
+.text-span-styles{
+    font-weight: 500;
+    fill: #40404b;
+    font-size: 12px;
+    font-family: inherit;
+    letter-spacing: 0.05em;
+    text-anchor: middle;
+    user-select: none;
+}
+
+.foreach-polygon-hover{
+    cursor: pointer;
+    stroke-miterlimit: 10;
+    stroke-width: 9 !important;
+    fill: url(#ProcessLinearGradient) #fafafc;
+    filter: none;
+}
+
+.main-foreach-wrapper{
+    .foreach-block {
+
+        user-select: none;
+
+        .foreach-polygon{
+            &:hover {
+                rect {
+                    @extend .foreach-polygon-hover;
+                    stroke: $active_color;
+
+                }
+    
+                .click-effect {
+                    stroke-width: 1px !important;
+                    stroke: $default_color !important;
+                }
+            }
+        }
+    
+        .for-each-rect {
+            stroke-width: 1;
+            stroke: $default_color;
+            fill: #f7f8fb;
+
+            :hover{
+                .click-effect {
+                    stroke-width: 12px !important;
+                    stroke: #40404b !important;
+                }
+            }
+        }
+    
+        .foreach-group {
+            rect {
+                stroke:$default_color;
+                @extend .rectStyles
+            }
+    
+            :hover {
+                rect {
+                    cursor: pointer;
+                    stroke:$default_color;
+                    @extend .rectStyles
+                }
+            }
+    
+            :active {
+                rect {
+                    cursor: pointer;
+                    stroke:$active_color;
+                    @extend .rectStyles
+                }
+    
+                .click-effect {
+                    stroke-width: 1px !important;
+                    stroke: $default_color !important;
+                }
+            }
+        }
+    
+        .foreach-polygon-wrapper {
+            .foreach-options-wrapper {
+                fill: none;
+                display: none;
+                width: 100px;
+                height: 30px;
+    
+                .disable {
+                    pointer-events: none !important;
+                    opacity: 0.5;
+    
+                    &:hover {
+                        cursor: none !important;
+                    }
+                }
+            }
+    
+            &:hover {
+                .foreach-group {
+                    rect {
+                        cursor: pointer;
+                        stroke:$active_color;
+                        @extend .rectStyles
+                    }
+    
+                    .click-effect {
+                        stroke-width: 1px !important;
+                        stroke: $default_color !important;
+                    }
+                }
+    
+                .foreach-options-wrapper {
+                    fill: #fff !important;
+                    display: inline !important;
+                }
+    
+                .forech-rect {
+                    fill: #fafafc;
+                    height: 21px;
+                    width: 25px;
+                }
+            }
+        }
+    
+        .life-line {
+            stroke: #5567d5;
+            stroke-width: 1px;
+        }
+
+        .foreach-icon {
+            .for-each-rect-icon-shape-1{
+                fill:$default_color;
+            }
+            .for-each-rect-icon-shape-2{
+                fill: #ccd1f2;
+            }
+        }
+    
+        .foreach-text {
+            tspan {
+                @extend .text-span-styles
+            }
+        }
+    
+        .condition-assignment {
+            fill: $warning_color;
+            font-family: "Gilmer", sans-serif;
+        }
+    }
+    .foreach-block-error {
+            user-select: none;
+            .foreach-polygon{
+                &:hover {
+                    rect {
+                        @extend .foreach-polygon-hover;
+                        stroke: $active_error_color;
+                    }
+                    .click-effect {
+                        stroke-width: 1px !important;
+                        stroke: $error_color !important;
+                    }
+                }
+            }
+        
+            .for-each-rect {
+                stroke-width: 1px;
+                stroke:$error_color;
+                fill: #f7f8fb;
+            }
+        
+            .foreach-group {
+                rect {
+                        stroke:$error_color;
+                        @extend .rectStyles
+                }
+        
+                :hover {
+                    rect {
+                            cursor: pointer;
+                            stroke:$error_color;
+                            @extend .rectStyles
+                    }
+                }
+        
+                :active {
+                    rect {
+                        cursor: pointer;
+                            stroke:$active_color;
+                            @extend .rectStyles
+                    }
+        
+                    .click-effect {
+                        stroke-width: 1px !important;
+                        stroke:$error_color !important;
+                    }
+                }
+            }
+        
+            .foreach-polygon-wrapper {
+                .foreach-options-wrapper {
+                    fill: none;
+                    display: none;
+                    width: 100px;
+                    height: 30px;
+        
+                    .disable {
+                        pointer-events: none !important;
+                        opacity: 0.5;
+        
+                        &:hover {
+                            cursor: none !important;
+                        }
+                    }
+                }
+        
+                &:hover {
+                    .foreach-group {
+                        rect {
+                            cursor: pointer;
+                            stroke:$active_color;
+                            @extend .rectStyles
+                        }
+        
+                        .click-effect {
+                            stroke-width: 1px !important;
+                            stroke:$error_color !important;
+                        }
+                    }
+        
+                    .foreach-options-wrapper {
+                        fill: #fff !important;
+                        display: inline !important;
+                    }
+        
+                    .forech-rect {
+                        fill: #fafafc;
+                        height: 21px;
+                        width: 25px;
+                    }
+                }
+            }
+        
+            .life-line {
+                stroke:$error_color !important;
+                stroke-width: 1px;
+            }
+        
+            .foreach-text {
+                tspan {
+                    @extend .text-span-styles
+                }
+            }
+
+            .foreach-icon {
+                fill: $error_color !important;
+                stroke-width: 1px !important;
+            }
+        
+            .condition-assignment {
+                fill: $error_color;
+                font-family: "Gilmer", sans-serif;
+            }
+        }
+    .foreach-block-warning {
+            user-select: none;
+
+            .foreach-polygon{
+                &:hover {
+                    rect {
+                        @extend .foreach-polygon-hover;
+                        stroke: $active_warning_color;
+                    }
+        
+                    .click-effect {
+                        stroke-width: 1px !important;
+                        stroke: $warning_color !important;
+                    }
+                }
+            }
+
+            .foreach-icon {
+                .for-each-rect-icon-shape-1{
+                    fill:$warning_color;
+                }
+                .for-each-rect-icon-shape-2{
+                    fill:$warning_color;
+                }
+            }
+        
+            .for-each-rect {
+                stroke-width: 1;
+                stroke:$warning_color;
+                fill: #f7f8fb;
+
+                :hover{
+                    .click-effect {
+                        stroke-width: 12px !important;
+                        stroke: #40404b !important;
+                    }
+                }
+
+            }
+        
+            .foreach-group {
+                rect {
+                    stroke:$warning_color;
+                    @extend .rectStyles
+                }
+        
+                :hover {
+                    rect {
+                        cursor: pointer;
+                        stroke:$warning_color;
+                        @extend .rectStyles
+                    }
+                }
+        
+                :active {
+                    rect {
+                        cursor: pointer;
+                        stroke:$active_color;
+                        @extend .rectStyles
+                    }
+        
+                    .click-effect {
+                        stroke-width: 1px !important;
+                        stroke: $warning_color !important;
+                    }
+                }
+            }
+        
+            .foreach-polygon-wrapper {
+                .foreach-options-wrapper {
+                    fill: none;
+                    display: none;
+                    width: 100px;
+                    height: 30px;
+        
+                    .disable {
+                        pointer-events: none !important;
+                        opacity: 0.5;
+        
+                        &:hover {
+                            cursor: none !important;
+                        }
+                    }
+                }
+        
+                &:hover {
+                    .foreach-group {
+                        rect {
+                            cursor: pointer;
+                            stroke:$active_color;
+                            @extend .rectStyles
+                        }
+        
+                        .click-effect {
+                            stroke-width: 1px !important;
+                            stroke:$warning_color !important;
+                        }
+                    }
+        
+                    .foreach-options-wrapper {
+                        fill: #fff !important;
+                        display: inline !important;
+                    }
+        
+                    .forech-rect {
+                        fill: #fafafc;
+                        height: 21px;
+                        width: 25px;
+                    }
+                }
+            }
+        
+            .life-line {
+                stroke:$warning_color;
+                stroke-width: 1px;
+            }
+        
+            .foreach-text {
+                tspan {
+                    @extend .text-span-styles
+                }
+            }
+        
+            .condition-assignment {
+                fill:$warning_color;
+                font-family: "Gilmer", sans-serif;
+            }
+        }
+
+}
+

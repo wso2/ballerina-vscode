@@ -1,0 +1,5 @@
+└─ @wso2/syntax-tree@1.0.5
+   ├─ licenses: Apache-2.0
+   ├─ path: /syntax-tree
+   └─ licenseFile: /syntax-tree/README.md
+

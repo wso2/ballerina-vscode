@@ -1,0 +1,1 @@
+const Consname = 123;

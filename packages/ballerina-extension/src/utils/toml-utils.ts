@@ -1,0 +1,345 @@
+// Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com/) All Rights Reserved.
+
+// WSO2 LLC. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+
+// http://www.apache.org/licenses/LICENSE-2.0
+
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied. See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+import * as fs from "fs";
+import * as path from "path";
+import { parse, stringify } from "@iarna/toml";
+
+export interface ConfigVariable {
+    name: string;
+    description: string;
+    type?: string;
+    secret?: boolean;
+}
+
+export function isPlaceholderValue(value: string | undefined | null): boolean {
+    return typeof value === "string" && /^\$\{[^}]+\}$/.test(value);
+}
+
+function readTomlSection(
+    configPath: string,
+    orgName: string,
+    packageName: string
+): Record<string, any> | null {
+    if (!fs.existsSync(configPath)) {
+        return null;
+    }
+    try {
+        const config = parse(fs.readFileSync(configPath, "utf-8")) as Record<string, any>;
+        const section = config[orgName]?.[packageName];
+        return section && typeof section === "object" ? section : null;
+    } catch (error) {
+        console.error(`[TOML Utils] Error reading ${configPath}:`, error);
+        return null;
+    }
+}
+
+export function getAllConfigStatus(
+    configPath: string,
+    orgName: string,
+    packageName: string
+): Record<string, "filled" | "missing"> {
+    const status: Record<string, "filled" | "missing"> = {};
+    const section = readTomlSection(configPath, orgName, packageName);
+    if (!section) {
+        return status;
+    }
+    for (const [key, value] of Object.entries(section)) {
+        if (value !== null && typeof value !== "object") {
+            status[key] = "filled";
+        }
+    }
+    return status;
+}
+
+export function writeConfigValuesToConfig(
+    configPath: string,
+    configValues: Record<string, string>,
+    variables: ConfigVariable[] | undefined,
+    orgName: string,
+    packageName: string
+): void {
+    let config: Record<string, any> = {};
+
+    if (fs.existsSync(configPath)) {
+        try {
+            config = parse(fs.readFileSync(configPath, "utf-8")) as Record<string, any>;
+        } catch (error) {
+            console.error(`[TOML Utils] Error reading config for value write:`, error);
+            throw error;
+        }
+    }
+
+    if (!config[orgName]) { config[orgName] = {}; }
+    if (!config[orgName][packageName]) { config[orgName][packageName] = {}; }
+    const section = config[orgName][packageName];
+
+    const typeMap = new Map<string, string>();
+    if (variables) {
+        for (const variable of variables) {
+            typeMap.set(variable.name, variable.type || "string");
+        }
+    }
+
+    const numericKeys = new Set<string>();
+    for (const [variableName, value] of Object.entries(configValues)) {
+        const varType = typeMap.get(variableName) || "string";
+        if (varType === "int" || varType === "byte") {
+            const intValue = parseInt(value, 10);
+            if (isNaN(intValue)) {
+                throw new Error(`Invalid integer value for ${variableName}`);
+            }
+            section[variableName] = intValue;
+            numericKeys.add(variableName);
+        } else if (varType === "decimal" || varType === "float") {
+            const decimalValue = parseFloat(value);
+            if (isNaN(decimalValue)) {
+                throw new Error(`Invalid decimal value for ${variableName}`);
+            }
+            section[variableName] = decimalValue;
+            numericKeys.add(variableName);
+        } else if (varType === "boolean") {
+            section[variableName] = value === "true";
+        } else {
+            section[variableName] = value;
+        }
+    }
+
+    try {
+        const dirPath = path.dirname(configPath);
+        if (!fs.existsSync(dirPath)) {
+            fs.mkdirSync(dirPath, { recursive: true });
+        }
+
+        let tomlContent = stringify(config);
+
+        // @iarna/toml formats large numbers with underscores (e.g. 8_080); Ballerina requires plain digits.
+        // Scope replacements to the [org.name] section only to avoid touching identically-named keys
+        // in other sections of the same file.
+        if (numericKeys.size > 0) {
+            const sectionHeader = `[${orgName}.${packageName}]`;
+            const sectionStart = tomlContent.indexOf(sectionHeader);
+            if (sectionStart !== -1) {
+                const afterHeader = sectionStart + sectionHeader.length;
+                const nextSection = tomlContent.indexOf("\n[", afterHeader);
+                const sectionEnd = nextSection !== -1 ? nextSection : tomlContent.length;
+
+                let sectionSlice = tomlContent.slice(sectionStart, sectionEnd);
+                for (const key of numericKeys) {
+                    const numValue = section[key];
+                    if (typeof numValue === "number") {
+                        const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+                        const pattern = new RegExp(`^(\\s*${escapedKey}\\s*=\\s*)[0-9][0-9_]*(?:\\.[0-9]+)?`, "gm");
+                        sectionSlice = sectionSlice.replace(pattern, `$1${numValue}`);
+                    }
+                }
+                tomlContent = tomlContent.slice(0, sectionStart) + sectionSlice + tomlContent.slice(sectionEnd);
+            }
+        }
+
+        fs.writeFileSync(configPath, tomlContent, "utf-8");
+        console.log(`[TOML Utils] Updated ${Object.keys(configValues).length} configuration value(s) in Config.toml`);
+    } catch (error) {
+        console.error(`[TOML Utils] Error writing configuration values:`, error);
+        throw error;
+    }
+}
+
+export function validateVariableName(name: string): boolean {
+    return /^[a-zA-Z][a-zA-Z0-9]*$/.test(name);
+}
+
+export function readExistingConfigValues(
+    configPath: string,
+    variableNames: string[],
+    orgName: string,
+    packageName: string
+): Record<string, string> {
+    const existingValues: Record<string, string> = {};
+    const section = readTomlSection(configPath, orgName, packageName);
+    if (!section) {
+        return existingValues;
+    }
+    for (const name of variableNames) {
+        const value = section[name];
+        if (value !== undefined && value !== null) {
+            if (typeof value === "string") {
+                existingValues[name] = value;
+            } else if (typeof value === "number") {
+                existingValues[name] = value.toString();
+            }
+        }
+    }
+    return existingValues;
+}
+
+export function createStatusMetadata(
+    configValues: Record<string, string>
+): Record<string, "filled" | "missing"> {
+    const status: Record<string, "filled" | "missing"> = {};
+    for (const [key, value] of Object.entries(configValues)) {
+        status[key] = value && value.trim() !== "" ? "filled" : "missing";
+    }
+    return status;
+}
+
+// "filled" when we just wrote a value OR a non-placeholder existing value was preserved.
+export function computeCollectStatus(
+    variables: ConfigVariable[],
+    provided: Record<string, string>,
+    existingValues: Record<string, string>
+): Record<string, "filled" | "missing"> {
+    const status: Record<string, "filled" | "missing"> = {};
+    for (const { name } of variables) {
+        const wrote = name in provided && provided[name].trim() !== "";
+        const preserved = !wrote && !!existingValues[name] && !isPlaceholderValue(existingValues[name]);
+        status[name] = wrote || preserved ? "filled" : "missing";
+    }
+    return status;
+}
+
+export interface ConfigKeyRename {
+    from: string;
+    to: string;
+}
+
+function isPlainSection(value: any): value is Record<string, any> {
+    return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+export function removeConfigKeys(
+    configPath: string,
+    keys: string[],
+    orgName: string,
+    packageName: string
+): { removed: string[]; notFound: string[] } {
+    const uniqueKeys = Array.from(new Set(keys));
+
+    if (!fs.existsSync(configPath)) {
+        return { removed: [], notFound: uniqueKeys };
+    }
+
+    let config: Record<string, any>;
+    try {
+        config = parse(fs.readFileSync(configPath, "utf-8")) as Record<string, any>;
+    } catch (error) {
+        console.error(`[TOML Utils] Error reading config for key removal:`, error);
+        throw error;
+    }
+
+    const section = config[orgName]?.[packageName];
+    if (!isPlainSection(section)) {
+        return { removed: [], notFound: uniqueKeys };
+    }
+
+    const removed: string[] = [];
+    const notFound: string[] = [];
+    for (const key of uniqueKeys) {
+        if (Object.prototype.hasOwnProperty.call(section, key)) {
+            delete section[key];
+            removed.push(key);
+        } else {
+            notFound.push(key);
+        }
+    }
+
+    if (removed.length > 0) {
+        fs.writeFileSync(configPath, stringify(config), "utf-8");
+        console.log(`[TOML Utils] Removed ${removed.length} key(s) from Config.toml`);
+    }
+    return { removed, notFound };
+}
+
+export function renameConfigKeys(
+    configPath: string,
+    renames: ConfigKeyRename[],
+    orgName: string,
+    packageName: string
+): { renamed: ConfigKeyRename[]; skipped: { from: string; to: string; reason: string }[] } {
+    if (!fs.existsSync(configPath)) {
+        return {
+            renamed: [],
+            skipped: renames.map(r => ({ ...r, reason: "Config.toml not found" })),
+        };
+    }
+
+    let config: Record<string, any>;
+    try {
+        config = parse(fs.readFileSync(configPath, "utf-8")) as Record<string, any>;
+    } catch (error) {
+        console.error(`[TOML Utils] Error reading config for key rename:`, error);
+        throw error;
+    }
+
+    const section = config[orgName]?.[packageName];
+    if (!isPlainSection(section)) {
+        return {
+            renamed: [],
+            skipped: renames.map(r => ({ ...r, reason: `[${orgName}.${packageName}] section not found` })),
+        };
+    }
+
+    // Snapshot initial state so multi-pair renames don't chain (a→b, b→c).
+    const initialKeys = new Set(Object.keys(section));
+    const initialValues: Record<string, any> = {};
+    for (const key of initialKeys) {
+        initialValues[key] = section[key];
+    }
+
+    const renamed: ConfigKeyRename[] = [];
+    const skipped: { from: string; to: string; reason: string }[] = [];
+    const sourcesUsed = new Set<string>();
+    const targetsUsed = new Set<string>();
+    const toApply: ConfigKeyRename[] = [];
+
+    for (const { from, to } of renames) {
+        if (from === to) {
+            skipped.push({ from, to, reason: "'from' and 'to' are the same" });
+            continue;
+        }
+        if (!initialKeys.has(from)) {
+            skipped.push({ from, to, reason: `'${from}' not found in Config.toml` });
+            continue;
+        }
+        if (initialKeys.has(to)) {
+            skipped.push({ from, to, reason: `target key '${to}' already exists` });
+            continue;
+        }
+        if (sourcesUsed.has(from)) {
+            skipped.push({ from, to, reason: `duplicate rename of '${from}'` });
+            continue;
+        }
+        if (targetsUsed.has(to)) {
+            skipped.push({ from, to, reason: `duplicate target '${to}'` });
+            continue;
+        }
+        sourcesUsed.add(from);
+        targetsUsed.add(to);
+        toApply.push({ from, to });
+    }
+
+    for (const { from, to } of toApply) {
+        section[to] = initialValues[from];
+        delete section[from];
+        renamed.push({ from, to });
+    }
+
+    if (renamed.length > 0) {
+        fs.writeFileSync(configPath, stringify(config), "utf-8");
+        console.log(`[TOML Utils] Renamed ${renamed.length} key(s) in Config.toml`);
+    }
+    return { renamed, skipped };
+}

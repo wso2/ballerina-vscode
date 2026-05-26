@@ -1,0 +1,4 @@
+function output(InRoot input) returns OutRoot => {
+    oArr1D: from var iArr1DItem in input.iArr1D
+        select {}
+};
