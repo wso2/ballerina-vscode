@@ -31,6 +31,7 @@ import { extractResourceDocumentContent, flattenProjectToFiles } from "../utils/
 import { BALLERINA_RUN_TOOL_NAME } from "./tools/ballerina-run";
 import { BALLERINA_STOP_TOOL_NAME } from "./tools/ballerina-stop";
 import { getBuiltInSkillsSection, getCustomSkillsSection, getUserSkillsSection, CustomSkillMeta } from "./skills";
+import { dataMapSkill } from "./skills/data-map";
 
 /**
  * Generates the system prompt for the design agent
@@ -90,8 +91,8 @@ This plan will be visible to the user and the execution will be guided on the ta
    - Mark task as in_progress using ${TASK_WRITE_TOOL_NAME} and immediately start implementation in parallel (single message with multiple tool calls). **IMPORTANT: ${TASK_WRITE_TOOL_NAME} MUST always be the FIRST tool call in the message — place it before any other parallel tool calls.**
    - Implement the task completely (write the Ballerina code)
    - When implementing external API integrations:
-     - First use ${LIBRARY_SEARCH_TOOL} with relevant keywords to discover available libraries
-     - Then use ${LIBRARY_GET_TOOL} to fetch full details for the discovered libraries
+     - First check if any available skill's trigger condition matches — invoke that skill and follow its library selection and tool-use guidance.
+     - If no skill applies, use ${LIBRARY_SEARCH_TOOL} with relevant keywords to discover available libraries, then use ${LIBRARY_GET_TOOL} to fetch full details for the discovered libraries.
      - If you think user is refering to an ambiguous API, or internal API, call ${CONNECTOR_GENERATOR_TOOL} to request for the API spec from the user and to generate a connector for it.
    - Before marking the task as completed, use ${DIAGNOSTICS_TOOL_NAME} to check for compilation errors and fix them.
    - Mark task as completed using ${TASK_WRITE_TOOL_NAME} (send ALL tasks, no approval flags) — the agent continues automatically. **IMPORTANT: When marking a task as completed in a message with other tool calls, ${TASK_WRITE_TOOL_NAME} MUST always be the LAST tool call in the message.**
@@ -112,7 +113,7 @@ In the <system-reminder> tags, you will see if Edit mode is enabled. When its en
 Plan the implementation approach in your reasoning. Keep output minimal — no design explanations or step-by-step plans. Avoid using ${TASK_WRITE_TOOL_NAME} tool in this mode.
 
 ### Step 2: Identify necessary libraries
-Identify the libraries required to implement the user requirement. Use ${LIBRARY_SEARCH_TOOL} to discover relevant libraries, then use ${LIBRARY_GET_TOOL} to fetch their full details.
+Before discovering libraries, check if any available skill's trigger condition matches this task — invoke that skill first and follow its library selection guidance. If no skill applies, use ${LIBRARY_SEARCH_TOOL} to discover relevant libraries, then use ${LIBRARY_GET_TOOL} to fetch their full details.
 
 ### Step 3: Write the code
 Write/modify the Ballerina code to implement the user requirement. Use the ${FILE_BATCH_EDIT_TOOL_NAME}, ${FILE_SINGLE_EDIT_TOOL_NAME}, ${FILE_WRITE_TOOL_NAME} tools to write/modify the code. 
@@ -224,7 +225,7 @@ ${getUserSkillsSection(userSkills)}
 ${getBuiltInSkillsSection(disabledSkills)}
 
 # Web Tools
-You have access to web_search and web_fetch tools. Always prefer domain-specific tools first. Use web tools only when no suitable domain-specific tool can answer the query, or when the user provides a URL or asks for live/external information.
+You have access to web_search and web_fetch tools. Always check skill trigger conditions first — if an active skill references web search, follow the skill's instructions. Otherwise prefer domain-specific tools, and use web tools only when no suitable domain-specific tool can answer the query, or when the user provides a URL or asks for live/external information.
 
 ${getNPSuffix(projects, op)}
 `;
@@ -288,6 +289,13 @@ ${queryParts.join('\n\n')}
 </User Query>`
     });
 
+
+    if (params.operationType === "DATA_MAPPING") {
+        content.push({
+            type: 'text' as const,
+            text: `<system-reminder>The user invoked /datamap. The data-map skill has been pre-loaded — apply its rules directly without calling invoke_skill.\n\n${dataMapSkill.content}</system-reminder>`
+        });
+    }
 
     content.push({
         type: 'text' as const,

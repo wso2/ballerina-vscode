@@ -41,15 +41,7 @@ export const placeholderTags: PlaceholderTagMap = {
     //     },
     // },
     [Command.DataMap]: {
-        'mappings-for-records': {
-            inputRecords: [],
-            outputRecord: [],
-            functionName: [],
-        },
-        'mappings-for-function': {
-            functionName: [],
-        },
-        'inline-mappings': {}
+        'wildcard': {},
     },
     [Command.TypeCreator]: {
         'types-for-attached': {}

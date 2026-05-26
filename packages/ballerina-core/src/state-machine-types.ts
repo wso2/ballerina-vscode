@@ -849,7 +849,7 @@ export interface UserApproval {
     comment?: string;
 }
 
-export type OperationType = "CODE_FOR_USER_REQUIREMENT" | "TESTS_FOR_USER_REQUIREMENT";
+export type OperationType = "CODE_FOR_USER_REQUIREMENT" | "TESTS_FOR_USER_REQUIREMENT" | "DATA_MAPPING";
 
 
 export enum LoginMethod {

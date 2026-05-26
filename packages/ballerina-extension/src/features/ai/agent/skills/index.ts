@@ -35,7 +35,8 @@ function formatSkill(skill: Skill | CustomSkillMeta): string {
 
 const SKILL_USAGE_RULES = `**Rules for using skills**:
 - **One at a time**: Always invoke one skill per message. Never call \`invoke_skill\` for multiple skills in the same turn — load each skill, apply it, then decide if another is needed.
-- **Silent operation**: Never announce or narrate skill usage in text. Call \`invoke_skill\` directly and apply the rules silently.`;
+- **Silent operation**: Never announce or narrate skill usage in text. Call \`invoke_skill\` directly and apply the rules silently.
+- **Priority over tools**: Skills take priority over direct tool calls. Before using tools like \`LibrarySearchTool\`, \`web_search\`, \`web_fetch\`, or invoking sub-skills, always check first whether any skill's trigger condition is met and invoke that skill. Follow all tool references (web search, library selection, sub-skill invocations) mentioned in the skill content rather than the default workflow steps.`;
 
 export function getBuiltInSkillsSection(disabledSkills?: Set<string>): string {
     const activeSkills = disabledSkills
@@ -44,7 +45,7 @@ export function getBuiltInSkillsSection(disabledSkills?: Set<string>): string {
     if (activeSkills.length === 0) { return ''; }
     return `# Skills
 
-Skills are specialised rule sets for specific tasks. When a skill's trigger condition is met, call \`invoke_skill\` with the skill name to load the full rules, then apply them exactly.
+Skills are specialised rule sets for specific tasks. **Skills have the highest priority** — always check skill trigger conditions before using any tool directly. When a skill's trigger condition is met, call \`invoke_skill\` to load the full rules, then apply them exactly, including any tool references (library search, web search, sub-skills) the skill specifies.
 
 ${SKILL_USAGE_RULES}
 

@@ -20,7 +20,6 @@ import React, { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
 import {
     SourceFile,
-    MappingParameters,
     LLMDiagnostics,
     DiagnosticEntry,
     AIPanelPrompt,
@@ -29,7 +28,6 @@ import {
     ChatNotify,
     DocumentationGeneratorIntermediaryState,
     OperationType,
-    ExtendedDataMapperMetadata,
     DocGenerationRequest,
     DocGenerationType,
     FileChanges,
@@ -1234,44 +1232,7 @@ const AIChat: React.FC = () => {
                     break;
                 }
                 case Command.DataMap: {
-                    switch (parsedInput.templateId) {
-                        case "mappings-for-records":
-                            // TODO: Update this to use the LS API for validating function names
-                            const invalidPattern = /[<>\/\(\)\{\}\[\]\\!@#$%^&*+=|;:'",.?`~]/;
-                            if (invalidPattern.test(parsedInput.placeholderValues.functionName)) {
-                                throw new Error("Please provide a valid function name without special characters.");
-                            }
-
-                            await processMappingParameters(
-                                {
-                                    inputRecord: parsedInput.placeholderValues.inputRecords
-                                        .split(",")
-                                        .map((item) => item.trim()),
-                                    outputRecord: parsedInput.placeholderValues.outputRecord,
-                                    functionName: parsedInput.placeholderValues.functionName,
-                                },
-                                metadata as ExtendedDataMapperMetadata,
-                                attachments
-                            );
-                            break;
-                        case "mappings-for-function":
-                            await processMappingParameters(
-                                {
-                                    inputRecord: [],
-                                    outputRecord: "",
-                                    functionName: parsedInput.placeholderValues.functionName,
-                                },
-                                metadata as ExtendedDataMapperMetadata,
-                                attachments
-                            );
-                            break;
-                        case "inline-mappings":
-                            await processInlineMappingParameters(
-                                metadata as ExtendedDataMapperMetadata,
-                                attachments
-                            );
-                            break;
-                    }
+                    await processAgentGeneration(parsedInput.text, attachments, "DATA_MAPPING");
                     break;
                 }
                 case Command.TypeCreator: {
@@ -1405,28 +1366,6 @@ const AIChat: React.FC = () => {
                 throw new Error(errorMessage);
             }
         }
-    }
-
-    async function processMappingParameters(
-        parameters: MappingParameters,
-        metadata?: ExtendedDataMapperMetadata,
-        attachments?: Attachment[]
-    ) {
-        await rpcClient.getAiPanelRpcClient().generateMappingCode({
-            parameters,
-            metadata,
-            attachments
-        });
-    }
-
-    async function processInlineMappingParameters(
-        metadata: ExtendedDataMapperMetadata,
-        attachments?: Attachment[]
-    ) {
-        await rpcClient.getAiPanelRpcClient().generateInlineMappingCode({
-            metadata,
-            attachments
-        });
     }
 
     async function processContextTypeCreation(attachments: Attachment[]) {
@@ -1755,7 +1694,7 @@ const AIChat: React.FC = () => {
     }
     return (
         <>
-            {!showSettings && (
+            {!showSettings && !isSkillsManagerOpen && (
                 <AIChatView style={{ position: "relative" }}>
                     {approvalOverlay.show && (
                         <ApprovalOverlay>
@@ -2261,7 +2200,7 @@ const AIChat: React.FC = () => {
                 </AIChatView>
             )}
             {showSettings && <SettingsPanel onClose={() => setShowSettings(false)}></SettingsPanel>}
-            <SkillsManager isOpen={isSkillsManagerOpen} onClose={() => setIsSkillsManagerOpen(false)} />
+            {isSkillsManagerOpen && <SkillsManager onClose={() => setIsSkillsManagerOpen(false)} />}
         </>
     );
 };

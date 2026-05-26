@@ -28,6 +28,7 @@ import { GenerationType } from '../utils/libs/libraries';
 import { createToolRegistry } from './tool-registry';
 import { scanCustomSkills, scanUserSkills } from './tools/skill-tool/skill-reader';
 import { getSkillsConfig, GLOBAL_SKILLS_CONFIG_PATH } from './tools/skill-tool/skill-writer';
+import { SKILL_TOOL_NAME } from './tools/skill-tool/index';
 import { CustomSkillMeta } from './skills/types';
 
 import { getProjectSource, cleanupTempProject } from '../utils/project/temp-project';
@@ -447,6 +448,22 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
 
             // Send start event to frontend
             this.config.eventHandler({ type: "start" });
+
+            if (params.operationType === "DATA_MAPPING") {
+                const forcedSkillCallId = `forced-skill-${Date.now()}`;
+                this.config.eventHandler({
+                    type: "tool_call",
+                    toolName: SKILL_TOOL_NAME,
+                    toolInput: { skillName: "data-map" },
+                    toolCallId: forcedSkillCallId,
+                } as any);
+                this.config.eventHandler({
+                    type: "tool_result",
+                    toolName: SKILL_TOOL_NAME,
+                    toolOutput: { found: true, skillName: "data-map" },
+                    toolCallId: forcedSkillCallId,
+                } as any);
+            }
 
             // Create stream context for handlers
             const streamContext: StreamContext = {

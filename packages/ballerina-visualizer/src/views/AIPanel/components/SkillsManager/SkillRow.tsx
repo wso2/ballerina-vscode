@@ -59,52 +59,6 @@ const Actions = styled.div`
     flex-shrink: 0;
 `;
 
-const SwitchLabel = styled.label`
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    width: 28px;
-    height: 14px;
-    cursor: pointer;
-    flex-shrink: 0;
-`;
-
-const SwitchInput = styled.input`
-    position: absolute;
-    opacity: 0;
-    width: 0;
-    height: 0;
-    margin: 0;
-
-    &:checked + span {
-        background-color: var(--vscode-button-background);
-    }
-
-    &:checked + span::after {
-        transform: translateX(14px);
-    }
-`;
-
-const SwitchTrack = styled.span`
-    position: absolute;
-    inset: 0;
-    border-radius: 7px;
-    background-color: var(--vscode-titleBar-inactiveForeground);
-    opacity: 0.5;
-    transition: background-color 0.15s;
-
-    &::after {
-        content: "";
-        position: absolute;
-        top: 2px;
-        left: 2px;
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background-color: var(--vscode-editor-background);
-        transition: transform 0.15s;
-    }
-`;
 
 const IconButton = styled.button<{ danger?: boolean }>`
     display: flex;
@@ -131,12 +85,11 @@ const IconButton = styled.button<{ danger?: boolean }>`
 
 interface SkillRowProps {
     skill: SkillEntry;
-    onToggle: (skillId: string, enabled: boolean, tier: SkillEntry['tier']) => void;
     onEdit?: (skill: SkillEntry) => void;
     onDelete?: (skill: SkillEntry) => void;
 }
 
-const SkillRow: React.FC<SkillRowProps> = ({ skill, onToggle, onEdit, onDelete }) => {
+const SkillRow: React.FC<SkillRowProps> = ({ skill, onEdit, onDelete }) => {
     const isEditable = skill.tier === 'custom' || skill.tier === 'user';
 
     return (
@@ -146,14 +99,6 @@ const SkillRow: React.FC<SkillRowProps> = ({ skill, onToggle, onEdit, onDelete }
                 <SkillTrigger title={skill.trigger}>{skill.trigger}</SkillTrigger>
             </Info>
             <Actions>
-                <SwitchLabel title={skill.enabled ? "Enabled" : "Disabled"}>
-                    <SwitchInput
-                        type="checkbox"
-                        checked={skill.enabled}
-                        onChange={(e) => onToggle(skill.id, e.target.checked, skill.tier)}
-                    />
-                    <SwitchTrack />
-                </SwitchLabel>
                 {isEditable && onEdit && (
                     <IconButton
                         title="Edit skill"
