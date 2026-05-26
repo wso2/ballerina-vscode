@@ -15,13 +15,15 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Button, Codicon } from "@wso2/ui-toolkit";
+import { Button, Codicon, Icon } from "@wso2/ui-toolkit";
 
 import { AIChatView, DangerActionButton, PrimaryActionButton, SuccessActionButton } from "../styles";
-import { AIMachineEventType } from "@wso2/ballerina-core";
+import { AIMachineEventType, McpServerStatusDTO } from "@wso2/ballerina-core";
+import { CustomizeRow, CustomizeEntry } from "./CustomizeRow";
+import type { PanelRoute } from "../components/AIChat";
 
 // ── Layout ────────────────────────────────────────────────────────────────────
 
@@ -106,16 +108,95 @@ const SettingDescription = styled.span`
     font-family: var(--vscode-font-family);
 `;
 
+const EntryList = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+`;
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export const SettingsPanel = (props: { onClose: () => void }) => {
+interface SettingsPanelProps {
+    onClose: () => void;
+    onNavigate?: (route: PanelRoute) => void;
+    mcpToolsEnabled?: boolean;
+}
+
+export const SettingsPanel = (props: SettingsPanelProps) => {
     const { rpcClient } = useRpcContext();
 
     const [copilotAuthorized, setCopilotAuthorized] = React.useState(false);
+    const [mcpEnabled, setMcpEnabled] = useState(!!props.mcpToolsEnabled);
+    const [mcpServers, setMcpServers] = useState<McpServerStatusDTO[]>([]);
 
     useEffect(() => {
         isCopilotAuthorized().then(setCopilotAuthorized);
     }, []);
+
+    useEffect(() => {
+        let cancelled = false;
+        const api = rpcClient.getAiPanelRpcClient();
+        api.getMcpToolsEnabled().then(v => !cancelled && setMcpEnabled(v)).catch(() => { /* noop */ });
+        if (props.mcpToolsEnabled) {
+            api.listMcpServers().then(list => !cancelled && setMcpServers(list)).catch(() => { /* noop */ });
+        }
+        const dispose = rpcClient.onMcpServersChanged((list: McpServerStatusDTO[]) => {
+            if (!cancelled) setMcpServers(list);
+        });
+        return () => { cancelled = true; dispose(); };
+    }, [rpcClient, props.mcpToolsEnabled]);
+
+    const handleToggleMcp = async () => {
+        const next = !mcpEnabled;
+        setMcpEnabled(next);
+        try {
+            await rpcClient.getAiPanelRpcClient().setMcpToolsEnabled({ enabled: next });
+        } catch (err) {
+            console.warn("[settings] setMcpToolsEnabled failed:", err);
+            setMcpEnabled(prev => !prev);
+        }
+    };
+
+    const mcpSubtitle = (() => {
+        if (!mcpEnabled) return "Off";
+        if (mcpServers.length === 0) return "No servers configured";
+        const connected = mcpServers.filter(s => s.status === "connected").length;
+        const tools = mcpServers.reduce((acc, s) => acc + s.tools.length, 0);
+        return `${connected}/${mcpServers.length} connected · ${tools} tool${tools === 1 ? "" : "s"}`;
+    })();
+
+    const customizeEntries: CustomizeEntry[] = [
+        {
+            id: "mcp",
+            icon: <Icon name="PowerPlug" sx={{ fontSize: "18px", display: "flex", alignItems: "center" }} />,
+            label: "MCP servers",
+            subtitle: mcpSubtitle,
+            toggle: {
+                on: mcpEnabled,
+                onToggle: handleToggleMcp,
+                title: mcpEnabled ? "Disable MCP tool support" : "Enable MCP tool support",
+            },
+            onOpenPanel: () => props.onNavigate?.("mcp"),
+        },
+        {
+            id: "skills",
+            icon: <span className="codicon codicon-lightbulb-sparkle" style={{ fontSize: 16 }} />,
+            label: "Skills",
+            subtitle: "Coming soon",
+            disabled: true,
+            onOpenPanel: () => props.onNavigate?.("skills"),
+        },
+        {
+            id: "agents",
+            icon: <span className="codicon codicon-file" style={{ fontSize: 16 }} />,
+            label: "Agent instructions",
+            subtitle: "Coming soon",
+            disabled: true,
+            toggle: { on: false, onToggle: () => { /* noop */ } },
+            onEditFile: () => { /* noop */ },
+            editFileTitle: "Edit AGENTS.md",
+        },
+    ];
 
     const handleCopilotLogout = () => {
         rpcClient.sendAIStateEvent(AIMachineEventType.LOGOUT);
@@ -140,6 +221,16 @@ export const SettingsPanel = (props: { onClose: () => void }) => {
             </PanelHeader>
 
             <PanelContent>
+                {/* Customize Copilot */}
+                <Section>
+                    <SectionHeader>Customize Copilot</SectionHeader>
+                    <EntryList>
+                        {customizeEntries.map(entry => (
+                            <CustomizeRow key={entry.id} entry={entry} />
+                        ))}
+                    </EntryList>
+                </Section>
+
                 {/* Integrations */}
                 <Section>
                     <SectionHeader>Integrations</SectionHeader>

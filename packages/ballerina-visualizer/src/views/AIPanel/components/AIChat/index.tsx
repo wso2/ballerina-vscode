@@ -81,6 +81,9 @@ import ClarifyFooter from "./Footer/ClarifyFooter";
 import { useFooterLogic } from "./Footer/useFooterLogic";
 import { SettingsPanel } from "../../SettingsPanel";
 import { McpManagerPanel } from "../../McpManagerPanel";
+
+/** Full-page panels reachable from the chat. The chat itself is the empty stack. */
+export type PanelRoute = "settings" | "mcp" | "skills";
 import WelcomeMessage from "./Welcome";
 import { getOnboardingOpens, incrementOnboardingOpens, convertToUIMessages, isContainsSyntaxError } from "./utils/utils";
 
@@ -200,8 +203,14 @@ const AIChat: React.FC = () => {
         useState<DocumentationGeneratorIntermediaryState | null>(null);
     const [isAddingToWorkspace, setIsAddingToWorkspace] = useState(false);
 
-    const [showSettings, setShowSettings] = useState(false);
-    const [showMcpManager, setShowMcpManager] = useState(false);
+    // Panel navigation stack. [] = chat; the top of the stack is the visible
+    // panel. Back pops one level, so the same panel returns to wherever it was
+    // opened from (e.g. MCP manager → chat when opened from the chip, or → settings
+    // when opened from the Customize Copilot section).
+    const [panelStack, setPanelStack] = useState<PanelRoute[]>([]);
+    const activePanel = panelStack[panelStack.length - 1];
+    const pushPanel = (route: PanelRoute) => setPanelStack(s => [...s, route]);
+    const popPanel = () => setPanelStack(s => s.slice(0, -1));
     const [isAutoApproveEnabled, setIsAutoApproveEnabled] = useState(false);
     const [isWebToolsEnabled, setIsWebToolsEnabled] = useState(false);
     const userWebSearchPreferenceRef = useRef(false);
@@ -1492,7 +1501,7 @@ const AIChat: React.FC = () => {
     }
 
     async function handleSettings() {
-        setShowSettings(true);
+        pushPanel("settings");
     }
 
     async function handleClearChat(): Promise<void> {
@@ -1731,7 +1740,7 @@ const AIChat: React.FC = () => {
     }
     return (
         <>
-            {!showSettings && !showMcpManager && (
+            {panelStack.length === 0 && (
                 <AIChatView style={{ position: "relative" }}>
                     {approvalOverlay.show && (
                         <ApprovalOverlay>
@@ -2218,7 +2227,7 @@ const AIChat: React.FC = () => {
                             disabled={isUsageExceeded}
                             contextUsage={showContextUsage ? contextUsage : null}
                             mcpToolsEnabled={mcpToolsEnabled}
-                            onOpenMcpManager={() => setShowMcpManager(true)}
+                            onOpenMcpManager={() => pushPanel("mcp")}
                             runningServicesPanel={{
                                 services: runningServices,
                                 onStopService: handleStopRunningService,
@@ -2229,8 +2238,10 @@ const AIChat: React.FC = () => {
                     })()}
                 </AIChatView>
             )}
-            {showSettings && <SettingsPanel onClose={() => setShowSettings(false)}></SettingsPanel>}
-            {showMcpManager && <McpManagerPanel onClose={() => setShowMcpManager(false)} />}
+            {activePanel === "settings" && (
+                <SettingsPanel onClose={popPanel} onNavigate={pushPanel} mcpToolsEnabled={mcpToolsEnabled} />
+            )}
+            {activePanel === "mcp" && <McpManagerPanel onClose={popPanel} />}
         </>
     );
 };
