@@ -1,0 +1,4 @@
+[submodule "submodules/wso2-vscode-extensions"]
+	path = submodules/wso2-vscode-extensions
+	url = https://github.com/wso2/vscode-extensions.git
+	branch = stable/common-libs
