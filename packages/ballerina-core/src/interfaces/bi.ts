@@ -70,6 +70,11 @@ export type FunctionNode = {
     returning: boolean;
 };
 
+export type AllowedConnector = {
+    codedata: CodeData;
+    addNewConnectionLabel: string;
+};
+
 export type Metadata = {
     label: string;
     description: string;
@@ -78,6 +83,7 @@ export type Metadata = {
     draft?: boolean; // for diagram draft nodes
     data?: NodeMetadata | ParentMetadata;
     functionKind?: string;
+    connectors?: AllowedConnector[];
 };
 
 export type NodeMetadata = {
@@ -173,7 +179,8 @@ export type FormFieldInputType = "TEXT" |
     "CONDITIONAL_FIELDS" |
     "DOC_TEXT" |
     "ADVANCE_PARAM_LIST" |
-    "GROUP_SECTION"
+    "GROUP_SECTION" |
+    "CONNECTION"
     ;
 
 export interface BaseType {

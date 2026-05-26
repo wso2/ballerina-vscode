@@ -23,10 +23,13 @@ import { FormField } from "../../../Form/types";
 import { ConnectionIconSelect, ConnectionSelectItem } from "../../ConnectionIconSelect";
 import { useFormContext } from "../../../../context";
 
+export type ConnectorFilter = { module?: string; object?: string };
+
 interface ConnectionSelectEditorProps {
     value: string;
     field: FormField;
     onChange: (value: string, cursorPosition: number) => void;
+    connectorFilters?: ConnectorFilter[];
 }
 
 // Cache icon URLs by module name across remounts to avoid icon flicker
@@ -61,7 +64,7 @@ function ensureValueInItems(
     ];
 }
 
-export const ConnectionSelectEditor: React.FC<ConnectionSelectEditorProps> = ({ value, field, onChange }) => {
+export const ConnectionSelectEditor: React.FC<ConnectionSelectEditorProps> = ({ value, field, onChange, connectorFilters }) => {
     const { rpcClient } = useRpcContext();
     const { targetLineRange, fileName } = useFormContext();
 
@@ -69,7 +72,21 @@ export const ConnectionSelectEditor: React.FC<ConnectionSelectEditorProps> = ({ 
     const initialItems: ConnectionSelectItem[] = field.codedata?.initialItems ?? [];
     const staticItems: ConnectionSelectItem[] = field.codedata?.staticItems ?? [];
     const cachedItems = searchNodesKind ? itemsCache.get(searchNodesKind) : undefined;
-    const resolvedItems = [...staticItems, ...(cachedItems ?? enrichWithCachedIcons(initialItems))];
+    const hasFilters = connectorFilters && connectorFilters.length > 0;
+    // Stable string key for effect deps so we re-fetch only when the filter set actually changes.
+    const filterKey = hasFilters
+        ? connectorFilters!.map((f) => `${f.module ?? ""}:${f.object ?? ""}`).join("|")
+        : "";
+    const applyConnectorFilter = (items: ConnectionSelectItem[]): ConnectionSelectItem[] => {
+        if (!hasFilters) return items;
+        return items.filter(item =>
+            connectorFilters!.some((filter) =>
+                (!filter.module || item.codedata?.module === filter.module) &&
+                (!filter.object || item.codedata?.object === filter.object)
+            )
+        );
+    };
+    const resolvedItems = applyConnectorFilter([...staticItems, ...(cachedItems ?? enrichWithCachedIcons(initialItems))]);
     const [selectItems, setSelectItems] = useState<ConnectionSelectItem[]>(
         ensureValueInItems(resolvedItems, value, searchNodesKind)
     );
@@ -104,7 +121,7 @@ export const ConnectionSelectEditor: React.FC<ConnectionSelectEditorProps> = ({ 
                     };
                 });
             itemsCache.set(searchNodesKind, items);
-            setSelectItems([...staticItems, ...items]);
+            setSelectItems(applyConnectorFilter([...staticItems, ...items]));
         }).finally(() => {
             setLoading(false);
         });
@@ -112,7 +129,7 @@ export const ConnectionSelectEditor: React.FC<ConnectionSelectEditorProps> = ({ 
 
     useEffect(() => {
         fetchItems();
-    }, [searchNodesKind, fileName]);
+    }, [searchNodesKind, fileName, filterKey]);
 
     // When value changes to something not in the current items (e.g. after creating
     // a new connection via an overlay), inject a placeholder and re-fetch
