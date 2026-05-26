@@ -170,16 +170,6 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
             disabled: true,
             onOpenPanel: () => props.onNavigate?.("skills"),
         },
-        {
-            id: "agents",
-            icon: <span className="codicon codicon-file" style={{ fontSize: 16 }} />,
-            label: "Agent instructions",
-            subtitle: "Coming soon",
-            disabled: true,
-            toggle: { on: false, onToggle: () => { /* noop */ } },
-            onEditFile: () => { /* noop */ },
-            editFileTitle: "Edit AGENTS.md",
-        },
     ];
 
     const handleCopilotLogout = () => {
