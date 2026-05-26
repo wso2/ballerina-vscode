@@ -78,6 +78,7 @@ import Footer from "./Footer";
 import { AgentMode } from "../AIChatInput/ModeToggle";
 import CommonApprovalFooter from "./Footer/CommonApprovalFooter";
 import ClarifyFooter from "./Footer/ClarifyFooter";
+import SkillSaveFooter from "./Footer/SkillSaveFooter";
 import { useFooterLogic } from "./Footer/useFooterLogic";
 import { SettingsPanel } from "../../SettingsPanel";
 import WelcomeMessage from "./Welcome";
@@ -797,6 +798,33 @@ const AIChat: React.FC = () => {
                     return { ...entry, items: entry.items.map((item, i) => i === idx ? { kind: "ask" as const, data: clarifyData } : item) };
                 });
                 if (!found) updated = appendToLastEntry(entries, { kind: "ask", data: clarifyData });
+                msgs[targetIndex] = { ...last, content: serializeStream(updated, last.content) };
+                return msgs;
+            });
+
+        } else if (type === "skill_save_event") {
+            const skillSaveNotification = response as any;
+            const skillSaveData = {
+                requestId: skillSaveNotification.requestId,
+                stage: skillSaveNotification.stage,
+                name: skillSaveNotification.name,
+                trigger: skillSaveNotification.trigger,
+                body: skillSaveNotification.body,
+                tier: skillSaveNotification.tier,
+            };
+            setMessages(prevMessages => {
+                const msgs = [...prevMessages];
+                const targetIndex = ensureAssistantMessage(msgs);
+                const last = msgs[targetIndex];
+                const entries = parseStream(last.content);
+                let found = false;
+                let updated = entries.map(entry => {
+                    const idx = entry.items.findIndex(item => item.kind === "skill_save" && (item.data as any)?.requestId === skillSaveData.requestId);
+                    if (idx === -1) return entry;
+                    found = true;
+                    return { ...entry, items: entry.items.map((item, i) => i === idx ? { kind: "skill_save" as const, data: skillSaveData } : item) };
+                });
+                if (!found) updated = appendToLastEntry(entries, { kind: "skill_save", data: skillSaveData });
                 msgs[targetIndex] = { ...last, content: serializeStream(updated, last.content) };
                 return msgs;
             });
@@ -2147,11 +2175,26 @@ const AIChat: React.FC = () => {
                             (item: StreamItem) => item.kind === "ask" && (item as any).data?.stage === "asking"
                         ) as { kind: "ask"; data: { requestId: string; questions: any[] } } | undefined;
 
+                        const activeSkillSaveItem = lastStreamItems.find(
+                            (item: StreamItem) => item.kind === "skill_save" && (item as any).data?.stage === "prompting"
+                        ) as { kind: "skill_save"; data: { requestId: string; name: string; trigger: string; body?: string } } | undefined;
+
                         if (activeClarifyItem) {
                             return (
                                 <ClarifyFooter
                                     questions={activeClarifyItem.data.questions}
                                     requestId={activeClarifyItem.data.requestId}
+                                    rpcClient={rpcClient}
+                                />
+                            );
+                        }
+                        if (activeSkillSaveItem) {
+                            return (
+                                <SkillSaveFooter
+                                    requestId={activeSkillSaveItem.data.requestId}
+                                    name={activeSkillSaveItem.data.name}
+                                    trigger={activeSkillSaveItem.data.trigger}
+                                    body={activeSkillSaveItem.data.body}
                                     rpcClient={rpcClient}
                                 />
                             );

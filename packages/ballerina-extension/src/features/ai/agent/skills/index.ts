@@ -16,11 +16,13 @@
 
 import { Skill, CustomSkillMeta } from './types';
 import { dataMapSkill } from './data-map';
+import { skillCreatorSkill } from './skill-creator';
 
 export type { Skill, CustomSkillMeta };
 
 export const REGISTERED_SKILLS: Skill[] = [
     dataMapSkill,
+    skillCreatorSkill,
 ];
 
 function formatSkill(skill: Skill | CustomSkillMeta): string {

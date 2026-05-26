@@ -59,6 +59,8 @@ import {
     AddSkillRequest,
     ToggleSkillRequest,
     DeleteSkillRequest,
+    SkillSaveRequest,
+    SkillSaveCancelRequest,
     SkillEntry,
     AvailableProject,
     ProjectSource,
@@ -1000,6 +1002,34 @@ User reverted the last made changes. The files have been restored to the state b
             console.error('[Skills] deleteSkill failed:', error);
             return false;
         }
+    }
+
+    async saveSkillFromChat(params: SkillSaveRequest): Promise<boolean> {
+        try {
+            const draft = approvalManager.getSkillDraft(params.requestId);
+            if (!draft) {
+                console.warn('[Skills] saveSkillFromChat: no pending draft for request', params.requestId);
+                return false;
+            }
+            if (params.tier === 'user') {
+                writeUserSkill(draft.name, draft.trigger, draft.body);
+            } else {
+                const projectRootPath = resolveProjectRootPath();
+                if (!projectRootPath) { return false; }
+                const packagePath = params.scope === 'integration' ? (params.packagePath ?? null) : null;
+                writeCustomSkill(projectRootPath, packagePath, draft.name, draft.trigger, draft.body);
+            }
+            approvalManager.resolveSkillSave(params.requestId, true, params.tier);
+            return true;
+        } catch (error) {
+            console.error('[Skills] saveSkillFromChat failed:', error);
+            approvalManager.resolveSkillSave(params.requestId, false);
+            return false;
+        }
+    }
+
+    async cancelSkillSave(params: SkillSaveCancelRequest): Promise<void> {
+        approvalManager.resolveSkillSave(params.requestId, false);
     }
 
     private scanPackages(projectRootPath: string): AvailableProject[] {

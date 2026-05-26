@@ -62,6 +62,8 @@ import {
     AddSkillRequest,
     ToggleSkillRequest,
     DeleteSkillRequest,
+    SkillSaveRequest,
+    SkillSaveCancelRequest,
 } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
@@ -129,3 +131,5 @@ export const getSkills: RequestType<void, GetSkillsResponse> = { method: `${_pre
 export const addSkill: RequestType<AddSkillRequest, boolean> = { method: `${_preFix}/addSkill` };
 export const toggleSkill: RequestType<ToggleSkillRequest, boolean> = { method: `${_preFix}/toggleSkill` };
 export const deleteSkill: RequestType<DeleteSkillRequest, boolean> = { method: `${_preFix}/deleteSkill` };
+export const saveSkillFromChat: RequestType<SkillSaveRequest, boolean> = { method: `${_preFix}/saveSkillFromChat` };
+export const cancelSkillSave: RequestType<SkillSaveCancelRequest, void> = { method: `${_preFix}/cancelSkillSave` };

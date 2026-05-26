@@ -60,6 +60,8 @@ import {
     AddSkillRequest,
     ToggleSkillRequest,
     DeleteSkillRequest,
+    SkillSaveRequest,
+    SkillSaveCancelRequest,
 } from "./interfaces";
 
 export interface AIPanelAPI {
@@ -151,4 +153,6 @@ export interface AIPanelAPI {
     addSkill: (params: AddSkillRequest) => Promise<boolean>;
     toggleSkill: (params: ToggleSkillRequest) => Promise<boolean>;
     deleteSkill: (params: DeleteSkillRequest) => Promise<boolean>;
+    saveSkillFromChat: (params: SkillSaveRequest) => Promise<boolean>;
+    cancelSkillSave: (params: SkillSaveCancelRequest) => Promise<void>;
 }

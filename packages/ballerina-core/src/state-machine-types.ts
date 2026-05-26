@@ -353,6 +353,7 @@ export type ChatNotify =
     | ConnectorGenerationNotification
     | ConfigurationCollectionEvent
     | ClarifyEvent
+    | SkillSaveEvent
     | ChatComponentEvent
     | PlanUpdated
     | CompactionStartEvent
@@ -527,6 +528,16 @@ export interface ClarifyEvent {
     stage: "asking" | "answered" | "skipped";
     questions: ClarifyQuestion[];
     answers?: Array<{ question: string; answers: string[] }>;
+}
+
+export interface SkillSaveEvent {
+    type: "skill_save_event";
+    requestId: string;
+    stage: "prompting" | "saved" | "cancelled";
+    name: string;
+    trigger: string;
+    body?: string;
+    tier?: "user" | "custom";
 }
 
 export interface ChatComponentEvent {

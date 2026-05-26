@@ -595,6 +595,18 @@ export interface ToggleSkillRequest {
     enabled: boolean;
     tier: 'builtin' | 'custom' | 'user';
 }
+
+export interface SkillSaveRequest {
+    requestId: string;
+    tier: 'user' | 'custom';
+    scope?: 'project' | 'integration';
+    packagePath?: string;
+}
+
+export interface SkillSaveCancelRequest {
+    requestId: string;
+}
+
 // ==================================
 // Compaction Related Interfaces
 // ==================================

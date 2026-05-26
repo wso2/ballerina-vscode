@@ -110,9 +110,13 @@ import {
     addSkill,
     toggleSkill,
     deleteSkill,
+    saveSkillFromChat,
+    cancelSkillSave,
     AddSkillRequest,
     ToggleSkillRequest,
     DeleteSkillRequest,
+    SkillSaveRequest,
+    SkillSaveCancelRequest,
 } from "@wso2/ballerina-core";
 import { workspace } from 'vscode';
 import { Messenger } from "vscode-messenger";
@@ -193,6 +197,8 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(addSkill, (args: AddSkillRequest) => rpcManger.addSkill(args));
     messenger.onRequest(toggleSkill, (args: ToggleSkillRequest) => rpcManger.toggleSkill(args));
     messenger.onRequest(deleteSkill, (args: DeleteSkillRequest) => rpcManger.deleteSkill(args));
+    messenger.onRequest(saveSkillFromChat, (args: SkillSaveRequest) => rpcManger.saveSkillFromChat(args));
+    messenger.onRequest(cancelSkillSave, (args: SkillSaveCancelRequest) => rpcManger.cancelSkillSave(args));
 
     // Push updates to the webview whenever the set of running services changes.
     runningServicesManager.onChange = (services) => {

@@ -121,10 +121,14 @@ import {
     addSkill,
     toggleSkill,
     deleteSkill,
+    saveSkillFromChat,
+    cancelSkillSave,
     GetSkillsResponse,
     AddSkillRequest,
     ToggleSkillRequest,
     DeleteSkillRequest,
+    SkillSaveRequest,
+    SkillSaveCancelRequest,
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -384,5 +388,13 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     deleteSkill(params: DeleteSkillRequest): Promise<boolean> {
         return this._messenger.sendRequest(deleteSkill, HOST_EXTENSION, params);
+    }
+
+    saveSkillFromChat(params: SkillSaveRequest): Promise<boolean> {
+        return this._messenger.sendRequest(saveSkillFromChat, HOST_EXTENSION, params);
+    }
+
+    cancelSkillSave(params: SkillSaveCancelRequest): Promise<void> {
+        return this._messenger.sendRequest(cancelSkillSave, HOST_EXTENSION, params);
     }
 }
