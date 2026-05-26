@@ -1,0 +1,142 @@
+/**
+ * Rush configuration for the ballerina-vscode monorepo.
+ */
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/rush/v5/rush.schema.json",
+  "rushVersion": "5.155.1",
+  "pnpmVersion": "10.11.0",
+  "nodeSupportedVersionRange": ">=20.0.0 <23.0.0",
+  "projectFolderMinDepth": 2,
+  "projectFolderMaxDepth": 5,
+  "allowMostlyStandardPackageNames": true,
+  "projects": [
+    // Ballerina packages (moved from wso2-vscode-extensions/workspaces/ballerina)
+    {
+      "packageName": "@wso2/ballerina-core",
+      "projectFolder": "packages/ballerina-core",
+      "versionPolicyName": "ballerina-extension"
+    },
+    {
+      "packageName": "@wso2/ballerina-rpc-client",
+      "projectFolder": "packages/ballerina-rpc-client",
+      "versionPolicyName": "ballerina-extension"
+    },
+    {
+      "packageName": "@wso2/ballerina-low-code-diagram",
+      "projectFolder": "packages/ballerina-low-code-diagram",
+      "versionPolicyName": "ballerina-extension"
+    },
+    {
+      "packageName": "@wso2/ballerina-side-panel",
+      "projectFolder": "packages/ballerina-side-panel",
+      "versionPolicyName": "ballerina-extension"
+    },
+    {
+      "packageName": "@wso2/ballerina-visualizer",
+      "projectFolder": "packages/ballerina-visualizer",
+      "versionPolicyName": "ballerina-extension"
+    },
+    {
+      "packageName": "@wso2/trace-visualizer",
+      "projectFolder": "packages/trace-visualizer",
+      "versionPolicyName": "ballerina-extension"
+    },
+    {
+      "packageName": "@wso2/overview-view",
+      "projectFolder": "packages/overview-view",
+      "versionPolicyName": "ballerina-extension"
+    },
+    {
+      "packageName": "@wso2/ballerina-data-mapper",
+      "projectFolder": "packages/data-mapper",
+      "versionPolicyName": "ballerina-extension"
+    },
+    {
+      "packageName": "@wso2/persist-layer-diagram",
+      "projectFolder": "packages/persist-layer-diagram",
+      "versionPolicyName": "ballerina-extension"
+    },
+    {
+      "packageName": "@wso2/type-diagram",
+      "projectFolder": "packages/type-diagram",
+      "versionPolicyName": "ballerina-extension"
+    },
+    {
+      "packageName": "@wso2/ballerina-statement-editor",
+      "projectFolder": "packages/statement-editor",
+      "versionPolicyName": "ballerina-extension"
+    },
+    {
+      "packageName": "@wso2/syntax-tree",
+      "projectFolder": "packages/syntax-tree",
+      "versionPolicyName": "ballerina-extension"
+    },
+    {
+      "packageName": "@wso2/bi-diagram",
+      "projectFolder": "packages/bi-diagram",
+      "versionPolicyName": "ballerina-extension"
+    },
+    {
+      "packageName": "@wso2/sequence-diagram",
+      "projectFolder": "packages/sequence-diagram",
+      "versionPolicyName": "ballerina-extension"
+    },
+    {
+      "packageName": "@wso2/component-diagram",
+      "projectFolder": "packages/component-diagram",
+      "versionPolicyName": "ballerina-extension"
+    },
+    {
+      "packageName": "@wso2/record-creator",
+      "projectFolder": "packages/record-creator",
+      "versionPolicyName": "ballerina-extension"
+    },
+    {
+      "packageName": "@wso2/type-editor",
+      "projectFolder": "packages/type-editor",
+      "versionPolicyName": "ballerina-extension"
+    },
+    {
+      "packageName": "graphqlview-lib",
+      "projectFolder": "packages/graphql",
+      "versionPolicyName": "ballerina-extension"
+    },
+    {
+      "packageName": "@wso2/ballerina-graphql-design-diagram",
+      "projectFolder": "packages/graphql-design-diagram",
+      "versionPolicyName": "ballerina-extension"
+    },
+    {
+      "packageName": "ballerina",
+      "projectFolder": "packages/ballerina-extension",
+      "versionPolicyName": "ballerina-extension"
+    },
+    // Ballerina grammar (was submodule; now first-class package)
+    {
+      "packageName": "ballerina-grammar",
+      "projectFolder": "packages/ballerina-grammar"
+    },
+    // Ballerina language server (Gradle build, wired via custom command)
+    {
+      "packageName": "ballerina-language-server",
+      "projectFolder": "packages/ballerina-language-server"
+    },
+    // Common libs sourced from the wso2-vscode-extensions submodule
+    {
+      "packageName": "@wso2/font-wso2-vscode",
+      "projectFolder": "submodules/wso2-vscode-extensions/workspaces/common-libs/font-wso2-vscode"
+    },
+    {
+      "packageName": "@wso2/ui-toolkit",
+      "projectFolder": "submodules/wso2-vscode-extensions/workspaces/common-libs/ui-toolkit"
+    },
+    {
+      "packageName": "@wso2/playwright-vscode-tester",
+      "projectFolder": "submodules/wso2-vscode-extensions/workspaces/common-libs/playwright-vscode-tester"
+    },
+    {
+      "packageName": "@wso2/copilot-utilities",
+      "projectFolder": "submodules/wso2-vscode-extensions/workspaces/common-libs/copilot-utilities"
+    }
+  ]
+}
