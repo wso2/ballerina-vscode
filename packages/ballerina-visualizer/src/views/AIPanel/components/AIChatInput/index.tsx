@@ -37,6 +37,7 @@ import { getAllCommands, getTags, getTemplateDefinitionsByCommand } from "../../
 import { PlaceholderTagMap } from "../../commandTemplates/data/placeholderTags.const";
 import ContextUsageWidget from "../AIChat/compaction/ContextUsageWidget";
 import RunningServicesChip, { RunningServicesPanel } from "./RunningServicesChip";
+import McpToolsChip from "./McpToolsChip";
 
 // Styled Components
 const Container = styled.div`
@@ -139,6 +140,8 @@ interface AIChatInputProps {
     onToggleWebSearch?: () => void;
     disabled?: boolean;
     contextUsage?: { inputTokens: number; percentage: number; breakdown?: { systemInstructions: number; toolDefinitions: number; reservedOutput: number; files: number; messages: number; toolResults: number } } | null;
+    mcpToolsEnabled?: boolean;
+    onOpenMcpManager?: () => void;
     runningServicesPanel?: RunningServicesPanel;
 }
 
@@ -146,7 +149,7 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
     ({ initialCommandTemplate, tagOptions, attachmentOptions, placeholder, onSend, onStop, isLoading,
        agentMode = AgentMode.Edit, onChangeAgentMode, isAutoApproveEnabled = false, onDisableAutoApprove,
        isWebToolsEnabled = false, onToggleWebSearch, disabled,
-       contextUsage, runningServicesPanel }, ref) => {        const [inputValue, setInputValue] = useState<{
+       contextUsage, mcpToolsEnabled = false, onOpenMcpManager, runningServicesPanel }, ref) => {        const [inputValue, setInputValue] = useState<{
             text: string;
             [key: string]: any;
         }>({
@@ -592,6 +595,9 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
                                 )}
                             </div>
                             <div style={{ display: "flex", alignItems: "center" }}>
+                                {mcpToolsEnabled && (
+                                    <McpToolsChip mcpToolsEnabled={mcpToolsEnabled} onOpenMcpManager={onOpenMcpManager ?? (() => {})} />
+                                )}
                                 {runningServicesPanel && runningServicesPanel.services.length > 0 && (
                                     <RunningServicesChip {...runningServicesPanel} />
                                 )}

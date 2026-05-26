@@ -58,6 +58,18 @@ import {
     RunningServiceInfo,
     StopRunningServiceRequest,
     RunServiceRequest,
+    McpServerStatusDTO,
+    SetMcpServerEnabledRequest,
+    AddMcpServerRequest,
+    AddMcpServerResponse,
+    OpenMcpConfigRequest,
+    McpWorkspaceContextResponse,
+    UpdateMcpServerRequest,
+    DeleteMcpServerRequest,
+    SetMcpToolsEnabledRequest,
+    McpLoadErrorsDTO,
+    McpGroupStatesDTO,
+    SetMcpGroupEnabledRequest,
 } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
@@ -121,3 +133,18 @@ export const stopRunningService: RequestType<StopRunningServiceRequest, boolean>
 export const runService: RequestType<RunServiceRequest, boolean> = { method: `${_preFix}/runService` };
 export const runningServicesChanged: NotificationType<RunningServiceInfo[]> = { method: `${_preFix}/runningServicesChanged` };
 export const getDefaultVertexCredsPath: RequestType<void, string> = { method: `${_preFix}/getDefaultVertexCredsPath` };
+export const listMcpServers: RequestType<void, McpServerStatusDTO[]> = { method: `${_preFix}/listMcpServers` };
+export const setMcpServerEnabled: RequestType<SetMcpServerEnabledRequest, void> = { method: `${_preFix}/setMcpServerEnabled` };
+export const openMcpConfig: RequestType<OpenMcpConfigRequest, void> = { method: `${_preFix}/openMcpConfig` };
+export const addMcpServer: RequestType<AddMcpServerRequest, AddMcpServerResponse> = { method: `${_preFix}/addMcpServer` };
+export const updateMcpServer: RequestType<UpdateMcpServerRequest, AddMcpServerResponse> = { method: `${_preFix}/updateMcpServer` };
+export const deleteMcpServer: RequestType<DeleteMcpServerRequest, AddMcpServerResponse> = { method: `${_preFix}/deleteMcpServer` };
+export const setMcpToolsEnabled: RequestType<SetMcpToolsEnabledRequest, void> = { method: `${_preFix}/setMcpToolsEnabled` };
+export const getMcpToolsEnabled: RequestType<void, boolean> = { method: `${_preFix}/getMcpToolsEnabled` };
+export const getMcpWorkspaceContext: RequestType<void, McpWorkspaceContextResponse> = { method: `${_preFix}/getMcpWorkspaceContext` };
+export const getMcpLoadErrors: RequestType<void, McpLoadErrorsDTO> = { method: `${_preFix}/getMcpLoadErrors` };
+export const mcpServersChanged: NotificationType<McpServerStatusDTO[]> = { method: `${_preFix}/mcpServersChanged` };
+export const mcpLoadErrorsChanged: NotificationType<McpLoadErrorsDTO> = { method: `${_preFix}/mcpLoadErrorsChanged` };
+export const getMcpGroupStates: RequestType<void, McpGroupStatesDTO> = { method: `${_preFix}/getMcpGroupStates` };
+export const setMcpGroupEnabled: RequestType<SetMcpGroupEnabledRequest, void> = { method: `${_preFix}/setMcpGroupEnabled` };
+export const mcpGroupStatesChanged: NotificationType<McpGroupStatesDTO> = { method: `${_preFix}/mcpGroupStatesChanged` };

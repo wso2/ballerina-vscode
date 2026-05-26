@@ -72,11 +72,22 @@ const TOOL_ICON_MAP: Record<string, ToolIconEntry> = {
     ConnectorGeneratorTool:        { loading: "codicon-plug" },
 };
 const DEFAULT_TOOL_ICON = "codicon-symbol-property";
+const MCP_TOOL_PREFIX = "mcp__";
+const MCP_TOOL_ICON = "codicon-plug";
 
 function getToolIcon(toolName: string | undefined, state: "loading" | "done" = "loading"): string {
+    if (toolName && toolName.startsWith(MCP_TOOL_PREFIX)) return MCP_TOOL_ICON;
     const entry = toolName ? TOOL_ICON_MAP[toolName] : undefined;
     if (!entry) return DEFAULT_TOOL_ICON;
     return state === "done" ? (entry.done ?? entry.loading) : entry.loading;
+}
+
+function parseMcpName(toolName: string): { server: string; tool: string } | null {
+    if (!toolName.startsWith(MCP_TOOL_PREFIX)) return null;
+    const rest = toolName.slice(MCP_TOOL_PREFIX.length);
+    const sepIdx = rest.indexOf("__");
+    if (sepIdx <= 0) return null;
+    return { server: rest.slice(0, sepIdx), tool: rest.slice(sepIdx + 2) };
 }
 
 function getToolResultIcon(toolName: string | undefined, toolOutput: any): string {
@@ -96,6 +107,10 @@ function getFileName(filePath: string | undefined): string {
 }
 
 function getToolCallDisplay(toolName: string | undefined, toolInput: any): { label: string; detail?: string } {
+    if (toolName) {
+        const mcp = parseMcpName(toolName);
+        if (mcp) return { label: `Calling ${mcp.server} · ${mcp.tool}...` };
+    }
     switch (toolName) {
         case "file_read":    return { label: "Reading",   detail: getFileName(toolInput?.fileName) + "..." };
         case "file_write":   return { label: "Creating",  detail: getFileName(toolInput?.fileName) + "..." };
@@ -124,6 +139,10 @@ function getToolCallDisplay(toolName: string | undefined, toolInput: any): { lab
 }
 
 function getToolResultDisplay(toolName: string | undefined, toolOutput: any, hint?: string): { label: string; detail?: string } {
+    if (toolName) {
+        const mcp = parseMcpName(toolName);
+        if (mcp) return { label: `${mcp.server} · ${mcp.tool}` };
+    }
     switch (toolName) {
         case "file_read":    return { label: "Read",    detail: getFileName(toolOutput?.fileName) };
         case "file_write":   return { label: toolOutput?.action === "updated" ? "Updated" : "Created", detail: getFileName(toolOutput?.fileName) };

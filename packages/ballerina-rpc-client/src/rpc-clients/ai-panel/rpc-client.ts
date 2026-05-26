@@ -117,6 +117,30 @@ import {
     RunServiceRequest,
     runService,
     getDefaultVertexCredsPath,
+    listMcpServers,
+    setMcpServerEnabled,
+    openMcpConfig,
+    addMcpServer,
+    updateMcpServer,
+    deleteMcpServer,
+    setMcpToolsEnabled,
+    getMcpToolsEnabled,
+    getMcpWorkspaceContext,
+    getMcpLoadErrors,
+    getMcpGroupStates,
+    setMcpGroupEnabled,
+    McpServerStatusDTO,
+    SetMcpServerEnabledRequest,
+    AddMcpServerRequest,
+    AddMcpServerResponse,
+    OpenMcpConfigRequest,
+    McpWorkspaceContextResponse,
+    UpdateMcpServerRequest,
+    DeleteMcpServerRequest,
+    SetMcpToolsEnabledRequest,
+    McpLoadErrorsDTO,
+    McpGroupStatesDTO,
+    SetMcpGroupEnabledRequest,
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -360,5 +384,53 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     getDefaultVertexCredsPath(): Promise<string> {
         return this._messenger.sendRequest(getDefaultVertexCredsPath, HOST_EXTENSION);
+    }
+
+    listMcpServers(): Promise<McpServerStatusDTO[]> {
+        return this._messenger.sendRequest(listMcpServers, HOST_EXTENSION);
+    }
+
+    setMcpServerEnabled(params: SetMcpServerEnabledRequest): Promise<void> {
+        return this._messenger.sendRequest(setMcpServerEnabled, HOST_EXTENSION, params);
+    }
+
+    openMcpConfig(params: OpenMcpConfigRequest): Promise<void> {
+        return this._messenger.sendRequest(openMcpConfig, HOST_EXTENSION, params);
+    }
+
+    addMcpServer(params: AddMcpServerRequest): Promise<AddMcpServerResponse> {
+        return this._messenger.sendRequest(addMcpServer, HOST_EXTENSION, params);
+    }
+
+    updateMcpServer(params: UpdateMcpServerRequest): Promise<AddMcpServerResponse> {
+        return this._messenger.sendRequest(updateMcpServer, HOST_EXTENSION, params);
+    }
+
+    deleteMcpServer(params: DeleteMcpServerRequest): Promise<AddMcpServerResponse> {
+        return this._messenger.sendRequest(deleteMcpServer, HOST_EXTENSION, params);
+    }
+
+    setMcpToolsEnabled(params: SetMcpToolsEnabledRequest): Promise<void> {
+        return this._messenger.sendRequest(setMcpToolsEnabled, HOST_EXTENSION, params);
+    }
+
+    getMcpToolsEnabled(): Promise<boolean> {
+        return this._messenger.sendRequest(getMcpToolsEnabled, HOST_EXTENSION);
+    }
+
+    getMcpWorkspaceContext(): Promise<McpWorkspaceContextResponse> {
+        return this._messenger.sendRequest(getMcpWorkspaceContext, HOST_EXTENSION);
+    }
+
+    getMcpLoadErrors(): Promise<McpLoadErrorsDTO> {
+        return this._messenger.sendRequest(getMcpLoadErrors, HOST_EXTENSION);
+    }
+
+    getMcpGroupStates(): Promise<McpGroupStatesDTO> {
+        return this._messenger.sendRequest(getMcpGroupStates, HOST_EXTENSION);
+    }
+
+    setMcpGroupEnabled(params: SetMcpGroupEnabledRequest): Promise<void> {
+        return this._messenger.sendRequest(setMcpGroupEnabled, HOST_EXTENSION, params);
     }
 }
