@@ -595,7 +595,9 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
                                 )}
                             </div>
                             <div style={{ display: "flex", alignItems: "center" }}>
-                                <McpToolsChip mcpToolsEnabled={mcpToolsEnabled} onOpenMcpManager={onOpenMcpManager ?? (() => {})} />
+                                {mcpToolsEnabled && (
+                                    <McpToolsChip mcpToolsEnabled={mcpToolsEnabled} onOpenMcpManager={onOpenMcpManager ?? (() => {})} />
+                                )}
                                 {runningServicesPanel && runningServicesPanel.services.length > 0 && (
                                     <RunningServicesChip {...runningServicesPanel} />
                                 )}
