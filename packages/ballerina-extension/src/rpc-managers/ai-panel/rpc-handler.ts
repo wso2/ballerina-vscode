@@ -117,6 +117,25 @@ import {
     DeleteSkillRequest,
     SkillSaveRequest,
     SkillSaveCancelRequest,
+    listMcpServers,
+    setMcpServerEnabled,
+    SetMcpServerEnabledRequest,
+    openMcpConfig,
+    addMcpServer,
+    AddMcpServerRequest,
+    updateMcpServer,
+    UpdateMcpServerRequest,
+    deleteMcpServer,
+    DeleteMcpServerRequest,
+    setMcpToolsEnabled,
+    SetMcpToolsEnabledRequest,
+    getMcpToolsEnabled,
+    getMcpWorkspaceContext,
+    getMcpLoadErrors,
+    getMcpGroupStates,
+    setMcpGroupEnabled,
+    SetMcpGroupEnabledRequest,
+    OpenMcpConfigRequest,
 } from "@wso2/ballerina-core";
 import { workspace } from 'vscode';
 import { Messenger } from "vscode-messenger";
@@ -199,6 +218,18 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(deleteSkill, (args: DeleteSkillRequest) => rpcManger.deleteSkill(args));
     messenger.onRequest(saveSkillFromChat, (args: SkillSaveRequest) => rpcManger.saveSkillFromChat(args));
     messenger.onRequest(cancelSkillSave, (args: SkillSaveCancelRequest) => rpcManger.cancelSkillSave(args));
+    messenger.onRequest(listMcpServers, () => rpcManger.listMcpServers());
+    messenger.onRequest(setMcpServerEnabled, (args: SetMcpServerEnabledRequest) => rpcManger.setMcpServerEnabled(args));
+    messenger.onRequest(openMcpConfig, (args: OpenMcpConfigRequest) => rpcManger.openMcpConfig(args));
+    messenger.onRequest(addMcpServer, (args: AddMcpServerRequest) => rpcManger.addMcpServer(args));
+    messenger.onRequest(updateMcpServer, (args: UpdateMcpServerRequest) => rpcManger.updateMcpServer(args));
+    messenger.onRequest(deleteMcpServer, (args: DeleteMcpServerRequest) => rpcManger.deleteMcpServer(args));
+    messenger.onRequest(setMcpToolsEnabled, (args: SetMcpToolsEnabledRequest) => rpcManger.setMcpToolsEnabled(args));
+    messenger.onRequest(getMcpToolsEnabled, () => rpcManger.getMcpToolsEnabled());
+    messenger.onRequest(getMcpWorkspaceContext, () => rpcManger.getMcpWorkspaceContext());
+    messenger.onRequest(getMcpLoadErrors, () => rpcManger.getMcpLoadErrors());
+    messenger.onRequest(getMcpGroupStates, () => rpcManger.getMcpGroupStates());
+    messenger.onRequest(setMcpGroupEnabled, (args: SetMcpGroupEnabledRequest) => rpcManger.setMcpGroupEnabled(args));
 
     // Push updates to the webview whenever the set of running services changes.
     runningServicesManager.onChange = (services) => {

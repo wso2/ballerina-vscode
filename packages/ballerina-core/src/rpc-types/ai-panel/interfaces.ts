@@ -652,3 +652,76 @@ export interface PromptEnhancementResponse {
     enhancedPrompt: string;
 }
 
+// ==================================
+// MCP (Model Context Protocol) tool support
+// ==================================
+export type McpTransportType = "stdio" | "http";
+export type McpConnectionStatus = "disconnected" | "connecting" | "connected" | "failed";
+export type McpScope = "user" | "workspace";
+export interface McpToolSummaryDTO {
+    name: string;
+    description?: string;
+}
+export type McpServerConfigDTO =
+    | { type: "stdio"; command: string; args?: string[]; env?: Record<string, string> }
+    | { type: "http"; url: string; headers?: Record<string, string> };
+export interface McpServerStatusDTO {
+    name: string;
+    scope: McpScope;
+    transport: McpTransportType;
+    enabled: boolean;
+    status: McpConnectionStatus;
+    error?: string;
+    tools: McpToolSummaryDTO[];
+    /** Raw config as stored on disk — used by the Edit dialog to pre-fill fields. */
+    config: McpServerConfigDTO;
+    /** True when this user-scope server is shadowed by a same-named workspace-scope server. */
+    shadowed?: boolean;
+}
+export interface SetMcpServerEnabledRequest {
+    name: string;
+    scope: McpScope;
+    enabled: boolean;
+}
+export interface AddMcpServerRequest {
+    name: string;
+    scope: McpScope;
+    config: McpServerConfigDTO;
+}
+export interface AddMcpServerResponse {
+    success: boolean;
+    error?: string;
+}
+export interface OpenMcpConfigRequest {
+    scope: McpScope;
+}
+export interface McpWorkspaceContextResponse {
+    hasWorkspace: boolean;
+}
+export interface UpdateMcpServerRequest {
+    name: string;
+    scope: McpScope;
+    config: McpServerConfigDTO;
+}
+export interface DeleteMcpServerRequest {
+    name: string;
+    scope: McpScope;
+}
+export interface SetMcpToolsEnabledRequest {
+    enabled: boolean;
+}
+/** Per-scope parse / read errors for `mcp.json` files. Both fields are optional — missing means OK. */
+export interface McpLoadErrorsDTO {
+    user?: string;
+    workspace?: string;
+}
+/** Per-scope group enable state. ANDs with each server's own intent to decide the effective state. */
+export interface McpGroupStatesDTO {
+    user: boolean;
+    workspace: boolean;
+}
+export interface SetMcpGroupEnabledRequest {
+    scope: McpScope;
+    enabled: boolean;
+}
+

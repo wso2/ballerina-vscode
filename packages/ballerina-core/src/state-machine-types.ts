@@ -576,7 +576,7 @@ export interface CompactionDisabledEvent {
 /** Fired when a VS Code configuration setting relevant to the AI panel changes */
 export interface ConfigChangeEvent {
     type: 'config_change';
-    key: 'showContextUsage';
+    key: 'showContextUsage' | 'mcpToolsEnabled';
     value: boolean;
 }
 

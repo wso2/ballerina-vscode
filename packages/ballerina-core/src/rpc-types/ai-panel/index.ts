@@ -62,6 +62,18 @@ import {
     DeleteSkillRequest,
     SkillSaveRequest,
     SkillSaveCancelRequest,
+    McpServerStatusDTO,
+    SetMcpServerEnabledRequest,
+    AddMcpServerRequest,
+    AddMcpServerResponse,
+    OpenMcpConfigRequest,
+    McpWorkspaceContextResponse,
+    UpdateMcpServerRequest,
+    DeleteMcpServerRequest,
+    SetMcpToolsEnabledRequest,
+    McpLoadErrorsDTO,
+    McpGroupStatesDTO,
+    SetMcpGroupEnabledRequest,
 } from "./interfaces";
 
 export interface AIPanelAPI {
@@ -155,4 +167,19 @@ export interface AIPanelAPI {
     deleteSkill: (params: DeleteSkillRequest) => Promise<boolean>;
     saveSkillFromChat: (params: SkillSaveRequest) => Promise<boolean>;
     cancelSkillSave: (params: SkillSaveCancelRequest) => Promise<void>;
+    // ==================================
+    // MCP tool support
+    // ==================================
+    listMcpServers: () => Promise<McpServerStatusDTO[]>;
+    setMcpServerEnabled: (params: SetMcpServerEnabledRequest) => Promise<void>;
+    openMcpConfig: (params: OpenMcpConfigRequest) => Promise<void>;
+    addMcpServer: (params: AddMcpServerRequest) => Promise<AddMcpServerResponse>;
+    updateMcpServer: (params: UpdateMcpServerRequest) => Promise<AddMcpServerResponse>;
+    deleteMcpServer: (params: DeleteMcpServerRequest) => Promise<AddMcpServerResponse>;
+    setMcpToolsEnabled: (params: SetMcpToolsEnabledRequest) => Promise<void>;
+    getMcpToolsEnabled: () => Promise<boolean>;
+    getMcpWorkspaceContext: () => Promise<McpWorkspaceContextResponse>;
+    getMcpLoadErrors: () => Promise<McpLoadErrorsDTO>;
+    getMcpGroupStates: () => Promise<McpGroupStatesDTO>;
+    setMcpGroupEnabled: (params: SetMcpGroupEnabledRequest) => Promise<void>;
 }

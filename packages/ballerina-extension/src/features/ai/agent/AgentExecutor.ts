@@ -31,6 +31,7 @@ import { getSkillsConfig, GLOBAL_SKILLS_CONFIG_PATH } from './tools/skill-tool/s
 import { SKILL_TOOL_NAME } from './tools/skill-tool/index';
 import { CustomSkillMeta } from './skills/types';
 
+import { getMcpClientManager } from './mcp';
 import { getProjectSource, cleanupTempProject } from '../utils/project/temp-project';
 import { integrateCodeToWorkspace } from './utils';
 import { getWorkspaceTomlValues } from '../../../utils';
@@ -333,6 +334,16 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             // Accumulator for token usage from tool-internal LLM calls (e.g. Haiku filtering)
             // These are separate API calls NOT included in the main agent loop's totalUsage
             const toolModelUsage: Record<string, { inputTokens: number; outputTokens: number }> = {};
+
+            // Refresh MCP server connections so any mcp.json edits since the last turn take effect.
+            const mcpMgr = getMcpClientManager();
+            if (mcpMgr) {
+                try {
+                    await mcpMgr.refresh();
+                } catch (err) {
+                    console.warn('[AgentExecutor] MCP refresh failed:', err);
+                }
+            }
 
             // Create tools
             const tools = createToolRegistry({

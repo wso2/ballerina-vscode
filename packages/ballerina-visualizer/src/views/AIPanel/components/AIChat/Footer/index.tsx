@@ -168,6 +168,8 @@ type FooterProps = {
     onOpenSkillsManager?: () => void;
     disabled?: boolean;
     contextUsage?: { inputTokens: number; percentage: number; breakdown?: { systemInstructions: number; toolDefinitions: number; reservedOutput: number; files: number; messages: number; toolResults: number } } | null;
+    mcpToolsEnabled?: boolean;
+    onOpenMcpManager?: () => void;
     runningServicesPanel?: RunningServicesPanel;
 };
 
@@ -193,6 +195,8 @@ const Footer: React.FC<FooterProps> = ({
     onOpenSkillsManager,
     disabled,
     contextUsage,
+    mcpToolsEnabled,
+    onOpenMcpManager,
     runningServicesPanel,
 }) => {
     const footerSuggestedCommandTemplates = suggestedCommandTemplates ?? defaultSuggestedCommandTemplates;
@@ -257,6 +261,8 @@ const Footer: React.FC<FooterProps> = ({
                 onOpenSkillsManager={onOpenSkillsManager}
                 disabled={disabled}
                 contextUsage={contextUsage}
+                mcpToolsEnabled={mcpToolsEnabled}
+                onOpenMcpManager={onOpenMcpManager}
                 runningServicesPanel={runningServicesPanel}
             />
             <DisclaimerText visible={!showSuggestedCommands}>

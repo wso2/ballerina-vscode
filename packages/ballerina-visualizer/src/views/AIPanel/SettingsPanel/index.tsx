@@ -15,13 +15,15 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Button, Codicon } from "@wso2/ui-toolkit";
+import { Button, Codicon, Icon } from "@wso2/ui-toolkit";
 
-import { AIChatView } from "../styles";
-import { AIMachineEventType } from "@wso2/ballerina-core";
+import { AIChatView, DangerActionButton, PrimaryActionButton, SuccessActionButton } from "../styles";
+import { AIMachineEventType, McpServerStatusDTO } from "@wso2/ballerina-core";
+import { CustomizeRow, CustomizeEntry } from "./CustomizeRow";
+import type { PanelRoute } from "../components/AIChat";
 
 // ── Layout ────────────────────────────────────────────────────────────────────
 
@@ -106,68 +108,69 @@ const SettingDescription = styled.span`
     font-family: var(--vscode-font-family);
 `;
 
-// ── Action buttons ────────────────────────────────────────────────────────────
-
-const SignOutButton = styled.button`
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    white-space: nowrap;
-    flex-shrink: 0;
-    font-family: var(--vscode-font-family);
-    transition: color 0.15s ease, border-color 0.15s ease;
-    color: var(--vscode-descriptionForeground);
-    background: transparent;
-    border: 1px solid var(--vscode-panel-border, var(--vscode-input-border));
-    &:hover {
-        color: var(--vscode-errorForeground);
-        border-color: var(--vscode-errorForeground);
-    }
-`;
-
-const CopilotButton = styled.button<{ authorized: boolean }>`
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    white-space: nowrap;
-    flex-shrink: 0;
-    font-family: var(--vscode-font-family);
-    transition: all 0.15s ease;
-
-    ${(props: { authorized: boolean }) => props.authorized ? `
-        color: var(--vscode-charts-green, #388a34);
-        background: transparent;
-        border: 1px solid var(--vscode-charts-green, #388a34);
-        cursor: default;
-        opacity: 0.85;
-    ` : `
-        color: var(--vscode-button-foreground);
-        background: var(--vscode-button-background);
-        border: 1px solid transparent;
-        &:hover { background: var(--vscode-button-hoverBackground); }
-    `}
+const EntryList = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 `;
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export const SettingsPanel = (props: { onClose: () => void }) => {
+interface SettingsPanelProps {
+    onClose: () => void;
+    onNavigate?: (route: PanelRoute) => void;
+    mcpToolsEnabled?: boolean;
+}
+
+export const SettingsPanel = (props: SettingsPanelProps) => {
     const { rpcClient } = useRpcContext();
 
     const [copilotAuthorized, setCopilotAuthorized] = React.useState(false);
+    const [mcpEnabled, setMcpEnabled] = useState(!!props.mcpToolsEnabled);
+    const [mcpServers, setMcpServers] = useState<McpServerStatusDTO[]>([]);
 
     useEffect(() => {
         isCopilotAuthorized().then(setCopilotAuthorized);
     }, []);
+
+    useEffect(() => {
+        let cancelled = false;
+        const api = rpcClient.getAiPanelRpcClient();
+        api.getMcpToolsEnabled().then(v => !cancelled && setMcpEnabled(v)).catch(() => { /* noop */ });
+        if (props.mcpToolsEnabled) {
+            api.listMcpServers().then(list => !cancelled && setMcpServers(list)).catch(() => { /* noop */ });
+        }
+        const dispose = rpcClient.onMcpServersChanged((list: McpServerStatusDTO[]) => {
+            if (!cancelled) setMcpServers(list);
+        });
+        return () => { cancelled = true; dispose(); };
+    }, [rpcClient, props.mcpToolsEnabled]);
+
+    const mcpSubtitle = (() => {
+        if (!mcpEnabled) return "Off";
+        if (mcpServers.length === 0) return "No servers configured";
+        const connected = mcpServers.filter(s => s.status === "connected").length;
+        const tools = mcpServers.reduce((acc, s) => acc + s.tools.length, 0);
+        return `${connected}/${mcpServers.length} connected · ${tools} tool${tools === 1 ? "" : "s"}`;
+    })();
+
+    const customizeEntries: CustomizeEntry[] = [
+        {
+            id: "mcp",
+            icon: <Icon name="PowerPlug" sx={{ fontSize: "18px", display: "flex", alignItems: "center" }} />,
+            label: "MCP servers",
+            subtitle: mcpSubtitle,
+            onOpenPanel: () => props.onNavigate?.("mcp"),
+        },
+        {
+            id: "skills",
+            icon: <span className="codicon codicon-lightbulb-sparkle" style={{ fontSize: 16 }} />,
+            label: "Skills",
+            subtitle: "Coming soon",
+            disabled: true,
+            onOpenPanel: () => props.onNavigate?.("skills"),
+        },
+    ];
 
     const handleCopilotLogout = () => {
         rpcClient.sendAIStateEvent(AIMachineEventType.LOGOUT);
@@ -192,6 +195,16 @@ export const SettingsPanel = (props: { onClose: () => void }) => {
             </PanelHeader>
 
             <PanelContent>
+                {/* Customize Copilot */}
+                <Section>
+                    <SectionHeader>Customize Copilot</SectionHeader>
+                    <EntryList>
+                        {customizeEntries.map(entry => (
+                            <CustomizeRow key={entry.id} entry={entry} />
+                        ))}
+                    </EntryList>
+                </Section>
+
                 {/* Integrations */}
                 <Section>
                     <SectionHeader>Integrations</SectionHeader>
@@ -200,9 +213,16 @@ export const SettingsPanel = (props: { onClose: () => void }) => {
                             <SettingLabel>GitHub Copilot</SettingLabel>
                             <SettingDescription>Enable inline completions via GitHub Copilot</SettingDescription>
                         </SettingInfo>
-                        <CopilotButton authorized={copilotAuthorized} onClick={copilotAuthorized ? undefined : handleAuthorizeCopilot}>
-                            {copilotAuthorized ? "Authorized" : "Authorize"}
-                        </CopilotButton>
+                        {copilotAuthorized ? (
+                            <SuccessActionButton type="button" disabled>
+                                <span className="codicon codicon-check" style={{ fontSize: 12 }} />
+                                Authorized
+                            </SuccessActionButton>
+                        ) : (
+                            <PrimaryActionButton type="button" onClick={handleAuthorizeCopilot}>
+                                Authorize
+                            </PrimaryActionButton>
+                        )}
                     </SettingRow>
                 </Section>
 
@@ -214,10 +234,10 @@ export const SettingsPanel = (props: { onClose: () => void }) => {
                             <SettingLabel>Sign out</SettingLabel>
                             <SettingDescription>End your session and disconnect from AI services</SettingDescription>
                         </SettingInfo>
-                        <SignOutButton onClick={handleCopilotLogout}>
+                        <DangerActionButton type="button" onClick={handleCopilotLogout}>
                             <span className="codicon codicon-sign-out" style={{ fontSize: 12 }} />
                             Sign out
-                        </SignOutButton>
+                        </DangerActionButton>
                     </SettingRow>
                 </Section>
             </PanelContent>

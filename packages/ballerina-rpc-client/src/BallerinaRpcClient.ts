@@ -70,6 +70,12 @@ import {
     WebToolToggle,
     runningServicesChanged,
     RunningServiceInfo,
+    mcpServersChanged,
+    McpServerStatusDTO,
+    mcpLoadErrorsChanged,
+    McpLoadErrorsDTO,
+    mcpGroupStatesChanged,
+    McpGroupStatesDTO,
     evaluationHistoryUpdated
 } from "@wso2/ballerina-core";
 import { LangClientRpcClient } from "./rpc-clients/lang-client/rpc-client";
@@ -110,6 +116,9 @@ export class BallerinaRpcClient {
     private _platformExt: PlatformExtRpcClient;
     private _identifierUpdatedCallbacks = new Set<(response: ProjectStructureArtifactResponse[]) => void>();
     private _runningServicesChangedCallbacks = new Set<(services: RunningServiceInfo[]) => void>();
+    private _mcpServersChangedCallbacks = new Set<(servers: McpServerStatusDTO[]) => void>();
+    private _mcpLoadErrorsChangedCallbacks = new Set<(errors: McpLoadErrorsDTO) => void>();
+    private _mcpGroupStatesChangedCallbacks = new Set<(groups: McpGroupStatesDTO) => void>();
     private _projectContentUpdatedCallbacks = new Set<(state: boolean) => void>();
     private _evaluationHistoryUpdatedCallbacks = new Set<() => void>();
 
@@ -140,6 +149,15 @@ export class BallerinaRpcClient {
         });
         this.messenger.onNotification(runningServicesChanged, (services: RunningServiceInfo[]) => {
             this._runningServicesChangedCallbacks.forEach((callback) => callback(services));
+        });
+        this.messenger.onNotification(mcpServersChanged, (servers: McpServerStatusDTO[]) => {
+            this._mcpServersChangedCallbacks.forEach((callback) => callback(servers));
+        });
+        this.messenger.onNotification(mcpLoadErrorsChanged, (errors: McpLoadErrorsDTO) => {
+            this._mcpLoadErrorsChangedCallbacks.forEach((callback) => callback(errors));
+        });
+        this.messenger.onNotification(mcpGroupStatesChanged, (groups: McpGroupStatesDTO) => {
+            this._mcpGroupStatesChangedCallbacks.forEach((callback) => callback(groups));
         });
         this.messenger.onNotification(projectContentUpdated, (state: boolean) => {
             this._projectContentUpdatedCallbacks.forEach((callback) => callback(state));
@@ -352,6 +370,27 @@ export class BallerinaRpcClient {
         this._runningServicesChangedCallbacks.add(callback);
         return () => {
             this._runningServicesChangedCallbacks.delete(callback);
+        };
+    }
+
+    onMcpServersChanged(callback: (servers: McpServerStatusDTO[]) => void): () => void {
+        this._mcpServersChangedCallbacks.add(callback);
+        return () => {
+            this._mcpServersChangedCallbacks.delete(callback);
+        };
+    }
+
+    onMcpLoadErrorsChanged(callback: (errors: McpLoadErrorsDTO) => void): () => void {
+        this._mcpLoadErrorsChangedCallbacks.add(callback);
+        return () => {
+            this._mcpLoadErrorsChangedCallbacks.delete(callback);
+        };
+    }
+
+    onMcpGroupStatesChanged(callback: (groups: McpGroupStatesDTO) => void): () => void {
+        this._mcpGroupStatesChangedCallbacks.add(callback);
+        return () => {
+            this._mcpGroupStatesChangedCallbacks.delete(callback);
         };
     }
 }
