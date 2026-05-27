@@ -50,8 +50,8 @@ allprojects {
         maven {
             url = 'https://maven.pkg.github.com/ballerina-platform/*'
             credentials {
-                username System.getenv("packageUser")
-                password System.getenv("packagePAT")
+                username System.getenv("packageUser") ?: project.findProperty("packageUser")
+                password System.getenv("packagePAT") ?: project.findProperty("packagePAT")
             }
         }
     }
@@ -398,8 +398,8 @@ publishing {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/ballerina-platform/ballerina-language-server")
             credentials {
-                username = System.getenv("packageUser")
-                password = System.getenv("packagePAT")
+                username = System.getenv("packageUser") ?: project.findProperty("packageUser")
+                password = System.getenv("packagePAT") ?: project.findProperty("packagePAT")
             }
         }
     }
