@@ -9,7 +9,6 @@ then pruned to a ballerina-only monorepo. Paths have been rewritten to the new l
 | File | Source | Trigger |
 |---|---|---|
 | `ls-build-master.yml` | ballerina-language-server repo | push to main, scoped to `packages/ballerina-language-server/**` |
-| `ls-pull-request.yml` | ballerina-language-server repo | PRs touching `packages/ballerina-language-server/**` |
 | `ls-daily-build.yml` | ballerina-language-server repo | scheduled + manual |
 | `ls-publish-release.yml` | ballerina-language-server repo | manual release |
 | `ls-trivy.yml` | ballerina-language-server repo | scheduled security scan + manual |
@@ -23,7 +22,7 @@ Each has `defaults.run.working-directory: packages/ballerina-language-server` in
 |---|---|---|
 | `build.yml` | `workflow_call` only | Reusable build pipeline (ballerina-only) |
 | `daily-build.yml` | nightly cron + manual | Calls `build.yml` with `ballerina: true`, `runTests: true`, `runBalE2ETests: true` |
-| `test-pr.yml` | PRs | Calls `build.yml`. Bal E2E enabled by `Checks/Run Ballerina UI Tests` label or PRs into `stable/ballerina` |
+| `pull-request.yml` | PRs + manual | Detects changes with `dorny/paths-filter`; runs LS gradle build (Ubuntu+Windows) and/or `build.yml` for the extension depending on what changed |
 | `release-vsix.yml` | manual dispatch | Builds, creates GitHub release, opens version-bump PR back to `stable/ballerina` |
 | `publish-vsix.yml` | manual dispatch | Publishes a built VSIX (passed by `workflowRunId`) to VSCode Marketplace + OpenVSX |
 | `cache-cleanup.yml` | PR closed + manual | Generic — usable as-is |
