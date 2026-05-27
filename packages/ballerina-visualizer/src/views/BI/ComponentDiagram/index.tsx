@@ -28,6 +28,7 @@ import {
     CDListener,
     CDResourceFunction,
     CDFunction,
+    CDWorkflow,
     FlowNode,
     ProjectStructure,
 } from "@wso2/ballerina-core";
@@ -126,6 +127,17 @@ export function ComponentDiagram(props: ComponentDiagramProps) {
                 startColumn: automation.location.startLine.offset,
                 endLine: automation.location.endLine.line,
                 endColumn: automation.location.endLine.offset,
+            });
+        }
+    };
+
+    const handleGoToWorkflow = (workflow: CDWorkflow) => {
+        if (workflow.location) {
+            goToView(workflow.location.filePath, {
+                startLine: workflow.location.startLine.line,
+                startColumn: workflow.location.startLine.offset,
+                endLine: workflow.location.endLine.line,
+                endColumn: workflow.location.endLine.offset,
             });
         }
     };
@@ -242,6 +254,7 @@ export function ComponentDiagram(props: ComponentDiagramProps) {
                             onServiceSelect={handleGoToService}
                             onFunctionSelect={handleGoToFunction}
                             onAutomationSelect={handleGoToAutomation}
+                            onWorkflowSelect={handleGoToWorkflow}
                             onConnectionSelect={handleGoToConnection}
                             onDeleteComponent={handleDeleteComponent}
                             onCleanupTestServices={

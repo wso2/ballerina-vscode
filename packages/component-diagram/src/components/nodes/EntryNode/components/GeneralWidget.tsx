@@ -18,10 +18,10 @@
 
 import React, { useState } from "react";
 import { PortWidget } from "@projectstorm/react-diagrams-core";
-import { CDAutomation, CDService } from "@wso2/ballerina-core";
+import { CDAutomation, CDService, CDWorkflow } from "@wso2/ballerina-core";
 import { Item, Menu, MenuItem, Popover, ImageWithFallback, Icon } from "@wso2/ui-toolkit";
 import { useDiagramContext } from "../../../DiagramContext";
-import { HttpIcon, TaskIcon } from "../../../../resources";
+import { ClockIcon, HttpIcon, TaskIcon } from "../../../../resources";
 import { MoreVertIcon } from "../../../../resources/icons/nodes/MoreVertIcon";
 import { getEntryNodeFunctionPortName } from "../../../../utils/diagram";
 import { PREVIEW_COUNT, SHOW_ALL_THRESHOLD } from "../../../Diagram";
@@ -47,8 +47,11 @@ import {
 } from "./styles";
 
 const getNodeTitle = (model: EntryNodeModel) => {
-    if (model.node.displayName) {
-        return model.node.displayName;
+    if (model.type === "workflow") {
+        return (model.node as CDWorkflow).symbol || "";
+    }
+    if ((model.node as CDService | CDAutomation).displayName) {
+        return (model.node as CDService | CDAutomation).displayName;
     }
     if ((model.node as CDService).absolutePath) {
         return (model.node as CDService).absolutePath.replace(/\\/g, "");
@@ -59,6 +62,9 @@ const getNodeTitle = (model: EntryNodeModel) => {
 const getNodeDescription = (model: EntryNodeModel) => {
     if (model.type === "automation") {
         return "Automation";
+    }
+    if (model.type === "workflow") {
+        return "Workflow";
     }
     // Service
     if ((model.node as CDService).type) {
@@ -178,6 +184,7 @@ export function GeneralServiceWidget({ model, engine }: BaseNodeWidgetProps) {
     const {
         onServiceSelect,
         onAutomationSelect,
+        onWorkflowSelect,
         onDeleteComponent,
         expandedNodes,
         onToggleNodeExpansion
@@ -188,6 +195,8 @@ export function GeneralServiceWidget({ model, engine }: BaseNodeWidgetProps) {
     const handleOnClick = () => {
         if (model.type === "service") {
             onServiceSelect(model.node as CDService);
+        } else if (model.type === "workflow") {
+            onWorkflowSelect?.(model.node as CDWorkflow);
         } else {
             onAutomationSelect(model.node as CDAutomation);
         }
@@ -219,7 +228,9 @@ export function GeneralServiceWidget({ model, engine }: BaseNodeWidgetProps) {
 
     const menuItems: Item[] = [
         { id: "edit", label: "Edit", onClick: () => handleOnClick() },
-        { id: "delete", label: "Delete", onClick: () => onDeleteComponent(model.node) },
+        ...(model.type !== "workflow"
+            ? [{ id: "delete", label: "Delete", onClick: () => onDeleteComponent(model.node) }]
+            : []),
     ];
 
     const serviceFunctions = [];
@@ -242,6 +253,8 @@ export function GeneralServiceWidget({ model, engine }: BaseNodeWidgetProps) {
 
     const nodeIcon = (() => {
         switch (model.type) {
+            case "workflow":
+                return <ClockIcon />;
             case "automation":
                 return <TaskIcon />;
             case "service":

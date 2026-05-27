@@ -34,7 +34,16 @@ import { NodeLinkModel } from "./NodeLink";
 import { OverlayLayerModel } from "./OverlayLayer";
 import { DiagramContextProvider, DiagramContextState } from "./DiagramContext";
 import Controls from "./Controls";
-import { CDAutomation, CDConnection, CDFunction, CDListener, CDModel, CDService, CDResourceFunction } from "@wso2/ballerina-core";
+import {
+    CDAutomation,
+    CDConnection,
+    CDFunction,
+    CDListener,
+    CDModel,
+    CDService,
+    CDResourceFunction,
+    CDWorkflow
+} from "@wso2/ballerina-core";
 import { EntryNodeModel } from "./nodes/EntryNode";
 import { ListenerNodeModel } from "./nodes/ListenerNode";
 import { ConnectionNodeModel } from "./nodes/ConnectionNode";
@@ -50,6 +59,7 @@ export interface DiagramProps {
     onServiceSelect: (service: CDService) => void;
     onFunctionSelect: (func: CDFunction | CDResourceFunction) => void;
     onAutomationSelect: (automation: CDAutomation) => void;
+    onWorkflowSelect: (workflow: CDWorkflow) => void;
     onConnectionSelect: (connection: CDConnection) => void;
     onDeleteComponent: (component: CDListener | CDService | CDAutomation | CDConnection, nodeType?: string) => void;
     onCleanupTestServices?: () => void;
@@ -71,6 +81,7 @@ export function Diagram(props: DiagramProps) {
         onServiceSelect,
         onFunctionSelect,
         onAutomationSelect,
+        onWorkflowSelect,
         onConnectionSelect,
         onDeleteComponent,
     } = props;
@@ -266,6 +277,14 @@ export function Diagram(props: DiagramProps) {
             });
         }
 
+        // create workflows
+        const sortedWorkflows = sortItems(project.workflows || []) as CDWorkflow[];
+        sortedWorkflows.forEach((workflow) => {
+            const workflowNode = new EntryNodeModel(workflow, "workflow");
+            nodes.push(workflowNode);
+            // workflows currently have no connections to link
+        });
+
         // create listeners
         project.listeners?.forEach((listener) => {
             const node = new ListenerNodeModel(listener);
@@ -323,6 +342,7 @@ export function Diagram(props: DiagramProps) {
         onServiceSelect,
         onFunctionSelect,
         onAutomationSelect,
+        onWorkflowSelect,
         onConnectionSelect,
         onDeleteComponent,
         onToggleNodeExpansion: handleToggleNodeExpansion,
