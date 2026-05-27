@@ -3,21 +3,9 @@ name: Publish VSIX to VSCode Marketplace and OpenVSX
 on:
   workflow_dispatch:
     inputs:
-      extension:
-        type: choice
-        description: 'Select the extension'
-        required: true
-        default: 'ballerina'
-        options:
-          - 'ballerina'
-          - 'ballerina-integrator'
-          - 'choreo'
-          - 'wso2-platform'
-          - 'apk'
-          - 'micro-integrator'
       isPreRelease:
         required: true
-        type: boolean 
+        type: boolean
         default: false
       vscode:
         description: Publish to VSCode marketplace
@@ -33,14 +21,19 @@ on:
         description: Notify release on VSCode chat
         type: boolean
         required: true
-        default: false        
+        default: false
       workflowRunId:
+        description: Run ID of the Release VSIX workflow that produced the VSIX artifact
         required: true
+
+env:
+  EXTENSION_NAME: ballerina
+  REPO: wso2/ballerina-vscode
 
 jobs:
   publish:
     name: Publish vsix to marketplaces
-    runs-on: codebuild-wso2_vscode-extensions-${{ github.run_id }}-${{ github.run_attempt }}
+    runs-on: codebuild-ballerina-vscode-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - name: Download artifact
         id: download-artifact
@@ -55,46 +48,26 @@ jobs:
           rm VSIX.zip
 
       - name: Use Node.js 20.x
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v4
         with:
           node-version: 20.x
 
-      - run: | 
+      - run: |
           npm install -g vsce
           npm install -g ovsx
 
       - name: Get version
         id: vsix
-        run: | 
-          file=$(ls ${{ github.event.inputs.extension }}-[0-9]*.[0-9]*.[0-9]*.vsix)
+        run: |
+          file=$(ls ${EXTENSION_NAME}-[0-9]*.[0-9]*.[0-9]*.vsix)
           fileName=${file##*-}
           version=${fileName%.*}
-          extension=${{ github.event.inputs.extension }}
-          extensionName="$(echo "$extension" | sed 's/.*/\u&/')"
           echo "vsixName=$file" >> $GITHUB_OUTPUT
           echo "version=$version" >> $GITHUB_OUTPUT
-          echo "extensionName=$extensionName" >> $GITHUB_OUTPUT
           if [ "${{ github.event.inputs.isPreRelease }}" == "true" ]; then
             echo "releaseMode=--pre-release" >> $GITHUB_OUTPUT
           else
             echo "releaseMode= " >> $GITHUB_OUTPUT
-          fi  
-
-      - name: Get Repo
-        id: repo
-        run: |
-          if [ "${{ github.event.inputs.extension }}" == "ballerina" ]; then
-            echo "repo=wso2/ballerina-vscode" >> $GITHUB_OUTPUT
-          elif [ "${{ github.event.inputs.extension }}" == "ballerina-integrator" ]; then
-            echo "repo=wso2/product-ballerina-integrator" >> $GITHUB_OUTPUT  
-          elif [ "${{ github.event.inputs.extension }}" == "choreo" ]; then
-            echo "repo=wso2/choreo-vscode" >> $GITHUB_OUTPUT
-          elif [ "${{ github.event.inputs.extension }}" == "wso2-platform" ]; then
-            echo "repo=wso2/vscode-extensions" >> $GITHUB_OUTPUT
-          elif [ "${{ github.event.inputs.extension }}" == "apk" ]; then
-            echo "repo=wso2/apk-vscode" >> $GITHUB_OUTPUT
-          elif [ "${{ github.event.inputs.extension }}" == "micro-integrator" ]; then
-            echo "repo=wso2/mi-vscode" >> $GITHUB_OUTPUT
           fi
 
       - name: Publish to VSCode marketplace
@@ -105,58 +78,45 @@ jobs:
         if: ${{ github.event.inputs.openVSX == 'true' }}
         run: ovsx publish -p ${{ secrets.OPENVSX_TOKEN }} --packagePath ${{ steps.vsix.outputs.vsixName }} ${{ steps.vsix.outputs.releaseMode }}
 
-      - name: Create a release in ${{ steps.repo.outputs.repo }} repo
+      - name: Promote draft release to published in ${{ env.REPO }}
         id: create_release
-        if: ${{ steps.repo.outputs.repo != '' && github.event.inputs.isPreRelease == 'false' }}
+        if: ${{ github.event.inputs.isPreRelease == 'false' }}
         run: |
           id=`curl -X GET -H "Accept: application/vnd.github.v3+json" \
           -H "Authorization:token ${{ secrets.CHOREO_BOT_TOKEN }}" \
-          https://api.github.com/repos/${{ steps.repo.outputs.repo }}/releases/tags/v${{ steps.vsix.outputs.version }} \
+          https://api.github.com/repos/${REPO}/releases/tags/v${{ steps.vsix.outputs.version }} \
            | jq -r .id` && \
-           updateResponse=`curl -X PATCH -H "Accept: application/vnd.github.v3+json" \
+           curl -X PATCH -H "Accept: application/vnd.github.v3+json" \
           -H "Authorization:token ${{ secrets.CHOREO_BOT_TOKEN }}" \
             -d '{"draft":false,"prerelease":false}' \
-            https://api.github.com/repos/wso2/${{ steps.repo.outputs.repo }}/releases/$id`
-          
-          # Verify the release was created/updated successfully
+            https://api.github.com/repos/${REPO}/releases/$id
+
           if [ $? -eq 0 ]; then
             echo "release_created=true" >> $GITHUB_OUTPUT
-            echo "Release successfully created/updated for version v${{ steps.vsix.outputs.version }}"
+            echo "Release promoted for v${{ steps.vsix.outputs.version }}"
           else
             echo "release_created=false" >> $GITHUB_OUTPUT
-            echo "Failed to create/update release for version v${{ steps.vsix.outputs.version }}"
+            echo "Failed to promote release for v${{ steps.vsix.outputs.version }}"
             exit 1
           fi
 
       - name: Trigger external repo workflow for ballerina release
-        if: ${{ github.event.inputs.extension == 'ballerina' && github.event.inputs.isPreRelease == 'false' && steps.create_release.outputs.release_created == 'true' }}
+        if: ${{ github.event.inputs.isPreRelease == 'false' && steps.create_release.outputs.release_created == 'true' && secrets.CLOUD_EDITOR_BUILDER_REPO != '' }}
         run: |
           echo "Triggering external repository workflow for ballerina v${{ steps.vsix.outputs.version }}"
           response=$(curl -s -w "%{http_code}" -X POST \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ secrets.CLOUD_EDITOR_BUILDER_REPO_TOKEN }}" \
             https://api.github.com/repos/${{ secrets.CLOUD_EDITOR_BUILDER_REPO }}/dispatches \
-            -d '{"event_type": "extension_published", "client_payload": {"extension": "${{ github.event.inputs.extension }}", "version": "${{ steps.vsix.outputs.version }}", "release_url": "https://github.com/wso2/${{ steps.repo.outputs.repo }}/releases/tag/v${{ steps.vsix.outputs.version }}"}}')
-          
+            -d '{"event_type": "extension_published", "client_payload": {"extension": "'"${EXTENSION_NAME}"'", "version": "${{ steps.vsix.outputs.version }}", "release_url": "https://github.com/'"${REPO}"'/releases/tag/v${{ steps.vsix.outputs.version }}"}}')
+
           http_code=$(echo "$response" | tail -c 4)
-          
           if [ "$http_code" -eq 204 ]; then
-            echo "Successfully triggered external repository workflow"
+            echo "Triggered external repository workflow"
           else
             echo "Failed to trigger external repository workflow. HTTP code: $http_code"
             echo "Response: $response"
             exit 1
-          fi        
-
-      - name: Set Chat API
-        id: chat
-        run: |
-          if [ "${{ inputs.extension }}" == "micro-integrator" ]; then
-            echo "chatAPI=${{ secrets.MI_TEAM_CHAT_API }}" >> $GITHUB_OUTPUT
-          elif [ "${{ inputs.extension }}" == "ballerina" ] || [ "${{ inputs.extension }}" == "ballerina-integrator" ]; then
-            echo "chatAPI=${{ secrets.BI_TEAM_CHAT_API }}" >> $GITHUB_OUTPUT
-          else
-            echo "chatAPI=${{ secrets.TOOLING_TEAM_CHAT_API }}" >> $GITHUB_OUTPUT
           fi
 
       - name: "Release Notification"
@@ -168,7 +128,7 @@ jobs:
               {
                 "header": {
                     "title": "Marketplace Release",
-                    "subtitle": "${{ steps.vsix.outputs.extensionName }} Extension"
+                    "subtitle": "Ballerina Extension"
                 },
                 "sections": [
                   {
@@ -183,12 +143,12 @@ jobs:
                               "text": "View",
                               "onClick": {
                                 "openLink": {
-                                  "url": "https://marketplace.visualstudio.com/items?itemName=WSO2.${{ github.event.inputs.extension }}"
+                                  "url": "https://marketplace.visualstudio.com/items?itemName=WSO2.${EXTENSION_NAME}"
                                 }
                               }
                             }
                           }
-                        }  
+                        }
                       },
                       {
                         "keyValue": {
@@ -200,7 +160,7 @@ jobs:
                               "text": "View",
                               "onClick": {
                                 "openLink": {
-                                  "url": "https://open-vsx.org/extension/wso2/${{ github.event.inputs.extension }}"
+                                  "url": "https://open-vsx.org/extension/wso2/${EXTENSION_NAME}"
                                 }
                               }
                             }
@@ -218,5 +178,5 @@ jobs:
           curl \
             -X POST \
             -H 'Content-Type: application/json' \
-            "${{ steps.chat.outputs.chatAPI }}" \
+            "${{ secrets.BI_TEAM_CHAT_API }}" \
             -d "$body"
