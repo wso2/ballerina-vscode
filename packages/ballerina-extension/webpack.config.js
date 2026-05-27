@@ -7,7 +7,7 @@ const fs = require('fs');
 const { minify } = require('uglify-js');
 const dotenv = require('dotenv');
 const webpack = require('webpack');
-const { createEnvDefinePlugin } = require('../../../common/scripts/env-webpack-helper');
+const { createEnvDefinePlugin } = require('../../common/scripts/env-webpack-helper');
 
 /**
  * Concatenate and minify a list of source files into a single output file.
@@ -69,7 +69,8 @@ module.exports = {
     keytar: "commonjs keytar",
     vscode: 'commonjs vscode',
     bufferutil: 'commonjs bufferutil',
-    'utf-8-validate': 'commonjs utf-8-validate'
+    'utf-8-validate': 'commonjs utf-8-validate',
+    '@aws-sdk/client-s3': 'commonjs @aws-sdk/client-s3'
   },
   optimization: {
     // Single extension bundle: default splitChunks emits 100+ chunk files and triggers vsce size warnings.

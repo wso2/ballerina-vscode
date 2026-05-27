@@ -24,12 +24,14 @@ import { WorkspacesFileResponse, VisualizerLocation } from '@wso2/ballerina-core
 import { URI } from 'vscode-uri';
 // Create a interface for the data
 interface Data {
+    // eslint-disable-next-line no-use-before-define
     packages: Package[];
 }
 // Create a interface for the package
 interface Package {
     name: string;
     filePath: string;
+    // eslint-disable-next-line no-use-before-define
     modules: Module[];
 }
 // Create a interface for the module
