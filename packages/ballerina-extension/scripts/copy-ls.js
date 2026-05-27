@@ -15,6 +15,12 @@ const { spawnSync } = require('child_process');
 
 const args = process.argv.slice(2);
 const fallbackDownload = args.includes('--fallback-download');
+// Force-download overrides local jar selection. Set BALLERINA_LS_SOURCE=download
+// (or pass --force-download) to always fetch from GitHub Releases. Use
+// BALLERINA_LS_TAG to pin a specific tag (consumed by download-ls.js).
+const forceDownload =
+    args.includes('--force-download') ||
+    process.env.BALLERINA_LS_SOURCE === 'download';
 
 const PROJECT_ROOT = path.join(__dirname, '..');
 const LS_DEST = path.join(PROJECT_ROOT, 'ls');
@@ -52,14 +58,25 @@ function copyLocal() {
     return true;
 }
 
+function runDownload(reason) {
+    console.log(`${reason} Running download-ls.js with --replace`);
+    clearDest();
+    const r = spawnSync(process.execPath, [path.join(__dirname, 'download-ls.js'), '--replace'], {
+        stdio: 'inherit',
+    });
+    process.exit(r.status ?? 1);
+}
+
+if (forceDownload) {
+    runDownload('Forcing LS download (BALLERINA_LS_SOURCE=download or --force-download).');
+}
+
 if (copyLocal()) {
     process.exit(0);
 }
 
 if (fallbackDownload) {
-    console.log('No local LS jar found; falling back to download-ls.js');
-    const r = spawnSync(process.execPath, [path.join(__dirname, 'download-ls.js')], { stdio: 'inherit' });
-    process.exit(r.status ?? 1);
+    runDownload('No local LS jar found; falling back to download.');
 }
 
 console.error(
