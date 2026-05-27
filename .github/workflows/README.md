@@ -26,7 +26,6 @@ Each has `defaults.run.working-directory: packages/ballerina-language-server` in
 | `test-pr.yml` | PRs | Calls `build.yml`. Bal E2E enabled by `Checks/Run Ballerina UI Tests` label or PRs into `stable/ballerina` |
 | `release-vsix.yml` | manual dispatch | Builds, creates GitHub release, opens version-bump PR back to `stable/ballerina` |
 | `publish-vsix.yml` | manual dispatch | Publishes a built VSIX (passed by `workflowRunId`) to VSCode Marketplace + OpenVSX |
-| `save-cache.yml` | push to main + manual | Pre-builds the ballerina chain to warm rush/pnpm caches. Build-cache plugin currently disabled — only the rush/pnpm install cache is populated. |
 | `cache-cleanup.yml` | PR closed + manual | Generic — usable as-is |
 | `sync-main-with-releases.yml` | PR merged to `stable/ballerina**` | Opens an auto-sync PR back to `main` |
 
