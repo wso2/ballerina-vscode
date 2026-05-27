@@ -52,3 +52,4 @@ extractedDistribution/
 
 # JVM crash logs
 hs_err_pid*
+.DS_Store
