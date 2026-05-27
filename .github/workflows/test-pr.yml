@@ -1,11 +1,11 @@
 name: Test PR
 
-on: 
+on:
   workflow_dispatch:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
 
-concurrency: 
+concurrency:
   group: ${{ github.ref }}
   cancel-in-progress: true
 
@@ -13,9 +13,7 @@ jobs:
   Build:
     if: github.event.pull_request.draft == false
     uses: ./.github/workflows/build.yml
-    secrets: inherit  
+    secrets: inherit
     with:
       runOnAWS: ${{ contains(github.event.pull_request.labels.*.name, 'Runner/AWS') }}
-      enableE2ETests: ${{ contains(github.event.pull_request.labels.*.name, 'Checks/Enable UI Tests') }}
-      runMIE2ETests: ${{ contains(github.event.pull_request.labels.*.name, 'Checks/Run MI UI Tests') || github.base_ref == 'stable/mi' }}
       runBalE2ETests: ${{ contains(github.event.pull_request.labels.*.name, 'Checks/Run Ballerina UI Tests') || github.base_ref == 'stable/ballerina' }}

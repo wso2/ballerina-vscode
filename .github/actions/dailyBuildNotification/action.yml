@@ -1,0 +1,83 @@
+name: 'Upload vsix to artifacts and notify'
+inputs:
+  title:
+    description: 'Relase name'
+    required: true
+  fileName:
+    description: 'File name'
+    required: true
+  chatAPI:
+    description: 'Google chat API'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Get version
+      shell: bash
+      id: vsix
+      run: |
+        file=$(ls ${{ inputs.fileName }}-[0-9]*.[0-9]*.[0-9]*.vsix)
+        fileName=${file##*-}
+        version=${fileName%.*}
+        extension=${{ inputs.fileName }}
+        extensionName="$(echo "$extension" | sed 's/.*/\u&/')"
+        echo "vsixName=$file" >> $GITHUB_OUTPUT
+        echo "version=$version" >> $GITHUB_OUTPUT
+        echo "extensionName=$extensionName" >> $GITHUB_OUTPUT
+
+    - name: Save VSIX
+      uses: actions/upload-artifact@v4
+      id: artifact-upload
+      with:
+        path: ${{ steps.vsix.outputs.vsixName }}
+        name: Vsix-Artifact-${{ inputs.fileName }}
+
+    - name: "Release Notification"
+      shell: bash
+      run: |
+          body=$(cat << EOF
+          {
+          "cards": [
+              { 
+              "header": {
+                  "title": "Daily Build",
+              },
+              "sections": [
+                  {
+                  "widgets": [
+                      {
+                      "keyValue": {
+                          "topLabel": "${{ inputs.title }}",
+                          "content": "v${{ steps.vsix.outputs.version }}",
+                          "onClick": {
+                          "openLink": {
+                              "url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                          }
+                          },
+                          "iconUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Visual_Studio_Code_1.35_icon.svg/512px-Visual_Studio_Code_1.35_icon.svg.png",
+                          "button": {
+                          "textButton": {
+                              "text": "Download VSIX",
+                              "onClick": {
+                              "openLink": {
+                                  "url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.artifact-upload.outputs.artifact-id }}"
+                              }
+                              }
+                          }
+                          }
+                      }
+                      }
+                  ]
+                  }
+              ]
+              }
+          ]
+          }
+          EOF
+          )
+          curl \
+          -X POST \
+          -H 'Content-Type: application/json' \
+          "${{ inputs.chatAPI }}" \
+          -d "$body"
