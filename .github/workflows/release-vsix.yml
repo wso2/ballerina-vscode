@@ -1,0 +1,237 @@
+name: Release VSIX
+
+on:
+  workflow_dispatch:
+    inputs:
+      isPreRelease:
+        required: true
+        type: boolean 
+      ballerina:
+        description: Release Ballerina extension
+        type: boolean
+        required: true
+        default: false
+      bi:
+        description: Release BI extension
+        type: boolean
+        required: true
+        default: false
+      wso2-platform:
+        description: Release WSO2 Platform extension
+        type: boolean
+        required: true
+        default: false
+      choreo:
+        description: Release Choreo extension
+        type: boolean
+        required: true
+        default: false
+      apk:
+        description: Release APK extension
+        type: boolean
+        required: true
+        default: false
+      mi:
+        description: Release MI extension
+        type: boolean
+        required: true
+        default: false
+      hurl-client:
+        description: Release Hurl Client extension
+        type: boolean
+        required: true
+        default: false
+      ballerinaLsTag:
+        description: 'Override Ballerina LS download tag (latest, prerelease, v1.5.0). Overrides isPreRelease for LS download.'
+        type: string
+        required: false
+        default: ''
+      version:
+        type: choice
+        description: 'Enter the version type'
+        required: true
+        default: 'N/A'
+        options:
+          - 'patch'
+          - 'minor'
+          - 'major'    
+          - 'N/A'     
+
+jobs:
+  Build:
+    name: Build branch - ${{ github.ref_name }}
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    with:
+      runOnAWS: true
+      isPreRelease: ${{ inputs.isPreRelease }}
+      ballerinaLsTag: ${{ inputs.ballerinaLsTag }}
+      enableCache: false
+      ballerina: ${{ inputs.ballerina }}
+      wso2-platform: ${{ inputs.wso2-platform }}
+      choreo: ${{ inputs.choreo }}
+      apk: ${{ inputs.apk }}
+      bi:  ${{ inputs.bi }}
+      mi:  ${{ inputs.mi }}
+      hurl-client: ${{ inputs.hurl-client }}
+      version: ${{ inputs.version }}
+      isReleaseBuild: true
+
+  Release:
+    name: Release VSIX
+    needs: Build
+    timeout-minutes: 45
+    runs-on: codebuild-wso2_vscode-extensions-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - name: Restore build
+        uses: actions/download-artifact@v4
+        with:
+          name: ExtBuild
+          path: ./
+
+      - name: Set up workspace
+        run: |
+          unzip build.zip
+          rm build.zip
+
+      - name: Setup Rush
+        uses: gigara/setup-rush@v1.2.0
+        with:
+          pnpm: 10.10.0
+          node: 22.x
+          cache-rush: false
+          cache-pnpm: false
+          set-env: false
+          rush-install: true
+
+      - name: Get version
+        id: vsix
+        run: |
+          if [[ "${{ github.event.inputs.ballerina }}" == "true" ]]; then
+            file=$(ls ballerina-[0-9]*.[0-9]*.[0-9]*.vsix)
+          fi  
+          if [[ "${{ github.event.inputs.bi }}" == "true" ]]; then
+            file=$(ls ballerina-integrator*.vsix)
+          fi
+          if [[ "${{ github.event.inputs.wso2-platform }}" == "true" ]]; then
+            file=$(ls wso2-platform*.vsix)
+          fi  
+          if [[ "${{ github.event.inputs.choreo }}" == "true" ]]; then
+            file=$(ls choreo*.vsix)
+          fi
+          if [[ "${{ github.event.inputs.mi }}" == "true" ]]; then
+            file=$(ls micro-integrator*.vsix)
+          fi
+          if [[ "${{ github.event.inputs.hurl-client }}" == "true" ]]; then
+            file=$(ls hurl-client-[0-9]*.[0-9]*.[0-9]*.vsix)
+          fi
+          version=$(basename "$file" .vsix)
+          echo $version
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+      - name: Set Chat API
+        id: chat
+        run: |
+          if [ "${{ github.event.inputs.mi }}" == "true" ]; then
+            echo "chatAPI=${{ secrets.MI_TEAM_CHAT_API }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event.inputs.bi }}" == "true" ] || [ "${{ github.event.inputs.ballerina }}" == "true" ]; then
+            echo "chatAPI=${{ secrets.BI_TEAM_CHAT_API }}" >> $GITHUB_OUTPUT
+          else
+            echo "chatAPI=${{ secrets.TOOLING_TEAM_CHAT_API }}" >> $GITHUB_OUTPUT
+          fi
+  
+      - name: Create a release in wso2/ballerina-vscode repo
+        if: ${{ github.event.inputs.ballerina == 'true' }}
+        uses: ./.github/actions/release
+        with:
+          repo: wso2/ballerina-vscode
+          name: ballerina
+          token: ${{ secrets.CHOREO_BOT_TOKEN }}
+          chatAPI: ${{ steps.chat.outputs.chatAPI }}
+  
+      - name: Create a release in wso2/product-ballerina-integrator repo
+        if: ${{ github.event.inputs.bi == 'true' }}
+        uses: ./.github/actions/release
+        with:
+          repo: wso2/product-ballerina-integrator
+          name: ballerina-integrator
+          token: ${{ secrets.CHOREO_BOT_TOKEN }}
+          chatAPI: ${{ steps.chat.outputs.chatAPI }}
+          
+      - name: Create a release in wso2/vscode-extensions repo
+        if: ${{ github.event.inputs.wso2-platform == 'true' }}
+        uses: ./.github/actions/release
+        with:
+          repo: wso2/vscode-extensions
+          name: wso2-platform
+          token: ${{ secrets.CHOREO_BOT_TOKEN }}
+          chatAPI: ${{ steps.chat.outputs.chatAPI }}
+      
+      - name: Create a release in wso2/choreo-vscode repo
+        if: ${{ github.event.inputs.choreo == 'true' }}
+        uses: ./.github/actions/release
+        with:
+          repo: wso2/choreo-vscode
+          name: choreo
+          token: ${{ secrets.CHOREO_BOT_TOKEN }}
+          chatAPI: ${{ steps.chat.outputs.chatAPI }}
+
+      - name: Create a release in wso2/apk repo
+        if: ${{ github.event.inputs.apk == 'true' }}
+        uses: ./.github/actions/release
+        with:
+          repo: wso2/apk
+          name: apk
+          token: ${{ secrets.CHOREO_BOT_TOKEN }}
+          chatAPI: ${{ steps.chat.outputs.chatAPI }}
+ 
+      - name: Create a release in wso2/mi-vscode repo
+        if: ${{ github.event.inputs.mi == 'true' }}
+        uses: ./.github/actions/release
+        with:
+          repo: wso2/mi-vscode
+          token: ${{ secrets.CHOREO_BOT_TOKEN }}
+          name: micro-integrator
+          chatAPI: ${{ steps.chat.outputs.chatAPI }}
+
+      - name: Create a release in wso2/ballerina-vscode repo for hurl-client
+        if: ${{ github.event.inputs.hurl-client == 'true' }}
+        uses: ./.github/actions/release
+        with:
+          repo: wso2/ballerina-vscode
+          token: ${{ secrets.CHOREO_BOT_TOKEN }}
+          name: hurl-client
+          chatAPI: ${{ secrets.TOOLING_TEAM_CHAT_API }}
+
+      - name: Create PR and notify
+        uses: ./.github/actions/pr
+        with:
+          version: ${{ steps.vsix.outputs.version }}
+          isPreRelease: ${{ github.event.inputs.isPreRelease }}
+          threadId: ${{ github.run_id }}
+          bot_username: ${{ secrets.CHOREO_BOT_USERNAME }}
+          bot_email: ${{ secrets.CHOREO_BOT_EMAIL }}
+          bot_token: ${{ secrets.CHOREO_BOT_TOKEN }}
+          ref_name: ${{ github.ref_name }}
+          ballerina: ${{ inputs.ballerina }}
+          bi: ${{ inputs.bi }}
+          wso2-platform: ${{ inputs.wso2-platform }}
+          choreo: ${{ inputs.choreo }}
+          apk: ${{ inputs.apk }}
+          mi: ${{ inputs.mi }}
+          hurl-client: ${{ inputs.hurl-client }}
+          chatAPI: ${{ secrets.TOOLING_TEAM_CHAT_API }}
+
+  Notify:
+    needs: [Release]
+    if: ${{ always() && contains(needs.*.result, 'failure') && github.repository == 'wso2/vscode-extensions'}}
+    runs-on: codebuild-wso2_vscode-extensions-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: "Failure Notification"
+        uses: ./.github/actions/failure-notification
+        with:
+          title: "Release Build Failed"
+          run_id: ${{ github.run_id }}
+          chat_api: ${{ secrets.TOOLING_TEAM_CHAT_API }}
+          repository: ${{ github.repository }}

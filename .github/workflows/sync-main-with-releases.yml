@@ -1,0 +1,98 @@
+name: Sync Main with Release Branches
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - 'stable/**'
+
+jobs:
+  sync-main:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.CHOREO_BOT_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config --global user.email "${{ secrets.CHOREO_BOT_EMAIL }}"
+          git config --global user.name "${{ secrets.CHOREO_BOT_USERNAME }}"
+
+      - name: Create temporary branch and sync changes
+        run: |
+          # Get the release branch name
+          RELEASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+          
+          # Create a temporary branch from main
+          TEMP_BRANCH="sync/main-${RELEASE_BRANCH}-$(date +%s)"
+          git checkout $RELEASE_BRANCH
+          git checkout -b $TEMP_BRANCH
+
+          # Push changes to the temporary branch
+          git push origin $TEMP_BRANCH
+
+      - name: Create Pull Request
+        id: commit
+        env:
+          GH_TOKEN: ${{ secrets.CHOREO_BOT_TOKEN }}
+        run: |
+          RELEASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+          TEMP_BRANCH=$(git branch --show-current)
+
+          prURL=$(gh pr create \
+            --base main \
+            --head $TEMP_BRANCH \
+            --title "Automatic Sync: Merge changes from ${RELEASE_BRANCH} to main" \
+            --body "This PR syncs changes from ${RELEASE_BRANCH} to the main branch.
+
+            Automated PR created by GitHub Actions.")
+          
+          echo "prURL=$prURL" >> $GITHUB_OUTPUT
+
+
+      - name: "PR Notification"
+        shell: bash
+        run: |
+            body=$(cat << EOF
+            {
+            "cards": [
+                { 
+                "header": {
+                    "title": "Automatic Sync PR",
+                },
+                "sections": [
+                    {
+                    "widgets": [
+                        {
+                        "keyValue": {
+                            "topLabel": "Pull Request",
+                            "content": "${{ steps.commit.outputs.prURL }}",
+                            "button": {
+                            "textButton": {
+                                "text": "Approve",
+                                "onClick": {
+                                "openLink": {
+                                    "url": "${{ steps.commit.outputs.prURL }}/files"
+                                }
+                                }
+                            }
+                            }
+                        }
+                        }
+                    ]
+                    }
+                ]
+                }
+            ]
+            }
+            EOF
+            )
+            curl \
+            -X POST \
+            -H 'Content-Type: application/json' \
+            "${{ secrets.TOOLING_TEAM_CHAT_API }}" \
+            -d "$body"

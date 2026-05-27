@@ -5,6 +5,10 @@ on:
   schedule:
     - cron: "0 0 * * *"
 
+defaults:
+  run:
+    working-directory: packages/ballerina-language-server
+
 jobs:
   ubuntu-build:
     name: Build on Ubuntu

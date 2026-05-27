@@ -14,6 +14,10 @@ on:
         type: boolean
         default: false
 
+defaults:
+  run:
+    working-directory: packages/ballerina-language-server
+
 jobs:
   publish-release:
     runs-on: ubuntu-latest

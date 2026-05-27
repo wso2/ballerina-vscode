@@ -1,6 +1,14 @@
 name: PR build
 
-on: [pull_request]
+on:
+  pull_request:
+    paths:
+      - 'packages/ballerina-language-server/**'
+      - '.github/workflows/ls-pull-request.yml'
+
+defaults:
+  run:
+    working-directory: packages/ballerina-language-server
 
 jobs:
   ubuntu-build:

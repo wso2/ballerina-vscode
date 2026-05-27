@@ -1,0 +1,121 @@
+name: Release Package
+
+on:
+  workflow_dispatch:
+    inputs:
+      isPreRelease:
+        required: true
+        type: boolean 
+      package:
+        type: choice
+        description: "Select the package to release"
+        required: true
+        options:
+          - 'ballerina/data-mapper'
+          - 'ballerina/low-code-diagram'
+          - 'ballerina/low-code-editor'
+          - 'ballerina/low-code-integration-tests'
+          - 'ballerina/statement-editor'
+          - 'ballerina/syntax-tree'
+          - 'ballerina/project-design-diagrams'                                                                          
+          - 'common-libs/ui-toolkit'
+          - 'common-libs/font-wso2-vscode'
+      version:
+        type: choice
+        description: 'Enter the version type'
+        required: true
+        options:
+          - 'N/A'
+          - 'patch'
+          - 'minor'
+          - 'major'
+          - 'prepatch'
+          - 'preminor'
+          - 'premajor'
+          - 'prerelease'
+
+jobs:
+  Build:
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    with:
+      isPreRelease: ${{ inputs.isPreRelease }}
+      enableCache: false
+      ballerina: false
+      wso2-platform: false
+      choreo: false
+      apk: false
+      runTests: true
+      version: ${{ inputs.version }}
+
+  Release:
+    name: Release VSIX
+    needs: Build
+    timeout-minutes: 45
+    runs-on: ubuntu-latest
+    steps:
+      - name: Restore build
+        uses: actions/download-artifact@v4
+        with:
+          name: ExtBuild
+          path: ./
+
+      - name: Set up workspace
+        run: |
+          unzip build.zip
+          rm build.zip
+
+      - uses: actions/setup-node@v3
+        with:
+          always-auth: true
+          node-version: 16.x
+          registry-url: "https://npm.pkg.github.com"
+  
+      - name: Setup Rush
+        uses: gigara/setup-rush@v1.2.0
+        with:
+          pnpm: 10.10.0
+          cache-rush: false
+          cache-pnpm: false
+          set-env: false
+
+      - name: Get version
+        id: version
+        run: |
+          if [[ "${{ github.event.inputs.isPreRelease }}" == "true" ]]; then
+            echo "releaseMode=next" >> $GITHUB_OUTPUT
+          else
+            echo "releaseMode=latest" >> $GITHUB_OUTPUT
+          fi 
+
+      - name: Update version
+        uses: ./.github/actions/updateVersion
+        with:
+          path: '${{ inputs.package }}'
+          isPreRelease: ${{ inputs.isPreRelease }}
+          version: ${{ inputs.version }}
+
+      - name: Publish low code diagram
+        id: publish
+        run: |
+          cd workspaces/${{ inputs.package }}
+          currentVersion=$(node -p "require('./package.json').version")
+          pnpm publish --tag ${{ steps.version.outputs.releaseMode }} --no-git-checks
+          echo "version=$currentVersion" >> $GITHUB_OUTPUT
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
+
+      - name: Create PR and notify
+        uses: ./.github/actions/pr
+        with:
+          version: ${{ steps.publish.outputs.version }}${{ inputs.package }}
+          threadId: ${{ github.run_id }}
+          bot_username: ${{ secrets.CHOREO_BOT_USERNAME }}
+          bot_email: ${{ secrets.CHOREO_BOT_EMAIL }}
+          bot_token: ${{ secrets.CHOREO_BOT_TOKEN }}
+          ref_name: ${{ github.ref_name }}
+          commonLibs: true
+          choreo: true
+          ballerina: true
+          apk: true
+          chatAPI: ${{ secrets.TOOLING_TEAM_CHAT_API }}
