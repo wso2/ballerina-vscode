@@ -113,17 +113,22 @@ several minutes; subsequent runs hit the install cache.
 ## Day-to-day commands
 
 ```bash
-# Build the entire extension chain (TS packages, grammar, webviews, then the
-# extension itself with webpack + vsce package). Skips ./gradlew (LS) tests.
+# Build everything in rush.json — TS packages, webviews, the LS (via Gradle),
+# and the extension (webpack + vsce package). Requires Java 21 + packageUser /
+# packagePAT for the LS. Skips ./gradlew test/check.
+rush build
+
+# Same as 'rush build' minus ballerina-grammar (which isn't a workspace dep
+# of anything; the extension reads its source files directly via copyGrammar)
 rush build --to ballerina
 
-# Build only the language server (Gradle)
+# Skip the LS entirely — build only the TS chain up to the visualizer
+rush build --to @wso2/ballerina-visualizer
+
+# Only the LS (Gradle)
 rush build --to ballerina-language-server
 # or directly:
 cd packages/ballerina-language-server && ./gradlew build pack -x test -x check
-
-# Build a single package and everything that depends on it
-rush build --to @wso2/ballerina-visualizer
 
 # Watch mode for the extension itself (webpack --watch)
 cd packages/ballerina-extension && pnpm run watch-ballerina

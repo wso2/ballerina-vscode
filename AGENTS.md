@@ -26,18 +26,25 @@ of common-libs inside the submodule as workspace projects.
 directly will diverge from `common/config/rush/pnpm-lock.yaml` and produce
 ambiguous failures the next time someone runs rush.
 
-### 2. Build with `--to` filters; don't `rush build` the whole repo.
+### 2. The full build needs LS prerequisites.
 
 ```bash
-rush build --to ballerina                        # extension chain
+rush build                                       # everything (27 projects)
+rush build --to ballerina                        # extension chain (26 — same set minus ballerina-grammar)
 rush build --to ballerina-language-server        # LS only
 rush build --to @wso2/ballerina-visualizer       # one package + its deps
 ```
 
-A blind `rush build` triggers Gradle on the language server, which needs
-`packageUser`/`packagePAT` GitHub Packages credentials and Java 21. If you
-don't have either, that build fails noisily and you'll waste minutes
-diagnosing it.
+`ballerina-extension` declares `ballerina-language-server` as a workspace
+dep, so both `rush build` and `rush build --to ballerina` walk the LS into
+the topology. That means either form requires:
+
+- Java 21 on `JAVA_HOME`
+- `packageUser`/`packagePAT` in `~/.gradle/gradle.properties` (or the env)
+
+If you don't have those set up, skip the LS by building one of its dependents
+directly, e.g. `rush build --to @wso2/ballerina-visualizer` — that skips
+both `ballerina-extension` and the LS.
 
 ### 3. Use the existing TypeScript / build infrastructure; don't invent new tooling.
 
