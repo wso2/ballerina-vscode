@@ -266,7 +266,7 @@ export async function mapWithFrom(link: DataMapperLinkModel, context: IDataMappe
 		}
 	};
 
-	const lastIntermediateClauseIndex = context.model.query?.intermediateClauses?.length ? context.model.query.intermediateClauses.length -1 : -1;
+	const lastIntermediateClauseIndex = context.model.query?.intermediateClauses?.length ? context.model.query.intermediateClauses.length - 1 : -1;
 
 	await context.addClauses(clause, viewId, true, lastIntermediateClauseIndex);
 }

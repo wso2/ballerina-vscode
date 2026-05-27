@@ -18,7 +18,13 @@
 
 import { StateEffect, StateField, RangeSet, Transaction, SelectionRange, Annotation } from "@codemirror/state";
 import { WidgetType, Decoration, ViewPlugin, EditorView, ViewUpdate } from "@codemirror/view";
-import { filterCompletionsByPrefixAndType, getParsedExpressionTokens, detectTokenPatterns, ParsedToken } from "./utils";
+import {
+    filterCompletionsByPrefixAndType,
+    getParsedExpressionTokens,
+    detectTokenPatterns,
+    getTokenIndicesInClosedExpressionRanges,
+    ParsedToken
+} from "./utils";
 import { HELPER_PANE_WIDTH } from "./constants";
 import { defaultKeymap, historyKeymap } from "@codemirror/commands";
 import { CompletionItem, FnSignatureDocumentation } from "@wso2/ui-toolkit";
@@ -294,6 +300,8 @@ export const iterateTokenStream = (
         }
     }
 
+    const insideClosedRange = getTokenIndicesInClosedExpressionRanges(tokens);
+
     for (let i = 0; i < tokens.length; i++) {
         const token = tokens[i];
 
@@ -313,6 +321,11 @@ export const iterateTokenStream = (
 
         // Skip START_EVENT and END_EVENT tokens
         if (token.type === TokenType.START_EVENT || token.type === TokenType.END_EVENT) {
+            continue;
+        }
+
+        // Skip orphan tokens sitting inside an unclosed ${
+        if (!insideClosedRange.has(i)) {
             continue;
         }
 

@@ -110,7 +110,7 @@ class TraceServerPseudoterminal implements vscode.Pseudoterminal {
         if (this.serverStarted) {
             this.writeLine('');
             this.writeLine('👋 Shutting down trace server...');
-            
+
             TraceServer.stop()
                 .then(() => {
                     this.writeLine('✅ Trace server stopped');

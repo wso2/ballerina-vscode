@@ -578,6 +578,13 @@ const ChatInterface: React.FC = () => {
         loadAvailableAgents();
     }, [rpcClient]);
 
+    // Listen for tracing status changes pushed from the extension (toggled from the diagram)
+    useEffect(() => {
+        rpcClient.getAgentChatRpcClient().onTracingStatusChanged((status) => {
+            setIsTracingEnabled(status.enabled);
+        });
+    }, [rpcClient]);
+
     // Listen for active agent changes from the extension host (e.g. when user clicks Chat on a different agent)
     useEffect(() => {
         rpcClient.getAgentChatRpcClient().onActiveAgentChanged(async (agentName: string) => {

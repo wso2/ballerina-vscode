@@ -23,11 +23,16 @@ import { CopilotEventHandler } from "../../utils/events";
 import { approvalManager } from "../../state/ApprovalManager";
 import {
     ConfigVariable,
+    ConfigKeyRename,
     getAllConfigStatus,
     validateVariableName,
     writeConfigValuesToConfig,
     createStatusMetadata,
     readExistingConfigValues,
+    removeConfigKeys,
+    renameConfigKeys,
+    isPlaceholderValue,
+    computeCollectStatus,
 } from "../../../../utils/toml-utils";
 import { resolveContained, resolvePackageBasePath } from "./path-utils";
 import { getOrgPackageName } from "../../../../utils/config";
@@ -45,13 +50,20 @@ const ConfigVariableSchema = z.object({
     secret: z.boolean().optional().describe("Mark as true for sensitive values (API keys, passwords, tokens) to render as a masked input"),
 });
 
+const ConfigKeyRenameSchema = z.object({
+    from: z.string().describe("Current variable name in Config.toml"),
+    to: z.string().describe("New variable name — must match the renamed configurable identifier in source"),
+});
+
 const ConfigCollectorSchema = z.object({
-    mode: z.enum(["collect", "check"]).describe("Operation mode"),
+    mode: z.enum(["collect", "check", "remove", "rename"]).describe("Operation mode"),
     filePath: z.string().optional().describe("Path to config file (for check mode)"),
-    variables: z.array(ConfigVariableSchema).optional().describe("Configuration variables"),
+    variables: z.array(ConfigVariableSchema).optional().describe("Configuration variables (collect mode)"),
     variableNames: z.array(z.string()).optional().describe(
-        "Variable names to verify in check mode. " +
-        "Omit to discover ALL existing variable names in the file — useful when you want to reuse names that are already there."
+        "Variable names — used by 'check' (verify; omit to list all) and 'remove' (keys to delete)."
+    ),
+    renames: z.array(ConfigKeyRenameSchema).optional().describe(
+        "Rename pairs for 'rename' mode. The 'to' name must already exist as a configurable in source."
     ),
     isTestConfig: z.boolean().optional().describe("Set to true when collecting configuration for tests. Tool will automatically read from Config.toml and write to tests/Config.toml"),
     packagePath: z.string().optional().describe(
@@ -62,10 +74,11 @@ const ConfigCollectorSchema = z.object({
 });
 
 interface ConfigCollectorInput {
-    mode: "collect" | "check";
+    mode: "collect" | "check" | "remove" | "rename";
     filePath?: string;
     variables?: ConfigVariable[];
     variableNames?: string[];
+    renames?: ConfigKeyRename[];
     isTestConfig?: boolean;
     packagePath?: string;
 }
@@ -74,8 +87,31 @@ export interface ConfigCollectorResult {
     success: boolean;
     message: string;
     status?: Record<string, "filled" | "missing">;
+    userSkipped?: string[];
     error?: string;
     errorCode?: string;
+}
+
+interface SubmissionAnalysis {
+    provided: Record<string, string>;
+    notProvided: string[];
+}
+
+function classifySubmission(
+    variables: ConfigVariable[],
+    submitted: Record<string, string>
+): SubmissionAnalysis {
+    const provided: Record<string, string> = {};
+    const notProvided: string[] = [];
+    for (const variable of variables) {
+        const raw = submitted[variable.name];
+        if (raw && raw.trim()) {
+            provided[variable.name] = raw;
+        } else {
+            notProvided.push(variable.name);
+        }
+    }
+    return { provided, notProvided };
 }
 
 export interface ConfigCollectorPaths {
@@ -150,7 +186,8 @@ Operation Modes:
 1. COLLECT: Collect configuration values from the user
    - ALWAYS provide 'variables' — never call collect without them
    - Call ONLY immediately before running or testing the project — never during code writing
-   - Shows a form; nothing is written until the user confirms. If skipped, no file is created or modified
+   - Shows a form; nothing is written until the user confirms. If the whole collection is cancelled, no file is created or modified
+   - User may skip individual fields ('userSkipped' lists them). Do not re-prompt immediately. Only ask once more later if a value is truly needed for the run; if the user skips again, stop calling collect and tell them in chat what is missing
    - Pre-populates from existing Config.toml if it exists
    - When running tests, use isTestConfig: true — this is the only collect call needed; writes to tests/Config.toml after user confirms
    - For workspace projects, you MUST pass packagePath so the file is written inside the target package (not the workspace root)
@@ -165,6 +202,12 @@ Operation Modes:
    - Example (verify): { mode: "check", variableNames: ["dbPassword", "apiKey"], filePath: "Config.toml" }
    - Example (workspace): { mode: "check", packagePath: "pkg1" }
    - Returns: { status: { dbPassword: "filled", apiKey: "missing" } }
+
+3. REMOVE: Delete keys from Config.toml.
+
+4. RENAME: Rename keys in Config.toml, preserving values. Rename the configurable in source first — the 'to' name must already match a source declaration.
+
+Prefer REMOVE/RENAME over adding a dummy configurable to suppress unused-key errors.
 
 VARIABLE NAMING:
 Use camelCase names that match exactly the Ballerina configurable identifier. The name is written as-is to Config.toml.
@@ -202,7 +245,7 @@ function analyzeExistingConfig(
 
     for (const name of variableNames) {
         const value = existingValues[name];
-        if (value && !value.startsWith('${')) {
+        if (value && !isPlaceholderValue(value)) {
             filledCount++;
         } else {
             placeholderCount++;
@@ -257,6 +300,24 @@ export async function ConfigCollectorTool(
                     input.filePath,
                     paths,
                     input.isTestConfig,
+                    input.packagePath
+                );
+
+            case "remove":
+                return await handleRemoveMode(
+                    input.variableNames,
+                    paths,
+                    input.isTestConfig,
+                    modifiedFiles,
+                    input.packagePath
+                );
+
+            case "rename":
+                return await handleRenameMode(
+                    input.renames,
+                    paths,
+                    input.isTestConfig,
+                    modifiedFiles,
                     input.packagePath
                 );
 
@@ -385,7 +446,8 @@ async function handleCollectMode(
         variables.map(v => v.name)
     );
 
-    console.log(`[ConfigCollector] ${isTestConfig ? 'Test' : 'Main'} configuration: ${analysis.filledCount} filled`);
+    const configFileName = getConfigFileName(isTestConfig);
+    console.log(`[ConfigCollector] collect requested=${enrichedVariables.length} preFilled=${analysis.filledCount} file=${configFileName}`);
 
     // Determine the message to show to user
     const userMessage = isTestConfig
@@ -408,6 +470,7 @@ async function handleCollectMode(
     );
 
     if (!userResponse.provided) {
+        console.log(`[ConfigCollector] collect cancelled file=${configFileName}`);
         eventHandler({
             type: "configuration_collection_event",
             requestId,
@@ -418,19 +481,30 @@ async function handleCollectMode(
 
         return {
             success: false,
-            message: `User skipped configuration collection${userResponse.comment ? ": " + userResponse.comment : ""}. You can ask user to provide values later using collect mode.`,
+            message: `User cancelled configuration collection${userResponse.comment ? ": " + userResponse.comment : ""}.`,
             error: `User skipped${userResponse.comment ? ": " + userResponse.comment : ""}`,
             errorCode: "USER_CANCELLED",
         };
     }
 
-    // Write actual configuration values to determined config path
-    writeConfigValuesToConfig(configPath, userResponse.configValues!, enrichedVariables, orgName, packageName);
+    // Split provided values from skipped names; only write what the user actually filled.
+    const { provided, notProvided } = classifySubmission(enrichedVariables, userResponse.configValues!);
+
+    // Skipped names that had a non-placeholder existing value are preserved silently on disk;
+    // the agent only needs to know about the ones truly missing from Config.toml.
+    const skippedNew = notProvided.filter(
+        name => !existingValues[name] || isPlaceholderValue(existingValues[name])
+    );
+
+    const providedCount = Object.keys(provided).length;
+    const preservedCount = notProvided.length - skippedNew.length;
+    console.log(`[ConfigCollector] collect saved=${providedCount} skippedNew=${skippedNew.length} preserved=${preservedCount} requested=${enrichedVariables.length} file=${configFileName}`);
+
+    writeConfigValuesToConfig(configPath, provided, enrichedVariables, orgName, packageName);
 
     // Track modified file for syncing to workspace.
     // Path is relative to tempProjectPath, so prefix with packagePath for workspace projects.
     if (modifiedFiles) {
-        const configFileName = getConfigFileName(isTestConfig);
         const relativeConfigPath = packagePath
             ? path.join(packagePath, configFileName)
             : configFileName;
@@ -439,14 +513,12 @@ async function handleCollectMode(
         }
     }
 
-    // Convert to status metadata (filled/missing) - NEVER return actual values to agent
-    const statusMetadata = createStatusMetadata(userResponse.configValues!);
+    // Status reflects post-write Config.toml: "filled" includes preserved existing values.
+    const statusMetadata = computeCollectStatus(enrichedVariables, provided, existingValues);
 
-    // Clear values from memory
+    // Clear values from memory; NEVER return actual values to agent
     userResponse.configValues = undefined;
 
-    // Success - configuration values were collected and written
-    const configFileName = getConfigFileName(isTestConfig);
     eventHandler({
         type: "configuration_collection_event",
         requestId,
@@ -457,10 +529,16 @@ async function handleCollectMode(
         isTestConfig,
     });
 
+    const userNote = userResponse.comment ? ". User note: " + userResponse.comment : "";
+    const message = skippedNew.length > 0
+        ? `Saved ${providedCount} value(s) to ${configFileName}. User skipped: [${skippedNew.join(", ")}]${userNote}`
+        : `Saved ${providedCount} configuration value(s) to ${configFileName}${userNote}`;
+
     return {
         success: true,
-        message: `Successfully collected ${enrichedVariables.length} configuration value(s) and saved to ${configFileName}${userResponse.comment ? ". User note: " + userResponse.comment : ""}`,
+        message,
         status: statusMetadata,
+        ...(skippedNew.length > 0 ? { userSkipped: skippedNew } : {}),
     };
 }
 
@@ -517,15 +595,166 @@ async function handleCheckMode(
     const filledNames = Object.entries(status).filter(([, s]) => s === "filled").map(([n]) => n);
     const missingNames = Object.entries(status).filter(([, s]) => s === "missing").map(([n]) => n);
 
-    console.log(`[ConfigCollector] check ${configFileName} — filled: [${filledNames.join(", ") || "none"}], missing: [${missingNames.join(", ") || "none"}]`);
+    console.log(`[ConfigCollector] check ${configFileName} filled=${filledNames.length} missing=${missingNames.length}`);
 
     return {
         success: true,
         message:
-            `${configFileName} — ` +
+            `${configFileName}: ` +
             `filled: [${filledNames.join(", ") || "none"}], ` +
             `missing: [${missingNames.join(", ") || "none"}]`,
         status,
+    };
+}
+
+async function handleRemoveMode(
+    variableNames: string[] | undefined,
+    paths: ConfigCollectorPaths,
+    isTestConfig: boolean | undefined,
+    modifiedFiles: string[] | undefined,
+    packagePath: string | undefined
+): Promise<ConfigCollectorResult> {
+    if (!variableNames || variableNames.length === 0) {
+        return createErrorResult(
+            "NO_VARIABLES",
+            "No variable names provided to remove. Pass 'variableNames' with the keys to delete from Config.toml."
+        );
+    }
+    for (const name of variableNames) {
+        if (!validateVariableName(name)) {
+            return createErrorResult(
+                "INVALID_VARIABLE_NAME",
+                `Invalid variable name: ${name}. Use camelCase alphanumeric names (e.g., apiKey).`
+            );
+        }
+    }
+
+    const packageBasePath = resolvePackageBasePath(paths.tempPath, packagePath);
+    const { orgName, packageName } = getOrgPackageName(packageBasePath);
+    if (!orgName || !packageName) {
+        return createErrorResult(
+            "MISSING_PACKAGE_INFO",
+            "Ballerina.toml is missing or does not declare both 'org' and 'name' under [package]. Cannot scope Config.toml to the correct section."
+        );
+    }
+
+    const configPath = getConfigPath(packageBasePath, isTestConfig);
+    const configFileName = getConfigFileName(isTestConfig);
+
+    if (!fs.existsSync(configPath)) {
+        return {
+            success: true,
+            message: `${configFileName} does not exist; nothing to remove.`,
+        };
+    }
+
+    const { removed, notFound } = removeConfigKeys(configPath, variableNames, orgName, packageName);
+
+    if (removed.length > 0 && modifiedFiles) {
+        const relativeConfigPath = packagePath
+            ? path.join(packagePath, configFileName)
+            : configFileName;
+        if (!modifiedFiles.includes(relativeConfigPath)) {
+            modifiedFiles.push(relativeConfigPath);
+        }
+    }
+
+    console.log(`[ConfigCollector] remove ${configFileName} removed=${removed.length} notFound=${notFound.length}`);
+
+    const parts: string[] = [];
+    if (removed.length > 0) { parts.push(`removed: [${removed.join(", ")}]`); }
+    if (notFound.length > 0) { parts.push(`not found: [${notFound.join(", ")}]`); }
+
+    return {
+        success: true,
+        message: `${configFileName}: ${parts.join(", ") || "no changes"}`,
+    };
+}
+
+async function handleRenameMode(
+    renames: ConfigKeyRename[] | undefined,
+    paths: ConfigCollectorPaths,
+    isTestConfig: boolean | undefined,
+    modifiedFiles: string[] | undefined,
+    packagePath: string | undefined
+): Promise<ConfigCollectorResult> {
+    if (!renames || renames.length === 0) {
+        return createErrorResult(
+            "NO_RENAMES",
+            "No rename pairs provided. Pass 'renames' as an array of { from, to } objects."
+        );
+    }
+    for (const { from, to } of renames) {
+        if (!validateVariableName(from) || !validateVariableName(to)) {
+            return createErrorResult(
+                "INVALID_VARIABLE_NAME",
+                `Invalid variable name in rename pair: ${from} → ${to}. Use camelCase alphanumeric names.`
+            );
+        }
+    }
+
+    const packageBasePath = resolvePackageBasePath(paths.tempPath, packagePath);
+    const { orgName, packageName } = getOrgPackageName(packageBasePath);
+    if (!orgName || !packageName) {
+        return createErrorResult(
+            "MISSING_PACKAGE_INFO",
+            "Ballerina.toml is missing or does not declare both 'org' and 'name' under [package]. Cannot scope Config.toml to the correct section."
+        );
+    }
+
+    // The target name must exist in source — the agent should have renamed the
+    // configurable declaration and saved before calling rename.
+    const sourceTypes = await getConfigurableTypesFromSource(packageBasePath, orgName, packageName);
+    if (sourceTypes === null) {
+        return createErrorResult(
+            "LS_UNAVAILABLE",
+            "Language server is unavailable or failed to respond. Wait a moment and retry."
+        );
+    }
+    const unknownTargets = renames.filter(r => !(r.to in sourceTypes));
+    if (unknownTargets.length > 0) {
+        return createErrorResult(
+            "UNKNOWN_CONFIGURABLE",
+            `Target names not declared in source: ${unknownTargets.map(r => r.to).join(", ")}. ` +
+            `Available in source: ${Object.keys(sourceTypes).join(", ") || "none"}. ` +
+            `Rename the configurable in your .bal files and save first, then retry.`
+        );
+    }
+
+    const configPath = getConfigPath(packageBasePath, isTestConfig);
+    const configFileName = getConfigFileName(isTestConfig);
+
+    if (!fs.existsSync(configPath)) {
+        return createErrorResult(
+            "FILE_NOT_FOUND",
+            `${configFileName} does not exist; nothing to rename. Use collect mode to create entries for the new names.`
+        );
+    }
+
+    const { renamed, skipped } = renameConfigKeys(configPath, renames, orgName, packageName);
+
+    if (renamed.length > 0 && modifiedFiles) {
+        const relativeConfigPath = packagePath
+            ? path.join(packagePath, configFileName)
+            : configFileName;
+        if (!modifiedFiles.includes(relativeConfigPath)) {
+            modifiedFiles.push(relativeConfigPath);
+        }
+    }
+
+    console.log(`[ConfigCollector] rename ${configFileName} renamed=${renamed.length} skipped=${skipped.length}`);
+
+    const parts: string[] = [];
+    if (renamed.length > 0) {
+        parts.push(`renamed: [${renamed.map(r => `${r.from} -> ${r.to}`).join(", ")}]`);
+    }
+    if (skipped.length > 0) {
+        parts.push(`skipped: [${skipped.map(s => `${s.from} -> ${s.to} (${s.reason})`).join(", ")}]`);
+    }
+
+    return {
+        success: renamed.length > 0,
+        message: `${configFileName}: ${parts.join(", ") || "no changes"}`,
     };
 }
 
