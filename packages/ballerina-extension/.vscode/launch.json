@@ -23,8 +23,8 @@
             "outFiles": [
                 "${workspaceFolder}/dist/**/*.js"
             ],
-            "preLaunchTask": "npm: watch",
-            "envFile": "${workspaceFolder}/workspaces/ballerina/ballerina-extension/.env"
+            "preLaunchTask": "npm: watch-ballerina",
+            "envFile": "${workspaceFolder}/.env"
         },
         {
             "name": "Extension Tests",

@@ -1,0 +1,47 @@
+{
+    "folders": [
+        {
+            "name": "ballerina-vscode (root)",
+            "path": "."
+        },
+        {
+            "name": "ballerina-extension",
+            "path": "packages/ballerina-extension"
+        },
+        {
+            "name": "ballerina-language-server",
+            "path": "packages/ballerina-language-server"
+        },
+        {
+            "name": "ballerina-core",
+            "path": "packages/ballerina-core"
+        },
+        {
+            "name": "ballerina-visualizer",
+            "path": "packages/ballerina-visualizer"
+        },
+        {
+            "name": "ballerina-rpc-client",
+            "path": "packages/ballerina-rpc-client"
+        },
+        {
+            "name": "ballerina-grammar",
+            "path": "packages/ballerina-grammar"
+        }
+    ],
+    "settings": {
+        "typescript.tsdk": "packages/ballerina-extension/node_modules/typescript/lib",
+        "files.exclude": {
+            "**/.rush": true,
+            "**/node_modules": true,
+            "**/common/temp": true
+        }
+    },
+    "extensions": {
+        "recommendations": [
+            "dbaeumer.vscode-eslint",
+            "vscjava.vscode-java-pack",
+            "vscjava.vscode-gradle"
+        ]
+    }
+}
