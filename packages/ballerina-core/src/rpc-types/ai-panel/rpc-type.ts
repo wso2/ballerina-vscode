@@ -157,6 +157,7 @@ export const updateMcpServer: RequestType<UpdateMcpServerRequest, AddMcpServerRe
 export const deleteMcpServer: RequestType<DeleteMcpServerRequest, AddMcpServerResponse> = { method: `${_preFix}/deleteMcpServer` };
 export const setMcpToolsEnabled: RequestType<SetMcpToolsEnabledRequest, void> = { method: `${_preFix}/setMcpToolsEnabled` };
 export const getMcpToolsEnabled: RequestType<void, boolean> = { method: `${_preFix}/getMcpToolsEnabled` };
+export const getMcpPreviewEnabled: RequestType<void, boolean> = { method: `${_preFix}/getMcpPreviewEnabled` };
 export const getMcpWorkspaceContext: RequestType<void, McpWorkspaceContextResponse> = { method: `${_preFix}/getMcpWorkspaceContext` };
 export const getMcpLoadErrors: RequestType<void, McpLoadErrorsDTO> = { method: `${_preFix}/getMcpLoadErrors` };
 export const mcpServersChanged: NotificationType<McpServerStatusDTO[]> = { method: `${_preFix}/mcpServersChanged` };

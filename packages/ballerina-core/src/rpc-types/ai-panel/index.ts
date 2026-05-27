@@ -184,6 +184,7 @@ export interface AIPanelAPI {
     deleteMcpServer: (params: DeleteMcpServerRequest) => Promise<AddMcpServerResponse>;
     setMcpToolsEnabled: (params: SetMcpToolsEnabledRequest) => Promise<void>;
     getMcpToolsEnabled: () => Promise<boolean>;
+    getMcpPreviewEnabled: () => Promise<boolean>;
     getMcpWorkspaceContext: () => Promise<McpWorkspaceContextResponse>;
     getMcpLoadErrors: () => Promise<McpLoadErrorsDTO>;
     getMcpGroupStates: () => Promise<McpGroupStatesDTO>;

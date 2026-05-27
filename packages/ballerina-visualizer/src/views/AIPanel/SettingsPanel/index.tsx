@@ -120,6 +120,7 @@ interface SettingsPanelProps {
     onClose: () => void;
     onNavigate?: (route: PanelRoute) => void;
     mcpToolsEnabled?: boolean;
+    mcpPreviewEnabled?: boolean;
 }
 
 export const SettingsPanel = (props: SettingsPanelProps) => {
@@ -203,13 +204,14 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
 
 
     const customizeEntries: CustomizeEntry[] = [
-        {
+        // MCP is behind the beta preview flag; hidden entirely until it's on.
+        ...(props.mcpPreviewEnabled ? [{
             id: "mcp",
             icon: <Icon name="PowerPlug" sx={{ fontSize: "18px", display: "flex", alignItems: "center" }} />,
             label: "MCP servers",
             subtitle: mcpSubtitle,
             onOpenPanel: () => props.onNavigate?.("mcp"),
-        },
+        } as CustomizeEntry] : []),
         {
             id: "skills",
             icon: <span className="codicon codicon-lightbulb-sparkle" style={{ fontSize: 16 }} />,

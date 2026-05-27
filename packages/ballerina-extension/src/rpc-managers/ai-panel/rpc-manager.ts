@@ -1157,6 +1157,10 @@ User reverted the last made changes. The files have been restored to the state b
         await workspace.getConfiguration('ballerina').update('copilot.enableSkills', !!params?.enabled, ConfigurationTarget.Global);
     }
 
+    async getMcpPreviewEnabled(): Promise<boolean> {
+        return workspace.getConfiguration('ballerina').get<boolean>('copilot.mcp.preview', false);
+    }
+
     async getMcpWorkspaceContext(): Promise<McpWorkspaceContextResponse> {
         return { hasWorkspace: !!resolveProjectRootPath() && vscode.workspace.isTrusted };
     }
