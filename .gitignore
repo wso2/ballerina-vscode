@@ -1,3 +1,30 @@
+# Rush / monorepo
+common/temp/
+common/deploy/
+.rush/
+node_modules/
+
+# Build outputs (Node/TS)
+dist/
+build/
+out/
+*.vsix
+**/vsix
+**/resources/jslibs
+!resources/jslibs/font/DroidSansMono.ttf
+**/resources/font-wso2-vscode
+coverage/
+.vscode-test/
+test-resources/
+extractedDistribution/
+.npmrc
+.env
+.hintrc
+
+# Gradle (LS)
+.gradle/
+!gradle-wrapper.jar
+
 # Compiled class file
 *.class
 
@@ -10,7 +37,7 @@
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
-# Package Files #
+# Package Files
 *.jar
 *.war
 *.nar
@@ -19,5 +46,5 @@
 *.tar.gz
 *.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# JVM crash logs
 hs_err_pid*
