@@ -29,7 +29,6 @@ import {
     ChatNotify,
     DocumentationGeneratorIntermediaryState,
     OperationType,
-    ExtendedDataMapperMetadata,
     DocGenerationRequest,
     DocGenerationType,
     FileChanges,
@@ -38,6 +37,7 @@ import {
     WebToolToggle,
     LoginMethod,
     RunningServiceInfo,
+    ExtendedDataMapperMetadata,
 } from "@wso2/ballerina-core";
 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -53,7 +53,7 @@ import { StreamEntry, StreamItem } from "../AgentStreamView/types";
 import { ConnectorGeneratorSegment } from "../ConnectorGeneratorSegment";
 import { ConfigurationCollectorSegment, ConfigurationCollectionData } from "../ConfigurationCollectorSegment";
 import CheckpointSeparator from "../CheckpointSeparator";
-import { Attachment, AttachmentStatus, TaskApprovalRequest } from "@wso2/ballerina-core";
+import { Attachment, AttachmentStatus, SkillEntry, TaskApprovalRequest } from "@wso2/ballerina-core";
 
 import { AIChatView, Header, HeaderButtons, ChatMessage, TurnGroup, AuthProviderChip, UsageBadge, ApprovalOverlay, OverlayMessage, OverlayCloseButton } from "../../styles";
 import ReferenceDropdown from "../ReferenceDropdown";
@@ -78,6 +78,7 @@ import Footer from "./Footer";
 import { AgentMode } from "../AIChatInput/ModeToggle";
 import CommonApprovalFooter from "./Footer/CommonApprovalFooter";
 import ClarifyFooter from "./Footer/ClarifyFooter";
+import SkillSaveFooter from "./Footer/SkillSaveFooter";
 import { useFooterLogic } from "./Footer/useFooterLogic";
 import { SettingsPanel } from "../../SettingsPanel";
 import { McpManagerPanel } from "../../McpManagerPanel";
@@ -93,6 +94,7 @@ import { SegmentType, splitContent } from "./segment";
 import { MigrationContextCard } from "../MigrationContextCard";
 import { ActiveMigrationSession } from "@wso2/ballerina-rpc-client";
 import { ReviewBar } from "../ReviewBar";
+import SkillsManager from "../SkillsManager";
 
 const NO_DRIFT_FOUND = "No drift identified between the code and the documentation.";
 const DRIFT_CHECK_ERROR = "Failed to check drift between the code and the documentation. Please try again.";
@@ -253,6 +255,7 @@ const AIChat: React.FC = () => {
     const [mcpToolsEnabled, setMcpToolsEnabled] = useState(false);
 
     const [runningServices, setRunningServices] = useState<RunningServiceInfo[]>([]);
+    const [skills, setSkills] = useState<SkillEntry[]>([]);
 
     //TODO: Need a better way of storing data related to last generation to be in the repair state.
     const currentDiagnosticsRef = useRef<DiagnosticEntry[]>([]);
@@ -392,6 +395,10 @@ const AIChat: React.FC = () => {
     };
 
     useEffect(() => { fetchUsage(); fetchLoginMethod(); }, []);
+
+    useEffect(function fetchSkills() {
+        rpcClient.getAiPanelRpcClient().getSkills().then(res => setSkills(res.skills));
+    }, []);
 
     useEffect(() => {
         rpcClient.getAiPanelRpcClient().getShowContextUsage().then(setShowContextUsage).catch(() => {});
@@ -812,6 +819,33 @@ const AIChat: React.FC = () => {
                 return msgs;
             });
 
+        } else if (type === "skill_save_event") {
+            const skillSaveNotification = response as any;
+            const skillSaveData = {
+                requestId: skillSaveNotification.requestId,
+                stage: skillSaveNotification.stage,
+                name: skillSaveNotification.name,
+                trigger: skillSaveNotification.trigger,
+                body: skillSaveNotification.body,
+                tier: skillSaveNotification.tier,
+            };
+            setMessages(prevMessages => {
+                const msgs = [...prevMessages];
+                const targetIndex = ensureAssistantMessage(msgs);
+                const last = msgs[targetIndex];
+                const entries = parseStream(last.content);
+                let found = false;
+                let updated = entries.map(entry => {
+                    const idx = entry.items.findIndex(item => item.kind === "skill_save" && (item.data as any)?.requestId === skillSaveData.requestId);
+                    if (idx === -1) return entry;
+                    found = true;
+                    return { ...entry, items: entry.items.map((item, i) => i === idx ? { kind: "skill_save" as const, data: skillSaveData } : item) };
+                });
+                if (!found) updated = appendToLastEntry(entries, { kind: "skill_save", data: skillSaveData });
+                msgs[targetIndex] = { ...last, content: serializeStream(updated, last.content) };
+                return msgs;
+            });
+
         } else if (type === "diagnostics") {
             currentDiagnosticsRef.current = response.diagnostics;
 
@@ -1173,6 +1207,10 @@ const AIChat: React.FC = () => {
         if (parsedInput && "type" in parsedInput && parsedInput.type === "error") {
             throw new Error(parsedInput.message);
         } else if ("text" in parsedInput && !("command" in parsedInput)) {
+            if (metadata?.selectedSkillId) {
+                const existing = hiddenContextRef.current ? `${hiddenContextRef.current}\n` : "";
+                hiddenContextRef.current = `${existing}The user has explicitly selected the "${metadata.selectedSkillId}" skill. You MUST call invoke_skill with skillName="${metadata.selectedSkillId}" as your FIRST action before doing anything else.`;
+            }
             await processAgentGeneration(parsedInput.text, attachments);
         } else if ("command" in parsedInput) {
             switch (parsedInput.command) {
@@ -2160,11 +2198,26 @@ const AIChat: React.FC = () => {
                             (item: StreamItem) => item.kind === "ask" && (item as any).data?.stage === "asking"
                         ) as { kind: "ask"; data: { requestId: string; questions: any[] } } | undefined;
 
+                        const activeSkillSaveItem = lastStreamItems.find(
+                            (item: StreamItem) => item.kind === "skill_save" && (item as any).data?.stage === "prompting"
+                        ) as { kind: "skill_save"; data: { requestId: string; name: string; trigger: string; body?: string } } | undefined;
+
                         if (activeClarifyItem) {
                             return (
                                 <ClarifyFooter
                                     questions={activeClarifyItem.data.questions}
                                     requestId={activeClarifyItem.data.requestId}
+                                    rpcClient={rpcClient}
+                                />
+                            );
+                        }
+                        if (activeSkillSaveItem) {
+                            return (
+                                <SkillSaveFooter
+                                    requestId={activeSkillSaveItem.data.requestId}
+                                    name={activeSkillSaveItem.data.name}
+                                    trigger={activeSkillSaveItem.data.trigger}
+                                    body={activeSkillSaveItem.data.body}
                                     rpcClient={rpcClient}
                                 />
                             );
@@ -2233,6 +2286,7 @@ const AIChat: React.FC = () => {
                                 onStopService: handleStopRunningService,
                                 onStopAll: handleStopAllRunningServices,
                             }}
+                            skills={skills}
                         />
                         );
                     })()}
@@ -2242,6 +2296,7 @@ const AIChat: React.FC = () => {
                 <SettingsPanel onClose={popPanel} onNavigate={pushPanel} mcpToolsEnabled={mcpToolsEnabled} />
             )}
             {activePanel === "mcp" && <McpManagerPanel onClose={popPanel} />}
+            {activePanel === "skills" && <SkillsManager onClose={popPanel} />}
         </>
     );
 };

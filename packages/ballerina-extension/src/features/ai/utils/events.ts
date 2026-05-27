@@ -39,6 +39,7 @@ import {
     sendVisualizerMigrationNotification,
     sendAIPanelNotification,
     sendClarifyNotification,
+    sendSkillSaveNotification,
     sendChatComponentNotification,
     sendUsageMetricsNotification,
 } from "./ai-utils";
@@ -184,6 +185,9 @@ export function createWebviewEventHandler(command: Command): CopilotEventHandler
                 break;
             case "clarify_event":
                 sendClarifyNotification(event);
+                break;
+            case "skill_save_event":
+                sendSkillSaveNotification(event);
                 break;
             case "chat_component":
                 sendChatComponentNotification(event.componentType, event.data, event.id);

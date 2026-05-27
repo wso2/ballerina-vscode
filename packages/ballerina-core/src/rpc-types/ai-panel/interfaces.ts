@@ -550,6 +550,80 @@ export interface RunServiceRequest {
     /** Absolute path to the temp directory containing the package. */
     tempProjectPath: string;
 }
+
+// ==================================
+// Skills Management Interfaces
+// ==================================
+
+export enum SkillTier {
+    BUILTIN = 'builtin',
+    CUSTOM = 'custom',
+    USER = 'user',
+}
+
+export enum SkillScope {
+    PROJECT = 'project',
+    INTEGRATION = 'integration',
+}
+
+export enum SkillSaveStage {
+    PROMPTING = 'prompting',
+    SAVED = 'saved',
+    CANCELLED = 'cancelled',
+}
+
+export interface SkillEntry {
+    id: string;
+    name: string;
+    trigger: string;
+    body?: string;
+    tier: SkillTier;
+    enabled: boolean;
+    scope?: SkillScope;
+    packagePath?: string;
+}
+
+export interface DeleteSkillRequest {
+    skillId: string;
+    tier: SkillTier.CUSTOM | SkillTier.USER;
+}
+
+export interface AvailableProject {
+    name: string;
+    packagePath: string;
+}
+
+export interface GetSkillsResponse {
+    skills: SkillEntry[];
+    availableProjects: AvailableProject[];
+}
+
+export interface AddSkillRequest {
+    tier: SkillTier.CUSTOM | SkillTier.USER;
+    name: string;
+    trigger: string;
+    body?: string;
+    scope?: SkillScope;
+    packagePath?: string;
+}
+
+export interface ToggleSkillRequest {
+    skillId: string;
+    enabled: boolean;
+    tier: SkillTier;
+}
+
+export interface SkillSaveRequest {
+    requestId: string;
+    tier: SkillTier.USER | SkillTier.CUSTOM;
+    scope?: SkillScope;
+    packagePath?: string;
+}
+
+export interface SkillSaveCancelRequest {
+    requestId: string;
+}
+
 // ==================================
 // Compaction Related Interfaces
 // ==================================
@@ -651,6 +725,9 @@ export interface DeleteMcpServerRequest {
     scope: McpScope;
 }
 export interface SetMcpToolsEnabledRequest {
+    enabled: boolean;
+}
+export interface SetSkillsEnabledRequest {
     enabled: boolean;
 }
 /** Per-scope parse / read errors for `mcp.json` files. Both fields are optional — missing means OK. */

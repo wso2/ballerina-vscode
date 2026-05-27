@@ -117,6 +117,21 @@ import {
     RunServiceRequest,
     runService,
     getDefaultVertexCredsPath,
+    getSkills,
+    addSkill,
+    toggleSkill,
+    deleteSkill,
+    saveSkillFromChat,
+    cancelSkillSave,
+    getSkillsEnabled,
+    setSkillsEnabled,
+    GetSkillsResponse,
+    AddSkillRequest,
+    ToggleSkillRequest,
+    DeleteSkillRequest,
+    SkillSaveRequest,
+    SkillSaveCancelRequest,
+    SetSkillsEnabledRequest,
     listMcpServers,
     setMcpServerEnabled,
     openMcpConfig,
@@ -384,6 +399,38 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     getDefaultVertexCredsPath(): Promise<string> {
         return this._messenger.sendRequest(getDefaultVertexCredsPath, HOST_EXTENSION);
+    }
+
+    getSkills(): Promise<GetSkillsResponse> {
+        return this._messenger.sendRequest(getSkills, HOST_EXTENSION);
+    }
+
+    addSkill(params: AddSkillRequest): Promise<boolean> {
+        return this._messenger.sendRequest(addSkill, HOST_EXTENSION, params);
+    }
+
+    toggleSkill(params: ToggleSkillRequest): Promise<boolean> {
+        return this._messenger.sendRequest(toggleSkill, HOST_EXTENSION, params);
+    }
+
+    deleteSkill(params: DeleteSkillRequest): Promise<boolean> {
+        return this._messenger.sendRequest(deleteSkill, HOST_EXTENSION, params);
+    }
+
+    saveSkillFromChat(params: SkillSaveRequest): Promise<boolean> {
+        return this._messenger.sendRequest(saveSkillFromChat, HOST_EXTENSION, params);
+    }
+
+    cancelSkillSave(params: SkillSaveCancelRequest): Promise<void> {
+        return this._messenger.sendRequest(cancelSkillSave, HOST_EXTENSION, params);
+    }
+
+    getSkillsEnabled(): Promise<boolean> {
+        return this._messenger.sendRequest(getSkillsEnabled, HOST_EXTENSION);
+    }
+
+    setSkillsEnabled(params: SetSkillsEnabledRequest): Promise<void> {
+        return this._messenger.sendRequest(setSkillsEnabled, HOST_EXTENSION, params);
     }
 
     listMcpServers(): Promise<McpServerStatusDTO[]> {

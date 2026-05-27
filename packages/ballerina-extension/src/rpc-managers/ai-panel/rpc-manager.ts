@@ -55,6 +55,18 @@ import {
     RunningServiceInfo,
     StopRunningServiceRequest,
     RunServiceRequest,
+    GetSkillsResponse,
+    AddSkillRequest,
+    ToggleSkillRequest,
+    DeleteSkillRequest,
+    SkillSaveRequest,
+    SkillSaveCancelRequest,
+    SetSkillsEnabledRequest,
+    SkillEntry,
+    AvailableProject,
+    SkillTier,
+    SkillScope,
+    ProjectSource,
     McpServerStatusDTO,
     SetMcpServerEnabledRequest,
     AddMcpServerRequest,
@@ -104,6 +116,17 @@ import {
 import { addToIntegration, searchDocumentation } from "./utils";
 
 import { createExecutorConfig, generateAgent, resolveProjectRootPath } from '../../features/ai/agent/index';
+import { REGISTERED_SKILLS } from '../../features/ai/agent/skills/index';
+import { scanCustomSkills, scanUserSkills, readUserSkillContent, readCustomSkillContent } from '../../features/ai/agent/tools/skill-tool/skill-reader';
+import {
+    getSkillsConfig,
+    setSkillEnabled,
+    writeUserSkill,
+    writeCustomSkill,
+    deleteUserSkill,
+    deleteCustomSkill,
+    GLOBAL_SKILLS_CONFIG_PATH,
+} from '../../features/ai/agent/tools/skill-tool/skill-writer';
 import { clearCompactionDisabledWarning } from '../../features/ai/agent/AgentExecutor';
 import { LLM_API_BASE_PATH, WI_EXTENSION_ID } from "../../features/ai/constants";
 import { ContextTypesExecutor } from '../../features/ai/executors/datamapper/ContextTypesExecutor';
@@ -898,6 +921,182 @@ User reverted the last made changes. The files have been restored to the state b
         return "";
     }
 
+    async getSkills(): Promise<GetSkillsResponse> {
+        const projectRootPath = resolveProjectRootPath();
+        const globalConfig = getSkillsConfig(GLOBAL_SKILLS_CONFIG_PATH);
+        const projectConfigPath = projectRootPath
+            ? path.join(projectRootPath, '.copilot', 'skills.config.json')
+            : null;
+        const projectConfig = projectConfigPath ? getSkillsConfig(projectConfigPath) : { disabledSkills: [] };
+        const allDisabled = new Set([...globalConfig.disabledSkills, ...projectConfig.disabledSkills]);
+
+        const skills: SkillEntry[] = [];
+
+        // Built-in skills (body not editable, omit from entry)
+        for (const s of REGISTERED_SKILLS) {
+            skills.push({ id: s.name, name: s.name, trigger: s.trigger, tier: SkillTier.BUILTIN, enabled: !allDisabled.has(s.name) });
+        }
+
+        // Custom project/integration skills
+        const availableProjects: AvailableProject[] = [];
+        if (projectRootPath) {
+            const projectName = path.basename(projectRootPath);
+            const projectSources = this.scanPackages(projectRootPath);
+            availableProjects.push(...projectSources);
+            const projectMetas: ProjectSource[] = projectSources.map(p => ({
+                projectName: p.name,
+                packagePath: p.packagePath,
+                sourceFiles: [],
+                isActive: false,
+            }));
+            const customMetas = scanCustomSkills(projectRootPath, projectMetas);
+            for (const s of customMetas) {
+                const slash = s.name.indexOf('/');
+                const prefix = slash !== -1 ? s.name.slice(0, slash) : '';
+                const isProjectLevel = prefix === projectName;
+                const content = readCustomSkillContent(projectRootPath, projectMetas, s.name);
+                skills.push({
+                    id: s.name,
+                    name: s.name,
+                    trigger: s.trigger,
+                    body: content?.content !== content?.trigger ? content?.content : undefined,
+                    tier: SkillTier.CUSTOM,
+                    enabled: !allDisabled.has(s.name),
+                    scope: isProjectLevel ? SkillScope.PROJECT : SkillScope.INTEGRATION,
+                    packagePath: isProjectLevel ? undefined : prefix,
+                });
+            }
+        }
+
+        // User skills
+        const userMetas = scanUserSkills();
+        for (const s of userMetas) {
+            const content = readUserSkillContent(s.name);
+            skills.push({
+                id: s.name,
+                name: s.name,
+                trigger: s.trigger,
+                body: content?.content !== content?.trigger ? content?.content : undefined,
+                tier: SkillTier.USER,
+                enabled: !allDisabled.has(s.name),
+            });
+        }
+
+        return { skills, availableProjects };
+    }
+
+    async addSkill(params: AddSkillRequest): Promise<boolean> {
+        try {
+            if (params.tier === SkillTier.USER) {
+                writeUserSkill(params.name, params.trigger, params.body);
+            } else {
+                const projectRootPath = resolveProjectRootPath();
+                if (!projectRootPath) { return false; }
+                if (params.scope === SkillScope.INTEGRATION && !params.packagePath) {
+                    console.error('[Skills] addSkill: integration scope requires packagePath');
+                    return false;
+                }
+                const packagePath = params.scope === SkillScope.INTEGRATION ? params.packagePath! : null;
+                writeCustomSkill(projectRootPath, packagePath, params.name, params.trigger, params.body);
+            }
+            return true;
+        } catch (error) {
+            console.error('[Skills] addSkill failed:', error);
+            return false;
+        }
+    }
+
+    async toggleSkill(params: ToggleSkillRequest): Promise<boolean> {
+        try {
+            const configPath = params.tier === SkillTier.CUSTOM
+                ? (() => {
+                    const root = resolveProjectRootPath();
+                    return root ? path.join(root, '.copilot', 'skills.config.json') : GLOBAL_SKILLS_CONFIG_PATH;
+                })()
+                : GLOBAL_SKILLS_CONFIG_PATH;
+            setSkillEnabled(configPath, params.skillId, params.enabled);
+            return true;
+        } catch (error) {
+            console.error('[Skills] toggleSkill failed:', error);
+            return false;
+        }
+    }
+
+    async deleteSkill(params: DeleteSkillRequest): Promise<boolean> {
+        try {
+            if (params.tier === SkillTier.USER) {
+                const slash = params.skillId.indexOf('/');
+                const bareName = slash !== -1 ? params.skillId.slice(slash + 1) : params.skillId;
+                deleteUserSkill(bareName);
+            } else {
+                const projectRootPath = resolveProjectRootPath();
+                if (!projectRootPath) { return false; }
+                const slash = params.skillId.indexOf('/');
+                const prefix = slash !== -1 ? params.skillId.slice(0, slash) : '';
+                const bareName = slash !== -1 ? params.skillId.slice(slash + 1) : params.skillId;
+                const projectName = path.basename(projectRootPath);
+                const packagePath = prefix === projectName ? null : prefix;
+                deleteCustomSkill(projectRootPath, packagePath, bareName);
+            }
+            return true;
+        } catch (error) {
+            console.error('[Skills] deleteSkill failed:', error);
+            return false;
+        }
+    }
+
+    async saveSkillFromChat(params: SkillSaveRequest): Promise<boolean> {
+        try {
+            const draft = approvalManager.getSkillDraft(params.requestId);
+            if (!draft) {
+                console.warn('[Skills] saveSkillFromChat: no pending draft for request', params.requestId);
+                approvalManager.resolveSkillSave(params.requestId, false);
+                return false;
+            }
+            if (params.tier === SkillTier.USER) {
+                writeUserSkill(draft.name, draft.trigger, draft.body);
+            } else {
+                const projectRootPath = resolveProjectRootPath();
+                if (!projectRootPath) {
+                    approvalManager.resolveSkillSave(params.requestId, false);
+                    return false;
+                }
+                if (params.scope === SkillScope.INTEGRATION && !params.packagePath) {
+                    console.error('[Skills] saveSkillFromChat: integration scope requires packagePath');
+                    approvalManager.resolveSkillSave(params.requestId, false);
+                    return false;
+                }
+                const packagePath = params.scope === SkillScope.INTEGRATION ? params.packagePath! : null;
+                writeCustomSkill(projectRootPath, packagePath, draft.name, draft.trigger, draft.body);
+            }
+            approvalManager.resolveSkillSave(params.requestId, true, params.tier);
+            return true;
+        } catch (error) {
+            console.error('[Skills] saveSkillFromChat failed:', error);
+            approvalManager.resolveSkillSave(params.requestId, false);
+            return false;
+        }
+    }
+
+    async cancelSkillSave(params: SkillSaveCancelRequest): Promise<void> {
+        approvalManager.resolveSkillSave(params.requestId, false);
+    }
+
+    private scanPackages(projectRootPath: string): AvailableProject[] {
+        const results: AvailableProject[] = [];
+        try {
+            const entries = fs.readdirSync(projectRootPath, { withFileTypes: true });
+            for (const entry of entries) {
+                if (!entry.isDirectory()) { continue; }
+                const tomlPath = path.join(projectRootPath, entry.name, 'Ballerina.toml');
+                if (fs.existsSync(tomlPath)) {
+                    results.push({ name: entry.name, packagePath: entry.name });
+                }
+            }
+        } catch { /* ignore */ }
+        return results;
+    }
+
     async listMcpServers(): Promise<McpServerStatusDTO[]> {
         const manager = getMcpClientManager();
         if (!manager) {
@@ -942,6 +1141,14 @@ User reverted the last made changes. The files have been restored to the state b
 
     async getMcpToolsEnabled(): Promise<boolean> {
         return workspace.getConfiguration('ballerina').get<boolean>('copilot.enableMcpTools', false);
+    }
+
+    async getSkillsEnabled(): Promise<boolean> {
+        return workspace.getConfiguration('ballerina').get<boolean>('copilot.enableSkills', true);
+    }
+
+    async setSkillsEnabled(params: SetSkillsEnabledRequest): Promise<void> {
+        await workspace.getConfiguration('ballerina').update('copilot.enableSkills', !!params?.enabled, ConfigurationTarget.Global);
     }
 
     async getMcpWorkspaceContext(): Promise<McpWorkspaceContextResponse> {

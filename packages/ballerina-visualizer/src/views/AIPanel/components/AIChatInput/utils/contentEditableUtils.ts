@@ -402,6 +402,14 @@ export const getContentAsInputList = (rootEl: HTMLDivElement): Input[] => {
                             rawValue: rawValue,
                         });
                         break;
+                    case ChatBadgeType.Skill:
+                        results.push({
+                            badgeType: ChatBadgeType.Skill,
+                            display: display,
+                            rawValue: rawValue,
+                            skillId: rawValue ?? display,
+                        });
+                        break;
                 }
             } else {
                 // Otherwise, keep traversing child nodes

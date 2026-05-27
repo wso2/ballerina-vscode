@@ -56,6 +56,15 @@ import {
     RunningServiceInfo,
     StopRunningServiceRequest,
     RunServiceRequest,
+    GetSkillsResponse,
+    AddSkillRequest,
+    ToggleSkillRequest,
+    DeleteSkillRequest,
+    SkillSaveRequest,
+    SkillSaveCancelRequest,
+    SetSkillsEnabledRequest,
+    SkillTier,
+    SkillScope,
     McpServerStatusDTO,
     SetMcpServerEnabledRequest,
     AddMcpServerRequest,
@@ -152,6 +161,17 @@ export interface AIPanelAPI {
     // Vertex AI BYOK Helpers
     // ==================================
     getDefaultVertexCredsPath: () => Promise<string>;
+    // ==================================
+    // Skills Management
+    // ==================================
+    getSkills: () => Promise<GetSkillsResponse>;
+    addSkill: (params: AddSkillRequest) => Promise<boolean>;
+    toggleSkill: (params: ToggleSkillRequest) => Promise<boolean>;
+    deleteSkill: (params: DeleteSkillRequest) => Promise<boolean>;
+    saveSkillFromChat: (params: SkillSaveRequest) => Promise<boolean>;
+    cancelSkillSave: (params: SkillSaveCancelRequest) => Promise<void>;
+    getSkillsEnabled: () => Promise<boolean>;
+    setSkillsEnabled: (params: SetSkillsEnabledRequest) => Promise<void>;
     // ==================================
     // MCP tool support
     // ==================================

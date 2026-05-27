@@ -20,6 +20,7 @@ import React from "react";
 import MarkdownRenderer from "../MarkdownRenderer";
 import TodoSection from "../TodoSection";
 import AskCard from "./AskCard";
+import SkillSaveCard from "./SkillSaveCard";
 import ConfigCard from "./ConfigCard";
 import ConnectorCard from "./ConnectorCard";
 import CommandOutputCard from "./CommandOutputCard";
@@ -70,6 +71,7 @@ const TOOL_ICON_MAP: Record<string, ToolIconEntry> = {
     TaskWrite:                     { loading: "codicon-checklist" },
     ConfigCollector:               { loading: "codicon-settings-gear" },
     ConnectorGeneratorTool:        { loading: "codicon-plug" },
+    invoke_skill:                  { loading: "codicon-book" },
 };
 const DEFAULT_TOOL_ICON = "codicon-symbol-property";
 const MCP_TOOL_PREFIX = "mcp__";
@@ -134,6 +136,7 @@ function getToolCallDisplay(toolName: string | undefined, toolInput: any): { lab
         case "stopBallerinaService": return { label: "Stopping service..." };
         case "web_search": return { label: toolInput?.query ? "Searching the web:" : "Searching the web...", detail: toolInput?.query };
         case "web_fetch":  return { label: toolInput?.url ? "Fetching from web:" : "Fetching from web...", detail: toolInput?.url };
+        case "invoke_skill": return { label: toolInput?.skillName ? `Loading skill: ${toolInput.skillName}` : "Loading skill..." };
         default: return { label: "Working..." };
     }
 }
@@ -184,6 +187,7 @@ function getToolResultDisplay(toolName: string | undefined, toolOutput: any, hin
         }
         case "web_search": return { label: hint ? "Web search:" : "Web search completed", detail: hint };
         case "web_fetch":  return { label: hint ? "Web fetch:" : "Web fetch completed",  detail: hint };
+        case "invoke_skill": return { label: toolOutput?.found ? `Using skill: ${toolOutput.skillName}` : `Skill not found: ${toolOutput?.message ?? ""}` };
         default: return { label: "Done" };
     }
 }
@@ -254,6 +258,8 @@ function renderItem(item: StreamItem, idx: number, streamActive: boolean, rpcCli
             );
         case "ask":
             return <AskCard key={idx} data={item.data} rpcClient={rpcClient} />;
+        case "skill_save":
+            return <SkillSaveCard key={idx} data={item.data} />;
         case "config":
             return <ConfigCard key={idx} data={item.data} rpcClient={rpcClient} />;
         case "connector":

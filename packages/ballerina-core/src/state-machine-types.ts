@@ -23,7 +23,7 @@ import { LinePosition } from "./interfaces/common";
 import { ProjectInfo, ProjectMigrationResult, Type } from "./interfaces/extended-lang-client";
 import { DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
 import { SCOPE, ArtifactData, DataMapperMetadata } from "./interfaces/shared-types";
-import { DiagnosticEntry, DocumentationGeneratorIntermediaryState, SourceFile, CodeContext, FileAttatchment } from "./rpc-types/ai-panel/interfaces";
+import { DiagnosticEntry, DocumentationGeneratorIntermediaryState, SourceFile, CodeContext, FileAttatchment, SkillSaveStage, SkillTier } from "./rpc-types/ai-panel/interfaces";
 
 export { SCOPE };
 export type { ArtifactData, DataMapperMetadata };
@@ -353,6 +353,7 @@ export type ChatNotify =
     | ConnectorGenerationNotification
     | ConfigurationCollectionEvent
     | ClarifyEvent
+    | SkillSaveEvent
     | ChatComponentEvent
     | PlanUpdated
     | CompactionStartEvent
@@ -527,6 +528,16 @@ export interface ClarifyEvent {
     stage: "asking" | "answered" | "skipped";
     questions: ClarifyQuestion[];
     answers?: Array<{ question: string; answers: string[] }>;
+}
+
+export interface SkillSaveEvent {
+    type: "skill_save_event";
+    requestId: string;
+    stage: SkillSaveStage;
+    name: string;
+    trigger: string;
+    body?: string;
+    tier?: SkillTier.USER | SkillTier.CUSTOM;
 }
 
 export interface ChatComponentEvent {

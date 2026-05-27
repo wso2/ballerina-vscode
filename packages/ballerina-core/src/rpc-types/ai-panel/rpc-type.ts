@@ -58,6 +58,13 @@ import {
     RunningServiceInfo,
     StopRunningServiceRequest,
     RunServiceRequest,
+    GetSkillsResponse,
+    AddSkillRequest,
+    ToggleSkillRequest,
+    DeleteSkillRequest,
+    SkillSaveRequest,
+    SkillSaveCancelRequest,
+    SetSkillsEnabledRequest,
     McpServerStatusDTO,
     SetMcpServerEnabledRequest,
     AddMcpServerRequest,
@@ -133,6 +140,14 @@ export const stopRunningService: RequestType<StopRunningServiceRequest, boolean>
 export const runService: RequestType<RunServiceRequest, boolean> = { method: `${_preFix}/runService` };
 export const runningServicesChanged: NotificationType<RunningServiceInfo[]> = { method: `${_preFix}/runningServicesChanged` };
 export const getDefaultVertexCredsPath: RequestType<void, string> = { method: `${_preFix}/getDefaultVertexCredsPath` };
+export const getSkills: RequestType<void, GetSkillsResponse> = { method: `${_preFix}/getSkills` };
+export const addSkill: RequestType<AddSkillRequest, boolean> = { method: `${_preFix}/addSkill` };
+export const toggleSkill: RequestType<ToggleSkillRequest, boolean> = { method: `${_preFix}/toggleSkill` };
+export const deleteSkill: RequestType<DeleteSkillRequest, boolean> = { method: `${_preFix}/deleteSkill` };
+export const getSkillsEnabled: RequestType<void, boolean> = { method: `${_preFix}/getSkillsEnabled` };
+export const setSkillsEnabled: RequestType<SetSkillsEnabledRequest, void> = { method: `${_preFix}/setSkillsEnabled` };
+export const saveSkillFromChat: RequestType<SkillSaveRequest, boolean> = { method: `${_preFix}/saveSkillFromChat` };
+export const cancelSkillSave: RequestType<SkillSaveCancelRequest, void> = { method: `${_preFix}/cancelSkillSave` };
 export const listMcpServers: RequestType<void, McpServerStatusDTO[]> = { method: `${_preFix}/listMcpServers` };
 export const setMcpServerEnabled: RequestType<SetMcpServerEnabledRequest, void> = { method: `${_preFix}/setMcpServerEnabled` };
 export const openMcpConfig: RequestType<OpenMcpConfigRequest, void> = { method: `${_preFix}/openMcpConfig` };

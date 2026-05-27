@@ -98,6 +98,10 @@ module.exports = {
             }
           }
         ]
+      },
+      {
+        test: /\.md$/,
+        type: 'asset/source'
       }
     ]
   },

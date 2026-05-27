@@ -17,6 +17,7 @@
  */
 
 import { Task, MACHINE_VIEW, ClarifyQuestion } from "@wso2/ballerina-core/lib/state-machine-types";
+import { SkillSaveStage } from "@wso2/ballerina-core";
 import { CopilotEventHandler } from "../utils/events";
 import { ConfigVariable } from "../../../utils/toml-utils";
 import { StateMachine } from "../../../stateMachine";
@@ -54,6 +55,23 @@ export interface ConnectorSpecResponse {
 export interface ClarifyResponse {
     answered: boolean;
     answers?: Array<{ question: string; answers: string[] }>;
+}
+
+/**
+ * Skill save draft — held while waiting for user tier selection
+ */
+export interface SkillDraft {
+    name: string;
+    trigger: string;
+    body?: string;
+}
+
+/**
+ * Skill save response
+ */
+export interface SkillSaveResponse {
+    saved: boolean;
+    tier?: string;
 }
 
 /**
@@ -99,6 +117,8 @@ export class ApprovalManager {
     private configurationRequests = new Map<string, PromiseResolver<ConfigurationResponse>>();
     private webToolApprovals = new Map<string, PromiseResolver<{ approved: boolean }>>();
     private clarifyRequests = new Map<string, PromiseResolver<ClarifyResponse>>();
+    private skillSaveRequests = new Map<string, PromiseResolver<SkillSaveResponse>>();
+    private skillDrafts = new Map<string, SkillDraft>();
     private approvalQueue: ApprovalQueueItem[] = [];
     private approvalQueueActive = false;
     private notificationCounters = new Map<string, number>();
@@ -555,6 +575,68 @@ export class ApprovalManager {
     }
 
     // ============================================
+    // Skill Save
+    // ============================================
+
+    /**
+     * Request skill save location from user.
+     * Emits skill_save_event (stage: "prompting") and waits for the user to pick a tier.
+     */
+    requestSkillSave(
+        requestId: string,
+        draft: SkillDraft,
+        eventHandler: CopilotEventHandler,
+    ): Promise<SkillSaveResponse> {
+        console.log(`[ApprovalManager] Requesting skill save: ${requestId}`);
+
+        this.skillDrafts.set(requestId, draft);
+
+        eventHandler({
+            type: "skill_save_event",
+            requestId,
+            stage: SkillSaveStage.PROMPTING,
+            name: draft.name,
+            trigger: draft.trigger,
+            body: draft.body,
+        });
+
+        return new Promise((resolve, reject) => {
+            const timeoutId = setTimeout(() => {
+                this.skillSaveRequests.delete(requestId);
+                this.skillDrafts.delete(requestId);
+                reject(new Error(`Skill save request timeout for request ${requestId}`));
+            }, this.DEFAULT_TIMEOUT_MS);
+
+            this.skillSaveRequests.set(requestId, { resolve, reject, timeoutId });
+        });
+    }
+
+    /**
+     * Retrieve the pending skill draft so the RPC handler can write the file.
+     */
+    getSkillDraft(requestId: string): SkillDraft | undefined {
+        return this.skillDrafts.get(requestId);
+    }
+
+    /**
+     * Resolve a pending skill save request (called by RPC handler when user responds).
+     */
+    resolveSkillSave(requestId: string, saved: boolean, tier?: string): void {
+        const resolver = this.skillSaveRequests.get(requestId);
+        if (!resolver) {
+            console.warn(`[ApprovalManager] No pending skill save for request: ${requestId}`);
+            return;
+        }
+
+        console.log(`[ApprovalManager] Resolving skill save: ${requestId}, saved: ${saved}`);
+
+        if (resolver.timeoutId) { clearTimeout(resolver.timeoutId); }
+        resolver.resolve({ saved, tier });
+        this.skillSaveRequests.delete(requestId);
+        this.skillDrafts.delete(requestId);
+    }
+
+    // ============================================
     // Notification Counter
     // ============================================
 
@@ -654,6 +736,16 @@ export class ApprovalManager {
         }
         this.clarifyRequests.clear();
 
+        // Resolve skill save requests as cancelled
+        for (const [, resolver] of this.skillSaveRequests.entries()) {
+            if (resolver.timeoutId) {
+                clearTimeout(resolver.timeoutId);
+            }
+            resolver.resolve({ saved: false });
+        }
+        this.skillSaveRequests.clear();
+        this.skillDrafts.clear();
+
         // Reset all notification counters and fire handlers (e.g. turn off globe)
         for (const [type, count] of this.notificationCounters.entries()) {
             if (count > 0) {
@@ -666,7 +758,7 @@ export class ApprovalManager {
     /**
      * Get count of pending approvals (useful for debugging)
      */
-    getPendingCount(): { plans: number; tasks: number; connectorSpecs: number; configurations: number; webTools: number; clarify: number } {
+    getPendingCount(): { plans: number; tasks: number; connectorSpecs: number; configurations: number; webTools: number; clarify: number; skillSave: number } {
         return {
             plans: this.planApprovals.size,
             tasks: this.taskApprovals.size,
@@ -674,6 +766,7 @@ export class ApprovalManager {
             configurations: this.configurationRequests.size,
             webTools: this.webToolApprovals.size,
             clarify: this.clarifyRequests.size,
+            skillSave: this.skillSaveRequests.size,
         };
     }
 }
