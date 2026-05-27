@@ -878,20 +878,23 @@ export function PackageOverview(props: PackageOverviewProps) {
         setProjectStructure(prev => prev ? { ...prev, projectTitle: newTitle } : prev);
     }, [projectPath, rpcClient]);
 
-    function isEmptyIntegration(): boolean {
-        // Filter out connections that start with underscore
-        const validConnections = projectStructure.directoryMap[DIRECTORY_MAP.CONNECTION]?.filter(
+    const isEmptyIntegration = useMemo((): boolean => {
+        if (!projectStructure) return true;
+
+        const { directoryMap } = projectStructure;
+        const validConnections = directoryMap[DIRECTORY_MAP.CONNECTION]?.filter(
             conn => !conn.name.startsWith('_')
-        ) || [];
+        ) ?? [];
 
         return (
-            (!projectStructure.directoryMap[DIRECTORY_MAP.AUTOMATION] || projectStructure.directoryMap[DIRECTORY_MAP.AUTOMATION].length === 0) &&
-            (validConnections.length === 0) &&
-            (!projectStructure.directoryMap[DIRECTORY_MAP.LISTENER] || projectStructure.directoryMap[DIRECTORY_MAP.LISTENER].length === 0) &&
-            (!projectStructure.directoryMap[DIRECTORY_MAP.SERVICE] || projectStructure.directoryMap[DIRECTORY_MAP.SERVICE].length === 0) &&
-            (!projectStructure.directoryMap.agents || projectStructure.directoryMap.agents.length === 0)
+            !directoryMap[DIRECTORY_MAP.AUTOMATION]?.length &&
+            !directoryMap[DIRECTORY_MAP.LISTENER]?.length &&
+            !directoryMap[DIRECTORY_MAP.SERVICE]?.length &&
+            !directoryMap[DIRECTORY_MAP.AGENTS]?.length &&
+            !directoryMap[DIRECTORY_MAP.WORKFLOW]?.length &&
+            validConnections.length === 0
         );
-    }
+    }, [projectStructure]);
 
     if (!projectStructure) {
         return (
@@ -1094,7 +1097,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                             {!isLibrary && (
                                 <DiagramHeaderContainer withPadding={true}>
                                     <Title variant="h2">Design</Title>
-                                    {!isEmptyIntegration() && (
+                                    {!isEmptyIntegration && (
                                         <ActionContainer>
                                             <Button appearance="secondary" onClick={handleGenerate}>
                                                 <Icon name="bi-ai-chat" sx={{ marginRight: 8 }} iconSx={{ width: "16px", height: "16px", fontSize: "16px" }} /> Generate with AI
@@ -1109,7 +1112,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                             {isLibrary && <LibraryOverview projectStructure={projectStructure} isNPSupported={isNPSupported} projectPath={projectPath} onRefresh={fetchContext} />}
                             {!isLibrary && (
                                 <DiagramContent>
-                                    {isEmptyIntegration() ? (
+                                    {isEmptyIntegration ? (
                                         <EmptyStateContainer>
                                             <Typography variant="h3" sx={{ marginBottom: "16px" }}>
                                                 Your integration is empty
@@ -1140,7 +1143,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                                 <ReadmeHeaderContainer>
                                     <Title variant="h2">README</Title>
                                     <ReadmeButtonContainer>
-                                        {readmeContent && isEmptyIntegration() && (
+                                        {readmeContent && isEmptyIntegration && (
                                             <Button appearance="icon" onClick={handleGenerateWithReadme} buttonSx={{ padding: "4px 8px" }}>
                                                 <Codicon name="wand" sx={{ marginRight: 4, fontSize: 16 }} /> Generate with Readme
                                             </Button>
