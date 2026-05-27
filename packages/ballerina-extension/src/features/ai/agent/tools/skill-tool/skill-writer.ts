@@ -53,13 +53,28 @@ export function setSkillEnabled(configPath: string, skillId: string, enabled: bo
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf-8');
 }
 
+function validatePathSegment(segment: string, label: string): void {
+    if (!segment || /[/\\]/.test(segment) || segment === '..' || segment === '.') {
+        throw new Error(`Invalid ${label}: "${segment}"`);
+    }
+}
+
+function assertWithinRoot(resolvedTarget: string, root: string): void {
+    const rel = path.relative(root, resolvedTarget);
+    if (rel.startsWith('..') || path.isAbsolute(rel)) {
+        throw new Error(`Path escapes allowed directory: "${resolvedTarget}"`);
+    }
+}
+
 function buildSkillMd(name: string, trigger: string, body?: string): string {
     const frontmatter = `---\nname: ${name}\ndescription: ${trigger}\n---`;
     return body && body.trim() ? `${frontmatter}\n\n${body.trim()}\n` : `${frontmatter}\n`;
 }
 
 export function writeUserSkill(name: string, trigger: string, body?: string): void {
+    validatePathSegment(name, 'skill name');
     const skillDir = path.join(os.homedir(), '.ballerina', 'copilot', 'skills', name);
+    assertWithinRoot(path.resolve(skillDir), path.resolve(path.join(os.homedir(), '.ballerina', 'copilot', 'skills')));
     fs.mkdirSync(skillDir, { recursive: true });
     fs.writeFileSync(path.join(skillDir, 'SKILL.md'), buildSkillMd(name, trigger, body), 'utf-8');
 }
@@ -71,15 +86,20 @@ export function writeCustomSkill(
     trigger: string,
     body?: string
 ): void {
+    validatePathSegment(name, 'skill name');
+    const resolvedRoot = path.resolve(projectRoot);
     const baseDir = packagePath
         ? path.join(projectRoot, packagePath, 'skills', name)
         : path.join(projectRoot, 'skills', name);
+    assertWithinRoot(path.resolve(baseDir), resolvedRoot);
     fs.mkdirSync(baseDir, { recursive: true });
     fs.writeFileSync(path.join(baseDir, 'SKILL.md'), buildSkillMd(name, trigger, body), 'utf-8');
 }
 
 export function deleteUserSkill(name: string): void {
+    validatePathSegment(name, 'skill name');
     const skillDir = path.join(os.homedir(), '.ballerina', 'copilot', 'skills', name);
+    assertWithinRoot(path.resolve(skillDir), path.resolve(path.join(os.homedir(), '.ballerina', 'copilot', 'skills')));
     if (fs.existsSync(skillDir)) {
         fs.rmSync(skillDir, { recursive: true, force: true });
     }
@@ -90,9 +110,12 @@ export function deleteCustomSkill(
     packagePath: string | null,
     name: string
 ): void {
+    validatePathSegment(name, 'skill name');
+    const resolvedRoot = path.resolve(projectRoot);
     const skillDir = packagePath
         ? path.join(projectRoot, packagePath, 'skills', name)
         : path.join(projectRoot, 'skills', name);
+    assertWithinRoot(path.resolve(skillDir), resolvedRoot);
     if (fs.existsSync(skillDir)) {
         fs.rmSync(skillDir, { recursive: true, force: true });
     }

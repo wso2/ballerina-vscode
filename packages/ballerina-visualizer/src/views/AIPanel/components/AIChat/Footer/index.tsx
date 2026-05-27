@@ -22,7 +22,7 @@ import { keyframes } from "@emotion/css";
 import AIChatInput, { AIChatInputRef, TagOptions } from "../../AIChatInput";
 import { RunningServicesPanel } from "../../AIChatInput/RunningServicesChip";
 import { Input } from "../../AIChatInput/utils/inputUtils";
-import { AIPanelPrompt, Attachment, TemplateId, CodeContext } from "@wso2/ballerina-core";
+import { AIPanelPrompt, Attachment, SkillEntry, TemplateId, CodeContext } from "@wso2/ballerina-core";
 import { commandTemplates, suggestedCommandTemplates as defaultSuggestedCommandTemplates } from "../../../commandTemplates/data/commandTemplates.const";
 import { AttachmentOptions } from "../../AIChatInput/hooks/useAttachments";
 import { getTemplateTextById } from "../../../commandTemplates/utils/utils";
@@ -165,12 +165,12 @@ type FooterProps = {
     onDisableAutoApprove?: () => void;
     isWebToolsEnabled?: boolean;
     onToggleWebSearch?: () => void;
-    onOpenSkillsManager?: () => void;
     disabled?: boolean;
     contextUsage?: { inputTokens: number; percentage: number; breakdown?: { systemInstructions: number; toolDefinitions: number; reservedOutput: number; files: number; messages: number; toolResults: number } } | null;
     mcpToolsEnabled?: boolean;
     onOpenMcpManager?: () => void;
     runningServicesPanel?: RunningServicesPanel;
+    skills?: SkillEntry[];
 };
 
 const Footer: React.FC<FooterProps> = ({
@@ -192,12 +192,12 @@ const Footer: React.FC<FooterProps> = ({
     onDisableAutoApprove,
     isWebToolsEnabled,
     onToggleWebSearch,
-    onOpenSkillsManager,
     disabled,
     contextUsage,
     mcpToolsEnabled,
     onOpenMcpManager,
     runningServicesPanel,
+    skills,
 }) => {
     const footerSuggestedCommandTemplates = suggestedCommandTemplates ?? defaultSuggestedCommandTemplates;
     const [animatedText, setAnimatedText] = useState("Generating.");
@@ -258,12 +258,12 @@ const Footer: React.FC<FooterProps> = ({
                 onDisableAutoApprove={onDisableAutoApprove}
                 isWebToolsEnabled={isWebToolsEnabled}
                 onToggleWebSearch={onToggleWebSearch}
-                onOpenSkillsManager={onOpenSkillsManager}
                 disabled={disabled}
                 contextUsage={contextUsage}
                 mcpToolsEnabled={mcpToolsEnabled}
                 onOpenMcpManager={onOpenMcpManager}
                 runningServicesPanel={runningServicesPanel}
+                skills={skills}
             />
             <DisclaimerText visible={!showSuggestedCommands}>
                 AI-generated content may contain mistakes. Always review changes.

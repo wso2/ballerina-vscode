@@ -47,7 +47,12 @@ interface TagBadgeInput extends BaseBadgeInput {
     badgeType: ChatBadgeType.Tag;
 }
 
-type BadgeInput = CommandBadgeInput | TagBadgeInput;
+export interface SkillBadgeInput extends BaseBadgeInput {
+    badgeType: ChatBadgeType.Skill;
+    skillId: string;
+}
+
+type BadgeInput = CommandBadgeInput | TagBadgeInput | SkillBadgeInput;
 
 // ==================================
 // Input Parsing Utils
@@ -157,6 +162,8 @@ export const stringifyInputArrayWithBadges = (inputs: Input[]): string => {
                 return `<badge ${baseAttrs} data-type="command" data-command="${input.command}">${input.display}</badge>`;
             } else if (input.badgeType === ChatBadgeType.Tag) {
                 return `<badge ${baseAttrs} data-type="tag">${input.display}</badge>`;
+            } else if (input.badgeType === ChatBadgeType.Skill) {
+                return `<badge ${baseAttrs} data-type="skill" data-skill-id="${input.skillId}">${input.display}</badge>`;
             }
 
             return '';

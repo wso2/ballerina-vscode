@@ -17,6 +17,7 @@
  */
 
 import { Task, MACHINE_VIEW, ClarifyQuestion } from "@wso2/ballerina-core/lib/state-machine-types";
+import { SkillSaveStage } from "@wso2/ballerina-core";
 import { CopilotEventHandler } from "../utils/events";
 import { ConfigVariable } from "../../../utils/toml-utils";
 import { StateMachine } from "../../../stateMachine";
@@ -593,7 +594,7 @@ export class ApprovalManager {
         eventHandler({
             type: "skill_save_event",
             requestId,
-            stage: "prompting",
+            stage: SkillSaveStage.PROMPTING,
             name: draft.name,
             trigger: draft.trigger,
             body: draft.body,

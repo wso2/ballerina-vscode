@@ -64,6 +64,7 @@ import {
     DeleteSkillRequest,
     SkillSaveRequest,
     SkillSaveCancelRequest,
+    SetSkillsEnabledRequest,
     McpServerStatusDTO,
     SetMcpServerEnabledRequest,
     AddMcpServerRequest,
@@ -143,6 +144,8 @@ export const getSkills: RequestType<void, GetSkillsResponse> = { method: `${_pre
 export const addSkill: RequestType<AddSkillRequest, boolean> = { method: `${_preFix}/addSkill` };
 export const toggleSkill: RequestType<ToggleSkillRequest, boolean> = { method: `${_preFix}/toggleSkill` };
 export const deleteSkill: RequestType<DeleteSkillRequest, boolean> = { method: `${_preFix}/deleteSkill` };
+export const getSkillsEnabled: RequestType<void, boolean> = { method: `${_preFix}/getSkillsEnabled` };
+export const setSkillsEnabled: RequestType<SetSkillsEnabledRequest, void> = { method: `${_preFix}/setSkillsEnabled` };
 export const saveSkillFromChat: RequestType<SkillSaveRequest, boolean> = { method: `${_preFix}/saveSkillFromChat` };
 export const cancelSkillSave: RequestType<SkillSaveCancelRequest, void> = { method: `${_preFix}/cancelSkillSave` };
 export const listMcpServers: RequestType<void, McpServerStatusDTO[]> = { method: `${_preFix}/listMcpServers` };

@@ -23,7 +23,7 @@ import { LinePosition } from "./interfaces/common";
 import { ProjectInfo, ProjectMigrationResult, Type } from "./interfaces/extended-lang-client";
 import { DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
 import { SCOPE, ArtifactData, DataMapperMetadata } from "./interfaces/shared-types";
-import { DiagnosticEntry, DocumentationGeneratorIntermediaryState, SourceFile, CodeContext, FileAttatchment } from "./rpc-types/ai-panel/interfaces";
+import { DiagnosticEntry, DocumentationGeneratorIntermediaryState, SourceFile, CodeContext, FileAttatchment, SkillSaveStage, SkillTier } from "./rpc-types/ai-panel/interfaces";
 
 export { SCOPE };
 export type { ArtifactData, DataMapperMetadata };
@@ -533,11 +533,11 @@ export interface ClarifyEvent {
 export interface SkillSaveEvent {
     type: "skill_save_event";
     requestId: string;
-    stage: "prompting" | "saved" | "cancelled";
+    stage: SkillSaveStage;
     name: string;
     trigger: string;
     body?: string;
-    tier?: "user" | "custom";
+    tier?: SkillTier.USER | SkillTier.CUSTOM;
 }
 
 export interface ChatComponentEvent {
@@ -849,7 +849,7 @@ export interface UserApproval {
     comment?: string;
 }
 
-export type OperationType = "CODE_FOR_USER_REQUIREMENT" | "TESTS_FOR_USER_REQUIREMENT" | "DATA_MAPPING";
+export type OperationType = "CODE_FOR_USER_REQUIREMENT" | "TESTS_FOR_USER_REQUIREMENT";
 
 
 export enum LoginMethod {

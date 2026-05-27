@@ -31,6 +31,10 @@ function parseSkillMd(content: string): { name: string; description: string } {
 
 const { name, description } = parseSkillMd(skillMd);
 
+if (!name || !description) {
+    throw new Error(`[data-map] SKILL.md is missing required frontmatter fields (name="${name}", description="${description}")`);
+}
+
 export const dataMapSkill: Skill = {
     name,
     trigger: description,

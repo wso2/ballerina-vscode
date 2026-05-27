@@ -61,8 +61,11 @@ import {
     DeleteSkillRequest,
     SkillSaveRequest,
     SkillSaveCancelRequest,
+    SetSkillsEnabledRequest,
     SkillEntry,
     AvailableProject,
+    SkillTier,
+    SkillScope,
     ProjectSource,
     McpServerStatusDTO,
     SetMcpServerEnabledRequest,
@@ -931,7 +934,7 @@ User reverted the last made changes. The files have been restored to the state b
 
         // Built-in skills (body not editable, omit from entry)
         for (const s of REGISTERED_SKILLS) {
-            skills.push({ id: s.name, name: s.name, trigger: s.trigger, tier: 'builtin', enabled: !allDisabled.has(s.name) });
+            skills.push({ id: s.name, name: s.name, trigger: s.trigger, tier: SkillTier.BUILTIN, enabled: !allDisabled.has(s.name) });
         }
 
         // Custom project/integration skills
@@ -957,9 +960,9 @@ User reverted the last made changes. The files have been restored to the state b
                     name: s.name,
                     trigger: s.trigger,
                     body: content?.content !== content?.trigger ? content?.content : undefined,
-                    tier: 'custom',
+                    tier: SkillTier.CUSTOM,
                     enabled: !allDisabled.has(s.name),
-                    scope: isProjectLevel ? 'project' : 'integration',
+                    scope: isProjectLevel ? SkillScope.PROJECT : SkillScope.INTEGRATION,
                     packagePath: isProjectLevel ? undefined : prefix,
                 });
             }
@@ -974,7 +977,7 @@ User reverted the last made changes. The files have been restored to the state b
                 name: s.name,
                 trigger: s.trigger,
                 body: content?.content !== content?.trigger ? content?.content : undefined,
-                tier: 'user',
+                tier: SkillTier.USER,
                 enabled: !allDisabled.has(s.name),
             });
         }
@@ -984,12 +987,16 @@ User reverted the last made changes. The files have been restored to the state b
 
     async addSkill(params: AddSkillRequest): Promise<boolean> {
         try {
-            if (params.tier === 'user') {
+            if (params.tier === SkillTier.USER) {
                 writeUserSkill(params.name, params.trigger, params.body);
             } else {
                 const projectRootPath = resolveProjectRootPath();
                 if (!projectRootPath) { return false; }
-                const packagePath = params.scope === 'integration' ? (params.packagePath ?? null) : null;
+                if (params.scope === SkillScope.INTEGRATION && !params.packagePath) {
+                    console.error('[Skills] addSkill: integration scope requires packagePath');
+                    return false;
+                }
+                const packagePath = params.scope === SkillScope.INTEGRATION ? params.packagePath! : null;
                 writeCustomSkill(projectRootPath, packagePath, params.name, params.trigger, params.body);
             }
             return true;
@@ -1001,7 +1008,7 @@ User reverted the last made changes. The files have been restored to the state b
 
     async toggleSkill(params: ToggleSkillRequest): Promise<boolean> {
         try {
-            const configPath = params.tier === 'custom'
+            const configPath = params.tier === SkillTier.CUSTOM
                 ? (() => {
                     const root = resolveProjectRootPath();
                     return root ? path.join(root, '.copilot', 'skills.config.json') : GLOBAL_SKILLS_CONFIG_PATH;
@@ -1017,7 +1024,7 @@ User reverted the last made changes. The files have been restored to the state b
 
     async deleteSkill(params: DeleteSkillRequest): Promise<boolean> {
         try {
-            if (params.tier === 'user') {
+            if (params.tier === SkillTier.USER) {
                 const slash = params.skillId.indexOf('/');
                 const bareName = slash !== -1 ? params.skillId.slice(slash + 1) : params.skillId;
                 deleteUserSkill(bareName);
@@ -1043,14 +1050,23 @@ User reverted the last made changes. The files have been restored to the state b
             const draft = approvalManager.getSkillDraft(params.requestId);
             if (!draft) {
                 console.warn('[Skills] saveSkillFromChat: no pending draft for request', params.requestId);
+                approvalManager.resolveSkillSave(params.requestId, false);
                 return false;
             }
-            if (params.tier === 'user') {
+            if (params.tier === SkillTier.USER) {
                 writeUserSkill(draft.name, draft.trigger, draft.body);
             } else {
                 const projectRootPath = resolveProjectRootPath();
-                if (!projectRootPath) { return false; }
-                const packagePath = params.scope === 'integration' ? (params.packagePath ?? null) : null;
+                if (!projectRootPath) {
+                    approvalManager.resolveSkillSave(params.requestId, false);
+                    return false;
+                }
+                if (params.scope === SkillScope.INTEGRATION && !params.packagePath) {
+                    console.error('[Skills] saveSkillFromChat: integration scope requires packagePath');
+                    approvalManager.resolveSkillSave(params.requestId, false);
+                    return false;
+                }
+                const packagePath = params.scope === SkillScope.INTEGRATION ? params.packagePath! : null;
                 writeCustomSkill(projectRootPath, packagePath, draft.name, draft.trigger, draft.body);
             }
             approvalManager.resolveSkillSave(params.requestId, true, params.tier);
@@ -1125,6 +1141,14 @@ User reverted the last made changes. The files have been restored to the state b
 
     async getMcpToolsEnabled(): Promise<boolean> {
         return workspace.getConfiguration('ballerina').get<boolean>('copilot.enableMcpTools', false);
+    }
+
+    async getSkillsEnabled(): Promise<boolean> {
+        return workspace.getConfiguration('ballerina').get<boolean>('copilot.enableSkills', true);
+    }
+
+    async setSkillsEnabled(params: SetSkillsEnabledRequest): Promise<void> {
+        await workspace.getConfiguration('ballerina').update('copilot.enableSkills', !!params?.enabled, ConfigurationTarget.Global);
     }
 
     async getMcpWorkspaceContext(): Promise<McpWorkspaceContextResponse> {

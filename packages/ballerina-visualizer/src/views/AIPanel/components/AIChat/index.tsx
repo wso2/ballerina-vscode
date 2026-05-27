@@ -20,6 +20,7 @@ import React, { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
 import {
     SourceFile,
+    MappingParameters,
     LLMDiagnostics,
     DiagnosticEntry,
     AIPanelPrompt,
@@ -36,6 +37,7 @@ import {
     WebToolToggle,
     LoginMethod,
     RunningServiceInfo,
+    ExtendedDataMapperMetadata,
 } from "@wso2/ballerina-core";
 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -51,7 +53,7 @@ import { StreamEntry, StreamItem } from "../AgentStreamView/types";
 import { ConnectorGeneratorSegment } from "../ConnectorGeneratorSegment";
 import { ConfigurationCollectorSegment, ConfigurationCollectionData } from "../ConfigurationCollectorSegment";
 import CheckpointSeparator from "../CheckpointSeparator";
-import { Attachment, AttachmentStatus, TaskApprovalRequest } from "@wso2/ballerina-core";
+import { Attachment, AttachmentStatus, SkillEntry, TaskApprovalRequest } from "@wso2/ballerina-core";
 
 import { AIChatView, Header, HeaderButtons, ChatMessage, TurnGroup, AuthProviderChip, UsageBadge, ApprovalOverlay, OverlayMessage, OverlayCloseButton } from "../../styles";
 import ReferenceDropdown from "../ReferenceDropdown";
@@ -213,7 +215,6 @@ const AIChat: React.FC = () => {
     const popPanel = () => setPanelStack(s => s.slice(0, -1));
     const [isAutoApproveEnabled, setIsAutoApproveEnabled] = useState(false);
     const [isWebToolsEnabled, setIsWebToolsEnabled] = useState(false);
-    const [isSkillsManagerOpen, setIsSkillsManagerOpen] = useState(false);
     const userWebSearchPreferenceRef = useRef(false);
     const [agentMode, _setAgentMode] = useState<AgentMode>(AgentMode.Edit);
     const agentModeRef = useRef<AgentMode>(AgentMode.Edit);
@@ -254,6 +255,7 @@ const AIChat: React.FC = () => {
     const [mcpToolsEnabled, setMcpToolsEnabled] = useState(false);
 
     const [runningServices, setRunningServices] = useState<RunningServiceInfo[]>([]);
+    const [skills, setSkills] = useState<SkillEntry[]>([]);
 
     //TODO: Need a better way of storing data related to last generation to be in the repair state.
     const currentDiagnosticsRef = useRef<DiagnosticEntry[]>([]);
@@ -393,6 +395,10 @@ const AIChat: React.FC = () => {
     };
 
     useEffect(() => { fetchUsage(); fetchLoginMethod(); }, []);
+
+    useEffect(function fetchSkills() {
+        rpcClient.getAiPanelRpcClient().getSkills().then(res => setSkills(res.skills));
+    }, []);
 
     useEffect(() => {
         rpcClient.getAiPanelRpcClient().getShowContextUsage().then(setShowContextUsage).catch(() => {});
@@ -1201,6 +1207,10 @@ const AIChat: React.FC = () => {
         if (parsedInput && "type" in parsedInput && parsedInput.type === "error") {
             throw new Error(parsedInput.message);
         } else if ("text" in parsedInput && !("command" in parsedInput)) {
+            if (metadata?.selectedSkillId) {
+                const existing = hiddenContextRef.current ? `${hiddenContextRef.current}\n` : "";
+                hiddenContextRef.current = `${existing}The user has explicitly selected the "${metadata.selectedSkillId}" skill. You MUST call invoke_skill with skillName="${metadata.selectedSkillId}" as your FIRST action before doing anything else.`;
+            }
             await processAgentGeneration(parsedInput.text, attachments);
         } else if ("command" in parsedInput) {
             switch (parsedInput.command) {
@@ -1247,7 +1257,44 @@ const AIChat: React.FC = () => {
                     break;
                 }
                 case Command.DataMap: {
-                    await processAgentGeneration(parsedInput.text, attachments, "DATA_MAPPING");
+                    switch (parsedInput.templateId) {
+                        case "mappings-for-records":
+                            // TODO: Update this to use the LS API for validating function names
+                            const invalidPattern = /[<>\/\(\)\{\}\[\]\\!@#$%^&*+=|;:'",.?`~]/;
+                            if (invalidPattern.test(parsedInput.placeholderValues.functionName)) {
+                                throw new Error("Please provide a valid function name without special characters.");
+                            }
+
+                            await processMappingParameters(
+                                {
+                                    inputRecord: parsedInput.placeholderValues.inputRecords
+                                        .split(",")
+                                        .map((item) => item.trim()),
+                                    outputRecord: parsedInput.placeholderValues.outputRecord,
+                                    functionName: parsedInput.placeholderValues.functionName,
+                                },
+                                metadata as ExtendedDataMapperMetadata,
+                                attachments
+                            );
+                            break;
+                        case "mappings-for-function":
+                            await processMappingParameters(
+                                {
+                                    inputRecord: [],
+                                    outputRecord: "",
+                                    functionName: parsedInput.placeholderValues.functionName,
+                                },
+                                metadata as ExtendedDataMapperMetadata,
+                                attachments
+                            );
+                            break;
+                        case "inline-mappings":
+                            await processInlineMappingParameters(
+                                metadata as ExtendedDataMapperMetadata,
+                                attachments
+                            );
+                            break;
+                    }
                     break;
                 }
                 case Command.TypeCreator: {
@@ -1381,6 +1428,28 @@ const AIChat: React.FC = () => {
                 throw new Error(errorMessage);
             }
         }
+    }
+
+    async function processMappingParameters(
+        parameters: MappingParameters,
+        metadata?: ExtendedDataMapperMetadata,
+        attachments?: Attachment[]
+    ) {
+        await rpcClient.getAiPanelRpcClient().generateMappingCode({
+            parameters,
+            metadata,
+            attachments
+        });
+    }
+
+    async function processInlineMappingParameters(
+        metadata: ExtendedDataMapperMetadata,
+        attachments?: Attachment[]
+    ) {
+        await rpcClient.getAiPanelRpcClient().generateInlineMappingCode({
+            metadata,
+            attachments
+        });
     }
 
     async function processContextTypeCreation(attachments: Attachment[]) {
@@ -1709,7 +1778,7 @@ const AIChat: React.FC = () => {
     }
     return (
         <>
-            {panelStack.length === 0 && !isSkillsManagerOpen && (
+            {panelStack.length === 0 && (
                 <AIChatView style={{ position: "relative" }}>
                     {approvalOverlay.show && (
                         <ApprovalOverlay>
@@ -2208,7 +2277,6 @@ const AIChat: React.FC = () => {
                             onDisableAutoApprove={handleToggleAutoApprove}
                             isWebToolsEnabled={isWebToolsEnabled}
                             onToggleWebSearch={handleToggleWebSearch}
-                            onOpenSkillsManager={() => setIsSkillsManagerOpen(true)}
                             disabled={isUsageExceeded}
                             contextUsage={showContextUsage ? contextUsage : null}
                             mcpToolsEnabled={mcpToolsEnabled}
@@ -2218,6 +2286,7 @@ const AIChat: React.FC = () => {
                                 onStopService: handleStopRunningService,
                                 onStopAll: handleStopAllRunningServices,
                             }}
+                            skills={skills}
                         />
                         );
                     })()}
@@ -2227,7 +2296,7 @@ const AIChat: React.FC = () => {
                 <SettingsPanel onClose={popPanel} onNavigate={pushPanel} mcpToolsEnabled={mcpToolsEnabled} />
             )}
             {activePanel === "mcp" && <McpManagerPanel onClose={popPanel} />}
-            {isSkillsManagerOpen && <SkillsManager onClose={() => setIsSkillsManagerOpen(false)} />}
+            {activePanel === "skills" && <SkillsManager onClose={popPanel} />}
         </>
     );
 };

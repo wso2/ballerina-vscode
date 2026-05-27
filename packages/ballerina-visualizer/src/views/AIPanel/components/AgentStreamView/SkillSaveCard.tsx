@@ -17,6 +17,7 @@
  */
 
 import React from "react";
+import { SkillSaveStage } from "@wso2/ballerina-core";
 import {
     InlineCard,
     InlineCardHeader,
@@ -30,13 +31,13 @@ interface SkillSaveCardProps {
 }
 
 const SkillSaveCard: React.FC<SkillSaveCardProps> = ({ data }) => {
-    const { stage, name, tier } = data;
+    const { stage, name, tier, scope } = data;
 
-    if (stage === "prompting") {
+    if (stage === SkillSaveStage.PROMPTING) {
         return null;
     }
 
-    if (stage === "saved") {
+    if (stage === SkillSaveStage.SAVED) {
         return (
             <InlineCard status="done">
                 <InlineCardHeader>
@@ -46,7 +47,7 @@ const SkillSaveCard: React.FC<SkillSaveCardProps> = ({ data }) => {
                     <InlineCardTitle>Skill &ldquo;{name}&rdquo; saved</InlineCardTitle>
                     {tier && (
                         <InlineCardSubtitle style={{ marginLeft: "auto" }}>
-                            {tier === "user" ? "User skill" : "Project skill"}
+                            {tier === "user" ? "User skill" : scope === "integration" ? "Integration skill" : "Project skill"}
                         </InlineCardSubtitle>
                     )}
                 </InlineCardHeader>
@@ -54,7 +55,7 @@ const SkillSaveCard: React.FC<SkillSaveCardProps> = ({ data }) => {
         );
     }
 
-    if (stage === "cancelled") {
+    if (stage === SkillSaveStage.CANCELLED) {
         return (
             <InlineCard status="done">
                 <InlineCardHeader>

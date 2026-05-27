@@ -19,7 +19,7 @@
 import React, { useState } from "react";
 import styled from "@emotion/styled";
 import { TextField, TextArea, Dropdown } from "@wso2/ui-toolkit";
-import { AddSkillRequest, AvailableProject } from "@wso2/ballerina-core";
+import { AddSkillRequest, AvailableProject, SkillScope, SkillTier } from "@wso2/ballerina-core";
 
 const Form = styled.div`
     display: flex;
@@ -101,11 +101,11 @@ const ActionButton = styled.button<ActionButtonProps>`
 `;
 
 interface AddSkillFormProps {
-    tier: 'custom' | 'user';
+    tier: SkillTier.CUSTOM | SkillTier.USER;
     availableProjects: AvailableProject[];
     onSubmit: (req: AddSkillRequest) => Promise<void>;
     onCancel: () => void;
-    editSkill?: { name: string; trigger: string; body?: string; scope?: 'project' | 'integration'; packagePath?: string };
+    editSkill?: { name: string; trigger: string; body?: string; scope?: SkillScope; packagePath?: string };
 }
 
 const AddSkillForm: React.FC<AddSkillFormProps> = ({ tier, availableProjects, onSubmit, onCancel, editSkill }) => {
@@ -115,11 +115,12 @@ const AddSkillForm: React.FC<AddSkillFormProps> = ({ tier, availableProjects, on
     const [name, setName] = useState(plainName);
     const [trigger, setTrigger] = useState(editSkill?.trigger ?? '');
     const [body, setBody] = useState(editSkill?.body ?? '');
-    const [scope, setScope] = useState<'project' | 'integration'>(editSkill?.scope ?? 'project');
+    const [scope, setScope] = useState<SkillScope>(editSkill?.scope ?? SkillScope.PROJECT);
     const [packagePath, setPackagePath] = useState(editSkill?.packagePath ?? availableProjects[0]?.packagePath ?? '');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const isValid = name.trim() !== '' && trigger.trim() !== '';
+    const isValid = name.trim() !== '' && trigger.trim() !== ''
+        && !(tier === SkillTier.CUSTOM && scope === SkillScope.INTEGRATION && !packagePath);
 
     const handleSubmit = async () => {
         if (!isValid || isSubmitting) { return; }
@@ -130,8 +131,8 @@ const AddSkillForm: React.FC<AddSkillFormProps> = ({ tier, availableProjects, on
                 name: name.trim(),
                 trigger: trigger.trim(),
                 body: body.trim() || undefined,
-                scope: tier === 'custom' ? scope : undefined,
-                packagePath: tier === 'custom' && scope === 'integration' ? packagePath : undefined,
+                scope: tier === SkillTier.CUSTOM ? scope : undefined,
+                packagePath: tier === SkillTier.CUSTOM && scope === SkillScope.INTEGRATION ? packagePath : undefined,
             });
         } finally {
             setIsSubmitting(false);
@@ -139,8 +140,8 @@ const AddSkillForm: React.FC<AddSkillFormProps> = ({ tier, availableProjects, on
     };
 
     const title = isEditMode
-        ? (tier === 'custom' ? 'Edit Custom Skill' : 'Edit User Skill')
-        : (tier === 'custom' ? 'Add Custom Skill' : 'Add User Skill');
+        ? (tier === SkillTier.CUSTOM ? 'Edit Custom Skill' : 'Edit User Skill')
+        : (tier === SkillTier.CUSTOM ? 'Add Custom Skill' : 'Add User Skill');
 
     return (
         <Form>
@@ -173,31 +174,31 @@ const AddSkillForm: React.FC<AddSkillFormProps> = ({ tier, availableProjects, on
                 onTextChange={setBody}
             />
 
-            {tier === 'custom' && (
+            {tier === SkillTier.CUSTOM && (
                 <ScopeRow>
                     <ScopeLabel>Scope</ScopeLabel>
                     <RadioGroup>
                         <RadioLabel>
                             <input
                                 type="radio"
-                                value="project"
-                                checked={scope === 'project'}
-                                onChange={() => setScope('project')}
+                                value={SkillScope.PROJECT}
+                                checked={scope === SkillScope.PROJECT}
+                                onChange={() => setScope(SkillScope.PROJECT)}
                             />
                             Project
                         </RadioLabel>
                         <RadioLabel>
                             <input
                                 type="radio"
-                                value="integration"
-                                checked={scope === 'integration'}
-                                onChange={() => setScope('integration')}
+                                value={SkillScope.INTEGRATION}
+                                checked={scope === SkillScope.INTEGRATION}
+                                onChange={() => setScope(SkillScope.INTEGRATION)}
                             />
                             Integration
                         </RadioLabel>
                     </RadioGroup>
 
-                    {scope === 'integration' && availableProjects.length > 0 && (
+                    {scope === SkillScope.INTEGRATION && availableProjects.length > 0 && (
                         <Dropdown
                             id="skill-integration"
                             label="Integration"
@@ -206,7 +207,7 @@ const AddSkillForm: React.FC<AddSkillFormProps> = ({ tier, availableProjects, on
                             onValueChange={setPackagePath}
                         />
                     )}
-                    {scope === 'integration' && availableProjects.length === 0 && (
+                    {scope === SkillScope.INTEGRATION && availableProjects.length === 0 && (
                         <span style={{ fontSize: 11, color: 'var(--vscode-descriptionForeground)' }}>
                             No integrations found in the current project.
                         </span>

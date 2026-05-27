@@ -21,7 +21,7 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Button, Codicon, Icon } from "@wso2/ui-toolkit";
 
 import { AIChatView, DangerActionButton, PrimaryActionButton, SuccessActionButton } from "../styles";
-import { AIMachineEventType, McpServerStatusDTO } from "@wso2/ballerina-core";
+import { AIMachineEventType, McpServerStatusDTO, SkillEntry } from "@wso2/ballerina-core";
 import { CustomizeRow, CustomizeEntry } from "./CustomizeRow";
 import type { PanelRoute } from "../components/AIChat";
 
@@ -128,6 +128,7 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
     const [copilotAuthorized, setCopilotAuthorized] = React.useState(false);
     const [mcpEnabled, setMcpEnabled] = useState(!!props.mcpToolsEnabled);
     const [mcpServers, setMcpServers] = useState<McpServerStatusDTO[]>([]);
+    const [skills, setSkills] = useState<SkillEntry[]>([]);
 
     useEffect(() => {
         isCopilotAuthorized().then(setCopilotAuthorized);
@@ -146,12 +147,26 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
         return () => { cancelled = true; dispose(); };
     }, [rpcClient, props.mcpToolsEnabled]);
 
+    useEffect(() => {
+        let cancelled = false;
+        rpcClient.getAiPanelRpcClient().getSkills()
+            .then(resp => { if (!cancelled) setSkills(resp.skills); })
+            .catch(() => { /* noop */ });
+        return () => { cancelled = true; };
+    }, [rpcClient]);
+
     const mcpSubtitle = (() => {
         if (!mcpEnabled) return "Off";
         if (mcpServers.length === 0) return "No servers configured";
         const connected = mcpServers.filter(s => s.status === "connected").length;
         const tools = mcpServers.reduce((acc, s) => acc + s.tools.length, 0);
         return `${connected}/${mcpServers.length} connected · ${tools} tool${tools === 1 ? "" : "s"}`;
+    })();
+
+    const skillsSubtitle = (() => {
+        if (skills.length === 0) return "No skills configured";
+        const enabled = skills.filter(s => s.enabled).length;
+        return enabled === 0 ? "None enabled" : `${enabled} of ${skills.length} enabled`;
     })();
 
     const customizeEntries: CustomizeEntry[] = [
@@ -166,8 +181,7 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
             id: "skills",
             icon: <span className="codicon codicon-lightbulb-sparkle" style={{ fontSize: 16 }} />,
             label: "Skills",
-            subtitle: "Coming soon",
-            disabled: true,
+            subtitle: skillsSubtitle,
             onOpenPanel: () => props.onNavigate?.("skills"),
         },
     ];

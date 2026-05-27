@@ -75,8 +75,8 @@ export function scanUserSkills(): CustomSkillMeta[] {
         if (!fs.existsSync(mdPath)) { continue; }
         try {
             const raw = fs.readFileSync(mdPath, 'utf-8');
-            const { name, trigger } = parseSkillMd(raw);
-            if (name) { results.push({ name: `${USER_SKILL_PREFIX}/${name}`, trigger }); }
+            const { trigger } = parseSkillMd(raw);
+            results.push({ name: `${USER_SKILL_PREFIX}/${entry.name}`, trigger });
         } catch { /* skip unreadable files */ }
     }
     return results;
@@ -85,7 +85,7 @@ export function scanUserSkills(): CustomSkillMeta[] {
 export function readUserSkillContent(skillName: string): CustomSkillContent | null {
     const slashIdx = skillName.indexOf('/');
     if (slashIdx === -1) { return null; }
-    if (skillName.slice(0, slashIdx) !== USER_SKILL_PREFIX) { return null; }
+    if (skillName.slice(0, slashIdx).toLowerCase() !== USER_SKILL_PREFIX) { return null; }
     const bareSkillName = skillName.slice(slashIdx + 1).toLowerCase();
     return readSkillFromDir(USER_SKILLS_DIR, bareSkillName);
 }
@@ -111,8 +111,8 @@ export function scanCustomSkills(
             if (!fs.existsSync(mdPath)) { continue; }
             try {
                 const raw = fs.readFileSync(mdPath, 'utf-8');
-                const { name, trigger } = parseSkillMd(raw);
-                if (name) { results.push({ name: `${prefix}/${name}`, trigger }); }
+                const { trigger } = parseSkillMd(raw);
+                results.push({ name: `${prefix}/${entry.name}`, trigger });
             } catch { /* skip unreadable files */ }
         }
     }
@@ -136,15 +136,15 @@ export function readCustomSkillContent(
     const slashIdx = skillName.indexOf('/');
     if (slashIdx === -1) { return null; }
 
-    const prefix = skillName.slice(0, slashIdx);
+    const prefix = skillName.slice(0, slashIdx).toLowerCase();
     const bareSkillName = skillName.slice(slashIdx + 1).toLowerCase();
-    const projectName = path.basename(projectRootPath);
+    const projectName = path.basename(projectRootPath).toLowerCase();
 
     if (prefix === projectName) {
         return readSkillFromDir(path.join(projectRootPath, 'skills'), bareSkillName);
     }
 
-    const project = projects.find(p => p.packagePath && path.basename(p.packagePath) === prefix);
+    const project = projects.find(p => p.packagePath && path.basename(p.packagePath).toLowerCase() === prefix);
     if (!project) { return null; }
     return readSkillFromDir(path.join(projectRootPath, project.packagePath, 'skills'), bareSkillName);
 }

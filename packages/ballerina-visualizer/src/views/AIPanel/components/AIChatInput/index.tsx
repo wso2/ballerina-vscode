@@ -19,18 +19,17 @@
 import { useState, useRef, KeyboardEvent, useEffect, useLayoutEffect, useImperativeHandle, forwardRef } from "react";
 import styled from "@emotion/styled";
 import { Icon } from "@wso2/ui-toolkit";
-import { AIPanelPrompt, Attachment, AttachmentStatus, Command, ExtendedDataMapperMetadata, TemplateId } from "@wso2/ballerina-core";
+import { AIPanelPrompt, Attachment, AttachmentStatus, Command, ExtendedDataMapperMetadata, SkillEntry, TemplateId } from "@wso2/ballerina-core";
 import AttachmentBox, { AttachmentsContainer } from "../AttachmentBox";
 import { StyledInputComponent, StyledInputRef } from "./StyledInput";
 import { AttachmentOptions, useAttachments } from "./hooks/useAttachments";
 import { Suggestion, SuggestionType, useCommands } from "./hooks/useCommands";
 import { ChatBadgeType } from "../ChatBadge";
-import { Input } from "./utils/inputUtils";
+import { Input, SkillBadgeInput } from "./utils/inputUtils";
 import SuggestionsList from "./SuggestionsList";
 import ModeToggle, { AgentMode } from "./ModeToggle";
 import AutoApproveChip from "./AutoApproveChip";
 import WebSearchToggle from "./WebSearchToggle";
-import SkillsButton from "../SkillsManager/SkillsButton";
 import { CommandTemplates } from "../../commandTemplates/data/commandTemplates.const";
 import { Tag } from "../../commandTemplates/models/tag.model";
 import { getFirstOccurringPlaceholder, matchCommandTemplate } from "./utils/utils";
@@ -39,6 +38,7 @@ import { PlaceholderTagMap } from "../../commandTemplates/data/placeholderTags.c
 import ContextUsageWidget from "../AIChat/compaction/ContextUsageWidget";
 import RunningServicesChip, { RunningServicesPanel } from "./RunningServicesChip";
 import McpToolsChip from "./McpToolsChip";
+
 
 // Styled Components
 const Container = styled.div`
@@ -139,19 +139,19 @@ interface AIChatInputProps {
     onDisableAutoApprove?: () => void;
     isWebToolsEnabled?: boolean;
     onToggleWebSearch?: () => void;
-    onOpenSkillsManager?: () => void;
     disabled?: boolean;
     contextUsage?: { inputTokens: number; percentage: number; breakdown?: { systemInstructions: number; toolDefinitions: number; reservedOutput: number; files: number; messages: number; toolResults: number } } | null;
     mcpToolsEnabled?: boolean;
     onOpenMcpManager?: () => void;
     runningServicesPanel?: RunningServicesPanel;
+    skills?: SkillEntry[];
 }
 
 const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
     ({ initialCommandTemplate, tagOptions, attachmentOptions, placeholder, onSend, onStop, isLoading,
        agentMode = AgentMode.Edit, onChangeAgentMode, isAutoApproveEnabled = false, onDisableAutoApprove,
-       isWebToolsEnabled = false, onToggleWebSearch, onOpenSkillsManager, disabled,
-       contextUsage, mcpToolsEnabled = false, onOpenMcpManager, runningServicesPanel }, ref) => {        const [inputValue, setInputValue] = useState<{
+       isWebToolsEnabled = false, onToggleWebSearch, disabled,
+       contextUsage, mcpToolsEnabled = false, onOpenMcpManager, runningServicesPanel, skills }, ref) => {        const [inputValue, setInputValue] = useState<{
             text: string;
             [key: string]: any;
         }>({
@@ -182,6 +182,7 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
             completeSuggestionSelection,
         } = useCommands({
             commandTemplate: initialCommandTemplate,
+            skills,
         });
 
         const {
@@ -245,6 +246,7 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
                     calledOnSuggestionInsertion: templateInserted || isUpdatedCommand,
                     currentCursorPosition,
                     generalTags,
+                    skills,
                 });
 
                 if (activeCommand && (templateInserted || tagInserted)) {
@@ -402,6 +404,20 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
         };
 
         /**
+         * Inserts a skill badge at the current cursor position in the input field.
+         */
+        const insertSkill = (skill: SkillEntry) => {
+            const typedText = inputRef.current?.ref.current?.innerText?.trim() ?? '';
+            inputRef.current?.insertBadgeAtCursor({
+                displayText: `/${skill.name}`,
+                rawValue: skill.id,
+                badgeType: ChatBadgeType.Skill,
+                suffixText: " ",
+                overlapText: typedText.startsWith('/') ? typedText : undefined,
+            });
+        };
+
+        /**
          * Inserts a tag badge at the current cursor position in the input field.
          */
         const insertTag = (displayText: string, rawValue: string, additionalProps?: { [key: string]: any }) => {
@@ -435,6 +451,19 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
                 insertTag(suggestion.text, suggestion.rawValue, {
                     tagInserted: true,
                 });
+            }
+
+            // insert the selected skill as a badge inside the input
+            if (suggestion.type === SuggestionType.Skill) {
+                const entry = skills?.find(s => s.id === suggestion.skillId) ?? {
+                    id: suggestion.skillId,
+                    name: suggestion.skillName,
+                    tier: suggestion.skillTier,
+                    scope: suggestion.skillScope,
+                    trigger: suggestion.skillTrigger,
+                    enabled: true,
+                };
+                insertSkill(entry);
             }
         };
 
@@ -518,7 +547,12 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
             const filteredAttachments = attachments.filter(
                 (attachment) => attachment.status === AttachmentStatus.Success
             );
-            const metadata = currentMetadata;
+            const skillBadge = input?.find(
+                (i): i is SkillBadgeInput => 'badgeType' in i && (i as any).badgeType === ChatBadgeType.Skill
+            );
+            const metadata = skillBadge
+                ? { ...currentMetadata, selectedSkillId: skillBadge.skillId, selectedSkillName: skillBadge.display.replace(/^\//, '') }
+                : currentMetadata;
             onSend({ input: input, attachments: filteredAttachments, metadata: metadata });
             cleanChatInput();
         };
@@ -587,9 +621,6 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
                                 )}
                                 {onToggleWebSearch && (
                                     <WebSearchToggle isActive={isWebToolsEnabled} onToggle={onToggleWebSearch} />
-                                )}
-                                {onOpenSkillsManager && (
-                                    <SkillsButton onClick={onOpenSkillsManager} />
                                 )}
                                 {contextUsage && (
                                     <ContextUsageWidget

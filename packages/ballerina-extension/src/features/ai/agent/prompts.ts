@@ -31,7 +31,6 @@ import { extractResourceDocumentContent, flattenProjectToFiles } from "../utils/
 import { BALLERINA_RUN_TOOL_NAME } from "./tools/ballerina-run";
 import { BALLERINA_STOP_TOOL_NAME } from "./tools/ballerina-stop";
 import { getBuiltInSkillsSection, getCustomSkillsSection, getUserSkillsSection, CustomSkillMeta } from "./skills";
-import { dataMapSkill } from "./skills/data-map";
 
 /**
  * Generates the system prompt for the design agent
@@ -289,13 +288,6 @@ ${queryParts.join('\n\n')}
 </User Query>`
     });
 
-
-    if (params.operationType === "DATA_MAPPING") {
-        content.push({
-            type: 'text' as const,
-            text: `<system-reminder>The user invoked /datamap. The data-map skill has been pre-loaded — apply its rules directly without calling invoke_skill.\n\n${dataMapSkill.content}</system-reminder>`
-        });
-    }
 
     content.push({
         type: 'text' as const,

@@ -62,6 +62,9 @@ import {
     DeleteSkillRequest,
     SkillSaveRequest,
     SkillSaveCancelRequest,
+    SetSkillsEnabledRequest,
+    SkillTier,
+    SkillScope,
     McpServerStatusDTO,
     SetMcpServerEnabledRequest,
     AddMcpServerRequest,
@@ -167,6 +170,8 @@ export interface AIPanelAPI {
     deleteSkill: (params: DeleteSkillRequest) => Promise<boolean>;
     saveSkillFromChat: (params: SkillSaveRequest) => Promise<boolean>;
     cancelSkillSave: (params: SkillSaveCancelRequest) => Promise<void>;
+    getSkillsEnabled: () => Promise<boolean>;
+    setSkillsEnabled: (params: SetSkillsEnabledRequest) => Promise<void>;
     // ==================================
     // MCP tool support
     // ==================================

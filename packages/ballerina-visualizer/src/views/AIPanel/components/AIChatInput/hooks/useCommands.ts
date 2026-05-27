@@ -22,12 +22,39 @@ import { CommandTemplates } from "../../../commandTemplates/data/commandTemplate
 import { Tag } from "../../../commandTemplates/models/tag.model";
 import { matchCommandTemplate } from "../utils/utils"
 import { PlaceholderTagMap } from "../../../commandTemplates/data/placeholderTags.const";
-import { Command, TemplateId } from "@wso2/ballerina-core";
+import { Command, SkillEntry, SkillScope, SkillTier, TemplateId } from "@wso2/ballerina-core";
 
 export enum SuggestionType {
     Command = "command",
     Tag = "tag",
     Template = "template",
+    Skill = "skill",
+}
+
+const SKILL_TIER_ORDER: Record<string, number> = {
+    [SkillTier.BUILTIN]: 0,
+    [`${SkillTier.CUSTOM}:${SkillScope.PROJECT}`]: 1,
+    [`${SkillTier.CUSTOM}:${SkillScope.INTEGRATION}`]: 2,
+    [SkillTier.USER]: 3,
+};
+
+function skillTierSortKey(skill: SkillEntry): number {
+    if (skill.tier === SkillTier.CUSTOM) {
+        return SKILL_TIER_ORDER[`${SkillTier.CUSTOM}:${skill.scope ?? SkillScope.PROJECT}`] ?? 1;
+    }
+    return SKILL_TIER_ORDER[skill.tier] ?? 99;
+}
+
+const SKILL_TIER_LABELS: Record<string, string> = {
+    [SkillTier.BUILTIN]: "Built-in skill",
+    [SkillTier.USER]: "User skill",
+};
+
+export function getSkillTierLabel(skill: SkillEntry): string {
+    if (skill.tier === SkillTier.CUSTOM) {
+        return skill.scope === SkillScope.INTEGRATION ? "Integration skill" : "Project skill";
+    }
+    return SKILL_TIER_LABELS[skill.tier] ?? "Skill";
 }
 
 const COMMAND_META: Record<string, { icon: string; description: string }> = {
@@ -61,11 +88,21 @@ export interface TemplateSuggestion extends BaseSuggestion {
     templateId: string;
 }
 
+export interface SkillSuggestion extends BaseSuggestion {
+    type: SuggestionType.Skill;
+    skillId: string;
+    skillName: string;
+    skillTier: SkillTier;
+    skillScope?: SkillScope;
+    skillTrigger: string;
+}
+
 // Discriminated union of all possible suggestions
-export type Suggestion = CommandSuggestion | TagSuggestion | TemplateSuggestion;
+export type Suggestion = CommandSuggestion | TagSuggestion | TemplateSuggestion | SkillSuggestion;
 
 interface UseCommandsParams {
     commandTemplate: CommandTemplates;
+    skills?: SkillEntry[];
 }
 
 type SuggestionHandlerParams = {
@@ -75,9 +112,10 @@ type SuggestionHandlerParams = {
     calledOnSuggestionInsertion: boolean;
     currentCursorPosition: number;
     generalTags: Tag[];
+    skills?: SkillEntry[];
 };
 
-export function useCommands({ commandTemplate }: UseCommandsParams) {
+export function useCommands({ commandTemplate, skills }: UseCommandsParams) {
     const [filteredSuggestions, setFilteredSuggestions] = useState<Suggestion[]>([]);
     const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
     const [activeSuggestionValue, setActiveSuggestionValue] = useState<string | null>(null);
@@ -90,6 +128,7 @@ export function useCommands({ commandTemplate }: UseCommandsParams) {
         calledOnSuggestionInsertion,
         currentCursorPosition,
         generalTags,
+        skills: skillList,
     }: SuggestionHandlerParams) => {
         let filtered: Suggestion[] = [];
 
@@ -127,6 +166,25 @@ export function useCommands({ commandTemplate }: UseCommandsParams) {
                     icon: COMMAND_META[cmd]?.icon ?? "codicon-symbol-misc",
                     description: COMMAND_META[cmd]?.description ?? "",
                 }));
+
+                // Append skill suggestions after commands
+                const sortedSkills = [...(skillList ?? skills ?? [])].sort(
+                    (a, b) => skillTierSortKey(a) - skillTierSortKey(b)
+                );
+                const getShortName = (name: string) =>
+                    name.includes('/') ? name.split('/').pop()! : name;
+                const skillSuggestions: SkillSuggestion[] = sortedSkills
+                    .filter(s => s.enabled && ('/' + getShortName(s.name)).toLowerCase().startsWith(query))
+                    .map(s => ({
+                        text: `Skill: /${getShortName(s.name)}`,
+                        type: SuggestionType.Skill,
+                        skillId: s.id,
+                        skillName: s.name,
+                        skillTier: s.tier,
+                        skillScope: s.scope,
+                        skillTrigger: s.trigger,
+                    }));
+                filtered = [...filtered, ...skillSuggestions];
             }
         }
 

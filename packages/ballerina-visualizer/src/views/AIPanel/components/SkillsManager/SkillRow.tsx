@@ -16,25 +16,32 @@
  * under the License.
  */
 
-import React from "react";
+import React, { useState } from "react";
 import styled from "@emotion/styled";
-import { SkillEntry } from "@wso2/ballerina-core";
+import { SkillEntry, SkillTier } from "@wso2/ballerina-core";
+import { SecondaryActionButton, DangerActionButton } from "../../styles";
 
-const Row = styled.div`
+// ─── Styled components (matching MCP's ServerCard pattern) ───────────────────
+
+const Card = styled.div`
+    border: 1px solid var(--vscode-widget-border, var(--vscode-panel-border));
+    border-radius: 6px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 6px;
+`;
+
+const CardHeader = styled.div`
     display: flex;
     align-items: center;
-    padding: 6px 0;
     gap: 8px;
 `;
 
-const Info = styled.div`
-    display: flex;
-    flex-direction: column;
+const CardName = styled.span`
     flex: 1;
     min-width: 0;
-`;
-
-const SkillName = styled.span`
     font-size: 12px;
     font-weight: 600;
     color: var(--vscode-editor-foreground);
@@ -43,45 +50,30 @@ const SkillName = styled.span`
     text-overflow: ellipsis;
 `;
 
-const SkillTrigger = styled.span`
+const ActionRow = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+`;
+
+const Spacer = styled.div`
+    flex: 1;
+`;
+
+const ConfirmRow = styled.div`
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     font-size: 11px;
-    color: var(--vscode-descriptionForeground);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-top: 1px;
+    color: var(--vscode-foreground);
 `;
 
-const Actions = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    flex-shrink: 0;
-`;
+const ActionButton = SecondaryActionButton;
+const DeleteButton = DangerActionButton;
 
-
-const IconButton = styled.button<{ danger?: boolean }>`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 22px;
-    height: 22px;
-    padding: 0;
-    border: none;
-    border-radius: 3px;
-    background: transparent;
-    color: ${({ danger }: { danger?: boolean }) =>
-        danger ? "var(--vscode-errorForeground)" : "var(--vscode-descriptionForeground)"};
-    cursor: pointer;
-    opacity: 0.7;
-    transition: opacity 0.1s, background-color 0.1s;
-
-    &:hover {
-        opacity: 1;
-        background-color: ${({ danger }: { danger?: boolean }) =>
-            danger ? "var(--vscode-inputValidation-errorBackground)" : "var(--vscode-toolbar-hoverBackground)"};
-    }
-`;
+// ─── Component ───────────────────────────────────────────────────────────────
 
 interface SkillRowProps {
     skill: SkillEntry;
@@ -90,36 +82,46 @@ interface SkillRowProps {
 }
 
 const SkillRow: React.FC<SkillRowProps> = ({ skill, onEdit, onDelete }) => {
-    const isEditable = skill.tier === 'custom' || skill.tier === 'user';
+    const isEditable = skill.tier === SkillTier.CUSTOM || skill.tier === SkillTier.USER;
+    const [confirming, setConfirming] = useState(false);
 
     return (
-        <Row>
-            <Info>
-                <SkillName title={skill.name}>{skill.name}</SkillName>
-                <SkillTrigger title={skill.trigger}>{skill.trigger}</SkillTrigger>
-            </Info>
-            <Actions>
-                {isEditable && onEdit && (
-                    <IconButton
-                        title="Edit skill"
-                        aria-label="Edit skill"
-                        onClick={() => onEdit(skill)}
-                    >
-                        <span className="codicon codicon-edit" style={{ fontSize: 13 }} />
-                    </IconButton>
-                )}
-                {isEditable && onDelete && (
-                    <IconButton
-                        danger
-                        title="Delete skill"
-                        aria-label="Delete skill"
-                        onClick={() => onDelete(skill)}
-                    >
-                        <span className="codicon codicon-trash" style={{ fontSize: 13 }} />
-                    </IconButton>
-                )}
-            </Actions>
-        </Row>
+        <Card>
+            <CardHeader>
+                <CardName title={skill.name}>{skill.name}</CardName>
+            </CardHeader>
+
+            {isEditable && (onEdit || onDelete) && (
+                <ActionRow>
+                    {confirming ? (
+                        <ConfirmRow>
+                            <span>Delete <strong>{skill.name}</strong>?</span>
+                            <Spacer />
+                            <DeleteButton type="button" onClick={() => { setConfirming(false); onDelete?.(skill); }}>
+                                Yes, delete
+                            </DeleteButton>
+                            <ActionButton type="button" onClick={() => setConfirming(false)}>
+                                Cancel
+                            </ActionButton>
+                        </ConfirmRow>
+                    ) : (
+                        <>
+                            <Spacer />
+                            {onEdit && (
+                                <ActionButton type="button" onClick={() => onEdit(skill)}>
+                                    Edit
+                                </ActionButton>
+                            )}
+                            {onDelete && (
+                                <DeleteButton type="button" onClick={() => setConfirming(true)}>
+                                    Delete
+                                </DeleteButton>
+                            )}
+                        </>
+                    )}
+                </ActionRow>
+            )}
+        </Card>
     );
 };
 

@@ -19,6 +19,7 @@ import { z } from 'zod';
 import * as crypto from 'crypto';
 import { CopilotEventHandler } from '../../utils/events';
 import { approvalManager } from '../../state/ApprovalManager';
+import { SkillSaveStage, SkillTier } from '@wso2/ballerina-core';
 
 export const SAVE_SKILL_TOOL_NAME = "save_skill";
 
@@ -52,7 +53,7 @@ Do NOT announce that you are saving — just call the tool immediately.`,
                 eventHandler({
                     type: "skill_save_event",
                     requestId,
-                    stage: "cancelled",
+                    stage: SkillSaveStage.CANCELLED,
                     name,
                     trigger,
                     body,
@@ -65,11 +66,11 @@ Do NOT announce that you are saving — just call the tool immediately.`,
             eventHandler({
                 type: "skill_save_event",
                 requestId,
-                stage: "saved",
+                stage: SkillSaveStage.SAVED,
                 name,
                 trigger,
                 body,
-                tier: response.tier as "user" | "custom",
+                tier: response.tier as SkillTier.USER | SkillTier.CUSTOM,
             });
             const result = { saved: true, tier: response.tier, message: `Skill "${name}" saved as a ${response.tier} skill.` };
             eventHandler({ type: "tool_result", toolName: SAVE_SKILL_TOOL_NAME, toolOutput: result, toolCallId });

@@ -555,20 +555,37 @@ export interface RunServiceRequest {
 // Skills Management Interfaces
 // ==================================
 
+export enum SkillTier {
+    BUILTIN = 'builtin',
+    CUSTOM = 'custom',
+    USER = 'user',
+}
+
+export enum SkillScope {
+    PROJECT = 'project',
+    INTEGRATION = 'integration',
+}
+
+export enum SkillSaveStage {
+    PROMPTING = 'prompting',
+    SAVED = 'saved',
+    CANCELLED = 'cancelled',
+}
+
 export interface SkillEntry {
     id: string;
     name: string;
     trigger: string;
     body?: string;
-    tier: 'builtin' | 'custom' | 'user';
+    tier: SkillTier;
     enabled: boolean;
-    scope?: 'project' | 'integration';
+    scope?: SkillScope;
     packagePath?: string;
 }
 
 export interface DeleteSkillRequest {
     skillId: string;
-    tier: 'custom' | 'user';
+    tier: SkillTier.CUSTOM | SkillTier.USER;
 }
 
 export interface AvailableProject {
@@ -582,24 +599,24 @@ export interface GetSkillsResponse {
 }
 
 export interface AddSkillRequest {
-    tier: 'custom' | 'user';
+    tier: SkillTier.CUSTOM | SkillTier.USER;
     name: string;
     trigger: string;
     body?: string;
-    scope?: 'project' | 'integration';
+    scope?: SkillScope;
     packagePath?: string;
 }
 
 export interface ToggleSkillRequest {
     skillId: string;
     enabled: boolean;
-    tier: 'builtin' | 'custom' | 'user';
+    tier: SkillTier;
 }
 
 export interface SkillSaveRequest {
     requestId: string;
-    tier: 'user' | 'custom';
-    scope?: 'project' | 'integration';
+    tier: SkillTier.USER | SkillTier.CUSTOM;
+    scope?: SkillScope;
     packagePath?: string;
 }
 
@@ -708,6 +725,9 @@ export interface DeleteMcpServerRequest {
     scope: McpScope;
 }
 export interface SetMcpToolsEnabledRequest {
+    enabled: boolean;
+}
+export interface SetSkillsEnabledRequest {
     enabled: boolean;
 }
 /** Per-scope parse / read errors for `mcp.json` files. Both fields are optional — missing means OK. */

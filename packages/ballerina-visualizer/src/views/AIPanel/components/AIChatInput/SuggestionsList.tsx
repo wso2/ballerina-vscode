@@ -18,7 +18,7 @@
 
 import { RefObject, MouseEvent } from "react";
 import styled from "@emotion/styled";
-import { Suggestion, SuggestionType } from "./hooks/useCommands";
+import { getSkillTierLabel, Suggestion, SuggestionType } from "./hooks/useCommands";
 
 const SuggestionsListContainer = styled.ul`
     position: absolute;
@@ -149,6 +149,28 @@ const SuggestionsList: React.FC<SuggestionsListProps> = ({
                                 {suggestion.description && (
                                     <CommandDescription>{suggestion.description}</CommandDescription>
                                 )}
+                            </CommandTextGroup>
+                        </CommandItem>
+                    );
+                }
+
+                if (suggestion.type === SuggestionType.Skill) {
+                    return (
+                        <CommandItem
+                            key={suggestion.text + index}
+                            ref={isActive ? activeSuggestionRef : null}
+                            active={isActive}
+                            onClick={() => onSuggestionClick(suggestion)}
+                            onMouseDown={onSuggestionMouseDown}
+                            role="option"
+                            aria-selected={isActive}
+                        >
+                            <CommandIconBox active={isActive}>
+                                <span className="codicon codicon-wand" />
+                            </CommandIconBox>
+                            <CommandTextGroup>
+                                <CommandName>{suggestion.text}</CommandName>
+                                <CommandDescription>/{suggestion.skillName} · {getSkillTierLabel({ tier: suggestion.skillTier, scope: suggestion.skillScope, id: suggestion.skillId, name: suggestion.skillName, trigger: "", enabled: true })}</CommandDescription>
                             </CommandTextGroup>
                         </CommandItem>
                     );
