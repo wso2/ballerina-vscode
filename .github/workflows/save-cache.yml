@@ -3,10 +3,8 @@ name: Save build cache when PR merged
 on:
   push:
     branches:
-      - dev
-
-env:
-  ballerina_version: 2201.7.2
+      - main
+  workflow_dispatch:
 
 jobs:
   Build_Stage:
@@ -14,18 +12,22 @@ jobs:
     timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - uses: ballerina-platform/setup-ballerina@v1
         name: Install Ballerina
         with:
-          version: ${{ env.ballerina_version }}
+          version: 2201.13.2
 
       - name: Setup Rush
         uses: gigara/setup-rush@v1.2.0
         with:
-          pnpm: 10.10.0
+          pnpm: 10.11.0
           node: 22.x
           rush-install: true
           rush-build: true
-          optional-build-args: --verbose
+          # Only pre-build the ballerina extension chain — building the LS
+          # here would need GitHub Packages credentials.
+          optional-build-args: --to ballerina --verbose

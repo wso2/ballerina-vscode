@@ -4,15 +4,15 @@ on:
     types:
       - closed
     branches:
-      - 'stable/**'
+      - 'stable/ballerina**'
 
 jobs:
   sync-main:
-    if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true && github.repository == 'wso2/ballerina-vscode'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.CHOREO_BOT_TOKEN }}
@@ -24,16 +24,12 @@ jobs:
 
       - name: Create temporary branch and sync changes
         run: |
-          # Get the release branch name
           RELEASE_BRANCH="${{ github.event.pull_request.base.ref }}"
-          
-          # Create a temporary branch from main
-          TEMP_BRANCH="sync/main-${RELEASE_BRANCH}-$(date +%s)"
+          TEMP_BRANCH="sync/main-${RELEASE_BRANCH//\//-}-$(date +%s)"
           git checkout $RELEASE_BRANCH
           git checkout -b $TEMP_BRANCH
-
-          # Push changes to the temporary branch
           git push origin $TEMP_BRANCH
+          echo "TEMP_BRANCH=$TEMP_BRANCH" >> $GITHUB_ENV
 
       - name: Create Pull Request
         id: commit
@@ -41,18 +37,16 @@ jobs:
           GH_TOKEN: ${{ secrets.CHOREO_BOT_TOKEN }}
         run: |
           RELEASE_BRANCH="${{ github.event.pull_request.base.ref }}"
-          TEMP_BRANCH=$(git branch --show-current)
 
           prURL=$(gh pr create \
             --base main \
-            --head $TEMP_BRANCH \
+            --head "$TEMP_BRANCH" \
             --title "Automatic Sync: Merge changes from ${RELEASE_BRANCH} to main" \
             --body "This PR syncs changes from ${RELEASE_BRANCH} to the main branch.
 
-            Automated PR created by GitHub Actions.")
-          
-          echo "prURL=$prURL" >> $GITHUB_OUTPUT
+          Automated PR created by GitHub Actions.")
 
+          echo "prURL=$prURL" >> $GITHUB_OUTPUT
 
       - name: "PR Notification"
         shell: bash
@@ -60,9 +54,9 @@ jobs:
             body=$(cat << EOF
             {
             "cards": [
-                { 
+                {
                 "header": {
-                    "title": "Automatic Sync PR",
+                    "title": "Automatic Sync PR"
                 },
                 "sections": [
                     {

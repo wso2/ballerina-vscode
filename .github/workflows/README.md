@@ -1,47 +1,57 @@
 # Workflows status
 
-Copied from `wso2/vscode-extensions` and ported for the ballerina-vscode monorepo. Paths
-have been rewritten (`workspaces/ballerina/ballerina-extension` → `packages/ballerina-extension`,
-`workspaces/common-libs/` → `submodules/wso2-vscode-extensions/workspaces/common-libs/`),
-but many workflows still contain branches that referenced **other extensions** (`mi`, `bi`,
-`choreo`, `apk`, `hurl-client`, `api-designer`, `wso2-platform`, `mcp-inspector`) which do
-not exist in this repo. Those branches are dead code — they remain so the workflows can be
-diffed against upstream, but they need to be pruned before they actually run.
+Ported from `wso2/vscode-extensions` and `ballerina-platform/ballerina-language-server`,
+then pruned to a ballerina-only monorepo. Paths have been rewritten to the new layout
+(`packages/ballerina-extension`, `submodules/wso2-vscode-extensions/workspaces/common-libs/`).
 
-## Ballerina language server workflows (already ported)
+## Ballerina language server workflows
 
-| File | Source | Notes |
+| File | Source | Trigger |
 |---|---|---|
-| `ls-build-master.yml` | ballerina-language-server repo | Path-filtered to `packages/ballerina-language-server/**` |
-| `ls-pull-request.yml` | ballerina-language-server repo | Path-filtered |
-| `ls-daily-build.yml` | ballerina-language-server repo | Schedule-driven |
-| `ls-publish-release.yml` | ballerina-language-server repo | Manual release |
-| `ls-trivy.yml` | ballerina-language-server repo | Security scan |
+| `ls-build-master.yml` | ballerina-language-server repo | push to main, scoped to `packages/ballerina-language-server/**` |
+| `ls-pull-request.yml` | ballerina-language-server repo | PRs touching `packages/ballerina-language-server/**` |
+| `ls-daily-build.yml` | ballerina-language-server repo | scheduled + manual |
+| `ls-publish-release.yml` | ballerina-language-server repo | manual release |
+| `ls-trivy.yml` | ballerina-language-server repo | scheduled security scan + manual |
 
 Each has `defaults.run.working-directory: packages/ballerina-language-server` injected so
-`./gradlew …` steps still resolve.
+`./gradlew …` steps resolve correctly from repo root.
 
-## VSCode extension workflows (need review)
+## VSCode extension workflows
 
-| File | Status | Action items |
+| File | Trigger | Notes |
 |---|---|---|
-| `build.yml` | Reusable `workflow_call`. Heavily multi-extension. | Strip `mi`, `bi`, `choreo`, `apk`, `hurl-client`, `wso2-platform`, `api-designer`, `mcp-inspector`, `fhir-tools` matrix branches and inputs. |
-| `daily-build.yml` | Calls `build.yml`. Probably mostly OK if `build.yml` is tightened. | Verify inputs match the trimmed `build.yml`. |
-| `test-pr.yml` | Calls `build.yml` on PRs. | Same. |
-| `publish-vsix.yml` | Publishes to VSCode Marketplace + OpenVSX. Multi-extension. | Reduce extension input to just `ballerina` (and any other extensions you plan to host here). |
-| `release-vsix.yml` | Creates GitHub release VSIX. Multi-extension. | Same. |
-| `save-cache.yml` | Pre-builds rush cache. | Uses `@gigara/rush-github-action-build-cache-plugin` which we removed (`common/config/rush/rush-plugins.json`). Either re-enable plugin or drop this workflow. |
-| `cache-cleanup.yml` | Cleans caches on PR close. | Generic — likely usable as-is. |
-| `sync-main-with-releases.yml` | Syncs `main` ↔ `stable/**` branches. | Only useful if you adopt the same `stable/*` release-branch model. |
+| `build.yml` | `workflow_call` only | Reusable build pipeline (ballerina-only) |
+| `daily-build.yml` | nightly cron + manual | Calls `build.yml` with `ballerina: true`, `runTests: true`, `runBalE2ETests: true` |
+| `test-pr.yml` | PRs | Calls `build.yml`. Bal E2E enabled by `Checks/Run Ballerina UI Tests` label or PRs into `stable/ballerina` |
+| `release-vsix.yml` | manual dispatch | Builds, creates GitHub release, opens version-bump PR back to `stable/ballerina` |
+| `publish-vsix.yml` | manual dispatch | Publishes a built VSIX (passed by `workflowRunId`) to VSCode Marketplace + OpenVSX |
+| `save-cache.yml` | push to main + manual | Pre-builds the ballerina chain to warm rush/pnpm caches. Build-cache plugin currently disabled — only the rush/pnpm install cache is populated. |
+| `cache-cleanup.yml` | PR closed + manual | Generic — usable as-is |
+| `sync-main-with-releases.yml` | PR merged to `stable/ballerina**` | Opens an auto-sync PR back to `main` |
 
 ## Required GitHub secrets
 
-The ported workflows reference (at minimum):
-
-- `BALLERINA_BOT_USERNAME` / `BALLERINA_BOT_TOKEN` (LS publish, sync workflows)
-- `BALLERINA_CENTRAL_ACCESS_TOKEN` (LS publish)
-- `CHOREO_BOT_TOKEN` / `CHOREO_BOT_EMAIL` / `CHOREO_BOT_USERNAME` (sync-main-with-releases)
-- `VSCE_PAT` / `OVSX_PAT` (publish-vsix → VSCode Marketplace, OpenVSX)
-- `packageUser` / `packagePAT` (LS gradle, via env vars)
+- `packageUser` / `packagePAT` — LS Gradle (GitHub Packages, `read:packages` scope)
+- `BALLERINA_BOT_USERNAME` / `BALLERINA_BOT_TOKEN` — LS publish workflow
+- `BALLERINA_CENTRAL_ACCESS_TOKEN` — LS publish to Ballerina Central
+- `CHOREO_BOT_TOKEN` / `CHOREO_BOT_EMAIL` / `CHOREO_BOT_USERNAME` — release-vsix, sync-main
+- `VSCE_TOKEN` — publish-vsix → VSCode Marketplace
+- `OPENVSX_TOKEN` — publish-vsix → OpenVSX
+- `BI_TEAM_CHAT_API` — release/daily notifications
+- `TOOLING_TEAM_CHAT_API` — failure notifications
+- `CLOUD_EDITOR_BUILDER_REPO` / `CLOUD_EDITOR_BUILDER_REPO_TOKEN` — optional cloud-editor dispatch on stable release
+- `BALLERINA_AUTH_*` / `BALLERINA_DEV_COPLIOT_*` / `COPILOT_*` / `APPINSIGHTS_INSTRUMENTATION_KEY` — passed through to the build composite action
 
 Configure these in the new repo's settings before triggering anything.
+
+## Composite actions under `.github/actions/`
+
+| Action | Used by |
+|---|---|
+| `build` | `build.yml` — runs rush install + `rush build --to ballerina` |
+| `updateVersion` | `build` — bumps `packages/<name>/package.json` |
+| `release` | `release-vsix.yml` — creates GitHub release with the VSIX |
+| `pr` | `release-vsix.yml` — opens version-bump PR + Google Chat notification |
+| `dailyBuildNotification` | `daily-build.yml` — success chat notification |
+| `failure-notification` | `daily-build.yml`, `release-vsix.yml` — failure chat notification |
