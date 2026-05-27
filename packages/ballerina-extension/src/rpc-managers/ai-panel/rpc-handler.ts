@@ -53,6 +53,7 @@ import {
     getChatMessages,
     getCheckpoints,
     getDefaultPrompt,
+    isScaffoldEnvActive,
     getDriftDiagnosticContents,
     getFromDocumentation,
     getGeneratedDocumentation,
@@ -152,6 +153,7 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getLoginMethod, () => rpcManger.getLoginMethod());
     messenger.onRequest(isPlatformExtensionAvailable, () => rpcManger.isPlatformExtensionAvailable());
     messenger.onRequest(getDefaultPrompt, () => rpcManger.getDefaultPrompt());
+    messenger.onRequest(isScaffoldEnvActive, () => rpcManger.isScaffoldEnvActive());
     messenger.onRequest(getAIMachineSnapshot, () => rpcManger.getAIMachineSnapshot());
     messenger.onNotification(clearInitialPrompt, () => rpcManger.clearInitialPrompt());
     messenger.onNotification(openChatWindowWithCommand, () => rpcManger.openChatWindowWithCommand());

@@ -200,6 +200,10 @@ export class AiPanelRpcManager implements AIPanelAPI {
         extension.aiChatDefaultPrompt = undefined;
     }
 
+    async isScaffoldEnvActive(): Promise<boolean> {
+        return !!(process.env.INITIAL_SCAFFOLD_PROMPT && process.env.INITIAL_SCAFFOLD_STEPS);
+    }
+
     async getServiceNames(): Promise<TestGenerationMentions> {
         return new Promise(async (resolve, reject) => {
             try {
