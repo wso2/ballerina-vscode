@@ -1429,7 +1429,7 @@
         "download-ls:prerelease": "node scripts/download-ls.js --tag prerelease --replace",
         "copyLS": "node scripts/copy-ls.js",
         "provisionLS": "node scripts/copy-ls.js --fallback-download",
-        "copyGrammar": "del-cli ./grammar/ballerina-grammar && copyfiles -u 2 -e \"**/node_modules/**\" -e \"**/.rush/**\" \"../ballerina-grammar/**/*\" ./grammar/ballerina-grammar/",
+        "copyGrammar": "del-cli ./grammar/ballerina-grammar && copyfiles -u 3 \"../ballerina-grammar/syntaxes/*\" ./grammar/ballerina-grammar/syntaxes/",
         "build": "pnpm run copyGrammar && pnpm run compile && pnpm run lint && pnpm run postbuild",
         "rebuild": "pnpm run clean && pnpm run compile && pnpm run postbuild",
         "postbuild": "pnpm run provisionLS && pnpm run copyFonts && pnpm run copyJSLibs && pnpm run package && pnpm run copyVSIX",
