@@ -30,7 +30,6 @@ Each has `defaults.run.working-directory: packages/ballerina-language-server` in
 | `test-pr.yml` | Calls `build.yml` on PRs. | Same. |
 | `publish-vsix.yml` | Publishes to VSCode Marketplace + OpenVSX. Multi-extension. | Reduce extension input to just `ballerina` (and any other extensions you plan to host here). |
 | `release-vsix.yml` | Creates GitHub release VSIX. Multi-extension. | Same. |
-| `release-packages.yml` | Releases individual npm packages (data-mapper, ui-toolkit, etc). | Common-libs (ui-toolkit, font-wso2-vscode) live in the submodule — not releasable from here. Keep only ballerina-specific packages. |
 | `save-cache.yml` | Pre-builds rush cache. | Uses `@gigara/rush-github-action-build-cache-plugin` which we removed (`common/config/rush/rush-plugins.json`). Either re-enable plugin or drop this workflow. |
 | `cache-cleanup.yml` | Cleans caches on PR close. | Generic — likely usable as-is. |
 | `sync-main-with-releases.yml` | Syncs `main` ↔ `stable/**` branches. | Only useful if you adopt the same `stable/*` release-branch model. |
