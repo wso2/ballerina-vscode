@@ -738,7 +738,7 @@ export const McpManagerPanel: React.FC<Props> = ({ onClose }) => {
                 </Button>
                 <TitleGroup>
                     <PanelTitle>MCP Servers</PanelTitle>
-                    <ExperimentalTag size="sm" tooltip="MCP tool support is experimental and may change." />
+                    <ExperimentalTag size="sm" label="Beta" tooltip="MCP tool support is in beta and may change." />
                     <HeaderInlineToggle
                         type="button"
                         on={mcpToolsEnabled}

@@ -528,7 +528,7 @@ export const McpToolsChip: React.FC<McpToolsChipProps> = ({ mcpToolsEnabled, onO
                                 onClick={handleToggleGlobal}
                             />
                             <HeaderTitle>MCP</HeaderTitle>
-                            <ExperimentalTag size="sm" tooltip="MCP tool support is experimental and may change." />
+                            <ExperimentalTag size="sm" label="Beta" tooltip="MCP tool support is in beta and may change." />
                         </HeaderLeft>
                         <HeaderRight>
                             <IconAction
