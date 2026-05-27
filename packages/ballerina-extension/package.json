@@ -1444,6 +1444,7 @@
         "@vscode/test-electron": "2.5.2",
         "@vscode/vsce": "3.7.1",
         "@wso2/ballerina-core": "workspace:*",
+        "ballerina-grammar": "workspace:*",
         "ballerina-language-server": "workspace:*",
         "@wso2/copilot-utilities": "workspace:*",
         "@wso2/ballerina-visualizer": "workspace:*",

@@ -29,15 +29,14 @@ ambiguous failures the next time someone runs rush.
 ### 2. The full build needs LS prerequisites.
 
 ```bash
-rush build                                       # everything (27 projects)
-rush build --to ballerina                        # extension chain (26 — same set minus ballerina-grammar)
+rush build                                       # everything (equivalent to --to ballerina)
 rush build --to ballerina-language-server        # LS only
-rush build --to @wso2/ballerina-visualizer       # one package + its deps
+rush build --to @wso2/ballerina-visualizer       # one package + its deps (skips LS + extension)
 ```
 
-`ballerina-extension` declares `ballerina-language-server` as a workspace
-dep, so both `rush build` and `rush build --to ballerina` walk the LS into
-the topology. That means either form requires:
+All 27 projects in `rush.json` are reachable from `ballerina-extension`, so
+`rush build` and `rush build --to ballerina` build the same set. Either form
+requires:
 
 - Java 21 on `JAVA_HOME`
 - `packageUser`/`packagePAT` in `~/.gradle/gradle.properties` (or the env)

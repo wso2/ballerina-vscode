@@ -137,6 +137,9 @@ importers:
       ai:
         specifier: 6.0.103
         version: 6.0.103(zod@4.1.8)
+      ballerina-grammar:
+        specifier: workspace:*
+        version: link:../ballerina-grammar
       ballerina-language-server:
         specifier: workspace:*
         version: link:../ballerina-language-server
