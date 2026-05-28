@@ -124,6 +124,11 @@ runs:
       shell: bash
       id: build
       run: |
+        # Quick sanity log so missing-credential failures point at the right cause.
+        echo "::group::LS credential check"
+        echo "packageUser: ${packageUser:+<set>}${packageUser:-<empty>}"
+        echo "packagePAT:  ${packagePAT:+<set, length=${#packagePAT}>}${packagePAT:-<empty>}"
+        echo "::endgroup::"
         node common/scripts/install-run-rush.js build --to ballerina --verbose
       env:
         isPreRelease: ${{ inputs.isPreRelease == 'true' }}
