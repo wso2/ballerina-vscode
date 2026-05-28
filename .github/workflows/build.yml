@@ -120,11 +120,10 @@ jobs:
           # intentionally-old dependencies. They are parser inputs (the LS
           # ingests them as text in tests), never built or shipped, so trivy
           # findings against them are false positives.
-          skip-dirs: >-
-            common/temp,
-            submodules,
-            packages/ballerina-language-server/**/src/test/resources,
-            packages/ballerina-language-server/**/src/test/data
+          # Must be a single line: trivy splits on ',' verbatim. A folded
+          # YAML string (>-) introduces a space after each comma, which
+          # makes every entry except the first start with ' ' and never match.
+          skip-dirs: 'common/temp,submodules,packages/ballerina-language-server/**/src/test/resources,packages/ballerina-language-server/**/src/test/data'
           ignore-unfixed: true
 
   ExtTest_Ballerina:

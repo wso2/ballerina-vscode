@@ -103,7 +103,7 @@
       "prismjs": "1.30.0",
       "protobufjs": "7.5.8",
       "qs@6": "6.15.2",
-      "serialize-javascript": "7.0.3",
+      "serialize-javascript": "7.0.5",
       "tmp": "0.2.6",
       // uuid 8.x has no in-line fix; bump to 11.1.1 (fix line for v11). Revert
       // if this breaks consumers that strictly need uuid v8 API.
