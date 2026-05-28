@@ -31,7 +31,7 @@ export interface DiagramContextState {
     onServiceSelect: (service: CDService) => void;
     onFunctionSelect: (func: CDFunction | CDResourceFunction) => void;
     onAutomationSelect: (automation: CDAutomation) => void;
-    onWorkflowSelect: (workflow: CDWorkflow) => void;
+    onWorkflowSelect?: (workflow: CDWorkflow) => void;
     onConnectionSelect: (connection: CDConnection) => void;
     onDeleteComponent: (component: CDListener | CDService | CDAutomation | CDConnection | CDWorkflow, nodeType?: string) => void;
     onToggleNodeExpansion: (nodeId: string) => void; // Toggle expansion state of a node

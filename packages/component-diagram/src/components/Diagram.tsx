@@ -59,7 +59,7 @@ export interface DiagramProps {
     onServiceSelect: (service: CDService) => void;
     onFunctionSelect: (func: CDFunction | CDResourceFunction) => void;
     onAutomationSelect: (automation: CDAutomation) => void;
-    onWorkflowSelect: (workflow: CDWorkflow) => void;
+    onWorkflowSelect?: (workflow: CDWorkflow) => void;
     onConnectionSelect: (connection: CDConnection) => void;
     onDeleteComponent: (component: CDListener | CDService | CDAutomation | CDConnection, nodeType?: string) => void;
     onCleanupTestServices?: () => void;
