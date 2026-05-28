@@ -19,6 +19,14 @@
 import FXButton from "./components/FxButton";
 import { ParsedToken } from "./utils";
 
+export enum HelperPaneMenuItem {
+    VARIABLES = "VARIABLES",
+    INPUTS = "INPUTS",
+    CONFIGURABLES = "CONFIGURABLES",
+    FUNCTIONS = "FUNCTIONS",
+    DOCUMENTS = "DOCUMENTS",
+}
+
 export class ChipExpressionEditorDefaultConfiguration {
     getHelperValue(value: string, token?: ParsedToken) {
         return value;
@@ -50,5 +58,9 @@ export class ChipExpressionEditorDefaultConfiguration {
 
     getIsToggleHelperAvailable(): boolean {
         return true;
+    }
+
+    getHelperPaneHiddenItems(): HelperPaneMenuItem[] {
+        return [];
     }
 }

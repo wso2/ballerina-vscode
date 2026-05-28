@@ -27,3 +27,5 @@ export const disableICP: RequestType<ICPEnabledRequest, ICPEnabledResponse> =
     { method: `${_preFix}/disableICP` };
 export const viewInICP: RequestType<ICPEnabledRequest, ICPEnabledResponse> =
     { method: `${_preFix}/viewInICP` };
+export const isICPServerRunning: RequestType<ICPEnabledRequest, ICPEnabledResponse> =
+    { method: `${_preFix}/isICPServerRunning` };

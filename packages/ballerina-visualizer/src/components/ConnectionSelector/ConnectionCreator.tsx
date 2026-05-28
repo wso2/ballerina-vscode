@@ -30,7 +30,7 @@ import { cloneDeep } from "lodash";
 import { LineRange, RecordTypeField, getPrimaryInputType, PropertyTypeMemberInfo } from "@wso2/ballerina-core";
 import { LoaderContainer } from "../RelativeLoader/styles";
 import { URI, Utils } from "vscode-uri";
-import { CONNECTIONS_FILE } from "../../constants";
+import { CONNECTIONS_FILE, GET_DEFAULT_EMBEDDING_PROVIDER, GET_DEFAULT_MODEL_PROVIDER } from "../../constants";
 
 export function ConnectionCreator(props: ConnectionCreatorProps): JSX.Element {
     const { connectionKind, selectedNode, nodeFormTemplate, onSave } = props;
@@ -117,11 +117,15 @@ export function ConnectionCreator(props: ConnectionCreatorProps): JSX.Element {
             updateNodeWithConnectionVariable(connectionKind, selectedNode, nodeTemplate?.properties?.variable?.value as string);
             // Update the line range for the selected node if it was updated
             updateNodeLineRange(selectedNode, response.artifacts);
+            if (connectionSymbol === GET_DEFAULT_MODEL_PROVIDER || connectionSymbol === GET_DEFAULT_EMBEDDING_PROVIDER) {
+                const providerKind = connectionSymbol === GET_DEFAULT_EMBEDDING_PROVIDER ? "embedding" : "model";
+                await rpcClient.getAIAgentRpcClient().configureDefaultModelProvider(providerKind);
+            }
             onSave?.(selectedNode, response.artifacts);
         } catch (error) {
             console.error(`>>> Error creating ${connectionKind}`, error);
         }
-    }, [onSave, rpcClient, connectionKind, connectionFields]);
+    }, [onSave, rpcClient, connectionKind, connectionFields, connectionSymbol]);
 
     return (
         <>
@@ -135,6 +139,7 @@ export function ConnectionCreator(props: ConnectionCreatorProps): JSX.Element {
                     <ArtifactForm
                         fileName={connectionsFilePath.current || projectPath.current}
                         fields={connectionFields}
+                        description={nodeFormTemplate?.metadata?.description}
                         onSubmit={handleOnSave}
                         submitText={savingForm ? "Saving..." : "Save"}
                         disableSaveButton={savingForm}

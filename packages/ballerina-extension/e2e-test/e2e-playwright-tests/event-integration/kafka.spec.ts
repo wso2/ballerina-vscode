@@ -22,8 +22,7 @@ import { ProjectExplorer } from '../utils/pages';
 import { DEFAULT_PROJECT_NAME } from '../utils/helpers/constants';
 
 export default function createTests() {
-    test.describe('Kafka Integration Tests', {
-        tag: '@group1',
+    test.describe.serial('Kafka Integration Tests', {
     }, async () => {
         let listenerName: string;
         initTest();
@@ -73,7 +72,7 @@ export default function createTests() {
 
             // Verify integration appears in project tree
             const projectExplorer = new ProjectExplorer(page.page);
-            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `Kafka Event Integration`], true);
+            await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `Kafka Event Integration`]);
 
         });
 
@@ -231,7 +230,7 @@ export default function createTests() {
             // Verify handler appears in project tree
             const projectExplorer = new ProjectExplorer(page.page);
             try {
-                await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Kafka Event Integration', 'onError'], false);
+                await projectExplorer.findItem([DEFAULT_PROJECT_NAME, 'Kafka Event Integration', 'onError']);
             } catch (e) {
                 console.log('onError handler may not appear in tree, but exists in service designer');
             }
@@ -246,7 +245,7 @@ export default function createTests() {
                 throw new Error(BI_WEBVIEW_NOT_FOUND_ERROR);
             }
             const projectExplorer = new ProjectExplorer(page.page);
-            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `Kafka Event Integration`], true);
+            const serviceTreeItem = await projectExplorer.findItem([DEFAULT_PROJECT_NAME, `Kafka Event Integration`]);
             await serviceTreeItem.click({ button: 'right' });
             const deleteButton = page.page.getByRole('button', { name: 'Delete' }).first();
             await deleteButton.waitFor({ timeout: 5000 });

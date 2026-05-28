@@ -27,6 +27,19 @@ export enum HTTP_METHOD {
     "PATCH" = "PATCH"
 }
 
+export const HTTP_ENUM_TYPES = [
+    "string",
+    "int",
+    "boolean",
+    "float",
+    "decimal",
+    "string[]",
+    "int[]",
+    "boolean[]",
+    "float[]",
+    "decimal[]"
+];
+
 export function getDefaultResponse(httpMethod: HTTP_METHOD): string {
     switch (httpMethod.toUpperCase()) {
         case HTTP_METHOD.GET:

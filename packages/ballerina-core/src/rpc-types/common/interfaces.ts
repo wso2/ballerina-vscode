@@ -96,6 +96,7 @@ export interface ShowErrorMessageRequest {
 
 export interface ShowInfoModalRequest {
     message: string;
+    detail?: string;
     items?: string[];
 }
 
@@ -151,6 +152,7 @@ export interface SampleDownloadRequest {
 
 export interface DefaultOrgNameResponse {
     orgName: string;
+    isLocked?: boolean;
 }
 
 export interface PublishToCentralResponse {

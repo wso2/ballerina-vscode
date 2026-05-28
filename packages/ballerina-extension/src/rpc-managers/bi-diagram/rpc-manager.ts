@@ -160,7 +160,8 @@ import {
     UpdatePackageTitleRequest,
     SuggestedProjectDefaultsResponse,
     ProjectInfo,
-    PROJECT_KIND
+    PROJECT_KIND,
+    MACHINE_VIEW
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
@@ -208,7 +209,7 @@ import { getView } from "../../utils/state-machine-utils";
 import { isLibraryProject } from "../../utils/config";
 import { PlatformExtRpcManager } from "../platform-ext/rpc-manager";
 import { openAIPanelWithPrompt } from "../../views/ai-panel/aiMachine";
-import { getCurrentBallerinaProject } from "../../utils/project-utils";
+import { getCurrentBallerinaProject, getCurrentProjectRoot } from "../../utils/project-utils";
 import { CommonRpcManager } from "../common/rpc-manager";
 import * as toml from "@iarna/toml";
 import { readOrWriteReadmeContent } from "./utils";
@@ -268,30 +269,14 @@ function setTomlSectionField(filePath: string, section: string, field: string, v
 export class BiDiagramRpcManager implements BIDiagramAPI {
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
 
-    private toRawPath(input: string): string {
-        if (input.includes('://')) {
-            return Uri.parse(input).fsPath;
+    private convertAiToFileScheme(uri: string): string {
+        if (uri.startsWith('ai://')) {
+            const fileUri = Uri.parse(uri).with({ scheme: 'file' }).toString();
+            return fileUri;
         }
-        return input;
+        return uri;
     }
 
-    private mapTempPathToOriginal(tempFilePath: string): string {
-        const rawPath = this.toRawPath(tempFilePath);
-        const context = StateMachine.context();
-        const originalRoot = context.workspacePath || context.projectPath;
-        const workspaceId = context.workspacePath || context.projectPath;
-        const threadId = 'default';
-        const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
-        if (pendingReview?.reviewState?.tempProjectPath && originalRoot) {
-            const normalizedTempRoot = pendingReview.reviewState.tempProjectPath.replace(/\\/g, '/');
-            const normalizedFilePath = rawPath.replace(/\\/g, '/');
-            if (normalizedFilePath.startsWith(normalizedTempRoot)) {
-                const relativePath = normalizedFilePath.substring(normalizedTempRoot.length);
-                return originalRoot + relativePath;
-            }
-        }
-        return rawPath;
-    }
 
     async getFlowModel(params: BIFlowModelRequest): Promise<BIFlowModelResponse> {
         console.log(">>> requesting bi flow model from ls", params);
@@ -302,9 +287,9 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             if (params?.filePath && params?.startLine && params?.endLine) {
                 console.log(">>> using params to create request");
                 let filePath = params.filePath;
-                // When useFileSchema is set, map temp path to original project path
+                // When useFileSchema is set, use file:// scheme to show original content
                 if (params.useFileSchema) {
-                    filePath = this.mapTempPathToOriginal(filePath);
+                    filePath = this.convertAiToFileScheme(filePath);
                 }
                 request = {
                     filePath,
@@ -805,8 +790,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 // Refresh project info to update UI with newly added project
                 StateMachine.refreshProjectInfo();
             } catch (error) {
-                window.showErrorMessage("Error converting integration to workspace");
-                console.error("Error converting integration to workspace:", error);
+                window.showErrorMessage("Error converting integration to project");
+                console.error("Error converting integration to project:", error);
                 return;
             }
         } else {
@@ -815,8 +800,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 // Refresh project info to update UI with newly added project
                 StateMachine.refreshProjectInfo();
             } catch (error) {
-                window.showErrorMessage("Error adding integration to existing workspace");
-                console.error("Error adding integration to existing workspace:", error);
+                window.showErrorMessage("Error adding integration to existing project");
+                console.error("Error adding integration to existing project:", error);
             }
         }
     }
@@ -1199,13 +1184,17 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
             if (params.isWorkspaceReadme) {
                 const workspaceName = projectInfo?.title || projectInfo?.name;
-                content = `# ${workspaceName} Workspace\n\nAdd your workspace description here.`;
+                content = `# ${workspaceName} Project\n\nAdd your project description here.`;
             } else {
                 const project = projectInfo?.children && projectInfo?.children.length > 0
                     ? projectInfo?.children.find((child) => child.projectPath === params.projectPath)
                     : projectInfo;
                 const projectName = project?.title || project?.name;
-                content = `# ${projectName} Integration\n\nAdd your integration description here.`;
+                const isLibrary = StateMachine.context().projectStructure?.projects?.find(
+                    p => p.projectPath === params.projectPath
+                )?.isLibrary ?? false;
+                const kind = isLibrary ? "Library" : "Integration";
+                content = `# ${projectName} ${kind}\n\nAdd your ${kind.toLowerCase()} description here.`;
             }
 
             fs.writeFileSync(readmePath, content);
@@ -1220,6 +1209,16 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     async deployProject(params: DeploymentRequest): Promise<DeploymentResponse> {
         const scopes = params.integrationTypes;
 
+        const componentPath = StateMachine.context().projectPath;
+        const projectInfo = StateMachine.context().projectInfo;
+
+        let componentInfo: ProjectInfo;
+        if (projectInfo?.projectPath === componentPath) {
+            componentInfo = projectInfo;
+        } else {
+            componentInfo = projectInfo?.children?.find(child => child.projectPath === componentPath);
+        }
+
         const integrationType = await this.selectIntegrationType(scopes);
 
         if (!integrationType) {
@@ -1228,7 +1227,11 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
         const deploymentParams: ICreateNewIntegrationCmdParams = {
             buildPackLang: "ballerina",
-            integrations: [{ fsPath: StateMachine.context().projectPath, supportedIntegrationTypes: [integrationType] }],
+            integrations: [{
+                fsPath: StateMachine.context().projectPath,
+                supportedIntegrationTypes: [integrationType],
+                name: componentInfo?.title || componentInfo?.name
+            }],
             workspaceDir: StateMachine.context().workspacePath || StateMachine.context().projectPath,
         };
         await commands.executeCommand(WICommandIds.CreateNewComponent, deploymentParams);
@@ -1239,7 +1242,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     async deployWorkspace(params: WorkspaceDeploymentRequest): Promise<DeploymentResponse> {
         const projectScopes = params.projectScopes;
         if (!projectScopes?.length) {
-            window.showWarningMessage("No deployable projects found in the workspace.");
+            window.showWarningMessage("No deployable integrations found in the project.");
             return { isCompleted: true };
         }
         const integrations: ICreateNewIntegrationCmdIntegrations[] = [];
@@ -1247,7 +1250,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         // If there is only one project in the workspace and it has multiple integration types,
         // ask the user to pick the type similar to the single project deploy flow.
         if (projectScopes.length === 1) {
-            const { projectPath, integrationTypes } = projectScopes[0];
+            const { projectPath, integrationTypes, projectTitle } = projectScopes[0];
 
             const integrationType = await this.selectIntegrationType(integrationTypes);
 
@@ -1255,16 +1258,24 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 return { isCompleted: true };
             }
 
-            integrations.push({ fsPath: projectPath, supportedIntegrationTypes: [integrationType] });
+            integrations.push({
+                fsPath: projectPath,
+                supportedIntegrationTypes: [integrationType],
+                name: projectTitle
+            });
         } else {
             for (const projectScope of projectScopes) {
-                const { projectPath, integrationTypes } = projectScope;
+                const { projectPath, integrationTypes, projectTitle } = projectScope;
                 if (!integrationTypes?.length) {
                     window.showWarningMessage(`No integration types found for ${path.basename(projectPath)}.`);
                     continue;
                 }
 
-                integrations.push({ fsPath: projectPath, supportedIntegrationTypes: integrationTypes });
+                integrations.push({
+                    fsPath: projectPath,
+                    supportedIntegrationTypes: integrationTypes,
+                    name: projectTitle
+                });
             }
         }
 
@@ -1274,7 +1285,11 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
         await commands.executeCommand(
             WICommandIds.CreateNewComponent,
-            { buildPackLang: 'ballerina', integrations, workspaceDir: StateMachine.context().workspacePath } as ICreateNewIntegrationCmdParams,
+            {
+                buildPackLang: 'ballerina',
+                integrations,
+                workspaceDir: StateMachine.context().workspacePath
+            } as ICreateNewIntegrationCmdParams,
             params.rootDirectory
         );
         return { isCompleted: true };
@@ -1475,8 +1490,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             task: 'run'
         };
 
-        let buildCommand = docker ? 'bal build --cloud="docker"' : 'bal build';
-
         // If docker is true check if docker command is available
         if (docker) {
             const dockerAvailable = await this.checkDockerAvailability();
@@ -1486,20 +1499,54 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             }
         }
 
+        const context = StateMachine.context();
+        const { workspacePath, view: webviewType, projectPath } = context;
+
+        let targetPath = projectPath ?? "";
+        if (workspacePath && webviewType === MACHINE_VIEW.WorkspaceOverview) {
+            // The workspace overview is active — build the whole workspace.
+            targetPath = workspacePath;
+        } else if (workspacePath && !projectPath) {
+            // A workspace is open but no specific project is selected; fall back
+            // to whichever project the active editor belongs to, or the workspace
+            // root if there is no active editor.
+            try {
+                targetPath = await getCurrentProjectRoot();
+            } catch (error) {
+                targetPath = workspacePath;
+            }
+        } else {
+            // A specific project is already selected in the state machine; use it.
+            // Wrap getCurrentProjectRoot in try/catch because there may not be an
+            // active text editor when this is invoked from the RPC manager.
+            try {
+                targetPath = await getCurrentProjectRoot();
+            } catch (error) {
+                targetPath = projectPath ?? workspacePath ?? "";
+            }
+        }
+
+        if (!targetPath) {
+            window.showErrorMessage('No Ballerina project found.');
+            return;
+        }
+
         // Get Ballerina home path from settings
         const config = workspace.getConfiguration('ballerina');
         const ballerinaHome = config.get<string>('home');
-        if (ballerinaHome) {
-            // Add ballerina home to build path only if it's configured
-            buildCommand = path.join(ballerinaHome, 'bin', buildCommand);
-        }
+        const balCmd = ballerinaHome ? path.join(ballerinaHome, 'bin', 'bal') : 'bal';
+        const buildCommand = docker ? `${balCmd} build --cloud="docker"` : `${balCmd} build`;
 
-        // Use the current process environment which should have the updated PATH
-        const execution = new ShellExecution(buildCommand, { env: process.env as { [key: string]: string } });
+        // Run the build command scoped to the resolved project directory so that
+        // only that project is compiled (not every project in the workspace).
+        const execution = new ShellExecution(buildCommand, {
+            cwd: targetPath,
+            env: process.env as { [key: string]: string }
+        });
 
         const task = new Task(
             taskDefinition,
-            workspace.workspaceFolders![0], // Assumes at least one workspace folder is open
+            workspace.workspaceFolders![0],
             'Ballerina Build',
             'ballerina',
             execution
@@ -1534,7 +1581,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             StateMachine.langClient()
                 .getVisibleTypes(params)
                 .then((visibleTypes) => {
-                    resolve(visibleTypes);
+                    resolve(visibleTypes?.filter((item) => item.label !== "record"));
                 })
                 .catch((error) => {
                     reject("Error fetching visible types from ls");
@@ -1685,10 +1732,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async getEnclosedFunction(params: BIGetEnclosedFunctionRequest): Promise<BIGetEnclosedFunctionResponse> {
         console.log(">>> requesting parent functin definition", params);
-        // When useFileSchema is set, map temp path to original project path
+        // When useFileSchema is set, use file:// scheme to show original content
         let filePath = params.filePath;
         if (params.useFileSchema) {
-            filePath = this.mapTempPathToOriginal(filePath);
+            filePath = this.convertAiToFileScheme(filePath);
         }
         const request = { filePath, position: params.position, findClass: params.findClass };
         return new Promise((resolve) => {
@@ -1774,8 +1821,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             let projectPath: string;
             if (params?.projectPath) {
                 if (params.useFileSchema) {
-                    // Map temp project path to original project raw path
-                    projectPath = this.mapTempPathToOriginal(params.projectPath);
+                    // Use file:// scheme to show original content
+                    projectPath = Uri.file(params.projectPath).toString();
                 } else {
                     const uri = Uri.file(params.projectPath);
                     projectPath = uri.with({ scheme: 'ai' }).toString();
@@ -1816,9 +1863,9 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             });
         }
 
-        // When useFileSchema is set, map temp path to original project path
+        // When useFileSchema is set, use file:// scheme to show original content
         if (params.useFileSchema) {
-            filePath = this.mapTempPathToOriginal(filePath);
+            filePath = this.convertAiToFileScheme(filePath);
         }
 
         return new Promise((resolve, reject) => {
@@ -2144,8 +2191,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             const projectPath = StateMachine.context().projectPath;
             const repoRoot = getRepoRoot(projectPath);
             if (repoRoot) {
-                const contextYamlPath = path.join(repoRoot, ".choreo", "context.yaml");
-                if (fs.existsSync(contextYamlPath)) {
+                const contextYamlPath = path.join(repoRoot, ".wso2", "context.yaml");
+                // leaving .choreo/context.yaml check for backward compatibility, can remove after some time
+                const choreoContextYamlPath = path.join(repoRoot, ".choreo", "context.yaml");
+                if (fs.existsSync(contextYamlPath) || fs.existsSync(choreoContextYamlPath)) {
                     hasContextYaml = true;
                 }
             }
@@ -2181,11 +2230,17 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         try {
             // Get workspace structure
             const workspaceStructure = await this.getProjectStructure();
-            if (!workspaceStructure || !workspaceStructure.workspacePath) {
+            if (!workspaceStructure) {
                 return { isLoggedIn: false, hasAnyComponent: false, hasLocalChanges: false };
             }
 
-            const repoRoot = getRepoRoot(workspaceStructure.workspacePath);
+            // For standalone integrations workspacePath is undefined; fall back to the single project's path
+            const pathForRepoRoot = workspaceStructure.workspacePath ?? workspaceStructure.projects?.[0]?.projectPath;
+            if (!pathForRepoRoot) {
+                return { isLoggedIn: false, hasAnyComponent: false, hasLocalChanges: false };
+            }
+
+            const repoRoot = getRepoRoot(pathForRepoRoot);
             if (!repoRoot) {
                 return { isLoggedIn: false, hasAnyComponent: false, hasLocalChanges: false };
             }
@@ -2193,8 +2248,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             const platformExt = extensions.getExtension(WI_EXTENSION_ID);
             if (!platformExt) {
                 // Check for context.yaml as fallback
-                const contextYamlPath = path.join(repoRoot, ".choreo", "context.yaml");
-                const hasContextYaml = fs.existsSync(contextYamlPath);
+                const contextYamlPath = path.join(repoRoot, ".wso2", "context.yaml");
+                // leaving .choreo/context.yaml check for backward compatibility, can remove after some time
+                const choreoContextYamlPath = path.join(repoRoot, ".choreo", "context.yaml");
+                const hasContextYaml = fs.existsSync(contextYamlPath) || fs.existsSync(choreoContextYamlPath);
                 return {
                     isLoggedIn: false,
                     hasAnyComponent: hasContextYaml,
@@ -2237,8 +2294,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
             // If not logged in, check for context.yaml as fallback
             if (!isLoggedIn) {
-                const contextYamlPath = path.join(repoRoot, ".choreo", "context.yaml");
-                if (fs.existsSync(contextYamlPath)) {
+                const contextYamlPath = path.join(repoRoot, ".wso2", "context.yaml");
+                // leaving .choreo/context.yaml check for backward compatibility, can remove after some time
+                const choreoContextYamlPath = path.join(repoRoot, ".choreo", "context.yaml");
+                if (fs.existsSync(contextYamlPath) || fs.existsSync(choreoContextYamlPath)) {
                     hasAnyComponent = true;
                 }
             }

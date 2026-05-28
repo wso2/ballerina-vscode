@@ -20,7 +20,7 @@ import React, { useState } from "react";
 
 import { DiagramEngine } from '@projectstorm/react-diagrams';
 import { Button, Codicon, Icon, ProgressRing, TruncatedLabel, TruncatedLabelGroup } from "@wso2/ui-toolkit";
-import { IOType, TypeKind } from '@wso2/ballerina-core';
+import { InputCategory, IOType, TypeKind } from '@wso2/ballerina-core';
 import classnames from "classnames";
 
 import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
@@ -36,6 +36,7 @@ import { useShallow } from "zustand/react/shallow";
 import { fieldFQNFromPortName, getDefaultValue, isWithinSubMappingRootView } from "../../utils/common-utils";
 import { addValue, removeMapping } from "../../utils/modification-utils";
 import { DiagnosticTooltip } from "../../Diagnostic/DiagnosticTooltip";
+import { FieldActionButton } from "../commons/FieldActionButton";
 
 export interface ArrayOutputWidgetProps {
 	id: string;
@@ -87,9 +88,10 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 	const portIn = getPort(`${id}.IN`);
 	const isExprBarFocused = exprBarFocusedPort?.getName() === portIn?.getName();
 	const isUnknownType = outputType.kind === TypeKind.Unknown;
+	const isConvertedField = outputType.category === InputCategory.ConvertedVariable;
 
 	let expanded = true;
-	if ((portIn && portIn.attributes.collapsed)) {
+	if (portIn && portIn.attributes.collapsed) {
 		expanded = false;
 	}
 
@@ -165,7 +167,7 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 	};
 
 	const label = (
-		<TruncatedLabelGroup style={{ marginRight: "auto", alignItems: "baseline" }}>
+		<TruncatedLabelGroup style={{ alignItems: "baseline" }}>
 			{valueLabel && (
 				<TruncatedLabel className={classes.valueLabelHeader}>
 					<OutputSearchHighlight>{valueLabel}</OutputSearchHighlight>
@@ -213,17 +215,37 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 					</span>
 					<span className={classes.label}>
 						<FieldActionWrapper>
-							<Button
-								id={"expand-or-collapse-" + id} 
-								appearance="icon"
-								tooltip="Expand/Collapse"
-								onClick={handleExpand}
-								data-testid={`${id}-expand-icon-mapping-target-node`}
-							>
-								{expanded ? <Codicon name="chevron-down" /> : <Codicon name="chevron-right" />}
-							</Button>
+							{isConvertedField ? (
+								<Button
+									id={"converted-icon-" + id}
+									appearance="icon"
+									tooltip="Type defined variable"
+								>
+									<Icon name="arrow-left-up" />
+								</Button>
+							) : (
+								<Button
+									id={"expand-or-collapse-" + id}
+									appearance="icon"
+									tooltip="Expand/Collapse"
+									onClick={handleExpand}
+									data-testid={`${id}-expand-icon-mapping-target-node`}
+								>
+									{expanded ? <Codicon name="chevron-down" /> : <Codicon name="chevron-right" />}
+								</Button>
+							)}
 						</FieldActionWrapper>
 						{label}
+						{isConvertedField && (
+							<FieldActionButton
+								id={"edit-" + id}
+								tooltip="Edit"
+								iconName="edit"
+								onClick={async () =>
+									await context.createConvertedVariable(outputType.name, false, outputType.name)
+								}
+							/>
+						)}
 					</span>
 					{context.model.hasInvalidOutput && (
 						<DiagnosticTooltip
@@ -246,7 +268,7 @@ export function ArrayOutputWidget(props: ArrayOutputWidgetProps) {
 						</DiagnosticTooltip>
 					)}
 					{(isLoading) ? (
-						<ProgressRing />
+						<ProgressRing sx={{ height: '16px', width: '16px' }} />
 					) : (
 						<FieldActionWrapper>
 							<ValueConfigMenu

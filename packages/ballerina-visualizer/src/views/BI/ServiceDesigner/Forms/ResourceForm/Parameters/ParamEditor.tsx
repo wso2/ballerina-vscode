@@ -28,6 +28,7 @@ import ArtifactForm from '../../../../Forms/ArtifactForm';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { URI, Utils } from 'vscode-uri';
 import { getImportsForProperty } from '../../../../../../utils/bi';
+import { HTTP_ENUM_TYPES } from '../../../utils';
 
 const options = [{ id: "0", value: "QUERY" }, { id: "1", value: "Header" }];
 
@@ -202,8 +203,8 @@ export function ParamEditor(props: ParamProps) {
                     enabled: true,
                     defaultValue: "string",
                     value: param.type.value,
-                    items: ["string", "int", "float", "decimal", "boolean"],
-                    types: [{ fieldType: getPrimaryInputType(param.type.types)?.fieldType, selected: false }]
+                    items: HTTP_ENUM_TYPES,
+                    types: [{ fieldType: "ENUM", selected: false }]
                 });
                 break;
             case "HEADER":
@@ -257,8 +258,8 @@ export function ParamEditor(props: ParamProps) {
                     enabled: true,
                     defaultValue: "string",
                     value: param.type.value,
-                    items: ["string", "int", "float", "decimal", "boolean"],
-                    types: [{ fieldType: getPrimaryInputType(param.type.types)?.fieldType, selected: false }]
+                    items: HTTP_ENUM_TYPES,
+                    types: [{ fieldType: "ENUM", selected: false }]
                 });
                 break;
             case "PAYLOAD":

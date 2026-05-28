@@ -18,7 +18,7 @@ import { DIAGNOSTICS_TOOL_NAME } from "./tools/diagnostics";
 import { LIBRARY_GET_TOOL } from "./tools/library-get";
 import { LIBRARY_SEARCH_TOOL } from "./tools/library-search";
 import { TASK_WRITE_TOOL_NAME } from "./tools/task-writer";
-import { FILE_BATCH_EDIT_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME } from "./tools/text-editor";
+import { FILE_BATCH_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME } from "./tools/text-editor";
 import { CONNECTOR_GENERATOR_TOOL } from "./tools/connector-generator";
 import { CONFIG_COLLECTOR_TOOL } from "./tools/config-collector";
 import { CLARIFY_TOOL } from "./tools/clarify";
@@ -151,6 +151,7 @@ ${getLanglibInstructions()}
 
 ### Local Connectors
 - If the codebase structure shows connector modules in generated/moduleName, import using: import packageName.moduleName
+- Generated connector files appear under a \`<generated_files>\` block in the codebase structure as path-only entries (e.g. \`<file path="generated/moduleName/client.bal"/>\`) — no source content is included. Use the \`${FILE_READ_TOOL_NAME}\` tool with the listed path to fetch the content when needed.
 
 ## Code Structure
 - In WSO2 Integrator, Automation is simply an app with a main method unless user specifically mentions a service. Cron Job kind of requirements are handled in the deployment level for Kubernetes or Integration platform level.
@@ -192,6 +193,10 @@ ${getLanglibInstructions()}
 ## Workspace Management
 When working with Ballerina workspace projects (projects with a root Ballerina.toml containing a [workspace] section):
 
+### Terminology
+In WSO2 Integrator, a Ballerina workspace is called a **project** and a Ballerina package is called an **integration**.
+- You MUST always use "project" and "integration" in all responses and clarifying questions. Never use "workspace" or "package" when communicating with the user.
+
 ### Creating a new package
 1. Create the package directory with a Ballerina.toml containing the [package] section (name, org, version).
 2. Update the root workspace Ballerina.toml to add the new package path to the packages array.
@@ -201,11 +206,12 @@ When working with Ballerina workspace projects (projects with a root Ballerina.t
 - Always prefer modifying existing packages over creating new ones unless the user specifically asks to create a new package.
 - The root workspace Ballerina.toml should only contain a [workspace] section with a packages array.
 - Avoid modifying existing package Ballerina.toml files for dependency management.
+- A library package must include a \`lib.bal\` file containing \`import wso2/strict.library as _;\` — without this import the package is treated as a standard integration.
 
 # Running, invoking and tests
 - You should only Run or write tests if the user explicitly asks to do so.
 - Providing values to configurables is a runtime task and should only do it before running or executing the tests.
-- For Config.toml configuration value management, use ${CONFIG_COLLECTOR_TOOL} to request for values. Check the different modes of the tool for various usecases.
+- For Config.toml configuration value management, use ${CONFIG_COLLECTOR_TOOL}. The codebase listing shows <config_files main="present|absent" tests="present|absent"/> per project indicating whether Config.toml files exist.
 - You can call ${BALLERINA_STOP_TOOL_NAME} when you need to restart a service (e.g. after code changes) or when the user explicitly asks to stop it.
 
 ## Test Runner
@@ -245,10 +251,13 @@ export function getUserPrompt(params: GenerateAgentCodeRequest, tempProjectPath:
 
     // Add code context if available
     if (params.codeContext) {
-        content.push({
-            type: 'text' as const,
-            text: formatCodeContext(params.codeContext, tempProjectPath)
-        });
+        const codeContextText = formatCodeContext(params.codeContext, tempProjectPath);
+        if (codeContextText) {
+            content.push({
+                type: 'text' as const,
+                text: codeContextText
+            });
+        }
     }
 
     // Add file attachments if available

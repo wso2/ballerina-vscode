@@ -417,7 +417,7 @@ suite("toSyntaxString", () => {
                 result.includes("service on new salesforce:Listener(salesforce:ListenerConfig listenerConfig"),
                 "Should render service on new Listener(...)"
             );
-            // Method names extracted from description backticks
+            // Method names from the name field
             assert.ok(result.includes("    # The `onCreate` method is triggered when a new record create event is received from Salesforce."));
             assert.ok(result.includes("remote function onCreate(salesforce:EventData payload) returns error?;"));
             assert.ok(result.includes("remote function onUpdate(salesforce:EventData payload) returns error?;"));

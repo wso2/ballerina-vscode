@@ -21,27 +21,31 @@ import { workspace } from 'vscode';
 import { CodeContext } from '@wso2/ballerina-core/lib/rpc-types/ai-panel/interfaces';
 
 /**
- * Normalizes codeContext to use relative paths from workspace root
- * @param codeContext The code context with potentially absolute file path
- * @returns CodeContext with relative file path, or undefined if input is undefined
+ * Normalizes codeContext filePath to be relative to the workspace root.
+ * @param codeContext   The code context with a potentially absolute or package-relative filePath.
+ * @param workspaceRoot Ballerina workspace root (workspacePath ?? projectPath).
+ * @param projectPath   Active package path, used to resolve package-relative filePaths correctly.
+ * @returns CodeContext with workspace-relative filePath, or undefined if input is undefined
  */
-export const normalizeCodeContext = (codeContext?: CodeContext): CodeContext | undefined => {
+export const normalizeCodeContext = (codeContext?: CodeContext, workspaceRoot?: string, projectPath?: string): CodeContext | undefined => {
     if (!codeContext) {
         return undefined;
     }
 
     const workspaceFolders = workspace.workspaceFolders;
-    if (!workspaceFolders || workspaceFolders.length === 0) {
+    const root = workspaceRoot || workspaceFolders?.[0]?.uri.fsPath;
+
+    if (!root) {
         return codeContext;
     }
 
-    const workspaceRoot = workspaceFolders[0].uri.fsPath;
+    // Resolve relative paths against the package dir so the workspace prefix is included
+    const resolveBase = projectPath || root;
     const absolutePath = path.isAbsolute(codeContext.filePath)
         ? codeContext.filePath
-        : path.join(workspaceRoot, codeContext.filePath);
+        : path.join(resolveBase, codeContext.filePath);
 
-    // Convert to relative path from workspace root
-    const relativePath = path.relative(workspaceRoot, absolutePath);
+    const relativePath = path.relative(root, absolutePath);
 
     if (codeContext.type === 'addition') {
         return {

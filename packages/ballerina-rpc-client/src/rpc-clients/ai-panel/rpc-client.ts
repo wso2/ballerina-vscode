@@ -79,7 +79,6 @@ import {
     generateOpenAPI,
     getAIMachineSnapshot,
     getActiveTempDir,
-    getAffectedPackages,
     getChatMessages,
     getCheckpoints,
     getDefaultPrompt,
@@ -115,6 +114,9 @@ import {
     stopRunningService,
     RunningServiceInfo,
     StopRunningServiceRequest,
+    RunServiceRequest,
+    runService,
+    getDefaultVertexCredsPath,
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -235,10 +237,6 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendRequest(getSemanticDiff, HOST_EXTENSION, params);
     }
 
-    getAffectedPackages(): Promise<string[]> {
-        return this._messenger.sendRequest(getAffectedPackages, HOST_EXTENSION);
-    }
-
     isWorkspaceProject(): Promise<boolean> {
         return this._messenger.sendRequest(isWorkspaceProject, HOST_EXTENSION);
     }
@@ -354,5 +352,13 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     stopRunningService(params: StopRunningServiceRequest): Promise<boolean> {
         return this._messenger.sendRequest(stopRunningService, HOST_EXTENSION, params);
+    }
+
+    runService(params: RunServiceRequest): Promise<boolean> {
+        return this._messenger.sendRequest(runService, HOST_EXTENSION, params);
+    }
+
+    getDefaultVertexCredsPath(): Promise<string> {
+        return this._messenger.sendRequest(getDefaultVertexCredsPath, HOST_EXTENSION);
     }
 }

@@ -24,6 +24,7 @@ import {
     EVENT_TYPE,
     FlowNode,
     MACHINE_VIEW,
+    NodePosition,
     ProjectInfo
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "../../core";
@@ -34,6 +35,7 @@ import { StateMachine } from "../../stateMachine";
 import { BiDiagramRpcManager } from "../../rpc-managers/bi-diagram/rpc-manager";
 import { readFileSync, readdirSync, statSync } from "fs";
 import path from "path";
+import { isInDevant } from "../../utils";
 import { isPositionEqual, isPositionWithinDeletedComponent } from "../../utils/history/util";
 import { startDebugging } from "../editor-support/activator";
 import {
@@ -69,8 +71,8 @@ export function activate(context: BallerinaExtension) {
         const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
         const hasActiveTextEditor = !!window.activeTextEditor;
 
-        // Check if ICP is enabled for this project
-        if (projectPath && stateMachineContext.langClient) {
+        // Check if ICP is enabled for this project (skip entirely in Devant)
+        if (!isInDevant() && projectPath && stateMachineContext.langClient) {
             try {
                 const icpStatus = await stateMachineContext.langClient.isIcpEnabled({ projectPath });
                 if (icpStatus && 'enabled' in icpStatus && icpStatus.enabled) {
@@ -206,7 +208,7 @@ export function activate(context: BallerinaExtension) {
         return createBIProjectFromMigration(params);
     });
 
-    commands.registerCommand(BI_COMMANDS.DELETE_COMPONENT, async (item?: TreeItem & { info?: string }) => {
+    commands.registerCommand(BI_COMMANDS.DELETE_COMPONENT, async (item?: TreeItem & { info?: string, position?: NodePosition }) => {
         // Guard: DELETE requires a tree item context
         if (!item) {
             window.showErrorMessage('This command must be invoked from the project explorer.');
@@ -220,7 +222,11 @@ export function activate(context: BallerinaExtension) {
         } else if (item.contextValue === DIRECTORY_MAP.LOCAL_CONNECTORS) {
             await handleLocalModuleDeletion(item.label as string, item.info);
         } else {
-            await handleComponentDeletion(item.contextValue as string, item.label as string, item.info);
+            if (!item.position) {
+                window.showErrorMessage('Position is required to delete a component.');
+                return;
+            }
+            await handleComponentDeletion(item.contextValue as string, item.label as string, item.info, item.position as NodePosition);
         }
     });
 
@@ -444,7 +450,7 @@ const findBallerinaFiles = (dir: string, fileList: string[] = []): string[] => {
     return fileList;
 };
 
-const handleComponentDeletion = async (componentType: string, itemLabel: string, filePath: string) => {
+const handleComponentDeletion = async (componentType: string, itemLabel: string, filePath: string, position: NodePosition) => {
     const rpcClient = new BiDiagramRpcManager();
     const { projectPath, projectInfo } = StateMachine.context();
     const projectRoot = await findBallerinaPackageRoot(filePath);
@@ -461,7 +467,7 @@ const handleComponentDeletion = async (componentType: string, itemLabel: string,
     }
 
     for (const component of componentCategory) {
-        if (component.name === itemLabel) {
+        if (component.name === itemLabel && component?.position?.startLine === position.startLine && component?.position?.startColumn === position.startColumn) {
             if (component.name.startsWith("AI Agent Services")) {
                 await handleAIAgentServiceDeletion(component, rpcClient, filePath, deleteComponent);
                 return;
@@ -480,6 +486,8 @@ const handleComponentDeletion = async (componentType: string, itemLabel: string,
             return;
         }
     }
+    console.error(`Component ${itemLabel} not found in project structure`);
+    window.showErrorMessage(`Component '${itemLabel}' not found — deletion failed`);
 };
 
 const handleLocalModuleDeletion = async (moduleName: string, filePath: string) => {

@@ -17,6 +17,7 @@
  */
 
 import React, { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { EditableTitle } from "../../../components/EditableTitle";
 import {
     ProjectStructure,
@@ -130,7 +131,7 @@ const LeftContent = styled.div`
 `;
 
 const SidePanel = styled.div`
-    padding: 0px 10px 10px 10px;
+    margin-left: 16px;
 `;
 
 const FooterPanel = styled.div`
@@ -414,6 +415,7 @@ interface DeploymentOptionsProps {
     handleDeploy: () => Promise<void>;
     goToDevant: () => void;
     hasDeployableIntegration: boolean;
+    projectPath: string;
 }
 
 function DeploymentOptions({
@@ -421,9 +423,11 @@ function DeploymentOptions({
     handleJarBuild,
     handleDeploy,
     goToDevant,
-    hasDeployableIntegration
+    hasDeployableIntegration,
+    projectPath
 }: DeploymentOptionsProps) {
     const [expandedOptions, setExpandedOptions] = useState<Set<string>>(new Set(['cloud', 'devant']));
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const { rpcClient } = useRpcContext();
     const { platformExtState } = usePlatformExtContext();
 
@@ -439,30 +443,52 @@ function DeploymentOptions({
         });
     };
 
-    const isDeployed = platformExtState?.isLoggedIn ? !!platformExtState?.selectedComponent : platformExtState?.hasPossibleComponent;
+    const { data: devantMetadata, isLoading: isDevantLoading, refetch: refetchDevantMetadata } = useQuery({
+        queryKey: ["project-devant-metadata", projectPath],
+        queryFn: () => rpcClient.getBIDiagramRpcClient().getWorkspaceDevantMetadata(),
+        enabled: platformExtState.isExtInstalled,
+        refetchInterval: 5000,
+    });
+    const currentProjectMeta = devantMetadata?.projectsMetadata?.find(p => p.projectPath === projectPath);
+    const isDeployed = devantMetadata?.isLoggedIn
+        ? (currentProjectMeta?.hasComponent ?? false)
+        : false;
+
+    const stopRefreshing = useCallback(() => {
+        setIsRefreshing(false);
+    }, []);
+
+    const handleRefreshDeploymentStatus = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsRefreshing(true);
+        try {
+            await rpcClient.getCommonRpcClient().executeCommand({
+                commands: [WICommandIds.RefreshDirectoryContext],
+            });
+            await refetchDevantMetadata();
+        } finally {
+            stopRefreshing();
+        }
+    };
 
     return (
         <>
             <div>
                 <Title variant="h3">Deployment Options</Title>
 
-                {platformExtState.isExtInstalled && (
+                {platformExtState.isExtInstalled && !isDevantLoading && (
                     <DeploymentOption
                         title={
                             isDeployed ? (
                                 <DevantHeaderWrap>
                                     <span>Deployed in WSO2 Cloud</span>
-                                    <Button
-                                        appearance="icon"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            rpcClient.getCommonRpcClient().executeCommand({
-                                                commands: [WICommandIds.RefreshDirectoryContext],
-                                            });
-                                        }}
-                                    >
-                                        <Codicon name="refresh" />
-                                    </Button>
+                                    {isRefreshing ? (
+                                        <ProgressRing sx={{ width: 16, height: 16 }} />
+                                    ) : (
+                                        <Button appearance="icon" tooltip="Refresh deployment status" onClick={handleRefreshDeploymentStatus}>
+                                            <Codicon name="refresh" />
+                                        </Button>
+                                    )}
                                 </DevantHeaderWrap>
                             ) : (
                                 "Deploy to WSO2 Cloud"
@@ -477,10 +503,10 @@ function DeploymentOptions({
                         isExpanded={expandedOptions.has("devant")}
                         onToggle={() => toggleOption("devant")}
                         onDeploy={isDeployed ? () => goToDevant() : handleDeploy}
-                        learnMoreLink={"https://wso2.com/devant/docs"}
-                        hasDeployableIntegration={hasDeployableIntegration}
+                        learnMoreLink={"https://wso2.com/devant/docs/"}
+                        hasDeployableIntegration={hasDeployableIntegration && !isRefreshing}
                         secondaryAction={
-                            isDeployed && platformExtState?.hasLocalChanges
+                            isDeployed && currentProjectMeta?.hasLocalChanges
                                 ? {
                                     description: "To redeploy in WSO2 Cloud, please commit and push your changes.",
                                     buttonText: "Open Source Control",
@@ -539,23 +565,129 @@ function IntegrationControlPlane({ enabled, handleICP }: IntegrationControlPlane
                 {"Monitor and manage your integration deployments using a single enhanced interface, and streamline operations and increase efficiency."}
                 <VSCodeLink onClick={openLearnMoreURL} style={{ marginLeft: '4px' }}> Learn More </VSCodeLink>
             </p>
-            <CheckBox
-                checked={enabled}
-                onChange={handleICP}
-                label="Enable ICP monitoring"
-            />
-            {enabled && (
-                <Button
-                    appearance="secondary"
-                    onClick={() => rpcClient.getICPRpcClient().viewInICP({
-                        projectPath: ''
-                    })}
-                    sx={{ marginTop: "10px", display: "flex", alignItems: "center", justifyContent: "center", mx: "auto" }}
-                >
-                    <Codicon name="link-external" sx={{ marginRight: 8 }} /> View in ICP
-                </Button>
-            )}
+            <div style={{ paddingLeft: 10 }}>
+                <CheckBox
+                    checked={enabled}
+                    onChange={handleICP}
+                    label="Enable ICP monitoring"
+                />
+            </div>
         </div>
+    );
+}
+
+const LocalICPBody = styled.div<DeploymentBodyProps>`
+    max-height: ${(props: DeploymentBodyProps) => props.isExpanded ? '400px' : '0'};
+    visibility: ${(props: DeploymentBodyProps) => props.isExpanded ? 'visible' : 'hidden'};
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out,
+        visibility 0s linear ${(props: DeploymentBodyProps) => props.isExpanded ? '0s' : '0.3s'};
+    margin-top: ${(props: DeploymentBodyProps) => props.isExpanded ? '8px' : '0'};
+`;
+
+function LocalICPDeployment() {
+    const { rpcClient } = useRpcContext();
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [serverRunning, setServerRunning] = useState(false);
+    const [serverBusy, setServerBusy] = useState(false);
+
+    const refreshStatus = async () => {
+        try {
+            const res = await rpcClient.getICPRpcClient().isICPServerRunning({ projectPath: '' });
+            setServerRunning(!!res.enabled);
+        } catch (err) {
+            console.error('[ICP] Failed to refresh ICP server status:', err);
+        }
+    };
+
+    useEffect(() => {
+        refreshStatus();
+        const interval = setInterval(refreshStatus, 3000);
+        return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
+        if (serverRunning) {
+            setIsExpanded(true);
+        }
+    }, [serverRunning]);
+
+    const handleServerToggle = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setServerBusy(true);
+        try {
+            await rpcClient.getCommonRpcClient().executeCommand({
+                commands: [serverRunning ? 'ballerina.icp.stop' : 'ballerina.icp.start']
+            });
+            await refreshStatus();
+        } catch (err) {
+            console.error('[ICP] Failed to toggle ICP server:', err);
+        } finally {
+            setServerBusy(false);
+        }
+    };
+
+    const handleViewInICP = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        rpcClient.getICPRpcClient().viewInICP({ projectPath: '' }).catch((err) => {
+            console.error('[ICP] Failed to open ICP dashboard:', err);
+        });
+    };
+
+    const toggleExpanded = () => setIsExpanded(prev => !prev);
+
+    const handleHeaderKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggleExpanded();
+        }
+    };
+
+    return (
+        <DeploymentOptionContainer
+            isExpanded={isExpanded}
+            onClick={toggleExpanded}
+            onKeyDown={handleHeaderKeyDown}
+            role="button"
+            tabIndex={0}
+            aria-expanded={isExpanded}
+        >
+            <DeploymentHeader>
+                {isExpanded ? (
+                    <Codicon name={'triangle-down'} sx={{ color: 'var(--vscode-textLink-foreground)' }} />
+                ) : (
+                    <Codicon name={'triangle-right'} sx={{ color: 'inherit' }} />
+                )}
+                <h3>Publish to local ICP</h3>
+            </DeploymentHeader>
+            <LocalICPBody isExpanded={isExpanded}>
+                <p style={{ marginTop: 8 }}>Publish to a local ICP server to try it out.</p>
+                <ol style={{ marginTop: 0, paddingLeft: 20 }}>
+                    <li>Start the ICP server</li>
+                    <li>Enable ICP for the integration</li>
+                    <li>Run the integration — traces will be published to the local ICP server</li>
+                </ol>
+                <ButtonContainer>
+                    <Button
+                        appearance="secondary"
+                        onClick={handleServerToggle}
+                        disabled={serverBusy}
+                    >
+                        <Codicon
+                            name={serverRunning ? "debug-stop" : "play"}
+                            sx={{ marginRight: 8 }}
+                        />
+                        {serverRunning ? "Stop ICP Server" : "Start ICP Server"}
+                    </Button>
+                    {serverRunning && (
+                        <Button appearance="secondary" onClick={handleViewInICP}>
+                            <Codicon name="link-external" sx={{ marginRight: 8 }} />
+                            View in ICP
+                        </Button>
+                    )}
+                </ButtonContainer>
+            </LocalICPBody>
+        </DeploymentOptionContainer>
     );
 }
 
@@ -787,13 +919,13 @@ export function PackageOverview(props: PackageOverviewProps) {
     const handleICP = (icpEnabled: boolean) => {
         if (icpEnabled) {
             rpcClient.getICPRpcClient().addICP({ projectPath: '' })
-                .then((res) => {
+                .then(() => {
                     setEnableICP(true);
                 }
                 );
         } else {
             rpcClient.getICPRpcClient().disableICP({ projectPath: '' })
-                .then((res) => {
+                .then(() => {
                     setEnableICP(false);
                 }
                 );
@@ -855,7 +987,7 @@ export function PackageOverview(props: PackageOverviewProps) {
         })
     };
 
-    async function handleSettings() {
+    function handleSettings() {
         rpcClient.getAiPanelRpcClient().openAIPanel({
             type: 'text',
             planMode: false,
@@ -1043,9 +1175,13 @@ export function PackageOverview(props: PackageOverviewProps) {
                                         handleDeploy={handleDeploy}
                                         goToDevant={goToDevant}
                                         hasDeployableIntegration={deployableIntegrationTypes.length > 0}
+                                        projectPath={projectPath}
                                     />
                                     <Divider sx={{ margin: "16px 0" }} />
                                     <IntegrationControlPlane enabled={enabled} handleICP={handleICP} />
+                                    <div style={{ marginTop: 8 }}>
+                                        <LocalICPDeployment />
+                                    </div>
                                 </>
                             }
                             {isInDevant &&

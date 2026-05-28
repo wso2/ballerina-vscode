@@ -886,6 +886,7 @@ export function AgentCallNodeWidget(props: AgentCallNodeWidgetProps) {
 
                 {hasBreakpoint && (
                     <div
+                        data-testid={isActiveBreakpoint ? "breakpoint-indicator-diagram-active" : "breakpoint-indicator-diagram"}
                         style={{
                             position: "absolute",
                             left: -5,

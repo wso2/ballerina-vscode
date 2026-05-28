@@ -55,6 +55,7 @@ import {
     ClarifyCancelRequest,
     RunningServiceInfo,
     StopRunningServiceRequest,
+    RunServiceRequest,
 } from "./interfaces";
 
 export interface AIPanelAPI {
@@ -93,7 +94,6 @@ export interface AIPanelAPI {
     openAIPanel: (params: AIPanelPrompt) => Promise<void>;
     // AI schema related functions
     getSemanticDiff: (params: SemanticDiffRequest) => Promise<SemanticDiffResponse>;
-    getAffectedPackages: () => Promise<string[]>;
     isWorkspaceProject: () => Promise<boolean>;
     acceptChanges: () => Promise<void>;
     declineChanges: () => Promise<void>;
@@ -135,4 +135,9 @@ export interface AIPanelAPI {
     // ==================================
     getRunningServices: () => Promise<RunningServiceInfo[]>;
     stopRunningService: (params: StopRunningServiceRequest) => Promise<boolean>;
+    runService: (params: RunServiceRequest) => Promise<boolean>;
+    // ==================================
+    // Vertex AI BYOK Helpers
+    // ==================================
+    getDefaultVertexCredsPath: () => Promise<string>;
 }

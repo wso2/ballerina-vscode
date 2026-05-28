@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ChipExpressionEditorDefaultConfiguration } from "./ChipExpressionEditor/ChipExpressionDefaultConfig";
+import { ChipExpressionEditorDefaultConfiguration, HelperPaneMenuItem } from "./ChipExpressionEditor/ChipExpressionDefaultConfig";
 import { TokenType } from "./ChipExpressionEditor/types";
 import { ParsedToken } from "./ChipExpressionEditor/utils";
 import { ThemeColors } from "@wso2/ui-toolkit/lib/styles/Theme";
@@ -83,6 +83,9 @@ export class StringTemplateEditorConfig extends ChipExpressionEditorDefaultConfi
         if (value.trim().startsWith(prefix) && value.trim().endsWith(suffix)) {
             return value.trim().slice(prefix.length, value.trim().length - suffix.length);
         }
+        if (value.trim().startsWith("\"") && value.trim().endsWith("\"")) {
+            return value.trim().slice(1, -1);
+        }
         return value;
     }
     deserializeValue(value: string): string {
@@ -109,6 +112,10 @@ export class StringTemplateEditorConfig extends ChipExpressionEditorDefaultConfi
             (expValue.trim().startsWith(prefix) && expValue.trim().endsWith(suffix)) ||
             (expValue.trim().startsWith('"') && expValue.trim().endsWith('"')) 
         )
+    }
+
+    getHelperPaneHiddenItems(): HelperPaneMenuItem[] {
+        return [HelperPaneMenuItem.FUNCTIONS];
     }
 }
 
@@ -266,5 +273,19 @@ export class ArrayEditorConfig extends ChipExpressionEditorDefaultConfiguration 
     getIsValueCompatible(expValue: string) {
         if (!expValue) return true;
         return expValue.trim().startsWith("[") && expValue.trim().endsWith("]");
+    }
+}
+
+export class MapEditorConfig extends ChipExpressionEditorDefaultConfiguration {
+    deserializeValue(value: string): string {
+        if (this.getIsValueCompatible(value)) {
+            return value;
+        }
+        return "";
+    }
+
+    getIsValueCompatible(expValue: string) {
+        if (!expValue) return true;
+        return expValue.trim().startsWith("{") && expValue.trim().endsWith("}");
     }
 }

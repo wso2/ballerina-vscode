@@ -331,6 +331,7 @@ interface ReviewBarProps {
     rpcClient?: any;
     isActive?: boolean;
     onDiscarded?: () => void;
+    generationId: string;
 }
 
 function getFileName(filePath: string): string {
@@ -380,7 +381,13 @@ function getChangeTypeLabel(changeType: number): string {
 
 function buildGroups(semanticDiffs: SemanticDiff[], loadDesignDiagrams?: boolean): DiffGroup[] {
     const designCount = loadDesignDiagrams ? 1 : 0;
-    return buildGroupsWithOffset(semanticDiffs, designCount).groups;
+    const { groups } = buildGroupsWithOffset(semanticDiffs, designCount);
+    if (!loadDesignDiagrams) return groups;
+    const designGroup: DiffGroup = {
+        groupLabel: "design",
+        entries: [{ symbol: "", changeType: ChangeTypeEnum.MODIFICATION, label: "Design Diagram", kindLabel: "design", nodeKind: -1, viewIndex: 0 }],
+    };
+    return [designGroup, ...groups];
 }
 
 const PackageContent = styled.div`
@@ -397,10 +404,7 @@ function buildPackageGroups(
     diffPackageMap: string[],
     loadDesignDiagrams?: boolean
 ): PackageGroup[] {
-    const designCount = loadDesignDiagrams ? 1 : 0;
-    let globalViewIndex = designCount;
-
-    // Group diffs by package name using the parallel map, preserving order
+    // Group diffs by package, preserving first-appearance order
     const orderedPkgs: string[] = [];
     const pkgDiffsMap: Record<string, SemanticDiff[]> = {};
     for (let i = 0; i < semanticDiffs.length; i++) {
@@ -412,15 +416,29 @@ function buildPackageGroups(
         pkgDiffsMap[pkgName].push(semanticDiffs[i]);
     }
 
+    // Design diagrams align 1:1 with packages that have diffs, in the same order
+    const designCount = loadDesignDiagrams ? orderedPkgs.length : 0;
+    let globalViewIndex = designCount;
+
     const result: PackageGroup[] = [];
-    for (const pkgName of orderedPkgs) {
+    for (let pi = 0; pi < orderedPkgs.length; pi++) {
+        const pkgName = orderedPkgs[pi];
         const diffs = pkgDiffsMap[pkgName];
         if (diffs.length === 0) continue;
 
         const { groups, viewCount } = buildGroupsWithOffset(diffs, globalViewIndex);
         globalViewIndex += viewCount;
 
-        result.push({ packageName: pkgName, groups });
+        let finalGroups = groups;
+        if (loadDesignDiagrams) {
+            const designGroup: DiffGroup = {
+                groupLabel: "design",
+                entries: [{ symbol: "", changeType: ChangeTypeEnum.MODIFICATION, label: "Design Diagram", kindLabel: "design", nodeKind: -1, viewIndex: pi }],
+            };
+            finalGroups = [designGroup, ...groups];
+        }
+
+        result.push({ packageName: pkgName, groups: finalGroups });
     }
 
     return result;
@@ -615,6 +633,7 @@ const CollapsibleGroupList: React.FC<{
                 const isService = group.groupLabel.startsWith("service ");
                 const isFunctions = group.groupLabel === "functions";
                 const isTypes = group.groupLabel === "types";
+                const isDesign = group.groupLabel === "design";
                 const isCollapsible = isService || isFunctions;
                 const isCollapsed = !!collapsed[gi];
 
@@ -642,7 +661,17 @@ const CollapsibleGroupList: React.FC<{
                             </CollapsibleHeader>
                         )}
                         {!isCollapsed && (
-                            isTypes ? (
+                            isDesign ? (
+                                <TypesRow
+                                    onClick={onClickEntry ? () => onClickEntry(group.entries[0].viewIndex) : undefined}
+                                    disabled={!onClickEntry}
+                                >
+                                    <CardLeft>
+                                        <span className="codicon codicon-type-hierarchy" style={{ fontSize: "11px", color: "var(--vscode-descriptionForeground)" }} />
+                                        <span>Design Diagram</span>
+                                    </CardLeft>
+                                </TypesRow>
+                            ) : isTypes ? (
                                 <TypesRow
                                     onClick={onClickEntry ? () => onClickEntry(group.entries[0].viewIndex) : undefined}
                                     disabled={!onClickEntry}
@@ -674,6 +703,7 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
     rpcClient,
     isActive = false,
     onDiscarded,
+    generationId,
 }) => {
     const status = isDiscarded ? "discarded" : isActive ? "pending" : "accepted";
     const [isProcessing, setIsProcessing] = useState(false);
@@ -723,7 +753,7 @@ export const ReviewBar: React.FC<ReviewBarProps> = ({
 
     const openFileDiff = (relativePath: string) => {
         if (!rpcClient) return;
-        rpcClient.getAiPanelRpcClient().openFileDiff({ relativePath });
+        rpcClient.getAiPanelRpcClient().openFileDiff({ relativePath, generationId });
     };
 
     const handleDiscard = async () => {

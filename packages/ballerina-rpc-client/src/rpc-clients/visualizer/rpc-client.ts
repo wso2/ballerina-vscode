@@ -51,7 +51,8 @@ import {
     updateCurrentArtifactLocation,
     reviewAccepted,
     navigateReviewMode,
-    GoBackRequest
+    GoBackRequest,
+    GoHomeRequest
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -79,8 +80,8 @@ export class VisualizerRpcClient implements VisualizerAPI {
         return this._messenger.sendNotification(goBack, HOST_EXTENSION, params);
     }
 
-    goHome(): void {
-        return this._messenger.sendNotification(goHome, HOST_EXTENSION);
+    goHome(params?: GoHomeRequest): void {
+        return this._messenger.sendNotification(goHome, HOST_EXTENSION, params);
     }
 
     goSelected(index: number): void {

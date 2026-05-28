@@ -23,8 +23,7 @@ import { TypeEditorUtils } from './TypeEditorUtils';
 import path from 'path';
 
 export default function createTests() {
-    test.describe('Type Editor Tests', {
-        tag: '@group1',
+    test.describe.serial('Type Editor Tests', {
     }, async () => {
         initTest();
 
@@ -69,13 +68,13 @@ export default function createTests() {
                 { name: 'name', type: 'string' },
                 { name: 'location', type: 'string' }
             ]);
-            
+
             // Test Advanced Options functionality
             console.log('Expanding Advanced Options...');
-            await typeUtils.toggleDropdown('Advanced Options'); 
-        
+            await typeUtils.toggleDropdown('Advanced Options');
+
             console.log('Testing Allow Additional Fields checkbox...');
-            await typeUtils.setCheckbox('Allow Additional Fields', true); 
+            await typeUtils.setCheckbox('Allow Additional Fields', true);
             await typeUtils.saveAndWait(organizationForm);
             await typeUtils.verifyTypeNodeExists(organizationName);
             await typeUtils.verifyTypeLink(organizationName, 'id', unionName);
@@ -102,16 +101,16 @@ export default function createTests() {
 
             // Add name field to Employee record
             await typeUtils.editType(recordName);
-            await typeUtils.addRecordField('name', 'string' );
+            await typeUtils.addRecordField('name', 'string');
 
             // Toggle drop down
             await typeUtils.toggleFieldOptionsByChevron(2);
             await typeUtils.setCheckbox('Readonly', true);
-        
+
             // Test Advanced Options functionality
             console.log('Expanding Advanced Options...');
-            await typeUtils.toggleDropdown('Advanced Options');      
-            
+            await typeUtils.toggleDropdown('Advanced Options');
+
             console.log('Testing Is Readonly Type checkbox...');
             await typeUtils.setCheckbox('Is Readonly Type', true);
 
@@ -130,7 +129,7 @@ export default function createTests() {
 
             // Verify the generated types.bal matches testOutput.bal
             const expectedFilePath = path.join(__dirname, 'testOutput.bal');
-            await verifyGeneratedSource('types.bal', expectedFilePath);                 
+            await verifyGeneratedSource('types.bal', expectedFilePath);
 
         });
     });

@@ -48,7 +48,8 @@ import {
     TriggerKind,
     TypeKind,
     Type,
-    Imports
+    Imports,
+    DMFormImports
 } from "@wso2/ballerina-core";
 import { CompletionItem, ProgressIndicator } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -88,11 +89,6 @@ export function DataMapperView(props: DataMapperViewProps) {
         codedata: codedata
     });
 
-    const viewStateRef = useRef<DMViewState>(viewState);
-    useEffect(() => {
-        viewStateRef.current = viewState;
-    }, [viewState]);
-
     /* Completions related */
     const [completions, setCompletions] = useState<CompletionItem[]>([]);
     const prevCompletionFetchText = useRef<string>("");
@@ -124,23 +120,18 @@ export function DataMapperView(props: DataMapperViewProps) {
             prevPositionRef.current?.line !== position?.line ||
             prevPositionRef.current?.offset !== position?.offset;
         
-        if (viewStateRef.current.subMappingName && positionChanged) {
-            const viewId = viewStateRef.current.viewId;
+        const subMappingName = viewState.subMappingName;
+        if (subMappingName) {
+            const viewId = viewState.viewId;
             rpcClient.getDataMapperRpcClient()
                 .getSubMappingCodedata({
                     filePath,
                     codedata: codedata,
-                    view: viewId
+                    view: subMappingName
                 }).then((resp) => {
                     console.log(">>> [Data Mapper] getSubMappingCodedata response:", resp);
-                    setViewState({ viewId: viewId, codedata: resp.codedata, subMappingName: viewId });
+                    setViewState({ viewId: viewId, codedata: resp.codedata, subMappingName });
                 });
-        } else if (viewStateRef.current.subMappingName && !positionChanged) {
-            setViewState(prevState => ({
-                viewId: prevState.viewId || viewStateRef.current.subMappingName,
-                codedata: codedata,
-                subMappingName: prevState.subMappingName
-            }));
         } else {
             setViewState(prevState => ({
                 viewId: positionChanged ? name : prevState.viewId || name,
@@ -282,24 +273,26 @@ export function DataMapperView(props: DataMapperViewProps) {
 
     const handleView = async (viewId: string, isSubMapping?: boolean) => {
         if (isSubMapping) {
-            const resp = await rpcClient
-                .getDataMapperRpcClient()
-                .getSubMappingCodedata({
-                    filePath,
-                    codedata: viewState.codedata,
-                    view: viewId
-                });
-            console.log(">>> [Data Mapper] getSubMappingCodedata response:", resp);
-            setViewState({ viewId, codedata: resp.codedata, subMappingName: viewId });
+            const subMappingName = viewId.split(".")[0];
+            if (subMappingName !== viewState.subMappingName) {
+                const resp = await rpcClient
+                    .getDataMapperRpcClient()
+                    .getSubMappingCodedata({
+                        filePath,
+                        codedata: codedata,
+                        view: subMappingName
+                    });
+                console.log(">>> [Data Mapper] getSubMappingCodedata response:", resp);
+                setViewState({ viewId, codedata: resp.codedata, subMappingName });
+            } else {
+                setViewState(prev => ({
+                    viewId,
+                    codedata: prev.codedata,
+                    subMappingName: subMappingName
+                }));
+            }
         } else {
-            const res = await rpcClient
-                .getDataMapperRpcClient()
-                .getDataMapperCodedata({
-                    filePath,
-                    codedata: viewState.codedata,
-                    name: viewId.split(".")[0] // Get the root name
-                });
-            setViewState({ viewId, codedata: res.codedata, subMappingName: undefined });
+            setViewState({ viewId, codedata: codedata, subMappingName: undefined });
         }
         rpcClient.getVisualizerRpcClient().resetUndoRedoStack();
     };
@@ -415,6 +408,7 @@ export function DataMapperView(props: DataMapperViewProps) {
         type: string,
         index: number,
         targetField: string,
+        formImports?: DMFormImports,
         importsCodedata?: CodeData
     ) => {
         try {
@@ -435,7 +429,8 @@ export function DataMapperView(props: DataMapperViewProps) {
                 subMappingName,
                 type,
                 name,
-                defaultValue
+                defaultValue,
+                formImports?.type
             );
 
             console.log(">>> [Data Mapper] addSubMapping request:", request);
@@ -645,12 +640,13 @@ export function DataMapperView(props: DataMapperViewProps) {
         }
     };
 
-    const createConvertedVariable = async (variableName: string, isInput: boolean, typeName?: string, parentTypeName?: string) => {
-        const initialTypeName = typeName || variableName.charAt(0).toUpperCase() + variableName.slice(1);
+    const createConvertedVariable = async (variableName: string, isInput: boolean, parentName: string, parentTypeName?: string) => {
+        const initialTypeName = parentName.charAt(0).toUpperCase() + parentName.slice(1);
         initialTypeNameRef.current = await genUniqueName(initialTypeName, viewState.viewId);
 
         onTypeCreateRef.current = (type: Type | string, imports?: Imports) => {
-            const newTypeName = typeof type === 'string' ? type : (type as Type).name;
+            const typeName = typeof type === 'string' ? type : (type as Type).name;
+            const isArray = (type as Type).codedata?.node === "ARRAY" || typeName.endsWith("[]");
             requestRefreshDMModel();
             rpcClient
                 .getDataMapperRpcClient()
@@ -658,14 +654,16 @@ export function DataMapperView(props: DataMapperViewProps) {
                     filePath,
                     codedata: {
                         ...viewState.codedata,
-                        isNew: !typeName
+                        isNew: !!parentTypeName
                     },
                     varName: name,
                     targetField: viewState.viewId,
                     subMappingName: viewState.subMappingName,
-                    typeName: newTypeName,
-                    isInput,
+
                     variableName,
+                    isInput,
+                    typeName,
+                    isArray,
                     parentTypeName,
                     imports
                 }).then(res => {
@@ -860,7 +858,7 @@ export function DataMapperView(props: DataMapperViewProps) {
                             onClose={() => setIsTypeEditorOpen(false)}
                             onTypeCreate={onTypeCreateRef.current}
                             initialTypeName={initialTypeNameRef.current}
-                            modalTitle={"Define Type for converted variable"}
+                            modalTitle={"Define Type"}
 
                             modalWidth={650}
                             modalHeight={600}

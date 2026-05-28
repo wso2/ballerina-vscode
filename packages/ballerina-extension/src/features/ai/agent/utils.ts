@@ -21,6 +21,7 @@ import * as path from "path";
 import type { TextEdit } from "vscode-languageserver-protocol";
 import { StateMachine } from "../../../stateMachine";
 import { normalizeToLf, readAndNormalize, restoreEol } from "../utils/eol-utils";
+import { isWorkspaceTempProject } from "./tools/path-utils";
 
 /**
  * Files that require path sanitization (temp paths replaced with workspace paths)
@@ -147,13 +148,17 @@ ${sourceFile.content}
 }
 
 /**
- * Collects files with content from a ProjectSource
+ * Collects files from a ProjectSource, split into regular files (with content) and
+ * generated connector files (paths only — content is large and fetched on demand).
  * @param project ProjectSource to collect files from
  * @param includePackagePath Whether to prepend packagePath to file paths (for multi-project case)
- * @returns Array of SourceFile objects with paths and content
  */
-function collectFilesFromProject(project: ProjectSource, includePackagePath: boolean = false): SourceFile[] {
+function collectFilesFromProject(
+    project: ProjectSource,
+    includePackagePath: boolean = false
+): { files: SourceFile[]; generatedFiles: SourceFile[] } {
     const files: SourceFile[] = [];
+    const generatedFiles: SourceFile[] = [];
     const prefix = includePackagePath && project.packagePath ? `${project.packagePath}/` : "";
 
     // Collect source files
@@ -164,14 +169,21 @@ function collectFilesFromProject(project: ProjectSource, includePackagePath: boo
         });
     }
 
-    // Collect module files
+    // Collect module files — generated modules go to generatedFiles (paths only)
     if (project.projectModules) {
         for (const module of project.projectModules) {
             for (const sourceFile of module.sourceFiles) {
-                files.push({
-                    filePath: `${prefix}${sourceFile.filePath}`,
-                    content: sourceFile.content,
-                });
+                if (module.isGenerated) {
+                    generatedFiles.push({
+                        filePath: `${prefix}generated/${module.moduleName}/${sourceFile.filePath}`,
+                        content: "",
+                    });
+                } else {
+                    files.push({
+                        filePath: `${prefix}${sourceFile.filePath}`,
+                        content: sourceFile.content,
+                    });
+                }
             }
         }
     }
@@ -180,13 +192,13 @@ function collectFilesFromProject(project: ProjectSource, includePackagePath: boo
     if (project.projectTests) {
         for (const testFile of project.projectTests) {
             files.push({
-                filePath: `${prefix}${testFile.filePath}`,
+                filePath: `${prefix}tests/${testFile.filePath}`,
                 content: testFile.content,
             });
         }
     }
 
-    return files;
+    return { files, generatedFiles };
 }
 
 /**
@@ -224,13 +236,29 @@ export function formatCodebaseStructure(projects: ProjectSource[], tempProjectPa
     }
 
     for (const project of projects) {
-        const files = collectFilesFromProject(project, isWorkspace);
+        const { files, generatedFiles } = collectFilesFromProject(project, isWorkspace);
         const activeStatus = project.isActive ? ' active="true"' : "";
 
         text += `<project name="${project.projectName}"${activeStatus}>\n`;
         text += "<files>\n";
         text += files.map(formatFileWithContent).join("\n");
         text += "\n</files>\n";
+
+        if (generatedFiles.length > 0) {
+            text += "<generated_files>\n";
+            text += generatedFiles.map(f => `<file path="${f.filePath}"/>`).join("\n");
+            text += "\n</generated_files>\n";
+        }
+
+        if (tempProjectPath) {
+            const pkgRoot = isWorkspace && project.packagePath
+                ? path.join(tempProjectPath, project.packagePath)
+                : tempProjectPath;
+            const mainConfig = fs.existsSync(path.join(pkgRoot, "Config.toml")) ? "present" : "absent";
+            const testConfig = fs.existsSync(path.join(pkgRoot, "tests", "Config.toml")) ? "present" : "absent";
+            text += `<config_files main="${mainConfig}" tests="${testConfig}"/>\n`;
+        }
+
         text += "</project>\n";
     }
 
@@ -354,6 +382,11 @@ export async function applyTextEdits(filePath: string, textEdits: TextEdit[]): P
 export function formatCodeContext(codeContext: CodeContext, tempProjectPath: string): string {
     const absolutePath = path.join(tempProjectPath, codeContext.filePath);
 
+    if (!fs.existsSync(absolutePath)) {
+        console.warn(`[formatCodeContext] File not found in temp project: ${absolutePath}`);
+        return '';
+    }
+
     const fileContent = normalizeToLf(fs.readFileSync(absolutePath, "utf-8"));
     const lines = fileContent.split("\n");
     const totalLines = lines.length;
@@ -414,4 +447,36 @@ function getCodeContextInstruction(type: "addition" | "selection"): string {
     } else {
         return "The user has selected a block of code that is relevant to the current task. The selected code is enclosed between >>> SELECTION START <<< and >>> SELECTION END <<< markers in the code context below.";
     }
+}
+
+
+export function solveRelativeTempPath(servicePath: string): { tempProjectPath: string; packagePath?: string } | undefined {
+    if (!servicePath || !path.isAbsolute(servicePath)) {
+        return undefined;
+    }
+
+    const normalizedServicePath = path.normalize(servicePath);
+    const parsedPath = path.parse(normalizedServicePath);
+    const relativeFromRoot = normalizedServicePath.slice(parsedPath.root.length);
+    const segments = relativeFromRoot.split(path.sep).filter(Boolean);
+    const tempRootIdx = segments.findIndex((segment) => segment.startsWith("bal-proj-"));
+
+    if (tempRootIdx === -1) {
+        return undefined;
+    }
+
+    const tempProjectPath = path.join(parsedPath.root, ...segments.slice(0, tempRootIdx + 1));
+    if (!fs.existsSync(tempProjectPath)) {
+        return undefined;
+    }
+
+    const packagePath = isWorkspaceTempProject(tempProjectPath)
+        ? path.relative(tempProjectPath, normalizedServicePath)
+        : undefined;
+
+    if (packagePath && (packagePath === ".." || packagePath.startsWith(`..${path.sep}`) || path.isAbsolute(packagePath))) {
+        return undefined;
+    }
+
+    return { tempProjectPath, packagePath };
 }

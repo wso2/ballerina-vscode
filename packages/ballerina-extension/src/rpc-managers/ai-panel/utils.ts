@@ -93,10 +93,9 @@ export async function addToIntegration(workspaceFolderPath: string, fileChanges:
             unsubscribe();
         });
 
-        // Set a timeout to reject if no notification is received within 10 seconds
         const timeoutId = setTimeout(() => {
-            console.log("No artifact update notification received within 10 seconds");
-            reject(new Error("Operation timed out. Please try again."));
+            console.warn("No artifact update notification received within 10 seconds");
+            resolve([]);
             unsubscribe();
         }, 10000);
 

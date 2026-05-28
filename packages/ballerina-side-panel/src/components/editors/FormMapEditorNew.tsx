@@ -24,6 +24,8 @@ import { Codicon } from "@wso2/ui-toolkit/lib/components/Codicon/Codicon";
 import { ScrollableList, ScrollableListRef } from "@wso2/ui-toolkit/lib/components/ScrollableList/ScrollableList";
 import ModeSwitcher from "../ModeSwitcher";
 import { getMapSubFormFieldFromTypes, buildStringMap, stringToRawObjectEntries, getRecordTypeFields, mapDiagnosticsServerityToFormSeverity, getPropertyFromFormField } from "./utils";
+import { InputMode } from "./MultiModeExpressionEditor/ChipExpressionEditor/types";
+import { getInputModeFromTypes } from "./MultiModeExpressionEditor/ChipExpressionEditor/utils";
 
 export const FormMapEditorNew = (props: FormFieldEditorProps & {
     onChange: (value: any) => void;

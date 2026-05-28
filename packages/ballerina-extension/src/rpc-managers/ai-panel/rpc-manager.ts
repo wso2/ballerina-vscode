@@ -54,7 +54,9 @@ import {
     ClarifyCancelRequest,
     RunningServiceInfo,
     StopRunningServiceRequest,
+    RunServiceRequest,
 } from "@wso2/ballerina-core";
+import * as os from "os";
 import * as fs from 'fs';
 import path from "path";
 import * as vscode from 'vscode';
@@ -77,7 +79,7 @@ import { sendGenerationDiscardTelemetry, sendGenerationKeptTelemetry } from "../
 import { getLLMDiagnosticArrayAsString } from "../../features/natural-programming/utils";
 import { enhancePrompt as enhancePromptService } from "../../features/ai/service/prompt-enhancement/promptEnhancement";
 import { StateMachine, updateView } from "../../stateMachine";
-import { isInWI } from "../../utils";
+import { isInDevant, isInWI } from "../../utils";
 import { getLoginMethod, isPlatformExtensionAvailable, loginGithubCopilot } from "../../utils/ai/auth";
 import { normalizeCodeContext } from "../../views/ai-panel/codeContextUtils";
 import { refreshDataMapper } from "../data-mapper/utils";
@@ -97,6 +99,7 @@ import { cleanupTempProject } from "../../features/ai/utils/project/temp-project
 import { chatStateStorage } from '../../views/ai-panel/chatStateStorage';
 import { restoreWorkspaceSnapshot } from '../../views/ai-panel/checkpoint/checkpointUtils';
 import { runningServicesManager } from '../../features/ai/agent/tools/running-service-manager';
+import { executeRun } from "../../features/ai/agent/tools/ballerina-run";
 
 export class AiPanelRpcManager implements AIPanelAPI {
 
@@ -114,11 +117,13 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async getDefaultPrompt(): Promise<AIPanelPrompt> {
         let defaultPrompt: AIPanelPrompt = extension.aiChatDefaultPrompt;
 
-        // Normalize code context to use relative paths
+        // Normalize code context to use workspace-relative paths
         if (defaultPrompt && 'codeContext' in defaultPrompt && defaultPrompt.codeContext) {
+            const smCtx = StateMachine.context();
+            const workspaceRoot = smCtx.workspacePath || smCtx.projectPath;
             defaultPrompt = {
                 ...defaultPrompt,
-                codeContext: normalizeCodeContext(defaultPrompt.codeContext)
+                codeContext: normalizeCodeContext(defaultPrompt.codeContext, workspaceRoot, smCtx.projectPath)
             };
         }
 
@@ -189,8 +194,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
         }
 
         // Don't show alert in Devant environment
-        const isInDevant = !!process.env.CLOUD_STS_TOKEN;
-        if (isInDevant) {
+        if (isInDevant()) {
             return false;
         }
 
@@ -416,29 +420,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
         }
     }
 
-    async getAffectedPackages(): Promise<string[]> {
-        // Get project root path and thread ID
-        const projectRootPath = resolveProjectRootPath();
-        const threadId = 'default';
-
-        // Get the LATEST under_review generation (not the first one)
-        const thread = chatStateStorage.getOrCreateThread(projectRootPath, threadId);
-        const underReviewGenerations = thread.generations.filter(
-            g => g.reviewState.status === 'under_review'
-        );
-
-        if (underReviewGenerations.length === 0) {
-            console.log(">>> No pending review generation, returning empty affected packages");
-            return [];
-        }
-
-        // Return packages from the LATEST under_review generation
-        const latestReview = underReviewGenerations[underReviewGenerations.length - 1];
-        const affectedPackages = latestReview.reviewState.affectedPackagePaths || [];
-        console.log(`>>> Returning ${affectedPackages.length} affected packages from generation ${latestReview.id}:`, affectedPackages);
-        return affectedPackages;
-    }
-
     async isWorkspaceProject(): Promise<boolean> {
         const context = StateMachine.context();
         const isWorkspace = context.projectInfo?.projectKind === 'WORKSPACE_PROJECT';
@@ -476,20 +457,12 @@ export class AiPanelRpcManager implements AIPanelAPI {
                 }
             }
 
-            // Mark ALL under_review generations as accepted
+            // Mark ALL under_review generations as accepted (also clears affectedPackagePaths)
             chatStateStorage.acceptAllReviews(projectRootPath, threadId);
             console.log("[Review Actions] Marked all under_review generations as accepted");
 
             // Send telemetry for generation kept
             sendGenerationKeptTelemetry(latestReview.id);
-
-            // Clear affectedPackagePaths from all completed reviews to prevent stale data
-            for (const generation of underReviewGenerations) {
-                chatStateStorage.updateReviewState(projectRootPath, threadId, generation.id, {
-                    affectedPackagePaths: []
-                });
-            }
-            console.log("[Review Actions] Cleared affected packages from accepted generations");
 
             // Notify webview to update review component status and persist
             sendChatComponentNotification("review", { status: "accepted" });
@@ -538,20 +511,26 @@ export class AiPanelRpcManager implements AIPanelAPI {
                 }
             }
 
+            // Append revert notification to model messages so the LLM knows changes were reverted
+            const existingMessages = latestReview.modelMessages || [];
+            chatStateStorage.updateGeneration(projectRootPath, threadId, latestReview.id, {
+                modelMessages: [
+                    ...existingMessages,
+                    {
+                        role: "user",
+                        content: `<revert_notification>
+User reverted the last made changes. The files have been restored to the state before this generation.
+</revert_notification>`,
+                    },
+                ],
+            });
+
             // Mark ALL under_review generations as error/declined
             chatStateStorage.declineAllReviews(projectRootPath, threadId);
             console.log("[Review Actions] Marked all under_review generations as declined");
 
             // Send telemetry for generation discard
             sendGenerationDiscardTelemetry(latestReview.id);
-
-            // Clear affectedPackagePaths from all completed reviews to prevent stale data
-            for (const generation of underReviewGenerations) {
-                chatStateStorage.updateReviewState(projectRootPath, threadId, generation.id, {
-                    affectedPackagePaths: []
-                });
-            }
-            console.log("[Review Actions] Cleared affected packages from declined generations");
 
             // Notify webview to update review component status and persist
             sendChatComponentNotification("review", { status: "discarded" });
@@ -796,11 +775,11 @@ export class AiPanelRpcManager implements AIPanelAPI {
         const context = StateMachine.context();
         const workspaceId = context.workspacePath || context.projectPath;
         const threadId = 'default';
-        const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
-        const tempProjectPath = pendingReview?.reviewState.tempProjectPath;
+        const generation = chatStateStorage.getGeneration(workspaceId, threadId, params.generationId);
+        const tempProjectPath = generation?.reviewState.tempProjectPath;
 
         if (!tempProjectPath) {
-            console.error("[openFileDiff] No active review with temp project path");
+            console.error("[openFileDiff] No generation or temp project path for generationId:", params.generationId);
             return;
         }
 
@@ -815,7 +794,8 @@ export class AiPanelRpcManager implements AIPanelAPI {
         AiPanelRpcManager.diffContentMap.clear();
 
         // Read original content from checkpoint snapshot — workspace already has generated code
-        const originalContent = pendingReview?.checkpoint?.workspaceSnapshot[params.relativePath] ?? '';
+        const snapshotKey = params.relativePath.split(path.sep).join('/');
+        const originalContent = generation?.checkpoint?.workspaceSnapshot?.[snapshotKey] ?? '';
 
         let modifiedContent = '';
         try {
@@ -846,4 +826,42 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async stopRunningService(params: StopRunningServiceRequest): Promise<boolean> {
         return runningServicesManager.stopOne(params.taskId);
     }
+
+    async runService(params: RunServiceRequest): Promise<boolean> {
+        const { tempProjectPath, packagePath } = params;
+        try {
+            const result = await executeRun(
+                {
+                    runType: "service",
+                    packagePath: packagePath,
+                },
+                tempProjectPath,
+                runningServicesManager
+            );
+            if (!result || result.status !== 'started') {
+                window.showErrorMessage(`Failed to start service${packagePath ? ` in package ${packagePath}` : ''}.`);
+                return false;
+            }
+            return true;
+        } catch (error) {
+            console.error("[runService] Failed to start required services:", error);
+            window.showErrorMessage(`Failed to start service${packagePath ? ` in package ${packagePath}` : ''}.`);
+            return false;
+        }
+    }
+
+    async getDefaultVertexCredsPath(): Promise<string> {
+        const fromEnv = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+        if (fromEnv && fs.existsSync(fromEnv)) {
+            return fromEnv;
+        }
+        const adcPath = process.platform === "win32"
+            ? path.join(process.env.APPDATA || "", "gcloud", "application_default_credentials.json")
+            : path.join(os.homedir(), ".config", "gcloud", "application_default_credentials.json");
+        if (fs.existsSync(adcPath)) {
+            return adcPath;
+        }
+        return "";
+    }
+
 }

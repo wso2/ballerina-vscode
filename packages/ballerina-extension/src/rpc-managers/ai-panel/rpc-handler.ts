@@ -49,7 +49,6 @@ import {
     generateOpenAPI,
     GenerateOpenAPIRequest,
     getActiveTempDir,
-    getAffectedPackages,
     getAIMachineSnapshot,
     getChatMessages,
     getCheckpoints,
@@ -104,6 +103,9 @@ import {
     getRunningServices,
     stopRunningService,
     StopRunningServiceRequest,
+    runService,
+    RunServiceRequest,
+    getDefaultVertexCredsPath,
 } from "@wso2/ballerina-core";
 import { workspace } from 'vscode';
 import { Messenger } from "vscode-messenger";
@@ -141,7 +143,6 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(isUserAuthenticated, () => rpcManger.isUserAuthenticated());
     messenger.onRequest(openAIPanel, (args: AIPanelPrompt) => rpcManger.openAIPanel(args));
     messenger.onRequest(getSemanticDiff, (args: SemanticDiffRequest) => rpcManger.getSemanticDiff(args));
-    messenger.onRequest(getAffectedPackages, () => rpcManger.getAffectedPackages());
     messenger.onRequest(isWorkspaceProject, () => rpcManger.isWorkspaceProject());
     messenger.onRequest(acceptChanges, () => rpcManger.acceptChanges());
     messenger.onRequest(declineChanges, () => rpcManger.declineChanges());
@@ -179,6 +180,8 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(cancelClarify, (args: ClarifyCancelRequest) => rpcManger.cancelClarify(args));
     messenger.onRequest(getRunningServices, () => rpcManger.getRunningServices());
     messenger.onRequest(stopRunningService, (args: StopRunningServiceRequest) => rpcManger.stopRunningService(args));
+    messenger.onRequest(runService, (args: RunServiceRequest) => rpcManger.runService(args));
+    messenger.onRequest(getDefaultVertexCredsPath, () => rpcManger.getDefaultVertexCredsPath());
 
     // Push updates to the webview whenever the set of running services changes.
     runningServicesManager.onChange = (services) => {

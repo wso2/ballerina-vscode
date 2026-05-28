@@ -79,9 +79,9 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
         }
 
         const isEmpty = !value ||
-                       value === '' ||
-                       value === '[]' ||
-                       (Array.isArray(value) && value.length === 0);
+            value === '' ||
+            value === '[]' ||
+            (Array.isArray(value) && value.length === 0);
 
         return isEmpty && defaultItems > 0 ? Array(defaultItems).fill("") : [];
     };
@@ -187,6 +187,12 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
                         //Exception: TEXT_SET uses StringTemplateEditorConfig for TEXT mode
                         configuration={expressionSetType?.fieldType === "TEXT_SET" ? new StringTemplateEditorConfig() : new ChipExpressionEditorDefaultConfiguration()}
                         placeholder={expressionFieldProps.field.placeholder}
+                        onNormalizeValue={(normalizedValue) => {
+                            const updatedArray = [...currentValuesRef.current];
+                            updatedArray[index] = normalizedValue;
+                            currentValuesRef.current = updatedArray;
+                            updateArrayValue(updatedArray, { shouldValidate: false, shouldDirty: false });
+                        }}
                     />
                     <S.DeleteButton
                         appearance="icon"
@@ -201,7 +207,7 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
                 onClick={handleAdd}
                 appearance="secondary"
             >
-                <Codicon name="add" sx={{marginRight: "5px"}}/>
+                <Codicon name="add" sx={{ marginRight: "5px" }} />
                 Add Item
             </S.AddButton>
         </S.Container>

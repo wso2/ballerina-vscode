@@ -39,7 +39,7 @@ import {
     NODE_TEXT_COLOR,
     NODE_WIDTH,
 } from "../../../resources/constants";
-import { Button, Item, Menu, MenuItem } from "@wso2/ui-toolkit";
+import { Button, Item, Menu, MenuItem, ThemeColors } from "@wso2/ui-toolkit";
 import { MoreVertIcon } from "../../../resources";
 import { FlowNode } from "../../../utils/types";
 import NodeIcon from "../../NodeIcon";
@@ -81,10 +81,10 @@ export namespace NodeStyles {
             props.hasError
                 ? NODE_BORDER_ERROR_COLOR
                 : props.isSelected && !props.disabled
-                ? NODE_BORDER_SELECTED_COLOR
-                : props.hovered && !props.disabled && !props.readOnly
-                ? NODE_BORDER_SELECTED_COLOR
-                : NODE_BORDER_COLOR};
+                    ? ThemeColors.SECONDARY
+                    : props.hovered && !props.disabled && !props.readOnly
+                        ? ThemeColors.SECONDARY
+                        : ThemeColors.OUTLINE_VARIANT};
         border-radius: 10px;
         background-color: ${(props: NodeStyleProp) =>
             props?.isActiveBreakpoint ? NODE_BG_BREAKPOINT_COLOR : props.hovered && !props.disabled && !props.readOnly ? NODE_BG_HOVER_COLOR : NODE_BG_COLOR};

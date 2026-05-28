@@ -25,14 +25,15 @@ import { useMediaQuery } from "./utils";
 interface AutoMapButtonProps {
     onClick: () => void;
     disabled?: boolean;
+    tooltip?: string;
 }
 
 export default function AutoMapButton(props: AutoMapButtonProps) {
-    const { onClick, disabled } = props;
+    const { onClick, disabled, tooltip } = props;
     const showText = useMediaQuery('(min-width:800px)');
 
     return (
-        <Tooltip content={"Create mapping using AI"} position="bottom-start">
+        <Tooltip content={tooltip ?? "Create mapping using AI"} position="bottom-start">
             <Button
                 onClick={onClick}
                 appearance="secondary"

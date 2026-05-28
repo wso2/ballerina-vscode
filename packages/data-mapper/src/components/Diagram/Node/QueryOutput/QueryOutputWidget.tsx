@@ -98,9 +98,11 @@ export function QueryOutputWidget(props: QueryOutputWidgetProps) {
 					<OutputSearchHighlight>{valueLabel}</OutputSearchHighlight>
 				</TruncatedLabel>
 			)}
-			<TruncatedLabel className={isUnknownType ? classes.unknownTypeLabel : classes.typeLabel}>
-				{typeName || ''}
-			</TruncatedLabel>
+			{outputType.kind === TypeKind.Array && (
+				<TruncatedLabel className={isUnknownType ? classes.unknownTypeLabel : classes.typeLabel}>
+					{typeName || ''}
+				</TruncatedLabel>
+			)}
 		</TruncatedLabelGroup>
 	);
 

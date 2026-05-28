@@ -19,21 +19,60 @@
 import { existsSync, readdirSync } from 'fs';
 import { homedir } from 'os';
 import * as path from 'path';
-import { workspace, window, commands, ConfigurationTarget, env, Uri } from 'vscode';
+import { workspace, window, commands, extensions, ConfigurationTarget, env, Uri } from 'vscode';
 import { ICP_PATH } from '../../core/preferences';
+import { WI_EXTENSION_ID } from '../../utils/config';
 
 const ICP_BIN_RELATIVE = 'components/icp/bin';
 const ICP_SCRIPT_UNIX = 'icp.sh';
 const ICP_SCRIPT_WIN = 'icp.bat';
 
 /**
+ * Derives the ICP binary path from the WSO2 Integrator extension's install location.
+ * When running inside WSO2 Integrator, the extension is bundled within the installation,
+ * so we can walk up from its extensionPath to find the ICP binary — regardless of where
+ * the user installed the product.
+ *
+ * Expected layout:
+ *   <install-root>/resources/app/extensions/<ext-id>/  ← extensionPath
+ *   <install-root>/components/icp/bin/icp.sh           ← what we want
+ *
+ * On macOS the install root is inside the .app bundle:
+ *   <...>/WSO2 Integrator.app/Contents/resources/app/extensions/<ext-id>/
+ *   <...>/WSO2 Integrator.app/Contents/components/icp/bin/icp.sh
+ */
+function getPathFromWIExtension(): string | undefined {
+    const wiExt = extensions.getExtension(WI_EXTENSION_ID);
+    if (!wiExt) {
+        return undefined;
+    }
+
+    const script = process.platform === 'win32' ? ICP_SCRIPT_WIN : ICP_SCRIPT_UNIX;
+
+    // Walk up from extensionPath to the installation root.
+    // extensionPath is typically: <install-root>/resources/app/extensions/<ext-id>
+    // We need to go up 4 levels to reach <install-root>.
+    let dir = wiExt.extensionPath;
+    for (let i = 0; i < 4; i++) {
+        dir = path.dirname(dir);
+    }
+
+    const candidatePath = path.join(dir, ICP_BIN_RELATIVE, script);
+    if (existsSync(candidatePath)) {
+        return candidatePath;
+    }
+
+    return undefined;
+}
+
+/**
  * Default base directories where WSO2 Integrator is installed per OS.
- * The integrator directory name may include a version suffix (e.g., wso2-integrator-1.0.0),
- * so we search within these base directories for a matching folder.
+ * Used as a fallback when the ICP path cannot be derived from the running
+ * WSO2 Integrator extension (e.g., standalone VS Code with ICP installed separately).
  */
 const BASE_DIRS: Record<string, string[]> = {
     linux: ['/usr/share'],
-    darwin: [path.join(homedir(), 'Applications')],
+    darwin: ['/Applications', path.join(homedir(), 'Applications')],
     win32: [
         path.join(process.env.APPDATA || '', 'WSO2', 'Integrator'),
         path.join(process.env.LOCALAPPDATA || '', 'WSO2', 'Integrator'),
@@ -42,6 +81,13 @@ const BASE_DIRS: Record<string, string[]> = {
 };
 
 function getDefaultPath(): string | undefined {
+    // Try to derive path from the running WSO2 Integrator extension first
+    const wiPath = getPathFromWIExtension();
+    if (wiPath) {
+        return wiPath;
+    }
+
+    // Fallback: scan well-known install directories
     const script = process.platform === 'win32' ? ICP_SCRIPT_WIN : ICP_SCRIPT_UNIX;
     const baseDirs = BASE_DIRS[process.platform];
     if (!baseDirs) {
@@ -100,41 +146,54 @@ export async function resolveICPPath(): Promise<string | undefined> {
     const config = workspace.getConfiguration('ballerina');
     const configuredPath = config.get<string>('icpPath');
 
-    // 1. Check if path is already configured
+    // 1. Use the configured path if it still exists on disk.
+    if (configuredPath && existsSync(configuredPath)) {
+        return configuredPath;
+    }
+
+    // 2. Configured path is stale — ask the user to re-detect or open settings.
     if (configuredPath) {
-        if (existsSync(configuredPath)) {
-            return configuredPath;
-        }
-        window.showErrorMessage(
-            `ICP binary not found at configured path: ${configuredPath}. Please update the "ballerina.icpPath" setting.`,
+        const action = await window.showErrorMessage(
+            `ICP binary not found at the configured path: ${configuredPath}. The product may have been moved, uninstalled, or upgraded.`,
+            'Auto Detect',
             'Open Settings'
-        ).then((action) => {
-            if (action === 'Open Settings') {
-                openICPSettings();
-            }
-        });
-        return undefined;
+        );
+
+        if (action === 'Open Settings') {
+            openICPSettings();
+            return undefined;
+        }
+
+        if (action !== 'Auto Detect') {
+            return undefined;
+        }
+
+        const detected = getDefaultPath();
+        if (detected && existsSync(detected)) {
+            await config.update('icpPath', detected, ConfigurationTarget.Global);
+            return detected;
+        }
+        // Fall through to the "not installed" prompt below.
+    } else {
+        // 3. No configured path — auto-detect silently.
+        const detected = getDefaultPath();
+        if (detected && existsSync(detected)) {
+            await config.update('icpPath', detected, ConfigurationTarget.Global);
+            return detected;
+        }
     }
 
-    // 2. Auto-detect from default OS location
-    const defaultPath = getDefaultPath();
-    if (defaultPath && existsSync(defaultPath)) {
-        await config.update('icpPath', defaultPath, ConfigurationTarget.Global);
-        return defaultPath;
-    }
-
-    // 3. Not found — notify user
-    window.showErrorMessage(
+    // 4. Not found — notify user.
+    const action = await window.showErrorMessage(
         'Integration Control Plane (ICP) is not installed. Please install ICP or set the path manually in settings.',
         'Download ICP',
         'Set Path'
-    ).then((action) => {
-        if (action === 'Download ICP') {
-            env.openExternal(Uri.parse('https://wso2.com/integrator/downloads/')); // TODO: confirm download URL
-        } else if (action === 'Set Path') {
-            openICPSettings();
-        }
-    });
+    );
+    if (action === 'Download ICP') {
+        env.openExternal(Uri.parse('https://wso2.com/products/downloads/?product=wso2integrator&package=icp'));
+    } else if (action === 'Set Path') {
+        openICPSettings();
+    }
     return undefined;
 }
 

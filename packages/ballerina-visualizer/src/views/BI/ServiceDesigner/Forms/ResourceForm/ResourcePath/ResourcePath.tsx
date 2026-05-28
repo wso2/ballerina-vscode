@@ -19,12 +19,12 @@
 import React, { useEffect, useState } from 'react';
 import { Codicon, Dropdown, LinkButton, TextField, Typography } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
-import { ParameterModel, PropertyModel } from '@wso2/ballerina-core';
+import { ParameterModel, ProjectStructureArtifactResponse, PropertyModel } from '@wso2/ballerina-core';
 import { SegmentParam } from '@wso2/ballerina-side-panel';
 import { parseResourcePath } from '../Utils/ResourcePathParser';
 import { getColorByMethod } from '../../../../../../utils/utils';
 import { ParamEditor } from '../Parameters/ParamEditor';
-import { removeForwardSlashes } from '../../../utils';
+import { removeForwardSlashes, sanitizedHttpPath } from '../../../utils';
 
 
 const MethodLabel = styled.label`
@@ -100,12 +100,57 @@ export interface ResourcePathProps {
 	onError: (hasErros: boolean) => void;
 	isNew?: boolean;
 	readonly?: boolean;
+	existingResources?: ProjectStructureArtifactResponse[];
+}
+
+const PATH_PARAM_SEGMENT_REGEX = /^\[[^\]]+\]$/;
+
+export function normalizeResourcePathId(resourceId: string): string {
+	const parts = resourceId.split('#');
+	if (parts.length > 0) {
+		parts[0] = parts[0].toLowerCase();
+	}
+	return parts.join('#');
+}
+
+export function getResourcePathId(method: PropertyModel, path: PropertyModel | string): string {
+	const pathValue = typeof path === 'string' ? path : path.value as string;
+	return normalizeResourcePathId(`${method.value?.toLowerCase()}#${sanitizedHttpPath(pathValue)}`);
+}
+
+function hasSameResourcePathPattern(pathA: string, pathB: string): boolean {
+	const segmentsA = pathA.split('/');
+	const segmentsB = pathB.split('/');
+
+	if (segmentsA.length !== segmentsB.length) {
+		return false;
+	}
+
+	return segmentsA.every((segment, index) => {
+		const existingSegment = segmentsB[index];
+		const isPathParam = PATH_PARAM_SEGMENT_REGEX.test(segment);
+		const isExistingPathParam = PATH_PARAM_SEGMENT_REGEX.test(existingSegment);
+		return segment === existingSegment ||
+			isPathParam ||
+			isExistingPathParam;
+	});
+}
+
+function isDuplicateResourcePath(pathID: string, existingPathID: string): boolean {
+	if (pathID === existingPathID) {
+		return true;
+	}
+
+	const [method, path] = pathID.split('#');
+	const [existingMethod, existingPath] = existingPathID.split('#');
+	return method === existingMethod && hasSameResourcePathPattern(path, existingPath);
 }
 
 export function ResourcePath(props: ResourcePathProps) {
-	const { method, path, onChange, onError, isNew, readonly } = props;
+	const { method, path, onChange, onError, isNew, readonly, existingResources } = props;
 
 	const [inputValue, setInputValue] = useState('');
+	const [initialPathID] = useState(() => getResourcePathId(method, path));
 	const [resourcePathErrors, setResourcePathErrors] = useState<string>("");
 	const [editModel, setEditModel] = useState<ParameterModel | undefined>(undefined);
 	const [showParamEditor, setShowParamEditor] = useState<boolean>(false);
@@ -116,8 +161,16 @@ export function ResourcePath(props: ResourcePathProps) {
 		setInputValue(resourePathStr);
 	}, []);
 
+	useEffect(() => {
+		if (inputValue) {
+			handleBlur();
+		}
+	}, [inputValue]);
+
 	const handleMethodChange = (value: string) => {
-		onChange({ ...method, value: value.toLowerCase() }, path);
+		const updatedMethod = { ...method, value: value.toLowerCase() };
+		onChange(updatedMethod, path);
+		handleBlur(updatedMethod);
 	};
 
 	const handlePathChange = (value: string) => {
@@ -125,11 +178,26 @@ export function ResourcePath(props: ResourcePathProps) {
 		onChange(method, { ...path, value });
 	};
 
-	const handleBlur = () => {
+	const handleBlur = (selectedMethod: PropertyModel = method) => {
 		const { errors, valid, segments } = parseResourcePath(inputValue);
 		if (errors.length > 0) {
 			onError(true);
 			setResourcePathErrors(errors[0].message);
+			return;
+		}
+
+		// Path ID ex: get#foo/bar
+		const pathID = getResourcePathId(selectedMethod, inputValue);
+		// Get the paths and split by # to lowercase the method and concat again to get the path ID
+		const existingResourcePaths = existingResources?.map((resource) => normalizeResourcePathId(resource.id));
+		if (existingResourcePaths?.some((existingPathID) => {
+			if (existingPathID === initialPathID) {
+				return false;
+			}
+			return isDuplicateResourcePath(pathID, existingPathID);
+		})) {
+			onError(true);
+			setResourcePathErrors("Resource path already exists for the selected HTTP method");
 			return;
 		}
 
@@ -246,8 +314,8 @@ export function ResourcePath(props: ResourcePathProps) {
 						handlePathChange(input);
 					}}
 					disabled={readonly}
-					onKeyUp={handleBlur}
-					onBlur={handleBlur}
+					onKeyUp={() => handleBlur()}
+					onBlur={() => handleBlur()}
 					placeholder="path/foo"
 					value={removeForwardSlashes(path.value as string)}
 					onFocus={(e) => e.target.select()}

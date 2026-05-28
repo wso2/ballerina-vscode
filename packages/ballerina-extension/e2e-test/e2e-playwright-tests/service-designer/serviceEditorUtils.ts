@@ -45,7 +45,7 @@ export class ServiceClassEditorUtils {
     // Centralized wait utilities
     private async waitForElement(selector: string, timeout = WAIT_CONFIG.DEFAULT_VISIBLE_TIMEOUT) {
         const element = this.artifactWebView.locator(selector);
-        await element.waitFor({ state: 'visible', timeout});
+        await element.waitFor({ state: 'visible', timeout });
         return element;
     }
 
@@ -62,7 +62,11 @@ export class ServiceClassEditorUtils {
     }
 
     private async waitForTextbox(name: string, timeout = WAIT_CONFIG.DEFAULT_VISIBLE_TIMEOUT) {
-        const textbox = this.artifactWebView.getByRole('textbox', { name });
+        // vscode-text-area web components expose the label via a custom `arialabel` attribute
+        // rather than a standard `aria-label`. The fillable element is the <textarea> inside
+        // the shadow DOM, which Playwright pierces automatically via a descendant CSS selector.
+        const textbox = this.artifactWebView.getByRole('textbox', { name })
+            .or(this.artifactWebView.locator(`vscode-text-area[arialabel="${name}"] textarea`));
         await textbox.waitFor({ state: 'visible', timeout });
         return textbox;
     }
@@ -101,6 +105,9 @@ export class ServiceClassEditorUtils {
         });
 
         await form.submit('Save');
+
+        // Wait for 3 seconds
+        await this.page.waitForTimeout(3000);
 
         // Wait for the service class node to appear
         await this.waitForElementByTestId(`type-node-${name}-menu`, WAIT_CONFIG.LONG);
@@ -194,12 +201,12 @@ export class ServiceClassEditorUtils {
         const variableButton = await this.waitForButton(' Variable');
         await variableButton.click();
 
-        const nameField = await this.waitForTextbox('Variable Name*The name of the');
+        const nameField = await this.waitForTextbox('Variable Name*The name of the variable');
         await nameField.fill(name);
 
         const typeField = await this.waitForTextbox('Variable Type');
-        await typeField.fill(type);
         await typeField.click();
+        await typeField.fill(type);
         await this.page.waitForTimeout(WAIT_CONFIG.SHORT);
         await this.artifactWebView.getByText(type, { exact: true }).click();
 

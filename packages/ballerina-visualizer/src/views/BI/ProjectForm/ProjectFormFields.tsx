@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { TextField, CheckBox, DirectorySelector } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { usePlatformExtContext } from "../../../providers/platform-ext-ctx-provider";
@@ -53,7 +53,9 @@ export function ProjectFormFields({
 }: ProjectFormFieldsProps) {
     const { rpcClient } = useRpcContext();
     const { platformExtState } = usePlatformExtContext();
-    const organizations = platformExtState?.userInfo?.organizations ?? [];
+    const isLoggedIn = !!platformExtState?.isLoggedIn;
+    const organizations = isLoggedIn ? (platformExtState?.userInfo?.organizations ?? []) : undefined;
+    const isOrgTouched = useRef(false);
     const [packageNameTouched, setPackageNameTouched] = useState(false);
     const [packageNameError, setPackageNameError] = useState<string | null>(null);
     const [orgNameError, setOrgNameError] = useState<string | null>(null);
@@ -95,7 +97,7 @@ export function ProjectFormFields({
             }
 
             // Set default org name if not already set and no orgs from platform
-            if (!formData.orgName && organizations.length === 0) {
+            if (!formData.orgName && !organizations?.length) {
                 try {
                     const { orgName } = await commonRpcClient.getDefaultOrgName();
                     onFormDataChange({ orgName });
@@ -116,9 +118,8 @@ export function ProjectFormFields({
     }, []);
 
     useEffect(() => {
-        if (organizations.length > 0 && !formData.orgName) {
-            onFormDataChange({ orgName: organizations[0].handle });
-        }
+        if (isOrgTouched.current || !organizations?.length) return;
+        onFormDataChange({ orgName: organizations[0].handle });
     }, [organizations]);
 
     useEffect(() => {
@@ -221,6 +222,9 @@ export function ProjectFormFields({
                     onFormDataChange(data);
                     if (data.packageName !== undefined) {
                         setPackageNameTouched(true);
+                    }
+                    if (data.orgName !== undefined) {
+                        isOrgTouched.current = true;
                     }
                 }}
                 isLibrary={formData.isLibrary}

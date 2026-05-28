@@ -31,7 +31,7 @@ import {
     NODE_BORDER_WIDTH,
     NODE_HEIGHT,
 } from "../../../resources/constants";
-import { Item, Menu, MenuItem } from "@wso2/ui-toolkit";
+import { Item, Menu, MenuItem, ThemeColors } from "@wso2/ui-toolkit";
 import { FlowNode } from "../../../utils/types";
 import { useDiagramContext } from "../../DiagramContext";
 import { MoreVertIcon } from "../../../resources";
@@ -218,10 +218,10 @@ export function MatchNodeWidget(props: MatchNodeWidgetProps) {
                                 hasError
                                     ? NODE_BORDER_ERROR_COLOR
                                     : isSelected && !disabled
-                                    ? NODE_BORDER_SELECTED_COLOR
-                                    : isHovered && !disabled && !readOnly
-                                    ? NODE_BORDER_SELECTED_COLOR
-                                    : NODE_BORDER_COLOR
+                                        ? ThemeColors.SECONDARY
+                                        : isHovered && !disabled && !readOnly
+                                            ? ThemeColors.SECONDARY
+                                            : ThemeColors.OUTLINE_VARIANT
                             }
                             strokeWidth={NODE_BORDER_WIDTH}
                             strokeDasharray={disabled ? "5 5" : "none"}

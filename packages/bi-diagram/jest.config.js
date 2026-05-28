@@ -36,11 +36,13 @@ module.exports = {
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
     testMatch: ['**/?(*.)+(spec|test).ts?(x)'],
     moduleNameMapper: {
-        '^@vscode/codicons/dist/codicon.css$': 'identity-obj-proxy',
-        '\\.(css|less|sass|scss)$': 'identity-obj-proxy',
-        '\\.(svg|png|jpg|jpeg|gif)$': 'identity-obj-proxy',
+        '^@vscode/codicons/dist/codicon.css$': '<rootDir>/node_modules/identity-obj-proxy',
+        '\\.(css|less|sass|scss)$': '<rootDir>/node_modules/identity-obj-proxy',
+        '\\.(svg|png|jpg|jpeg|gif)$': '<rootDir>/node_modules/identity-obj-proxy',
         '^react$': '<rootDir>/node_modules/react/index.js',
         '^react-dom$': '<rootDir>/node_modules/react-dom/index.js',
+        '^http-proxy-agent$': '<rootDir>/src/test/mocks/proxyAgent.ts',
+        '^https-proxy-agent$': '<rootDir>/src/test/mocks/proxyAgent.ts',
     },
     setupFilesAfterEnv: [
         '<rootDir>/src/test/jest.env.ts',

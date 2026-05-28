@@ -34,7 +34,7 @@ import { Codicon, Icon, ThemeColors, Typography } from "@wso2/ui-toolkit";
 import { ConnectorIcon } from "@wso2/bi-diagram";
 import ConnectionConfigView from "../ConnectionConfigView";
 import { getFormProperties } from "../../../../utils/bi";
-import { ExpressionEditorDevantProps, ExpressionFormField, FormValues } from "@wso2/ballerina-side-panel";
+import { ExpressionEditorDevantProps, ExpressionFormField, FormValues, MarkdownDescription } from "@wso2/ballerina-side-panel";
 import { RelativeLoader } from "../../../../components/RelativeLoader";
 import { HelperView } from "../../HelperView";
 import { DownloadIcon } from "../../../../components/DownloadIcon";
@@ -116,10 +116,25 @@ const ConnectorInfoName = styled(Typography)`
     margin: 0;
 `;
 
-const ConnectorInfoDescription = styled(Typography)`
+const ConnectorInfoDescription = styled(MarkdownDescription)`
     font-size: 12px;
     color: ${ThemeColors.ON_SURFACE_VARIANT};
     margin: 0;
+    overflow: hidden;
+    max-height: 3em;
+
+    p {
+        font-size: 12px;
+        margin: 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    li {
+        font-size: 12px;
+    }
 `;
 
 const ConnectorTag = styled.div`
@@ -251,12 +266,16 @@ export function ConnectionConfigurationForm(props: ConnectionConfigurationFormPr
 
     useEffect(() => {
         // Fetch node template when component mounts
+
+        let clearPullingStatusTimer: ReturnType<typeof setTimeout> | null = null;
+
         const fetchNodeTemplate = async () => {
             if (!selectedConnector.codedata) {
                 console.error(">>> Error selecting connector. No codedata found");
                 return;
             }
 
+            let shouldClearPullingStatus = true;
             try {
                 let timer: ReturnType<typeof setTimeout> | null = null;
                 let didTimeout = false;
@@ -313,16 +332,25 @@ export function ConnectionConfigurationForm(props: ConnectionConfigurationFormPr
                 }
             } catch (error) {
                 console.error(">>> Error selecting connector", error);
+                shouldClearPullingStatus = false;
                 setPullingStatus(PullingStatus.ERROR);
             } finally {
                 // After few seconds, set status to undefined
-                setTimeout(() => {
-                    setPullingStatus(undefined);
-                }, 2000);
+                if (shouldClearPullingStatus) {
+                    clearPullingStatusTimer = setTimeout(() => {
+                        setPullingStatus(undefined);
+                    }, 2000);
+                }
             }
         };
 
         fetchNodeTemplate();
+
+        return () => {
+            if (clearPullingStatusTimer) {
+                clearTimeout(clearPullingStatusTimer);
+            }
+        }
     }, [selectedConnector, fileName, target, rpcClient]);
 
     const handleOnFormSubmit = async (node: FlowNode, _editorConfig?: EditorConfig, options?: FormSubmitOptions) => {
@@ -424,9 +452,7 @@ export function ConnectionConfigurationForm(props: ConnectionConfigurationFormPr
                 </ConnectorInfoIcon>
                 <ConnectorInfoContent>
                     <ConnectorInfoName>{selectedConnector.metadata.label}</ConnectorInfoName>
-                    <ConnectorInfoDescription>
-                        {selectedConnector.metadata.description || ""}
-                    </ConnectorInfoDescription>
+                    <ConnectorInfoDescription description={selectedConnector.metadata.description || ""} />
                 </ConnectorInfoContent>
                 <ConnectorTag>
                     <TagText variant="caption">{getConnectorTag()}</TagText>

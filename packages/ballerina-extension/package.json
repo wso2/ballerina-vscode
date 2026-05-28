@@ -2,7 +2,7 @@
     "name": "ballerina",
     "displayName": "Ballerina",
     "description": "Ballerina Language support, debugging, graphical visualization, AI-based data-mapping and many more.",
-    "version": "5.10.0",
+    "version": "5.12.0",
     "publisher": "wso2",
     "icon": "resources/images/ballerina.png",
     "homepage": "https://wso2.com/ballerina/vscode/docs",
@@ -264,13 +264,22 @@
                 "ballerina.copilot.checkpoints.ignorePatterns": {
                     "type": "array",
                     "default": [
-                        ".git/**",
-                        "target/**",
-                        "build/**",
-                        "dist/**",
-                        ".vscode/**",
-                        "*.log",
-                        ".DS_Store"
+                        "**/node_modules/**",
+                        "**/.git/**",
+                        "**/target/**",
+                        "**/build/**",
+                        "**/dist/**",
+                        "**/.vscode/**",
+                        "**/*.log",
+                        "**/.DS_Store",
+                        "**/*.jar",
+                        "**/*.class",
+                        "**/*.bala",
+                        "**/*.zip",
+                        "**/*.rar",
+                        "**/*.war",
+                        "**/*.tar",
+                        "**/*.gz"
                     ],
                     "description": "File patterns to ignore when creating checkpoints."
                 },
@@ -423,7 +432,7 @@
             },
             {
                 "command": "ballerina.reset.bi",
-                "title": "Reset BI Auth",
+                "title": "Reset Auth",
                 "category": "Ballerina"
             },
             {
@@ -580,14 +589,10 @@
                 }
             },
             {
-                "command": "ballerina.open.bi.welcome",
-                "title": "Open Welcome",
-                "category": "BI"
-            },
-            {
                 "command": "ballerina.open.bi.new",
                 "title": "New Integration",
-                "category": "BI"
+                "category": "WSO2 Integrator",
+                "enablement": "isSupportedProject"
             },
             {
                 "command": "BI.project.run",
@@ -596,7 +601,8 @@
                     "dark": "./resources/images/icons/start-inverse.svg",
                     "light": "./resources/images/icons/start.svg"
                 },
-                "category": "BI"
+                "category": "WSO2 Integrator",
+                "enablement": "isSupportedProject"
             },
             {
                 "command": "BI.project.debug",
@@ -605,117 +611,114 @@
                     "dark": "./resources/images/icons/debug-inverse.svg",
                     "light": "./resources/images/icons/debug.svg"
                 },
-                "category": "BI"
-            },
-            {
-                "command": "BI.project-explorer.refresh",
-                "title": "Refresh Ballerina",
-                "category": "BI"
+                "category": "WSO2 Integrator",
+                "enablement": "isSupportedProject"
             },
             {
                 "command": "BI.test.edit.function",
                 "title": "View test flow",
                 "icon": "$(type-hierarchy)",
-                "category": "BI"
+                "category": "WSO2 Integrator"
             },
             {
                 "command": "BI.test.edit.function.def",
                 "title": "Edit test function definition",
                 "icon": "$(edit)",
-                "category": "BI"
+                "category": "WSO2 Integrator"
             },
             {
                 "command": "BI.test.add.function",
                 "title": "Add New Test",
                 "icon": "$(add)",
-                "category": "BI",
+                "category": "WSO2 Integrator",
                 "enablement": "isSupportedProject"
             },
             {
                 "command": "BI.test.add.ai.evaluation",
                 "title": "Add AI Evaluation",
-                "category": "BI",
+                "category": "WSO2 Integrator",
                 "enablement": "isSupportedProject"
             },
             {
                 "command": "BI.test.delete.function",
                 "title": "Delete test function",
                 "icon": "$(trash)",
-                "category": "BI"
+                "category": "WSO2 Integrator"
             },
             {
                 "command": "BI.view.typeDiagram",
                 "title": "Type Diagram",
-                "category": "BI"
+                "category": "WSO2 Integrator",
+                "enablement": "isSupportedProject"
             },
             {
                 "command": "BI.project-explorer.add-connection",
                 "title": "Add Connection",
                 "icon": "$(add)",
                 "group": "navigation",
-                "category": "BI"
+                "category": "WSO2 Integrator"
             },
             {
                 "command": "BI.project-explorer.add-custom-connector",
                 "title": "Add Custom Connector",
                 "icon": "$(add)",
                 "group": "navigation",
-                "category": "BI"
+                "category": "WSO2 Integrator"
             },
             {
                 "command": "BI.project-explorer.delete",
                 "title": "Delete",
                 "icon": "$(trash)",
-                "category": "BI"
+                "category": "WSO2 Integrator"
             },
             {
                 "command": "BI.project-explorer.add-entry-point",
                 "title": "Add Entry Point",
                 "icon": "$(add)",
                 "group": "navigation",
-                "category": "BI"
+                "category": "WSO2 Integrator"
             },
             {
                 "command": "BI.project-explorer.add-type",
                 "title": "Add Types",
                 "icon": "$(add)",
                 "group": "navigation",
-                "category": "BI"
+                "category": "WSO2 Integrator"
             },
             {
                 "command": "BI.project-explorer.view-type-diagram",
                 "title": "View Type Diagram",
                 "icon": "$(ballerina-design-view)",
                 "group": "navigation",
-                "category": "BI"
+                "category": "WSO2 Integrator"
             },
             {
                 "command": "BI.project-explorer.add-function",
                 "title": "Add Function",
                 "icon": "$(add)",
                 "group": "navigation",
-                "category": "BI"
+                "category": "WSO2 Integrator"
             },
             {
                 "command": "BI.project-explorer.add-configuration",
                 "title": "Add Configuration",
                 "icon": "$(add)",
                 "group": "navigation",
-                "category": "BI"
+                "category": "WSO2 Integrator"
             },
             {
                 "command": "BI.project-explorer.view-configuration",
                 "title": "View Configurations",
                 "icon": "$(ballerina-design-view)",
                 "group": "navigation",
-                "category": "BI"
+                "category": "WSO2 Integrator"
             },
             {
                 "command": "BI.project-explorer.add",
                 "title": "Add Integration or Library",
                 "icon": "$(add)",
                 "group": "navigation",
-                "category": "BI",
+                "category": "WSO2 Integrator",
                 "when": "ballerina.bi.workspaceSupported"
             },
             {
@@ -723,46 +726,47 @@
                 "title": "Show Overview",
                 "icon": "$(ballerina-design-view)",
                 "group": "navigation",
-                "category": "BI"
+                "category": "WSO2 Integrator"
             },
             {
                 "command": "BI.project-explorer.add-data-mapper",
                 "title": "Add Data Mapper",
                 "icon": "$(add)",
                 "group": "navigation",
-                "category": "BI"
+                "category": "WSO2 Integrator"
             },
             {
                 "command": "BI.project-explorer.add-natural-function",
                 "title": "Add Natural Function",
                 "icon": "$(add)",
                 "group": "navigation",
-                "category": "BI"
+                "category": "WSO2 Integrator"
             },
             {
                 "command": "BI.toggle.trace.logs",
                 "title": "Toggle Trace Logs",
-                "category": "BI"
+                "category": "WSO2 Integrator",
+                "enablement": "isSupportedProject"
             },
             {
                 "command": "BI.devant.push.cloud",
                 "title": "Save Changes in the cloud",
                 "icon": "$(save)",
                 "group": "navigation",
-                "category": "BI",
+                "category": "WSO2 Integrator",
                 "enablement": "isBIProject && devant.editor"
             },
             {
                 "command": "ballerina.icp.start",
                 "title": "Start ICP",
                 "category": "Ballerina",
-                "enablement": "isSupportedProject && !ballerina.icpRunning"
+                "enablement": "isSupportedProject && !ballerina.icpRunning && !devant.editor"
             },
             {
                 "command": "ballerina.icp.stop",
                 "title": "Stop ICP",
                 "category": "Ballerina",
-                "enablement": "isSupportedProject && ballerina.icpRunning"
+                "enablement": "isSupportedProject && ballerina.icpRunning && !devant.editor"
             },
             {
                 "command": "ballerina.showTraceWindow",
@@ -925,9 +929,14 @@
                     "when": "(isBIProject || isBallerinaProject) && testId not in testGroups"
                 },
                 {
+                    "command": "BI.test.add.function",
+                    "group": "inline",
+                    "when": "(isBIProject || isBallerinaProject) && testId not in testGroups"
+                },
+                {
                     "command": "BI.test.delete.function",
                     "group": "inline",
-                    "when": "testId not in testGroups"
+                    "when": "(isBIProject || isBallerinaProject) && testId not in testGroups"
                 },
                 {
                     "command": "ballerina.openEvaluationHistory",
@@ -1223,14 +1232,14 @@
                 "description": "start",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f248"
+                    "fontCharacter": "\\f249"
                 }
             },
             "ballerina-debug": {
                 "description": "debug",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f1c0"
+                    "fontCharacter": "\\f1c1"
                 }
             },
             "ballerina-source-view": {
@@ -1244,7 +1253,7 @@
                 "description": "persist-diagram",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f21f"
+                    "fontCharacter": "\\f220"
                 }
             },
             "ballerina-cached-rounded": {
@@ -1342,7 +1351,7 @@
                 "description": "design-view",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f1c5"
+                    "fontCharacter": "\\f1c6"
                 }
             },
             "distro-file-submodule": {
@@ -1407,9 +1416,8 @@
         "test:libs-integration": "pnpm run test-compile && node ./out/test/runLibsIntegrationTest.js",
         "e2e-test-setup": "npx extest get-vscode -c 1.100.0 && npx extest get-chromedriver -c 1.100.0 && npx extest install-vsix -f $(ls vsix/*.vsix)",
         "preui-test": "node -e \"const fs = require('fs'); if (fs.existsSync('test-resou')) { fs.unlinkSync('test-resou'); }\"",
-        "e2e-test": "pnpm run test-compile && npx extest run-tests 'out/ui-test/*.test.js' --mocha_config ui-test/.mocharc.js -o ui-test/settings.json",
-        "e2e-test:bi": "pnpm exec playwright test -c e2e-test/playwright.config.js",
-        "e2e-test:bi:download-prerelease": "DOWNLOAD_PRERELEASE=true pnpm exec playwright test -c e2e-test/playwright.config.js",
+        "e2e-test": "pnpm exec playwright test -c e2e-test/playwright.config.js",
+        "e2e-test:download-prerelease": "DOWNLOAD_PRERELEASE=true pnpm exec playwright test -c e2e-test/playwright.config.js",
         "test-coverage": "cross-env COVER_CONFIG=html pnpm run test",
         "build-tm-grammar": "js-yaml grammar/ballerina-grammar/syntaxes/ballerina.tmLanguage.yaml > grammar/ballerina-grammar/syntaxes/ballerina.tmLanguage.json",
         "lint": "tslint --fix 'src/**/*{.ts,.tsx}'",
@@ -1422,7 +1430,7 @@
         "build": "pnpm run compile && pnpm run lint && pnpm run postbuild",
         "rebuild": "pnpm run clean && pnpm run compile && pnpm run postbuild",
         "postbuild": "pnpm run download-ls && pnpm run copyFonts && pnpm run copyJSLibs && pnpm run package && pnpm run copyVSIX",
-        "copyJSLibs": "copyfiles -f ../ballerina-visualizer/build/*.js resources/jslibs && copyfiles -f ../ballerina-visualizer/build/images/* resources/jslibs/images && copyfiles -f ../trace-visualizer/build/*.js resources/jslibs"
+        "copyJSLibs": "copyfiles -f ../ballerina-visualizer/build/*.js resources/jslibs && copyfiles -f ../ballerina-visualizer/build/images/* resources/jslibs/images && copyfiles -f ../trace-visualizer/build/*.js resources/jslibs && copyfiles -f ../graphql/build/*.js resources/jslibs"
     },
     "dependencies": {
         "@ai-sdk/amazon-bedrock": "4.0.83",
@@ -1438,6 +1446,7 @@
         "@wso2/font-wso2-vscode": "workspace:*",
         "@wso2/syntax-tree": "workspace:*",
         "@wso2/trace-visualizer": "workspace:*",
+        "graphqlview-lib": "workspace:*",
         "@wso2/wso2-platform-core": "workspace:*",
         "ai": "6.0.103",
         "cors-anywhere": "0.4.4",

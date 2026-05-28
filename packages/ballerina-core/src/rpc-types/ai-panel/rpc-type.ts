@@ -57,6 +57,7 @@ import {
     ClarifyCancelRequest,
     RunningServiceInfo,
     StopRunningServiceRequest,
+    RunServiceRequest,
 } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
@@ -88,7 +89,6 @@ export const addFilesToProject: RequestType<AddFilesToProjectRequest, boolean> =
 export const isUserAuthenticated: RequestType<void, boolean> = { method: `${_preFix}/isUserAuthenticated` };
 export const openAIPanel: RequestType<AIPanelPrompt, void> = { method: `${_preFix}/openAIPanel` };
 export const getSemanticDiff: RequestType<SemanticDiffRequest, SemanticDiffResponse> = { method: `${_preFix}/getSemanticDiff` };
-export const getAffectedPackages: NotificationType<void> = { method: `${_preFix}/getAffectedPackages` };
 export const isWorkspaceProject: RequestType<void, boolean> = { method: `${_preFix}/isWorkspaceProject` };
 export const acceptChanges: RequestType<void, void> = { method: `${_preFix}/acceptChanges` };
 export const declineChanges: RequestType<void, void> = { method: `${_preFix}/declineChanges` };
@@ -118,4 +118,6 @@ export const submitClarifyAnswer: RequestType<ClarifyAnswerRequest, void> = { me
 export const cancelClarify: RequestType<ClarifyCancelRequest, void> = { method: `${_preFix}/cancelClarify` };
 export const getRunningServices: RequestType<void, RunningServiceInfo[]> = { method: `${_preFix}/getRunningServices` };
 export const stopRunningService: RequestType<StopRunningServiceRequest, boolean> = { method: `${_preFix}/stopRunningService` };
+export const runService: RequestType<RunServiceRequest, boolean> = { method: `${_preFix}/runService` };
 export const runningServicesChanged: NotificationType<RunningServiceInfo[]> = { method: `${_preFix}/runningServicesChanged` };
+export const getDefaultVertexCredsPath: RequestType<void, string> = { method: `${_preFix}/getDefaultVertexCredsPath` };

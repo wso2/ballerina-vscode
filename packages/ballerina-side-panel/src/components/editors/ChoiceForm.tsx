@@ -56,20 +56,28 @@ export function ChoiceForm(props: ChoiceFormProps) {
     const { form } = useFormContext();
     const { setValue, clearErrors } = form;
 
-    const [selectedOption, setSelectedOption] = useState<number>(1);
+    const [selectedOption, setSelectedOption] = useState<number>(() => {
+        const idx = field.choices?.findIndex(choice => choice.enabled) ?? -1;
+        return idx !== -1 ? idx + 1 : 1;
+    });
 
     const [dynamicFields, setDynamicFields] = useState<FormField[]>([]);
     const [showAdvancedOptions, setShowAdvancedOptions] = useState<boolean>(false);
 
     useEffect(() => {
-        // Find the first enabled choice
+        // Find the first enabled choice and keep the radio selection + form state in sync
         const enabledChoiceIndex = field.choices.findIndex(choice => choice.enabled);
         if (enabledChoiceIndex !== -1) {
             const newSelectedOption = enabledChoiceIndex + 1;
+            setValue(field.key, enabledChoiceIndex);
             if (newSelectedOption !== selectedOption) {
                 setSelectedOption(newSelectedOption);
-                setValue(field.key, enabledChoiceIndex);
             }
+        } else if (selectedOption > field.choices.length) {
+            // Choices shrank (e.g. protocol switched to one with fewer auth options) and none are enabled;
+            // clamp back to the first option so we don't index out of range.
+            setSelectedOption(1);
+            setValue(field.key, 0);
         }
     }, [field.choices]);
 
@@ -77,6 +85,11 @@ export function ChoiceForm(props: ChoiceFormProps) {
     useEffect(() => {
         const realValue = selectedOption - 1;
         const property = field.choices[realValue];
+        if (!property) {
+            // Stale selectedOption from a previous, larger choices array. The sibling effect
+            // above will resync selectedOption on the next render; bail out to avoid crashing.
+            return;
+        }
         const choiceProperty = convertConfig(property);
         setDynamicFields(choiceProperty);
         if (choiceProperty.length > 0) {

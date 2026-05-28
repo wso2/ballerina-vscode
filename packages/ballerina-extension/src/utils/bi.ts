@@ -153,7 +153,7 @@ export function validateProjectPath(projectPath: string, projectName: string, cr
 
         // For workspace projects, validate workspace name specifically
         if (createAsWorkspace && createDirectory && (!projectName || projectName.trim() === '')) {
-            return { isValid: false, errorMessage: 'Workspace name is required', errorField: ValidateProjectFormErrorField.NAME };
+            return { isValid: false, errorMessage: 'Project name is required', errorField: ValidateProjectFormErrorField.NAME };
         }
 
         // Check if the base directory exists
@@ -315,7 +315,7 @@ function setupProjectInfo(projectRequest: ProjectRequest): ProcessedProjectInfo 
 
 /**
  * Writes a local context file for the given project.
- * Creates (if missing) `{projectRoot}/.choreo/context.yaml` and stores the org/project handles with `local: true`.
+ * Creates (if missing) `{projectRoot}/.wso2/context.yaml` and stores the org/project handles with `local: true`.
  * @param projectRoot - Absolute path to the project root directory
  * @param orgHandle - Choreo organization handle
  * @param projectHandle - Choreo project handle
@@ -326,7 +326,7 @@ export async function writeLocalContextYaml(
     projectHandle: string
 ): Promise<void> {
     try {
-        const choreoDir = path.join(projectRoot, '.choreo');
+        const choreoDir = path.join(projectRoot, '.wso2');
         const localProjectFile = path.join(choreoDir, 'context.yaml');
         const content = stringifyYaml([{ org: orgHandle, project: projectHandle, local: true }]);
         await fs.promises.mkdir(choreoDir, { recursive: true });
@@ -357,7 +357,7 @@ packages = []
     // create settings.json file
     createVSCodeSettings(workspaceRoot);
 
-    console.log(`BI workspace created successfully at ${workspaceRoot}`);
+    console.log(`Project(default profile) created successfully at ${workspaceRoot}`);
     return workspaceRoot;
 }
 
@@ -385,7 +385,7 @@ packages = ["${sanitizeName(projectRequest.packageName)}"]
     // create settings.json file
     createVSCodeSettings(workspaceRoot);
 
-    console.log(`BI workspace with project created successfully at ${workspaceRoot}`);
+    console.log(`Project(default profile) with integration created successfully at ${workspaceRoot}`);
     return workspaceRoot;
 }
 
@@ -476,7 +476,7 @@ sticky = true
     const gitignorePath = path.join(projectRoot, '.gitignore');
     fs.writeFileSync(gitignorePath, gitignoreContent.trim());
 
-    console.log(`BI project created successfully at ${projectRoot}`);
+    console.log(`Integration(default profile) created successfully at ${projectRoot}`);
     return projectRoot;
 }
 
@@ -554,7 +554,7 @@ function addToWorkspaceToml(workspacePath: string, packageName: string) {
         const updatedContent = addPackageToToml(ballerinaTomlContent, packageName);
         fs.writeFileSync(ballerinaTomlPath, updatedContent);
     } catch (error) {
-        console.error('Failed to update workspace Ballerina.toml:', error);
+        console.error('Failed to update project Ballerina.toml:', error);
     }
 }
 
@@ -596,7 +596,7 @@ export function deleteProjectFromWorkspace(workspacePath: string, packagePath: s
         // delete the project directory
         fs.rmdirSync(packagePath, { recursive: true });
     } catch (error) {
-        console.error(">>> error deleting project from workspace", error);
+        console.error(">>> error deleting integration from project", error);
     }
 }
 
@@ -667,17 +667,27 @@ export async function createBIProjectFromMigration(params: MigrateRequest) {
         const filePath = path.join(projectRoot, fileName);
 
         if (fileName === "Ballerina.toml") {
-            content = content.replace(/name = ".*?"/, `name = "${sanitizedPackageName}"`);
-            content = content.replace(/org = ".*?"/, `org = "${projectInfo.orgHandle ?? projectInfo.finalOrgName}"`);
+            if (params.projects && params.projects.length > 0) {
+                // Multi-project migration: this is a workspace-level Ballerina.toml ([workspace] section).
+                // The packages list from the LS reflects the CLI's directory naming convention,
+                // which may differ from the projectName values used to create actual directories.
+                // Rebuild the packages list from the actual project names.
+                const packageList = params.projects.map(p => `"${p.projectName}"`).join(', ');
+                content = content.replace(/packages\s*=\s*\[[\s\S]*?\]/, `packages = [${packageList}]`);
+            } else {
+                // Single-project migration: this is a package-level Ballerina.toml ([package] section).
+                content = content.replace(/name = ".*?"/, `name = "${sanitizedPackageName}"`);
+                content = content.replace(/org = ".*?"/, `org = "${projectInfo.orgHandle ?? projectInfo.finalOrgName}"`);
 
-            // Remove any existing distribution line
-            content = content.replace(/^\s*distribution\s*=\s*".*?"\n?/m, '');
+                // Remove any existing distribution line
+                content = content.replace(/^\s*distribution\s*=\s*".*?"\n?/m, '');
 
-            // Get the Ballerina distribution version
-            const distribution = getBallerinaDistribution();
-            const distributionLine = distribution ? `\ndistribution = "${distribution}"` : '';
+                // Get the Ballerina distribution version
+                const distribution = getBallerinaDistribution();
+                const distributionLine = distribution ? `\ndistribution = "${distribution}"` : '';
 
-            content = content.replace(/version = ".*?"/, `version = "${projectInfo.finalVersion}"${distributionLine}\ntitle = "${projectInfo.integrationName}"`);
+                content = content.replace(/version = ".*?"/, `version = "${projectInfo.finalVersion}"${distributionLine}\ntitle = "${projectInfo.integrationName}"`);
+            }
         }
 
         writeBallerinaFileDidOpen(filePath, content || EMPTY);

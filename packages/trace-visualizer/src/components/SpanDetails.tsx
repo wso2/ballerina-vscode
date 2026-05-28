@@ -878,7 +878,7 @@ export function SpanDetails({ spanData, spanName, totalInputTokens, totalOutputT
                                             value={inputData.messages}
                                             title={inputData.messagesLabel}
                                             searchQuery={searchQuery}
-                                            expandLastOnly={true}
+                                            expandLastOnly={inputData.messagesLabel === 'Messages'}
                                         />
                                     </SubSection>
                                 )}
@@ -970,7 +970,7 @@ export function SpanDetails({ spanData, spanName, totalInputTokens, totalOutputT
                                             value={outputData.messages}
                                             title={outputData.messagesLabel}
                                             searchQuery={searchQuery}
-                                            expandLastOnly={true}
+                                            expandLastOnly={outputData.messagesLabel === 'Messages'}
                                         />
                                     </SubSection>
                                 )}

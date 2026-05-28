@@ -179,12 +179,14 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ markdownContent }) 
         code({ inline, className, children }: { inline?: boolean; className?: string; children: React.ReactNode }) {
             const codeContent = (Array.isArray(children) ? children.join("") : children) ?? "";
             const match = /language-(\w+)/.exec(className || "");
+            // react-markdown v10+ omits `inline`; infer block by language class or newline.
+            const isBlock = !inline && (!!match || String(codeContent).includes("\n"));
 
-            if (!inline && match) {
-                const language = match[1];
+            if (isBlock) {
+                const language = match?.[1];
 
                 // Apply syntax highlighting if language is registered
-                if (hljs.getLanguage(language)) {
+                if (language && hljs.getLanguage(language)) {
                     return (
                         <pre>
                             <code

@@ -264,8 +264,11 @@ export function convertEmbeddingProviderCategoriesToSidePanelCategories(categori
 
 export function convertKnowledgeBaseCategoriesToSidePanelCategories(categories: Category[]): PanelCategory[] {
     return convertCategoriesToSidePanelCategoriesWithIcon(categories, (codedata, iconUrl) => {
-        if ((codedata?.module as string).includes("azure")) {
+        if ((codedata?.module as string)?.includes("azure")) {
             return <AIModelIcon type="ai.azure" iconUrl={iconUrl} />;
+        }
+        if (codedata?.module === "ai") {
+            return <NodeIcon type="KNOWLEDGE_BASE" size={18} />;
         }
         return <AIModelIcon type={codedata?.module} codedata={codedata} iconUrl={iconUrl} />;
     });
@@ -895,12 +898,15 @@ export const convertToHelperPaneFunction = (functions: Category[]): HelperPaneFu
     const response: HelperPaneFunctionInfo = {
         category: [],
     };
-    for (const category of functions) {
+    for (const category of functions.filter((category) => category.metadata.label !== "Agent Tools")) {
         const categoryKind = getFunctionItemKind(category.metadata.label);
         const items: HelperPaneCompletionItem[] = [];
         const subCategory: HelperPaneFunctionCategory[] = [];
         for (const categoryItem of category?.items) {
             if (isCategoryType(categoryItem)) {
+                if (categoryItem.metadata.label === "Agent Tools") {
+                    continue;
+                }
                 subCategory.push({
                     label: categoryItem.metadata.label,
                     items: categoryItem.items.map((item) => ({

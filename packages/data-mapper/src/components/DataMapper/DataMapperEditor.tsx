@@ -18,7 +18,7 @@
 // tslint:disable: jsx-no-multiline-js
 import React, { useCallback, useEffect, useReducer, useState } from "react";
 import { css, keyframes } from "@emotion/css";
-import { CodeData, ExpandedDMModel } from "@wso2/ballerina-core";
+import { CodeData, DMFormImports, ExpandedDMModel } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { useShallow } from "zustand/react/shallow";
 
@@ -28,6 +28,7 @@ import { DataMapperHeader } from "./Header/DataMapperHeader";
 import { DataMapperNodeModel } from "../Diagram/Node/commons/DataMapperNode";
 import { IONodeInitVisitor } from "../../visitors/IONodeInitVisitor";
 import { traverseNode } from "../../utils/model-utils";
+import { isUnresolvedJsonOrXml } from "../Diagram/utils/common-utils";
 import { View } from "./Views/DataMapperView";
 import {
     useDMCollapsedFieldsStore,
@@ -330,14 +331,20 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         await rpcClient.getAiPanelRpcClient().openChatWindowWithCommand();
     };
 
+    const autoMapDisabled =
+        model.inputs?.some(isUnresolvedJsonOrXml) ||
+        isUnresolvedJsonOrXml(model.output);
+    const autoMapDisabledTooltip = "Auto Map requires specific record types instead of generic types";
+
     const addNewSubMapping = async (
         subMappingName: string,
         type: string,
         index: number,
         targetField: string,
+        formImports?: DMFormImports,
         importsCodedata?: CodeData
     ) => {
-        await addSubMapping(subMappingName, type, index, targetField, importsCodedata);
+        await addSubMapping(subMappingName, type, index, targetField, formImports, importsCodedata);
         resetSubMappingConfig();
     }
 
@@ -354,6 +361,8 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                     onReset={handleOnReset}
                     onEdit={onEdit}
                     autoMapWithAI={autoMapWithAI}
+                    autoMapDisabled={autoMapDisabled}
+                    autoMapDisabledTooltip={autoMapDisabledTooltip}
                     undoRedoGroup={undoRedoGroup}
                 />
             )}

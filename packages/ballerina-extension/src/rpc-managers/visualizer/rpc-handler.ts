@@ -45,7 +45,8 @@ import {
     UpdatedArtifactsResponse,
     reviewAccepted,
     navigateReviewMode,
-    GoBackRequest
+    GoBackRequest,
+    GoHomeRequest
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { VisualizerRpcManager } from "./rpc-manager";
@@ -56,7 +57,7 @@ export function registerVisualizerRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getHistory, () => rpcManger.getHistory());
     messenger.onNotification(addToHistory, (args: HistoryEntry) => rpcManger.addToHistory(args));
     messenger.onNotification(goBack, (args: GoBackRequest) => rpcManger.goBack(args));
-    messenger.onNotification(goHome, () => rpcManger.goHome());
+    messenger.onNotification(goHome, (args: GoHomeRequest) => rpcManger.goHome(args));
     messenger.onNotification(goSelected, (args: number) => rpcManger.goSelected(args));
     messenger.onRequest(undo, (count: number) => rpcManger.undo(count));
     messenger.onRequest(redo, (count: number) => rpcManger.redo(count));

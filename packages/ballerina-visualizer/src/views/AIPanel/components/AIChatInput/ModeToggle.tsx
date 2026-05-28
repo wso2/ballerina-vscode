@@ -39,23 +39,20 @@ const ToggleOption = styled.button<{ active?: boolean }>`
     border: none;
     border-radius: 4px;
     background-color: ${(props: { active?: boolean }) =>
-        props.active ? "var(--vscode-button-background)" : "transparent"};
+        props.active ? "var(--vscode-editor-background)" : "transparent"};
     color: ${(props: { active?: boolean }) =>
-        props.active ? "var(--vscode-button-foreground)" : "var(--vscode-descriptionForeground)"};
-    cursor: pointer;
+        props.active ? "var(--vscode-editor-foreground)" : "var(--vscode-descriptionForeground)"};
+
+    cursor: ${(props: { active?: boolean }) => (props.active ? "default" : "pointer")};
     font-size: 11px;
     white-space: nowrap;
     transition: background-color 0.1s, color 0.1s;
 
     &:hover {
         background-color: ${(props: { active?: boolean }) =>
-            props.active
-                ? "var(--vscode-button-background)"
-                : "var(--vscode-toolbar-hoverBackground)"};
+            props.active ? "var(--vscode-editor-background)" : "var(--vscode-toolbar-hoverBackground)"};
         color: ${(props: { active?: boolean }) =>
-            props.active
-                ? "var(--vscode-button-foreground)"
-                : "var(--vscode-foreground)"};
+            props.active ? "var(--vscode-editor-foreground)" : "var(--vscode-foreground)"};
     }
 `;
 
@@ -75,7 +72,7 @@ const ModeToggle: React.FC<ModeToggleProps> = ({ mode, onChange, disabled }) => 
         <ToggleOption
             active={mode === AgentMode.Edit}
             title="Direct file edits"
-            onClick={() => onChange(AgentMode.Edit)}
+            onClick={() => mode !== AgentMode.Edit && onChange(AgentMode.Edit)}
         >
             <span className="codicon codicon-edit" style={{ fontSize: 11 }} />
             Edit
@@ -83,7 +80,7 @@ const ModeToggle: React.FC<ModeToggleProps> = ({ mode, onChange, disabled }) => 
         <ToggleOption
             active={mode === AgentMode.Plan}
             title="Design first, then build"
-            onClick={() => onChange(AgentMode.Plan)}
+            onClick={() => mode !== AgentMode.Plan && onChange(AgentMode.Plan)}
         >
             <span className="codicon codicon-list-tree" style={{ fontSize: 11 }} />
             Plan

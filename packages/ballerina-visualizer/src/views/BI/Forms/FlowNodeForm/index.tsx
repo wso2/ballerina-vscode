@@ -60,6 +60,8 @@ import {
     HelperpaneOnChangeOptions,
     InputMode,
     ExpressionEditorDevantProps,
+    getTypeCompletionSearchText,
+    getInputModeFromTypes,
 } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import {
@@ -96,6 +98,7 @@ import { createPortal } from "react-dom";
 import { cloneDeep, debounce } from "lodash";
 import {
     createNodeWithUpdatedLineRange,
+    deserializeForDiagnosticsAPI,
     processFormData,
     removeEmptyNodes,
     updateNodeWithProperties,
@@ -184,6 +187,14 @@ interface FlowNodeFormProps {
     customValidator?: (fieldKey: string, value: any, allValues: FormValues) => string | undefined; // Custom validation function for form fields
     defaultExpandAdvanced?: boolean;
 }
+
+const EXPRESSION_FIELD_TYPES = new Set([
+    "EXPRESSION",
+    "ACTION_OR_EXPRESSION",
+    "LV_EXPRESSION",
+    "ACTION_EXPRESSION",
+    "EXPRESSION_SET",
+]);
 
 type RepeatableMapEntry = {
     key: string;
@@ -481,6 +492,9 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
     }, [rpcClient]);
 
     useEffect(() => {
+        if (showProgressIndicator) {
+            return;
+        }
         if (!node) {
             return;
         }
@@ -499,7 +513,7 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
         return () => {
             handleFormClose();
         };
-    }, [node]);
+    }, [node, showProgressIndicator]);
 
 
     const handleFormOpen = () => {
@@ -823,13 +837,37 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
         });
     }, [canFixFormDiagnostics, diagnosticsTargetRange, fileName, formDiagnostics, rpcClient]);
 
+    const buildValidationData = (data: FormValues): FormValues => {
+        const expressionFieldKeys = fields
+            .filter(field => field.types?.some(t => EXPRESSION_FIELD_TYPES.has(t.fieldType))).map(field => field.key);
+        return {
+            ...data,
+            ...Object.fromEntries(
+                expressionFieldKeys
+                    .filter(key => typeof data[key] === "string")
+                    .map(key => [key, deserializeForDiagnosticsAPI(data[key] as string)])
+            ),
+        };
+    };
+
     const handleOnBlur = async (data: FormValues, dirtyFields: any) => {
         if (node && targetLineRange && !skipFormValidation) {
-            const updatedNode = mergeFormDataWithFlowNode(data, targetLineRange, dirtyFields);
+            const validationData = buildValidationData(data);
+
+            const updatedNode = mergeFormDataWithFlowNode(validationData, targetLineRange, dirtyFields);
             const nodeWithDiagnostics = await getFormWithDiagnostics(updatedNode);
             setDiagnosticsToFields(data, nodeWithDiagnostics!);
         }
     };
+
+    const handleFormChange = useCallback(
+        (fieldKey: string, value: any, allValues: FormValues) => {
+            setFormDiagnostics(prev => prev.length > 0 ? [] : prev);
+            onChange?.(fieldKey, value, allValues);
+        },
+        [onChange]
+    );
+
 
     const mergeFormDataWithFlowNode = (data: FormValues, targetLineRange: LineRange, dirtyFields?: any): FlowNode => {
         const clonedNode = cloneDeep(node);
@@ -1046,7 +1084,7 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                         searchKind: 'TYPE'
                     });
 
-                    const allItems = searchResponse.categories.flatMap(category =>
+                    const rawAllItems = searchResponse.categories.flatMap(category =>
                         category.items.flatMap(item => {
                             if ('codedata' in item) {
                                 return [item];
@@ -1057,6 +1095,24 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                         })
                     );
 
+                    // Deduplicate search items by org+module+symbol to avoid showing the same
+                    // type multiple times when it appears in both "Current Integration" and "Imported" categories
+                    const seenKeys = new Set<string>();
+                    const allItems = rawAllItems.filter(Boolean).filter(item => {
+                        const cd = (item as { codedata?: CodeData }).codedata;
+                        const key =
+                            cd?.org && cd?.module && cd?.symbol
+                                ? `${cd.org}:${cd.module}:${cd.symbol}`
+                                : item?.metadata?.label;
+
+                        if (!key) {
+                            return true;
+                        }
+                        if (seenKeys.has(key)) return false;
+                        seenKeys.add(key);
+                        return true;
+                    });
+
                     const basicTypes = await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
                         filePath: fileName,
                         position: updateLineRange(targetLineRange, expressionOffsetRef.current).startLine,
@@ -1065,13 +1121,16 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
 
                     const isFetchingTypesForDM = valueTypeConstraint === "json";
                     const visibleSearchTypes = convertItemsToCompletionItems(allItems);
-                    const visibleBasicTypes = convertToVisibleTypes(basicTypes, isFetchingTypesForDM);
+                    // Filter out basic types already covered by search results to avoid duplicates
+                    const searchLabels = new Set(visibleSearchTypes.map(t => t.label));
+                    const visibleBasicTypes = convertToVisibleTypes(basicTypes, isFetchingTypesForDM)
+                        .filter(t => !searchLabels.has(t.label));
                     visibleTypes = [...visibleSearchTypes, ...visibleBasicTypes];
                     setTypes(visibleTypes);
                 }
 
                 if (!fetchReferenceTypes) {
-                    const effectiveText = value.slice(0, cursorPosition);
+                    const effectiveText = getTypeCompletionSearchText(value, cursorPosition);
                     let filteredTypes = visibleTypes.filter((type) => {
                         const lowerCaseText = effectiveText.toLowerCase();
                         const lowerCaseLabel = type.label.toLowerCase();
@@ -1095,6 +1154,13 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
 
     const extractArgsFromFunction = async (value: string, property: ExpressionProperty, cursorPosition: number) => {
         const { lineOffset, charOffset } = calculateExpressionOffsets(value, cursorPosition);
+        // Merge the latest imports from formImportsRef to avoid stale field.imports when a
+        // helper pane item is selected (formImportsRef is updated synchronously before onChange
+        // fires, but the field prop hasn't re-rendered yet with the new imports).
+        const latestImports = Object.values(formImportsRef.current).reduce<Imports>(
+            (acc, fieldImports) => ({ ...acc, ...fieldImports }),
+            {}
+        );
         const signatureHelp = await rpcClient.getBIDiagramRpcClient().getSignatureHelp({
             filePath: fileName,
             context: {
@@ -1103,7 +1169,7 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                 lineOffset: lineOffset,
                 offset: charOffset,
                 codedata: node.codedata,
-                property: property,
+                property: { ...property, imports: { ...(property.imports || {}), ...latestImports } },
             },
             signatureHelpContext: {
                 isRetrigger: false,
@@ -1115,15 +1181,32 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
     };
 
     const getFormWithDiagnostics = async (node: FlowNode): Promise<FlowNode | null> => {
-        try {
-            // Update node with new line range only for creation forms (not edit forms)
-            const nodeToProcess = props.editForm
-                ? node
-                : createNodeWithUpdatedLineRange(node, targetLineRange);
-            const response = await rpcClient.getBIDiagramRpcClient().getFormDiagnostics({
+        // Update node with new line range only for creation forms (not edit forms)
+        const nodeToProcess = props.editForm
+            ? node
+            : createNodeWithUpdatedLineRange(node, targetLineRange);
+
+        const issueRequest = () =>
+            rpcClient.getBIDiagramRpcClient().getFormDiagnostics({
                 flowNode: nodeToProcess,
                 filePath: fileName
             });
+
+        const isDebounceCancellation = (resp: any) =>
+            !resp?.flowNode &&
+            typeof resp?.errorMsg === "string" &&
+            resp.errorMsg.includes("Debounced");
+
+        try {
+            let response = await issueRequest();
+            // The backend debounces concurrent diagnostics requests; the older one resolves
+            // with a cancellation envelope. Retry past the debounce window so save sees the
+            // real verdict instead of treating cancellation as "no diagnostics".
+            let retries = 2;
+            while (isDebounceCancellation(response) && retries-- > 0) {
+                await new Promise(resolve => setTimeout(resolve, 300));
+                response = await issueRequest();
+            }
 
             if (response.flowNode) {
                 return response.flowNode as FlowNode;
@@ -1160,7 +1243,8 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
 
     const handleFormValidation = async (data: FormValues, dirtyFields?: any): Promise<boolean> => {
         if (node && targetLineRange && !skipFormValidation) {
-            const updatedNode = mergeFormDataWithFlowNode(data, targetLineRange, dirtyFields);
+            const validationData = buildValidationData(data);
+            const updatedNode = mergeFormDataWithFlowNode(validationData, targetLineRange, dirtyFields);
             const nodeWithDiagnostics = await getFormWithDiagnostics(updatedNode);
             setDiagnosticsToFields(data, nodeWithDiagnostics!);
 
@@ -1204,22 +1288,10 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                     : { ...property, types: property.types.map(t => ({ ...t })) };
 
                 try {
-                    const propertyPrimaryFieldType = getPrimaryInputType(updatedProperty.types);
-                    if (updatedProperty.types.length > 1 && propertyPrimaryFieldType.fieldType !== "REPEATABLE_LIST" && propertyPrimaryFieldType.fieldType !== "REPEATABLE_MAP") {
-                        updatedProperty.types.forEach(t => {
-                            if (t.fieldType === "EXPRESSION") {
-                                t.selected = true;
-                            }
-                            else {
-                                t.selected = false;
-                            }
-                        });
-                    }
-
                     const response = await rpcClient.getBIDiagramRpcClient().getExpressionDiagnostics({
                         filePath: fileName,
                         context: {
-                            expression: expression,
+                            expression: deserializeForDiagnosticsAPI(expression),
                             startLine: updateLineRange(targetLineRange, expressionOffsetRef.current).startLine,
                             lineOffset: 0,
                             offset: 0,
@@ -2105,7 +2177,7 @@ export const FlowNodeForm = forwardRef<FormExpressionEditorRef, FlowNodeFormProp
                         node.codedata.node === ("DATA_MAPPER_CREATION" as NodeKind)
                     }
                     scopeFieldAddon={scopeFieldAddon}
-                    onChange={onChange}
+                    onChange={handleFormChange}
                     injectedComponents={injectedComponents}
                     derivedFields={props.derivedFields}
                     updateImports={handleUpdateImports}

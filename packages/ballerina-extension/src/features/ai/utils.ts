@@ -34,9 +34,9 @@ import {
 } from '../../utils/ai/auth';
 import { AIStateMachine } from '../../views/ai-panel/aiMachine';
 import { AIMachineEventType } from '@wso2/ballerina-core/lib/state-machine-types';
-import { CONFIG_FILE_NAME, ERROR_NO_BALLERINA_SOURCES, LLM_API_BASE_PATH, PROGRESS_BAR_MESSAGE_FROM_WSO2_DEFAULT_MODEL } from './constants';
+import { CONFIG_FILE_NAME, ERROR_NO_BALLERINA_SOURCES, LLM_API_BASE_PATH, PROGRESS_BAR_MESSAGE_FROM_WSO2_DEFAULT_EMBEDDING, PROGRESS_BAR_MESSAGE_FROM_WSO2_DEFAULT_MODEL } from './constants';
 import { getCurrentBallerinaProjectFromContext } from '../config-generator/configGenerator';
-import { BallerinaProject, LoginMethod, AuthCredentials } from '@wso2/ballerina-core';
+import { BallerinaProject, LoginMethod, AuthCredentials, DefaultProviderKind } from '@wso2/ballerina-core';
 import { BallerinaExtension } from 'src/core';
 
 const config = workspace.getConfiguration('ballerina');
@@ -262,11 +262,11 @@ function addDefaultModelConfig(
     return true;
 }
 
-export async function addConfigFile(configPath: string): Promise<boolean> {
+export async function addConfigFile(configPath: string, kind: DefaultProviderKind = "model"): Promise<boolean> {
     const progress = await vscode.window.withProgress(
         {
             location: vscode.ProgressLocation.Notification,
-            title: PROGRESS_BAR_MESSAGE_FROM_WSO2_DEFAULT_MODEL,
+            title: kind === "embedding" ? PROGRESS_BAR_MESSAGE_FROM_WSO2_DEFAULT_EMBEDDING : PROGRESS_BAR_MESSAGE_FROM_WSO2_DEFAULT_MODEL,
             cancellable: false,
         },
         async () => {

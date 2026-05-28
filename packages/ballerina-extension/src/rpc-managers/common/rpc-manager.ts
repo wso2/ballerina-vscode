@@ -62,6 +62,7 @@ import { extension } from "../../BalExtensionContext";
 import { StateMachine } from "../../stateMachine";
 import {
     getProjectTomlValues,
+    getWorkspaceTomlValues,
     goToSource
 } from "../../utils";
 import { getUsername } from "../../utils/bi";
@@ -301,7 +302,7 @@ export class CommonRpcManager implements CommonRPCAPI {
     }
 
     async showInformationModal(params: ShowInfoModalRequest): Promise<string> {
-        return window.showInformationMessage(params?.message, {modal: true}, ...(params?.items || []));
+        return window.showInformationMessage(params?.message, {modal: true, detail: params?.detail}, ...(params?.items || []));
     }
 
     async showQuickPick(params: ShowQuickPickRequest): Promise<QuickPickItem> {
@@ -483,17 +484,42 @@ export class CommonRpcManager implements CommonRPCAPI {
             const projectPath = StateMachine.context()?.workspacePath;
 
             if (projectPath) {
-                const contextYamlPath = path.join(projectPath, ".choreo", "context.yaml");
-                const content = await fs.promises.readFile(contextYamlPath, "utf-8");
-                const parsed = loadYaml(content);
-                if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0].org === "string" && parsed[0].org) {
-                    return { orgName: parsed[0].org };
+                // Check .wso2/context.yaml then .choreo/context.yaml
+                for (const contextDir of ['.wso2', '.choreo']) {
+                    try {
+                        const contextYamlPath = path.join(projectPath, contextDir, "context.yaml");
+                        const content = await fs.promises.readFile(contextYamlPath, "utf-8");
+                        const parsed = loadYaml(content);
+                        if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0].org === "string" && parsed[0].org) {
+                            return { orgName: parsed[0].org, isLocked: true };
+                        }
+                    } catch { /* file missing or unreadable — try next */ }
+                }
+
+                // Check existing packages listed in the workspace Ballerina.toml
+                const workspaceToml = await getWorkspaceTomlValues(projectPath);
+                const packages = workspaceToml?.workspace?.packages ?? [];
+                for (const pkg of packages) {
+                    const pkgToml = await getProjectTomlValues(path.join(projectPath, pkg));
+                    if (pkgToml?.package?.org) {
+                        return { orgName: pkgToml.package.org, isLocked: true };
+                    }
+                }
+            }
+
+            const integrationPath = StateMachine.context()?.projectPath;
+
+            if (integrationPath) {
+                // Check for existing packages in the project Ballerina.toml
+                const projectToml = await getProjectTomlValues(integrationPath);
+                if (projectToml?.package?.org) {
+                    return { orgName: projectToml.package.org, isLocked: true };
                 }
             }
         } catch {
             // fall through to default
         }
-        return { orgName: getUsername() };
+        return { orgName: getUsername(), isLocked: false };
     }
 
     async publishToCentral(): Promise<PublishToCentralResponse> {

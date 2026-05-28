@@ -39,11 +39,12 @@ import * as path from 'path';
 import { extension } from './BalExtensionContext';
 import { AIStateMachine, openAIPanelWithPrompt } from './views/ai-panel/aiMachine';
 import { StateMachinePopup } from './stateMachinePopup';
-import { checkIsBallerinaPackage, checkIsBI, fetchScope, getOrgPackageName, UndoRedoManager, getProjectTomlValues, getOrgAndPackageName, checkIsBallerinaWorkspace, isInWI } from './utils';
+import { checkIsBallerinaPackage, checkIsBI, fetchScope, getOrgPackageName, UndoRedoManager, getProjectTomlValues, getOrgAndPackageName, checkIsBallerinaWorkspace, isInWI, isInDevant } from './utils';
 import { activateDevantFeatures } from './features/devant/activator';
 import { buildProjectsStructure } from './utils/project-artifacts';
 import { runCommandWithOutput } from './utils/runCommand';
 import { buildOutputChannel } from './utils/logger';
+import { closeOrphanWebviewTabs } from './views/closeOrphanWebviewTabs';
 
 export interface ProjectMetadata {
     readonly isBI: boolean;
@@ -80,7 +81,7 @@ const stateMachine = createMachine<MachineContext>(
             isBISupported: false,
             view: MACHINE_VIEW.PackageOverview,
             dependenciesResolved: false,
-            isInDevant: !!process.env.CLOUD_STS_TOKEN
+            isInDevant: isInDevant()
         },
         on: {
             RESET_TO_EXTENSION_READY: {
@@ -94,7 +95,7 @@ const stateMachine = createMachine<MachineContext>(
                     () => {
                         // Use queueMicrotask to ensure context is updated before command execution
                         queueMicrotask(() => {
-                            commands.executeCommand("BI.project-explorer.refresh");
+                            refreshProjectExplorer();
                             // Check if the current view is Service desginer and if so don't notify the webview
                             if (StateMachine.context().view !== MACHINE_VIEW.ServiceDesigner && StateMachine.context().view !== MACHINE_VIEW.BIDiagram) {
                                 notifyCurrentWebview();
@@ -499,10 +500,14 @@ const stateMachine = createMachine<MachineContext>(
                     AIStateMachine.initialize();
                     StateMachinePopup.initialize();
                     commands.executeCommand('setContext', 'BI.status', 'loadingDone');
-                    if (!ls.biSupported) {
-                        commands.executeCommand('setContext', 'BI.status', 'updateNeed');
-                    }
                     activateDevantFeatures(ls);
+                    if (ls.langClient) {
+                        if (!ls.biSupported) {
+                            commands.executeCommand('setContext', 'BI.status', 'updateNeed');
+                        }
+                    } else {
+                        commands.executeCommand('setContext', 'BI.status', 'noLS');
+                    }
                     resolve({ langClient: ls.langClient, isBISupported: ls.biSupported });
                 } catch (error) {
                     throw new Error("LS Activation failed", error);
@@ -547,27 +552,31 @@ const stateMachine = createMachine<MachineContext>(
         },
         openWebView: (context, event) => {
             // Get context values from the project storage so that we can restore the earlier state when user reopens vscode
-            return new Promise((resolve, reject) => {
-                if (!VisualizerWebview.currentPanel) {
-                    extension.ballerinaExtInstance.setContext(extension.context);
-                    VisualizerWebview.currentPanel = new VisualizerWebview();
-                    RPCLayer._messenger.onNotification(webviewReady, () => {
-                        history = new History();
-                        undoRedoManager = new UndoRedoManager();
-                        const webview = VisualizerWebview.currentPanel?.getWebview();
-                        if (webview && (context.isBI || context.view === MACHINE_VIEW.BIWelcome)) {
-                            const biExtension = isInWI() || extensions.getExtension('wso2.ballerina-integrator');
-                            webview.iconPath = {
-                                light: Uri.file(path.join(extension.context.extensionPath, 'resources', 'icons', biExtension ? 'wso2-dark.svg' : 'ballerina.svg')),
-                                dark: Uri.file(path.join(extension.context.extensionPath, 'resources', 'icons', biExtension ? 'wso2-light.svg' : 'ballerina-inverse.svg'))
-                            };
-                        }
+            return new Promise(async (resolve, reject) => {
+                try {
+                    if (!VisualizerWebview.currentPanel) {
+                        await closeOrphanWebviewTabs([VisualizerWebview.viewType]);
+                        extension.ballerinaExtInstance.setContext(extension.context);
+                        VisualizerWebview.currentPanel = new VisualizerWebview();
+                        RPCLayer._messenger.onNotification(webviewReady, () => {
+                            history = new History();
+                            undoRedoManager = new UndoRedoManager();
+                            const webview = VisualizerWebview.currentPanel?.getWebview();
+                            if (webview && (context.isBI || context.view === MACHINE_VIEW.BIWelcome)) {
+                                const biExtension = isInWI() || extensions.getExtension('wso2.ballerina-integrator');
+                                webview.iconPath = {
+                                    light: Uri.file(path.join(extension.context.extensionPath, 'resources', 'icons', biExtension ? 'wso2-dark.svg' : 'ballerina.svg')),
+                                    dark: Uri.file(path.join(extension.context.extensionPath, 'resources', 'icons', biExtension ? 'wso2-light.svg' : 'ballerina-inverse.svg'))
+                                };
+                            }
+                            resolve(true);
+                        });
+                    } else {
+                        VisualizerWebview.currentPanel!.getWebview()?.reveal();
                         resolve(true);
-                    });
-
-                } else {
-                    VisualizerWebview.currentPanel!.getWebview()?.reveal();
-                    resolve(true);
+                    }
+                } catch (e) {
+                    reject(e);
                 }
             });
         },
@@ -1080,6 +1089,19 @@ async function handleSingleWorkspaceFolder(workspaceURI: Uri): Promise<ProjectMe
         }
 
         return { isBI, projectPath, scope, orgName, packageName };
+    }
+}
+
+function refreshProjectExplorer() {
+    try {
+        const integratorExtension = extensions.getExtension('wso2.wso2-integrator');
+        if (integratorExtension && !integratorExtension.isActive) {
+            return;
+        }
+    
+        commands.executeCommand(BI_COMMANDS.PROJECT_EXPLORER_REFRESH);
+    } catch (error) {
+        console.error('Error refreshing project explorer:', error);
     }
 }
 

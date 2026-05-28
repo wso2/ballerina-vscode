@@ -16,6 +16,7 @@
  * under the License.
  */
 
+import * as path from 'path';
 import {
     WorkspaceChatState,
     ChatThread,
@@ -24,9 +25,30 @@ import {
     GenerationReviewState,
     Checkpoint,
 } from '@wso2/ballerina-core/lib/state-machine-types';
-import { Command } from '@wso2/ballerina-core';
-import * as crypto from 'crypto';
 import { approvalManager } from '../../features/ai/state/ApprovalManager';
+import { generateId } from './idGenerators';
+import {
+    CopilotPersistenceStore,
+    PersistedThread,
+    PersistedGeneration,
+    PersistedCheckpoint,
+    PersistedPlan,
+    PersistedCompactionMetadata,
+    PersistedCodeContext,
+} from '@wso2/copilot-utilities/chat-persistence';
+
+/**
+ * Resolve a stable workspace identity for persistence hashing.
+ *
+ * In the cloud editor, every project is checked out at the same filesystem path
+ * inside its container, so hashing the path would collide across projects when
+ * a container is reused. When the cloud-assigned project id is available via
+ * `CLOUD_INITIAL_PROJECT_ID`, use it directly as the identity. Otherwise fall
+ * back to the resolved path (local dev and any non-cloud environment).
+ */
+function resolveWorkspaceIdentity(projectRootPath: string): string {
+    return process.env.CLOUD_INITIAL_PROJECT_ID ?? path.resolve(projectRootPath);
+}
 
 /**
  * Active execution handle
@@ -37,26 +59,257 @@ export interface ActiveExecution {
     abortController: AbortController;  // For actual abort operation
 }
 
+// ============================================
+// Conversion Helpers
+// ============================================
+
+function toPersistedCompactionMetadata(
+    cm: NonNullable<GenerationMetadata['compactionMetadata']>
+): PersistedCompactionMetadata {
+    return {
+        compactedAt: cm.compactedAt,
+        originalMessageCount: cm.originalMessageCount,
+        originalTokenEstimate: cm.originalTokenEstimate,
+        compactedTokenEstimate: cm.compactedTokenEstimate,
+        retries: cm.retries,
+        mode: cm.mode,
+        userInstructions: cm.userInstructions,
+        backupPath: cm.backupPath,
+        compactedGenerationIds: cm.compactedGenerationIds,
+        isCompactedGeneration: cm.isCompactedGeneration,
+    };
+}
+
+function toPersistedPlan(plan: NonNullable<Generation['plan']>): PersistedPlan {
+    return {
+        id: plan.id,
+        tasks: plan.tasks.map(t => ({
+            description: t.description,
+            status: t.status,
+            type: t.type,
+        })),
+        createdAt: plan.createdAt,
+        updatedAt: plan.updatedAt,
+    };
+}
+
+function toPersistedCodeContext(ctx: NonNullable<Generation['codeContext']>): PersistedCodeContext {
+    if (ctx.type === 'addition') {
+        return { type: 'addition', position: { line: ctx.position.line, offset: ctx.position.offset }, filePath: ctx.filePath };
+    }
+    return {
+        type: 'selection',
+        startPosition: { line: ctx.startPosition.line, offset: ctx.startPosition.offset },
+        endPosition: { line: ctx.endPosition.line, offset: ctx.endPosition.offset },
+        filePath: ctx.filePath,
+    };
+}
+
+function toPersistedGeneration(gen: Generation): PersistedGeneration {
+    return {
+        id: gen.id,
+        userPrompt: gen.userPrompt,
+        modelMessages: gen.modelMessages,
+        uiResponse: gen.uiResponse,
+        timestamp: gen.timestamp,
+        currentTaskIndex: gen.currentTaskIndex,
+        reviewState: {
+            status: gen.reviewState.status,
+            modifiedFiles: gen.reviewState.modifiedFiles,
+            errorMessage: gen.reviewState.errorMessage,
+        },
+        metadata: {
+            isPlanMode: gen.metadata.isPlanMode,
+            operationType: gen.metadata.operationType,
+            generationType: gen.metadata.generationType,
+            commandType: gen.metadata.commandType,
+            compactionMetadata: gen.metadata.compactionMetadata
+                ? toPersistedCompactionMetadata(gen.metadata.compactionMetadata)
+                : undefined,
+        },
+        hasCheckpoint: !!gen.checkpoint,
+        plan: gen.plan ? toPersistedPlan(gen.plan) : undefined,
+        fileAttachments: gen.fileAttachments?.map(f => ({ fileName: f.fileName, content: f.content })),
+        codeContext: gen.codeContext ? toPersistedCodeContext(gen.codeContext) : undefined,
+    };
+}
+
+function fromPersistedGeneration(pg: PersistedGeneration): Generation {
+    return {
+        id: pg.id,
+        userPrompt: pg.userPrompt,
+        modelMessages: pg.modelMessages as any[],
+        uiResponse: pg.uiResponse,
+        timestamp: pg.timestamp,
+        currentTaskIndex: pg.currentTaskIndex,
+        reviewState: {
+            status: pg.reviewState.status,
+            modifiedFiles: pg.reviewState.modifiedFiles,
+            errorMessage: pg.reviewState.errorMessage,
+            // tempProjectPath and affectedPackagePaths are runtime-only
+        },
+        metadata: {
+            isPlanMode: pg.metadata.isPlanMode,
+            operationType: pg.metadata.operationType as GenerationMetadata['operationType'],
+            generationType: pg.metadata.generationType as GenerationMetadata['generationType'],
+            commandType: pg.metadata.commandType,
+            compactionMetadata: pg.metadata.compactionMetadata
+                ? {
+                    compactedAt: pg.metadata.compactionMetadata.compactedAt,
+                    originalMessageCount: pg.metadata.compactionMetadata.originalMessageCount,
+                    originalTokenEstimate: pg.metadata.compactionMetadata.originalTokenEstimate,
+                    compactedTokenEstimate: pg.metadata.compactionMetadata.compactedTokenEstimate,
+                    retries: pg.metadata.compactionMetadata.retries,
+                    mode: pg.metadata.compactionMetadata.mode as 'auto' | 'manual',
+                    userInstructions: pg.metadata.compactionMetadata.userInstructions,
+                    backupPath: pg.metadata.compactionMetadata.backupPath,
+                    compactedGenerationIds: pg.metadata.compactionMetadata.compactedGenerationIds,
+                    isCompactedGeneration: pg.metadata.compactionMetadata.isCompactedGeneration,
+                }
+                : undefined,
+        },
+        checkpoint: undefined, // Loaded on demand from separate file
+        plan: pg.plan
+            ? {
+                id: pg.plan.id,
+                tasks: pg.plan.tasks.map(t => ({
+                    description: t.description,
+                    status: t.status as any,
+                    type: t.type as any,
+                })),
+                createdAt: pg.plan.createdAt,
+                updatedAt: pg.plan.updatedAt,
+            }
+            : undefined,
+        fileAttachments: pg.fileAttachments as Generation['fileAttachments'],
+        codeContext: pg.codeContext as Generation['codeContext'],
+    };
+}
+
+function toPersistedThread(thread: ChatThread): Omit<PersistedThread, 'schemaVersion'> {
+    return {
+        id: thread.id,
+        name: thread.name,
+        sessionId: thread.sessionId,
+        createdAt: thread.createdAt,
+        updatedAt: thread.updatedAt,
+        generations: thread.generations.map(toPersistedGeneration),
+    };
+}
+
+function fromPersistedThread(pt: PersistedThread): ChatThread {
+    return {
+        id: pt.id,
+        name: pt.name,
+        sessionId: pt.sessionId,
+        createdAt: pt.createdAt,
+        updatedAt: pt.updatedAt,
+        generations: pt.generations.map(fromPersistedGeneration),
+    };
+}
+
+function toPersistedCheckpoint(checkpoint: Checkpoint): Omit<PersistedCheckpoint, 'schemaVersion'> {
+    return {
+        id: checkpoint.id,
+        messageId: checkpoint.messageId,
+        timestamp: checkpoint.timestamp,
+        fileList: checkpoint.fileList,
+        snapshotSize: checkpoint.snapshotSize,
+        workspaceSnapshot: checkpoint.workspaceSnapshot,
+    };
+}
+
+function fromPersistedCheckpoint(pc: PersistedCheckpoint): Checkpoint {
+    return {
+        id: pc.id,
+        messageId: pc.messageId,
+        timestamp: pc.timestamp,
+        fileList: pc.fileList,
+        snapshotSize: pc.snapshotSize,
+        workspaceSnapshot: pc.workspaceSnapshot,
+    };
+}
+
 /**
- * Thread-based ChatStateStorage
+ * Thread-based ChatStateStorage with file persistence
  *
  * Single source of truth for all copilot chat state.
  * Stores workspace -> threads -> generations hierarchy.
- * Session-only storage (cleared when VSCode closes).
+ * Persists to ~/.ballerina/copilot/ — files are the source of truth.
+ * Writes to disk after every mutation; reads from disk on initialize/load.
+ *
+ * Active executions (AbortController) are kept in-memory only.
+ * Checkpoint snapshots are stored in separate gzipped files.
  */
 export class ChatStateStorage {
-    // In-memory storage: projectRootPath -> WorkspaceChatState
+    // In-memory cache: projectRootPath -> WorkspaceChatState
+    // Loaded from disk on initializeWorkspace, flushed on every mutation
     private storage: Map<string, WorkspaceChatState> = new Map();
 
-    // Track active executions per workspace/thread for abort functionality
+    // Track active executions per workspace/thread for abort functionality (runtime-only)
     private activeExecutions: Map<string, Map<string, ActiveExecution>> = new Map();
+
+    // File-based persistence store
+    private readonly persistenceStore: CopilotPersistenceStore;
+
+    constructor() {
+        this.persistenceStore = new CopilotPersistenceStore({
+            workspaceIdResolver: resolveWorkspaceIdentity,
+        });
+    }
+
+    // ============================================
+    // Persistence Helpers
+    // ============================================
+
+    /**
+     * Flush a thread to disk after mutation.
+     * Called after every state change to keep files as the source of truth.
+     */
+    private flushThread(projectRootPath: string, threadId: string): void {
+        const workspace = this.storage.get(projectRootPath);
+        if (!workspace) {
+            return;
+        }
+        const thread = workspace.threads.get(threadId);
+        if (!thread) {
+            return;
+        }
+        try {
+            this.persistenceStore.saveThread(projectRootPath, threadId, toPersistedThread(thread));
+        } catch (err) {
+            console.error(`[ChatStateStorage] Failed to persist thread ${threadId}:`, err);
+        }
+    }
+
+    /**
+     * Flush workspace metadata to disk.
+     */
+    private flushWorkspaceMetadata(projectRootPath: string): void {
+        const workspace = this.storage.get(projectRootPath);
+        if (!workspace) {
+            return;
+        }
+        try {
+            const existing = this.persistenceStore.getWorkspaceMetadata(projectRootPath);
+            this.persistenceStore.saveWorkspaceMetadata(projectRootPath, {
+                workspacePath: projectRootPath,
+                activeThreadId: workspace.activeThreadId,
+                createdAt: existing?.createdAt ?? Date.now(),
+                updatedAt: Date.now(),
+            });
+        } catch (err) {
+            console.error(`[ChatStateStorage] Failed to persist workspace metadata:`, err);
+        }
+    }
 
     // ============================================
     // Workspace Management
     // ============================================
 
     /**
-     * Initialize workspace state (creates default thread if needed)
+     * Initialize workspace state.
+     * Loads from disk if persisted data exists, otherwise creates default thread.
      * @param projectRootPath Workspace identifier
      * @returns Workspace state
      */
@@ -64,26 +317,89 @@ export class ChatStateStorage {
         let workspaceState = this.storage.get(projectRootPath);
 
         if (!workspaceState) {
-            // Create default thread
-            const defaultThread: ChatThread = {
-                id: 'default',
-                name: 'Default Thread',
-                generations: [],
-                createdAt: Date.now(),
-                updatedAt: Date.now(),
-            };
+            // Try to load from disk
+            const meta = this.persistenceStore.getWorkspaceMetadata(projectRootPath);
+            if (meta) {
+                // Restore from disk — load thread directories directly (avoid N+1 from listThreads + loadThread)
+                const threadIds = this.persistenceStore.listThreadIds(projectRootPath);
+                const threads = new Map<string, ChatThread>();
 
-            workspaceState = {
-                projectRootPath,
-                threads: new Map([[defaultThread.id, defaultThread]]),
-                activeThreadId: defaultThread.id,
-            };
+                for (const threadId of threadIds) {
+                    const persisted = this.persistenceStore.loadThread(projectRootPath, threadId);
+                    if (persisted) {
+                        const thread = fromPersistedThread(persisted);
+                        // Restore checkpoint references from disk
+                        this.restoreCheckpointReferences(projectRootPath, thread);
+                        threads.set(threadId, thread);
+                    }
+                }
 
-            this.storage.set(projectRootPath, workspaceState);
-            console.log(`[ChatStateStorage] Initialized workspace: ${projectRootPath} with default thread`);
+                // Ensure at least the default thread exists
+                if (threads.size === 0) {
+                    const defaultThread: ChatThread = {
+                        id: 'default',
+                        name: 'Default Thread',
+                        generations: [],
+                        createdAt: Date.now(),
+                        updatedAt: Date.now(),
+                    };
+                    threads.set('default', defaultThread);
+                }
+
+                workspaceState = {
+                    projectRootPath,
+                    threads,
+                    activeThreadId: meta.activeThreadId,
+                };
+
+                this.storage.set(projectRootPath, workspaceState);
+                console.log(`[ChatStateStorage] Restored workspace from disk: ${projectRootPath} with ${threads.size} thread(s)`);
+            } else {
+                // Create fresh default thread
+                const now = Date.now();
+                const defaultThread: ChatThread = {
+                    id: 'default',
+                    name: 'Default Thread',
+                    generations: [],
+                    createdAt: now,
+                    updatedAt: now,
+                };
+
+                workspaceState = {
+                    projectRootPath,
+                    threads: new Map([[defaultThread.id, defaultThread]]),
+                    activeThreadId: defaultThread.id,
+                };
+
+                this.storage.set(projectRootPath, workspaceState);
+                // Persist the new workspace
+                this.flushWorkspaceMetadata(projectRootPath);
+                this.flushThread(projectRootPath, 'default');
+                console.log(`[ChatStateStorage] Initialized workspace: ${projectRootPath} with default thread`);
+            }
         }
 
         return workspaceState;
+    }
+
+    /**
+     * Restore checkpoint objects from separate gzipped files into generation objects.
+     * Loads full checkpoint data (including workspaceSnapshot) so it's available
+     * for file diff comparisons during reviews.
+     */
+    private restoreCheckpointReferences(projectRootPath: string, thread: ChatThread): void {
+        const persistedCheckpointGenIds = this.persistenceStore.listCheckpoints(projectRootPath, thread.id);
+        const checkpointGenIdSet = new Set(persistedCheckpointGenIds);
+
+        for (const generation of thread.generations) {
+            if (checkpointGenIdSet.has(generation.id)) {
+                // Load the full checkpoint from disk
+                const pc = this.persistenceStore.loadCheckpoint(projectRootPath, thread.id, generation.id);
+                if (pc) {
+                    generation.checkpoint = fromPersistedCheckpoint(pc);
+                }
+            }
+        }
     }
 
     /**
@@ -123,6 +439,8 @@ export class ChatStateStorage {
         }
 
         this.storage.delete(projectRootPath);
+        // Also remove persisted data
+        this.persistenceStore.deleteWorkspace(projectRootPath);
         console.log(`[ChatStateStorage] Cleared workspace: ${projectRootPath}`);
     }
 
@@ -161,6 +479,9 @@ export class ChatStateStorage {
             };
             workspace.threads.set(threadId, thread);
             workspace.activeThreadId = threadId;
+            // Persist new thread and updated metadata
+            this.flushThread(projectRootPath, threadId);
+            this.flushWorkspaceMetadata(projectRootPath);
             console.log(`[ChatStateStorage] Created thread: ${threadId} in workspace: ${projectRootPath}`);
         }
 
@@ -204,7 +525,7 @@ export class ChatStateStorage {
         const thread = this.getOrCreateThread(projectRootPath, threadId);
 
         const generation: Generation = {
-            id: id || this.generateId(),
+            id: id || generateId(),
             userPrompt,
             modelMessages: [],
             uiResponse: '',
@@ -225,6 +546,8 @@ export class ChatStateStorage {
         thread.generations.push(generation);
         thread.updatedAt = Date.now();
 
+        // Persist immediately
+        this.flushThread(projectRootPath, threadId);
         console.log(`[ChatStateStorage] Added generation: ${generation.id} to thread: ${threadId}`);
 
         // Capture checkpoint for this generation asynchronously (skip for synthetic compacted generations)
@@ -292,6 +615,8 @@ export class ChatStateStorage {
         Object.assign(generation, updates);
         thread.updatedAt = Date.now();
 
+        // Persist immediately
+        this.flushThread(projectRootPath, threadId);
         console.log(`[ChatStateStorage] Updated generation: ${generationId}`);
     }
 
@@ -307,6 +632,10 @@ export class ChatStateStorage {
         if (index !== -1) {
             thread.generations.splice(index, 1);
             thread.updatedAt = Date.now();
+            // Persist immediately
+            this.flushThread(projectRootPath, threadId);
+            // Also clean up checkpoint file if it exists
+            this.persistenceStore.deleteCheckpoint(projectRootPath, threadId, generationId);
             console.log(`[ChatStateStorage] Removed generation: ${generationId}`);
         }
     }
@@ -352,10 +681,40 @@ export class ChatStateStorage {
     getChatHistoryForLLM(projectRootPath: string, threadId: string): any[] {
         const thread = this.getOrCreateThread(projectRootPath, threadId);
         const messages: any[] = [];
+        const activeGenerationId = this.getActiveExecution(projectRootPath, threadId)?.generationId;
 
         for (const generation of thread.generations) {
             if (generation.modelMessages && generation.modelMessages.length > 0) {
                 messages.push(...generation.modelMessages);
+                continue;
+            }
+            // Skip the live generation — its prompt is appended separately by the caller.
+            if (generation.id === activeGenerationId) {
+                continue;
+            }
+            // Aborted before modelMessages were persisted — synthesize from userPrompt/uiResponse.
+            if (!generation.userPrompt) {
+                continue;
+            }
+            if (generation.uiResponse) {
+                messages.push({ role: "user", content: generation.userPrompt });
+                messages.push({ role: "assistant", content: generation.uiResponse });
+                messages.push({
+                    role: "user",
+                    content:
+                        `<system-reminder>\n` +
+                        `The previous assistant response was rendered to the user but the request was interrupted before any tool calls, file edits, or tasks were executed. Any actions described were NOT performed — redo them if still required.\n` +
+                        `</system-reminder>`,
+                });
+            } else {
+                messages.push({
+                    role: "user",
+                    content:
+                        `${generation.userPrompt}\n\n` +
+                        `<system-reminder>\n` +
+                        `The previous user message was interrupted before the assistant could respond. No tool calls or file edits were performed.\n` +
+                        `</system-reminder>`,
+                });
             }
         }
 
@@ -417,12 +776,15 @@ export class ChatStateStorage {
         Object.assign(generation.reviewState, state);
         thread.updatedAt = Date.now();
 
+        // Persist immediately
+        this.flushThread(projectRootPath, threadId);
         console.log(`[ChatStateStorage] Updated review state for generation: ${generationId}, status: ${generation.reviewState.status}`);
     }
 
     /**
      * Accept all reviews in a thread
-     * Marks ALL 'under_review' generations as 'accepted'
+     * Marks ALL 'under_review' generations as 'accepted' and clears runtime-only
+     * review fields (affectedPackagePaths) in a single operation.
      * @param projectRootPath Workspace identifier
      * @param threadId Thread identifier
      */
@@ -433,17 +795,22 @@ export class ChatStateStorage {
         for (const generation of thread.generations) {
             if (generation.reviewState.status === 'under_review') {
                 generation.reviewState.status = 'accepted';
+                generation.reviewState.affectedPackagePaths = [];
                 count++;
             }
         }
 
-        thread.updatedAt = Date.now();
+        if (count > 0) {
+            thread.updatedAt = Date.now();
+            this.flushThread(projectRootPath, threadId);
+        }
         console.log(`[ChatStateStorage] Accepted ${count} review(s) in thread: ${threadId}`);
     }
 
     /**
      * Decline all reviews in a thread
-     * Marks ALL 'under_review' generations as 'error'
+     * Marks ALL 'under_review' generations as 'error' and clears runtime-only
+     * review fields (affectedPackagePaths) in a single operation.
      * @param projectRootPath Workspace identifier
      * @param threadId Thread identifier
      */
@@ -455,11 +822,15 @@ export class ChatStateStorage {
             if (generation.reviewState.status === 'under_review') {
                 generation.reviewState.status = 'error';
                 generation.reviewState.errorMessage = 'Declined by user';
+                generation.reviewState.affectedPackagePaths = [];
                 count++;
             }
         }
 
-        thread.updatedAt = Date.now();
+        if (count > 0) {
+            thread.updatedAt = Date.now();
+            this.flushThread(projectRootPath, threadId);
+        }
         console.log(`[ChatStateStorage] Declined ${count} review(s) in thread: ${threadId}`);
     }
 
@@ -542,7 +913,19 @@ export class ChatStateStorage {
 
         console.log(`[ChatStateStorage] Added checkpoint ${checkpoint.id} to generation ${generationId}`);
 
-        // Enforce maxCount limit by removing oldest checkpoints
+        // Persist checkpoint snapshot to separate gzipped file (async)
+        try {
+            await this.persistenceStore.saveCheckpointAsync(
+                projectRootPath,
+                threadId,
+                generationId,
+                toPersistedCheckpoint(checkpoint)
+            );
+        } catch (err) {
+            console.error(`[ChatStateStorage] Failed to persist checkpoint ${checkpoint.id}:`, err);
+        }
+
+        // Enforce checkpoint limit (evicts oldest) and flush thread once at the end
         await this.enforceCheckpointLimit(projectRootPath, threadId);
     }
 
@@ -557,6 +940,8 @@ export class ChatStateStorage {
         const config = getCheckpointConfig();
 
         if (!config.enabled) {
+            // Still flush the thread to persist the newly added checkpoint
+            this.flushThread(projectRootPath, threadId);
             return;
         }
 
@@ -567,8 +952,9 @@ export class ChatStateStorage {
             .map((gen, index) => ({ generation: gen, index }))
             .filter(item => item.generation.checkpoint !== undefined);
 
-        // If we're within the limit, nothing to do
+        // If we're within the limit, just flush and return
         if (generationsWithCheckpoints.length <= config.maxCount) {
+            this.flushThread(projectRootPath, threadId);
             return;
         }
 
@@ -582,9 +968,14 @@ export class ChatStateStorage {
 
             console.log(`[ChatStateStorage] Removing old checkpoint ${checkpointId} (exceeds maxCount: ${config.maxCount})`);
             generation.checkpoint = undefined;
+
+            // Delete the persisted checkpoint file
+            this.persistenceStore.deleteCheckpoint(projectRootPath, threadId, generation.id);
         }
 
         thread.updatedAt = Date.now();
+        // Persist thread with updated checkpoint flags
+        this.flushThread(projectRootPath, threadId);
     }
 
     /**
@@ -615,25 +1006,20 @@ export class ChatStateStorage {
             return false;
         }
 
+        // Clean up checkpoint files for removed generations
+        for (let i = checkpointGenerationIndex; i < thread.generations.length; i++) {
+            this.persistenceStore.deleteCheckpoint(projectRootPath, threadId, thread.generations[i].id);
+        }
+
         // Truncate generations at the checkpoint
         // Remove the generation WITH the checkpoint and everything after it
         // This restores to the state BEFORE the user submitted this message
         thread.generations = thread.generations.slice(0, checkpointGenerationIndex);
         thread.updatedAt = Date.now();
 
+        // Persist immediately
+        this.flushThread(projectRootPath, threadId);
         return true;
-    }
-
-    // ============================================
-    // Utilities
-    // ============================================
-
-    /**
-     * Generate a unique ID
-     * @returns Unique string ID
-     */
-    private generateId(): string {
-        return `${Date.now()}-${crypto.randomBytes(8).toString('hex')}`;
     }
 
     /**

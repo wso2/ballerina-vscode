@@ -141,7 +141,7 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
                     if (onClose) {
                         onClose();
                     } else {
-                        rpcClient.getVisualizerRpcClient()?.goHome();
+                        rpcClient.getVisualizerRpcClient()?.goHome({ isPackageOverview: true });
                     }
                     return;
                 }
@@ -155,7 +155,7 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
                     if (onClose) {
                         onClose();
                     } else {
-                        rpcClient.getVisualizerRpcClient()?.goHome();
+                        rpcClient.getVisualizerRpcClient()?.goHome({ isPackageOverview: true });
                     }
                     return;
                 }
@@ -197,7 +197,7 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
                 if (onClose) {
                     onClose();
                 } else {
-                    rpcClient.getVisualizerRpcClient()?.goHome();
+                    rpcClient.getVisualizerRpcClient()?.goHome({ isPackageOverview: true });
                 }
             } finally {
                 setIsLoading(false);
@@ -211,7 +211,7 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
         if (onClose) {
             onClose();
         } else {
-            rpcClient.getVisualizerRpcClient()?.goHome();
+            rpcClient.getVisualizerRpcClient()?.goHome({ isPackageOverview: true });
         }
     };
 
