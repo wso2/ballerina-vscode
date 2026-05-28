@@ -50,8 +50,9 @@ const getNodeTitle = (model: EntryNodeModel) => {
     if (model.type === "workflow") {
         return (model.node as CDWorkflow).symbol || "";
     }
-    if ((model.node as CDService | CDAutomation).displayName) {
-        return (model.node as CDService | CDAutomation).displayName;
+    const serviceOrAutomation = model.node as CDService | CDAutomation;
+    if (serviceOrAutomation.displayName) {
+        return serviceOrAutomation.displayName;
     }
     if ((model.node as CDService).absolutePath) {
         return (model.node as CDService).absolutePath.replace(/\\/g, "");
@@ -234,11 +235,13 @@ export function GeneralServiceWidget({ model, engine }: BaseNodeWidgetProps) {
     ];
 
     const serviceFunctions = [];
-    if ((model.node as CDService).remoteFunctions?.length > 0) {
-        serviceFunctions.push(...(model.node as CDService).remoteFunctions);
-    }
-    if ((model.node as CDService).resourceFunctions?.length > 0) {
-        serviceFunctions.push(...(model.node as CDService).resourceFunctions);
+    if (model.type !== "workflow") {
+        if ((model.node as CDService).remoteFunctions?.length > 0) {
+            serviceFunctions.push(...(model.node as CDService).remoteFunctions);
+        }
+        if ((model.node as CDService).resourceFunctions?.length > 0) {
+            serviceFunctions.push(...(model.node as CDService).resourceFunctions);
+        }
     }
 
     const isExpanded = expandedNodes.has(model.node.uuid);

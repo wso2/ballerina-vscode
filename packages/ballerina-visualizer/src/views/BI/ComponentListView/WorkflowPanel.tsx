@@ -15,7 +15,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import React from 'react';
 import { Icon } from '@wso2/ui-toolkit';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { EVENT_TYPE, MACHINE_VIEW } from '@wso2/ballerina-core';
@@ -24,20 +23,11 @@ import { CardGrid, PanelViewMore, Title, TitleWrapper } from './styles';
 import { BodyText } from '../../styles';
 import ButtonCard from '../../../components/ButtonCard';
 
-interface WorkflowPanelProps {
-    isLibrary?: boolean;
-}
-
-export function WorkflowPanel(props: WorkflowPanelProps) {
-    const { isLibrary = false } = props;
+export function WorkflowPanel() {
     const { rpcClient } = useRpcContext();
 
-    if (isLibrary) {
-        return null;
-    }
-
-    const handleClick = async () => {
-        await rpcClient.getVisualizerRpcClient().openView({
+    const handleClick = () => {
+        rpcClient.getVisualizerRpcClient().openView({
             type: EVENT_TYPE.OPEN_VIEW,
             location: {
                 view: MACHINE_VIEW.BIWorkflowForm,
