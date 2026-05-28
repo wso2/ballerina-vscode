@@ -25,9 +25,6 @@ import { DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureRespon
 import { SCOPE, ArtifactData, DataMapperMetadata } from "./interfaces/shared-types";
 import { DiagnosticEntry, DocumentationGeneratorIntermediaryState, SourceFile, CodeContext, FileAttatchment } from "./rpc-types/ai-panel/interfaces";
 
-export { SCOPE };
-export type { ArtifactData, DataMapperMetadata };
-
 export type MachineStateValue =
     | 'initialize'
     | 'lsError'
