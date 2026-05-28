@@ -150,7 +150,9 @@ runs:
       shell: bash
       run: |
         zip -rq build.zip ./ -x 'common/temp*' -x '**/node_modules/*' -x 'submodules/wso2-vscode-extensions/.git/*'
-        zip VSIX.zip *.vsix
+        # Resolve the exact VSIX produced by vsce: packages/ballerina-extension/ballerina-<version>.vsix
+        version=$(node -p "require('./packages/ballerina-extension/package.json').version")
+        zip -j VSIX.zip "packages/ballerina-extension/ballerina-${version}.vsix"
 
     - name: Save build
       uses: actions/upload-artifact@v4
