@@ -34,9 +34,9 @@ import * as crypto from 'node:crypto';
 import * as path from 'node:path';
 import { ConfigurationTarget, Disposable, RelativePattern, Uri, window, workspace } from 'vscode';
 import type { AgentsMdStateDTO, ChatThread } from '@wso2/ballerina-core';
-import { notifyAgentsMdStateChanged } from '../../../RPCLayer';
-import { chatStateStorage } from '../../../views/ai-panel/chatStateStorage';
-import { FILE_READ_TOOL_NAME } from './tools/text-editor';
+import { notifyAgentsMdStateChanged } from '../../../../RPCLayer';
+import { chatStateStorage } from '../../../../views/ai-panel/chatStateStorage';
+import { FILE_READ_TOOL_NAME } from '../tools/text-editor';
 
 const AGENTS_MD_FILENAME = 'AGENTS.md';
 const MAX_LINES_IN_BLOCK = 200;

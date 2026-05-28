@@ -24,7 +24,7 @@ import { getAnthropicClient, getProviderCacheControl, addCacheControlToMessages,
 import { populateHistoryForAgent, getErrorMessage } from '../utils/ai-utils';
 import { sendAgentDidOpenForFreshProjects } from '../utils/project/ls-schema-notifications';
 import { getSystemPrompt, getUserPrompt } from './prompts';
-import { prepareAgentsMdForTurn } from './agentsMd';
+import { prepareAgentsMdForTurn } from './agents-md';
 import { GenerationType } from '../utils/libs/libraries';
 import { createToolRegistry } from './tool-registry';
 import { scanCustomSkills, scanUserSkills } from './tools/skill-tool/skill-reader';

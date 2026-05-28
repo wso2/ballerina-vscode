@@ -85,7 +85,7 @@ import {
     getAgentsMdState as getAgentsMdStateImpl,
     setAgentsMdEnabled as setAgentsMdEnabledImpl,
     openOrCreateAgentsMd as openOrCreateAgentsMdImpl,
-} from "../../features/ai/agent/agentsMd";
+} from "../../features/ai/agent/agents-md";
 import { ConfigurationTarget } from "vscode";
 import { getMcpClientManager, ensureMcpConfigFileExists, writeMcpServer, updateMcpServer, deleteMcpServer } from "../../features/ai/agent/mcp";
 import { notifyMcpServersChanged, notifyMcpLoadErrorsChanged, notifyMcpGroupStatesChanged } from "../../RPCLayer";
