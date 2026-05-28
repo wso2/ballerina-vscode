@@ -230,16 +230,15 @@ export async function getAgentsMdFileInfo(): Promise<AgentsMdFileInfoDTO> {
     if (!root) {
         return { fileExists: false, hasWorkspace: false };
     }
-    const current = await readAgentsMd(root);
-    if (!current) {
+    try {
+        await workspace.fs.stat(Uri.file(path.join(root, AGENTS_MD_FILENAME)));
+    } catch {
         return { fileExists: false, hasWorkspace: true };
     }
-    return {
-        fileExists: true,
-        hasWorkspace: true,
-        lineCount: current.lineCount,
-        isEmpty: false,
-    };
+    const current = await readAgentsMd(root);
+    return current
+        ? { fileExists: true, hasWorkspace: true, lineCount: current.lineCount, isEmpty: false }
+        : { fileExists: true, hasWorkspace: true, lineCount: 0, isEmpty: true };
 }
 
 export async function openOrCreateAgentsMd(): Promise<void> {

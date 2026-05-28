@@ -181,6 +181,7 @@ export const SettingsPanel = (props: SettingsPanelProps) => {
         if (!agentsMdInfo) return "…";
         if (!agentsMdInfo.hasWorkspace) return "No workspace open";
         if (!agentsMdInfo.fileExists) return "No AGENTS.md (click icon to create)";
+        if (agentsMdInfo.isEmpty) return "Empty file";
         const n = agentsMdInfo.lineCount ?? 0;
         return `${n} line${n === 1 ? "" : "s"}`;
     })();
