@@ -88,6 +88,7 @@ export interface AIPanelAPI {
     getDefaultPrompt: () => Promise<AIPanelPrompt>; //starting args
     getAIMachineSnapshot: () => Promise<AIMachineSnapshot>; //login state machine
     clearInitialPrompt: () => void; //starting args
+    isScaffoldEnvActive: () => Promise<boolean>; // INITIAL_SCAFFOLD_PROMPT env present (Devant)
     // Data-mapper related functions
     openChatWindowWithCommand: () => void;
     generateContextTypes: (params: ProcessContextTypeCreationRequest) => void;

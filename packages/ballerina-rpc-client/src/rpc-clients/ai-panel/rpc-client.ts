@@ -82,6 +82,7 @@ import {
     getChatMessages,
     getCheckpoints,
     getDefaultPrompt,
+    isScaffoldEnvActive,
     getDriftDiagnosticContents,
     getFromDocumentation,
     getGeneratedDocumentation,
@@ -185,6 +186,10 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     clearInitialPrompt(): void {
         return this._messenger.sendNotification(clearInitialPrompt, HOST_EXTENSION);
+    }
+
+    isScaffoldEnvActive(): Promise<boolean> {
+        return this._messenger.sendRequest(isScaffoldEnvActive, HOST_EXTENSION);
     }
 
     openChatWindowWithCommand(): void {
